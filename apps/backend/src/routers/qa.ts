@@ -853,13 +853,13 @@ async function buildQaQuestionPayloadFromDb(options: {
     ? Prisma.empty
     : options.participantId && !shareRankingLoad
       ? Prisma.sql`AND (
-          question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')
+          question."status" IN ('ACTIVE', 'PINNED')
           OR (
             question."status" = 'PENDING'
             AND question."participantId" = ${options.participantId}
           )
         )`
-      : Prisma.sql`AND question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`;
+      : Prisma.sql`AND question."status" IN ('ACTIVE', 'PINNED')`;
   const statusFilter =
     options.statuses && options.statuses.length > 0
       ? Prisma.sql`AND question."status"::TEXT IN (${Prisma.join(options.statuses)})`

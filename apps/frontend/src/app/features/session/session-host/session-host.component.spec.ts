@@ -940,7 +940,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLElement;
     expect(nav.getAttribute('aria-label')).toBe('Projektionsfragen');
     expect(nav.textContent).toContain('Vorherige Frage');
-    expect(nav.textContent).toContain('Nächste wartende Frage');
+    expect(nav.textContent).toContain('Nächste Frage');
     expect(nav.textContent).toContain('1 / 3');
     expect(component.projectionNavigationIsQaQuestions()).toBe(true);
 
@@ -10506,7 +10506,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it.each(['search', 'pinned', 'pending', 'author'] as const)(
+  it.each(['search', 'pinned', 'pending', 'archived', 'author'] as const)(
     'löst den extern gesetzten %s-Filter bei geschlossenen Werkzeugen und erhält sichtbaren Fokus',
     async (filter) => {
       const fixture = await setupQaWorkspace();
@@ -10517,6 +10517,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }
       if (filter === 'pinned') component.qaShowPinnedOnly.set(true);
       if (filter === 'pending') component.qaShowPendingOnly.set(true);
+      if (filter === 'archived') component.qaShowArchivedOnly.set(true);
       if (filter === 'author') component.qaSelectedAuthorNickname.set('Ada');
       fixture.detectChanges();
       const clear = fixture.nativeElement.querySelector(
@@ -11298,6 +11299,124 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('filtert die Host-Liste auf Im Archiv und schließt andere Status aus', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const activeQuestion = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Freigegeben',
+      upvoteCount: 2,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    const archivedQuestion = {
+      id: '44444444-4444-4444-8444-444444444444',
+      text: 'Beantwortet im Archiv',
+      upvoteCount: 0,
+      status: 'ARCHIVED' as const,
+      createdAt: '2026-03-13T12:01:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    };
+    qaListQueryMock.mockImplementation(async (input?: { statuses?: string[] }) => {
+      const statuses = input?.statuses ?? ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
+      const questions = [activeQuestion, archivedQuestion].filter((question) =>
+        statuses.includes(question.status),
+      );
+      return {
+        questions,
+        state: 'ACTIVE' as const,
+        sessionLifecycleRevision: 1,
+        serverNow: '2026-03-13T12:00:00.000Z',
+        expiresAt: '2026-03-14T12:00:00.000Z',
+        qaClosesAt: '2026-03-14T12:00:00.000Z',
+        endedAt: null,
+        postProcessingEndsAt: null,
+        rankingRevision: `1:BEST:${statuses.join(',')}`,
+        nextCursor: null,
+        totalCount: questions.length,
+        pendingCount: 0,
+        hostStatusCounts: { active: 1, pinned: 0, pending: 0, archived: 1 },
+      };
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="qa-filter-archived"]'),
+    ).not.toBeNull();
+    expect(component.qaVisibleQuestions().map((question) => question.id)).toEqual([
+      activeQuestion.id,
+      archivedQuestion.id,
+    ]);
+    expect(fixture.nativeElement.textContent).toContain('Freigegeben');
+    expect(fixture.nativeElement.textContent).toContain('Beantwortet im Archiv');
+    expect(fixture.nativeElement.textContent).toContain('Archivieren');
+    expect(fixture.nativeElement.textContent).toContain('Zurück aus dem Archiv');
+
+    qaListQueryMock.mockClear();
+    await component.setQaArchivedFilter(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowArchivedOnly()).toBe(true);
+    expect(component.qaShowPinnedOnly()).toBe(false);
+    expect(component.qaShowPendingOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['ARCHIVED'],
+        moderatorView: true,
+      }),
+    );
+    expect(component.qaVisibleQuestions().map((question) => question.id)).toEqual([
+      archivedQuestion.id,
+    ]);
+    expect(fixture.nativeElement.textContent).toContain('Beantwortet im Archiv');
+    expect(fixture.nativeElement.textContent).not.toContain('Freigegeben');
+    expect(fixture.nativeElement.textContent).toContain('Zurück aus dem Archiv');
+    expect(fixture.nativeElement.textContent).not.toContain('Archivieren');
+    expect(fixture.nativeElement.querySelector('[data-testid="qa-clear-archived"]')).not.toBeNull();
+
+    qaListQueryMock.mockClear();
+    await component.setQaArchivedFilter(false);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(component.qaShowArchivedOnly()).toBe(false);
+    expect(qaListQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statuses: ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'],
+        moderatorView: true,
+      }),
+    );
+    expect(component.qaVisibleQuestions().map((question) => question.id)).toEqual([
+      activeQuestion.id,
+      archivedQuestion.id,
+    ]);
+    expect(fixture.nativeElement.textContent).toContain('Freigegeben');
+    expect(fixture.nativeElement.textContent).toContain('Beantwortet im Archiv');
+    expect(fixture.nativeElement.textContent).toContain('Archivieren');
+    expect(fixture.nativeElement.textContent).toContain('Zurück aus dem Archiv');
+    fixture.destroy();
+  });
+
   it('behält Nur in Moderation bei einem Rückstau auch nach dem Ausschalten bei', async () => {
     getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
@@ -11548,7 +11667,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(text).toContain('Umstritten');
     expect(text).toContain('Zeit');
-    expect(text).toContain('8 positiv · 8 negativ');
+    expect(text).not.toContain('8 positiv · 8 negativ');
+    const voteStats = fixture.nativeElement.querySelectorAll('.session-qa-card__vote-stat');
+    expect(voteStats[0]?.classList.contains('session-qa-card__vote-stat--up')).toBe(true);
+    expect(voteStats[0]?.textContent).toContain('8');
+    expect(voteStats[0]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_up');
+    expect(voteStats[1]?.classList.contains('session-qa-card__vote-stat--down')).toBe(true);
+    expect(voteStats[1]?.textContent).toContain('8');
+    expect(voteStats[1]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_down');
     expect(text).toContain('Geteilte Reaktionen 80 %');
     fixture.destroy();
   });
@@ -11566,6 +11692,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(styles).toMatch(
       /\.session-qa-card--pinned \{[^}]*color:\s*var\(--mat-sys-on-primary-container\)/,
+    );
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned[\s\S]*?\.session-qa-card__votes \{[\s\S]*?background:\s*var\(--mat-sys-surface\)/,
+    );
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned[\s\S]*?\.session-qa-card__vote-stat--up \{[\s\S]*?color:\s*var\(--arsnova-bar-correct\)/,
+    );
+    expect(styles).toMatch(
+      /\.session-qa-card--pinned[\s\S]*?\.session-qa-card__vote-stat--down \{[\s\S]*?color:\s*var\(--arsnova-bar-wrong\)/,
     );
     expect(styles).toContain('var(--mat-sys-on-primary-container)');
     expect(styles).toMatch(/\.session-qa-card--highlight:not\(\.session-qa-card--pinned\)/);
@@ -15800,10 +15935,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('setzt beim Beenden der Projektionsansicht Hero-Auszeichnung und Bühnen-Badges zurück', async () => {
+  it('hält Hero-Rahmen und Navigator nach Beenden der Projektionsansicht als Host-Bearbeitungshilfe', async () => {
     setPresenterSurfaceMutateMock.mockResolvedValue({
       presenterSurface: 'ended',
-      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      presenterPage: { context: 'qa-questions', index: 1, count: 4 },
     });
     const fixture = setup();
     fixture.detectChanges();
@@ -15856,31 +15991,21 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
-    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(true);
-    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(1);
-    expect(fixture.nativeElement.textContent).toContain('Aktuell in der Präsentation');
 
     await component.endPresentationView();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(component.session()?.presenterSurface).toBe('ended');
-    expect(component.session()?.presenterPage?.index).toBe(0);
-    expect(component.qaPresenterHeroQuestionId()).toBeNull();
-    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
-    expect(component.isQaPresenterHeroCard('pin-1')).toBe(false);
+    expect(component.projectionNavigationIsQaQuestions()).toBe(true);
+    expect(component.showProjectionPageNavigation()).toBe(true);
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-1');
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
     expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(false);
-    expect(
-      (
-        component as SessionHostComponent & {
-          qaPresenterStageOrderedQuestions: { (): QaQuestionDTO[] | null };
-        }
-      ).qaPresenterStageOrderedQuestions(),
-    ).toBeNull();
-    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(0);
+    expect(fixture.nativeElement.textContent).not.toContain('Aktuell in der Präsentation');
     expect(
       fixture.nativeElement.querySelectorAll('.session-qa-card__badge--on-presenter'),
     ).toHaveLength(0);
-    expect(fixture.nativeElement.textContent).not.toContain('Aktuell in der Präsentation');
     fixture.destroy();
   });
 
@@ -15950,8 +16075,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     await component.endPresentationView();
     fixture.detectChanges();
-    expect(component.qaPresenterHeroQuestionId()).toBeNull();
-    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+    expect(component.session()?.presenterSurface).toBe('ended');
+    // Surface-Reset setzt den Navigator-Index auf 0 → Hero wieder erste Bühnenfrage.
+    expect(component.qaPresenterHeroQuestionId()).toBe('pin-1');
+    expect(component.isQaPresenterHeroCard('pin-1')).toBe(true);
+    expect(component.showProjectionPageNavigation()).toBe(true);
     fixture.destroy();
   });
 
@@ -16055,7 +16183,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('verwirft verspätete presentProjection-Antworten nach Projektionsende', async () => {
+  it('übernimmt presentProjection auch nach Projektionsende für den Host-Hero-Rahmen', async () => {
     let resolveProjection!: (value: { questions: QaQuestionDTO[]; state: string }) => void;
     qaPresentProjectionQueryMock.mockImplementation(
       () =>
@@ -16093,8 +16221,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     resolveProjection({
       questions: [
         {
-          id: 'stale-hero',
-          text: 'Verspätet',
+          id: 'focus-hero',
+          text: 'Weiterhin Fokus',
           upvoteCount: 1,
           status: 'PINNED',
           createdAt: '2026-03-13T12:00:00.000Z',
@@ -16108,15 +16236,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(
-      (
-        component as SessionHostComponent & {
-          qaPresenterStageOrderedQuestions: { (): QaQuestionDTO[] | null };
-        }
-      ).qaPresenterStageOrderedQuestions(),
-    ).toBeNull();
-    expect(component.qaPresenterHeroQuestionId()).toBeNull();
-    expect(component.isQaPresenterHeroCard('stale-hero')).toBe(false);
+    expect(component.qaPresenterHeroQuestionId()).toBe('focus-hero');
+    expect(component.isQaPresenterHeroCard('focus-hero')).toBe(true);
     fixture.destroy();
   });
 

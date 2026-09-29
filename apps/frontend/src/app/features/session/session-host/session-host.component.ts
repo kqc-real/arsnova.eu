@@ -1998,6 +1998,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaShowPinnedOnly = signal(false);
   readonly qaShowPendingOnly = signal(false);
+  readonly qaShowArchivedOnly = signal(false);
   readonly qaPinnedFilterAriaLabel = computed(() =>
     this.qaShowPinnedOnly()
       ? $localize`:@@sessionQa.filterShowAllAria:Alle Fragen anzeigen`
@@ -2007,6 +2008,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaShowPendingOnly()
       ? $localize`:@@sessionQa.filterShowAllAria:Alle Fragen anzeigen`
       : $localize`:@@sessionQa.filterPendingAria:Nur Fragen in Moderation anzeigen`,
+  );
+  readonly qaArchivedFilterAriaLabel = computed(() =>
+    this.qaShowArchivedOnly()
+      ? $localize`:@@sessionQa.filterShowAllAria:Alle Fragen anzeigen`
+      : $localize`:@@sessionQa.filterArchivedAria:Fragen im Archiv anzeigen`,
   );
   readonly qaSearchDraft = signal('');
   readonly qaSearch = signal('');
@@ -2027,6 +2033,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (this.qaShowPendingOnly()) {
       return all.filter((q) => q.status === 'PENDING');
+    }
+    if (this.qaShowArchivedOnly()) {
+      return all.filter((q) => q.status === 'ARCHIVED');
     }
     return all;
   });
@@ -2072,7 +2081,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ? visibleQuestions.filter((question) => question.status === 'PINNED')
       : this.qaShowPendingOnly()
         ? visibleQuestions.filter((question) => question.status === 'PENDING')
-        : visibleQuestions;
+        : this.qaShowArchivedOnly()
+          ? []
+          : visibleQuestions;
   });
   readonly qaWordCloudQuestions = computed(() =>
     this.qaWordCloudFrozen()
@@ -2842,6 +2853,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.clearQaAuthorFilter();
       await this.setQaPinnedFilter(false, { scrollToTop: false });
       await this.setQaPendingFilter(false, { scrollToTop: false });
+      await this.setQaArchivedFilter(false, { scrollToTop: false });
     }
     await this.selectChannel(target.channel);
     if (target.surface === 'word-cloud') {
@@ -3678,6 +3690,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void sessionId;
       void qaEnabled;
       void qaSortMode;
+      void this.qaShowPinnedOnly();
+      void this.qaShowPendingOnly();
+      void this.qaShowArchivedOnly();
+      void this.qaSearch();
+      void this.qaListPageSize();
       untracked(() => this.ensureQaSubscription());
     });
     effect(() => {
@@ -5898,10 +5915,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private static readonly QA_PROJECTION_MAX_ACTIVE =
     QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1]!;
   private qaProjectionPageSyncInFlight = false;
-  /** Q&A-Fragen-Navigator, solange die Präsentation die Fragenfläche zeigt. */
+  /**
+   * Q&A-Fragen-Navigator und Hero-Rahmen: solange der Q&A-Kanal bevorzugt ist
+   * (auch ohne laufende Projektion / nach »Projektionsansicht beenden«).
+   */
   readonly projectionNavigationIsQaQuestions = computed(() => {
     const session = this.session();
-    if (!session || session.presenterSurface === 'ended') {
+    if (!session) {
       return false;
     }
     if (session.presenterSurface === 'qaWordCloud') {
@@ -5983,16 +6003,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return ids;
   });
   /**
-   * Hero = Frage am Navigator-Index während der Q&A-Projektion.
-   * Bei `presenterSurface === 'ended'` (»Projektionsansicht beenden«) keine Auszeichnung.
+   * Hero = Frage am Navigator-Index (Bearbeitungsrahmen im Host-Forum).
+   * Unabhängig von `presenterSurface` — auch ohne laufende Projektion.
    */
   readonly qaPresenterHeroQuestionId = computed(() => {
     const session = this.session();
-    if (!session || session.presenterSurface === 'ended') {
+    if (!session) {
       return null;
     }
     if (!this.projectionNavigationIsQaQuestions()) {
-      // Ohne Fragen-Projektion: erstes PINNED als Forum-Hinweis (Status „wird besprochen“).
+      // Anderer Kanal / Wortwolke: erstes PINNED als Forum-Hinweis.
       const questions = this.qaProjectionStageQuestions();
       return (
         questions.find((question) => question.status === 'PINNED')?.id ?? questions[0]?.id ?? null
@@ -6023,15 +6043,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showProjectionPageNavigation = computed(() => {
     const session = this.session();
     const page = session?.presenterPage;
-    if (!page || session?.presenterSurface === 'ended') return false;
+    if (!page) return false;
     if (this.projectionNavigationIsQaQuestions()) {
       return (
         this.projectionPageDisplayCount() > 1 ||
         this.projectionControlsVisible() ||
         this.presenterWindowOpen() ||
-        !this.showPresenterViewButton()
+        !this.showPresenterViewButton() ||
+        session?.presenterSurface === 'ended'
       );
     }
+    if (session?.presenterSurface === 'ended') return false;
     return page.count > 1 || this.projectionControlsVisible() || !this.showPresenterViewButton();
   });
   async changeProjectionPage(delta: -1 | 1): Promise<void> {
@@ -9883,7 +9905,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'PINNED':
         return $localize`:@@sessionQa.statusPinnedTooltip:Angepinnt: Diese Frage hebst du hervor. Sie gilt als »Wird gerade besprochen«.`;
       case 'ARCHIVED':
-        return $localize`:@@sessionQa.statusArchivedTooltip:Archiviert: Diese Frage ist als beantwortet markiert und bleibt nachlesbar.`;
+        return $localize`:@@sessionQa.statusArchivedTooltip:Archiviert: Diese Frage ist als beantwortet markiert und liegt im Archiv.`;
       default:
         return '';
     }
@@ -9904,7 +9926,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaArchivedSummaryTooltip(): string {
-    return $localize`:@@sessionQa.summaryArchivedTooltip:Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.`;
+    return this.qaShowArchivedOnly()
+      ? $localize`:@@sessionQa.summaryArchivedTooltipShowAll:Alle Fragen anzeigen.`
+      : $localize`:@@sessionQa.summaryArchivedTooltip:Archiviert: Diese Fragen sind als beantwortet markiert und liegen im Archiv. Zum Öffnen auswählen.`;
   }
 
   qaPinnedSummaryAria(): string {
@@ -9963,7 +9987,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaArchivedSummaryAria(): string {
-    return $localize`:@@sessionQa.summaryArchivedAria:${this.formatCount(this.qaArchivedCount())}:count: archivierte Fragen`;
+    const count = this.formatCount(this.qaArchivedCount());
+    return this.qaShowArchivedOnly()
+      ? $localize`:@@sessionQa.summaryArchivedAriaShowAll:${count}:count: archivierte Fragen. Alle Fragen anzeigen`
+      : $localize`:@@sessionQa.summaryArchivedAria:${count}:count: archivierte Fragen. Fragen im Archiv anzeigen`;
   }
 
   qaStatusIcon(status: QaQuestionDTO['status']): string {
@@ -10146,7 +10173,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): string {
     switch (action) {
       case 'APPROVE':
-        return $localize`:@@sessionQa.actionApprove:Freigeben`;
+        return status === 'ARCHIVED'
+          ? $localize`:@@sessionQa.actionUnarchive:Zurück aus dem Archiv`
+          : $localize`:@@sessionQa.actionApprove:Freigeben`;
       case 'PIN':
         return $localize`:@@sessionQa.actionPin:Hervorheben`;
       case 'UNPIN':
@@ -10160,10 +10189,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  qaActionIcon(action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE'): string {
+  qaActionIcon(
+    action: 'APPROVE' | 'PIN' | 'UNPIN' | 'ARCHIVE' | 'DELETE',
+    status?: QaQuestionDTO['status'],
+  ): string {
     switch (action) {
       case 'APPROVE':
-        return 'check';
+        return status === 'ARCHIVED' ? 'unarchive' : 'check';
       case 'PIN':
         return 'push_pin';
       case 'UNPIN':
@@ -10209,6 +10241,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   isQaQuestionOnPresenterStage(questionId: string): boolean {
+    if (this.session()?.presenterSurface === 'ended') {
+      return false;
+    }
     return this.qaPresenterStageQuestionIds().has(questionId);
   }
 
@@ -10243,6 +10278,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   qaQuestionScore(question: QaQuestionDTO): number {
     return question.score ?? question.upvoteCount;
+  }
+
+  qaPositiveVoteCount(question: QaQuestionDTO): number {
+    return question.positiveVoteCount ?? 0;
+  }
+
+  qaNegativeVoteCount(question: QaQuestionDTO): number {
+    return question.negativeVoteCount ?? 0;
+  }
+
+  qaVotesBreakdownAriaLabel(question: QaQuestionDTO): string {
+    const up = this.formatCount(this.qaPositiveVoteCount(question));
+    const down = this.formatCount(this.qaNegativeVoteCount(question));
+    return $localize`:@@sessionQa.votesBreakdownAria:${up}:up: dafür, ${down}:down: dagegen`;
   }
 
   private compareQaForumSort(left: QaQuestionDTO, right: QaQuestionDTO): number {
@@ -11076,10 +11125,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           : session,
       );
       if (surface === 'ended') {
-        this.projectionControlsVisible.set(false);
         this.projectionPageError.set('');
-        this.qaPresenterStageRefreshGeneration += 1;
-        this.qaPresenterStageOrderedQuestions.set(null);
+        // Q&A-Navigator und Hero-Rahmen bleiben als Host-Bearbeitungshilfe aktiv.
+        if (!this.projectionNavigationIsQaQuestions()) {
+          this.projectionControlsVisible.set(false);
+        }
       }
       return true;
     } catch {
@@ -11962,11 +12012,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (generation !== this.qaPresenterStageRefreshGeneration) {
         return;
       }
-      if (
-        !this.projectionNavigationIsQaQuestions() ||
-        this.session()?.id !== sessionId ||
-        this.session()?.presenterSurface === 'ended'
-      ) {
+      if (!this.projectionNavigationIsQaQuestions() || this.session()?.id !== sessionId) {
         return;
       }
       const questions = Array.isArray(snapshot) ? snapshot : snapshot.questions;
@@ -12029,6 +12075,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (this.qaShowPendingOnly()) {
       return ['PENDING'];
+    }
+    if (this.qaShowArchivedOnly()) {
+      return ['ARCHIVED'];
     }
     return ['PENDING', 'ACTIVE', 'PINNED', 'ARCHIVED'];
   }
@@ -12132,6 +12181,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.clearQaAuthorSelection();
     this.releaseQaChromeIfUnfiltered();
     this.qaShowPinnedOnly.set(false);
+    this.qaShowArchivedOnly.set(false);
     this.qaShowPendingOnly.set(true);
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
@@ -12145,11 +12195,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     if (this.qaShowPinnedOnly() === pinnedOnly) return;
     this.preserveQaToolsFocusBeforeRemoval(
-      '[data-testid="qa-clear-pinned"], [data-testid="qa-clear-pending"]',
+      '[data-testid="qa-clear-pinned"], [data-testid="qa-clear-pending"], [data-testid="qa-clear-archived"]',
     );
     this.qaShowPinnedOnly.set(pinnedOnly);
     if (pinnedOnly) {
       this.qaShowPendingOnly.set(false);
+      this.qaShowArchivedOnly.set(false);
     }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
@@ -12164,11 +12215,32 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     if (this.qaShowPendingOnly() === pendingOnly) return;
     this.preserveQaToolsFocusBeforeRemoval(
-      '[data-testid="qa-clear-pending"], [data-testid="qa-clear-pinned"]',
+      '[data-testid="qa-clear-pending"], [data-testid="qa-clear-pinned"], [data-testid="qa-clear-archived"]',
     );
     this.qaShowPendingOnly.set(pendingOnly);
     if (pendingOnly) {
       this.qaShowPinnedOnly.set(false);
+      this.qaShowArchivedOnly.set(false);
+    }
+    this.ensureQaSubscription();
+    await this.refreshQaQuestions({ replaceStale: true });
+    if (options?.scrollToTop !== false) {
+      this.scrollHostQaAfterListCriteriaChange();
+    }
+  }
+
+  async setQaArchivedFilter(
+    archivedOnly: boolean,
+    options?: { readonly scrollToTop?: boolean },
+  ): Promise<void> {
+    if (this.qaShowArchivedOnly() === archivedOnly) return;
+    this.preserveQaToolsFocusBeforeRemoval(
+      '[data-testid="qa-clear-archived"], [data-testid="qa-clear-pinned"], [data-testid="qa-clear-pending"]',
+    );
+    this.qaShowArchivedOnly.set(archivedOnly);
+    if (archivedOnly) {
+      this.qaShowPinnedOnly.set(false);
+      this.qaShowPendingOnly.set(false);
     }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
@@ -12181,6 +12253,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.setQaPendingFilter(!this.qaShowPendingOnly());
     // The summary stays outside the disclosure. Never focus a hidden filter or
     // steal focus after a delayed list response.
+  }
+
+  async toggleQaArchivedFilterFromSummary(): Promise<void> {
+    await this.setQaArchivedFilter(!this.qaShowArchivedOnly());
   }
 
   onQaSearchInput(value: string): void {
@@ -13274,6 +13350,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (pending.has(questionId)) {
       return;
     }
+    const questionBefore = this.qaQuestions().find((entry) => entry.id === questionId);
     pending.add(questionId);
     this.qaPendingQuestionIds.set(pending);
     this.qaInfo.set(null);
@@ -13287,7 +13364,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await this.refreshQaQuestions();
       this.qaInfo.set(
         action === 'APPROVE'
-          ? $localize`:@@sessionQa.moderationApproved:Frage freigegeben.`
+          ? questionBefore?.status === 'ARCHIVED'
+            ? $localize`:@@sessionQa.moderationUnarchived:Frage aus dem Archiv geholt.`
+            : $localize`:@@sessionQa.moderationApproved:Frage freigegeben.`
           : action === 'PIN'
             ? $localize`:@@sessionQa.moderationPinned:Frage hervorgehoben.`
             : action === 'ARCHIVE'

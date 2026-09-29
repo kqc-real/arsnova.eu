@@ -18148,7 +18148,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.projectionQaNext" datatype="html">
-        <source>Nächste wartende Frage</source>
+        <source>Nächste Frage</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">38</context>
@@ -19567,6 +19567,13 @@
           <context context-type="linenumber">4195</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.clearArchivedFilter" datatype="html">
+        <source>Nur im Archiv: Filter lösen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4257</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionQa.authorFilterClearAria" datatype="html">
         <source>Teilnahme-Filter aufheben</source>
         <context-group purpose="location">
@@ -19752,6 +19759,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4365</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterArchivedLabel" datatype="html">
+        <source>Nur im Archiv</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">4445</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.mobileMoreLabel" datatype="html">
@@ -19969,13 +19983,6 @@
       <trans-unit id="sessionQa.redactFailedKeepSelection" datatype="html">
         <source>Die Schwärzung konnte nicht gespeichert werden. Deine Auswahl bleibt erhalten – bitte erneut versuchen.</source>
       </trans-unit>
-      <trans-unit id="sessionQa.voteBreakdown" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="veVoteCount) }}"/> positiv · <x id="INTERPOLATION_1" equiv-text="{{ formatCount(question.negativeVoteCount) }}"/> negativ</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">4879,4880</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.bestMetric" datatype="html">
         <source>Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
         <context-group purpose="location">
@@ -20036,6 +20043,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4979,4981</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterArchivedEmptyHint" datatype="html">
+        <source>Nur im Archiv aktiv – gerade keine archivierten Fragen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">5095</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.authorEmpty" datatype="html">
@@ -20858,6 +20872,9 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1992</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.filterArchivedAria" datatype="html">
+        <source>Fragen im Archiv anzeigen</source>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
         <source>beste Fragen</source>
@@ -22724,7 +22741,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.statusArchivedTooltip" datatype="html">
-        <source>Archiviert: Diese Frage ist als beantwortet markiert und bleibt nachlesbar.</source>
+        <source>Archiviert: Diese Frage ist als beantwortet markiert und liegt im Archiv.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9538</context>
@@ -22752,11 +22769,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedTooltip" datatype="html">
-        <source>Archiviert: Diese Fragen sind als beantwortet markiert und bleiben nachlesbar.</source>
+        <source>Archiviert: Diese Fragen sind als beantwortet markiert und liegen im Archiv. Zum Öffnen auswählen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9555</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryArchivedTooltipShowAll" datatype="html">
+        <source>Alle Fragen anzeigen.</source>
       </trans-unit>
       <trans-unit id="sessionQa.summaryPinnedAria" datatype="html">
         <source><x id="count" equiv-text="this.formatCount(this.qaPinnedCount())"/> angepinnte Fragen</source>
@@ -22871,11 +22891,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.summaryArchivedAria" datatype="html">
-        <source><x id="count" equiv-text="this.formatCount(this.qaArchivedCount())"/> archivierte Fragen</source>
+        <source><x id="count" equiv-text="count"/> archivierte Fragen. Fragen im Archiv anzeigen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9614</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.summaryArchivedAriaShowAll" datatype="html">
+        <source><x id="count" equiv-text="count"/> archivierte Fragen. Alle Fragen anzeigen</source>
       </trans-unit>
       <trans-unit id="sessionQa.actionApprove" datatype="html">
         <source>Freigeben</source>
@@ -22904,6 +22927,9 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">9756</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.actionUnarchive" datatype="html">
+        <source>Zurück aus dem Archiv</source>
       </trans-unit>
       <trans-unit id="sessionQa.actionPurge" datatype="html">
         <source>Endgültig entfernen</source>
@@ -23135,6 +23161,9 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">12763</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.moderationUnarchived" datatype="html">
+        <source>Frage aus dem Archiv geholt.</source>
       </trans-unit>
       <trans-unit id="sessionQa.moderationDeleted" datatype="html">
         <source>Frage entfernt.</source>

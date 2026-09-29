@@ -32,7 +32,7 @@
         [disabled]="projectionPagePending() || page.index >= projectionPageDisplayCount() - 1"
       >
         @if (projectionNavigationIsQaQuestions()) {
-          <span i18n="@@sessionHost.projectionQaNext">Nächste wartende Frage</span>
+          <span i18n="@@sessionHost.projectionQaNext">Nächste Frage</span>
         } @else {
           <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
         }
@@ -4115,20 +4115,22 @@
                           <span>{{ qaHostStatusPinnedChipLabel() }}</span>
                         </span>
                       }
-                      @if (qaArchivedCount() > 0) {
-                        <span
+                      @if (qaArchivedCount() > 0 || qaShowArchivedOnly()) {
+                        <button
+                          type="button"
                           class="session-qa-summary__chip session-qa-summary__chip--archived"
-                          tabindex="0"
                           [matTooltip]="qaArchivedSummaryTooltip()"
                           matTooltipPosition="above"
                           [attr.aria-label]="qaArchivedSummaryAria()"
+                          [attr.aria-pressed]="qaShowArchivedOnly()"
+                          (click)="toggleQaArchivedFilterFromSummary()"
                           data-testid="qa-summary-archived"
                         >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >archive</mat-icon
                           >
                           <span>{{ qaHostStatusArchivedChipLabel() }}</span>
-                        </span>
+                        </button>
                       }
                       @if (qaDeletedCount() > 0) {
                         <span
@@ -4243,6 +4245,19 @@
                     >
                       <mat-icon aria-hidden="true">close</mat-icon>
                       <span i18n="@@sessionQa.clearPendingFilter">In Moderation: Filter lösen</span>
+                    </button>
+                  }
+                  @if (qaShowArchivedOnly()) {
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      data-testid="qa-clear-archived"
+                      (click)="setQaArchivedFilter(false)"
+                    >
+                      <mat-icon aria-hidden="true">close</mat-icon>
+                      <span i18n="@@sessionQa.clearArchivedFilter"
+                        >Nur im Archiv: Filter lösen</span
+                      >
                     </button>
                   }
                   @if (qaSelectedAuthorNickname(); as authorNickname) {
@@ -4413,6 +4428,25 @@
                           } @else {
                             <mat-icon aria-hidden="true">hourglass_top</mat-icon>
                             <span i18n="@@sessionQa.filterPendingLabel">Nur in Moderation</span>
+                          }
+                        </button>
+                      }
+                      @if (qaArchivedCount() > 0 || qaShowArchivedOnly()) {
+                        <button
+                          type="button"
+                          class="session-qa-filter-btn"
+                          [class.session-qa-filter-btn--active]="qaShowArchivedOnly()"
+                          data-testid="qa-filter-archived"
+                          [attr.aria-pressed]="qaShowArchivedOnly()"
+                          [attr.aria-label]="qaArchivedFilterAriaLabel()"
+                          (click)="setQaArchivedFilter(!qaShowArchivedOnly())"
+                        >
+                          @if (qaShowArchivedOnly()) {
+                            <mat-icon aria-hidden="true">visibility</mat-icon>
+                            <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
+                          } @else {
+                            <mat-icon aria-hidden="true">archive</mat-icon>
+                            <span i18n="@@sessionQa.filterArchivedLabel">Nur im Archiv</span>
                           }
                         </button>
                       }
@@ -4696,7 +4730,12 @@
                     </p>
                   </div>
                 } @else if (
-                  qaForumQuestionCount() === 0 && !qaSearch() && !qaSelectedAuthorNickname()
+                  qaForumQuestionCount() === 0 &&
+                  !qaSearch() &&
+                  !qaSelectedAuthorNickname() &&
+                  !qaShowPinnedOnly() &&
+                  !qaShowPendingOnly() &&
+                  !qaShowArchivedOnly()
                 ) {
                   <div class="session-qa-empty">
                     <mat-icon class="session-qa-empty__icon" aria-hidden="true"
@@ -4934,13 +4973,22 @@
                           </div>
                           <span
                             class="session-qa-card__votes"
-                            [class.session-qa-card__votes--positive]="qaQuestionScore(question) > 0"
-                            [class.session-qa-card__votes--negative]="qaQuestionScore(question) < 0"
+                            [attr.aria-label]="qaVotesBreakdownAriaLabel(question)"
                           >
-                            <mat-icon class="session-qa-card__votes-icon" aria-hidden="true"
-                              >thumb_up_off_alt</mat-icon
+                            <span class="session-qa-card__vote-stat session-qa-card__vote-stat--up">
+                              <mat-icon class="session-qa-card__vote-stat-icon" aria-hidden="true"
+                                >thumb_up</mat-icon
+                              >
+                              <span>{{ formatCount(qaPositiveVoteCount(question)) }}</span>
+                            </span>
+                            <span
+                              class="session-qa-card__vote-stat session-qa-card__vote-stat--down"
                             >
-                            {{ qaQuestionScore(question) }}
+                              <mat-icon class="session-qa-card__vote-stat-icon" aria-hidden="true"
+                                >thumb_down</mat-icon
+                              >
+                              <span>{{ formatCount(qaNegativeVoteCount(question)) }}</span>
+                            </span>
                           </span>
                         </div>
                         <div
@@ -4951,15 +4999,6 @@
                           <span class="session-qa-card__time">{{
                             relativeTime(question.createdAt)
                           }}</span>
-                          @if (
-                            question.positiveVoteCount !== undefined &&
-                            question.negativeVoteCount !== undefined
-                          ) {
-                            <span class="session-qa-card__metric" i18n="@@sessionQa.voteBreakdown"
-                              >{{ formatCount(question.positiveVoteCount) }} positiv ·
-                              {{ formatCount(question.negativeVoteCount) }} negativ</span
-                            >
-                          }
                           @if (qaSortMode() === 'BEST' && question.bestScore !== undefined) {
                             <span
                               class="session-qa-card__metric session-qa-card__metric--best"
@@ -5020,7 +5059,7 @@
                                 (click)="moderateQaQuestion(question.id, $any(action))"
                               >
                                 <mat-icon class="session-qa-card__action-icon">{{
-                                  qaActionIcon($any(action))
+                                  qaActionIcon($any(action), question.status)
                                 }}</mat-icon>
                                 {{ qaActionLabel($any(action), question.status) }}
                               </button>
@@ -5060,6 +5099,13 @@
                       >
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterPendingEmptyHint">
                         Nur in Moderation aktiv – gerade wartet nichts auf Freigabe.
+                      </p>
+                    </div>
+                  } @else if (qaFilteredQuestions().length === 0 && qaShowArchivedOnly()) {
+                    <div class="session-qa-empty session-qa-empty--filtered" role="status">
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true">archive</mat-icon>
+                      <p class="session-qa-empty__text" i18n="@@sessionQa.filterArchivedEmptyHint">
+                        Nur im Archiv aktiv – gerade keine archivierten Fragen.
                       </p>
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaSelectedAuthorNickname()) {

@@ -90,14 +90,16 @@ Tastaturfokus nicht verloren geht.
   Teilnehmer-Forum färbt denselben Navigator-Hero (via `presenterPage`) ein;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
   der aktuelle Navigator-Hero steht zusätzlich oben im Host-Forum und trägt allein die
-  Hero-Einfärbung (wandert mit dem Cursor; bei »Projektionsansicht beenden« entfällt sie);
+  Hero-Einfärbung (wandert mit dem Cursor; Rahmen bleibt auch ohne laufende Projektion
+  als Host-Bearbeitungshilfe am Navigator);
   Hero nutzt MD3-`primary-container` (Spielerisch:
   verstärkter Container-Verlauf bzw. Dark `primary`); der Neu-Hinweis (`--highlight`)
   überschreibt die Hero-Fläche nicht; Host-Forum markiert Hero und die aktuelle
-  Warteschlangen-Fragen mit »Aktuell in der Präsentation«;
+  Warteschlangen-Fragen während laufender Projektion mit »Aktuell in der Präsentation«
+  (Badge entfällt bei `presenterSurface === 'ended'`);
   der Host rückt den Hero über denselben Projektionsnavigator wie beim Quiz vor
-  (Beschriftung »Vorherige Frage« / »Nächste wartende Frage«, solange der Q&A-Kanal
-  projiziert wird); die bisherige Hero-Frage wandert aus dem Fokus, die nächste
+  (Beschriftung »Vorherige Frage« / »Nächste Frage«, solange der Q&A-Kanal
+  bevorzugt ist); die bisherige Hero-Frage wandert aus dem Fokus, die nächste
   Bühnenfrage (PINNED/ACTIVE in Presenter-Reihenfolge) wird Hero.
 - Wortwolken: höchstens 24 Ausgangsbegriffe, mindestens 30 px nach Layout und
   eine sichtbare Restzahl. Tatsächliche Textflächen werden auf Überschneidung

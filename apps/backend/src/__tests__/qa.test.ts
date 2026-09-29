@@ -380,7 +380,7 @@ describe('qa router (Epic 8)', () => {
     expect(third.questions[0]?.text).toBe('Geteilte Seite');
     expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
     const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
-    expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`);
+    expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED')`);
     expect(sql).not.toContain(`question."status" = 'PENDING'`);
   });
 
@@ -758,7 +758,7 @@ describe('qa router (Epic 8)', () => {
         negativeVoteCount: 0,
       });
       const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
-      expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED', 'ARCHIVED')`);
+      expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED')`);
       expect(sql).toContain(`question."status"::TEXT IN (`);
       expect(sql).not.toContain(`question."status" = 'PENDING'`);
       // Host-Default BEST, solange der Host keinen Sortiermodus publiziert hat.
