@@ -4904,6 +4904,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.syncQaTitleDraftFromSession();
     this.scheduleQaDeadlineCheck();
+    // Nach Reconnect/Restart: ephemeral Sort-Mode-Map ggf. leer → erneut publizieren.
+    if (this.channels().qa) {
+      void this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
+    }
     return session;
   }
 
@@ -11973,6 +11977,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ...visible.filter((question) => question.status === 'PINNED'),
         ...visible.filter((question) => question.status === 'ACTIVE'),
       ]);
+      // Self-Heal: Backend-Restart leert die ephemeral Map → Presenter fällt auf Default.
+      if (
+        !Array.isArray(snapshot) &&
+        snapshot.sortMode &&
+        snapshot.sortMode !== this.qaSortMode()
+      ) {
+        void this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
+      }
     } catch {
       // Letzten Snapshot behalten; Meta-Poll und WS aktualisieren erneut.
     }

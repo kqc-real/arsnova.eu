@@ -85,6 +85,9 @@ Tastaturfokus nicht verloren geht.
   fehlt der Snapshot während der Projektion, bleibt die Host-Bühne leer (kein Forum-Fallback);
   Host publiziert den Sortiermodus beim Q&A-Abonnement und vor dem Öffnen der
   Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
+  weicht `presentProjection.sortMode` vom Host ab (z. B. nach Backend-Restart),
+  publiziert der Host den Modus erneut (`force`);
+  Teilnehmer-Forum färbt denselben Navigator-Hero (via `presenterPage`) ein;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
   der aktuelle Navigator-Hero steht zusätzlich oben im Host-Forum und trägt allein die
   Hero-Einfärbung (wandert mit dem Cursor; bei »Projektionsansicht beenden« entfällt sie);

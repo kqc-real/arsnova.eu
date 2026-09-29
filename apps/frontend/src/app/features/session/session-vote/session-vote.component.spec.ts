@@ -7928,6 +7928,95 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('rückt die Teilnehmer-Hero-Auszeichnung mit dem Presenter-Navigator vor', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    (
+      component as unknown as {
+        applyQaQuestionsSnapshot(snapshot: unknown[]): boolean;
+      }
+    ).applyQaQuestionsSnapshot([
+      {
+        id: 'pin-1',
+        text: 'Angepinnt',
+        upvoteCount: 1,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-1',
+        text: 'Aktueller Hero',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-2',
+        text: 'Queue',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+
+    expect(component.isQaPresenterHeroCard('pin-1')).toBe(true);
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+
+    component.sessionSettings.update((settings) => ({
+      ...settings,
+      presenterPage: { context: 'qa-questions', index: 1, count: 3 },
+    }));
+    fixture.detectChanges();
+
+    expect(component.isQaPresenterHeroCard('pin-1')).toBe(false);
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
+    const heroCard = fixture.nativeElement.querySelector(
+      '.session-qa-card--pinned',
+    ) as HTMLElement | null;
+    expect(heroCard?.textContent).toContain('Aktueller Hero');
+
+    component.sessionSettings.update((settings) => ({
+      ...settings,
+      presenterSurface: 'ended',
+    }));
+    fixture.detectChanges();
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+    fixture.destroy();
+  });
+
   it('ersetzt Q&A-Seiten statt mehr als 100 Fragen gleichzeitig zu rendern', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

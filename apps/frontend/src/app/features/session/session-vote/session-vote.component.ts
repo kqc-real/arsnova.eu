@@ -861,14 +861,34 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Volle Hero-Fläche nur für die Presenter-Hero-Frage (erste PINNED). */
+  /** Volle Hero-Fläche: Navigator-Cursor wie Host/Presenter, sonst erstes PINNED. */
   isQaPresenterHeroCard(questionId: string): boolean {
     return this.qaPresenterHeroQuestionId() === questionId;
   }
 
-  readonly qaPresenterHeroQuestionId = computed(
-    () => this.qaQuestions().find((question) => question.status === 'PINNED')?.id ?? null,
-  );
+  readonly qaPresenterHeroQuestionId = computed(() => {
+    const session = this.sessionSettings();
+    if (session.presenterSurface === 'ended') {
+      return null;
+    }
+    const stage = this.qaQuestions().filter(
+      (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+    );
+    const ordered = [
+      ...stage.filter((question) => question.status === 'PINNED'),
+      ...stage.filter((question) => question.status === 'ACTIVE'),
+    ];
+    if (ordered.length === 0) {
+      return null;
+    }
+    const projectingQa =
+      session.preferredChannel === 'qa' && session.presenterSurface !== 'qaWordCloud';
+    if (!projectingQa) {
+      return ordered.find((question) => question.status === 'PINNED')?.id ?? null;
+    }
+    const pageIndex = Math.max(0, Math.min(ordered.length - 1, session.presenterPage?.index ?? 0));
+    return ordered[pageIndex]?.id ?? null;
+  });
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownClearQaAuthorSelection(event: KeyboardEvent): void {
@@ -4103,6 +4123,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           pausedFromStatus?: 'QUESTION_OPEN' | 'ACTIVE' | null;
           channels?: SessionChannelsDTO;
           preferredChannel?: SessionLiveChannel;
+          presenterSurface?: SessionInfoDTO['presenterSurface'];
+          presenterPage?: SessionInfoDTO['presenterPage'];
           serverTime?: string;
           serverNow?: string;
           expiresAt?: string;
@@ -4177,6 +4199,15 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.patchPreferredChannel(data.preferredChannel);
             this.applyPreferredChannelIfChanged(data.preferredChannel);
             channelStateChanged = true;
+          }
+          if (data.presenterSurface !== undefined || data.presenterPage !== undefined) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              ...(data.presenterSurface !== undefined
+                ? { presenterSurface: data.presenterSurface }
+                : {}),
+              ...(data.presenterPage !== undefined ? { presenterPage: data.presenterPage } : {}),
+            }));
           }
           if (channelStateChanged) {
             this.ensureActiveChannel();

@@ -15955,6 +15955,57 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('publiziert den Host-Sortiermodus erneut, wenn presentProjection einen anderen Modus liefert', async () => {
+    qaPresentProjectionQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: 'active-1',
+          text: 'Frage',
+          upvoteCount: 2,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE',
+      sortMode: 'BEST',
+    });
+    setQaPresenterSortModeMutateMock.mockClear();
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.qaSortMode.set('TOP');
+    (
+      component as SessionHostComponent & { lastQaPresenterSortModeKey: string | null }
+    ).lastQaPresenterSortModeKey = 'TOP';
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await vi.waitUntil(() =>
+      setQaPresenterSortModeMutateMock.mock.calls.some(
+        (call) => (call[0] as { sortMode?: string }).sortMode === 'TOP',
+      ),
+    );
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
+      code: 'ABC123',
+      sortMode: 'TOP',
+    });
+    fixture.destroy();
+  });
+
   it('nutzt bei fehlendem presentProjection-Snapshot nicht die gefilterte Forum-Liste als Hero', async () => {
     qaPresentProjectionQueryMock.mockRejectedValue(new Error('offline'));
     const fixture = setup();
