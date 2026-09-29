@@ -12830,52 +12830,65 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           updatedAt: question.updatedAt,
           passagesRedacted: question.passagesRedacted === true,
         },
+        applyRedaction: (ranges: Array<{ start: number; end: number }>) =>
+          this.applyQaPassageRedaction(questionId, ranges),
       },
     });
     const result = await firstValueFrom(dialogRef.afterClosed());
-    if (!result?.ranges?.length) {
+    if (!result?.applied) {
       return;
     }
-    await this.redactQaPassages(questionId, qaQuestionTextVersion(question.text), result.ranges);
+    this.qaInfo.set($localize`:@@sessionQa.redactSuccess:Passagen wurden dauerhaft geschwärzt.`);
+    this.dismissHostSteeringCallout();
+    this.scrollHostQaQuestionIntoView(questionId);
   }
 
-  async redactQaPassages(
+  private async applyQaPassageRedaction(
     questionId: string,
-    expectedTextVersion: string,
     ranges: Array<{ start: number; end: number }>,
-  ): Promise<void> {
+  ): Promise<import('./qa-redact-passages-dialog.component').QaRedactPassagesApplyOutcome> {
     if (!this.code || !this.qaHostWritesAllowed()) {
-      return;
+      return { ok: false, reason: 'error' };
+    }
+    const current = this.qaVisibleQuestions().find((entry) => entry.id === questionId);
+    if (!current) {
+      return { ok: false, reason: 'error' };
     }
     const pending = new Set(this.qaPendingQuestionIds());
     if (pending.has(questionId)) {
-      return;
+      return { ok: false, reason: 'error' };
     }
     pending.add(questionId);
     this.qaPendingQuestionIds.set(pending);
-    this.qaInfo.set($localize`:@@sessionQa.redactPending:Schwärzung wird gespeichert…`);
 
     try {
       await trpc.qa.redactPassages.mutate({
         sessionCode: this.code.toUpperCase(),
         questionId,
-        expectedTextVersion,
+        expectedTextVersion: qaQuestionTextVersion(current.text),
         ranges,
       });
       await this.refreshQaQuestions();
-      this.qaInfo.set($localize`:@@sessionQa.redactSuccess:Passagen wurden dauerhaft geschwärzt.`);
-      this.dismissHostSteeringCallout();
-      this.scrollHostQaQuestionIntoView(questionId);
+      return { ok: true };
     } catch (error) {
-      const conflict = this.isTrpcConflictError(error);
-      this.qaInfo.set(
-        conflict
-          ? $localize`:@@sessionQa.redactConflict:Die Frage wurde inzwischen geändert. Auswahl bleibt erhalten – bitte neu laden.`
-          : $localize`:@@sessionQa.redactFailed:Die Schwärzung konnte nicht gespeichert werden.`,
-      );
-      this.openHostSteeringCalloutForQaFailure(
-        () => void this.redactQaPassages(questionId, expectedTextVersion, ranges),
-      );
+      if (this.isTrpcConflictError(error)) {
+        await this.refreshQaQuestions();
+        const refreshed = this.qaVisibleQuestions().find((entry) => entry.id === questionId);
+        if (!refreshed) {
+          return { ok: false, reason: 'error' };
+        }
+        return {
+          ok: false,
+          reason: 'conflict',
+          question: {
+            id: refreshed.id,
+            text: refreshed.text,
+            updatedAt: refreshed.updatedAt,
+            passagesRedacted: refreshed.passagesRedacted === true,
+          },
+        };
+      }
+      return { ok: false, reason: 'error' };
     } finally {
       const remaining = new Set(this.qaPendingQuestionIds());
       remaining.delete(questionId);

@@ -16,6 +16,7 @@ import {
 } from './word-cloud-normalization';
 import { WORD_CLOUD_ANALYSIS_CHANNEL_VALUES } from './word-cloud-semantic';
 import {
+  QA_REDACTION_MAX_OFFSET,
   QA_REDACTION_MAX_RANGE_CODE_POINTS,
   QA_REDACTION_MAX_RANGES,
   QA_REDACTION_MIN_RANGE_CODE_POINTS,
@@ -6029,8 +6030,8 @@ export type ModerateQaQuestionInput = z.infer<typeof ModerateQaQuestionInputSche
  */
 export const QaRedactionRangeSchema = z
   .object({
-    start: z.number().int().min(0).max(500),
-    end: z.number().int().min(1).max(500),
+    start: z.number().int().min(0).max(QA_REDACTION_MAX_OFFSET),
+    end: z.number().int().min(1).max(QA_REDACTION_MAX_OFFSET),
   })
   .refine(
     (range) =>

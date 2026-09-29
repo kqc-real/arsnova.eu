@@ -16,6 +16,8 @@ export type QaNlpJob = {
   readonly sessionId?: string;
   readonly questionId: string;
   readonly text: string;
+  /** Generationszähler: Schreibschutz gegen veraltete Jobs nach Textänderung. */
+  readonly generation?: number;
 };
 
 export type QaNlpEnqueueResult = 'disabled' | 'queued' | 'skipped';
@@ -51,6 +53,8 @@ type QueueHooks = {
   schedule: (fn: () => void) => void;
 };
 
+type QueuedQaNlpJob = QaNlpJob & { readonly generation: number };
+
 const defaultWriter: QaNlpResultWriter = async (questionId, result) => {
   await prisma.qaQuestion.update({
     where: { id: questionId },
@@ -71,9 +75,11 @@ const metrics: QaNlpMetricCounters = {
   lastLatencyMs: null,
 };
 
-const queue: QaNlpJob[] = [];
+const queue: QueuedQaNlpJob[] = [];
 const pendingTimers: ReturnType<typeof setImmediate>[] = [];
 const invalidatedSessions = new Map<string, number>();
+/** Steigt bei Textänderung (z. B. Schwärzung); laufende Jobs mit älterer Generation schreiben nicht. */
+const questionGenerations = new Map<string, number>();
 let hooks: QueueHooks = createDefaultHooks();
 
 function isSessionInvalidated(sessionId: string | undefined): boolean {
@@ -85,6 +91,32 @@ function isSessionInvalidated(sessionId: string | undefined): boolean {
     return false;
   }
   return true;
+}
+
+function currentQuestionGeneration(questionId: string): number {
+  return questionGenerations.get(questionId) ?? 0;
+}
+
+function isStaleQuestionJob(job: QueuedQaNlpJob): boolean {
+  return job.generation !== currentQuestionGeneration(job.questionId);
+}
+
+function removeQueuedJobsForQuestion(questionId: string): void {
+  for (let index = queue.length - 1; index >= 0; index -= 1) {
+    if (queue[index]?.questionId === questionId) {
+      queue.splice(index, 1);
+    }
+  }
+  syncQueueLength();
+}
+
+/**
+ * Verwirft wartende Jobs dieser Frage und macht laufende Writes ungültig.
+ * Der nächste `enqueueQaNlpJob` erhält die neue Generation und darf schreiben.
+ */
+export function invalidateQaNlpForQuestion(questionId: string): void {
+  questionGenerations.set(questionId, currentQuestionGeneration(questionId) + 1);
+  removeQueuedJobsForQuestion(questionId);
 }
 
 export function invalidateQaNlpForSession(sessionId: string): void {
@@ -150,15 +182,15 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
-async function processJob(job: QaNlpJob): Promise<void> {
+async function processJob(job: QueuedQaNlpJob): Promise<void> {
   const started = hooks.now();
   const config = hooks.config();
   const snapshot = buildQaNlpAnalysisSnapshot(job.text);
   try {
-    if (isSessionInvalidated(job.sessionId)) return;
+    if (isSessionInvalidated(job.sessionId) || isStaleQuestionJob(job)) return;
     assertQaNlpSnapshotMinimized(snapshot);
     const result = await withTimeout(hooks.processor(snapshot), config.timeoutMs);
-    if (isSessionInvalidated(job.sessionId)) return;
+    if (isSessionInvalidated(job.sessionId) || isStaleQuestionJob(job)) return;
     await persistResult(job.questionId, result);
     metrics.completed += 1;
     const flags = readQaNlpCascadeFlags(result);
@@ -186,7 +218,7 @@ async function processJob(job: QaNlpJob): Promise<void> {
       unclassified: metrics.unclassified,
     });
   } catch (error) {
-    if (isSessionInvalidated(job.sessionId)) return;
+    if (isSessionInvalidated(job.sessionId) || isStaleQuestionJob(job)) return;
     const timedOut = error instanceof Error && error.message === 'QA_NLP_TIMEOUT';
     await persistResult(job.questionId, createFailedQaNlpResult(timedOut ? 'timeout' : 'error'));
     metrics.failed += 1;
@@ -227,10 +259,12 @@ export function enqueueQaNlpJob(job: QaNlpJob): QaNlpEnqueueResult {
   if (!config.enabled) {
     return 'disabled';
   }
+  const generation = currentQuestionGeneration(job.questionId);
   if (queue.length + metrics.running >= config.queueLimit) {
     metrics.skipped += 1;
     hooks.schedule(() => {
       if (isSessionInvalidated(job.sessionId)) return;
+      if (generation !== currentQuestionGeneration(job.questionId)) return;
       void persistResult(job.questionId, createFailedQaNlpResult('queue-limit'));
     });
     logger.warn('qa_nlp:skipped', {
@@ -241,7 +275,12 @@ export function enqueueQaNlpJob(job: QaNlpJob): QaNlpEnqueueResult {
     });
     return 'skipped';
   }
-  queue.push(job);
+  queue.push({
+    sessionId: job.sessionId,
+    questionId: job.questionId,
+    text: job.text,
+    generation,
+  });
   metrics.enqueued += 1;
   syncQueueLength();
   pump();
@@ -272,6 +311,7 @@ export function resetQaNlpQueueForTests(overrides?: Partial<QueueHooks>): void {
   }
   queue.splice(0, queue.length);
   invalidatedSessions.clear();
+  questionGenerations.clear();
   metrics.queueLength = 0;
   metrics.running = 0;
   metrics.enqueued = 0;

@@ -19902,6 +19902,12 @@
       <trans-unit id="sessionQa.badgePassagesRedactedAriaAt" datatype="html">
         <source>Passagen durch Moderation geschwärzt am <x id="when" equiv-text="when"/></source>
       </trans-unit>
+      <trans-unit id="sessionQa.redactConflictReload" datatype="html">
+        <source>Die Frage wurde inzwischen geändert. Lade den aktuellen Text – bitte Passagen neu markieren.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.redactFailedKeepSelection" datatype="html">
+        <source>Die Schwärzung konnte nicht gespeichert werden. Deine Auswahl bleibt erhalten – bitte erneut versuchen.</source>
+      </trans-unit>
       <trans-unit id="sessionQa.voteBreakdown" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="veVoteCount) }}"/> positiv · <x id="INTERPOLATION_1" equiv-text="{{ formatCount(question.negativeVoteCount) }}"/> negativ</source>
         <context-group purpose="location">

@@ -26,11 +26,12 @@
     class="qa-redact__source"
     readonly
     rows="6"
-    [value]="sourceText"
+    [value]="sourceText()"
     (select)="captureSourceSelection($event)"
     (keyup)="captureSourceSelection($event)"
     (mouseup)="captureSourceSelection($event)"
     [attr.aria-describedby]="statusMessage() ? 'qa-redact-status' : null"
+    [attr.aria-busy]="applying() ? 'true' : null"
   ></textarea>
   <div class="qa-redact__toolbar">
     <button
@@ -38,6 +39,7 @@
       type="button"
       (pointerdown)="$event.preventDefault()"
       (click)="markCurrentSelection()"
+      [disabled]="applying()"
     >
       <mat-icon>highlight</mat-icon>
       <span i18n="@@sessionQa.redactMarkSelection">Markierung schwärzen</span>
@@ -61,12 +63,17 @@
       />
     </mat-form-field>
     <div class="qa-redact__toolbar">
-      <button matButton type="button" (click)="runSearch()">
+      <button matButton type="button" (click)="runSearch()" [disabled]="applying()">
         <mat-icon>search</mat-icon>
         <span i18n="@@sessionQa.redactSearchAction">Suchen</span>
       </button>
       @if (searchOccurrences().length > 0) {
-        <button matButton="tonal" type="button" (click)="addSelectedOccurrences()">
+        <button
+          matButton="tonal"
+          type="button"
+          (click)="addSelectedOccurrences()"
+          [disabled]="applying()"
+        >
           <mat-icon>add</mat-icon>
           <span i18n="@@sessionQa.redactSearchAdd">Fundstelle(n) übernehmen</span>
         </button>
@@ -133,10 +140,22 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" mat-dialog-close i18n="@@sessionQa.redactCancel">
+  <button
+    mat-button
+    type="button"
+    mat-dialog-close
+    [disabled]="applying()"
+    i18n="@@sessionQa.redactCancel"
+  >
     Abbrechen
   </button>
-  <button matButton="filled" type="button" color="warn" (click)="confirmApply()">
+  <button
+    matButton="filled"
+    type="button"
+    color="warn"
+    (click)="confirmApply()"
+    [disabled]="applying()"
+  >
     <mat-icon>visibility_off</mat-icon>
     <span i18n="@@sessionQa.redactApply">Schwärzungen endgültig anwenden</span>
   </button>

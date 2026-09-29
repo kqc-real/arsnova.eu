@@ -44,8 +44,12 @@ werden.
 - Host-Kartenaktion »Passagen schwärzen« (auch vor Freigabe).
 - Dialog mit auswählbarem Klartext, optionaler Suche für Touch, Vorschau und
   Bestätigung der Irreversibilität.
-- Label als eigenes DTO-Merkmal in Host-, Teilnehmer- und Present-Ansicht:
-  Icon `visibility_off` plus optional Datum/Uhrzeit aus `passagesRedactedAt`.
+- Host-Dialog bleibt bis zum Speichern-Ergebnis offen; bei Konflikt wird der
+  aktuelle Text geladen und die Auswahl verworfen (kein Blind-Retry).
+- Offset-Obergrenze `QA_REDACTION_MAX_OFFSET` deckt Textwachstum durch
+  Platzhalter ab; die Server-Prüfung bleibt an der tatsächlichen Textlänge.
+- NLP: `invalidateQaNlpForQuestion` verwirft Warteschlange und macht laufende
+  Altjobs schreibgeschützt, bevor der Job mit geschwärztem Text neu eingeplant wird.
 
 ## Grenzen für Betrieb
 

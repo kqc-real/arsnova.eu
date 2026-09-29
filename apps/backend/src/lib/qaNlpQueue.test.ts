@@ -3,6 +3,7 @@ import { QA_NLP_GATEKEEPER_MODEL_VERSION, QA_NLP_STUB_MODEL_VERSION } from './qa
 import {
   enqueueQaNlpJob,
   getQaNlpMetrics,
+  invalidateQaNlpForQuestion,
   invalidateQaNlpForSession,
   resetQaNlpQueueForTests,
   waitForQaNlpIdleForTests,
@@ -208,6 +209,58 @@ describe('qaNlpQueue', () => {
     await waitForQaNlpIdleForTests();
 
     expect(writes).toEqual([]);
+  });
+
+  it('verwirft Altjobs nach Frage-Invalidierung und lässt den neuen Job schreiben', async () => {
+    let releaseOld!: (value: ReturnType<typeof createStubUnclassifiedQaNlpResult>) => void;
+    let oldStarted = false;
+    const writes: Array<{ questionId: string; category?: string }> = [];
+    resetQaNlpQueueForTests({
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1_000,
+        queueLimit: 8,
+        concurrency: 1,
+        minConfidence: 0.55,
+      }),
+      processor: async (snapshot) => {
+        if (snapshot.text.includes('ALT')) {
+          return new Promise((resolve) => {
+            releaseOld = resolve;
+            oldStarted = true;
+          });
+        }
+        return {
+          status: 'classified',
+          category: 'content',
+          confidence: 0.9,
+          modelVersion: 'test',
+          analyzedAt: new Date().toISOString(),
+        };
+      },
+      writer: async (questionId, result) => {
+        writes.push({ questionId, category: result.category });
+      },
+    });
+
+    enqueueQaNlpJob({
+      sessionId: 'session-redact',
+      questionId: QUESTION_ID,
+      text: 'ALT Original mit Name',
+    });
+    await vi.waitFor(() => expect(oldStarted).toBe(true));
+
+    invalidateQaNlpForQuestion(QUESTION_ID);
+    enqueueQaNlpJob({
+      sessionId: 'session-redact',
+      questionId: QUESTION_ID,
+      text: 'NEU [geschwärzt] Text',
+    });
+
+    releaseOld(createStubUnclassifiedQaNlpResult());
+    await waitForQaNlpIdleForTests();
+
+    expect(writes).toEqual([{ questionId: QUESTION_ID, category: 'content' }]);
   });
 
   it('zaehlt Fallback und Unclassified nach kurzem Text', async () => {

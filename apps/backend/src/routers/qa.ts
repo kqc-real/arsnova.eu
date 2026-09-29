@@ -37,7 +37,7 @@ import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
 import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
-import { enqueueQaNlpJob } from '../lib/qaNlpQueue';
+import { enqueueQaNlpJob, invalidateQaNlpForQuestion } from '../lib/qaNlpQueue';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import {
   getQaSummaryRuntime,
@@ -1611,6 +1611,7 @@ export const qaRouter = router({
 
         invalidateQaSummaryForSession(session.id);
         if (nlpEnabled && redactedQuestionId) {
+          invalidateQaNlpForQuestion(redactedQuestionId);
           enqueueQaNlpJob({
             sessionId: session.id,
             questionId: redactedQuestionId,

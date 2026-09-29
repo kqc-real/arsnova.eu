@@ -8,6 +8,16 @@
 /** Sichtbarer Platzhalter ohne Preisgabe der Originallänge. */
 export const QA_REDACTION_PLACEHOLDER = '[geschwärzt]';
 
+/** Einreichungslimit für Q&A-Fragetext (Codepunkte). */
+export const QA_QUESTION_TEXT_MAX_CODE_POINTS = 500;
+
+/**
+ * Obergrenze für Schwärzungs-Offsets nach wiederholtem Ersetzen
+ * (ein Zeichen → Platzhalter verlängert den Text).
+ */
+export const QA_REDACTION_MAX_OFFSET =
+  QA_QUESTION_TEXT_MAX_CODE_POINTS * Array.from(QA_REDACTION_PLACEHOLDER).length;
+
 /** Höchstzahl getrennter Stellen pro atomarer Schwärzung. */
 export const QA_REDACTION_MAX_RANGES = 10;
 

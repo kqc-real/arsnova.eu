@@ -22387,6 +22387,14 @@
         <source>Passagen durch Moderation geschwärzt am <x id="when" equiv-text="when"/></source>
         <target>Passaggi oscurati dalla moderazione il <x id="when" equiv-text="when"/></target>
       </trans-unit>
+      <trans-unit id="sessionQa.redactConflictReload" datatype="html">
+        <source>Die Frage wurde inzwischen geändert. Lade den aktuellen Text – bitte Passagen neu markieren.</source>
+        <target>La domanda è cambiata nel frattempo. Carico il testo attuale: seleziona di nuovo i passaggi.</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.redactFailedKeepSelection" datatype="html">
+        <source>Die Schwärzung konnte nicht gespeichert werden. Deine Auswahl bleibt erhalten – bitte erneut versuchen.</source>
+        <target>L’oscuramento non è stato salvato. La selezione resta: riprova.</target>
+      </trans-unit>
       <trans-unit id="sessionQa.voteBreakdown" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="veVoteCount) }}"/> positiv · <x id="INTERPOLATION_1" equiv-text="{{ formatCount(question.negativeVoteCount) }}"/> negativ</source>
         <target><x id="INTERPOLATION" equiv-text="question.positiveVoteCount"/> positivi · <x id="INTERPOLATION_1" equiv-text="question.negativeVoteCount"/> negativi</target>

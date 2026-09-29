@@ -14,11 +14,14 @@ describe('QaRedactPassagesDialogComponent', () => {
   let component: QaRedactPassagesDialogComponent;
   const close = vi.fn();
   const dialogOpen = vi.fn();
+  const applyRedaction = vi.fn();
 
   beforeEach(async () => {
     close.mockReset();
     dialogOpen.mockReset();
+    applyRedaction.mockReset();
     dialogOpen.mockReturnValue({ afterClosed: () => of(true) });
+    applyRedaction.mockResolvedValue({ ok: true });
 
     await TestBed.configureTestingModule({
       imports: [QaRedactPassagesDialogComponent, NoopAnimationsModule],
@@ -32,9 +35,10 @@ describe('QaRedactPassagesDialogComponent', () => {
               updatedAt: '2026-03-13T12:00:00.000Z',
               passagesRedacted: false,
             },
+            applyRedaction,
           } satisfies QaRedactPassagesDialogData,
         },
-        { provide: MatDialogRef, useValue: { close } },
+        { provide: MatDialogRef, useValue: { close, disableClose: false } },
         { provide: MatDialog, useValue: { open: dialogOpen } },
       ],
     }).compileComponents();
@@ -44,7 +48,7 @@ describe('QaRedactPassagesDialogComponent', () => {
     fixture.detectChanges();
   });
 
-  it('nimmt mehrere Fundstellen auf, entfernt eine und liefert disjunkte Ranges', async () => {
+  it('nimmt mehrere Fundstellen auf, entfernt eine und speichert disjunkte Ranges', async () => {
     component.searchNeedle.set('Max');
     component.runSearch();
     expect(component.searchOccurrences()).toHaveLength(2);
@@ -59,14 +63,14 @@ describe('QaRedactPassagesDialogComponent', () => {
 
     await component.confirmApply();
     expect(dialogOpen).toHaveBeenCalled();
-    expect(close).toHaveBeenCalledWith({
-      ranges: [{ start: 14, end: 17 }],
-    });
+    expect(applyRedaction).toHaveBeenCalledWith([{ start: 14, end: 17 }]);
+    expect(close).toHaveBeenCalledWith({ applied: true });
   });
 
   it('lehnt leere Auswahl beim Anwenden ab', async () => {
     await component.confirmApply();
     expect(close).not.toHaveBeenCalled();
+    expect(applyRedaction).not.toHaveBeenCalled();
     expect(component.statusTone()).toBe('error');
   });
 
@@ -81,5 +85,43 @@ describe('QaRedactPassagesDialogComponent', () => {
       expect.objectContaining({ start: 6, end: 9, excerpt: 'Max' }),
     ]);
     expect(component.previewText()).toContain(QA_REDACTION_PLACEHOLDER);
+  });
+
+  it('hält bei Konflikt den Dialog offen, lädt den Text neu und verwirft die Auswahl', async () => {
+    component.searchNeedle.set('Max');
+    component.runSearch();
+    component.selectedOccurrenceIndexes.set([0]);
+    component.addSelectedOccurrences();
+    applyRedaction.mockResolvedValue({
+      ok: false,
+      reason: 'conflict',
+      question: {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Geänderter Fragetext ohne Markierung',
+        updatedAt: '2026-03-13T12:05:00.000Z',
+        passagesRedacted: false,
+      },
+    });
+
+    await component.confirmApply();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(component.sourceText()).toBe('Geänderter Fragetext ohne Markierung');
+    expect(component.pendingRanges()).toEqual([]);
+    expect(component.statusTone()).toBe('error');
+  });
+
+  it('hält bei Fehler die Auswahl und schließt nicht', async () => {
+    component.searchNeedle.set('Max');
+    component.runSearch();
+    component.selectedOccurrenceIndexes.set([0]);
+    component.addSelectedOccurrences();
+    applyRedaction.mockResolvedValue({ ok: false, reason: 'error' });
+
+    await component.confirmApply();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(component.pendingRanges()).toHaveLength(1);
+    expect(component.statusTone()).toBe('error');
   });
 });

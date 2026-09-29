@@ -29,12 +29,23 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 
+export type QaRedactPassagesApplyOutcome =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: 'conflict';
+      question: Pick<QaQuestionDTO, 'id' | 'text' | 'updatedAt' | 'passagesRedacted'>;
+    }
+  | { ok: false; reason: 'error' };
+
 export interface QaRedactPassagesDialogData {
   question: Pick<QaQuestionDTO, 'id' | 'text' | 'updatedAt' | 'passagesRedacted'>;
+  /** Speichert die Schwärzung; Dialog bleibt bis zum Ergebnis offen. */
+  applyRedaction: (ranges: QaRedactionRange[]) => Promise<QaRedactPassagesApplyOutcome>;
 }
 
 export interface QaRedactPassagesDialogResult {
-  ranges: QaRedactionRange[];
+  applied: true;
 }
 
 type PendingRange = QaRedactionRange & { id: string; excerpt: string };
@@ -71,17 +82,18 @@ export class QaRedactPassagesDialogComponent {
 
   private readonly sourceTextArea = viewChild<HTMLTextAreaElement>('sourceTextArea');
 
-  readonly sourceText = this.data.question.text;
   readonly placeholder = QA_REDACTION_PLACEHOLDER;
   readonly maxRanges = QA_REDACTION_MAX_RANGES;
   readonly maxRangeLength = QA_REDACTION_MAX_RANGE_CODE_POINTS;
 
+  readonly sourceText = signal(this.data.question.text);
   readonly pendingRanges = signal<PendingRange[]>([]);
   readonly searchNeedle = signal('');
   readonly searchOccurrences = signal<QaRedactionRange[]>([]);
   readonly selectedOccurrenceIndexes = signal<number[]>([]);
   readonly statusMessage = signal<string | null>(null);
   readonly statusTone = signal<'info' | 'error'>('info');
+  readonly applying = signal(false);
 
   private nextRangeId = 1;
   private sourceSelectionStart = 0;
@@ -90,9 +102,9 @@ export class QaRedactPassagesDialogComponent {
   readonly previewText = computed(() => {
     const ranges = this.pendingRanges();
     if (ranges.length === 0) {
-      return this.sourceText;
+      return this.sourceText();
     }
-    return previewQaPassageRedaction(this.sourceText, ranges) ?? this.sourceText;
+    return previewQaPassageRedaction(this.sourceText(), ranges) ?? this.sourceText();
   });
 
   readonly canAddMore = computed(() => this.pendingRanges().length < this.maxRanges);
@@ -119,7 +131,7 @@ export class QaRedactPassagesDialogComponent {
       );
       return;
     }
-    const range = this.utf16OffsetsToCodePointRange(this.sourceText, startUnit, endUnit);
+    const range = this.utf16OffsetsToCodePointRange(this.sourceText(), startUnit, endUnit);
     this.tryAddRange(range);
   }
 
@@ -141,7 +153,7 @@ export class QaRedactPassagesDialogComponent {
       );
       return;
     }
-    const occurrences = findQaRedactionSearchOccurrences(this.sourceText, needle);
+    const occurrences = findQaRedactionSearchOccurrences(this.sourceText(), needle);
     this.searchOccurrences.set(occurrences);
     this.selectedOccurrenceIndexes.set(occurrences.length === 1 ? [0] : []);
     if (occurrences.length === 0) {
@@ -209,6 +221,9 @@ export class QaRedactPassagesDialogComponent {
   }
 
   async confirmApply(): Promise<void> {
+    if (this.applying()) {
+      return;
+    }
     const ranges = this.pendingRanges().map(({ start, end }) => ({ start, end }));
     if (ranges.length === 0) {
       this.announce(
@@ -217,7 +232,7 @@ export class QaRedactPassagesDialogComponent {
       );
       return;
     }
-    if (!previewQaPassageRedaction(this.sourceText, ranges)) {
+    if (!previewQaPassageRedaction(this.sourceText(), ranges)) {
       this.announce(
         $localize`:@@sessionQa.redactInvalidPreview:Die Auswahl ist ungültig. Prüfe Überlappungen und Platzhalter.`,
         'error',
@@ -243,7 +258,35 @@ export class QaRedactPassagesDialogComponent {
     if (confirmed !== true) {
       return;
     }
-    this.dialogRef.close({ ranges });
+
+    this.applying.set(true);
+    this.dialogRef.disableClose = true;
+    this.announce($localize`:@@sessionQa.redactPending:Schwärzung wird gespeichert…`, 'info');
+    try {
+      const outcome = await this.data.applyRedaction(ranges);
+      if (outcome.ok) {
+        this.dialogRef.close({ applied: true });
+        return;
+      }
+      if (outcome.reason === 'conflict') {
+        this.sourceText.set(outcome.question.text);
+        this.pendingRanges.set([]);
+        this.searchOccurrences.set([]);
+        this.selectedOccurrenceIndexes.set([]);
+        this.announce(
+          $localize`:@@sessionQa.redactConflictReload:Die Frage wurde inzwischen geändert. Lade den aktuellen Text – bitte Passagen neu markieren.`,
+          'error',
+        );
+        return;
+      }
+      this.announce(
+        $localize`:@@sessionQa.redactFailedKeepSelection:Die Schwärzung konnte nicht gespeichert werden. Deine Auswahl bleibt erhalten – bitte erneut versuchen.`,
+        'error',
+      );
+    } finally {
+      this.applying.set(false);
+      this.dialogRef.disableClose = false;
+    }
   }
 
   private tryAddRange(range: QaRedactionRange, options?: { silent?: boolean }): boolean {
@@ -267,7 +310,7 @@ export class QaRedactPassagesDialogComponent {
       return false;
     }
     const nextRanges = [...this.pendingRanges(), range];
-    if (!previewQaPassageRedaction(this.sourceText, nextRanges)) {
+    if (!previewQaPassageRedaction(this.sourceText(), nextRanges)) {
       if (!options?.silent) {
         this.announce(
           $localize`:@@sessionQa.redactRangeConflict:Diese Passage überlappt eine andere Markierung oder einen Platzhalter.`,
@@ -276,7 +319,7 @@ export class QaRedactPassagesDialogComponent {
       }
       return false;
     }
-    const excerpt = qaTextCodePoints(this.sourceText).slice(range.start, range.end).join('');
+    const excerpt = qaTextCodePoints(this.sourceText()).slice(range.start, range.end).join('');
     this.pendingRanges.update((ranges) => [
       ...ranges,
       {

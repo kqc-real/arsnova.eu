@@ -1363,6 +1363,64 @@ describe('qa router (Epic 8)', () => {
     },
   );
 
+  trpcDodIt(
+    {
+      procedure: 'qa.redactPassages',
+      case: 'happy',
+      mode: 'direct',
+      title: 'erlaubt zweite Schwärzung hinter dem ursprünglichen 500er-Offset',
+    },
+    async () => {
+      const updatedAt = new Date('2026-03-13T12:00:00.000Z');
+      const original = `${'a'.repeat(499)}Z`;
+      const afterFirst = `${'a'.repeat(499)}${QA_REDACTION_PLACEHOLDER}`;
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...ACTIVE_QA_SESSION,
+        id: SESSION_ID,
+        type: 'QUIZ',
+        qaEnabled: true,
+        qaOpen: true,
+        status: 'ACTIVE',
+      });
+      prismaMock.qaQuestion.findUnique.mockResolvedValue({
+        id: QUESTION_ID,
+        sessionId: SESSION_ID,
+        participantId: PARTICIPANT_ID,
+        text: afterFirst,
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: updatedAt,
+        updatedAt,
+        passagesRedacted: true,
+        passagesRedactedAt: updatedAt,
+      });
+      const grownEnd = Array.from(afterFirst).length;
+      prismaMock.qaQuestion.update.mockResolvedValue({
+        id: QUESTION_ID,
+        participantId: PARTICIPANT_ID,
+        text: `${'a'.repeat(498)}${QA_REDACTION_PLACEHOLDER}${QA_REDACTION_PLACEHOLDER}`,
+        upvoteCount: 0,
+        status: 'ACTIVE',
+        createdAt: updatedAt,
+        updatedAt: new Date('2026-03-13T12:02:00.000Z'),
+        passagesRedacted: true,
+        passagesRedactedAt: new Date('2026-03-13T12:02:00.000Z'),
+      });
+
+      const result = await hostCaller.redactPassages({
+        sessionCode: 'ABC123',
+        questionId: QUESTION_ID,
+        expectedTextVersion: qaQuestionTextVersion(afterFirst),
+        ranges: [{ start: 498, end: 499 }],
+      });
+
+      expect(grownEnd).toBeGreaterThan(500);
+      expect(prismaMock.qaQuestion.update).toHaveBeenCalled();
+      expect(result.passagesRedacted).toBe(true);
+      expect(original.length).toBe(500);
+    },
+  );
+
   it('lehnt Schwärzung bei veralteter Textversion und Überlappung ab', async () => {
     const updatedAt = new Date('2026-03-13T12:00:00.000Z');
     prismaMock.session.findUnique.mockResolvedValue({
