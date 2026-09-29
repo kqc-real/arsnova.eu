@@ -82,6 +82,7 @@ Tastaturfokus nicht verloren geht.
   damit Host-Fragen-Navigator und Presenter dieselbe Seitenzahl teilen;
   der Host speichert denselben ungefilterten Snapshot für Hero, Bühnen-Badges und
   Navigator-Seitenzahl (nicht die ggf. gefilterte/paginierte Forum-`qa.list`);
+  fehlt der Snapshot während der Projektion, bleibt die Host-Bühne leer (kein Forum-Fallback);
   Host publiziert den Sortiermodus beim Q&A-Abonnement und vor dem Öffnen der
   Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);

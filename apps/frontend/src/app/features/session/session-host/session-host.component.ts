@@ -756,9 +756,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
   /**
    * Ungefilterte ACTIVE+PINNED-Bühnenliste aus `qa.presentProjection`.
-   * `null` = noch kein Snapshot (Fallback auf Forum-Seite nur für Tests/Erstpaint).
+   * `null` = kein gültiger Snapshot (während Projektion: leere Bühne, kein Forum-Fallback).
    */
   private readonly qaPresenterStageOrderedQuestions = signal<QaQuestionDTO[] | null>(null);
+  /** Invalidiert in-flight `presentProjection`-Refreshes (Beenden / Kanalwechsel). */
+  private qaPresenterStageRefreshGeneration = 0;
   readonly qaListTotalCount = signal(0);
   /** Host: PENDING-Zähler aus qa.list (filterweit, seitenunabhängig); null = Fallback auf geladene Seite. */
   private readonly qaListPendingCount = signal<number | null>(null);
@@ -3646,7 +3648,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       void this.qaSortMode();
       void this.qaListRankingRevision();
       if (!projecting || !sessionId) {
-        untracked(() => this.qaPresenterStageOrderedQuestions.set(null));
+        untracked(() => {
+          this.qaPresenterStageRefreshGeneration += 1;
+          this.qaPresenterStageOrderedQuestions.set(null);
+        });
         return;
       }
       untracked(() => {
@@ -5903,18 +5908,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /**
    * Bühnenreihenfolge wie `qa.presentProjection`: PINNED vor ACTIVE, Host-Sortierung.
    * Navigator-Index = Hero; danach bis zu zwei wartende Fragen.
-   * Quelle: ungefilterter presentProjection-Snapshot (nicht Forum-Suche/Seite/Filter).
+   * Quelle: ungefilterter presentProjection-Snapshot — während der Projektion kein Forum-Fallback.
    */
   readonly qaProjectionStageQuestions = computed(() => {
     const fromProjection = this.qaPresenterStageOrderedQuestions();
     if (fromProjection !== null) {
       return fromProjection.slice(0, SessionHostComponent.QA_PROJECTION_MAX_ACTIVE);
     }
+    // Während Q&A-Projektion: leere Bühne statt gefilterter Forum-Seite (Drift zum Presenter).
+    if (this.projectionNavigationIsQaQuestions()) {
+      return [];
+    }
     const questions = this.qaQuestions().filter(
       (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
     );
-    // Erst PINNED vor ACTIVE (wie presentProjection), dann Cap — sonst können
-    // angepinnte Fragen hinter dem Seitenlimit verloren gehen.
     return [
       ...questions.filter((question) => question.status === 'PINNED'),
       ...questions.filter((question) => question.status === 'ACTIVE'),
@@ -5922,7 +5929,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   /**
    * Eine Navigationsposition pro Bühnenfrage (Hero rückt vor).
-   * presentProjection-Länge bevorzugt, sonst Host-Overview (active+pinned).
+   * presentProjection-Länge bevorzugt, sonst Host-Overview (active+pinned) — nie Forum-Filterlänge.
    */
   readonly qaProjectionQueuePageCount = computed(() => {
     const fromProjection = this.qaPresenterStageOrderedQuestions();
@@ -5940,7 +5947,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
       return Math.max(1, total);
     }
-    return Math.max(1, this.qaProjectionStageQuestions().length);
+    return 1;
   });
   /**
    * Fragen-IDs auf der Bühne: aktueller Hero plus die nächsten wartenden Fragen
@@ -11067,6 +11074,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (surface === 'ended') {
         this.projectionControlsVisible.set(false);
         this.projectionPageError.set('');
+        this.qaPresenterStageRefreshGeneration += 1;
         this.qaPresenterStageOrderedQuestions.set(null);
       }
       return true;
@@ -11938,14 +11946,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async refreshQaPresenterStageQuestions(): Promise<void> {
     const sessionId = this.session()?.id;
     if (!sessionId || !this.projectionNavigationIsQaQuestions()) {
+      this.qaPresenterStageRefreshGeneration += 1;
       this.qaPresenterStageOrderedQuestions.set(null);
       return;
     }
+    const generation = ++this.qaPresenterStageRefreshGeneration;
     try {
       const snapshot: QaQuestionsListDTO | QaQuestionDTO[] = await trpc.qa.presentProjection.query({
         sessionId,
       });
-      if (!this.projectionNavigationIsQaQuestions() || this.session()?.id !== sessionId) {
+      if (generation !== this.qaPresenterStageRefreshGeneration) {
+        return;
+      }
+      if (
+        !this.projectionNavigationIsQaQuestions() ||
+        this.session()?.id !== sessionId ||
+        this.session()?.presenterSurface === 'ended'
+      ) {
         return;
       }
       const questions = Array.isArray(snapshot) ? snapshot : snapshot.questions;
@@ -11965,6 +11982,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const wasAlreadyEnded = this.postProcessingEnded();
     this.postProcessingEnded.set(true);
     this.qaQuestions.set([]);
+    this.qaPresenterStageRefreshGeneration += 1;
     this.qaPresenterStageOrderedQuestions.set(null);
     this.qaListTotalCount.set(0);
     this.qaListPendingCount.set(null);

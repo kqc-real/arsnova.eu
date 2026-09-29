@@ -1154,6 +1154,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
     ] as never);
+    seedQaPresenterStage(component, component.qaQuestions());
     fixture.detectChanges();
 
     expect(component.qaPresenterHeroQuestionId()).toBe('pin-hero');
@@ -15951,6 +15952,120 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     expect(component.qaPresenterHeroQuestionId()).toBeNull();
     expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+    fixture.destroy();
+  });
+
+  it('nutzt bei fehlendem presentProjection-Snapshot nicht die gefilterte Forum-Liste als Hero', async () => {
+    qaPresentProjectionQueryMock.mockRejectedValue(new Error('offline'));
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.activeChannel.set('qa');
+    component.qaQuestions.set([
+      {
+        id: 'forum-only',
+        text: 'Nur im Forum',
+        upvoteCount: 9,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.isQaPresenterHeroCard('forum-only')).toBe(false);
+    expect(component.isQaQuestionOnPresenterStage('forum-only')).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(0);
+    // Seitenzahl kommt aus Host-Overview, nicht aus Forum-Filterlänge.
+    component['qaHostStatusCounts'].set({
+      active: 4,
+      pinned: 1,
+      pending: 0,
+      archived: 0,
+    });
+    fixture.detectChanges();
+    expect(component.qaProjectionQueuePageCount()).toBe(5);
+    fixture.destroy();
+  });
+
+  it('verwirft verspätete presentProjection-Antworten nach Projektionsende', async () => {
+    let resolveProjection!: (value: { questions: QaQuestionDTO[]; state: string }) => void;
+    qaPresentProjectionQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveProjection = resolve;
+        }),
+    );
+    setPresenterSurfaceMutateMock.mockResolvedValue({
+      presenterSurface: 'ended',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await vi.waitUntil(() => qaPresentProjectionQueryMock.mock.calls.length > 0);
+
+    await component.endPresentationView();
+    fixture.detectChanges();
+    expect(component.session()?.presenterSurface).toBe('ended');
+
+    resolveProjection({
+      questions: [
+        {
+          id: 'stale-hero',
+          text: 'Verspätet',
+          upvoteCount: 1,
+          status: 'PINNED',
+          createdAt: '2026-03-13T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ] as never,
+      state: 'ACTIVE',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (
+        component as SessionHostComponent & {
+          qaPresenterStageOrderedQuestions: { (): QaQuestionDTO[] | null };
+        }
+      ).qaPresenterStageOrderedQuestions(),
+    ).toBeNull();
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.isQaPresenterHeroCard('stale-hero')).toBe(false);
     fixture.destroy();
   });
 
