@@ -276,6 +276,21 @@ describe('qa router (Epic 8)', () => {
       prismaMock.qaUpvote.findMany.mockResolvedValue([
         { participantId: PARTICIPANT_ID, qaQuestionId: QUESTION_ID, direction: 'UP' },
       ]);
+      prismaMock.qaQuestion.count.mockImplementation(
+        async (args?: { where?: { participantId?: string; status?: unknown } }) => {
+          if (args?.where?.participantId) {
+            return 4;
+          }
+          if (
+            args?.where?.status &&
+            typeof args.where.status === 'object' &&
+            Array.isArray((args.where.status as { in?: unknown }).in)
+          ) {
+            return 3;
+          }
+          return 0;
+        },
+      );
       prismaMock.qaQuestion.findMany.mockResolvedValue([
         { status: 'PENDING' },
         { status: 'ACTIVE' },
@@ -1726,6 +1741,12 @@ describe('qa router (Epic 8)', () => {
       }),
     ]);
     prismaMock.qaQuestion.count.mockResolvedValue(1);
+    prismaMock.qaQuestion.groupBy.mockResolvedValue([
+      { status: 'ACTIVE', _count: { _all: 1 } },
+      { status: 'PINNED', _count: { _all: 1 } },
+      { status: 'PENDING', _count: { _all: 1 } },
+      { status: 'ARCHIVED', _count: { _all: 1 } },
+    ]);
     prismaMock.qaQuestion.findFirst.mockResolvedValue({
       createdAt: new Date('2026-03-13T11:50:00.000Z'),
     });
@@ -1749,11 +1770,13 @@ describe('qa router (Epic 8)', () => {
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toMatch(
       /WHEN 'PENDING' THEN 0[\s\S]*WHEN 'PINNED' THEN 1[\s\S]*WHEN 'ACTIVE' THEN 1/,
     );
-    expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
+    expect(prismaMock.qaQuestion.groupBy).toHaveBeenCalledWith({
+      by: ['status'],
       where: {
         sessionId: SESSION_ID,
-        status: 'PENDING',
+        status: { in: ['ACTIVE', 'PINNED', 'PENDING', 'ARCHIVED'] },
       },
+      _count: { _all: true },
     });
     expect(prismaMock.qaQuestion.findFirst).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID, status: 'PENDING' },
@@ -1820,6 +1843,76 @@ describe('qa router (Epic 8)', () => {
     expect(prismaMock.qaQuestion.count).toHaveBeenCalledWith({
       where: { sessionId: SESSION_ID, status: { in: ['ACTIVE', 'PINNED'] } },
     });
+  });
+
+  it('teilt forumVisibleCount revisionsgebunden zwischen parallelen Teilnehmerabrufen', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+      qaRankingRevision: 7,
+      qaQuestionCount: 50,
+    });
+    rawQueryResults.rankedQuestions.push(
+      [
+        rankedQaRow({
+          id: QUESTION_ID,
+          text: 'Freigegeben',
+          status: 'ACTIVE',
+          upvoteCount: 1,
+          positiveVoteCount: 1,
+          totalCount: 50,
+        }),
+      ],
+      [
+        rankedQaRow({
+          id: QUESTION_ID,
+          text: 'Freigegeben',
+          status: 'ACTIVE',
+          upvoteCount: 1,
+          positiveVoteCount: 1,
+          totalCount: 50,
+        }),
+      ],
+    );
+    let forumVisibleLoads = 0;
+    prismaMock.qaQuestion.count.mockImplementation(
+      async (args?: { where?: { status?: unknown } }) => {
+        const status = args?.where?.status;
+        if (
+          status &&
+          typeof status === 'object' &&
+          Array.isArray((status as { in?: unknown }).in)
+        ) {
+          forumVisibleLoads += 1;
+          return 42;
+        }
+        return 0;
+      },
+    );
+
+    const [first, second] = await Promise.all([
+      caller.list({
+        sessionId: SESSION_ID,
+        participantId: PARTICIPANT_ID,
+        sort: 'BEST',
+        pageSize: 100,
+      }),
+      caller.list({
+        sessionId: SESSION_ID,
+        participantId: OTHER_PARTICIPANT_ID,
+        sort: 'BEST',
+        pageSize: 100,
+      }),
+    ]);
+
+    expect(first.forumVisibleCount).toBe(42);
+    expect(second.forumVisibleCount).toBe(42);
+    expect(forumVisibleLoads).toBe(1);
   });
 
   it('ordnet Host-TOP PINNED vor ACTIVE, auch ohne Stimmen und nach PENDING', async () => {

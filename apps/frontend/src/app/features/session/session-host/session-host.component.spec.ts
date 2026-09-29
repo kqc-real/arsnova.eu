@@ -3649,8 +3649,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLElement | null;
     expect(totalChip).not.toBeNull();
     expect(totalChip?.querySelector('mat-icon')?.textContent?.trim()).toBe('chat_bubble_outline');
-    expect(totalChip?.getAttribute('aria-label')).toContain('Gesamt:');
-    expect(totalChip?.textContent).toMatch(/3/);
+    expect(totalChip?.getAttribute('aria-label')).toMatch(/Gesamt:\s*4/);
+    expect(totalChip?.textContent).toMatch(/4/);
     const pendingChip = statusStrip?.querySelector(
       '[data-testid="qa-summary-pending-status"]',
     ) as HTMLElement | null;
@@ -3670,6 +3670,72 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(archivedChip?.tabIndex).toBe(0);
     expect(host.querySelectorAll('[data-testid="qa-summary-pinned"]').length).toBe(1);
     expect(host.querySelector('.session-qa-summary > .session-qa-summary__chips')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('zeigt im Status-Strip die sessionweite Summe trotz aktiver Suche', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      type: 'Q_AND_A',
+      quizName: null,
+      title: 'Fragen',
+      status: 'ACTIVE',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue({
+      questions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Suchtreffer',
+          upvoteCount: 1,
+          status: 'ACTIVE' as const,
+          createdAt: '2026-03-24T12:00:00.000Z',
+          myVote: null,
+          isOwn: false,
+          hasUpvoted: false,
+        },
+      ],
+      state: 'ACTIVE' as const,
+      sessionLifecycleRevision: 1,
+      serverNow: '2026-03-24T12:02:00.000Z',
+      expiresAt: '2026-03-25T12:00:00.000Z',
+      qaClosesAt: '2026-03-25T12:00:00.000Z',
+      endedAt: null,
+      postProcessingEndsAt: null,
+      rankingRevision: '1:BEST:',
+      nextCursor: null,
+      totalCount: 2,
+      pendingCount: 0,
+      sessionPendingCount: 5,
+      hostStatusCounts: {
+        active: 40,
+        pinned: 10,
+        pending: 5,
+        archived: 45,
+      },
+      oldestPendingCreatedAt: null,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.componentInstance.qaSearch.set('Suchtreffer');
+    fixture.componentInstance.qaSearchDraft.set('Suchtreffer');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    expect(fixture.componentInstance.qaListTotalCount()).toBe(2);
+    expect(fixture.componentInstance.qaHostStatusStripTotalCount()).toBe(100);
+    const totalChip = fixture.nativeElement.querySelector(
+      '[data-testid="qa-summary-total"]',
+    ) as HTMLElement | null;
+    expect(totalChip?.textContent).toMatch(/100/);
+    expect(totalChip?.getAttribute('aria-label')).toMatch(/Gesamt:\s*100/);
     fixture.destroy();
   });
 

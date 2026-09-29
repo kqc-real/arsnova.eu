@@ -2471,10 +2471,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.qaQuestions().filter((q) => q.status === 'DELETED').length,
   );
 
+  /**
+   * Sessionweite Gesamtsumme für den Status-Strip (ungefiltert).
+   * Nutzt hostStatusCounts; Fallback nur, wenn noch kein Host-Overview vorliegt.
+   */
+  readonly qaHostStatusStripTotalCount = computed(() => {
+    const counts = this.qaHostStatusCounts();
+    if (counts) {
+      return counts.active + counts.pinned + counts.pending + counts.archived;
+    }
+    return this.qaForumQuestionCount();
+  });
+
   /** Sessionweiter Status-Strip sichtbar, sobald Summe oder ein Status zählt. */
   qaHostStatusStripVisible(): boolean {
     return (
-      this.qaForumQuestionCount() > 0 ||
+      this.qaHostStatusStripTotalCount() > 0 ||
       !!this.qaSearch() ||
       this.qaActiveCount() +
         this.qaSessionPendingCount() +
@@ -9620,7 +9632,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   qaTotalSummaryAria(): string {
-    return $localize`:@@sessionQa.summaryTotalAria:Gesamt: ${this.formatCount(this.qaForumQuestionCount())}:count:`;
+    return $localize`:@@sessionQa.summaryTotalAria:Gesamt: ${this.formatCount(this.qaHostStatusStripTotalCount())}:count:`;
   }
 
   qaPendingSummaryTooltip(): string {

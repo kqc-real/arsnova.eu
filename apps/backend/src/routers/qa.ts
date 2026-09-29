@@ -366,7 +366,7 @@ function shouldAttachQaNlp(includeNlp: boolean, question: QaQuestionRecord): boo
 }
 
 /** Freigegebene Forum-Fragen für Teilnehmer-Zähler (ohne PENDING/ARCHIVED/DELETED). */
-async function countQaForumVisibleQuestions(sessionId: string): Promise<number> {
+async function countQaForumVisibleQuestionsUncached(sessionId: string): Promise<number> {
   return prisma.qaQuestion.count({
     where: { sessionId, status: { in: ['ACTIVE', 'PINNED'] } },
   });
@@ -402,8 +402,7 @@ async function countOwnQaQuestionsByStatus(
   return { visible, pending, archived };
 }
 
-/** Host: sessionweite Statuszahlen und älteste PENDING-Frage. */
-async function loadHostQaStatusOverview(sessionId: string): Promise<{
+type HostQaStatusOverview = {
   hostStatusCounts: {
     active: number;
     pinned: number;
@@ -411,20 +410,35 @@ async function loadHostQaStatusOverview(sessionId: string): Promise<{
     archived: number;
   };
   oldestPendingCreatedAt: string | null;
-}> {
-  const [active, pinned, pending, archived, oldestPending] = await Promise.all([
-    prisma.qaQuestion.count({ where: { sessionId, status: 'ACTIVE' } }),
-    prisma.qaQuestion.count({ where: { sessionId, status: 'PINNED' } }),
-    prisma.qaQuestion.count({ where: { sessionId, status: 'PENDING' } }),
-    prisma.qaQuestion.count({ where: { sessionId, status: 'ARCHIVED' } }),
+};
+
+/** Host: sessionweite Statuszahlen und älteste PENDING-Frage (eine Aggregation + optional findFirst). */
+async function loadHostQaStatusOverviewUncached(sessionId: string): Promise<HostQaStatusOverview> {
+  const [statusGroups, oldestPending] = await Promise.all([
+    prisma.qaQuestion.groupBy({
+      by: ['status'],
+      where: {
+        sessionId,
+        status: { in: ['ACTIVE', 'PINNED', 'PENDING', 'ARCHIVED'] },
+      },
+      _count: { _all: true },
+    }),
     prisma.qaQuestion.findFirst({
       where: { sessionId, status: 'PENDING' },
       orderBy: { createdAt: 'asc' },
       select: { createdAt: true },
     }),
   ]);
+  const hostStatusCounts = { active: 0, pinned: 0, pending: 0, archived: 0 };
+  for (const group of statusGroups) {
+    const count = group._count._all;
+    if (group.status === 'ACTIVE') hostStatusCounts.active = count;
+    else if (group.status === 'PINNED') hostStatusCounts.pinned = count;
+    else if (group.status === 'PENDING') hostStatusCounts.pending = count;
+    else if (group.status === 'ARCHIVED') hostStatusCounts.archived = count;
+  }
   return {
-    hostStatusCounts: { active, pinned, pending, archived },
+    hostStatusCounts,
     oldestPendingCreatedAt: oldestPending?.createdAt
       ? oldestPending.createdAt instanceof Date
         ? oldestPending.createdAt.toISOString()
@@ -529,68 +543,108 @@ type SharedQaPendingCountCacheEntry = {
   promise: Promise<number>;
 };
 const sharedQaPendingCountLoads = new Map<string, SharedQaPendingCountCacheEntry>();
+type SharedQaForumVisibleCountCacheEntry = {
+  expiresAt: number;
+  promise: Promise<number>;
+};
+const sharedQaForumVisibleCountLoads = new Map<string, SharedQaForumVisibleCountCacheEntry>();
+type SharedQaHostOverviewCacheEntry = {
+  expiresAt: number;
+  promise: Promise<HostQaStatusOverview>;
+};
+const sharedQaHostOverviewLoads = new Map<string, SharedQaHostOverviewCacheEntry>();
+
+function pruneSharedMapByExpiry<T extends { expiresAt: number }>(
+  map: Map<string, T>,
+  nowMs: number,
+): void {
+  for (const [key, entry] of map) {
+    if (entry.expiresAt <= nowMs) {
+      map.delete(key);
+    }
+  }
+  while (map.size >= QA_PAGE_CACHE_MAX_ENTRIES) {
+    const oldestKey = map.keys().next().value as string | undefined;
+    if (!oldestKey) {
+      break;
+    }
+    map.delete(oldestKey);
+  }
+}
 
 function pruneSharedQaRankingCache(nowMs: number): void {
-  for (const [key, entry] of sharedQaRankingLoads) {
-    if (entry.expiresAt <= nowMs) {
-      sharedQaRankingLoads.delete(key);
-    }
-  }
-  while (sharedQaRankingLoads.size >= QA_PAGE_CACHE_MAX_ENTRIES) {
-    const oldestKey = sharedQaRankingLoads.keys().next().value as string | undefined;
-    if (!oldestKey) {
-      break;
-    }
-    sharedQaRankingLoads.delete(oldestKey);
-  }
-  for (const [key, entry] of sharedQaPendingCountLoads) {
-    if (entry.expiresAt <= nowMs) {
-      sharedQaPendingCountLoads.delete(key);
-    }
-  }
-  while (sharedQaPendingCountLoads.size >= QA_PAGE_CACHE_MAX_ENTRIES) {
-    const oldestKey = sharedQaPendingCountLoads.keys().next().value as string | undefined;
-    if (!oldestKey) {
-      break;
-    }
-    sharedQaPendingCountLoads.delete(oldestKey);
-  }
+  pruneSharedMapByExpiry(sharedQaRankingLoads, nowMs);
+  pruneSharedMapByExpiry(sharedQaPendingCountLoads, nowMs);
+  pruneSharedMapByExpiry(sharedQaForumVisibleCountLoads, nowMs);
+  pruneSharedMapByExpiry(sharedQaHostOverviewLoads, nowMs);
 }
 
 export function resetSharedQaRankingCacheForTests(): void {
   sharedQaRankingLoads.clear();
   sharedQaPendingCountLoads.clear();
+  sharedQaForumVisibleCountLoads.clear();
+  sharedQaHostOverviewLoads.clear();
 }
 
-async function loadQaPendingCount(sessionId: string, rankingRevision: number): Promise<number> {
-  const key = `${sessionId}:${rankingRevision}`;
+function rememberSharedPromise<T>(
+  map: Map<string, { expiresAt: number; promise: Promise<T> }>,
+  key: string,
+  load: () => Promise<T>,
+): Promise<T> {
   const nowMs = Date.now();
   pruneSharedQaRankingCache(nowMs);
-  const cached = sharedQaPendingCountLoads.get(key);
+  const cached = map.get(key);
   if (cached && cached.expiresAt > nowMs) {
     return cached.promise;
   }
-
-  const entry: SharedQaPendingCountCacheEntry = {
+  const entry: { expiresAt: number; promise: Promise<T> } = {
     expiresAt: Number.POSITIVE_INFINITY,
-    promise: prisma.qaQuestion.count({ where: { sessionId, status: 'PENDING' } }),
+    promise: load(),
   };
   entry.promise = entry.promise.then(
-    (count) => {
-      if (sharedQaPendingCountLoads.get(key) === entry) {
+    (value) => {
+      if (map.get(key) === entry) {
         entry.expiresAt = Date.now() + QA_PAGE_CACHE_TTL_MS;
       }
-      return count;
+      return value;
     },
     (error: unknown) => {
-      if (sharedQaPendingCountLoads.get(key) === entry) {
-        sharedQaPendingCountLoads.delete(key);
+      if (map.get(key) === entry) {
+        map.delete(key);
       }
       throw error;
     },
   );
-  sharedQaPendingCountLoads.set(key, entry);
+  map.set(key, entry);
   return entry.promise;
+}
+
+async function loadQaPendingCount(sessionId: string, rankingRevision: number): Promise<number> {
+  return rememberSharedPromise(sharedQaPendingCountLoads, `${sessionId}:${rankingRevision}`, () =>
+    prisma.qaQuestion.count({ where: { sessionId, status: 'PENDING' } }),
+  );
+}
+
+/** Sessionweite ACTIVE+PINNED-Zahl, revisionsgebunden geteilt (Hörsaal-Budget). */
+async function loadQaForumVisibleCount(
+  sessionId: string,
+  rankingRevision: number,
+): Promise<number> {
+  return rememberSharedPromise(
+    sharedQaForumVisibleCountLoads,
+    `${sessionId}:${rankingRevision}`,
+    () => countQaForumVisibleQuestionsUncached(sessionId),
+  );
+}
+
+/** Host-Statusübersicht, revisionsgebunden geteilt. */
+async function loadHostQaStatusOverview(
+  sessionId: string,
+  rankingRevision: number,
+): Promise<HostQaStatusOverview> {
+  return rememberSharedPromise(sharedQaHostOverviewLoads, `${sessionId}:${rankingRevision}`, () =>
+    loadHostQaStatusOverviewUncached(sessionId),
+  );
 }
 
 async function loadQaPendingReleaseSnapshot(
@@ -1175,7 +1229,7 @@ export const qaRouter = router({
       }
       if (!isQaEnabled(session)) {
         return buildQaQuestionsSnapshot(session, [], 'CHANNEL_CLOSED', serverNow, {
-          forumVisibleCount: await countQaForumVisibleQuestions(session.id),
+          forumVisibleCount: await loadQaForumVisibleCount(session.id, session.qaRankingRevision),
           ...(input.participantId && !input.moderatorView
             ? {
                 ownQuestionCounts: await countOwnQaQuestionsByStatus(
@@ -1188,7 +1242,7 @@ export const qaRouter = router({
       }
       if (!input.moderatorView && contentState !== 'ACTIVE') {
         return buildQaQuestionsSnapshot(session, [], contentState, serverNow, {
-          forumVisibleCount: await countQaForumVisibleQuestions(session.id),
+          forumVisibleCount: await loadQaForumVisibleCount(session.id, session.qaRankingRevision),
           ...(input.participantId
             ? {
                 ownQuestionCounts: await countOwnQaQuestionsByStatus(
@@ -1228,7 +1282,6 @@ export const qaRouter = router({
         participantQuestionCount,
         filteredSessionPendingCount,
         forumVisibleCount,
-        ownQuestionCounts,
         hostOverview,
       ] = await Promise.all([
         buildQaQuestionPayloadFromDb({
@@ -1259,18 +1312,21 @@ export const qaRouter = router({
             })
           : Promise.resolve(0),
         filteredSessionPendingCountPromise,
-        countQaForumVisibleQuestions(session.id),
-        input.participantId && !input.moderatorView
-          ? countOwnQaQuestionsByStatus(session.id, input.participantId).catch(() => ({
-              visible: 0,
-              pending: 0,
-              archived: 0,
-            }))
-          : Promise.resolve(undefined),
+        loadQaForumVisibleCount(session.id, session.qaRankingRevision),
         input.moderatorView
-          ? loadHostQaStatusOverview(session.id).catch(() => undefined)
+          ? loadHostQaStatusOverview(session.id, session.qaRankingRevision).catch(() => undefined)
           : Promise.resolve(undefined),
       ]);
+      const ownQuestionCounts =
+        input.participantId && !input.moderatorView
+          ? participantQuestionCount > 0
+            ? await countOwnQaQuestionsByStatus(session.id, input.participantId).catch(() => ({
+                visible: 0,
+                pending: 0,
+                archived: 0,
+              }))
+            : { visible: 0, pending: 0, archived: 0 }
+          : undefined;
       const [currentRevision, currentParticipantCount] = await Promise.all([
         prisma.session.findUnique({
           where: { id: session.id },

@@ -4038,7 +4038,7 @@
                       i18n-aria-label="@@sessionQa.hostStatusStripAria"
                       aria-label="Fragenstatus"
                     >
-                      @if (qaForumQuestionCount() > 0 || qaSearch()) {
+                      @if (qaHostStatusStripTotalCount() > 0 || qaSearch()) {
                         <span
                           class="session-qa-summary__chip"
                           data-testid="qa-summary-total"
@@ -4047,7 +4047,7 @@
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
                             >chat_bubble_outline</mat-icon
                           >
-                          <span>{{ formatCount(qaForumQuestionCount()) }}</span>
+                          <span>{{ formatCount(qaHostStatusStripTotalCount()) }}</span>
                         </span>
                       }
                       @if (qaActiveCount() > 0) {

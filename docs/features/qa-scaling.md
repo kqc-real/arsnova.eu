@@ -76,8 +76,12 @@ noch vom Tippen im Eingabefeld ab; nach erfolgreichem Laden endet der Retry und
 es bleibt beim invalidierungsgetriebenen Betrieb.
 
 Öffentliche Q&A-Seiten derselben Revision, Sortierung und Cursorlage werden
-kurz im Prozess gecacht. Eigene Votes und eigene `PENDING`-Fragen bleiben
-getrennte Restabfragen. `arsnova_change_qa_vote` schreibt Richtungszähler und
+kurz im Prozess gecacht. Sessionweite Aggregates (`forumVisibleCount`,
+Pending-Zähler, Host-`hostStatusCounts`) teilen dieselbe Revision und denselben
+kurzen TTL, damit 500 parallele Teilnehmerabrufe keine 1:1-Count-Lawine
+auslösen. Eigene Votes und eigene Statuszahlen bleiben getrennte, teilnehmer-
+lokale Restabfragen (eigene Statuszahlen nur wenn `participantQuestionCount > 0`,
+höchstens 10 Zeilen). `arsnova_change_qa_vote` schreibt Richtungszähler und
 `upvoteCount` in einem Update; der Kompatibilitätstrigger rechnet nur noch
 aus OLD/NEW-Differenzen, nicht die gesamte Vote-Menge neu. Der
 Sessionzeilen-Lock für Frist und Kanal bleibt bestehen.
