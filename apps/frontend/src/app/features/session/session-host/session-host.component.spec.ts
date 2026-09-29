@@ -636,9 +636,23 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     setPresenterSurfaceMutateMock.mockImplementation(
-      async ({ surface }: { surface: 'default' | 'qaWordCloud' | 'freetextWordCloud' }) => ({
-        presenterSurface: surface,
-      }),
+      async (input: {
+        surface?: 'default' | 'qaWordCloud' | 'freetextWordCloud' | 'ended';
+        page?: { context: string; index?: number; count?: number; delta?: number };
+      }) => {
+        if (input.page) {
+          const count = input.page.count ?? 1;
+          const index = Math.max(0, Math.min(count - 1, input.page.delta ?? 0));
+          return {
+            presenterSurface: input.surface ?? 'default',
+            presenterPage: { context: input.page.context, index, count },
+          };
+        }
+        return {
+          presenterSurface: input.surface ?? 'default',
+          presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+        };
+      },
     );
     setQaWordCloudProjectionMutateMock.mockImplementation(
       async ({ projection }: { projection: unknown }) => ({ projection }),
@@ -15748,9 +15762,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(endPresentation).toBeTruthy();
     endPresentation!.click();
+    fixture.componentInstance.pendingHostMoreAction.set('endPresentation');
+    fixture.componentInstance.runHostMoreAction();
+    await fixture.whenStable();
 
-    await vi.waitUntil(() => fixture.componentInstance.session()?.presenterSurface === 'ended');
-    fixture.detectChanges();
+    expect(fixture.componentInstance.session()?.presenterSurface).toBe('ended');
     expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       surface: 'ended',
@@ -15758,6 +15774,83 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
     expect(fixture.componentInstance.presenterSurfacePending()).toBe(false);
     expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('setzt beim Beenden der Projektionsansicht Hero-Auszeichnung und Bühnen-Badges zurück', async () => {
+    setPresenterSurfaceMutateMock.mockResolvedValue({
+      presenterSurface: 'ended',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 1, count: 4 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.activeChannel.set('qa');
+    component.qaQuestions.set([
+      {
+        id: 'pin-1',
+        text: 'Hero',
+        upvoteCount: 1,
+        status: 'PINNED',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-1',
+        text: 'Aktueller Hero',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'active-2',
+        text: 'Queue',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    fixture.detectChanges();
+
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
+    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(true);
+    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(1);
+    expect(fixture.nativeElement.textContent).toContain('Aktuell in der Präsentation');
+
+    await component.endPresentationView();
+    fixture.detectChanges();
+
+    expect(component.session()?.presenterSurface).toBe('ended');
+    expect(component.session()?.presenterPage?.index).toBe(0);
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+    expect(component.isQaPresenterHeroCard('pin-1')).toBe(false);
+    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(false);
+    expect(fixture.nativeElement.querySelectorAll('.session-qa-card--pinned')).toHaveLength(0);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-qa-card__badge--on-presenter'),
+    ).toHaveLength(0);
+    expect(fixture.nativeElement.textContent).not.toContain('Aktuell in der Präsentation');
     fixture.destroy();
   });
 

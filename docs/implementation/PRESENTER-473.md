@@ -84,7 +84,8 @@ Tastaturfokus nicht verloren geht.
   Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
   der aktuelle Navigator-Hero steht zusätzlich oben im Host-Forum und trägt allein die
-  Hero-Einfärbung (wandert mit dem Cursor); Hero nutzt MD3-`primary-container` (Spielerisch:
+  Hero-Einfärbung (wandert mit dem Cursor; bei »Projektionsansicht beenden« entfällt sie);
+  Hero nutzt MD3-`primary-container` (Spielerisch:
   verstärkter Container-Verlauf bzw. Dark `primary`); der Neu-Hinweis (`--highlight`)
   überschreibt die Hero-Fläche nicht; Host-Forum markiert Hero und die aktuelle
   Warteschlangen-Fragen mit »Aktuell in der Präsentation«;

@@ -5943,6 +5943,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   });
   /** Hero = Frage am aktuellen Navigator-Index (sonst erstes PINNED). */
   readonly qaPresenterHeroQuestionId = computed(() => {
+    const session = this.session();
+    if (!session || session.presenterSurface === 'ended') {
+      return null;
+    }
     const questions = this.qaProjectionStageQuestions();
     if (questions.length === 0) {
       return null;
@@ -5954,7 +5958,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     const pageIndex = Math.max(
       0,
-      Math.min(questions.length - 1, this.session()?.presenterPage?.index ?? 0),
+      Math.min(questions.length - 1, session.presenterPage?.index ?? 0),
     );
     return questions[pageIndex]?.id ?? null;
   });
@@ -11016,8 +11020,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         surface,
       });
       this.session.update((session) =>
-        session ? { ...session, presenterSurface: result.presenterSurface } : session,
+        session
+          ? {
+              ...session,
+              presenterSurface: result.presenterSurface,
+              // Backend setzt die Seitenposition beim Surface-Wechsel zurück (Index 0).
+              ...(result.presenterPage ? { presenterPage: result.presenterPage } : {}),
+            }
+          : session,
       );
+      if (surface === 'ended') {
+        this.projectionControlsVisible.set(false);
+        this.projectionPageError.set('');
+      }
       return true;
     } catch {
       // Die lokale Wortwolkenansicht bleibt bedienbar, auch wenn die Projektion nicht synchronisiert.
