@@ -63,7 +63,10 @@ describe('QaRedactPassagesDialogComponent', () => {
 
     await component.confirmApply();
     expect(dialogOpen).toHaveBeenCalled();
-    expect(applyRedaction).toHaveBeenCalledWith([{ start: 14, end: 17 }]);
+    expect(applyRedaction).toHaveBeenCalledWith(
+      [{ start: 14, end: 17 }],
+      'Bitte Max und Max anonymisieren',
+    );
     expect(close).toHaveBeenCalledWith({ applied: true });
   });
 

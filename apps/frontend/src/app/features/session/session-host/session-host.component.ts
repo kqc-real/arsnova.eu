@@ -139,6 +139,7 @@ import {
   QA_LIST_DEFAULT_PAGE_SIZE,
   QA_LIST_PAGE_SIZE_OPTIONS,
   qaQuestionTextVersion,
+  qaRedactionDialogTextIsCurrent,
   type QaListPageSize,
   type WordCloudLemmaLocale,
   type ProductFeedbackInAppArea,
@@ -12830,8 +12831,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           updatedAt: question.updatedAt,
           passagesRedacted: question.passagesRedacted === true,
         },
-        applyRedaction: (ranges: Array<{ start: number; end: number }>) =>
-          this.applyQaPassageRedaction(questionId, ranges),
+        applyRedaction: (ranges: Array<{ start: number; end: number }>, sourceText: string) =>
+          this.applyQaPassageRedaction(questionId, ranges, sourceText),
       },
     });
     const result = await firstValueFrom(dialogRef.afterClosed());
@@ -12846,6 +12847,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async applyQaPassageRedaction(
     questionId: string,
     ranges: Array<{ start: number; end: number }>,
+    sourceText: string,
   ): Promise<import('./qa-redact-passages-dialog.component').QaRedactPassagesApplyOutcome> {
     if (!this.code || !this.qaHostWritesAllowed()) {
       return { ok: false, reason: 'error' };
@@ -12853,6 +12855,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const current = this.qaVisibleQuestions().find((entry) => entry.id === questionId);
     if (!current) {
       return { ok: false, reason: 'error' };
+    }
+    // Ranges stammen aus dem Dialogtext — nie die Version aus einer inzwischen aktualisierten Liste nehmen.
+    if (!qaRedactionDialogTextIsCurrent(sourceText, current.text)) {
+      await this.refreshQaQuestions();
+      const refreshed = this.qaVisibleQuestions().find((entry) => entry.id === questionId);
+      if (!refreshed) {
+        return { ok: false, reason: 'error' };
+      }
+      return {
+        ok: false,
+        reason: 'conflict',
+        question: {
+          id: refreshed.id,
+          text: refreshed.text,
+          updatedAt: refreshed.updatedAt,
+          passagesRedacted: refreshed.passagesRedacted === true,
+        },
+      };
     }
     const pending = new Set(this.qaPendingQuestionIds());
     if (pending.has(questionId)) {
@@ -12865,7 +12885,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await trpc.qa.redactPassages.mutate({
         sessionCode: this.code.toUpperCase(),
         questionId,
-        expectedTextVersion: qaQuestionTextVersion(current.text),
+        expectedTextVersion: qaQuestionTextVersion(sourceText),
         ranges,
       });
       await this.refreshQaQuestions();

@@ -40,8 +40,11 @@ export type QaRedactPassagesApplyOutcome =
 
 export interface QaRedactPassagesDialogData {
   question: Pick<QaQuestionDTO, 'id' | 'text' | 'updatedAt' | 'passagesRedacted'>;
-  /** Speichert die Schwärzung; Dialog bleibt bis zum Ergebnis offen. */
-  applyRedaction: (ranges: QaRedactionRange[]) => Promise<QaRedactPassagesApplyOutcome>;
+  /** Speichert die Schwärzung; Dialog bleibt bis zum Ergebnis offen. Text = angezeigter Dialogtext. */
+  applyRedaction: (
+    ranges: QaRedactionRange[],
+    sourceText: string,
+  ) => Promise<QaRedactPassagesApplyOutcome>;
 }
 
 export interface QaRedactPassagesDialogResult {
@@ -263,7 +266,7 @@ export class QaRedactPassagesDialogComponent {
     this.dialogRef.disableClose = true;
     this.announce($localize`:@@sessionQa.redactPending:Schwärzung wird gespeichert…`, 'info');
     try {
-      const outcome = await this.data.applyRedaction(ranges);
+      const outcome = await this.data.applyRedaction(ranges, this.sourceText());
       if (outcome.ok) {
         this.dialogRef.close({ applied: true });
         return;

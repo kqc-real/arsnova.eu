@@ -215,3 +215,8 @@ export function qaQuestionTextVersion(text: string): string {
   }
   return `${qaTextCodePoints(text).length.toString(16)}:${(hash >>> 0).toString(16)}`;
 }
+
+/** True, wenn Dialogtext und aktueller Listen-/Servertext noch dieselbe Version haben. */
+export function qaRedactionDialogTextIsCurrent(dialogText: string, currentText: string): boolean {
+  return qaQuestionTextVersion(dialogText) === qaQuestionTextVersion(currentText);
+}

@@ -7,6 +7,7 @@ import {
   findQaRedactionSearchOccurrences,
   previewQaPassageRedaction,
   qaQuestionTextVersion,
+  qaRedactionDialogTextIsCurrent,
   qaTextCodePoints,
 } from './qa-redaction';
 import { RedactQaPassagesInputSchema } from './schemas';
@@ -22,6 +23,14 @@ describe('qa-redaction', () => {
       text: `Hallo 👩‍💻 ${QA_REDACTION_PLACEHOLDER} und ${QA_REDACTION_PLACEHOLDER} nochmal`,
     });
     expect(qaTextCodePoints(text).slice(0, 6).join('')).toBe('Hallo ');
+  });
+
+  it('erkennt veralteten Dialogtext gegenüber der Host-Liste', () => {
+    const dialogText = 'Bitte Max anonymisieren';
+    expect(qaRedactionDialogTextIsCurrent(dialogText, dialogText)).toBe(true);
+    expect(
+      qaRedactionDialogTextIsCurrent(dialogText, `Bitte ${QA_REDACTION_PLACEHOLDER} anonymisieren`),
+    ).toBe(false);
   });
 
   it('lehnt Überlappungen und Platzhalter-Treffer ab', () => {

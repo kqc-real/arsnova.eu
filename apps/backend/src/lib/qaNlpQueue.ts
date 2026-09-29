@@ -24,7 +24,15 @@ export type QaNlpEnqueueResult = 'disabled' | 'queued' | 'skipped';
 
 export type QaNlpProcessor = (snapshot: QaNlpAnalysisSnapshot) => Promise<QaNlpResult>;
 
-export type QaNlpResultWriter = (questionId: string, result: QaNlpResult) => Promise<void>;
+/**
+ * Persistiert NLP-Ergebnis nur, wenn `expectedText` noch dem DB-Text entspricht.
+ * Verhindert, dass ein vor der Schwärzung gestarteter Job nach dem Commit überschreibt.
+ */
+export type QaNlpResultWriter = (
+  questionId: string,
+  result: QaNlpResult,
+  expectedText: string,
+) => Promise<void>;
 
 type QaNlpMetricCounters = {
   queueLength: number;
@@ -55,9 +63,9 @@ type QueueHooks = {
 
 type QueuedQaNlpJob = QaNlpJob & { readonly generation: number };
 
-const defaultWriter: QaNlpResultWriter = async (questionId, result) => {
-  await prisma.qaQuestion.update({
-    where: { id: questionId },
+const defaultWriter: QaNlpResultWriter = async (questionId, result, expectedText) => {
+  await prisma.qaQuestion.updateMany({
+    where: { id: questionId, text: expectedText },
     data: toQaNlpPersistFields(result),
   });
 };
@@ -152,9 +160,13 @@ function syncQueueLength(): void {
   metrics.queueLength = queue.length;
 }
 
-async function persistResult(questionId: string, result: QaNlpResult): Promise<void> {
+async function persistResult(
+  questionId: string,
+  result: QaNlpResult,
+  expectedText: string,
+): Promise<void> {
   try {
-    await hooks.writer(questionId, result);
+    await hooks.writer(questionId, result, expectedText);
   } catch (error) {
     logger.warn('qa_nlp:persist_failed', {
       questionId,
@@ -191,7 +203,7 @@ async function processJob(job: QueuedQaNlpJob): Promise<void> {
     assertQaNlpSnapshotMinimized(snapshot);
     const result = await withTimeout(hooks.processor(snapshot), config.timeoutMs);
     if (isSessionInvalidated(job.sessionId) || isStaleQuestionJob(job)) return;
-    await persistResult(job.questionId, result);
+    await persistResult(job.questionId, result, job.text);
     metrics.completed += 1;
     const flags = readQaNlpCascadeFlags(result);
     if (flags.usedFallback) {
@@ -220,7 +232,11 @@ async function processJob(job: QueuedQaNlpJob): Promise<void> {
   } catch (error) {
     if (isSessionInvalidated(job.sessionId) || isStaleQuestionJob(job)) return;
     const timedOut = error instanceof Error && error.message === 'QA_NLP_TIMEOUT';
-    await persistResult(job.questionId, createFailedQaNlpResult(timedOut ? 'timeout' : 'error'));
+    await persistResult(
+      job.questionId,
+      createFailedQaNlpResult(timedOut ? 'timeout' : 'error'),
+      job.text,
+    );
     metrics.failed += 1;
     metrics.unclassified += 1;
     logger.warn('qa_nlp:failed', {
@@ -265,7 +281,7 @@ export function enqueueQaNlpJob(job: QaNlpJob): QaNlpEnqueueResult {
     hooks.schedule(() => {
       if (isSessionInvalidated(job.sessionId)) return;
       if (generation !== currentQuestionGeneration(job.questionId)) return;
-      void persistResult(job.questionId, createFailedQaNlpResult('queue-limit'));
+      void persistResult(job.questionId, createFailedQaNlpResult('queue-limit'), job.text);
     });
     logger.warn('qa_nlp:skipped', {
       reason: 'queue-limit',

@@ -1610,13 +1610,16 @@ export const qaRouter = router({
         });
 
         invalidateQaSummaryForSession(session.id);
-        if (nlpEnabled && redactedQuestionId) {
+        // Immer invalidieren: ein früher gestarteter Job kann noch laufen, auch wenn NLP jetzt aus ist.
+        if (redactedQuestionId) {
           invalidateQaNlpForQuestion(redactedQuestionId);
-          enqueueQaNlpJob({
-            sessionId: session.id,
-            questionId: redactedQuestionId,
-            text: redactedText,
-          });
+          if (nlpEnabled) {
+            enqueueQaNlpJob({
+              sessionId: session.id,
+              questionId: redactedQuestionId,
+              text: redactedText,
+            });
+          }
         }
         emitQaQuestionsSignal(session.id, { immediate: true });
         return redacted;

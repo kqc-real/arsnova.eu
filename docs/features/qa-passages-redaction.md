@@ -32,8 +32,9 @@ werden.
 
 - `qaRankingRevision` steigt über den bestehenden Trigger bei Textänderung.
 - `invalidateQaSummaryForSession` verwirft laufende/gecachte Zusammenfassungen.
-- NLP-Felder werden zurückgesetzt und bei aktivem Kill-Switch neu enqueued —
-  nur mit dem geschwärzten Text.
+- NLP-Felder werden zurückgesetzt; die In-Memory-Generation wird immer
+  invalidiert. Bei aktivem Kill-Switch wird nur der geschwärzte Text neu
+  enqueued.
 - Wortwolke und Exporte lesen den aktuellen `text`; PDF/CSV enthalten keinen
   Klartext der geschwärzten Stellen mehr.
 - Bereits gesehene Inhalte, Screenshots, externe Exporte und Backups werden
@@ -44,12 +45,17 @@ werden.
 - Host-Kartenaktion »Passagen schwärzen« (auch vor Freigabe).
 - Dialog mit auswählbarem Klartext, optionaler Suche für Touch, Vorschau und
   Bestätigung der Irreversibilität.
-- Host-Dialog bleibt bis zum Speichern-Ergebnis offen; bei Konflikt wird der
-  aktuelle Text geladen und die Auswahl verworfen (kein Blind-Retry).
+- Host-Dialog bleibt bis zum Speichern-Ergebnis offen; `expectedTextVersion`
+  kommt vom **angezeigten Dialogtext**, nicht aus einer inzwischen
+  aktualisierten Host-Liste. Weicht die Liste ab, gibt es lokalen Konflikt ohne
+  Mutation; bei Server-`CONFLICT` wird der aktuelle Text geladen und die
+  Auswahl verworfen (kein Blind-Retry).
 - Offset-Obergrenze `QA_REDACTION_MAX_OFFSET` deckt Textwachstum durch
   Platzhalter ab; die Server-Prüfung bleibt an der tatsächlichen Textlänge.
-- NLP: `invalidateQaNlpForQuestion` verwirft Warteschlange und macht laufende
-  Altjobs schreibgeschützt, bevor der Job mit geschwärztem Text neu eingeplant wird.
+- NLP: bei jeder Schwärzung `invalidateQaNlpForQuestion` (auch wenn NLP gerade
+  deaktiviert ist). Persist schreibt nur per `updateMany` mit dem erwarteten
+  Fragetext — ein vor dem Commit begonnener Altjob überschreibt die geschwärzte
+  Frage nicht.
 
 ## Grenzen für Betrieb
 
