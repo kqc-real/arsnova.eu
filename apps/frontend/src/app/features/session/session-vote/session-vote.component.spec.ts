@@ -7933,6 +7933,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toContain(
       'Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.',
     );
+    expect(text).not.toContain('Von dir');
     expect(text).not.toContain('Sessionweit noch');
     fixture.destroy();
   });

@@ -2936,7 +2936,7 @@
                           {{ statusLabel }}
                         </span>
                       }
-                      @if (question.isOwn) {
+                      @if (question.isOwn && question.status !== 'PENDING') {
                         <span class="session-qa-card__own-badge">{{
                           vpc.voteQaOwnBadge(isPlayfulPreset())
                         }}</span>
