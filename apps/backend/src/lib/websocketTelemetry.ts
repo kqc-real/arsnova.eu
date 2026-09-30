@@ -46,6 +46,10 @@ const trpcPayloadRejected = new RollingCounter();
 const trpcRateLimitedMessages = new RollingCounter();
 const trpcSessionCapRejected = new RollingCounter();
 const trpcParticipantCapRejected = new RollingCounter();
+const trpcOpened = new RollingCounter();
+const trpcClosed = new RollingCounter();
+const yjsOpened = new RollingCounter();
+const yjsClosed = new RollingCounter();
 const yjsRejectedUpgrades = new RollingCounter();
 export const YJS_UPGRADE_REJECTION_REASONS = [
   'globalRate',
@@ -82,10 +86,12 @@ export function configureTrpcWebSocketTelemetry(limits: {
 
 export function recordTrpcWebSocketConnected(): void {
   trpcConnectionsActive += 1;
+  trpcOpened.increment();
 }
 
 export function recordTrpcWebSocketDisconnected(): void {
   trpcConnectionsActive = Math.max(0, trpcConnectionsActive - 1);
+  trpcClosed.increment();
 }
 
 export function recordTrpcWebSocketRejectedUpgrade(): void {
@@ -126,11 +132,13 @@ export function configureYjsWebSocketTelemetry(limits: {
 
 export function recordYjsWebSocketConnected(room: string): void {
   yjsConnectionsActive += 1;
+  yjsOpened.increment();
   yjsRoomConnections.set(room, (yjsRoomConnections.get(room) ?? 0) + 1);
 }
 
 export function recordYjsWebSocketDisconnected(room: string): void {
   yjsConnectionsActive = Math.max(0, yjsConnectionsActive - 1);
+  yjsClosed.increment();
   const remaining = Math.max(0, (yjsRoomConnections.get(room) ?? 0) - 1);
   if (remaining === 0) yjsRoomConnections.delete(room);
   else yjsRoomConnections.set(room, remaining);
@@ -176,6 +184,8 @@ export function getWebSocketTelemetrySnapshot(): {
   trpcRejectedUpgradesLastMinute: number;
   trpcPayloadRejectedLastMinute: number;
   trpcRateLimitedMessagesLastMinute: number;
+  trpcOpenedLastMinute: number;
+  trpcClosedLastMinute: number;
   yjsConnectionsActive: number;
   yjsRoomsActive: number;
   yjsConnectionLimit: number;
@@ -188,6 +198,8 @@ export function getWebSocketTelemetrySnapshot(): {
   yjsDocumentRejectedLastMinute: number;
   yjsAwarenessRejectedLastMinute: number;
   yjsOutboundRejectedLastMinute: number;
+  yjsOpenedLastMinute: number;
+  yjsClosedLastMinute: number;
 } {
   return {
     trpcConnectionsActive,
@@ -200,6 +212,8 @@ export function getWebSocketTelemetrySnapshot(): {
     trpcRejectedUpgradesLastMinute: trpcRejectedUpgrades.sum(),
     trpcPayloadRejectedLastMinute: trpcPayloadRejected.sum(),
     trpcRateLimitedMessagesLastMinute: trpcRateLimitedMessages.sum(),
+    trpcOpenedLastMinute: trpcOpened.sum(),
+    trpcClosedLastMinute: trpcClosed.sum(),
     yjsConnectionsActive,
     yjsRoomsActive: yjsRoomConnections.size,
     yjsConnectionLimit,
@@ -217,6 +231,8 @@ export function getWebSocketTelemetrySnapshot(): {
     yjsDocumentRejectedLastMinute: yjsDocumentRejected.sum(),
     yjsAwarenessRejectedLastMinute: yjsAwarenessRejected.sum(),
     yjsOutboundRejectedLastMinute: yjsOutboundRejected.sum(),
+    yjsOpenedLastMinute: yjsOpened.sum(),
+    yjsClosedLastMinute: yjsClosed.sum(),
   };
 }
 
@@ -231,6 +247,10 @@ export function resetWebSocketTelemetryForTests(): void {
   trpcRateLimitedMessages.reset();
   trpcSessionCapRejected.reset();
   trpcParticipantCapRejected.reset();
+  trpcOpened.reset();
+  trpcClosed.reset();
+  yjsOpened.reset();
+  yjsClosed.reset();
   yjsConnectionsActive = 0;
   yjsConnectionLimit = 1;
   yjsPerRoomConnectionLimit = 1;

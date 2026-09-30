@@ -29,7 +29,7 @@ import {
 import { readLoadSignals } from '../lib/loadSignal';
 import { pdfConcurrencyLimiter } from '../lib/pdfConcurrencyLimiter';
 import { readPdfSignals } from '../lib/pdfTelemetry';
-import { readSloSignals, type SloSignals } from '../lib/sloTelemetry';
+import { DEFINED_CORE_PROCEDURES, readSloSignals, type SloSignals } from '../lib/sloTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
 import {
   SESSION_CODE_PROTECTION_LIMITS,
@@ -48,6 +48,8 @@ import type {
   FooterStatusDTO,
   HealthSecurityStatsDTO,
   PublicDependenciesStatus,
+  PublicLiveConnections,
+  PublicTrafficQuality,
   PublicUsageStats,
   ServerStatsDTO,
 } from '@arsnova/shared-types';
@@ -373,6 +375,137 @@ function emptyCoreActionsQuality() {
     qaSubmit: empty,
     qaRate: empty,
   };
+}
+
+function buildTrafficQuality(
+  sloSignals: SloSignals,
+  measurementAvailable: boolean,
+): PublicTrafficQuality {
+  if (!measurementAvailable || !sloSignals.available) {
+    return {
+      measurementState: 'UNAVAILABLE',
+      windowSeconds: 60,
+      bucketSeconds: 10,
+      observedWindowSeconds: null,
+      windowComplete: null,
+      avgRps: null,
+      peakRps: null,
+      sampleSize: null,
+      errorRatePercent: null,
+      errorClasses: null,
+      p95LatencyMs: null,
+      p99LatencyMs: null,
+      latencyIncludesFailedRequests: true,
+      insufficientLatencySample: true,
+      monitoredProcedures: sloSignals.monitoredProcedures,
+      definedProcedures: sloSignals.definedProcedures,
+      groups: null,
+      lastSuccessfulReadAt: null,
+    };
+  }
+
+  const insufficient = sloSignals.insufficientLatencySample;
+  return {
+    measurementState: sloSignals.measurementState,
+    windowSeconds: 60,
+    bucketSeconds: 10,
+    observedWindowSeconds: sloSignals.observedWindowSeconds,
+    windowComplete: sloSignals.windowComplete,
+    avgRps: sloSignals.avgRps,
+    peakRps: sloSignals.peakRps,
+    sampleSize: sloSignals.totalRequestsLastMinute,
+    errorRatePercent: sloSignals.errorRatePercentLastMinute,
+    errorClasses: sloSignals.errorClasses,
+    p95LatencyMs: insufficient ? null : sloSignals.p95LatencyMsLastMinute,
+    p99LatencyMs: insufficient ? null : sloSignals.p99LatencyMsLastMinute,
+    latencyIncludesFailedRequests: true,
+    insufficientLatencySample: insufficient,
+    monitoredProcedures: sloSignals.monitoredProcedures,
+    definedProcedures: sloSignals.definedProcedures,
+    groups: sloSignals.groups.map((group) => ({
+      id: group.id,
+      requestsLastMinute: group.requestsLastMinute,
+    })),
+    lastSuccessfulReadAt: sloSignals.lastSuccessfulReadAt,
+  };
+}
+
+function buildLiveConnections(measurementAvailable: boolean): PublicLiveConnections {
+  if (!measurementAvailable) {
+    return {
+      measurementState: 'UNAVAILABLE',
+      trpcOpen: null,
+      yjsOpen: null,
+      trpcOpenedLastMinute: null,
+      trpcClosedLastMinute: null,
+      yjsOpenedLastMinute: null,
+      yjsClosedLastMinute: null,
+      rejectsLastMinute: null,
+      rateLimitedMessagesLastMinute: null,
+      reconnectsLastMinute: null,
+      messagesPerSecond: null,
+      lastSuccessfulReadAt: null,
+      deliveryNotMeasured: true,
+    };
+  }
+
+  const snapshot = getWebSocketTelemetrySnapshot();
+  const rejectsLastMinute =
+    snapshot.trpcRejectedUpgradesLastMinute +
+    snapshot.trpcPayloadRejectedLastMinute +
+    snapshot.trpcSessionCapRejectedLastMinute +
+    snapshot.trpcParticipantCapRejectedLastMinute +
+    snapshot.yjsRejectedUpgradesLastMinute +
+    snapshot.yjsPayloadRejectedLastMinute +
+    snapshot.yjsProtocolErrorsLastMinute +
+    snapshot.yjsDocumentRejectedLastMinute +
+    snapshot.yjsAwarenessRejectedLastMinute +
+    snapshot.yjsOutboundRejectedLastMinute;
+  const rateLimitedMessagesLastMinute =
+    snapshot.trpcRateLimitedMessagesLastMinute + snapshot.yjsRateLimitedMessagesLastMinute;
+
+  return {
+    measurementState: 'AVAILABLE',
+    trpcOpen: snapshot.trpcConnectionsActive,
+    yjsOpen: snapshot.yjsConnectionsActive,
+    trpcOpenedLastMinute: snapshot.trpcOpenedLastMinute,
+    trpcClosedLastMinute: snapshot.trpcClosedLastMinute,
+    yjsOpenedLastMinute: snapshot.yjsOpenedLastMinute,
+    yjsClosedLastMinute: snapshot.yjsClosedLastMinute,
+    rejectsLastMinute,
+    rateLimitedMessagesLastMinute,
+    reconnectsLastMinute: null,
+    messagesPerSecond: null,
+    lastSuccessfulReadAt: new Date().toISOString(),
+    deliveryNotMeasured: true,
+  };
+}
+
+function unavailableTrafficQuality(): PublicTrafficQuality {
+  return buildTrafficQuality(
+    {
+      totalRequestsLastMinute: 0,
+      errorRatePercentLastMinute: 0,
+      p95LatencyMsLastMinute: 0,
+      p99LatencyMsLastMinute: 0,
+      available: false,
+      measurementState: 'UNAVAILABLE',
+      windowSeconds: 60,
+      bucketSeconds: 10,
+      observedWindowSeconds: 0,
+      windowComplete: false,
+      avgRps: null,
+      peakRps: null,
+      errorClasses: { server: 0, rateLimit: 0, client: 0 },
+      latencyIncludesFailedRequests: true,
+      insufficientLatencySample: true,
+      monitoredProcedures: DEFINED_CORE_PROCEDURES.length,
+      definedProcedures: DEFINED_CORE_PROCEDURES.length,
+      groups: [],
+      lastSuccessfulReadAt: null,
+    },
+    false,
+  );
 }
 
 /** Sessions, die aktuell noch nutzbar sind (Beitritt oder offenes Q&A inkl. nach FINISHED). */
@@ -701,6 +834,8 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       loadStatus,
       dependencies,
       coreActionsQuality,
+      trafficQuality: buildTrafficQuality(sloSignals, measurementAvailable),
+      liveConnections: buildLiveConnections(measurementAvailable),
       sloSampleSizeLastMinute: sloSignals.available ? sloSignals.totalRequestsLastMinute : null,
       measurementAvailable,
       activeQaSessions,
@@ -741,6 +876,8 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       loadStatus: 'busy' as const,
       dependencies: unavailableDependencies,
       coreActionsQuality: emptyCoreActionsQuality(),
+      trafficQuality: unavailableTrafficQuality(),
+      liveConnections: buildLiveConnections(false),
       sloSampleSizeLastMinute: null,
       measurementAvailable: false,
       activeQaSessions: null,

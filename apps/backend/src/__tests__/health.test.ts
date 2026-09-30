@@ -68,6 +68,7 @@ vi.mock('../lib/sloTelemetry', () => ({
   readSloSignals: vi.fn(),
   isTrackedLiveProcedure: vi.fn(() => false),
   recordLiveRequestTelemetry: vi.fn(),
+  DEFINED_CORE_PROCEDURES: Array.from({ length: 14 }, (_, i) => `proc.${i}`),
 }));
 
 vi.mock('../lib/qaTelemetry', () => ({
@@ -182,6 +183,8 @@ beforeEach(() => {
     trpcRejectedUpgradesLastMinute: 0,
     trpcPayloadRejectedLastMinute: 0,
     trpcRateLimitedMessagesLastMinute: 0,
+    trpcOpenedLastMinute: 0,
+    trpcClosedLastMinute: 0,
     yjsConnectionsActive: 0,
     yjsRoomsActive: 0,
     yjsConnectionLimit: 1_000,
@@ -205,6 +208,8 @@ beforeEach(() => {
     yjsDocumentRejectedLastMinute: 0,
     yjsAwarenessRejectedLastMinute: 0,
     yjsOutboundRejectedLastMinute: 0,
+    yjsOpenedLastMinute: 0,
+    yjsClosedLastMinute: 0,
   });
 });
 
@@ -227,6 +232,20 @@ describe('health.check', () => {
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
       available: true,
+      measurementState: 'AVAILABLE',
+      windowSeconds: 60,
+      bucketSeconds: 10,
+      observedWindowSeconds: 60,
+      windowComplete: true,
+      avgRps: 0,
+      peakRps: 0,
+      errorClasses: { server: 0, rateLimit: 0, client: 0 },
+      latencyIncludesFailedRequests: true,
+      insufficientLatencySample: true,
+      monitoredProcedures: 14,
+      definedProcedures: 14,
+      groups: [],
+      lastSuccessfulReadAt: new Date().toISOString(),
     });
   });
 
@@ -287,6 +306,20 @@ describe('health.footerBundle', () => {
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
       available: true,
+      measurementState: 'AVAILABLE',
+      windowSeconds: 60,
+      bucketSeconds: 10,
+      observedWindowSeconds: 60,
+      windowComplete: true,
+      avgRps: 0,
+      peakRps: 0,
+      errorClasses: { server: 0, rateLimit: 0, client: 0 },
+      latencyIncludesFailedRequests: true,
+      insufficientLatencySample: true,
+      monitoredProcedures: 14,
+      definedProcedures: 14,
+      groups: [],
+      lastSuccessfulReadAt: new Date().toISOString(),
     });
   });
 
@@ -403,6 +436,20 @@ describe('health.stats', () => {
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
       available: true,
+      measurementState: 'AVAILABLE',
+      windowSeconds: 60,
+      bucketSeconds: 10,
+      observedWindowSeconds: 60,
+      windowComplete: true,
+      avgRps: 0,
+      peakRps: 0,
+      errorClasses: { server: 0, rateLimit: 0, client: 0 },
+      latencyIncludesFailedRequests: true,
+      insufficientLatencySample: true,
+      monitoredProcedures: 14,
+      definedProcedures: 14,
+      groups: [],
+      lastSuccessfulReadAt: new Date().toISOString(),
     });
     vi.mocked(readQaTelemetry).mockResolvedValue({
       questionsLastMinute: null,
@@ -534,6 +581,8 @@ describe('health.stats', () => {
       trpcRejectedUpgradesLastMinute: 6,
       trpcPayloadRejectedLastMinute: 2,
       trpcRateLimitedMessagesLastMinute: 8,
+      trpcOpenedLastMinute: 11,
+      trpcClosedLastMinute: 9,
       yjsConnectionsActive: 45,
       yjsRoomsActive: 12,
       yjsConnectionLimit: 1_000,
@@ -557,6 +606,8 @@ describe('health.stats', () => {
       yjsDocumentRejectedLastMinute: 4,
       yjsAwarenessRejectedLastMinute: 6,
       yjsOutboundRejectedLastMinute: 5,
+      yjsOpenedLastMinute: 14,
+      yjsClosedLastMinute: 10,
     });
 
     const result = await authenticatedCaller.securityStats(undefined);
@@ -947,6 +998,20 @@ describe('health.stats', () => {
       p95LatencyMsLastMinute: 1900,
       p99LatencyMsLastMinute: 4200,
       available: true,
+      measurementState: 'AVAILABLE',
+      windowSeconds: 60,
+      bucketSeconds: 10,
+      observedWindowSeconds: 60,
+      windowComplete: true,
+      avgRps: 0,
+      peakRps: 0,
+      errorClasses: { server: 0, rateLimit: 0, client: 0 },
+      latencyIncludesFailedRequests: true,
+      insufficientLatencySample: true,
+      monitoredProcedures: 14,
+      definedProcedures: 14,
+      groups: [],
+      lastSuccessfulReadAt: new Date().toISOString(),
     });
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
       id: 'default',

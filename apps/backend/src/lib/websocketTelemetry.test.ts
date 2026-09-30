@@ -62,6 +62,8 @@ describe('websocketTelemetry', () => {
       trpcRejectedUpgradesLastMinute: 1,
       trpcPayloadRejectedLastMinute: 1,
       trpcRateLimitedMessagesLastMinute: 1,
+      trpcOpenedLastMinute: 2,
+      trpcClosedLastMinute: 1,
     });
   });
 
@@ -103,6 +105,8 @@ describe('websocketTelemetry', () => {
       yjsDocumentRejectedLastMinute: 1,
       yjsAwarenessRejectedLastMinute: 1,
       yjsOutboundRejectedLastMinute: 1,
+      yjsOpenedLastMinute: 3,
+      yjsClosedLastMinute: 1,
     });
   });
 
