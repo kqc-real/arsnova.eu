@@ -5123,6 +5123,10 @@
                                   [class.session-qa-card__action-btn--approve]="
                                     $any(action) === 'APPROVE'
                                   "
+                                  [class.session-qa-card__action-btn--pin]="$any(action) === 'PIN'"
+                                  [class.session-qa-card__action-btn--unpin]="
+                                    $any(action) === 'UNPIN'
+                                  "
                                   [disabled]="qaPendingQuestionIds().has(question.id)"
                                   (click)="moderateQaQuestion(question.id, $any(action))"
                                 >
