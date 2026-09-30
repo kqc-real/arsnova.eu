@@ -4712,6 +4712,100 @@ export const PublicCoreActionsQualitySchema = z.object({
 });
 export type PublicCoreActionsQuality = z.infer<typeof PublicCoreActionsQualitySchema>;
 
+/** Messzustand für öffentliche Betriebsmetriken (nie 0 als gesund vortäuschen). */
+export const PublicMeasurementStateSchema = z.enum(['AVAILABLE', 'WARMING_UP', 'UNAVAILABLE']);
+export type PublicMeasurementState = z.infer<typeof PublicMeasurementStateSchema>;
+
+export const PublicTrafficErrorClassesSchema = z.object({
+  /** Interne Serverfehler (z. B. INTERNAL_SERVER_ERROR, TIMEOUT). */
+  server: z.number().int().min(0),
+  /** Überlastungs-/Rate-Limit-Ablehnungen (TOO_MANY_REQUESTS). */
+  rateLimit: z.number().int().min(0),
+  /** Fachliche/clientseitige Fehler — verschlechtern den Gesundheitszustand nicht. */
+  client: z.number().int().min(0),
+});
+export type PublicTrafficErrorClasses = z.infer<typeof PublicTrafficErrorClassesSchema>;
+
+export const PublicTrafficGroupIdSchema = z.enum([
+  'sessionJoin',
+  'quizFeedback',
+  'qa',
+  'presenter',
+  'opsReporting',
+]);
+export type PublicTrafficGroupId = z.infer<typeof PublicTrafficGroupIdSchema>;
+
+export const PublicTrafficGroupSampleSchema = z.object({
+  id: PublicTrafficGroupIdSchema,
+  requestsLastMinute: z.number().int().min(0).nullable(),
+});
+export type PublicTrafficGroupSample = z.infer<typeof PublicTrafficGroupSampleSchema>;
+
+/**
+ * Serververkehr und Qualität — RPS niemals isoliert;
+ * immer gemeinsam mit Fehlerrate, Latenz und Messabdeckung.
+ */
+export const PublicTrafficQualitySchema = z.object({
+  measurementState: PublicMeasurementStateSchema,
+  windowSeconds: z.literal(60),
+  bucketSeconds: z.literal(10),
+  /** Beobachtetes Fenster in Sekunden (bei Anlauf < 60). */
+  observedWindowSeconds: z.number().int().min(0).max(60).nullable(),
+  windowComplete: z.boolean().nullable(),
+  /** Durchschnitt API-Anfragen/s über das beobachtete Fenster; null bei Messausfall. */
+  avgRps: z.number().min(0).nullable(),
+  /** Spitzenwert/s = max(Bucket-Count / 10) im Fenster; null bei Messausfall. */
+  peakRps: z.number().min(0).nullable(),
+  sampleSize: z.number().int().min(0).nullable(),
+  /**
+   * Gesundheitsrelevante Fehlerrate in % (Server + Rate-Limit) /
+   * alle überwachten Anfragen. null bei Messausfall.
+   */
+  errorRatePercent: z.number().min(0).nullable(),
+  errorClasses: PublicTrafficErrorClassesSchema.nullable(),
+  p95LatencyMs: z.number().int().min(0).nullable(),
+  p99LatencyMs: z.number().int().min(0).nullable(),
+  /** Fehlgeschlagene Requests gehen in die Latenzverteilung ein. */
+  latencyIncludesFailedRequests: z.literal(true),
+  /** true bei zu kleiner Stichprobe — UI zeigt „noch nicht genügend Messwerte“. */
+  insufficientLatencySample: z.boolean(),
+  monitoredProcedures: z.number().int().min(0),
+  definedProcedures: z.number().int().min(0),
+  groups: z.array(PublicTrafficGroupSampleSchema).nullable(),
+  lastSuccessfulReadAt: z.string().datetime().nullable(),
+});
+export type PublicTrafficQuality = z.infer<typeof PublicTrafficQualitySchema>;
+
+/**
+ * Live-Verbindungen (getrennt von HTTP-/tRPC-RPS).
+ * Offene Verbindungen beweisen keine erfolgreiche Nachrichtenzustellung.
+ */
+export const PublicLiveConnectionsSchema = z.object({
+  measurementState: PublicMeasurementStateSchema,
+  /** Offene tRPC-WebSocket-Verbindungen dieses Serverprozesses. */
+  trpcOpen: z.number().int().min(0).nullable(),
+  /** Offene Yjs-Verbindungen dieses Serverprozesses. */
+  yjsOpen: z.number().int().min(0).nullable(),
+  trpcOpenedLastMinute: z.number().int().min(0).nullable(),
+  trpcClosedLastMinute: z.number().int().min(0).nullable(),
+  yjsOpenedLastMinute: z.number().int().min(0).nullable(),
+  yjsClosedLastMinute: z.number().int().min(0).nullable(),
+  rejectsLastMinute: z.number().int().min(0).nullable(),
+  rateLimitedMessagesLastMinute: z.number().int().min(0).nullable(),
+  /**
+   * Reconnects sind ohne Client-Identität nicht zuverlässig trennbar — immer null.
+   */
+  reconnectsLastMinute: z.null(),
+  /**
+   * Nachrichtenrate Ende-zu-Ende ist hier nicht belastbar gemessen — immer null.
+   */
+  messagesPerSecond: z.null(),
+  lastSuccessfulReadAt: z.string().datetime().nullable(),
+  /** Explizite Einschränkung: Zustellung/E2E-Latenz werden nicht gemessen. */
+  deliveryNotMeasured: z.literal(true),
+});
+export type PublicLiveConnections = z.infer<typeof PublicLiveConnectionsSchema>;
+
 /**
  * Öffentliche Nutzungskennzahlen (Issue #483).
  * Fehlende purge-sichere Aggregate bleiben `null` und werden nie als 0 erfunden.
@@ -4848,6 +4942,16 @@ export const ServerStatsDTOSchema = z.object({
   dependencies: PublicDependenciesStatusSchema,
   /** Qualitätsstichproben der Kernaktionen Beitritt, Vote, Q&A. */
   coreActionsQuality: PublicCoreActionsQualitySchema,
+  /**
+   * Serververkehr und Qualität (RPS, Fehlerrate, p95/p99) über dasselbe 60s-Fenster.
+   * null-Felder bei Messausfall — nie als 0/stabil interpretieren.
+   */
+  trafficQuality: PublicTrafficQualitySchema,
+  /**
+   * Live-Verbindungen (tRPC-WS / Yjs), getrennt vom HTTP-/tRPC-RPS.
+   * Pro Serverprozess; Zustellung wird nicht gemessen.
+   */
+  liveConnections: PublicLiveConnectionsSchema,
   /** SLO-Stichprobengröße der letzten Minute; null wenn Telemetrie nicht lesbar. */
   sloSampleSizeLastMinute: z.number().int().min(0).nullable(),
   /** false bei DB-/Redis-/Telemetrieausfall — UI darf nicht grün fallbacken. */

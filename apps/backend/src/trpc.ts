@@ -15,7 +15,11 @@ import {
   isOriginalHostSessionToken,
 } from './lib/hostAuth';
 import { TRPC_MAX_BODY_SIZE_LABEL } from './lib/requestLimits';
-import { isTrackedLiveProcedure, recordLiveRequestTelemetry } from './lib/sloTelemetry';
+import {
+  coreActionGroupForProcedure,
+  isTrackedLiveProcedure,
+  recordLiveRequestTelemetry,
+} from './lib/sloTelemetry';
 import {
   logRateLimitRejection,
   recordRateLimitRejection,
@@ -155,6 +159,7 @@ const telemetryProcedure = t.procedure.use(async ({ ctx, path, type, next }) => 
     void recordLiveRequestTelemetry({
       durationMs: Date.now() - startedAt,
       errorCode,
+      groupId: coreActionGroupForProcedure(path),
     });
   }
   return result;
