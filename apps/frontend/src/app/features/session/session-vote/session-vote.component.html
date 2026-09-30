@@ -2767,18 +2767,6 @@
             </mat-button-toggle-group>
             <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
           </details>
-          @if (qaToolsActive()) {
-            <div class="session-qa-tools-status">
-              <button
-                mat-button
-                type="button"
-                (click)="resetQaTools()"
-                i18n="@@participantQa.reset"
-              >
-                Zurücksetzen
-              </button>
-            </div>
-          }
 
           @if (visibleQaQuestions().length === 0 && qaSearch()) {
             <div

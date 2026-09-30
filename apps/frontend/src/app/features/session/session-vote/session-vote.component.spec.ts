@@ -9594,7 +9594,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       fixture.destroy();
     });
 
-    it('bewahrt Suche und Sortierung beim Einklappen und setzt sie gemeinsam zurück', async () => {
+    it('bewahrt Suche und Sortierung beim Einklappen der Q&A-Werkzeuge', async () => {
       const { fixture, c } = await setup();
       const host = fixture.nativeElement as HTMLElement;
       const details = host.querySelector<HTMLDetailsElement>('.session-qa-tools')!;
@@ -9608,13 +9608,6 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       fixture.detectChanges();
       expect(c.qaSearch()).toBe('Prüfung');
       expect(c.qaSortMode()).toBe('TIME');
-      expect(host.querySelector('.session-qa-tools-status')).toBeTruthy();
-      expect(host.querySelector('.session-qa-tools-status')?.textContent).toContain('Zurücksetzen');
-      c.resetQaTools();
-      fixture.detectChanges();
-      expect(c.qaSearchDraft()).toBe('');
-      expect(c.qaSearch()).toBe('');
-      expect(c.qaSortMode()).toBe('BEST');
       expect(host.querySelector('.session-qa-tools-status')).toBeNull();
       fixture.destroy();
     });

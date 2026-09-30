@@ -4878,27 +4878,6 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     };
   }
 
-  readonly qaToolsActive = computed(
-    () =>
-      !!this.qaSearchDraft() || this.qaSortMode() !== 'BEST' || !!this.qaSelectedAuthorNickname(),
-  );
-
-  resetQaTools(): void {
-    const summary = (this.el.nativeElement as HTMLElement).querySelector<HTMLElement>(
-      '#qa-tools-summary',
-    );
-    if (summary && summary.getClientRects().length > 0) summary.focus();
-    if (this.qaSearchTimer) clearTimeout(this.qaSearchTimer);
-    this.qaSearchTimer = null;
-    this.qaSearchDraft.set('');
-    this.qaSearch.set('');
-    this.qaSortMode.set('BEST');
-    this.qaSelectedAuthorNickname.set(null);
-    this.resetQaListPageNavigation();
-    this.ensureQaSubscription();
-    void this.refreshQaQuestions({ notify: false, requireDeadline: false, animate: false });
-  }
-
   onQaToolsToggle(details: HTMLDetailsElement): void {
     if (
       !details.open &&
