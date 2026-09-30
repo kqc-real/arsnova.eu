@@ -1,14 +1,17 @@
 /**
- * Health & Server-Status (Story 0.1, 0.2, 0.4).
+ * Health & Server-Status (Story 0.1, 0.2, 0.4) / Betrieb & Nutzung (Issue #483).
  * check | stats | footerBundle (Check+Stats parallel, ein Client-Request) | ping: Subscription Heartbeat
  */
-import { diagnosticProcedure, publicProcedure, router } from '../trpc';
+import { diagnosticProcedure, publicProcedure, resolveClientIp, router } from '../trpc';
 import {
   HealthCheckResponseSchema,
   HealthFooterBundleSchema,
   HealthPingEventSchema,
   HealthSecurityStatsDTOSchema,
+  PublicUsageStatsSchema,
   ServerStatsDTOSchema,
+  UsagePeriodInputSchema,
+  isQaChannelJoinable,
 } from '@arsnova/shared-types';
 import { pingRedis, getRedis } from '../redis';
 import { prisma } from '../db';
@@ -34,17 +37,21 @@ import {
 } from '../lib/sessionCodeProtection';
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readCspReportSignals } from '../lib/cspReportIngest';
-import { RATE_LIMIT_ENV } from '../lib/rateLimit';
+import { RATE_LIMIT_ENV, checkHealthUsageRate } from '../lib/rateLimit';
 import { readQaTelemetry } from '../lib/qaTelemetry';
 import { snapshotQaApiDiagnostics } from '../lib/qaApiDiagnostics';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
 import { getQaSummaryQueueMetrics } from '../lib/qaSummaryQueue';
 import { snapshotWordCloudNlpTelemetry } from '../lib/wordCloudNlpTelemetry';
+import { buildUsageReport } from '../lib/usageStatistic';
 import type {
   FooterStatusDTO,
   HealthSecurityStatsDTO,
+  PublicDependenciesStatus,
+  PublicUsageStats,
   ServerStatsDTO,
 } from '@arsnova/shared-types';
+import { TRPCError } from '@trpc/server';
 
 const ACTIVE_SESSION_MIN_PARTICIPANTS = 5;
 const DAILY_HIGHSCORE_DAYS = 100;
@@ -71,6 +78,90 @@ type LoadStatusInputs = {
 let cachedServerStats: { value: ServerStatsDTO; expiresAt: number } | null = null;
 let serverStatsInFlight: Promise<ServerStatsDTO> | null = null;
 let cachedFooterStatus: { value: FooterStatusDTO; expiresAt: number } | null = null;
+const usageReportCache = new Map<string, { value: PublicUsageStats; expiresAt: number }>();
+const usageReportInFlight = new Map<string, Promise<PublicUsageStats>>();
+const USAGE_REPORT_CACHE_TTL_MS = 30_000;
+const USAGE_REPORT_CACHE_MAX_ENTRIES = 64;
+
+function usageCacheKey(input: { kind: string; from?: string; to?: string }): string {
+  return `${input.kind}:${input.from ?? ''}:${input.to ?? ''}`;
+}
+
+function pruneUsageReportCache(now: number): void {
+  for (const [key, entry] of usageReportCache) {
+    if (entry.expiresAt <= now) usageReportCache.delete(key);
+  }
+  while (usageReportCache.size > USAGE_REPORT_CACHE_MAX_ENTRIES) {
+    const oldest = usageReportCache.keys().next().value;
+    if (oldest === undefined) break;
+    usageReportCache.delete(oldest);
+  }
+}
+
+function emptyPublicUsageStats(
+  kind: 'LAST_30_DAYS' | 'CURRENT_SEMESTER' | 'CUSTOM',
+): PublicUsageStats {
+  return PublicUsageStatsSchema.parse({
+    timezone: 'UTC',
+    periodKind: kind,
+    periodFrom: new Date().toISOString().slice(0, 10),
+    periodTo: new Date().toISOString().slice(0, 10),
+    trackingStartedAt: null,
+    lastAggregatedAt: null,
+    historyComplete: false,
+    sessionsUsed: null,
+    sessionParticipations: null,
+    quizAnswers: null,
+    qaQuestionsAccepted: null,
+    qaRatingActions: null,
+    sessionsByFunction: null,
+    dailySeries: [],
+    monthlySeries: [],
+    sizeDistribution: null,
+    qaQuestionsTotalLifetime: 0,
+    completedSessionsLifetime: 0,
+  });
+}
+
+async function fetchUsageReport(input: {
+  kind: 'LAST_30_DAYS' | 'CURRENT_SEMESTER' | 'CUSTOM';
+  from?: string;
+  to?: string;
+}): Promise<PublicUsageStats> {
+  const key = usageCacheKey(input);
+  const now = Date.now();
+  pruneUsageReportCache(now);
+  const cached = usageReportCache.get(key);
+  if (cached && cached.expiresAt > now) return cached.value;
+
+  const existing = usageReportInFlight.get(key);
+  if (existing) return existing;
+
+  const loadPromise = (async (): Promise<PublicUsageStats> => {
+    try {
+      const report = await buildUsageReport(input);
+      const value = PublicUsageStatsSchema.parse(report);
+      usageReportCache.set(key, { value, expiresAt: Date.now() + USAGE_REPORT_CACHE_TTL_MS });
+      pruneUsageReportCache(Date.now());
+      return value;
+    } catch (error) {
+      if (input.kind === 'CUSTOM') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Ungültiger Nutzungszeitraum.',
+          cause: error,
+        });
+      }
+      logger.warn('health.usage: Bericht konnte nicht geladen werden', error);
+      return emptyPublicUsageStats(input.kind);
+    } finally {
+      usageReportInFlight.delete(key);
+    }
+  })();
+
+  usageReportInFlight.set(key, loadPromise);
+  return loadPromise;
+}
 
 function addUtcDays(base: Date, days: number): Date {
   const next = new Date(base);
@@ -98,54 +189,57 @@ function buildDailyHighscores(
     const currentDate = addUtcDays(rangeStart, index);
     const dateKey = formatUtcDate(currentDate);
     const entry = entriesByDate.get(dateKey);
+    // Nur positive Messwerte: fehlende Zeilen und 0 nicht als „Null-Rekord“ plotten.
+    const measured = entry && entry.count > 0;
     return {
       date: dateKey,
-      count: entry?.count ?? 0,
-      updatedAt: entry?.updatedAt ?? null,
+      count: measured ? entry.count : null,
+      updatedAt: measured ? entry.updatedAt : null,
     };
   });
 }
 
-function calculateDailyHighscoresStatistics(entries: Array<{ count: number }>): {
-  median: number;
-  standardDeviation: number;
-  max: number;
-} {
-  const counts = entries.map((e) => e.count).sort((a, b) => a - b);
-  const n = counts.length;
+/** Lineare Perzentil-Interpolation (Typ R-7), analog zu Nutzungs-Größenklassen. */
+function percentileLinear(sortedAscending: number[], p: number): number {
+  if (sortedAscending.length === 0) return 0;
+  if (sortedAscending.length === 1) return sortedAscending[0]!;
+  const pos = (sortedAscending.length - 1) * p;
+  const lower = Math.floor(pos);
+  const upper = Math.ceil(pos);
+  if (lower === upper) return sortedAscending[lower]!;
+  const weight = pos - lower;
+  return sortedAscending[lower]! * (1 - weight) + sortedAscending[upper]! * weight;
+}
 
-  if (n === 0) {
-    return { median: 0, standardDeviation: 0, max: 0 };
+function calculateDailyHighscoresStatistics(entries: Array<{ count: number | null }>): {
+  sampleSize: number;
+  median: number | null;
+  iqr: number | null;
+  max: number | null;
+} {
+  const counts = entries
+    .map((e) => e.count)
+    .filter((count): count is number => count !== null && count > 0)
+    .sort((a, b) => a - b);
+  const sampleSize = counts.length;
+
+  if (sampleSize === 0) {
+    return { sampleSize: 0, median: null, iqr: null, max: null };
   }
 
-  // Median berechnen
-  const median = n % 2 === 0 ? (counts[n / 2 - 1] + counts[n / 2]) / 2 : counts[Math.floor(n / 2)];
+  const median = Math.round(percentileLinear(counts, 0.5));
+  const max = counts[sampleSize - 1]!;
 
-  // Mittelwert für Standardabweichung
-  const mean = counts.reduce((sum, count) => sum + count, 0) / n;
+  // IQR braucht mindestens zwei Beobachtungen; bei n=1 ist Streuung undefiniert.
+  if (sampleSize < 2) {
+    return { sampleSize, median, iqr: null, max };
+  }
 
-  // Standardabweichung berechnen
-  const variance = counts.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / n;
-  const standardDeviation = Math.sqrt(variance);
+  const q1 = percentileLinear(counts, 0.25);
+  const q3 = percentileLinear(counts, 0.75);
+  const iqr = Math.round(q3 - q1);
 
-  // Maximum berechnen
-  const max = counts[n - 1];
-
-  return { median: Math.round(median), standardDeviation, max };
-}
-
-function calculateDailyHighscoreWindowMax(entries: Array<{ count: number }>): number {
-  return entries.reduce((currentMax, entry) => Math.max(currentMax, entry.count), 0);
-}
-
-function buildDailyHighscoreStatisticsEntries(
-  rows: Array<{ date: Date; maxParticipantsSingleSession: number }>,
-): Array<{ count: number }> {
-  return rows
-    .map((row) => ({
-      count: Math.max(0, row.maxParticipantsSingleSession),
-    }))
-    .filter((entry) => entry.count > 0);
+  return { sampleSize, median, iqr, max };
 }
 
 function getLoadStatus({
@@ -188,7 +282,11 @@ function mapLoadStatusToServiceStatus(
 function getServiceStatus(
   loadStatus: 'healthy' | 'busy' | 'overloaded',
   sloSignals: SloSignals,
-): 'stable' | 'limited' | 'critical' {
+): 'stable' | 'limited' | 'critical' | 'unknown' {
+  if (!sloSignals.available) {
+    return 'unknown';
+  }
+
   // Für sehr kleine Samples bleibt der Status auf dem Lastindikator, um Ausreißer zu vermeiden.
   if (sloSignals.totalRequestsLastMinute < 20) {
     return mapLoadStatusToServiceStatus(loadStatus);
@@ -211,6 +309,98 @@ function getServiceStatus(
   }
 
   return 'critical';
+}
+
+const CORE_ACTION_MIN_SAMPLES = 20;
+
+function toCoreActionQuality(diag: {
+  samples: number;
+  technicalErrors: number;
+  p95Ms: number | null;
+  p99Ms: number | null;
+}): {
+  samples: number;
+  errorRatePercent: number | null;
+  p95Ms: number | null;
+  p99Ms: number | null;
+  coverage: 'AVAILABLE' | 'INSUFFICIENT_SAMPLE' | 'UNAVAILABLE';
+} {
+  if (diag.samples <= 0) {
+    return {
+      samples: 0,
+      errorRatePercent: null,
+      p95Ms: null,
+      p99Ms: null,
+      coverage: 'UNAVAILABLE',
+    };
+  }
+  const errorRatePercent = (diag.technicalErrors / diag.samples) * 100;
+  if (diag.samples < CORE_ACTION_MIN_SAMPLES) {
+    return {
+      samples: diag.samples,
+      errorRatePercent,
+      p95Ms: diag.p95Ms,
+      p99Ms: diag.p99Ms,
+      coverage: 'INSUFFICIENT_SAMPLE',
+    };
+  }
+  return {
+    samples: diag.samples,
+    errorRatePercent,
+    p95Ms: diag.p95Ms,
+    p99Ms: diag.p99Ms,
+    coverage: 'AVAILABLE',
+  };
+}
+
+function buildCoreActionsQuality() {
+  const snap = snapshotQaApiDiagnostics();
+  return {
+    join: toCoreActionQuality(snap.JOIN_REJOIN),
+    vote: toCoreActionQuality(snap.VOTE),
+    qaRead: toCoreActionQuality(snap.QA_PAGE),
+    qaSubmit: toCoreActionQuality(snap.QA_SUBMIT),
+    qaRate: toCoreActionQuality(snap.QA_RATING),
+  };
+}
+
+function emptyCoreActionsQuality() {
+  const empty = toCoreActionQuality({ samples: 0, technicalErrors: 0, p95Ms: null, p99Ms: null });
+  return {
+    join: empty,
+    vote: empty,
+    qaRead: empty,
+    qaSubmit: empty,
+    qaRate: empty,
+  };
+}
+
+/** Sessions, die aktuell noch nutzbar sind (Beitritt oder offenes Q&A inkl. nach FINISHED). */
+function usableSessionWhere(now: Date) {
+  return {
+    hostEnded: false,
+    expiresAt: { gt: now },
+    OR: [
+      { status: { not: 'FINISHED' as const } },
+      {
+        status: 'FINISHED' as const,
+        qaOpen: true,
+        OR: [{ type: 'Q_AND_A' as const }, { qaEnabled: true }],
+        qaClosesAt: { gt: now },
+      },
+    ],
+  };
+}
+
+/** Q&A-Kanäle, die aktuell für Teilnehmende nutzbar sind (inkl. nach Quiz-FINISHED). */
+function usableQaSessionWhere(now: Date) {
+  return {
+    hostEnded: false,
+    expiresAt: { gt: now },
+    qaOpen: true,
+    qaClosesAt: { gt: now },
+    OR: [{ type: 'Q_AND_A' as const }, { qaEnabled: true }],
+  };
 }
 
 /**
@@ -258,23 +448,26 @@ async function fetchHealthCheck() {
   };
 }
 
-/** Server-Statistik für Startseite (Story 0.4). Bei nicht erreichbarer DB: Fallback (0 Werte), keine Prisma-Fehler. */
+/** Server-Statistik für Betrieb & Nutzung (Issue #483). Bei Messausfall: unknown, nie stillschweigend grün. */
 async function computeServerStats(): Promise<ServerStatsDTO> {
   const statsGeneratedAt = new Date();
-  const activeSessionWhere = {
-    status: { not: 'FINISHED' as const },
-  };
+  const usableWhere = usableSessionWhere(statsGeneratedAt);
+  const usableQaWhere = usableQaSessionWhere(statsGeneratedAt);
   const dailyHighscoreRangeEnd = getUtcDayStart(new Date());
 
   let activeBlitzRounds = 0;
+  let blitzRoundsAvailable = true;
   try {
     activeBlitzRounds = await countActiveBlitzRounds();
   } catch (err) {
+    blitzRoundsAvailable = false;
     logger.warn(
-      'health.stats: activeBlitzRounds konnte nicht aus Redis gelesen werden, setze 0.',
+      'health.stats: activeBlitzRounds konnte nicht aus Redis gelesen werden, setze 0 und markiere Messlücke.',
       err,
     );
   }
+
+  const redisOk = await pingRedis().catch(() => false);
 
   try {
     const platformStatisticPromise = (async () => {
@@ -390,7 +583,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
 
     const [
       openSessions,
-      activeSessionIds,
+      usableSessionRows,
       completedSessionsNow,
       platformRow,
       dailyHighscoreRows,
@@ -398,11 +591,19 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       sloSignals,
       activeQaSessionRows,
       qaTelemetry,
+      databaseProbe,
     ] = await Promise.all([
-      prisma.session.count({ where: activeSessionWhere }),
+      prisma.session.count({ where: usableWhere }),
       prisma.session.findMany({
-        where: activeSessionWhere,
-        select: { id: true },
+        where: usableWhere,
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          qaEnabled: true,
+          qaOpen: true,
+          qaClosesAt: true,
+        },
       }),
       // Momentan in DB vorhandene FINISHED-Sessions (kann durch Purge sinken).
       prisma.session.count({ where: { status: 'FINISHED' } }),
@@ -411,29 +612,41 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       readLoadSignals(),
       readSloSignals(),
       prisma.session.findMany({
-        where: {
-          status: { not: 'FINISHED' },
-          endedAt: null,
-          expiresAt: { gt: statsGeneratedAt },
+        where: usableQaWhere,
+        select: {
+          id: true,
+          type: true,
+          qaEnabled: true,
           qaOpen: true,
-          qaClosesAt: { gt: statsGeneratedAt },
-          OR: [{ type: 'Q_AND_A' }, { qaEnabled: true }],
+          qaClosesAt: true,
         },
-        select: { id: true },
       }),
       readQaTelemetry(statsGeneratedAt.getTime()),
+      prisma
+        .$queryRawUnsafe('SELECT 1')
+        .then(() => 'ok' as const)
+        .catch(() => 'unavailable' as const),
     ]);
-    const openSessionIds = activeSessionIds.map((session) => session.id);
+
+    const joinableQaRows = activeQaSessionRows.filter((session) =>
+      isQaChannelJoinable(session, statsGeneratedAt),
+    );
+    const openSessionIds = usableSessionRows.map((session) => session.id);
+    const quizLiveSessionIds = new Set(
+      usableSessionRows.filter((session) => session.status !== 'FINISHED').map((s) => s.id),
+    );
     const [participantCounts, totalParticipants] = await Promise.all([
       getActiveParticipantCountsForSessions(openSessionIds),
       countActiveParticipantsForSessions(openSessionIds),
     ]);
-    const activeSessions = [...participantCounts.values()].filter(
-      (count) => count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
+    // Aktive Sessions = laufende (nicht FINISHED) nutzbare Sessions mit Presence — nicht Q&A nach Quizende.
+    const activeSessions = [...participantCounts.entries()].filter(
+      ([sessionId, count]) =>
+        quizLiveSessionIds.has(sessionId) && count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
     ).length;
     const activeQaSessions =
       qaTelemetry.presenceStatus === 'AVAILABLE'
-        ? activeQaSessionRows.filter(
+        ? joinableQaRows.filter(
             (session) =>
               (participantCounts.get(session.id) ?? 0) >= ACTIVE_SESSION_MIN_PARTICIPANTS,
           ).length
@@ -458,11 +671,19 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       activeCountdownSessions: loadSignals.activeCountdownSessions,
     });
     const dailyHighscores = buildDailyHighscores(dailyHighscoreRows, dailyHighscoreRangeEnd);
-    const dailyHighscoreStatisticsEntries =
-      buildDailyHighscoreStatisticsEntries(dailyHighscoreRows);
-    const dailyHighscoresStatistics = calculateDailyHighscoresStatistics(
-      dailyHighscoreStatisticsEntries,
-    );
+    // Median, IQR und Max nur über positive Messwerte im 100-Tage-Fenster (Lücken/0 ausgeschlossen).
+    const dailyHighscoresStatistics = calculateDailyHighscoresStatistics(dailyHighscores);
+    const measurementAvailable = sloSignals.available && redisOk && databaseProbe === 'ok';
+    const serviceStatus = measurementAvailable
+      ? getServiceStatus(loadStatus, sloSignals)
+      : ('unknown' as const);
+    const dependencies: PublicDependenciesStatus = {
+      api: 'ok',
+      database: databaseProbe === 'ok' ? 'ok' : 'unavailable',
+      redis: redisOk ? 'ok' : 'unavailable',
+      live: redisOk && blitzRoundsAvailable ? 'ok' : redisOk ? 'degraded' : 'unavailable',
+    };
+    const coreActionsQuality = buildCoreActionsQuality();
     return {
       openSessions,
       activeSessions,
@@ -474,13 +695,14 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       activeBlitzRounds,
       maxParticipantsSingleSession: platformRow.maxParticipantsSingleSession,
       dailyHighscores,
-      dailyHighscoresStatistics: {
-        ...dailyHighscoresStatistics,
-        max: calculateDailyHighscoreWindowMax(dailyHighscores),
-      },
+      dailyHighscoresStatistics,
       maxParticipantsStatisticUpdatedAt: platformRow.updatedAtIso,
-      serviceStatus: getServiceStatus(loadStatus, sloSignals),
+      serviceStatus,
       loadStatus,
+      dependencies,
+      coreActionsQuality,
+      sloSampleSizeLastMinute: sloSignals.available ? sloSignals.totalRequestsLastMinute : null,
+      measurementAvailable,
       activeQaSessions,
       qaQuestionsLastMinute: qaTelemetry.questionsLastMinute,
       qaRatingsLastMinute: qaTelemetry.ratingsLastMinute,
@@ -489,12 +711,19 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       qaStatisticsTrackingStartedAt: platformRow.qaStatisticsTrackingStartedAt,
       qaStatisticsProjectedAt: platformRow.qaStatisticsProjectedAt,
       maxQaQuestionsStatisticUpdatedAt: platformRow.maxQaQuestionsStatisticUpdatedAt,
+      usage: await fetchUsageReport({ kind: 'LAST_30_DAYS' }),
       statsGeneratedAt: statsGeneratedAt.toISOString(),
       qaMinuteMetricsStatus: qaTelemetry.minuteStatus,
       qaPresenceMetricsStatus: qaTelemetry.presenceStatus,
     };
   } catch {
     const emptyHighscores = buildDailyHighscores([]);
+    const unavailableDependencies: PublicDependenciesStatus = {
+      api: 'unknown',
+      database: 'unknown',
+      redis: redisOk ? 'ok' : 'unavailable',
+      live: 'unknown',
+    };
     return {
       openSessions: 0,
       activeSessions: 0,
@@ -503,13 +732,17 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       sessionTransitionsLastMinute: 0,
       activeCountdownSessions: 0,
       completedSessions: 0,
-      activeBlitzRounds: 0,
+      activeBlitzRounds,
       maxParticipantsSingleSession: 0,
       dailyHighscores: emptyHighscores,
       dailyHighscoresStatistics: calculateDailyHighscoresStatistics(emptyHighscores),
       maxParticipantsStatisticUpdatedAt: null,
-      serviceStatus: 'stable' as const,
-      loadStatus: 'healthy' as const,
+      serviceStatus: 'unknown' as const,
+      loadStatus: 'busy' as const,
+      dependencies: unavailableDependencies,
+      coreActionsQuality: emptyCoreActionsQuality(),
+      sloSampleSizeLastMinute: null,
+      measurementAvailable: false,
       activeQaSessions: null,
       qaQuestionsLastMinute: null,
       qaRatingsLastMinute: null,
@@ -518,6 +751,26 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       qaStatisticsTrackingStartedAt: null,
       qaStatisticsProjectedAt: null,
       maxQaQuestionsStatisticUpdatedAt: null,
+      usage: {
+        timezone: 'UTC',
+        periodKind: 'LAST_30_DAYS',
+        periodFrom: statsGeneratedAt.toISOString().slice(0, 10),
+        periodTo: statsGeneratedAt.toISOString().slice(0, 10),
+        trackingStartedAt: null,
+        lastAggregatedAt: null,
+        historyComplete: false,
+        sessionsUsed: null,
+        sessionParticipations: null,
+        quizAnswers: null,
+        qaQuestionsAccepted: null,
+        qaRatingActions: null,
+        sessionsByFunction: null,
+        dailySeries: [],
+        monthlySeries: [],
+        sizeDistribution: null,
+        qaQuestionsTotalLifetime: 0,
+        completedSessionsLifetime: 0,
+      },
       statsGeneratedAt: statsGeneratedAt.toISOString(),
       qaMinuteMetricsStatus: 'UNAVAILABLE' as const,
       qaPresenceMetricsStatus: 'UNAVAILABLE' as const,
@@ -655,15 +908,25 @@ async function fetchFooterStatus(): Promise<FooterStatusDTO> {
     return cachedFooterStatus.value;
   }
   try {
-    const [sessions, loadSignals, sloSignals, activeBlitzRounds] = await Promise.all([
-      prisma.session.findMany({
-        where: { status: { not: 'FINISHED' } },
-        select: { id: true },
-      }),
-      readLoadSignals(now),
-      readSloSignals(now),
-      countActiveBlitzRounds().catch(() => 0),
-    ]);
+    const statsNow = new Date(now);
+    const [sessions, loadSignals, sloSignals, activeBlitzRounds, redisOk, databaseProbe] =
+      await Promise.all([
+        prisma.session.findMany({
+          where: usableSessionWhere(statsNow),
+          select: { id: true, status: true },
+        }),
+        readLoadSignals(now),
+        readSloSignals(now),
+        countActiveBlitzRounds().catch(() => null),
+        pingRedis().catch(() => false),
+        prisma
+          .$queryRawUnsafe('SELECT 1')
+          .then(() => 'ok' as const)
+          .catch(() => 'unavailable' as const),
+      ]);
+    const quizLiveSessionIds = new Set(
+      sessions.filter((session) => session.status !== 'FINISHED').map((session) => session.id),
+    );
     const participantCounts = await getActiveParticipantCountsForSessions(
       sessions.map((session) => session.id),
       now,
@@ -672,37 +935,68 @@ async function fetchFooterStatus(): Promise<FooterStatusDTO> {
       (sum, count) => sum + Math.max(0, count),
       0,
     );
-    const activeSessions = [...participantCounts.values()].filter(
-      (count) => count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
+    const activeSessions = [...participantCounts.entries()].filter(
+      ([sessionId, count]) =>
+        quizLiveSessionIds.has(sessionId) && count >= ACTIVE_SESSION_MIN_PARTICIPANTS,
     ).length;
     const loadStatus = getLoadStatus({
       activeSessions,
       totalParticipants,
-      activeBlitzRounds,
+      activeBlitzRounds: activeBlitzRounds ?? 0,
       votesLastMinute: loadSignals.votesLastMinute,
       sessionTransitionsLastMinute: loadSignals.sessionTransitionsLastMinute,
       activeCountdownSessions: loadSignals.activeCountdownSessions,
     });
+    const measurementAvailable = sloSignals.available && redisOk === true && databaseProbe === 'ok';
     const value = {
-      serviceStatus: getServiceStatus(loadStatus, sloSignals),
+      serviceStatus: measurementAvailable
+        ? getServiceStatus(loadStatus, sloSignals)
+        : ('unknown' as const),
       loadStatus,
+      measurementAvailable,
     };
     cachedFooterStatus = { value, expiresAt: now + SERVER_STATS_CACHE_TTL_MS };
     return value;
   } catch {
-    return { serviceStatus: 'stable', loadStatus: 'healthy' };
+    return { serviceStatus: 'unknown', loadStatus: 'busy', measurementAvailable: false };
   }
 }
 
 export function resetHealthStatsCacheForTests(): void {
   cachedServerStats = null;
   serverStatsInFlight = null;
+  cachedFooterStatus = null;
+  usageReportCache.clear();
+  usageReportInFlight.clear();
 }
 
 export const healthRouter = router({
   check: publicProcedure.output(HealthCheckResponseSchema).query(() => fetchHealthCheck()),
 
   stats: publicProcedure.output(ServerStatsDTOSchema).query(() => fetchServerStats()),
+
+  /**
+   * Getrennter Nutzungsbericht (Issue #483): eigener Cache, In-Flight-Coalesce und Rate-Limit;
+   * blockiert die Betriebsmessung nicht.
+   */
+  usage: publicProcedure
+    .input(UsagePeriodInputSchema.optional())
+    .output(PublicUsageStatsSchema)
+    .query(async ({ ctx, input }) => {
+      const limit = await checkHealthUsageRate(resolveClientIp(ctx.req).ip);
+      if (!limit.allowed) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Zu viele Anfragen an den Nutzungsbericht. Bitte später erneut versuchen.',
+          cause: { retryAfterSeconds: limit.retryAfterSeconds },
+        });
+      }
+      return fetchUsageReport({
+        kind: input?.kind ?? 'LAST_30_DAYS',
+        from: input?.from,
+        to: input?.to,
+      });
+    }),
 
   securityStats: diagnosticProcedure
     .output(HealthSecurityStatsDTOSchema)

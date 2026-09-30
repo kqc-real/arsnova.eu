@@ -74,6 +74,22 @@ vi.mock('../lib/qaTelemetry', () => ({
   readQaTelemetry: vi.fn(),
 }));
 
+vi.mock('../lib/rateLimit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/rateLimit')>();
+  return {
+    ...actual,
+    checkHealthUsageRate: vi.fn().mockResolvedValue({ allowed: true, remaining: 100 }),
+  };
+});
+
+vi.mock('../lib/usageStatistic', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/usageStatistic')>();
+  return {
+    ...actual,
+    buildUsageReport: vi.fn(actual.buildUsageReport),
+  };
+});
+
 vi.mock('../lib/adminAuth', () => ({
   extractAdminToken: vi.fn(() => null),
   isAdminSessionTokenValid: vi.fn(async () => false),
@@ -101,6 +117,7 @@ import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProte
 import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { readQaTelemetry } from '../lib/qaTelemetry';
+import { buildUsageReport } from '../lib/usageStatistic';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
 
 const caller = healthRouter.createCaller({ req: undefined });
@@ -209,6 +226,7 @@ describe('health.check', () => {
       errorRatePercentLastMinute: 0,
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
+      available: true,
     });
   });
 
@@ -268,6 +286,7 @@ describe('health.footerBundle', () => {
       errorRatePercentLastMinute: 0,
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
+      available: true,
     });
   });
 
@@ -336,13 +355,19 @@ describe('health.footerBundle', () => {
       expect(first.stats).toEqual({
         serviceStatus: 'stable',
         loadStatus: 'healthy',
+        measurementAvailable: true,
       });
       expect(second.stats).toEqual(first.stats);
       expect(prisma.session.findMany).toHaveBeenCalledOnce();
-      expect(prisma.session.findMany).toHaveBeenCalledWith({
-        where: { status: { not: 'FINISHED' } },
-        select: { id: true },
-      });
+      expect(prisma.session.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          select: { id: true, status: true },
+          where: expect.objectContaining({
+            hostEnded: false,
+            expiresAt: expect.objectContaining({ gt: expect.any(Date) }),
+          }),
+        }),
+      );
       expect(getActiveParticipantCountsForSessions).toHaveBeenCalledOnce();
       expect(getActiveParticipantCountsForSessions).toHaveBeenCalledWith(['session-1'], Date.now());
       expect(prisma.session.count).not.toHaveBeenCalled();
@@ -360,6 +385,9 @@ describe('health.stats', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetHealthStatsCacheForTests();
+    vi.mocked(pingRedis).mockResolvedValue(true);
+    vi.mocked(prisma.$queryRaw).mockRejectedValue(new Error('raw query unavailable in unit mock'));
+    vi.mocked(prisma.$queryRawUnsafe).mockResolvedValue([{ '?column?': 1 }]);
     vi.mocked(prisma.session.findMany).mockResolvedValue([]);
     vi.mocked(prisma.dailyStatistic.findMany).mockResolvedValue([]);
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(0);
@@ -374,6 +402,13 @@ describe('health.stats', () => {
       errorRatePercentLastMinute: 0,
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
+      available: true,
+    });
+    vi.mocked(readQaTelemetry).mockResolvedValue({
+      questionsLastMinute: null,
+      ratingsLastMinute: null,
+      minuteStatus: 'UNAVAILABLE',
+      presenceStatus: 'UNAVAILABLE',
     });
   });
 
@@ -400,12 +435,13 @@ describe('health.stats', () => {
       expect(result.maxParticipantsSingleSession).toBe(0);
       expect(result.dailyHighscores).toHaveLength(100);
       expect(
-        result.dailyHighscores.every((entry) => entry.count === 0 && entry.updatedAt === null),
+        result.dailyHighscores.every((entry) => entry.count === null && entry.updatedAt === null),
       ).toBe(true);
       expect(result.dailyHighscoresStatistics).toEqual({
-        median: 0,
-        standardDeviation: 0,
-        max: 0,
+        sampleSize: 0,
+        median: null,
+        iqr: null,
+        max: null,
       });
       expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
       expect(result.serviceStatus).toBe('stable');
@@ -673,6 +709,46 @@ describe('health.stats', () => {
     );
   });
 
+  it('zählt FINISHED+Q&A nicht als aktive Quiz-Session', async () => {
+    vi.mocked(prisma.session.count).mockResolvedValueOnce(2).mockResolvedValueOnce(1);
+    vi.mocked(prisma.session.findMany).mockResolvedValue([
+      {
+        id: 'live-1',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        qaEnabled: true,
+        qaOpen: true,
+        qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+      },
+      {
+        id: 'finished-qa',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        qaEnabled: true,
+        qaOpen: true,
+        qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
+      },
+    ] as never);
+    vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
+      new Map([
+        ['live-1', 8],
+        ['finished-qa', 9],
+      ]),
+    );
+    vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(17);
+    vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
+      id: 'default',
+      updatedAt: new Date(),
+      maxParticipantsSingleSession: 0,
+      completedSessionsTotal: 0,
+    } as never);
+
+    const result = await caller.stats(undefined);
+
+    expect(result.openSessions).toBe(2);
+    expect(result.activeSessions).toBe(1);
+  });
+
   it('berechnet loadStatus "healthy" bei niedriger Last', async () => {
     vi.mocked(prisma.session.count)
       .mockResolvedValueOnce(10) // openSessions (status != FINISHED)
@@ -703,20 +779,23 @@ describe('health.stats', () => {
     expect(result.maxParticipantsSingleSession).toBe(100);
     expect(result.loadStatus).toBe('healthy');
     expect(result.serviceStatus).toBe('stable');
+    expect(result.measurementAvailable).toBe(true);
     expect(prisma.session.count).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         where: expect.objectContaining({
-          status: { not: 'FINISHED' },
+          hostEnded: false,
+          expiresAt: expect.objectContaining({ gt: expect.any(Date) }),
         }),
       }),
     );
     expect(prisma.session.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          status: { not: 'FINISHED' },
+          hostEnded: false,
+          expiresAt: expect.objectContaining({ gt: expect.any(Date) }),
         }),
-        select: { id: true },
+        select: expect.objectContaining({ id: true }),
       }),
     );
     expect(countActiveParticipantsForSessions).toHaveBeenCalledWith(
@@ -724,8 +803,29 @@ describe('health.stats', () => {
     );
   });
 
+  it('meldet serviceStatus unknown statt stable bei Messausfall', async () => {
+    vi.mocked(prisma.session.count).mockRejectedValue(new Error('db down'));
+    vi.mocked(pingRedis).mockResolvedValue(false);
+
+    const result = await caller.stats(undefined);
+
+    expect(result.serviceStatus).toBe('unknown');
+    expect(result.measurementAvailable).toBe(false);
+    expect(result.dependencies.redis).toBe('unavailable');
+  });
+
   it('berechnet loadStatus "busy" bei hoher Teilnehmerzahl (Hard-Limit)', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(6).mockResolvedValueOnce(50);
+    vi.mocked(prisma.session.findMany).mockResolvedValue(
+      Array.from({ length: 6 }, (_, index) => ({
+        id: `s-${index + 1}`,
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        qaEnabled: false,
+        qaOpen: false,
+        qaClosesAt: null,
+      })) as never,
+    );
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(69);
     vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
       new Map([
@@ -754,6 +854,16 @@ describe('health.stats', () => {
 
   it('berechnet loadStatus "overloaded" bei sehr hoher Teilnehmerzahl', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(12).mockResolvedValueOnce(1000);
+    vi.mocked(prisma.session.findMany).mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        id: `s-${index + 1}`,
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        qaEnabled: false,
+        qaOpen: false,
+        qaClosesAt: null,
+      })) as never,
+    );
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(260);
     vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
       new Map(Array.from({ length: 12 }, (_, index) => [`s-${index + 1}`, 10])),
@@ -775,6 +885,16 @@ describe('health.stats', () => {
 
   it('berücksichtigt Dynamiksignal (Votes/Transitions/Countdown) auch bei moderaten Bestandswerten', async () => {
     vi.mocked(prisma.session.count).mockResolvedValueOnce(10).mockResolvedValueOnce(20);
+    vi.mocked(prisma.session.findMany).mockResolvedValue(
+      Array.from({ length: 4 }, (_, index) => ({
+        id: `s-${index + 1}`,
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        qaEnabled: false,
+        qaOpen: false,
+        qaClosesAt: null,
+      })) as never,
+    );
     vi.mocked(countActiveParticipantsForSessions).mockResolvedValue(40);
     vi.mocked(getActiveParticipantCountsForSessions).mockResolvedValue(
       new Map([
@@ -826,6 +946,7 @@ describe('health.stats', () => {
       errorRatePercentLastMinute: 1.4,
       p95LatencyMsLastMinute: 1900,
       p99LatencyMsLastMinute: 4200,
+      available: true,
     });
     vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue({
       id: 'default',
@@ -997,7 +1118,7 @@ describe('health.stats', () => {
     expect(result.totalParticipants).toBe(14);
   });
 
-  it('liefert die letzten 100 UTC-Tage chronologisch und füllt Lücken mit 0 auf', async () => {
+  it('liefert die letzten 100 UTC-Tage chronologisch und belässt Lücken als null', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-04T15:30:00.000Z'));
     vi.mocked(prisma.session.count).mockResolvedValueOnce(0).mockResolvedValueOnce(0);
@@ -1021,12 +1142,12 @@ describe('health.stats', () => {
       expect(result.dailyHighscores).toHaveLength(100);
       expect(result.dailyHighscores[0]).toEqual({
         date: '2026-01-25',
-        count: 0,
+        count: null,
         updatedAt: null,
       });
       expect(result.dailyHighscores.slice(-3)).toEqual([
         { date: '2026-05-02', count: 17, updatedAt: '2026-05-02T10:15:30.000Z' },
-        { date: '2026-05-03', count: 0, updatedAt: null },
+        { date: '2026-05-03', count: null, updatedAt: null },
         { date: '2026-05-04', count: 23, updatedAt: '2026-05-04T12:45:00.000Z' },
       ]);
     } finally {
@@ -1075,12 +1196,116 @@ describe('health.stats', () => {
     try {
       const result = await caller.stats(undefined);
 
+      expect(result.dailyHighscoresStatistics.sampleSize).toBe(3);
       expect(result.dailyHighscoresStatistics.median).toBe(20);
-      expect(result.dailyHighscoresStatistics.standardDeviation).toBeCloseTo(8.16497, 5);
+      expect(result.dailyHighscoresStatistics.iqr).toBe(10);
       expect(result.dailyHighscoresStatistics.max).toBe(30);
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('health.usage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetHealthStatsCacheForTests();
+    vi.mocked(buildUsageReport).mockReset();
+  });
+
+  it('liefert PublicUsageStats für LAST_30_DAYS', async () => {
+    vi.mocked(buildUsageReport).mockResolvedValue({
+      timezone: 'UTC',
+      periodKind: 'LAST_30_DAYS',
+      periodFrom: '2026-04-05',
+      periodTo: '2026-05-04',
+      trackingStartedAt: '2026-04-01T00:00:00.000Z',
+      lastAggregatedAt: '2026-05-04T12:00:00.000Z',
+      historyComplete: true,
+      sessionsUsed: 12,
+      sessionParticipations: 240,
+      quizAnswers: 180,
+      qaQuestionsAccepted: 44,
+      qaRatingActions: 9,
+      sessionsByFunction: { joinOnly: 0, quizOnly: 7, qaOnly: 3, combined: 2 },
+      monthlySeries: [],
+      dailySeries: [
+        {
+          date: '2026-05-04',
+          sessionsUsed: 1,
+          sessionParticipations: 20,
+          quizAnswers: 15,
+          qaQuestionsAccepted: 2,
+        },
+      ],
+      sizeDistribution: {
+        sampleSize: 12,
+        median: 18,
+        quartile1: 8,
+        quartile3: 32,
+        classes: [
+          { id: 'XS', label: 'XS (1–10)', count: 3 },
+          { id: 'S', label: 'S (11–25)', count: 4 },
+          { id: 'M', label: 'M (26–50)', count: 3 },
+          { id: 'L', label: 'L (51–100)', count: 1 },
+          { id: 'XL', label: 'XL (101+)', count: 1 },
+        ],
+      },
+      qaQuestionsTotalLifetime: 500,
+      completedSessionsLifetime: 90,
+    });
+
+    const result = await caller.usage({ kind: 'LAST_30_DAYS' });
+    expect(result.periodKind).toBe('LAST_30_DAYS');
+    expect(result.sessionsUsed).toBe(12);
+    expect(result.sessionsByFunction).toEqual({ joinOnly: 0, quizOnly: 7, qaOnly: 3, combined: 2 });
+    expect(result.sizeDistribution?.median).toBe(18);
+    expect(buildUsageReport).toHaveBeenCalledWith({
+      kind: 'LAST_30_DAYS',
+      from: undefined,
+      to: undefined,
+    });
+  });
+
+  it('lehnt CUSTOM ohne from/to ab', async () => {
+    await expect(caller.usage({ kind: 'CUSTOM' })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+  });
+
+  it('reicht CUSTOM-Daten an buildUsageReport weiter', async () => {
+    vi.mocked(buildUsageReport).mockResolvedValue({
+      timezone: 'UTC',
+      periodKind: 'CUSTOM',
+      periodFrom: '2026-01-01',
+      periodTo: '2026-01-31',
+      trackingStartedAt: null,
+      lastAggregatedAt: null,
+      historyComplete: false,
+      sessionsUsed: null,
+      sessionParticipations: null,
+      quizAnswers: null,
+      qaQuestionsAccepted: null,
+      qaRatingActions: null,
+      sessionsByFunction: null,
+      monthlySeries: [],
+      dailySeries: [],
+      sizeDistribution: null,
+      qaQuestionsTotalLifetime: 0,
+      completedSessionsLifetime: 0,
+    });
+
+    const result = await caller.usage({
+      kind: 'CUSTOM',
+      from: '2026-01-01',
+      to: '2026-01-31',
+    });
+    expect(result.periodKind).toBe('CUSTOM');
+    expect(buildUsageReport).toHaveBeenCalledWith({
+      kind: 'CUSTOM',
+      from: '2026-01-01',
+      to: '2026-01-31',
+    });
   });
 });
 

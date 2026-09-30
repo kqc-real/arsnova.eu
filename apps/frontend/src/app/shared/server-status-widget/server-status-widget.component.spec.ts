@@ -25,7 +25,7 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.detectChanges();
 
     const button = (fixture.nativeElement as HTMLElement).querySelector('button');
-    expect(button?.getAttribute('aria-label')).toContain('Betriebsstatus öffnen');
+    expect(button?.getAttribute('aria-label')).toContain('Betrieb und Nutzung öffnen');
     expect(button?.getAttribute('aria-label')).toContain('Statusanzeige');
   });
 
@@ -38,6 +38,7 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.componentInstance.loading = false;
     fixture.componentInstance.stats = {
       serviceStatus: 'stable',
+      measurementAvailable: true,
       loadStatus: 'healthy',
     };
 
@@ -70,6 +71,7 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.componentInstance.loading = false;
     fixture.componentInstance.stats = {
       serviceStatus: 'limited',
+      measurementAvailable: true,
       loadStatus: 'busy',
     };
 
@@ -88,6 +90,7 @@ describe('ServerStatusWidgetComponent', () => {
     fixture.componentInstance.loading = false;
     fixture.componentInstance.stats = {
       serviceStatus: 'critical',
+      measurementAvailable: true,
       loadStatus: 'overloaded',
     };
 

@@ -96,6 +96,7 @@ describe('sloTelemetry', () => {
       errorRatePercentLastMinute: 1,
       p95LatencyMsLastMinute: 800,
       p99LatencyMsLastMinute: 1500,
+      available: true,
     });
     expect(multi.get).toHaveBeenCalledTimes(labelsPerBucket * 6);
   });
@@ -113,6 +114,7 @@ describe('sloTelemetry', () => {
       errorRatePercentLastMinute: 0,
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
+      available: false,
     });
   });
 });

@@ -66,10 +66,10 @@ Aktuell globale Tokens in `styles.scss`:
 
 Komponentenspezifische Tokens:
 
-| Scope                                      | Tokens                                                                                                                                      | Zweck                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `.status-help-dialog__history-chart-shell` | `--app-status-chart-grid`, `--app-status-chart-line`, `--app-status-chart-point`, `--app-status-chart-text`, `--app-status-chart-tooltip-*` | Canvas-/Chart-Farben für Server-Status-Historie     |
-| Feature-Komponenten                        | lokale `--<feature>-*` Tokens, z. B. Shell-Breiten oder Action-Offsets                                                                      | nur innerhalb der Komponente, nicht als globale API |
+| Scope                                      | Tokens                                                                                                                                                                                                                                | Zweck                                                                                                |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `.status-help-dialog__history-chart-shell` | `--app-status-chart-grid`, `--app-status-chart-line`, `--app-status-chart-fill`, `--app-status-chart-point`, `--app-status-chart-surface`, `--app-status-chart-text`, `--app-status-chart-muted-text`, `--app-status-chart-tooltip-*` | Canvas-/Chart-Farben für Server-Status-Historie; Light/Dark über `light-dark()` und MD3-Systemtokens |
+| Feature-Komponenten                        | lokale `--<feature>-*` Tokens, z. B. Shell-Breiten oder Action-Offsets                                                                                                                                                                | nur innerhalb der Komponente, nicht als globale API                                                  |
 
 ### 3) Komponententokens
 
@@ -166,7 +166,15 @@ Neue feste Farbausnahmen müssen hier ergänzt und begründet werden.
 
 ### Server-Status-Chart
 
-Die Chart-Tokens sind komponentenspezifisch in `.status-help-dialog__history-chart-shell` definiert, weil Canvas-Rendering keine CSS-Kaskade im gezeichneten Inhalt hat. Der Chart-Renderer liest die Tokens zur Laufzeit per `getComputedStyle`.
+Die Chart-Tokens sind komponentenspezifisch in `.status-help-dialog__history-chart-shell`
+definiert, weil Canvas-Rendering keine CSS-Kaskade im gezeichneten Inhalt hat. Der
+Chart-Renderer liest die Tokens zur Laufzeit per `getComputedStyle`.
+
+- Linie/Punkt: `--mat-sys-primary` (kein Einmischen von `on-surface`, damit Light und Dark
+  den Primary-Kontrast behalten)
+- Flächenfüllung: `light-dark()` mit Primary-Transparenz (stärker in Dark)
+- Grid: Outline mit themeabhängiger Deckkraft
+- Tooltip: Surface-Container-Highest + Outline-Variant (kein Inverse-Surface, analog App-Chrome)
 
 ### `meta theme-color` (`index.html`)
 

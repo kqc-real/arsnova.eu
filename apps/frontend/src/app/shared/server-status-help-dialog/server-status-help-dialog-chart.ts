@@ -1,20 +1,36 @@
 import type { DailyHighscoreEntry } from '@arsnova/shared-types';
 
 type ChartJsModule = typeof import('chart.js');
-type ChartInstance = import('chart.js').Chart<'line', number[], string>;
+type ChartInstance = import('chart.js').Chart<'line', (number | null)[], string>;
 type ChartOptions = import('chart.js').ChartOptions<'line'>;
-type ChartDataset = import('chart.js').ChartDataset<'line', number[]>;
+type ChartDataset = import('chart.js').ChartDataset<'line', (number | null)[]>;
 
 type ChartPalette = {
   grid: string;
   line: string;
+  fill: string;
   point: string;
+  surface: string;
   text: string;
+  mutedText: string;
   tooltipBackground: string;
   tooltipBorder: string;
   tooltipBody: string;
   tooltipTitle: string;
+  fontFamily: string;
 };
+
+export type ServerStatusHistoryChartLabels = {
+  dataset: string;
+  xAxis: string;
+  yAxis: string;
+};
+
+const TICK_FONT_SIZE = 11;
+const AXIS_TITLE_FONT_SIZE = 12;
+const LEGEND_FONT_SIZE = 12;
+const TOOLTIP_TITLE_FONT_SIZE = 12;
+const TOOLTIP_BODY_FONT_SIZE = 12;
 
 export class ServerStatusHistoryChartRenderer {
   private chartModulePromise: Promise<ChartJsModule> | null = null;
@@ -26,8 +42,9 @@ export class ServerStatusHistoryChartRenderer {
     points: DailyHighscoreEntry[],
     canvas: HTMLCanvasElement,
     locale: string,
+    labels: ServerStatusHistoryChartLabels,
   ): Promise<void> {
-    this.renderChain = this.renderChain.then(() => this.renderNow(points, canvas, locale));
+    this.renderChain = this.renderChain.then(() => this.renderNow(points, canvas, locale, labels));
     await this.renderChain;
   }
 
@@ -35,6 +52,7 @@ export class ServerStatusHistoryChartRenderer {
     points: DailyHighscoreEntry[],
     canvas: HTMLCanvasElement,
     locale: string,
+    labels: ServerStatusHistoryChartLabels,
   ): Promise<void> {
     if (!points.length) {
       this.destroy();
@@ -45,7 +63,7 @@ export class ServerStatusHistoryChartRenderer {
     const context = this.tryGetCanvasContext(canvas);
     if (!context) return;
 
-    const labels = points.map((entry) => this.formatChartDate(entry.date, locale));
+    const axisLabels = points.map((entry) => this.formatChartDate(entry.date, locale));
     const values = points.map((entry) => entry.count);
     const palette = this.readChartPalette(canvas);
 
@@ -57,27 +75,28 @@ export class ServerStatusHistoryChartRenderer {
       this.chart = new chartJs.Chart(context, {
         type: 'line',
         data: {
-          labels,
-          datasets: [this.buildDataset(values, palette)],
+          labels: axisLabels,
+          datasets: [this.buildDataset(values, palette, labels.dataset)],
         },
-        options: this.buildOptions(points, locale, palette),
+        options: this.buildOptions(points, locale, palette, labels),
       });
       this.chartCanvas = canvas;
       return;
     }
 
-    this.chart.data.labels = labels;
+    this.chart.data.labels = axisLabels;
     const dataset = this.chart.data.datasets[0];
     if (!dataset) return;
 
     dataset.data = values;
+    dataset.label = labels.dataset;
     dataset.borderColor = palette.line;
-    dataset.backgroundColor = palette.line;
+    dataset.backgroundColor = palette.fill;
     dataset.pointBackgroundColor = palette.point;
-    dataset.pointBorderColor = palette.point;
+    dataset.pointBorderColor = palette.surface;
     dataset.pointHoverBackgroundColor = palette.point;
-    dataset.pointHoverBorderColor = palette.point;
-    this.chart.options = this.buildOptions(points, locale, palette);
+    dataset.pointHoverBorderColor = palette.surface;
+    this.chart.options = this.buildOptions(points, locale, palette, labels);
     this.chart.update();
   }
 
@@ -93,10 +112,12 @@ export class ServerStatusHistoryChartRenderer {
         chartJs.Chart.register(
           chartJs.CategoryScale,
           chartJs.Filler,
+          chartJs.Legend,
           chartJs.LineController,
           chartJs.LineElement,
           chartJs.LinearScale,
           chartJs.PointElement,
+          chartJs.Title,
           chartJs.Tooltip,
         );
         return chartJs;
@@ -171,22 +192,30 @@ export class ServerStatusHistoryChartRenderer {
     return `${timeLabel} UTC`;
   }
 
-  private buildDataset(values: number[], palette: ChartPalette): ChartDataset {
+  private buildDataset(
+    values: (number | null)[],
+    palette: ChartPalette,
+    label: string,
+  ): ChartDataset {
     return {
+      label,
       data: values,
-      backgroundColor: palette.line,
+      backgroundColor: palette.fill,
       borderColor: palette.line,
-      borderWidth: 2,
+      borderWidth: 2.5,
       cubicInterpolationMode: 'monotone',
-      fill: false,
+      fill: true,
       pointBackgroundColor: palette.point,
-      pointBorderColor: palette.point,
-      pointHitRadius: 12,
+      pointBorderColor: palette.surface,
+      pointBorderWidth: 2,
+      pointHitRadius: 14,
       pointHoverBackgroundColor: palette.point,
-      pointHoverBorderColor: palette.point,
-      pointHoverRadius: 3,
+      pointHoverBorderColor: palette.surface,
+      pointHoverBorderWidth: 2,
+      pointHoverRadius: 5,
       pointRadius: 0,
-      tension: 0.32,
+      spanGaps: true,
+      tension: 0.28,
     };
   }
 
@@ -194,7 +223,19 @@ export class ServerStatusHistoryChartRenderer {
     points: DailyHighscoreEntry[],
     locale: string,
     palette: ChartPalette,
+    labels: ServerStatusHistoryChartLabels,
   ): ChartOptions {
+    const tickFont = {
+      family: palette.fontFamily,
+      size: TICK_FONT_SIZE,
+      weight: 'normal' as const,
+    };
+    const titleFont = {
+      family: palette.fontFamily,
+      size: AXIS_TITLE_FONT_SIZE,
+      weight: 500 as const,
+    };
+
     return {
       animation: false,
       locale,
@@ -204,15 +245,53 @@ export class ServerStatusHistoryChartRenderer {
         intersect: false,
         mode: 'index',
       },
+      layout: {
+        padding: {
+          top: 8,
+          right: 12,
+          bottom: 6,
+          left: 6,
+        },
+      },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'start',
+          labels: {
+            boxWidth: 18,
+            boxHeight: 3,
+            color: palette.text,
+            font: {
+              family: palette.fontFamily,
+              size: LEGEND_FONT_SIZE,
+              weight: 500,
+            },
+            padding: 16,
+            usePointStyle: true,
+            pointStyle: 'line',
+          },
+        },
         tooltip: {
           backgroundColor: palette.tooltipBackground,
           bodyColor: palette.tooltipBody,
           borderColor: palette.tooltipBorder,
           borderWidth: 1,
+          caretPadding: 8,
+          cornerRadius: 12,
           displayColors: false,
           titleColor: palette.tooltipTitle,
+          titleFont: {
+            family: palette.fontFamily,
+            size: TOOLTIP_TITLE_FONT_SIZE,
+            weight: 'bold',
+          },
+          bodyFont: {
+            family: palette.fontFamily,
+            size: TOOLTIP_BODY_FONT_SIZE,
+            weight: 'normal',
+          },
+          padding: 12,
           callbacks: {
             title: (tooltipItems) => {
               const point = tooltipItems[0] ? points[tooltipItems[0].dataIndex] : undefined;
@@ -220,8 +299,13 @@ export class ServerStatusHistoryChartRenderer {
                 ? this.formatTooltipDate(point.date, locale)
                 : (tooltipItems[0]?.label ?? '');
             },
-            label: (tooltipItem) =>
-              this.formatChartCount(Number(tooltipItem.parsed.y ?? 0), locale),
+            label: (tooltipItem) => {
+              const raw = tooltipItem.parsed.y;
+              if (raw === null || raw === undefined || Number.isNaN(Number(raw))) {
+                return '—';
+              }
+              return this.formatChartCount(Number(raw), locale);
+            },
             afterLabel: (tooltipItem) =>
               this.formatTooltipTime(points[tooltipItem.dataIndex]?.updatedAt ?? null, locale),
           },
@@ -235,12 +319,21 @@ export class ServerStatusHistoryChartRenderer {
           grid: {
             display: false,
           },
+          title: {
+            display: true,
+            text: labels.xAxis,
+            color: palette.mutedText,
+            font: titleFont,
+            padding: { top: 10, bottom: 0 },
+          },
           ticks: {
             autoSkip: true,
-            color: palette.text,
+            color: palette.mutedText,
+            font: tickFont,
             maxRotation: 0,
             maxTicksLimit: 6,
             minRotation: 0,
+            padding: 6,
           },
         },
         y: {
@@ -250,6 +343,14 @@ export class ServerStatusHistoryChartRenderer {
           },
           grid: {
             color: palette.grid,
+            drawTicks: false,
+          },
+          title: {
+            display: true,
+            text: labels.yAxis,
+            color: palette.mutedText,
+            font: titleFont,
+            padding: { top: 0, bottom: 8 },
           },
           ticks: {
             callback: (value) => {
@@ -260,7 +361,9 @@ export class ServerStatusHistoryChartRenderer {
 
               return this.formatChartCount(numericValue, locale);
             },
-            color: palette.text,
+            color: palette.mutedText,
+            font: tickFont,
+            padding: 8,
             precision: 0,
           },
         },
@@ -270,55 +373,92 @@ export class ServerStatusHistoryChartRenderer {
 
   private readChartPalette(canvas: HTMLCanvasElement): ChartPalette {
     const styles = getComputedStyle(canvas);
+    const host = canvas.parentElement instanceof HTMLElement ? canvas.parentElement : canvas;
+    const hostStyles = getComputedStyle(host);
+    const fontFamily =
+      hostStyles.fontFamily?.trim() ||
+      styles.fontFamily?.trim() ||
+      'Roboto, "Helvetica Neue", sans-serif';
+
     return {
       grid: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-grid').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-grid').trim() ||
           styles.getPropertyValue('--mat-sys-outline-variant').trim(),
         '#c4c7cf',
       ),
       line: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-line').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-line').trim() ||
           styles.getPropertyValue('--mat-sys-primary').trim(),
         '#005cbb',
+      ),
+      fill: this.resolveBackgroundToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-fill').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-fill').trim() ||
+          'color-mix(in srgb, var(--mat-sys-primary) 20%, transparent)',
+        'rgba(0, 92, 187, 0.18)',
       ),
       point: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-point').trim() ||
-          styles.getPropertyValue('--mat-sys-tertiary').trim(),
-        '#7d5260',
+          hostStyles.getPropertyValue('--app-status-chart-point').trim() ||
+          styles.getPropertyValue('--mat-sys-primary').trim(),
+        '#005cbb',
+      ),
+      surface: this.resolveBackgroundToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-surface').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-surface').trim() ||
+          styles.getPropertyValue('--mat-sys-surface-container-lowest').trim(),
+        '#fef7ff',
       ),
       text: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-text').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-text').trim() ||
           styles.getPropertyValue('--mat-sys-on-surface').trim(),
         '#1c1b1f',
+      ),
+      mutedText: this.resolveColorToken(
+        canvas,
+        styles.getPropertyValue('--app-status-chart-muted-text').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-muted-text').trim() ||
+          styles.getPropertyValue('--mat-sys-on-surface-variant').trim(),
+        '#49454f',
       ),
       tooltipBackground: this.resolveBackgroundToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-tooltip-background').trim() ||
-          styles.getPropertyValue('--mat-sys-surface-container-high').trim(),
-        '#f3f0f4',
+          hostStyles.getPropertyValue('--app-status-chart-tooltip-background').trim() ||
+          styles.getPropertyValue('--mat-sys-surface-container-highest').trim(),
+        '#e6e0e9',
       ),
       tooltipBorder: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-tooltip-border').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-tooltip-border').trim() ||
           styles.getPropertyValue('--mat-sys-outline-variant').trim(),
         '#c4c7cf',
       ),
       tooltipBody: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-tooltip-body').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-tooltip-body').trim() ||
           styles.getPropertyValue('--mat-sys-on-surface').trim(),
         '#1c1b1f',
       ),
       tooltipTitle: this.resolveColorToken(
         canvas,
         styles.getPropertyValue('--app-status-chart-tooltip-title').trim() ||
+          hostStyles.getPropertyValue('--app-status-chart-tooltip-title').trim() ||
           styles.getPropertyValue('--mat-sys-on-surface').trim(),
         '#1c1b1f',
       ),
+      fontFamily,
     };
   }
 

@@ -66,6 +66,7 @@
     "seed:motd-host-ux-announcement": "npx prisma db execute --file prisma/migrations/20260926120000_motd_host_ux_announcement/migration.sql",
     "seed:motd-templates": "node scripts/seed-motd-templates.mjs",
     "seed:qa-forum": "npm run seed:qa-forum -w @arsnova/backend",
+    "seed:betrieb-nutzung": "npm run seed:betrieb-nutzung -w @arsnova/backend --",
     "seed:session-votes": "npm run seed:session-votes -w @arsnova/backend --",
     "seed:moderation-compass": "npm run seed:moderation-compass -w @arsnova/backend --",
     "setup:dev": "npm run docker:up:dev && npm run prisma:migrate && npm run prisma:generate && npm run build -w @arsnova/shared-types",

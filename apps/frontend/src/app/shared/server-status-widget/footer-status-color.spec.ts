@@ -3,14 +3,36 @@ import { resolveFooterStatusColor, resolveFooterStatusDotCssColor } from './foot
 
 describe('footer-status-color', () => {
   it('maps serviceStatus to ampelfarben', () => {
-    expect(resolveFooterStatusColor(true, false, { serviceStatus: 'stable' })).toBe('green');
-    expect(resolveFooterStatusColor(true, false, { serviceStatus: 'limited' })).toBe('yellow');
-    expect(resolveFooterStatusColor(true, false, { serviceStatus: 'critical' })).toBe('red');
+    expect(
+      resolveFooterStatusColor(true, false, {
+        serviceStatus: 'stable',
+        measurementAvailable: true,
+      }),
+    ).toBe('green');
+    expect(
+      resolveFooterStatusColor(true, false, {
+        serviceStatus: 'limited',
+        measurementAvailable: true,
+      }),
+    ).toBe('yellow');
+    expect(
+      resolveFooterStatusColor(true, false, {
+        serviceStatus: 'critical',
+        measurementAvailable: true,
+      }),
+    ).toBe('red');
   });
 
   it('falls back to gray while offline, loading, or without stats', () => {
-    expect(resolveFooterStatusColor(false, false, { serviceStatus: 'stable' })).toBe('gray');
-    expect(resolveFooterStatusColor(true, true, { serviceStatus: 'stable' })).toBe('gray');
+    expect(
+      resolveFooterStatusColor(false, false, {
+        serviceStatus: 'stable',
+        measurementAvailable: true,
+      }),
+    ).toBe('gray');
+    expect(
+      resolveFooterStatusColor(true, true, { serviceStatus: 'stable', measurementAvailable: true }),
+    ).toBe('gray');
     expect(resolveFooterStatusColor(true, false, null)).toBe('gray');
   });
 

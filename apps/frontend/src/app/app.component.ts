@@ -650,14 +650,26 @@ export class AppComponent implements OnInit, OnDestroy {
         this.footerHealthCheckDone.set(true);
         this.apiStatus.set('ok');
         if (level === 'off') {
-          this.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+          this.footerStatus.set({
+            serviceStatus: 'stable',
+            loadStatus: 'healthy',
+            measurementAvailable: true,
+          });
           return;
         }
         if (level === 'yellow') {
-          this.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+          this.footerStatus.set({
+            serviceStatus: 'limited',
+            loadStatus: 'busy',
+            measurementAvailable: true,
+          });
           return;
         }
-        this.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+        this.footerStatus.set({
+          serviceStatus: 'critical',
+          loadStatus: 'overloaded',
+          measurementAvailable: true,
+        });
       };
 
       // Dev-Server: ?pwaInstallHint=1 zeigt den Hinweis ohne echten beforeinstallprompt.
@@ -861,8 +873,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const dailyHighscores = this.buildLocalDevDailyHighscores(stats.dailyHighscores);
     const hasPersistedHistory =
-      stats.dailyHighscoresStatistics.max > 0 ||
-      stats.dailyHighscores.some((entry) => entry.count > 0);
+      (stats.dailyHighscoresStatistics.sampleSize ?? 0) > 0 ||
+      stats.dailyHighscores.some((entry) => (entry.count ?? 0) > 0);
 
     return {
       ...stats,
@@ -876,7 +888,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private buildLocalDevDailyHighscores(
     points: ServerStatsDTO['dailyHighscores'],
   ): ServerStatsDTO['dailyHighscores'] {
-    const peak = Math.max(...points.map((entry) => entry.count), 0);
+    const peak = Math.max(...points.map((entry) => entry.count ?? 0), 0);
     const upperBound = Math.max(peak, 120);
     const floor = Math.max(12, Math.round(upperBound * 0.2));
 
@@ -899,21 +911,36 @@ export class AppComponent implements OnInit, OnDestroy {
   private calculateDailyHighscoresStatistics(
     points: ServerStatsDTO['dailyHighscores'],
   ): ServerStatsDTO['dailyHighscoresStatistics'] {
-    const counts = points.map((entry) => entry.count).sort((left, right) => left - right);
-    if (!counts.length) {
-      return { median: 0, standardDeviation: 0, max: 0 };
+    const counts = points
+      .map((entry) => entry.count)
+      .filter((count): count is number => count !== null && count > 0)
+      .sort((left, right) => left - right);
+    const sampleSize = counts.length;
+    if (sampleSize === 0) {
+      return { sampleSize: 0, median: null, iqr: null, max: null };
     }
 
-    const middle = Math.floor(counts.length / 2);
-    const median =
-      counts.length % 2 === 0 ? (counts[middle - 1] + counts[middle]) / 2 : counts[middle];
-    const mean = counts.reduce((sum, count) => sum + count, 0) / counts.length;
-    const variance = counts.reduce((sum, count) => sum + (count - mean) ** 2, 0) / counts.length;
+    const percentile = (p: number): number => {
+      if (sampleSize === 1) return counts[0]!;
+      const pos = (sampleSize - 1) * p;
+      const lower = Math.floor(pos);
+      const upper = Math.ceil(pos);
+      if (lower === upper) return counts[lower]!;
+      const weight = pos - lower;
+      return counts[lower]! * (1 - weight) + counts[upper]! * weight;
+    };
+
+    const median = Math.round(percentile(0.5));
+    const max = counts[sampleSize - 1]!;
+    if (sampleSize < 2) {
+      return { sampleSize, median, iqr: null, max };
+    }
 
     return {
-      median: Math.round(median),
-      standardDeviation: Math.round(Math.sqrt(variance)),
-      max: counts[counts.length - 1],
+      sampleSize,
+      median,
+      iqr: Math.round(percentile(0.75) - percentile(0.25)),
+      max,
     };
   }
 

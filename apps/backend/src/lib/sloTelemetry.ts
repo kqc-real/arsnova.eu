@@ -17,6 +17,8 @@ export interface SloSignals {
   errorRatePercentLastMinute: number;
   p95LatencyMsLastMinute: number;
   p99LatencyMsLastMinute: number;
+  /** false wenn Redis/Telemetrie nicht lesbar — Werte sind dann kein fachliches Null. */
+  available: boolean;
 }
 
 export function isTrackedLiveProcedure(path: string): boolean {
@@ -128,6 +130,7 @@ export async function readSloSignals(nowMs: number = Date.now()): Promise<SloSig
       errorRatePercentLastMinute: 0,
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
+      available: true,
     };
   }
 
@@ -153,6 +156,7 @@ export async function readSloSignals(nowMs: number = Date.now()): Promise<SloSig
         errorRatePercentLastMinute: 0,
         p95LatencyMsLastMinute: 0,
         p99LatencyMsLastMinute: 0,
+        available: false,
       };
     }
 
@@ -178,12 +182,13 @@ export async function readSloSignals(nowMs: number = Date.now()): Promise<SloSig
       errorRatePercentLastMinute,
       p95LatencyMsLastMinute: percentileFromHistogram(totalRequestsLastMinute, latencyCounts, 0.95),
       p99LatencyMsLastMinute: percentileFromHistogram(totalRequestsLastMinute, latencyCounts, 0.99),
+      available: true,
     };
   } catch (err) {
     if (!readWarned) {
       readWarned = true;
       logger.warn(
-        'sloTelemetry.read: Redis nicht erreichbar, SLO-Signale werden auf 0 gesetzt.',
+        'sloTelemetry.read: Redis nicht erreichbar, SLO-Signale werden als nicht verfügbar markiert.',
         err,
       );
     }
@@ -192,6 +197,7 @@ export async function readSloSignals(nowMs: number = Date.now()): Promise<SloSig
       errorRatePercentLastMinute: 0,
       p95LatencyMsLastMinute: 0,
       p99LatencyMsLastMinute: 0,
+      available: false,
     };
   }
 }

@@ -1,43 +1,64 @@
-# Server-Status-Widget (Story 0.4)
+# Betrieb & Nutzung (Story 0.4 / Issue #483)
 
 > **Zielgruppe:** Product Owner, Entwickler  
-> **Stand:** 2026-09-15 (Q&A-Aggregate aus Epic #405; getrennter schlanker `footerBundle`-Pfad)
+> **Stand:** 2026-09-30 (öffentliche Ansicht „Betrieb & Nutzung“; getrennter `footerBundle`-Pfad)
 
-## Was zeigt das Widget?
+## Was zeigt der Einstieg?
 
-Der Betriebsstatus ist im **globalen App-Footer** unter **Mehr → Betriebsstatus**
-erreichbar (`app.component.html`) und öffnet den Betriebsstatus-Dialog. Im Menüeintrag
-werden Label und farbiger Status-Dot angezeigt; die Kennzahlen stehen im **Hilfe-Dialog**.
+**Betrieb & Nutzung** ist im **globalen App-Footer** unter **Mehr → Betrieb & Nutzung**
+erreichbar (`app.component.html`) und öffnet denselben öffentlichen Dialog ohne Anmeldung.
+Im Menüeintrag werden Label und farbiger Status-Dot angezeigt; die Kennzahlen stehen im
+**Dialog** mit den Bereichen **Betrieb** und **Nutzung**.
 
-Bei **gelbem oder rotem** Betriebsstatus (`limited` / `critical`) erscheint zusätzlich
+Bei **gelbem oder rotem** Betriebszustand (`limited` / `critical`) erscheint zusätzlich
 ein schmales Warnbanner **unterhalb der Header-Leiste** mit Kurztext und Link
-„Mehr erfahren“ auf denselben Dialog. Bei Grün oder Grau bleibt das Banner ausgeblendet.
+„Mehr erfahren“ auf denselben Dialog. Bei Grün oder Grau (inkl. `unknown` / Messausfall)
+bleibt das Banner ausgeblendet.
 
 Der Footer (und damit Status-Einstieg sowie Banner) wird **nicht** angezeigt auf der
 **Standalone-Blitzlicht-Route** (`/feedback/...`) und in der **immersiven Host-Ansicht**
 (`isImmersiveHostView`). Auf Join- und Session-Live-Routen bleibt der Status-Einstieg
 ausgeblendet (Polling unterdrückt).
 
-| Kennzahl                 | Icon                | Bedeutung                                                                                                 |
-| ------------------------ | ------------------- | --------------------------------------------------------------------------------------------------------- |
-| Offene Sessions          | ▶ play_circle       | Noch nicht beendete Sessions (Status ≠ `FINISHED`)                                                        |
-| Aktive Sessions          | ▶ play_circle       | Offene Sessions mit mindestens 5 aktiven Teilnehmenden in der Redis-Presence der letzten Minuten          |
-| Blitz-Runden             | ⚡ bolt             | Laufende Blitzlicht-/Quick-Feedback-Runden (Redis-Primärkeys `qf:<code>`, siehe Backend)                  |
-| Teilnehmende             | 👥 group            | Aktive Teilnahmen über laufende Sessions aus Redis-Presence                                               |
-| Abgeschlossene Quizzes   | ✅ check_circle     | Monotoner Gesamtzähler aus `PlatformStatistic.completedSessionsTotal` bzw. Fallback auf `FINISHED`-Zeilen |
-| Stimmen/Statuswechsel    | timeline            | Diagnosewerte der letzten Minute (`votesLastMinute`, `sessionTransitionsLastMinute`)                      |
-| Countdown-Sessions       | timer               | Sessions mit aktivem Countdown im aktuellen Zeitfenster                                                   |
-| Allzeit- und Tagesrekord | emoji_events        | `PlatformStatistic.maxParticipantsSingleSession` und 30 UTC-Tage aus `DailyStatistic`                     |
-| Aktive Q&A-Sessions      | chat_bubble_outline | Offene, nicht abgelaufene Q&A-Kanäle mit mindestens fünf eindeutigen Presence-Identitäten                 |
-| Q&A-Fragen/-Bewertungen  | question_answer     | Erfolgreiche persistierte Änderungen im rollierenden 60-Sekunden-Fenster                                  |
-| Q&A-Gesamt/-Rekord       | workspace_premium   | Purge-sichere Projektion seit Beginn der Erfassung und größter gleichzeitiger Fragenbestand               |
+### Bereich Betrieb
+
+Öffentlicher Betriebsstatus beantwortet: **Funktioniert arsnova.eu gerade zuverlässig?**
+`loadStatus` heißt in der UI **Aktuelle Aktivität** und darf die Gesundheit nicht allein bestimmen.
+
+| Kennzahl            | Bedeutung                                                                               |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| Gesamtzustand       | `stable` / `limited` / `critical` / `unknown` — nie grün bei Messausfall                |
+| Kernfunktionen      | API, Datenbank, Redis, Live-Verbindung getrennt                                         |
+| Servicequalität     | Stichproben Beitritt, Quizantwort, Q&A lesen/einreichen/bewerten (Abdeckung sichtbar)   |
+| Nutzbare Sessions   | `expiresAt` in der Zukunft, nicht host-beendet; inkl. `FINISHED` mit noch joinbarem Q&A |
+| Aktive Sessions     | Nutzbare Sessions mit ≥5 Presence-Identitäten                                           |
+| Aktive Q&A-Sessions | Nutzbare Q&A-Kanäle inkl. nach Quizende; Presence-Fenster                               |
+| Teilnehmende        | Anwesende über nutzbare Sessions (Redis-Presence)                                       |
+| Dynamik             | Votes/Q&A/Statuswechsel/Countdowns der letzten Minute                                   |
+
+### Bereich Nutzung
+
+Öffentliche Nutzungskennzahlen beantworten: **Wie häufig und wofür wird arsnova.eu genutzt?**
+Kernzahlen (Sessions, Teilnahmen, Quiz/Q&A) stehen zuerst. Tages-/Monatsverlauf und die
+**Join-Rekorde (Legacy)** sind standardmäßig eingeklappt, damit sie die neuen Aggregate nicht
+überlagern.
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zeitraum | `LAST_30_DAYS`, `CURRENT_SEMESTER` oder `CUSTOM` (max. 366 UTC-Tage) über `health.usage` bzw. Default in stats |
+| Genutzte Sessions | Purge-sichere Tagesaggregate (`DailyUsageStatistic`) + Session-Projektion (`SessionUsageProjection`) |
+| Teilnahmen / Antworten | Erstbeitritte und Quizstimmen; fehlende Tage/`null`, nie als 0 maskiert |
+| Q&A / Bewertungen | Akzeptierte Fragen und Rating-Aktionen im Zeitraum |
+| Funktionen | Nur Quiz / nur Q&A / kombiniert (Kohorte nach `firstUsedUtcDate`) |
+| Größenklassen | XS–XL aus Peak-Teilnahmen; Median/Q1/Q3 linear; bei Cap Zufallsstichprobe (`random()`), nie die kleinsten N |
+| Q&A-Fragen gesamt | Monotone, purge-sichere Lifetime-Zählung |
+| Join-Rekord / Tagesrekorde | Legacy-`DailyStatistic`: Lebenszeit-Max (kumulierte Erstbeitritte); 100-UTC-Tage-Serie (Lücken/`0` als `null`); Median/IQR/Max + `sampleSize` nur über positive Messwerte |
+| Datenqualität | Zeitzone UTC, Erfassungsbeginn, `historyComplete` |
 
 Der Footer ruft alle 5 Minuten **`health.footerBundle`** ab. Dieser Endpoint kombiniert `health.check`
-mit einem schlanken `FooterStatusDTO` (`serviceStatus`, `loadStatus`). Beim Öffnen des Dialogs lädt
-die App **`health.stats`** frisch nach; der Dialog rendert die vollständigen Kennzahlen und den
-100-Tage-Verlauf.
+mit einem schlanken `FooterStatusDTO` (`serviceStatus`, `loadStatus`, `measurementAvailable`). Beim Öffnen des Dialogs lädt
+die App **`health.stats`** frisch nach (Betrieb + Default-Nutzung `LAST_30_DAYS`). Im Nutzungstab kann der Zeitraum
+über **`health.usage`** gewechselt werden (eigener Kurzzeit-Cache).
 
-Der Footer-Pfad berechnet nur `serviceStatus` und `loadStatus`. Er liest weder die
+Der Footer-Pfad berechnet nur `serviceStatus`, `loadStatus` und `measurementAvailable`. Er liest weder die
 Q&A-Plattformprojektion noch NLP-/Wortwolkenmetriken. Q&A-Werte werden ausschließlich
 beim Öffnen des Detaildialogs über das höchstens 30 Sekunden gecachte `health.stats`
 geladen.
@@ -50,15 +71,16 @@ Null.
 
 ### Status-Dot (Ampel)
 
-| Farbe   | Bedeutung                 | Datenbasis                                                                  |
-| ------- | ------------------------- | --------------------------------------------------------------------------- |
-| 🟢 Grün | Stabil (`serviceStatus`)  | `serviceStatus = stable`                                                    |
-| 🟡 Gelb | Eingeschränkt             | `serviceStatus = limited`                                                   |
-| 🔴 Rot  | Kritisch                  | `serviceStatus = critical`                                                  |
-| ⚪ Grau | Unbekannt / nicht geladen | `connectionOk=false`, initiales Laden oder kein `FooterStatusDTO` vorhanden |
+| Farbe   | Bedeutung                 | Datenbasis                                                          |
+| ------- | ------------------------- | ------------------------------------------------------------------- |
+| 🟢 Grün | Stabil (`serviceStatus`)  | `serviceStatus = stable` und `measurementAvailable = true`          |
+| 🟡 Gelb | Eingeschränkt             | `serviceStatus = limited`                                           |
+| 🔴 Rot  | Gestört                   | `serviceStatus = critical`                                          |
+| ⚪ Grau | Unbekannt / nicht geladen | `unknown`, `measurementAvailable=false`, Offline oder noch kein DTO |
 
-**Hinweis:** Der Dot ist heute ein **Betriebsstatus** (`serviceStatus`) und nicht mehr nur eine
-Schwellwert-Ampel auf `activeSessions`. `loadStatus` bleibt als Diagnosewert im Detaildialog sichtbar.
+**Hinweis:** Der Dot ist ein **Betriebszustand** und keine Aussage über Nutzungsaktivität.
+`loadStatus` bleibt als Aktivitätskontext im Bereich Betrieb sichtbar und darf die
+Gesundheit nicht allein bestimmen.
 
 ---
 
@@ -71,7 +93,7 @@ flowchart LR
   end
 
   subgraph "<<subsystem>> Backend"
-    H["<<component>>\nhealth.footerBundle / health.stats"]
+    H["<<component>>\nhealth.footerBundle / stats / usage"]
   end
 
   subgraph "<<subsystem>> Persistenz"
@@ -81,8 +103,10 @@ flowchart LR
 
   W -- "footerBundle [alle 5 min]" --> H
   W -- "stats [Dialog öffnen]" --> H
-  H -. "FooterStatusDTO / ServerStatsDTO" .-> W
+  W -- "usage [Zeitraumwahl]" --> H
+  H -. "FooterStatusDTO / ServerStatsDTO / PublicUsageStats" .-> W
   H -- "count()" --> P
+  H -- "DailyUsageStatistic / SessionUsageProjection" --> P
   H -- "DailyStatistic / PlatformStatistic" --> P
   H -- "SCAN + Presence/Load/SLO" --> R
 ```
@@ -101,38 +125,37 @@ sequenceDiagram
 
   Note over App: Beim Start / Retry: health.footerBundle → apiStatus + FooterStatusDTO
   App ->> Client: health.footerBundle.query()
-  Client -->> App: check + serviceStatus/loadStatus
+  Client -->> App: check + serviceStatus/loadStatus/measurementAvailable
 
   User ->> Widget: Route mit Footer
   activate Widget
   Note over Widget: connectionOk = apiStatus und Dot aus serviceStatus
-  Widget ->> User: Button Betriebsstatus
+  Widget ->> User: Button Betrieb & Nutzung
   User ->> Widget: Dialog öffnen
   Widget ->> Client: health.stats.query()
   activate Client
   activate Router
 
   par Promise.all
-    Router ->> DB: session.count(Status != FINISHED)
-    Router ->> DB: session.count(FINISHED)
+    Router ->> DB: nutzbare Sessions (inkl. FINISHED+offenes Q&A)
     Router ->> DB: PlatformStatistic lesen
-    Router ->> DB: DailyStatistic letzte 30 UTC-Tage lesen
-    Router ->> Cache: Presence pro offener Session zählen
-    Router ->> Cache: Load-/SLO-Signale lesen
-    Router ->> Cache: SCAN MATCH qf:* Primärkeys
+    Router ->> DB: DailyStatistic / DailyUsageStatistic lesen
+    Router ->> Cache: Presence / Load / SLO
   end
 
-  DB -->> Router: Counts + Platform/DailyStatistic
-  Cache -->> Router: Presence + activeBlitzRounds + Load/SLO
+  DB -->> Router: Counts + Platform/Daily/Usage
+  Cache -->> Router: Presence + Load/SLO
 
-  Router ->> Router: loadStatus berechnen
-  Router ->> Router: serviceStatus aus SLO/Last ableiten
+  Router ->> Router: serviceStatus; unknown bei Messausfall
   Router ->> Router: ServerStatsDTOSchema.parse
   Router -->> Client: ServerStatsDTO
   deactivate Router
   Client -->> Widget: stats.set(data)
   deactivate Client
-  Widget ->> Widget: Dialog + Chart rendern
+  Widget ->> Widget: Tabs Betrieb / Nutzung
+  User ->> Widget: Zeitraum Semester
+  Widget ->> Client: health.usage.query(CURRENT_SEMESTER)
+  Client -->> Widget: PublicUsageStats
   deactivate Widget
 
   loop alle 5 min bei sichtbarem Footer
@@ -141,22 +164,52 @@ sequenceDiagram
   end
 ```
 
+> **Hinweis:** Nutzungsaggregate werden eventgetrieben (erster Join, neue Quizstimme,
+> Q&A accept/rate) in `DailyUsageStatistic` und `SessionUsageProjection` geschrieben.
+> Session-Purge löscht keine Aggregatzeilen (keine FK). Bis der erste Eventtag vorliegt,
+> bleiben Periodenwerte `null` mit `historyComplete=false`.
+
+### Dev-Seed (lokale Metrik-Abdeckung)
+
+Für die Dev-DB (`arsnova_v3_dev`) realistische Aggregate und Demo-Sessions:
+
+```bash
+npm run seed:betrieb-nutzung -w @arsnova/backend -- --replace
+```
+
+Befüllt u. a. `DailyUsageStatistic` (45 UTC-Tage), `SessionUsageProjection` (XS–XL, Quiz/Q&A/kombiniert),
+`DailyStatistic` mit Lückentagen, `PlatformStatistic`-Tracking sowie Live-Codes `BN483Q` /
+`BN483A` / `BN483F` (Quiz live, Q&A live, FINISHED mit offenem Q&A).
+
+### Performance & Abfragegrenzen (Issue #483)
+
+| Pfad                      | Strategie                                                                                                                        | Nachweis / Restrisiko                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Schreibpfad Join/Vote/Q&A | `SessionUsageProjection` per `FOR UPDATE` + begrenzte `DailyUsageStatistic`-UPSERTs; `PlatformStatistic.projectedAt` max. 1×/60s | Kein Vollscan; Hot-Row auf Tracking gedrosselt. Lasttest 500 Concurrent noch ausstehend vor Prod-Merge. |
+| `health.stats`            | 30s Cache + In-Flight-Coalesce; DailyHighscores auf 100 UTC-Tage begrenzt                                                        | Presence nur für nutzbare Session-IDs.                                                                  |
+| `health.usage`            | 30s Cache, max. 64 Keys (TTL-Prune), In-Flight pro Key, Rate-Limit IP+global (`checkHealthUsageRate`)                            | Größenverteilung: `ORDER BY random() LIMIT 5000` — bei sehr großen Kohorten Stichprobe.                 |
+| Indizes                   | `DailyUsageStatistic(date)` unique; `SessionUsageProjection(firstUsedUtcDate)`, `(functionClass, firstUsedUtcDate)`              | EXPLAIN gegen Prod-ähnliche Daten vor Go-Live wiederholen.                                              |
+
 ---
 
-## Datenquellen im Detail
+## Legacy-Abschnitt (Detailquellen)
+
+Die folgenden Abschnitte beschreiben weiterhin die bestehenden Datenquellen und
+Implementierungsdetails; Kennzahl-Definitionen oben haben Vorrang.
 
 ### PostgreSQL (via Prisma)
 
-| Kennzahl                     | Query                                                                 | Filter                                                                                             |
-| ---------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Kennzahl / Daten             | Query / Quelle                                                        | Filter / Semantik                                                                                  |
-| ---------------------------- | --------------------------------------                                | -------------------------------------------------------------------------------------------------- |
-| Offene Sessions              | `prisma.session.count(…)`                                             | Status ≠ `FINISHED`                                                                                |
-| Abgeschlossene Quizzes       | `PlatformStatistic.completedSessionsTotal` / Fallback `session.count` | monotoner Gesamtzähler, damit Purge den Wert nicht senkt                                           |
-| Allzeit-Rekord               | `PlatformStatistic`                                                   | `maxParticipantsSingleSession`, `updatedAt`                                                        |
-| Q&A-Gesamt/-Rekord           | `PlatformStatistic`                                                   | asynchron aus purge-sicheren `QaSessionStatisticProjection`-Zeilen; kein Fragenbestandsscan        |
-| Tagesrekord-Verlauf          | `prisma.dailyStatistic.findMany(…)`                                   | letzte 30 UTC-Tage, Lücken werden mit `count=0` aufgefüllt                                         |
-| Quiz-/Session-Inhalte        | Session/Quiz-Tabellen                                                 | nur indirekt für Counts; keine Inhalte im Footer-Status                                            |
+| Kennzahl                     | Query                                                                 | Filter                                                                                                    |
+| ---------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Kennzahl / Daten             | Query / Quelle                                                        | Filter / Semantik                                                                                         |
+| ---------------------------- | --------------------------------------                                | --------------------------------------------------------------------------------------------------        |
+| Offene / nutzbare Sessions   | `prisma.session.count/findMany(…)`                                    | `expiresAt` zukunft, nicht host-beendet; inkl. `FINISHED` mit noch joinbarem Q&A                          |
+| Aktive Sessions              | Presence ≥5 auf nutzbaren Sessions **ohne** Status `FINISHED`         | Offenes Q&A nach Quizende zählt unter aktiven Q&A-Sessions, nicht als Quizphase                           |
+| Abgeschlossene Quizzes       | `PlatformStatistic.completedSessionsTotal` / Fallback `session.count` | monotoner Gesamtzähler, damit Purge den Wert nicht senkt                                                  |
+| Allzeit-Rekord               | `PlatformStatistic`                                                   | `maxParticipantsSingleSession`, `updatedAt`                                                               |
+| Q&A-Gesamt/-Rekord           | `PlatformStatistic`                                                   | asynchron aus purge-sicheren `QaSessionStatisticProjection`-Zeilen; kein Fragenbestandsscan               |
+| Tagesrekord-Verlauf          | `prisma.dailyStatistic.findMany(…)`                                   | letzte 100 UTC-Tage; fehlende/`0`-Tage als `count=null`; Median/IQR/Max + `sampleSize` nur über `count>0` |
+| Quiz-/Session-Inhalte        | Session/Quiz-Tabellen                                                 | nur indirekt für Counts; keine Inhalte im Footer-Status                                                   |
 
 ### Redis
 
@@ -165,7 +218,7 @@ sequenceDiagram
 | Kennzahl / Signal        | Methode                 | Details                                                                                                                     |
 | ------------------------ | ----------------------- | --------------------------------------------------------------------------------------------------------                    |
 | Aktive Teilnehmende      | Presence-Keys           | nur offene Sessions; Presence-Fenster siehe Backend `presence`                                                              |
-| Aktive Sessions          | Presence pro Session    | nur offene Sessions mit mindestens `ACTIVE_SESSION_MIN_PARTICIPANTS = 5`                                                    |
+| Aktive Sessions          | Presence pro Session    | nutzbare Sessions **ohne** `FINISHED`, ≥ `ACTIVE_SESSION_MIN_PARTICIPANTS = 5`                                              |
 | Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` oder `qf:known:*` |
 | Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                                    |
 | SLO-Signale              | SLO-Telemetrie          | Request-Sample, Fehlerrate, p95/p99-Latenz                                                                                  |
@@ -183,8 +236,18 @@ nicht rekonstruiert werden. `qaStatisticsProjectedAt` weist den Projektionsstand
 
 ### Offene Sessions, aktive Sessions & Teilnehmende
 
-Eine Session fällt aus der „offen"-Zählung, sobald ihr Status auf `FINISHED` wechselt.
-Als **aktiv** zählt sie erst, wenn mindestens 5 Teilnehmende innerhalb des Presence-Fensters sichtbar sind.
+**Nutzbare Sessions** (`openSessions`) bleiben zählbar, solange `expiresAt` in der Zukunft
+liegt und die Session nicht host-beendet ist — einschließlich `FINISHED` mit noch offenem Q&A.
+
+**Aktive Sessions** (`activeSessions`) zählen nur nutzbare Sessions mit Status ≠ `FINISHED`
+und mindestens 5 Presence-Identitäten. Offenes Q&A nach Quizende erscheint unter
+**Aktive Q&A-Sessions**, nicht als laufende Quizphase.
+
+Als **aktive Teilnehmende** zählen Presence-Identitäten über alle nutzbaren Sessions
+(inkl. FINISHED+Q&A).
+
+Eine Session fällt aus der nutzbaren Zählung, wenn die Beitrittsfrist abläuft, der Host
+beendet, oder (bei FINISHED) der Q&A-Kanal schließt.
 Das geschieht durch:
 
 | Auslöser               | Beschreibung                                 | Timing                  |

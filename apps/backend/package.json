@@ -12,6 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "seed:finished-demo": "tsx scripts/seed-finished-demo.ts",
+    "seed:betrieb-nutzung": "tsx scripts/seed-betrieb-nutzung-demo.ts",
     "seed:session-votes": "tsx scripts/seed-session-votes.ts",
     "seed:qa-forum": "tsx scripts/seed-qa-forum.ts",
     "seed:moderation-compass": "tsx scripts/seed-moderation-compass.ts",

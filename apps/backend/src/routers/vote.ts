@@ -54,6 +54,7 @@ import {
 } from '../lib/quizScoring';
 import { touchParticipantPresence } from '../lib/presence';
 import { recordVoteActivity } from '../lib/loadSignal';
+import { recordUsageQuizAnswer } from '../lib/usageStatistic';
 import { invalidateHostVoteProgressForCode, recordVoteCachesForCode } from './session';
 import {
   getSkippedSessionQuestionIds,
@@ -878,6 +879,10 @@ export const voteRouter = router({
           throw error;
         }
         return { voteId: existingVote.id };
+      }
+      // Effektive Antwort: Runde 1 zählt; Runde 2 ersetzt den Effective Vote ohne Doppelzählung.
+      if (round === 1) {
+        void recordUsageQuizAnswer(input.sessionId);
       }
       if (participant.session.code) {
         const progressIsCorrect =

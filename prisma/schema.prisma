@@ -304,6 +304,9 @@ model PlatformStatistic {
   maxQaQuestionsStatisticUpdatedAt DateTime?
   qaStatisticsTrackingStartedAt    DateTime?
   qaStatisticsProjectedAt          DateTime?
+  /// Beginn der purge-sicheren Nutzungsaggregate (Issue #483).
+  usageStatisticsTrackingStartedAt DateTime?
+  usageStatisticsProjectedAt       DateTime?
   updatedAt                        DateTime  @updatedAt
 }
 
@@ -325,6 +328,43 @@ model DailyStatistic {
   date                         DateTime @unique @db.Date
   maxParticipantsSingleSession Int      @default(0)
   updatedAt                    DateTime @updatedAt
+}
+
+/// Purge-sichere Tagesaggregate für öffentliche Nutzung (Issue #483). UTC-Tag.
+/// Kein FK auf Session/Participant/Vote — Retention senkt die Zähler nicht.
+model DailyUsageStatistic {
+  id                    String   @id @default(uuid())
+  date                  DateTime @unique @db.Date
+  sessionsUsed          Int      @default(0)
+  sessionParticipations Int      @default(0)
+  quizAnswers           Int      @default(0)
+  qaQuestionsAccepted   Int      @default(0)
+  qaRatingActions       Int      @default(0)
+  /// Disjunkte Funktionsklassen nach erstmaliger Session-Nutzung (Kohorte = firstUsed-Tag).
+  /// JOIN_ONLY + QUIZ_ONLY + QA_ONLY + COMBINED = sessionsUsed.
+  sessionsJoinOnly      Int      @default(0)
+  sessionsQuizOnly      Int      @default(0)
+  sessionsQaOnly        Int      @default(0)
+  sessionsCombined      Int      @default(0)
+  updatedAt             DateTime @updatedAt
+}
+
+/// Purge-sicherer Session-Nutzungsmarker ohne FK (Issue #483).
+/// Ermöglicht idempotente Erstnutzung/Funktionsklasse und Größenverteilung ohne Rohdaten-Scans.
+model SessionUsageProjection {
+  sessionId            String    @id
+  firstUsedAt          DateTime?
+  firstUsedUtcDate     DateTime? @db.Date
+  firstParticipationAt DateTime?
+  participationCount   Int       @default(0)
+  hasQuizInteraction   Boolean   @default(false)
+  hasQaInteraction     Boolean   @default(false)
+  /// JOIN_ONLY | QUIZ_ONLY | QA_ONLY | COMBINED — JOIN_ONLY nach Erstteilnahme ohne Quiz/Q&A.
+  functionClass        String?   @db.VarChar(16)
+  projectedAt          DateTime  @default(now())
+
+  @@index([firstUsedUtcDate])
+  @@index([functionClass, firstUsedUtcDate])
 }
 
 // Ein Team in einer Live-Session (Story 7.1)

@@ -267,6 +267,7 @@ describe('admin router (Epic 9)', () => {
         yjsWebSocketOutboundRejectedLastMinute: 0,
         qaApi: {
           JOIN_REJOIN: EMPTY_QA_API_DIAGNOSTIC,
+          VOTE: EMPTY_QA_API_DIAGNOSTIC,
           PARTICIPANT_QUERY: EMPTY_QA_API_DIAGNOSTIC,
           QA_PAGE: EMPTY_QA_API_DIAGNOSTIC,
           QA_SUBMIT: EMPTY_QA_API_DIAGNOSTIC,

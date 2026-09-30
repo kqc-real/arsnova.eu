@@ -9,10 +9,11 @@ export type FooterStatusColor = 'green' | 'yellow' | 'red' | 'gray';
 export function resolveFooterStatusColor(
   connectionOk: boolean,
   loading: boolean,
-  stats: Pick<FooterStatusDTO, 'serviceStatus'> | null | undefined,
+  stats: Pick<FooterStatusDTO, 'serviceStatus' | 'measurementAvailable'> | null | undefined,
 ): FooterStatusColor {
   if (!connectionOk || loading) return 'gray';
   if (!stats) return 'gray';
+  if (stats.measurementAvailable === false) return 'gray';
   switch (stats.serviceStatus) {
     case 'stable':
       return 'green';
@@ -20,6 +21,8 @@ export function resolveFooterStatusColor(
       return 'yellow';
     case 'critical':
       return 'red';
+    case 'unknown':
+      return 'gray';
     default:
       return 'gray';
   }

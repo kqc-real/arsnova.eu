@@ -45,9 +45,10 @@ export const RATE_LIMIT_ENV = {
   motdRecordInteractionPerMinute:
     Number(process.env['RATE_LIMIT_MOTD_RECORD_INTERACTION_PER_MINUTE']) || 40,
   /**
-   * ProductFeedback (Epic 12): großzügig wegen Shared-NAT / Hörsaal.
-   * Globales Budget schützt vor Missbrauch; IP allein darf 500 Clients nicht blockieren.
+   * Öffentliche Nutzungsberichte (Issue #483): Shared-NAT-tauglich, aber Cache-Miss-/CUSTOM-Missbrauch dämpfen.
    */
+  healthUsagePerIpPerMinute: positiveIntegerEnv('RATE_LIMIT_HEALTH_USAGE_PER_IP_PER_MINUTE', 120),
+  healthUsageGlobalPerMinute: positiveIntegerEnv('RATE_LIMIT_HEALTH_USAGE_GLOBAL_PER_MINUTE', 2400),
   productFeedbackClaimPerIpPerMinute:
     Number(process.env['RATE_LIMIT_PRODUCT_FEEDBACK_CLAIM_PER_IP_PER_MINUTE']) || 600,
   productFeedbackClaimGlobalPerMinute:
@@ -447,6 +448,22 @@ export async function checkMotdRecordInteractionRate(ip: string) {
   return checkSlidingWindow(
     `motd:recordInteraction:${ip}`,
     RATE_LIMIT_ENV.motdRecordInteractionPerMinute,
+    60,
+  );
+}
+
+export async function checkHealthUsageRate(ip: string) {
+  return checkFixedWindowBudgets(
+    [
+      {
+        key: 'health:usage:global',
+        limit: RATE_LIMIT_ENV.healthUsageGlobalPerMinute,
+      },
+      {
+        key: `health:usage:ip:${ip}`,
+        limit: RATE_LIMIT_ENV.healthUsagePerIpPerMinute,
+      },
+    ],
     60,
   );
 }

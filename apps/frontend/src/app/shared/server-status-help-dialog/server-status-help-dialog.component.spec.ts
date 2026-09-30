@@ -42,13 +42,101 @@ describe('ServerStatusHelpDialogComponent', () => {
               maxParticipantsSingleSession: 412,
               dailyHighscores: buildDailyHighscores(),
               dailyHighscoresStatistics: {
+                sampleSize: 100,
                 median: 50,
-                standardDeviation: 12.4,
+                iqr: 25,
                 max: 100,
               },
               maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
               serviceStatus: 'limited',
               loadStatus: 'busy',
+              dependencies: { api: 'ok', database: 'ok', redis: 'ok', live: 'ok' },
+              coreActionsQuality: {
+                join: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                vote: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaRead: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaSubmit: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaRate: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+              },
+              sloSampleSizeLastMinute: 0,
+              measurementAvailable: true,
+              usage: {
+                timezone: 'UTC' as const,
+                periodKind: 'LAST_30_DAYS' as const,
+                periodFrom: '2026-04-05',
+                periodTo: '2026-05-04',
+                trackingStartedAt: null,
+                lastAggregatedAt: null,
+                historyComplete: false,
+                sessionsUsed: null,
+                sessionParticipations: null,
+                quizAnswers: null,
+                qaQuestionsAccepted: null,
+                qaRatingActions: null,
+                sessionsByFunction: null,
+                dailySeries: [
+                  {
+                    date: '2026-04-05',
+                    sessionsUsed: 3,
+                    sessionParticipations: 12,
+                    quizAnswers: 8,
+                    qaQuestionsAccepted: 2,
+                  },
+                ],
+                monthlySeries: [
+                  {
+                    yearMonth: '2026-04',
+                    sessionsUsed: 3,
+                    sessionParticipations: 12,
+                    quizAnswers: 8,
+                    qaQuestionsAccepted: 2,
+                  },
+                ],
+                sizeDistribution: null,
+                qaQuestionsTotalLifetime: 0,
+                completedSessionsLifetime: 0,
+              },
+              activeQaSessions: 2,
+              qaQuestionsLastMinute: 4,
+              qaRatingsLastMinute: 1,
+              qaQuestionsTotal: 98,
+              maxQaQuestionsSingleSession: 40,
+              qaStatisticsTrackingStartedAt: null,
+              qaStatisticsProjectedAt: null,
+              maxQaQuestionsStatisticUpdatedAt: null,
+              statsGeneratedAt: '2026-04-05T10:15:00.000Z',
+              qaMinuteMetricsStatus: 'AVAILABLE',
+              qaPresenceMetricsStatus: 'AVAILABLE',
             }),
           },
         },
@@ -59,43 +147,72 @@ describe('ServerStatusHelpDialogComponent', () => {
     fixture.detectChanges();
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
-    expect(text).toContain('Betriebsstatus & Systemlast');
-    expect(text).toContain('Systemlast-Indikatoren');
+    expect(text).toContain('Betrieb & Nutzung');
+    expect(text).toContain('Gesamtzustand');
     expect(text).toContain(
-      'Die Statusanzeige findest du im Footer-Menü »Mehr«. Sie zeigt, wie stabil Live-Quizze gerade laufen.',
+      'Die Statusanzeige findest du im Footer-Menü »Mehr«. Sie zeigt den Betriebszustand — nicht die Nutzungsaktivität.',
     );
-    expect(text).toContain('Systemlast:');
-    expect(text).toContain('Aktuelle Lage');
-    expect(text).toContain('Aktuelle Dynamik');
+    expect(text).toContain('Aktuelle Aktivität:');
+    expect(text).toContain('Funktioniert arsnova.eu gerade zuverlässig?');
+    expect(text).toContain('Aktuelle Aktivität');
+    expect(text).toContain('Dynamik (letzte Minute)');
     expect(text).toContain('Aktive Sessions');
-    expect(text).toContain('Offene Sessions');
+    expect(text).toContain('Nutzbare Sessions');
     expect(text).toContain('145');
     expect(text).toContain('Abstimmungen / Minute');
     expect(text).toContain('Statuswechsel / Minute');
     expect(text).toContain('Countdown-Sessions');
-    expect(text).toContain('Mindestens 5 aktive Teilnehmende in den letzten 3 Minuten');
-    expect(text).toContain('Noch nicht beendet');
-    expect(text).toContain('Summe über alle offenen Sessions in den letzten 3 Minuten');
-    expect(text).toContain('Neue Antworten im letzten Minutenfenster');
-    expect(text).toContain('Sessions, die gerade sichtbar weiterlaufen');
-    expect(text).toContain('Mit laufendem Countdown im aktuellen Aktivitätsfenster');
-    expect(text).toContain('Alle je beendeten Live-Sessions (kumulativ)');
+    expect(text).toContain('Offenes Q&A nach Quizende zählt hier nicht');
+    expect(text).toContain('Noch gültige Beitrittsfrist');
+    expect(text).toContain('Anwesende in nutzbaren Sessions');
+    expect(text).toContain('Erfolgreiche Quizantworten im rollierenden Minutenfenster');
+    expect(text).toContain('Monotone Gesamtzahl beendeter Sessions');
     expect(text).toContain('98');
-    expect(text).toContain('Rekordteilnahme');
-    expect(text).toContain('Session-Tagesrekorde der letzten 100 Tage');
-    expect(text).toContain(
-      'Jeder Punkt zeigt den Rekord der größten einzelnen Session eines UTC-Tages.',
-    );
-    expect(text).toContain('Median');
-    expect(text).toContain('Typischer Wert über alle bisher erfassten Tagesrekorde.');
-    expect(text).toContain('Standardabweichung');
-    expect(text).toContain('Streuung über alle bisher erfassten Tagesrekorde.');
-    expect(text).toContain('Maximum');
-    expect(text).toContain('Höchster Wert innerhalb der letzten 100 UTC-Tage im Diagramm.');
-    expect(text).toContain('50');
-    expect(text).toContain('12');
-    expect(text).toContain('100');
-    expect(text).toContain('412');
+    expect(text).toContain('Kernfunktionen');
+    expect(text).toContain('Servicequalität');
+    expect(text).toContain('Betrieb');
+    expect(text).toContain('Nutzung');
+
+    const tabLabels = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.mat-mdc-tab .mdc-tab__text-label'),
+    ).map((el) => el.textContent?.trim());
+    expect(tabLabels).toEqual(expect.arrayContaining(['Betrieb', 'Nutzung']));
+
+    const usageTab = (fixture.nativeElement as HTMLElement).querySelectorAll('.mat-mdc-tab')[1] as
+      HTMLElement | undefined;
+    usageTab?.click();
+    fixture.detectChanges();
+    const usageText = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(usageText).toContain('Wie häufig und wofür wird arsnova.eu genutzt?');
+    expect(usageText).toContain('Kennzahlen im Zeitraum');
+    expect(usageText).toContain('Tages- und Monatsverlauf');
+    expect(usageText).toContain('Join-Rekorde (Legacy)');
+    expect(usageText).toContain('Letzte 30 Tage');
+    expect(usageText).toContain('Aktuelles Semester');
+    expect(usageText).toContain('Zeitraum wählen');
+    expect(usageText).toContain('Genutzte Sessions');
+
+    const seriesDetails = (fixture.nativeElement as HTMLElement).querySelector(
+      '.status-help-dialog__disclosure:not(.status-help-dialog__disclosure--legacy)',
+    ) as HTMLDetailsElement | null;
+    expect(seriesDetails).not.toBeNull();
+    expect(seriesDetails!.open).toBe(false);
+
+    // Verlauf und Legacy sind standardmäßig eingeklappt (Chart erst nach Öffnen).
+    expect((fixture.nativeElement as HTMLElement).querySelector('canvas')).toBeNull();
+
+    const legacyDetails = (fixture.nativeElement as HTMLElement).querySelector(
+      '.status-help-dialog__disclosure--legacy',
+    ) as HTMLDetailsElement | null;
+    expect(legacyDetails).not.toBeNull();
+    expect(legacyDetails!.open).toBe(false);
+    legacyDetails!.open = true;
+    legacyDetails!.dispatchEvent(new Event('toggle'));
+    fixture.detectChanges();
+    const expandedText = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(expandedText).toContain('Höchste Join-Teilnahme einer Session');
+    expect(expandedText).toContain('Join-Höchststände je Tag');
+    expect(expandedText).toContain('412');
     expect((fixture.nativeElement as HTMLElement).querySelector('canvas')).not.toBeNull();
   });
 
@@ -143,13 +260,85 @@ describe('ServerStatusHelpDialogComponent', () => {
               maxParticipantsSingleSession: 96,
               dailyHighscores: buildDailyHighscores(),
               dailyHighscoresStatistics: {
+                sampleSize: 100,
                 median: 50,
-                standardDeviation: 12.4,
+                iqr: 25,
                 max: 100,
               },
               maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
               serviceStatus: 'stable',
               loadStatus: 'healthy',
+              dependencies: { api: 'ok', database: 'ok', redis: 'ok', live: 'ok' },
+              coreActionsQuality: {
+                join: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                vote: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaRead: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaSubmit: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaRate: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+              },
+              sloSampleSizeLastMinute: 0,
+              measurementAvailable: true,
+              usage: {
+                timezone: 'UTC' as const,
+                periodKind: 'LAST_30_DAYS' as const,
+                periodFrom: '2026-04-05',
+                periodTo: '2026-05-04',
+                trackingStartedAt: null,
+                lastAggregatedAt: null,
+                historyComplete: false,
+                sessionsUsed: null,
+                sessionParticipations: null,
+                quizAnswers: null,
+                qaQuestionsAccepted: null,
+                qaRatingActions: null,
+                sessionsByFunction: null,
+                dailySeries: [],
+                monthlySeries: [],
+                sizeDistribution: null,
+                qaQuestionsTotalLifetime: 0,
+                completedSessionsLifetime: 0,
+              },
+              activeQaSessions: null,
+              qaQuestionsLastMinute: null,
+              qaRatingsLastMinute: null,
+              qaQuestionsTotal: 0,
+              maxQaQuestionsSingleSession: 0,
+              qaStatisticsTrackingStartedAt: null,
+              qaStatisticsProjectedAt: null,
+              maxQaQuestionsStatisticUpdatedAt: null,
+              statsGeneratedAt: '2026-04-05T10:15:00.000Z',
+              qaMinuteMetricsStatus: 'UNAVAILABLE',
+              qaPresenceMetricsStatus: 'UNAVAILABLE',
             }),
           },
         },
@@ -163,10 +352,23 @@ describe('ServerStatusHelpDialogComponent', () => {
     const syncChartSpy = vi.spyOn(component, 'syncChart').mockResolvedValue();
 
     fixture.detectChanges();
-    expect(syncChartSpy).toHaveBeenCalledTimes(1);
+    const usageTab = (fixture.nativeElement as HTMLElement).querySelectorAll('.mat-mdc-tab')[1] as
+      HTMLElement | undefined;
+    usageTab?.click();
+    fixture.detectChanges();
 
+    const legacyDetails = (fixture.nativeElement as HTMLElement).querySelector(
+      '.status-help-dialog__disclosure--legacy',
+    ) as HTMLDetailsElement | null;
+    expect(legacyDetails).not.toBeNull();
+    legacyDetails!.open = true;
+    legacyDetails!.dispatchEvent(new Event('toggle'));
+    fixture.detectChanges();
+    expect(syncChartSpy).toHaveBeenCalled();
+
+    const callsAfterOpen = syncChartSpy.mock.calls.length;
     globalThis.dispatchEvent(new Event('arsnova:preset-updated'));
-    expect(syncChartSpy).toHaveBeenCalledTimes(2);
+    expect(syncChartSpy.mock.calls.length).toBeGreaterThan(callsAfterOpen);
   });
 
   it('hält Ampel-Badges, Legend-Borders und Panel-Padding konsistent', async () => {
@@ -216,10 +418,81 @@ describe('ServerStatusHelpDialogComponent', () => {
               activeBlitzRounds: 0,
               maxParticipantsSingleSession: 2,
               dailyHighscores: buildDailyHighscores(),
-              dailyHighscoresStatistics: { median: 1, standardDeviation: 0, max: 2 },
+              dailyHighscoresStatistics: { sampleSize: 2, median: 1, iqr: 1, max: 2 },
               maxParticipantsStatisticUpdatedAt: '2026-04-05T10:15:00.000Z',
               serviceStatus: 'stable',
               loadStatus: 'healthy',
+              dependencies: { api: 'ok', database: 'ok', redis: 'ok', live: 'ok' },
+              coreActionsQuality: {
+                join: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                vote: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaRead: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaSubmit: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+                qaRate: {
+                  samples: 0,
+                  errorRatePercent: null,
+                  p95Ms: null,
+                  p99Ms: null,
+                  coverage: 'UNAVAILABLE',
+                },
+              },
+              sloSampleSizeLastMinute: 0,
+              measurementAvailable: true,
+              usage: {
+                timezone: 'UTC' as const,
+                periodKind: 'LAST_30_DAYS' as const,
+                periodFrom: '2026-04-05',
+                periodTo: '2026-05-04',
+                trackingStartedAt: null,
+                lastAggregatedAt: null,
+                historyComplete: false,
+                sessionsUsed: null,
+                sessionParticipations: null,
+                quizAnswers: null,
+                qaQuestionsAccepted: null,
+                qaRatingActions: null,
+                sessionsByFunction: null,
+                dailySeries: [],
+                monthlySeries: [],
+                sizeDistribution: null,
+                qaQuestionsTotalLifetime: 0,
+                completedSessionsLifetime: 0,
+              },
+              activeQaSessions: null,
+              qaQuestionsLastMinute: null,
+              qaRatingsLastMinute: null,
+              qaQuestionsTotal: 0,
+              maxQaQuestionsSingleSession: 0,
+              qaStatisticsTrackingStartedAt: null,
+              qaStatisticsProjectedAt: null,
+              maxQaQuestionsStatisticUpdatedAt: null,
+              statsGeneratedAt: '2026-04-05T10:15:00.000Z',
+              qaMinuteMetricsStatus: 'UNAVAILABLE',
+              qaPresenceMetricsStatus: 'UNAVAILABLE',
             }),
           },
         },

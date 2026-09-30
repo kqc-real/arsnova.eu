@@ -87,7 +87,7 @@ describe('AppComponent', () => {
     vi.clearAllMocks();
     footerBundleQueryMock.mockResolvedValue({
       check: { status: 'ok' },
-      stats: { serviceStatus: 'stable', loadStatus: 'healthy' },
+      stats: { serviceStatus: 'stable', loadStatus: 'healthy', measurementAvailable: true },
     });
     healthStatsQueryMock.mockResolvedValue({
       openSessions: 1,
@@ -105,13 +105,74 @@ describe('AppComponent', () => {
         updatedAt: null,
       })),
       dailyHighscoresStatistics: {
-        median: 0,
-        standardDeviation: 0,
-        max: 0,
+        sampleSize: 0,
+        median: null,
+        iqr: null,
+        max: null,
       },
       maxParticipantsStatisticUpdatedAt: null,
       serviceStatus: 'stable',
       loadStatus: 'healthy',
+      dependencies: { api: 'ok', database: 'ok', redis: 'ok', live: 'ok' },
+      coreActionsQuality: {
+        join: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        vote: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        qaRead: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        qaSubmit: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        qaRate: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+      },
+      sloSampleSizeLastMinute: 0,
+      measurementAvailable: true,
+      usage: {
+        timezone: 'UTC' as const,
+        periodKind: 'LAST_30_DAYS' as const,
+        periodFrom: '2026-04-05',
+        periodTo: '2026-05-04',
+        trackingStartedAt: null,
+        lastAggregatedAt: null,
+        historyComplete: false,
+        sessionsUsed: null,
+        sessionParticipations: null,
+        quizAnswers: null,
+        qaQuestionsAccepted: null,
+        qaRatingActions: null,
+        sessionsByFunction: null,
+        dailySeries: [],
+        monthlySeries: [],
+        sizeDistribution: null,
+        qaQuestionsTotalLifetime: 0,
+        completedSessionsLifetime: 0,
+      },
     });
     vi.stubGlobal('requestIdleCallback', vi.fn());
     vi.stubGlobal('cancelIdleCallback', vi.fn());
@@ -717,7 +778,7 @@ describe('AppComponent', () => {
     moreButton.click();
     fixture.detectChanges();
     const menuText = document.body.textContent ?? '';
-    expect(menuText).not.toContain('Betriebsstatus');
+    expect(menuText).not.toContain('Betrieb & Nutzung');
 
     fixture.destroy();
     window.history.pushState({}, '', '/');
@@ -869,7 +930,11 @@ describe('AppComponent', () => {
     link!.click();
     expect(openSpy).toHaveBeenCalledWith('banner');
 
-    component.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+    component.footerStatus.set({
+      serviceStatus: 'stable',
+      loadStatus: 'healthy',
+      measurementAvailable: true,
+    });
     fixture.detectChanges();
     expect(
       (fixture.nativeElement as HTMLElement).querySelector('.app-service-status-banner'),
@@ -878,7 +943,7 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('oeffnet unter Mehr direkt Impressum, Datenschutz, Barrierefreiheit und Betriebsstatus', async () => {
+  it('oeffnet unter Mehr direkt Impressum, Datenschutz, Barrierefreiheit und Betrieb & Nutzung', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
@@ -903,7 +968,7 @@ describe('AppComponent', () => {
       expect.stringContaining('Impressum'),
       expect.stringContaining('Datenschutz'),
       expect.stringContaining('Barrierefreiheit'),
-      expect.stringContaining('Betriebsstatus'),
+      expect.stringContaining('Betrieb & Nutzung'),
     ]);
     expect(items).toHaveLength(4);
     expect((items[0] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/imprint');
@@ -1019,7 +1084,7 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf Mehr', async () => {
+  it('setzt Fokus nach Schliessen des Betrieb & Nutzung-Dialogs auf Mehr', async () => {
     const { dialog, close } = createCloseableDialogMock();
     TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -1060,7 +1125,7 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('setzt Fokus nach Schliessen des Betriebsstatus-Dialogs auf den Banner-Link', async () => {
+  it('setzt Fokus nach Schliessen des Betrieb & Nutzung-Dialogs auf den Banner-Link', async () => {
     const { dialog, close } = createCloseableDialogMock();
     TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -1170,7 +1235,7 @@ describe('AppComponent', () => {
     fixture.destroy();
   });
 
-  it('zeigt im Mehr-Menü den Live-Betriebsstatus-Dot anhand von footerStatus', async () => {
+  it('zeigt im Mehr-Menü den Live-Betrieb & Nutzung-Dot anhand von footerStatus', async () => {
     configureAppTestBed();
     const fixture = TestBed.createComponent(AppComponent);
     const component = fixture.componentInstance;
@@ -1179,7 +1244,11 @@ describe('AppComponent', () => {
 
     component.footerHealthCheckDone.set(true);
     component.apiStatus.set('ok');
-    component.footerStatus.set({ serviceStatus: 'stable', loadStatus: 'healthy' });
+    component.footerStatus.set({
+      serviceStatus: 'stable',
+      loadStatus: 'healthy',
+      measurementAvailable: true,
+    });
     fixture.detectChanges();
     expect(component.footerStatusColor()).toBe('green');
 
@@ -1265,7 +1334,8 @@ describe('AppComponent', () => {
     expect(stats?.dailyHighscores.some((entry) => entry.count > 0)).toBe(true);
     expect(stats?.dailyHighscoresStatistics.max).toBeGreaterThan(0);
     expect(stats?.dailyHighscoresStatistics.median).toBeGreaterThan(0);
-    expect(stats?.dailyHighscoresStatistics.standardDeviation).toBeGreaterThan(0);
+    expect(stats?.dailyHighscoresStatistics.iqr).toBeGreaterThan(0);
+    expect(stats?.dailyHighscoresStatistics.sampleSize).toBeGreaterThan(0);
 
     fixture.destroy();
   });
@@ -1287,13 +1357,74 @@ describe('AppComponent', () => {
         updatedAt: index === 99 ? '2026-04-16T12:00:00.000Z' : null,
       })),
       dailyHighscoresStatistics: {
+        sampleSize: 1,
         median: 15,
-        standardDeviation: 70,
+        iqr: null,
         max: 600,
       },
       maxParticipantsStatisticUpdatedAt: '2026-04-16T12:00:00.000Z',
       serviceStatus: 'stable',
       loadStatus: 'healthy',
+      dependencies: { api: 'ok', database: 'ok', redis: 'ok', live: 'ok' },
+      coreActionsQuality: {
+        join: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        vote: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        qaRead: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        qaSubmit: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+        qaRate: {
+          samples: 0,
+          errorRatePercent: null,
+          p95Ms: null,
+          p99Ms: null,
+          coverage: 'UNAVAILABLE',
+        },
+      },
+      sloSampleSizeLastMinute: 0,
+      measurementAvailable: true,
+      usage: {
+        timezone: 'UTC' as const,
+        periodKind: 'LAST_30_DAYS' as const,
+        periodFrom: '2026-04-05',
+        periodTo: '2026-05-04',
+        trackingStartedAt: null,
+        lastAggregatedAt: null,
+        historyComplete: false,
+        sessionsUsed: null,
+        sessionParticipations: null,
+        quizAnswers: null,
+        qaQuestionsAccepted: null,
+        qaRatingActions: null,
+        sessionsByFunction: null,
+        dailySeries: [],
+        monthlySeries: [],
+        sizeDistribution: null,
+        qaQuestionsTotalLifetime: 0,
+        completedSessionsLifetime: 0,
+      },
     });
 
     TestBed.configureTestingModule({
@@ -1324,8 +1455,9 @@ describe('AppComponent', () => {
     expect(stats).not.toBeNull();
     expect(stats?.dailyHighscores.some((entry) => entry.count > 0)).toBe(true);
     expect(stats?.dailyHighscoresStatistics).toEqual({
+      sampleSize: 1,
       median: 15,
-      standardDeviation: 70,
+      iqr: null,
       max: 600,
     });
 

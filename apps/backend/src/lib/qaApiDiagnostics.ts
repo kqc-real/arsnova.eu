@@ -1,5 +1,6 @@
 type QaApiClass =
   | 'JOIN_REJOIN'
+  | 'VOTE'
   | 'PARTICIPANT_QUERY'
   | 'QA_PAGE'
   | 'QA_SUBMIT'
@@ -18,6 +19,7 @@ const samples = new Map<QaApiClass, QaApiSample[]>();
 
 const PATH_CLASSES: Readonly<Record<string, QaApiClass>> = {
   'session.join': 'JOIN_REJOIN',
+  'vote.submit': 'VOTE',
   'session.getParticipantSummary': 'PARTICIPANT_QUERY',
   'session.searchParticipants': 'PARTICIPANT_QUERY',
   'session.checkParticipantNickname': 'PARTICIPANT_QUERY',
