@@ -3296,8 +3296,21 @@ export const SetPresenterSurfaceInputSchema = z
         context: z.string().max(200),
         delta: z.union([z.literal(-1), z.literal(1)]).optional(),
         count: z.number().int().min(1).max(10000).optional(),
+        /** Absoluter Seitenindex (z. B. Q&A-Navigator springt in der Bühnenliste). */
+        index: z.number().int().min(0).max(9999).optional(),
       })
-      .refine((value) => (value.delta !== undefined) !== (value.count !== undefined))
+      .refine((value) => {
+        const hasDelta = value.delta !== undefined;
+        const hasCount = value.count !== undefined;
+        const hasIndex = value.index !== undefined;
+        if (hasDelta) {
+          return !hasCount && !hasIndex;
+        }
+        if (hasIndex) {
+          return !hasDelta;
+        }
+        return hasCount && !hasDelta && !hasIndex;
+      })
       .optional(),
   })
   .refine((value) => (value.surface !== undefined) !== (value.page !== undefined));

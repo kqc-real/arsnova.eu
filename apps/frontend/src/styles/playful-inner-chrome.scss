@@ -83,49 +83,7 @@
     inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 5%, transparent);
 }
 
-/* Q&A-Hero Light: primary-container-Verlauf (MD3-Fokusfläche wie Quiz-Frage). */
-@mixin app-playful-qa-hero-card-light {
-  isolation: isolate;
-  border-color: color-mix(in srgb, var(--mat-sys-outline-variant) 34%, var(--mat-sys-primary) 44%);
-  background:
-    radial-gradient(
-      ellipse 96% 66% at 100% 4%,
-      color-mix(in srgb, var(--mat-sys-primary) 20%, transparent),
-      transparent 56%
-    ),
-    linear-gradient(
-      168deg,
-      var(--mat-sys-primary-container) 0%,
-      color-mix(in srgb, var(--mat-sys-primary-container) 88%, var(--mat-sys-tertiary-container))
-        100%
-    );
-  color: var(--mat-sys-on-primary-container);
-  box-shadow:
-    var(--mat-sys-level2),
-    var(--app-shadow-card-playful),
-    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-}
-
-/*
- * Q&A-Hero Dark: volle Primary-Fläche (MD3 high-emphasis).
- * Dark-Container (#810081) liegt zu nah an Surface/Nested → Einheitsbrei.
- * Lokale Token-Remap hält Host/Vote/Markdown-on-container-Styles konsistent.
- */
-@mixin app-playful-qa-hero-card-dark {
-  isolation: isolate;
-  --mat-sys-primary-container: var(--mat-sys-primary);
-  --mat-sys-on-primary-container: var(--mat-sys-on-primary);
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 58%, var(--mat-sys-outline));
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
-  box-shadow:
-    var(--mat-sys-level3),
-    var(--app-shadow-card-playful),
-    0 0.85rem 1.8rem color-mix(in srgb, var(--mat-sys-primary) 28%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-on-primary) 18%, transparent);
-}
-
-/* Nested Q&A-Karten Dark: weniger Magenta-Container, klar gegen Hero. */
+/* Q&A-Karten: Nested-Chrome; Navigator-Hero nur per Primary-Rand (Komponenten-SCSS). */
 @mixin app-playful-qa-nested-card-dark {
   background: linear-gradient(
     168deg,
@@ -729,7 +687,7 @@ html.preset-playful {
     justify-content: center;
   }
 
-  .vote-page .session-qa-card:not(.session-qa-card--pinned) {
+  .vote-page .session-qa-card:not(.session-qa-card--highlight):not(.session-qa-card--pinned) {
     @include app-playful-inner-card-nested;
     border: 1px solid
       color-mix(in srgb, var(--mat-sys-outline-variant) 50%, var(--mat-sys-primary) 28%);
@@ -738,9 +696,13 @@ html.preset-playful {
       inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
   }
 
-  /* Q&A-Hero (Light): MD3 primary-container-Verlauf wie Host-Quizfrage. */
-  .vote-page .session-qa-card--pinned {
-    @include app-playful-qa-hero-card-light;
+  .vote-page .session-qa-card.session-qa-card--pinned {
+    @include app-playful-inner-card-nested;
+    border: 1.5px solid var(--mat-sys-primary);
+    box-shadow:
+      var(--mat-sys-level1),
+      0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
   }
 
   .vote-page .session-qa-empty {
@@ -765,8 +727,8 @@ html.preset-playful {
 
   // Host-Q&A-Innenkarten (Kanal-Shell: mat-card.session-channel-card.app-live-channel-shell)
   .session-host
-    .session-qa-card:not(.session-qa-card--pinned):not(.session-qa-card--highlight):not(
-      .session-qa-card--compass-focus
+    .session-qa-card:not(.session-qa-card--highlight):not(.session-qa-card--compass-focus):not(
+      .session-qa-card--pinned
     ) {
     @include app-playful-inner-card-nested;
     border: 1px solid
@@ -776,9 +738,13 @@ html.preset-playful {
       inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
   }
 
-  /* Q&A-Hero (Light): MD3 primary-container-Verlauf wie Host-Quizfrage. */
-  .session-host .session-qa-card--pinned {
-    @include app-playful-qa-hero-card-light;
+  .session-host .session-qa-card.session-qa-card--pinned {
+    @include app-playful-inner-card-nested;
+    border: 1.5px solid var(--mat-sys-primary);
+    box-shadow:
+      var(--mat-sys-level1),
+      0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--mat-sys-inverse-on-surface) 8%, transparent);
   }
 
   .session-host .session-qa-empty {
@@ -933,19 +899,23 @@ html.preset-playful {
   }
 }
 
-/* Spielerisch Dark: Hero = Primary (high-emphasis), Nested = Surface – kein Magenta-Brei. */
+/* Spielerisch Dark: Q&A-Karten als Nested-Surface; Hero nur per Primary-Rand. */
 @mixin app-playful-qa-forum-dark-contrast {
-  .vote-page .session-qa-card:not(.session-qa-card--pinned),
+  .vote-page .session-qa-card:not(.session-qa-card--highlight):not(.session-qa-card--pinned),
   .session-host
-    .session-qa-card:not(.session-qa-card--pinned):not(.session-qa-card--highlight):not(
-      .session-qa-card--compass-focus
+    .session-qa-card:not(.session-qa-card--highlight):not(.session-qa-card--compass-focus):not(
+      .session-qa-card--pinned
     ) {
     @include app-playful-qa-nested-card-dark;
   }
 
-  .vote-page .session-qa-card--pinned,
-  .session-host .session-qa-card--pinned {
-    @include app-playful-qa-hero-card-dark;
+  .vote-page .session-qa-card.session-qa-card--pinned,
+  .session-host .session-qa-card.session-qa-card--pinned {
+    @include app-playful-qa-nested-card-dark;
+    border: 1.5px solid var(--mat-sys-primary);
+    box-shadow:
+      var(--mat-sys-level1),
+      0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
   }
 }
 

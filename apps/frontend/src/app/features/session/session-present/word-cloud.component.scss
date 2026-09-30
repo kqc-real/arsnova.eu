@@ -495,6 +495,8 @@
 }
 
 .word-cloud__action {
+  flex: 0 0 auto;
+  width: fit-content;
   min-height: 2.6rem;
   padding-inline: 0.2rem;
 }
@@ -531,6 +533,12 @@
 
 .word-cloud__analysis-toggle {
   flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.word-cloud__analysis-toggle .mat-button-toggle {
+  flex: 0 0 auto;
 }
 
 .word-cloud__analysis-toggle .mat-button-toggle-label-content {
@@ -690,16 +698,18 @@
   }
 
   .word-cloud__actions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .word-cloud--presentation .word-cloud__actions {
-    display: flex;
     justify-content: flex-end;
   }
 
   .word-cloud__action {
+    flex: 0 0 auto;
+    width: fit-content;
     justify-content: flex-start;
   }
 }

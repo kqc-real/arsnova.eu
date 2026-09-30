@@ -56,8 +56,6 @@ describe('QaWordCloudDialogComponent', () => {
       smoothingHint: () => null,
       smoothingDisabled: () => analysisVariant === 'SEMANTIC',
       toggleSmoothing: vi.fn(),
-      lemmaLocale: () => 'de',
-      setLemmaLocale: vi.fn(),
       itemLabelSingular: 'Frage',
       itemLabelPlural: 'Fragen',
       focusedTermLabel: () => null,
@@ -119,14 +117,12 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__coverage')).toBeNull();
   });
 
-  it('zeigt Sprache und Glaettung bei Woertern', () => {
+  it('zeigt Glaettung bei Woertern ohne Sprachschalter', () => {
     const { fixture } = setup('LEXICAL');
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Wortformen glätten');
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__smooth')).not.toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('app-word-cloud-lemma-locale-select'),
-    ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-word-cloud-lemma-locale-select')).toBeNull();
   });
 
   it('zeigt den 2.x-Hinweis im semantischen Modus statt Glaettung', () => {

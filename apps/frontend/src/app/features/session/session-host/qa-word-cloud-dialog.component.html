@@ -68,10 +68,6 @@
 
     @if (showSmoothingControls()) {
       <div class="qa-word-cloud-dialog__smooth-cluster">
-        <app-word-cloud-lemma-locale-select
-          [locale]="lemmaLocale()"
-          (localeChange)="setLemmaLocale($event)"
-        />
         <button
           mat-button
           type="button"

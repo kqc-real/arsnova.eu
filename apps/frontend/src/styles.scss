@@ -1290,18 +1290,8 @@ html {
   vertical-align: baseline;
 }
 
-.session-qa-card--pinned .markdown-body .qa-redacted-char {
-  color: color-mix(in srgb, var(--mat-sys-on-primary-container) 78%, #121212);
-}
-
 .session-present__qa-card .qa-redacted-char {
   color: color-mix(in srgb, var(--mat-sys-on-surface) 72%, #1a1a1a);
-}
-
-/* Q&A-PINNED (Host-Forum): Markdown-Chrome auf primary-container. */
-.session-qa-card--pinned .markdown-body,
-.session-qa-card--pinned .markdown-body a.markdown-inline-link {
-  color: var(--mat-sys-on-primary-container);
 }
 
 .markdown-body pre {

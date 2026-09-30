@@ -849,7 +849,7 @@
     },
     "session.setPresenterSurface": {
       "kind": "mutation",
-      "fingerprint": "sha256:7f3e0cc126a1729a34323fc9430fe3cc6fc7f36bb3df2b5cc63814b4f6e43717",
+      "fingerprint": "sha256:75c4924d50fb57cb036907bf35f6aa3399690edbc0ba660ecc06f76ce79370d1",
       "missing": []
     },
     "session.setQaWordCloudProjection": {

@@ -79,21 +79,26 @@ Tastaturfokus nicht verloren geht.
   `qa.presentProjection` liefert die Scores dafür immer mit (ohne Moderator-NLP),
   auch außerhalb von BEST/CONTROVERSIAL;
   `qa.presentProjection` lädt bis zu 500 `ACTIVE`/`PINNED`-Fragen (Forum-Seitenmaximum),
-  damit Host-Fragen-Navigator und Presenter dieselbe Seitenzahl teilen;
-  der Host speichert denselben ungefilterten Snapshot für Hero, Bühnen-Badges und
-  Navigator-Seitenzahl (nicht die ggf. gefilterte/paginierte Forum-`qa.list`);
-  fehlt der Snapshot während der Projektion, bleibt die Host-Bühne leer (kein Forum-Fallback);
+  damit Presenter und Host dieselbe absolute Bühnenreihenfolge teilen;
+  der Host speichert denselben ungefilterten Snapshot für die Presenter-Synchronisation;
+  der Fragen-Navigator (Vor/Zurück, Anzeige »n / m«) erscheint bei mindestens einer
+  in der Host-Liste sichtbaren Frage und folgt exakt der aktuellen Listenreihenfolge
+  aus »Auswertung & Werkzeuge« (Sortierung TOP/BEST/CONTROVERSIAL/TIME, Suche, Autor,
+  Pin-/Pending-/Archiv-Filter und geladene Seite) — einschließlich PENDING und ARCHIVED;
+  Presenter-Bühne und absolute `presenterPage` bleiben auf ACTIVE/PINNED begrenzt und
+  werden nur mitgezogen, wenn die navigierte Listenfrage auf der Bühne liegt;
+  fehlt der Snapshot, navigiert der Host über die aktuelle Listenreihenfolge;
+  fehlt der Snapshot während der Projektion nicht mehr als harte Leersperre für den Host-Hero;
   Host publiziert den Sortiermodus beim Q&A-Abonnement und vor dem Öffnen der
   Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
   weicht `presentProjection.sortMode` vom Host ab (z. B. nach Backend-Restart),
   publiziert der Host den Modus erneut (`force`);
   Teilnehmer-Forum färbt denselben Navigator-Hero (via `presenterPage`) ein;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
-  der aktuelle Navigator-Hero steht zusätzlich oben im Host-Forum und trägt allein die
-  Hero-Einfärbung (wandert mit dem Cursor; Rahmen bleibt auch ohne laufende Projektion
-  als Host-Bearbeitungshilfe am Navigator);
-  Hero nutzt MD3-`primary-container` (Spielerisch:
-  verstärkter Container-Verlauf bzw. Dark `primary`); der Neu-Hinweis (`--highlight`)
+  die Host-Liste rotiert ab dem Navigator-Cursor (Position 1 = Hero, 2 = nächster
+  Kandidat, …); der Hero trägt allein die Primary-Rand-Markierung (wandert mit dem
+  Cursor; Rahmen bleibt auch ohne laufende Projektion als Host-Bearbeitungshilfe);
+  Hero nutzt die Standard-Kartenfläche und nur einen verstärkten Primary-Rand; der Neu-Hinweis (`--highlight`)
   überschreibt die Hero-Fläche nicht; Host-Forum markiert Hero und die aktuelle
   Warteschlangen-Fragen während laufender Projektion mit »Aktuell in der Präsentation«
   (Badge entfällt bei `presenterSurface === 'ended'`);

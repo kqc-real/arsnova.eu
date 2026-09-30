@@ -4978,11 +4978,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     afterNextRender(
       () => {
         const host = this.el.nativeElement as HTMLElement;
-        const firstQuestion = host.querySelector(
-          '.session-qa-list .session-qa-card',
-        ) as HTMLElement | null;
+        const tools =
+          (host.querySelector('.session-qa-tools') as HTMLElement | null) ??
+          (host.querySelector('#qa-tools-summary') as HTMLElement | null);
         const heading = host.querySelector('#vote-qa-heading') as HTMLElement | null;
-        scrollIntoAppMain(firstQuestion ?? heading, { block: 'start' });
+        scrollIntoAppMain(tools ?? heading, { block: 'start' });
       },
       { injector: this.injector },
     );

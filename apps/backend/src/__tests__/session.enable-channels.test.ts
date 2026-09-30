@@ -1036,11 +1036,16 @@ describe('session.enable channel mutations', () => {
     expect(prismaMock.session.update).not.toHaveBeenCalled();
     const same = await caller.setPresenterSurface({ code: 'ABC123', surface: 'default' });
     expect(same.presenterPage).toMatchObject({ index: 2, count: 4 });
+    const jumped = await caller.setPresenterSurface({
+      code: 'ABC123',
+      page: { context, index: 0, count: 4 },
+    });
+    expect(jumped.presenterPage).toMatchObject({ index: 0, count: 4 });
     const resized = await caller.setPresenterSurface({
       code: 'ABC123',
       page: { context, count: 2 },
     });
-    expect(resized.presenterPage).toMatchObject({ index: 1, count: 2 });
+    expect(resized.presenterPage).toMatchObject({ index: 0, count: 2 });
     question = 1;
     await expect(
       caller.setPresenterSurface({ code: 'ABC123', page: { context, delta: 1 } }),

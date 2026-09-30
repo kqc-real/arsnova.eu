@@ -2002,6 +2002,7 @@
   min-width: 0;
   border-block-start: 1px solid var(--mat-sys-outline-variant);
   padding-block-start: 0.75rem;
+  scroll-margin-top: 5.5rem;
 }
 
 .session-qa-tools__toggle {
@@ -2018,6 +2019,10 @@
   flex-direction: column;
   gap: 1rem;
   padding-block-start: 1rem;
+}
+
+.session-qa-tools__page-size {
+  margin: 0;
 }
 
 .session-qa-active-filters {
@@ -2408,124 +2413,38 @@
 }
 
 .session-qa-card--pinned {
-  /* MD3-Fokusfläche (wie Quiz-Frage): primary-container / on-primary-container.
-     Gewinnt gegen --highlight (Neu-Hinweis). Spielerisch: verstärkter Verlauf in
-     playful-inner-chrome.scss. */
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 48%, var(--mat-sys-outline-variant));
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  /* Navigator-Hero: gleiche Kartenfläche wie Standard, nur Primary-Rand. */
+  border: 1.5px solid var(--mat-sys-primary);
   box-shadow:
-    var(--mat-sys-level2),
-    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent),
-    0 0.85rem 1.6rem color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent),
+    0 0.5rem 1rem color-mix(in srgb, black 5%, transparent);
+}
 
-  .session-qa-card__text,
-  .session-qa-card__author-name,
-  .session-qa-card__author-name-text {
-    color: var(--mat-sys-on-primary-container);
+@media (prefers-reduced-motion: no-preference) {
+  .session-qa-card--nav-fade-out {
+    animation: qa-nav-fade-out 320ms cubic-bezier(0.33, 0, 0.2, 1) both;
   }
 
-  .session-qa-card__author-team,
-  .session-qa-card__time,
-  .session-qa-card__metric:not(.session-qa-card__metric--best):not(
-      .session-qa-card__metric--controversial
-    ) {
-    color: var(--mat-sys-on-primary-container);
-    opacity: 1;
+  .session-qa-card--nav-fade-in {
+    animation: qa-nav-fade-in 420ms cubic-bezier(0.33, 0, 0.2, 1) both;
   }
 
-  .session-qa-card__author-icon,
-  .session-qa-card__author-name {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
-    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 28%, transparent);
-    color: var(--mat-sys-on-primary-container);
+  @keyframes qa-nav-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 
-  .session-qa-card__author-icon--button:hover {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
-  }
-
-  .session-qa-card__author-icon--selected {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
-    border-color: color-mix(in srgb, var(--mat-sys-on-primary-container) 40%, transparent);
-    color: var(--mat-sys-on-primary-container);
-  }
-
-  .session-qa-card__status {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
-    color: var(--mat-sys-on-primary-container);
-  }
-
-  .session-qa-card__status--pinned {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
-    color: var(--mat-sys-on-primary-container);
-  }
-
-  .session-qa-card__votes {
-    /* Neutrale Fläche auf primary-container, damit Grün/Rot lesbar bleiben. */
-    background: var(--mat-sys-surface);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
-  }
-
-  .session-qa-card__vote-stat--up {
-    color: var(--arsnova-bar-correct);
-  }
-
-  .session-qa-card__vote-stat--down {
-    color: var(--arsnova-bar-wrong);
-  }
-
-  .session-qa-card__metric {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
-  }
-
-  .session-qa-card__metric--best,
-  .session-qa-card__metric--controversial {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 16%, transparent);
-    color: var(--mat-sys-on-primary-container);
-  }
-
-  .session-qa-card__badge--controversial,
-  .session-qa-card__badge--redacted,
-  .session-qa-card__badge--compass,
-  .session-qa-card__badge--on-presenter {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 14%, transparent);
-    color: var(--mat-sys-on-primary-container);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, var(--mat-sys-on-primary-container) 22%, transparent);
-  }
-
-  .session-qa-card__marker {
-    background: var(--mat-sys-on-primary-container);
-    box-shadow: 0 0 0 0.25rem
-      color-mix(in srgb, var(--mat-sys-on-primary-container) 18%, transparent);
-  }
-
-  .session-qa-card__action-btn--approve,
-  .session-qa-card__action-btn--pin,
-  .session-qa-card__action-btn--unpin,
-  .session-qa-card__action-btn--archive,
-  .session-qa-card__action-btn--redact {
-    background: color-mix(in srgb, var(--mat-sys-on-primary-container) 12%, transparent);
-    color: var(--mat-sys-on-primary-container);
-    box-shadow: inset 0 0 0 1px
-      color-mix(in srgb, var(--mat-sys-on-primary-container) 24%, transparent);
-  }
-
-  .session-qa-card__action-btn--unpin {
-    text-decoration-color: var(--mat-sys-on-primary-container);
-  }
-
-  .session-qa-card__action-btn--delete {
-    /* Auf primary/Hero sonst zu blass (error-Rosa ~16% auf Magenta). */
-    --mat-button-tonal-container-color: var(--mat-sys-error);
-    --mat-button-tonal-label-text-color: var(--mat-sys-on-error);
-    --mdc-filled-button-container-color: var(--mat-sys-error);
-    --mdc-filled-button-label-text-color: var(--mat-sys-on-error);
-    background: var(--mat-sys-error);
-    color: var(--mat-sys-on-error);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-on-error) 28%, transparent);
+  @keyframes qa-nav-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 
@@ -2781,9 +2700,14 @@
 }
 
 .session-qa-card__badge--on-presenter {
-  gap: 0.3rem;
-  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+  gap: 0.35rem;
+  padding-block: 0.35rem;
+  padding-inline: 0.7rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-surface-container-high));
   color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  font-weight: 600;
+  letter-spacing: 0.01em;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 28%, transparent);
 }
 
@@ -2833,6 +2757,7 @@
   min-width: 0;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-large);
+  font-size: 1.0625rem;
   line-height: 1.55;
   word-break: break-word;
 }
@@ -2875,70 +2800,54 @@
 .session-qa-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.1rem;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.35rem -1rem -0.35rem;
+  padding: 0.35rem 0.5rem 0.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-outline) 18%, transparent);
+}
+
+.session-qa-card__actions-main,
+.session-qa-card__actions-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+}
+
+.session-qa-card__actions-end {
+  margin-inline-start: auto;
 }
 
 .session-qa-card__action-btn {
   min-width: 0;
-  height: auto;
   min-height: 2.75rem;
-  padding-block: 0.5rem;
-  white-space: normal;
-  --mdc-filled-button-container-shape: var(--mat-sys-corner-full);
-  --mdc-outlined-button-container-shape: var(--mat-sys-corner-full);
-  font-weight: 600;
-  font-size: 0.8rem;
+  font: var(--mat-sys-label-large);
+  white-space: nowrap;
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
 .session-qa-card__action-icon {
-  font-size: 1rem;
-  width: 1rem;
-  height: 1rem;
-  margin-right: 0.15rem;
+  font-family: 'Material Icons';
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .session-qa-card__action-btn--approve {
-  background: color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface));
+  --mat-button-text-label-text-color: var(--mat-sys-primary);
+  --mat-button-text-state-layer-color: var(--mat-sys-primary);
   color: var(--mat-sys-primary);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
-}
-
-.session-qa-card__action-btn--pin {
-  background: color-mix(in srgb, var(--mat-sys-tertiary) 14%, var(--mat-sys-surface));
-  color: var(--mat-sys-tertiary);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent);
-}
-
-.session-qa-card__action-btn--unpin {
-  background: color-mix(in srgb, var(--mat-sys-tertiary) 8%, var(--mat-sys-surface));
-  color: var(--mat-sys-on-surface-variant);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
-  text-decoration: line-through;
-  text-decoration-color: var(--mat-sys-tertiary);
-}
-
-.session-qa-card__action-btn--archive {
-  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 72%, var(--mat-sys-surface));
-  color: var(--mat-sys-on-surface-variant);
 }
 
 .session-qa-card__action-btn--delete {
-  --mat-button-tonal-container-color: color-mix(
-    in srgb,
-    var(--mat-sys-error) 18%,
-    var(--mat-sys-surface)
-  );
-  --mat-button-tonal-label-text-color: var(--mat-sys-error);
-  background: color-mix(in srgb, var(--mat-sys-error) 18%, var(--mat-sys-surface));
+  --mat-button-text-label-text-color: var(--mat-sys-error);
+  --mat-button-text-state-layer-color: var(--mat-sys-error);
   color: var(--mat-sys-error);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-error) 32%, transparent);
-}
-
-.session-qa-card__action-btn--redact {
-  background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
-  color: var(--mat-sys-tertiary);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-tertiary) 18%, transparent);
 }
 
 @media (max-width: 599px) {
@@ -3019,19 +2928,14 @@
     flex-wrap: wrap;
   }
 
-  .session-qa-card__text {
-    font: var(--mat-sys-body-medium);
-    line-height: 1.6;
-  }
-
   .session-qa-card__actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.4rem;
+    margin-inline: calc(-1 * var(--host-mobile-card-padding));
+    margin-block-end: calc(-1 * var(--host-mobile-card-padding) + 0.25rem);
+    padding-inline: 0.25rem;
   }
 
-  .session-qa-card__action-btn {
-    width: 100%;
+  .session-qa-card__actions-end {
+    margin-inline-start: 0;
   }
 }
 
@@ -3618,6 +3522,15 @@
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-large);
   background: var(--mat-sys-surface-container-low);
+}
+
+.session-participant-directory__clear-selection {
+  grid-column: 1 / -1;
+  justify-self: start;
+  max-width: 100%;
+  height: auto;
+  min-height: 2.75rem;
+  white-space: normal;
 }
 
 .session-participant-directory__count,
@@ -5729,6 +5642,14 @@ button.session-host__btn-discussion {
   color: var(--mat-sys-on-surface-variant);
 }
 
+.session-host__extra--tools-lead {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+}
+
 .session-host__extra--no-divider {
   padding-top: 0;
   border-top: 0;
@@ -5904,8 +5825,14 @@ button.session-host__btn-discussion {
 }
 
 .session-host__extra-analysis-toggle {
+  width: fit-content;
+  max-width: 100%;
   background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+
+.session-host__extra-analysis-toggle .mat-button-toggle {
+  flex: 0 0 auto;
 }
 
 .session-host__extra-actions--separated {
@@ -5913,6 +5840,8 @@ button.session-host__btn-discussion {
 }
 
 .session-host__extra-action {
+  flex: 0 0 auto;
+  width: fit-content;
   font-weight: 600;
 }
 
@@ -5937,7 +5866,9 @@ button.session-host__btn-discussion {
 
 .session-host__smooth-cluster {
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
+  flex: 0 0 auto;
+  width: fit-content;
   gap: 0.35rem;
 }
 
@@ -6009,7 +5940,7 @@ button.session-host__btn-discussion {
   }
 
   .session-host__extra--maximized .session-host__extra-analysis-toggle {
-    width: auto;
+    width: fit-content;
     max-width: 100%;
   }
 
@@ -6023,7 +5954,8 @@ button.session-host__btn-discussion {
   }
 
   .session-host__extra-analysis-toggle {
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
     font-size: 0.8125rem;
   }
 }

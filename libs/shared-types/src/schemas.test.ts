@@ -79,6 +79,21 @@ describe('öffentliche Contract-Schemas', () => {
         presenterPage: { context: 'quiz:0:ACTIVE', index: 0, count: 1 },
       }),
     ).toMatchObject({ presenterSurface: 'ended' });
+    expect(
+      SetPresenterSurfaceInputSchema.parse({
+        code: 'ABC123',
+        page: { context: 'qa-questions', index: 2, count: 5 },
+      }),
+    ).toEqual({
+      code: 'ABC123',
+      page: { context: 'qa-questions', index: 2, count: 5 },
+    });
+    expect(
+      SetPresenterSurfaceInputSchema.safeParse({
+        code: 'ABC123',
+        page: { context: 'qa-questions', delta: 1, index: 2 },
+      }).success,
+    ).toBe(false);
   });
 
   it('erkennt feste und instanzbezogene Showcase-Demo-Historienscopes', () => {

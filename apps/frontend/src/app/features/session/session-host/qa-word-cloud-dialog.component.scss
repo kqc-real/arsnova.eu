@@ -32,24 +32,33 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   justify-self: center;
   padding-inline: clamp(0.25rem, 1vw, 0.75rem);
 }
 
 .qa-word-cloud-dialog__analysis-toggle {
+  width: fit-content;
   max-width: min(100%, 48rem);
+  flex: 0 1 auto;
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
+.qa-word-cloud-dialog__analysis-toggle .mat-button-toggle {
+  flex: 0 0 auto;
+}
+
 .qa-word-cloud-dialog__size {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
+  width: fit-content;
+  max-width: 100%;
+  flex: 0 1 auto;
   min-height: 2.7rem;
   padding: 0.25rem 0.85rem 0.25rem 0.9rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
@@ -71,8 +80,8 @@
 .qa-word-cloud-dialog__size-select {
   box-sizing: border-box;
   min-height: 2.2rem;
-  min-width: 8.25rem;
-  max-width: 12rem;
+  width: auto;
+  max-width: min(100%, 14rem);
   padding: 0.2rem 0.15rem 0.2rem 0.45rem;
   border: 0;
   background: transparent;
@@ -80,6 +89,7 @@
   font: var(--mat-sys-label-large);
   font-weight: 650;
   cursor: pointer;
+  field-sizing: content;
 }
 
 .qa-word-cloud-dialog__size-select:focus-visible {
@@ -90,6 +100,8 @@
 .qa-word-cloud-dialog__freeze,
 .qa-word-cloud-dialog__smooth,
 .qa-word-cloud-dialog__refresh {
+  flex: 0 0 auto;
+  width: fit-content;
   min-height: 2.7rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
@@ -105,12 +117,10 @@
 
 .qa-word-cloud-dialog__smooth-cluster {
   display: inline-flex;
-  align-items: stretch;
+  align-items: center;
+  flex: 0 0 auto;
+  width: fit-content;
   gap: 0.5rem;
-}
-
-.qa-word-cloud-dialog__smooth-cluster app-word-cloud-lemma-locale-select {
-  align-self: stretch;
 }
 
 .qa-word-cloud-dialog__freeze--active,
@@ -202,29 +212,27 @@
   }
 
   .qa-word-cloud-dialog__toolbar {
-    justify-content: stretch;
+    justify-content: flex-start;
     padding-right: 3.25rem;
   }
 
   .qa-word-cloud-dialog__analysis-toggle,
   .qa-word-cloud-dialog__smooth-cluster,
-  .qa-word-cloud-dialog__size {
-    width: 100%;
+  .qa-word-cloud-dialog__size,
+  .qa-word-cloud-dialog__smooth,
+  .qa-word-cloud-dialog__refresh {
+    width: fit-content;
+    max-width: 100%;
+    flex: 0 1 auto;
   }
 
   .qa-word-cloud-dialog__size-select {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: none;
+    flex: 0 1 auto;
+    max-width: min(100%, 14rem);
   }
 
   .qa-word-cloud-dialog__analysis-toggle {
     font-size: 0.8125rem;
-  }
-
-  .qa-word-cloud-dialog__smooth {
-    flex: 1 1 auto;
-    width: auto;
   }
 }
 

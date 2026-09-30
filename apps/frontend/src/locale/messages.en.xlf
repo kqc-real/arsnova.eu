@@ -22098,8 +22098,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.authorFilterLabel" datatype="html">
-        <source>Fragen von <x id="INTERPOLATION" equiv-text="{{ authorNickname }}"/></source>
-        <target>Questions from <x id="INTERPOLATION" equiv-text="{{ authorNickname }}"/></target>
+        <source>Fragen von <x id="INTERPOLATION" equiv-text="{{ authorNickname }}"/>: Filter lösen</source>
+        <target>Questions from <x id="INTERPOLATION" equiv-text="{{ authorNickname }}"/>: clear filter</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4212,4213</context>
@@ -25903,6 +25903,10 @@
       <trans-unit id="sessionQa.summaryArchivedAriaShowAll" datatype="html">
         <source><x id="count" equiv-text="count"/> archivierte Fragen. Alle Fragen anzeigen</source>
         <target><x id="count" equiv-text="count"/> archived questions. Show all questions</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.cardActionsAria" datatype="html">
+        <source>Fragenaktionen</source>
+        <target state="translated">Question actions</target>
       </trans-unit>
       <trans-unit id="sessionQa.actionApprove" datatype="html">
         <source>Freigeben</source>

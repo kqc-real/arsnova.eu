@@ -7731,7 +7731,11 @@ const sessionCoreRouter = router({
           });
         }
         const count = input.page.count ?? currentPage.count;
-        const index = Math.max(0, Math.min(count - 1, currentPage.index + (input.page.delta ?? 0)));
+        const rawIndex =
+          input.page.index !== undefined
+            ? input.page.index
+            : currentPage.index + (input.page.delta ?? 0);
+        const index = Math.max(0, Math.min(count - 1, rawIndex));
         const presenterPage = { ...currentPage, count, index };
         presenterPageByCode.set(code, presenterPage);
         clearSessionInfoCache(code);
