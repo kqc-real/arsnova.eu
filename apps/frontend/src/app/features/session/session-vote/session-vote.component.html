@@ -2768,16 +2768,7 @@
             <p class="session-qa-sort-hint">{{ qaSortHint() }}</p>
           </details>
           @if (qaToolsActive()) {
-            <div class="session-qa-tools-status" role="status">
-              <span
-                >{{ qaSearchDraft() }}
-                @if (qaSortMode() !== 'TOP') {
-                  · {{ qaActiveSortLabel() }}
-                }
-                @if (qaSelectedAuthorNickname(); as author) {
-                  · {{ author }}
-                }
-              </span>
+            <div class="session-qa-tools-status">
               <button
                 mat-button
                 type="button"

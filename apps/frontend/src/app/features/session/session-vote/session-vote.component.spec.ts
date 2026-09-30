@@ -4833,14 +4833,14 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(text).toContain('Umstritten');
     expect(text).toContain('Zeit');
     expect(text).toContain('Fragen durchsuchen');
-    expect(text).toContain('Hervorgehobene Fragen stehen zuerst.');
-    expect(fixture.componentInstance.qaSortMode()).toBe('TOP');
+    expect(text).toContain('viel Zustimmung und genug Stimmen');
+    expect(fixture.componentInstance.qaSortMode()).toBe('BEST');
     expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
       expect.objectContaining({
         sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
         participantId: '11111111-1111-4111-8111-111111111111',
         pageSize: 100,
-        sort: 'TOP',
+        sort: 'BEST',
       }),
       expect.any(Object),
     );
@@ -4855,9 +4855,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       value: scrollIntoView,
     });
     try {
-      await fixture.componentInstance.setQaSortMode('TOP');
+      await fixture.componentInstance.setQaSortMode('BEST');
       await fixture.componentInstance.setQaSortMode(null as unknown as 'BEST');
-      expect(fixture.componentInstance.qaSortMode()).toBe('TOP');
+      expect(fixture.componentInstance.qaSortMode()).toBe('BEST');
       expect(qaListQueryMock).not.toHaveBeenCalled();
       qaListQueryMock.mockResolvedValue({
         questions: [
@@ -4880,13 +4880,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         endedAt: null,
         postProcessingEndsAt: null,
         totalCount: 2,
-        rankingRevision: '1:BEST:',
+        rankingRevision: '1:TOP:',
       });
-      await fixture.componentInstance.setQaSortMode('BEST');
+      await fixture.componentInstance.setQaSortMode('TOP');
       fixture.detectChanges();
-      expect(fixture.componentInstance.qaSortMode()).toBe('BEST');
+      expect(fixture.componentInstance.qaSortMode()).toBe('TOP');
       expect(fixture.nativeElement.textContent as string).toContain(
-        'viel Zustimmung und genug Stimmen',
+        'Hervorgehobene Fragen stehen zuerst.',
       );
       expect(fixture.componentInstance.qaQuestions().map((question) => question.id)).toEqual([
         'question-2',
@@ -4895,7 +4895,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
         participantId: '11111111-1111-4111-8111-111111111111',
         pageSize: 100,
-        sort: 'BEST',
+        sort: 'TOP',
       });
       expect(qaUnsubscribes[0]).toHaveBeenCalled();
       expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
@@ -4903,7 +4903,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
           participantId: '11111111-1111-4111-8111-111111111111',
           pageSize: 100,
-          sort: 'BEST',
+          sort: 'TOP',
         }),
         expect.any(Object),
       );
@@ -8121,7 +8121,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '11111111-1111-4111-8111-111111111111',
       pageSize: 100,
-      sort: 'TOP',
+      sort: 'BEST',
       cursor: 'page-two',
     });
     expect(component.qaQuestions()).toHaveLength(1);
@@ -9608,12 +9608,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       fixture.detectChanges();
       expect(c.qaSearch()).toBe('Prüfung');
       expect(c.qaSortMode()).toBe('TIME');
-      expect(host.querySelector('.session-qa-tools-status')?.textContent).toContain('Prüfung');
+      expect(host.querySelector('.session-qa-tools-status')).toBeTruthy();
+      expect(host.querySelector('.session-qa-tools-status')?.textContent).toContain('Zurücksetzen');
       c.resetQaTools();
       fixture.detectChanges();
       expect(c.qaSearchDraft()).toBe('');
       expect(c.qaSearch()).toBe('');
-      expect(c.qaSortMode()).toBe('TOP');
+      expect(c.qaSortMode()).toBe('BEST');
       expect(host.querySelector('.session-qa-tools-status')).toBeNull();
       fixture.destroy();
     });

@@ -525,7 +525,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSearchDraft = signal('');
   readonly qaSearch = signal('');
   private qaSearchTimer: ReturnType<typeof setTimeout> | null = null;
-  readonly qaSortMode = signal<QaQuestionSortMode>('TOP');
+  readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
@@ -4878,22 +4878,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     };
   }
 
-  qaActiveSortLabel(): string {
-    switch (this.qaSortMode()) {
-      case 'BEST':
-        return $localize`:@@sessionQa.sortBest:Beste Fragen`;
-      case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Umstritten`;
-      case 'TIME':
-        return $localize`:@@sessionQa.sortTime:Zeit`;
-      default:
-        return $localize`:@@sessionQa.sortTop:Meist unterstützt`;
-    }
-  }
-
   readonly qaToolsActive = computed(
     () =>
-      !!this.qaSearchDraft() || this.qaSortMode() !== 'TOP' || !!this.qaSelectedAuthorNickname(),
+      !!this.qaSearchDraft() || this.qaSortMode() !== 'BEST' || !!this.qaSelectedAuthorNickname(),
   );
 
   resetQaTools(): void {
@@ -4905,7 +4892,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.qaSearchTimer = null;
     this.qaSearchDraft.set('');
     this.qaSearch.set('');
-    this.qaSortMode.set('TOP');
+    this.qaSortMode.set('BEST');
     this.qaSelectedAuthorNickname.set(null);
     this.resetQaListPageNavigation();
     this.ensureQaSubscription();
