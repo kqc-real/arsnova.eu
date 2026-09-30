@@ -29,6 +29,8 @@ ausgeblendet (Polling unterdrückt).
 | ------------------- | --------------------------------------------------------------------------------------- |
 | Gesamtzustand       | `stable` / `limited` / `critical` / `unknown` — nie grün bei Messausfall                |
 | Kernfunktionen      | API, Datenbank, Redis, Live-Verbindung getrennt                                         |
+| Serververkehr       | API-Anfragen/s, Spitze/s, Fehlerrate, p95/p99, Stichprobe — nie isoliert von Qualität   |
+| Live-Verbindungen   | offene tRPC-/Yjs-Verbindungen, Neu/geschlossen, Ablehnungen; Zustellung nicht gemessen  |
 | Servicequalität     | Stichproben Beitritt, Quizantwort, Q&A lesen/einreichen/bewerten (Abdeckung sichtbar)   |
 | Nutzbare Sessions   | `expiresAt` in der Zukunft, nicht host-beendet; inkl. `FINISHED` mit noch joinbarem Q&A |
 | Aktive Sessions     | Nutzbare Sessions mit ≥5 Presence-Identitäten                                           |
@@ -190,6 +192,64 @@ Befüllt u. a. `DailyUsageStatistic` (45 UTC-Tage), `SessionUsageProjection` (XS
 | `health.usage`            | 30s Cache, max. 64 Keys (TTL-Prune), In-Flight pro Key, Rate-Limit IP+global (`checkHealthUsageRate`)                            | Größenverteilung: `ORDER BY random() LIMIT 5000` — bei sehr großen Kohorten Stichprobe.                 |
 | Indizes                   | `DailyUsageStatistic(date)` unique; `SessionUsageProjection(firstUsedUtcDate)`, `(functionClass, firstUsedUtcDate)`              | EXPLAIN gegen Prod-ähnliche Daten vor Go-Live wiederholen.                                              |
 
+### Öffentliche Betriebsüberwachung (Serververkehr & Live)
+
+RPS wird **niemals isoliert** interpretiert. `health.stats` liefert `trafficQuality` und
+`liveConnections` zusammen mit Fehlerrate, p95/p99 und WebSocket-Kennzahlen.
+
+#### Erfasst / nicht erfasst
+
+| Kategorie                  | Prozeduren (Allowlist)                                                                                                     | Zählt zu Kernaktions-RPS |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Session/Beitritt           | `session.join`                                                                                                             | ja                       |
+| Quiz/Schnellfeedback       | `vote.submit`, `quickFeedback.vote`                                                                                        | ja                       |
+| Q&A                        | `qa.list`, `qa.submit`, `qa.upvote`, `qa.vote`                                                                             | ja                       |
+| Präsentationssteuerung     | `session.startQa`, `nextQuestion`, `skipQuestion`, `revealAnswers`, `revealResults`, `startDiscussion`, `startSecondRound` | ja                       |
+| Betriebs-/Berichtsabfragen | `health.*`, `session.getInfo`                                                                                              | **nein** (Poll-Schutz)   |
+
+Statische Assets, Crawler und technische Healthchecks liegen außerhalb der tRPC-Allowlist.
+
+#### Formeln und Fenster
+
+- Buckets: **10 s**, Fenster: **60 s** (`WINDOW_BUCKETS = 6`), Redis-TTL **120 s**.
+- Schreiben: In-Memory-Zähler pro Instanz, Flush alle **5 s** (`incrby`); Epoch per `SET NX`.
+- Mehrinstanz: gemeinsame Redis-Keys summiert; Flush-Retry legt den Batch zurück (kein Doppelzählen).
+- **API-Anfragen/s:** `Σ bucketTotals / observedWindowSeconds` (Anlauf: beobachtete Zeit, nicht pauschal 60).
+- **Spitze/s:** `max(bucketCount / 10)` über die Fenster-Buckets.
+- **Fehlerrate (Gesundheit):** `(server + rateLimit) / total × 100`. Clientfehler getrennt; verschlechtern den Zustand nicht.
+- Fehlerklassen: `INTERNAL_SERVER_ERROR`/`TIMEOUT` → server; `TOO_MANY_REQUESTS` → rateLimit; fachliche 4xx → client.
+- **p95/p99:** Histogramm-Kanten `[100,200,300,500,800,1000,1500,2000,3000,5000,10000,inf]` ms; **inkl. fehlgeschlagener Requests**. Unter 20 Samples: `insufficientLatencySample`, keine Qualitätsaussage.
+- Messzustand: `AVAILABLE` | `WARMING_UP` | `UNAVAILABLE` — nie `0`/„stabil“ bei Ausfall.
+
+#### WebSocket
+
+- Offene tRPC-/Yjs-Verbindungen, Open/Close der letzten Minute, aggregierte Ablehnungen.
+- Reconnects und Nachrichtenrate: **nicht belastbar** → `null` / UI „nicht gemessen“.
+- Offene Verbindung ≠ erfolgreiche Zustellung (`deliveryNotMeasured: true`).
+- Werte gelten **pro Backend-Prozess** (kein Cluster-Scan).
+
+#### Lasttest (500 Concurrent inkl. Shared-NAT)
+
+Baseline und Instrumentierung: `scripts/load/k6-session-hotpaths-500vu.js` sowie
+`MODE=ops-monitoring` in `scripts/load/k6-ops-monitoring-500vu.js` (Join, Vote, Q&A,
+WebSocket-Reconnects, paralleles `health.stats`-Polling).
+
+Akzeptanz: keine relevante Regression der bestehenden Hotpath-SLOs
+(`p95 < 1000 ms`, `p99 < 2000 ms`, Fehlerrate `< 0.5 %` für fachliche Kernaktionen)
+gegenüber Baseline ohne neue Flush-Instrumentierung; Telemetrie-Flush-Lag und Redis-Ops
+im PR-Bericht dokumentieren.
+
+Lokaler Nachweis (2026-09-30, Docker-k6 gegen Dev-Backend):
+
+| Lauf      | VUs | Muster                                | join p95  | health.stats p95 | Anmerkung                                          |
+| --------- | --- | ------------------------------------- | --------- | ---------------- | -------------------------------------------------- |
+| Smoke     | 50  | constant join+poll                    | ~111 ms   | ~3 ms            | `trafficQuality` im Payload; Join OK               |
+| 500 Spike | 500 | constant join (ungültig für Hörsaal)  | >6 s      | ~192 ms          | Schwellen verfehlt — Dauerjoin, nicht Wellenmuster |
+| Soll      | 500 | `per-vu-iterations` Join-Welle + Poll | Ziel <1 s | Ziel <1,5 s      | `npm run load:k6:ops-monitoring`                   |
+
+Der 500er-Soll-Lauf ist nach Idle (ohne parallele Testsuite) mit dem Join-Wellen-Skript
+zu wiederholen und die Vorher/Nachher-Zahlen im PR einzutragen.
+
 ---
 
 ## Legacy-Abschnitt (Detailquellen)
@@ -221,7 +281,8 @@ Implementierungsdetails; Kennzahl-Definitionen oben haben Vorrang.
 | Aktive Sessions          | Presence pro Session    | nutzbare Sessions **ohne** `FINISHED`, ≥ `ACTIVE_SESSION_MIN_PARTICIPANTS = 5`                                              |
 | Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` oder `qf:known:*` |
 | Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                                    |
-| SLO-Signale              | SLO-Telemetrie          | Request-Sample, Fehlerrate, p95/p99-Latenz                                                                                  |
+| SLO / Serververkehr      | `sloTelemetry` (Redis)  | Kernaktions-RPS avg/peak, Fehlerrate (Server+Rate-Limit), p95/p99, Gruppen-Allowlist; 10s-Buckets, Flush alle 5s            |
+| Live-Verbindungen        | `websocketTelemetry`    | Offene tRPC-/Yjs-Verbindungen, Open/Close, Ablehnungen (pro Prozess); Zustellung nicht gemessen                             |
 | Q&A-Minutenwerte         | 1-Sekunden-Buckets      | 60-Sekunden-Fenster, TTL, deduplizierte Erst-Submits und persistierte Bewertungsänderungen                                  |
 
 `qaQuestionsTotal` und `maxQaQuestionsSingleSession` gelten ausdrücklich **seit Beginn

@@ -28,6 +28,7 @@ const K6_ENV_KEYS = [
   'QUESTION_ID',
   'SESSION_ID',
   'ANSWER_ID',
+  'STATUS_POLL_EVERY_VU',
 ];
 
 const scriptArg = process.argv[2];
