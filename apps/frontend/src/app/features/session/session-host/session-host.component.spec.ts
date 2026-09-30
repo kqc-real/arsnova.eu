@@ -11669,10 +11669,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         moderatorView: true,
       }),
     );
-    // Nach Archiv-Filter bleibt der Listen-Cursor auf der Archivfrage → Hero-Rotation.
+    // Ohne Live-Q&A-Projektion: Listenreihenfolge wie vom Server (aktiv vor Archiv).
     expect(component.qaVisibleQuestions().map((question) => question.id)).toEqual([
-      archivedQuestion.id,
       activeQuestion.id,
+      archivedQuestion.id,
     ]);
     expect(fixture.nativeElement.textContent).toContain('Freigegeben');
     expect(fixture.nativeElement.textContent).toContain('Beantwortet im Archiv');
@@ -16520,7 +16520,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('folgt dem Navigator exakt der Liste aus Sortierung und Auswertung-Filtern', async () => {
+  it('folgt dem Navigator der präsentierbaren Liste und überspringt Pending/Archiv live', async () => {
     const mixedQuestions = [
       {
         id: 'pin-1',
@@ -16567,13 +16567,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         authorNickname: 'Ada',
       },
     ];
+    const stageQuestions = [mixedQuestions[0]!, mixedQuestions[2]!];
     setPresenterSurfaceMutateMock.mockImplementation(
       async (input: { page?: { index?: number; count?: number } }) => ({
         presenterSurface: 'default',
         presenterPage: {
           context: 'qa-questions',
           index: input.page?.index ?? 0,
-          count: input.page?.count ?? 4,
+          count: input.page?.count ?? 2,
         },
       }),
     );
@@ -16595,37 +16596,49 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.presenterWindowOpen.set(true);
     component.activeChannel.set('qa');
     qaListQueryMock.mockResolvedValue(qaHostSnapshot(mixedQuestions));
+    qaPresentProjectionQueryMock.mockResolvedValue({
+      questions: stageQuestions,
+      state: 'ACTIVE',
+    });
     component.qaQuestions.set(mixedQuestions as never);
+    (
+      component as SessionHostComponent & {
+        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+      }
+    ).qaPresenterStageOrderedQuestions.set(stageQuestions as never);
     fixture.detectChanges();
     await fixture.whenStable();
     component.qaQuestions.set(mixedQuestions as never);
     fixture.detectChanges();
 
-    // Defaultliste: alle Status außer DELETED, Reihenfolge wie geladen.
+    // Live-Projektion: Navigator nur ACTIVE|PINNED in Listenreihenfolge.
     expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual([
       'pin-1',
-      'pending-1',
       'active-1',
-      'arch-1',
     ]);
-    expect(component.qaProjectionQueuePageCount()).toBe(4);
+    expect(component.qaProjectionQueuePageCount()).toBe(2);
     expect(component.qaPresenterHeroQuestionId()).toBe('pin-1');
+    expect(component.isQaQuestionOnPresenterStage('pending-1')).toBe(false);
+    expect(component.isQaQuestionOnPresenterStage('arch-1')).toBe(false);
 
     setPresenterSurfaceMutateMock.mockClear();
     await component.changeProjectionPage(1);
     fixture.detectChanges();
-    expect(component.qaPresenterHeroQuestionId()).toBe('pending-1');
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-1');
     expect(component.projectionQaNavDisplayIndex()).toBe(1);
-    // Pending liegt nicht auf der Bühne → Presenter wird nicht mitgezogen.
-    expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: expect.objectContaining({ index: 1 }),
+      }),
+      expect.anything(),
+    );
 
     component.qaShowPendingOnly.set(true);
     fixture.detectChanges();
-    expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual([
-      'pending-1',
-    ]);
-    expect(component.qaPresenterHeroQuestionId()).toBe('pending-1');
-    expect(component.qaProjectionQueuePageCount()).toBe(1);
+    expect(component.qaNavigableStageQuestions()).toEqual([]);
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.qaProjectionQueuePageCount()).toBe(0);
+    expect(component.isQaQuestionOnPresenterStage('pending-1')).toBe(false);
 
     component.qaShowPendingOnly.set(false);
     component.qaShowPinnedOnly.set(true);
@@ -16636,13 +16649,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.qaShowPinnedOnly.set(false);
     component.qaShowArchivedOnly.set(true);
     fixture.detectChanges();
-    expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual([
-      'arch-1',
-    ]);
-    expect(component.qaPresenterHeroQuestionId()).toBe('arch-1');
+    expect(component.qaNavigableStageQuestions()).toEqual([]);
+    expect(component.qaPresenterHeroQuestionId()).toBeNull();
+    expect(component.isQaQuestionOnPresenterStage('arch-1')).toBe(false);
 
     component.qaShowArchivedOnly.set(false);
-    // Listenreihenfolge wie nach Sortierung TOP — ohne Sort-Signal, damit kein Reload die Liste überschreibt.
     const sortedByTop = [
       mixedQuestions[2]!,
       mixedQuestions[1]!,
@@ -16657,17 +16668,84 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual([
       'active-1',
-      'pending-1',
       'pin-1',
-      'arch-1',
     ]);
-    expect(component.qaPresenterHeroQuestionId()).toBe('arch-1');
-    expect(component.projectionQaNavDisplayIndex()).toBe(3);
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-1');
+    expect(component.projectionQaNavDisplayIndex()).toBe(0);
 
-    await component.changeProjectionPage(-1);
+    await component.changeProjectionPage(1);
     fixture.detectChanges();
     expect(component.qaPresenterHeroQuestionId()).toBe('pin-1');
-    expect(component.projectionQaNavDisplayIndex()).toBe(2);
+    expect(component.projectionQaNavDisplayIndex()).toBe(1);
+    fixture.destroy();
+  });
+
+  it('vergibt bei Live-Projektion kein Hero-/Bühnen-Badge an Pending oder Archiv', async () => {
+    const mixedQuestions = [
+      {
+        id: 'active-1',
+        text: 'Aktiv',
+        upvoteCount: 2,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'pending-1',
+        text: 'Pending',
+        upvoteCount: 1,
+        status: 'PENDING' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'arch-1',
+        text: 'Archiv',
+        upvoteCount: 0,
+        status: 'ARCHIVED' as const,
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ];
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    seedQaPresenterStage(component, [mixedQuestions[0]!] as never);
+    component.qaQuestions.set(mixedQuestions as never);
+    fixture.detectChanges();
+
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-1');
+    expect(component.isQaPresenterHeroCard('pending-1')).toBe(false);
+    expect(component.isQaPresenterHeroCard('arch-1')).toBe(false);
+    expect(component.isQaQuestionOnPresenterStage('pending-1')).toBe(false);
+    expect(component.isQaQuestionOnPresenterStage('arch-1')).toBe(false);
+    expect(component.isQaQuestionOnPresenterStage('active-1')).toBe(true);
+
+    setPresenterSurfaceMutateMock.mockClear();
+    // Pending steht nicht im Navigator — nächster Schritt bleibt auf der Bühne.
+    await component.changeProjectionPage(1);
+    fixture.detectChanges();
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-1');
+    expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
@@ -16749,6 +16827,18 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     component.presenterWindowOpen.set(true);
     component.activeChannel.set('qa');
+    (
+      component as SessionHostComponent & {
+        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+      }
+    ).qaPresenterStageOrderedQuestions.set([
+      ...allQuestions.filter((question) => question.status === 'PINNED'),
+      ...allQuestions.filter((question) => question.status === 'ACTIVE'),
+    ] as never);
+    qaPresentProjectionQueryMock.mockResolvedValue({
+      questions: allQuestions,
+      state: 'ACTIVE',
+    });
     component.qaQuestions.set(allQuestions as never);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -16787,6 +16877,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     // Teilnahmen durchsuchen → nur Fragen der gewählten Identität.
     await component['applyQaAuthorFilter']('Ada');
     await fixture.whenStable();
+    component['qaListNavQuestionId'].set('q-ada-alpha');
     fixture.detectChanges();
     expect(component.qaSelectedAuthorNickname()).toBe('Ada');
     expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual([

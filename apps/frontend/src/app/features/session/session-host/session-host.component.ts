@@ -6045,10 +6045,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaListNavFadePlayId = 0;
   readonly qaListNavFadeBusy = computed(() => this.qaListNavFadePhase() !== 'idle');
   /**
-   * Navigator-Schritte = exakt die gefilterte Host-Liste in ihrer Reihenfolge
-   * (Server-Sortierung TOP/BEST/CONTROVERSIAL/TIME, Suche, Autor, Pin/Pending/Archiv).
+   * Host-Navigator-Schritte.
+   * Live-Projektion: nur ACTIVE|PINNED (Beamer-Bühne) in Listenreihenfolge —
+   * Pending/Archiv dürfen Hero und »Aktuell in der Präsentation« nicht beanspruchen.
+   * Nach Projektionsende (`ended`): volle gefilterte Liste (z. B. Archiv-Durchsicht).
    */
-  readonly qaNavigableStageQuestions = computed(() => this.qaFilteredQuestions());
+  readonly qaNavigableStageQuestions = computed(() => {
+    const filtered = this.qaFilteredQuestions();
+    if (this.projectionNavigationIsQaQuestions() && this.session()?.presenterSurface !== 'ended') {
+      return filtered.filter(
+        (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
+      );
+    }
+    return filtered;
+  });
   /**
    * Presenter-Seitenzahl (volle Bühne) — wird mit dem Presenter synchronisiert.
    */
@@ -6095,28 +6105,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    */
   readonly qaPresenterStageQuestionIds = computed(() => {
     const ids = new Set<string>();
-    if (!this.projectionNavigationIsQaQuestions()) {
+    if (!this.projectionNavigationIsQaQuestions() || this.session()?.presenterSurface === 'ended') {
       return ids;
     }
-    const questions = this.qaNavigableStageQuestions();
-    if (questions.length === 0) {
+    const stageIds = new Set(this.qaProjectionStageQuestions().map((question) => question.id));
+    if (stageIds.size === 0) {
       return ids;
     }
+    const navigable = this.qaNavigableStageQuestions();
     const pageIndex = this.projectionQaNavDisplayIndex();
-    const hero = questions[pageIndex];
-    if (hero) {
-      ids.add(hero.id);
-    }
-    for (const question of questions.slice(
-      pageIndex + 1,
+    for (const question of navigable.slice(
+      pageIndex,
       pageIndex + 1 + SessionHostComponent.QA_PROJECTION_QUEUE_VISIBLE,
     )) {
-      ids.add(question.id);
+      if (stageIds.has(question.id)) {
+        ids.add(question.id);
+      }
     }
     return ids;
   });
   /**
-   * Hero = aktuelle Position im Listen-Navigator.
+   * Hero = aktuelle Position im Listen-Navigator (Live: nur Bühnenfragen).
    */
   readonly qaPresenterHeroQuestionId = computed(() => {
     const navigable = this.qaNavigableStageQuestions();
@@ -6173,12 +6182,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (!nextQuestion) {
         return;
       }
-      await this.playQaListNavFade(nextQuestion.id);
-      this.projectionControlsVisible.set(true);
-      // Presenter nur mitziehen, wenn die Listenfrage auf der Bühne liegt.
+      const liveProjection = this.session()?.presenterSurface !== 'ended';
       const stage = this.qaProjectionStageQuestions();
       const stageIndex = stage.findIndex((question) => question.id === nextQuestion.id);
-      if (stageIndex < 0) {
+      // Live: Cursor/Hero nur auf Bühnenfragen — sonst Host/Beamer-Widerspruch.
+      if (liveProjection && stageIndex < 0) {
+        return;
+      }
+      await this.playQaListNavFade(nextQuestion.id);
+      this.projectionControlsVisible.set(true);
+      if (!liveProjection || stageIndex < 0) {
         return;
       }
       if (stageIndex === page.index && page.count >= this.qaProjectionFullStagePageCount()) {
