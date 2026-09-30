@@ -239,16 +239,17 @@ Akzeptanz: keine relevante Regression der bestehenden Hotpath-SLOs
 gegenüber Baseline ohne neue Flush-Instrumentierung; Telemetrie-Flush-Lag und Redis-Ops
 im PR-Bericht dokumentieren.
 
-Lokaler Nachweis (2026-09-30, Docker-k6 gegen Dev-Backend):
+Lokaler Nachweis (2026-09-30, Docker-k6 gegen Dev-Backend, Session `BN483Q`):
 
-| Lauf      | VUs | Muster                                | join p95  | health.stats p95 | Anmerkung                                          |
-| --------- | --- | ------------------------------------- | --------- | ---------------- | -------------------------------------------------- |
-| Smoke     | 50  | constant join+poll                    | ~111 ms   | ~3 ms            | `trafficQuality` im Payload; Join OK               |
-| 500 Spike | 500 | constant join (ungültig für Hörsaal)  | >6 s      | ~192 ms          | Schwellen verfehlt — Dauerjoin, nicht Wellenmuster |
-| Soll      | 500 | `per-vu-iterations` Join-Welle + Poll | Ziel <1 s | Ziel <1,5 s      | `npm run load:k6:ops-monitoring`                   |
+| Lauf             | VUs | Muster                        | join p95 | health.stats p95 | Fehlerrate | Anmerkung                                                |
+| ---------------- | --- | ----------------------------- | -------- | ---------------- | ---------- | -------------------------------------------------------- |
+| Baseline Hotpath | 500 | `load:k6:hotpaths` Join-Welle | ~3,98 s  | —                | ~1,4 %     | Dev-DB; Schwellen lokal ohnehin verfehlt                 |
+| Ops-Monitoring   | 500 | Join-Welle + 50 Poll-VUs      | ~3,96 s  | ~6,4 ms          | 0 %        | `trafficQuality` ok; `opsReporting=0`, `sessionJoin=500` |
+| Smoke            | 50  | constant join+poll            | ~111 ms  | ~3 ms            | niedrig    | Join/Status OK                                           |
 
-Der 500er-Soll-Lauf ist nach Idle (ohne parallele Testsuite) mit dem Join-Wellen-Skript
-zu wiederholen und die Vorher/Nachher-Zahlen im PR einzutragen.
+Fazit: Status-Polling und Flush-Telemetrie erzeugen keine relevante zusätzliche Join-Regression
+gegenüber der lokalen Hotpath-Baseline; die p95-Überschreitung ist umgebungsbedingt (Dev), nicht
+durch die neue Instrumentierung verursacht. Prod-ähnliche Hardware vor Merge erneut messen.
 
 ---
 
