@@ -21,7 +21,14 @@ import {
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatTab, MatTabGroup, MatTabLabel } from '@angular/material/tabs';
-import type { PublicUsageStats, ServerStatsDTO, UsagePeriodKind } from '@arsnova/shared-types';
+import type {
+  PublicLiveConnections,
+  PublicTrafficErrorClasses,
+  PublicTrafficQuality,
+  PublicUsageStats,
+  ServerStatsDTO,
+  UsagePeriodKind,
+} from '@arsnova/shared-types';
 import { formatLocaleCount, formatLocaleNumber } from '../../core/locale-number.util';
 import { trpc } from '../../core/trpc.client';
 type ChartRenderer = import('./server-status-help-dialog-chart').ServerStatusHistoryChartRenderer;
@@ -201,6 +208,245 @@ export interface ServerStatusHelpDialogData {
                         <span i18n="@@app.footer.statusMetricDependencyLive">Live-Verbindung</span>
                       </div>
                       <strong>{{ formatDependency(s.dependencies.live) }}</strong>
+                    </article>
+                  </div>
+                </section>
+
+                <section
+                  class="status-help-dialog__metric-group"
+                  aria-labelledby="server-status-traffic-heading"
+                >
+                  <h4
+                    id="server-status-traffic-heading"
+                    class="status-help-dialog__metric-group-title status-help-dialog__metric-group-title--with-icon"
+                  >
+                    <mat-icon aria-hidden="true">traffic</mat-icon>
+                    <span i18n="@@app.footer.statusMetricGroupTraffic"
+                      >Serververkehr und Qualität</span
+                    >
+                  </h4>
+                  <p
+                    class="status-help-dialog__copy status-help-dialog__copy--compact"
+                    i18n="@@app.footer.statusTrafficHint"
+                  >
+                    API-Anfragen/s nur im Zusammenhang mit Fehlerrate, Latenz und Live-Verbindungen.
+                    Hoher Verkehr allein bedeutet weder gute Nutzung noch Störung. Überwacht werden
+                    Kernaktionen (ohne Status-Polling).
+                  </p>
+                  <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+                    <span i18n="@@app.footer.statusTrafficCoverage">Messabdeckung:</span>
+                    {{ formatTrafficCoverage(s.trafficQuality) }}
+                  </p>
+                  <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+                    <span i18n="@@app.footer.statusTrafficWindow">Messfenster:</span>
+                    {{ formatTrafficWindow(s.trafficQuality) }}
+                  </p>
+                  <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+                    <span i18n="@@app.footer.statusTrafficUpdated"
+                      >Letzte erfolgreiche Messung:</span
+                    >
+                    {{ formatTrafficUpdatedAt(s.trafficQuality) }}
+                  </p>
+                  <div class="status-help-dialog__metrics status-help-dialog__metrics--traffic">
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">speed</mat-icon>
+                        <span i18n="@@app.footer.statusMetricAvgRps">API-Anfragen/s</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isTrafficValueProse(s.trafficQuality)
+                        "
+                        >{{ formatAvgRps(s.trafficQuality) }}</strong
+                      >
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricAvgRpsHint"
+                      >
+                        Durchschnitt überwachter Kernaktionen im beobachteten Fenster.
+                      </p>
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">trending_up</mat-icon>
+                        <span i18n="@@app.footer.statusMetricPeakRps">Spitzenwert/s</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isTrafficValueProse(s.trafficQuality)
+                        "
+                        >{{ formatPeakRps(s.trafficQuality) }}</strong
+                      >
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricPeakRpsHint"
+                      >
+                        Höchster normalisierter 10-Sekunden-Bucket im Fenster.
+                      </p>
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">error_outline</mat-icon>
+                        <span i18n="@@app.footer.statusMetricErrorRate">Fehlerrate</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isTrafficValueProse(s.trafficQuality)
+                        "
+                        >{{ formatTrafficErrorRate(s.trafficQuality) }}</strong
+                      >
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricErrorRateHint"
+                      >
+                        Anteil Server- und Rate-Limit-Fehler an überwachten Anfragen. Clientfehler
+                        zählen getrennt und verschlechtern den Zustand nicht.
+                      </p>
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">timer</mat-icon>
+                        <span i18n="@@app.footer.statusMetricP95">p95-Latenz</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isLatencyProse(s.trafficQuality)
+                        "
+                        >{{ formatTrafficLatency(s.trafficQuality, 'p95') }}</strong
+                      >
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+                        <span i18n="@@app.footer.statusMetricP99">p99-Latenz</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isLatencyProse(s.trafficQuality)
+                        "
+                        >{{ formatTrafficLatency(s.trafficQuality, 'p99') }}</strong
+                      >
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricLatencyHint"
+                      >
+                        Inklusive fehlgeschlagener Requests. Bei kleiner Stichprobe keine
+                        Qualitätsaussage.
+                      </p>
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">science</mat-icon>
+                        <span i18n="@@app.footer.statusMetricSampleSize">Stichprobengröße</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isTrafficValueProse(s.trafficQuality)
+                        "
+                        >{{ formatTrafficSampleSize(s.trafficQuality) }}</strong
+                      >
+                    </article>
+                  </div>
+                  @if (s.trafficQuality.errorClasses; as errors) {
+                    <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+                      <span i18n="@@app.footer.statusErrorClasses"
+                        >Fehlerklassen (1&nbsp;Min.):</span
+                      >
+                      {{ formatErrorClasses(errors) }}
+                    </p>
+                  }
+                </section>
+
+                <section
+                  class="status-help-dialog__metric-group"
+                  aria-labelledby="server-status-live-heading"
+                >
+                  <h4
+                    id="server-status-live-heading"
+                    class="status-help-dialog__metric-group-title status-help-dialog__metric-group-title--with-icon"
+                  >
+                    <mat-icon aria-hidden="true">cable</mat-icon>
+                    <span i18n="@@app.footer.statusMetricGroupLive">Live-Verbindungen</span>
+                  </h4>
+                  <p
+                    class="status-help-dialog__copy status-help-dialog__copy--compact"
+                    i18n="@@app.footer.statusLiveHint"
+                  >
+                    Offene Verbindungen beweisen keine erfolgreiche Nachrichtenzustellung.
+                    Zustellfehler und Ende-zu-Ende-Latenz werden hier nicht gemessen. Werte gelten
+                    für diesen Serverprozess.
+                  </p>
+                  <div class="status-help-dialog__metrics status-help-dialog__metrics--live">
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">lan</mat-icon>
+                        <span i18n="@@app.footer.statusMetricTrpcOpen">tRPC-WebSocket offen</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isLiveValueProse(s.liveConnections)
+                        "
+                        >{{ formatLiveCount(s.liveConnections.trpcOpen) }}</strong
+                      >
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">hub</mat-icon>
+                        <span i18n="@@app.footer.statusMetricYjsOpen">Yjs offen</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isLiveValueProse(s.liveConnections)
+                        "
+                        >{{ formatLiveCount(s.liveConnections.yjsOpen) }}</strong
+                      >
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">link_off</mat-icon>
+                        <span i18n="@@app.footer.statusMetricWsRejects"
+                          >Verbindungsfehler / Ablehnungen</span
+                        >
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isLiveValueProse(s.liveConnections)
+                        "
+                        >{{ formatLiveCount(s.liveConnections.rejectsLastMinute) }}</strong
+                      >
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricWsRejectsHint"
+                      >
+                        Abgelehnte Upgrades, Payload- und Cap-Ablehnungen der letzten Minute.
+                      </p>
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">sync_alt</mat-icon>
+                        <span i18n="@@app.footer.statusMetricWsChurn">Neu / geschlossen</span>
+                      </div>
+                      <strong
+                        [class.status-help-dialog__metric-value--prose]="
+                          isLiveValueProse(s.liveConnections)
+                        "
+                        >{{ formatLiveChurn(s.liveConnections) }}</strong
+                      >
+                    </article>
+                    <article class="status-help-dialog__metric">
+                      <div class="status-help-dialog__metric-head">
+                        <mat-icon aria-hidden="true">forum</mat-icon>
+                        <span i18n="@@app.footer.statusMetricMsgRate">Nachrichtenrate</span>
+                      </div>
+                      <strong class="status-help-dialog__metric-value--prose">{{
+                        formatMessagesPerSecond(s.liveConnections)
+                      }}</strong>
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricMsgRateHint"
+                      >
+                        Derzeit nicht belastbar gemessen.
+                      </p>
                     </article>
                   </div>
                 </section>
@@ -1415,6 +1661,124 @@ export class ServerStatusHelpDialogComponent {
       default:
         return $localize`:@@app.footer.dependencyUnknown:unbekannt`;
     }
+  }
+
+  protected isTrafficValueProse(traffic: PublicTrafficQuality): boolean {
+    return traffic.measurementState !== 'AVAILABLE' || traffic.avgRps === null;
+  }
+
+  protected isLatencyProse(traffic: PublicTrafficQuality): boolean {
+    return (
+      traffic.measurementState === 'UNAVAILABLE' ||
+      traffic.insufficientLatencySample ||
+      traffic.p95LatencyMs === null
+    );
+  }
+
+  protected isLiveValueProse(live: PublicLiveConnections): boolean {
+    return live.measurementState === 'UNAVAILABLE' || live.trpcOpen === null;
+  }
+
+  protected formatTrafficCoverage(traffic: PublicTrafficQuality): string {
+    return $localize`:@@app.footer.statusTrafficCoverageValue:${traffic.monitoredProcedures}:monitored: von ${traffic.definedProcedures}:defined: definierten Kernaktionen werden überwacht.`;
+  }
+
+  protected formatTrafficWindow(traffic: PublicTrafficQuality): string {
+    if (traffic.measurementState === 'UNAVAILABLE' || traffic.observedWindowSeconds === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    if (!traffic.windowComplete) {
+      return $localize`:@@app.footer.statusTrafficWindowWarmup:${traffic.observedWindowSeconds}:seconds: s von ${traffic.windowSeconds}:window: s (Anlauf, Messung unvollständig)`;
+    }
+    return $localize`:@@app.footer.statusTrafficWindowFull:${traffic.windowSeconds}:window: s (vollständig)`;
+  }
+
+  protected formatTrafficUpdatedAt(traffic: PublicTrafficQuality): string {
+    if (!traffic.lastSuccessfulReadAt) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    return this.formatTimestamp(traffic.lastSuccessfulReadAt);
+  }
+
+  protected formatAvgRps(traffic: PublicTrafficQuality): string {
+    if (traffic.measurementState === 'UNAVAILABLE' || traffic.avgRps === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    if (traffic.measurementState === 'WARMING_UP') {
+      return `${formatLocaleNumber(traffic.avgRps, this.locale, {
+        maximumFractionDigits: 2,
+      })} (${$localize`:@@app.footer.statusMeasurementIncomplete:unvollständig`})`;
+    }
+    return formatLocaleNumber(traffic.avgRps, this.locale, { maximumFractionDigits: 2 });
+  }
+
+  protected formatPeakRps(traffic: PublicTrafficQuality): string {
+    if (traffic.measurementState === 'UNAVAILABLE' || traffic.peakRps === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    return formatLocaleNumber(traffic.peakRps, this.locale, { maximumFractionDigits: 2 });
+  }
+
+  protected formatTrafficErrorRate(traffic: PublicTrafficQuality): string {
+    if (traffic.measurementState === 'UNAVAILABLE' || traffic.errorRatePercent === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    return `${formatLocaleNumber(traffic.errorRatePercent, this.locale, {
+      maximumFractionDigits: 2,
+    })} %`;
+  }
+
+  protected formatTrafficLatency(traffic: PublicTrafficQuality, kind: 'p95' | 'p99'): string {
+    if (traffic.measurementState === 'UNAVAILABLE') {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    if (traffic.insufficientLatencySample) {
+      const samples = traffic.sampleSize ?? 0;
+      return $localize`:@@app.footer.statusLatencyInsufficient:noch nicht genügend Messwerte (${samples}:samples:)`;
+    }
+    const value = kind === 'p95' ? traffic.p95LatencyMs : traffic.p99LatencyMs;
+    if (value === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    return `${formatLocaleCount(value, this.locale)} ms`;
+  }
+
+  protected formatTrafficSampleSize(traffic: PublicTrafficQuality): string {
+    if (traffic.measurementState === 'UNAVAILABLE' || traffic.sampleSize === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    return formatLocaleCount(traffic.sampleSize, this.locale);
+  }
+
+  protected formatErrorClasses(errors: PublicTrafficErrorClasses): string {
+    return $localize`:@@app.footer.statusErrorClassesValue:Server ${errors.server}:server:, Rate-Limit ${errors.rateLimit}:rateLimit:, Client ${errors.client}:client:`;
+  }
+
+  protected formatLiveCount(value: number | null): string {
+    if (value === null) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    return formatLocaleCount(value, this.locale);
+  }
+
+  protected formatLiveChurn(live: PublicLiveConnections): string {
+    if (
+      live.measurementState === 'UNAVAILABLE' ||
+      live.trpcOpenedLastMinute === null ||
+      live.trpcClosedLastMinute === null ||
+      live.yjsOpenedLastMinute === null ||
+      live.yjsClosedLastMinute === null
+    ) {
+      return $localize`:@@app.footer.statusMeasurementUnavailable:Messung derzeit nicht verfügbar`;
+    }
+    const opened = live.trpcOpenedLastMinute + live.yjsOpenedLastMinute;
+    const closed = live.trpcClosedLastMinute + live.yjsClosedLastMinute;
+    return $localize`:@@app.footer.statusLiveChurnValue:${opened}:opened: neu / ${closed}:closed: geschlossen`;
+  }
+
+  protected formatMessagesPerSecond(live: PublicLiveConnections): string {
+    void live;
+    return $localize`:@@app.footer.statusMetricNotMeasured:nicht gemessen`;
   }
 
   protected isQualityProse(quality: ServerStatsDTO['coreActionsQuality']['join']): boolean {

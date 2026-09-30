@@ -230,15 +230,6 @@
           <context context-type="linenumber">303</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusHelpTriggerTooltip" datatype="html">
-        <source>Betrieb und Nutzung anzeigen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile"
-            >src/app/shared/server-status-widget/server-status-widget.component.html</context
-          >
-          <context context-type="linenumber">9</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.serverHelpLabel" datatype="html">
         <source>Betrieb &amp; Nutzung</source>
         <context-group purpose="location">
@@ -28820,923 +28811,1218 @@
         <source>Betrieb &amp; Nutzung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">59</context>
+          <context context-type="linenumber">66</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusTabOperations" datatype="html">
         <source>Betrieb</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">73</context>
+          <context context-type="linenumber">80</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusOperationsLeitfrage" datatype="html">
+        <source> Funktioniert arsnova.eu gerade zuverlässig? </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">89,91</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusCurrentTitle" datatype="html">
         <source> Gesamtzustand </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">92,94</context>
+          <context context-type="linenumber">105,107</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serviceStatusLabel" datatype="html">
         <source>Betrieb:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">97</context>
+          <context context-type="linenumber">110</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serviceStatusUnknown" datatype="html">
         <source>Messung unbekannt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">102</context>
+          <context context-type="linenumber">115</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serviceStatusStable" datatype="html">
         <source>stabil</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">108</context>
+          <context context-type="linenumber">121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serviceStatusLimited" datatype="html">
         <source>eingeschränkt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">114</context>
+          <context context-type="linenumber">127</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.serviceStatusCritical" datatype="html">
         <source>gestört</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">120</context>
+          <context context-type="linenumber">133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.loadStatusLabel" datatype="html">
         <source>Aktuelle Aktivität:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">125</context>
+          <context context-type="linenumber">138</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.loadStatusHealthy" datatype="html">
         <source>niedrig</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">131</context>
+          <context context-type="linenumber">144</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.loadStatusBusy" datatype="html">
         <source>mittel</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">138</context>
+          <context context-type="linenumber">151</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.loadStatusOverloaded" datatype="html">
         <source>hoch</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">145</context>
+          <context context-type="linenumber">158</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLoadStatusDisclaimer" datatype="html">
-        <source>Die Aktivität beschreibt die aktuelle Nutzung — nicht die technische Gesundheit des Dienstes.</source>
+        <source> Die Aktivität beschreibt die aktuelle Nutzung — nicht die technische Gesundheit des Dienstes. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">153,156</context>
+          <context context-type="linenumber">166,169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupDependencies" datatype="html">
-        <source> Kernfunktionen </source>
+        <source>Kernfunktionen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">167,169</context>
+          <context context-type="linenumber">181</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricDependencyApi" datatype="html">
         <source>API</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">174</context>
+          <context context-type="linenumber">187</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricDependencyDatabase" datatype="html">
         <source>Datenbank</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">181</context>
+          <context context-type="linenumber">194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricDependencyRedis" datatype="html">
         <source>Redis</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">188</context>
+          <context context-type="linenumber">201</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricDependencyLive" datatype="html">
         <source>Live-Verbindung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">195</context>
+          <context context-type="linenumber">208</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricGroupTraffic" datatype="html">
+        <source>Serververkehr und Qualität</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">225</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficHint" datatype="html">
+        <source> API-Anfragen/s nur im Zusammenhang mit Fehlerrate, Latenz und Live-Verbindungen. Hoher Verkehr allein bedeutet weder gute Nutzung noch Störung. Überwacht werden Kernaktionen (ohne Status-Polling). </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">231,235</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficCoverage" datatype="html">
+        <source>Messabdeckung:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">237</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficWindow" datatype="html">
+        <source>Messfenster:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">241</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficUpdated" datatype="html">
+        <source>Letzte erfolgreiche Messung:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">245</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricAvgRps" datatype="html">
+        <source>API-Anfragen/s</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">252</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricAvgRpsHint" datatype="html">
+        <source> Durchschnitt überwachter Kernaktionen im beobachteten Fenster. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">263,265</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricPeakRps" datatype="html">
+        <source>Spitzenwert/s</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">270</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricPeakRpsHint" datatype="html">
+        <source> Höchster normalisierter 10-Sekunden-Bucket im Fenster. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">281,283</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricErrorRate" datatype="html">
+        <source>Fehlerrate</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">288</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricErrorRateHint" datatype="html">
+        <source> Anteil Server- und Rate-Limit-Fehler an überwachten Anfragen. Clientfehler zählen getrennt und verschlechtern den Zustand nicht. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">299,302</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricP95" datatype="html">
+        <source>p95-Latenz</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">307</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricP99" datatype="html">
+        <source>p99-Latenz</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">319</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricLatencyHint" datatype="html">
+        <source> Inklusive fehlgeschlagener Requests. Bei kleiner Stichprobe keine Qualitätsaussage. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">330,333</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricSampleSize" datatype="html">
+        <source>Stichprobengröße</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">338</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusErrorClasses" datatype="html">
+        <source>Fehlerklassen (1 Min.):</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">350</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricGroupLive" datatype="html">
+        <source>Live-Verbindungen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">365</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusLiveHint" datatype="html">
+        <source> Offene Verbindungen beweisen keine erfolgreiche Nachrichtenzustellung. Zustellfehler und Ende-zu-Ende-Latenz werden hier nicht gemessen. Werte gelten für diesen Serverprozess. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">370,374</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricTrpcOpen" datatype="html">
+        <source>tRPC-WebSocket offen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">379</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricYjsOpen" datatype="html">
+        <source>Yjs offen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">391</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricWsRejects" datatype="html">
+        <source>Verbindungsfehler / Ablehnungen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">404</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricWsRejectsHint" datatype="html">
+        <source> Abgelehnte Upgrades, Payload- und Cap-Ablehnungen der letzten Minute. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">416,418</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricWsChurn" datatype="html">
+        <source>Neu / geschlossen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">423</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricMsgRate" datatype="html">
+        <source>Nachrichtenrate</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">435</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricMsgRateHint" datatype="html">
+        <source> Derzeit nicht belastbar gemessen. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">443,445</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupQuality" datatype="html">
-        <source> Servicequalität </source>
+        <source>Servicequalität</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">210,212</context>
+          <context context-type="linenumber">459</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusQualitySampleHint" datatype="html">
         <source> Stichproben lokaler Kernaktionen. Kleine Stichproben gelten als unzureichend, fehlende Messungen als unbekannt — nie als Null. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">216,219</context>
+          <context context-type="linenumber">464,467</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusSloSampleSize" datatype="html">
         <source>SLO-Stichprobe (1 Min.):</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">222</context>
+          <context context-type="linenumber">471</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQualityJoin" datatype="html">
         <source>Beitritt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">230</context>
+          <context context-type="linenumber">480</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQualityVote" datatype="html">
         <source>Quizantwort</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">237</context>
+          <context context-type="linenumber">492</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQualityQaRead" datatype="html">
         <source>Q&amp;A lesen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">244</context>
+          <context context-type="linenumber">504</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQualityQaSubmit" datatype="html">
         <source>Q&amp;A einreichen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">251</context>
+          <context context-type="linenumber">516</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQualityQaRate" datatype="html">
         <source>Q&amp;A bewerten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">258</context>
+          <context context-type="linenumber">528</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupOverview" datatype="html">
-        <source> Aktuelle Aktivität </source>
+        <source>Aktuelle Aktivität</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">273,275</context>
+          <context context-type="linenumber">549</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusActivityDisclaimer" datatype="html">
         <source> Presence-Fenster: letzte Minuten. Kontext zur Nutzung, nicht alleinige Aussage über die Dienstgesundheit. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">279,282</context>
+          <context context-type="linenumber">554,557</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricActiveSessions" datatype="html">
         <source>Aktive Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">287</context>
+          <context context-type="linenumber">562</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricActiveSessionsHint" datatype="html">
         <source> Nutzbare Sessions mit Status ungleich beendet und mindestens fünf anwesenden Teilnehmenden. Offenes Q&amp;A nach Quizende zählt hier nicht. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">293,295</context>
+          <context context-type="linenumber">568,571</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricActiveQaSessions" datatype="html">
         <source>Aktive Q&amp;A-Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">301</context>
+          <context context-type="linenumber">577</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricActiveQaSessionsHint" datatype="html">
         <source> Inklusive weiter offenem Q&amp;A nach Quizende; Presence-Fenster der letzten Minuten </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">310,313</context>
+          <context context-type="linenumber">586,589</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricOpenSessions" datatype="html">
         <source>Nutzbare Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">318</context>
+          <context context-type="linenumber">594</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricOpenSessionsHint" datatype="html">
         <source> Noch gültige Beitrittsfrist; einschließlich offenem Q&amp;A nach Quizende </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">324,326</context>
+          <context context-type="linenumber">600,602</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricParticipants" datatype="html">
         <source>Aktive Teilnehmende</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">331</context>
+          <context context-type="linenumber">608</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricParticipantsHint" datatype="html">
         <source> Anwesende in nutzbaren Sessions (Presence-Fenster) </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">337,339</context>
+          <context context-type="linenumber">615,617</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricBlitz" datatype="html">
         <source>Blitz-Runden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">344</context>
+          <context context-type="linenumber">622</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricCompleted" datatype="html">
         <source>Abgeschlossen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">351</context>
+          <context context-type="linenumber">629</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricCompletedHint" datatype="html">
         <source> Monotone Gesamtzahl beendeter Sessions </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">357,359</context>
+          <context context-type="linenumber">635,637</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupDynamics" datatype="html">
-        <source> Dynamik (letzte Minute) </source>
+        <source>Dynamik (letzte Minute)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">372,374</context>
+          <context context-type="linenumber">652</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricVotes" datatype="html">
         <source>Abstimmungen / Minute</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">379</context>
+          <context context-type="linenumber">659</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricVotesHint" datatype="html">
         <source> Erfolgreiche Quizantworten im rollierenden Minutenfenster </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">385,387</context>
+          <context context-type="linenumber">665,667</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQaQuestions" datatype="html">
         <source>Q&amp;A-Fragen / Minute</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">393</context>
+          <context context-type="linenumber">672</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQaRatings" datatype="html">
         <source>Q&amp;A-Bewertungen / Minute</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">403</context>
+          <context context-type="linenumber">682</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricTransitions" datatype="html">
         <source>Statuswechsel / Minute</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">412</context>
+          <context context-type="linenumber">693</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricTransitionsHint" datatype="html">
         <source> Phasenwechsel in Sessions </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">418,420</context>
+          <context context-type="linenumber">700,702</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricCountdowns" datatype="html">
         <source>Countdown-Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">425</context>
+          <context context-type="linenumber">707</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricCountdownsHint" datatype="html">
         <source> Sessions mit aktivem Countdown </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">431,433</context>
+          <context context-type="linenumber">713,715</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusStatsGeneratedAt" datatype="html">
         <source>Snapshot:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">439</context>
-        </context-group>
-      </trans-unit>
-            <trans-unit id="app.footer.statusOperationsLeitfrage" datatype="html">
-        <source>Funktioniert arsnova.eu gerade zuverlässig?</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-        </context-group>
-      </trans-unit>
-            <trans-unit id="app.footer.statusUsageLeitfrage" datatype="html">
-        <source>Wie häufig und wofür wird arsnova.eu genutzt?</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-        </context-group>
-      </trans-unit>
-            <trans-unit id="app.footer.statusUsageSeriesDisclosure" datatype="html">
-        <source>Tages- und Monatsverlauf</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">721</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusTabUsage" datatype="html">
         <source>Nutzung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">449</context>
+          <context context-type="linenumber">731</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusUsageLeitfrage" datatype="html">
+        <source> Wie häufig und wofür wird arsnova.eu genutzt? </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">737,739</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageTitle" datatype="html">
-        <source> Nutzung </source>
+        <source>Nutzung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">459,461</context>
+          <context context-type="linenumber">745</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageIntro" datatype="html">
         <source> Aggregierte, datensparsame Kennzahlen ohne Sessioncodes, Titel oder Personenbezüge. Zeitzone der Tageswerte: UTC. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">465,468</context>
+          <context context-type="linenumber">747,750</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsagePeriodGroupAria" datatype="html">
         <source>Zeitraum für Nutzungskennzahlen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">474</context>
+          <context context-type="linenumber">756</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsagePeriod30Days" datatype="html">
         <source> Letzte 30 Tage </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">485,487</context>
+          <context context-type="linenumber">767,769</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsagePeriodSemester" datatype="html">
         <source> Aktuelles Semester </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">497,499</context>
+          <context context-type="linenumber">781,783</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsagePeriodCustom" datatype="html">
         <source> Zeitraum wählen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">509,511</context>
+          <context context-type="linenumber">793,795</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageCustomFrom" datatype="html">
         <source>Von (UTC)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">517</context>
+          <context context-type="linenumber">801</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageCustomTo" datatype="html">
         <source>Bis (UTC)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">525</context>
+          <context context-type="linenumber">809</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageCustomApply" datatype="html">
         <source> Anwenden </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">538,540</context>
+          <context context-type="linenumber">822,824</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageLoadError" datatype="html">
         <source> Nutzungskennzahlen konnten gerade nicht geladen werden. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">549,551</context>
+          <context context-type="linenumber">833,835</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsagePeriodRange" datatype="html">
         <source>Zeitraum (UTC):</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">556</context>
+          <context context-type="linenumber">840</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageTrackingStarted" datatype="html">
         <source>Erfassungsbeginn:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">562</context>
+          <context context-type="linenumber">846</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageTrackingUnknown" datatype="html">
         <source>noch nicht verfügbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">568</context>
+          <context context-type="linenumber">852</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">578</context>
+          <context context-type="linenumber">862</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageLastAggregated" datatype="html">
         <source>Letzte Aggregation:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">572</context>
+          <context context-type="linenumber">856</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageHistoryIncomplete" datatype="html">
         <source> Die Historie der neuen Nutzungsaggregate ist noch unvollständig. Fehlende Werte werden nicht als 0 dargestellt. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">585,588</context>
+          <context context-type="linenumber">869,872</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupUsageCore" datatype="html">
         <source>Kennzahlen im Zeitraum</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">600,602</context>
+          <context context-type="linenumber">886</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricSessionsUsed" datatype="html">
         <source>Genutzte Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">607</context>
+          <context context-type="linenumber">894</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricSessionsUsedHint" datatype="html">
         <source> Sessions mit Beitritt oder Interaktion im gewählten Zeitraum </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">613,615</context>
+          <context context-type="linenumber">901,903</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricSessionParticipations" datatype="html">
         <source>Session-Teilnahmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">621</context>
+          <context context-type="linenumber">909</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricSessionParticipationsHint" datatype="html">
         <source> Erstmalige Teilnahmen je Session — keine eindeutigen Personen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">628,630</context>
+          <context context-type="linenumber">916,918</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQuizAnswers" datatype="html">
         <source>Quizantworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">635</context>
+          <context context-type="linenumber">923</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQaAccepted" datatype="html">
         <source>Q&amp;A-Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">642</context>
+          <context context-type="linenumber">930</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQaRatingActions" datatype="html">
         <source>Q&amp;A-Bewertungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">649</context>
+          <context context-type="linenumber">938</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQaQuestionsTotal" datatype="html">
         <source>Q&amp;A-Fragen gesamt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">657</context>
+          <context context-type="linenumber">947</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricQaQuestionsTotalHint" datatype="html">
         <source> Erstmalig gespeicherte Fragen seit Beginn der Erfassung (purge-sicher) </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">664,666</context>
+          <context context-type="linenumber">954,956</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricLargestQaCollection" datatype="html">
         <source>Größte Q&amp;A-Sammlung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">672</context>
+          <context context-type="linenumber">962</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricLargestQaCollectionHint" datatype="html">
         <source> Höchster gleichzeitig gespeicherter Fragenbestand seit Beginn der Erfassung </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">679,682</context>
+          <context context-type="linenumber">969,972</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupFunctions" datatype="html">
         <source>Sessions nach Funktion</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">696,698</context>
+          <context context-type="linenumber">988</context>
         </context-group>
       </trans-unit>
-            <trans-unit id="app.footer.statusMetricFnJoinOnly" datatype="html">
+      <trans-unit id="app.footer.statusMetricFnJoinOnly" datatype="html">
         <source>Nur Teilnahme</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">995</context>
+        </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusUsageMonthlyTitle" datatype="html">
-        <source>Nutzung je Monat</source>
-      </trans-unit>
-<trans-unit id="app.footer.statusMetricFnQuizOnly" datatype="html">
+      <trans-unit id="app.footer.statusMetricFnQuizOnly" datatype="html">
         <source>Nur Quiz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">703</context>
+          <context context-type="linenumber">1002</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricFnQaOnly" datatype="html">
         <source>Nur Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">710</context>
+          <context context-type="linenumber">1009</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricFnCombined" datatype="html">
         <source>Quiz und Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">717</context>
+          <context context-type="linenumber">1016</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupSize" datatype="html">
         <source>Reichweite nach Größe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">734,736</context>
+          <context context-type="linenumber">1034</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSizeSample" datatype="html">
         <source>Stichprobe:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">738</context>
+          <context context-type="linenumber">1037</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSizeMedian" datatype="html">
         <source>Median:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">743</context>
+          <context context-type="linenumber">1042</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSizeQuartiles" datatype="html">
         <source>Q1–Q3:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">750</context>
+          <context context-type="linenumber">1049</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusUsageSeriesDisclosure" datatype="html">
+        <source> Tages- und Monatsverlauf </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1074,1076</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSeriesTitle" datatype="html">
         <source>Nutzung je Tag</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">779,781</context>
+          <context context-type="linenumber">1088</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSeriesSessions" datatype="html">
         <source>Sessions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">787</context>
+          <context context-type="linenumber">1098</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1140</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSeriesJoins" datatype="html">
         <source>Teilnahmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">791</context>
+          <context context-type="linenumber">1103</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1145</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSeriesVotes" datatype="html">
         <source>Antworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">795</context>
+          <context context-type="linenumber">1107</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1149</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSeriesQa" datatype="html">
         <source>Q&amp;A</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">799</context>
+          <context context-type="linenumber">1111</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1153</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusUsageMonthlyTitle" datatype="html">
+        <source>Nutzung je Monat</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1131</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageLoading" datatype="html">
         <source> Nutzungskennzahlen werden geladen … </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">811,813</context>
+          <context context-type="linenumber">1165,1167</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusJoinLegacyTitle" datatype="html">
         <source>Join-Rekorde (Legacy)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">825,827</context>
+          <context context-type="linenumber">1182</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusJoinLegacyIntro" datatype="html">
         <source> Die folgenden Werte zählen kumulative Beitritte je Session. Sie ergänzen die Nutzungsaggregate oben und messen weder gleichzeitige Anwesenheit noch eindeutige Personen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">831,835</context>
+          <context context-type="linenumber">1190,1194</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.statsTitle" datatype="html">
-        <source> Höchste Join-Teilnahme einer Session </source>
+        <source>Höchste Join-Teilnahme einer Session</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">848,850</context>
+          <context context-type="linenumber">1207</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.statsHint" datatype="html">
         <source> Lebenszeit-Höchstwert: Summe aller erstmaligen Beitritte in einer einzelnen Session. Wiedereintritte erhöhen den Wert nicht. Keine gleichzeitige Anwesenheit. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">851,855</context>
+          <context context-type="linenumber">1209,1213</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.statsAsOf" datatype="html">
         <source> Zuletzt angehoben am <x id="INTERPOLATION" equiv-text="{{ dateLabel }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">861,863</context>
+          <context context-type="linenumber">1219,1221</context>
         </context-group>
       </trans-unit>
       <trans-unit id="help.statsUnit" datatype="html">
-        <source> Joins </source>
+        <source>Joins</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">874,876</context>
+          <context context-type="linenumber">1229</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryTitle" datatype="html">
         <source>Join-Höchststände je Tag</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">888,890</context>
+          <context context-type="linenumber">1243</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryDisclaimer" datatype="html">
         <source> Fenster: 100 UTC-Tage. Jeder Punkt ist der höchste an diesem Tag gemessene Session-Join-Stand (größte einzelne Session). Tage ohne Messung bleiben leer (nicht 0). Kennzahlen: Median und IQR nur über gemessene Tage. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">894,898</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.statusDailyHistoryStatsAria" datatype="html">
-        <source>Kennzahlen von <x id="sampleSize" equiv-text="n"/> gemessenen Tagen im 100-Tage-Fenster</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">902</context>
+          <context context-type="linenumber">1249,1253</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryMedian" datatype="html">
         <source>Median</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">907</context>
+          <context context-type="linenumber">1262</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryMedianHint" datatype="html">
         <source> Nur gemessene Tage im Fenster </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">913,915</context>
+          <context context-type="linenumber">1268,1270</context>
         </context-group>
       </trans-unit>
-            <trans-unit id="app.footer.statusDailyHistoryIqr" datatype="html">
+      <trans-unit id="app.footer.statusDailyHistoryIqr" datatype="html">
         <source>IQR</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1275</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryIqrHint" datatype="html">
         <source> Q3−Q1 der gemessenen Tage </source>
-      </trans-unit>
-<trans-unit id="app.footer.statusDailyHistoryStdDev" datatype="html">
-        <source>Standardabweichung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">919</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="app.footer.statusDailyHistoryStdDevHint" datatype="html">
-        <source> Stichprobe (n−1) über gemessene Tage </source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">925,927</context>
+          <context context-type="linenumber">1281,1283</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryMax" datatype="html">
         <source>Maximum</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">931</context>
+          <context context-type="linenumber">1288</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryMaxHint" datatype="html">
         <source> Höchster Join-Stand im Fenster </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">937,939</context>
+          <context context-type="linenumber">1294,1296</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryChartAria" datatype="html">
         <source>Verlauf der Join-Höchststände</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">949</context>
+          <context context-type="linenumber">1306</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLoading" datatype="html">
         <source> Live-Daten werden geladen… </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">960,962</context>
+          <context context-type="linenumber">1319,1321</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUnavailable" datatype="html">
         <source> Derzeit sind keine Live-Daten verfügbar. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">964,966</context>
+          <context context-type="linenumber">1323,1325</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendTitle" datatype="html">
         <source> Betriebszustand </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">979,981</context>
+          <context context-type="linenumber">1338,1340</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpDot" datatype="html">
         <source> Die Statusanzeige findest du im Footer-Menü »Mehr«. Sie zeigt den Betriebszustand — nicht die Nutzungsaktivität. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">985,988</context>
+          <context context-type="linenumber">1344,1347</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendHealthy" datatype="html">
         <source>Stabil</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">997</context>
+          <context context-type="linenumber">1356</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendBusy" datatype="html">
         <source>Eingeschränkt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1006</context>
+          <context context-type="linenumber">1365</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendOverloaded" datatype="html">
         <source>Gestört</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1017</context>
+          <context context-type="linenumber">1376</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLegendUnknown" datatype="html">
         <source>Messung unbekannt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1026</context>
+          <context context-type="linenumber">1385</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusHelpClose" datatype="html">
         <source> Schließen </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1033,1035</context>
+          <context context-type="linenumber">1392,1394</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusDailyHistoryStatsAria" datatype="html">
+        <source>Kennzahlen von <x id="sampleSize" equiv-text="n"/> gemessenen Tagen im 100-Tage-Fenster</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1539</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusChartDatasetJoinRecord" datatype="html">
         <source>Join-Höchststand</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1209</context>
+          <context context-type="linenumber">1590</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusChartAxisDate" datatype="html">
         <source>Datum (UTC)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1210</context>
+          <context context-type="linenumber">1591</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusChartAxisParticipants" datatype="html">
         <source>Joins (kumulativ)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1211</context>
+          <context context-type="linenumber">1592</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusQaLiveRebuilding" datatype="html">
         <source>Live-Werte werden neu aufgebaut</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1244</context>
+          <context context-type="linenumber">1625</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusQaUnavailable" datatype="html">
         <source>Derzeit nicht verfügbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1247</context>
+          <context context-type="linenumber">1628</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricNotYetAvailable" datatype="html">
         <source>noch nicht verfügbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1263</context>
+          <context context-type="linenumber">1644</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.dependencyOk" datatype="html">
         <source>ok</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1273</context>
+          <context context-type="linenumber">1652</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.dependencyDegraded" datatype="html">
         <source>eingeschränkt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1275</context>
+          <context context-type="linenumber">1654</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.dependencyUnavailable" datatype="html">
         <source>nicht erreichbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1277</context>
+          <context context-type="linenumber">1656</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.dependencyUnknown" datatype="html">
         <source>unbekannt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1279</context>
+          <context context-type="linenumber">1658</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficCoverageValue" datatype="html">
+        <source><x id="monitored" equiv-text="traffic.monitoredProcedures"/> von <x id="defined" equiv-text="traffic.definedProcedures"/> definierten Kernaktionen werden überwacht.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1679</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMeasurementUnavailable" datatype="html">
+        <source>Messung derzeit nicht verfügbar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1684</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1694</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1701</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1713</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1720</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1729</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1737</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1744</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1755</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1768</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficWindowWarmup" datatype="html">
+        <source><x id="seconds" equiv-text="traffic.observedWindowSeconds"/> s von <x id="window" equiv-text="traffic.windowSeconds"/> s (Anlauf, Messung unvollständig)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1687</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusTrafficWindowFull" datatype="html">
+        <source><x id="window" equiv-text="traffic.windowSeconds"/> s (vollständig)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1689</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMeasurementIncomplete" datatype="html">
+        <source>unvollständig</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1706</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusLatencyInsufficient" datatype="html">
+        <source>noch nicht genügend Messwerte (<x id="samples" equiv-text="samples"/>)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1733</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusErrorClassesValue" datatype="html">
+        <source>Server <x id="server" equiv-text="errors.server"/>, Rate-Limit <x id="rateLimit" equiv-text="errors.rateLimit"/>, Client <x id="client" equiv-text="errors.client"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1750</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusLiveChurnValue" datatype="html">
+        <source><x id="opened" equiv-text="opened"/> neu / <x id="closed" equiv-text="closed"/> geschlossen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1772</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricNotMeasured" datatype="html">
+        <source>nicht gemessen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1777</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.qualityUnavailable" datatype="html">
         <source>keine Stichprobe</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1287</context>
+          <context context-type="linenumber">1786</context>
         </context-group>
       </trans-unit>
       <trans-unit id="topToolbar.brandHomeAria" datatype="html">
