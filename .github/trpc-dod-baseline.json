@@ -284,7 +284,7 @@
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:080b28d3fb5c9b765da64b9051bfc3f0000af7bdf967414b940cfcbed4eb4ceb",
+      "fingerprint": "sha256:4918f0d48258eb07761ecf6215fa2d5b645c78537fa06d1564da4b30f3fe34b7",
       "missing": []
     },
     "qa.moderate": {
@@ -309,7 +309,7 @@
     },
     "qa.presentProjection": {
       "kind": "query",
-      "fingerprint": "sha256:c6d0a31a690129c79471088b805798ba564069ac310b2f0f75ef5168070d7ff9",
+      "fingerprint": "sha256:0cca1a3cdf25a747b79a4cb6e935fdc69b80d4725303e13eba46d19cc858ddd4",
       "missing": []
     },
     "qa.redactPassages": {
@@ -329,7 +329,7 @@
     },
     "qa.setPresenterSortMode": {
       "kind": "mutation",
-      "fingerprint": "sha256:fdd8b9e776e520568a84f5178edaad20e02141c7ff213a9b835c3ba78a49518f",
+      "fingerprint": "sha256:78e99fac5118a8ca034e28995ec8f3cd3f2f030c85a97d37ad3d8ec978588c36",
       "missing": []
     },
     "qa.submit": {
@@ -909,7 +909,7 @@
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:50cd57254ca936af2be1ec17ca334a0078f379f7c407b3fd9cf7d4f641994514",
+      "fingerprint": "sha256:5f6cfe2932e8033be13c756e86fd28bf1cb53292089241f577baa223155b01e1",
       "missing": []
     }
   }
