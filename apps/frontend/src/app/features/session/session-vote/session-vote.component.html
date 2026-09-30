@@ -2920,20 +2920,22 @@
                           }
                         </span>
                       }
-                      <span
-                        class="session-qa-card__status"
-                        [class.session-qa-card__status--active]="question.status === 'ACTIVE'"
-                        [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
-                        [class.session-qa-card__status--pending]="question.status === 'PENDING'"
-                        [class.session-qa-card__status--archived]="question.status === 'ARCHIVED'"
-                      >
-                        @if (question.status === 'PINNED') {
-                          <mat-icon class="session-qa-card__status-icon" aria-hidden="true"
-                            >campaign</mat-icon
-                          >
-                        }
-                        {{ qaStatusLabel(question.status, question.isOwn) }}
-                      </span>
+                      @if (qaStatusLabel(question.status, question.isOwn); as statusLabel) {
+                        <span
+                          class="session-qa-card__status"
+                          [class.session-qa-card__status--active]="question.status === 'ACTIVE'"
+                          [class.session-qa-card__status--pinned]="question.status === 'PINNED'"
+                          [class.session-qa-card__status--pending]="question.status === 'PENDING'"
+                          [class.session-qa-card__status--archived]="question.status === 'ARCHIVED'"
+                        >
+                          @if (question.status === 'PINNED') {
+                            <mat-icon class="session-qa-card__status-icon" aria-hidden="true"
+                              >campaign</mat-icon
+                            >
+                          }
+                          {{ statusLabel }}
+                        </span>
+                      }
                       @if (question.isOwn) {
                         <span class="session-qa-card__own-badge">{{
                           vpc.voteQaOwnBadge(isPlayfulPreset())

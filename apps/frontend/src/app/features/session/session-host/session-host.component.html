@@ -5173,6 +5173,18 @@
                       <p class="session-qa-empty__text" i18n="@@sessionQa.searchEmpty">
                         Keine passenden Fragen gefunden.
                       </p>
+                      @if (
+                        projectionNavigationIsQaQuestions() &&
+                        session()?.presenterSurface !== 'ended' &&
+                        (session()?.presenterPage?.count ?? 0) > 0
+                      ) {
+                        <p
+                          class="session-qa-empty__hint"
+                          i18n="@@sessionQa.searchEmptyPresenterHint"
+                        >
+                          Die Präsentation zeigt weiterhin die zuletzt präsentierte Frage.
+                        </p>
+                      }
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
                     <div class="session-qa-empty session-qa-empty--filtered" role="status">

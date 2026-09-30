@@ -7915,8 +7915,16 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent ?? '';
-    expect(text).toContain('Freigegeben');
-    expect(text).toContain('Wird gerade besprochen');
+    const statusLabels = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-qa-card__status') as NodeListOf<HTMLElement>,
+    ).map((el) => (el.textContent ?? '').replace(/\s+/g, ' ').trim());
+    expect(statusLabels).not.toContain('Freigegeben');
+    expect(statusLabels.some((label) => label.includes('Wird gerade besprochen'))).toBe(true);
+    expect(
+      statusLabels.some((label) =>
+        label.includes('Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.'),
+      ),
+    ).toBe(true);
     const pinnedCard = fixture.nativeElement.querySelector(
       '.session-qa-card--pinned',
     ) as HTMLElement | null;

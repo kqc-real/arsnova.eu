@@ -162,6 +162,7 @@ import {
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
   QaQuestionSortMode,
+  QaQuestionSortModeEnum,
   QaSummaryRuntimeDTO,
   QaSummarySource,
   QuickFeedbackResult,
@@ -6166,6 +6167,79 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (session?.presenterSurface === 'ended') return false;
     return page.count > 1 || this.projectionControlsVisible() || !this.showPresenterViewButton();
   });
+  private async syncPresenterToStageQuestionId(questionId: string): Promise<void> {
+    if (
+      !this.projectionNavigationIsQaQuestions() ||
+      this.session()?.presenterSurface === 'ended' ||
+      this.projectionPagePending()
+    ) {
+      return;
+    }
+    const page = this.session()?.presenterPage;
+    if (!page || !this.code) {
+      return;
+    }
+    const stage = this.qaProjectionStageQuestions();
+    const stageIndex = stage.findIndex((question) => question.id === questionId);
+    if (stageIndex < 0) {
+      return;
+    }
+    if (stageIndex === page.index && page.count >= this.qaProjectionFullStagePageCount()) {
+      return;
+    }
+    this.projectionPagePending.set(true);
+    this.projectionPageError.set('');
+    try {
+      const fullCount = Math.max(page.count, this.qaProjectionFullStagePageCount(), stageIndex + 1);
+      if (page.count < fullCount) {
+        await this.syncQaProjectionPageCount(fullCount);
+      }
+      const current = this.session()?.presenterPage;
+      if (!current) {
+        return;
+      }
+      const result = await trpc.session.setPresenterSurface.mutate(
+        {
+          code: this.code,
+          page: {
+            context: current.context,
+            index: stageIndex,
+            count: Math.max(current.count, fullCount, stageIndex + 1),
+          },
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.session.update((session) =>
+        session?.presenterPage?.context === current.context
+          ? { ...session, presenterPage: result.presenterPage }
+          : session,
+      );
+      this.projectionControlsVisible.set(true);
+    } catch {
+      this.projectionPageError.set(
+        $localize`:@@sessionHost.projectionQaPageError:Fragen konnten nicht gewechselt werden. Bitte erneut versuchen.`,
+      );
+    } finally {
+      this.projectionPagePending.set(false);
+    }
+  }
+
+  /**
+   * Nach Suche/Sortierung/präsentierbarem Filter: erstes Navigationsergebnis = Host- und Presenter-Hero.
+   * Verwaltungsfilter (Pending/Archiv) lösen nur den Listen-Cursor und lassen den Beamer unberührt.
+   */
+  private async resetQaNavigableHeroToFirstAndSyncPresenter(): Promise<void> {
+    if (this.qaShowPendingOnly() || this.qaShowArchivedOnly()) {
+      this.qaListNavQuestionId.set(null);
+      return;
+    }
+    const first = this.qaNavigableStageQuestions()[0] ?? null;
+    this.qaListNavQuestionId.set(first?.id ?? null);
+    if (first) {
+      await this.syncPresenterToStageQuestionId(first.id);
+    }
+  }
+
   async changeProjectionPage(delta: -1 | 1): Promise<void> {
     const page = this.session()?.presenterPage;
     if (!page || this.projectionPagePending() || this.qaListNavFadeBusy()) {
@@ -6194,47 +6268,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (!liveProjection || stageIndex < 0) {
         return;
       }
-      if (stageIndex === page.index && page.count >= this.qaProjectionFullStagePageCount()) {
-        return;
-      }
-      this.projectionPagePending.set(true);
-      this.projectionPageError.set('');
-      try {
-        const fullCount = Math.max(
-          page.count,
-          this.qaProjectionFullStagePageCount(),
-          stageIndex + 1,
-        );
-        if (page.count < fullCount) {
-          await this.syncQaProjectionPageCount(fullCount);
-        }
-        const current = this.session()?.presenterPage;
-        if (!current) {
-          return;
-        }
-        const result = await trpc.session.setPresenterSurface.mutate(
-          {
-            code: this.code,
-            page: {
-              context: current.context,
-              index: stageIndex,
-              count: Math.max(current.count, fullCount, stageIndex + 1),
-            },
-          },
-          { signal: AbortSignal.timeout(10000) },
-        );
-        this.session.update((session) =>
-          session?.presenterPage?.context === current.context
-            ? { ...session, presenterPage: result.presenterPage }
-            : session,
-        );
-      } catch {
-        this.projectionPageError.set(
-          $localize`:@@sessionHost.projectionQaPageError:Fragen konnten nicht gewechselt werden. Bitte erneut versuchen.`,
-        );
-      } finally {
-        this.projectionPagePending.set(false);
-      }
+      await this.syncPresenterToStageQuestionId(nextQuestion.id);
       return;
     }
     const displayCount = this.projectionPageDisplayCount();
@@ -10012,6 +10046,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaListNavQuestionId.set(null);
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
+    await this.resetQaNavigableHeroToFirstAndSyncPresenter();
     this.scrollQaListToTop();
   }
 
@@ -10026,6 +10061,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
+    await this.resetQaNavigableHeroToFirstAndSyncPresenter();
     this.scrollQaListToTop();
   }
 
@@ -10596,7 +10632,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     mode: QaQuestionSortMode,
     options?: { readonly scrollToTop?: boolean },
   ): Promise<void> {
-    if (this.qaSortMode() === mode) {
+    // mat-button-toggle-group kann beim Re-Render kurz `undefined` emittieren.
+    if (!QaQuestionSortModeEnum.safeParse(mode).success || this.qaSortMode() === mode) {
       return;
     }
 
@@ -10604,6 +10641,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.publishQaPresenterSortMode(mode);
     this.ensureQaSubscription();
     await this.refreshQaQuestions();
+    await this.resetQaNavigableHeroToFirstAndSyncPresenter();
     if (options?.scrollToTop !== false) {
       this.scrollHostQaAfterListCriteriaChange();
     }
@@ -12415,6 +12453,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
+    await this.resetQaNavigableHeroToFirstAndSyncPresenter();
     if (options?.scrollToTop !== false) {
       this.scrollHostQaAfterListCriteriaChange();
     }
@@ -12435,6 +12474,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
+    // Verwaltungsansicht: Listen-Cursor lösen, Beamer unverändert.
+    // Beim Verlassen: Effects stellen den Cursor aus presenterPage wieder her.
+    this.qaListNavQuestionId.set(null);
     if (options?.scrollToTop !== false) {
       this.scrollHostQaAfterListCriteriaChange();
     }
@@ -12455,6 +12497,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
+    this.qaListNavQuestionId.set(null);
     if (options?.scrollToTop !== false) {
       this.scrollHostQaAfterListCriteriaChange();
     }
@@ -12491,7 +12534,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.resetQaListPageNavigation();
       this.qaListNextCursor.set(null);
       const refiningSearch = Boolean(previousSearch && search);
-      void this.refreshQaQuestions().then(() => {
+      void this.refreshQaQuestions().then(async () => {
+        await this.resetQaNavigableHeroToFirstAndSyncPresenter();
         if (!refiningSearch) {
           this.scrollQaListToTop();
         }
@@ -12515,7 +12559,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureQaSubscription();
     this.resetQaListPageNavigation();
     this.qaListNextCursor.set(null);
-    void this.refreshQaQuestions().then(() => this.scrollQaListToTop());
+    void this.refreshQaQuestions().then(async () => {
+      await this.resetQaNavigableHeroToFirstAndSyncPresenter();
+      this.scrollQaListToTop();
+    });
   }
 
   async loadMoreQaQuestions(): Promise<void> {

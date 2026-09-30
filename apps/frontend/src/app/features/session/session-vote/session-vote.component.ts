@@ -3004,12 +3004,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       case 'PINNED':
         return $localize`:@@sessionQa.statusPinned:Wird gerade besprochen`;
       case 'ACTIVE':
-        return $localize`:@@sessionQa.statusActive:Freigegeben`;
+        // Freigegebene Fragen brauchen kein Statuslabel — sichtbar heißt freigegeben.
+        return '';
       case 'PENDING':
-        if (isOwn) {
-          return $localize`:@@sessionVote.qaStatusPendingOwn:Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.`;
+        if (!isOwn) {
+          return '';
         }
-        return $localize`:@@sessionQa.statusPending:Wartet auf Freigabe`;
+        return $localize`:@@sessionVote.qaStatusPendingOwn:Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.`;
       case 'ARCHIVED':
         return $localize`:@@sessionQa.statusArchived:Beantwortet`;
       case 'DELETED':
