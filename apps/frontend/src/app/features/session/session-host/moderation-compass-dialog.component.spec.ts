@@ -243,6 +243,9 @@ describe('ModerationCompassDialogComponent', () => {
     ) as HTMLButtonElement | null;
     expect(button).not.toBeNull();
     expect(button?.textContent).toContain('Q&A');
+    expect(
+      button?.querySelector('.moderation-compass-card__source-label')?.textContent?.trim(),
+    ).toBe('Kommt Kapitel 4 in der Klausur vor?');
     expect(fixture.nativeElement.querySelector('[data-tone="caution"]')).not.toBeNull();
     button?.click();
 

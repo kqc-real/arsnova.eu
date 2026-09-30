@@ -14,6 +14,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { prisma } from '../db';
+import { resolveQaControversyThreshold } from '../lib/qaControversy';
 import {
   buildLexicalWordCloudEntries,
   buildThemeWordCloudAnalysis,
@@ -265,7 +266,7 @@ export const wordCloudRouter = router({
             : input.metric === 'TIME'
               ? Prisma.sql`ranked."createdAt" DESC, ranked."id" ASC`
               : Prisma.sql`ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`;
-      const controversyThreshold = Math.max(1, participantCount * 0.1);
+      const controversyThreshold = resolveQaControversyThreshold(participantCount);
       const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
       type CorpusRow = {
         id: string;

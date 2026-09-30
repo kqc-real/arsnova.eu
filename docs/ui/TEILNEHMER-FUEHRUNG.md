@@ -56,7 +56,7 @@ Antwortdaten. Host-Fallpräferenzen gelangen nicht in Teilnehmer-Datenverträge.
 | Q&A offen                         | Editor, **Frage senden**, Fragenliste          | Erlaubte Bewertungen unmittelbar an der Frage                                |
 | Q&A leer / `PENDING`              | Leerhinweis / eigene Frage wartet auf Freigabe | Vorabmoderation bleibt sichtbar erklärt                                      |
 | Q&A geschlossen / abgelaufen      | Grund und Status                               | Vorhandener Entwurf bleibt lesbar, nicht absendbar                           |
-| Suche / andere Sortierung         | **Fragen finden & sortieren**                  | Kriterien und **Zurücksetzen** auch außerhalb des geschlossenen Bereichs     |
+| Suche / andere Sortierung         | **Fragen finden & sortieren**                  | Kriterien bleiben beim Einklappen erhalten; Suche wird im Werkzeug geleert   |
 | Blitzlicht                        | Abstimmen / Pausiert / Schon abgestimmt        | Tempo bleibt änderbar und abwählbar; Vergleichsrunde erlaubt erneute Stimme  |
 | Mehrere Formate                   | Aufgabenstatus in jedem Tab                    | Begonnene Aufgabe und Fokus werden nicht durch einen anderen Kanal verdrängt |
 | Quiz `FINISHED`, Nebenkanal offen | Quizabschluss, erreichbare Nebenkanäle         | Kein vorzeitiges globales End-Gate                                           |
@@ -66,9 +66,9 @@ Antwortdaten. Host-Fallpräferenzen gelangen nicht in Teilnehmer-Datenverträge.
 
 **Fragen finden & sortieren** ist ein natives `details/summary` und zunächst
 geschlossen. Suche, vier Sortierungen und ihre Erläuterung bleiben erhalten.
-`TOP` bleibt Standard; Reihenfolgen und Pagination kommen unverändert vom Server.
-Einklappen verwirft keine Kriterien. Reset setzt Suche, Sortierung und Autorenfilter
-zurück und fokussiert vorher den weiterhin sichtbaren Werkzeugauslöser.
+`BEST` bleibt Standard; Reihenfolgen und Pagination kommen unverändert vom Server.
+Einklappen verwirft keine Kriterien. Die Suche wird im geöffneten Werkzeug geleert
+und fokussiert danach den Werkzeugauslöser.
 
 Bei Fristablauf oder Host-Schluss bleibt ein vorhandener Entwurf schreibgeschützt
 mit zugeordnetem Frist-/Schlusshinweis. Während Submit ist der Editor ebenfalls
@@ -83,7 +83,7 @@ Die Komponenten-Specs für Home, Join, Session-Vote und Feedback-Vote sichern di
 lokalen Zustände ab. Die Browserflows `check-unified-session-flow.mjs`,
 `check-epic-405-participant-qa-flow.mjs` und
 `check-webkit-participant-vote-flow.mjs` prüfen zusätzlich echte Teilnahme,
-Entwurfsschutz bei Host-Wechsel/neuer Frage und Q&A-Disclosure mit Reset-Fokus.
+Entwurfsschutz bei Host-Wechsel/neuer Frage und Q&A-Disclosure mit Clear-Fokus.
 Die Kurztext- und Strukturantwort-Smokes (`check-short-text-flow.mjs` und
 `check-structured-question-types-flow.mjs`) verwenden die neue Sendeaktion
 **Antwort senden** und prüfen weiterhin die tatsächliche Abgabe/Auswertung.

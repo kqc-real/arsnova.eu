@@ -312,8 +312,14 @@ describe('qa router (Epic 8)', () => {
           id: QUESTION_ID,
           text: 'Was ist klausurrelevant?',
           upvoteCount: 4,
+          score: 4,
           positiveVoteCount: 4,
           negativeVoteCount: 0,
+          voteCount: 4,
+          bestScore: 0.5101,
+          controversyScore: 0,
+          isControversial: false,
+          controversyInsufficientVotes: false,
           status: 'ACTIVE',
           createdAt: '2026-03-13T12:00:00.000Z',
           passagesRedacted: false,
@@ -336,15 +342,12 @@ describe('qa router (Epic 8)', () => {
         select: { status: true },
         take: 10,
       });
-      expect(result[0]).not.toHaveProperty('controversyScore');
-      expect(result[0]).not.toHaveProperty('isControversial');
-      expect(result[0]).not.toHaveProperty('bestScore');
       expect(result[0]).not.toHaveProperty('moderationCompass');
       expect(result[0]).not.toHaveProperty('compassCards');
       const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
       expect(sql).toContain(`WHEN 'ACTIVE' THEN 1`);
-      expect(sql).not.toContain('GREATEST(');
-      expect(sql).not.toContain('POWER(');
+      expect(sql).toContain('GREATEST(');
+      expect(sql).toContain('POWER(');
     },
   );
 
@@ -558,9 +561,11 @@ describe('qa router (Epic 8)', () => {
       '22222222-2222-4222-8222-222222222222',
       '11111111-1111-4111-8111-111111111111',
     ]);
-    expect(result[0]).not.toHaveProperty('bestScore');
-    expect(result[0]).not.toHaveProperty('controversyScore');
-    expect(result[0]).not.toHaveProperty('isControversial');
+    expect(result[0]).toMatchObject({
+      bestScore: 0.5655,
+      isControversial: false,
+    });
+    expect(result[0]).toHaveProperty('controversyScore');
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."bestScore" DESC',
     );
@@ -613,7 +618,10 @@ describe('qa router (Epic 8)', () => {
       '11111111-1111-4111-8111-111111111111',
       '22222222-2222-4222-8222-222222222222',
     ]);
-    expect(result[0]).not.toHaveProperty('controversyScore');
+    expect(result[0]).toMatchObject({
+      controversyScore: 5 / 6,
+      isControversial: true,
+    });
     expect(prismaMock.participant.count).toHaveBeenCalled();
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."controversyScore" DESC',
@@ -666,8 +674,11 @@ describe('qa router (Epic 8)', () => {
     expect(sql).toContain('ranked."createdAt" DESC');
     expect(sql).toMatch(/WHEN 'PINNED' THEN 0[\s\S]*WHEN 'ACTIVE' THEN 1/);
     expect(sql).not.toContain('ranked."bestScore" DESC');
-    expect(sql).not.toContain('GREATEST(');
-    expect(sql).not.toContain('POWER(');
+    // Scores werden auch bei TIME für Vote-Labels (Zustimmung/Umstritten) berechnet.
+    expect(sql).toContain('GREATEST(');
+    expect(sql).toContain('POWER(');
+    expect(result[0]).toHaveProperty('bestScore');
+    expect(result[0]).toHaveProperty('isControversial');
   });
 
   it('bündelt gleichzeitige Teilnehmer-Rankings derselben Revision und lädt eigene Votes separat', async () => {
@@ -801,6 +812,53 @@ describe('qa router (Epic 8)', () => {
     expect(prismaMock.participant.count).toHaveBeenCalled();
   });
 
+  it('übernimmt Suche und Pin-Filter in der Presenter-Projektion', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+
+    await expect(
+      hostCaller.setPresenterSortMode({
+        code: 'CODE12',
+        sortMode: 'TIME',
+        search: 'eins',
+        pinnedOnly: false,
+      }),
+    ).resolves.toEqual({
+      sortMode: 'TIME',
+      search: 'eins',
+      pinnedOnly: false,
+      authorNickname: null,
+    });
+
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({ text: 'Alpha eins', status: 'ACTIVE' }),
+      rankedQaRow({ text: 'Gamma eins', status: 'ACTIVE' }),
+    ]);
+    const result = await caller.presentProjection({ sessionId: SESSION_ID });
+    expect(result.questions.map((question) => question.text)).toEqual(['Alpha eins', 'Gamma eins']);
+    expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ values: ['ACTIVE', 'PINNED'] })]),
+    );
+
+    prismaMock.$queryRaw.mockClear();
+    rawQueryResults.rankedQuestions.push([rankedQaRow({ text: 'Beta pin', status: 'PINNED' })]);
+    await hostCaller.setPresenterSortMode({
+      code: 'CODE12',
+      sortMode: 'TIME',
+      search: '',
+      pinnedOnly: true,
+    });
+    await caller.presentProjection({ sessionId: SESSION_ID });
+    expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ values: ['PINNED'] })]),
+    );
+  });
+
   it('lädt in der Presenter-Projektion bis zu 500 ACTIVE+PINNED statt nur der Forum-Defaultseite', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
@@ -848,7 +906,12 @@ describe('qa router (Epic 8)', () => {
 
       await expect(
         hostCaller.setPresenterSortMode({ code: 'CODE12', sortMode: 'CONTROVERSIAL' }),
-      ).resolves.toEqual({ sortMode: 'CONTROVERSIAL' });
+      ).resolves.toEqual({
+        sortMode: 'CONTROVERSIAL',
+        search: '',
+        pinnedOnly: false,
+        authorNickname: null,
+      });
 
       prismaMock.participant.count.mockResolvedValue(12);
       rawQueryResults.rankedQuestions.push([
@@ -2047,6 +2110,7 @@ describe('qa router (Epic 8)', () => {
         bestScore: 0,
         controversyScore: 0,
         isControversial: false,
+        controversyInsufficientVotes: true,
         hasUpvoted: false,
         isOwn: false,
         myVote: null,
@@ -2772,6 +2836,72 @@ describe('qa router (Epic 8)', () => {
         expect(sql).toContain('ranked."upvoteCount" DESC');
       }
     }
+  });
+
+  it('sortiert CONTROVERSIAL auch unterhalb von T und zeigt das Label erst ab T', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      id: SESSION_ID,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: true,
+    });
+    // P=100 → T=10. 2↔2 liegt unter T, 10↔10 darüber.
+    prismaMock.participant.count.mockResolvedValue(100);
+    rawQueryResults.rankedQuestions.push([
+      rankedQaRow({
+        id: '11111111-1111-4111-8111-111111111111',
+        participantId: PARTICIPANT_ID,
+        text: 'Genug Stimmen und polarisiert',
+        upvoteCount: 0,
+        positiveVoteCount: 10,
+        negativeVoteCount: 10,
+        controversyScore: 20 / 30,
+        totalCount: 2,
+      }),
+      rankedQaRow({
+        id: '22222222-2222-4222-8222-222222222222',
+        participantId: PARTICIPANT_ID,
+        text: 'Ausgeglichen, aber unter T',
+        upvoteCount: 0,
+        positiveVoteCount: 2,
+        negativeVoteCount: 2,
+        // Auch bei künstlich hohem Score: ohne T kein Label.
+        controversyScore: 0.8,
+        totalCount: 2,
+      }),
+    ]);
+
+    const { questions: result } = await hostCaller.list({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+      sort: 'CONTROVERSIAL',
+    });
+
+    expect(result.map((question) => question.id)).toEqual([
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+    ]);
+    expect(result[0]).toMatchObject({
+      voteCount: 20,
+      isControversial: true,
+    });
+    expect(result[1]).toMatchObject({
+      voteCount: 4,
+      controversyScore: 0.8,
+      isControversial: false,
+      controversyInsufficientVotes: true,
+    });
+    expect(result[0]).toMatchObject({
+      voteCount: 20,
+      isControversial: true,
+      controversyInsufficientVotes: false,
+    });
+    expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
+      'ranked."controversyScore" DESC',
+    );
   });
 
   it('sortiert Host-Q&A im CONTROVERSIAL-Modus nach Kontroversität und kennzeichnet starke Polarität', async () => {

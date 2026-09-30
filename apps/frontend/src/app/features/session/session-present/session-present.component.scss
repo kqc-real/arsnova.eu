@@ -1351,6 +1351,18 @@ app-session-projection-quiz,
   border-color: color-mix(in srgb, var(--mat-sys-secondary) 26%, transparent);
 }
 
+.session-present__qa-meta-chip--controversy-pending {
+  color: var(--mat-sys-on-surface);
+  background: color-mix(in srgb, var(--mat-sys-on-surface-variant) 18%, transparent);
+  border-color: color-mix(in srgb, var(--mat-sys-outline) 45%, transparent);
+}
+
+.session-present__qa-meta-chip--controversy-onesided {
+  color: var(--mat-sys-on-primary-container);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 82%, transparent);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 26%, transparent);
+}
+
 .session-present__qa-list-text {
   font-size: clamp(1.15rem, 2vw, 1.6rem);
   line-height: 1.4;
@@ -1396,6 +1408,18 @@ app-session-projection-quiz,
   color: var(--mat-sys-secondary);
   background: color-mix(in srgb, var(--mat-sys-secondary) 12%, transparent);
   border-color: color-mix(in srgb, var(--mat-sys-secondary) 18%, transparent);
+}
+
+.session-present__qa-list-meta-chip--controversy-pending {
+  color: var(--mat-sys-on-surface);
+  background: color-mix(in srgb, var(--mat-sys-on-surface-variant) 18%, transparent);
+  border-color: color-mix(in srgb, var(--mat-sys-outline) 45%, transparent);
+}
+
+.session-present__qa-list-meta-chip--controversy-onesided {
+  color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
 }
 
 .session-present__qa-stage > .session-present__qa-card .session-present__qa-head {

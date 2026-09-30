@@ -529,6 +529,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
   }
+
   readonly showQaWordCloud = computed(() => {
     const session = this.session();
     if (!this.showSecondaryPresentSurfaces() || session?.presenterSurface !== 'qaWordCloud') {

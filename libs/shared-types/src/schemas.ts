@@ -5831,6 +5831,12 @@ export const QaQuestionDTOSchema = z.object({
   bestScore: z.number().min(0).max(1).optional(),
   controversyScore: z.number().min(0).max(1).optional(),
   isControversial: z.boolean().optional(),
+  /**
+   * Stimmenzahl unter der Raumschwelle T: Sortierung möglich,
+   * belastbares „Umstritten“- oder „Einseitig“-Label noch nicht.
+   * Bei isControversial === false und diesem Flag false: einseitige/schwache Tendenz.
+   */
+  controversyInsufficientVotes: z.boolean().optional(),
   /** 'UP' | 'DOWN' | null — aktueller Vote-Status dieses Teilnehmers */
   myVote: z.enum(['UP', 'DOWN']).nullable(),
   /** true wenn die Frage vom aktuellen Teilnehmer stammt */
@@ -5984,14 +5990,22 @@ export type GetQaPresentProjectionInput = z.infer<typeof GetQaPresentProjectionI
 /**
  * Host publiziert die aktuelle Q&A-Sortierung an die Presenter-Projektion
  * (ephemer, session-code-gebunden; analog zur Wortwolken-Projektion).
+ * Optional: präsentierbarer Such-/Pin-/Autor-Filter, damit Host-Navigator und
+ * Beamer dieselbe Bühnenliste teilen.
  */
 export const SetQaPresenterSortModeInputSchema = GetSessionInfoInputSchema.extend({
   sortMode: QaQuestionSortModeEnum,
+  search: z.string().trim().max(100).optional().default(''),
+  pinnedOnly: z.boolean().optional().default(false),
+  authorNickname: z.string().trim().min(1).max(30).optional(),
 });
 export type SetQaPresenterSortModeInput = z.infer<typeof SetQaPresenterSortModeInputSchema>;
 
 export const SetQaPresenterSortModeOutputSchema = z.object({
   sortMode: QaQuestionSortModeEnum,
+  search: z.string(),
+  pinnedOnly: z.boolean(),
+  authorNickname: z.string().nullable(),
 });
 export type SetQaPresenterSortModeOutput = z.infer<typeof SetQaPresenterSortModeOutputSchema>;
 

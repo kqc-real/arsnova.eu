@@ -11,6 +11,11 @@ export default defineConfig({
   test: {
     // Keep Angular TestBed and browser globals isolated even with a single worker.
     pool: 'forks',
+    // Host/Vote-Specs brauchen mehr Heap als der Node-Default; sonst OOM im Worker.
+    execArgv: ['--max-old-space-size=8192', '--expose-gc'],
+    // Vitest 4: poolOptions entfernt → top-level
+    maxWorkers: 1,
+    fileParallelism: false,
     globals: true,
     environment: 'jsdom',
     testTimeout: 15_000,

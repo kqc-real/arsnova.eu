@@ -524,7 +524,7 @@ describe('buildModerationCompassCards', () => {
     ).toEqual(['Weniger Zustimmung', 'Mehr Zustimmung']);
   });
 
-  it('reiht Reibung nach controversyScore und nutzt den Score auch ohne Flag', () => {
+  it('reiht Reibung nach controversyScore und ignoriert hohe Scores ohne Label', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
       qaQuestions: [
@@ -539,7 +539,14 @@ describe('buildModerationCompassCards', () => {
           id: '22222222-2222-4222-8222-222222222222',
           text: 'Stark umstritten',
           status: 'PINNED',
+          isControversial: true,
           controversyScore: 0.82,
+        },
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          text: 'Unter T trotz hohem Score',
+          status: 'ACTIVE',
+          controversyScore: 0.9,
         },
       ],
     });

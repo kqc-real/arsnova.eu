@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { By } from '@angular/platform-browser';
 import { FeedbackVoteComponent } from '../../feedback/feedback-vote.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import type { QaQuestionDTO } from '@arsnova/shared-types';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -4952,6 +4953,19 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         expect.any(Object),
       );
 
+      const dialogOpen = vi.spyOn(TestBed.inject(MatDialog), 'open').mockReturnValue({
+        afterClosed: () => ({ subscribe: vi.fn() }),
+      } as never);
+      await fixture.componentInstance['openQaSortHelpDialog']('CONTROVERSIAL');
+      expect(dialogOpen).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({
+          data: { kind: 'CONTROVERSIAL' },
+          panelClass: 'qa-sort-help-dialog-panel',
+        }),
+      );
+      dialogOpen.mockRestore();
+
       qaListQueryMock.mockClear();
       qaListQueryMock.mockResolvedValue({
         questions: [],
@@ -7854,6 +7868,194 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt Zustimmung und Umstritten-Labels in der Teilnehmer-Q&A-Liste', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 6,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    (
+      component as unknown as {
+        applyQaQuestionsSnapshot(snapshot: unknown[]): boolean;
+      }
+    ).applyQaQuestionsSnapshot([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Klare Mehrheit',
+        upvoteCount: 8,
+        positiveVoteCount: 8,
+        negativeVoteCount: 1,
+        bestScore: 0.72,
+        controversyScore: 0.2,
+        isControversial: false,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Polarisierte Frage',
+        upvoteCount: 5,
+        positiveVoteCount: 5,
+        negativeVoteCount: 5,
+        bestScore: 0.35,
+        controversyScore: 0.81,
+        isControversial: true,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    component.activeChannel.set('qa');
+    component.qaSortMode.set('BEST');
+    fixture.detectChanges();
+
+    const bestCard = fixture.nativeElement.querySelector(
+      '.session-qa-card[data-qa-id="11111111-1111-4111-8111-111111111111"]',
+    ) as HTMLElement | null;
+    expect(bestCard?.textContent).toContain('Zustimmung');
+    expect(bestCard?.textContent).toContain('72 %');
+    expect(bestCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
+    expect(bestCard?.querySelector('.session-qa-card__badge--controversy-pending')).toBeNull();
+    expect(bestCard?.querySelector('.session-qa-card__badge--controversy-onesided')).toBeNull();
+
+    const controversialCard = fixture.nativeElement.querySelector(
+      '.session-qa-card[data-qa-id="22222222-2222-4222-8222-222222222222"]',
+    ) as HTMLElement | null;
+    expect(controversialCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
+    expect(controversialCard?.textContent).toContain('Zustimmung');
+
+    (
+      component as unknown as {
+        applyQaQuestionsSnapshot(snapshot: unknown[]): boolean;
+      }
+    ).applyQaQuestionsSnapshot([
+      {
+        id: '33333333-3333-4333-8333-333333333333',
+        text: 'Unter T trotz Score',
+        upvoteCount: 0,
+        positiveVoteCount: 2,
+        negativeVoteCount: 2,
+        controversyScore: 0.8,
+        isControversial: false,
+        controversyInsufficientVotes: true,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        text: 'Schwache Kontroverse über T',
+        upvoteCount: 16,
+        positiveVoteCount: 18,
+        negativeVoteCount: 2,
+        controversyScore: 0.13,
+        isControversial: false,
+        controversyInsufficientVotes: false,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:03:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        text: 'Einseitig viele Stimmen',
+        upvoteCount: 10,
+        positiveVoteCount: 10,
+        negativeVoteCount: 0,
+        controversyScore: 0,
+        isControversial: false,
+        controversyInsufficientVotes: false,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:04:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Polarisierte Frage',
+        upvoteCount: 5,
+        positiveVoteCount: 5,
+        negativeVoteCount: 5,
+        bestScore: 0.35,
+        controversyScore: 0.81,
+        isControversial: true,
+        controversyInsufficientVotes: false,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ]);
+    component.qaSortMode.set('CONTROVERSIAL');
+    fixture.detectChanges();
+    const underTCard = fixture.nativeElement.querySelector(
+      '.session-qa-card[data-qa-id="33333333-3333-4333-8333-333333333333"]',
+    ) as HTMLElement | null;
+    expect(underTCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
+    expect(
+      underTCard?.querySelector('.session-qa-card__badge--controversy-pending')?.textContent,
+    ).toContain('Zu wenige Stimmen');
+    expect(
+      underTCard
+        ?.querySelector('.session-qa-card__badge--controversy-pending')
+        ?.getAttribute('aria-label'),
+    ).toContain('belastbare Einordnung');
+
+    const weakCard = fixture.nativeElement.querySelector(
+      '.session-qa-card[data-qa-id="44444444-4444-4444-8444-444444444444"]',
+    ) as HTMLElement | null;
+    expect(weakCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
+    expect(weakCard?.querySelector('.session-qa-card__badge--controversy-pending')).toBeNull();
+    expect(
+      weakCard?.querySelector('.session-qa-card__badge--controversy-onesided')?.textContent,
+    ).toContain('Einseitig');
+
+    const onesidedCard = fixture.nativeElement.querySelector(
+      '.session-qa-card[data-qa-id="55555555-5555-4555-8555-555555555555"]',
+    ) as HTMLElement | null;
+    expect(
+      onesidedCard?.querySelector('.session-qa-card__badge--controversy-onesided')?.textContent,
+    ).toContain('Einseitig');
+
+    const polarCard = fixture.nativeElement.querySelector(
+      '.session-qa-card[data-qa-id="22222222-2222-4222-8222-222222222222"]',
+    ) as HTMLElement | null;
+    expect(
+      polarCard?.querySelector('.session-qa-card__badge--controversial')?.textContent,
+    ).toContain('Umstritten');
+
+    expect(underTCard?.textContent).not.toContain('Geteilte Reaktionen');
+    expect(onesidedCard?.textContent).not.toContain('Geteilte Reaktionen');
+    expect(weakCard?.textContent).not.toContain('Geteilte Reaktionen');
+    expect(polarCard?.textContent).toContain('Geteilte Reaktionen');
+    fixture.destroy();
+  });
+
   it('zeigt Freigabe- und Hervorhebungsstatus in der Teilnehmer-Q&A-Liste', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -7925,11 +8127,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         label.includes('Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.'),
       ),
     ).toBe(true);
-    const pinnedCard = fixture.nativeElement.querySelector(
-      '.session-qa-card--pinned',
-    ) as HTMLElement | null;
-    expect(pinnedCard).not.toBeNull();
-    expect(pinnedCard?.textContent).toContain('Hervorgehobene Frage');
+    const pinnedStatus = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '.session-qa-card__status--pinned',
+      ) as NodeListOf<HTMLElement>,
+    ).find((el) =>
+      (el.closest('.session-qa-card')?.textContent ?? '').includes('Hervorgehobene Frage'),
+    );
+    expect(pinnedStatus).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-qa-card--pinned')).toBeNull();
     expect(text).toContain(
       'Wartet auf Freigabe – momentan nur für dich und die Moderation sichtbar.',
     );
@@ -7938,7 +8144,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('rückt die Teilnehmer-Hero-Auszeichnung mit dem Presenter-Navigator vor', async () => {
+  it('setzt in der Teilnehmeransicht kein Presenter-Hero über den lokalen Listenindex', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -7950,7 +8156,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       participantCount: 6,
       preferredChannel: 'qa',
       presenterSurface: 'default',
-      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      presenterPage: { context: 'qa-questions', index: 1, count: 3 },
       channels: {
         quiz: { enabled: true },
         qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
@@ -7968,18 +8174,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       }
     ).applyQaQuestionsSnapshot([
       {
-        id: 'pin-1',
-        text: 'Angepinnt',
-        upvoteCount: 1,
-        status: 'PINNED',
-        createdAt: '2026-03-13T12:00:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
-      {
-        id: 'active-1',
-        text: 'Aktueller Hero',
+        id: 'active-only-match',
+        text: 'Nur Suchtreffer',
         upvoteCount: 3,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:01:00.000Z',
@@ -7987,43 +8183,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         isOwn: false,
         hasUpvoted: false,
       },
-      {
-        id: 'active-2',
-        text: 'Queue',
-        upvoteCount: 2,
-        status: 'ACTIVE',
-        createdAt: '2026-03-13T12:02:00.000Z',
-        myVote: null,
-        isOwn: false,
-        hasUpvoted: false,
-      },
     ]);
     component.activeChannel.set('qa');
+    component.qaSearch.set('Suchtreffer');
     fixture.detectChanges();
 
-    expect(component.isQaPresenterHeroCard('pin-1')).toBe(true);
-    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
-
-    component.sessionSettings.update((settings) => ({
-      ...settings,
-      presenterPage: { context: 'qa-questions', index: 1, count: 3 },
-    }));
-    fixture.detectChanges();
-
-    expect(component.isQaPresenterHeroCard('pin-1')).toBe(false);
-    expect(component.isQaPresenterHeroCard('active-1')).toBe(true);
-    const heroCard = fixture.nativeElement.querySelector(
-      '.session-qa-card--pinned',
-    ) as HTMLElement | null;
-    expect(heroCard?.textContent).toContain('Aktueller Hero');
-
-    component.sessionSettings.update((settings) => ({
-      ...settings,
-      presenterSurface: 'ended',
-    }));
-    fixture.detectChanges();
+    // presenterPage.index=1 bezieht sich auf die Beamer-Bühne, nicht auf diese lokale Teilmenge.
     expect(component.qaPresenterHeroQuestionId()).toBeNull();
-    expect(component.isQaPresenterHeroCard('active-1')).toBe(false);
+    expect(component.isQaPresenterHeroCard('active-only-match')).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-qa-card--pinned')).toBeNull();
     fixture.destroy();
   });
 

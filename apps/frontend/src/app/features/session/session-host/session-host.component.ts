@@ -754,7 +754,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly activeChannel = signal<SessionChannelTab>('quiz');
   readonly qaQuestions = signal<QaQuestionDTO[]>([]);
   /**
-   * Ungefilterte ACTIVE+PINNED-Bühnenliste aus `qa.presentProjection`.
+   * ACTIVE+PINNED-Bühnenliste aus `qa.presentProjection` (inkl. Host-Such-/Pin-Filter).
    * `null` = kein gültiger Snapshot (während Projektion: leere Bühne, kein Forum-Fallback).
    */
   private readonly qaPresenterStageOrderedQuestions = signal<QaQuestionDTO[] | null>(null);
@@ -1128,7 +1128,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private freetextWordCloudSemanticAnalysisRunId = 0;
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
   private lastQaWordCloudProjectionKey: string | null = null;
-  private lastQaPresenterSortModeKey: string | null = null;
+  private lastQaPresenterStageViewKey: string | null = null;
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
@@ -2868,10 +2868,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const previousChannel = this.activeChannel();
     const focusHint = this.resolveCompassFocusHint(source, cardKind);
     if (target.channel === 'qa') {
-      await this.clearQaAuthorFilter();
-      await this.setQaPinnedFilter(false, { scrollToTop: false });
-      await this.setQaPendingFilter(false, { scrollToTop: false });
-      await this.setQaArchivedFilter(false, { scrollToTop: false });
+      // Kompass-Karten kommen ggf. aus dem ungefilterten Chrome-Snapshot
+      // (Suche/Autor). Filter und Suche lösen, damit Sprung und Fokus-Label greifen.
+      await this.clearQaListCriteriaForCompassJump();
     }
     await this.selectChannel(target.channel);
     if (target.surface === 'word-cloud') {
@@ -2885,11 +2884,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
       }
       this.moderationCompassFocusedTerm.set(target.termLabel ?? null);
-      this.applyQaCompassFocus(
-        this.resolveQaCompassMemberQuestionIds(target),
-        'compass',
-        focusHint,
-      );
+      const cloudFocusedIds = this.resolveQaCompassMemberQuestionIds(target);
+      this.ensureCompassFocusedQuestionsInList(cloudFocusedIds);
+      this.applyQaCompassFocus(cloudFocusedIds, 'compass', focusHint);
+      this.releaseQaChromeAfterCompassJump();
       if (target.channel === 'qa') {
         await this.openQaWordCloudDialog(target.termLabel ?? null);
       } else {
@@ -2901,16 +2899,55 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (target.channel === 'qa') {
       const focusedIds = this.resolveQaCompassMemberQuestionIds(target);
+      this.ensureCompassFocusedQuestionsInList(focusedIds);
       if (focusedIds.length > 0) {
         this.applyQaCompassFocus(focusedIds, 'compass', focusHint);
         this.scrollHostQaQuestionIntoView(focusedIds[0]!);
       } else {
         this.clearQaCompassFocus();
       }
+      this.releaseQaChromeAfterCompassJump();
     } else {
       this.clearQaCompassFocus();
     }
     this.moderationCompassReturn.set({ channel: previousChannel });
+  }
+
+  /** Suche/Autor/Statusfilter für einen Kompass-Sprung zurücksetzen (ohne Listen-Scroll). */
+  private async clearQaListCriteriaForCompassJump(): Promise<void> {
+    // Chrome erst nach dem Fokus freigeben — Kartenquellen stammen oft aus dem Snapshot.
+    await this.clearQaSearchForCompassJump();
+    if (this.qaSelectedAuthorNickname() !== null) {
+      this.clearQaAuthorSelection();
+      this.qaListNavQuestionId.set(null);
+      this.ensureQaSubscription();
+      await this.refreshQaQuestions({ replaceStale: true });
+      await this.resetQaNavigableHeroToFirstAndSyncPresenter();
+    }
+    await this.setQaPinnedFilter(false, { scrollToTop: false });
+    await this.setQaPendingFilter(false, { scrollToTop: false });
+    await this.setQaArchivedFilter(false, { scrollToTop: false });
+  }
+
+  private async clearQaSearchForCompassJump(): Promise<void> {
+    if (this.qaSearchTimer) {
+      clearTimeout(this.qaSearchTimer);
+      this.qaSearchTimer = null;
+    }
+    this.qaSearchDraft.set('');
+    if (this.qaSearch() === '') {
+      return;
+    }
+    this.qaSearch.set('');
+    this.qaListNavQuestionId.set(null);
+    this.ensureQaSubscription();
+    this.resetQaListPageNavigation();
+    this.qaListNextCursor.set(null);
+    await this.refreshQaQuestions({ replaceStale: true });
+  }
+
+  private releaseQaChromeAfterCompassJump(): void {
+    this.releaseQaChromeIfUnfiltered();
   }
 
   async followQaSummarySource(source: QaSummarySource): Promise<void> {
@@ -3107,11 +3144,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    const forumIds = new Set(this.qaForumQuestions().map((question) => question.id));
+    // Chrome behält ungefilterte Kartenquellen (Suche/Autor); Forum ist die aktuelle Liste.
+    const forumQuestions = this.qaForumQuestions();
+    const chromeQuestions = this.qaChromeForumQuestions();
+    const knownIds = new Set([
+      ...forumQuestions.map((question) => question.id),
+      ...chromeQuestions.map((question) => question.id),
+    ]);
     const resolved: string[] = [];
     const seen = new Set<string>();
     const push = (id: string | null | undefined) => {
-      if (!id || !forumIds.has(id) || seen.has(id)) {
+      if (!id || seen.has(id)) {
+        return;
+      }
+      if (!knownIds.has(id)) {
         return;
       }
       seen.add(id);
@@ -3126,7 +3172,48 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       push(this.findQaQuestionIdForCompassMember(text));
     }
     push(this.findQaQuestionIdForCompassMember(target.memberText));
+
+    // Fallback: Quell-IDs auch ohne geladene Zeile behalten, damit Fokus-Label nicht verloren geht.
+    if (resolved.length === 0) {
+      const fallbackPush = (id: string | null | undefined) => {
+        const next = id?.trim() ?? '';
+        if (!next || seen.has(next)) {
+          return;
+        }
+        seen.add(next);
+        resolved.push(next);
+      };
+      fallbackPush(target.questionId);
+      for (const id of target.questionIds ?? []) {
+        fallbackPush(id);
+      }
+    }
     return resolved;
+  }
+
+  /** Fehlende Fokus-Fragen aus dem Chrome-Snapshot in die Host-Liste holen. */
+  private ensureCompassFocusedQuestionsInList(questionIds: readonly string[]): void {
+    if (questionIds.length === 0) {
+      return;
+    }
+    const present = new Set(this.qaQuestions().map((question) => question.id));
+    const missing = questionIds.filter((id) => !present.has(id));
+    if (missing.length === 0) {
+      return;
+    }
+    const chromeById = new Map(
+      this.qaChromeForumQuestions().map((question) => [question.id, question] as const),
+    );
+    const inject = missing
+      .map((id) => chromeById.get(id))
+      .filter((question): question is QaQuestionDTO => question !== undefined);
+    if (inject.length === 0) {
+      return;
+    }
+    this.qaQuestions.update((list) => {
+      const have = new Set(list.map((question) => question.id));
+      return [...inject.filter((question) => !have.has(question.id)), ...list];
+    });
   }
 
   private findQaQuestionIdForCompassMember(memberText: string | undefined): string | null {
@@ -3134,7 +3221,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!needle || needle.length < 4) {
       return null;
     }
-    const match = this.qaForumQuestions().find((question) => {
+    const match = this.qaChromeForumQuestions().find((question) => {
       const text = question.text.trim().replace(/\s+/g, ' ').toLowerCase();
       return text === needle || text.startsWith(needle) || needle.startsWith(text);
     });
@@ -6015,9 +6102,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return session.preferredChannel === 'qa';
   });
   /**
-   * Bühnenreihenfolge wie `qa.presentProjection`: PINNED vor ACTIVE, Host-Sortierung.
-   * Volle ungefilterte Bühne — Presenter und absolute `presenterPage.index`.
-   * Quelle: ungefilterter presentProjection-Snapshot — während der Projektion kein Forum-Fallback.
+   * Bühnenreihenfolge wie `qa.presentProjection`: PINNED vor ACTIVE, Host-Sortierung
+   * und derselbe präsentierbare Such-/Pin-/Autor-Filter. Presenter und absolute
+   * `presenterPage.index` beziehen sich auf diese Liste.
+   * Quelle: presentProjection-Snapshot — während der Projektion kein Forum-Fallback.
    */
   readonly qaProjectionStageQuestions = computed(() => {
     const fromProjection = this.qaPresenterStageOrderedQuestions();
@@ -6233,6 +6321,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaListNavQuestionId.set(null);
       return;
     }
+    // Such-/Pin-/Autor-Kontext vor dem Hero-Sync an die Presenter-Bühne publizieren.
+    await this.publishQaPresenterSortMode(this.qaSortMode());
     const first = this.qaNavigableStageQuestions()[0] ?? null;
     this.qaListNavQuestionId.set(first?.id ?? null);
     if (first) {
@@ -10037,7 +10127,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async clearQaAuthorFilter(): Promise<void> {
+  async clearQaAuthorFilter(options?: { readonly scrollToTop?: boolean }): Promise<void> {
     if (this.qaSelectedAuthorNickname() === null) {
       return;
     }
@@ -10047,7 +10137,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
     await this.resetQaNavigableHeroToFirstAndSyncPresenter();
-    this.scrollQaListToTop();
+    if (options?.scrollToTop !== false) {
+      this.scrollQaListToTop();
+    }
   }
 
   private async applyQaAuthorFilter(nickname: string): Promise<void> {
@@ -10666,6 +10758,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     await this.requestQaWordCloudLemmaSmoothing();
+  }
+
+  openQaSortHelp(event: Event, kind: 'BEST' | 'CONTROVERSIAL'): void {
+    event.preventDefault();
+    event.stopPropagation();
+    void this.openQaSortHelpDialog(kind);
+  }
+
+  private async openQaSortHelpDialog(kind: 'BEST' | 'CONTROVERSIAL'): Promise<void> {
+    const { QaSortHelpDialogComponent } =
+      await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
+    this.dialog.open(QaSortHelpDialogComponent, {
+      panelClass: 'qa-sort-help-dialog-panel',
+      autoFocus: 'dialog',
+      width: 'min(40rem, calc(100vw - 2rem))',
+      maxWidth: '100vw',
+      data: { kind },
+    });
   }
 
   setQaWordCloudAnalysisVariant(variant: WordCloudAnalysisVariant): void {
@@ -11488,24 +11598,35 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private publishQaPresenterSortMode(
     sortMode: QaQuestionSortMode,
-    options?: { readonly force?: boolean },
+    options?: { readonly force?: boolean; readonly skipStageRefresh?: boolean },
   ): Promise<void> {
     if (!this.code) {
       return Promise.resolve();
     }
-
-    if (!options?.force && sortMode === this.lastQaPresenterSortModeKey) {
+    const search = this.qaSearch();
+    const pinnedOnly = this.qaShowPinnedOnly();
+    const authorNickname = this.qaSelectedAuthorNickname();
+    const stageViewKey = `${sortMode}\u0001${search}\u0001${pinnedOnly ? '1' : '0'}\u0001${authorNickname ?? ''}`;
+    if (!options?.force && stageViewKey === this.lastQaPresenterStageViewKey) {
       return Promise.resolve();
     }
-    this.lastQaPresenterSortModeKey = sortMode;
+    this.lastQaPresenterStageViewKey = stageViewKey;
     return this.enqueuePresenterProjectionSync(async () => {
       try {
         await trpc.qa.setPresenterSortMode.mutate({
           code: this.code.toUpperCase(),
           sortMode,
+          search,
+          pinnedOnly,
+          ...(authorNickname ? { authorNickname } : {}),
         });
+        // Refresh nicht in der Sync-Queue awaiten: sonst blockiert z. B. endPresentationView,
+        // wenn presentProjection noch hängt. Self-Heal nutzt skipStageRefresh gegen Loops.
+        if (!options?.skipStageRefresh && this.projectionNavigationIsQaQuestions()) {
+          void this.refreshQaPresenterStageQuestions();
+        }
       } catch {
-        this.lastQaPresenterSortModeKey = null;
+        this.lastQaPresenterStageViewKey = null;
       }
     });
   }
@@ -12273,12 +12394,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ...visible.filter((question) => question.status === 'ACTIVE'),
       ]);
       // Self-Heal: Backend-Restart leert die ephemeral Map → Presenter fällt auf Default.
+      // skipStageRefresh: sonst publish→refresh→publish-Endlosschleife, solange der
+      // Snapshot noch den alten Modus liefert (ephemeral Map / Stub in Specs).
       if (
         !Array.isArray(snapshot) &&
         snapshot.sortMode &&
         snapshot.sortMode !== this.qaSortMode()
       ) {
-        void this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
+        void this.publishQaPresenterSortMode(this.qaSortMode(), {
+          force: true,
+          skipStageRefresh: true,
+        });
       }
     } catch {
       // Letzten Snapshot behalten; Meta-Poll und WS aktualisieren erneut.

@@ -144,8 +144,19 @@ export function renderMarkdownWithKatex(
   const withBlockMath = input.replaceAll(/\$\$([\s\S]+?)\$\$/g, (_, expression: string) =>
     renderExpression(expression, true),
   );
-  const withInlineMath = withBlockMath.replaceAll(/\$([^$\n]+?)\$/g, (_, expression: string) =>
-    renderExpression(expression, false),
+  // LaTeX-Delimiters aus Markdown-Quellen (\(…\), \[…\]) vor Dollar-Inline,
+  // damit Backslashes nicht von marked als Escapes verschluckt werden.
+  const withLatexBlockMath = withBlockMath.replaceAll(
+    /\\\[([\s\S]+?)\\\]/g,
+    (_, expression: string) => renderExpression(expression, true),
+  );
+  const withLatexInlineMath = withLatexBlockMath.replaceAll(
+    /\\\(([\s\S]+?)\\\)/g,
+    (_, expression: string) => renderExpression(expression, false),
+  );
+  const withInlineMath = withLatexInlineMath.replaceAll(
+    /\$([^$\n]+?)\$/g,
+    (_, expression: string) => renderExpression(expression, false),
   );
 
   const markdownHtml = parseMarkdownEscapingInlineHtml(withInlineMath, {

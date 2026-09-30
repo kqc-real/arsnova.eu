@@ -1959,6 +1959,27 @@ html.dark .app-qr-image {
   }
 }
 
+.qa-sort-help-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: var(--mat-sys-corner-extra-large, var(--mat-sys-corner-large));
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 44%, transparent);
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level3);
+}
+
+.qa-sort-help-dialog-panel .mat-mdc-dialog-content {
+  padding: 0 1rem 0.5rem;
+}
+
+.qa-sort-help-dialog-panel .mat-mdc-dialog-actions {
+  padding: 0 1rem 1rem;
+}
+
+@media (max-width: 599px) {
+  .qa-sort-help-dialog-panel .mat-mdc-dialog-content {
+    padding: 0 0.875rem 0.5rem;
+  }
+}
+
 .feedback-compare-round-snackbar.mat-mdc-snack-bar-container {
   --mdc-snackbar-container-color: transparent;
   --mat-snack-bar-container-color: transparent;

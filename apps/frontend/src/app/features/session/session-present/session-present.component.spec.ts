@@ -1368,6 +1368,8 @@ describe('SessionPresentComponent', () => {
         negativeVoteCount: 2,
         bestScore: 0.71,
         controversyScore: 0.42,
+        isControversial: false,
+        controversyInsufficientVotes: false,
         status: 'PINNED',
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
@@ -1382,6 +1384,8 @@ describe('SessionPresentComponent', () => {
         negativeVoteCount: 1,
         bestScore: 0.55,
         controversyScore: 0.38,
+        isControversial: false,
+        controversyInsufficientVotes: false,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:05:00.000Z',
         myVote: null,
@@ -1406,12 +1410,13 @@ describe('SessionPresentComponent', () => {
       expect(text).toContain('Zustimmung 71 %');
       expect(text).toContain('Zustimmung 55 %');
       expect(text).not.toContain('Geteilte Reaktionen');
+      expect(text).not.toContain('Einseitig');
 
       fixture.componentInstance.presenterQaSortMode.set('CONTROVERSIAL');
       fixture.detectChanges();
       text = fixture.nativeElement.textContent ?? '';
-      expect(text).toContain('Geteilte Reaktionen 42 %');
-      expect(text).toContain('Geteilte Reaktionen 38 %');
+      expect(text).toContain('Einseitig');
+      expect(text).not.toContain('Geteilte Reaktionen');
       expect(text).not.toContain('Zustimmung');
     } finally {
       fixture.destroy();

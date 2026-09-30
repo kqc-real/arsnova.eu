@@ -686,7 +686,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       async ({ projection }: { projection: unknown }) => ({ projection }),
     );
     setQaPresenterSortModeMutateMock.mockImplementation(
-      async ({ sortMode }: { sortMode: string }) => ({ sortMode }),
+      async (input: {
+        sortMode: string;
+        search?: string;
+        pinnedOnly?: boolean;
+        authorNickname?: string;
+      }) => ({
+        sortMode: input.sortMode,
+        search: input.search ?? '',
+        pinnedOnly: input.pinnedOnly ?? false,
+        authorNickname: input.authorNickname ?? null,
+      }),
     );
     pauseQuizMutateMock.mockResolvedValue({
       status: 'PAUSED',
@@ -2920,6 +2930,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       sortMode: 'BEST',
+      search: '',
+      pinnedOnly: false,
     });
     expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
@@ -10515,6 +10527,25 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.nativeElement.textContent ?? '').toContain('Zustimmung 71 %');
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(21);
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
+
+    dialogOpenMock.mockClear();
+    await component['openQaSortHelpDialog']('BEST');
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        data: { kind: 'BEST' },
+        panelClass: 'qa-sort-help-dialog-panel',
+      }),
+    );
+    dialogOpenMock.mockClear();
+    await component['openQaSortHelpDialog']('CONTROVERSIAL');
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({
+        data: { kind: 'CONTROVERSIAL' },
+        panelClass: 'qa-sort-help-dialog-panel',
+      }),
+    );
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(fixture.nativeElement.textContent ?? '').toContain(
       'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.',
@@ -10523,6 +10554,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
       code: defaultSession.code,
       sortMode: 'BEST',
+      search: '',
+      pinnedOnly: false,
     });
     expect(
       fixture.nativeElement.querySelector(
@@ -11939,6 +11972,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(voteStats[1]?.classList.contains('session-qa-card__vote-stat--down')).toBe(true);
     expect(voteStats[1]?.textContent).toContain('8');
     expect(voteStats[1]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_down');
+    expect(text).toContain('Umstritten');
     expect(text).toContain('Geteilte Reaktionen 80 %');
     fixture.destroy();
   });
@@ -17060,6 +17094,159 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('publiziert Suche und Pin-Filter als Presenter-Bühne und navigiert nur Treffer', async () => {
+    const questions = [
+      {
+        id: 'q1',
+        text: 'Alpha eins',
+        upvoteCount: 1,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q2',
+        text: 'Beta pin',
+        upvoteCount: 2,
+        status: 'PINNED' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q3',
+        text: 'Gamma eins',
+        upvoteCount: 3,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q4',
+        text: 'Delta zwei',
+        upvoteCount: 4,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:03:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ];
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: 'qa-questions',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 2,
+        },
+      }),
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 4 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, questions as never);
+    qaListQueryMock.mockImplementation(async (input?: { search?: string; statuses?: string[] }) => {
+      let list = [...questions];
+      if (input?.statuses?.length === 1 && input.statuses[0] === 'PINNED') {
+        list = list.filter((question) => question.status === 'PINNED');
+      }
+      if (input?.search) {
+        const needle = input.search.toLowerCase();
+        list = list.filter((question) => question.text.toLowerCase().includes(needle));
+      }
+      return qaHostSnapshot(list);
+    });
+    qaPresentProjectionQueryMock.mockImplementation(async () => {
+      const published = setQaPresenterSortModeMutateMock.mock.calls.at(-1)?.[0] as
+        { search?: string; pinnedOnly?: boolean } | undefined;
+      let list = [...questions];
+      if (published?.pinnedOnly) {
+        list = list.filter((question) => question.status === 'PINNED');
+      }
+      if (published?.search) {
+        const needle = published.search.toLowerCase();
+        list = list.filter((question) => question.text.toLowerCase().includes(needle));
+      }
+      return { questions: list, state: 'ACTIVE' };
+    });
+    component.qaQuestions.set(questions as never);
+    fixture.detectChanges();
+
+    setPresenterSurfaceMutateMock.mockClear();
+    setQaPresenterSortModeMutateMock.mockClear();
+    component.onQaSearchInput('eins');
+    await flushMacroTask(350);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        search: 'eins',
+        pinnedOnly: false,
+      }),
+    );
+    expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual([
+      'q1',
+      'q3',
+    ]);
+    expect(component.qaProjectionStageQuestions().map((question) => question.id)).toEqual([
+      'q1',
+      'q3',
+    ]);
+    expect(component.qaPresenterHeroQuestionId()).toBe('q1');
+    // Index 0 kann bereits stimmen — entscheidend ist die gefilterte Bühne und der nächste Schritt.
+    expect(component.session()?.presenterPage?.index).toBe(0);
+
+    setPresenterSurfaceMutateMock.mockClear();
+    await component.changeProjectionPage(1);
+    fixture.detectChanges();
+    expect(component.qaPresenterHeroQuestionId()).toBe('q3');
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page: expect.objectContaining({ index: 1 }),
+      }),
+      expect.anything(),
+    );
+
+    setQaPresenterSortModeMutateMock.mockClear();
+    setPresenterSurfaceMutateMock.mockClear();
+    await component.clearQaSearch();
+    await fixture.whenStable();
+    await component.setQaPinnedFilter(true);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pinnedOnly: true,
+        search: '',
+      }),
+    );
+    expect(component.qaNavigableStageQuestions().map((question) => question.id)).toEqual(['q2']);
+    expect(component.qaProjectionStageQuestions().map((question) => question.id)).toEqual(['q2']);
+    expect(component.qaPresenterHeroQuestionId()).toBe('q2');
+    fixture.destroy();
+  });
+
   it('lässt den Navigator nur die Treffer aus Fragen- und Teilnahmesuche navigieren', async () => {
     const allQuestions = [
       {
@@ -17245,8 +17432,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     component.qaSortMode.set('TOP');
     (
-      component as SessionHostComponent & { lastQaPresenterSortModeKey: string | null }
-    ).lastQaPresenterSortModeKey = 'TOP';
+      component as SessionHostComponent & { lastQaPresenterStageViewKey: string | null }
+    ).lastQaPresenterStageViewKey = `TOP\u0001\u00010\u0001`;
     component.activeChannel.set('qa');
     fixture.detectChanges();
     await vi.waitUntil(() =>
@@ -17257,6 +17444,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       sortMode: 'TOP',
+      search: '',
+      pinnedOnly: false,
     });
     fixture.destroy();
   });
@@ -25248,6 +25437,77 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass-return"]'),
       ).toBeNull();
       expect(dialogOpenMock).toHaveBeenCalled();
+      fixture.destroy();
+    });
+
+    it('springt trotz aktiver Suche zur Chrome-Kompassfrage und zeigt das Quellen-Label', async () => {
+      const pendingQuestion = {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 4,
+        status: 'PENDING' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      const otherQuestion = {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Ganz anderer Treffer zur Suche',
+        upvoteCount: 1,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      qaListQueryMock.mockResolvedValue([pendingQuestion, otherQuestion]);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      await component.selectChannel('qa');
+      fixture.detectChanges();
+
+      // Suche aktiv: Chrome behält ungefilterte Fragen, Forum nur Treffer.
+      component['captureUnfilteredQaChrome']();
+      component.qaSearch.set('Treffer');
+      component.qaQuestions.set([otherQuestion]);
+      fixture.detectChanges();
+
+      const source = component
+        .moderationCompassCards()
+        .find((card) => card.kind === 'clarification')
+        ?.sources.find((item) => item.kind === 'qa-question');
+      expect(source?.label).toContain('Kommt Kapitel 4');
+      expect(source?.target?.questionId).toBe(pendingQuestion.id);
+
+      qaListQueryMock.mockResolvedValue([pendingQuestion, otherQuestion]);
+      await component.followModerationCompassSource(source!, 'clarification');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(component.qaSearch()).toBe('');
+      expect(component.isQaCompassFocused(pendingQuestion.id)).toBe(true);
+      expect(component.qaFocusBadge()).toBe('Aus dem Kompass · Noch klären');
+      const focusedCard = fixture.nativeElement.querySelector(
+        `#host-qa-question-${pendingQuestion.id}`,
+      ) as HTMLElement | null;
+      expect(focusedCard).not.toBeNull();
+      expect(focusedCard?.textContent).toContain('Aus dem Kompass · Noch klären');
       fixture.destroy();
     });
 

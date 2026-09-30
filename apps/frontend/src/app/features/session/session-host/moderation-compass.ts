@@ -891,10 +891,8 @@ function isFrictionQuestion(question: ModerationCompassQaQuestion): boolean {
   if (question.status === 'ARCHIVED' || question.status === 'DELETED') {
     return false;
   }
-  if (question.isControversial === true) {
-    return true;
-  }
-  return (question.controversyScore ?? 0) > 0.5;
+  // Nur das serverseitige Label (Score > 0,5 und p+n ≥ T) — Sortierung bleibt unabhängig.
+  return question.isControversial === true;
 }
 
 function controversialQuestions(

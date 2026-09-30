@@ -110,7 +110,7 @@ Die Sortierauswahl sitzt in der Host-Ansicht in unmittelbarer Nähe zur Q&A-List
 - `Beste Fragen` — Story 8.7
 - `Zeit` — neueste zuerst; die Datenbank sortiert nach `createdAt DESC` (Index `sessionId, status, createdAt`)
 
-Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zustimmung … %` (Wilson-Score), bei `Umstritten` `Geteilte Reaktionen … %`. Der Toggle und die Wortwolke bleiben bei `Beste Fragen`.
+Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zustimmung … %` (Wilson-Score), bei `Umstritten` die Einordnung `Umstritten` / `Zu wenige Stimmen` / `Einseitig` und nur beim Label `Umstritten` zusätzlich `Geteilte Reaktionen … %`. Der Toggle und die Wortwolke bleiben bei `Beste Fragen`.
 
 Der aktive Modus bleibt während einer Session stabil, bis ein autorisierter Host ihn bewusst ändert.
 

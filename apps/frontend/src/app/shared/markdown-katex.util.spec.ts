@@ -17,6 +17,19 @@ describe('renderMarkdownWithKatex', () => {
     expect(result.katexError).toBeNull();
   });
 
+  it('rendert LaTeX-Inline- und Block-Delimiters \\(…\\) und \\[…\\]', () => {
+    const inline = renderMarkdownWithKatex(String.raw`Liste: \(p\) und \(\hat{p}=p/N\)`);
+    expect(inline.katexError).toBeNull();
+    expect(inline.html).toContain('katex');
+    expect(inline.html).not.toContain('\\(');
+    expect(inline.html.match(/class="katex"/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+
+    const block = renderMarkdownWithKatex(String.raw`Formel: \[\operatorname{BestScore}=1\]`);
+    expect(block.katexError).toBeNull();
+    expect(block.html).toContain('katex-display');
+    expect(block.html).not.toContain('\\[');
+  });
+
   it('toleriert Leerzeichen vor schließenden Emphasis-Delimitern wie **Freue **', () => {
     const result = renderMarkdownWithKatex('**Freue **');
     expect(result.html).toContain('<strong>Freue</strong>');

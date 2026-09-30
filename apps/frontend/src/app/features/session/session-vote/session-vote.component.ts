@@ -27,6 +27,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
 import {
   resolveConfidenceLabelHigh,
@@ -481,6 +482,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private readonly localeId = inject(LOCALE_ID);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
   private statusSub: Unsubscribable | null = null;
@@ -861,34 +863,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Volle Hero-Fläche: Navigator-Cursor wie Host/Presenter, sonst erstes PINNED. */
-  isQaPresenterHeroCard(questionId: string): boolean {
-    return this.qaPresenterHeroQuestionId() === questionId;
+  /** Presenter-Hero nur mit identischer Bühnenliste — Index auf die lokale Vote-Liste wäre falsch. */
+  isQaPresenterHeroCard(_questionId: string): boolean {
+    return false;
   }
 
-  readonly qaPresenterHeroQuestionId = computed(() => {
-    const session = this.sessionSettings();
-    if (session.presenterSurface === 'ended') {
-      return null;
-    }
-    const stage = this.qaQuestions().filter(
-      (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
-    );
-    const ordered = [
-      ...stage.filter((question) => question.status === 'PINNED'),
-      ...stage.filter((question) => question.status === 'ACTIVE'),
-    ];
-    if (ordered.length === 0) {
-      return null;
-    }
-    const projectingQa =
-      session.preferredChannel === 'qa' && session.presenterSurface !== 'qaWordCloud';
-    if (!projectingQa) {
-      return ordered.find((question) => question.status === 'PINNED')?.id ?? null;
-    }
-    const pageIndex = Math.max(0, Math.min(ordered.length - 1, session.presenterPage?.index ?? 0));
-    return ordered[pageIndex]?.id ?? null;
-  });
+  readonly qaPresenterHeroQuestionId = computed(() => null as string | null);
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownClearQaAuthorSelection(event: KeyboardEvent): void {
@@ -1534,6 +1514,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const up = this.formatCount(this.qaPositiveVoteCount(question));
     const down = this.formatCount(this.qaNegativeVoteCount(question));
     return $localize`:@@sessionQa.votesBreakdownAria:${up}:up: dafür, ${down}:down: dagegen`;
+  }
+
+  formatQaPercent(value: number | undefined): string {
+    if (!Number.isFinite(value)) {
+      return '0 %';
+    }
+
+    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
   }
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {
@@ -4915,16 +4903,23 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.qaSearchTimer = null;
     }
     this.qaSearchDraft.set('');
-    if (this.qaSearch() === '') {
-      return;
+    if (this.qaSearch() !== '') {
+      this.qaSearch.set('');
+      this.resetQaListPageNavigation();
+      void this.refreshQaQuestions({
+        notify: false,
+        requireDeadline: false,
+        animate: false,
+      });
     }
-    this.qaSearch.set('');
-    this.resetQaListPageNavigation();
-    void this.refreshQaQuestions({
-      notify: false,
-      requireDeadline: false,
-      animate: false,
-    });
+    const summary = (this.el.nativeElement as HTMLElement).querySelector(
+      '#qa-tools-summary',
+    ) as HTMLElement | null;
+    try {
+      summary?.focus({ preventScroll: true });
+    } catch {
+      /* Fokus darf den Clear-Pfad nicht blockieren */
+    }
   }
 
   async setQaSortMode(mode: QaQuestionSortMode): Promise<void> {
@@ -4953,6 +4948,24 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       },
       { injector: this.injector },
     );
+  }
+
+  openQaSortHelp(event: Event, kind: 'BEST' | 'CONTROVERSIAL'): void {
+    event.preventDefault();
+    event.stopPropagation();
+    void this.openQaSortHelpDialog(kind);
+  }
+
+  private async openQaSortHelpDialog(kind: 'BEST' | 'CONTROVERSIAL'): Promise<void> {
+    const { QaSortHelpDialogComponent } =
+      await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
+    this.dialog.open(QaSortHelpDialogComponent, {
+      panelClass: 'qa-sort-help-dialog-panel',
+      autoFocus: 'dialog',
+      width: 'min(40rem, calc(100vw - 2rem))',
+      maxWidth: '100vw',
+      data: { kind },
+    });
   }
 
   private countOwnQuestionsFromList(

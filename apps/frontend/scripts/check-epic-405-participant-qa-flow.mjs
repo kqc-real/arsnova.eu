@@ -546,17 +546,23 @@ async function main() {
     await participant.getByRole('searchbox').fill('zzznomatch472');
     await participant.locator('.session-qa-empty--filtered').waitFor({ state: 'visible' });
     await participant.locator('#qa-tools-summary').press('Enter');
-    if (
-      !(await participant.locator('.session-qa-tools-status').innerText()).includes('zzznomatch472')
-    )
-      failures.push('Aktive Suche ist nach Einklappen unsichtbar.');
-    await participant.locator('.session-qa-tools-status button').click();
+    // Suche bleibt ohne Statusleiste aktiv — der Leertreffer bleibt sichtbar.
+    const searchStillActive = await participant
+      .locator('.session-qa-empty--filtered')
+      .isVisible()
+      .catch(() => false);
+    if (!searchStillActive) failures.push('Aktive Suche bleibt nach Einklappen wirksam.');
+    await participant.locator('#qa-tools-summary').press('Enter');
+    const searchValue = await participant.getByRole('searchbox').inputValue();
+    if (!searchValue.includes('zzznomatch472'))
+      failures.push('Suchfeld behält den Wert nach Einklappen.');
+    await participant.getByRole('button', { name: 'Q&A-Suche leeren' }).click();
     const resetFocus = await participant
       .locator('#qa-tools-summary')
       .evaluate((el) => document.activeElement === el);
-    if (!resetFocus) failures.push('Reset verliert den Fokus.');
+    if (!resetFocus) failures.push('Leeren der Suche verliert den Fokus.');
     await participant.locator('.session-qa-card').first().waitFor({ state: 'visible' });
-    logStep(resetFocus, 'Suche: Tastatur, Einklappen, Status und Reset-Fokus');
+    logStep(resetFocus, 'Suche: Tastatur, Einklappen, Persistenz und Clear-Fokus');
 
     await seedRankedQaBoardAndAssertHostViews(host, hostTrpc, created, failures);
 

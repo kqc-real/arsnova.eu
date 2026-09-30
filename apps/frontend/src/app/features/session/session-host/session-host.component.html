@@ -4406,14 +4406,44 @@
                           <mat-button-toggle value="TOP" i18n="@@sessionQa.sortTop"
                             >Meist unterstützt</mat-button-toggle
                           >
-                          <mat-button-toggle value="BEST" i18n="@@sessionQa.sortBest"
-                            >Beste Fragen</mat-button-toggle
-                          >
-                          <mat-button-toggle
-                            value="CONTROVERSIAL"
-                            i18n="@@sessionQa.sortControversial"
-                            >Umstritten</mat-button-toggle
-                          >
+                          <mat-button-toggle value="BEST">
+                            <span class="session-qa-sort-toggle__label">
+                              <span i18n="@@sessionQa.sortBest">Beste Fragen</span>
+                              <span
+                                class="session-qa-sort-help"
+                                role="button"
+                                tabindex="0"
+                                data-testid="qa-sort-help-best"
+                                i18n-aria-label="@@sessionQa.sortHelpBestAria"
+                                aria-label="Hilfe zu »Beste Fragen«"
+                                (click)="openQaSortHelp($event, 'BEST')"
+                                (keydown.enter)="openQaSortHelp($event, 'BEST')"
+                                (keydown.space)="openQaSortHelp($event, 'BEST')"
+                                (mousedown)="$event.stopPropagation()"
+                              >
+                                <mat-icon aria-hidden="true">help_outline</mat-icon>
+                              </span>
+                            </span>
+                          </mat-button-toggle>
+                          <mat-button-toggle value="CONTROVERSIAL">
+                            <span class="session-qa-sort-toggle__label">
+                              <span i18n="@@sessionQa.sortControversial">Umstritten</span>
+                              <span
+                                class="session-qa-sort-help"
+                                role="button"
+                                tabindex="0"
+                                data-testid="qa-sort-help-controversial"
+                                i18n-aria-label="@@sessionQa.sortHelpControversialAria"
+                                aria-label="Hilfe zu »Umstritten«"
+                                (click)="openQaSortHelp($event, 'CONTROVERSIAL')"
+                                (keydown.enter)="openQaSortHelp($event, 'CONTROVERSIAL')"
+                                (keydown.space)="openQaSortHelp($event, 'CONTROVERSIAL')"
+                                (mousedown)="$event.stopPropagation()"
+                              >
+                                <mat-icon aria-hidden="true">help_outline</mat-icon>
+                              </span>
+                            </span>
+                          </mat-button-toggle>
                           <mat-button-toggle value="TIME" i18n="@@sessionQa.sortTime"
                             >Zeit</mat-button-toggle
                           >
@@ -4546,6 +4576,26 @@
                               qaSortMode() === 'CONTROVERSIAL' ? 'check' : 'compare_arrows'
                             }}</mat-icon>
                             <span i18n="@@sessionQa.sortControversial">Umstritten</span>
+                          </button>
+                          <button
+                            mat-menu-item
+                            type="button"
+                            data-testid="qa-mobile-sort-help-best"
+                            (click)="openQaSortHelp($event, 'BEST')"
+                          >
+                            <mat-icon aria-hidden="true">help_outline</mat-icon>
+                            <span i18n="@@sessionQa.sortHelpBestMenu">Hilfe: Beste Fragen</span>
+                          </button>
+                          <button
+                            mat-menu-item
+                            type="button"
+                            data-testid="qa-mobile-sort-help-controversial"
+                            (click)="openQaSortHelp($event, 'CONTROVERSIAL')"
+                          >
+                            <mat-icon aria-hidden="true">help_outline</mat-icon>
+                            <span i18n="@@sessionQa.sortHelpControversialMenu"
+                              >Hilfe: Umstritten</span
+                            >
                           </button>
                           <button
                             mat-menu-item
@@ -5014,13 +5064,6 @@
                                 >{{ qaFocusBadge() }}</span
                               >
                             }
-                            @if (question.isControversial) {
-                              <span
-                                class="session-qa-card__badge session-qa-card__badge--controversial"
-                                i18n="@@sessionQa.badgeControversial"
-                                >Umstritten</span
-                              >
-                            }
                             @if (question.passagesRedacted) {
                               <span
                                 class="session-qa-card__badge session-qa-card__badge--redacted"
@@ -5074,6 +5117,40 @@
                           <span class="session-qa-card__time">{{
                             relativeTime(question.createdAt)
                           }}</span>
+                          @if (
+                            qaSortMode() === 'CONTROVERSIAL' && question.isControversial === true
+                          ) {
+                            <span
+                              class="session-qa-card__badge session-qa-card__badge--controversial"
+                              i18n="@@sessionQa.badgeControversial"
+                              >Umstritten</span
+                            >
+                          } @else if (
+                            qaSortMode() === 'CONTROVERSIAL' &&
+                            question.controversyInsufficientVotes === true
+                          ) {
+                            <span
+                              class="session-qa-card__badge session-qa-card__badge--controversy-pending"
+                              i18n-title="@@sessionQa.badgeControversyInsufficientVotesAria"
+                              title="Nicht genügend Stimmen für eine belastbare Einordnung"
+                              i18n-aria-label="@@sessionQa.badgeControversyInsufficientVotesAria"
+                              aria-label="Nicht genügend Stimmen für eine belastbare Einordnung"
+                              i18n="@@sessionQa.badgeControversyInsufficientVotes"
+                              >Zu wenige Stimmen</span
+                            >
+                          } @else if (
+                            qaSortMode() === 'CONTROVERSIAL' && question.isControversial === false
+                          ) {
+                            <span
+                              class="session-qa-card__badge session-qa-card__badge--controversy-onesided"
+                              i18n-title="@@sessionQa.badgeControversyOnesidedAria"
+                              title="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                              i18n-aria-label="@@sessionQa.badgeControversyOnesidedAria"
+                              aria-label="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                              i18n="@@sessionQa.badgeControversyOnesided"
+                              >Einseitig</span
+                            >
+                          }
                           @if (qaSortMode() === 'BEST' && question.bestScore !== undefined) {
                             <span
                               class="session-qa-card__metric session-qa-card__metric--best"
@@ -5083,7 +5160,9 @@
                           }
                           @if (
                             qaSortMode() === 'CONTROVERSIAL' &&
-                            question.controversyScore !== undefined
+                            question.isControversial === true &&
+                            question.controversyScore !== undefined &&
+                            question.controversyScore > 0
                           ) {
                             <span
                               class="session-qa-card__metric session-qa-card__metric--controversial"

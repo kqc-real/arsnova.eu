@@ -295,6 +295,8 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
 .moderation-compass-card__source-label {
   min-width: 0;
   padding-top: 0.15rem;
+  overflow-wrap: anywhere;
+  color: var(--mat-sys-on-surface);
 }
 
 .moderation-compass-card__more {

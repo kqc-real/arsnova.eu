@@ -1,0 +1,71 @@
+.qa-sort-help-dialog__content {
+  margin: 0;
+  max-height: min(70vh, 36rem);
+  overflow: auto;
+}
+
+.qa-sort-help-dialog__body {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface);
+  line-height: 1.55;
+}
+
+.qa-sort-help-dialog__body :where(h3, h4) {
+  margin: 1.1rem 0 0.45rem;
+  font: var(--mat-sys-title-medium);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.qa-sort-help-dialog__body :where(p, ul, ol, table) {
+  margin: 0 0 0.75rem;
+}
+
+.qa-sort-help-dialog__body :where(ul, ol) {
+  padding-inline-start: 1.25rem;
+}
+
+.qa-sort-help-dialog__body :where(li + li) {
+  margin-top: 0.25rem;
+}
+
+.qa-sort-help-dialog__body :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--mat-sys-body-small);
+}
+
+.qa-sort-help-dialog__body :where(th, td) {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+  text-align: start;
+  vertical-align: top;
+}
+
+.qa-sort-help-dialog__body :where(th) {
+  font-weight: 600;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 70%, transparent);
+}
+
+.qa-sort-help-dialog__body :where(.katex-display) {
+  margin: 0.75rem 0 1rem;
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  padding-block: 0.15rem;
+}
+
+.qa-sort-help-dialog__body :where(.katex-display > .katex) {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.qa-sort-help-dialog__body :where(p .katex, li .katex, td .katex, th .katex) {
+  font-size: 1.05em;
+}
+
+mat-dialog-actions {
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.85rem;
+}

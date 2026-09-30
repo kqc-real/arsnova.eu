@@ -47,7 +47,12 @@ import {
   invalidateQaSummaryForSession,
   requestQaSummary,
 } from '../lib/qaSummaryQueue';
-import { resolveQaPresenterSortMode, setQaPresenterSortMode } from '../lib/qaPresenterSortMode';
+import { resolveQaPresenterStageView, setQaPresenterStageView } from '../lib/qaPresenterSortMode';
+import {
+  isQaControversialLabel,
+  isQaControversyInsufficientVotes,
+  resolveQaControversyThreshold,
+} from '../lib/qaControversy';
 import {
   buildSessionRetentionTimeline,
   isSessionEffectivelyFinished,
@@ -113,6 +118,7 @@ type QaQuestionVoteStats = {
   bestScore?: number;
   controversyScore?: number;
   isControversial?: boolean;
+  controversyInsufficientVotes?: boolean;
 };
 
 type QaQuestionSortMode = z.infer<typeof GetQaQuestionsInputSchema>['sort'];
@@ -506,6 +512,9 @@ function mapQaQuestion(
     ...(includeVoteMetrics && voteStats?.isControversial !== undefined
       ? { isControversial: voteStats.isControversial }
       : {}),
+    ...(includeVoteMetrics && voteStats?.controversyInsufficientVotes !== undefined
+      ? { controversyInsufficientVotes: voteStats.controversyInsufficientVotes }
+      : {}),
     status: question.status,
     createdAt:
       question.createdAt instanceof Date
@@ -829,7 +838,7 @@ async function buildQaQuestionPayloadFromDb(options: {
   const moderatorView = options.moderatorView === true;
   const includeVoteMetrics = moderatorView || options.includeVoteMetrics === true;
   const participantCount = options.participantCountForControversy ?? 0;
-  const controversyThreshold = Math.max(1, participantCount * 0.1);
+  const controversyThreshold = resolveQaControversyThreshold(participantCount);
   const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
   const canSharePublicRanking =
     !moderatorView &&
@@ -1117,6 +1126,11 @@ async function buildQaQuestionPayloadFromDb(options: {
     const voteCount = positiveVoteCount + negativeVoteCount;
     const bestScore = Number(row.bestScore);
     const controversyScore = Number(row.controversyScore);
+    const isControversial = isQaControversialLabel({
+      controversyScore,
+      voteCount,
+      controversyThreshold,
+    });
     return mapQaQuestion(
       {
         ...row,
@@ -1138,7 +1152,12 @@ async function buildQaQuestionPayloadFromDb(options: {
         voteCount,
         bestScore,
         controversyScore,
-        isControversial: controversyScore > 0.5 && voteCount >= Math.max(1, controversyThreshold),
+        isControversial,
+        controversyInsufficientVotes: isQaControversyInsufficientVotes({
+          voteCount,
+          controversyThreshold,
+          isControversial,
+        }),
       },
       moderatorView || includeVoteMetrics,
       moderatorView,
@@ -1267,18 +1286,15 @@ export const qaRouter = router({
         });
       }
 
-      const participantCountForControversy =
-        input.moderatorView === true || sortMode === 'CONTROVERSIAL'
-          ? await prisma.participant.count({
-              where: { sessionId: session.id },
-            })
-          : undefined;
+      const participantCountForControversy = await prisma.participant.count({
+        where: { sessionId: session.id },
+      });
       const includeAuthorNickname = session.onboardingAnonymousMode !== true;
       const authorNickname = input.moderatorView
         ? input.authorNickname?.trim() || undefined
         : undefined;
       const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${
-        sortMode === 'CONTROVERSIAL' ? (participantCountForControversy ?? 0) : ''
+        sortMode === 'CONTROVERSIAL' ? participantCountForControversy : ''
       }`;
       const pendingCountWithoutModeration =
         session.qaModerationMode === false
@@ -1301,6 +1317,8 @@ export const qaRouter = router({
           sessionId: session.id,
           participantId: input.participantId,
           moderatorView: input.moderatorView,
+          // Zustimmung/Umstritten auch für Teilnehmende (Vote-UI-Labels).
+          includeVoteMetrics: true,
           sortMode,
           participantCountForControversy,
           includeAuthorNickname,
@@ -1427,8 +1445,13 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      setQaPresenterSortMode(code, input.sortMode);
-      return { sortMode: input.sortMode };
+      const stageView = setQaPresenterStageView(code, {
+        sortMode: input.sortMode,
+        search: input.search,
+        pinnedOnly: input.pinnedOnly,
+        authorNickname: input.authorNickname ?? null,
+      });
+      return stageView;
     }),
 
   presentProjection: publicProcedure
@@ -1473,15 +1496,19 @@ export const qaRouter = router({
           : session.qaOpen === false
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
-      const sortMode: QaQuestionSortMode = resolveQaPresenterSortMode(session.code);
+      const stageView = resolveQaPresenterStageView(session.code);
+      const sortMode: QaQuestionSortMode = stageView.sortMode;
       const participantCountForControversy = await prisma.participant.count({
         where: { sessionId: session.id },
       });
-      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${participantCountForControversy}`;
+      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${stageView.search}:${stageView.pinnedOnly ? '1' : '0'}:${stageView.authorNickname ?? ''}:${participantCountForControversy}`;
       // Eine Seite à Forum-Maximum: ACTIVE+PINNED vollständig bis 500 (DTO-Cap).
       // Früher pageSize 100 → Host-Navigator und Presenter-Warteschlange divergierten.
       const presentProjectionPageSize =
         QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1]!;
+      const statuses: Array<'ACTIVE' | 'PINNED'> = stageView.pinnedOnly
+        ? ['PINNED']
+        : ['ACTIVE', 'PINNED'];
       const page = await buildQaQuestionPayloadFromDb({
         sessionId: session.id,
         moderatorView: false,
@@ -1490,8 +1517,10 @@ export const qaRouter = router({
         participantCountForControversy,
         includeAuthorNickname: session.onboardingAnonymousMode !== true,
         pageSize: presentProjectionPageSize,
-        statuses: ['ACTIVE', 'PINNED'],
+        statuses,
         rankingRevision,
+        ...(stageView.search ? { search: stageView.search } : {}),
+        ...(stageView.authorNickname ? { authorNickname: stageView.authorNickname } : {}),
       });
       return buildQaQuestionsSnapshot(session, page.questions, state, serverNow, {
         rankingRevision,

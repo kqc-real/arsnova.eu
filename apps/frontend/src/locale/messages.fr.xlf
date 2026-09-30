@@ -22448,6 +22448,22 @@
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.badgeControversyInsufficientVotes" datatype="html">
+        <source>Zu wenige Stimmen</source>
+        <target>Trop peu de votes</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.badgeControversyInsufficientVotesAria" datatype="html">
+        <source>Nicht genügend Stimmen für eine belastbare Einordnung</source>
+        <target>Pas assez de votes pour une évaluation fiable</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.badgeControversyOnesided" datatype="html">
+        <source>Einseitig</source>
+        <target>Unilatéral</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.badgeControversyOnesidedAria" datatype="html">
+        <source>Überwiegend einseitige Bewertung — nicht als umstritten eingestuft</source>
+        <target>Évaluation majoritairement unilatérale — non classée comme controversée</target>
+      </trans-unit>
 <trans-unit id="sessionQa.badgeControversial" datatype="html">
         <source>Umstritten</source>
         <target>Controversée</target>
@@ -23599,6 +23615,26 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2394</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHelpBestAria" datatype="html">
+        <source>Hilfe zu »Beste Fragen«</source>
+        <target>Aide pour « Meilleures questions »</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHelpControversialAria" datatype="html">
+        <source>Hilfe zu »Umstritten«</source>
+        <target>Aide pour « Controversé »</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHelpBestMenu" datatype="html">
+        <source>Hilfe: Beste Fragen</source>
+        <target>Aide : Meilleures questions</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHelpControversialMenu" datatype="html">
+        <source>Hilfe: Umstritten</source>
+        <target>Aide : Controversé</target>
+      </trans-unit>
+      <trans-unit id="sessionQa.sortHelpClose" datatype="html">
+        <source>Schließen</source>
+        <target>Fermer</target>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
         <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
