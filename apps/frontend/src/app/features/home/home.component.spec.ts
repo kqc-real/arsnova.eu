@@ -2171,6 +2171,9 @@ describe('HomeComponent', () => {
       expect(desktopLayout).toMatch(
         /\.home-feedback-chip\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height[^}]*padding:\s*0\.75rem 0\.65rem/,
       );
+      expect(scss).toMatch(
+        /\.home-choice-button\.home-scenario-feedback\s*\{[^}]*height:\s*auto[^}]*flex:\s*0 0 auto/,
+      );
       expect(scss).toMatch(/\.home-feedback-chip__label--wide-compact\s*\{[^}]*display:\s*none/);
       expect(desktopLayout).not.toMatch(
         /\.home-feedback-chip__label--wide-full\s*\{[^}]*display:\s*none/,
