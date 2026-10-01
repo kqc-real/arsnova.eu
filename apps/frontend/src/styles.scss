@@ -1262,6 +1262,28 @@ html {
   max-width: 100%;
 }
 
+.markdown-body > *,
+.mk-editor__preview-body > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Zitate kursiv – inkl. verschachtelter <p> (sonst überschreibt Typo font-style: normal). */
+.markdown-body blockquote,
+.markdown-body blockquote p,
+.mk-editor__preview-body blockquote,
+.mk-editor__preview-body blockquote p {
+  font-style: italic;
+}
+
+.mk-editor__preview-body blockquote {
+  margin: 0.6rem 0;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container-low);
+  border-radius: var(--mat-sys-corner-medium);
+}
+
 .markdown-body .qa-redacted-passage,
 .session-present__qa-text .qa-redacted-passage,
 .session-present__qa-list-text .qa-redacted-passage {
@@ -1828,6 +1850,14 @@ html {
   padding-inline-start: 0.75rem;
   border-inline-start: 3px solid var(--mat-sys-outline-variant);
   color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+}
+
+.cdk-overlay-pane.admin-motd-template-dialog-panel
+  .admin-motd-tpl-dialog__preview.markdown-body
+  blockquote
+  p {
+  font-style: italic;
 }
 
 .cdk-overlay-pane.admin-motd-template-dialog-panel
@@ -2134,6 +2164,12 @@ $markdown-katex-flow-hosts:
   margin: 0.7rem 0;
   padding-left: 0.7rem;
   border-left: 3px solid var(--mat-sys-outline-variant);
+  font-style: italic;
+}
+
+.quiz-preview-question__text blockquote p,
+.quiz-preview-question__answer-content blockquote p {
+  font-style: italic;
 }
 
 /* Quiz-MD-Bilder kommen aus [innerHTML] und brauchen deshalb globale Begrenzungen. */
@@ -2188,6 +2224,12 @@ $markdown-katex-flow-hosts:
   margin: 0.7rem 0;
   padding-left: 0.7rem;
   border-left: 3px solid var(--mat-sys-outline-variant);
+  font-style: italic;
+}
+
+.session-host__question-title-inner blockquote p,
+.session-host__rich-text blockquote p {
+  font-style: italic;
 }
 
 /* Fragetext/Formeln im Rahmen halten + Silbentrennung (z. B. Frage 9) */
@@ -2409,6 +2451,11 @@ $markdown-katex-flow-hosts:
   padding-left: 0.65rem;
   border-left: 3px solid var(--mat-sys-outline-variant);
   color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+}
+
+.quiz-list__ai-prompt-markdown blockquote p {
+  font-style: italic;
 }
 
 .quiz-list__ai-prompt-markdown strong {

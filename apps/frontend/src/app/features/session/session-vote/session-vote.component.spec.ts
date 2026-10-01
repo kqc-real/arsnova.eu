@@ -4775,6 +4775,76 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('öffnet den Markdown/KaTeX-Editor für Q&A-Fragen und behält den Entwurf', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      sessionLifecycleRevision: 1,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      qaClosesAt: '2099-01-01T00:00:00.000Z',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 6,
+      preset: 'SERIOUS',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen aus dem Publikum', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    TestBed.inject(ThemePresetService).setPreset('serious', { silent: true });
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const openEditor = Array.from(host.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Editor'),
+    ) as HTMLButtonElement | undefined;
+    expect(openEditor).toBeTruthy();
+    expect(host.querySelector('app-markdown-katex-editor')).toBeNull();
+    expect(host.querySelector('textarea.session-qa-form__textarea')).not.toBeNull();
+
+    fixture.componentInstance.updateQaDraft('Frage mit $a+b$');
+    openEditor!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.qaRichEditorOpen()).toBe(true);
+    expect(host.querySelector('textarea.session-qa-form__textarea')).toBeNull();
+    const editor = host.querySelector('app-markdown-katex-editor');
+    expect(editor).not.toBeNull();
+    expect(host.querySelector('#qa-draft')).not.toBeNull();
+    expect(host.querySelector('.mk-editor__toolbar')).not.toBeNull();
+    expect(host.querySelector('.mk-editor__preview')).not.toBeNull();
+    expect(host.querySelector('#qa-draft')?.getAttribute('aria-label')).toBe('Deine Frage');
+    expect(fixture.componentInstance.qaDraft()).toBe('Frage mit $a+b$');
+    expect(host.querySelector('.session-qa-form__counter')).toBeNull();
+
+    const closeEditor = Array.from(host.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Textfeld'),
+    ) as HTMLButtonElement | undefined;
+    expect(closeEditor).toBeTruthy();
+    closeEditor!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.qaRichEditorOpen()).toBe(false);
+    expect(host.querySelector('app-markdown-katex-editor')).toBeNull();
+    expect(host.querySelector('textarea.session-qa-form__textarea')).not.toBeNull();
+    expect(fixture.componentInstance.qaDraft()).toBe('Frage mit $a+b$');
+    fixture.destroy();
+  });
+
   it('sortiert die Teilnehmer-Q&A-Liste wie der Host', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

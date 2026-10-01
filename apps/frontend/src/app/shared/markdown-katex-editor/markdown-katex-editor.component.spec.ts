@@ -64,6 +64,16 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(textarea.id).toBe('markdown-editor-test-field');
   });
 
+  it('setzt optionales aria-label und aria-describedby am Quellfeld', () => {
+    const { fixture, textarea } = setup();
+    fixture.componentRef.setInput('ariaLabel', 'Deine Frage');
+    fixture.componentRef.setInput('ariaDescribedBy', 'vote-qa-closed-notice');
+    fixture.detectChanges();
+
+    expect(textarea.getAttribute('aria-label')).toBe('Deine Frage');
+    expect(textarea.getAttribute('aria-describedby')).toBe('vote-qa-closed-notice');
+  });
+
   it('zeigt KaTeX-Fehler direkt in der Vorschau des Editors an', () => {
     vi.useFakeTimers();
     const { fixture, component } = setup();
@@ -207,6 +217,31 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(textarea.value).toBe('- eins\n- zwei');
   });
 
+  it('setzt bei leerem Feld einen Listen-Bullet und Zitat-Prefix', () => {
+    const { component, textarea } = setup();
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+    component.applyBulletList();
+    expect(textarea.value).toBe('- ');
+    expect(textarea.selectionStart).toBe(2);
+
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+    component.applyQuote();
+    expect(textarea.value).toBe('> ');
+    expect(textarea.selectionStart).toBe(2);
+  });
+
+  it('setzt den Listen-Bullet vor vorhandenem Text und entfernt ihn wieder', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'Punkt eins';
+    textarea.setSelectionRange(0, 0);
+    component.applyBulletList();
+    expect(textarea.value).toBe('- Punkt eins');
+    component.applyBulletList();
+    expect(textarea.value).toBe('Punkt eins');
+  });
+
   it('synchronisiert die Vorschau auf die relative Scroll-Position des Quelltexts', () => {
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       cb(0);
@@ -245,6 +280,12 @@ describe('MarkdownKatexEditorComponent', () => {
 
   it('zeigt eine nicht-destruktive Kurzhilfe mit Shortcuts an', () => {
     const { fixture, component } = setup();
+    const helpButton = fixture.nativeElement.querySelector(
+      '.mk-editor__toolbar-help',
+    ) as HTMLButtonElement | null;
+    expect(helpButton).toBeTruthy();
+    expect(helpButton?.closest('mat-menu')).toBeNull();
+    expect(helpButton?.classList.contains('mk-editor__toolbar-help')).toBe(true);
 
     component.toggleHelp();
     fixture.detectChanges();
@@ -288,5 +329,59 @@ describe('MarkdownKatexEditorComponent', () => {
     fixture.detectChanges();
     expect(field.value).toBe('abcdefghij');
     expect(component.rawValue()).toBe('abcdefghij');
+  });
+
+  it('setzt Cursor bei Codeblock und Block-Formel auf die leere Innenzeile', () => {
+    const { component, textarea } = setup();
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+
+    component.applyCodeBlock();
+    expect(textarea.value).toMatch(/^\n```python\n\n```\n$/);
+    expect(textarea.selectionStart).toBe('\n```python\n'.length);
+    expect(textarea.selectionEnd).toBe(textarea.selectionStart);
+
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+    component.applyBlockMath();
+    expect(textarea.value).toBe('\n$$\n\n$$\n');
+    expect(textarea.selectionStart).toBe('\n$$\n'.length);
+    expect(textarea.selectionEnd).toBe(textarea.selectionStart);
+  });
+
+  it('wickelt Selektion in Block-Formel und setzt Cursor ans Ende des Inhalts', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'x^2';
+    textarea.setSelectionRange(0, 3);
+    component.applyBlockMath();
+    expect(textarea.value).toBe('\n$$\nx^2\n$$\n');
+    expect(textarea.selectionStart).toBe('\n$$\nx^2'.length);
+  });
+
+  it('wickelt Selektion in Codeblock statt sie zu verwerfen', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'print(1)';
+    textarea.setSelectionRange(0, 8);
+    component.applyCodeBlock();
+    expect(textarea.value).toBe('\n```python\nprint(1)\n```\n');
+    expect(textarea.selectionStart).toBe('\n```python\nprint(1)'.length);
+  });
+
+  it('entfernt einen markierten Codeblock wieder', () => {
+    const { component, textarea } = setup();
+    textarea.value = '```python\nprint(1)\n```';
+    textarea.setSelectionRange(0, textarea.value.length);
+    component.applyCodeBlock();
+    expect(textarea.value).toBe('print(1)');
+  });
+
+  it('normalisiert Zeilenumbrüche vor Inline-Formel', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'a\n+\nb';
+    textarea.setSelectionRange(0, 5);
+    component.applyInlineMath();
+    expect(textarea.value).toBe('$a + b$');
+    expect(textarea.selectionStart).toBe(1);
+    expect(textarea.selectionEnd).toBe(6);
   });
 });

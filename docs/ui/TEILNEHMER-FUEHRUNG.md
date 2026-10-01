@@ -73,9 +73,11 @@ und fokussiert danach den Werkzeugauslöser.
 Bei Fristablauf oder Host-Schluss bleibt ein vorhandener Entwurf schreibgeschützt
 mit zugeordnetem Frist-/Schlusshinweis. Während Submit ist der Editor ebenfalls
 schreibgeschützt; Fehler erhalten den Text und denselben Idempotenzschlüssel für
-Retry. Der Tempo-Shortcut öffnet ausschließlich ein offenes Q&A und fokussiert
-den sichtbaren Editor. Die feste Sendeaktion nutzt den bestehenden unteren
-Scrollabstand der Vote-Seite.
+Retry. Am Erstellungstextfeld öffnet **Editor** denselben Markdown-/KaTeX-Editor
+(Toolbar + Vorschau) wie im Quiz-Editor; **Textfeld** wechselt zurück zur
+einfachen Eingabe. Der Tempo-Shortcut öffnet ausschließlich ein offenes Q&A und
+fokussiert den sichtbaren Editor. Die feste Sendeaktion nutzt den bestehenden
+unteren Scrollabstand der Vote-Seite.
 
 ## Prüfpfade
 

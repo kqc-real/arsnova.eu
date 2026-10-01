@@ -12,8 +12,6 @@
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
-  container-type: inline-size;
-  container-name: mk-editor;
 }
 
 .mk-editor__toolbar {
@@ -28,6 +26,11 @@
   min-width: 0;
 }
 
+/* Kurzhilfe immer sichtbar, rechtsbündig außerhalb des Overflow-Menüs */
+.mk-editor__toolbar-help {
+  margin-inline-start: auto;
+}
+
 .mk-editor__tool--active {
   background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
   color: var(--mat-sys-primary);
@@ -38,51 +41,12 @@
   background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
 }
 
-/* Schmale Spalte: nur Überschrift/Fett/Kursiv + „Mehr“; Rest im Menü */
-.mk-editor__toolbar-rest {
-  display: none;
-}
-
-.mk-editor__toolbar-wide {
-  display: none;
-}
-
 /*
- * Ab ca. 26rem Editor-Breite: alle Icons in der Leiste, kein Overflow-Button.
- */
-@container mk-editor (min-width: 26rem) {
-  .mk-editor__toolbar-rest {
-    display: contents;
-  }
-
-  .mk-editor__toolbar-wide {
-    display: contents;
-  }
-
-  /* Material setzt am Icon-Button display: inline-flex — ohne !important gewinnt es */
-  .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
-    display: none !important;
-  }
-}
-
-/*
- * Kompakt (Preview / enge Antwortspalte): Container ist oft ≥26rem, trotzdem nur kurze Leiste + „Mehr“.
- * Überschreibt das Container-Query-Expand oben.
+ * Feste kurze Leiste: Liste/Überschrift/Fett/Zitat + „Mehr“ + Kurzhilfe.
+ * Kursiv/Code/Formel/Link/Bild nur im Mehr-Menü.
  */
 .mk-editor--compact .mk-editor__toolbar {
   flex-wrap: nowrap;
-}
-
-.mk-editor--compact .mk-editor__toolbar-rest {
-  display: none !important;
-}
-
-.mk-editor--compact .mk-editor__toolbar-wide {
-  display: none !important;
-}
-
-.mk-editor--compact .mk-editor__toolbar > button.mk-editor__toolbar-overflow {
-  display: inline-flex !important;
 }
 
 /*
@@ -297,7 +261,8 @@
   min-width: 0;
   max-width: 100%;
   min-height: 0;
-  overflow-x: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .mk-editor__preview :where(p, ul, ol, blockquote, pre) {
@@ -422,7 +387,8 @@
 .mk-editor--compact .mk-editor__preview-body {
   max-height: 8rem;
   min-height: 4.5rem;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 @media (max-width: 599px) {

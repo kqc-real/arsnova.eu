@@ -16,6 +16,7 @@ import {
 } from './word-cloud-normalization';
 import { WORD_CLOUD_ANALYSIS_CHANNEL_VALUES } from './word-cloud-semantic';
 import {
+  QA_QUESTION_TEXT_MAX_CODE_POINTS,
   QA_REDACTION_MAX_OFFSET,
   QA_REDACTION_MAX_RANGE_CODE_POINTS,
   QA_REDACTION_MAX_RANGES,
@@ -6287,7 +6288,7 @@ export type SetQaPresenterSortModeOutput = z.infer<typeof SetQaPresenterSortMode
 export const SubmitQaQuestionInputSchema = z.object({
   sessionId: z.uuid(),
   participantId: z.uuid(),
-  text: z.string().min(1).max(500),
+  text: z.string().min(1).max(QA_QUESTION_TEXT_MAX_CODE_POINTS),
   idempotencyKey: z.uuid(),
 });
 export type SubmitQaQuestionInput = z.infer<typeof SubmitQaQuestionInputSchema>;

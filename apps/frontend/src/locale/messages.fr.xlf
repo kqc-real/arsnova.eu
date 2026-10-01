@@ -29709,6 +29709,22 @@
           <context context-type="linenumber">2649,2652</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="participantQa.openEditor" datatype="html">
+        <source>Editor</source>
+        <target>Éditeur</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2671</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="participantQa.closeEditor" datatype="html">
+        <source>Textfeld</source>
+        <target>Champ texte</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">2682</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="participantQa.discard" datatype="html">
         <source> Entwurf verwerfen</source>
         <target>Supprimer le brouillon</target>
@@ -31873,6 +31889,14 @@
           <context context-type="linenumber">200</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="mdEditor.menu.italic" datatype="html">
+        <source>Kursiv</source>
+        <target>Italique</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
+          <context context-type="linenumber">199</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="mdEditor.menu.quote" datatype="html">
         <source>Zitat</source>
         <target>Citation</target>
@@ -31986,8 +32010,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="mdEditor.helpMathHint" datatype="html">
-        <source> Inline mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$...$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>, Blockformeln mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$$...$$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>.</source>
-        <target>En ligne avec <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$...$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>, formules de bloc avec <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$...$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/>.</target>
+        <source> Inline mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$…$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/> (nur eine Zeile), Blockformeln mit <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$$…$$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/></source>
+        <target>En ligne avec <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$…$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/> (une seule ligne), formules de bloc avec <x id="START_TAG_CODE" ctype="x-code" equiv-text="&lt;code&gt;"/>$$…$$<x id="CLOSE_TAG_CODE" ctype="x-code" equiv-text="&lt;/code&gt;"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/markdown-katex-editor/markdown-katex-editor.component.html</context>
           <context context-type="linenumber">269,271</context>

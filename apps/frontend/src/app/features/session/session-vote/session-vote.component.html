@@ -2660,20 +2660,60 @@
 
         @if (isQaChannelOpen() || qaDraft()) {
           <div class="session-qa-form">
-            <textarea
-              id="qa-draft"
-              #qaTextarea
-              class="session-qa-form__textarea"
-              rows="2"
-              maxlength="500"
-              [attr.aria-label]="vpc.voteQaFormLabel(isPlayfulPreset())"
-              [readOnly]="!isQaChannelOpen() || qaSubmitting()"
-              [attr.aria-describedby]="!isQaChannelOpen() ? 'vote-qa-closed-notice' : null"
-              [value]="qaDraft()"
-              (input)="updateQaDraft($any($event.target).value); autoResizeTextarea($event)"
-              (focus)="autoResizeTextarea($event)"
-              [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
-            ></textarea>
+            <div class="session-qa-form__mode">
+              @if (!qaRichEditorOpen()) {
+                <button
+                  mat-button
+                  type="button"
+                  class="session-qa-form__editor-toggle"
+                  [disabled]="!isQaChannelOpen() || qaSubmitting()"
+                  (click)="openQaRichEditor()"
+                >
+                  <mat-icon aria-hidden="true">edit_note</mat-icon>
+                  <span i18n="@@participantQa.openEditor">Editor</span>
+                </button>
+              } @else {
+                <button
+                  mat-button
+                  type="button"
+                  class="session-qa-form__editor-toggle"
+                  [disabled]="qaSubmitting()"
+                  (click)="closeQaRichEditor()"
+                >
+                  <mat-icon aria-hidden="true">notes</mat-icon>
+                  <span i18n="@@participantQa.closeEditor">Textfeld</span>
+                </button>
+              }
+            </div>
+            @if (qaRichEditorOpen()) {
+              <app-markdown-katex-editor
+                fieldId="qa-draft"
+                [value]="qaDraft()"
+                (valueChange)="updateQaDraft($event)"
+                [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
+                [ariaLabel]="vpc.voteQaFormLabel(isPlayfulPreset())"
+                [ariaDescribedBy]="!isQaChannelOpen() ? 'vote-qa-closed-notice' : null"
+                [disabled]="!isQaChannelOpen() || qaSubmitting()"
+                [rows]="4"
+                [maxLength]="qaQuestionTextMaxLength"
+                [compact]="true"
+              />
+            } @else {
+              <textarea
+                id="qa-draft"
+                #qaTextarea
+                class="session-qa-form__textarea"
+                rows="2"
+                [attr.maxlength]="qaQuestionTextMaxLength"
+                [attr.aria-label]="vpc.voteQaFormLabel(isPlayfulPreset())"
+                [readOnly]="!isQaChannelOpen() || qaSubmitting()"
+                [attr.aria-describedby]="!isQaChannelOpen() ? 'vote-qa-closed-notice' : null"
+                [value]="qaDraft()"
+                (input)="updateQaDraft($any($event.target).value); autoResizeTextarea($event)"
+                (focus)="autoResizeTextarea($event)"
+                [placeholder]="vpc.voteQaPlaceholder(isPlayfulPreset())"
+              ></textarea>
+            }
             @if (qaDraft()) {
               <button
                 mat-button
@@ -2691,11 +2731,15 @@
                   Noch {{ quota.participantRemaining }} von 10 Fragen möglich.
                 </span>
               }
-              <span
-                class="session-qa-form__counter"
-                [class.session-qa-form__counter--warn]="qaDraft().trim().length >= 450"
-                >{{ qaDraft().trim().length }}/500</span
-              >
+              @if (!qaRichEditorOpen()) {
+                <span
+                  class="session-qa-form__counter"
+                  [class.session-qa-form__counter--warn]="
+                    qaDraft().trim().length >= qaQuestionTextWarnLength
+                  "
+                  >{{ qaDraft().trim().length }}/{{ qaQuestionTextMaxLength }}</span
+                >
+              }
             </div>
           </div>
 

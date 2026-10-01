@@ -25,13 +25,13 @@ export const QA_REDACTION_PLACEHOLDER_LEGACY = '[geschwärzt]';
  */
 export const QA_REDACTION_PLACEHOLDER = QA_REDACTION_PLACEHOLDER_LEGACY;
 
-/** Einreichungslimit für Q&A-Fragetext (Codepunkte). */
-export const QA_QUESTION_TEXT_MAX_CODE_POINTS = 500;
+/** Einreichungslimit für Q&A-Fragetext (Codepunkte, inkl. Markdown/KaTeX-Syntax). */
+export const QA_QUESTION_TEXT_MAX_CODE_POINTS = 1000;
 
 /**
  * Obergrenze für Schwärzungs-Offsets.
- * Legacy-Platzhalter können den Text über 500 Codepunkte wachsen lassen;
- * längenerhaltende Blockzeichen bleiben im 500er-Fenster.
+ * Legacy-Platzhalter können den Text über das Einreichungslimit wachsen lassen;
+ * längenerhaltende Blockzeichen bleiben im Limit-Fenster.
  */
 export const QA_REDACTION_MAX_OFFSET =
   QA_QUESTION_TEXT_MAX_CODE_POINTS *
