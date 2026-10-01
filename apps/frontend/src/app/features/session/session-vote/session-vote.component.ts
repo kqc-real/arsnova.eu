@@ -57,6 +57,9 @@ import {
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
   QA_MAX_QUESTIONS_PER_SESSION,
+  QA_QUESTION_TEXT_MAX_CODE_POINTS,
+  qaTextCodePointLength,
+  qaTruncateToCodePoints,
   isNumericToleranceMode,
   questionSupportsConfidence,
   normalizeShortTextValue,
@@ -96,6 +99,7 @@ import {
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { remainingCountdownSeconds } from '../session-countdown.util';
 import {
   resolveAppMainScrollRoot,
@@ -457,6 +461,7 @@ export function getNumericEstimateMotivation(input: {
     NgTemplateOutlet,
     FeedbackVoteComponent,
     MarkdownImageLightboxDirective,
+    MarkdownKatexEditorComponent,
     AnswerOptionBadgeComponent,
     ItemSelectionRowComponent,
     ProductFeedbackCardComponent,
@@ -470,6 +475,9 @@ export function getNumericEstimateMotivation(input: {
 })
 export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
+  /** Einreichungslimit inkl. Markdown/KaTeX-Syntax (shared-types). */
+  readonly qaQuestionTextMaxLength = QA_QUESTION_TEXT_MAX_CODE_POINTS;
+  readonly qaQuestionTextWarnLength = Math.floor(QA_QUESTION_TEXT_MAX_CODE_POINTS * 0.9);
   /** Preset-abhängige Teilnehmer-Texte (Template: vpc.*) */
   readonly vpc = vpc;
   readonly localizedPath = localizePath;
@@ -513,6 +521,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private suppressChannelTabWriteback = false;
 
   @ViewChild('qaTextarea') qaTextareaRef?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild(MarkdownKatexEditorComponent) qaMarkdownEditor?: MarkdownKatexEditorComponent;
 
   readonly code = (this.route.parent?.snapshot.paramMap.get('code') ?? '').toUpperCase();
   readonly sessionId = signal('');
@@ -566,6 +575,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSelectedAuthorNickname = signal<string | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly qaDraft = signal('');
+  /** Optional Markdown/KaTeX-Editor statt einfachem Textfeld (gleiche Komponente wie Quiz-Editor). */
+  readonly qaRichEditorOpen = signal(false);
   readonly qaQuota = signal<QaQuestionQuotaDTO | null>(null);
   readonly qaSubmitting = signal(false);
   readonly qaError = signal<string | null>(null);
@@ -1381,12 +1392,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaCanSubmit = computed(
     () =>
       this.isQaChannelOpen() &&
-      this.qaDraft().trim().length > 0 &&
-      this.qaDraft().trim().length <= 500 &&
+      qaTextCodePointLength(this.qaDraft().trim()) > 0 &&
+      qaTextCodePointLength(this.qaDraft().trim()) <= this.qaQuestionTextMaxLength &&
       (this.qaQuota()?.participantRemaining ?? 1) > 0 &&
       (this.qaQuota()?.sessionRemaining ?? 1) > 0 &&
       !this.qaSubmitting(),
   );
+
+  /** Angezeigte Codepunkt-Länge der (getrimmten) Q&A-Frage. */
+  qaDraftCodePointCount(): number {
+    return qaTextCodePointLength(this.qaDraft().trim());
+  }
   readonly visibleQaQuestions = computed(() => {
     const selectedNickname = this.qaSelectedAuthorNickname();
     const questions = this.qaQuestions();
@@ -2978,13 +2994,36 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         if (!this.showTempoAskQuestionShortcut()) {
           return;
         }
-        const el = this.qaTextareaRef?.nativeElement;
-        if (el) {
-          el.focus();
-        }
+        this.focusQaComposer();
       },
       { injector: this.injector },
     );
+  }
+
+  openQaRichEditor(): void {
+    if (this.qaRichEditorOpen()) {
+      this.focusQaComposer();
+      return;
+    }
+    this.qaRichEditorOpen.set(true);
+    afterNextRender(() => this.focusQaComposer(), { injector: this.injector });
+  }
+
+  closeQaRichEditor(): void {
+    if (!this.qaRichEditorOpen()) {
+      this.focusQaComposer();
+      return;
+    }
+    this.qaRichEditorOpen.set(false);
+    afterNextRender(() => this.focusQaComposer(), { injector: this.injector });
+  }
+
+  private focusQaComposer(): void {
+    if (this.qaRichEditorOpen()) {
+      this.qaMarkdownEditor?.focusField();
+      return;
+    }
+    this.qaTextareaRef?.nativeElement?.focus();
   }
 
   qaStatusLabel(status: QaQuestionDTO['status'], isOwn = false): string {
@@ -3048,10 +3087,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   updateQaDraft(value: string): void {
-    if (this.qaSubmitAttempt?.text !== value.trim()) {
+    const limited = qaTruncateToCodePoints(value, this.qaQuestionTextMaxLength);
+    if (this.qaSubmitAttempt?.text !== limited.trim()) {
       this.qaSubmitAttempt = null;
     }
-    this.qaDraft.set(value);
+    this.qaDraft.set(limited);
   }
 
   relativeTime(isoDate: string): string {
@@ -3111,6 +3151,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private collapseTextarea(): void {
+    if (this.qaRichEditorOpen()) {
+      this.qaMarkdownEditor?.blurField();
+      return;
+    }
     const el = this.qaTextareaRef?.nativeElement;
     if (el) {
       el.style.height = '';
@@ -3696,6 +3740,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     this.resetQaListPageNavigation();
     this.qaSelectedAuthorNickname.set(null);
     this.qaDraft.set('');
+    this.qaRichEditorOpen.set(false);
     this.qaQuota.set(null);
     this.qaSubmitAttempt = null;
     this.qaSubmitting.set(false);

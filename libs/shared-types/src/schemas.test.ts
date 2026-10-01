@@ -43,9 +43,11 @@ import {
   SessionPresenterSurfaceSchema,
   SetPresenterSurfaceInputSchema,
   SetPresenterSurfaceOutputSchema,
+  SubmitQaQuestionInputSchema,
   DEMO_QUIZ_HISTORY_SCOPE_ID,
   isDemoQuizHistoryScopeId,
 } from './schemas.js';
+import { QA_QUESTION_TEXT_MAX_CODE_POINTS } from './qa-redaction.js';
 
 const sessionId = '10000000-0000-4000-8000-000000000001';
 const participantId = '10000000-0000-4000-8000-000000000002';
@@ -92,6 +94,35 @@ describe('öffentliche Contract-Schemas', () => {
       SetPresenterSurfaceInputSchema.safeParse({
         code: 'ABC123',
         page: { context: 'qa-questions', delta: 1, index: 2 },
+      }).success,
+    ).toBe(false);
+  });
+
+  it('begrenzt Q&A-Fragetext auf Unicode-Codepunkte (nicht UTF-16-Units)', () => {
+    const base = {
+      sessionId,
+      participantId,
+      idempotencyKey: '10000000-0000-4000-8000-0000000000aa',
+    };
+    const atLimit = '😀'.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS);
+    expect(atLimit.length).toBe(QA_QUESTION_TEXT_MAX_CODE_POINTS * 2);
+    expect(SubmitQaQuestionInputSchema.safeParse({ ...base, text: atLimit }).success).toBe(true);
+    expect(
+      SubmitQaQuestionInputSchema.safeParse({
+        ...base,
+        text: '😀'.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS + 1),
+      }).success,
+    ).toBe(false);
+    expect(
+      SubmitQaQuestionInputSchema.safeParse({
+        ...base,
+        text: 'a'.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS),
+      }).success,
+    ).toBe(true);
+    expect(
+      SubmitQaQuestionInputSchema.safeParse({
+        ...base,
+        text: 'a'.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS + 1),
       }).success,
     ).toBe(false);
   });

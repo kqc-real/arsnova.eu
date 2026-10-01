@@ -1,8 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { SimpleChange } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MarkdownKatexEditorComponent } from './markdown-katex-editor.component';
+
+const SPEC_DIR = dirname(fileURLToPath(import.meta.url));
 
 describe('MarkdownKatexEditorComponent', () => {
   function stubMatchMedia(matches = false) {
@@ -62,6 +67,16 @@ describe('MarkdownKatexEditorComponent', () => {
     const { textarea } = setup();
 
     expect(textarea.id).toBe('markdown-editor-test-field');
+  });
+
+  it('setzt optionales aria-label und aria-describedby am Quellfeld', () => {
+    const { fixture, textarea } = setup();
+    fixture.componentRef.setInput('ariaLabel', 'Deine Frage');
+    fixture.componentRef.setInput('ariaDescribedBy', 'vote-qa-closed-notice');
+    fixture.detectChanges();
+
+    expect(textarea.getAttribute('aria-label')).toBe('Deine Frage');
+    expect(textarea.getAttribute('aria-describedby')).toBe('vote-qa-closed-notice');
   });
 
   it('zeigt KaTeX-Fehler direkt in der Vorschau des Editors an', () => {
@@ -207,6 +222,31 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(textarea.value).toBe('- eins\n- zwei');
   });
 
+  it('setzt bei leerem Feld einen Listen-Bullet und Zitat-Prefix', () => {
+    const { component, textarea } = setup();
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+    component.applyBulletList();
+    expect(textarea.value).toBe('- ');
+    expect(textarea.selectionStart).toBe(2);
+
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+    component.applyQuote();
+    expect(textarea.value).toBe('> ');
+    expect(textarea.selectionStart).toBe(2);
+  });
+
+  it('setzt den Listen-Bullet vor vorhandenem Text und entfernt ihn wieder', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'Punkt eins';
+    textarea.setSelectionRange(0, 0);
+    component.applyBulletList();
+    expect(textarea.value).toBe('- Punkt eins');
+    component.applyBulletList();
+    expect(textarea.value).toBe('Punkt eins');
+  });
+
   it('synchronisiert die Vorschau auf die relative Scroll-Position des Quelltexts', () => {
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
       cb(0);
@@ -245,6 +285,12 @@ describe('MarkdownKatexEditorComponent', () => {
 
   it('zeigt eine nicht-destruktive Kurzhilfe mit Shortcuts an', () => {
     const { fixture, component } = setup();
+    const helpButton = fixture.nativeElement.querySelector(
+      '.mk-editor__toolbar-help',
+    ) as HTMLButtonElement | null;
+    expect(helpButton).toBeTruthy();
+    expect(helpButton?.closest('mat-menu')).toBeNull();
+    expect(helpButton?.classList.contains('mk-editor__toolbar-help')).toBe(true);
 
     component.toggleHelp();
     fixture.detectChanges();
@@ -271,6 +317,77 @@ describe('MarkdownKatexEditorComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('10/10');
   });
 
+  it('schneidet maxLength in Codepunkten ohne Surrogatpaare zu trennen', () => {
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-codepoint-limit';
+    component.value = '';
+    component.maxLength = 3;
+    component.lengthUnit = 'codePoints';
+    fixture.detectChanges();
+    component.onInput('😀😀😀😀');
+    fixture.detectChanges();
+    expect(component.rawValue()).toBe('😀😀😀');
+    expect(component.currentLength()).toBe(3);
+    expect(component.nativeMaxLengthAttr()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('3/3');
+  });
+
+  it('erlaubt horizontales Scrollen in der Preview für breite Inline-Formeln', () => {
+    const scss = readFileSync(resolve(SPEC_DIR, './markdown-katex-editor.component.scss'), 'utf8');
+    expect(scss).toMatch(/\.mk-editor__preview-body\s*\{[^}]*overflow-x:\s*auto/s);
+    expect(scss).not.toMatch(/\.mk-editor__preview-body\s*\{[^}]*overflow-x:\s*hidden/s);
+    expect(scss).toMatch(
+      /\.mk-editor--compact\s+\.mk-editor__preview-body\s*\{[^}]*overflow:\s*auto/s,
+    );
+
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-wide-math';
+    component.value = '$\\underbrace{a+a+a+a+a+a+a+a}_{\\text{lange Summe}}$';
+    fixture.detectChanges();
+    const previewBody = fixture.nativeElement.querySelector(
+      '.mk-editor__preview-body',
+    ) as HTMLElement;
+    expect(previewBody).toBeTruthy();
+    Object.defineProperty(previewBody, 'clientWidth', { configurable: true, value: 120 });
+    Object.defineProperty(previewBody, 'scrollWidth', { configurable: true, value: 480 });
+    expect(previewBody.scrollWidth).toBeGreaterThan(previewBody.clientWidth);
+    // jsdom wendet Component-SCSS nicht immer an; dann reicht die Quell-Assertion oben.
+    const overflowX = getComputedStyle(previewBody).overflowX;
+    if (overflowX && overflowX !== 'visible') {
+      expect(['auto', 'scroll', 'overlay']).toContain(overflowX);
+    }
+  });
+
+  it('nutzt konfigurierbare Bildpolicy in der Vorschau', () => {
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-image-policy';
+    component.imagePolicy = 'external-https-only';
+    component.value = '![x](/relative.png)\n\n![y](https://example.org/a.png)';
+    fixture.detectChanges();
+    // ngOnChanges for imagePolicy
+    component.ngOnChanges({
+      imagePolicy: {
+        previousValue: 'allow-relative-and-https',
+        currentValue: 'external-https-only',
+        firstChange: false,
+        isFirstChange: () => false,
+      },
+      value: {
+        previousValue: '',
+        currentValue: component.value,
+        firstChange: true,
+        isFirstChange: () => true,
+      },
+    });
+    fixture.detectChanges();
+    const html = component.previewResult().html;
+    expect(html).not.toContain('/relative.png');
+    expect(html).toContain('https://example.org/a.png');
+  });
+
   it('verwirft Toolbar-Wraps, die maxLength überschreiten würden', () => {
     const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
     const component = fixture.componentInstance;
@@ -288,5 +405,59 @@ describe('MarkdownKatexEditorComponent', () => {
     fixture.detectChanges();
     expect(field.value).toBe('abcdefghij');
     expect(component.rawValue()).toBe('abcdefghij');
+  });
+
+  it('setzt Cursor bei Codeblock und Block-Formel auf die leere Innenzeile', () => {
+    const { component, textarea } = setup();
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+
+    component.applyCodeBlock();
+    expect(textarea.value).toMatch(/^\n```python\n\n```\n$/);
+    expect(textarea.selectionStart).toBe('\n```python\n'.length);
+    expect(textarea.selectionEnd).toBe(textarea.selectionStart);
+
+    textarea.value = '';
+    textarea.setSelectionRange(0, 0);
+    component.applyBlockMath();
+    expect(textarea.value).toBe('\n$$\n\n$$\n');
+    expect(textarea.selectionStart).toBe('\n$$\n'.length);
+    expect(textarea.selectionEnd).toBe(textarea.selectionStart);
+  });
+
+  it('wickelt Selektion in Block-Formel und setzt Cursor ans Ende des Inhalts', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'x^2';
+    textarea.setSelectionRange(0, 3);
+    component.applyBlockMath();
+    expect(textarea.value).toBe('\n$$\nx^2\n$$\n');
+    expect(textarea.selectionStart).toBe('\n$$\nx^2'.length);
+  });
+
+  it('wickelt Selektion in Codeblock statt sie zu verwerfen', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'print(1)';
+    textarea.setSelectionRange(0, 8);
+    component.applyCodeBlock();
+    expect(textarea.value).toBe('\n```python\nprint(1)\n```\n');
+    expect(textarea.selectionStart).toBe('\n```python\nprint(1)'.length);
+  });
+
+  it('entfernt einen markierten Codeblock wieder', () => {
+    const { component, textarea } = setup();
+    textarea.value = '```python\nprint(1)\n```';
+    textarea.setSelectionRange(0, textarea.value.length);
+    component.applyCodeBlock();
+    expect(textarea.value).toBe('print(1)');
+  });
+
+  it('normalisiert Zeilenumbrüche vor Inline-Formel', () => {
+    const { component, textarea } = setup();
+    textarea.value = 'a\n+\nb';
+    textarea.setSelectionRange(0, 5);
+    component.applyInlineMath();
+    expect(textarea.value).toBe('$a + b$');
+    expect(textarea.selectionStart).toBe(1);
+    expect(textarea.selectionEnd).toBe(6);
   });
 });

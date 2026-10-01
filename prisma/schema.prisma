@@ -704,7 +704,7 @@ model ProductFeedbackPurgeLog {
 // Eine eingereichte Frage in einer Q&A-Session (Story 8.2–8.4)
 model QaQuestion {
   id                       String           @id @default(uuid())
-  text                     String // Fragetext (max. 500 Zeichen, Markdown erlaubt)
+  text                     String // Fragetext (max. 1000 Codepunkte, Markdown erlaubt)
   upvoteCount              Int              @default(0)
   positiveVoteCount        Int              @default(0)
   negativeVoteCount        Int              @default(0)

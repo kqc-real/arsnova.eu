@@ -18,14 +18,15 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { qaTextCodePointLength, qaTruncateToCodePoints } from '@arsnova/shared-types';
 import { DEFAULT_MARKDOWN_FENCE_LANGUAGE } from '../markdown-code-highlight';
 import { decorateLeadingAnswerEmoji } from '../leading-answer-emoji.util';
 import { replaceEmojiShortcodes } from '../emoji-shortcode.util';
-import { renderMarkdownWithKatex } from '../markdown-katex.util';
+import { renderMarkdownWithKatex, type MarkdownImagePolicy } from '../markdown-katex.util';
 import {
   MarkdownImageDialogComponent,
   type MarkdownImageDialogResult,
@@ -38,10 +39,8 @@ import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markd
 
 /** Eingefügte Fence-Blöcke; Caret auf die leere Zeile zwischen öffnendem und schließendem Fence. */
 const INSERT_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n\n\`\`\`\n`;
-const INSERT_BLOCK_MATH = '\n$$\n\n$$\n';
 /** Zeichenoffset nach `\n` + öffnendem Fence + `\n` (Anfang der Innenzeile). */
 const CARET_OFFSET_CODE_BLOCK = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n`.length;
-const CARET_OFFSET_BLOCK_MATH = '\n$$\n'.length;
 const SMARTPHONE_MEDIA_QUERY = '(max-width: 599px)';
 const MOBILE_EDITOR_MIN_ROWS = 8;
 const MARKDOWN_REGEX =
@@ -52,13 +51,8 @@ const KATEX_REGEX =
 type MarkdownToolbarState = {
   heading: boolean;
   bold: boolean;
-  italic: boolean;
   list: boolean;
   quote: boolean;
-  inlineCode: boolean;
-  inlineMath: boolean;
-  codeBlock: boolean;
-  blockMath: boolean;
 };
 
 @Component({
@@ -67,7 +61,6 @@ type MarkdownToolbarState = {
   imports: [
     CommonModule,
     MatButtonModule,
-    MatDialogModule,
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
@@ -92,16 +85,9 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   /** Sichtbare Kurzinfos (matTooltip) + aria-label – gleiche IDs wie zuvor in den Templates. */
   readonly mdToolbarLabel = {
     bold: $localize`:@@mdEditor.boldAria:Fett`,
-    italic: $localize`:@@mdEditor.italicAria:Kursiv`,
     list: $localize`:@@mdEditor.bulletListAria:Liste`,
     quote: $localize`:@@mdEditor.quoteAria:Zitat`,
-    inlineCode: $localize`:@@mdEditor.inlineCodeAria:Inline-Code`,
-    inlineMath: $localize`:@@mdEditor.inlineMathAria:Inline-Formel`,
-    link: $localize`:@@mdEditor.linkAria:Link einfügen`,
-    image: $localize`:@@mdEditor.imageAria:Bild einfügen`,
     heading: $localize`:@@mdEditor.toolbarHeading2Aria:Überschrift`,
-    codeBlock: $localize`:@@mdEditor.toolbarCodeBlockAria:Codeblock`,
-    blockMath: $localize`:@@mdEditor.toolbarBlockMathAria:Block-Formel`,
     help: $localize`:@@mdEditor.helpAria:Markdown-Hilfe und Tastenkürzel anzeigen`,
     more: $localize`:@@mdEditor.moreActionsAria:Weitere Aktionen`,
   } as const;
@@ -114,11 +100,28 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   @Input({ required: true }) fieldId = '';
   @Input() disabled = false;
   @Input() placeholder = '';
+  /** Optional accessible name when no visible label is associated via `fieldId`. */
+  @Input() ariaLabel = '';
+  /** Optional `aria-describedby` id list for the source textarea. */
+  @Input() ariaDescribedBy: string | null = null;
   @Input() rows = 4;
   @Input() compact = false;
   @Input() answerPreview = false;
-  /** Optional: hartes Zeichenlimit inkl. Zähler unter dem Quellfeld. */
+  /**
+   * Optionales Zeichenlimit inkl. Zähler unter dem Quellfeld.
+   * Einheit über `lengthUnit` (Standard: UTF-16 wie natives `maxlength`).
+   */
   @Input() maxLength: number | null = null;
+  /**
+   * Zähleinheit für `maxLength`.
+   * `codePoints`: Unicode-Codepunkte (astrale Zeichen = 1); kein natives `maxlength`.
+   */
+  @Input() lengthUnit: 'utf16' | 'codePoints' = 'utf16';
+  /**
+   * Bild-URL-Policy der Live-Vorschau. Standard erlaubt relative Pfade (Quiz-Editor);
+   * Teilnehmer-Q&A sollte dieselbe Policy wie die veröffentlichte Frage nutzen.
+   */
+  @Input() imagePolicy: MarkdownImagePolicy = 'allow-relative-and-https';
   /** Kein Rand um Quelltext + Vorschau (Toolbar bleibt mit Umrandung). */
   @Input() framelessPanels = false;
 
@@ -132,22 +135,18 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   readonly helpOpen = signal(false);
   readonly rowsValue = signal(4);
   readonly compactValue = signal(false);
+  readonly imagePolicyValue = signal<MarkdownImagePolicy>('allow-relative-and-https');
   readonly isSmartphoneViewport = signal(false);
   readonly mobilePreviewExpanded = signal(false);
   readonly toolbarState = signal<MarkdownToolbarState>({
     heading: false,
     bold: false,
-    italic: false,
     list: false,
     quote: false,
-    inlineCode: false,
-    inlineMath: false,
-    codeBlock: false,
-    blockMath: false,
   });
   readonly previewResult = computed(() =>
     renderMarkdownWithKatex(this.debouncedValue(), {
-      imagePolicy: 'allow-relative-and-https',
+      imagePolicy: this.imagePolicyValue(),
       headingStartLevel: 3,
     }),
   );
@@ -234,6 +233,9 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     }
     if (changes['compact']) {
       this.compactValue.set(this.compact);
+    }
+    if (changes['imagePolicy']) {
+      this.imagePolicyValue.set(this.imagePolicy);
     }
   }
 
@@ -351,7 +353,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     selectionStart: number,
     selectionEnd: number,
   ): boolean {
-    if (this.maxLength !== null && next.length > this.maxLength) {
+    if (this.maxLength !== null && this.measureLength(next) > this.maxLength) {
       return false;
     }
     field.value = next;
@@ -360,11 +362,35 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     return true;
   }
 
+  /** Aktuelle Länge in der für `maxLength` konfigurierten Einheit. */
+  currentLength(): number {
+    return this.measureLength(this.rawValue());
+  }
+
+  /** Natives `maxlength` nur bei UTF-16 – Browser zählen keine Codepunkte. */
+  nativeMaxLengthAttr(): number | null {
+    if (this.maxLength === null || this.lengthUnit === 'codePoints') {
+      return null;
+    }
+    return this.maxLength;
+  }
+
+  private measureLength(value: string): number {
+    return this.lengthUnit === 'codePoints' ? qaTextCodePointLength(value) : value.length;
+  }
+
+  private truncateToMaxLength(value: string): string {
+    if (this.maxLength === null) {
+      return value;
+    }
+    if (this.lengthUnit === 'codePoints') {
+      return qaTruncateToCodePoints(value, this.maxLength);
+    }
+    return value.length > this.maxLength ? value.slice(0, this.maxLength) : value;
+  }
+
   onInput(value: string): void {
-    const limited =
-      this.maxLength !== null && value.length > this.maxLength
-        ? value.slice(0, this.maxLength)
-        : value;
+    const limited = this.truncateToMaxLength(value);
     if (limited !== value) {
       const field = this.fieldRef?.nativeElement;
       if (field) {
@@ -431,12 +457,30 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     this.fieldRef.nativeElement.focus();
   }
 
+  blurField(): void {
+    this.fieldRef.nativeElement.blur();
+  }
+
+  /**
+   * Overflow-Menü ohne Material-restoreFocus: Fokus bleibt bzw. kehrt ins Textarea,
+   * damit Caret nach Block-Einfügen (Code/Formel) sichtbar auf der Innenzeile bleibt.
+   * Offene Insert-Dialoge behalten ihren Fokus.
+   */
+  onOverflowMenuClosed(): void {
+    if (this.dialog.openDialogs.length > 0) return;
+    this.restoreCaretFocusAfterDialog(this.fieldRef.nativeElement);
+  }
+
   insert(text: string, caretOffsetInInsertedText?: number): void {
     this.restoreToolbarTextareaSelection();
     const field = this.fieldRef.nativeElement;
     const start = field.selectionStart ?? 0;
     const end = field.selectionEnd ?? start;
     this.replaceFieldRange(field, start, end, text, caretOffsetInInsertedText);
+    // Mat-Menu restoreFocus kann den Caret sonst verwerfen — nach Overlay-Close erneut setzen.
+    if (caretOffsetInInsertedText !== undefined) {
+      this.restoreCaretFocusAfterDialog(field);
+    }
   }
 
   /** Einfügen an fester Zeichen-Range (z. B. nach Dialog, ohne Toolbar-Stash). */
@@ -522,8 +566,14 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
           start + inner.length,
           start + inner.length,
         );
+        this.restoreCaretFocusAfterDialog(field);
         return;
       }
+      const open = `\n\`\`\`${DEFAULT_MARKDOWN_FENCE_LANGUAGE}\n`;
+      const close = '\n```\n';
+      this.replaceFieldRange(field, start, end, open + sel + close, open.length + sel.length);
+      this.restoreCaretFocusAfterDialog(field);
+      return;
     }
     this.insert(INSERT_CODE_BLOCK, CARET_OFFSET_CODE_BLOCK);
   }
@@ -621,31 +671,18 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   }
 
   applyBulletList(): void {
-    this.restoreToolbarTextareaSelection();
-    const field = this.fieldRef.nativeElement;
-    const value = field.value;
-    const start = field.selectionStart ?? 0;
-    const end = field.selectionEnd ?? start;
-    const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
-    const lineEndIdx = value.indexOf('\n', end);
-    const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
-    const block = value.slice(lineStart, lineEnd);
-    const lines = block.split('\n');
-    const nonEmpty = lines.filter((l) => l.trim().length > 0);
-    const allBulleted = nonEmpty.length > 0 && nonEmpty.every((l) => l.startsWith('- '));
-    const updatedBlock = lines
-      .map((line) => {
-        if (line.trim().length === 0) return line;
-        if (allBulleted) return line.startsWith('- ') ? line.slice(2) : line;
-        return line.startsWith('- ') ? line : `- ${line}`;
-      })
-      .join('\n');
-    const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
-    const nextPos = lineStart + updatedBlock.length;
-    this.commitFieldValue(field, nextValue, nextPos, nextPos);
+    this.toggleLinePrefix('- ');
   }
 
   applyQuote(): void {
+    this.toggleLinePrefix('> ');
+  }
+
+  /**
+   * Zeilenprefix setzen/entfernen. Leere Zeile/leeres Feld: Prefix einfügen
+   * (sonst kein sichtbarer Effekt beim Toolbar-Klick ohne Text).
+   */
+  private toggleLinePrefix(prefix: string): void {
     this.restoreToolbarTextareaSelection();
     const field = this.fieldRef.nativeElement;
     const value = field.value;
@@ -657,12 +694,20 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     const block = value.slice(lineStart, lineEnd);
     const lines = block.split('\n');
     const nonEmpty = lines.filter((l) => l.trim().length > 0);
-    const allQuoted = nonEmpty.length > 0 && nonEmpty.every((l) => l.startsWith('> '));
+
+    if (nonEmpty.length === 0) {
+      const nextValue = value.slice(0, lineStart) + prefix + value.slice(lineEnd);
+      const caret = lineStart + prefix.length;
+      this.commitFieldValue(field, nextValue, caret, caret);
+      return;
+    }
+
+    const allPrefixed = nonEmpty.every((l) => l.startsWith(prefix));
     const updatedBlock = lines
       .map((line) => {
         if (line.trim().length === 0) return line;
-        if (allQuoted) return line.startsWith('> ') ? line.slice(2) : line;
-        return line.startsWith('> ') ? line : `> ${line}`;
+        if (allPrefixed) return line.startsWith(prefix) ? line.slice(prefix.length) : line;
+        return line.startsWith(prefix) ? line : `${prefix}${line}`;
       })
       .join('\n');
     const nextValue = value.slice(0, lineStart) + updatedBlock + value.slice(lineEnd);
@@ -671,11 +716,44 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   }
 
   applyInlineMath(): void {
+    this.restoreToolbarTextareaSelection();
+    const field = this.fieldRef.nativeElement;
+    const start = field.selectionStart ?? 0;
+    const end = field.selectionEnd ?? start;
+    // `$…$` ist einzeilig; mehrzeilige Selektion vor dem Wrap auf Spaces normalisieren.
+    if (end > start) {
+      const sel = field.value.slice(start, end);
+      if (/[\r\n]/.test(sel)) {
+        const collapsed = sel.replace(/\s+/g, ' ').trim();
+        if (
+          !this.commitFieldValue(
+            field,
+            field.value.slice(0, start) + collapsed + field.value.slice(end),
+            start,
+            start + collapsed.length,
+          )
+        ) {
+          return;
+        }
+      }
+    }
     this.toggleInlineMarkers('$');
+    this.restoreCaretFocusAfterDialog(field);
   }
 
   applyBlockMath(): void {
-    this.insert(INSERT_BLOCK_MATH, CARET_OFFSET_BLOCK_MATH);
+    this.restoreToolbarTextareaSelection();
+    const field = this.fieldRef.nativeElement;
+    const v = field.value;
+    const start = field.selectionStart ?? 0;
+    const end = field.selectionEnd ?? start;
+    const selected = v.slice(start, end);
+    const open = '\n$$\n';
+    const close = '\n$$\n';
+    const inserted = open + selected + close;
+    // Leere Selektion: Caret auf Anfang der Innen-Leerzeile; sonst hinter dem Inhalt.
+    this.replaceFieldRange(field, start, end, inserted, open.length + selected.length);
+    this.restoreCaretFocusAfterDialog(field);
   }
 
   openLinkDialog(): void {
@@ -752,13 +830,8 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     this.toolbarState.set({
       heading: this.isHeadingSelection(value, start, end, 2),
       bold: this.hasInlineMarkerSelection(value, start, end, '**'),
-      italic: this.hasInlineMarkerSelection(value, start, end, '_'),
       list: this.areSelectedLinesPrefixed(value, start, end, '- '),
       quote: this.areSelectedLinesPrefixed(value, start, end, '> '),
-      inlineCode: this.hasInlineMarkerSelection(value, start, end, '`'),
-      inlineMath: this.hasInlineMarkerSelection(value, start, end, '$'),
-      codeBlock: this.isInsideFencedBlock(value, start, '```'),
-      blockMath: this.isInsideFencedBlock(value, start, '$$'),
     });
   }
 
@@ -816,14 +889,6 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     const lineEndIdx = value.indexOf('\n', effectiveEnd);
     const lineEnd = lineEndIdx === -1 ? value.length : lineEndIdx;
     return value.slice(lineStart, lineEnd);
-  }
-
-  private isInsideFencedBlock(value: string, position: number, fence: '```' | '$$'): boolean {
-    const before = value.slice(0, position);
-    const after = value.slice(position);
-    const pattern = fence === '```' ? /^```.*$/gm : /^\$\$$/gm;
-    const beforeCount = [...before.matchAll(pattern)].length;
-    return beforeCount % 2 === 1 && pattern.test(after);
   }
 
   private removableIndentWidth(line: string): number {

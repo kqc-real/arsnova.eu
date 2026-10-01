@@ -9,7 +9,9 @@ import {
   previewQaPassageRedaction,
   qaQuestionTextVersion,
   qaRedactionDialogTextIsCurrent,
+  qaTextCodePointLength,
   qaTextCodePoints,
+  qaTruncateToCodePoints,
 } from './qa-redaction';
 import { RedactQaPassagesInputSchema } from './schemas';
 
@@ -113,5 +115,18 @@ describe('qa-redaction', () => {
     }
     expect(qaTextCodePoints(second.text).length).toBe(QA_QUESTION_TEXT_MAX_CODE_POINTS);
     expect(second.text.endsWith(`${QA_REDACTION_CHAR}${QA_REDACTION_CHAR}`)).toBe(true);
+  });
+
+  it('zählt und kürzt nach Unicode-Codepunkten ohne Surrogatpaare zu trennen', () => {
+    expect(qaTextCodePointLength('😀'.repeat(3))).toBe(3);
+    expect('😀'.repeat(3).length).toBe(6);
+    expect(qaTruncateToCodePoints('😀'.repeat(5), 3)).toBe('😀'.repeat(3));
+    expect(qaTruncateToCodePoints('ab😀cd', 3)).toBe('ab😀');
+    expect(
+      qaTruncateToCodePoints(
+        'a'.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS + 5),
+        QA_QUESTION_TEXT_MAX_CODE_POINTS,
+      ).length,
+    ).toBe(QA_QUESTION_TEXT_MAX_CODE_POINTS);
   });
 });

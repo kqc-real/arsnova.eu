@@ -1296,7 +1296,7 @@ app-session-projection-quiz,
 }
 
 .session-present__qa-text {
-  /* ≥36px bei 1080p; volle Hörsaalbreite für bis zu 500 Zeichen */
+  /* ≥36px bei 1080p; volle Hörsaalbreite für bis zu 1000 Zeichen */
   font-size: clamp(2.25rem, 4.6vmin, 3.75rem);
   line-height: 1.3;
   text-wrap: pretty;

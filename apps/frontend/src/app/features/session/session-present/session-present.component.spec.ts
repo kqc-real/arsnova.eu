@@ -1785,9 +1785,9 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it('hält die Q&A-Projektion mit maximal langen Fragen (500 Zeichen) stabil', async () => {
-    const maxText = 'A'.repeat(500);
-    expect(maxText).toHaveLength(500);
+  it('hält die Q&A-Projektion mit maximal langen Fragen (1000 Zeichen) stabil', async () => {
+    const maxText = 'A'.repeat(1000);
+    expect(maxText).toHaveLength(1000);
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,

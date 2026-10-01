@@ -755,6 +755,28 @@
   background: color-mix(in srgb, var(--mat-sys-surface) 88%, var(--mat-sys-surface-container-low));
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-outline-variant));
   box-sizing: border-box;
+  /* Sonst wächst die Grid-Zelle mit Bild-Intrinsic-Breite → img max-width:100% wirkungslos */
+  min-width: 0;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.session-qa-form__mode {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.session-qa-form__editor-toggle {
+  min-height: 2.5rem;
+}
+
+.session-qa-form__editor-toggle mat-icon {
+  margin-inline-end: 0.25rem;
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .session-qa-form__textarea {
@@ -1049,6 +1071,8 @@
   );
   box-shadow: 0 0.5rem 1rem color-mix(in srgb, black 5%, transparent);
   box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   transition:
     box-shadow 200ms,
     border-color 200ms;
@@ -1464,6 +1488,8 @@
 }
 
 .session-qa-card__text {
+  min-width: 0;
+  max-width: 100%;
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-large);
   font-size: 1.0625rem;
