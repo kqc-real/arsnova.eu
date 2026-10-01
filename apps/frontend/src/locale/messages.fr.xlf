@@ -820,7 +820,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.participantCount" datatype="html">
         <source>Teilnehmende</source>
-        <target>Participant</target>
+        <target>Participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">12</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.coverActionWrongTemplate" datatype="html">
         <source>{0} von {1} falsch und sicher</source>
-        <target>{0} sur {1} faux et sûrs</target>
+        <target>{0} réponses sur {1} sont incorrectes malgré un degré de confiance élevé</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">29</context>
@@ -1300,7 +1300,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionNumber" datatype="html">
         <source>Frage</source>
-        <target>Demander</target>
+        <target>Question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">72</context>
@@ -1308,7 +1308,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionOfTotal" datatype="html">
         <source>Frage {0} von {1}</source>
-        <target>Question {0} de {1}</target>
+        <target>Question {0} sur {1}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">73</context>
@@ -1332,7 +1332,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.pageNumberFooter" datatype="html">
         <source>Seite {0} / {1}</source>
-        <target>Pages {0} / {1}</target>
+        <target>Page {0} / {1}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">76</context>
@@ -1340,7 +1340,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionType" datatype="html">
         <source>Format</source>
-        <target>taper</target>
+        <target>Format</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">77</context>
@@ -1348,7 +1348,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipants" datatype="html">
         <source>Teilnehmende</source>
-        <target>Participant</target>
+        <target>Participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">78</context>
@@ -1516,7 +1516,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceOmissionSignalTemplate" datatype="html">
         <source>{1} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Häufig übersehen: »{0}« ({2}×).</source>
-        <target>{1} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Souvent négligé : « {0} » ({2}×).</target>
+        <target>{1} participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Souvent négligé : « {0} » ({2}×).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">99</context>
@@ -1532,7 +1532,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMcCombinedAllOmittedTemplate" datatype="html">
         <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Alle übersahen die richtige Option »{1}«. {2} wählten zusätzlich »{3}«.</source>
-        <target>{0} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Tout le monde a manqué la bonne option « {1} ». {2} a également choisi « {3} ».</target>
+        <target>{0} participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude. Tout le monde a manqué la bonne option « {1} ». {2} a également choisi « {3} ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">101</context>
@@ -1564,7 +1564,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceDegenerateAllHighWrongTemplate" datatype="html">
         <source>Antwortsicherheit: Alle {0} Antworten mit hoher Sicherheit</source>
-        <target>Sécurité des réponses : toutes les {0} réponses avec une sécurité élevée</target>
+        <target>Degré de confiance : les {0} réponses ont été données avec un degré de confiance élevé</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">105</context>
@@ -1580,7 +1580,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceHighWrongGenericTemplate" datatype="html">
         <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit.</source>
-        <target>{0} Les participants ont répondu à la question de manière incorrecte et avec un degré élevé de certitude.</target>
+        <target>{0} participants ont répondu incorrectement à la question avec un degré de confiance élevé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">107</context>
@@ -1588,7 +1588,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMasteryZeroNote" datatype="html">
         <source>0 % gefestigt bedeutet nicht 0 % richtige Antworten. Die richtigen Antworten wurden hier überwiegend mit niedriger oder mittlerer Sicherheit gegeben.</source>
-        <target>0% solide ne signifie pas 0% de réponses correctes. Les réponses correctes ici ont pour la plupart été données avec une certitude faible ou moyenne.</target>
+        <target>0 % de connaissances consolidées ne signifie pas 0 % de réponses correctes. Les réponses correctes ont ici été données principalement avec un degré de confiance faible ou moyen.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">108</context>
@@ -1692,7 +1692,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.numericComparisonMetric" datatype="html">
         <source>Kennzahl</source>
-        <target>Chiffre clé</target>
+        <target>Indicateur</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">121</context>
@@ -1836,7 +1836,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryPriorityTemplate" datatype="html">
         <source>{0} Fragen sollten nachbesprochen werden</source>
-        <target>{0} Les questions doivent être débriefées</target>
+        <target>{0} questions sont à reprendre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">139</context>
@@ -2916,7 +2916,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipationMissingTemplate" datatype="html">
         <source>{0} Teilnehmende gaben keine Antwort ab.</source>
-        <target>{0} Les participants n&apos;ont pas fourni de réponse.</target>
+        <target>{0} participants n'ont pas fourni de réponse.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">269</context>
@@ -3060,7 +3060,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.piGainWrongToCorrectTemplate" datatype="html">
         <source>{0} Teilnehmende wechselten von falsch zu richtig.</source>
-        <target>{0} Les participants sont passés d&apos;incorrect à correct.</target>
+        <target>{0} participants sont passés d'incorrect à correct.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">287</context>
@@ -12209,7 +12209,7 @@
       </trans-unit>
       <trans-unit id="quizForm.defaultTimerSecondsAria" datatype="html">
         <source>Sekunden pro Frage auswählen</source>
-        <target>Sélectionnez les secondes par question</target>
+        <target>Choisis le nombre de secondes par question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">277</context>
@@ -12709,7 +12709,7 @@
       </trans-unit>
       <trans-unit id="quiz.bonusCodesHint" datatype="html">
         <source> Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie freiwillig bei dir einreichen können.</source>
-        <target>Les meilleurs participants recevront un code personnel après le quiz, qu’ils pourront vous transmettre s’ils le souhaitent.</target>
+        <target>Les meilleurs participants recevront un code personnel après le quiz, qu’ils pourront te transmettre s’ils le souhaitent.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">484,487</context>
@@ -12893,7 +12893,7 @@
       </trans-unit>
       <trans-unit id="quiz.edit.questionTimerSectionLegend" datatype="html">
         <source> Zeit für diese Frage</source>
-        <target>Il est temps pour cette question</target>
+        <target>Temps de réponse pour cette question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">640,642</context>
@@ -13061,7 +13061,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateInputTypeLabel" datatype="html">
         <source>Zahlentyp</source>
-        <target>Type de numéro</target>
+        <target>Type de nombre</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">843</context>
@@ -13157,7 +13157,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateIntervalLeftLabel" datatype="html">
         <source>Linke Grenze L</source>
-        <target>Bordure gauche L</target>
+        <target>Borne inférieure L</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">895</context>
@@ -13169,7 +13169,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateIntervalRightLabel" datatype="html">
         <source>Rechte Grenze R</source>
-        <target>Bordure droite R</target>
+        <target>Borne supérieure R</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">901</context>
@@ -13273,7 +13273,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericPreviewTitle" datatype="html">
         <source>Band-Vorschau</source>
-        <target>Aperçu du groupe</target>
+        <target>Aperçu de l’intervalle de tolérance</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">965</context>
@@ -13389,7 +13389,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.orderingItemsSection" datatype="html">
         <source> Reihenfolge-Elemente</source>
-        <target>Éléments de commande</target>
+        <target>Éléments à ordonner</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1135,1137</context>
@@ -13477,7 +13477,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.categorizationItemsHint" datatype="html">
         <source> 4 bis 12 Elemente mit Zielkategorie.</source>
-        <target>4 à 12 articles avec catégorie cible.</target>
+        <target>4 à 12 éléments, chacun associé à une catégorie cible.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1284,1286</context>
@@ -13797,7 +13797,7 @@
       </trans-unit>
       <trans-unit id="2863483573986908286" datatype="html">
         <source>Frage</source>
-        <target>Demander</target>
+        <target>Question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1729</context>
@@ -13861,7 +13861,7 @@
       </trans-unit>
       <trans-unit id="quiz.edit.questionDisabledBadge" datatype="html">
         <source>Deaktiviert</source>
-        <target>Désactivé</target>
+        <target>Désactivée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1917</context>
@@ -30667,7 +30667,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericRequired" datatype="html">
         <source>Bitte gib eine Zahl ein.</source>
-        <target>Veuillez entrer un numéro.</target>
+        <target>Saisis un nombre.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2834</context>
@@ -30675,7 +30675,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericIntegerRequired" datatype="html">
         <source>Bitte gib eine ganze Zahl im unterstützten Format ein.</source>
-        <target>Veuillez saisir un nombre entier dans le format pris en charge.</target>
+        <target>Saisis un nombre entier dans le format pris en charge.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2838</context>
@@ -30691,7 +30691,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericInvalid" datatype="html">
         <source>Bitte gib eine gültige Zahl im unterstützten Format ein.</source>
-        <target>Veuillez saisir un numéro valide dans le format pris en charge.</target>
+        <target>Saisis un nombre valide dans le format pris en charge.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2849</context>
@@ -30699,7 +30699,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericBelowMin" datatype="html">
         <source>Bitte gib einen Wert von mindestens <x id="min" equiv-text="min"/> ein.</source>
-        <target>Veuillez saisir une valeur d&apos;au moins <x id="min" equiv-text="min"/>.</target>
+        <target>Saisis une valeur supérieure ou égale à <x id="min" equiv-text="min"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2855</context>
@@ -30707,7 +30707,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericAboveMax" datatype="html">
         <source>Bitte gib einen Wert von höchstens <x id="max" equiv-text="max"/> ein.</source>
-        <target>Veuillez saisir une valeur d&apos;au plus <x id="max" equiv-text="max"/>.</target>
+        <target>Saisis une valeur inférieure ou égale à <x id="max" equiv-text="max"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2858</context>
@@ -31479,7 +31479,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.matchingIncomplete" datatype="html">
         <source>Ordne jedem linken Begriff genau einen rechten Begriff zu.</source>
-        <target>Faites correspondre chaque terme de gauche avec exactement un terme de droite.</target>
+        <target>Associe chaque terme de gauche à exactement un terme de droite.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">6560</context>
@@ -31487,7 +31487,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.categorizationIncomplete" datatype="html">
         <source>Ordne jedes Element einer Kategorie zu.</source>
-        <target>Attribuez chaque élément à une catégorie.</target>
+        <target>Attribue chaque élément à une catégorie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">6572</context>

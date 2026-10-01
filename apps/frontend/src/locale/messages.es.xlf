@@ -940,7 +940,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidencePriorityAlert" datatype="html">
         <source>Nachbesprechung empfohlen</source>
-        <target>Se recomienda informar</target>
+        <target>Se recomienda revisar las respuestas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">27</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.coverActionWrongTemplate" datatype="html">
         <source>{0} von {1} falsch und sicher</source>
-        <target>{0} de {1} falso y seguro</target>
+        <target>{0} respuestas de {1} incorrectas con un alto grado de confianza</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">29</context>
@@ -1156,7 +1156,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidencePrioritiesTitle" datatype="html">
         <source>Priorität für die Nachbesprechung</source>
-        <target>Prioridad para el informe</target>
+        <target>Prioridades para la revisión de las respuestas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">54</context>
@@ -1300,7 +1300,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionNumber" datatype="html">
         <source>Frage</source>
-        <target>Preguntar</target>
+        <target>Pregunta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">72</context>
@@ -1516,7 +1516,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceOmissionSignalTemplate" datatype="html">
         <source>{1} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Häufig übersehen: »{0}« ({2}×).</source>
-        <target>{1} Los participantes respondieron la pregunta de forma incorrecta y con un alto grado de certeza. A menudo se pasa por alto: «{0}» ({2}×).</target>
+        <target>{1} participantes respondieron la pregunta de forma incorrecta y con un alto grado de certeza. A menudo se pasa por alto: «{0}» ({2}×).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">99</context>
@@ -1532,7 +1532,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMcCombinedAllOmittedTemplate" datatype="html">
         <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Alle übersahen die richtige Option »{1}«. {2} wählten zusätzlich »{3}«.</source>
-        <target>{0} Los participantes respondieron la pregunta de forma incorrecta y con un alto grado de certeza. Todos omitieron la opción correcta «{1}». {2} también eligió «{3}».</target>
+        <target>{0} participantes respondieron la pregunta de forma incorrecta y con un alto grado de certeza. Todos omitieron la opción correcta «{1}». {2} también eligió «{3}».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">101</context>
@@ -1540,7 +1540,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMcCombinedActionTemplate" datatype="html">
         <source>Kläre zuerst, dass »{0}« zur vollständigen Lösung gehört. Stelle anschließend heraus, weshalb »{1}« nicht zutrifft.</source>
-        <target>Primero aclare que «{0}» es parte de la solución completa. Luego explica por qué «{1}» no es cierto.</target>
+        <target>Primero aclara que «{0}» es parte de la solución completa. Luego explica por qué «{1}» no es cierto.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">102</context>
@@ -1564,7 +1564,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceDegenerateAllHighWrongTemplate" datatype="html">
         <source>Antwortsicherheit: Alle {0} Antworten mit hoher Sicherheit</source>
-        <target>Seguridad de las respuestas: todas las {0} respuestas con alta seguridad</target>
+        <target>Confianza en las respuestas: las {0} respuestas se dieron con un alto grado de confianza</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">105</context>
@@ -1580,7 +1580,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceHighWrongGenericTemplate" datatype="html">
         <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit.</source>
-        <target>{0} Los participantes respondieron la pregunta de forma incorrecta y con un alto grado de certeza.</target>
+        <target>{0} participantes respondieron incorrectamente a la pregunta con un alto grado de confianza.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">107</context>
@@ -1588,7 +1588,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMasteryZeroNote" datatype="html">
         <source>0 % gefestigt bedeutet nicht 0 % richtige Antworten. Die richtigen Antworten wurden hier überwiegend mit niedriger oder mittlerer Sicherheit gegeben.</source>
-        <target>0% de respuestas correctas no significa 0% de respuestas correctas. Las respuestas correctas aquí se dieron en su mayoría con una certeza baja o media.</target>
+        <target>Un 0 % de conocimiento consolidado no significa un 0 % de respuestas correctas. Las respuestas correctas se dieron en su mayoría con un grado de confianza bajo o medio.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">108</context>
@@ -1692,7 +1692,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.numericComparisonMetric" datatype="html">
         <source>Kennzahl</source>
-        <target>Figura clave</target>
+        <target>Indicador</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">121</context>
@@ -1780,7 +1780,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.teamRank" datatype="html">
         <source>Rang</source>
-        <target>rango</target>
+        <target>Posición</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">132</context>
@@ -1836,7 +1836,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryPriorityTemplate" datatype="html">
         <source>{0} Fragen sollten nachbesprochen werden</source>
-        <target>{0} Se deben informar las preguntas</target>
+        <target>Se recomienda revisar {0} preguntas</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">139</context>
@@ -1988,7 +1988,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.bonusRank" datatype="html">
         <source>Rang</source>
-        <target>rango</target>
+        <target>Posición</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">158</context>
@@ -2916,7 +2916,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipationMissingTemplate" datatype="html">
         <source>{0} Teilnehmende gaben keine Antwort ab.</source>
-        <target>{0} Los participantes no proporcionaron una respuesta.</target>
+        <target>{0} participantes no proporcionaron una respuesta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">269</context>
@@ -3060,7 +3060,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.piGainWrongToCorrectTemplate" datatype="html">
         <source>{0} Teilnehmende wechselten von falsch zu richtig.</source>
-        <target>{0} Los participantes cambiaron de incorrecto a correcto.</target>
+        <target>{0} participantes cambiaron de incorrecto a correcto.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">287</context>
@@ -12225,7 +12225,7 @@
       </trans-unit>
       <trans-unit id="quizForm.timerSecondsSuffix" datatype="html">
         <source>Sekunden</source>
-        <target>artículos de segunda clase</target>
+        <target>segundos</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">282</context>
@@ -12709,7 +12709,7 @@
       </trans-unit>
       <trans-unit id="quiz.bonusCodesHint" datatype="html">
         <source> Die besten Teilnehmenden erhalten nach dem Quiz einen persönlichen Code, den sie freiwillig bei dir einreichen können.</source>
-        <target>Los mejores participantes recibiran un codigo personal despues del quiz que pueden enviarte voluntariamente.</target>
+        <target>Los mejores participantes recibirán un código personal después del quiz que pueden enviarte voluntariamente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">484,487</context>
@@ -12893,7 +12893,7 @@
       </trans-unit>
       <trans-unit id="quiz.edit.questionTimerSectionLegend" datatype="html">
         <source> Zeit für diese Frage</source>
-        <target>Es hora de esta pregunta</target>
+        <target>Tiempo para responder a esta pregunta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">640,642</context>
@@ -13021,7 +13021,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.quickFormatAria" datatype="html">
         <source>Schnellformat wählen</source>
-        <target>Elija formato rápido</target>
+        <target>Elige un formato rápido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">804</context>
@@ -13157,7 +13157,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateIntervalLeftLabel" datatype="html">
         <source>Linke Grenze L</source>
-        <target>Borde izquierdo L</target>
+        <target>Límite inferior L</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">895</context>
@@ -13169,7 +13169,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateIntervalRightLabel" datatype="html">
         <source>Rechte Grenze R</source>
-        <target>Borde derecho R</target>
+        <target>Límite superior R</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">901</context>
@@ -13273,7 +13273,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericPreviewTitle" datatype="html">
         <source>Band-Vorschau</source>
-        <target>Vista previa de la banda</target>
+        <target>Vista previa del intervalo de tolerancia</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">965</context>
@@ -13369,7 +13369,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.matchingRightLabel" datatype="html">
         <source>Rechts</source>
-        <target>Bien</target>
+        <target>Derecha</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1098</context>
@@ -13389,7 +13389,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.orderingItemsSection" datatype="html">
         <source> Reihenfolge-Elemente</source>
-        <target>Elementos de orden</target>
+        <target>Elementos para ordenar</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1135,1137</context>
@@ -13477,7 +13477,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.categorizationItemsHint" datatype="html">
         <source> 4 bis 12 Elemente mit Zielkategorie.</source>
-        <target>De 4 a 12 artículos con categoría objetivo.</target>
+        <target>De 4 a 12 elementos, cada uno asociado a una categoría de destino.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1284,1286</context>
@@ -13797,7 +13797,7 @@
       </trans-unit>
       <trans-unit id="2863483573986908286" datatype="html">
         <source>Frage</source>
-        <target>Preguntar</target>
+        <target>Pregunta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1729</context>
@@ -13861,7 +13861,7 @@
       </trans-unit>
       <trans-unit id="quiz.edit.questionDisabledBadge" datatype="html">
         <source>Deaktiviert</source>
-        <target>Desactivado</target>
+        <target>Desactivada</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1917</context>
@@ -16709,7 +16709,7 @@
       </trans-unit>
       <trans-unit id="quizList.syncImportedSuccessWithTimestamp" datatype="html">
         <source>Quiz-Sammlung erfolgreich synchronisiert. Neuester Stand vom <x id="timestamp" equiv-text="formattedTimestamp"/>.</source>
-        <target>Colección de quizzes sincronizada correctamente. Version más reciente del <x id="timestamp" equiv-text="formattedTimestamp"/>.</target>
+        <target>Colección de quizzes sincronizada correctamente. Versión más reciente del <x id="timestamp" equiv-text="formattedTimestamp"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">1175</context>
@@ -30667,7 +30667,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericRequired" datatype="html">
         <source>Bitte gib eine Zahl ein.</source>
-        <target>Por favor ingrese un número.</target>
+        <target>Introduce un número.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2834</context>
@@ -30675,7 +30675,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericIntegerRequired" datatype="html">
         <source>Bitte gib eine ganze Zahl im unterstützten Format ein.</source>
-        <target>Ingrese un número entero en el formato admitido.</target>
+        <target>Introduce un número entero en el formato admitido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2838</context>
@@ -30691,7 +30691,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericInvalid" datatype="html">
         <source>Bitte gib eine gültige Zahl im unterstützten Format ein.</source>
-        <target>Ingrese un número válido en el formato admitido.</target>
+        <target>Introduce un número válido en el formato admitido.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2849</context>
@@ -30699,7 +30699,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericBelowMin" datatype="html">
         <source>Bitte gib einen Wert von mindestens <x id="min" equiv-text="min"/> ein.</source>
-        <target>Introduzca un valor de al menos <x id="min" equiv-text="min"/>.</target>
+        <target>Introduce un valor de al menos <x id="min" equiv-text="min"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2855</context>
@@ -30707,7 +30707,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.numericAboveMax" datatype="html">
         <source>Bitte gib einen Wert von höchstens <x id="max" equiv-text="max"/> ein.</source>
-        <target>Introduzca un valor máximo de <x id="max" equiv-text="max"/>.</target>
+        <target>Introduce un valor de como máximo <x id="max" equiv-text="max"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">2858</context>
@@ -30851,7 +30851,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleWinFin" datatype="html">
         <source>Ihr gewinnt als Team!</source>
-        <target>¡Su equipo gana!</target>
+        <target>¡Vuestro equipo gana!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">3132</context>
@@ -30883,7 +30883,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardTitleLeading" datatype="html">
         <source>Ihr führt gerade</source>
-        <target>Lideran por ahora</target>
+        <target>Vais en cabeza</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">3141</context>
@@ -30899,7 +30899,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgWinFin" datatype="html">
         <source>Gemeinsam gewonnen: Platz 1 für euch.</source>
-        <target>¡Ganaron juntos: el primer puesto es suyo!</target>
+        <target>¡Habéis ganado juntos: el primer puesto es vuestro!</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">3161</context>
@@ -30923,7 +30923,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgFinishedOther" datatype="html">
         <source>Ihr beendet mit <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Punkten auf Platz <x id="teamRank" equiv-text="formatLocaleCount(entry.rank, getEffectiveLocale())"/>.</source>
-        <target>Terminas con <x id="totalScore" equiv-text="entry.totalScore"/> puntos en el lugar <x id="teamRank" equiv-text="entry.rank"/>.</target>
+        <target>Termináis con <x id="totalScore" equiv-text="entry.totalScore"/> puntos en la posición <x id="teamRank" equiv-text="entry.rank"/>.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">3169</context>
@@ -30951,7 +30951,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.teamRewardMsgLeading" datatype="html">
         <source>Mit <x id="totalScore" equiv-text="formatLocaleCount(entry.totalScore, getEffectiveLocale())"/> Punkten führt ihr.</source>
-        <target>Lideras con <x id="totalScore" equiv-text="entry.totalScore"/> puntos.</target>
+        <target>Lideráis con <x id="totalScore" equiv-text="entry.totalScore"/> puntos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">3178</context>
@@ -31087,7 +31087,7 @@
       </trans-unit>
       <trans-unit id="sessionVote.timerAccommodation.error" datatype="html">
         <source>Zeitanpassung konnte nicht gespeichert werden.</source>
-        <target>No se pudo guardar el ajuste de hora.</target>
+        <target>No se pudo guardar el ajuste del tiempo de respuesta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
           <context context-type="linenumber">3389</context>

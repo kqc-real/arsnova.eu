@@ -820,7 +820,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.participantCount" datatype="html">
         <source>Teilnehmende</source>
-        <target>Participant</target>
+        <target>Participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">12</context>
@@ -956,7 +956,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.coverActionWrongTemplate" datatype="html">
         <source>{0} von {1} falsch und sicher</source>
-        <target>{0} of {1} false and safe</target>
+        <target>{0} of {1} incorrect answers given with high confidence</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">29</context>
@@ -1236,7 +1236,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceRowIncorrect" datatype="html">
         <source>Falsch</source>
-        <target>False</target>
+        <target>Incorrect</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">64</context>
@@ -1284,7 +1284,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.backToOverview" datatype="html">
         <source>↑ Zur Übersicht</source>
-        <target>↑ For an overview</target>
+        <target>↑ Back to overview</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">70</context>
@@ -1309,7 +1309,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionOfTotal" datatype="html">
         <source>Frage {0} von {1}</source>
-        <target>Question {0} from {1}</target>
+        <target>Question {0} of {1}</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">73</context>
@@ -1341,7 +1341,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionType" datatype="html">
         <source>Format</source>
-        <target>type</target>
+        <target>Format</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">77</context>
@@ -1349,7 +1349,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipants" datatype="html">
         <source>Teilnehmende</source>
-        <target>Participant</target>
+        <target>Participants</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">78</context>
@@ -1517,7 +1517,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceOmissionSignalTemplate" datatype="html">
         <source>{1} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Häufig übersehen: »{0}« ({2}×).</source>
-        <target>{1} Participants answered the question incorrectly and with a high degree of certainty. Often overlooked: “{0}” ({2}×).</target>
+        <target>{1} participants answered the question incorrectly and with a high degree of certainty. Often overlooked: “{0}” ({2}×).</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">99</context>
@@ -1533,7 +1533,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMcCombinedAllOmittedTemplate" datatype="html">
         <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit. Alle übersahen die richtige Option »{1}«. {2} wählten zusätzlich »{3}«.</source>
-        <target>{0} Participants answered the question incorrectly and with a high degree of certainty. Everyone missed the correct option “{1}”. {2} also chose “{3}”.</target>
+        <target>{0} participants answered the question incorrectly and with a high degree of certainty. Everyone missed the correct option “{1}”. {2} also chose “{3}”.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">101</context>
@@ -1565,7 +1565,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceDegenerateAllHighWrongTemplate" datatype="html">
         <source>Antwortsicherheit: Alle {0} Antworten mit hoher Sicherheit</source>
-        <target>Answer Security: All {0} answers with high security</target>
+        <target>Answer confidence: all {0} responses were given with high confidence</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">105</context>
@@ -1581,7 +1581,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceHighWrongGenericTemplate" datatype="html">
         <source>{0} Teilnehmende beantworteten die Frage falsch und mit hoher Sicherheit.</source>
-        <target>{0} Participants answered the question incorrectly and with a high degree of certainty.</target>
+        <target>{0} participants answered the question incorrectly with high confidence.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">107</context>
@@ -1589,7 +1589,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceMasteryZeroNote" datatype="html">
         <source>0 % gefestigt bedeutet nicht 0 % richtige Antworten. Die richtigen Antworten wurden hier überwiegend mit niedriger oder mittlerer Sicherheit gegeben.</source>
-        <target>0% solid does not mean 0% correct answers. The correct answers here were mostly given with low or medium certainty.</target>
+        <target>0% consolidated knowledge does not mean 0% correct answers. The correct answers here were mostly given with low or medium confidence.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">108</context>
@@ -1693,7 +1693,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.numericComparisonMetric" datatype="html">
         <source>Kennzahl</source>
-        <target>Key figure</target>
+        <target>Metric</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">121</context>
@@ -1837,7 +1837,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.finalSummaryPriorityTemplate" datatype="html">
         <source>{0} Fragen sollten nachbesprochen werden</source>
-        <target>{0} Questions should be debriefed</target>
+        <target>{0} questions should be reviewed</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">139</context>
@@ -2919,7 +2919,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.questionParticipationMissingTemplate" datatype="html">
         <source>{0} Teilnehmende gaben keine Antwort ab.</source>
-        <target>{0} Participants did not provide an answer.</target>
+        <target>{0} participants did not provide an answer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">269</context>
@@ -3063,7 +3063,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.piGainWrongToCorrectTemplate" datatype="html">
         <source>{0} Teilnehmende wechselten von falsch zu richtig.</source>
-        <target>{0} Participants changed from incorrect to correct.</target>
+        <target>{0} participants changed from incorrect to correct.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">287</context>
@@ -12927,7 +12927,7 @@
       </trans-unit>
       <trans-unit id="quiz.edit.questionTimerSectionLegend" datatype="html">
         <source> Zeit für diese Frage</source>
-        <target>Time for this question</target>
+        <target>Response time for this question</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">640,642</context>
@@ -13193,7 +13193,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateIntervalLeftLabel" datatype="html">
         <source>Linke Grenze L</source>
-        <target>Left border L</target>
+        <target>Lower bound L</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">895</context>
@@ -13205,7 +13205,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericEstimateIntervalRightLabel" datatype="html">
         <source>Rechte Grenze R</source>
-        <target>Right border R</target>
+        <target>Upper bound R</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">901</context>
@@ -13309,7 +13309,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.numericPreviewTitle" datatype="html">
         <source>Band-Vorschau</source>
-        <target>Band preview</target>
+        <target>Tolerance interval preview</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">965</context>
@@ -13426,7 +13426,7 @@
       </trans-unit>
       <trans-unit id="quizEdit.orderingItemsSection" datatype="html">
         <source> Reihenfolge-Elemente</source>
-        <target>Order elements</target>
+        <target>Items to order</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">1135,1137</context>
