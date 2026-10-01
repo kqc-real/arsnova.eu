@@ -142,7 +142,7 @@
             }
             @if (group.categoryId === 'team' && optionEffective('teamMode')) {
               <div class="preset-toast__nickname-theme">
-                <span class="preset-toast__nickname-theme-label" i18n>Anzahl Teams:</span>
+                <span class="preset-toast__nickname-theme-label" i18n>Anzahl der Teams:</span>
                 <mat-form-field
                   appearance="outline"
                   class="preset-toast__nickname-theme-select"
@@ -151,7 +151,7 @@
                   <mat-select
                     [(ngModel)]="teamCountSelectValue"
                     i18n-aria-label="@@presetToast.teamCountAria"
-                    aria-label="Anzahl Teams wählen"
+                    aria-label="Anzahl der Teams wählen"
                   >
                     <mat-select-trigger>
                       <mat-icon class="preset-toast__option-icon">groups</mat-icon>

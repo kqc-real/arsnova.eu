@@ -73,7 +73,7 @@ function seoDescHome(): string {
 }
 
 function seoTitleQuizList(): string {
-  return $localize`:@@seo.titleQuizList:Meine Quizzes – arsnova.eu`;
+  return $localize`:@@seo.titleQuizList:Meine Quizze – arsnova.eu`;
 }
 
 function seoDescQuizList(): string {
@@ -93,7 +93,7 @@ function seoTitleQuizEdit(): string {
 }
 
 function seoDescQuizEdit(): string {
-  return $localize`:@@seo.descQuizEdit:Fragen und Metadaten eines Quizzes bearbeiten, Vorschau und Upload für die Session vorbereiten.`;
+  return $localize`:@@seo.descQuizEdit:Fragen und Metadaten eines Quiz bearbeiten, Vorschau und Upload für die Session vorbereiten.`;
 }
 
 function seoTitleQuizPreview(): string {

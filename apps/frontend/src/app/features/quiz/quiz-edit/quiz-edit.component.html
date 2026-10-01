@@ -390,7 +390,7 @@
                 <div class="quiz-edit-form__team-section quiz-edit-form__team-section--nested">
                   <div class="quiz-edit-form__grid quiz-edit-form__grid--team-block">
                     <mat-form-field appearance="outline">
-                      <mat-label i18n>Anzahl Teams</mat-label>
+                      <mat-label i18n>Anzahl der Teams</mat-label>
                       <input
                         matInput
                         type="number"
@@ -399,7 +399,7 @@
                         max="8"
                         (input)="syncTeamNamesValidation()"
                         i18n-aria-label="@@quizForm.teamCountAria"
-                        aria-label="Anzahl Teams"
+                        aria-label="Anzahl der Teams"
                       />
                       @if (teamCountControl.hasError('min')) {
                         <mat-error i18n>Mindestens 2 Teams.</mat-error>
@@ -495,7 +495,7 @@
                     max="50"
                     placeholder="3"
                     i18n-aria-label="@@quizForm.bonusCodeCountAria"
-                    aria-label="Anzahl Bonus-Codes"
+                    aria-label="Anzahl der Bonus-Codes"
                   />
                   <mat-hint i18n
                     >Wie viele der Bestplatzierten einen Code erhalten (1–50).</mat-hint

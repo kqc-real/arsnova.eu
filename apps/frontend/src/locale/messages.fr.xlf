@@ -523,7 +523,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.titleQuizList" datatype="html">
-        <source>Meine Quizzes – arsnova.eu</source>
+        <source>Meine Quizze – arsnova.eu</source>
         <target>Mes quiz – arsnova.eu</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
@@ -563,7 +563,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.descQuizEdit" datatype="html">
-        <source>Fragen und Metadaten eines Quizzes bearbeiten, Vorschau und Upload für die Session vorbereiten.</source>
+        <source>Fragen und Metadaten eines Quiz bearbeiten, Vorschau und Upload für die Session vorbereiten.</source>
         <target>Modifiez les questions et les métadonnées d’un quiz, puis préparez l’aperçu et l’envoi dans la session.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
@@ -7950,7 +7950,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedback.tempoHelpThreshold" datatype="html">
-        <source>Das Signal erscheint ab drei Aktiven und reagiert mit etwa 15 Sekunden Verzögerung. Kurz abwarten, bevor Sie anpassen.</source>
+        <source>Das Signal erscheint ab drei Aktiven und reagiert mit etwa 15 Sekunden Verzögerung. Warte kurz, bevor du das Tempo anpasst.</source>
         <target>Le signal apparaît à partir de trois actifs et réagit avec environ 15 secondes de délai. Attendez un instant avant de vous adapter.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.ts</context>
@@ -8982,7 +8982,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPairingBody" datatype="html">
-        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht und »Gesamte Session beenden«. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Tutor:in, Assistenz oder Moderator:in übergeben.</source>
+        <source> Beim Start der Präsentation verbindest du Smartphone oder Tablet per QR. Die Verbindung bestätigst du zuerst am Host-Gerät. Danach bleibt die Präsentation auf dem Beamer, und du gehst frei durch den Raum. Das Gerät steuert die laufende Veranstaltung: Fragen, Ergebnisse, Q&amp;A, Blitzlicht und »Gesamte Session beenden«. Nicht aber: Quiz bearbeiten oder löschen. Die Steuerung kannst du ad hoc einer vertrauenswürdigen Person aus Tutorium, Assistenz oder Moderation übergeben. </source>
         <target>Au démarrage de la présentation, tu connectes un téléphone ou une tablette via QR. Tu confirmes d’abord la connexion sur l’appareil hôte. Ensuite, la présentation reste sur le projecteur et tu circules dans la salle. L’appareil pilote la session en direct : questions, résultats, Q&amp;A, Feedback express et « Terminer toute la séance ». Pas : modifier ou supprimer un quiz. Tu peux transmettre le contrôle ad hoc à un tuteur, à quelqu’un qui t’assiste ou à un animateur de confiance.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
@@ -9154,7 +9154,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostLibraryBody" datatype="html">
-        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über »Sammlung teilen« erzeugst du einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit »Teilen beenden« setzt du eine ausprobierte Freigabe zurück; deine Quizzes bleiben auf diesem Gerät. Auf der Startseite fügst du unter »Geteilte Sammlung nutzen« einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes.</source>
+        <source> In der Quiz-Sammlung bearbeitest und sortierst du Fragen, prüfst die Vorschau und importierst oder exportierst Quizze als JSON. Über »Sammlung teilen« erzeugst du einen Sync-Link, mit dem andere Geräte dieselbe Sammlung nutzen können. Mit »Teilen beenden« setzt du eine ausprobierte Freigabe zurück; deine Quizze bleiben auf diesem Gerät. Auf der Startseite fügst du unter »Geteilte Sammlung nutzen« einen empfangenen Link ein. KI-Vorlagen unterstützen dich beim Erstellen und Prüfen von Quizzen, ohne dass Inhalte an arsnova.eu gesendet werden. Beim Session-Start konfigurierst du unter anderem Stil, Rangliste, Sound, Teams, Nicknamen, Timer und Bonus-Codes. </source>
         <target>Dans la collection de quiz, modifie et réorganise les questions, vérifie l’aperçu et importe ou exporte des quiz au format JSON. « Partager la collection » crée un lien de sync pour que d’autres appareils utilisent la même collection. « Arrêter le partage » remet à zéro un essai de lien ; tes quiz restent sur cet appareil. Sur la page d’accueil, « Utiliser une collection partagée » sert à coller un lien reçu. Les modèles d’IA t’aident à créer et à vérifier des quiz sans envoyer tes contenus à arsnova.eu. Au démarrage, règle notamment le style, le classement, le son, les équipes, les pseudonymes, le minuteur et les codes bonus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
@@ -10343,8 +10343,8 @@
           <context context-type="linenumber">285</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="333141918113055287" datatype="html">
-        <source>Wird beigetreten…</source>
+      <trans-unit id="1645173415639912207" datatype="html">
+        <source>Beitritt läuft …</source>
         <target>Adhésion...</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
@@ -12459,8 +12459,8 @@
           <context context-type="linenumber">338</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1110390562708491750" datatype="html">
-        <source>Anzahl Teams</source>
+      <trans-unit id="115878560539112451" datatype="html">
+        <source>Anzahl der Teams</source>
         <target>Nombre d&apos;équipes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
@@ -12472,7 +12472,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.teamCountAria" datatype="html">
-        <source>Anzahl Teams</source>
+        <source>Anzahl der Teams</source>
         <target>Nombre d&apos;équipes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
@@ -12732,7 +12732,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizForm.bonusCodeCountAria" datatype="html">
-        <source>Anzahl Bonus-Codes</source>
+        <source>Anzahl der Bonus-Codes</source>
         <target>Nombre de codes bonus</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
@@ -21075,8 +21075,8 @@
           <context context-type="linenumber">1596,1598</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1952538840507841358" datatype="html">
-        <source> Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.</source>
+      <trans-unit id="7119915262919086691" datatype="html">
+        <source> Gleiche Antwort? Prima. Unterschiedliche Meinungen? Überzeugt euch gegenseitig. </source>
         <target>Même réponse ? Super. Avis différent ? Convainquez-vous mutuellement.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -21696,7 +21696,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.peerSuggestionSub" datatype="html">
-        <source> Erste Runde noch verborgen, bis du weiter machst.</source>
+        <source> Erste Runde noch verborgen, bis du weitermachst. </source>
         <target>1er tour encore masqué jusqu’à votre action.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -28698,7 +28698,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.discussionHintSerious" datatype="html">
-        <source>Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.</source>
+        <source>Gleiche Antwort? Prima. Unterschiedliche Meinungen? Überzeugt euch gegenseitig.</source>
         <target>Même réponse ? Super. Avis différent ? Convainquez-vous mutuellement.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -29002,7 +29002,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.streakCalloutHeadingSerious" datatype="html">
-        <source>Serie-Bonus</source>
+        <source>Serienbonus</source>
         <target>Bonus de série</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -29042,7 +29042,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.streakInARowPlayful" datatype="html">
-        <source><x id="count" equiv-text="streakCount"/> richtige in Folge</source>
+        <source><x id="count" equiv-text="streakCount"/> richtige Antworten in Folge</source>
         <target><x id="count" equiv-text="streakCount"/> bonnes réponses d’affilée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
@@ -32305,8 +32305,8 @@
           <context context-type="linenumber">125</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="9182051550515919068" datatype="html">
-        <source>Anzahl Teams:</source>
+      <trans-unit id="5445788768283993956" datatype="html">
+        <source>Anzahl der Teams:</source>
         <target>Nombre d&apos;équipes :</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.html</context>
@@ -32314,7 +32314,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="presetToast.teamCountAria" datatype="html">
-        <source>Anzahl Teams wählen</source>
+        <source>Anzahl der Teams wählen</source>
         <target>Sélectionner le nombre d’équipes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/preset-toast/preset-toast.component.html</context>

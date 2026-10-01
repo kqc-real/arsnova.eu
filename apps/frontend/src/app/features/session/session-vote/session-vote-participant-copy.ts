@@ -299,7 +299,7 @@ export function voteDiscussionHint(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.discussionHintPlayful:Gleiche Meinung? Super. Unterschiedlich? Kurz austauschen – dann geht's in Runde 2.`;
   }
-  return $localize`:@@sessionVote.discussionHintSerious:Gleiche Antwort? Prima. Verschiedene Meinung? Überzeugt euch gegenseitig.`;
+  return $localize`:@@sessionVote.discussionHintSerious:Gleiche Antwort? Prima. Unterschiedliche Meinungen? Überzeugt euch gegenseitig.`;
 }
 
 export function voteDiscussionNext(playful: boolean): string {
@@ -437,7 +437,7 @@ export function voteScorecardStreakCalloutHeading(playful: boolean): string {
   if (playful) {
     return $localize`:@@sessionVote.streakCalloutHeadingPlayful:Serien-Boost`;
   }
-  return $localize`:@@sessionVote.streakCalloutHeadingSerious:Serie-Bonus`;
+  return $localize`:@@sessionVote.streakCalloutHeadingSerious:Serienbonus`;
 }
 
 export function voteScorecardStreakFactorCaption(playful: boolean): string {
@@ -456,7 +456,7 @@ export function voteScorecardStreakExtraCaption(playful: boolean): string {
 
 export function voteScorecardStreakInARow(streakCount: number, playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.streakInARowPlayful:${streakCount}:count: richtige in Folge`;
+    return $localize`:@@sessionVote.streakInARowPlayful:${streakCount}:count: richtige Antworten in Folge`;
   }
   return $localize`:@@sessionVote.streakInARowSerious:${streakCount}:count: richtige Antworten in Folge`;
 }

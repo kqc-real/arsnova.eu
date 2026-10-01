@@ -295,7 +295,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     }).format(new Date(value));
   }
   /** i18n: joining in progress. */
-  joiningLabel = () => $localize`Wird beigetreten…`;
+  joiningLabel = () => $localize`Beitritt läuft …`;
   /** i18n: join now button. */
   joinNowLabel = () => $localize`Jetzt beitreten`;
   /** i18n: choose nickname before joining. */

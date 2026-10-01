@@ -273,7 +273,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     },
     { emoji: '🤷', action: $localize`:@@feedback.tempoHelpRowUnclear:Noch kein klares Bild` },
   ];
-  readonly tempoHelpThresholdText = $localize`:@@feedback.tempoHelpThreshold:Das Signal erscheint ab drei Aktiven und reagiert mit etwa 15 Sekunden Verzögerung. Kurz abwarten, bevor Sie anpassen.`;
+  readonly tempoHelpThresholdText = $localize`:@@feedback.tempoHelpThreshold:Das Signal erscheint ab drei Aktiven und reagiert mit etwa 15 Sekunden Verzögerung. Warte kurz, bevor du das Tempo anpasst.`;
   readonly tempoHelpBasisText = $localize`:@@feedback.tempoHelpBasis:Bei 🙈 kurz pausieren – das zeigt Stärke, nicht Schwäche. Bei 🐇🐢 explizit beide Lager ansprechen.`;
   readonly tempoHelpSmoothingText = $localize`:@@feedback.tempoHelpSmoothing:🤷 bedeutet: Das Signal ist noch unscharf. Einfach weitermachen – das klärt sich nach kurzer Zeit.`;
   readonly tempoHelpCloseAria = $localize`:@@feedback.tempoHelpCloseAria:Hilfe schließen`;
