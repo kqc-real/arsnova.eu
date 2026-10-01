@@ -4782,9 +4782,9 @@ export type PublicTrafficQuality = z.infer<typeof PublicTrafficQualitySchema>;
  */
 export const PublicLiveConnectionsSchema = z.object({
   measurementState: PublicMeasurementStateSchema,
-  /** Offene tRPC-WebSocket-Verbindungen dieses Serverprozesses. */
+  /** Offene tRPC-WebSocket-Verbindungen über alle Backend-Instanzen (Redis-TTL-Aggregate). */
   trpcOpen: z.number().int().min(0).nullable(),
-  /** Offene Yjs-Verbindungen dieses Serverprozesses. */
+  /** Offene Yjs-Verbindungen über alle Backend-Instanzen (Redis-TTL-Aggregate). */
   yjsOpen: z.number().int().min(0).nullable(),
   trpcOpenedLastMinute: z.number().int().min(0).nullable(),
   trpcClosedLastMinute: z.number().int().min(0).nullable(),

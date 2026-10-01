@@ -346,6 +346,12 @@ model DailyUsageStatistic {
   sessionsQuizOnly      Int      @default(0)
   sessionsQaOnly        Int      @default(0)
   sessionsCombined      Int      @default(0)
+  /// Größenklassen der Kohorte (firstUsed-Tag), gepflegt bei Teilnahmeänderungen.
+  sizeClassXs           Int      @default(0)
+  sizeClassS            Int      @default(0)
+  sizeClassM            Int      @default(0)
+  sizeClassL            Int      @default(0)
+  sizeClassXl           Int      @default(0)
   updatedAt             DateTime @updatedAt
 }
 

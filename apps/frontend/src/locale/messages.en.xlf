@@ -32891,8 +32891,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusLiveHint" datatype="html">
-        <source> Offene Verbindungen beweisen keine erfolgreiche Nachrichtenzustellung. Zustellfehler und Ende-zu-Ende-Latenz werden hier nicht gemessen. Werte gelten für diesen Serverprozess.</source>
-        <target>Open connections do not prove successful message delivery. Delivery errors and end-to-end latency are not measured here. Values ​​apply to this server process.</target>
+        <source> Offene Verbindungen beweisen keine erfolgreiche Nachrichtenzustellung. Zustellfehler und Ende-zu-Ende-Latenz werden hier nicht gemessen. Werte gelten über alle Backend-Instanzen.</source>
+        <target>Open connections do not prove successful message delivery. Delivery errors and end-to-end latency are not measured here. Values apply across all backend instances.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">370,374</context>

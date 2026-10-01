@@ -342,8 +342,22 @@ async function main(): Promise<void> {
   log(`  PlatformStatistic upsert (Tracking ab ${formatUtcDate(trackingStartedAt)}) …`);
   await upsertPlatform(trackingStartedAt, projectedAt);
 
+  log(`  SessionUsageProjection: ${projections.length} Sessions (XS–XL, Funktionen) …`);
+  const classCounts = { XS: 0, S: 0, M: 0, L: 0, XL: 0 };
+  const sizeByDay = new Map<string, { XS: number; S: number; M: number; L: number; XL: number }>();
+  for (const row of projections) {
+    const cls = classForCount(row.participationCount) as keyof typeof classCounts;
+    classCounts[cls] += 1;
+    const dayKey = formatUtcDate(row.firstUsedUtcDate);
+    const daySizes = sizeByDay.get(dayKey) ?? { XS: 0, S: 0, M: 0, L: 0, XL: 0 };
+    daySizes[cls] += 1;
+    sizeByDay.set(dayKey, daySizes);
+  }
+
   log(`  DailyUsageStatistic: ${daily.length} UTC-Tage …`);
   for (const row of daily) {
+    const dayKey = formatUtcDate(row.date);
+    const sizes = sizeByDay.get(dayKey) ?? { XS: 0, S: 0, M: 0, L: 0, XL: 0 };
     await prisma.dailyUsageStatistic.create({
       data: {
         id: randomUUID(),
@@ -357,15 +371,17 @@ async function main(): Promise<void> {
         sessionsQaOnly: row.sessionsQaOnly,
         sessionsCombined: row.sessionsCombined,
         sessionsJoinOnly: 0,
+        sizeClassXs: sizes.XS,
+        sizeClassS: sizes.S,
+        sizeClassM: sizes.M,
+        sizeClassL: sizes.L,
+        sizeClassXl: sizes.XL,
         updatedAt: projectedAt,
       },
     });
   }
 
-  log(`  SessionUsageProjection: ${projections.length} Sessions (XS–XL, Funktionen) …`);
-  const classCounts = { XS: 0, S: 0, M: 0, L: 0, XL: 0 };
   for (const row of projections) {
-    classCounts[classForCount(row.participationCount) as keyof typeof classCounts] += 1;
     await prisma.sessionUsageProjection.create({
       data: {
         sessionId: row.sessionId,

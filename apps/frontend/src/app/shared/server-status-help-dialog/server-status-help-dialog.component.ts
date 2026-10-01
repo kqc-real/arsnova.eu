@@ -374,7 +374,7 @@ export interface ServerStatusHelpDialogData {
                   >
                     Offene Verbindungen beweisen keine erfolgreiche Nachrichtenzustellung.
                     Zustellfehler und Ende-zu-Ende-Latenz werden hier nicht gemessen. Werte gelten
-                    für diesen Serverprozess.
+                    über alle Backend-Instanzen.
                   </p>
                   <div class="status-help-dialog__metrics status-help-dialog__metrics--live">
                     <article class="status-help-dialog__metric">

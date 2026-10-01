@@ -1,3 +1,29 @@
+import { randomUUID } from 'node:crypto';
+import { getRedis } from '../redis';
+import { logger } from './logger';
+
+const INSTANCE_ID = randomUUID();
+const WS_INSTANCE_KEY_PREFIX = 'ws:telemetry:instance:';
+const WS_INSTANCE_TTL_SECONDS = 20;
+const WS_PUBLISH_INTERVAL_MS = 5_000;
+
+type ClusterLiveMetrics = {
+  available: boolean;
+  trpcOpen: number;
+  yjsOpen: number;
+  trpcOpenedLastMinute: number;
+  trpcClosedLastMinute: number;
+  yjsOpenedLastMinute: number;
+  yjsClosedLastMinute: number;
+  rejectsLastMinute: number;
+  rateLimitedMessagesLastMinute: number;
+  lastSuccessfulReadAt: string | null;
+};
+
+let publishTimer: NodeJS.Timeout | null = null;
+let publishWarned = false;
+let readClusterWarned = false;
+
 let trpcConnectionsActive = 0;
 let trpcConnectionLimit = 1;
 let trpcBoundConnectionsActive = 0;
@@ -236,6 +262,231 @@ export function getWebSocketTelemetrySnapshot(): {
   };
 }
 
+function localRejectsAndRateLimits(snapshot: ReturnType<typeof getWebSocketTelemetrySnapshot>): {
+  rejectsLastMinute: number;
+  rateLimitedMessagesLastMinute: number;
+} {
+  const rejectsLastMinute =
+    snapshot.trpcRejectedUpgradesLastMinute +
+    snapshot.trpcPayloadRejectedLastMinute +
+    snapshot.trpcSessionCapRejectedLastMinute +
+    snapshot.trpcParticipantCapRejectedLastMinute +
+    snapshot.yjsRejectedUpgradesLastMinute +
+    snapshot.yjsPayloadRejectedLastMinute +
+    snapshot.yjsProtocolErrorsLastMinute +
+    snapshot.yjsDocumentRejectedLastMinute +
+    snapshot.yjsAwarenessRejectedLastMinute +
+    snapshot.yjsOutboundRejectedLastMinute;
+  const rateLimitedMessagesLastMinute =
+    snapshot.trpcRateLimitedMessagesLastMinute + snapshot.yjsRateLimitedMessagesLastMinute;
+  return { rejectsLastMinute, rateLimitedMessagesLastMinute };
+}
+
+/** Publiziert Prozess-Snapshot nach Redis (TTL); abgestürzte Instanzen verschwinden. */
+export async function publishInstanceWebSocketTelemetry(): Promise<void> {
+  if (process.env['NODE_ENV'] === 'test') return;
+  try {
+    const snapshot = getWebSocketTelemetrySnapshot();
+    const { rejectsLastMinute, rateLimitedMessagesLastMinute } =
+      localRejectsAndRateLimits(snapshot);
+    const payload = JSON.stringify({
+      trpcOpen: snapshot.trpcConnectionsActive,
+      yjsOpen: snapshot.yjsConnectionsActive,
+      trpcOpenedLastMinute: snapshot.trpcOpenedLastMinute,
+      trpcClosedLastMinute: snapshot.trpcClosedLastMinute,
+      yjsOpenedLastMinute: snapshot.yjsOpenedLastMinute,
+      yjsClosedLastMinute: snapshot.yjsClosedLastMinute,
+      rejectsLastMinute,
+      rateLimitedMessagesLastMinute,
+      updatedAt: Date.now(),
+    });
+    await getRedis().set(
+      `${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`,
+      payload,
+      'EX',
+      WS_INSTANCE_TTL_SECONDS,
+    );
+  } catch (error) {
+    if (!publishWarned) {
+      publishWarned = true;
+      logger.warn(
+        'websocketTelemetry.publish: Redis nicht erreichbar, Cluster-Snapshot übersprungen.',
+        error,
+      );
+    }
+  }
+}
+
+export function startWebSocketTelemetryClusterPublisher(): void {
+  if (process.env['NODE_ENV'] === 'test' || publishTimer) return;
+  void publishInstanceWebSocketTelemetry();
+  publishTimer = setInterval(() => {
+    void publishInstanceWebSocketTelemetry();
+  }, WS_PUBLISH_INTERVAL_MS);
+  publishTimer.unref();
+}
+
+export async function stopWebSocketTelemetryClusterPublisher(): Promise<void> {
+  if (publishTimer) {
+    clearInterval(publishTimer);
+    publishTimer = null;
+  }
+  if (process.env['NODE_ENV'] === 'test') return;
+  try {
+    await getRedis().del(`${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`);
+  } catch {
+    // Shutdown: best effort
+  }
+}
+
+/**
+ * Summiert Live-Kennzahlen aller Instanzen mit gültigem Redis-TTL-Snapshot.
+ * Ohne lesbare Clusterdaten: unavailable (keine prozesslokalen Werte als Plattformtotal).
+ */
+export async function readClusterLiveConnectionMetrics(
+  nowMs: number = Date.now(),
+): Promise<ClusterLiveMetrics> {
+  if (process.env['NODE_ENV'] === 'test') {
+    const snapshot = getWebSocketTelemetrySnapshot();
+    const { rejectsLastMinute, rateLimitedMessagesLastMinute } =
+      localRejectsAndRateLimits(snapshot);
+    return {
+      available: true,
+      trpcOpen: snapshot.trpcConnectionsActive,
+      yjsOpen: snapshot.yjsConnectionsActive,
+      trpcOpenedLastMinute: snapshot.trpcOpenedLastMinute,
+      trpcClosedLastMinute: snapshot.trpcClosedLastMinute,
+      yjsOpenedLastMinute: snapshot.yjsOpenedLastMinute,
+      yjsClosedLastMinute: snapshot.yjsClosedLastMinute,
+      rejectsLastMinute,
+      rateLimitedMessagesLastMinute,
+      lastSuccessfulReadAt: new Date(nowMs).toISOString(),
+    };
+  }
+
+  try {
+    const redis = getRedis();
+    const keys: string[] = [];
+    let cursor = '0';
+    do {
+      const [next, batch] = await redis.scan(
+        cursor,
+        'MATCH',
+        `${WS_INSTANCE_KEY_PREFIX}*`,
+        'COUNT',
+        64,
+      );
+      cursor = next;
+      keys.push(...batch);
+    } while (cursor !== '0');
+
+    if (keys.length === 0) {
+      // Mindestens den lokalen Snapshot publizieren und erneut lesen.
+      await publishInstanceWebSocketTelemetry();
+      const localKey = `${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`;
+      const localRaw = await redis.get(localKey);
+      if (!localRaw) {
+        return {
+          available: false,
+          trpcOpen: 0,
+          yjsOpen: 0,
+          trpcOpenedLastMinute: 0,
+          trpcClosedLastMinute: 0,
+          yjsOpenedLastMinute: 0,
+          yjsClosedLastMinute: 0,
+          rejectsLastMinute: 0,
+          rateLimitedMessagesLastMinute: 0,
+          lastSuccessfulReadAt: null,
+        };
+      }
+      keys.push(localKey);
+    }
+
+    const values = await redis.mget(...keys);
+    let trpcOpen = 0;
+    let yjsOpen = 0;
+    let trpcOpenedLastMinute = 0;
+    let trpcClosedLastMinute = 0;
+    let yjsOpenedLastMinute = 0;
+    let yjsClosedLastMinute = 0;
+    let rejectsLastMinute = 0;
+    let rateLimitedMessagesLastMinute = 0;
+    let sawAny = false;
+
+    for (const raw of values) {
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw) as Partial<ClusterLiveMetrics> & { updatedAt?: number };
+        if (
+          typeof parsed.updatedAt === 'number' &&
+          nowMs - parsed.updatedAt > WS_INSTANCE_TTL_SECONDS * 1000
+        ) {
+          continue;
+        }
+        sawAny = true;
+        trpcOpen += Number(parsed.trpcOpen) || 0;
+        yjsOpen += Number(parsed.yjsOpen) || 0;
+        trpcOpenedLastMinute += Number(parsed.trpcOpenedLastMinute) || 0;
+        trpcClosedLastMinute += Number(parsed.trpcClosedLastMinute) || 0;
+        yjsOpenedLastMinute += Number(parsed.yjsOpenedLastMinute) || 0;
+        yjsClosedLastMinute += Number(parsed.yjsClosedLastMinute) || 0;
+        rejectsLastMinute += Number(parsed.rejectsLastMinute) || 0;
+        rateLimitedMessagesLastMinute += Number(parsed.rateLimitedMessagesLastMinute) || 0;
+      } catch {
+        // Ungültigen Snapshot ignorieren
+      }
+    }
+
+    if (!sawAny) {
+      return {
+        available: false,
+        trpcOpen: 0,
+        yjsOpen: 0,
+        trpcOpenedLastMinute: 0,
+        trpcClosedLastMinute: 0,
+        yjsOpenedLastMinute: 0,
+        yjsClosedLastMinute: 0,
+        rejectsLastMinute: 0,
+        rateLimitedMessagesLastMinute: 0,
+        lastSuccessfulReadAt: null,
+      };
+    }
+
+    return {
+      available: true,
+      trpcOpen,
+      yjsOpen,
+      trpcOpenedLastMinute,
+      trpcClosedLastMinute,
+      yjsOpenedLastMinute,
+      yjsClosedLastMinute,
+      rejectsLastMinute,
+      rateLimitedMessagesLastMinute,
+      lastSuccessfulReadAt: new Date(nowMs).toISOString(),
+    };
+  } catch (error) {
+    if (!readClusterWarned) {
+      readClusterWarned = true;
+      logger.warn(
+        'websocketTelemetry.readCluster: Redis nicht erreichbar, Live-Verbindungen unavailable.',
+        error,
+      );
+    }
+    return {
+      available: false,
+      trpcOpen: 0,
+      yjsOpen: 0,
+      trpcOpenedLastMinute: 0,
+      trpcClosedLastMinute: 0,
+      yjsOpenedLastMinute: 0,
+      yjsClosedLastMinute: 0,
+      rejectsLastMinute: 0,
+      rateLimitedMessagesLastMinute: 0,
+      lastSuccessfulReadAt: null,
+    };
+  }
+}
+
 export function resetWebSocketTelemetryForTests(): void {
   trpcConnectionsActive = 0;
   trpcConnectionLimit = 1;
@@ -263,4 +514,10 @@ export function resetWebSocketTelemetryForTests(): void {
   yjsDocumentRejected.reset();
   yjsAwarenessRejected.reset();
   yjsOutboundRejected.reset();
+  if (publishTimer) {
+    clearInterval(publishTimer);
+    publishTimer = null;
+  }
+  publishWarned = false;
+  readClusterWarned = false;
 }

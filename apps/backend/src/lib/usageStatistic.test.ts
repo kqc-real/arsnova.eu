@@ -17,10 +17,12 @@ import { prisma } from '../db';
 import {
   buildUsageReport,
   classBump,
+  percentileFromSizeClassCounts,
   recordUsageQuizAnswer,
   recordUsageSessionParticipation,
   resetUsageTrackingThrottleForTests,
   resolveUsagePeriod,
+  sizeClassBump,
   sizeClassForCount,
 } from './usageStatistic';
 
@@ -47,6 +49,12 @@ describe('usageStatistic', () => {
     expect(sizeClassForCount(301)).toBe('XL');
   });
 
+  it('bildet Größenklassen-Bumps beim Grenzübertritt', () => {
+    expect(sizeClassBump(0, 1)).toEqual({ sizeClassXs: 1 });
+    expect(sizeClassBump(10, 11)).toEqual({ sizeClassXs: -1, sizeClassS: 1 });
+    expect(sizeClassBump(5, 8)).toEqual({});
+  });
+
   it('bildet disjunkte Funktionsklassen-Bumps inkl. JOIN_ONLY', () => {
     expect(classBump(null, 'JOIN_ONLY')).toEqual({ sessionsJoinOnly: 1 });
     expect(classBump('JOIN_ONLY', 'QUIZ_ONLY')).toEqual({
@@ -60,7 +68,12 @@ describe('usageStatistic', () => {
     expect(classBump('QA_ONLY', 'QA_ONLY')).toEqual({});
   });
 
-  it('zaehlt Erstteilnahme atomar (FOR UPDATE Transaktion)', async () => {
+  it('schätzt Quantile aus Größenklassen-Histogrammen', () => {
+    const counts = { XS: 2, S: 2, M: 0, L: 0, XL: 0 };
+    expect(percentileFromSizeClassCounts(counts, 0.5)).toBe(13);
+  });
+
+  it('schreibt Erstteilnahme in einer Transaktion (Projektion + Tagesbump)', async () => {
     const tx = {
       $queryRaw: vi
         .fn()
@@ -78,13 +91,12 @@ describe('usageStatistic', () => {
     };
     vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof tx) => unknown) =>
       fn(tx)) as unknown as typeof prisma.$transaction);
-    vi.mocked(prisma.$executeRaw).mockResolvedValue(1 as never);
 
     await recordUsageSessionParticipation('session-1', new Date('2026-05-04T12:00:00.000Z'));
 
-    expect(prisma.$transaction).toHaveBeenCalled();
-    expect(tx.$executeRaw).toHaveBeenCalled();
-    expect(prisma.$executeRaw).toHaveBeenCalled();
+    expect(prisma.$transaction).toHaveBeenCalledOnce();
+    // Advisory lock + projection upsert + daily bump in derselben Transaktion.
+    expect(tx.$executeRaw.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
   it('setzt Quiz-Funktionsklasse von JOIN_ONLY auf QUIZ_ONLY ohne doppeltes sessionsUsed', async () => {
@@ -113,25 +125,22 @@ describe('usageStatistic', () => {
     };
     vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof tx) => unknown) =>
       fn(tx)) as unknown as typeof prisma.$transaction);
-    vi.mocked(prisma.$executeRaw).mockResolvedValue(1 as never);
 
     await recordUsageQuizAnswer('session-1', new Date('2026-05-04T12:00:00.000Z'));
-    expect(prisma.$transaction).toHaveBeenCalled();
-    expect(prisma.$executeRaw).toHaveBeenCalled();
+    expect(prisma.$transaction).toHaveBeenCalledOnce();
+    expect(tx.$executeRaw.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('aggregiert Report mit Pre-Tracking-Lücken und joinOnly', async () => {
-    vi.mocked(prisma.$queryRaw)
-      .mockResolvedValueOnce([
-        {
-          usageStatisticsTrackingStartedAt: new Date('2026-05-01T00:00:00.000Z'),
-          usageStatisticsProjectedAt: new Date('2026-05-04T12:00:00.000Z'),
-          qaStatisticsTrackingStartedAt: null,
-          qaQuestionsTotal: 0,
-          completedSessionsTotal: 4,
-        },
-      ])
-      .mockResolvedValueOnce([{ participationCount: 12 }, { participationCount: 40 }]);
+  it('aggregiert Report mit Pre-Tracking-Lücken und Größenklassen aus Tagesaggregaten', async () => {
+    vi.mocked(prisma.$queryRaw).mockResolvedValueOnce([
+      {
+        usageStatisticsTrackingStartedAt: new Date('2026-05-01T00:00:00.000Z'),
+        usageStatisticsProjectedAt: new Date('2026-05-04T12:00:00.000Z'),
+        qaStatisticsTrackingStartedAt: null,
+        qaQuestionsTotal: 0,
+        completedSessionsTotal: 4,
+      },
+    ]);
     vi.mocked(prisma.dailyUsageStatistic.findMany).mockResolvedValue([
       {
         date: new Date('2026-05-03T00:00:00.000Z'),
@@ -144,6 +153,11 @@ describe('usageStatistic', () => {
         sessionsQuizOnly: 1,
         sessionsQaOnly: 0,
         sessionsCombined: 1,
+        sizeClassXs: 0,
+        sizeClassS: 1,
+        sizeClassM: 1,
+        sizeClassL: 0,
+        sizeClassXl: 0,
       },
     ] as never);
 
@@ -168,6 +182,13 @@ describe('usageStatistic', () => {
     const measured = report.dailySeries.find((d) => d.date === '2026-05-03');
     expect(measured?.sessionsUsed).toBe(2);
     expect(report.sizeDistribution?.sampleSize).toBe(2);
-    expect(report.sizeDistribution?.median).toBe(26);
+    expect(report.sizeDistribution?.classes).toEqual([
+      { id: 'XS', label: '1–10', count: 0 },
+      { id: 'S', label: '11–30', count: 1 },
+      { id: 'M', label: '31–100', count: 1 },
+      { id: 'L', label: '101–300', count: 0 },
+      { id: 'XL', label: '301+', count: 0 },
+    ]);
+    expect(report.sizeDistribution?.median).toBe(43);
   });
 });

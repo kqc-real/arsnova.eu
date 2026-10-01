@@ -64,6 +64,7 @@ vi.mock('../lib/sessionCodeProtection', () => ({
 
 vi.mock('../lib/websocketTelemetry', () => ({
   getWebSocketTelemetrySnapshot: vi.fn(),
+  readClusterLiveConnectionMetrics: vi.fn(),
 }));
 
 vi.mock('../lib/sloTelemetry', () => ({
@@ -117,7 +118,10 @@ import { readPdfSignals } from '../lib/pdfTelemetry';
 import { readAbuseSignals } from '../lib/abuseTelemetry';
 import { readCspReportSignals } from '../lib/cspReportIngest';
 import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProtection';
-import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
+import {
+  getWebSocketTelemetrySnapshot,
+  readClusterLiveConnectionMetrics,
+} from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { readQaTelemetry } from '../lib/qaTelemetry';
 import { buildUsageReport } from '../lib/usageStatistic';
@@ -213,6 +217,18 @@ beforeEach(() => {
     yjsOutboundRejectedLastMinute: 0,
     yjsOpenedLastMinute: 0,
     yjsClosedLastMinute: 0,
+  });
+  vi.mocked(readClusterLiveConnectionMetrics).mockResolvedValue({
+    available: true,
+    trpcOpen: 0,
+    yjsOpen: 0,
+    trpcOpenedLastMinute: 0,
+    trpcClosedLastMinute: 0,
+    yjsOpenedLastMinute: 0,
+    yjsClosedLastMinute: 0,
+    rejectsLastMinute: 0,
+    rateLimitedMessagesLastMinute: 0,
+    lastSuccessfulReadAt: new Date().toISOString(),
   });
 });
 

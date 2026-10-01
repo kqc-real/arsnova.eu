@@ -35,7 +35,10 @@ import {
   SESSION_CODE_PROTECTION_LIMITS,
   readSessionCodeGlobalSoftCapUtilization,
 } from '../lib/sessionCodeProtection';
-import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
+import {
+  getWebSocketTelemetrySnapshot,
+  readClusterLiveConnectionMetrics,
+} from '../lib/websocketTelemetry';
 import { readCspReportSignals } from '../lib/cspReportIngest';
 import { RATE_LIMIT_ENV, checkHealthUsageRate } from '../lib/rateLimit';
 import { readQaTelemetry } from '../lib/qaTelemetry';
@@ -430,7 +433,7 @@ function buildTrafficQuality(
   };
 }
 
-function buildLiveConnections(measurementAvailable: boolean): PublicLiveConnections {
+async function buildLiveConnections(measurementAvailable: boolean): Promise<PublicLiveConnections> {
   if (!measurementAvailable) {
     return {
       measurementState: 'UNAVAILABLE',
@@ -449,34 +452,38 @@ function buildLiveConnections(measurementAvailable: boolean): PublicLiveConnecti
     };
   }
 
-  const snapshot = getWebSocketTelemetrySnapshot();
-  const rejectsLastMinute =
-    snapshot.trpcRejectedUpgradesLastMinute +
-    snapshot.trpcPayloadRejectedLastMinute +
-    snapshot.trpcSessionCapRejectedLastMinute +
-    snapshot.trpcParticipantCapRejectedLastMinute +
-    snapshot.yjsRejectedUpgradesLastMinute +
-    snapshot.yjsPayloadRejectedLastMinute +
-    snapshot.yjsProtocolErrorsLastMinute +
-    snapshot.yjsDocumentRejectedLastMinute +
-    snapshot.yjsAwarenessRejectedLastMinute +
-    snapshot.yjsOutboundRejectedLastMinute;
-  const rateLimitedMessagesLastMinute =
-    snapshot.trpcRateLimitedMessagesLastMinute + snapshot.yjsRateLimitedMessagesLastMinute;
+  const cluster = await readClusterLiveConnectionMetrics();
+  if (!cluster.available) {
+    return {
+      measurementState: 'UNAVAILABLE',
+      trpcOpen: null,
+      yjsOpen: null,
+      trpcOpenedLastMinute: null,
+      trpcClosedLastMinute: null,
+      yjsOpenedLastMinute: null,
+      yjsClosedLastMinute: null,
+      rejectsLastMinute: null,
+      rateLimitedMessagesLastMinute: null,
+      reconnectsLastMinute: null,
+      messagesPerSecond: null,
+      lastSuccessfulReadAt: null,
+      deliveryNotMeasured: true,
+    };
+  }
 
   return {
     measurementState: 'AVAILABLE',
-    trpcOpen: snapshot.trpcConnectionsActive,
-    yjsOpen: snapshot.yjsConnectionsActive,
-    trpcOpenedLastMinute: snapshot.trpcOpenedLastMinute,
-    trpcClosedLastMinute: snapshot.trpcClosedLastMinute,
-    yjsOpenedLastMinute: snapshot.yjsOpenedLastMinute,
-    yjsClosedLastMinute: snapshot.yjsClosedLastMinute,
-    rejectsLastMinute,
-    rateLimitedMessagesLastMinute,
+    trpcOpen: cluster.trpcOpen,
+    yjsOpen: cluster.yjsOpen,
+    trpcOpenedLastMinute: cluster.trpcOpenedLastMinute,
+    trpcClosedLastMinute: cluster.trpcClosedLastMinute,
+    yjsOpenedLastMinute: cluster.yjsOpenedLastMinute,
+    yjsClosedLastMinute: cluster.yjsClosedLastMinute,
+    rejectsLastMinute: cluster.rejectsLastMinute,
+    rateLimitedMessagesLastMinute: cluster.rateLimitedMessagesLastMinute,
     reconnectsLastMinute: null,
     messagesPerSecond: null,
-    lastSuccessfulReadAt: new Date().toISOString(),
+    lastSuccessfulReadAt: cluster.lastSuccessfulReadAt,
     deliveryNotMeasured: true,
   };
 }
@@ -835,7 +842,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dependencies,
       coreActionsQuality,
       trafficQuality: buildTrafficQuality(sloSignals, measurementAvailable),
-      liveConnections: buildLiveConnections(measurementAvailable),
+      liveConnections: await buildLiveConnections(measurementAvailable),
       sloSampleSizeLastMinute: sloSignals.available ? sloSignals.totalRequestsLastMinute : null,
       measurementAvailable,
       activeQaSessions,
@@ -877,7 +884,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dependencies: unavailableDependencies,
       coreActionsQuality: emptyCoreActionsQuality(),
       trafficQuality: unavailableTrafficQuality(),
-      liveConnections: buildLiveConnections(false),
+      liveConnections: await buildLiveConnections(false),
       sloSampleSizeLastMinute: null,
       measurementAvailable: false,
       activeQaSessions: null,

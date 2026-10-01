@@ -29,6 +29,13 @@ import {
   LATENCY_BUCKETS_MS,
 } from './sloTelemetry';
 
+function createRedis(overrides: { eval?: ReturnType<typeof vi.fn>; multi?: unknown } = {}) {
+  return {
+    eval: overrides.eval ?? vi.fn().mockResolvedValue(1),
+    multi: overrides.multi ?? (() => createMulti()),
+  };
+}
+
 function createMulti(execResult: unknown = []) {
   const multi = {
     incr: vi.fn().mockReturnThis(),
@@ -103,8 +110,8 @@ describe('sloTelemetry', () => {
   });
 
   it('schreibt gebündelt nach Redis und zählt Fehlerklassen getrennt', async () => {
-    const multi = createMulti();
-    mocks.getRedis.mockReturnValue({ multi: () => multi });
+    const evalMock = vi.fn().mockResolvedValue(1);
+    mocks.getRedis.mockReturnValue(createRedis({ eval: evalMock }));
 
     await recordLiveRequestTelemetry({
       durationMs: 742,
@@ -126,39 +133,67 @@ describe('sloTelemetry', () => {
     });
     await flushSloTelemetry();
 
-    expect(multi.set).toHaveBeenCalledWith(
-      'slo:metric:epoch',
-      expect.any(String),
-      'EX',
-      86_400,
-      'NX',
-    );
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:total:2', 3);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:error:server:2', 1);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:error:rateLimit:2', 1);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:error:client:2', 1);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:latency:2:800', 1);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:group:quizFeedback:2', 1);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:group:sessionJoin:2', 1);
-    expect(multi.incrby).toHaveBeenCalledWith('slo:metric:group:qa:2', 1);
-    expect(multi.exec).toHaveBeenCalledOnce();
+    expect(evalMock).toHaveBeenCalledOnce();
+    const args = evalMock.mock.calls[0]!;
+    expect(String(args[0])).toContain('flushKey');
+    expect(args[1]).toBe(1);
+    expect(String(args[2])).toMatch(/^slo:flush:/);
+    const flat = args.slice(3).map(String);
+    expect(flat).toContain('slo:metric:total:2');
+    expect(flat).toContain('3');
+    expect(flat).toContain('slo:metric:error:server:2');
+    expect(flat).toContain('slo:metric:error:rateLimit:2');
+    expect(flat).toContain('slo:metric:error:client:2');
+    expect(flat).toContain('slo:metric:latency:2:800');
+    expect(flat).toContain('slo:metric:group:quizFeedback:2');
+    expect(flat).toContain('slo:metric:group:sessionJoin:2');
+    expect(flat).toContain('slo:metric:group:qa:2');
   });
 
-  it('legt bei Flush-Fehler den Batch zurück und zählt bei Retry nicht doppelt', async () => {
-    const failingMulti = createMulti();
-    failingMulti.exec.mockRejectedValueOnce(new Error('redis down'));
-    const okMulti = createMulti();
-    mocks.getRedis
-      .mockReturnValueOnce({ multi: () => failingMulti })
-      .mockReturnValueOnce({ multi: () => okMulti });
+  it('legt bei Flush-Fehler den Batch mit gleicher Flush-ID zurück', async () => {
+    const evalMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('redis down'))
+      .mockResolvedValueOnce(1);
+    mocks.getRedis.mockReturnValue(createRedis({ eval: evalMock }));
 
     await recordLiveRequestTelemetry({ durationMs: 100, nowMs: 10_000, groupId: 'qa' });
     await flushSloTelemetry();
     await flushSloTelemetry();
 
-    expect(failingMulti.incrby).toHaveBeenCalledWith('slo:metric:total:1', 1);
-    expect(okMulti.incrby).toHaveBeenCalledWith('slo:metric:total:1', 1);
-    expect(okMulti.incrby).not.toHaveBeenCalledWith('slo:metric:total:1', 2);
+    expect(evalMock).toHaveBeenCalledTimes(2);
+    expect(evalMock.mock.calls[0]![2]).toBe(evalMock.mock.calls[1]![2]);
+    expect(evalMock.mock.calls[0]!.slice(3)).toEqual(evalMock.mock.calls[1]!.slice(3));
+  });
+
+  it('zählt nicht doppelt wenn Redis angewendet hat aber der Client einen Fehler sieht', async () => {
+    const appliedFlushKeys = new Set<string>();
+    let incrTotal = 0;
+    const evalMock = vi.fn(
+      async (_script: string, _n: number, flushKey: string, ...args: string[]) => {
+        if (appliedFlushKeys.has(flushKey)) return 0;
+        appliedFlushKeys.add(flushKey);
+        for (let i = 0; i < args.length; i++) {
+          if (args[i] === 'INCRBY' && args[i + 1] === 'slo:metric:total:1') {
+            incrTotal += Number(args[i + 2] ?? 0);
+          }
+        }
+        // Erste Bestätigung geht verloren — serverseitig bereits angewendet.
+        if (appliedFlushKeys.size === 1) {
+          throw new Error('connection reset after apply');
+        }
+        return 1;
+      },
+    );
+    mocks.getRedis.mockReturnValue(createRedis({ eval: evalMock }));
+
+    await recordLiveRequestTelemetry({ durationMs: 100, nowMs: 10_000, groupId: 'qa' });
+    await flushSloTelemetry();
+    await flushSloTelemetry();
+
+    expect(incrTotal).toBe(1);
+    expect(evalMock).toHaveBeenCalledTimes(2);
+    expect(evalMock.mock.results[1]?.value).resolves.toBe(0);
   });
 
   it('aggregiert Buckets zu Durchschnitt, Spitze, Fehlerklassen und p95/p99', async () => {

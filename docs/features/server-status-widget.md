@@ -50,7 +50,7 @@ Kernzahlen (Sessions, Teilnahmen, Quiz/Q&A) stehen zuerst. Tages-/Monatsverlauf 
 | Teilnahmen / Antworten | Erstbeitritte und Quizstimmen; fehlende Tage/`null`, nie als 0 maskiert |
 | Q&A / Bewertungen | Akzeptierte Fragen und Rating-Aktionen im Zeitraum |
 | Funktionen | Nur Quiz / nur Q&A / kombiniert (Kohorte nach `firstUsedUtcDate`) |
-| Größenklassen | XS–XL aus Peak-Teilnahmen; Median/Q1/Q3 linear; bei Cap Zufallsstichprobe (`random()`), nie die kleinsten N |
+| Größenklassen | XS–XL aus `DailyUsageStatistic`-Histogrammen (Kohorte); Median/Q1/Q3 näherungsweise über Klassenmitten |
 | Q&A-Fragen gesamt | Monotone, purge-sichere Lifetime-Zählung |
 | Join-Rekord / Tagesrekorde | Legacy-`DailyStatistic`: Lebenszeit-Max (kumulierte Erstbeitritte); 100-UTC-Tage-Serie (Lücken/`0` als `null`); Median/IQR/Max + `sampleSize` nur über positive Messwerte |
 | Datenqualität | Zeitzone UTC, Erfassungsbeginn, `historyComplete` |
@@ -189,7 +189,7 @@ Befüllt u. a. `DailyUsageStatistic` (45 UTC-Tage), `SessionUsageProjection` (XS
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | Schreibpfad Join/Vote/Q&A | `SessionUsageProjection` per `FOR UPDATE` + begrenzte `DailyUsageStatistic`-UPSERTs; `PlatformStatistic.projectedAt` max. 1×/60s | Kein Vollscan; Hot-Row auf Tracking gedrosselt. Lasttest 500 Concurrent noch ausstehend vor Prod-Merge. |
 | `health.stats`            | 30s Cache + In-Flight-Coalesce; DailyHighscores auf 100 UTC-Tage begrenzt                                                        | Presence nur für nutzbare Session-IDs.                                                                  |
-| `health.usage`            | 30s Cache, max. 64 Keys (TTL-Prune), In-Flight pro Key, Rate-Limit IP+global (`checkHealthUsageRate`)                            | Größenverteilung: `ORDER BY random() LIMIT 5000` — bei sehr großen Kohorten Stichprobe.                 |
+| `health.usage`            | 30s Cache, max. 64 Keys (TTL-Prune), In-Flight pro Key, Rate-Limit IP+global (`checkHealthUsageRate`)                            | Größenverteilung: Summen aus `DailyUsageStatistic.sizeClass*`; keine Projektions-Vollscans.             |
 | Indizes                   | `DailyUsageStatistic(date)` unique; `SessionUsageProjection(firstUsedUtcDate)`, `(functionClass, firstUsedUtcDate)`              | EXPLAIN gegen Prod-ähnliche Daten vor Go-Live wiederholen.                                              |
 
 ### Öffentliche Betriebsüberwachung (Serververkehr & Live)
@@ -212,8 +212,8 @@ Statische Assets, Crawler und technische Healthchecks liegen außerhalb der tRPC
 #### Formeln und Fenster
 
 - Buckets: **10 s**, Fenster: **60 s** (`WINDOW_BUCKETS = 6`), Redis-TTL **120 s**.
-- Schreiben: In-Memory-Zähler pro Instanz, Flush alle **5 s** (`incrby`); Epoch per `SET NX`.
-- Mehrinstanz: gemeinsame Redis-Keys summiert; Flush-Retry legt den Batch zurück (kein Doppelzählen).
+- Schreiben: In-Memory-Zähler pro Instanz, Flush alle **5 s** per Lua inkl. Flush-ID (`SET NX`); Epoch per `SET NX`.
+- Mehrinstanz: gemeinsame Redis-Keys summiert; fehlgeschlagene Flushes behalten dieselbe Flush-ID (kein Doppelzählen nach serverseitigem Apply).
 - **API-Anfragen/s:** `Σ bucketTotals / observedWindowSeconds` (Anlauf: beobachtete Zeit, nicht pauschal 60).
 - **Spitze/s:** `max(bucketCount / 10)` über die Fenster-Buckets.
 - **Fehlerrate (Gesundheit):** `(server + rateLimit) / total × 100`. Clientfehler getrennt; verschlechtern den Zustand nicht.
@@ -226,7 +226,7 @@ Statische Assets, Crawler und technische Healthchecks liegen außerhalb der tRPC
 - Offene tRPC-/Yjs-Verbindungen, Open/Close der letzten Minute, aggregierte Ablehnungen.
 - Reconnects und Nachrichtenrate: **nicht belastbar** → `null` / UI „nicht gemessen“.
 - Offene Verbindung ≠ erfolgreiche Zustellung (`deliveryNotMeasured: true`).
-- Werte gelten **pro Backend-Prozess** (kein Cluster-Scan).
+- Werte sind **Cluster-Aggregate** über Redis-TTL-Snapshots je Backend-Instanz (`ws:telemetry:instance:*`).
 
 #### Lasttest (500 Concurrent inkl. Shared-NAT)
 
@@ -283,7 +283,7 @@ Implementierungsdetails; Kennzahl-Definitionen oben haben Vorrang.
 | Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` oder `qf:known:*` |
 | Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                                    |
 | SLO / Serververkehr      | `sloTelemetry` (Redis)  | Kernaktions-RPS avg/peak, Fehlerrate (Server+Rate-Limit), p95/p99, Gruppen-Allowlist; 10s-Buckets, Flush alle 5s            |
-| Live-Verbindungen        | `websocketTelemetry`    | Offene tRPC-/Yjs-Verbindungen, Open/Close, Ablehnungen (pro Prozess); Zustellung nicht gemessen                             |
+| Live-Verbindungen        | `websocketTelemetry`    | Offene tRPC-/Yjs-Verbindungen, Open/Close, Ablehnungen (Cluster via Redis-TTL); Zustellung nicht gemessen                   |
 | Q&A-Minutenwerte         | 1-Sekunden-Buckets      | 60-Sekunden-Fenster, TTL, deduplizierte Erst-Submits und persistierte Bewertungsänderungen                                  |
 
 `qaQuestionsTotal` und `maxQaQuestionsSingleSession` gelten ausdrücklich **seit Beginn

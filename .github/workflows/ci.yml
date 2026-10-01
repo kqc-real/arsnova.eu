@@ -359,6 +359,13 @@ jobs:
           RUN_PG_SESSION_RACE_TESTS: '1'
         run: npx vitest run src/__tests__/session.finalization-race.pg.test.ts
 
+      - name: Usage statistic PostgreSQL race regression
+        if: needs.changes.outputs.docs_only != 'true'
+        working-directory: apps/backend
+        env:
+          RUN_PG_USAGE_STATISTIC_TESTS: '1'
+        run: npx vitest run src/__tests__/usageStatistic.race.pg.test.ts
+
       - name: Absolute session lifecycle and retention PostgreSQL regressions
         if: needs.changes.outputs.docs_only != 'true'
         working-directory: apps/backend

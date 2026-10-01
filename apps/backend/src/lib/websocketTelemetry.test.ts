@@ -1,8 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const redisMocks = vi.hoisted(() => ({
+  scan: vi.fn(),
+  mget: vi.fn(),
+  set: vi.fn(),
+  get: vi.fn(),
+  del: vi.fn(),
+}));
+
+vi.mock('../redis', () => ({
+  getRedis: () => redisMocks,
+}));
+
 import {
   configureTrpcWebSocketTelemetry,
   configureYjsWebSocketTelemetry,
   getWebSocketTelemetrySnapshot,
+  readClusterLiveConnectionMetrics,
   recordTrpcWebSocketBindingConnected,
   recordTrpcWebSocketBindingDisconnected,
   recordTrpcWebSocketConnected,
@@ -120,5 +134,48 @@ describe('websocketTelemetry', () => {
 
     now = 70_000;
     expect(getWebSocketTelemetrySnapshot().yjsProtocolErrorsLastMinute).toBe(0);
+  });
+
+  it('aggregiert Live-Verbindungen über Instanz-Snapshots (NODE_ENV!=test)', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    redisMocks.scan.mockResolvedValue([
+      '0',
+      ['ws:telemetry:instance:a', 'ws:telemetry:instance:b'],
+    ]);
+    redisMocks.mget.mockResolvedValue([
+      JSON.stringify({
+        trpcOpen: 10,
+        yjsOpen: 2,
+        trpcOpenedLastMinute: 3,
+        trpcClosedLastMinute: 1,
+        yjsOpenedLastMinute: 1,
+        yjsClosedLastMinute: 0,
+        rejectsLastMinute: 4,
+        rateLimitedMessagesLastMinute: 2,
+        updatedAt: Date.now(),
+      }),
+      JSON.stringify({
+        trpcOpen: 5,
+        yjsOpen: 1,
+        trpcOpenedLastMinute: 2,
+        trpcClosedLastMinute: 2,
+        yjsOpenedLastMinute: 0,
+        yjsClosedLastMinute: 1,
+        rejectsLastMinute: 1,
+        rateLimitedMessagesLastMinute: 1,
+        updatedAt: Date.now(),
+      }),
+    ]);
+
+    const cluster = await readClusterLiveConnectionMetrics();
+    expect(cluster).toMatchObject({
+      available: true,
+      trpcOpen: 15,
+      yjsOpen: 3,
+      trpcOpenedLastMinute: 5,
+      rejectsLastMinute: 5,
+      rateLimitedMessagesLastMinute: 3,
+    });
+    vi.unstubAllEnvs();
   });
 });

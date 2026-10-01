@@ -36,6 +36,10 @@ import {
   startQaPlatformProjectionScheduler,
   stopQaPlatformProjectionScheduler,
 } from './lib/qaPlatformProjection';
+import {
+  startWebSocketTelemetryClusterPublisher,
+  stopWebSocketTelemetryClusterPublisher,
+} from './lib/websocketTelemetry';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
@@ -47,6 +51,7 @@ getYjsShareLegacyUuidCutoffAt();
 // Redis beim Start initialisieren (Story 0.1)
 getRedis();
 startQaPlatformProjectionScheduler();
+startWebSocketTelemetryClusterPublisher();
 void startSessionPurgeInvalidationSubscriber().catch((error: unknown) => {
   logger.warn(
     'Session-Purge-Invalidierungs-Subscriber konnte nicht starten:',
@@ -243,6 +248,7 @@ async function shutdown(): Promise<void> {
   shuttingDown = true;
   stopSessionCleanupScheduler();
   stopQaPlatformProjectionScheduler();
+  await stopWebSocketTelemetryClusterPublisher();
   wsHandler.broadcastReconnectNotification();
   server.close();
   await Promise.all([

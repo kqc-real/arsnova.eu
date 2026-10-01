@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { getRedis } from '../redis';
 import { logger } from './logger';
 
@@ -9,6 +10,35 @@ const FLUSH_INTERVAL_MS = 5_000;
 const MAX_COUNTER_VALUE = Number.MAX_SAFE_INTEGER;
 const EPOCH_KEY = 'slo:metric:epoch';
 const EPOCH_TTL_SECONDS = 86_400;
+const FLUSH_ID_TTL_SECONDS = WINDOW_SECONDS * 3;
+const FLUSH_ID_KEY_PREFIX = 'slo:flush:';
+
+/**
+ * Atomar: Flush-ID setzen (NX) und alle INCRBY/EXPIRE anwenden.
+ * Bereits angewendete Flush-IDs liefern 0 ohne erneutes Inkrementieren.
+ */
+export const SLO_FLUSH_APPLY_LUA = `
+local flushKey = KEYS[1]
+local flushTtl = tonumber(ARGV[1])
+if redis.call('SET', flushKey, '1', 'NX', 'EX', flushTtl) == false then
+  return 0
+end
+local i = 2
+while i <= #ARGV do
+  local op = ARGV[i]
+  if op == 'EPOCH' then
+    redis.call('SET', ARGV[i + 1], ARGV[i + 2], 'EX', tonumber(ARGV[i + 3]), 'NX')
+    i = i + 4
+  elseif op == 'INCRBY' then
+    redis.call('INCRBY', ARGV[i + 1], tonumber(ARGV[i + 2]))
+    redis.call('EXPIRE', ARGV[i + 1], tonumber(ARGV[i + 3]))
+    i = i + 4
+  else
+    return redis.error_reply('slo flush: unknown op')
+  end
+end
+return 1
+`;
 /** Minimale Stichprobe für belastbare p95/p99-Aussagen im öffentlichen Betriebsbild. */
 export const LATENCY_MIN_SAMPLES = 20;
 
@@ -110,6 +140,11 @@ let flushTimer: NodeJS.Timeout | null = null;
 let flushInFlight: Promise<void> | null = null;
 let stopping = false;
 const pendingBuckets = new Map<number, PendingBucket>();
+/** Fehlgeschlagener Flush mit stabiler ID — Retry ohne Doppelzählung nach serverseitigem Apply. */
+let failedFlush: {
+  flushId: string;
+  batch: Array<{ bucket: number; pending: PendingBucket }>;
+} | null = null;
 
 export function isTrackedLiveProcedure(path: string): boolean {
   return TRACKED_PROCEDURE_TO_GROUP.has(path);
@@ -215,7 +250,7 @@ function scheduleFlush(): void {
     stopping ||
     flushTimer ||
     flushInFlight ||
-    pendingBuckets.size === 0 ||
+    (pendingBuckets.size === 0 && !failedFlush) ||
     process.env['NODE_ENV'] === 'test'
   ) {
     return;
@@ -228,40 +263,62 @@ function scheduleFlush(): void {
   flushTimer.unref();
 }
 
-function mergePendingBatch(batch: Array<{ bucket: number; pending: PendingBucket }>): void {
+function clonePendingBatch(
+  source: Array<{ bucket: number; pending: PendingBucket }>,
+): Array<{ bucket: number; pending: PendingBucket }> {
+  return source.map((entry) => ({
+    bucket: entry.bucket,
+    pending: {
+      total: entry.pending.total,
+      errorServer: entry.pending.errorServer,
+      errorRateLimit: entry.pending.errorRateLimit,
+      errorClient: entry.pending.errorClient,
+      latency: new Map(entry.pending.latency),
+      groups: new Map(entry.pending.groups),
+    },
+  }));
+}
+
+function takePendingBatch(): Array<{ bucket: number; pending: PendingBucket }> {
+  const batch = clonePendingBatch(
+    Array.from(pendingBuckets, ([bucket, pending]) => ({ bucket, pending })),
+  );
+  pendingBuckets.clear();
+  return batch;
+}
+
+function buildFlushArgs(batch: Array<{ bucket: number; pending: PendingBucket }>): string[] {
+  const args: string[] = [String(FLUSH_ID_TTL_SECONDS)];
+  args.push('EPOCH', EPOCH_KEY, String(Date.now()), String(EPOCH_TTL_SECONDS));
+  const pushIncr = (key: string, value: number) => {
+    if (value <= 0) return;
+    args.push('INCRBY', key, String(value), String(BUCKET_TTL_SECONDS));
+  };
   for (const entry of batch) {
-    const target = ensurePendingBucket(entry.bucket);
-    target.total = Math.min(MAX_COUNTER_VALUE, target.total + entry.pending.total);
-    target.errorServer = Math.min(
-      MAX_COUNTER_VALUE,
-      target.errorServer + entry.pending.errorServer,
-    );
-    target.errorRateLimit = Math.min(
-      MAX_COUNTER_VALUE,
-      target.errorRateLimit + entry.pending.errorRateLimit,
-    );
-    target.errorClient = Math.min(
-      MAX_COUNTER_VALUE,
-      target.errorClient + entry.pending.errorClient,
-    );
-    for (const [label, count] of entry.pending.latency) {
-      target.latency.set(
-        label,
-        Math.min(MAX_COUNTER_VALUE, (target.latency.get(label) ?? 0) + count),
-      );
+    const { bucket, pending } = entry;
+    pushIncr(totalKey(bucket), pending.total);
+    if (pending.errorServer > 0) {
+      pushIncr(errorClassKey(bucket, 'server'), pending.errorServer);
+      pushIncr(legacyErrorKey(bucket), pending.errorServer);
     }
-    for (const [groupId, count] of entry.pending.groups) {
-      target.groups.set(
-        groupId,
-        Math.min(MAX_COUNTER_VALUE, (target.groups.get(groupId) ?? 0) + count),
-      );
+    if (pending.errorRateLimit > 0) {
+      pushIncr(errorClassKey(bucket, 'rateLimit'), pending.errorRateLimit);
+      pushIncr(legacyErrorKey(bucket), pending.errorRateLimit);
+    }
+    pushIncr(errorClassKey(bucket, 'client'), pending.errorClient);
+    for (const [label, count] of pending.latency) {
+      pushIncr(latencyKey(bucket, label), count);
+    }
+    for (const [groupId, count] of pending.groups) {
+      pushIncr(groupKey(bucket, groupId), count);
     }
   }
+  return args;
 }
 
 /**
- * Schreibt gebündelte Zähler/Histogramme in einer Redis-Pipeline.
- * Bei Fehlschlag: Batch zurück in pending (kein Doppelzählen bei Retry).
+ * Schreibt gebündelte Zähler/Histogramme atomar per Lua inkl. Flush-ID-Dedup.
+ * Clientfehler nach serverseitigem Apply: Retry mit derselben Flush-ID (kein Doppelzählen).
  */
 export function flushSloTelemetry(): Promise<void> {
   if (flushInFlight) return flushInFlight;
@@ -270,67 +327,33 @@ export function flushSloTelemetry(): Promise<void> {
     flushTimer = null;
   }
 
-  const batch = Array.from(pendingBuckets, ([bucket, pending]) => ({
-    bucket,
-    pending: {
-      total: pending.total,
-      errorServer: pending.errorServer,
-      errorRateLimit: pending.errorRateLimit,
-      errorClient: pending.errorClient,
-      latency: new Map(pending.latency),
-      groups: new Map(pending.groups),
-    },
-  }));
-  pendingBuckets.clear();
-  if (batch.length === 0) return Promise.resolve();
-
   const request = (async () => {
-    try {
-      const redis = getRedis();
-      const multi = redis.multi();
-      multi.set(EPOCH_KEY, String(Date.now()), 'EX', EPOCH_TTL_SECONDS, 'NX');
-      for (const entry of batch) {
-        const { bucket, pending } = entry;
-        if (pending.total > 0) {
-          multi
-            .incrby(totalKey(bucket), pending.total)
-            .expire(totalKey(bucket), BUCKET_TTL_SECONDS);
+    // Zuerst fehlgeschlagenen Flush mit stabiler ID erneut versuchen.
+    if (failedFlush) {
+      const retry = failedFlush;
+      failedFlush = null;
+      try {
+        await applySloFlushBatch(retry.flushId, retry.batch);
+      } catch (error) {
+        failedFlush = retry;
+        if (!recordWarned) {
+          recordWarned = true;
+          logger.warn(
+            'sloTelemetry.flush: Redis nicht erreichbar, SLO-Telemetrie-Batch wird erneut versucht.',
+            error,
+          );
         }
-        if (pending.errorServer > 0) {
-          multi
-            .incrby(errorClassKey(bucket, 'server'), pending.errorServer)
-            .expire(errorClassKey(bucket, 'server'), BUCKET_TTL_SECONDS);
-          multi
-            .incrby(legacyErrorKey(bucket), pending.errorServer)
-            .expire(legacyErrorKey(bucket), BUCKET_TTL_SECONDS);
-        }
-        if (pending.errorRateLimit > 0) {
-          multi
-            .incrby(errorClassKey(bucket, 'rateLimit'), pending.errorRateLimit)
-            .expire(errorClassKey(bucket, 'rateLimit'), BUCKET_TTL_SECONDS);
-          multi
-            .incrby(legacyErrorKey(bucket), pending.errorRateLimit)
-            .expire(legacyErrorKey(bucket), BUCKET_TTL_SECONDS);
-        }
-        if (pending.errorClient > 0) {
-          multi
-            .incrby(errorClassKey(bucket, 'client'), pending.errorClient)
-            .expire(errorClassKey(bucket, 'client'), BUCKET_TTL_SECONDS);
-        }
-        for (const [label, count] of pending.latency) {
-          multi
-            .incrby(latencyKey(bucket, label), count)
-            .expire(latencyKey(bucket, label), BUCKET_TTL_SECONDS);
-        }
-        for (const [groupId, count] of pending.groups) {
-          multi
-            .incrby(groupKey(bucket, groupId), count)
-            .expire(groupKey(bucket, groupId), BUCKET_TTL_SECONDS);
-        }
+        return;
       }
-      await multi.exec();
+    }
+
+    const batch = takePendingBatch();
+    if (batch.length === 0) return;
+    const flushId = randomUUID();
+    try {
+      await applySloFlushBatch(flushId, batch);
     } catch (error) {
-      mergePendingBatch(batch);
+      failedFlush = { flushId, batch };
       if (!recordWarned) {
         recordWarned = true;
         logger.warn(
@@ -349,6 +372,20 @@ export function flushSloTelemetry(): Promise<void> {
     }
   });
   return request;
+}
+
+async function applySloFlushBatch(
+  flushId: string,
+  batch: Array<{ bucket: number; pending: PendingBucket }>,
+): Promise<void> {
+  const redis = getRedis();
+  const flushKey = `${FLUSH_ID_KEY_PREFIX}${flushId}`;
+  const args = buildFlushArgs(batch);
+  const result = await redis.eval(SLO_FLUSH_APPLY_LUA, 1, flushKey, ...args);
+  // 0 = bereits angewendet (Idempotenz), 1 = frisch angewendet — beides Erfolg.
+  if (result !== 0 && result !== 1 && result !== '0' && result !== '1') {
+    throw new Error(`sloTelemetry.flush: unerwartete Redis-Antwort (${String(result)})`);
+  }
 }
 
 /**
@@ -615,7 +652,7 @@ export async function stopSloTelemetry(timeoutMs = 1_000): Promise<void> {
   }
   const started = Date.now();
   if (flushInFlight) await flushInFlight;
-  if (Date.now() - started < timeoutMs && pendingBuckets.size > 0) {
+  if (Date.now() - started < timeoutMs && (pendingBuckets.size > 0 || failedFlush)) {
     await flushSloTelemetry();
   }
 }
@@ -628,6 +665,7 @@ export function resetSloTelemetryForTests(): void {
   flushTimer = null;
   flushInFlight = null;
   pendingBuckets.clear();
+  failedFlush = null;
 }
 
 /** Test-/Diagnosehilfe: Throughput-Formeln ohne Redis. */

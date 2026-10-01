@@ -35,9 +35,28 @@ export const USAGE_SIZE_CLASSES: ReadonlyArray<{
   { id: 'XL', min: 301, max: null, label: '301+' },
 ];
 
-/** Cap für Größenverteilung; bei Überschreitung Zufallsstichprobe (nicht die kleinsten N). */
-const SIZE_SAMPLE_CAP = 5_000;
 export const USAGE_CUSTOM_PERIOD_MAX_DAYS = 366;
+
+/** Repräsentative Mitten für Quantil-Näherung aus Größenklassen-Histogrammen. */
+const SIZE_CLASS_MIDPOINTS: Record<UsageSizeClassId, number> = {
+  XS: 6,
+  S: 20,
+  M: 66,
+  L: 200,
+  XL: 301,
+};
+
+export function sizeClassForCount(count: number): UsageSizeClassId {
+  for (const cls of USAGE_SIZE_CLASSES) {
+    if (count >= cls.min && (cls.max === null || count <= cls.max)) return cls.id;
+  }
+  return 'XS';
+}
+
+type UsageTx = {
+  $executeRaw: typeof prisma.$executeRaw;
+  $queryRaw: typeof prisma.$queryRaw;
+};
 
 /** PlatformStatistic.projectedAt höchstens einmal pro Intervall anfassen (kein Hot-Row pro Event). */
 const PROJECTED_AT_TOUCH_MS = 60_000;
@@ -54,6 +73,11 @@ type DailyBump = {
   sessionsQuizOnly?: number;
   sessionsQaOnly?: number;
   sessionsCombined?: number;
+  sizeClassXs?: number;
+  sizeClassS?: number;
+  sizeClassM?: number;
+  sizeClassL?: number;
+  sizeClassXl?: number;
 };
 
 type ProjectionRow = {
@@ -124,7 +148,39 @@ export function resetUsageTrackingThrottleForTests(): void {
   trackingStartEnsured = false;
 }
 
-async function bumpDailyUsage(day: Date, bump: DailyBump): Promise<void> {
+function mergeDailyBumps(...bumps: DailyBump[]): DailyBump {
+  const out: DailyBump = {};
+  for (const bump of bumps) {
+    for (const [key, value] of Object.entries(bump) as Array<
+      [keyof DailyBump, number | undefined]
+    >) {
+      if (typeof value !== 'number' || value === 0) continue;
+      out[key] = (out[key] ?? 0) + value;
+    }
+  }
+  return out;
+}
+
+function sizeClassField(id: UsageSizeClassId): keyof DailyBump {
+  if (id === 'XS') return 'sizeClassXs';
+  if (id === 'S') return 'sizeClassS';
+  if (id === 'M') return 'sizeClassM';
+  if (id === 'L') return 'sizeClassL';
+  return 'sizeClassXl';
+}
+
+/** Kohorten-Bump wenn die Größenklasse durch Teilnahmewechsel wechselt. */
+export function sizeClassBump(prevCount: number, nextCount: number): DailyBump {
+  const prev = prevCount > 0 ? sizeClassForCount(prevCount) : null;
+  const next = nextCount > 0 ? sizeClassForCount(nextCount) : null;
+  if (prev === next) return {};
+  const bump: DailyBump = {};
+  if (prev) bump[sizeClassField(prev)] = -1;
+  if (next) bump[sizeClassField(next)] = 1;
+  return bump;
+}
+
+async function bumpDailyUsage(tx: UsageTx, day: Date, bump: DailyBump): Promise<void> {
   const sessionsUsed = bump.sessionsUsed ?? 0;
   const sessionParticipations = bump.sessionParticipations ?? 0;
   const quizAnswers = bump.quizAnswers ?? 0;
@@ -134,6 +190,11 @@ async function bumpDailyUsage(day: Date, bump: DailyBump): Promise<void> {
   const sessionsQuizOnly = bump.sessionsQuizOnly ?? 0;
   const sessionsQaOnly = bump.sessionsQaOnly ?? 0;
   const sessionsCombined = bump.sessionsCombined ?? 0;
+  const sizeClassXs = bump.sizeClassXs ?? 0;
+  const sizeClassS = bump.sizeClassS ?? 0;
+  const sizeClassM = bump.sizeClassM ?? 0;
+  const sizeClassL = bump.sizeClassL ?? 0;
+  const sizeClassXl = bump.sizeClassXl ?? 0;
   if (
     sessionsUsed === 0 &&
     sessionParticipations === 0 &&
@@ -143,21 +204,30 @@ async function bumpDailyUsage(day: Date, bump: DailyBump): Promise<void> {
     sessionsJoinOnly === 0 &&
     sessionsQuizOnly === 0 &&
     sessionsQaOnly === 0 &&
-    sessionsCombined === 0
+    sessionsCombined === 0 &&
+    sizeClassXs === 0 &&
+    sizeClassS === 0 &&
+    sizeClassM === 0 &&
+    sizeClassL === 0 &&
+    sizeClassXl === 0
   ) {
     return;
   }
 
-  await prisma.$executeRaw`
+  await tx.$executeRaw`
     INSERT INTO "DailyUsageStatistic" (
       "id", "date", "sessionsUsed", "sessionParticipations", "quizAnswers",
       "qaQuestionsAccepted", "qaRatingActions", "sessionsJoinOnly", "sessionsQuizOnly",
-      "sessionsQaOnly", "sessionsCombined", "updatedAt"
+      "sessionsQaOnly", "sessionsCombined",
+      "sizeClassXs", "sizeClassS", "sizeClassM", "sizeClassL", "sizeClassXl",
+      "updatedAt"
     )
     VALUES (
       ${randomUUID()}, ${day}, ${sessionsUsed}, ${sessionParticipations}, ${quizAnswers},
       ${qaQuestionsAccepted}, ${qaRatingActions}, ${sessionsJoinOnly}, ${sessionsQuizOnly},
-      ${sessionsQaOnly}, ${sessionsCombined}, NOW()
+      ${sessionsQaOnly}, ${sessionsCombined},
+      ${sizeClassXs}, ${sizeClassS}, ${sizeClassM}, ${sizeClassL}, ${sizeClassXl},
+      NOW()
     )
     ON CONFLICT ("date") DO UPDATE
     SET
@@ -176,6 +246,16 @@ async function bumpDailyUsage(day: Date, bump: DailyBump): Promise<void> {
         GREATEST(0, "DailyUsageStatistic"."sessionsQaOnly" + EXCLUDED."sessionsQaOnly"),
       "sessionsCombined" =
         GREATEST(0, "DailyUsageStatistic"."sessionsCombined" + EXCLUDED."sessionsCombined"),
+      "sizeClassXs" =
+        GREATEST(0, "DailyUsageStatistic"."sizeClassXs" + EXCLUDED."sizeClassXs"),
+      "sizeClassS" =
+        GREATEST(0, "DailyUsageStatistic"."sizeClassS" + EXCLUDED."sizeClassS"),
+      "sizeClassM" =
+        GREATEST(0, "DailyUsageStatistic"."sizeClassM" + EXCLUDED."sizeClassM"),
+      "sizeClassL" =
+        GREATEST(0, "DailyUsageStatistic"."sizeClassL" + EXCLUDED."sizeClassL"),
+      "sizeClassXl" =
+        GREATEST(0, "DailyUsageStatistic"."sizeClassXl" + EXCLUDED."sizeClassXl"),
       "updatedAt" = NOW()
   `;
 }
@@ -204,13 +284,6 @@ export function classBump(
 
 type MutationMode = 'participation' | 'quiz' | 'qaQuestion' | 'qaRating';
 
-type MutationResult = {
-  inserted: boolean;
-  prevClass: string | null;
-  nextClass: string | null;
-  firstUsedUtcDate: Date | null;
-};
-
 function nextFunctionClass(
   mode: MutationMode,
   prev: ProjectionRow | null,
@@ -228,15 +301,19 @@ function nextFunctionClass(
 }
 
 /**
- * Atomare Projektionsmutation: FOR UPDATE serialisiert parallele Events derselben Session.
+ * Projektion + Tagesaggregate in einer Transaktion.
+ * Advisory-Lock serialisiert auch den Insert-Pfad (FOR UPDATE allein sperrt fehlende Zeilen nicht).
  */
-async function mutateProjection(
+async function applyUsageMutation(
   sessionId: string,
   now: Date,
   mode: MutationMode,
-): Promise<MutationResult> {
-  const day = utcDayParam(now);
-  return prisma.$transaction(async (tx) => {
+  eventBump: DailyBump,
+): Promise<void> {
+  const eventDay = utcDayParam(now);
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${sessionId}))`;
+
     const prevRows = await tx.$queryRaw<ProjectionRow[]>`
       SELECT
         "functionClass",
@@ -250,6 +327,7 @@ async function mutateProjection(
     `;
     const prev = prevRows[0] ?? null;
     const nextClass = nextFunctionClass(mode, prev);
+    const day = eventDay;
 
     if (mode === 'participation') {
       await tx.$executeRaw`
@@ -335,12 +413,22 @@ async function mutateProjection(
       WHERE "sessionId" = ${sessionId}
     `;
     const next = nextRows[0]!;
-    return {
-      inserted: prev === null,
-      prevClass: prev?.functionClass ?? null,
-      nextClass: next.functionClass,
-      firstUsedUtcDate: next.firstUsedUtcDate,
-    };
+    const inserted = prev === null;
+    const cohortDay = next.firstUsedUtcDate ? utcDayParam(next.firstUsedUtcDate) : eventDay;
+    const resolvedEventBump = mergeDailyBumps(eventBump, inserted ? { sessionsUsed: 1 } : {});
+    const cohortBump = mergeDailyBumps(
+      classBump(prev?.functionClass ?? null, next.functionClass),
+      mode === 'participation'
+        ? sizeClassBump(prev?.participationCount ?? 0, next.participationCount)
+        : {},
+    );
+
+    if (cohortDay.getTime() === eventDay.getTime()) {
+      await bumpDailyUsage(tx, eventDay, mergeDailyBumps(resolvedEventBump, cohortBump));
+    } else {
+      await bumpDailyUsage(tx, eventDay, resolvedEventBump);
+      await bumpDailyUsage(tx, cohortDay, cohortBump);
+    }
   });
 }
 
@@ -350,14 +438,8 @@ export async function recordUsageSessionParticipation(
   now: Date = new Date(),
 ): Promise<void> {
   if (!sessionId) return;
-  const eventDay = utcDayParam(now);
   try {
-    const result = await mutateProjection(sessionId, now, 'participation');
-    const bump: DailyBump = { sessionParticipations: 1 };
-    if (result.inserted) bump.sessionsUsed = 1;
-    await bumpDailyUsage(eventDay, bump);
-    const cohortDay = result.firstUsedUtcDate ? utcDayParam(result.firstUsedUtcDate) : eventDay;
-    await bumpDailyUsage(cohortDay, classBump(result.prevClass, result.nextClass));
+    await applyUsageMutation(sessionId, now, 'participation', { sessionParticipations: 1 });
     await touchUsageTracking(now);
   } catch (error) {
     logger.warn('usageStatistic.recordParticipation: Update übersprungen', error);
@@ -370,14 +452,8 @@ export async function recordUsageQuizAnswer(
   now: Date = new Date(),
 ): Promise<void> {
   if (!sessionId) return;
-  const eventDay = utcDayParam(now);
   try {
-    const result = await mutateProjection(sessionId, now, 'quiz');
-    const eventBump: DailyBump = { quizAnswers: 1 };
-    if (result.inserted) eventBump.sessionsUsed = 1;
-    await bumpDailyUsage(eventDay, eventBump);
-    const cohortDay = result.firstUsedUtcDate ? utcDayParam(result.firstUsedUtcDate) : eventDay;
-    await bumpDailyUsage(cohortDay, classBump(result.prevClass, result.nextClass));
+    await applyUsageMutation(sessionId, now, 'quiz', { quizAnswers: 1 });
     await touchUsageTracking(now);
   } catch (error) {
     logger.warn('usageStatistic.recordQuizAnswer: Update übersprungen', error);
@@ -390,14 +466,8 @@ export async function recordUsageQaQuestionAccepted(
   now: Date = new Date(),
 ): Promise<void> {
   if (!sessionId) return;
-  const eventDay = utcDayParam(now);
   try {
-    const result = await mutateProjection(sessionId, now, 'qaQuestion');
-    const eventBump: DailyBump = { qaQuestionsAccepted: 1 };
-    if (result.inserted) eventBump.sessionsUsed = 1;
-    await bumpDailyUsage(eventDay, eventBump);
-    const cohortDay = result.firstUsedUtcDate ? utcDayParam(result.firstUsedUtcDate) : eventDay;
-    await bumpDailyUsage(cohortDay, classBump(result.prevClass, result.nextClass));
+    await applyUsageMutation(sessionId, now, 'qaQuestion', { qaQuestionsAccepted: 1 });
     await touchUsageTracking(now);
   } catch (error) {
     logger.warn('usageStatistic.recordQaQuestionAccepted: Update übersprungen', error);
@@ -410,14 +480,8 @@ export async function recordUsageQaRatingAction(
   now: Date = new Date(),
 ): Promise<void> {
   if (!sessionId) return;
-  const eventDay = utcDayParam(now);
   try {
-    const result = await mutateProjection(sessionId, now, 'qaRating');
-    const eventBump: DailyBump = { qaRatingActions: 1 };
-    if (result.inserted) eventBump.sessionsUsed = 1;
-    await bumpDailyUsage(eventDay, eventBump);
-    const cohortDay = result.firstUsedUtcDate ? utcDayParam(result.firstUsedUtcDate) : eventDay;
-    await bumpDailyUsage(cohortDay, classBump(result.prevClass, result.nextClass));
+    await applyUsageMutation(sessionId, now, 'qaRating', { qaRatingActions: 1 });
     await touchUsageTracking(now);
   } catch (error) {
     logger.warn('usageStatistic.recordQaRatingAction: Update übersprungen', error);
@@ -455,23 +519,29 @@ export function resolveUsagePeriod(
   return { kind, from, to };
 }
 
-export function sizeClassForCount(count: number): UsageSizeClassId {
-  for (const cls of USAGE_SIZE_CLASSES) {
-    if (count >= cls.min && (cls.max === null || count <= cls.max)) return cls.id;
-  }
-  return 'XS';
-}
-
-function percentileNearest(sorted: number[], p: number): number {
-  // Lineare Interpolation (R-7); Name historisch, Rundung auf ganze Teilnehmerzahlen.
-  if (sorted.length === 0) return 0;
-  if (sorted.length === 1) return sorted[0]!;
-  const pos = (sorted.length - 1) * p;
+/** Quantil-Näherung aus Größenklassen-Histogrammen (Klassenmitten, R-7). */
+export function percentileFromSizeClassCounts(
+  counts: Record<UsageSizeClassId, number>,
+  p: number,
+): number | null {
+  const total = USAGE_SIZE_CLASSES.reduce((sum, cls) => sum + (counts[cls.id] ?? 0), 0);
+  if (total <= 0) return null;
+  const valueAt = (index: number): number => {
+    let offset = 0;
+    for (const cls of USAGE_SIZE_CLASSES) {
+      const n = counts[cls.id] ?? 0;
+      if (index < offset + n) return SIZE_CLASS_MIDPOINTS[cls.id];
+      offset += n;
+    }
+    return SIZE_CLASS_MIDPOINTS.XL;
+  };
+  if (total === 1) return valueAt(0);
+  const pos = (total - 1) * p;
   const lower = Math.floor(pos);
   const upper = Math.ceil(pos);
-  if (lower === upper) return sorted[lower]!;
+  if (lower === upper) return valueAt(lower);
   const weight = pos - lower;
-  return Math.round(sorted[lower]! * (1 - weight) + sorted[upper]! * weight);
+  return Math.round(valueAt(lower) * (1 - weight) + valueAt(upper) * weight);
 }
 
 export type UsageReport = {
@@ -576,7 +646,7 @@ export async function buildUsageReport(input: {
     input.kind === 'CUSTOM' ? { from: input.from!, to: input.to! } : undefined,
   );
 
-  const [platformRows, dailyRows, sizeRows] = await Promise.all([
+  const [platformRows, dailyRows] = await Promise.all([
     prisma.$queryRaw<
       Array<{
         usageStatisticsTrackingStartedAt: Date | null;
@@ -611,18 +681,14 @@ export async function buildUsageReport(input: {
           sessionsQuizOnly: true,
           sessionsQaOnly: true,
           sessionsCombined: true,
+          sizeClassXs: true,
+          sizeClassS: true,
+          sizeClassM: true,
+          sizeClassL: true,
+          sizeClassXl: true,
         },
       })
       .catch(() => []),
-    prisma.$queryRaw<Array<{ participationCount: number }>>`
-      SELECT "participationCount"
-      FROM "SessionUsageProjection"
-      WHERE "firstUsedUtcDate" >= ${period.from}
-        AND "firstUsedUtcDate" <= ${period.to}
-        AND "participationCount" > 0
-      ORDER BY random()
-      LIMIT ${SIZE_SAMPLE_CAP}
-    `.catch(() => []),
   ]);
 
   const platform = platformRows[0] ?? null;
@@ -666,24 +732,27 @@ export async function buildUsageReport(input: {
           combined: dailyRows.reduce((a, r) => a + r.sessionsCombined, 0),
         };
 
-  const sizes = sizeRows
-    .map((r) => Math.max(0, Number(r.participationCount) || 0))
-    .filter((count) => count > 0)
-    .sort((a, b) => a - b);
   const classCounts = Object.fromEntries(USAGE_SIZE_CLASSES.map((c) => [c.id, 0])) as Record<
     UsageSizeClassId,
     number
   >;
-  for (const count of sizes) classCounts[sizeClassForCount(count)] += 1;
+  for (const row of dailyRows) {
+    classCounts.XS += row.sizeClassXs ?? 0;
+    classCounts.S += row.sizeClassS ?? 0;
+    classCounts.M += row.sizeClassM ?? 0;
+    classCounts.L += row.sizeClassL ?? 0;
+    classCounts.XL += row.sizeClassXl ?? 0;
+  }
+  const sizeSampleSize = USAGE_SIZE_CLASSES.reduce((sum, cls) => sum + classCounts[cls.id], 0);
 
   const sizeDistribution =
-    !historyComplete && sizes.length === 0
+    !historyComplete && sizeSampleSize === 0
       ? null
       : {
-          sampleSize: sizes.length,
-          median: sizes.length ? percentileNearest(sizes, 0.5) : null,
-          quartile1: sizes.length ? percentileNearest(sizes, 0.25) : null,
-          quartile3: sizes.length ? percentileNearest(sizes, 0.75) : null,
+          sampleSize: sizeSampleSize,
+          median: percentileFromSizeClassCounts(classCounts, 0.5),
+          quartile1: percentileFromSizeClassCounts(classCounts, 0.25),
+          quartile3: percentileFromSizeClassCounts(classCounts, 0.75),
           classes: USAGE_SIZE_CLASSES.map((cls) => ({
             id: cls.id,
             label: cls.label,
