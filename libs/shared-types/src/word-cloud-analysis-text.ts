@@ -17,7 +17,7 @@ import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from './qa-redacti
 import { WORD_CLOUD_MAX_ITEM_TEXT_CHARS } from './word-cloud-normalization';
 
 /** Version der Textaufbereitung; gehört in Analyse-/Cache-Schlüssel. */
-export const WORD_CLOUD_ANALYSIS_TEXT_VERSION = '3';
+export const WORD_CLOUD_ANALYSIS_TEXT_VERSION = '4';
 
 export type PrepareWordCloudAnalysisTextResult = {
   readonly segments: string[];
@@ -77,21 +77,7 @@ function getAnalysisMarked(): Marked {
           return -1;
         },
         tokenizer(src: string): KatexToken | undefined {
-          const display = /^\$\$([\s\S]*?)\$\$/.exec(src);
-          if (display) {
-            return { type: 'katex', raw: display[0], text: display[1] ?? '' };
-          }
-          const bracket = /^\\\[([\s\S]*?)\\\]/.exec(src);
-          if (bracket) {
-            return { type: 'katex', raw: bracket[0], text: bracket[1] ?? '' };
-          }
-          if (src.startsWith('$$')) {
-            return { type: 'katex', raw: src, text: src.slice(2) };
-          }
-          if (src.startsWith('\\[')) {
-            return { type: 'katex', raw: src, text: src.slice(2) };
-          }
-          return undefined;
+          return matchKatexBlock(src);
         },
       },
       {
@@ -105,48 +91,104 @@ function getAnalysisMarked(): Marked {
           return candidates.length > 0 ? Math.min(...candidates) : -1;
         },
         tokenizer(src: string): KatexToken | undefined {
-          if (src.startsWith('\\$')) {
-            return undefined;
-          }
-          const display = /^\$\$([^$]*?)\$\$/.exec(src);
-          if (display) {
-            return { type: 'katex', raw: display[0], text: display[1] ?? '' };
-          }
-          const paren = /^\\\(([\s\S]*?)\\\)/.exec(src);
-          if (paren) {
-            return { type: 'katex', raw: paren[0], text: paren[1] ?? '' };
-          }
-          const bracket = /^\\\[([\s\S]*?)\\\]/.exec(src);
-          if (bracket) {
-            return { type: 'katex', raw: bracket[0], text: bracket[1] ?? '' };
-          }
-          const inline = /^\$([^$\n]+?)\$/.exec(src);
-          if (inline) {
-            return { type: 'katex', raw: inline[0], text: inline[1] ?? '' };
-          }
-          if (src.startsWith('$$')) {
-            const lineEnd = findLineEnd(src, 2);
-            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
-          }
-          if (src.startsWith('$')) {
-            const lineEnd = findLineEnd(src, 1);
-            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(1, lineEnd) };
-          }
-          if (src.startsWith('\\(')) {
-            const lineEnd = findLineEnd(src, 2);
-            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
-          }
-          if (src.startsWith('\\[')) {
-            const lineEnd = findLineEnd(src, 2);
-            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
-          }
-          return undefined;
+          return matchKatexInline(src);
         },
       },
     ],
   });
   analysisMarked = instance;
   return instance;
+}
+
+/** Closing-Delimiter nur bei gerader Backslash-Parität davor (nicht escapet). */
+function findUnescapedDelimiter(
+  source: string,
+  delimiter: string,
+  from: number,
+  stopAtNewline = false,
+): number {
+  let index = from;
+  while (index < source.length) {
+    if (stopAtNewline && source[index] === '\n') {
+      return -1;
+    }
+    if (!source.startsWith(delimiter, index)) {
+      index += 1;
+      continue;
+    }
+    let backslashes = 0;
+    let cursor = index - 1;
+    while (cursor >= 0 && source[cursor] === '\\') {
+      backslashes += 1;
+      cursor -= 1;
+    }
+    if (backslashes % 2 === 0) {
+      return index;
+    }
+    index += delimiter.length;
+  }
+  return -1;
+}
+
+function matchKatexBlock(src: string): KatexToken | undefined {
+  if (src.startsWith('$$')) {
+    const close = findUnescapedDelimiter(src, '$$', 2);
+    if (close !== -1) {
+      return { type: 'katex', raw: src.slice(0, close + 2), text: src.slice(2, close) };
+    }
+    return { type: 'katex', raw: src, text: src.slice(2) };
+  }
+  if (src.startsWith('\\[')) {
+    const close = findUnescapedDelimiter(src, '\\]', 2);
+    if (close !== -1) {
+      return { type: 'katex', raw: src.slice(0, close + 2), text: src.slice(2, close) };
+    }
+    return { type: 'katex', raw: src, text: src.slice(2) };
+  }
+  return undefined;
+}
+
+function matchKatexInline(src: string): KatexToken | undefined {
+  if (src.startsWith('\\$')) {
+    return undefined;
+  }
+  if (src.startsWith('$$')) {
+    const close = findUnescapedDelimiter(src, '$$', 2, true);
+    if (close !== -1) {
+      return { type: 'katex', raw: src.slice(0, close + 2), text: src.slice(2, close) };
+    }
+    const lineEnd = findLineEnd(src, 2);
+    return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
+  }
+  if (src.startsWith('\\(')) {
+    const close = findUnescapedDelimiter(src, '\\)', 2, true);
+    if (close !== -1) {
+      return { type: 'katex', raw: src.slice(0, close + 2), text: src.slice(2, close) };
+    }
+    const lineEnd = findLineEnd(src, 2);
+    return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
+  }
+  if (src.startsWith('\\[')) {
+    const close = findUnescapedDelimiter(src, '\\]', 2, true);
+    if (close !== -1) {
+      return { type: 'katex', raw: src.slice(0, close + 2), text: src.slice(2, close) };
+    }
+    const lineEnd = findLineEnd(src, 2);
+    return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
+  }
+  if (src.startsWith('$')) {
+    const close = findUnescapedDelimiter(src, '$', 1, true);
+    if (close !== -1 && close > 1) {
+      return { type: 'katex', raw: src.slice(0, close + 1), text: src.slice(1, close) };
+    }
+    if (close === 1) {
+      // `$` unmittelbar gefolgt von `$` gehört zu `$$`; hier nicht verschlucken
+      return undefined;
+    }
+    const lineEnd = findLineEnd(src, 1);
+    return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(1, lineEnd) };
+  }
+  return undefined;
 }
 
 /**
@@ -444,6 +486,15 @@ function decodeBasicEntities(value: string): string {
       '&quot;': '"',
       '&apos;': "'",
       '&nbsp;': ' ',
+      '&auml;': 'ä',
+      '&ouml;': 'ö',
+      '&uuml;': 'ü',
+      '&Auml;': 'Ä',
+      '&Ouml;': 'Ö',
+      '&Uuml;': 'Ü',
+      '&szlig;': 'ß',
+      '&eacute;': 'é',
+      '&Eacute;': 'É',
     };
     if (named[entity]) {
       return named[entity]!;

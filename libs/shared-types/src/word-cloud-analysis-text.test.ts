@@ -9,7 +9,7 @@ import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from './qa-redacti
 
 describe('prepareWordCloudAnalysisText', () => {
   it('exportiert eine stabile Aufbereitungsversion', () => {
-    expect(WORD_CLOUD_ANALYSIS_TEXT_VERSION).toBe('3');
+    expect(WORD_CLOUD_ANALYSIS_TEXT_VERSION).toBe('4');
   });
 
   it('entfernt Fett-Marker und behält denselben analysierbaren Text', () => {
@@ -83,6 +83,31 @@ describe('prepareWordCloudAnalysisText', () => {
   it('behält escaped Closing-Dollar als Literal', () => {
     expect(prepareWordCloudAnalysisText('Preis \\$5 und Text')).toEqual({
       segments: ['Preis $5 und Text'],
+    });
+  });
+
+  it('schließt Formeln atomar trotz escaptem Dollar im Ausdruck', () => {
+    expect(prepareWordCloudAnalysisText('Vor $\\text{Preis \\$5} + x$ nach')).toEqual({
+      segments: ['Vor', 'nach'],
+    });
+    expect(prepareWordCloudAnalysisText('A $$a \\\\$ b$$ B')).toEqual({
+      segments: ['A', 'B'],
+    });
+    // Gerade Backslash-Anzahl: Dollar ist Schlussdelimiter; Rest `$ nach` ist offene Formel → ausgeschlossen
+    expect(prepareWordCloudAnalysisText('Vor $a \\\\$ b$ nach')).toEqual({
+      segments: ['Vor', 'b'],
+    });
+    expect(prepareWordCloudAnalysisText('Inline \\(\\text{\\$}\\) Ende')).toEqual({
+      segments: ['Inline', 'Ende'],
+    });
+  });
+
+  it('dekodiert gängige named Entities und Emoji-Codepoints', () => {
+    expect(prepareWordCloudAnalysisText('M&uuml;ller erkl&auml;rt Regression')).toEqual({
+      segments: ['Müller erklärt Regression'],
+    });
+    expect(prepareWordCloudAnalysisText('A &#x1F600; B')).toEqual({
+      segments: ['A', 'B'],
     });
   });
 

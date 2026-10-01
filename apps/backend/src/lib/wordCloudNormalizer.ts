@@ -314,6 +314,7 @@ function mergeSegmentSidecarTokens(
 /**
  * Teilt expandierte Segmente in Sidecar-Batches mit Item- und Byte-Budget.
  * Respektiert SPACY_MAX_ITEMS und SPACY_MAX_REQUEST_BYTES (JSON-Payload).
+ * Jedes Item wird genau einmal serialisiert; die Hülle wird inkrementell mitgezählt.
  */
 export function chunkSpacyNormalizeTexts(
   texts: ReadonlyArray<{ readonly id: string; readonly text: string }>,
@@ -326,29 +327,36 @@ export function chunkSpacyNormalizeTexts(
   const maxItems = options.maxItems ?? SPACY_MAX_ITEMS;
   const maxRequestBytes = options.maxRequestBytes ?? SPACY_MAX_REQUEST_BYTES;
   const locale = options.locale ?? 'de';
+  const emptyPayloadBytes = Buffer.byteLength(JSON.stringify({ locale, texts: [] }), 'utf8');
   const batches: Array<Array<{ id: string; text: string }>> = [];
   let current: Array<{ id: string; text: string }> = [];
+  let currentItemBytes = 0;
 
-  const payloadBytes = (batch: ReadonlyArray<{ id: string; text: string }>): number =>
-    Buffer.byteLength(JSON.stringify({ locale, texts: batch }), 'utf8');
+  const payloadBytesFor = (itemCount: number, itemBytesSum: number): number =>
+    emptyPayloadBytes + itemBytesSum + Math.max(0, itemCount - 1);
 
   for (const item of texts) {
-    const candidate = [...current, item];
-    if (
-      current.length > 0 &&
-      (candidate.length > maxItems || payloadBytes(candidate) > maxRequestBytes)
-    ) {
+    const itemBytes = Buffer.byteLength(JSON.stringify(item), 'utf8');
+    const nextCount = current.length + 1;
+    const nextItemBytes = currentItemBytes + itemBytes;
+    const nextPayloadBytes = payloadBytesFor(nextCount, nextItemBytes);
+
+    if (current.length > 0 && (nextCount > maxItems || nextPayloadBytes > maxRequestBytes)) {
       batches.push(current);
       current = [item];
-      if (payloadBytes(current) > maxRequestBytes) {
+      currentItemBytes = itemBytes;
+      if (payloadBytesFor(1, itemBytes) > maxRequestBytes) {
         throw new SpacyClientError('UNAVAILABLE');
       }
       continue;
     }
-    if (current.length === 0 && payloadBytes([item]) > maxRequestBytes) {
+
+    if (current.length === 0 && payloadBytesFor(1, itemBytes) > maxRequestBytes) {
       throw new SpacyClientError('UNAVAILABLE');
     }
-    current = candidate;
+
+    current.push(item);
+    currentItemBytes = nextItemBytes;
   }
   if (current.length > 0) {
     batches.push(current);

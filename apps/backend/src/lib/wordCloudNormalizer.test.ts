@@ -355,6 +355,43 @@ describe('wordCloudNormalizer', () => {
     expect(batches[1]).toHaveLength(2);
   });
 
+  it('zaehlt Byte-Budgets inkrementell und respektiert Escapes sowie Unicode', () => {
+    const locale = 'de';
+    const emptyBytes = Buffer.byteLength(JSON.stringify({ locale, texts: [] }), 'utf8');
+    const items = [
+      { id: 'a', text: 'Haus' },
+      { id: 'b', text: 'x"y\\z' },
+      { id: 'c', text: 'Ä😊' },
+    ];
+    const itemBytes = items.map((item) => Buffer.byteLength(JSON.stringify(item), 'utf8'));
+    const firstTwoBytes =
+      emptyBytes + itemBytes[0]! + itemBytes[1]! + 1; /* Komma zwischen zwei Items */
+    const batches = chunkSpacyNormalizeTexts(items, {
+      locale,
+      maxItems: 10,
+      maxRequestBytes: firstTwoBytes,
+    });
+    expect(batches).toHaveLength(2);
+    expect(batches[0]).toEqual([items[0], items[1]]);
+    expect(batches[1]).toEqual([items[2]]);
+    expect(Buffer.byteLength(JSON.stringify({ locale, texts: batches[0] }), 'utf8')).toBe(
+      firstTwoBytes,
+    );
+  });
+
+  it('bleibt bei 500 Items ohne quadratische Serialisierung unter 100 ms', () => {
+    const texts = Array.from({ length: 500 }, (_, index) => ({
+      id: `item-${index}`,
+      text: 'x'.repeat(1000),
+    }));
+    const started = performance.now();
+    const batches = chunkSpacyNormalizeTexts(texts, { maxItems: 500 });
+    const elapsed = performance.now() - started;
+    expect(batches).toHaveLength(1);
+    expect(batches[0]).toHaveLength(500);
+    expect(elapsed).toBeLessThan(100);
+  });
+
   it('sendet bei >500 expandierten Segmenten mehrere Sidecar-Requests', async () => {
     const items = Array.from({ length: 251 }, (_, index) => ({
       id: `item-${index}`,
