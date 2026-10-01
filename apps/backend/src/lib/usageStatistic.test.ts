@@ -269,6 +269,7 @@ describe('usageStatistic', () => {
     const failingTx = {
       $queryRaw: vi.fn().mockRejectedValue(new Error('db temporarily unavailable')),
       $executeRaw: vi.fn(),
+      usageStatisticOutbox: { update: vi.fn() },
     };
     vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof failingTx) => unknown) =>
       fn(failingTx)) as unknown as typeof prisma.$transaction);
@@ -286,6 +287,7 @@ describe('usageStatistic', () => {
     const okTx = {
       $queryRaw: vi
         .fn()
+        .mockResolvedValueOnce([{ id: 'outbox-1' }])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([
           {
@@ -297,6 +299,9 @@ describe('usageStatistic', () => {
           },
         ]),
       $executeRaw: vi.fn().mockResolvedValue(1),
+      usageStatisticOutbox: {
+        update: vi.fn().mockResolvedValue({}),
+      },
     };
     vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof okTx) => unknown) =>
       fn(okTx)) as unknown as typeof prisma.$transaction);
@@ -315,11 +320,145 @@ describe('usageStatistic', () => {
 
     const second = await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'));
     expect(second).toBe(1);
-    expect(prisma.usageStatisticOutbox.update).toHaveBeenCalledWith(
+    expect(okTx.usageStatisticOutbox.update).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'outbox-1' },
         data: expect.objectContaining({ processedAt: expect.any(Date), lastError: null }),
       }),
     );
+  });
+
+  it('markiert processedAt in derselben Transaktion wie den Aggregate-Apply', async () => {
+    vi.mocked(prisma.usageStatisticOutbox.findMany).mockResolvedValue([
+      {
+        id: 'outbox-atomic',
+        kind: 'QUIZ_ANSWER',
+        sessionId: 'session-q',
+        idempotencyKey: 'quiz:v1',
+        createdAt: new Date(),
+        processedAt: null,
+        attempts: 0,
+        lastError: null,
+      },
+    ] as never);
+
+    const okTx = {
+      $queryRaw: vi
+        .fn()
+        .mockResolvedValueOnce([{ id: 'outbox-atomic' }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            functionClass: 'QUIZ_ONLY',
+            firstUsedUtcDate: new Date('2026-05-04T00:00:00.000Z'),
+            hasQuizInteraction: true,
+            hasQaInteraction: false,
+            participationCount: 0,
+          },
+        ]),
+      $executeRaw: vi.fn().mockResolvedValue(1),
+      usageStatisticOutbox: {
+        update: vi.fn().mockResolvedValue({}),
+      },
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof okTx) => unknown) =>
+      fn(okTx)) as unknown as typeof prisma.$transaction);
+
+    const count = await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'));
+    expect(count).toBe(1);
+    expect(okTx.usageStatisticOutbox.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'outbox-atomic' },
+        data: expect.objectContaining({ processedAt: expect.any(Date) }),
+      }),
+    );
+    expect(prisma.usageStatisticOutbox.update).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ processedAt: expect.any(Date) }),
+      }),
+    );
+  });
+
+  it('zählt nach Abbruch vor Commit beim erneuten Drain exakt einmal', async () => {
+    const pendingRow = {
+      id: 'outbox-crash',
+      kind: 'PARTICIPATION' as const,
+      sessionId: 'session-crash',
+      idempotencyKey: 'participation:crash',
+      createdAt: new Date(),
+      processedAt: null,
+      attempts: 0,
+      lastError: null,
+    };
+    vi.mocked(prisma.usageStatisticOutbox.findMany).mockResolvedValue([pendingRow] as never);
+    vi.mocked(prisma.usageStatisticOutbox.update).mockResolvedValue({} as never);
+
+    let projectionInserts = 0;
+    const crashingTx = {
+      $queryRaw: vi
+        .fn()
+        .mockResolvedValueOnce([{ id: 'outbox-crash' }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            functionClass: 'JOIN_ONLY',
+            firstUsedUtcDate: new Date('2026-05-04T00:00:00.000Z'),
+            hasQuizInteraction: false,
+            hasQaInteraction: false,
+            participationCount: 1,
+          },
+        ]),
+      $executeRaw: vi.fn().mockImplementation(async (strings: TemplateStringsArray) => {
+        const sql = String(strings[0] ?? '');
+        if (sql.includes('INSERT INTO "SessionUsageProjection"')) {
+          projectionInserts += 1;
+        }
+        return 1;
+      }),
+      usageStatisticOutbox: {
+        update: vi.fn().mockRejectedValue(new Error('crash before commit')),
+      },
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof crashingTx) => unknown) =>
+      fn(crashingTx)) as unknown as typeof prisma.$transaction);
+
+    expect(await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'))).toBe(0);
+    expect(projectionInserts).toBe(1);
+
+    const okTx = {
+      $queryRaw: vi
+        .fn()
+        .mockResolvedValueOnce([{ id: 'outbox-crash' }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            functionClass: 'JOIN_ONLY',
+            firstUsedUtcDate: new Date('2026-05-04T00:00:00.000Z'),
+            hasQuizInteraction: false,
+            hasQaInteraction: false,
+            participationCount: 1,
+          },
+        ]),
+      $executeRaw: vi.fn().mockImplementation(async (strings: TemplateStringsArray) => {
+        const sql = String(strings[0] ?? '');
+        if (sql.includes('INSERT INTO "SessionUsageProjection"')) {
+          projectionInserts += 1;
+        }
+        return 1;
+      }),
+      usageStatisticOutbox: {
+        update: vi.fn().mockResolvedValue({}),
+      },
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof okTx) => unknown) =>
+      fn(okTx)) as unknown as typeof prisma.$transaction);
+    vi.mocked(prisma.usageStatisticOutbox.findMany).mockResolvedValue([
+      { ...pendingRow, attempts: 1, lastError: 'crash before commit' },
+    ] as never);
+
+    expect(await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'))).toBe(1);
+    // Erster Versuch rollt zurück (Commit fehlgeschlagen); nur der zweite Drain committed.
+    expect(projectionInserts).toBe(2);
+    expect(okTx.usageStatisticOutbox.update).toHaveBeenCalledTimes(1);
   });
 });

@@ -65,6 +65,14 @@ type UsageTx = {
         idempotencyKey: string;
       };
     }) => Promise<unknown>;
+    update: (args: {
+      where: { id: string };
+      data: {
+        processedAt?: Date | null;
+        lastError?: string | null;
+        attempts?: { increment: number };
+      };
+    }) => Promise<unknown>;
   };
 };
 
@@ -311,142 +319,204 @@ function nextFunctionClass(
 }
 
 /**
- * Projektion + Tagesaggregate in einer Transaktion.
+ * Projektion + Tagesaggregate innerhalb einer vorhandenen Transaktion.
  * Advisory-Lock serialisiert auch den Insert-Pfad (FOR UPDATE allein sperrt fehlende Zeilen nicht).
  */
-async function applyUsageMutation(
+async function applyUsageMutationInTx(
+  tx: UsageTx,
   sessionId: string,
   now: Date,
   mode: MutationMode,
   eventBump: DailyBump,
 ): Promise<void> {
   const eventDay = utcDayParam(now);
-  await prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${sessionId}))`;
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${sessionId}))`;
 
-    const prevRows = await tx.$queryRaw<ProjectionRow[]>`
-      SELECT
-        "functionClass",
-        "firstUsedUtcDate",
-        "hasQuizInteraction",
-        "hasQaInteraction",
-        "participationCount"
-      FROM "SessionUsageProjection"
-      WHERE "sessionId" = ${sessionId}
+  const prevRows = await tx.$queryRaw<ProjectionRow[]>`
+    SELECT
+      "functionClass",
+      "firstUsedUtcDate",
+      "hasQuizInteraction",
+      "hasQaInteraction",
+      "participationCount"
+    FROM "SessionUsageProjection"
+    WHERE "sessionId" = ${sessionId}
+    FOR UPDATE
+  `;
+  const prev = prevRows[0] ?? null;
+  const nextClass = nextFunctionClass(mode, prev);
+  const day = eventDay;
+
+  if (mode === 'participation') {
+    await tx.$executeRaw`
+      INSERT INTO "SessionUsageProjection" (
+        "sessionId", "firstUsedAt", "firstUsedUtcDate", "firstParticipationAt",
+        "participationCount", "functionClass", "projectedAt"
+      )
+      VALUES (${sessionId}, ${now}, ${day}, ${now}, 1, ${nextClass}, ${now})
+      ON CONFLICT ("sessionId") DO UPDATE
+      SET
+        "participationCount" = "SessionUsageProjection"."participationCount" + 1,
+        "firstUsedAt" = COALESCE("SessionUsageProjection"."firstUsedAt", EXCLUDED."firstUsedAt"),
+        "firstUsedUtcDate" = COALESCE(
+          "SessionUsageProjection"."firstUsedUtcDate",
+          EXCLUDED."firstUsedUtcDate"
+        ),
+        "firstParticipationAt" = COALESCE(
+          "SessionUsageProjection"."firstParticipationAt",
+          EXCLUDED."firstParticipationAt"
+        ),
+        "functionClass" = COALESCE(
+          "SessionUsageProjection"."functionClass",
+          EXCLUDED."functionClass"
+        ),
+        "projectedAt" = EXCLUDED."projectedAt"
+    `;
+  } else if (mode === 'quiz') {
+    await tx.$executeRaw`
+      INSERT INTO "SessionUsageProjection" (
+        "sessionId", "firstUsedAt", "firstUsedUtcDate",
+        "hasQuizInteraction", "functionClass", "projectedAt"
+      )
+      VALUES (${sessionId}, ${now}, ${day}, TRUE, ${nextClass}, ${now})
+      ON CONFLICT ("sessionId") DO UPDATE
+      SET
+        "hasQuizInteraction" = TRUE,
+        "functionClass" = CASE
+          WHEN "SessionUsageProjection"."hasQaInteraction"
+            OR "SessionUsageProjection"."functionClass" = 'QA_ONLY'
+            THEN 'COMBINED'
+          ELSE 'QUIZ_ONLY'
+        END,
+        "firstUsedAt" = COALESCE("SessionUsageProjection"."firstUsedAt", EXCLUDED."firstUsedAt"),
+        "firstUsedUtcDate" = COALESCE(
+          "SessionUsageProjection"."firstUsedUtcDate",
+          EXCLUDED."firstUsedUtcDate"
+        ),
+        "projectedAt" = EXCLUDED."projectedAt"
+    `;
+  } else {
+    await tx.$executeRaw`
+      INSERT INTO "SessionUsageProjection" (
+        "sessionId", "firstUsedAt", "firstUsedUtcDate",
+        "hasQaInteraction", "functionClass", "projectedAt"
+      )
+      VALUES (${sessionId}, ${now}, ${day}, TRUE, ${nextClass}, ${now})
+      ON CONFLICT ("sessionId") DO UPDATE
+      SET
+        "hasQaInteraction" = TRUE,
+        "functionClass" = CASE
+          WHEN "SessionUsageProjection"."hasQuizInteraction"
+            OR "SessionUsageProjection"."functionClass" = 'QUIZ_ONLY'
+            THEN 'COMBINED'
+          ELSE 'QA_ONLY'
+        END,
+        "firstUsedAt" = COALESCE("SessionUsageProjection"."firstUsedAt", EXCLUDED."firstUsedAt"),
+        "firstUsedUtcDate" = COALESCE(
+          "SessionUsageProjection"."firstUsedUtcDate",
+          EXCLUDED."firstUsedUtcDate"
+        ),
+        "projectedAt" = EXCLUDED."projectedAt"
+    `;
+  }
+
+  const nextRows = await tx.$queryRaw<ProjectionRow[]>`
+    SELECT
+      "functionClass",
+      "firstUsedUtcDate",
+      "hasQuizInteraction",
+      "hasQaInteraction",
+      "participationCount"
+    FROM "SessionUsageProjection"
+    WHERE "sessionId" = ${sessionId}
+  `;
+  const next = nextRows[0]!;
+  const inserted = prev === null;
+  const cohortDay = next.firstUsedUtcDate ? utcDayParam(next.firstUsedUtcDate) : eventDay;
+  const resolvedEventBump = mergeDailyBumps(eventBump, inserted ? { sessionsUsed: 1 } : {});
+  const cohortBump = mergeDailyBumps(
+    classBump(prev?.functionClass ?? null, next.functionClass),
+    mode === 'participation'
+      ? sizeClassBump(prev?.participationCount ?? 0, next.participationCount)
+      : {},
+  );
+
+  if (cohortDay.getTime() === eventDay.getTime()) {
+    await bumpDailyUsage(tx, eventDay, mergeDailyBumps(resolvedEventBump, cohortBump));
+  } else {
+    await bumpDailyUsage(tx, eventDay, resolvedEventBump);
+    await bumpDailyUsage(tx, cohortDay, cohortBump);
+  }
+}
+
+async function applyUsageMutation(
+  sessionId: string,
+  now: Date,
+  mode: MutationMode,
+  eventBump: DailyBump,
+): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await applyUsageMutationInTx(tx, sessionId, now, mode, eventBump);
+  });
+}
+
+function outboxMutationForKind(kind: UsageOutboxKind): {
+  mode: MutationMode;
+  eventBump: DailyBump;
+} {
+  switch (kind) {
+    case 'PARTICIPATION':
+      return { mode: 'participation', eventBump: { sessionParticipations: 1 } };
+    case 'QUIZ_ANSWER':
+      return { mode: 'quiz', eventBump: { quizAnswers: 1 } };
+    case 'QA_QUESTION':
+      return { mode: 'qaQuestion', eventBump: { qaQuestionsAccepted: 1 } };
+    case 'QA_RATING':
+      return { mode: 'qaRating', eventBump: { qaRatingActions: 1 } };
+    default: {
+      const _exhaustive: never = kind;
+      throw new Error(`Unbekannte Usage-Outbox-Art: ${_exhaustive}`);
+    }
+  }
+}
+
+/**
+ * Apply + processedAt in einer Transaktion (Crash vor Markierung ⇒ Rollback, kein Doppelzählen).
+ * FOR UPDATE auf der Outbox-Zeile verhindert parallele Drains.
+ */
+async function applyOutboxRowAtomically(
+  row: { id: string; kind: UsageOutboxKind; sessionId: string },
+  now: Date,
+): Promise<boolean> {
+  const { mode, eventBump } = outboxMutationForKind(row.kind);
+  let completed = false;
+  await prisma.$transaction(async (tx) => {
+    const locked = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT "id"
+      FROM "UsageStatisticOutbox"
+      WHERE "id" = ${row.id} AND "processedAt" IS NULL
       FOR UPDATE
     `;
-    const prev = prevRows[0] ?? null;
-    const nextClass = nextFunctionClass(mode, prev);
-    const day = eventDay;
+    if (locked.length === 0) return;
 
-    if (mode === 'participation') {
-      await tx.$executeRaw`
-        INSERT INTO "SessionUsageProjection" (
-          "sessionId", "firstUsedAt", "firstUsedUtcDate", "firstParticipationAt",
-          "participationCount", "functionClass", "projectedAt"
-        )
-        VALUES (${sessionId}, ${now}, ${day}, ${now}, 1, ${nextClass}, ${now})
-        ON CONFLICT ("sessionId") DO UPDATE
-        SET
-          "participationCount" = "SessionUsageProjection"."participationCount" + 1,
-          "firstUsedAt" = COALESCE("SessionUsageProjection"."firstUsedAt", EXCLUDED."firstUsedAt"),
-          "firstUsedUtcDate" = COALESCE(
-            "SessionUsageProjection"."firstUsedUtcDate",
-            EXCLUDED."firstUsedUtcDate"
-          ),
-          "firstParticipationAt" = COALESCE(
-            "SessionUsageProjection"."firstParticipationAt",
-            EXCLUDED."firstParticipationAt"
-          ),
-          "functionClass" = COALESCE(
-            "SessionUsageProjection"."functionClass",
-            EXCLUDED."functionClass"
-          ),
-          "projectedAt" = EXCLUDED."projectedAt"
-      `;
-    } else if (mode === 'quiz') {
-      await tx.$executeRaw`
-        INSERT INTO "SessionUsageProjection" (
-          "sessionId", "firstUsedAt", "firstUsedUtcDate",
-          "hasQuizInteraction", "functionClass", "projectedAt"
-        )
-        VALUES (${sessionId}, ${now}, ${day}, TRUE, ${nextClass}, ${now})
-        ON CONFLICT ("sessionId") DO UPDATE
-        SET
-          "hasQuizInteraction" = TRUE,
-          "functionClass" = CASE
-            WHEN "SessionUsageProjection"."hasQaInteraction"
-              OR "SessionUsageProjection"."functionClass" = 'QA_ONLY'
-              THEN 'COMBINED'
-            ELSE 'QUIZ_ONLY'
-          END,
-          "firstUsedAt" = COALESCE("SessionUsageProjection"."firstUsedAt", EXCLUDED."firstUsedAt"),
-          "firstUsedUtcDate" = COALESCE(
-            "SessionUsageProjection"."firstUsedUtcDate",
-            EXCLUDED."firstUsedUtcDate"
-          ),
-          "projectedAt" = EXCLUDED."projectedAt"
-      `;
-    } else {
-      await tx.$executeRaw`
-        INSERT INTO "SessionUsageProjection" (
-          "sessionId", "firstUsedAt", "firstUsedUtcDate",
-          "hasQaInteraction", "functionClass", "projectedAt"
-        )
-        VALUES (${sessionId}, ${now}, ${day}, TRUE, ${nextClass}, ${now})
-        ON CONFLICT ("sessionId") DO UPDATE
-        SET
-          "hasQaInteraction" = TRUE,
-          "functionClass" = CASE
-            WHEN "SessionUsageProjection"."hasQuizInteraction"
-              OR "SessionUsageProjection"."functionClass" = 'QUIZ_ONLY'
-              THEN 'COMBINED'
-            ELSE 'QA_ONLY'
-          END,
-          "firstUsedAt" = COALESCE("SessionUsageProjection"."firstUsedAt", EXCLUDED."firstUsedAt"),
-          "firstUsedUtcDate" = COALESCE(
-            "SessionUsageProjection"."firstUsedUtcDate",
-            EXCLUDED."firstUsedUtcDate"
-          ),
-          "projectedAt" = EXCLUDED."projectedAt"
-      `;
-    }
-
-    const nextRows = await tx.$queryRaw<ProjectionRow[]>`
-      SELECT
-        "functionClass",
-        "firstUsedUtcDate",
-        "hasQuizInteraction",
-        "hasQaInteraction",
-        "participationCount"
-      FROM "SessionUsageProjection"
-      WHERE "sessionId" = ${sessionId}
-    `;
-    const next = nextRows[0]!;
-    const inserted = prev === null;
-    const cohortDay = next.firstUsedUtcDate ? utcDayParam(next.firstUsedUtcDate) : eventDay;
-    const resolvedEventBump = mergeDailyBumps(eventBump, inserted ? { sessionsUsed: 1 } : {});
-    const cohortBump = mergeDailyBumps(
-      classBump(prev?.functionClass ?? null, next.functionClass),
-      mode === 'participation'
-        ? sizeClassBump(prev?.participationCount ?? 0, next.participationCount)
-        : {},
-    );
-
-    if (cohortDay.getTime() === eventDay.getTime()) {
-      await bumpDailyUsage(tx, eventDay, mergeDailyBumps(resolvedEventBump, cohortBump));
-    } else {
-      await bumpDailyUsage(tx, eventDay, resolvedEventBump);
-      await bumpDailyUsage(tx, cohortDay, cohortBump);
-    }
+    await applyUsageMutationInTx(tx, row.sessionId, now, mode, eventBump);
+    await tx.usageStatisticOutbox.update({
+      where: { id: row.id },
+      data: { processedAt: now, lastError: null },
+    });
+    completed = true;
   });
+  if (completed) {
+    await touchUsageTracking(now);
+  }
+  return completed;
 }
 
 export type UsageOutboxKind = 'PARTICIPATION' | 'QUIZ_ANSWER' | 'QA_QUESTION' | 'QA_RATING';
 
 /** Intent in derselben Transaktion wie das Fachereignis (idempotent). */
 export async function enqueueUsageStatisticEvent(
-  tx: Pick<UsageTx, 'usageStatisticOutbox'>,
+  tx: { usageStatisticOutbox: Pick<UsageTx['usageStatisticOutbox'], 'create'> },
   event: { kind: UsageOutboxKind; sessionId: string; idempotencyKey: string },
 ): Promise<void> {
   try {
@@ -472,29 +542,10 @@ export async function enqueueUsageStatisticEvent(
   }
 }
 
-async function applyOutboxKind(kind: UsageOutboxKind, sessionId: string, now: Date): Promise<void> {
-  switch (kind) {
-    case 'PARTICIPATION':
-      await applyUsageMutation(sessionId, now, 'participation', { sessionParticipations: 1 });
-      break;
-    case 'QUIZ_ANSWER':
-      await applyUsageMutation(sessionId, now, 'quiz', { quizAnswers: 1 });
-      break;
-    case 'QA_QUESTION':
-      await applyUsageMutation(sessionId, now, 'qaQuestion', { qaQuestionsAccepted: 1 });
-      break;
-    case 'QA_RATING':
-      await applyUsageMutation(sessionId, now, 'qaRating', { qaRatingActions: 1 });
-      break;
-    default:
-      throw new Error(`Unbekannte Usage-Outbox-Art: ${kind}`);
-  }
-  await touchUsageTracking(now);
-}
-
 /**
  * Verarbeitet ausstehende Outbox-Zeilen idempotent.
  * Crash nach Fach-Commit / vor Verarbeitung: nächster Drain holt nach.
+ * Apply + processedAt teilen eine DB-Transaktion (kein Doppelzählen nach Crash vor Markierung).
  */
 export async function processUsageStatisticOutbox(
   limit = 50,
@@ -508,12 +559,15 @@ export async function processUsageStatisticOutbox(
   let processed = 0;
   for (const row of pending) {
     try {
-      await applyOutboxKind(row.kind as UsageOutboxKind, row.sessionId, now);
-      await prisma.usageStatisticOutbox.update({
-        where: { id: row.id },
-        data: { processedAt: now, lastError: null },
-      });
-      processed += 1;
+      const done = await applyOutboxRowAtomically(
+        {
+          id: row.id,
+          kind: row.kind as UsageOutboxKind,
+          sessionId: row.sessionId,
+        },
+        now,
+      );
+      if (done) processed += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await prisma.usageStatisticOutbox
