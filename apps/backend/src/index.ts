@@ -40,6 +40,10 @@ import {
   startWebSocketTelemetryClusterPublisher,
   stopWebSocketTelemetryClusterPublisher,
 } from './lib/websocketTelemetry';
+import {
+  startUsageStatisticOutboxScheduler,
+  stopUsageStatisticOutboxScheduler,
+} from './lib/usageStatistic';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
@@ -52,6 +56,7 @@ getYjsShareLegacyUuidCutoffAt();
 getRedis();
 startQaPlatformProjectionScheduler();
 startWebSocketTelemetryClusterPublisher();
+startUsageStatisticOutboxScheduler();
 void startSessionPurgeInvalidationSubscriber().catch((error: unknown) => {
   logger.warn(
     'Session-Purge-Invalidierungs-Subscriber konnte nicht starten:',
@@ -249,6 +254,7 @@ async function shutdown(): Promise<void> {
   stopSessionCleanupScheduler();
   stopQaPlatformProjectionScheduler();
   await stopWebSocketTelemetryClusterPublisher();
+  await stopUsageStatisticOutboxScheduler();
   wsHandler.broadcastReconnectNotification();
   server.close();
   await Promise.all([

@@ -54,7 +54,10 @@ import {
 } from '../lib/quizScoring';
 import { touchParticipantPresence } from '../lib/presence';
 import { recordVoteActivity } from '../lib/loadSignal';
-import { recordUsageQuizAnswer } from '../lib/usageStatistic';
+import {
+  enqueueUsageStatisticEvent,
+  scheduleUsageStatisticOutboxDrain,
+} from '../lib/usageStatistic';
 import { invalidateHostVoteProgressForCode, recordVoteCachesForCode } from './session';
 import {
   getSkippedSessionQuestionIds,
@@ -825,7 +828,7 @@ export const voteRouter = router({
                 message: 'Die Frage ist nicht mehr aktiv.',
               });
             }
-            return tx.vote.create({
+            const createdVote = await tx.vote.create({
               data: {
                 sessionId: input.sessionId,
                 participantId: input.participantId,
@@ -854,6 +857,14 @@ export const voteRouter = router({
                   : undefined,
               },
             });
+            if (round === 1) {
+              await enqueueUsageStatisticEvent(tx, {
+                kind: 'QUIZ_ANSWER',
+                sessionId: input.sessionId,
+                idempotencyKey: `quiz:${createdVote.id}`,
+              });
+            }
+            return createdVote;
           },
           {
             maxWait: VOTE_TRANSACTION_MAX_WAIT_MS,
@@ -882,7 +893,7 @@ export const voteRouter = router({
       }
       // Effektive Antwort: Runde 1 zählt; Runde 2 ersetzt den Effective Vote ohne Doppelzählung.
       if (round === 1) {
-        void recordUsageQuizAnswer(input.sessionId);
+        scheduleUsageStatisticOutboxDrain();
       }
       if (participant.session.code) {
         const progressIsCorrect =

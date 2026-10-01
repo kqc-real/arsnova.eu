@@ -24,6 +24,11 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findMany: vi.fn(),
       groupBy: vi.fn(),
     },
+    usageStatisticOutbox: {
+      create: vi.fn().mockResolvedValue({ id: 'outbox-1' }),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({}),
+    },
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),

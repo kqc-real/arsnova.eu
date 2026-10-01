@@ -195,7 +195,7 @@ import {
   incrementCompletedSessionsTotal,
   updateMaxParticipantsSingleSession,
 } from '../lib/platformStatistic';
-import { recordUsageSessionParticipation } from '../lib/usageStatistic';
+import { scheduleUsageStatisticOutboxDrain } from '../lib/usageStatistic';
 import {
   getActiveParticipantIdsForSession,
   getActiveParticipantCountForSession,
@@ -9820,7 +9820,7 @@ const sessionCoreRouter = router({
       void updateMaxParticipantsSingleSession(newParticipantCount);
       void updateDailyMaxParticipants(newParticipantCount);
       if (!preparedJoin.rejoined) {
-        void recordUsageSessionParticipation(session.id);
+        scheduleUsageStatisticOutboxDrain();
       }
       void touchParticipantPresence(session.id, participantId);
       const serverTime = new Date().toISOString();

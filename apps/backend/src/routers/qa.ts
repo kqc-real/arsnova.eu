@@ -65,7 +65,7 @@ import {
 import { hostProcedure, publicProcedure, router } from '../trpc';
 import { assertParticipantCapability } from '../lib/participantAuth';
 import { recordQaQuestionAccepted, recordQaRatingChanged } from '../lib/qaTelemetry';
-import { recordUsageQaQuestionAccepted, recordUsageQaRatingAction } from '../lib/usageStatistic';
+import { enqueueUsageStatisticEventAndSchedule } from '../lib/usageStatistic';
 import {
   emitQaQuestionsSignal,
   getQaQuestionsSignalVersion,
@@ -1927,7 +1927,11 @@ export const qaRouter = router({
       }
       if (!created.replayed) {
         void recordQaQuestionAccepted(created.id);
-        void recordUsageQaQuestionAccepted(input.sessionId);
+        await enqueueUsageStatisticEventAndSchedule({
+          kind: 'QA_QUESTION',
+          sessionId: input.sessionId,
+          idempotencyKey: `qa-question:${created.id}`,
+        });
         emitQaQuestionsSignal(input.sessionId);
       }
       return {
@@ -2021,7 +2025,11 @@ export const qaRouter = router({
       const result = await changeQaVote(input.questionId, input.participantId, 'UP');
       if (result.changed) {
         void recordQaRatingChanged(randomUUID());
-        void recordUsageQaRatingAction(question.sessionId);
+        await enqueueUsageStatisticEventAndSchedule({
+          kind: 'QA_RATING',
+          sessionId: question.sessionId,
+          idempotencyKey: `qa-rating:${randomUUID()}`,
+        });
         emitQaQuestionsSignal(question.sessionId);
       }
       return {
@@ -2050,7 +2058,11 @@ export const qaRouter = router({
       const result = await changeQaVote(input.questionId, input.participantId, input.direction);
       if (result.changed) {
         void recordQaRatingChanged(randomUUID());
-        void recordUsageQaRatingAction(question.sessionId);
+        await enqueueUsageStatisticEventAndSchedule({
+          kind: 'QA_RATING',
+          sessionId: question.sessionId,
+          idempotencyKey: `qa-rating:${randomUUID()}`,
+        });
         emitQaQuestionsSignal(question.sessionId);
       }
       return {

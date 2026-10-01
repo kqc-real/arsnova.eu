@@ -6,6 +6,11 @@ vi.mock('../db', () => ({
     $queryRaw: vi.fn(),
     $transaction: vi.fn(),
     dailyUsageStatistic: { findMany: vi.fn() },
+    usageStatisticOutbox: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
   },
 }));
 
@@ -17,7 +22,9 @@ import { prisma } from '../db';
 import {
   buildUsageReport,
   classBump,
+  enqueueUsageStatisticEvent,
   percentileFromSizeClassCounts,
+  processUsageStatisticOutbox,
   recordUsageQuizAnswer,
   recordUsageSessionParticipation,
   resetUsageTrackingThrottleForTests,
@@ -168,7 +175,7 @@ describe('usageStatistic', () => {
       now: new Date('2026-05-04T15:00:00.000Z'),
     });
 
-    expect(report.historyComplete).toBe(true);
+    expect(report.historyComplete).toBe(false);
     expect(report.sessionsUsed).toBe(2);
     expect(report.sessionsByFunction).toEqual({
       joinOnly: 0,
@@ -190,5 +197,129 @@ describe('usageStatistic', () => {
       { id: 'XL', label: '301+', count: 0 },
     ]);
     expect(report.sizeDistribution?.median).toBe(43);
+  });
+
+  it('setzt historyComplete nur wenn Erfassung den gesamten 30-Tage-Zeitraum abdeckt', async () => {
+    vi.mocked(prisma.$queryRaw).mockResolvedValueOnce([
+      {
+        usageStatisticsTrackingStartedAt: new Date('2026-04-01T00:00:00.000Z'),
+        usageStatisticsProjectedAt: new Date('2026-05-04T12:00:00.000Z'),
+        qaStatisticsTrackingStartedAt: null,
+        qaQuestionsTotal: 0,
+        completedSessionsTotal: 0,
+      },
+    ]);
+    vi.mocked(prisma.dailyUsageStatistic.findMany).mockResolvedValue([] as never);
+
+    const complete = await buildUsageReport({
+      kind: 'LAST_30_DAYS',
+      now: new Date('2026-05-04T15:00:00.000Z'),
+    });
+    expect(complete.periodFrom).toBe('2026-04-05');
+    expect(complete.historyComplete).toBe(true);
+
+    vi.mocked(prisma.$queryRaw).mockResolvedValueOnce([
+      {
+        usageStatisticsTrackingStartedAt: new Date('2026-05-01T08:00:00.000Z'),
+        usageStatisticsProjectedAt: new Date('2026-05-04T12:00:00.000Z'),
+        qaStatisticsTrackingStartedAt: null,
+        qaQuestionsTotal: 0,
+        completedSessionsTotal: 0,
+      },
+    ]);
+    vi.mocked(prisma.dailyUsageStatistic.findMany).mockResolvedValue([] as never);
+
+    const incomplete = await buildUsageReport({
+      kind: 'LAST_30_DAYS',
+      now: new Date('2026-05-04T15:00:00.000Z'),
+    });
+    expect(incomplete.historyComplete).toBe(false);
+    const earlyDay = incomplete.dailySeries.find((d) => d.date === '2026-04-10');
+    expect(earlyDay?.sessionsUsed).toBeNull();
+  });
+
+  it('schreibt Outbox-Intent und verarbeitet fehlgeschlagene Drains nach', async () => {
+    const tx = { usageStatisticOutbox: { create: vi.fn().mockResolvedValue({}) } };
+    await enqueueUsageStatisticEvent(tx, {
+      kind: 'PARTICIPATION',
+      sessionId: 'session-1',
+      idempotencyKey: 'participation:p1',
+    });
+    expect(tx.usageStatisticOutbox.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        kind: 'PARTICIPATION',
+        sessionId: 'session-1',
+        idempotencyKey: 'participation:p1',
+      }),
+    });
+
+    vi.mocked(prisma.usageStatisticOutbox.findMany).mockResolvedValue([
+      {
+        id: 'outbox-1',
+        kind: 'PARTICIPATION',
+        sessionId: 'session-1',
+        idempotencyKey: 'participation:p1',
+        createdAt: new Date(),
+        processedAt: null,
+        attempts: 0,
+        lastError: null,
+      },
+    ] as never);
+
+    const failingTx = {
+      $queryRaw: vi.fn().mockRejectedValue(new Error('db temporarily unavailable')),
+      $executeRaw: vi.fn(),
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof failingTx) => unknown) =>
+      fn(failingTx)) as unknown as typeof prisma.$transaction);
+    vi.mocked(prisma.usageStatisticOutbox.update).mockResolvedValue({} as never);
+
+    const first = await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'));
+    expect(first).toBe(0);
+    expect(prisma.usageStatisticOutbox.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'outbox-1' },
+        data: expect.objectContaining({ attempts: { increment: 1 } }),
+      }),
+    );
+
+    const okTx = {
+      $queryRaw: vi
+        .fn()
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            functionClass: 'JOIN_ONLY',
+            firstUsedUtcDate: new Date('2026-05-04T00:00:00.000Z'),
+            hasQuizInteraction: false,
+            hasQaInteraction: false,
+            participationCount: 1,
+          },
+        ]),
+      $executeRaw: vi.fn().mockResolvedValue(1),
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof okTx) => unknown) =>
+      fn(okTx)) as unknown as typeof prisma.$transaction);
+    vi.mocked(prisma.usageStatisticOutbox.findMany).mockResolvedValue([
+      {
+        id: 'outbox-1',
+        kind: 'PARTICIPATION',
+        sessionId: 'session-1',
+        idempotencyKey: 'participation:p1',
+        createdAt: new Date(),
+        processedAt: null,
+        attempts: 1,
+        lastError: 'db temporarily unavailable',
+      },
+    ] as never);
+
+    const second = await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'));
+    expect(second).toBe(1);
+    expect(prisma.usageStatisticOutbox.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'outbox-1' },
+        data: expect.objectContaining({ processedAt: expect.any(Date), lastError: null }),
+      }),
+    );
   });
 });

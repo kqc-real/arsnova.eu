@@ -9,6 +9,7 @@ import {
   hashCapabilityIndex,
 } from './capabilityCrypto';
 import { hashToken as hashProductFeedbackToken } from './productFeedbackTokens';
+import { enqueueUsageStatisticEvent } from './usageStatistic';
 
 export const PARTICIPANT_JOIN_REPLAY_MS = 10 * 60 * 1000;
 
@@ -367,6 +368,11 @@ export async function prepareParticipantJoin(params: {
         createdAt: now,
         expiresAt: new Date(now.getTime() + PARTICIPANT_JOIN_REPLAY_MS),
       },
+    });
+    await enqueueUsageStatisticEvent(params.tx, {
+      kind: 'PARTICIPATION',
+      sessionId: params.sessionId,
+      idempotencyKey: `participation:${participant.id}`,
     });
     return {
       participantId: participant.id,

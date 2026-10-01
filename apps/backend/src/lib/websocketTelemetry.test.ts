@@ -6,6 +6,11 @@ const redisMocks = vi.hoisted(() => ({
   set: vi.fn(),
   get: vi.fn(),
   del: vi.fn(),
+  zrange: vi.fn(),
+  zremrangebyscore: vi.fn(),
+  zadd: vi.fn(),
+  zrem: vi.fn(),
+  multi: vi.fn(),
 }));
 
 vi.mock('../redis', () => ({
@@ -136,12 +141,10 @@ describe('websocketTelemetry', () => {
     expect(getWebSocketTelemetrySnapshot().yjsProtocolErrorsLastMinute).toBe(0);
   });
 
-  it('aggregiert Live-Verbindungen über Instanz-Snapshots (NODE_ENV!=test)', async () => {
+  it('aggregiert Live-Verbindungen über Instanz-Registry ohne Keyspace-SCAN', async () => {
     vi.stubEnv('NODE_ENV', 'development');
-    redisMocks.scan.mockResolvedValue([
-      '0',
-      ['ws:telemetry:instance:a', 'ws:telemetry:instance:b'],
-    ]);
+    redisMocks.zremrangebyscore.mockResolvedValue(0);
+    redisMocks.zrange.mockResolvedValue(['a', 'b']);
     redisMocks.mget.mockResolvedValue([
       JSON.stringify({
         trpcOpen: 10,
@@ -168,6 +171,12 @@ describe('websocketTelemetry', () => {
     ]);
 
     const cluster = await readClusterLiveConnectionMetrics();
+    expect(redisMocks.scan).not.toHaveBeenCalled();
+    expect(redisMocks.zrange).toHaveBeenCalledWith('ws:telemetry:registry', 0, -1);
+    expect(redisMocks.mget).toHaveBeenCalledWith(
+      'ws:telemetry:instance:a',
+      'ws:telemetry:instance:b',
+    );
     expect(cluster).toMatchObject({
       available: true,
       trpcOpen: 15,

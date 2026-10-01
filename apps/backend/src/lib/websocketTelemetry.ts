@@ -4,6 +4,8 @@ import { logger } from './logger';
 
 const INSTANCE_ID = randomUUID();
 const WS_INSTANCE_KEY_PREFIX = 'ws:telemetry:instance:';
+/** Bounded Registry lebender Instanzen (Score = Unix-Expiry), vermeidet Keyspace-SCAN. */
+const WS_INSTANCE_REGISTRY_KEY = 'ws:telemetry:registry';
 const WS_INSTANCE_TTL_SECONDS = 20;
 const WS_PUBLISH_INTERVAL_MS = 5_000;
 
@@ -300,12 +302,14 @@ export async function publishInstanceWebSocketTelemetry(): Promise<void> {
       rateLimitedMessagesLastMinute,
       updatedAt: Date.now(),
     });
-    await getRedis().set(
-      `${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`,
-      payload,
-      'EX',
-      WS_INSTANCE_TTL_SECONDS,
-    );
+    const redis = getRedis();
+    const key = `${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`;
+    const expiresAt = Math.floor(Date.now() / 1000) + WS_INSTANCE_TTL_SECONDS;
+    const pipeline = redis.multi();
+    pipeline.set(key, payload, 'EX', WS_INSTANCE_TTL_SECONDS);
+    pipeline.zadd(WS_INSTANCE_REGISTRY_KEY, expiresAt, INSTANCE_ID);
+    pipeline.zremrangebyscore(WS_INSTANCE_REGISTRY_KEY, '-inf', Math.floor(Date.now() / 1000));
+    await pipeline.exec();
   } catch (error) {
     if (!publishWarned) {
       publishWarned = true;
@@ -333,7 +337,11 @@ export async function stopWebSocketTelemetryClusterPublisher(): Promise<void> {
   }
   if (process.env['NODE_ENV'] === 'test') return;
   try {
-    await getRedis().del(`${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`);
+    const redis = getRedis();
+    const pipeline = redis.multi();
+    pipeline.del(`${WS_INSTANCE_KEY_PREFIX}${INSTANCE_ID}`);
+    pipeline.zrem(WS_INSTANCE_REGISTRY_KEY, INSTANCE_ID);
+    await pipeline.exec();
   } catch {
     // Shutdown: best effort
   }
@@ -366,19 +374,10 @@ export async function readClusterLiveConnectionMetrics(
 
   try {
     const redis = getRedis();
-    const keys: string[] = [];
-    let cursor = '0';
-    do {
-      const [next, batch] = await redis.scan(
-        cursor,
-        'MATCH',
-        `${WS_INSTANCE_KEY_PREFIX}*`,
-        'COUNT',
-        64,
-      );
-      cursor = next;
-      keys.push(...batch);
-    } while (cursor !== '0');
+    const nowSec = Math.floor(nowMs / 1000);
+    await redis.zremrangebyscore(WS_INSTANCE_REGISTRY_KEY, '-inf', nowSec);
+    const instanceIds = await redis.zrange(WS_INSTANCE_REGISTRY_KEY, 0, -1);
+    let keys = instanceIds.map((id) => `${WS_INSTANCE_KEY_PREFIX}${id}`);
 
     if (keys.length === 0) {
       // Mindestens den lokalen Snapshot publizieren und erneut lesen.
@@ -399,7 +398,7 @@ export async function readClusterLiveConnectionMetrics(
           lastSuccessfulReadAt: null,
         };
       }
-      keys.push(localKey);
+      keys = [localKey];
     }
 
     const values = await redis.mget(...keys);

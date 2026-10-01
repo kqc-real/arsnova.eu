@@ -20,6 +20,11 @@ const { prismaMock, checkVoteRateMock } = vi.hoisted(() => ({
       findUnique: vi.fn(),
       findFirst: vi.fn(),
     },
+    usageStatisticOutbox: {
+      create: vi.fn().mockResolvedValue({ id: 'outbox-1' }),
+      findMany: vi.fn().mockResolvedValue([]),
+      update: vi.fn().mockResolvedValue({}),
+    },
     $executeRaw: vi.fn(),
     $transaction: vi.fn(),
   },

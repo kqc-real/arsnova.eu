@@ -35,6 +35,9 @@ function createTx() {
       create: vi.fn().mockResolvedValue({ id: 'replay-1' }),
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
+    usageStatisticOutbox: {
+      create: vi.fn().mockResolvedValue({ id: 'outbox-1' }),
+    },
   };
 }
 

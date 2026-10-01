@@ -167,9 +167,13 @@ sequenceDiagram
 ```
 
 > **Hinweis:** Nutzungsaggregate werden eventgetrieben (erster Join, neue Quizstimme,
-> Q&A accept/rate) in `DailyUsageStatistic` und `SessionUsageProjection` geschrieben.
-> Session-Purge löscht keine Aggregatzeilen (keine FK). Bis der erste Eventtag vorliegt,
-> bleiben Periodenwerte `null` mit `historyComplete=false`.
+> Q&A accept/rate) über eine **UsageStatisticOutbox** (Intent in derselben Transaktion wie
+> Join/Vote; Q&A-Enqueue vor Response) nach `DailyUsageStatistic` /
+> `SessionUsageProjection` geschrieben und periodisch drained. Session-Purge löscht keine
+> Aggregatzeilen (keine FK). `historyComplete` ist nur wahr, wenn
+> `trackingStartedAt` den gesamten Berichtszeitraum abdeckt (`trackingDay <= periodFrom`)
+> und ein Aggregationsstand (`usageStatisticsProjectedAt`) vorliegt — sonst bleiben
+> Pre-Tracking-Tage `null` und die UI zeigt die Unvollständigkeitswarnung.
 
 ### Dev-Seed (lokale Metrik-Abdeckung)
 
@@ -226,7 +230,9 @@ Statische Assets, Crawler und technische Healthchecks liegen außerhalb der tRPC
 - Offene tRPC-/Yjs-Verbindungen, Open/Close der letzten Minute, aggregierte Ablehnungen.
 - Reconnects und Nachrichtenrate: **nicht belastbar** → `null` / UI „nicht gemessen“.
 - Offene Verbindung ≠ erfolgreiche Zustellung (`deliveryNotMeasured: true`).
-- Werte sind **Cluster-Aggregate** über Redis-TTL-Snapshots je Backend-Instanz (`ws:telemetry:instance:*`).
+- Werte sind **Cluster-Aggregate** über Redis-TTL-Snapshots je Backend-Instanz
+  (`ws:telemetry:instance:*`), adressiert über die bounded Registry
+  `ws:telemetry:registry` (ZSET mit Heartbeat-Expiry) — ohne Keyspace-`SCAN`.
 
 #### Lasttest (500 Concurrent inkl. Shared-NAT)
 
@@ -283,7 +289,7 @@ Implementierungsdetails; Kennzahl-Definitionen oben haben Vorrang.
 | Blitz-Runden             | `SCAN` mit `MATCH qf:*` | es zählen nur Primärkeys `qf:<code>`, keine `qf:voters:*`, `qf:choices:*`, `qf:choices:r1:*`, `qf:host:*` oder `qf:known:*` |
 | Votes / Statuswechsel    | Load-Signale            | Werte der letzten Minute                                                                                                    |
 | SLO / Serververkehr      | `sloTelemetry` (Redis)  | Kernaktions-RPS avg/peak, Fehlerrate (Server+Rate-Limit), p95/p99, Gruppen-Allowlist; 10s-Buckets, Flush alle 5s            |
-| Live-Verbindungen        | `websocketTelemetry`    | Offene tRPC-/Yjs-Verbindungen, Open/Close, Ablehnungen (Cluster via Redis-TTL); Zustellung nicht gemessen                   |
+| Live-Verbindungen        | `websocketTelemetry`    | Offene tRPC-/Yjs-Verbindungen, Open/Close, Ablehnungen (Cluster via Redis-TTL + Registry-ZSET); Zustellung nicht gemessen   |
 | Q&A-Minutenwerte         | 1-Sekunden-Buckets      | 60-Sekunden-Fenster, TTL, deduplizierte Erst-Submits und persistierte Bewertungsänderungen                                  |
 
 `qaQuestionsTotal` und `maxQaQuestionsSingleSession` gelten ausdrücklich **seit Beginn

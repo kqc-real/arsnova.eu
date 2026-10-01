@@ -373,6 +373,22 @@ model SessionUsageProjection {
   @@index([functionClass, firstUsedUtcDate])
 }
 
+/// Dauerhafte Zustellung der Nutzungsaggregate (Issue #483 Review).
+/// Intent wird in derselben Transaktion wie Join/Vote/Q&A geschrieben; Drain ist idempotent.
+model UsageStatisticOutbox {
+  id             String    @id @default(uuid())
+  /// PARTICIPATION | QUIZ_ANSWER | QA_QUESTION | QA_RATING
+  kind           String    @db.VarChar(32)
+  sessionId      String
+  idempotencyKey String    @unique @db.VarChar(160)
+  createdAt      DateTime  @default(now())
+  processedAt    DateTime?
+  attempts       Int       @default(0)
+  lastError      String?   @db.VarChar(500)
+
+  @@index([processedAt, createdAt])
+}
+
 // Ein Team in einer Live-Session (Story 7.1)
 model Team {
   id           String        @id @default(uuid())

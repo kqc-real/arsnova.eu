@@ -43,6 +43,11 @@ const { prismaMock, hostAuthMocks, participantAuthMocks, qaTelemetryMocks, rawQu
       $queryRaw: vi.fn(),
       $executeRaw: vi.fn(),
       $transaction: vi.fn(),
+      usageStatisticOutbox: {
+        create: vi.fn().mockResolvedValue({ id: 'outbox-1' }),
+        findMany: vi.fn().mockResolvedValue([]),
+        update: vi.fn().mockResolvedValue({}),
+      },
     },
     hostAuthMocks: {
       extractHostTokenMock: vi.fn(),

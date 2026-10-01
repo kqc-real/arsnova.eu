@@ -56,6 +56,16 @@ export function sizeClassForCount(count: number): UsageSizeClassId {
 type UsageTx = {
   $executeRaw: typeof prisma.$executeRaw;
   $queryRaw: typeof prisma.$queryRaw;
+  usageStatisticOutbox: {
+    create: (args: {
+      data: {
+        id: string;
+        kind: string;
+        sessionId: string;
+        idempotencyKey: string;
+      };
+    }) => Promise<unknown>;
+  };
 };
 
 /** PlatformStatistic.projectedAt höchstens einmal pro Intervall anfassen (kein Hot-Row pro Event). */
@@ -432,6 +442,143 @@ async function applyUsageMutation(
   });
 }
 
+export type UsageOutboxKind = 'PARTICIPATION' | 'QUIZ_ANSWER' | 'QA_QUESTION' | 'QA_RATING';
+
+/** Intent in derselben Transaktion wie das Fachereignis (idempotent). */
+export async function enqueueUsageStatisticEvent(
+  tx: Pick<UsageTx, 'usageStatisticOutbox'>,
+  event: { kind: UsageOutboxKind; sessionId: string; idempotencyKey: string },
+): Promise<void> {
+  try {
+    await tx.usageStatisticOutbox.create({
+      data: {
+        id: randomUUID(),
+        kind: event.kind,
+        sessionId: event.sessionId,
+        idempotencyKey: event.idempotencyKey,
+      },
+    });
+  } catch (error) {
+    // P2002: bereits enqueued (Retry/Idempotenz) — ok.
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      (error as { code?: string }).code === 'P2002'
+    ) {
+      return;
+    }
+    throw error;
+  }
+}
+
+async function applyOutboxKind(kind: UsageOutboxKind, sessionId: string, now: Date): Promise<void> {
+  switch (kind) {
+    case 'PARTICIPATION':
+      await applyUsageMutation(sessionId, now, 'participation', { sessionParticipations: 1 });
+      break;
+    case 'QUIZ_ANSWER':
+      await applyUsageMutation(sessionId, now, 'quiz', { quizAnswers: 1 });
+      break;
+    case 'QA_QUESTION':
+      await applyUsageMutation(sessionId, now, 'qaQuestion', { qaQuestionsAccepted: 1 });
+      break;
+    case 'QA_RATING':
+      await applyUsageMutation(sessionId, now, 'qaRating', { qaRatingActions: 1 });
+      break;
+    default:
+      throw new Error(`Unbekannte Usage-Outbox-Art: ${kind}`);
+  }
+  await touchUsageTracking(now);
+}
+
+/**
+ * Verarbeitet ausstehende Outbox-Zeilen idempotent.
+ * Crash nach Fach-Commit / vor Verarbeitung: nächster Drain holt nach.
+ */
+export async function processUsageStatisticOutbox(
+  limit = 50,
+  now: Date = new Date(),
+): Promise<number> {
+  const pending = await prisma.usageStatisticOutbox.findMany({
+    where: { processedAt: null },
+    orderBy: { createdAt: 'asc' },
+    take: limit,
+  });
+  let processed = 0;
+  for (const row of pending) {
+    try {
+      await applyOutboxKind(row.kind as UsageOutboxKind, row.sessionId, now);
+      await prisma.usageStatisticOutbox.update({
+        where: { id: row.id },
+        data: { processedAt: now, lastError: null },
+      });
+      processed += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await prisma.usageStatisticOutbox
+        .update({
+          where: { id: row.id },
+          data: {
+            attempts: { increment: 1 },
+            lastError: message.slice(0, 500),
+          },
+        })
+        .catch(() => undefined);
+      logger.warn('usageStatistic.outbox: Verarbeitung fehlgeschlagen', {
+        id: row.id,
+        kind: row.kind,
+        error,
+      });
+    }
+  }
+  return processed;
+}
+
+let outboxDrainTimer: ReturnType<typeof setInterval> | null = null;
+let outboxDrainInFlight: Promise<void> | null = null;
+
+export function scheduleUsageStatisticOutboxDrain(): void {
+  if (outboxDrainInFlight) return;
+  outboxDrainInFlight = processUsageStatisticOutbox()
+    .then(() => undefined)
+    .catch((error) => {
+      logger.warn('usageStatistic.outbox: Drain übersprungen', error);
+    })
+    .finally(() => {
+      outboxDrainInFlight = null;
+    });
+}
+
+export function startUsageStatisticOutboxScheduler(): void {
+  if (process.env['NODE_ENV'] === 'test' || outboxDrainTimer) return;
+  scheduleUsageStatisticOutboxDrain();
+  outboxDrainTimer = setInterval(() => {
+    scheduleUsageStatisticOutboxDrain();
+  }, 5_000);
+  outboxDrainTimer.unref();
+}
+
+export async function stopUsageStatisticOutboxScheduler(): Promise<void> {
+  if (outboxDrainTimer) {
+    clearInterval(outboxDrainTimer);
+    outboxDrainTimer = null;
+  }
+  if (outboxDrainInFlight) {
+    await outboxDrainInFlight.catch(() => undefined);
+  }
+}
+
+/** Standalone-Enqueue (wenn kein gemeinsames TX möglich) + sofortiger Drain. */
+export async function enqueueUsageStatisticEventAndSchedule(event: {
+  kind: UsageOutboxKind;
+  sessionId: string;
+  idempotencyKey: string;
+}): Promise<void> {
+  await enqueueUsageStatisticEvent(prisma, event);
+  scheduleUsageStatisticOutboxDrain();
+}
+
 /** Erstmalige Session-Teilnahme (kein Rejoin). */
 export async function recordUsageSessionParticipation(
   sessionId: string,
@@ -694,8 +841,11 @@ export async function buildUsageReport(input: {
   const platform = platformRows[0] ?? null;
   const trackingStartedAt = platform?.usageStatisticsTrackingStartedAt?.toISOString() ?? null;
   const lastAggregatedAt = platform?.usageStatisticsProjectedAt?.toISOString() ?? null;
-  const historyComplete = trackingStartedAt !== null;
   const trackingDay = trackingStartedAt ? trackingStartedAt.slice(0, 10) : null;
+  const periodFromDay = formatUtcDate(period.from);
+  // Vollständig nur, wenn Erfassung den gesamten Berichtszeitraum abdeckt und aggregiert wurde.
+  const historyComplete =
+    trackingDay !== null && trackingDay <= periodFromDay && lastAggregatedAt !== null;
 
   const byDate = new Map(dailyRows.map((row) => [formatUtcDate(row.date), row]));
   const dailySeries: UsageReport['dailySeries'] = [];
@@ -704,7 +854,7 @@ export async function buildUsageReport(input: {
     const key = formatUtcDate(cursor);
     const row = byDate.get(key);
     const beforeTracking = trackingDay !== null && key < trackingDay;
-    const unknown = !historyComplete || beforeTracking;
+    const unknown = trackingDay === null || beforeTracking;
     dailySeries.push({
       date: key,
       sessionsUsed: row ? row.sessionsUsed : unknown ? null : 0,
