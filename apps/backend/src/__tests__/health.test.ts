@@ -47,6 +47,8 @@ vi.mock('../lib/pdfTelemetry', () => ({
 
 vi.mock('../lib/abuseTelemetry', () => ({
   readAbuseSignals: vi.fn(),
+  logRateLimitRejection: vi.fn(),
+  recordRateLimitRejection: vi.fn(),
 }));
 
 vi.mock('../lib/cspReportIngest', () => ({
@@ -119,6 +121,7 @@ import { getWebSocketTelemetrySnapshot } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { readQaTelemetry } from '../lib/qaTelemetry';
 import { buildUsageReport } from '../lib/usageStatistic';
+import { checkHealthUsageRate } from '../lib/rateLimit';
 import { healthRouter, heartbeatGenerator, resetHealthStatsCacheForTests } from '../routers/health';
 
 const caller = healthRouter.createCaller({ req: undefined });
@@ -1276,65 +1279,104 @@ describe('health.usage', () => {
     vi.clearAllMocks();
     resetHealthStatsCacheForTests();
     vi.mocked(buildUsageReport).mockReset();
+    vi.mocked(checkHealthUsageRate).mockResolvedValue({
+      allowed: true,
+      remaining: 100,
+      retryAfterSeconds: 0,
+    });
   });
 
-  it('liefert PublicUsageStats für LAST_30_DAYS', async () => {
-    vi.mocked(buildUsageReport).mockResolvedValue({
-      timezone: 'UTC',
-      periodKind: 'LAST_30_DAYS',
-      periodFrom: '2026-04-05',
-      periodTo: '2026-05-04',
-      trackingStartedAt: '2026-04-01T00:00:00.000Z',
-      lastAggregatedAt: '2026-05-04T12:00:00.000Z',
-      historyComplete: true,
-      sessionsUsed: 12,
-      sessionParticipations: 240,
-      quizAnswers: 180,
-      qaQuestionsAccepted: 44,
-      qaRatingActions: 9,
-      sessionsByFunction: { joinOnly: 0, quizOnly: 7, qaOnly: 3, combined: 2 },
-      monthlySeries: [],
-      dailySeries: [
-        {
-          date: '2026-05-04',
-          sessionsUsed: 1,
-          sessionParticipations: 20,
-          quizAnswers: 15,
-          qaQuestionsAccepted: 2,
-        },
-      ],
-      sizeDistribution: {
-        sampleSize: 12,
-        median: 18,
-        quartile1: 8,
-        quartile3: 32,
-        classes: [
-          { id: 'XS', label: 'XS (1–10)', count: 3 },
-          { id: 'S', label: 'S (11–25)', count: 4 },
-          { id: 'M', label: 'M (26–50)', count: 3 },
-          { id: 'L', label: 'L (51–100)', count: 1 },
-          { id: 'XL', label: 'XL (101+)', count: 1 },
+  trpcDodIt(
+    {
+      procedure: 'health.usage',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert PublicUsageStats für LAST_30_DAYS',
+    },
+    async () => {
+      vi.mocked(buildUsageReport).mockResolvedValue({
+        timezone: 'UTC',
+        periodKind: 'LAST_30_DAYS',
+        periodFrom: '2026-04-05',
+        periodTo: '2026-05-04',
+        trackingStartedAt: '2026-04-01T00:00:00.000Z',
+        lastAggregatedAt: '2026-05-04T12:00:00.000Z',
+        historyComplete: true,
+        sessionsUsed: 12,
+        sessionParticipations: 240,
+        quizAnswers: 180,
+        qaQuestionsAccepted: 44,
+        qaRatingActions: 9,
+        sessionsByFunction: { joinOnly: 0, quizOnly: 7, qaOnly: 3, combined: 2 },
+        monthlySeries: [],
+        dailySeries: [
+          {
+            date: '2026-05-04',
+            sessionsUsed: 1,
+            sessionParticipations: 20,
+            quizAnswers: 15,
+            qaQuestionsAccepted: 2,
+          },
         ],
-      },
-      qaQuestionsTotalLifetime: 500,
-      completedSessionsLifetime: 90,
+        sizeDistribution: {
+          sampleSize: 12,
+          median: 18,
+          quartile1: 8,
+          quartile3: 32,
+          classes: [
+            { id: 'XS', label: 'XS (1–10)', count: 3 },
+            { id: 'S', label: 'S (11–25)', count: 4 },
+            { id: 'M', label: 'M (26–50)', count: 3 },
+            { id: 'L', label: 'L (51–100)', count: 1 },
+            { id: 'XL', label: 'XL (101+)', count: 1 },
+          ],
+        },
+        qaQuestionsTotalLifetime: 500,
+        completedSessionsLifetime: 90,
+      });
+
+      const result = await caller.usage({ kind: 'LAST_30_DAYS' });
+      expect(result.periodKind).toBe('LAST_30_DAYS');
+      expect(result.sessionsUsed).toBe(12);
+      expect(result.sessionsByFunction).toEqual({
+        joinOnly: 0,
+        quizOnly: 7,
+        qaOnly: 3,
+        combined: 2,
+      });
+      expect(result.sizeDistribution?.median).toBe(18);
+      expect(buildUsageReport).toHaveBeenCalledWith({
+        kind: 'LAST_30_DAYS',
+        from: undefined,
+        to: undefined,
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'health.usage',
+      case: 'error',
+      mode: 'direct',
+      contract: 'BAD_REQUEST',
+      title: 'lehnt CUSTOM ohne from/to ab',
+    },
+    async () => {
+      await expect(caller.usage({ kind: 'CUSTOM' })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+    },
+  );
+
+  it('wirft TOO_MANY_REQUESTS wenn Nutzungs-Rate-Limit greift', async () => {
+    vi.mocked(checkHealthUsageRate).mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      retryAfterSeconds: 30,
     });
 
-    const result = await caller.usage({ kind: 'LAST_30_DAYS' });
-    expect(result.periodKind).toBe('LAST_30_DAYS');
-    expect(result.sessionsUsed).toBe(12);
-    expect(result.sessionsByFunction).toEqual({ joinOnly: 0, quizOnly: 7, qaOnly: 3, combined: 2 });
-    expect(result.sizeDistribution?.median).toBe(18);
-    expect(buildUsageReport).toHaveBeenCalledWith({
-      kind: 'LAST_30_DAYS',
-      from: undefined,
-      to: undefined,
-    });
-  });
-
-  it('lehnt CUSTOM ohne from/to ab', async () => {
-    await expect(caller.usage({ kind: 'CUSTOM' })).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
+    await expect(caller.usage({ kind: 'LAST_30_DAYS' })).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
     });
   });
 
