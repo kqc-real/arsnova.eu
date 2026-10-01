@@ -1,5 +1,11 @@
 import { deu, eng, fra, ita, spa } from 'stopword';
+import {
+  prepareWordCloudAnalysisText,
+  WORD_CLOUD_ANALYSIS_TEXT_VERSION,
+} from '@arsnova/shared-types';
 import type { SupportedLocale } from '../../../core/locale-from-path';
+
+export { WORD_CLOUD_ANALYSIS_TEXT_VERSION };
 
 export type WordCloudAnalysisMode = 'default' | 'qa';
 const WORD_CLOUD_LOCALES: readonly SupportedLocale[] = ['de', 'en', 'fr', 'it', 'es'];
@@ -396,10 +402,12 @@ export function aggregateWeightedWords(
 ): WordAggregate[] {
   const buckets = new Map<string, AggregateBucket>();
   const stopwordContext = createWordCloudStopwordContext(stopwords, locale, analysisMode);
-  const groupedSources = sources.map((source) => ({
-    weight: normalizeWeight(source.weight),
-    groupings: [...collectResponseGroupings(source.text, stopwordContext).values()],
-  }));
+  const groupedSources = sources
+    .map((source) => ({
+      weight: normalizeWeight(source.weight),
+      groupings: [...collectResponseGroupings(source.text, stopwordContext).values()],
+    }))
+    .filter((source) => source.groupings.length > 0);
   const phraseResponseSupport = new Map<string, number>();
   const phraseWeightedSupport = new Map<string, number>();
 
@@ -606,24 +614,27 @@ function collectResponseGroupings(
     ? stopwordFilter.analysisMode
     : (analysisMode ?? 'default');
   const activeStopwordLocales = resolveActiveStopwordLocales(response, stopwordFilter);
-  const tokenGroupings: WordGrouping[] = [];
+  const { segments } = prepareWordCloudAnalysisText(response);
 
-  for (const word of tokenize(response)) {
-    if (!isNumericToken(word) && word.length < MIN_TEXT_TOKEN_LENGTH) continue;
-    if (isStopwordToken(word, stopwordFilter, activeStopwordLocales)) continue;
+  for (const segment of segments) {
+    const segmentGroupings: WordGrouping[] = [];
+    for (const word of tokenizeSegment(segment)) {
+      if (!isNumericToken(word) && word.length < MIN_TEXT_TOKEN_LENGTH) continue;
+      if (isStopwordToken(word, stopwordFilter, activeStopwordLocales)) continue;
 
-    const grouping = getWordGrouping(word, effectiveLocale);
+      const grouping = getWordGrouping(word, effectiveLocale);
 
-    tokenGroupings.push(grouping);
-    if (effectiveAnalysisMode === 'qa' && isNumericToken(word)) {
-      continue;
+      segmentGroupings.push(grouping);
+      if (effectiveAnalysisMode === 'qa' && isNumericToken(word)) {
+        continue;
+      }
+      addResponseGrouping(groupings, grouping);
     }
-    addResponseGrouping(groupings, grouping);
-  }
 
-  if (effectiveAnalysisMode === 'qa') {
-    for (const phrase of buildQaPhraseGroupings(tokenGroupings)) {
-      addResponseGrouping(groupings, phrase);
+    if (effectiveAnalysisMode === 'qa') {
+      for (const phrase of buildQaPhraseGroupings(segmentGroupings)) {
+        addResponseGrouping(groupings, phrase);
+      }
     }
   }
 
@@ -661,9 +672,15 @@ function getOrCreateResponseGroupingBucket(
   return created;
 }
 
-function tokenize(value: string): string[] {
+function tokenizeSegment(value: string): string[] {
   const normalizedInput = collapseNumericSeparatorSpacing(value).toLowerCase();
   return Array.from(normalizedInput.matchAll(TOKEN_PATTERN), (match) => normalizeToken(match[0]!));
+}
+
+/** Alle Segmente eines Beitrags als flache Tokenliste (ohne Phrasen über Grenzen). */
+function tokenizePrepared(value: string): string[] {
+  const { segments } = prepareWordCloudAnalysisText(value);
+  return segments.flatMap((segment) => tokenizeSegment(segment));
 }
 
 function isNumericToken(value: string): boolean {
@@ -721,7 +738,7 @@ function resolveActiveStopwordLocales(
     return [];
   }
 
-  const textTokens = tokenize(response).filter(
+  const textTokens = tokenizePrepared(response).filter(
     (token) => !isNumericToken(token) && token.length >= MIN_TEXT_TOKEN_LENGTH,
   );
   const activeLocales: SupportedLocale[] = [stopwordFilter.primaryLocale];
@@ -826,7 +843,7 @@ function normalizeLookupToken(value: string): string {
 }
 
 function getLookupGroupKey(value: string, locale: SupportedLocale): string {
-  const tokens = tokenize(value).filter(
+  const tokens = tokenizePrepared(value).filter(
     (token) => isNumericToken(token) || token.length >= MIN_TEXT_TOKEN_LENGTH,
   );
   if (tokens.length === 0) {

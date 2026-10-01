@@ -5,7 +5,7 @@
  * spricht nur `wordCloud.analyze`. Pflichtlocales der Stufe: de/en.
  */
 
-export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.2';
+export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.3';
 
 /** Hugging-Face-Karte; Digest kommt vom Inferenzdienst. */
 export const WORD_CLOUD_SEMANTIC_MODEL_ID = 'intfloat/multilingual-e5-small';

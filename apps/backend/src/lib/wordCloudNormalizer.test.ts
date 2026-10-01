@@ -198,8 +198,8 @@ describe('wordCloudNormalizer', () => {
       locale: 'de' as const,
       modelId: 'de_core_news_sm@3.8.0',
       items: [
-        { id: 'item-1', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
-        { id: 'item-2', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
+        { id: 'item-1::0', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
+        { id: 'item-2::0', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
       ],
     }));
 
@@ -264,7 +264,7 @@ describe('wordCloudNormalizer', () => {
     const sidecar = vi.fn(async () => ({
       locale: 'en' as const,
       modelId: 'en_core_web_sm@3.8.0',
-      items: [{ id: 'a', tokens: [{ text: 'cats', lemma: 'cat', pos: 'NOUN' }] }],
+      items: [{ id: 'a::0', tokens: [{ text: 'cats', lemma: 'cat', pos: 'NOUN' }] }],
     }));
     const tokens = await new LemmaNormalizer('en', sidecar, {
       enabled: true,
@@ -283,8 +283,8 @@ describe('wordCloudNormalizer', () => {
       locale: 'de' as const,
       modelId: 'de_core_news_sm@3.8.0',
       items: [
-        { id: 'item-1', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
-        { id: 'item-2', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
+        { id: 'item-1::0', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
+        { id: 'item-2::0', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
       ],
     }));
     const options = { env: { NLP_ENABLED: 'true' }, sidecar, cache };
@@ -305,7 +305,7 @@ describe('wordCloudNormalizer', () => {
     const sidecar = vi.fn(async () => ({
       locale: 'de' as const,
       modelId: 'de_core_news_sm@3.8.0',
-      items: [{ id: 'item-2', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] }],
+      items: [{ id: 'item-2::0', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] }],
     }));
 
     const result = await normalizeWordCloudItems(lemmaInput, {
@@ -317,7 +317,7 @@ describe('wordCloudNormalizer', () => {
     expect(sidecar).toHaveBeenCalledOnce();
     expect(sidecar).toHaveBeenCalledWith(
       'de',
-      [{ id: 'item-2', text: 'Haus' }],
+      [{ id: 'item-2::0', text: 'Haus' }],
       expect.objectContaining({ enabled: true }),
     );
     expect(result.cache).toEqual({ textHits: 1, textMisses: 1, sidecarCalled: true });

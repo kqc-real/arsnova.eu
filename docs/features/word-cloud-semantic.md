@@ -58,7 +58,7 @@ Tooltip, Fokus-/Textalternative und CSV zeigen Label, Gewichtung, Metrik, Mitgli
 
 ```text
 Host-Snapshot (PINNED/ACTIVE, Gewichtung, Locale)
-  → Hash (Analyseversion 1.14c.2 + Kanal)
+  → Hash (Analyseversion 1.14c.3 + Kanal)
   → Cache (nur ready/uncertain)
   → privater Encoder (e5-small, nur Embeddings)
   → agglomeratives Clustering im Backend (Complete-Linkage, Kosinus ≥ 0,87)
@@ -87,7 +87,7 @@ Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: 
 | Compose               | Profil `encoder`                                                                                                     |
 | Limits                | 1 CPU / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none`                                               |
 | Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`                                        |
-| Analyseversion        | `1.14c.2`                                                                                                            |
+| Analyseversion        | `1.14c.3`                                                                                                            |
 
 Ohne Kill-Switch: `status: disabled`, `fallbackUsed: true`, 2.x-Phrasen; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, langsamer oder überlasteter Encoder: `failed` bzw. `pending`, ebenfalls 2.x. Locales außer `de`/`en`: `fallback` plus lexikalische Wolke.
 

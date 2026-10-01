@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { prepareWordCloudAnalysisText } from '@arsnova/shared-types';
 import type { SupportedLocale } from '../../../core/locale-from-path';
 import { getStopwordsForLocale } from './word-cloud.util';
 
@@ -155,7 +156,7 @@ export class WordCloudTermExtractorService {
     documents: readonly WordCloudTermDocument[],
     options: WordCloudTermExtractionOptions,
   ): WordCloudTerm[] {
-    const validDocuments = documents.filter((document) => this.documentText(document).length > 0);
+    const validDocuments = documents.filter((document) => this.documentHasAnalyzableText(document));
     if (validDocuments.length === 0) {
       return [];
     }
@@ -232,44 +233,42 @@ export class WordCloudTermExtractorService {
     maxNgramLength: 1 | 2 | 3,
     documentCandidates: Map<string, DocumentCandidate>,
   ): void {
-    const normalizedValue = value.trim();
-    if (!normalizedValue) {
-      return;
-    }
-
-    const { candidates: protectedCandidates, masked } = this.extractProtectedCandidates(
-      normalizedValue,
-      fieldWeight,
-    );
-    for (const candidate of protectedCandidates) {
-      if (stopwords.has(candidate.key)) {
-        continue;
+    const { segments } = prepareWordCloudAnalysisText(value);
+    for (const segment of segments) {
+      const { candidates: protectedCandidates, masked } = this.extractProtectedCandidates(
+        segment,
+        fieldWeight,
+      );
+      for (const candidate of protectedCandidates) {
+        if (stopwords.has(candidate.key)) {
+          continue;
+        }
+        this.addDocumentCandidate(documentCandidates, candidate);
       }
-      this.addDocumentCandidate(documentCandidates, candidate);
-    }
 
-    const tokens = this.tokenize(masked, stopwords);
-    for (const token of tokens) {
-      if (!/\p{L}/u.test(token.key)) {
-        continue;
-      }
-      this.addDocumentCandidate(documentCandidates, {
-        key: token.key,
-        label: token.label,
-        kind: 'unigram',
-        contribution: fieldWeight,
-      });
-    }
-
-    for (let size = 2; size <= maxNgramLength; size += 1) {
-      for (let index = 0; index <= tokens.length - size; index += 1) {
-        const slice = tokens.slice(index, index + size);
+      const tokens = this.tokenize(masked, stopwords);
+      for (const token of tokens) {
+        if (!/\p{L}/u.test(token.key)) {
+          continue;
+        }
         this.addDocumentCandidate(documentCandidates, {
-          key: slice.map((token) => token.key).join(' '),
-          label: slice.map((token) => token.label).join(' '),
-          kind: size === 2 ? 'bigram' : 'trigram',
+          key: token.key,
+          label: token.label,
+          kind: 'unigram',
           contribution: fieldWeight,
         });
+      }
+
+      for (let size = 2; size <= maxNgramLength; size += 1) {
+        for (let index = 0; index <= tokens.length - size; index += 1) {
+          const slice = tokens.slice(index, index + size);
+          this.addDocumentCandidate(documentCandidates, {
+            key: slice.map((token) => token.key).join(' '),
+            label: slice.map((token) => token.label).join(' '),
+            kind: size === 2 ? 'bigram' : 'trigram',
+            contribution: fieldWeight,
+          });
+        }
       }
     }
   }
@@ -485,6 +484,10 @@ export class WordCloudTermExtractorService {
       .filter(Boolean)
       .join(' ')
       .trim();
+  }
+
+  private documentHasAnalyzableText(document: WordCloudTermDocument): boolean {
+    return prepareWordCloudAnalysisText(this.documentText(document)).segments.length > 0;
   }
 
   private normalizeDocumentWeight(weight: number | null | undefined): number {

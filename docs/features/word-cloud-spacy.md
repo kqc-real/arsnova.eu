@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
 **Stand:** 2026-08-21
-**Status:** ✅ umgesetzt (Analyseversion `1.14b.13`)
+**Status:** ✅ umgesetzt (Analyseversion `1.14b.14`; Markdown-Aufbereitung Übergang bis #498)
 **Backlog:** Story 1.14b (Word Cloud 2.6)
 **Semantik bleibt getrennt:** Story 1.14c Stufe 1 / [word-cloud-semantic.md](word-cloud-semantic.md)
 
@@ -58,7 +58,9 @@ Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidec
 
 ## Pipeline
 
-`Daten holen → bereinigen und Fachbegriffe schützen → optional spaCy (Token, Lemma, POS, optional Entity) → lexikalisch aggregieren → rendern / Tooltip / CSV / PNG`
+`Daten holen → Markdown/KaTeX-Aufbereitung (Übergang bis #498) → optional spaCy (Token, Lemma, POS) → lexikalisch aggregieren → rendern / Tooltip / CSV / PNG`
+
+Die gemeinsame Funktion `prepareWordCloudAnalysisText` (`@arsnova/shared-types`, Version `WORD_CLOUD_ANALYSIS_TEXT_VERSION`) nutzt `marked.lexer` als Strukturgrundlage: ein Token-Walker überspringt Links, Bilder, Code und HTML-Ausschlüsse, reduziert Hervorhebungen auf Text und setzt Segmentgrenzen. Zusätzlich vor dem Lexer: KaTeX-Delimiter und Q&A-Schwärzungen (kein eigener Markdown-Parser). Frontend-Fallback und Backend nutzen dieselbe Aufbereitung. Analyseversionen: Normalisierung `1.14b.14`, Semantik `1.14c.3`. Gespeicherte Beiträge und ihre Darstellung bleiben unverändert. Formel-Pills und Schreibweisen-Toleranz bleiben #498.
 
 Der Renderer analysiert keine Rohtexte. Gruppierungsschlüssel und Anzeigelabel bleiben getrennt; sichtbare Labels sind häufige Oberflächenformen, keine rohen Lemmaformen.
 

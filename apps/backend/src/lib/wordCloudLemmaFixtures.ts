@@ -24,8 +24,8 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'Haus', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
-      { id: 'item-2', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }] },
+      { id: 'item-2::0', tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }] },
     ],
     expectedKeys: ['haus'],
     unexpectedKeys: ['haeuser', 'häuser'],
@@ -36,7 +36,10 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
     locale: 'de',
     items: [{ id: 'item-1', text: 'Berlin', weight: 1 }],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'Berlin', lemma: 'berlin', pos: 'PROPN', entType: 'GPE' }] },
+      {
+        id: 'item-1::0',
+        tokens: [{ text: 'Berlin', lemma: 'berlin', pos: 'PROPN', entType: 'GPE' }],
+      },
     ],
     expectedKeys: ['berlin'],
     expectedLabels: { berlin: 'Berlin' },
@@ -50,9 +53,9 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-3', text: 'Validierung', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'validieren', lemma: 'validieren', pos: 'VERB' }] },
-      { id: 'item-2', tokens: [{ text: 'validiert', lemma: 'validieren', pos: 'VERB' }] },
-      { id: 'item-3', tokens: [{ text: 'Validierung', lemma: 'Validierung', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'validieren', lemma: 'validieren', pos: 'VERB' }] },
+      { id: 'item-2::0', tokens: [{ text: 'validiert', lemma: 'validieren', pos: 'VERB' }] },
+      { id: 'item-3::0', tokens: [{ text: 'Validierung', lemma: 'Validierung', pos: 'NOUN' }] },
     ],
     expectedKeys: ['validierung'],
     unexpectedKeys: ['validieren', 'validiert'],
@@ -68,7 +71,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
     ],
     sidecarItems: [
       {
-        id: 'item-1',
+        id: 'item-1::0',
         tokens: [
           { text: 'macht', lemma: 'machen', pos: 'VERB' },
           { text: 'kurze', lemma: 'kurz', pos: 'ADJ' },
@@ -76,14 +79,14 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
         ],
       },
       {
-        id: 'item-2',
+        id: 'item-2::0',
         tokens: [
           { text: 'brauche', lemma: 'brauchen', pos: 'VERB' },
           { text: 'Beispiele', lemma: 'Beispiel', pos: 'NOUN' },
         ],
       },
       {
-        id: 'item-3',
+        id: 'item-3::0',
         tokens: [
           { text: 'verliere', lemma: 'verlieren', pos: 'VERB' },
           { text: 'den', lemma: 'der', pos: 'DET' },
@@ -115,7 +118,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
     ],
     sidecarItems: [
       {
-        id: 'item-1',
+        id: 'item-1::0',
         tokens: [
           { text: 'Das', lemma: 'der', pos: 'DET' },
           { text: 'hilft', lemma: 'helfen', pos: 'VERB' },
@@ -124,7 +127,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
         ],
       },
       {
-        id: 'item-2',
+        id: 'item-2::0',
         tokens: [
           { text: 'Es', lemma: 'es', pos: 'PRON' },
           { text: 'bleibt', lemma: 'bleiben', pos: 'VERB' },
@@ -132,7 +135,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
         ],
       },
       {
-        id: 'item-3',
+        id: 'item-3::0',
         tokens: [
           { text: 'kurze', lemma: 'kurz', pos: 'ADJ' },
           { text: 'Pausen', lemma: 'Pause', pos: 'NOUN' },
@@ -140,7 +143,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
         ],
       },
       {
-        id: 'item-4',
+        id: 'item-4::0',
         tokens: [
           { text: 'verliere', lemma: 'verlieren', pos: 'VERB' },
           { text: 'den', lemma: 'der', pos: 'DET' },
@@ -170,8 +173,8 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'Wahrecht', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'Wahlrecht', lemma: 'Wahlrecht', pos: 'NOUN' }] },
-      { id: 'item-2', tokens: [{ text: 'Wahrecht', lemma: 'Wahrecht', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'Wahlrecht', lemma: 'Wahlrecht', pos: 'NOUN' }] },
+      { id: 'item-2::0', tokens: [{ text: 'Wahrecht', lemma: 'Wahrecht', pos: 'NOUN' }] },
     ],
     expectedKeys: ['wahlrecht', 'wahrecht'],
   },
@@ -183,8 +186,8 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'Aufbau', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'Struktur', lemma: 'Struktur', pos: 'NOUN' }] },
-      { id: 'item-2', tokens: [{ text: 'Aufbau', lemma: 'Aufbau', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'Struktur', lemma: 'Struktur', pos: 'NOUN' }] },
+      { id: 'item-2::0', tokens: [{ text: 'Aufbau', lemma: 'Aufbau', pos: 'NOUN' }] },
     ],
     expectedKeys: ['struktur', 'aufbau'],
   },
@@ -196,9 +199,9 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'HTTP 404', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'C++', lemma: 'C++', pos: 'PROPN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'C++', lemma: 'C++', pos: 'PROPN' }] },
       {
-        id: 'item-2',
+        id: 'item-2::0',
         tokens: [
           { text: 'HTTP', lemma: 'HTTP', pos: 'PROPN' },
           { text: '404', lemma: '404', pos: 'NUM' },
@@ -216,8 +219,8 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'cat', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'cats', lemma: 'cat', pos: 'NOUN' }] },
-      { id: 'item-2', tokens: [{ text: 'cat', lemma: 'cat', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'cats', lemma: 'cat', pos: 'NOUN' }] },
+      { id: 'item-2::0', tokens: [{ text: 'cat', lemma: 'cat', pos: 'NOUN' }] },
     ],
     expectedKeys: ['cat'],
     unexpectedKeys: ['cats'],
@@ -229,7 +232,7 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
     items: [{ id: 'item-1', text: 'Das Feature', weight: 1 }],
     sidecarItems: [
       {
-        id: 'item-1',
+        id: 'item-1::0',
         tokens: [
           { text: 'Das', lemma: 'der', pos: 'DET' },
           { text: 'Feature', lemma: 'Feature', pos: 'NOUN' },
@@ -248,8 +251,8 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'maison', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'maisons', lemma: 'maison', pos: 'NOUN' }] },
-      { id: 'item-2', tokens: [{ text: 'maison', lemma: 'maison', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'maisons', lemma: 'maison', pos: 'NOUN' }] },
+      { id: 'item-2::0', tokens: [{ text: 'maison', lemma: 'maison', pos: 'NOUN' }] },
     ],
     expectedKeys: ['maison'],
     unexpectedKeys: ['maisons'],
@@ -263,8 +266,8 @@ export const WORD_CLOUD_LEMMA_FIXTURES: readonly WordCloudLemmaFixture[] = [
       { id: 'item-2', text: 'casa', weight: 1 },
     ],
     sidecarItems: [
-      { id: 'item-1', tokens: [{ text: 'casas', lemma: 'casa', pos: 'NOUN' }] },
-      { id: 'item-2', tokens: [{ text: 'casa', lemma: 'casa', pos: 'NOUN' }] },
+      { id: 'item-1::0', tokens: [{ text: 'casas', lemma: 'casa', pos: 'NOUN' }] },
+      { id: 'item-2::0', tokens: [{ text: 'casa', lemma: 'casa', pos: 'NOUN' }] },
     ],
     expectedKeys: ['casa'],
     unexpectedKeys: ['casas'],

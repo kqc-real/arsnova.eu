@@ -11,6 +11,7 @@ export * from './qa-redaction.js';
 export * from './confidence.js';
 export * from './session-export-insights.js';
 export * from './word-cloud-normalization.js';
+export * from './word-cloud-analysis-text.js';
 export * from './word-cloud-semantic.js';
 export * from './qa-summary-rank.js';
 export * from './qa-summary-scan.js';

@@ -3,6 +3,7 @@ import type {
   AnalyzeWordCloudOutput,
   WordCloudAnalysisSourceItem,
 } from '@arsnova/shared-types';
+import { joinWordCloudAnalysisSegments, prepareWordCloudAnalysisText } from '@arsnova/shared-types';
 import { deu, eng, fra, spa } from 'stopword';
 
 type WordCloudAnalysisEntry = AnalyzeWordCloudOutput['entries'][number];
@@ -80,6 +81,8 @@ const LETTER_PATTERN = /\p{L}/u;
 const NON_CONTENT_POS_TYPES = new Set(['PUNCT', 'SYM']);
 const COMBINING_MARK_PATTERN = /\p{M}+/gu;
 const DECIMAL_SEPARATOR_SPACING_PATTERN = /(\d)\s*([.,])\s*(?=\d)/g;
+/** Trennt Segmente in der Tokenliste; darf keine Unigramme/N-Gramme bilden. */
+export const WORD_CLOUD_SEGMENT_BREAK_TOKEN = '\uE012wcseg';
 
 const GERMAN_GROUPING_RULES: readonly GroupingRule[] = [
   {
@@ -479,14 +482,19 @@ export function buildLexicalWordCloudEntries(
   for (const item of items) {
     const prepared = prepareItem(item, locale, tokensByItemId?.get(item.id));
     const seenKeys = new Set<string>();
-    const unigramTokens = prepared.tokens.filter(isLemmaUnigramCandidate);
-    const phraseTokens = prepared.tokens.filter(isLemmaPhraseCandidate);
+    const contentTokens = prepared.tokens.filter(
+      (token) => token.key !== WORD_CLOUD_SEGMENT_BREAK_TOKEN,
+    );
+    const unigramTokens = contentTokens.filter(isLemmaUnigramCandidate);
+    const phraseTokens = prepared.tokens.filter(
+      (token) => token.key === WORD_CLOUD_SEGMENT_BREAK_TOKEN || isLemmaPhraseCandidate(token),
+    );
 
     for (const candidate of [
       ...unigramTokens,
       ...buildLexicalNgramCandidates(phraseTokens, maxNgramLength),
     ]) {
-      if (seenKeys.has(candidate.key)) {
+      if (seenKeys.has(candidate.key) || candidate.key === WORD_CLOUD_SEGMENT_BREAK_TOKEN) {
         continue;
       }
       seenKeys.add(candidate.key);
@@ -569,29 +577,43 @@ function prepareItem(
   rawTokens?: readonly WordCloudRawToken[],
 ): PreparedItem {
   const candidates = new Map<string, Candidate>();
-  const tokens = (rawTokens ?? tokenizeWordCloudText(item.text))
-    .filter((token) => isContentToken(token))
-    .filter((token) => !isStopwordRawToken(token, locale))
-    .map((token) => getTokenCandidate(token, locale));
+  const tokenGroups = splitTokenGroupsBySegmentBreak(rawTokens ?? tokenizeWordCloudText(item.text));
+  const tokens: Candidate[] = [];
 
-  for (const token of tokens) {
-    candidates.set(token.key, token);
-  }
+  for (let groupIndex = 0; groupIndex < tokenGroups.length; groupIndex += 1) {
+    const groupTokens = tokenGroups[groupIndex]!.filter((token) => isContentToken(token))
+      .filter((token) => !isStopwordRawToken(token, locale))
+      .map((token) => getTokenCandidate(token, locale));
 
-  for (let index = 0; index < tokens.length - 1; index += 1) {
-    const left = tokens[index]!;
-    const right = tokens[index + 1]!;
-    if (!shouldCreatePhrase(left, right)) {
-      continue;
+    tokens.push(...groupTokens);
+    if (groupIndex < tokenGroups.length - 1) {
+      tokens.push({
+        key: WORD_CLOUD_SEGMENT_BREAK_TOKEN,
+        label: WORD_CLOUD_SEGMENT_BREAK_TOKEN,
+        kind: 'token',
+        containsNumeric: false,
+      });
     }
 
-    const phrase: Candidate = {
-      key: `${left.key} ${right.key}`,
-      label: `${left.label} ${right.label}`,
-      kind: 'phrase',
-      containsNumeric: left.containsNumeric || right.containsNumeric,
-    };
-    candidates.set(phrase.key, phrase);
+    for (const token of groupTokens) {
+      candidates.set(token.key, token);
+    }
+
+    for (let index = 0; index < groupTokens.length - 1; index += 1) {
+      const left = groupTokens[index]!;
+      const right = groupTokens[index + 1]!;
+      if (!shouldCreatePhrase(left, right)) {
+        continue;
+      }
+
+      const phrase: Candidate = {
+        key: `${left.key} ${right.key}`,
+        label: `${left.label} ${right.label}`,
+        kind: 'phrase',
+        containsNumeric: left.containsNumeric || right.containsNumeric,
+      };
+      candidates.set(phrase.key, phrase);
+    }
   }
 
   return {
@@ -610,22 +632,24 @@ function buildLexicalNgramCandidates(
   }
 
   const phrases: Candidate[] = [];
-  for (let size = 2; size <= maxNgramLength; size += 1) {
-    for (let index = 0; index <= tokens.length - size; index += 1) {
-      const slice = tokens.slice(index, index + size);
-      if (new Set(slice.map((token) => token.key)).size !== slice.length) {
-        continue;
-      }
-      if (!sliceHasLemmaNominalHead(slice)) {
-        continue;
-      }
+  for (const group of splitCandidateGroupsBySegmentBreak(tokens)) {
+    for (let size = 2; size <= maxNgramLength; size += 1) {
+      for (let index = 0; index <= group.length - size; index += 1) {
+        const slice = group.slice(index, index + size);
+        if (new Set(slice.map((token) => token.key)).size !== slice.length) {
+          continue;
+        }
+        if (!sliceHasLemmaNominalHead(slice)) {
+          continue;
+        }
 
-      phrases.push({
-        key: slice.map((token) => token.key).join(' '),
-        label: slice.map((token) => token.label).join(' '),
-        kind: 'phrase',
-        containsNumeric: slice.some((token) => token.containsNumeric),
-      });
+        phrases.push({
+          key: slice.map((token) => token.key).join(' '),
+          label: slice.map((token) => token.label).join(' '),
+          kind: 'phrase',
+          containsNumeric: slice.some((token) => token.containsNumeric),
+        });
+      }
     }
   }
 
@@ -862,6 +886,30 @@ function sortEntries(entries: WordCloudAnalysisEntry[], limit?: number): WordClo
 }
 
 export function tokenizeWordCloudText(value: string): WordCloudRawToken[] {
+  const { segments } = prepareWordCloudAnalysisText(value);
+  const tokens: WordCloudRawToken[] = [];
+  for (let index = 0; index < segments.length; index += 1) {
+    tokens.push(...tokenizeWordCloudSegment(segments[index]!));
+    if (index < segments.length - 1) {
+      tokens.push({
+        display: WORD_CLOUD_SEGMENT_BREAK_TOKEN,
+        lookup: WORD_CLOUD_SEGMENT_BREAK_TOKEN,
+      });
+    }
+  }
+  return tokens;
+}
+
+/** Bereinigter Analysetext für spaCy/Encoder; leer ⇒ Beitrag überspringen. */
+export function toWordCloudAnalysisSourceText(value: string): string {
+  return joinWordCloudAnalysisSegments(prepareWordCloudAnalysisText(value).segments);
+}
+
+export function toWordCloudLookupToken(value: string): string {
+  return normalizeLookupToken(value);
+}
+
+function tokenizeWordCloudSegment(value: string): WordCloudRawToken[] {
   const collapsed = collapseNumericSeparatorSpacing(value.trim());
   return Array.from(collapsed.matchAll(TOKEN_PATTERN), (match) => {
     const raw = match[0] ?? '';
@@ -872,8 +920,44 @@ export function tokenizeWordCloudText(value: string): WordCloudRawToken[] {
   });
 }
 
-export function toWordCloudLookupToken(value: string): string {
-  return normalizeLookupToken(value);
+function splitTokenGroupsBySegmentBreak(
+  tokens: readonly WordCloudRawToken[],
+): WordCloudRawToken[][] {
+  const groups: WordCloudRawToken[][] = [];
+  let current: WordCloudRawToken[] = [];
+  for (const token of tokens) {
+    if (token.lookup === WORD_CLOUD_SEGMENT_BREAK_TOKEN) {
+      if (current.length > 0) {
+        groups.push(current);
+        current = [];
+      }
+      continue;
+    }
+    current.push(token);
+  }
+  if (current.length > 0) {
+    groups.push(current);
+  }
+  return groups;
+}
+
+function splitCandidateGroupsBySegmentBreak(tokens: readonly Candidate[]): Candidate[][] {
+  const groups: Candidate[][] = [];
+  let current: Candidate[] = [];
+  for (const token of tokens) {
+    if (token.key === WORD_CLOUD_SEGMENT_BREAK_TOKEN) {
+      if (current.length > 0) {
+        groups.push(current);
+        current = [];
+      }
+      continue;
+    }
+    current.push(token);
+  }
+  if (current.length > 0) {
+    groups.push(current);
+  }
+  return groups;
 }
 
 function getTokenCandidate(token: WordCloudRawToken, locale: SupportedLocale): Candidate {

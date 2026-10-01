@@ -77,7 +77,7 @@ describe('wordCloud.analyze', () => {
       expect(result.normalizationApplied).toBe('NONE');
       expect(result.normalizationFallbackUsed).toBe(false);
       expect(result.normalizationFallbackReason).toBeNull();
-      expect(result.analysisVersion).toBe('1.14b.13');
+      expect(result.analysisVersion).toBe('1.14b.14');
       expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({
@@ -606,11 +606,11 @@ describe('wordCloud.analyze', () => {
         modelId: 'de_core_news_sm@3.8.0',
         items: [
           {
-            id: '11111111-1111-4111-8111-111111111111',
+            id: '11111111-1111-4111-8111-111111111111::0',
             tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
           },
           {
-            id: '22222222-2222-4222-8222-222222222222',
+            id: '22222222-2222-4222-8222-222222222222::0',
             tokens: [{ text: 'Haus', lemma: 'Haus', pos: 'NOUN' }],
           },
         ],
@@ -656,14 +656,14 @@ describe('wordCloud.analyze', () => {
         modelId: 'de_core_news_sm@3.8.0',
         items: [
           {
-            id: '11111111-1111-4111-8111-111111111111',
+            id: '11111111-1111-4111-8111-111111111111::0',
             tokens: [
               { text: 'lineare', lemma: 'linear', pos: 'ADJ' },
               { text: 'Regression', lemma: 'Regression', pos: 'NOUN' },
             ],
           },
           {
-            id: '22222222-2222-4222-8222-222222222222',
+            id: '22222222-2222-4222-8222-222222222222::0',
             tokens: [
               { text: 'lineare', lemma: 'linear', pos: 'ADJ' },
               { text: 'Regressionen', lemma: 'Regression', pos: 'NOUN' },
@@ -842,7 +842,7 @@ describe('wordCloud.analyze', () => {
         modelId: 'de_core_news_sm@3.8.0',
         items: [
           {
-            id: '11111111-1111-4111-8111-111111111111',
+            id: '11111111-1111-4111-8111-111111111111::0',
             tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
           },
         ],
@@ -884,7 +884,7 @@ describe('wordCloud.analyze', () => {
         modelId: 'de_core_news_sm@3.8.0',
         items: [
           {
-            id: '11111111-1111-4111-8111-111111111111',
+            id: '11111111-1111-4111-8111-111111111111::0',
             tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
           },
         ],
@@ -943,7 +943,7 @@ describe('wordCloud.analyze', () => {
         modelId: 'de_core_news_sm@3.8.0',
         items: [
           {
-            id: '11111111-1111-4111-8111-111111111111',
+            id: '11111111-1111-4111-8111-111111111111::0',
             tokens: [{ text: 'Häuser', lemma: 'Haus', pos: 'NOUN' }],
           },
         ],

@@ -15,7 +15,11 @@ import {
   type AnalyzeWordCloudOutput,
   type WordCloudClusterStatus,
 } from '@arsnova/shared-types';
-import { buildLexicalWordCloudEntries, buildThemeWordCloudAnalysis } from './wordCloudAnalysis';
+import {
+  buildLexicalWordCloudEntries,
+  buildThemeWordCloudAnalysis,
+  toWordCloudAnalysisSourceText,
+} from './wordCloudAnalysis';
 import type { WordCloudNormalizationMeta } from './wordCloudNormalization';
 import { registerSessionPurgeInvalidator } from './sessionPurgeInvalidation';
 import {
@@ -96,10 +100,18 @@ function defaultEmbedder(
     {
       locale: isWordCloudSemanticLocale(input.locale) ? input.locale : 'de',
       snapshotHash,
-      items: input.items.map((item) => ({
-        id: toWordCloudSemanticSourceId(item.id),
-        text: item.text,
-      })),
+      items: input.items
+        .map((item) => {
+          const text = toWordCloudAnalysisSourceText(item.text);
+          if (!text) {
+            return null;
+          }
+          return {
+            id: toWordCloudSemanticSourceId(item.id),
+            text,
+          };
+        })
+        .filter((item): item is { id: string; text: string } => item !== null),
     },
     config,
   );

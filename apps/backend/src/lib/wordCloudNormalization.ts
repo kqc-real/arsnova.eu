@@ -6,6 +6,7 @@ import type {
 } from '@arsnova/shared-types';
 import {
   resolveWordCloudLemmaApplication,
+  WORD_CLOUD_ANALYSIS_TEXT_VERSION,
   WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
   WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
 } from '@arsnova/shared-types';
@@ -34,6 +35,7 @@ export function buildWordCloudSnapshotHash(
       : WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION;
   const canonical = JSON.stringify({
     analysisVersion,
+    analysisTextVersion: WORD_CLOUD_ANALYSIS_TEXT_VERSION,
     mode: input.mode,
     locale: input.locale,
     metric: input.metric,

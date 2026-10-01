@@ -2,6 +2,31 @@ import { describe, expect, it } from 'vitest';
 import { buildLexicalWordCloudEntries, buildThemeWordCloudAnalysis } from './wordCloudAnalysis';
 
 describe('wordCloudAnalysis token hook', () => {
+  it('schließt Markdown-Links und Formeln aus der lexikalischen Aggregation aus', () => {
+    const items = [
+      {
+        id: 'item-1',
+        text: 'Regression [Literatur](https://example.org/statistik) Statistik',
+        weight: 1,
+      },
+      { id: 'item-2', text: 'Siehe $x^2$ und Text', weight: 1 },
+      { id: 'item-3', text: '**lineare Regression**', weight: 1 },
+    ];
+
+    const entries = buildLexicalWordCloudEntries(items, 'de', undefined, undefined, 2);
+    const keys = entries.map((entry) => entry.key);
+    const labels = entries.map((entry) => entry.label.toLowerCase());
+
+    expect(keys).not.toContain('regression statistik');
+    expect(keys).not.toContain('literatur');
+    expect(keys.some((key) => key.includes('example'))).toBe(false);
+    expect(labels.some((label) => label.includes('frac') || label === 'x')).toBe(false);
+    expect(labels.some((label) => label.includes('lineare') && label.includes('regression'))).toBe(
+      true,
+    );
+    expect(keys).toContain('statistik');
+  });
+
   it('buendelt lexikalische Eintraege ueber injizierte Lemma-Tokens', () => {
     const items = [
       { id: 'item-1', text: 'Häuser', weight: 2 },

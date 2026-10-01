@@ -13257,7 +13257,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         status: 'ready',
         fallbackUsed: false,
         modelVersion: 'intfloat/multilingual-e5-small@sha256:testdigest',
-        analysisVersion: '1.14c.2',
+        analysisVersion: '1.14c.3',
         entries: [
           {
             key: 'kapitel-4',
@@ -13365,7 +13365,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         status: 'ready',
         fallbackUsed: false,
         modelVersion: 'intfloat/multilingual-e5-small@sha256:testdigest',
-        analysisVersion: '1.14c.2',
+        analysisVersion: '1.14c.3',
         entries: [
           {
             key: 'kapitel-4',
@@ -13453,7 +13453,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         status: 'ready',
         fallbackUsed: false,
         modelVersion: 'intfloat/multilingual-e5-small@sha256:testdigest',
-        analysisVersion: '1.14c.2',
+        analysisVersion: '1.14c.3',
         entries: [
           {
             key: 'kapitel-4',

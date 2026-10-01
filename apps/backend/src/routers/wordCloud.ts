@@ -10,6 +10,7 @@ import {
   AnalyzeWordCloudOutputSchema,
   type AnalyzeWordCloudOutput,
   isWordCloudPhraseAnalysisVariant,
+  prepareWordCloudAnalysisText,
 } from '@arsnova/shared-types';
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
@@ -111,18 +112,25 @@ export async function analyzeWordCloudSnapshot(
   const startedAt = Date.now();
   const cache = options.cache ?? getWordCloudAnalysisCache();
   const normalize = options.normalize ?? normalizeWordCloudItems;
+  const analyzableItems = input.items.filter(
+    (item) => prepareWordCloudAnalysisText(item.text).segments.length > 0,
+  );
+  const effectiveInput: AnalyzeWordCloudInput =
+    analyzableItems.length === input.items.length
+      ? input
+      : AnalyzeWordCloudInputSchema.parse({ ...input, items: analyzableItems });
 
-  const cached = input.refresh === true ? null : await cache.getSnapshot(input);
+  const cached = effectiveInput.refresh === true ? null : await cache.getSnapshot(effectiveInput);
   if (cached) {
     recordWordCloudAnalyzeTelemetry({
-      sessionCode: input.sessionCode,
-      mode: input.mode,
-      metric: input.metric,
-      normalization: input.normalization,
+      sessionCode: effectiveInput.sessionCode,
+      mode: effectiveInput.mode,
+      metric: effectiveInput.metric,
+      normalization: effectiveInput.normalization,
       normalizationApplied: cached.normalizationApplied,
       fallbackReason: cached.normalizationFallbackReason,
       durationMs: Date.now() - startedAt,
-      itemCount: input.items.length,
+      itemCount: effectiveInput.items.length,
       snapshotCache: 'hit',
       textCacheHits: 0,
       textCacheMisses: 0,
@@ -132,34 +140,34 @@ export async function analyzeWordCloudSnapshot(
     return options.compactOutput?.(cached) ?? cached;
   }
 
-  const normalized = await normalize(input, {
+  const normalized = await normalize(effectiveInput, {
     cache,
     env: options.env,
     sidecar: options.sidecar,
   });
   const rawOutput =
-    input.mode === 'SEMANTIC'
-      ? await analyzeSemanticWordCloudSnapshot(input, normalized.meta, {
+    effectiveInput.mode === 'SEMANTIC'
+      ? await analyzeSemanticWordCloudSnapshot(effectiveInput, normalized.meta, {
           env: options.env,
           tokensByItemId: normalized.tokensByItemId,
         })
-      : analyzeFromNormalized(input, normalized);
+      : analyzeFromNormalized(effectiveInput, normalized);
   const output = options.compactOutput?.(rawOutput) ?? rawOutput;
-  await cache.setSnapshot(input, output);
+  await cache.setSnapshot(effectiveInput, output);
   recordWordCloudAnalyzeTelemetry({
-    sessionCode: input.sessionCode,
-    mode: input.mode,
-    metric: input.metric,
-    normalization: input.normalization,
+    sessionCode: effectiveInput.sessionCode,
+    mode: effectiveInput.mode,
+    metric: effectiveInput.metric,
+    normalization: effectiveInput.normalization,
     normalizationApplied: output.normalizationApplied,
     fallbackReason: output.normalizationFallbackReason,
     durationMs: Date.now() - startedAt,
-    itemCount: input.items.length,
+    itemCount: effectiveInput.items.length,
     snapshotCache: 'miss',
     textCacheHits: normalized.cache.textHits,
     textCacheMisses: normalized.cache.textMisses,
     sidecarCalled: normalized.cache.sidecarCalled,
-    encoderCalled: input.mode === 'SEMANTIC' && Boolean(output.modelVersion),
+    encoderCalled: effectiveInput.mode === 'SEMANTIC' && Boolean(output.modelVersion),
   });
   return output;
 }

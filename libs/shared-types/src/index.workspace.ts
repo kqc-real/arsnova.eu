@@ -10,6 +10,7 @@ export * from './qa-redaction';
 export * from './confidence';
 export * from './session-export-insights';
 export * from './word-cloud-normalization';
+export * from './word-cloud-analysis-text';
 export * from './word-cloud-semantic';
 export * from './qa-summary-rank';
 export * from './qa-summary-visibility';
