@@ -22,10 +22,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { qaTextCodePointLength, qaTruncateToCodePoints } from '@arsnova/shared-types';
 import { DEFAULT_MARKDOWN_FENCE_LANGUAGE } from '../markdown-code-highlight';
 import { decorateLeadingAnswerEmoji } from '../leading-answer-emoji.util';
 import { replaceEmojiShortcodes } from '../emoji-shortcode.util';
-import { renderMarkdownWithKatex } from '../markdown-katex.util';
+import { renderMarkdownWithKatex, type MarkdownImagePolicy } from '../markdown-katex.util';
 import {
   MarkdownImageDialogComponent,
   type MarkdownImageDialogResult,
@@ -106,8 +107,21 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   @Input() rows = 4;
   @Input() compact = false;
   @Input() answerPreview = false;
-  /** Optional: hartes Zeichenlimit inkl. Zähler unter dem Quellfeld. */
+  /**
+   * Optionales Zeichenlimit inkl. Zähler unter dem Quellfeld.
+   * Einheit über `lengthUnit` (Standard: UTF-16 wie natives `maxlength`).
+   */
   @Input() maxLength: number | null = null;
+  /**
+   * Zähleinheit für `maxLength`.
+   * `codePoints`: Unicode-Codepunkte (astrale Zeichen = 1); kein natives `maxlength`.
+   */
+  @Input() lengthUnit: 'utf16' | 'codePoints' = 'utf16';
+  /**
+   * Bild-URL-Policy der Live-Vorschau. Standard erlaubt relative Pfade (Quiz-Editor);
+   * Teilnehmer-Q&A sollte dieselbe Policy wie die veröffentlichte Frage nutzen.
+   */
+  @Input() imagePolicy: MarkdownImagePolicy = 'allow-relative-and-https';
   /** Kein Rand um Quelltext + Vorschau (Toolbar bleibt mit Umrandung). */
   @Input() framelessPanels = false;
 
@@ -121,6 +135,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   readonly helpOpen = signal(false);
   readonly rowsValue = signal(4);
   readonly compactValue = signal(false);
+  readonly imagePolicyValue = signal<MarkdownImagePolicy>('allow-relative-and-https');
   readonly isSmartphoneViewport = signal(false);
   readonly mobilePreviewExpanded = signal(false);
   readonly toolbarState = signal<MarkdownToolbarState>({
@@ -131,7 +146,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
   });
   readonly previewResult = computed(() =>
     renderMarkdownWithKatex(this.debouncedValue(), {
-      imagePolicy: 'allow-relative-and-https',
+      imagePolicy: this.imagePolicyValue(),
       headingStartLevel: 3,
     }),
   );
@@ -218,6 +233,9 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     }
     if (changes['compact']) {
       this.compactValue.set(this.compact);
+    }
+    if (changes['imagePolicy']) {
+      this.imagePolicyValue.set(this.imagePolicy);
     }
   }
 
@@ -335,7 +353,7 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     selectionStart: number,
     selectionEnd: number,
   ): boolean {
-    if (this.maxLength !== null && next.length > this.maxLength) {
+    if (this.maxLength !== null && this.measureLength(next) > this.maxLength) {
       return false;
     }
     field.value = next;
@@ -344,11 +362,35 @@ export class MarkdownKatexEditorComponent implements AfterViewInit, OnChanges, O
     return true;
   }
 
+  /** Aktuelle Länge in der für `maxLength` konfigurierten Einheit. */
+  currentLength(): number {
+    return this.measureLength(this.rawValue());
+  }
+
+  /** Natives `maxlength` nur bei UTF-16 – Browser zählen keine Codepunkte. */
+  nativeMaxLengthAttr(): number | null {
+    if (this.maxLength === null || this.lengthUnit === 'codePoints') {
+      return null;
+    }
+    return this.maxLength;
+  }
+
+  private measureLength(value: string): number {
+    return this.lengthUnit === 'codePoints' ? qaTextCodePointLength(value) : value.length;
+  }
+
+  private truncateToMaxLength(value: string): string {
+    if (this.maxLength === null) {
+      return value;
+    }
+    if (this.lengthUnit === 'codePoints') {
+      return qaTruncateToCodePoints(value, this.maxLength);
+    }
+    return value.length > this.maxLength ? value.slice(0, this.maxLength) : value;
+  }
+
   onInput(value: string): void {
-    const limited =
-      this.maxLength !== null && value.length > this.maxLength
-        ? value.slice(0, this.maxLength)
-        : value;
+    const limited = this.truncateToMaxLength(value);
     if (limited !== value) {
       const field = this.fieldRef?.nativeElement;
       if (field) {

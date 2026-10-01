@@ -77,6 +77,26 @@ export function qaCodePointsToText(codePoints: readonly string[]): string {
   return codePoints.join('');
 }
 
+/** Unicode-Codepunkt-Länge (astrale Zeichen = 1, nicht 2 UTF-16-Units). */
+export function qaTextCodePointLength(text: string): number {
+  return qaTextCodePoints(text).length;
+}
+
+/**
+ * Kürzt auf höchstens `maxCodePoints` Unicode-Codepunkte, ohne Surrogatpaare zu trennen.
+ */
+export function qaTruncateToCodePoints(text: string, maxCodePoints: number): string {
+  if (!Number.isFinite(maxCodePoints) || maxCodePoints < 0) {
+    return '';
+  }
+  const limit = Math.trunc(maxCodePoints);
+  const codePoints = qaTextCodePoints(text);
+  if (codePoints.length <= limit) {
+    return text;
+  }
+  return qaCodePointsToText(codePoints.slice(0, limit));
+}
+
 function findLiteralSpans(codePoints: readonly string[], needle: string): QaRedactionRange[] {
   const needlePoints = qaTextCodePoints(needle);
   if (needlePoints.length === 0 || codePoints.length < needlePoints.length) {

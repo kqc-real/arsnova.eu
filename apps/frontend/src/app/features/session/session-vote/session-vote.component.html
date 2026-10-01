@@ -2696,6 +2696,8 @@
                 [disabled]="!isQaChannelOpen() || qaSubmitting()"
                 [rows]="4"
                 [maxLength]="qaQuestionTextMaxLength"
+                lengthUnit="codePoints"
+                imagePolicy="external-https-and-app-assets"
                 [compact]="true"
               />
             } @else {
@@ -2704,7 +2706,6 @@
                 #qaTextarea
                 class="session-qa-form__textarea"
                 rows="2"
-                [attr.maxlength]="qaQuestionTextMaxLength"
                 [attr.aria-label]="vpc.voteQaFormLabel(isPlayfulPreset())"
                 [readOnly]="!isQaChannelOpen() || qaSubmitting()"
                 [attr.aria-describedby]="!isQaChannelOpen() ? 'vote-qa-closed-notice' : null"
@@ -2735,9 +2736,9 @@
                 <span
                   class="session-qa-form__counter"
                   [class.session-qa-form__counter--warn]="
-                    qaDraft().trim().length >= qaQuestionTextWarnLength
+                    qaDraftCodePointCount() >= qaQuestionTextWarnLength
                   "
-                  >{{ qaDraft().trim().length }}/{{ qaQuestionTextMaxLength }}</span
+                  >{{ qaDraftCodePointCount() }}/{{ qaQuestionTextMaxLength }}</span
                 >
               }
             </div>

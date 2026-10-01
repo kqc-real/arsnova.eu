@@ -1,8 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { SimpleChange } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MarkdownKatexEditorComponent } from './markdown-katex-editor.component';
+
+const SPEC_DIR = dirname(fileURLToPath(import.meta.url));
 
 describe('MarkdownKatexEditorComponent', () => {
   function stubMatchMedia(matches = false) {
@@ -310,6 +315,77 @@ describe('MarkdownKatexEditorComponent', () => {
     fixture.detectChanges();
     expect(component.rawValue()).toBe('abcdefghij');
     expect(fixture.nativeElement.textContent).toContain('10/10');
+  });
+
+  it('schneidet maxLength in Codepunkten ohne Surrogatpaare zu trennen', () => {
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-codepoint-limit';
+    component.value = '';
+    component.maxLength = 3;
+    component.lengthUnit = 'codePoints';
+    fixture.detectChanges();
+    component.onInput('😀😀😀😀');
+    fixture.detectChanges();
+    expect(component.rawValue()).toBe('😀😀😀');
+    expect(component.currentLength()).toBe(3);
+    expect(component.nativeMaxLengthAttr()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('3/3');
+  });
+
+  it('erlaubt horizontales Scrollen in der Preview für breite Inline-Formeln', () => {
+    const scss = readFileSync(resolve(SPEC_DIR, './markdown-katex-editor.component.scss'), 'utf8');
+    expect(scss).toMatch(/\.mk-editor__preview-body\s*\{[^}]*overflow-x:\s*auto/s);
+    expect(scss).not.toMatch(/\.mk-editor__preview-body\s*\{[^}]*overflow-x:\s*hidden/s);
+    expect(scss).toMatch(
+      /\.mk-editor--compact\s+\.mk-editor__preview-body\s*\{[^}]*overflow:\s*auto/s,
+    );
+
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-wide-math';
+    component.value = '$\\underbrace{a+a+a+a+a+a+a+a}_{\\text{lange Summe}}$';
+    fixture.detectChanges();
+    const previewBody = fixture.nativeElement.querySelector(
+      '.mk-editor__preview-body',
+    ) as HTMLElement;
+    expect(previewBody).toBeTruthy();
+    Object.defineProperty(previewBody, 'clientWidth', { configurable: true, value: 120 });
+    Object.defineProperty(previewBody, 'scrollWidth', { configurable: true, value: 480 });
+    expect(previewBody.scrollWidth).toBeGreaterThan(previewBody.clientWidth);
+    // jsdom wendet Component-SCSS nicht immer an; dann reicht die Quell-Assertion oben.
+    const overflowX = getComputedStyle(previewBody).overflowX;
+    if (overflowX && overflowX !== 'visible') {
+      expect(['auto', 'scroll', 'overlay']).toContain(overflowX);
+    }
+  });
+
+  it('nutzt konfigurierbare Bildpolicy in der Vorschau', () => {
+    const fixture = TestBed.createComponent(MarkdownKatexEditorComponent);
+    const component = fixture.componentInstance;
+    component.fieldId = 'md-image-policy';
+    component.imagePolicy = 'external-https-only';
+    component.value = '![x](/relative.png)\n\n![y](https://example.org/a.png)';
+    fixture.detectChanges();
+    // ngOnChanges for imagePolicy
+    component.ngOnChanges({
+      imagePolicy: {
+        previousValue: 'allow-relative-and-https',
+        currentValue: 'external-https-only',
+        firstChange: false,
+        isFirstChange: () => false,
+      },
+      value: {
+        previousValue: '',
+        currentValue: component.value,
+        firstChange: true,
+        isFirstChange: () => true,
+      },
+    });
+    fixture.detectChanges();
+    const html = component.previewResult().html;
+    expect(html).not.toContain('/relative.png');
+    expect(html).toContain('https://example.org/a.png');
   });
 
   it('verwirft Toolbar-Wraps, die maxLength überschreiten würden', () => {

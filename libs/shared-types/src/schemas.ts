@@ -21,6 +21,7 @@ import {
   QA_REDACTION_MAX_RANGE_CODE_POINTS,
   QA_REDACTION_MAX_RANGES,
   QA_REDACTION_MIN_RANGE_CODE_POINTS,
+  qaTextCodePointLength,
 } from './qa-redaction';
 
 export const QA_MAX_QUESTIONS_PER_PARTICIPANT = 10;
@@ -6284,11 +6285,16 @@ export const SetQaPresenterSortModeOutputSchema = z.object({
 });
 export type SetQaPresenterSortModeOutput = z.infer<typeof SetQaPresenterSortModeOutputSchema>;
 
-/** Input: Q&A-Frage einreichen (Story 8.2) */
+/** Input: Q&A-Frage einreichen (Story 8.2) – Limit in Unicode-Codepunkten. */
 export const SubmitQaQuestionInputSchema = z.object({
   sessionId: z.uuid(),
   participantId: z.uuid(),
-  text: z.string().min(1).max(QA_QUESTION_TEXT_MAX_CODE_POINTS),
+  text: z
+    .string()
+    .min(1)
+    .refine((value) => qaTextCodePointLength(value) <= QA_QUESTION_TEXT_MAX_CODE_POINTS, {
+      message: `Frage darf maximal ${QA_QUESTION_TEXT_MAX_CODE_POINTS} Zeichen haben.`,
+    }),
   idempotencyKey: z.uuid(),
 });
 export type SubmitQaQuestionInput = z.infer<typeof SubmitQaQuestionInputSchema>;

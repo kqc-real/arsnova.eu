@@ -2097,7 +2097,8 @@ $markdown-katex-flow-hosts:
   '.vote-answer__text', '.quiz-preview-question__text', '.quiz-preview-question__answer-content',
   '.quiz-edit-question__text', '.quiz-edit-question__answer-text',
   '.quiz-edit-form__preview-content', '.quiz-edit-form__preview-answers',
-  '.session-present__qa-text', '.session-present__qa-list-text', '.quiz-list-item__description';
+  '.session-present__qa-text', '.session-present__qa-list-text', '.quiz-list-item__description',
+  '.mk-editor__preview-body';
 
 .markdown-katex-error {
   color: var(--mat-sys-error);

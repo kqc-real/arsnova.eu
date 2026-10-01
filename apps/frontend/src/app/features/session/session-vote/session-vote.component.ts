@@ -58,6 +58,8 @@ import {
   CONFIDENCE_SCALE_MIN,
   QA_MAX_QUESTIONS_PER_SESSION,
   QA_QUESTION_TEXT_MAX_CODE_POINTS,
+  qaTextCodePointLength,
+  qaTruncateToCodePoints,
   isNumericToleranceMode,
   questionSupportsConfidence,
   normalizeShortTextValue,
@@ -1390,12 +1392,17 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaCanSubmit = computed(
     () =>
       this.isQaChannelOpen() &&
-      this.qaDraft().trim().length > 0 &&
-      this.qaDraft().trim().length <= this.qaQuestionTextMaxLength &&
+      qaTextCodePointLength(this.qaDraft().trim()) > 0 &&
+      qaTextCodePointLength(this.qaDraft().trim()) <= this.qaQuestionTextMaxLength &&
       (this.qaQuota()?.participantRemaining ?? 1) > 0 &&
       (this.qaQuota()?.sessionRemaining ?? 1) > 0 &&
       !this.qaSubmitting(),
   );
+
+  /** Angezeigte Codepunkt-Länge der (getrimmten) Q&A-Frage. */
+  qaDraftCodePointCount(): number {
+    return qaTextCodePointLength(this.qaDraft().trim());
+  }
   readonly visibleQaQuestions = computed(() => {
     const selectedNickname = this.qaSelectedAuthorNickname();
     const questions = this.qaQuestions();
@@ -3080,10 +3087,11 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   updateQaDraft(value: string): void {
-    if (this.qaSubmitAttempt?.text !== value.trim()) {
+    const limited = qaTruncateToCodePoints(value, this.qaQuestionTextMaxLength);
+    if (this.qaSubmitAttempt?.text !== limited.trim()) {
       this.qaSubmitAttempt = null;
     }
-    this.qaDraft.set(value);
+    this.qaDraft.set(limited);
   }
 
   relativeTime(isoDate: string): string {

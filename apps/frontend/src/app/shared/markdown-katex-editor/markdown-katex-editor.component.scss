@@ -261,7 +261,8 @@
   min-width: 0;
   max-width: 100%;
   min-height: 0;
-  overflow-x: hidden;
+  /* Breite Inline-KaTeX-Boxen bleiben horizontal erreichbar (nicht abschneiden). */
+  overflow-x: auto;
   overflow-y: auto;
 }
 
@@ -387,8 +388,7 @@
 .mk-editor--compact .mk-editor__preview-body {
   max-height: 8rem;
   min-height: 4.5rem;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 @media (max-width: 599px) {

@@ -188,7 +188,7 @@
         [attr.placeholder]="placeholder"
         [attr.aria-label]="ariaLabel || null"
         [attr.aria-describedby]="ariaDescribedBy"
-        [attr.maxlength]="maxLength == null ? null : maxLength"
+        [attr.maxlength]="nativeMaxLengthAttr()"
         [disabled]="disabled"
         [rows]="visibleRows()"
         (input)="onInput(field.value)"
@@ -199,7 +199,7 @@
         (scroll)="onSourceScroll()"
       ></textarea>
       @if (maxLength != null) {
-        <p class="mk-editor__count">{{ rawValue().length }}/{{ maxLength }}</p>
+        <p class="mk-editor__count">{{ currentLength() }}/{{ maxLength }}</p>
       }
     </div>
     <div
