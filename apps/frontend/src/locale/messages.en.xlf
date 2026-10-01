@@ -33446,13 +33446,21 @@
           <context context-type="linenumber">988</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.statusMetricGroupFunctionsHint" datatype="html">
+        <source>Nach erfassten Interaktionen in der Session — nicht nach dem offenen Kanal. »Nur Beitritt« zählt Sessions mit Teilnahme, aber noch ohne Quizantwort und ohne Q&amp;A-Aktivität. 0 ist üblich, sobald jede Session mindestens einmal Quiz oder Q&amp;A genutzt hat.</source>
+        <target>Based on recorded interactions in the session — not on the open channel. “Join only” counts sessions with participation but no quiz answer and no Q&amp;A activity yet. 0 is common once every session has used quiz or Q&amp;A at least once.</target>
+      </trans-unit>
       <trans-unit id="app.footer.statusMetricFnJoinOnly" datatype="html">
-        <source>Nur Teilnahme</source>
+        <source>Nur Beitritt</source>
         <target>Join only</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">995</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricFnJoinOnlyHint" datatype="html">
+        <source>Beigetreten, aber noch keine Quiz- oder Q&amp;A-Interaktion</source>
+        <target>Joined, but no quiz or Q&amp;A interaction yet</target>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricFnQuizOnly" datatype="html">
         <source>Nur Quiz</source>
@@ -33462,6 +33470,10 @@
           <context context-type="linenumber">1002</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.statusMetricFnQuizOnlyHint" datatype="html">
+        <source>Mindestens eine Quizantwort, keine Q&amp;A-Aktivität</source>
+        <target>At least one quiz answer, no Q&amp;A activity</target>
+      </trans-unit>
       <trans-unit id="app.footer.statusMetricFnQaOnly" datatype="html">
         <source>Nur Q&amp;A</source>
         <target>Q&amp;A only</target>
@@ -33470,6 +33482,10 @@
           <context context-type="linenumber">1009</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.statusMetricFnQaOnlyHint" datatype="html">
+        <source>Mindestens eine Q&amp;A-Aktivität, keine Quizantwort</source>
+        <target>At least one Q&amp;A activity, no quiz answer</target>
+      </trans-unit>
       <trans-unit id="app.footer.statusMetricFnCombined" datatype="html">
         <source>Quiz und Q&amp;A</source>
         <target>Quiz and Q&amp;A</target>
@@ -33477,6 +33493,10 @@
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1016</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricFnCombinedHint" datatype="html">
+        <source>Mindestens eine Quizantwort und eine Q&amp;A-Aktivität</source>
+        <target>At least one quiz answer and one Q&amp;A activity</target>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupSize" datatype="html">
         <source>Reichweite nach Größe</source>

@@ -1,4 +1,4 @@
-@if (session()?.presenterPage; as page) {
+@if (activeChannel() === 'qa' && session()?.presenterPage; as page) {
   @if (showProjectionPageNavigation()) {
     <nav
       class="session-host__projection-pages"

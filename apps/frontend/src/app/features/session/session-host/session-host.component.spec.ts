@@ -881,16 +881,60 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const component = fixture.componentInstance;
-    const presenterPage = { context: 'projection-test', index: 0, count: 3 };
-    component.session.set({ ...defaultSession, presenterPage });
+    const presenterPage = { context: 'qa-questions', index: 0, count: 3 };
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage,
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    seedQaPresenterStage(component, [
+      {
+        id: 'q-1',
+        text: 'Eins',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q-2',
+        text: 'Zwei',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q-3',
+        text: 'Drei',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    component.activeChannel.set('qa');
+    component.presenterWindowOpen.set(true);
     fixture.detectChanges();
     const nav = fixture.nativeElement.querySelector(
       '.session-host__projection-pages',
     ) as HTMLElement;
     const [previous, next] = Array.from(nav.querySelectorAll('button'));
     expect(previous!.getAttribute('aria-disabled')).toBe('true');
-    expect(nav.getAttribute('aria-label')).toBe('Projektionsseiten');
-    expect(next!.textContent).toContain('Nächste Seite');
+    expect(nav.getAttribute('aria-label')).toBe('Projektionsfragen');
+    expect(next!.textContent).toContain('Nächste Frage');
     let reject!: (reason: Error) => void;
     setPresenterSurfaceMutateMock.mockReturnValueOnce(
       new Promise((_, fail) => {
@@ -899,6 +943,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     next!.focus();
     next!.click();
+    // Listen-Fade vor dem Presenter-Sync.
+    await flushComponentAfterStable(fixture, 900);
     fixture.detectChanges();
     expect(nav.getAttribute('aria-busy')).toBe('true');
     expect(next!.getAttribute('aria-disabled')).toBe('true');
@@ -908,7 +954,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
-      'erneut versuchen',
+      'Fragen konnten nicht gewechselt werden',
     );
     expect(nav.querySelector('[role="alert"]')).not.toBeNull();
     expect(document.activeElement).toBe(next);
@@ -919,14 +965,34 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       presenterPage: { ...presenterPage, index: 1 },
     });
     next!.click();
-    await fixture.whenStable();
+    await flushComponentAfterStable(fixture, 900);
     fixture.detectChanges();
     expect(nav.textContent).toContain('2 / 3');
     expect(document.activeElement).toBe(next);
-    component.session.update((session) => ({
-      ...session!,
-      presenterPage: { ...presenterPage, count: 1 },
-    }));
+    component.qaQuestions.set([
+      {
+        id: 'q-2',
+        text: 'Zwei',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    seedQaPresenterStage(component, [
+      {
+        id: 'q-2',
+        text: 'Zwei',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
     fixture.detectChanges();
     expect(document.activeElement).toBe(next);
     expect(next!.isConnected).toBe(true);
@@ -981,6 +1047,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
     ] as never);
+    component.activeChannel.set('qa');
     component.presenterWindowOpen.set(true);
     fixture.detectChanges();
 
@@ -1002,6 +1069,86 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain(
       'Fragen konnten nicht gewechselt werden',
     );
+    fixture.destroy();
+  });
+
+  it('blendet den Fragen-Navigator auf Quiz- und Kurzfeedback-Kanal aus', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    seedQaPresenterStage(component, [
+      {
+        id: 'q-1',
+        text: 'Eins',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q-2',
+        text: 'Zwei',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    component.presenterWindowOpen.set(true);
+    // preferredChannel-Initialisierung einmal abarbeiten, danach manuelle Tab-Wechsel.
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(component.showProjectionPageNavigation()).toBe(true);
+
+    for (const channel of ['quiz', 'quickFeedback'] as const) {
+      component.activeChannel.set(channel);
+      fixture.detectChanges();
+      expect(component.activeChannel()).toBe(channel);
+      expect(component.projectionNavigationIsQaQuestions()).toBe(true);
+      expect(component.showProjectionPageNavigation()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).toBeNull();
+    }
+
+    // Wie nach reconcilePresentedChannel: preferred wechselt, presenterPage bleibt Q&A.
+    component.session.update((session) =>
+      session
+        ? {
+            ...session,
+            preferredChannel: 'quiz',
+            presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+          }
+        : session,
+    );
+    component.activeChannel.set('quiz');
+    fixture.detectChanges();
+    expect(component.projectionNavigationIsQaQuestions()).toBe(false);
+    expect(component.showProjectionPageNavigation()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).toBeNull();
+
+    component.session.update((session) =>
+      session ? { ...session, preferredChannel: 'qa' } : session,
+    );
+    component.activeChannel.set('qa');
+    fixture.detectChanges();
+    expect(component.showProjectionPageNavigation()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -1316,7 +1463,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt die angepinnte Presenter-Navigation auf einem Steuer-Smartphone auch bei einer Seite', async () => {
+  it('zeigt die angepinnte Presenter-Navigation auf einem Steuer-Smartphone auch bei einer Q&A-Frage', async () => {
     vi.stubGlobal(
       'matchMedia',
       vi.fn((query: string) => ({
@@ -1333,13 +1480,35 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
+      preferredChannel: 'qa',
       presenterSurface: 'default',
-      presenterPage: { context: 'projection-mobile-test', index: 0, count: 1 },
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
     });
 
     const fixture = setup();
     fixture.detectChanges();
     await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, [
+      {
+        id: 'q-1',
+        text: 'Eins',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    component.presenterWindowOpen.set(true);
+    fixture.detectChanges();
 
     const nav = fixture.nativeElement.querySelector(
       '.session-host__projection-pages',
@@ -1350,16 +1519,62 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(buttons).toHaveLength(2);
     expect(buttons.every((button) => button.getAttribute('aria-disabled') === 'true')).toBe(true);
 
+    component.activeChannel.set('quiz');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).toBeNull();
+
     fixture.destroy();
     vi.unstubAllGlobals();
   });
 
   it('pinnt die Projektionsnavigation oben im scrollenden Host-Viewport an', async () => {
     const fixture = setup();
-    fixture.componentInstance.session.set({
+    const component = fixture.componentInstance;
+    component.session.set({
       ...defaultSession,
-      presenterPage: { context: 'projection-sticky-test', index: 1, count: 3 },
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 1, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
     });
+    seedQaPresenterStage(component, [
+      {
+        id: 'q-1',
+        text: 'Eins',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q-2',
+        text: 'Zwei',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'q-3',
+        text: 'Drei',
+        upvoteCount: 3,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:02:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      },
+    ] as never);
+    component.activeChannel.set('qa');
+    component.presenterWindowOpen.set(true);
     fixture.detectChanges();
     const displayMode = TestBed.inject(HostDisplayModeService);
     displayMode.setHostSessionActive(true);

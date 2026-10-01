@@ -459,6 +459,9 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(scss).toMatch(
       /\.status-help-dialog__legend-item--healthy\s*\{[^}]*border-color:\s*color-mix\([^)]*--app-status-healthy/,
     );
+    expect(scss).toMatch(
+      /\.status-help-dialog__metric strong\.status-help-dialog__metric-value--prose\s*\{[^}]*--mat-sys-body-medium/,
+    );
     expect(scss).not.toContain('status-help-dialog__status-badge-wrapper');
     expect(scss).not.toMatch(/\.status-help-dialog__legend li\s*\{/);
     expect(scss).not.toContain('!important');
@@ -607,7 +610,13 @@ describe('ServerStatusHelpDialogComponent', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('.status-help-dialog__legend-label')).toBeTruthy();
+    expect(root.querySelector('.status-help-dialog__status-strip')).toBeTruthy();
     expect(root.querySelector('.status-help-dialog__status-badge--healthy')).toBeTruthy();
     expect(root.querySelector('.status-help-dialog__status-badge-wrapper')).toBeNull();
+    expect(root.querySelector('#server-status-overall-heading')).toBeTruthy();
+    expect(root.querySelector('#server-status-ws-heading')).toBeTruthy();
+    expect(root.querySelectorAll('#server-status-live-heading').length).toBe(0);
+    expect(root.querySelector('.status-help-dialog__meta')).toBeTruthy();
+    expect(root.querySelector('.status-help-dialog__snapshot')).toBeTruthy();
   });
 });

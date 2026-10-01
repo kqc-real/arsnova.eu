@@ -34,8 +34,12 @@ mat-dialog-actions {
 .status-help-dialog__period {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
-  margin: 0.55rem 0 1rem;
+  gap: 0.55rem;
+  margin: 0.85rem 0 0.75rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 65%, transparent);
+  background: var(--mat-sys-surface);
 }
 
 .status-help-dialog__period-btn--active {
@@ -48,6 +52,10 @@ mat-dialog-actions {
   gap: 0.75rem 1rem;
   align-items: end;
   margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border: 1px dashed color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 40%, transparent);
 }
 
 .status-help-dialog__custom-field {
@@ -95,9 +103,29 @@ mat-dialog-actions {
   font-weight: 600;
 }
 
-.status-help-dialog__usage-day > span {
+.status-help-dialog__usage-stat {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.status-help-dialog__usage-stat-label {
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-help-dialog__usage-stat-value {
+  font: var(--mat-sys-body-medium);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.25;
+}
+
+.status-help-dialog__usage-stat-value--prose {
   font: var(--mat-sys-body-small);
-  line-height: 1.5;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 .status-help-dialog__metric-group--wide {
@@ -130,7 +158,7 @@ mat-dialog-actions {
   align-items: center;
   gap: 0.65rem;
   /* Näher an den Daten als an den nächsten Abschnitt. */
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.65rem;
 }
 
 .status-help-dialog__panel-header--stacked {
@@ -177,10 +205,26 @@ mat-dialog-actions {
   margin-top: 1rem;
 }
 
+.status-help-dialog__metric-groups--stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .status-help-dialog__metric-group {
   display: grid;
   gap: 0.4rem;
   min-width: 0;
+}
+
+.status-help-dialog__metric-group--block {
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border-radius: var(--mat-sys-corner-large);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 65%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface) 78%, var(--mat-sys-surface-container-low));
+}
+
+.status-help-dialog__metric-group--block > .status-help-dialog__metrics {
+  margin-top: 0.15rem;
 }
 
 .status-help-dialog__metric-group--dynamic {
@@ -192,8 +236,9 @@ mat-dialog-actions {
 
 .status-help-dialog__metric-group-title {
   margin: 0;
-  font: var(--mat-sys-label-large);
-  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-small);
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
 }
 
 .status-help-dialog__metric-group-title--with-icon {
@@ -227,17 +272,42 @@ mat-dialog-actions {
   gap: 0.75rem;
 }
 
+@media (min-width: 720px) {
+  .status-help-dialog__metrics--traffic {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-help-dialog__metrics--live {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-help-dialog__metrics--usage-core {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-help-dialog__metrics--usage-core .status-help-dialog__metric--wide {
+    grid-column: 1 / -1;
+  }
+
+  .status-help-dialog__metrics--functions,
+  .status-help-dialog__metrics--size {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .status-help-dialog__metric {
   display: grid;
-  gap: 0.55rem;
-  padding: 0.85rem;
+  gap: 0.4rem;
+  padding: 0.75rem 0.8rem;
   border-radius: var(--mat-sys-corner-medium);
   background: var(--mat-sys-surface);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 40%, transparent);
 }
 
 .status-help-dialog__metric--key {
   background: var(--mat-sys-primary-container);
   color: var(--mat-sys-on-primary-container);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
 }
 
 .status-help-dialog__metric--key .status-help-dialog__metric-head,
@@ -343,9 +413,11 @@ mat-dialog-actions {
   line-height: 1.35;
 }
 
-.status-help-dialog__metrics--quality .status-help-dialog__metric-value--prose {
+/* Status-/Hinweistexte (nicht gemessen, unzureichende Stichprobe, Churn-Phrase). */
+.status-help-dialog__metric strong.status-help-dialog__metric-value--prose {
   font: var(--mat-sys-body-medium);
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.4;
 }
@@ -353,16 +425,112 @@ mat-dialog-actions {
 .status-help-dialog__metric-hint {
   margin: 0;
   font: var(--mat-sys-body-small);
-  line-height: 1.5;
+  line-height: 1.4;
   color: var(--mat-sys-on-surface-variant);
 }
 
 .status-help-dialog__leitfrage {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--mat-sys-corner-medium);
+  border-left: 3px solid var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 42%, var(--mat-sys-surface));
   font: var(--mat-sys-title-small);
   font-weight: 600;
   color: var(--mat-sys-on-surface);
   line-height: 1.35;
+}
+
+.status-help-dialog__status-strip {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 0.55rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+}
+
+.status-help-dialog__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  min-width: 0;
+}
+
+.status-help-dialog__status-label {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  min-width: 8.5rem;
+}
+
+.status-help-dialog__copy--after-strip {
+  margin-bottom: 0.15rem;
+}
+
+.status-help-dialog__meta {
+  display: grid;
+  gap: 0.35rem 1rem;
+  margin: 0.15rem 0 0.35rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--mat-sys-corner-small);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 55%, transparent);
+}
+
+.status-help-dialog__meta--usage {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.status-help-dialog__meta--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.status-help-dialog__meta-item {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 11rem) minmax(0, 1fr);
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.status-help-dialog__meta-item dt {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.status-help-dialog__meta-item dd {
+  margin: 0;
+  font: var(--mat-sys-body-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface);
+  line-height: 1.4;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.status-help-dialog__copy--after-meta {
+  margin-bottom: 0.25rem;
+}
+
+.status-help-dialog__snapshot {
+  margin: 1rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 70%, transparent);
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.4;
+}
+
+.status-help-dialog__snapshot time {
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface);
+}
+
+.status-help-dialog__metric-groups + .status-help-dialog__disclosure {
+  margin-top: 1.35rem;
 }
 
 .status-help-dialog__disclosure {
@@ -659,7 +827,7 @@ mat-dialog-actions {
 }
 
 @media (min-width: 960px) {
-  .status-help-dialog__metric-groups {
+  .status-help-dialog__metric-groups:not(.status-help-dialog__metric-groups--stack) {
     grid-template-columns: minmax(0, 1.45fr) minmax(17rem, 1fr);
     align-items: start;
   }
@@ -674,6 +842,33 @@ mat-dialog-actions {
 
   .status-help-dialog__legend {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .status-help-dialog__status-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+  }
+
+  .status-help-dialog__status-label {
+    min-width: 0;
+  }
+
+  .status-help-dialog__meta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem 1rem;
+  }
+
+  .status-help-dialog__meta--usage {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-help-dialog__meta--size {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .status-help-dialog__meta-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
   }
 }
 
@@ -700,8 +895,30 @@ mat-dialog-actions {
     padding: 0.75rem;
   }
 
+  .status-help-dialog__metric-group--block {
+    padding: 0.7rem;
+  }
+
   .status-help-dialog__metric-groups {
-    gap: 1.25rem;
+    gap: 1.1rem;
+  }
+
+  .status-help-dialog__status-strip {
+    padding: 0.65rem 0.7rem;
+  }
+
+  .status-help-dialog__status-label {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .status-help-dialog__meta-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+
+  .status-help-dialog__leitfrage {
+    padding: 0.55rem 0.7rem;
   }
 
   .status-help-dialog__metrics {
@@ -755,7 +972,7 @@ mat-dialog-actions {
     font-weight: 600;
   }
 
-  .status-help-dialog__metrics--quality .status-help-dialog__metric-value--prose {
+  .status-help-dialog__metric strong.status-help-dialog__metric-value--prose {
     font: var(--mat-sys-body-medium);
     font-weight: 500;
   }

@@ -81,7 +81,7 @@ export interface ServerStatusHelpDialogData {
             </ng-template>
             <section
               class="status-help-dialog__panel status-help-dialog__panel--stats"
-              aria-labelledby="server-status-live-heading"
+              aria-labelledby="server-status-overall-heading"
             >
               <p
                 class="status-help-dialog__leitfrage"
@@ -99,78 +99,89 @@ export interface ServerStatusHelpDialogData {
                   aria-hidden="true"
                 ></span>
                 <h3
-                  id="server-status-live-heading"
+                  id="server-status-overall-heading"
                   class="status-help-dialog__section-title"
                   i18n="@@app.footer.statusCurrentTitle"
                 >
                   Gesamtzustand
                 </h3>
               </div>
-              <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                <span i18n="@@app.footer.serviceStatusLabel">Betrieb:</span>&nbsp;
-                @if (!s.measurementAvailable || s.serviceStatus === 'unknown') {
+              <div class="status-help-dialog__status-strip" role="group">
+                <div class="status-help-dialog__status-row">
                   <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--unknown"
-                    i18n="@@app.footer.serviceStatusUnknown"
-                    >Messung unbekannt</span
+                    class="status-help-dialog__status-label"
+                    i18n="@@app.footer.serviceStatusLabel"
+                    >Betrieb:</span
                   >
-                } @else if (s.serviceStatus === 'stable') {
-                  <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--healthy"
-                    i18n="@@app.footer.serviceStatusStable"
-                    >stabil</span
-                  >
-                } @else if (s.serviceStatus === 'limited') {
-                  <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--busy"
-                    i18n="@@app.footer.serviceStatusLimited"
-                    >eingeschränkt</span
-                  >
-                } @else {
-                  <span
-                    class="status-help-dialog__status-badge status-help-dialog__status-badge--overloaded"
-                    i18n="@@app.footer.serviceStatusCritical"
-                    >gestört</span
-                  >
-                }
-              </p>
-              <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                <span i18n="@@app.footer.loadStatusLabel">Aktuelle Aktivität:</span>&nbsp;
-                @switch (s.loadStatus) {
-                  @case ('healthy') {
+                  @if (!s.measurementAvailable || s.serviceStatus === 'unknown') {
+                    <span
+                      class="status-help-dialog__status-badge status-help-dialog__status-badge--unknown"
+                      i18n="@@app.footer.serviceStatusUnknown"
+                      >Messung unbekannt</span
+                    >
+                  } @else if (s.serviceStatus === 'stable') {
                     <span
                       class="status-help-dialog__status-badge status-help-dialog__status-badge--healthy"
-                      i18n="@@app.footer.loadStatusHealthy"
-                      >niedrig</span
+                      i18n="@@app.footer.serviceStatusStable"
+                      >stabil</span
                     >
-                  }
-                  @case ('busy') {
+                  } @else if (s.serviceStatus === 'limited') {
                     <span
                       class="status-help-dialog__status-badge status-help-dialog__status-badge--busy"
-                      i18n="@@app.footer.loadStatusBusy"
-                      >mittel</span
+                      i18n="@@app.footer.serviceStatusLimited"
+                      >eingeschränkt</span
                     >
-                  }
-                  @default {
+                  } @else {
                     <span
                       class="status-help-dialog__status-badge status-help-dialog__status-badge--overloaded"
-                      i18n="@@app.footer.loadStatusOverloaded"
-                      >hoch</span
+                      i18n="@@app.footer.serviceStatusCritical"
+                      >gestört</span
                     >
                   }
-                }
-              </p>
+                </div>
+                <div class="status-help-dialog__status-row">
+                  <span class="status-help-dialog__status-label" i18n="@@app.footer.loadStatusLabel"
+                    >Aktuelle Aktivität:</span
+                  >
+                  @switch (s.loadStatus) {
+                    @case ('healthy') {
+                      <span
+                        class="status-help-dialog__status-badge status-help-dialog__status-badge--healthy"
+                        i18n="@@app.footer.loadStatusHealthy"
+                        >niedrig</span
+                      >
+                    }
+                    @case ('busy') {
+                      <span
+                        class="status-help-dialog__status-badge status-help-dialog__status-badge--busy"
+                        i18n="@@app.footer.loadStatusBusy"
+                        >mittel</span
+                      >
+                    }
+                    @default {
+                      <span
+                        class="status-help-dialog__status-badge status-help-dialog__status-badge--overloaded"
+                        i18n="@@app.footer.loadStatusOverloaded"
+                        >hoch</span
+                      >
+                    }
+                  }
+                </div>
+              </div>
               <p
-                class="status-help-dialog__copy status-help-dialog__copy--compact"
+                class="status-help-dialog__copy status-help-dialog__copy--compact status-help-dialog__copy--after-strip"
                 i18n="@@app.footer.statusLoadStatusDisclaimer"
               >
                 Die Aktivität beschreibt die aktuelle Nutzung — nicht die technische Gesundheit des
                 Dienstes.
               </p>
 
-              <div class="status-help-dialog__metric-groups" aria-live="polite">
+              <div
+                class="status-help-dialog__metric-groups status-help-dialog__metric-groups--stack"
+                aria-live="polite"
+              >
                 <section
-                  class="status-help-dialog__metric-group"
+                  class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
                   aria-labelledby="server-status-dependencies-heading"
                 >
                   <h4
@@ -186,34 +197,42 @@ export interface ServerStatusHelpDialogData {
                         <mat-icon aria-hidden="true">api</mat-icon>
                         <span i18n="@@app.footer.statusMetricDependencyApi">API</span>
                       </div>
-                      <strong>{{ formatDependency(s.dependencies.api) }}</strong>
+                      <strong class="status-help-dialog__metric-value--prose">{{
+                        formatDependency(s.dependencies.api)
+                      }}</strong>
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
                         <mat-icon aria-hidden="true">storage</mat-icon>
                         <span i18n="@@app.footer.statusMetricDependencyDatabase">Datenbank</span>
                       </div>
-                      <strong>{{ formatDependency(s.dependencies.database) }}</strong>
+                      <strong class="status-help-dialog__metric-value--prose">{{
+                        formatDependency(s.dependencies.database)
+                      }}</strong>
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
                         <mat-icon aria-hidden="true">memory</mat-icon>
                         <span i18n="@@app.footer.statusMetricDependencyRedis">Redis</span>
                       </div>
-                      <strong>{{ formatDependency(s.dependencies.redis) }}</strong>
+                      <strong class="status-help-dialog__metric-value--prose">{{
+                        formatDependency(s.dependencies.redis)
+                      }}</strong>
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
                         <mat-icon aria-hidden="true">stream</mat-icon>
                         <span i18n="@@app.footer.statusMetricDependencyLive">Live-Verbindung</span>
                       </div>
-                      <strong>{{ formatDependency(s.dependencies.live) }}</strong>
+                      <strong class="status-help-dialog__metric-value--prose">{{
+                        formatDependency(s.dependencies.live)
+                      }}</strong>
                     </article>
                   </div>
                 </section>
 
                 <section
-                  class="status-help-dialog__metric-group"
+                  class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
                   aria-labelledby="server-status-traffic-heading"
                 >
                   <h4
@@ -233,20 +252,20 @@ export interface ServerStatusHelpDialogData {
                     Hoher Verkehr allein bedeutet weder gute Nutzung noch Störung. Überwacht werden
                     Kernaktionen (ohne Status-Polling).
                   </p>
-                  <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                    <span i18n="@@app.footer.statusTrafficCoverage">Messabdeckung:</span>
-                    {{ formatTrafficCoverage(s.trafficQuality) }}
-                  </p>
-                  <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                    <span i18n="@@app.footer.statusTrafficWindow">Messfenster:</span>
-                    {{ formatTrafficWindow(s.trafficQuality) }}
-                  </p>
-                  <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                    <span i18n="@@app.footer.statusTrafficUpdated"
-                      >Letzte erfolgreiche Messung:</span
-                    >
-                    {{ formatTrafficUpdatedAt(s.trafficQuality) }}
-                  </p>
+                  <dl class="status-help-dialog__meta">
+                    <div class="status-help-dialog__meta-item">
+                      <dt i18n="@@app.footer.statusTrafficCoverage">Messabdeckung:</dt>
+                      <dd>{{ formatTrafficCoverage(s.trafficQuality) }}</dd>
+                    </div>
+                    <div class="status-help-dialog__meta-item">
+                      <dt i18n="@@app.footer.statusTrafficWindow">Messfenster:</dt>
+                      <dd>{{ formatTrafficWindow(s.trafficQuality) }}</dd>
+                    </div>
+                    <div class="status-help-dialog__meta-item">
+                      <dt i18n="@@app.footer.statusTrafficUpdated">Letzte erfolgreiche Messung:</dt>
+                      <dd>{{ formatTrafficUpdatedAt(s.trafficQuality) }}</dd>
+                    </div>
+                  </dl>
                   <div class="status-help-dialog__metrics status-help-dialog__metrics--traffic">
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
@@ -358,11 +377,11 @@ export interface ServerStatusHelpDialogData {
                 </section>
 
                 <section
-                  class="status-help-dialog__metric-group"
-                  aria-labelledby="server-status-live-heading"
+                  class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
+                  aria-labelledby="server-status-ws-heading"
                 >
                   <h4
-                    id="server-status-live-heading"
+                    id="server-status-ws-heading"
                     class="status-help-dialog__metric-group-title status-help-dialog__metric-group-title--with-icon"
                   >
                     <mat-icon aria-hidden="true">cable</mat-icon>
@@ -426,12 +445,9 @@ export interface ServerStatusHelpDialogData {
                         <mat-icon aria-hidden="true">sync_alt</mat-icon>
                         <span i18n="@@app.footer.statusMetricWsChurn">Neu / geschlossen</span>
                       </div>
-                      <strong
-                        [class.status-help-dialog__metric-value--prose]="
-                          isLiveValueProse(s.liveConnections)
-                        "
-                        >{{ formatLiveChurn(s.liveConnections) }}</strong
-                      >
+                      <strong class="status-help-dialog__metric-value--prose">{{
+                        formatLiveChurn(s.liveConnections)
+                      }}</strong>
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
@@ -452,7 +468,7 @@ export interface ServerStatusHelpDialogData {
                 </section>
 
                 <section
-                  class="status-help-dialog__metric-group"
+                  class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
                   aria-labelledby="server-status-quality-heading"
                 >
                   <h4
@@ -470,12 +486,14 @@ export interface ServerStatusHelpDialogData {
                     fehlende Messungen als unbekannt — nie als Null.
                   </p>
                   @if (s.sloSampleSizeLastMinute !== null) {
-                    <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                      <span i18n="@@app.footer.statusSloSampleSize"
-                        >SLO-Stichprobe (1&nbsp;Min.):</span
-                      >
-                      {{ formatCount(s.sloSampleSizeLastMinute) }}
-                    </p>
+                    <dl class="status-help-dialog__meta status-help-dialog__meta--single">
+                      <div class="status-help-dialog__meta-item">
+                        <dt i18n="@@app.footer.statusSloSampleSize">
+                          SLO-Stichprobe (1&nbsp;Min.):
+                        </dt>
+                        <dd>{{ formatCount(s.sloSampleSizeLastMinute) }}</dd>
+                      </div>
+                    </dl>
                   }
                   <div class="status-help-dialog__metrics status-help-dialog__metrics--quality">
                     <article class="status-help-dialog__metric">
@@ -542,7 +560,7 @@ export interface ServerStatusHelpDialogData {
                 </section>
 
                 <section
-                  class="status-help-dialog__metric-group status-help-dialog__metric-group--overview"
+                  class="status-help-dialog__metric-group status-help-dialog__metric-group--block status-help-dialog__metric-group--overview"
                   aria-labelledby="server-status-overview-heading"
                 >
                   <h4
@@ -644,7 +662,7 @@ export interface ServerStatusHelpDialogData {
                 </section>
 
                 <section
-                  class="status-help-dialog__metric-group"
+                  class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
                   aria-labelledby="server-status-dynamics-heading"
                 >
                   <h4
@@ -721,7 +739,7 @@ export interface ServerStatusHelpDialogData {
                   </div>
                 </section>
               </div>
-              <p class="status-help-dialog__copy status-help-dialog__copy--compact">
+              <p class="status-help-dialog__snapshot">
                 <span i18n="@@app.footer.statusStatsGeneratedAt">Snapshot:</span>
                 <time [attr.datetime]="s.statsGeneratedAt">{{
                   formatTimestamp(s.statsGeneratedAt)
@@ -741,14 +759,19 @@ export interface ServerStatusHelpDialogData {
               <p class="status-help-dialog__leitfrage" i18n="@@app.footer.statusUsageLeitfrage">
                 Wie häufig und wofür wird arsnova.eu genutzt?
               </p>
-              <h3
-                id="server-status-usage-heading"
-                class="status-help-dialog__section-title status-help-dialog__section-title--with-icon"
+              <div class="status-help-dialog__panel-header">
+                <h3
+                  id="server-status-usage-heading"
+                  class="status-help-dialog__section-title status-help-dialog__section-title--with-icon"
+                >
+                  <mat-icon aria-hidden="true">insights</mat-icon>
+                  <span i18n="@@app.footer.statusUsageTitle">Nutzung</span>
+                </h3>
+              </div>
+              <p
+                class="status-help-dialog__copy status-help-dialog__copy--compact"
+                i18n="@@app.footer.statusUsageIntro"
               >
-                <mat-icon aria-hidden="true">insights</mat-icon>
-                <span i18n="@@app.footer.statusUsageTitle">Nutzung</span>
-              </h3>
-              <p class="status-help-dialog__copy" i18n="@@app.footer.statusUsageIntro">
                 Aggregierte, datensparsame Kennzahlen ohne Sessioncodes, Titel oder Personenbezüge.
                 Zeitzone der Tageswerte: UTC.
               </p>
@@ -840,35 +863,47 @@ export interface ServerStatusHelpDialogData {
               }
 
               @if (usageStats(); as u) {
-                <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                  <span i18n="@@app.footer.statusUsagePeriodRange">Zeitraum (UTC):</span>
-                  <time [attr.datetime]="u.periodFrom">{{ formatUsageDay(u.periodFrom) }}</time>
-                  –
-                  <time [attr.datetime]="u.periodTo">{{ formatUsageDay(u.periodTo) }}</time>
-                </p>
-                <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                  <span i18n="@@app.footer.statusUsageTrackingStarted">Erfassungsbeginn:</span>
-                  @if (u.trackingStartedAt) {
-                    <time [attr.datetime]="u.trackingStartedAt">{{
-                      formatTimestamp(u.trackingStartedAt)
-                    }}</time>
-                  } @else {
-                    <span i18n="@@app.footer.statusUsageTrackingUnknown">noch nicht verfügbar</span>
-                  }
-                </p>
-                <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                  <span i18n="@@app.footer.statusUsageLastAggregated">Letzte Aggregation:</span>
-                  @if (u.lastAggregatedAt) {
-                    <time [attr.datetime]="u.lastAggregatedAt">{{
-                      formatTimestamp(u.lastAggregatedAt)
-                    }}</time>
-                  } @else {
-                    <span i18n="@@app.footer.statusUsageTrackingUnknown">noch nicht verfügbar</span>
-                  }
-                </p>
+                <dl class="status-help-dialog__meta status-help-dialog__meta--usage">
+                  <div class="status-help-dialog__meta-item">
+                    <dt i18n="@@app.footer.statusUsagePeriodRange">Zeitraum (UTC):</dt>
+                    <dd>
+                      <time [attr.datetime]="u.periodFrom">{{ formatUsageDay(u.periodFrom) }}</time>
+                      –
+                      <time [attr.datetime]="u.periodTo">{{ formatUsageDay(u.periodTo) }}</time>
+                    </dd>
+                  </div>
+                  <div class="status-help-dialog__meta-item">
+                    <dt i18n="@@app.footer.statusUsageTrackingStarted">Erfassungsbeginn:</dt>
+                    <dd>
+                      @if (u.trackingStartedAt) {
+                        <time [attr.datetime]="u.trackingStartedAt">{{
+                          formatTimestamp(u.trackingStartedAt)
+                        }}</time>
+                      } @else {
+                        <span i18n="@@app.footer.statusUsageTrackingUnknown"
+                          >noch nicht verfügbar</span
+                        >
+                      }
+                    </dd>
+                  </div>
+                  <div class="status-help-dialog__meta-item">
+                    <dt i18n="@@app.footer.statusUsageLastAggregated">Letzte Aggregation:</dt>
+                    <dd>
+                      @if (u.lastAggregatedAt) {
+                        <time [attr.datetime]="u.lastAggregatedAt">{{
+                          formatTimestamp(u.lastAggregatedAt)
+                        }}</time>
+                      } @else {
+                        <span i18n="@@app.footer.statusUsageTrackingUnknown"
+                          >noch nicht verfügbar</span
+                        >
+                      }
+                    </dd>
+                  </div>
+                </dl>
                 @if (!u.historyComplete) {
                   <p
-                    class="status-help-dialog__copy status-help-dialog__copy--compact"
+                    class="status-help-dialog__copy status-help-dialog__copy--compact status-help-dialog__copy--after-meta"
                     i18n="@@app.footer.statusUsageHistoryIncomplete"
                   >
                     Die Historie der neuen Nutzungsaggregate ist noch unvollständig. Fehlende Werte
@@ -876,9 +911,12 @@ export interface ServerStatusHelpDialogData {
                   </p>
                 }
 
-                <div class="status-help-dialog__metric-groups" aria-live="polite">
+                <div
+                  class="status-help-dialog__metric-groups status-help-dialog__metric-groups--stack"
+                  aria-live="polite"
+                >
                   <section
-                    class="status-help-dialog__metric-group"
+                    class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
                     aria-labelledby="server-status-usage-core-heading"
                   >
                     <h4
@@ -890,7 +928,9 @@ export interface ServerStatusHelpDialogData {
                         >Kennzahlen im Zeitraum</span
                       >
                     </h4>
-                    <div class="status-help-dialog__metrics">
+                    <div
+                      class="status-help-dialog__metrics status-help-dialog__metrics--usage-core"
+                    >
                       <article class="status-help-dialog__metric">
                         <div class="status-help-dialog__metric-head">
                           <mat-icon aria-hidden="true">meeting_room</mat-icon>
@@ -898,7 +938,12 @@ export interface ServerStatusHelpDialogData {
                             >Genutzte Sessions</span
                           >
                         </div>
-                        <strong>{{ formatOptionalCount(u.sessionsUsed) }}</strong>
+                        <strong
+                          [class.status-help-dialog__metric-value--prose]="
+                            isMissingCount(u.sessionsUsed)
+                          "
+                          >{{ formatOptionalCount(u.sessionsUsed) }}</strong
+                        >
                         <p
                           class="status-help-dialog__metric-hint"
                           i18n="@@app.footer.statusMetricSessionsUsedHint"
@@ -913,7 +958,12 @@ export interface ServerStatusHelpDialogData {
                             >Session-Teilnahmen</span
                           >
                         </div>
-                        <strong>{{ formatOptionalCount(u.sessionParticipations) }}</strong>
+                        <strong
+                          [class.status-help-dialog__metric-value--prose]="
+                            isMissingCount(u.sessionParticipations)
+                          "
+                          >{{ formatOptionalCount(u.sessionParticipations) }}</strong
+                        >
                         <p
                           class="status-help-dialog__metric-hint"
                           i18n="@@app.footer.statusMetricSessionParticipationsHint"
@@ -926,14 +976,24 @@ export interface ServerStatusHelpDialogData {
                           <mat-icon aria-hidden="true">how_to_vote</mat-icon>
                           <span i18n="@@app.footer.statusMetricQuizAnswers">Quizantworten</span>
                         </div>
-                        <strong>{{ formatOptionalCount(u.quizAnswers) }}</strong>
+                        <strong
+                          [class.status-help-dialog__metric-value--prose]="
+                            isMissingCount(u.quizAnswers)
+                          "
+                          >{{ formatOptionalCount(u.quizAnswers) }}</strong
+                        >
                       </article>
                       <article class="status-help-dialog__metric">
                         <div class="status-help-dialog__metric-head">
                           <mat-icon aria-hidden="true">question_answer</mat-icon>
                           <span i18n="@@app.footer.statusMetricQaAccepted">Q&A-Fragen</span>
                         </div>
-                        <strong>{{ formatOptionalCount(u.qaQuestionsAccepted) }}</strong>
+                        <strong
+                          [class.status-help-dialog__metric-value--prose]="
+                            isMissingCount(u.qaQuestionsAccepted)
+                          "
+                          >{{ formatOptionalCount(u.qaQuestionsAccepted) }}</strong
+                        >
                       </article>
                       <article class="status-help-dialog__metric">
                         <div class="status-help-dialog__metric-head">
@@ -942,7 +1002,12 @@ export interface ServerStatusHelpDialogData {
                             >Q&A-Bewertungen</span
                           >
                         </div>
-                        <strong>{{ formatOptionalCount(u.qaRatingActions) }}</strong>
+                        <strong
+                          [class.status-help-dialog__metric-value--prose]="
+                            isMissingCount(u.qaRatingActions)
+                          "
+                          >{{ formatOptionalCount(u.qaRatingActions) }}</strong
+                        >
                       </article>
                       <article class="status-help-dialog__metric status-help-dialog__metric--wide">
                         <div class="status-help-dialog__metric-head">
@@ -980,7 +1045,7 @@ export interface ServerStatusHelpDialogData {
 
                   @if (u.sessionsByFunction; as byFn) {
                     <section
-                      class="status-help-dialog__metric-group"
+                      class="status-help-dialog__metric-group status-help-dialog__metric-group--block"
                       aria-labelledby="server-status-usage-functions-heading"
                     >
                       <h4
@@ -992,13 +1057,30 @@ export interface ServerStatusHelpDialogData {
                           >Sessions nach Funktion</span
                         >
                       </h4>
-                      <div class="status-help-dialog__metrics status-help-dialog__metrics--dynamic">
+                      <p
+                        class="status-help-dialog__copy status-help-dialog__copy--compact"
+                        i18n="@@app.footer.statusMetricGroupFunctionsHint"
+                      >
+                        Nach erfassten Interaktionen in der Session — nicht nach dem offenen Kanal.
+                        »Nur Beitritt« zählt Sessions mit Teilnahme, aber noch ohne Quizantwort und
+                        ohne Q&amp;A-Aktivität. 0 ist üblich, sobald jede Session mindestens einmal
+                        Quiz oder Q&amp;A genutzt hat.
+                      </p>
+                      <div
+                        class="status-help-dialog__metrics status-help-dialog__metrics--functions"
+                      >
                         <article class="status-help-dialog__metric">
                           <div class="status-help-dialog__metric-head">
                             <mat-icon aria-hidden="true">login</mat-icon>
-                            <span i18n="@@app.footer.statusMetricFnJoinOnly">Nur Teilnahme</span>
+                            <span i18n="@@app.footer.statusMetricFnJoinOnly">Nur Beitritt</span>
                           </div>
                           <strong>{{ formatCount(byFn.joinOnly) }}</strong>
+                          <p
+                            class="status-help-dialog__metric-hint"
+                            i18n="@@app.footer.statusMetricFnJoinOnlyHint"
+                          >
+                            Beigetreten, aber noch keine Quiz- oder Q&amp;A-Interaktion
+                          </p>
                         </article>
                         <article class="status-help-dialog__metric">
                           <div class="status-help-dialog__metric-head">
@@ -1006,6 +1088,12 @@ export interface ServerStatusHelpDialogData {
                             <span i18n="@@app.footer.statusMetricFnQuizOnly">Nur Quiz</span>
                           </div>
                           <strong>{{ formatCount(byFn.quizOnly) }}</strong>
+                          <p
+                            class="status-help-dialog__metric-hint"
+                            i18n="@@app.footer.statusMetricFnQuizOnlyHint"
+                          >
+                            Mindestens eine Quizantwort, keine Q&amp;A-Aktivität
+                          </p>
                         </article>
                         <article class="status-help-dialog__metric">
                           <div class="status-help-dialog__metric-head">
@@ -1013,6 +1101,12 @@ export interface ServerStatusHelpDialogData {
                             <span i18n="@@app.footer.statusMetricFnQaOnly">Nur Q&A</span>
                           </div>
                           <strong>{{ formatCount(byFn.qaOnly) }}</strong>
+                          <p
+                            class="status-help-dialog__metric-hint"
+                            i18n="@@app.footer.statusMetricFnQaOnlyHint"
+                          >
+                            Mindestens eine Q&amp;A-Aktivität, keine Quizantwort
+                          </p>
                         </article>
                         <article class="status-help-dialog__metric">
                           <div class="status-help-dialog__metric-head">
@@ -1020,6 +1114,12 @@ export interface ServerStatusHelpDialogData {
                             <span i18n="@@app.footer.statusMetricFnCombined">Quiz und Q&A</span>
                           </div>
                           <strong>{{ formatCount(byFn.combined) }}</strong>
+                          <p
+                            class="status-help-dialog__metric-hint"
+                            i18n="@@app.footer.statusMetricFnCombinedHint"
+                          >
+                            Mindestens eine Quizantwort und eine Q&amp;A-Aktivität
+                          </p>
                         </article>
                       </div>
                     </section>
@@ -1027,7 +1127,7 @@ export interface ServerStatusHelpDialogData {
 
                   @if (u.sizeDistribution; as size) {
                     <section
-                      class="status-help-dialog__metric-group status-help-dialog__metric-group--wide"
+                      class="status-help-dialog__metric-group status-help-dialog__metric-group--block status-help-dialog__metric-group--wide"
                       aria-labelledby="server-status-usage-size-heading"
                     >
                       <h4
@@ -1037,25 +1137,27 @@ export interface ServerStatusHelpDialogData {
                         <mat-icon aria-hidden="true">category</mat-icon>
                         <span i18n="@@app.footer.statusMetricGroupSize">Reichweite nach Größe</span>
                       </h4>
-                      <p class="status-help-dialog__copy status-help-dialog__copy--compact">
-                        <span i18n="@@app.footer.statusUsageSizeSample">Stichprobe:</span>
-                        {{ formatCount(size.sampleSize) }}
+                      <dl class="status-help-dialog__meta status-help-dialog__meta--size">
+                        <div class="status-help-dialog__meta-item">
+                          <dt i18n="@@app.footer.statusUsageSizeSample">Stichprobe:</dt>
+                          <dd>{{ formatCount(size.sampleSize) }}</dd>
+                        </div>
                         @if (size.median != null) {
-                          <span>
-                            ·
-                            <span i18n="@@app.footer.statusUsageSizeMedian">Median:</span>
-                            {{ formatCount(size.median) }}
-                          </span>
+                          <div class="status-help-dialog__meta-item">
+                            <dt i18n="@@app.footer.statusUsageSizeMedian">Median:</dt>
+                            <dd>{{ formatCount(size.median) }}</dd>
+                          </div>
                         }
                         @if (size.quartile1 != null && size.quartile3 != null) {
-                          <span>
-                            ·
-                            <span i18n="@@app.footer.statusUsageSizeQuartiles">Q1–Q3:</span>
-                            {{ formatCount(size.quartile1) }}–{{ formatCount(size.quartile3) }}
-                          </span>
+                          <div class="status-help-dialog__meta-item">
+                            <dt i18n="@@app.footer.statusUsageSizeQuartiles">Q1–Q3:</dt>
+                            <dd>
+                              {{ formatCount(size.quartile1) }}–{{ formatCount(size.quartile3) }}
+                            </dd>
+                          </div>
                         }
-                      </p>
-                      <div class="status-help-dialog__metrics">
+                      </dl>
+                      <div class="status-help-dialog__metrics status-help-dialog__metrics--size">
                         @for (cls of size.classes; track cls.id) {
                           <article class="status-help-dialog__metric">
                             <div class="status-help-dialog__metric-head">
@@ -1097,23 +1199,61 @@ export interface ServerStatusHelpDialogData {
                                 <time [attr.datetime]="day.date">{{
                                   formatUsageDay(day.date)
                                 }}</time>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesSessions"
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesSessions"
                                     >Sessions</span
                                   >
-                                  {{ formatOptionalCount(day.sessionsUsed) }}
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(day.sessionsUsed)
+                                    "
+                                    >{{ formatOptionalCount(day.sessionsUsed) }}</span
+                                  >
                                 </span>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesJoins">Teilnahmen</span>
-                                  {{ formatOptionalCount(day.sessionParticipations) }}
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesJoins"
+                                    >Teilnahmen</span
+                                  >
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(day.sessionParticipations)
+                                    "
+                                    >{{ formatOptionalCount(day.sessionParticipations) }}</span
+                                  >
                                 </span>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesVotes">Antworten</span>
-                                  {{ formatOptionalCount(day.quizAnswers) }}
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesVotes"
+                                    >Antworten</span
+                                  >
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(day.quizAnswers)
+                                    "
+                                    >{{ formatOptionalCount(day.quizAnswers) }}</span
+                                  >
                                 </span>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesQa">Q&A</span>
-                                  {{ formatOptionalCount(day.qaQuestionsAccepted) }}
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesQa"
+                                    >Q&A</span
+                                  >
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(day.qaQuestionsAccepted)
+                                    "
+                                    >{{ formatOptionalCount(day.qaQuestionsAccepted) }}</span
+                                  >
                                 </span>
                               </div>
                             }
@@ -1139,23 +1279,61 @@ export interface ServerStatusHelpDialogData {
                             @for (month of u.monthlySeries; track month.yearMonth) {
                               <div class="status-help-dialog__usage-day" role="listitem">
                                 <time [attr.datetime]="month.yearMonth">{{ month.yearMonth }}</time>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesSessions"
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesSessions"
                                     >Sessions</span
                                   >
-                                  {{ formatOptionalCount(month.sessionsUsed) }}
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(month.sessionsUsed)
+                                    "
+                                    >{{ formatOptionalCount(month.sessionsUsed) }}</span
+                                  >
                                 </span>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesJoins">Teilnahmen</span>
-                                  {{ formatOptionalCount(month.sessionParticipations) }}
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesJoins"
+                                    >Teilnahmen</span
+                                  >
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(month.sessionParticipations)
+                                    "
+                                    >{{ formatOptionalCount(month.sessionParticipations) }}</span
+                                  >
                                 </span>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesVotes">Antworten</span>
-                                  {{ formatOptionalCount(month.quizAnswers) }}
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesVotes"
+                                    >Antworten</span
+                                  >
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(month.quizAnswers)
+                                    "
+                                    >{{ formatOptionalCount(month.quizAnswers) }}</span
+                                  >
                                 </span>
-                                <span>
-                                  <span i18n="@@app.footer.statusUsageSeriesQa">Q&A</span>
-                                  {{ formatOptionalCount(month.qaQuestionsAccepted) }}
+                                <span class="status-help-dialog__usage-stat">
+                                  <span
+                                    class="status-help-dialog__usage-stat-label"
+                                    i18n="@@app.footer.statusUsageSeriesQa"
+                                    >Q&A</span
+                                  >
+                                  <span
+                                    class="status-help-dialog__usage-stat-value"
+                                    [class.status-help-dialog__usage-stat-value--prose]="
+                                      isMissingCount(month.qaQuestionsAccepted)
+                                    "
+                                    >{{ formatOptionalCount(month.qaQuestionsAccepted) }}</span
+                                  >
                                 </span>
                               </div>
                             }
@@ -1648,6 +1826,10 @@ export class ServerStatusHelpDialogComponent {
       return $localize`:@@app.footer.statusMetricNotYetAvailable:noch nicht verfügbar`;
     }
     return formatLocaleCount(value, this.locale);
+  }
+
+  protected isMissingCount(value: number | null): boolean {
+    return value === null;
   }
 
   protected formatDependency(status: ServerStatsDTO['dependencies']['api']): string {

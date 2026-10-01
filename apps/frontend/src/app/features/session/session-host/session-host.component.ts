@@ -3735,6 +3735,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
+      if (this.activeChannel() !== 'qa' || !this.projectionNavigationIsQaQuestions()) {
+        this.projectionControlsVisible.set(false);
+        return;
+      }
       if (
         (this.session()?.presenterPage?.count ?? 1) > 1 ||
         this.projectionPageDisplayCount() > 1
@@ -6088,8 +6092,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1]!;
   private qaProjectionPageSyncInFlight = false;
   /**
-   * Q&A-Fragen-Navigator und Hero-Rahmen: solange der Q&A-Kanal bevorzugt ist
+   * Q&A-Fragenmodus für Navigator/Hero: solange der Q&A-Kanal bevorzugt ist
    * (auch ohne laufende Projektion / nach »Projektionsansicht beenden«).
+   * Die sichtbare Navigator-UI bleibt auf den Q&A-Kanal-Tab beschränkt
+   * (`showProjectionPageNavigation`).
    */
   readonly projectionNavigationIsQaQuestions = computed(() => {
     const session = this.session();
@@ -6237,23 +6243,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return Math.max(1, this.qaProjectionQueuePageCount());
   });
   readonly showProjectionPageNavigation = computed(() => {
+    // Sticky Host-Navigator (Fragen) ausschließlich im Q&A-Kanal-Tab —
+    // nicht auf Quiz/Kurzfeedback, auch nicht als Seiten-Fallback nach Kanalwechsel.
+    if (this.activeChannel() !== 'qa') {
+      return false;
+    }
+    if (!this.projectionNavigationIsQaQuestions()) {
+      return false;
+    }
     const session = this.session();
     const page = session?.presenterPage;
     if (!page) return false;
-    if (this.projectionNavigationIsQaQuestions()) {
-      if (this.qaNavigableStageQuestions().length === 0) {
-        return false;
-      }
-      return (
-        this.projectionPageDisplayCount() > 1 ||
-        this.projectionControlsVisible() ||
-        this.presenterWindowOpen() ||
-        !this.showPresenterViewButton() ||
-        session?.presenterSurface === 'ended'
-      );
+    if (this.qaNavigableStageQuestions().length === 0) {
+      return false;
     }
-    if (session?.presenterSurface === 'ended') return false;
-    return page.count > 1 || this.projectionControlsVisible() || !this.showPresenterViewButton();
+    return (
+      this.projectionPageDisplayCount() > 1 ||
+      this.projectionControlsVisible() ||
+      this.presenterWindowOpen() ||
+      !this.showPresenterViewButton() ||
+      session?.presenterSurface === 'ended'
+    );
   });
   private async syncPresenterToStageQuestionId(questionId: string): Promise<void> {
     if (
