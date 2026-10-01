@@ -10,7 +10,7 @@
  *   CLIENTS=100 UPDATE_CONCURRENCY=25 node scripts/load/yjs-sync-load.mjs
  *   YJS_WS_URL=wss://example.org/yjs-ws REPORT_FILE=reports/yjs.json node scripts/load/yjs-sync-load.mjs
  */
-import { randomUUID, createHash } from 'node:crypto';
+import { randomUUID, createHash, randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
 import process from 'node:process';
 import WebSocket from 'ws';
@@ -21,9 +21,12 @@ const EXIT_OK = 0;
 const EXIT_TEST_FAILED = 1;
 const EXIT_CONFIGURATION = 2;
 const DEFAULT_YJS_WS_URL = 'ws://127.0.0.1:3002';
+const DEFAULT_HTTP_URL = 'http://127.0.0.1:3000';
 const ROOM_PREFIX = 'quiz-library-room-';
 const ROOT_KEY = 'quiz-library';
 const QUIZZES_KEY = 'quizzes';
+const SHARE_TOKEN_RE =
+  /^v1\.([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.[1-9][0-9]{0,9}\.[A-Za-z0-9_-]{43}$/i;
 
 const HELP = `Yjs/y-websocket Mehrclient-Lasttest
 
@@ -32,7 +35,10 @@ Aufruf:
 
 Konfiguration:
   YJS_WS_URL             Relay-Basis-URL (Default: ${DEFAULT_YJS_WS_URL})
-  YJS_SHARE_TOKEN        Optionales v1-Share-Token (wird nie in Reports geschrieben)
+  YJS_SHARE_TOKEN        v1-Share-Token (wird nie in Reports geschrieben). Fehlt es,
+                         legt der Test einen neuen Share über ARSNOVA_HTTP_URL an
+                         (nach dem Legacy-UUID-Cutoff Pflicht).
+  ARSNOVA_HTTP_URL       HTTP-Basis für quizSync.createShare (Default: ${DEFAULT_HTTP_URL})
   CLIENTS                Anzahl paralleler Clients (Default: 30; z. B. 100)
   UPDATE_CONCURRENCY     Gleichzeitige Update-Worker (Default: 15)
   CONNECT_P95_LIMIT_MS   Obergrenze fuer Connect-p95 (Default: 3000)
@@ -41,7 +47,7 @@ Konfiguration:
   REPORT_FILE            Optionaler Pfad fuer einen atomar geschriebenen JSON-Report
 
 Optionale Teststeuerung:
-  ROOM_ID                UUID fuer einen expliziten, neuen Testraum
+  ROOM_ID                UUID nur zusammen mit YJS_SHARE_TOKEN
   RECONNECT_PERCENT      Anteil reconnectender Clients (Default: 20)
   PHASE_TIMEOUT_MS       Timeout je Konvergenzphase (Default: 15000)
 
@@ -87,25 +93,33 @@ function readConfig() {
   }
 
   const shareToken = String(process.env.YJS_SHARE_TOKEN || '').trim() || null;
-  const tokenMatch = shareToken
-    ? /^v1\.([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.[1-9][0-9]{0,9}\.[A-Za-z0-9_-]{43}$/i.exec(
-        shareToken,
-      )
-    : null;
+  const tokenMatch = shareToken ? SHARE_TOKEN_RE.exec(shareToken) : null;
   if (shareToken && !tokenMatch) {
     throw new ConfigurationError('YJS_SHARE_TOKEN hat kein gültiges v1-Format.');
   }
-  const roomId = String(process.env.ROOM_ID || tokenMatch?.[1] || randomUUID()).trim();
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(roomId)) {
+  const explicitRoomId = String(process.env.ROOM_ID || '').trim();
+  if (explicitRoomId && !shareToken) {
+    throw new ConfigurationError(
+      'ROOM_ID erfordert YJS_SHARE_TOKEN (UUID-only ist nach dem Legacy-Cutoff abgelehnt).',
+    );
+  }
+  const roomId = String(explicitRoomId || tokenMatch?.[1] || '').trim();
+  if (
+    roomId &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(roomId)
+  ) {
     throw new ConfigurationError('ROOM_ID muss eine UUID sein.');
   }
-  if (tokenMatch && tokenMatch[1]?.toLowerCase() !== roomId.toLowerCase()) {
+  if (tokenMatch && roomId && tokenMatch[1]?.toLowerCase() !== roomId.toLowerCase()) {
     throw new ConfigurationError('ROOM_ID stimmt nicht mit YJS_SHARE_TOKEN überein.');
   }
 
   const clients = readPositiveInteger('CLIENTS', 30);
   return {
     yjsWsUrl,
+    httpBaseUrl: String(process.env.ARSNOVA_HTTP_URL || DEFAULT_HTTP_URL)
+      .trim()
+      .replace(/\/+$/, ''),
     clients,
     updateConcurrency: Math.min(clients, readPositiveInteger('UPDATE_CONCURRENCY', 15)),
     connectP95LimitMs: readPositiveInteger('CONNECT_P95_LIMIT_MS', 3_000),
@@ -114,9 +128,72 @@ function readConfig() {
     phaseTimeoutMs: readPositiveInteger('PHASE_TIMEOUT_MS', 15_000),
     reconnectPercent: readPercent('RECONNECT_PERCENT', 20),
     reportFile: String(process.env.REPORT_FILE || '').trim() || null,
-    roomId,
-    room: `${ROOM_PREFIX}${roomId}`,
+    roomId: roomId || null,
+    room: roomId ? `${ROOM_PREFIX}${roomId}` : null,
     shareToken,
+  };
+}
+
+/**
+ * Legt über tRPC einen neuen Share an (serverseitige Raum-UUID + Token).
+ * Erforderlich seit dem Default-Cutoff 2026-10-01 (kein UUID-only mehr).
+ */
+async function mintShareToken(httpBaseUrl) {
+  const rotationCapability = randomBytes(32).toString('hex');
+  const url = `${httpBaseUrl}/trpc/quizSync.createShare`;
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rotationCapability }),
+    });
+  } catch (error) {
+    throw new ConfigurationError(
+      `Share-Anlage unerreichbar (${url}): ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  const text = await response.text();
+  if (!response.ok) {
+    throw new ConfigurationError(
+      `Share-Anlage fehlgeschlagen (HTTP ${response.status}): ${text.slice(0, 300)}`,
+    );
+  }
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    throw new ConfigurationError(`Share-Anlage: ungültige JSON-Antwort: ${text.slice(0, 200)}`);
+  }
+  const data = payload?.result?.data?.json ?? payload?.result?.data ?? payload;
+  const shareToken = typeof data?.shareToken === 'string' ? data.shareToken.trim() : '';
+  const roomId = typeof data?.roomId === 'string' ? data.roomId.trim() : '';
+  const tokenMatch = SHARE_TOKEN_RE.exec(shareToken);
+  if (!tokenMatch || tokenMatch[1]?.toLowerCase() !== roomId.toLowerCase()) {
+    throw new ConfigurationError(`Share-Anlage: unerwartete Antwort: ${text.slice(0, 300)}`);
+  }
+  return { shareToken, roomId };
+}
+
+async function resolveConfig() {
+  const config = readConfig();
+  if (config.shareToken && config.roomId && config.room) {
+    return {
+      ...config,
+      shareToken: config.shareToken,
+      roomId: config.roomId,
+      room: config.room,
+    };
+  }
+  console.log(
+    `Kein YJS_SHARE_TOKEN — lege neuen Share über ${config.httpBaseUrl}/trpc/quizSync.createShare an …`,
+  );
+  const minted = await mintShareToken(config.httpBaseUrl);
+  return {
+    ...config,
+    shareToken: minted.shareToken,
+    roomId: minted.roomId,
+    room: `${ROOM_PREFIX}${minted.roomId}`,
   };
 }
 
@@ -660,7 +737,7 @@ async function main() {
     throw new ConfigurationError(`Unbekannte Argumente: ${process.argv.slice(2).join(' ')}`);
   }
 
-  const config = readConfig();
+  const config = await resolveConfig();
   const report = await execute(config);
   printSummary(report);
   if (config.reportFile) {

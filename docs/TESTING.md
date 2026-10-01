@@ -573,6 +573,10 @@ npm test -w @arsnova/backend -- --run src/lib/yjsRelay.test.ts
 CLIENTS=30 npm run load:yjs:sync
 ```
 
+Seit dem Legacy-UUID-Cutoff (`YJS_SHARE_LEGACY_UUID_CUTOFF_AT`, Default 2026-10-01)
+legt `load:yjs:sync` ohne `YJS_SHARE_TOKEN` automatisch einen Share über
+`quizSync.createShare` an (`ARSNOVA_HTTP_URL`, Default `http://127.0.0.1:3000`).
+
 Der Lasttest muss auch Offline-Updates nach Reconnect in denselben State Vector
 konvergieren lassen. Enge IP-Limits sind kein zulässiger Ersatz für diese
 Abnahme.

@@ -2178,9 +2178,12 @@ jobs:
 
           # Produktionsimage/Compose: Yjs-Protokoll, Offline-Update und Reconnect
           # gegen den gehärteten Relay auf dem tatsächlich veröffentlichten Port.
+          # Ohne Share-Token lehnt der Relay seit dem Legacy-Cutoff (2026-10-01) ab;
+          # yjs-sync-load legt den Share selbst über quizSync.createShare an.
           docker compose -f docker-compose.prod.yml --env-file .env.production \
             exec -T \
             -e YJS_WS_URL=ws://127.0.0.1:3002 \
+            -e ARSNOVA_HTTP_URL=http://127.0.0.1:3000 \
             -e CLIENTS=30 \
             -e UPDATE_CONCURRENCY=15 \
             app node --input-type=module < scripts/load/yjs-sync-load.mjs
