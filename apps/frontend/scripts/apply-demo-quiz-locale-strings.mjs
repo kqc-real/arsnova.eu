@@ -401,7 +401,7 @@ _Mehrere Antworten möglich._
 
 Gemeint ist der klassische Rubik’s Cube von Ernő Rubik.
 
-Optionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).
+Optionaler Impuls: [Wie man einen 3×3-Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).
         `,
         answers: [
           { text: '28', isCorrect: false },
@@ -411,7 +411,7 @@ Optionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https
         ],
       },
       {
-        text: md`### Für welche Creative-Coding-Umgebung wurde dieses Sketch geschrieben?
+        text: md`### Für welche Creative-Coding-Umgebung wurde dieser Sketch geschrieben?
 
 > **Unterrichtsidee:** Nutze das als schnellen Erkennungsimpuls für Informatik, Maker-Projekte oder technische Einführungen.
 
@@ -520,7 +520,7 @@ _Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
           },
           {
             left: '29. Oktober 1929',
-            right: 'Massiver Kurseinbruch an der Wall Street („Black Tuesday“)',
+            right: 'Massiver Kurseinbruch an der Wall Street (»Black Tuesday«)',
           },
           {
             left: '30. Januar 1933',
@@ -584,7 +584,7 @@ The responses will be displayed as a word cloud.
 
 These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.
 
-The showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect open free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.
+The showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.
 
 Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.`,
     questions: [
@@ -751,7 +751,7 @@ Arrange the six steps in the correct sequence.
       },
       {
         text: md`
-### Match the historical dates of the Weimar Republic to the corresponding event.
+### Match each historical date of the Weimar Republic to the corresponding event.
 
 > **Teaching move:** Use matching prompts in history, social studies, or geography to check key dates, treaties, or constitutional organs 1:1.
 
@@ -776,7 +776,7 @@ _Match each date on the left to its historical milestone on the right._
           },
           {
             left: '29 October 1929',
-            right: 'Massive Wall Street price collapse ("Black Tuesday")',
+            right: 'Massive Wall Street price collapse (“Black Tuesday”)',
           },
           {
             left: '30 January 1933',
@@ -827,7 +827,7 @@ _Match each date on the left to its historical milestone on the right._
   fr: {
     name: 'Démonstration pédagogique : quiz en équipe',
     teamNames: ['Équipe 🍎', 'Équipe 🍐'],
-    confidenceLabelLow: 'Très incertain·e',
+    confidenceLabelLow: 'Très peu sûr·e',
     confidenceLabelHigh: 'Très sûr·e',
     freeTextQuestion: md`
 ### Qu’est-ce qui t’aide à apprendre ?
@@ -838,9 +838,9 @@ Les réponses seront affichées sous forme de nuage de mots.
 
 # Démonstration pédagogique
 
-Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.
+Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.
 
-La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.
+La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.
 
 Les chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.`,
     questions: [
@@ -853,7 +853,7 @@ Les chronos, les équipes, le classement et les codes bonus donnent du rythme. R
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Cliquer pour agrandir.*`,
+*Clique pour agrandir.*`,
         answers: [
           { text: ':smile: Prêt·e à s’y mettre', isCorrect: false },
           { text: ':cry: Un peu dépassé·e', isCorrect: false },
@@ -881,7 +881,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
 
 > **Piste pédagogique :** utilisez cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.
 
-![Scène de toit](${ROOFTOP_SCENE_IMAGE_URL})`,
+![Scène sur un toit](${ROOFTOP_SCENE_IMAGE_URL})`,
         answers: [
           { text: 'Image générée par IA', isCorrect: false },
           { text: 'Photo réelle', isCorrect: true },
@@ -1032,7 +1032,7 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
           },
           {
             left: '29 octobre 1929',
-            right: 'Effondrement massif des cours à Wall Street (« Black Tuesday »)',
+            right: 'Effondrement massif des cours à Wall Street (« Black Tuesday »)',
           },
           {
             left: '30 janvier 1933',
@@ -1094,9 +1094,9 @@ Las respuestas se mostrarán como una nube de palabras.
 
 # Demostración didáctica
 
-Estas 13 preguntas presentan los diez formatos de cuestionario de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
+Estas 13 preguntas presentan los diez formatos de preguntas de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
 
-La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas y comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.
+La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.
 
 Los temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.`,
     questions: [
@@ -1172,7 +1172,7 @@ _Puede haber varias respuestas correctas._
 
 La pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.
 
-Sugerencia opcional: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (en alemán)](https://www.youtube.com/watch?v=EoINieyz6gE).
+Sugerencia opcional: [Cómo resolver un cubo de Rubik 3×3 sin experiencia (vídeo en alemán)](https://www.youtube.com/watch?v=EoINieyz6gE).
         `,
         answers: [
           { text: '28', isCorrect: false },
@@ -1350,9 +1350,9 @@ Le risposte saranno visualizzate sotto forma di nuvola di parole.
 
 # Dimostrazione didattica
 
-Queste 13 domande presentano tutti i dieci formati di quiz di arsnova.eu in una sequenza dal vivo compatta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
+Queste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
 
-La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e abbinamenti confusi.
+La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e frequenti errori di abbinamento.
 
 Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.`,
     questions: [
@@ -1428,7 +1428,7 @@ _Sono possibili più risposte corrette._
 
 La domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.
 
-Spunto facoltativo: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst (in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).
+Spunto facoltativo: [Come risolvere un cubo di Rubik 3×3 senza esperienza (video in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).
         `,
         answers: [
           { text: '28', isCorrect: false },

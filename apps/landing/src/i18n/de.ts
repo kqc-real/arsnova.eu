@@ -4,7 +4,7 @@ const de: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live-Quiz, Schätzfragen und Q&A-Fragenwand',
     homeDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone, Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source-Audience-Response-System für Bildung, Training und Organisationen: Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone, Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     siteNameInfo: 'arsnova.eu – Informationen',
     ogLocale: 'de_DE',
   },
@@ -101,11 +101,11 @@ const de: Messages = {
   confidence: {
     eyebrow: 'Didaktische Auswertung',
     title: 'Richtig oder falsch — und wie sicher?',
-    lead: 'Bei der Selbsteinschätzung geben Teilnehmende nach ihrer Antwort an, wie sicher sie sind (1–5). Du erkennst nicht nur Trefferquote, sondern auch falsche Antworten mit hoher Antwortsicherheit — ein hilfreiches Instrument für formative Auswertung, gezielte Nachbesprechung und den Ergebnisbericht (PDF) nach Session-Ende.',
+    lead: 'Bei der Selbsteinschätzung geben Teilnehmende nach ihrer Antwort an, wie sicher sie sind (1–5). Du erkennst nicht nur die Trefferquote, sondern auch falsche Antworten mit hoher Antwortsicherheit — ein hilfreiches Instrument für formative Auswertung, gezielte Nachbesprechung und den Ergebnisbericht (PDF) nach Session-Ende.',
     summary: [
-      'Kein eigener Fragetyp — optional an bewertbaren Quizfragen.',
+      'Kein eigener Fragetyp — optional bei bewertbaren Quizfragen.',
       'Skala 1–5 nach der Antwort, ohne Einfluss auf Punkte.',
-      'Host sieht nach Freigabe Korrektheit × Antwortsicherheit.',
+      'Der Host sieht nach der Freigabe Korrektheit × Antwortsicherheit.',
       'Falsche Antworten mit hoher Antwortsicherheit weisen auf mögliche Fehlkonzepte hin.',
       'Nach Session-Ende: Ergebnisbericht (PDF) und Nachbesprechung.',
     ],
@@ -240,18 +240,18 @@ const de: Messages = {
   pairing: {
     eyebrow: 'Alleinstellungsmerkmal',
     title: 'Frei im Raum präsentieren — vom Smartphone oder Tablet',
-    lead: 'Das Pairing trägt, weil die Host-Ansicht selbst zuerst fürs Smartphone gedacht ist. Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit extra Konto auf dem Handy. Bei arsnova.eu scannst du einen QR, sagst am Laptop Ja, und das Handy steuert nur die laufende Veranstaltung.',
+    lead: 'Die Gerätekopplung funktioniert, weil die Host-Ansicht selbst zuerst fürs Smartphone gedacht ist. Andere Audience-Response-Systeme bieten oft eine Fernbedienung — als Folienklicker oder mit einem zusätzlichen Konto auf dem Handy. Bei arsnova.eu scannst du einen QR-Code, bestätigst die Verbindung am Laptop und das Handy steuert nur die laufende Veranstaltung.',
     whyTitle: 'Warum das Pairing anders ist als eine Fernbedienung',
     summary: [
       'Volle Bewegungsfreiheit während der Präsentation — didaktisch und präsentationstechnisch ein klarer Vorteil.',
       'Dieselbe Session-Steuerung wie am Laptop: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht nur die nächste Folie.',
       'Ohne Account am Handy: du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen.',
-      'Kein Login leihen: Der QR erscheint am Laptop, die Freigabe auch. Das Handy bekommt die Session — nicht dein Konto.',
+      'Keine Zugangsdaten weitergeben: Der QR erscheint am Laptop, die Freigabe auch. Das Handy bekommt die Session — nicht dein Konto.',
       'Die Quiz-Sammlung bleibt am Laptop — bearbeiten oder löschen geht nur dort, nicht vom gekoppelten Gerät.',
     ],
     laptopLabel: 'Laptop und Beamer',
     laptopText:
-      'Zeigen die Präsentation. Hier bestätigst du die Verbindung. Die Quiz-Sammlung bleibt hier.',
+      'Laptop und Beamer zeigen die Präsentation. Hier bestätigst du die Verbindung. Die Quiz-Sammlung bleibt hier.',
     phoneLabel: 'Smartphone oder Tablet',
     phoneText: 'Steuert die laufende Veranstaltung — ohne extra Login, während du im Raum bist.',
     demoAria: 'Laptop zeigt die Präsentation, Smartphone steuert die Session',
@@ -306,7 +306,7 @@ const de: Messages = {
       {
         title: 'Fragenwand statt Chat am Rande',
         description:
-          'Q&A bietet Vorab-Moderation, Anheften, Archivieren, Zustimmungs- und Ablehnungsstimmen sowie Sortierung nach Unterstützung, Qualität und Kontroverse.',
+          'Q&A bietet Vorab-Moderation, Anheften, Archivieren, Zustimmungs- und Ablehnungsstimmen sowie die Sortierung nach Unterstützung, Qualität und Kontroverse.',
         icon: 'qa',
       },
       {
@@ -370,7 +370,7 @@ const de: Messages = {
         description:
           'Schritte, Ereignisse oder Prozessphasen werden in die richtige Reihenfolge gebracht. Die Auswertung zeigt, an welchen Positionen Unsicherheiten bestehen.',
         interaction:
-          'Alle Elemente bilden eine vollständige lineare Folge; sichtbare Verschiebeaktionen und Tastatursteuerung funktionieren ohne notwendiges Drag-and-drop.',
+          'Alle Elemente bilden eine vollständige lineare Folge; sichtbare Verschiebeaktionen und Tastatursteuerung funktionieren ohne Drag-and-drop.',
         example: 'Phasen eines biologischen Prozesses ordnen.',
         result: 'Musterfolge, Positionsverteilung und häufige Vertauschungen.',
         symbol: '1→3',
@@ -471,7 +471,7 @@ const de: Messages = {
       {
         title: 'Bewegungsfreiheit statt Laptop-Fessel',
         description:
-          'Andere Systeme bieten oft eine Fernbedienung als Folienklicker oder mit extra Login. Hier scannst du einen QR und bestätigst am Laptop. Das Handy steuert die Session ohne eigenes Konto: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Die Quiz-Sammlung bleibt am Laptop.',
+          'Andere Systeme bieten oft eine Fernbedienung als Folienklicker oder mit einem zusätzlichen Login. Hier scannst du einen QR und bestätigst am Laptop. Das Handy steuert die Session ohne eigenes Konto: Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden. Die Quiz-Sammlung bleibt am Laptop.',
       },
       {
         title: 'Weniger Einstiegshürden',
@@ -510,7 +510,7 @@ const de: Messages = {
       {
         question: 'Kann ich die Session vom Smartphone steuern?',
         answer:
-          'Ja. Beim Start der Präsentation erscheint der QR am Laptop; dort bestätigst du die Verbindung. Das Handy braucht kein Konto. Es steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung. Du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Andere Systeme haben oft eine Fernbedienung mit extra Login oder nur als Folienklicker.',
+          'Ja. Beim Start der Präsentation erscheint der QR am Laptop; dort bestätigst du die Verbindung. Das Handy braucht kein Konto. Es steuert die laufende Veranstaltung — Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden — nicht die Quiz-Sammlung. Du kannst das Gerät einer Assistenz in die Hand geben, ohne Passwörter zu teilen. Andere Systeme haben oft eine Fernbedienung mit einem zusätzlichen Login oder nur als Folienklicker.',
       },
       {
         question: 'Wo liegen die Daten?',
@@ -531,7 +531,7 @@ const de: Messages = {
       {
         question: 'Was ist die Selbsteinschätzung im Quiz?',
         answer:
-          'Eine optionale Zusatzabfrage nach bewertbaren Fragen: Teilnehmende geben auf einer Skala von 1–5 an, wie sicher sie bei ihrer Antwort sind. Punkte bleiben unverändert; in der Host-Auswertung siehst du Korrektheit × Antwortsicherheit und markierst falsche Antworten mit hoher Antwortsicherheit als Fehlkonzept-Signal. Nach Session-Ende fließt der Lernstand in Nachbesprechung und Ergebnisbericht (PDF) ein.',
+          'Eine optionale Zusatzabfrage nach bewertbaren Fragen: Teilnehmende geben auf einer Skala von 1–5 an, wie sicher sie sich ihrer Antwort sind. Punkte bleiben unverändert; in der Host-Auswertung siehst du Korrektheit × Antwortsicherheit und markierst falsche Antworten mit hoher Antwortsicherheit als Fehlkonzept-Signal. Nach Session-Ende fließt der Lernstand in Nachbesprechung und Ergebnisbericht (PDF) ein.',
       },
       {
         question: 'Kann ich Session-Ergebnisse exportieren?',
@@ -573,7 +573,7 @@ const de: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informationen',
     webAppDescription:
-      'Open-Source Audience Response für Bildung, Training und Organisationen: Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone, Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
+      'Open-Source-Audience-Response-System für Bildung, Training und Organisationen: Quiz-Erstellung und Host-Ansicht zuerst fürs Smartphone, Live-Quiz mit Zuordnung, Sortierung und Kategorisierung, Selbsteinschätzung, Ergebnisbericht (PDF), numerische Schätzfragen, moderierbare Q&A-Fragenwand, Wortwolke und Rückmeldung — barrierefrei nach WCAG 2.2 AA, kostenlos, auf eigener Infrastruktur betreibbar und ohne Account startklar.',
     featureList: [
       'Live-Quiz und Abstimmungen',
       'Selbsteinschätzung bei bewertbaren Fragen',

@@ -4,7 +4,7 @@ const it: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Quiz in diretta, domande di stima numerica e bacheca delle domande',
     homeDescription:
-      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: creazione del quiz e vista di chi conduce pensate per il telefono, quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: creazione del quiz e vista di chi conduce pensate per il telefono, quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta all’uso senza account.',
     siteNameInfo: 'arsnova.eu – Informazioni',
     ogLocale: 'it_IT',
   },
@@ -53,12 +53,12 @@ const it: Messages = {
     titleLine2: 'moderazione delle domande',
     titleAccent1: 'in diretta e gratis',
     titleAccent2: ' senza account.',
-    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi a nuvola di parole e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e imprese. La creazione del quiz e la vista di chi conduce, per chi insegna o presenta, sono pensate prima per il telefono — tutti i formati, non rimpicciolite da un desktop. Open source, eseguibile sulla propria infrastruttura e pensato per un funzionamento nel rispetto del GDPR.',
+    lead: 'arsnova.eu unisce quiz in diretta, domande di stima numerica, autovalutazione sulle domande valutate, bacheca delle domande, analisi a nuvola di parole e sondaggio rapido in un’unica interfaccia per scuole, università, formazione continua, workshop e imprese. L’editor del quiz e la vista di chi conduce, per chi insegna o presenta, sono pensati per lo smartphone — tutti i formati, senza limitarsi a una versione ridotta dell’interfaccia per computer. Open source, eseguibile sulla propria infrastruttura e pensato per un funzionamento nel rispetto del GDPR.',
     a11yLink: 'Conforme alle WCAG 2.2, livello AA',
     a11ySuffix: '— tastiera, screen reader e tempo di risposta regolabile individualmente.',
     cards: [
       {
-        title: 'Prima per il telefono',
+        title: 'Pensata per lo smartphone',
         text: 'Crea tutti i formati e conduci in diretta — pensato per il telefono, non un desktop rimpicciolito',
       },
       {
@@ -71,7 +71,7 @@ const it: Messages = {
       },
       {
         title: 'Open source ed eseguibile in autonomia',
-        text: 'Docker, Postgres, Redis e registro di amministrazione',
+        text: 'Docker, Postgres, Redis e il registro di amministrazione',
       },
     ],
   },
@@ -104,12 +104,12 @@ const it: Messages = {
   confidence: {
     eyebrow: 'Analisi didattica',
     title: 'Giusto o sbagliato — e quanto sicuri?',
-    lead: 'Con l’autovalutazione i partecipanti indicano dopo la risposta quanto sono sicuri (1–5). Vedi non solo il tasso di risposte corrette, ma anche le risposte sbagliate con alta sicurezza — uno strumento utile per la valutazione formativa, il piano per la discussione dei risultati e il rapporto dei risultati (PDF) a fine sessione.',
+    lead: 'Con l’autovalutazione i partecipanti indicano dopo la risposta quanto sono sicuri (1–5). Vedi non solo il tasso di risposte corrette, ma anche le risposte sbagliate con un alto grado di sicurezza — uno strumento utile per la valutazione formativa, il piano per la discussione dei risultati e il rapporto dei risultati (PDF) a fine sessione.',
     summary: [
       'Non è un tipo di domanda a sé — opzionale sulle domande valutate.',
       'Scala 1–5 dopo la risposta, senza effetto sui punti.',
       'Dopo la pubblicazione chi conduce vede correttezza × grado di sicurezza.',
-      '«Sbagliato e sicuro» segnala possibili fraintendimenti.',
+      'Le risposte errate date con un alto grado di sicurezza possono segnalare concezioni errate.',
       'Dopo la sessione: rapporto dei risultati (PDF) e discussione dei risultati.',
     ],
     docsConfidence: 'Doc autovalutazione',
@@ -126,7 +126,7 @@ const it: Messages = {
       { label: 'Errata · sicurezza media', count: 4, tone: 'amber' },
       { label: 'Errata · sicurezza alta', count: 2, tone: 'rose' },
     ],
-    falseHighTitle: '2 risposte sbagliate con alta sicurezza',
+    falseHighTitle: '2 risposte sbagliate con un alto grado di sicurezza',
     falseHighText:
       'L’opzione B è stata scelta 2× con alto grado di sicurezza — un segnale di possibili fraintendimenti nella discussione dei risultati.',
     consolidated: 'Solido',
@@ -137,12 +137,12 @@ const it: Messages = {
     debriefing: 'Discussione dei risultati',
     resultsPdf: 'Rapporto dei risultati (PDF)',
     exportNote:
-      'Rapporto pronto per la stampa con stato di apprendimento, mappa di calore e testi delle domande — nella vista di chi conduce e sulla scheda quiz. Il CSV per Excel resta disponibile sotto «Altro».',
+      'Rapporto pronto per la stampa con livello di comprensione, mappa di calore e testi delle domande — nella vista di chi conduce e sulla scheda quiz. Il CSV per Excel resta disponibile sotto «Altro».',
   },
   qaWall: {
     eyebrow: 'Q&A in diretta come spazio di moderazione',
     title: 'Raccogliere domande, ordinarle per priorità e leggerle come mappa tematica',
-    lead: 'La bacheca delle domande non è una chat secondaria. È un canale in diretta dedicato per docenti e relatori: moderare i contributi, rilevare le priorità collettive, rendere visibili i punti controversi e portare i temi chiave in sala tramite una nuvola di parole Q&A pesata.',
+    lead: 'La bacheca delle domande non è una chat secondaria. È un canale in diretta dedicato a docenti e relatori: moderare i contributi, rilevare le priorità collettive, rendere visibili i punti controversi e portare i temi chiave in sala tramite una nuvola di parole Q&A pesata.',
     signals: [
       {
         label: 'Pre-moderazione',
@@ -183,7 +183,7 @@ const it: Messages = {
       {
         score: '+11',
         title: 'In cosa il Q&A differisce dal testo libero nel quiz?',
-        meta: '11 positivi · 0 negativi · soprattutto sostenuta',
+        meta: '11 positivi · 0 negativi · la più sostenuta',
       },
     ],
     wordCloud: 'Nuvola di parole Q&A',
@@ -218,43 +218,43 @@ const it: Messages = {
         number: '02',
         title: 'Condividi la raccolta',
         description:
-          'La raccolta quiz resta sul tuo dispositivo — importante per il GDPR. Se in aula devi usare un dispositivo di altri, la recuperi con un link di sync invece che con una chiavetta USB. Puoi dare lo stesso link a colleghi e colleghe per usare e modificare la raccolta insieme. Crei il link nella raccolta quiz; incolli il link ricevuto nella pagina iniziale.',
+          'La raccolta di quiz resta sul tuo dispositivo — importante per il GDPR. Se in aula devi usare un dispositivo di altri, la recuperi con un link di sincronizzazione invece che con una chiavetta USB. Puoi dare lo stesso link a colleghi e colleghe per usare e modificare la raccolta insieme. Crei il link nella raccolta di quiz; incolli il link ricevuto nella pagina iniziale.',
       },
       {
         number: '03',
         title: 'Avvia una sessione',
         description:
-          'Parti senza account: apri una sessione, scegli uno stile, condividi codice o QR. In alternativa collega un telefono o un tablet e apri la vista presentatore per il proiettore.',
+          'Parti senza account: apri una sessione, scegli uno stile, condividi codice o QR. Se vuoi, collega un telefono o un tablet e apri la vista presentatore per il proiettore.',
       },
       {
         number: '04',
         title: 'Modera in diretta',
         description:
-          'Ti muovi in sala e conduci la sessione in diretta dal telefono. La vista di chi conduce è fatta per questo — non rimpicciolita da un desktop. I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano il quiz, la bacheca delle domande, il Sondaggio rapido, la nuvola di parole, la fase di lettura, il conto alla rovescia, il secondo turno e i risultati in un unico percorso.',
+          'Ti muovi in sala e conduci la sessione in diretta dal telefono. La vista di chi conduce è fatta per questo — senza limitarsi a una versione ridotta dell’interfaccia per computer. I partecipanti votano, pongono domande e definiscono insieme le priorità. Chi conduce e il presentatore mostrano il quiz, la bacheca delle domande, il Sondaggio rapido, la nuvola di parole, la fase di lettura, il conto alla rovescia, il secondo turno e i risultati in un unico percorso.',
       },
       {
         number: '05',
         title: 'Analisi successiva ed esportazione',
         description:
-          'A fine sessione il rapporto dei risultati (PDF) è pronto — con stato di apprendimento, autovalutazione e testi completi delle domande. Nella raccolta quiz trovi discussione dei risultati e PDF dell’ultima esecuzione; CSV per Excel sotto «Altro».',
+          'A fine sessione il rapporto dei risultati (PDF) è pronto — con livello di comprensione, autovalutazione e testi completi delle domande. Nella raccolta di quiz trovi la discussione dei risultati e il rapporto PDF dell’ultima sessione; CSV per Excel sotto «Altro».',
       },
     ],
   },
   pairing: {
     eyebrow: 'Cosa ci distingue',
     title: 'Presenta da qualsiasi punto della sala — dal telefono o dal tablet',
-    lead: 'L’accoppiamento regge perché la vista di chi conduce è pensata prima per il telefono. Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un account separato sul telefono. Con arsnova.eu inquadri un QR, confermi sul laptop e il telefono conduce solo la sessione in corso.',
-    whyTitle: 'Perché questo accoppiamento non è un semplice telecomando',
+    lead: 'L’abbinamento dei dispositivi funziona perché la vista di chi conduce è pensata per lo smartphone. Altri sistemi di audience response offrono spesso un telecomando — come clicker per le slide o con un account separato sul telefono. Con arsnova.eu inquadri un QR, confermi sul laptop e il telefono conduce solo la sessione in corso.',
+    whyTitle: 'Perché questo abbinamento dei dispositivi non è un semplice telecomando',
     summary: [
       'Piena libertà di movimento durante la presentazione — un vantaggio chiaro per la didattica e la messa in scena.',
       'Lo stesso controllo di sessione che sul laptop: domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non solo la slide successiva.',
       'Senza account sul telefono: puoi passarlo a chi ti aiuta, senza condividere password.',
-      'Niente login in prestito: il QR compare sul laptop, e lì confermi. Il telefono ottiene la sessione, non il tuo account.',
-      'La raccolta quiz resta sul laptop: modificare o eliminare solo lì, non dal dispositivo accoppiato.',
+      'Nessuna credenziale da condividere: il QR compare sul laptop, e lì confermi. Il telefono ottiene la sessione, non il tuo account.',
+      'La raccolta di quiz resta sul laptop: puoi modificarla o eliminarla solo da lì, non dal dispositivo abbinato.',
     ],
     laptopLabel: 'Laptop e proiettore',
     laptopText:
-      'Mostrano la presentazione. Qui confermi la connessione. La raccolta quiz resta qui.',
+      'Il laptop e il proiettore mostrano la presentazione. Qui confermi la connessione. La raccolta di quiz resta qui.',
     phoneLabel: 'Telefono o tablet',
     phoneText: 'Conduce la sessione in corso — senza login extra — mentre sei in sala.',
     demoAria: 'Il laptop mostra la presentazione; il telefono controlla la sessione',
@@ -265,7 +265,7 @@ const it: Messages = {
     lead: 'arsnova.eu unisce avvio rapido, solidità didattica e una base tecnica trasparente. La piattaforma resta semplice nel quotidiano senza ridurre le possibilità.',
     items: [
       {
-        title: 'Crea e conduci prima dal telefono',
+        title: 'Crea e conduci dal telefono',
         description:
           'Altri sistemi di audience response trattano spesso creazione e ruolo di chi insegna come prodotti da desktop. Qui crei un quiz sullo smartphone in tutti i formati — e la stessa vista di chi conduce gestisce quiz, Q&A, Sondaggio rapido e risultati in mano, anche senza laptop. L’accoppiamento con un proiettore è opzionale.',
         icon: 'phone',
@@ -273,7 +273,7 @@ const it: Messages = {
       {
         title: 'Presenta da qualsiasi punto della sala',
         description:
-          'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Senza account sul telefono: il QR è sul laptop e confermi lì. La raccolta quiz resta sul computer — puoi passare il dispositivo senza condividere password.',
+          'Collega un telefono o un tablet e conduci la sessione in movimento: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. Senza account sul telefono: il QR è sul laptop e confermi lì. La raccolta di quiz resta sul computer — puoi passare il dispositivo senza condividere password.',
         icon: 'presenter',
       },
       {
@@ -285,7 +285,7 @@ const it: Messages = {
       {
         title: 'Autovalutazione nel quiz in diretta',
         description:
-          'I partecipanti indicano dopo la risposta quanto sono sicuri. Individui risposte sbagliate con alta sicurezza, dai priorità alla discussione dei risultati ed esporti lo stato di apprendimento nel rapporto dei risultati (PDF).',
+          'I partecipanti indicano dopo la risposta quanto sono sicuri. Individui risposte sbagliate con un alto grado di sicurezza, dai priorità alla discussione dei risultati ed esporti il livello di comprensione nel rapporto dei risultati (PDF).',
         icon: 'confidence',
       },
       {
@@ -327,19 +327,19 @@ const it: Messages = {
       {
         title: 'Conforme alle WCAG 2.2, livello AA',
         description:
-          'Uso da tastiera, annunci screen reader, tempo di risposta regolabile individualmente e rapporti PDF/UA-1 — così più persone possono partecipare in autonomia alle sessioni in diretta.',
+          'Uso da tastiera, annunci degli screen reader, tempo di risposta regolabile individualmente e rapporti PDF/UA-1 — così più persone possono partecipare in autonomia alle sessioni in diretta.',
         icon: 'a11y',
       },
       {
         title: 'Privacy e controllo',
         description:
-          'I contenuti del quiz restano sul tuo dispositivo, la rimozione opzionale dei dati e la gestione sulla propria infrastruttura ti danno più controllo su contenuti e dati in diretta.',
+          'I contenuti del quiz restano sul tuo dispositivo. La rimozione opzionale dei dati e la gestione sulla propria infrastruttura ti danno più controllo su contenuti e dati in diretta.',
         icon: 'tools',
       },
       {
         title: 'Open source con distribuzione e gestione',
         description:
-          'Docker, Postgres, Redis e registro di amministrazione rendono la piattaforma affidabile anche per distribuzione, gestione operativa e tracciabilità.',
+          'Docker, Postgres, Redis e il registro di amministrazione rendono la piattaforma affidabile anche per distribuzione, gestione operativa e tracciabilità.',
         icon: 'server',
       },
     ],
@@ -394,7 +394,7 @@ const it: Messages = {
   accessibility: {
     eyebrow: 'Accessibilità',
     title: 'WCAG 2.2 AA — così più persone possono partecipare in autonomia',
-    lead: 'Per scuole, università e formazione continua l’accessibilità è spesso un criterio decisivo. arsnova.eu è conforme alle Web Content Accessibility Guidelines (WCAG) 2.2, livello AA — con uso da tastiera, supporto screen reader, tempo di risposta regolabile individualmente e rapporti PDF strutturati in modo accessibile.',
+    lead: 'Per scuole, università e formazione continua l’accessibilità è spesso un criterio decisivo. arsnova.eu è conforme alle Web Content Accessibility Guidelines (WCAG) 2.2, livello AA — con uso della tastiera, supporto screen reader, tempo di risposta regolabile individualmente e rapporti PDF strutturati in modo accessibile.',
     benefits: [
       {
         title: 'Uso da tastiera',
@@ -466,14 +466,14 @@ const it: Messages = {
     lead: 'L’obiettivo non è solo votare, ma coprire l’intero percorso in diretta: preparare sul telefono, moderare da qualsiasi punto della sala, rendere visibili i risultati e mantenere il controllo su contenuti e gestione.',
     points: [
       {
-        title: 'Crea e conduci prima dal telefono',
+        title: 'Crea e conduci dal telefono',
         description:
           'La maggior parte dei sistemi di audience response progetta creazione e ruolo di chi insegna a partire da uno schermo grande. Qui crei tutti i formati sullo smartphone e conduci quiz, Q&A, Sondaggio rapido e risultati in mano. Laptop e proiettore restano possibili — non sono una condizione perché la console sia usabile.',
       },
       {
         title: 'Libertà di movimento, non legato al laptop',
         description:
-          'Altri strumenti offrono spesso un telecomando come clicker per le slide o con un login separato. Qui inquadri un QR e confermi sul laptop. Il telefono conduce la sessione senza un account proprio: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. La raccolta quiz resta sul laptop.',
+          'Altri strumenti offrono spesso un telecomando come clicker per le slide o con un login separato. Qui inquadri un QR e confermi sul laptop. Il telefono conduce la sessione senza un account proprio: domande, risultati, Q&A, Sondaggio rapido, Termina sessione. La raccolta di quiz resta sul laptop.',
       },
       {
         title: 'Meno barriere d’ingresso',
@@ -500,19 +500,19 @@ const it: Messages = {
     answerLabel: 'Risposta',
     items: [
       {
-        question: 'Chi conduce o i partecipanti hanno bisogno di un account?',
+        question: 'Serve un account per condurre una sessione o partecipare?',
         answer:
           'No. Una sessione può partire senza account. I partecipanti entrano con codice o QR.',
       },
       {
         question: 'Posso creare un quiz e condurre una sessione per intero dal telefono?',
         answer:
-          'Sì. Crei un quiz sullo smartphone in tutti i formati — risposta singola e multipla, risposta breve, stima numerica, abbinamento, ordinamento e classificazione. La stessa vista di chi conduce gestisce la sessione in diretta: quiz, Q&A, Sondaggio rapido e risultati. Entrambi sono pensati prima per il telefono, non come un desktop rimpicciolito. Opzionalmente accoppi un secondo dispositivo: il proiettore resta sul laptop, il telefono conduce la sessione, senza un account separato.',
+          'Sì. Crei un quiz sullo smartphone in tutti i formati — risposta singola e multipla, risposta breve, stima numerica, abbinamento, ordinamento e classificazione. La stessa vista di chi conduce gestisce la sessione in diretta: quiz, Q&A, Sondaggio rapido e risultati. Entrambi sono pensati per lo smartphone, non come un desktop rimpicciolito. Opzionalmente accoppi un secondo dispositivo: il proiettore resta sul laptop, il telefono conduce la sessione, senza un account separato.',
       },
       {
         question: 'Posso controllare la sessione dal telefono?',
         answer:
-          'Sì. All’avvio della presentazione il QR compare sul laptop; confermi la connessione lì. Il telefono non ha bisogno di un account. Conduce la sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non la raccolta quiz. Puoi passare il dispositivo a chi ti aiuta, senza condividere password. Altri strumenti hanno spesso un telecomando con login extra o solo come clicker per le slide.',
+          'Sì. All’avvio della presentazione il QR compare sul laptop; confermi la connessione lì. Il telefono non ha bisogno di un account. Conduce la sessione in diretta — domande, risultati, Q&A, Sondaggio rapido, Termina sessione — non la raccolta di quiz. Puoi passare il dispositivo a chi ti aiuta, senza condividere password. Altri strumenti hanno spesso un telecomando con login extra o solo come clicker per le slide.',
       },
       {
         question: 'Dove sono i dati?',
@@ -520,9 +520,10 @@ const it: Messages = {
           'I contenuti del quiz restano sul tuo dispositivo. Per le sessioni in diretta vengono elaborati solo i dati di sessione tecnicamente necessari; con gestione sulla propria infrastruttura il controllo resta a te.',
       },
       {
-        question: 'Posso usare la raccolta quiz su un altro dispositivo o con colleghi e colleghe?',
+        question:
+          'Posso usare la raccolta di quiz su un altro dispositivo o con colleghi e colleghe?',
         answer:
-          'Sì. La raccolta resta volutamente sul tuo dispositivo — importante per il GDPR. Se in aula devi usare un dispositivo di altri, la recuperi con un link di sync invece che con una chiavetta USB. Puoi dare lo stesso link a colleghi e colleghe per usare e modificare la raccolta insieme. Crei il link nella raccolta quiz; incolli il link ricevuto nella pagina iniziale.',
+          'Sì. La raccolta resta volutamente sul tuo dispositivo — importante per il GDPR. Se in aula devi usare un dispositivo di altri, la recuperi con un link di sincronizzazione invece che con una chiavetta USB. Puoi dare lo stesso link a colleghi e colleghe per usare e modificare la raccolta insieme. Crei il link nella raccolta di quiz; incolli il link ricevuto nella pagina iniziale.',
       },
       {
         question: 'Posso eseguire arsnova.eu sulla mia infrastruttura?',
@@ -532,12 +533,12 @@ const it: Messages = {
       {
         question: 'Cos’è l’autovalutazione nel quiz?',
         answer:
-          'Una domanda aggiuntiva opzionale dopo le domande valutate: i partecipanti indicano su una scala da 1 a 5 quanto sono sicuri della risposta. I punti restano invariati; nella valutazione di chi conduce vedi correttezza × grado di sicurezza e segni le risposte sbagliate con alta sicurezza come segnale di fraintendimento. A fine sessione lo stato di apprendimento confluisce nella discussione dei risultati e nel rapporto dei risultati (PDF).',
+          'Una domanda aggiuntiva opzionale dopo le domande valutate: i partecipanti indicano su una scala da 1 a 5 quanto sono sicuri della risposta. I punti restano invariati; nella valutazione di chi conduce vedi correttezza × grado di sicurezza e segni le risposte sbagliate con un alto grado di sicurezza come segnale di fraintendimento. A fine sessione il livello di comprensione confluisce nella discussione dei risultati e nel rapporto dei risultati (PDF).',
       },
       {
         question: 'Posso esportare i risultati della sessione?',
         answer:
-          'Sì. A fine sessione il rapporto dei risultati (PDF) è il formato principale — con autovalutazione, priorità per la discussione dei risultati e testi completi delle domande. Nella raccolta quiz trovi discussione dei risultati e PDF dell’ultima esecuzione. I dati CSV tabellari sono disponibili sotto «Altro» per Excel.',
+          'Sì. A fine sessione il rapporto dei risultati (PDF) è il formato principale — con autovalutazione, priorità per la discussione dei risultati e testi completi delle domande. Nella raccolta di quiz trovi la discussione dei risultati e il rapporto PDF dell’ultima sessione. I dati CSV tabellari sono disponibili sotto «Altro» per Excel.',
       },
       {
         question: 'Cosa ha di speciale la domanda di stima numerica?',
@@ -574,7 +575,7 @@ const it: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informazioni',
     webAppDescription:
-      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: creazione del quiz e vista di chi conduce pensate per il telefono, quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta senza account.',
+      'Piattaforma open source di risposta interattiva per istruzione, formazione e organizzazioni: creazione del quiz e vista di chi conduce pensate per il telefono, quiz in diretta con abbinamento, ordinamento e classificazione, autovalutazione, rapporto dei risultati (PDF), domande di stima numerica, bacheca delle domande moderabile, nuvola di parole e sondaggio rapido — conforme alle WCAG 2.2, livello AA, gratuita, eseguibile sulla propria infrastruttura e pronta all’uso senza account.',
     featureList: [
       'Quiz in diretta e votazioni',
       'Autovalutazione sulle domande valutate',

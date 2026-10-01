@@ -113,7 +113,7 @@
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Aus wie vielen von außen sichtbaren Einzelwürfeln (Cubies) besteht ein klassischer 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [Wie man einen 3×3 Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### Aus wie vielen von außen sichtbaren Einzelwürfeln (Cubies) besteht ein klassischer 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [Wie man einen 3×3-Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "HARD",
@@ -129,7 +129,7 @@
         "confidenceLabelHigh": "Sehr sicher"
       },
       {
-        "text": "### Für welche Creative-Coding-Umgebung wurde dieses Sketch geschrieben?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### Für welche Creative-Coding-Umgebung wurde dieser Sketch geschrieben?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -256,7 +256,7 @@
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "29. Oktober 1929",
-            "right": "Massiver Kurseinbruch an der Wall Street („Black Tuesday“)",
+            "right": "Massiver Kurseinbruch an der Wall Street (»Black Tuesday«)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {

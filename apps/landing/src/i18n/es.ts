@@ -5,7 +5,7 @@ const es: Messages = {
     homeTitle:
       'arsnova.eu | Cuestionario en directo, preguntas de estimación numérica y muro de preguntas',
     homeDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: creación del cuestionario y vista de anfitrión pensadas para el móvil, cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: creación del cuestionario y vista de anfitrión pensadas para el móvil, cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista para usar sin cuenta.',
     siteNameInfo: 'arsnova.eu – Información',
     ogLocale: 'es_ES',
   },
@@ -54,7 +54,7 @@ const es: Messages = {
     titleLine2: 'moderación de preguntas',
     titleAccent1: 'en directo y gratis',
     titleAccent2: ' sin cuenta.',
-    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. La creación del cuestionario y la vista de anfitrión para quienes enseñan o presentan están pensadas primero para el móvil — todos los formatos, no reducidas desde un escritorio. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento respetuoso con el RGPD.',
+    lead: 'arsnova.eu reúne cuestionarios en directo, preguntas de estimación numérica, autoevaluación en preguntas puntuables, muro de preguntas, análisis de nube de palabras y sondeo rápido en una sola interfaz para escuelas, universidades, formación continua, talleres y empresas. La creación del cuestionario y la vista de anfitrión para quienes enseñan o presentan están pensadas primero para el móvil — todos los formatos, sin limitarse a una versión reducida de la interfaz para ordenador. Código abierto, ejecutable en tu propia infraestructura y pensado para un funcionamiento respetuoso con el RGPD.',
     a11yLink: 'Cumple las WCAG 2.2, nivel AA',
     a11ySuffix: '— teclado, lector de pantalla y tiempo de respuesta ajustable individualmente.',
     cards: [
@@ -69,7 +69,7 @@ const es: Messages = {
       },
       {
         title: 'Código abierto y autoalojable',
-        text: 'Docker, Postgres, Redis y registro de administración',
+        text: 'Docker, Postgres, Redis y el registro de administración',
       },
     ],
   },
@@ -85,9 +85,9 @@ const es: Messages = {
     ],
     docsLink: 'Abrir la documentación de la pregunta de estimación numérica',
     demoAria:
-      'Ejemplo de resultados de una pregunta de estimación numérica sobre la Revolución Francesa',
-    hostView: 'Vista de anfitrión tras publicar',
-    demoQuestion: '¿Cuándo comenzó la Revolución Francesa?',
+      'Ejemplo de resultados de una pregunta de estimación numérica sobre la Revolución francesa',
+    hostView: 'Vista del anfitrión tras publicar los resultados',
+    demoQuestion: '¿Cuándo comenzó la Revolución francesa?',
     reference: 'Referencia 1789',
     toleranceBand: 'Banda de tolerancia',
     toleranceValue: '1700 a 1900',
@@ -103,18 +103,18 @@ const es: Messages = {
   confidence: {
     eyebrow: 'Análisis didáctico',
     title: '¿Correcto o incorrecto — y con qué grado de seguridad?',
-    lead: 'Con la autoevaluación, los participantes indican tras responder cuán seguros están (1–5). Ves no solo la tasa de aciertos, sino también respuestas incorrectas con alta seguridad — un recurso útil para la evaluación formativa, el plan para la puesta en común y el informe de resultados (PDF) al terminar la sesión.',
+    lead: 'Con la autoevaluación, los participantes indican tras responder cuán seguros están (1–5). Ves no solo la tasa de aciertos, sino también respuestas incorrectas con un alto grado de confianza — un recurso útil para la evaluación formativa, el plan para la puesta en común y el informe de resultados (PDF) al terminar la sesión.',
     summary: [
       'No es un tipo de pregunta propio — opcional en preguntas puntuables.',
       'Escala 1–5 tras la respuesta, sin efecto en los puntos.',
-      'Tras publicar, el anfitrión ve corrección × grado de seguridad.',
-      '«Incorrecto y seguro» marca posibles conceptos erróneos.',
+      'Tras publicar, el anfitrión ve corrección de la respuesta × grado de confianza.',
+      'Las respuestas incorrectas dadas con un alto grado de confianza pueden señalar conceptos erróneos.',
       'Tras la sesión: informe de resultados (PDF) y puesta en común.',
     ],
     docsConfidence: 'Doc autoevaluación',
     docsExport: 'Doc informe de resultados (PDF)',
     demoAria: 'Ejemplo de evaluación con autoevaluación tras publicar resultados',
-    hostView: 'Vista de anfitrión tras publicar',
+    hostView: 'Vista del anfitrión tras publicar los resultados',
     demoQuestion: '¿Qué estructura es la más estable?',
     badge: 'Autoevaluación',
     matrix: [
@@ -125,9 +125,9 @@ const es: Messages = {
       { label: 'Incorrecta · confianza media', count: 4, tone: 'amber' },
       { label: 'Incorrecta · confianza alta', count: 2, tone: 'rose' },
     ],
-    falseHighTitle: '2 respuestas incorrectas con alta seguridad',
+    falseHighTitle: '2 respuestas incorrectas con un alto grado de confianza',
     falseHighText:
-      'La opción B se eligió 2× con alto grado de seguridad — una señal de posibles conceptos erróneos en la puesta en común.',
+      'La opción B se eligió 2× con alto grado de confianza — una señal de posibles conceptos erróneos en la puesta en común.',
     consolidated: 'Sólido',
     misconceptionRisk: 'Riesgo de concepto erróneo',
     fragile: 'Frágil',
@@ -136,7 +136,7 @@ const es: Messages = {
     debriefing: 'Puesta en común',
     resultsPdf: 'Informe de resultados (PDF)',
     exportNote:
-      'Informe listo para imprimir con estado de aprendizaje, mapa de calor y textos de las preguntas — en la vista de anfitrión y en la tarjeta del cuestionario. El CSV para Excel sigue disponible en «Más».',
+      'Informe listo para imprimir con nivel de comprensión, mapa de calor y textos de las preguntas — en la vista de anfitrión y en la tarjeta del cuestionario. El CSV para Excel sigue disponible en «Más».',
   },
   qaWall: {
     eyebrow: 'Q&A en directo como espacio de moderación',
@@ -218,46 +218,46 @@ const es: Messages = {
         number: '02',
         title: 'Compartir la colección',
         description:
-          'La colección de cuestionarios permanece en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sync en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para usar y editar la colección juntos. Creas el enlace en la colección de cuestionarios; pegas el enlace recibido en la página de inicio.',
+          'La colección de cuestionarios permanece en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sincronización en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para usar y editar la colección juntos. Creas el enlace en la colección de cuestionarios; pegas el enlace recibido en la página de inicio.',
       },
       {
         number: '03',
         title: 'Iniciar una sesión',
         description:
-          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR. Opcionalmente conecta un teléfono o tablet y abre la vista del presentador para el proyector.',
+          'Empieza sin cuenta: abre una sesión, elige un estilo, comparte código o QR. Opcionalmente conecta un teléfono o una tableta y abre la vista del presentador para el proyector.',
       },
       {
         number: '04',
         title: 'Moderar en directo',
         description:
-          'Te mueves por la sala y diriges la sesión en directo desde el teléfono. La vista de anfitrión está hecha para eso — no reducida desde un escritorio. Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el Q&A, el Sondeo rápido, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
+          'Te mueves por la sala y diriges la sesión en directo desde el teléfono. La vista de anfitrión está hecha para eso — sin limitarse a una versión reducida de la interfaz para ordenador. Los participantes votan, formulan preguntas y priorizan juntos. El anfitrión y el presentador muestran el cuestionario, el Q&A, el sondeo rápido, la nube de palabras, la fase de lectura, la cuenta atrás, la segunda ronda y los resultados en un solo recorrido.',
       },
       {
         number: '05',
         title: 'Análisis posterior y exportación',
         description:
-          'Al terminar la sesión, el informe de resultados (PDF) está listo — con estado de aprendizaje, autoevaluación y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última ejecución; CSV para Excel en «Más».',
+          'Al terminar la sesión, el informe de resultados (PDF) está listo — con nivel de comprensión, autoevaluación y textos completos de las preguntas. En la colección de cuestionarios encuentras la puesta en común y el informe PDF de la última sesión; CSV para Excel en «Más».',
       },
     ],
   },
   pairing: {
     eyebrow: 'Lo que nos distingue',
-    title: 'Presenta desde cualquier punto de la sala — con el teléfono o la tablet',
+    title: 'Presenta desde cualquier punto de la sala — con el teléfono o la tableta',
     lead: 'El emparejamiento funciona porque la vista de anfitrión está pensada primero para el móvil. Otros sistemas de respuesta del público suelen ofrecer un mando — como pasador de diapositivas o con una cuenta aparte en el teléfono. Con arsnova.eu escaneas un QR, confirmas en el portátil y el teléfono solo dirige la sesión en curso.',
     whyTitle: 'Por qué este emparejamiento no es un mando más',
     summary: [
       'Total libertad de movimiento mientras presentas — una ventaja clara para la didáctica y la puesta en escena.',
-      'El mismo control de sesión que en el portátil: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no solo la siguiente diapositiva.',
+      'El mismo control de la sesión que en el portátil: preguntas, resultados, Q&A, sondeo rápido, Finalizar sesión — no solo la siguiente diapositiva.',
       'Sin cuenta en el teléfono: puedes dárselo a una persona de apoyo sin compartir contraseñas.',
       'Sin prestar el acceso: el QR aparece en el portátil, y la confirmación también. El teléfono recibe la sesión, no tu cuenta.',
       'La colección de cuestionarios permanece en el portátil: editar o borrar solo allí, no desde el dispositivo emparejado.',
     ],
     laptopLabel: 'Portátil y proyector',
     laptopText:
-      'Muestran la presentación. Aquí confirmas la conexión. La colección de cuestionarios permanece aquí.',
-    phoneLabel: 'Teléfono o tablet',
+      'El portátil y el proyector muestran la presentación. Aquí confirmas la conexión. La colección de cuestionarios permanece aquí.',
+    phoneLabel: 'Teléfono o tableta',
     phoneText:
-      'Dirige la sesión en curso — sin inicio de sesión extra — mientras estás en la sala.',
+      'Dirige la sesión en curso — sin un inicio de sesión adicional — mientras estás en la sala.',
     demoAria: 'El portátil muestra la presentación; el teléfono controla la sesión',
   },
   features: {
@@ -268,13 +268,13 @@ const es: Messages = {
       {
         title: 'Crear y dirigir primero en el móvil',
         description:
-          'Otros sistemas de respuesta del público suelen tratar la creación y el rol docente como productos de escritorio. Aquí creas un cuestionario en el móvil en todos los formatos — y la misma vista de anfitrión dirige el cuestionario, el Q&A, el Sondeo rápido y los resultados en la mano, también sin portátil. El emparejamiento con un proyector es opcional.',
+          'Otros sistemas de respuesta del público suelen tratar la creación y el rol docente como productos de escritorio. Aquí creas un cuestionario en el móvil en todos los formatos — y la misma vista de anfitrión dirige el cuestionario, el Q&A, el sondeo rápido y los resultados en la mano, también sin portátil. El emparejamiento con un proyector es opcional.',
         icon: 'phone',
       },
       {
         title: 'Presenta desde cualquier punto de la sala',
         description:
-          'Conecta un teléfono o tablet y dirige la sesión en movimiento: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. Sin cuenta en el teléfono: el QR está en el portátil y confirmas allí. La colección de cuestionarios permanece en el ordenador — puedes entregar el dispositivo sin compartir contraseñas.',
+          'Conecta un teléfono o una tableta y dirige la sesión en movimiento: preguntas, resultados, Q&A, sondeo rápido, Finalizar sesión. Sin cuenta en el teléfono: el QR está en el portátil y confirmas allí. La colección de cuestionarios permanece en el ordenador — puedes entregar el dispositivo sin compartir contraseñas.',
         icon: 'presenter',
       },
       {
@@ -286,7 +286,7 @@ const es: Messages = {
       {
         title: 'Autoevaluación en el cuestionario en directo',
         description:
-          'Los participantes indican tras responder cuán seguros están. Detectas respuestas incorrectas con alta seguridad, priorizas la puesta en común y exportas el estado de aprendizaje en el informe de resultados (PDF).',
+          'Los participantes indican tras responder cuán seguros están. Detectas respuestas incorrectas con un alto grado de confianza, priorizas la puesta en común y exportas el nivel de comprensión en el informe de resultados (PDF).',
         icon: 'confidence',
       },
       {
@@ -322,7 +322,7 @@ const es: Messages = {
       {
         title: 'Para distintos contextos',
         description:
-          'Ajustes previos, modo equipo, modo anónimo, apodos y elección de estilo ayudan desde clase y seminario hasta taller, evento y reunión.',
+          'Ajustes previos, modo equipo, modo anónimo, apodos y elección de estilo se adaptan a distintos contextos, desde clases y seminarios hasta talleres, eventos y reuniones.',
         icon: 'bolt',
       },
       {
@@ -334,13 +334,13 @@ const es: Messages = {
       {
         title: 'Privacidad y control',
         description:
-          'Los contenidos del cuestionario permanecen en tu dispositivo, la eliminación opcional de datos y la explotación en tu propia infraestructura te dan más control sobre contenidos y datos en directo.',
+          'Los contenidos del cuestionario permanecen en tu dispositivo. La eliminación opcional de datos y la explotación en tu propia infraestructura te dan más control sobre contenidos y datos en directo.',
         icon: 'tools',
       },
       {
-        title: 'Código abierto con despliegue y operación',
+        title: 'Código abierto con despliegue y gestión operativa',
         description:
-          'Docker, Postgres, Redis y registro de administración hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
+          'Docker, Postgres, Redis y el registro de administración hacen la plataforma fiable también para alojamiento, operación y trazabilidad.',
         icon: 'server',
       },
     ],
@@ -470,12 +470,12 @@ const es: Messages = {
       {
         title: 'Crear y dirigir primero en el móvil',
         description:
-          'La mayoría de los sistemas de respuesta del público diseñan la creación y el rol docente desde una pantalla grande. Aquí creas todos los formatos en el móvil y diriges el cuestionario, el Q&A, el Sondeo rápido y los resultados en la mano. Portátil y proyector siguen siendo posibles — no son un requisito para que la consola se pueda usar.',
+          'La mayoría de los sistemas de respuesta del público diseñan la creación y el rol docente desde una pantalla grande. Aquí creas todos los formatos en el móvil y diriges el cuestionario, el Q&A, el sondeo rápido y los resultados en la mano. Portátil y proyector siguen siendo posibles — no son un requisito para que la consola se pueda usar.',
       },
       {
         title: 'Libertad de movimiento, no atado al portátil',
         description:
-          'Otros sistemas suelen ofrecer un mando como pasador de diapositivas o con un inicio de sesión aparte. Aquí escaneas un QR y confirmas en el portátil. El teléfono dirige la sesión sin cuenta propia: preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión. La colección de cuestionarios permanece en el portátil.',
+          'Otros sistemas suelen ofrecer un mando como pasador de diapositivas o con un inicio de sesión aparte. Aquí escaneas un QR y confirmas en el portátil. El teléfono dirige la sesión sin cuenta propia: preguntas, resultados, Q&A, sondeo rápido, Finalizar sesión. La colección de cuestionarios permanece en el portátil.',
       },
       {
         title: 'Menos barreras de entrada',
@@ -509,12 +509,12 @@ const es: Messages = {
       {
         question: '¿Puedo crear un cuestionario y dirigir una sesión por completo desde el móvil?',
         answer:
-          'Sí. Creas un cuestionario en el smartphone en todos los formatos — respuesta única y múltiple, respuesta corta, estimación numérica, relacionar, ordenar y clasificar. La misma vista de anfitrión dirige la sesión en directo: cuestionario, Q&A, Sondeo rápido y resultados. Ambos están pensados primero para el móvil, no como un escritorio encogido. Opcionalmente emparejas un segundo dispositivo: el proyector sigue en el portátil, el teléfono dirige la sesión, sin una cuenta aparte.',
+          'Sí. Creas un cuestionario en el smartphone en todos los formatos — respuesta única y múltiple, respuesta corta, estimación numérica, relacionar, ordenar y clasificar. La misma vista de anfitrión dirige la sesión en directo: cuestionario, Q&A, sondeo rápido y resultados. La creación y la moderación están pensadas primero para el móvil, sin limitarse a una versión reducida de la interfaz para ordenador. Opcionalmente emparejas un segundo dispositivo: el proyector sigue en el portátil, el teléfono dirige la sesión, sin una cuenta aparte.',
       },
       {
         question: '¿Puedo controlar la sesión desde el teléfono?',
         answer:
-          'Sí. Al iniciar la presentación el QR aparece en el portátil; confirmas la conexión allí. El teléfono no necesita cuenta. Dirige la sesión en directo — preguntas, resultados, Q&A, Sondeo rápido, Finalizar sesión — no la colección de cuestionarios. Puedes dar el dispositivo a una persona de apoyo sin compartir contraseñas. Otros sistemas suelen tener un mando con inicio de sesión extra o solo como pasador de diapositivas.',
+          'Sí. Al iniciar la presentación el QR aparece en el portátil; confirmas la conexión allí. El teléfono no necesita cuenta. Dirige la sesión en directo — preguntas, resultados, Q&A, sondeo rápido, Finalizar sesión — no la colección de cuestionarios. Puedes dar el dispositivo a una persona de apoyo sin compartir contraseñas. Otros sistemas suelen tener un mando con inicio de sesión extra o solo como pasador de diapositivas.',
       },
       {
         question: '¿Dónde están los datos?',
@@ -524,7 +524,7 @@ const es: Messages = {
       {
         question: '¿Puedo usar la colección de cuestionarios en otro dispositivo o con colegas?',
         answer:
-          'Sí. La colección permanece a propósito en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sync en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para usar y editar la colección juntos. Creas el enlace en la colección de cuestionarios; pegas el enlace recibido en la página de inicio.',
+          'Sí. La colección permanece a propósito en tu dispositivo — importante para el RGPD. Si en la sala tienes que usar un ordenador ajeno, la traes con un enlace de sincronización en lugar de una memoria USB. Puedes dar el mismo enlace a colegas para usar y editar la colección juntos. Creas el enlace en la colección de cuestionarios; pegas el enlace recibido en la página de inicio.',
       },
       {
         question: '¿Puedo autoalojar arsnova.eu?',
@@ -534,12 +534,12 @@ const es: Messages = {
       {
         question: '¿Qué es la autoevaluación en el cuestionario?',
         answer:
-          'Una pregunta adicional opcional tras las preguntas puntuables: los participantes indican en una escala de 1 a 5 cuán seguros están de su respuesta. Los puntos no cambian; en la evaluación del anfitrión ves corrección × grado de seguridad y marcas las respuestas incorrectas con alta seguridad como señal de concepto erróneo. Al terminar la sesión, el estado de aprendizaje pasa a la puesta en común y al informe de resultados (PDF).',
+          'Una pregunta adicional opcional tras las preguntas puntuables: los participantes indican en una escala de 1 a 5 cuán seguros están de su respuesta. Los puntos no cambian; en la evaluación del anfitrión ves corrección de la respuesta × grado de confianza y marcas las respuestas incorrectas con un alto grado de confianza como señal de concepto erróneo. Al terminar la sesión, el nivel de comprensión pasa a la puesta en común y al informe de resultados (PDF).',
       },
       {
         question: '¿Puedo exportar los resultados de la sesión?',
         answer:
-          'Sí. Al terminar la sesión, el informe de resultados (PDF) es el formato principal — con autoevaluación, prioridades para la puesta en común y textos completos de las preguntas. En la colección de cuestionarios encuentras puesta en común y PDF de la última ejecución. Los datos CSV tabulares están disponibles en «Más» para Excel.',
+          'Sí. Al terminar la sesión, el informe de resultados (PDF) es el formato principal — con autoevaluación, prioridades para la puesta en común y textos completos de las preguntas. En la colección de cuestionarios encuentras la puesta en común y el informe PDF de la última sesión. Los datos CSV tabulares están disponibles en «Más» para Excel.',
       },
       {
         question: '¿Qué tiene de especial la pregunta de estimación numérica?',
@@ -576,7 +576,7 @@ const es: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Información',
     webAppDescription:
-      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: creación del cuestionario y vista de anfitrión pensadas para el móvil, cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista sin cuenta.',
+      'Plataforma de respuesta interactiva de código abierto para educación, formación y organizaciones: creación del cuestionario y vista de anfitrión pensadas para el móvil, cuestionario en directo para relacionar, ordenar y clasificar, autoevaluación, informe de resultados (PDF), preguntas de estimación numérica, muro de preguntas moderable, nube de palabras y sondeo rápido — cumple las WCAG 2.2, nivel AA, gratuita, ejecutable en tu propia infraestructura y lista para usar sin cuenta.',
     featureList: [
       'Cuestionario en directo y votaciones',
       'Autoevaluación en preguntas puntuables',
@@ -585,7 +585,7 @@ const es: Messages = {
       'Muro de preguntas con moderación, votos a favor y en contra',
       'Sala de espera, presentador, QR/código',
       'Creación del cuestionario y vista de anfitrión pensadas para el móvil — todos los formatos, modo productivo para quien enseña o presenta',
-      'Control de la sesión en directo desde un teléfono o tablet (emparejamiento de anfitrión)',
+      'Control de la sesión en directo desde un teléfono o una tableta (emparejamiento de anfitrión)',
       'Tipos de pregunta MC/SC/respuestas cortas/texto libre/encuesta/valoración/estimación numérica/relacionar/ordenar/clasificar',
       'Markdown y KaTeX',
       'Fase de lectura y Peer Instruction',

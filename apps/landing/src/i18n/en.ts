@@ -4,7 +4,7 @@ const en: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Live quiz, numeric estimation questions and Q&A wall',
     homeDescription:
-      'Open-source audience response for education, training and organisations: create quizzes and host first on a phone, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
+      'Open-source audience response for education, training and organisations: quiz creation and session hosting designed for smartphones, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, available for self-hosting and ready to use without an account.',
     siteNameInfo: 'arsnova.eu – Information',
     ogLocale: 'en_US',
   },
@@ -53,7 +53,7 @@ const en: Messages = {
     titleLine2: 'moderate questions',
     titleAccent1: 'live and free',
     titleAccent2: ' without an account.',
-    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. The quiz editor and host view for teachers and presenters are built for a phone first — every question format, not scaled down from a desktop. Open source, runnable on your own infrastructure and designed for operation with GDPR in mind.',
+    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. The quiz editor and host view for teachers and presenters are built for a phone first — every question format, not scaled down from a desktop. Open source, ready to run on your own infrastructure and designed for operation with GDPR in mind.',
     a11yLink: 'Conforms to WCAG 2.2 Level AA',
     a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
     cards: [
@@ -67,7 +67,7 @@ const en: Messages = {
         text: 'Spot misconceptions, export a PDF results report',
       },
       {
-        title: 'Open source & self-operated',
+        title: 'Open source & self-hosted',
         text: 'Docker, Postgres, Redis and admin activity log',
       },
     ],
@@ -147,7 +147,7 @@ const en: Messages = {
       },
       {
         label: 'Collective voting',
-        text: 'Upvotes and downvotes indicate priorities, points of disagreement and needs for clarification.',
+        text: 'Upvotes and downvotes indicate priorities, points of disagreement and areas needing clarification.',
       },
       {
         label: 'Topic word cloud',
@@ -180,7 +180,7 @@ const en: Messages = {
       {
         score: '+11',
         title: 'How does Q&A differ from free text in the quiz?',
-        meta: '11 up · 0 down · mostly supported',
+        meta: '11 up · 0 down · most supported',
       },
     ],
     wordCloud: 'Q&A word cloud',
@@ -194,7 +194,7 @@ const en: Messages = {
       { label: 'Controversy', className: 'text-2xl text-landing-status-rose' },
       { label: 'Peer Instruction', className: 'text-lg text-landing-fg-muted' },
       { label: 'Moderation', className: 'text-3xl text-landing-tertiary' },
-      { label: 'Clarification need', className: 'text-xl text-landing-status-violet' },
+      { label: 'Need for clarification', className: 'text-xl text-landing-status-violet' },
     ],
     nextStep:
       'Next step: a deterministic moderation compass, optionally complemented by asynchronous language-analysis signals and summaries grounded in the submitted questions.',
@@ -209,13 +209,13 @@ const en: Messages = {
         number: '01',
         title: 'Prepare a quiz',
         description:
-          'Create questions directly or import existing content — fully on a smartphone, in every question format. Markdown, KaTeX, short answer, numeric estimation, matching, ordering and categorisation are built in, not a cut-down mobile editor.',
+          'Create questions directly or import existing content — fully on a smartphone, in every question format. Markdown, KaTeX, short answer, numeric estimation, matching, ordering and categorisation are built in, rather than limited to a simplified mobile editor.',
       },
       {
         number: '02',
         title: 'Share the collection',
         description:
-          'The quiz collection stays on your device — important for GDPR. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
+          'The quiz collection stays on your device — important for GDPR compliance. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
       },
       {
         number: '03',
@@ -227,31 +227,31 @@ const en: Messages = {
         number: '04',
         title: 'Moderate live',
         description:
-          'You walk the room and run the live session from your phone. The host view is built for that — not scaled down from a desktop. Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
+          'You move around the room and run the live session from your phone. The host view is built for that — not scaled down from a desktop. Participants vote, ask questions and prioritise together. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
       },
       {
         number: '05',
         title: 'Follow up and export',
         description:
-          'After the session ends, the results report (PDF) is ready — with learning progress, confidence rating and full question text. In the quiz collection you will find debriefing and PDF for the last run; CSV for Excel under “More”.',
+          'After the session ends, the results report (PDF) is ready — with learning progress, confidence rating and full question text. In the quiz collection you will find the debriefing and PDF report for the most recent session; CSV for Excel under “More”.',
       },
     ],
   },
   pairing: {
     eyebrow: 'What sets us apart',
     title: 'Present from anywhere in the room — from your phone or tablet',
-    lead: 'Pairing works because the host view itself is designed for a phone first. Other audience-response tools often offer a remote — as a slide clicker or with a separate account on the phone. With arsnova.eu you scan a QR, approve on the laptop, and the phone only runs the live session.',
+    lead: 'Pairing works because the host view itself is designed for a phone first. Other audience-response tools often offer a remote — as a slide clicker or with a separate account on the phone. With arsnova.eu you scan a QR code, approve the connection on the laptop, and the phone only runs the live session.',
     whyTitle: 'Why this pairing is different from a remote',
     summary: [
-      'Full freedom of movement while you present — a clear teaching and staging advantage.',
+      'Full freedom of movement while you present — a clear advantage for teaching and presenting.',
       'The same live-session controls as on the laptop: questions, results, Q&A, Pulse Check, End session — not just the next slide.',
       'No account on the phone: you can hand the device to an assistant without sharing passwords.',
-      'No login to lend: the QR appears on the laptop, and so does the approval. The phone gets the session — not your account.',
+      'No credentials to share: the QR appears on the laptop, and so does the approval. The phone gets the session — not your account.',
       'The quiz collection stays on the laptop — edit or delete only there, not from the paired device.',
     ],
     laptopLabel: 'Laptop and projector',
     laptopText:
-      'Show the presentation. You confirm the connection here. The quiz collection stays here.',
+      'The laptop and projector display the presentation. You confirm the connection here. The quiz collection stays here.',
     phoneLabel: 'Phone or tablet',
     phoneText: 'Runs the live session — no extra login — while you are in the room.',
     demoAria: 'Laptop shows the presentation; the phone controls the session',
@@ -318,7 +318,7 @@ const en: Messages = {
       {
         title: 'For different settings',
         description:
-          'Presets, team mode, anonymous mode, nicknames and style choice help from class and seminar to workshop, event and meeting.',
+          'Presets, team mode, anonymous mode, nicknames and style options support a range of settings, from classes and seminars to workshops, events and meetings.',
         icon: 'bolt',
       },
       {
@@ -330,7 +330,7 @@ const en: Messages = {
       {
         title: 'Privacy and control',
         description:
-          'Quiz content stays on your device, optional data removal and operation on your own infrastructure give you more control over content and live data.',
+          'Quiz content stays on your device. Optional data removal and operation on your own infrastructure give you more control over content and live data.',
         icon: 'tools',
       },
       {
@@ -370,7 +370,7 @@ const en: Messages = {
         description:
           'Put steps, events or stages of a process in the correct order. The results show which positions caused uncertainty.',
         interaction:
-          'Every item forms one complete linear sequence, using visible move controls and the keyboard without requiring drag-and-drop.',
+          'All items form a complete linear sequence, using visible move controls and the keyboard without requiring drag-and-drop.',
         example: 'Order the stages of a biological process.',
         result: 'Model sequence, position distribution and common swaps.',
         symbol: '1→3',
@@ -461,14 +461,14 @@ const en: Messages = {
     lead: 'The focus is not only voting, but the full live flow: prepare on your phone, facilitate from anywhere in the room, make results visible and keep control of content and operations.',
     points: [
       {
-        title: 'Create and host on a phone first',
+        title: 'Create and host on your phone',
         description:
           'Most audience-response tools design quiz authoring and the teacher role for a desk and a large screen. Here you create every question format on a smartphone and run the quiz, Q&A, Pulse Check and results in your hand. A laptop and projector remain optional — not a requirement for the console to be usable.',
       },
       {
         title: 'Freedom to move, not tied to the laptop',
         description:
-          'Other tools often offer a remote as a slide clicker or with a separate login. Here you scan a QR and approve on the laptop. The phone runs the session without its own account: questions, results, Q&A, Pulse Check, End session. The quiz collection stays on the laptop.',
+          'Other tools often offer a remote as a slide clicker or with a separate login. Here you scan a QR code and approve the connection on the laptop. The phone runs the session without its own account: questions, results, Q&A, Pulse Check, End session. The quiz collection stays on the laptop.',
       },
       {
         title: 'Lower barriers to entry',
@@ -483,7 +483,7 @@ const en: Messages = {
       {
         title: 'More control over data and access',
         description:
-          'Open source, runnable on your own infrastructure and with quiz content kept locally — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
+          'Open source, ready to run on your own infrastructure and with quiz content kept locally — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
       },
     ],
     comparePrefix: 'You can still find the full feature comparison in the docs:',
@@ -512,12 +512,12 @@ const en: Messages = {
       {
         question: 'Where is the data stored?',
         answer:
-          'Quiz content stays on your device. For live sessions only the technically necessary session data is processed; when you run it yourself, operations stay in your own infrastructure.',
+          'Quiz content stays on your device. For live sessions only the technically necessary session data is processed; when you run it yourself, operations stay within your own infrastructure.',
       },
       {
         question: 'Can I use the quiz collection on another device or with colleagues?',
         answer:
-          'Yes. The collection stays on your device on purpose — important for GDPR. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
+          'Yes. The collection stays on your device on purpose — important for GDPR compliance. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
       },
       {
         question: 'Can I run arsnova.eu on my own infrastructure?',
@@ -532,7 +532,7 @@ const en: Messages = {
       {
         question: 'Can I export session results?',
         answer:
-          'Yes. After the session ends, the results report (PDF) is the primary format — including confidence rating, debriefing priorities and full question text. In the quiz collection you will find debriefing and PDF for the last run. Tabular CSV data is available under “More” for Excel.',
+          'Yes. After the session ends, the results report (PDF) is the primary format — including confidence rating, debriefing priorities and full question text. In the quiz collection you will find the debriefing and PDF report for the most recent session. Tabular CSV data is available under “More” for Excel.',
       },
       {
         question: 'What makes the numeric estimation question special?',
@@ -569,7 +569,7 @@ const en: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Information',
     webAppDescription:
-      'Open-source audience response for education, training and organisations: create quizzes and host first on a phone, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, runnable on your own infrastructure and ready without an account.',
+      'Open-source audience response for education, training and organisations: quiz creation and session hosting designed for smartphones, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, available for self-hosting and ready to use without an account.',
     featureList: [
       'Live quiz and voting',
       'Confidence rating on scored questions',
@@ -577,7 +577,7 @@ const en: Messages = {
       'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
       'Waiting room, presenter, QR/code',
-      'Create quizzes and host first on a phone — every question format, a productive mode for teachers and presenters',
+      'Quiz creation and session hosting designed for smartphones — every question format, a productive mode for teachers and presenters',
       'Host pairing: live-session control from a phone or tablet',
       'Question types MC/SC/short answer/free text/survey/rating/numeric estimation/matching/ordering/categorisation',
       'Markdown and KaTeX',

@@ -3,7 +3,7 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Teaching Showcase: Live Team Demo",
-    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one**, **categorise examples**, and collect open free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
+    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
@@ -222,7 +222,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### Match the historical dates of the Weimar Republic to the corresponding event.\n\n_Match each date on the left to its historical milestone on the right._",
+        "text": "### Match each historical date of the Weimar Republic to the corresponding event.\n\n_Match each date on the left to its historical milestone on the right._",
         "type": "MATCHING",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -256,7 +256,7 @@
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "29 October 1929",
-            "right": "Massive Wall Street price collapse (\"Black Tuesday\")",
+            "right": "Massive Wall Street price collapse (“Black Tuesday”)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {

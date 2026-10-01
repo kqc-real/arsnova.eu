@@ -182,7 +182,7 @@ describe('getDemoQuizSeedFingerprint', () => {
     const confidenceLabels = {
       de: ['Sehr unsicher', 'Sehr sicher'],
       en: ['Very unsure', 'Very confident'],
-      fr: ['Très incertain·e', 'Très sûr·e'],
+      fr: ['Très peu sûr·e', 'Très sûr·e'],
       es: ['Muy inseguro/a', 'Muy seguro/a'],
       it: ['Per niente sicuro/a', 'Molto sicuro/a'],
     } as const;
@@ -369,7 +369,7 @@ describe('getDemoQuizSeedFingerprint', () => {
       de: 'Dachszene',
       en: 'Rooftop scene',
       es: 'Escena en una azotea',
-      fr: 'Scène de toit',
+      fr: 'Scène sur un toit',
       it: 'Scena sul tetto',
     } as const;
 

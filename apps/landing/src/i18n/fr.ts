@@ -4,7 +4,7 @@ const fr: Messages = {
   meta: {
     homeTitle: 'arsnova.eu | Quiz en direct, questions d’estimation numérique et mur de questions',
     homeDescription:
-      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : création de quiz et animation d’abord pour le téléphone, quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : création de quiz et animation conçues pour le smartphone, quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur ta propre infrastructure et prête à l’emploi sans compte.',
     siteNameInfo: 'arsnova.eu – Informations',
     ogLocale: 'fr_FR',
   },
@@ -53,13 +53,13 @@ const fr: Messages = {
     titleLine2: 'modérer les questions',
     titleAccent1: 'en direct et gratuitement',
     titleAccent2: ' sans compte.',
-    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. La création de quiz et la vue d’animation pour enseignant·e·s et intervenant·e·s sont conçues d’abord pour le téléphone — tous les formats de questions, pas réduites depuis un bureau. Open source, exploitable sur votre propre infrastructure et conçu pour un fonctionnement dans le respect du RGPD.',
+    lead: 'arsnova.eu réunit quiz en direct, questions d’estimation numérique, autoévaluation sur les questions notées, mur de questions, analyse en nuage de mots et sondage express dans une seule interface pour les écoles, les universités, la formation continue, les ateliers et le monde professionnel. La création de quiz et la vue d’animation pour enseignant·e·s et intervenant·e·s sont conçues pour le smartphone et prennent en charge tous les formats de questions, sans se limiter à une version réduite de l’interface pour ordinateur. Open source, exploitable sur ta propre infrastructure et conçu pour un fonctionnement dans le respect du RGPD.',
     a11yLink: 'Conforme aux WCAG 2.2, niveau AA',
     a11ySuffix: '— clavier, lecteur d’écran et temps de réponse ajustable individuellement.',
     cards: [
       {
         title: 'D’abord pour le téléphone',
-        text: 'Crée tous les formats et anime en direct — pensé pour le téléphone, pas un bureau réduit',
+        text: 'Crée tous les formats et anime en direct — pensé pour le téléphone, sans se limiter à une interface pour ordinateur réduite',
       },
       { title: 'Q&A avec mur de questions', text: 'Modération, votes et nuage thématique' },
       {
@@ -67,7 +67,7 @@ const fr: Messages = {
         text: 'Repérer les idées fausses, exporter le rapport PDF',
       },
       {
-        title: 'Open source et hébergeable chez vous',
+        title: 'Open source et hébergeable chez toi',
         text: 'Docker, Postgres, Redis et journal d’administration',
       },
     ],
@@ -102,12 +102,12 @@ const fr: Messages = {
   confidence: {
     eyebrow: 'Analyse pédagogique',
     title: 'Juste ou faux — et avec quel degré de confiance ?',
-    lead: 'Avec l’autoévaluation, les participants indiquent après leur réponse à quel point ils sont sûrs (1–5). Tu vois non seulement le taux de réussite, mais aussi les réponses erronées associées à un degré de confiance élevé — un outil utile pour l’évaluation formative, le plan de bilan et le rapport de résultats (PDF) en fin de session.',
+    lead: 'Avec l’autoévaluation, les participants indiquent après leur réponse à quel point ils sont sûrs (1–5). Tu vois non seulement le taux de réussite, mais aussi les réponses erronées associées à un degré de confiance élevé — un outil utile pour l’évaluation formative, le bilan ciblé et le rapport de résultats (PDF) en fin de session.',
     summary: [
       'Pas un type de question à part — optionnel sur les questions notées.',
       'Échelle 1–5 après la réponse, sans effet sur les points.',
       'Après publication, l’animateur voit le croisement entre l’exactitude des réponses et le degré de confiance.',
-      '« Erroné et sûr » signale d’éventuelles idées fausses.',
+      'Les réponses incorrectes données avec un degré de confiance élevé peuvent signaler des conceptions erronées.',
       'Après la session : rapport de résultats (PDF) et bilan.',
     ],
     docsConfidence: 'Doc autoévaluation',
@@ -135,12 +135,12 @@ const fr: Messages = {
     debriefing: 'Bilan',
     resultsPdf: 'Rapport de résultats (PDF)',
     exportNote:
-      'Rapport prêt à imprimer avec état d’apprentissage, carte de chaleur et textes des questions — dans la vue de l’animateur et sur la carte quiz. Le CSV pour Excel reste disponible sous « Plus ».',
+      'Rapport prêt à imprimer avec niveau de compréhension, carte thermique et textes des questions — dans la vue de l’animateur et sur la carte du quiz. Le CSV pour Excel reste disponible sous « Plus ».',
   },
   qaWall: {
     eyebrow: 'Q&A en direct comme espace de modération',
-    title: 'Recueillir les questions, les prioriser et les lire comme carte thématique',
-    lead: 'Le mur de questions n’est pas un chat secondaire. C’est un canal en direct dédié pour les enseignant·es et intervenant·es : modérer les contributions, repérer les priorités collectives, rendre visibles les points controversés et ramener les thèmes clés dans la salle via un nuage de mots Q&A pondéré.',
+    title: 'Recueillir les questions, les prioriser et les lire comme une carte thématique',
+    lead: 'Le mur de questions n’est pas un chat secondaire. C’est un canal en direct dédié aux enseignant·es et intervenant·es : modérer les contributions, repérer les priorités collectives, rendre visibles les points controversés et ramener les thèmes clés dans la salle via un nuage de mots Q&A pondéré.',
     signals: [
       {
         label: 'Pré-modération',
@@ -176,12 +176,12 @@ const fr: Messages = {
       {
         score: '+4',
         title: 'Faut-il vraiment masquer les résultats avant la discussion ?',
-        meta: '9 pour · 5 contre · controversé',
+        meta: '9 pour · 5 contre · controversée',
       },
       {
         score: '+11',
         title: 'En quoi le Q&A diffère-t-il du texte libre dans le quiz ?',
-        meta: '11 pour · 0 contre · surtout soutenu',
+        meta: '11 pour · 0 contre · la plus soutenue',
       },
     ],
     wordCloud: 'Nuage de mots Q&A',
@@ -216,7 +216,7 @@ const fr: Messages = {
         number: '02',
         title: 'Partager la collection',
         description:
-          'La collection de quiz reste sur ton appareil — important pour le RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de sync plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble. Tu crées le lien dans la collection de quiz ; tu colles le lien reçu sur la page d’accueil.',
+          'La collection de quiz reste sur ton appareil — un choix important pour le respect du RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de synchronisation plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble. Tu crées le lien dans la collection de quiz ; tu colles le lien reçu sur la page d’accueil.',
       },
       {
         number: '03',
@@ -228,31 +228,31 @@ const fr: Messages = {
         number: '04',
         title: 'Animer en direct',
         description:
-          'Tu circules dans la salle et animes la session en direct depuis le téléphone. La vue d’animation est faite pour ça — pas réduite depuis un bureau. Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le Q&A, le sondage express, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
+          'Tu circules dans la salle et animes la session en direct depuis le téléphone. La vue d’animation est faite pour ça — sans se limiter à une interface pour ordinateur réduite. Les participants votent, posent des questions et définissent ensemble les priorités. L’animateur et le présentateur affichent le quiz, le Q&A, le sondage express, le nuage de mots, la phase de lecture, le compte à rebours, le second tour et les résultats dans un seul déroulement.',
       },
       {
         number: '05',
         title: 'Suivre et exporter',
         description:
-          'Après la fin de session, le rapport de résultats (PDF) est prêt — avec état d’apprentissage, autoévaluation et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage ; CSV pour Excel sous « Plus ».',
+          'Après la fin de session, le rapport de résultats (PDF) est prêt — avec niveau de compréhension, autoévaluation et textes complets des questions. Dans la collection de quiz, tu trouves le bilan et le rapport PDF de la dernière session ; CSV pour Excel sous « Plus ».',
       },
     ],
   },
   pairing: {
     eyebrow: 'Ce qui nous distingue',
     title: 'Présenter depuis n’importe où dans la salle — depuis le téléphone ou la tablette',
-    lead: 'Le couplage tient, parce que la vue d’animation est elle-même pensée d’abord pour le téléphone. D’autres systèmes de réponse du public offrent souvent une télécommande — comme cliqueur de diapos ou avec un compte séparé sur le téléphone. Avec arsnova.eu, tu scans un QR, tu confirmes sur l’ordinateur, et le téléphone pilote uniquement la session en cours.',
+    lead: 'Le couplage fonctionne parce que la vue d’animation est elle-même pensée d’abord pour le téléphone. D’autres systèmes de réponse du public offrent souvent une télécommande — pour faire défiler les diapositives ou avec un compte séparé sur le téléphone. Avec arsnova.eu, tu scannes un code QR, tu confirmes sur l’ordinateur, et le téléphone pilote uniquement la session en cours.',
     whyTitle: 'Pourquoi ce couplage n’est pas une simple télécommande',
     summary: [
       'Pleine liberté de mouvement pendant la présentation — un vrai atout pédagogique et scénique.',
-      'Les mêmes commandes de session qu’à l’ordinateur : questions, résultats, Q&A, sondage express, Fin de séance — pas seulement la diapo suivante.',
+      'Les mêmes commandes de session qu’à l’ordinateur : questions, résultats, Q&A, sondage express, fin de session — pas seulement la diapo suivante.',
       'Sans compte sur le téléphone : tu peux le tendre à quelqu’un qui t’assiste, sans partager de mot de passe.',
-      'Pas de login à prêter : le QR s’affiche sur l’ordinateur, la confirmation aussi. Le téléphone reçoit la session — pas ton compte.',
+      'Pas d’identifiants à partager : le QR s’affiche sur l’ordinateur, la confirmation aussi. Le téléphone reçoit la session — pas ton compte.',
       'La collection de quiz reste sur l’ordinateur — modifier ou supprimer uniquement là, pas depuis l’appareil couplé.',
     ],
     laptopLabel: 'Ordinateur et projecteur',
     laptopText:
-      'Affichent la présentation. C’est ici que tu confirmes la connexion. La collection de quiz reste ici.',
+      'L’ordinateur et le projecteur affichent la présentation. C’est ici que tu confirmes la connexion. La collection de quiz reste ici.',
     phoneLabel: 'Téléphone ou tablette',
     phoneText:
       'Pilote la session en cours — sans login supplémentaire — pendant que tu es dans la salle.',
@@ -272,7 +272,7 @@ const fr: Messages = {
       {
         title: 'Présenter depuis n’importe où dans la salle',
         description:
-          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, Fin de séance. Pas de compte sur le téléphone : le QR s’affiche sur l’ordinateur, tu confirmes sur place. La collection de quiz reste sur l’ordinateur — tu peux tendre l’appareil sans partager de mot de passe.',
+          'Relie un téléphone ou une tablette et pilote la session en déplacement : questions, résultats, Q&A, sondage express, fin de session. Pas de compte sur le téléphone : le QR s’affiche sur l’ordinateur, tu confirmes sur place. La collection de quiz reste sur l’ordinateur — tu peux tendre l’appareil sans partager de mot de passe.',
         icon: 'presenter',
       },
       {
@@ -284,7 +284,7 @@ const fr: Messages = {
       {
         title: 'Autoévaluation dans le quiz en direct',
         description:
-          'Les participants indiquent après la réponse à quel point ils sont sûrs. Tu repères les réponses erronées associées à un degré de confiance élevé, priorises le bilan et exportes l’état d’apprentissage dans le rapport de résultats (PDF).',
+          'Les participants indiquent après la réponse à quel point ils sont sûrs. Tu repères les réponses erronées associées à un degré de confiance élevé, priorises le bilan et exportes le niveau de compréhension dans le rapport de résultats (PDF).',
         icon: 'confidence',
       },
       {
@@ -320,7 +320,7 @@ const fr: Messages = {
       {
         title: 'Pour des contextes variés',
         description:
-          'Préréglages, mode équipe, mode anonyme, pseudonymes et choix de style aident de la classe et du séminaire à l’atelier, l’événement et la réunion.',
+          'Préréglages, mode équipe, mode anonyme, pseudonymes et choix de style s’adaptent à différents contextes : classes, séminaires, ateliers, événements et réunions.',
         icon: 'bolt',
       },
       {
@@ -332,7 +332,7 @@ const fr: Messages = {
       {
         title: 'Confidentialité et contrôle',
         description:
-          'Les contenus de quiz restent sur ton appareil, la suppression optionnelle des données et l’exploitation sur ta propre infrastructure te donnent plus de contrôle sur les contenus et les données en direct.',
+          'Les contenus de quiz restent sur ton appareil. La suppression optionnelle des données et l’exploitation sur ta propre infrastructure te donnent plus de contrôle sur les contenus et les données en direct.',
         icon: 'tools',
       },
       {
@@ -346,7 +346,7 @@ const fr: Messages = {
   structuredQuestionTypes: {
     eyebrow: 'Formats de questions structurées',
     title: 'Associer, ordonner et classer — des interactions complètes et analysables',
-    lead: 'Trois formats rendent interactifs les relations, les enchaînements et les distinctions entre notions — et tu les crées entièrement sur smartphone. Les solutions restent cachées pendant le vote ; elles apparaissent avec les erreurs fréquentes après la révélation.',
+    lead: 'Trois formats permettent d’explorer de manière interactive les relations, les enchaînements et les distinctions entre notions — et tu les crées entièrement sur smartphone. Les solutions restent cachées pendant le vote ; elles apparaissent avec les erreurs fréquentes après la révélation.',
     interactionLabel: 'Interaction',
     exampleLabel: 'Exemple pédagogique',
     resultLabel: 'Résultats',
@@ -393,7 +393,7 @@ const fr: Messages = {
   accessibility: {
     eyebrow: 'Accessibilité',
     title: 'WCAG 2.2 AA — pour que davantage d’apprenant·es participent en autonomie',
-    lead: 'Pour les écoles, universités et la formation continue, l’accessibilité est souvent un critère décisif. arsnova.eu est conforme aux Web Content Accessibility Guidelines (WCAG) 2.2, niveau AA — avec navigation clavier, support lecteur d’écran, temps de réponse ajustable individuellement et rapports PDF structurés de façon accessible.',
+    lead: 'Pour les écoles, les universités et la formation continue, l’accessibilité est souvent un critère décisif. arsnova.eu est conforme aux Web Content Accessibility Guidelines (WCAG) 2.2, niveau AA — avec navigation clavier, prise en charge des lecteurs d’écran, temps de réponse ajustable individuellement et rapports PDF structurés de façon accessible.',
     benefits: [
       {
         title: 'Utilisation au clavier',
@@ -401,7 +401,7 @@ const fr: Messages = {
           'Toi et tes participants utilisez les parcours centraux sans souris. Des indicateurs de focus visibles et un lien d’évitement vers le contenu facilitent la navigation.',
       },
       {
-        title: 'Support lecteur d’écran en direct',
+        title: 'Prise en charge des lecteurs d’écran en direct',
         description:
           'Les changements d’état à l’entrée en session, lors des votes et aux changements de phase sont annoncés aux lecteurs d’écran pour suivre le déroulement.',
       },
@@ -432,7 +432,7 @@ const fr: Messages = {
         label: 'Accessibilité vérifiée pour l’enseignement et les institutions',
       },
       {
-        value: '5 langues UI',
+        value: '5 langues d’interface',
         label: 'Allemand, anglais, français, espagnol, italien',
       },
       { value: 'Open source', label: 'Code transparent plutôt que des systèmes opaques' },
@@ -480,7 +480,7 @@ const fr: Messages = {
       {
         title: 'Liberté de mouvement, pas coincé·e à l’ordinateur',
         description:
-          'D’autres outils offrent souvent une télécommande comme cliqueur de diapos ou avec un login séparé. Ici, tu scans un QR et tu confirmes sur l’ordinateur. Le téléphone pilote la session sans compte propre : questions, résultats, Q&A, sondage express, Fin de séance. La collection de quiz reste sur l’ordinateur.',
+          'D’autres outils offrent souvent une télécommande pour faire défiler les diapositives ou avec un login séparé. Ici, tu scannes un code QR et tu confirmes sur l’ordinateur. Le téléphone pilote la session sans compte propre : questions, résultats, Q&A, sondage express, fin de session. La collection de quiz reste sur l’ordinateur.',
       },
       {
         title: 'Moins de freins à l’entrée',
@@ -495,7 +495,7 @@ const fr: Messages = {
       {
         title: 'Plus de contrôle sur les données et l’accès',
         description:
-          'Open source, exploitable sur votre propre infrastructure et avec des contenus de quiz conservés localement — plus la conformité aux WCAG 2.2, niveau AA. Pertinent pour les écoles, universités et organisations avec des exigences de confidentialité et d’inclusion.',
+          'Open source, exploitable sur ta propre infrastructure et avec des contenus de quiz conservés localement — plus la conformité aux WCAG 2.2, niveau AA. Pertinent pour les écoles, universités et organisations avec des exigences de confidentialité et d’inclusion.',
       },
     ],
     comparePrefix: 'Tu trouveras toujours la comparaison complète des fonctions dans la doc :',
@@ -509,18 +509,18 @@ const fr: Messages = {
       {
         question: 'Les animateurs ou les participants ont-ils besoin d’un compte ?',
         answer:
-          'Non. Une session peut démarrer sans compte. Les participants rejoignent via code ou QR.',
+          'Non. Une session peut démarrer sans compte. Les participants rejoignent la session à l’aide d’un code ou d’un code QR.',
       },
       {
         question:
           'Puis-je vraiment créer un quiz et animer une session entièrement depuis le téléphone ?',
         answer:
-          'Oui. Tu crées un quiz sur smartphone dans tous les formats — QCU et QCM, réponse courte, estimation numérique, association, mise en ordre et classement. La même vue d’animation pilote la session en direct : quiz, Q&A, sondage express et résultats. Les deux sont pensés d’abord pour le téléphone, pas comme un bureau réduit. En option, tu couples un second appareil : le projecteur reste sur l’ordinateur, le téléphone pilote la session, sans compte séparé.',
+          'Oui. Tu crées un quiz sur smartphone dans tous les formats — QCU et QCM, réponse courte, estimation numérique, association, mise en ordre et classement. La même vue d’animation pilote la session en direct : quiz, Q&A, sondage express et résultats. Les deux sont pensés d’abord pour le téléphone, sans se limiter à une interface pour ordinateur réduite. En option, tu couples un second appareil : le projecteur reste sur l’ordinateur, le téléphone pilote la session, sans compte séparé.',
       },
       {
         question: 'Puis-je piloter la session depuis mon téléphone ?',
         answer:
-          'Oui. Au démarrage de la présentation, le QR s’affiche sur l’ordinateur ; tu y confirmes la connexion. Le téléphone n’a pas besoin de compte. Il pilote la session en direct — questions, résultats, Q&A, sondage express, Fin de séance — pas la collection de quiz. Tu peux tendre l’appareil à quelqu’un qui t’assiste, sans partager de mot de passe. D’autres outils ont souvent une télécommande avec login séparé ou seulement comme cliqueur de diapos.',
+          'Oui. Au démarrage de la présentation, le QR s’affiche sur l’ordinateur ; tu y confirmes la connexion. Le téléphone n’a pas besoin de compte. Il pilote la session en direct — questions, résultats, Q&A, sondage express, fin de session — pas la collection de quiz. Tu peux tendre l’appareil à quelqu’un qui t’assiste, sans partager de mot de passe. D’autres outils ont souvent une télécommande avec login séparé ou limitée au défilement des diapositives.',
       },
       {
         question: 'Où sont les données ?',
@@ -531,7 +531,7 @@ const fr: Messages = {
         question:
           'Puis-je utiliser la collection de quiz sur un autre appareil ou avec des collègues ?',
         answer:
-          'Oui. La collection reste volontairement sur ton appareil — important pour le RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de sync plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble. Tu crées le lien dans la collection de quiz ; tu colles le lien reçu sur la page d’accueil.',
+          'Oui. La collection reste volontairement sur ton appareil — un choix important pour le respect du RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de synchronisation plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble. Tu crées le lien dans la collection de quiz ; tu colles le lien reçu sur la page d’accueil.',
       },
       {
         question: 'Puis-je héberger arsnova.eu moi-même ?',
@@ -541,12 +541,12 @@ const fr: Messages = {
       {
         question: 'Qu’est-ce que l’autoévaluation dans le quiz ?',
         answer:
-          'Une question complémentaire optionnelle après les questions notées : les participants indiquent sur une échelle de 1 à 5 à quel point ils sont sûrs de leur réponse. Les points restent inchangés ; l’animateur voit le croisement entre l’exactitude des réponses et le degré de confiance et marque les réponses erronées associées à un degré de confiance élevé comme signal d’idée fausse. Après la session, l’état d’apprentissage alimente le bilan et le rapport de résultats (PDF).',
+          'Une question complémentaire optionnelle après les questions notées : les participants indiquent sur une échelle de 1 à 5 à quel point ils sont sûrs de leur réponse. Les points restent inchangés ; l’animateur voit le croisement entre l’exactitude des réponses et le degré de confiance et marque les réponses erronées associées à un degré de confiance élevé comme signal d’idée fausse. Après la session, le niveau de compréhension alimente le bilan et le rapport de résultats (PDF).',
       },
       {
         question: 'Puis-je exporter les résultats de session ?',
         answer:
-          'Oui. Après la fin de session, le rapport de résultats (PDF) est le format principal — y compris autoévaluation, priorités de bilan et textes complets des questions. Dans la collection de quiz, tu trouves bilan et PDF du dernier passage. Les données CSV tabulaires sont disponibles sous « Plus » pour Excel.',
+          'Oui. Après la fin de session, le rapport de résultats (PDF) est le format principal — y compris autoévaluation, priorités de bilan et textes complets des questions. Dans la collection de quiz, tu trouves le bilan et le rapport PDF de la dernière session. Les données CSV tabulaires sont disponibles sous « Plus » pour Excel.',
       },
       {
         question: 'Qu’a de particulier la question d’estimation numérique ?',
@@ -564,7 +564,7 @@ const fr: Messages = {
           'Il condense les questions visibles en mots et phrases et reprend la logique de tri active. Il montre ainsi non seulement des termes fréquents, mais des regroupements thématiques issus de questions soutenues, clairement bien notées ou controversées.',
       },
       {
-        question: 'Pour qui est destinée la plateforme ?',
+        question: 'À qui s’adresse la plateforme ?',
         answer:
           'Pour l’interaction en direct dans l’éducation et les organisations : école, université, formation continue, formation, atelier, événement ou réunion.',
       },
@@ -583,7 +583,7 @@ const fr: Messages = {
   jsonLd: {
     websiteName: 'arsnova.eu – Informations',
     webAppDescription:
-      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : création de quiz et animation d’abord pour le téléphone, quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur votre propre infrastructure et prête sans compte.',
+      'Plateforme open source de réponse interactive pour l’éducation, la formation et les organisations : création de quiz et animation conçues pour le smartphone, quiz en direct avec association, mise en ordre et classement, autoévaluation, rapport de résultats (PDF), questions d’estimation numérique, mur de questions modérable, nuage de mots et sondage express — conforme aux WCAG 2.2, niveau AA, gratuite, exploitable sur ta propre infrastructure et prête à l’emploi sans compte.',
     featureList: [
       'Quiz en direct et votes',
       'Autoévaluation sur les questions notées',
@@ -591,7 +591,7 @@ const fr: Messages = {
       'Questions d’estimation numérique avec deux tours et statistiques',
       'Mur de questions avec modération, votes pour et contre',
       'Salle d’attente, présentateur, QR/code',
-      'Création de quiz et animation d’abord pour le téléphone — tous les formats, mode productif pour enseigner et présenter',
+      'Création de quiz et animation conçues pour le smartphone — tous les formats, mode productif pour enseigner et présenter',
       'Pilotage de la session en direct depuis un téléphone ou une tablette (couplage hôte)',
       'Types de questions QCM/QCU/réponses courtes/texte libre/sondage/évaluation/estimation numérique/association/mise en ordre/classement',
       'Markdown et KaTeX',
@@ -604,7 +604,7 @@ const fr: Messages = {
       'Import IA externe, validé Zod',
       'Interface en cinq langues',
       'Conforme aux WCAG 2.2, niveau AA',
-      'Exploitation Docker sur votre infrastructure et journal d’administration',
+      'Exploitation Docker sur ton infrastructure et journal d’administration',
       'Contenus de quiz conservés localement et fonctionnement dans le respect du RGPD',
     ],
   },

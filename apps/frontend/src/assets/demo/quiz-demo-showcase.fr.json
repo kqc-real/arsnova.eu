@@ -3,7 +3,7 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Démonstration pédagogique : quiz en équipe",
-    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Démonstration pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et organiser une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres et les discuter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
+    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Démonstration pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
@@ -25,7 +25,7 @@
     "readingPhaseEnabled": true,
     "questions": [
       {
-        "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Cliquer pour agrandir.*",
+        "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Clique pour agrandir.*",
         "type": "SURVEY",
         "timer": null,
         "difficulty": "EASY",
@@ -66,11 +66,11 @@
         "numericMax": 3.5,
         "numericTwoRounds": false,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Image IA ou photo réelle ?\n\n![Scène de toit](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
+        "text": "### Image IA ou photo réelle ?\n\n![Scène sur un toit](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
         "timer": null,
         "difficulty": "EASY",
@@ -80,7 +80,7 @@
           { "text": "Photo réelle", "isCorrect": true }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -109,7 +109,7 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -125,7 +125,7 @@
           { "text": "22", "isCorrect": false }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -161,7 +161,7 @@
         "shortTextTrimWhitespace": true,
         "shortTextNormalizeWhitespace": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -181,7 +181,7 @@
         "numericMax": 2000,
         "numericTwoRounds": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -218,7 +218,7 @@
           }
         ],
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -256,7 +256,7 @@
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "29 octobre 1929",
-            "right": "Effondrement massif des cours à Wall Street (« Black Tuesday »)",
+            "right": "Effondrement massif des cours à Wall Street (« Black Tuesday »)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {
@@ -268,7 +268,7 @@
         ],
         "matchingShuffleRight": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
@@ -320,7 +320,7 @@
         ],
         "categorizationShuffleItems": true,
         "confidenceEnabled": true,
-        "confidenceLabelLow": "Très incertain·e",
+        "confidenceLabelLow": "Très peu sûr·e",
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
