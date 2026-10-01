@@ -100,7 +100,7 @@ import {
   lobbyAudienceIsPacked,
   lobbyFitColumnCount,
 } from './lobby-audience-density.util';
-import { getQaWordCloudQuestionWeight } from './word-cloud.util';
+import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
 import {
   WordCloudTermExtractorService,
   type WordCloudTerm,

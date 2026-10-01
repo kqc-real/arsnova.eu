@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { prepareWordCloudAnalysisText } from '@arsnova/shared-types';
+import { prepareWordCloudAnalysisText } from '@arsnova/shared-types/word-cloud-analysis-text';
 import type { SupportedLocale } from '../../../core/locale-from-path';
 import { getStopwordsForLocale } from './word-cloud.util';
 

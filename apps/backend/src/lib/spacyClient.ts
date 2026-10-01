@@ -24,6 +24,8 @@ export const SPACY_MAX_TEXT_CHARS = WORD_CLOUD_MAX_ITEM_TEXT_CHARS;
 export const SPACY_MAX_REQUEST_BYTES = 1_048_576;
 export const SPACY_MAX_RESPONSE_BYTES = 1_048_576;
 export const SPACY_MAX_TOKENS_PER_TEXT = 2_000;
+/** Sidecar- und Response-Schema-Limit; Segment-Batches müssen darunter bleiben. */
+export const SPACY_MAX_ITEMS = 500;
 
 export type SpacyClientFailureCode =
   'UNAVAILABLE' | 'TIMEOUT' | 'INVALID_RESPONSE' | 'BACKPRESSURE';
@@ -56,7 +58,7 @@ const SpacyNormalizeResponseSchema = z.object({
         tokens: z.array(SpacyTokenSchema).max(SPACY_MAX_TOKENS_PER_TEXT),
       }),
     )
-    .max(500),
+    .max(SPACY_MAX_ITEMS),
 });
 
 export type SpacyNormalizeToken = z.infer<typeof SpacyTokenSchema>;

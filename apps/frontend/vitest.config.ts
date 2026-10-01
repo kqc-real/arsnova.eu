@@ -53,6 +53,10 @@ export default defineConfig({
         projectRoot,
         '../../libs/shared-types/src/qa-summary-scan.ts',
       ),
+      '@arsnova/shared-types/word-cloud-analysis-text': path.resolve(
+        projectRoot,
+        '../../libs/shared-types/src/word-cloud-analysis-text.ts',
+      ),
       '@arsnova/shared-types': path.resolve(
         projectRoot,
         '../../libs/shared-types/src/index.workspace.ts',

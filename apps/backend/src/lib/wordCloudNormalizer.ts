@@ -10,7 +10,12 @@ import {
 } from '@arsnova/shared-types';
 import { resolveNlpSidecarConfig } from './nlpSidecarConfig';
 import * as spacyClient from './spacyClient';
-import { SpacyClientError, type SpacyNormalizeToken } from './spacyClient';
+import {
+  SpacyClientError,
+  SPACY_MAX_ITEMS,
+  SPACY_MAX_REQUEST_BYTES,
+  type SpacyNormalizeToken,
+} from './spacyClient';
 import {
   tokenizeWordCloudText,
   toWordCloudLookupToken,
@@ -104,8 +109,15 @@ export class LemmaNormalizer implements WordCloudNormalizer {
       return new Map(items.map((item) => [item.id, []]));
     }
 
-    const response = await this.sidecar(this.locale, expanded, this.config);
-    return mergeSegmentSidecarTokens(items, segmentCounts, response.items);
+    const sidecarItems: Array<{
+      readonly id: string;
+      readonly tokens: readonly SpacyNormalizeToken[];
+    }> = [];
+    for (const batch of chunkSpacyNormalizeTexts(expanded)) {
+      const response = await this.sidecar(this.locale, batch, this.config);
+      sidecarItems.push(...response.items);
+    }
+    return mergeSegmentSidecarTokens(items, segmentCounts, sidecarItems);
   }
 }
 
@@ -297,6 +309,51 @@ function mergeSegmentSidecarTokens(
   }
 
   return result;
+}
+
+/**
+ * Teilt expandierte Segmente in Sidecar-Batches mit Item- und Byte-Budget.
+ * Respektiert SPACY_MAX_ITEMS und SPACY_MAX_REQUEST_BYTES (JSON-Payload).
+ */
+export function chunkSpacyNormalizeTexts(
+  texts: ReadonlyArray<{ readonly id: string; readonly text: string }>,
+  options: {
+    readonly maxItems?: number;
+    readonly maxRequestBytes?: number;
+    readonly locale?: string;
+  } = {},
+): Array<Array<{ id: string; text: string }>> {
+  const maxItems = options.maxItems ?? SPACY_MAX_ITEMS;
+  const maxRequestBytes = options.maxRequestBytes ?? SPACY_MAX_REQUEST_BYTES;
+  const locale = options.locale ?? 'de';
+  const batches: Array<Array<{ id: string; text: string }>> = [];
+  let current: Array<{ id: string; text: string }> = [];
+
+  const payloadBytes = (batch: ReadonlyArray<{ id: string; text: string }>): number =>
+    Buffer.byteLength(JSON.stringify({ locale, texts: batch }), 'utf8');
+
+  for (const item of texts) {
+    const candidate = [...current, item];
+    if (
+      current.length > 0 &&
+      (candidate.length > maxItems || payloadBytes(candidate) > maxRequestBytes)
+    ) {
+      batches.push(current);
+      current = [item];
+      if (payloadBytes(current) > maxRequestBytes) {
+        throw new SpacyClientError('UNAVAILABLE');
+      }
+      continue;
+    }
+    if (current.length === 0 && payloadBytes([item]) > maxRequestBytes) {
+      throw new SpacyClientError('UNAVAILABLE');
+    }
+    current = candidate;
+  }
+  if (current.length > 0) {
+    batches.push(current);
+  }
+  return batches;
 }
 
 function isNominalizedInfinitive(token: SpacyNormalizeToken, next?: SpacyNormalizeToken): boolean {

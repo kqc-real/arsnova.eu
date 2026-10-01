@@ -1,23 +1,23 @@
 /**
  * Übergangslösung bis #498: Markdown/KaTeX vor Wortwolken-Analysen aufbereiten.
  *
- * Grundlage ist `marked.lexer`. Ein Token-Walker überspringt ausgeschlossene Inhalte
- * (Links, Bilder, Code, …), reduziert Formatierungen auf Text und setzt Segmentgrenzen.
+ * Grundlage ist `marked.lexer` (eigene `Marked`-Instanz). Ein Token-Walker überspringt
+ * ausgeschlossene Inhalte (Links, Bilder, Code, KaTeX, …), reduziert Formatierungen auf
+ * Text und setzt Segmentgrenzen.
  *
- * Zusätzlich vor dem Lexer — und nur dort, wo marked unzureichend ist:
- * - KaTeX-Delimiter (`$…$`, `$$…$$`, `\(…\)`, `\[…\]`), weil marked z. B. `\(` als Escape zerlegt
- * - Q&A-Schwärzungen als harte Analysegrenzen
+ * Projektspezifika ohne eigenen Markdown-Parser:
+ * - KaTeX über marked-Tokenizer-Erweiterungen (nur außerhalb von Code/Links)
+ * - Q&A-Schwärzungen als harte Analysegrenzen vor dem Lexer
  *
- * Kein eigener Markdown-Parser: Code/Links/Listen/Tabellen kommen ausschließlich aus marked.
  * Unvollständige Formel-Delimiter: konservativ bis Zeilen- bzw. Stringende ausschließen.
  */
 
-import { marked, type Token, type Tokens } from 'marked';
-import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from './qa-redaction.js';
-import { WORD_CLOUD_MAX_ITEM_TEXT_CHARS } from './word-cloud-normalization.js';
+import { Marked, type Token, type Tokens } from 'marked';
+import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from './qa-redaction';
+import { WORD_CLOUD_MAX_ITEM_TEXT_CHARS } from './word-cloud-normalization';
 
 /** Version der Textaufbereitung; gehört in Analyse-/Cache-Schlüssel. */
-export const WORD_CLOUD_ANALYSIS_TEXT_VERSION = '2';
+export const WORD_CLOUD_ANALYSIS_TEXT_VERSION = '3';
 
 export type PrepareWordCloudAnalysisTextResult = {
   readonly segments: string[];
@@ -25,6 +25,8 @@ export type PrepareWordCloudAnalysisTextResult = {
 
 const BOUNDARY = '\uE011';
 const MAX_MARKED_NESTING = 48;
+const PREPARE_CACHE_MAX_ENTRIES = 512;
+const MAX_UNICODE_CODE_POINT = 0x10ffff;
 
 const EMOJI_SHORTCODE_PATTERN = /:([a-z0-9_+-]+):/gi;
 const UNICODE_EMOJI_PATTERN =
@@ -34,6 +36,7 @@ const HTML_ENTITY_PATTERN = /&(?:#x?[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]+);/g;
 
 const EMPHASIS_HTML_TAGS = new Set(['em', 'i', 'strong', 'b', 's', 'strike', 'del', 'u', 'mark']);
 const EXCLUDE_HTML_TAGS = new Set(['sub', 'sup', 'code', 'pre', 'script', 'style', 'kbd', 'samp']);
+const BREAK_HTML_TAGS = new Set(['br', 'hr', 'img']);
 
 type SegmentBuilder = {
   segments: string[];
@@ -42,9 +45,114 @@ type SegmentBuilder = {
   nesting: number;
 };
 
+type KatexToken = {
+  type: 'katex';
+  raw: string;
+  text: string;
+};
+
+const prepareCache = new Map<string, PrepareWordCloudAnalysisTextResult>();
+
+let analysisMarked: Marked | null = null;
+
+function getAnalysisMarked(): Marked {
+  if (analysisMarked) {
+    return analysisMarked;
+  }
+  const instance = new Marked();
+  instance.use({
+    gfm: true,
+    breaks: false,
+    extensions: [
+      {
+        name: 'katexBlock',
+        level: 'block',
+        start(src: string) {
+          if (src.startsWith('$$')) {
+            return 0;
+          }
+          if (src.startsWith('\\[')) {
+            return 0;
+          }
+          return -1;
+        },
+        tokenizer(src: string): KatexToken | undefined {
+          const display = /^\$\$([\s\S]*?)\$\$/.exec(src);
+          if (display) {
+            return { type: 'katex', raw: display[0], text: display[1] ?? '' };
+          }
+          const bracket = /^\\\[([\s\S]*?)\\\]/.exec(src);
+          if (bracket) {
+            return { type: 'katex', raw: bracket[0], text: bracket[1] ?? '' };
+          }
+          if (src.startsWith('$$')) {
+            return { type: 'katex', raw: src, text: src.slice(2) };
+          }
+          if (src.startsWith('\\[')) {
+            return { type: 'katex', raw: src, text: src.slice(2) };
+          }
+          return undefined;
+        },
+      },
+      {
+        name: 'katexInline',
+        level: 'inline',
+        start(src: string) {
+          const dollar = src.indexOf('$');
+          const paren = src.indexOf('\\(');
+          const bracket = src.indexOf('\\[');
+          const candidates = [dollar, paren, bracket].filter((index) => index >= 0);
+          return candidates.length > 0 ? Math.min(...candidates) : -1;
+        },
+        tokenizer(src: string): KatexToken | undefined {
+          if (src.startsWith('\\$')) {
+            return undefined;
+          }
+          const display = /^\$\$([^$]*?)\$\$/.exec(src);
+          if (display) {
+            return { type: 'katex', raw: display[0], text: display[1] ?? '' };
+          }
+          const paren = /^\\\(([\s\S]*?)\\\)/.exec(src);
+          if (paren) {
+            return { type: 'katex', raw: paren[0], text: paren[1] ?? '' };
+          }
+          const bracket = /^\\\[([\s\S]*?)\\\]/.exec(src);
+          if (bracket) {
+            return { type: 'katex', raw: bracket[0], text: bracket[1] ?? '' };
+          }
+          const inline = /^\$([^$\n]+?)\$/.exec(src);
+          if (inline) {
+            return { type: 'katex', raw: inline[0], text: inline[1] ?? '' };
+          }
+          if (src.startsWith('$$')) {
+            const lineEnd = findLineEnd(src, 2);
+            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
+          }
+          if (src.startsWith('$')) {
+            const lineEnd = findLineEnd(src, 1);
+            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(1, lineEnd) };
+          }
+          if (src.startsWith('\\(')) {
+            const lineEnd = findLineEnd(src, 2);
+            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
+          }
+          if (src.startsWith('\\[')) {
+            const lineEnd = findLineEnd(src, 2);
+            return { type: 'katex', raw: src.slice(0, lineEnd), text: src.slice(2, lineEnd) };
+          }
+          return undefined;
+        },
+      },
+    ],
+  });
+  analysisMarked = instance;
+  return instance;
+}
+
 /**
  * Liefert analysierbare Textsegmente eines Beitrags.
  * Leere Segmente entfallen; ein komplett leeres Ergebnis bedeutet „Beitrag überspringen“.
+ * Identische Eingaben (nach Clip) werden pro Prozess wiederverwendet.
  */
 export function prepareWordCloudAnalysisText(source: string): PrepareWordCloudAnalysisTextResult {
   if (typeof source !== 'string' || source.length === 0) {
@@ -56,12 +164,35 @@ export function prepareWordCloudAnalysisText(source: string): PrepareWordCloudAn
       ? source.slice(0, WORD_CLOUD_MAX_ITEM_TEXT_CHARS)
       : source;
 
-  // Projektspezifika + KaTeX vor marked; restliche Struktur kommt aus dem Lexer.
-  const prepared = protectKatexOutsideCode(replaceRedactionBoundaries(clipped));
+  const cached = prepareCache.get(clipped);
+  if (cached) {
+    return cached;
+  }
+
+  const result = prepareWordCloudAnalysisTextUncached(clipped);
+  rememberPrepared(clipped, result);
+  return result;
+}
+
+/** Joined cleaned text for embeddings / single-string consumers; segments stay separated. */
+export function joinWordCloudAnalysisSegments(segments: readonly string[]): string {
+  return segments
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+/** Test-Hilfsfunktion: leert den Aufbereitungs-Cache. */
+export function clearWordCloudAnalysisTextCacheForTests(): void {
+  prepareCache.clear();
+}
+
+function prepareWordCloudAnalysisTextUncached(clipped: string): PrepareWordCloudAnalysisTextResult {
+  const prepared = replaceRedactionBoundaries(clipped);
 
   let tokens: Token[];
   try {
-    tokens = marked.lexer(prepared, { gfm: true, breaks: false });
+    tokens = getAnalysisMarked().lexer(prepared);
   } catch {
     return finalizeSegments([sanitizeInlineText(prepared)]);
   }
@@ -77,12 +208,14 @@ export function prepareWordCloudAnalysisText(source: string): PrepareWordCloudAn
   return finalizeSegments(builder.segments);
 }
 
-/** Joined cleaned text for embeddings / single-string consumers; segments stay separated. */
-export function joinWordCloudAnalysisSegments(segments: readonly string[]): string {
-  return segments
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-    .join('\n');
+function rememberPrepared(key: string, result: PrepareWordCloudAnalysisTextResult): void {
+  if (prepareCache.size >= PREPARE_CACHE_MAX_ENTRIES) {
+    const oldest = prepareCache.keys().next().value;
+    if (typeof oldest === 'string') {
+      prepareCache.delete(oldest);
+    }
+  }
+  prepareCache.set(key, result);
 }
 
 function finalizeSegments(parts: readonly string[]): PrepareWordCloudAnalysisTextResult {
@@ -107,150 +240,6 @@ function replaceRedactionBoundaries(source: string): string {
   return next;
 }
 
-/**
- * Ersetzt KaTeX-Bereiche durch Grenzmarker, bevor marked LaTeX-Backslashes escapet.
- * Code-Fences und Inline-Code werden unverändert durchgereicht — marked liefert dafür
- * `code`/`codespan`, die der Walker ausschließt. Kein eigener Markdown-Parser.
- */
-function protectKatexOutsideCode(source: string): string {
-  let index = 0;
-  let out = '';
-
-  while (index < source.length) {
-    const fence = readFenceOpen(source, index);
-    if (fence) {
-      const closed = copyThroughFence(source, index, fence, (chunk) => {
-        out += chunk;
-      });
-      index = closed;
-      continue;
-    }
-
-    if (source[index] === '`') {
-      const closed = copyThroughInlineCode(source, index, (chunk) => {
-        out += chunk;
-      });
-      index = closed;
-      continue;
-    }
-
-    // Escaped dollar: Literal für marked, kein Formelstart
-    if (source.startsWith('\\$', index)) {
-      out += '\\$';
-      index += 2;
-      continue;
-    }
-
-    if (source.startsWith('$$', index)) {
-      const close = source.indexOf('$$', index + 2);
-      if (close === -1) {
-        out += BOUNDARY;
-        break;
-      }
-      out += BOUNDARY;
-      index = close + 2;
-      continue;
-    }
-
-    if (source.startsWith('\\[', index)) {
-      const close = source.indexOf('\\]', index + 2);
-      if (close === -1) {
-        out += BOUNDARY;
-        break;
-      }
-      out += BOUNDARY;
-      index = close + 2;
-      continue;
-    }
-
-    if (source.startsWith('\\(', index)) {
-      const close = source.indexOf('\\)', index + 2);
-      if (close === -1) {
-        out += BOUNDARY;
-        break;
-      }
-      out += BOUNDARY;
-      index = close + 2;
-      continue;
-    }
-
-    if (source[index] === '$' && source[index + 1] !== '$') {
-      const lineEnd = findLineEnd(source, index + 1);
-      const close = source.indexOf('$', index + 1);
-      if (close === -1 || close > lineEnd) {
-        out += BOUNDARY;
-        index = lineEnd;
-        continue;
-      }
-      if (close === index + 1) {
-        out += '$';
-        index += 1;
-        continue;
-      }
-      out += BOUNDARY;
-      index = close + 1;
-      continue;
-    }
-
-    out += source[index]!;
-    index += 1;
-  }
-
-  return out;
-}
-
-function readFenceOpen(source: string, index: number): '```' | '~~~' | null {
-  if (source.startsWith('```', index)) {
-    return '```';
-  }
-  if (source.startsWith('~~~', index)) {
-    return '~~~';
-  }
-  return null;
-}
-
-function copyThroughFence(
-  source: string,
-  start: number,
-  fence: '```' | '~~~',
-  emit: (chunk: string) => void,
-): number {
-  const close = source.indexOf(fence, start + 3);
-  if (close === -1) {
-    emit(source.slice(start));
-    return source.length;
-  }
-  let end = close + 3;
-  while (end < source.length && source[end] === fence[0]) {
-    end += 1;
-  }
-  if (source[end] === '\n') {
-    end += 1;
-  }
-  emit(source.slice(start, end));
-  return end;
-}
-
-function copyThroughInlineCode(
-  source: string,
-  start: number,
-  emit: (chunk: string) => void,
-): number {
-  let ticks = 1;
-  while (source[start + ticks] === '`') {
-    ticks += 1;
-  }
-  const opener = '`'.repeat(ticks);
-  const close = source.indexOf(opener, start + ticks);
-  if (close === -1) {
-    emit(source.slice(start));
-    return source.length;
-  }
-  const end = close + ticks;
-  emit(source.slice(start, end));
-  return end;
-}
-
 function findLineEnd(source: string, from: number): number {
   const nl = source.indexOf('\n', from);
   return nl === -1 ? source.length : nl;
@@ -273,6 +262,7 @@ function walkMarkedTokens(tokens: readonly Token[] | undefined, builder: Segment
       case 'hr':
       case 'def':
       case 'code':
+      case 'katex':
         flushSegment(builder);
         break;
       case 'heading':
@@ -361,7 +351,7 @@ function handleHtmlToken(token: Tokens.HTML, builder: SegmentBuilder): void {
 
   if (selfClosing) {
     const name = selfClosing[1]!.toLowerCase();
-    if (EXCLUDE_HTML_TAGS.has(name) || name === 'br' || name === 'hr' || name === 'img') {
+    if (EXCLUDE_HTML_TAGS.has(name) || BREAK_HTML_TAGS.has(name)) {
       flushBoundary(builder);
     }
     return;
@@ -369,6 +359,10 @@ function handleHtmlToken(token: Tokens.HTML, builder: SegmentBuilder): void {
 
   if (open) {
     const name = open[1]!.toLowerCase();
+    if (BREAK_HTML_TAGS.has(name)) {
+      flushBoundary(builder);
+      return;
+    }
     if (EXCLUDE_HTML_TAGS.has(name)) {
       builder.excludeDepth += 1;
       flushBoundary(builder);
@@ -436,6 +430,8 @@ function sanitizeInlineText(value: string): string {
   next = next.replace(UNICODE_EMOJI_PATTERN, BOUNDARY);
   next = next.replace(BARE_URL_PATTERN, BOUNDARY);
   next = decodeBasicEntities(next);
+  // marked kann ungültige numerische Entities bereits zu U+FFFD auflösen
+  next = next.replaceAll('\uFFFD', BOUNDARY);
   return next;
 }
 
@@ -453,15 +449,28 @@ function decodeBasicEntities(value: string): string {
       return named[entity]!;
     }
     if (entity.startsWith('&#x') || entity.startsWith('&#X')) {
-      const code = Number.parseInt(entity.slice(3, -1), 16);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : '';
+      return codePointToChar(Number.parseInt(entity.slice(3, -1), 16)) ?? BOUNDARY;
     }
     if (entity.startsWith('&#')) {
-      const code = Number.parseInt(entity.slice(2, -1), 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : '';
+      return codePointToChar(Number.parseInt(entity.slice(2, -1), 10)) ?? BOUNDARY;
     }
     return BOUNDARY;
   });
+}
+
+function codePointToChar(code: number): string | null {
+  if (!Number.isInteger(code) || code < 0 || code > MAX_UNICODE_CODE_POINT) {
+    return null;
+  }
+  // Surrogate-Halbwerte sind allein keine gültigen Codepoints für fromCodePoint.
+  if (code >= 0xd800 && code <= 0xdfff) {
+    return null;
+  }
+  try {
+    return String.fromCodePoint(code);
+  } catch {
+    return null;
+  }
 }
 
 function collapseWhitespace(value: string): string {

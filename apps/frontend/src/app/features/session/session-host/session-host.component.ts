@@ -203,7 +203,7 @@ import {
   WORD_CLOUD_SEMANTIC_WAIT_HINT_AFTER_MS,
 } from './word-cloud-semantic-pending';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
-import { getQaWordCloudQuestionWeight } from '../session-present/word-cloud.util';
+import { getQaWordCloudQuestionWeight } from '../session-present/word-cloud-weight.util';
 import {
   WordCloudTermExtractorService,
   type WordCloudTerm,

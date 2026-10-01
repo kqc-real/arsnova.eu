@@ -6,6 +6,7 @@ import { hashWordCloudText } from './wordCloudNormalization';
 import {
   IdentityNormalizer,
   LemmaNormalizer,
+  chunkSpacyNormalizeTexts,
   mapSpacyTokenToWordCloud,
   normalizeWordCloudItems,
 } from './wordCloudNormalizer';
@@ -341,5 +342,53 @@ describe('wordCloudNormalizer', () => {
     expect(result.cache.sidecarCalled).toBe(true);
     expect(await cache.getText('de', hashWordCloudText('Häuser'))).toBeNull();
     expect(result.tokensByItemId.get('item-1')).toEqual([{ display: 'Häuser', lookup: 'häuser' }]);
+  });
+
+  it('teilt expandierte Segmente in Sidecar-Batches unter dem 500er-Vertrag', () => {
+    const texts = Array.from({ length: 502 }, (_, index) => ({
+      id: `item-${index}::0`,
+      text: 'Haus',
+    }));
+    const batches = chunkSpacyNormalizeTexts(texts, { maxItems: 500 });
+    expect(batches).toHaveLength(2);
+    expect(batches[0]).toHaveLength(500);
+    expect(batches[1]).toHaveLength(2);
+  });
+
+  it('sendet bei >500 expandierten Segmenten mehrere Sidecar-Requests', async () => {
+    const items = Array.from({ length: 251 }, (_, index) => ({
+      id: `item-${index}`,
+      text: 'Eins\n\nZwei',
+      weight: 1,
+    }));
+    const sidecar = vi.fn(
+      async (
+        _locale: 'de' | 'en' | 'fr' | 'es',
+        texts: readonly { id: string; text: string }[],
+      ) => ({
+        locale: 'de' as const,
+        modelId: 'de_core_news_sm@3.8.0',
+        items: texts.map((text) => ({
+          id: text.id,
+          tokens: [{ text: text.text, lemma: text.text, pos: 'NOUN' }],
+        })),
+      }),
+    );
+
+    const tokens = await new LemmaNormalizer('de', sidecar, {
+      enabled: true,
+      socketPath: '/run/spacy/nlp.sock',
+      timeoutMs: 1000,
+      cacheTtlSeconds: 1800,
+    }).normalize(items);
+
+    expect(sidecar.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(sidecar.mock.calls.every((call) => call[1].length <= 500)).toBe(true);
+    expect(tokens.get('item-0')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ display: 'Eins' }),
+        expect.objectContaining({ display: 'Zwei' }),
+      ]),
+    );
   });
 });

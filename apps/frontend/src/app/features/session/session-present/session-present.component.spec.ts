@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
-import { getQaWordCloudQuestionWeight } from './word-cloud.util';
+import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
 import { NICKNAME_LISTS } from '../../join/nickname-themes';
 
 const {

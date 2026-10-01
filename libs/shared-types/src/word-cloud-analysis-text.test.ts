@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  clearWordCloudAnalysisTextCacheForTests,
   joinWordCloudAnalysisSegments,
   prepareWordCloudAnalysisText,
   WORD_CLOUD_ANALYSIS_TEXT_VERSION,
@@ -8,7 +9,7 @@ import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from './qa-redacti
 
 describe('prepareWordCloudAnalysisText', () => {
   it('exportiert eine stabile Aufbereitungsversion', () => {
-    expect(WORD_CLOUD_ANALYSIS_TEXT_VERSION).toBe('2');
+    expect(WORD_CLOUD_ANALYSIS_TEXT_VERSION).toBe('3');
   });
 
   it('entfernt Fett-Marker und behält denselben analysierbaren Text', () => {
@@ -60,10 +61,66 @@ describe('prepareWordCloudAnalysisText', () => {
     expect(joined).toBe('Wert\nund');
   });
 
-  it('lässt Code an marked und schließt ihn im Walker aus (kein eigener Code-Parser)', () => {
-    const source = ['Vor', '```python', 'print("$x")', '```', 'Nach `inline $y$` Ende'].join('\n');
+  it('lässt Dollarzeichen in Linkzielen und Code an marked und behält Folgetext', () => {
+    expect(prepareWordCloudAnalysisText('[Link](https://example.org/$foo) Statistik')).toEqual({
+      segments: ['Statistik'],
+    });
+    expect(prepareWordCloudAnalysisText('Vor `inline $y$` Ende')).toEqual({
+      segments: ['Vor', 'Ende'],
+    });
+    const source = ['Vor', '```python', 'print("$x")', '```', 'Nach'].join('\n');
     expect(prepareWordCloudAnalysisText(source)).toEqual({
-      segments: ['Vor', 'Nach', 'Ende'],
+      segments: ['Vor', 'Nach'],
+    });
+  });
+
+  it('schließt Formeln auch nach ungeschlossenem Backtick aus (marked-Textkontext)', () => {
+    expect(prepareWordCloudAnalysisText('Vor `open $\\frac{a}{b}$ weiter')).toEqual({
+      segments: ['Vor `open', 'weiter'],
+    });
+  });
+
+  it('behält escaped Closing-Dollar als Literal', () => {
+    expect(prepareWordCloudAnalysisText('Preis \\$5 und Text')).toEqual({
+      segments: ['Preis $5 und Text'],
+    });
+  });
+
+  it('erkennt variable Fence-Längen über marked', () => {
+    const source = ['Vor', '````', 'code $x$', '````', 'Nach'].join('\n');
+    expect(prepareWordCloudAnalysisText(source)).toEqual({
+      segments: ['Vor', 'Nach'],
+    });
+  });
+
+  it('setzt Grenzen für br, br/ und Markdown-Hardbreaks', () => {
+    expect(prepareWordCloudAnalysisText('Vor<br>nach')).toEqual({
+      segments: ['Vor', 'nach'],
+    });
+    expect(prepareWordCloudAnalysisText('Vor<br/>nach')).toEqual({
+      segments: ['Vor', 'nach'],
+    });
+    expect(prepareWordCloudAnalysisText('Vor<br />nach')).toEqual({
+      segments: ['Vor', 'nach'],
+    });
+    expect(prepareWordCloudAnalysisText('Vor  \nnach')).toEqual({
+      segments: ['Vor', 'nach'],
+    });
+  });
+
+  it('stürzt bei ungültigen numerischen Entities nicht ab', () => {
+    expect(() =>
+      prepareWordCloudAnalysisText('Vor &#999999999; nach und &#x110000; Ende'),
+    ).not.toThrow();
+    expect(prepareWordCloudAnalysisText('Vor &#999999999; nach und &#x110000; Ende')).toEqual({
+      segments: ['Vor', 'nach und', 'Ende'],
+    });
+    expect(prepareWordCloudAnalysisText('A &#x1F600; B')).toEqual({
+      segments: ['A', 'B'],
+    });
+    // Surrogat-Halbwert allein → leer verwerfen, Korpus bleibt analysierbar
+    expect(prepareWordCloudAnalysisText('Alpha &#xD800; Beta')).toEqual({
+      segments: ['Alpha', 'Beta'],
     });
   });
 
@@ -148,5 +205,12 @@ describe('prepareWordCloudAnalysisText', () => {
   it('liefert leere Segmente für reine Ausschluss-Beiträge', () => {
     expect(prepareWordCloudAnalysisText('$$a+b$$')).toEqual({ segments: [] });
     expect(joinWordCloudAnalysisSegments([])).toBe('');
+  });
+
+  it('wiederverwendet Aufbereitungsergebnisse für identische Eingaben', () => {
+    clearWordCloudAnalysisTextCacheForTests();
+    const first = prepareWordCloudAnalysisText('lineare Regression');
+    const second = prepareWordCloudAnalysisText('lineare Regression');
+    expect(second).toBe(first);
   });
 });
