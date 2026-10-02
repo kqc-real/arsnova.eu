@@ -11,11 +11,15 @@
  * `--corpus betriebsversammlung` nutzt die Screenshot-/Demo-Fragen aus
  * `apps/frontend/scripts/lib/betriebsversammlung-screenshot-corpus.mjs`.
  *
+ * `--corpus markdown` füllt Editor-Features (KaTeX, Links, Bilder, Listen, …)
+ * für lokale Markdown-/Wortwolken-Tests.
+ *
  * Beispiele:
  *   npm run seed:qa-forum -w @arsnova/backend
  *   npm run seed:qa-forum -w @arsnova/backend -- --code CWDE5X --replace
  *   npm run seed:qa-forum -w @arsnova/backend -- --code 88XZMY --corpus semantic
  *   npm run seed:qa-forum -w @arsnova/backend -- --code KK9MEA --corpus betriebsversammlung --replace
+ *   npm run seed:qa-forum -w @arsnova/backend -- --code VVVDK3 --corpus markdown --count 200 --replace
  *   npm run seed:qa-forum -w @arsnova/backend -- --dry-run
  *   macOS (Clean, Prod-Build aller Locales, Sidecar, Freitext, Q&A, Kompass): npm run spacy:macos-dev
  *
@@ -33,6 +37,11 @@ import {
   SEMANTIC_QA_SEED_PARTICIPANT_COUNT,
 } from './lib/semantic-wordcloud-seed-corpus';
 import {
+  buildMarkdownQaQuestionTexts,
+  MARKDOWN_QA_SEED_ITEM_COUNT,
+  MARKDOWN_QA_SEED_PARTICIPANT_COUNT,
+} from './lib/markdown-qa-seed-corpus';
+import {
   buildSpacyQaQuestionTexts,
   SPACY_WORDCLOUD_SEED_ITEM_COUNT,
   SPACY_WORDCLOUD_SEED_PARTICIPANT_COUNT,
@@ -45,7 +54,7 @@ function log(...values: unknown[]): void {
 type QaQuestionStatus = 'ACTIVE' | 'PINNED';
 type QaVoteDirection = 'UP' | 'DOWN';
 
-type SeedCorpus = 'spacy' | 'semantic' | 'betriebsversammlung';
+type SeedCorpus = 'spacy' | 'semantic' | 'betriebsversammlung' | 'markdown';
 
 type CliOptions = {
   code: string;
@@ -201,12 +210,13 @@ Usage:
 
 Optionen:
   --code <CODE>          Session-Code; ohne Angabe und im TTY wird er abgefragt
-  --corpus <NAME>        spacy (Default, 500 Flexions-/Phrasenfragen), semantic (Paraphrasen für Themen/Stufe 2)
-                         oder betriebsversammlung (Demo-/Screenshot-Fragen an Vorstand und Betriebsrat)
+  --corpus <NAME>        spacy (Default), semantic, betriebsversammlung oder markdown (Editor/KaTeX)
   --count <N>            Anzahl Fragen; spaCy Default ${DEFAULT_QUESTION_COUNT}, semantic Default ${SEMANTIC_QA_SEED_ITEM_COUNT},
-                         betriebsversammlung Default ${BETRIEBSVERSAMMLUNG_QA_SEED_ITEM_COUNT}; max ${MAX_QUESTION_COUNT}
+                         betriebsversammlung Default ${BETRIEBSVERSAMMLUNG_QA_SEED_ITEM_COUNT},
+                         markdown Default ${MARKDOWN_QA_SEED_ITEM_COUNT}; max ${MAX_QUESTION_COUNT}
   --participants <N>     Anzahl Seed-Teilnehmende; spaCy Default ${DEFAULT_PARTICIPANT_COUNT}, semantic Default ${SEMANTIC_QA_SEED_PARTICIPANT_COUNT},
-                         betriebsversammlung Default ${BETRIEBSVERSAMMLUNG_QA_SEED_PARTICIPANT_COUNT}; max ${MAX_PARTICIPANT_COUNT}
+                         betriebsversammlung Default ${BETRIEBSVERSAMMLUNG_QA_SEED_PARTICIPANT_COUNT},
+                         markdown Default ${MARKDOWN_QA_SEED_PARTICIPANT_COUNT}; max ${MAX_PARTICIPANT_COUNT}
   --replace              Vorhandene Q&A-Fragen der Session vorher löschen
   --append               Neue Fragen trotz vorhandener Q&A-Fragen hinzufügen
   --dry-run              Nur prüfen und geplante Mengen ausgeben
@@ -216,6 +226,7 @@ Hinweise:
   - Das spaCy-Korpus mischt Flexionsformen, Kurzfragen, Phrasen und lange Texte.
   - Das semantic-Korpus bündelt Klausur-, Regression-, Folien- und Beamer-Paraphrasen plus längere Fragen für LLM-Kurzlabels.
   - Das betriebsversammlung-Korpus stammt aus dem Screenshot-Corpus (realistische Fragen, Mitarbeiternamen).
+  - Das markdown-Korpus mischt KaTeX, Links, Bilder, Listen, Tabellen, Code und Auszeichnungen.
   - Vote-Profile bleiben gemischt, damit Sortierung Meist unterstützt / Beste Fragen / Umstritten die Analyse neu anstößt.
 `);
 }
@@ -292,7 +303,9 @@ function parseCliOptions(argv: string[]): CliOptions {
         ? SEMANTIC_QA_SEED_ITEM_COUNT
         : corpus === 'betriebsversammlung'
           ? BETRIEBSVERSAMMLUNG_QA_SEED_ITEM_COUNT
-          : DEFAULT_QUESTION_COUNT,
+          : corpus === 'markdown'
+            ? MARKDOWN_QA_SEED_ITEM_COUNT
+            : DEFAULT_QUESTION_COUNT,
     max: MAX_QUESTION_COUNT,
     label: 'count',
   });
@@ -304,7 +317,9 @@ function parseCliOptions(argv: string[]): CliOptions {
           ? SEMANTIC_QA_SEED_PARTICIPANT_COUNT
           : corpus === 'betriebsversammlung'
             ? BETRIEBSVERSAMMLUNG_QA_SEED_PARTICIPANT_COUNT
-            : DEFAULT_PARTICIPANT_COUNT,
+            : corpus === 'markdown'
+              ? MARKDOWN_QA_SEED_PARTICIPANT_COUNT
+              : DEFAULT_PARTICIPANT_COUNT,
       max: MAX_PARTICIPANT_COUNT,
       label: 'participants',
     },
@@ -324,8 +339,11 @@ function parseSeedCorpus(value: string | undefined): SeedCorpus {
   if (corpus === 'betriebsversammlung') {
     return 'betriebsversammlung';
   }
+  if (corpus === 'markdown') {
+    return 'markdown';
+  }
   throw new Error(
-    `Ungueltiges Korpus fuer --corpus: ${value}. Erlaubt: spacy, semantic, betriebsversammlung.`,
+    `Ungueltiges Korpus fuer --corpus: ${value}. Erlaubt: spacy, semantic, betriebsversammlung, markdown.`,
   );
 }
 
@@ -427,6 +445,9 @@ function buildQuestionTexts(corpus: SeedCorpus, count: number): string[] {
     }
     const texts = corpusModule.QA_QUESTIONS;
     return Array.from({ length: count }, (_, index) => texts[index % texts.length]!);
+  }
+  if (corpus === 'markdown') {
+    return buildMarkdownQaQuestionTexts(count);
   }
   return buildSpacyQaQuestionTexts(count);
 }
