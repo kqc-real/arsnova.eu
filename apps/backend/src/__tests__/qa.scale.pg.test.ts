@@ -299,20 +299,22 @@ describe.skipIf(!RUN_PG)('Q&A scale invariants (PostgreSQL)', () => {
     await createQuestion({ sessionId: session.id, participantId: participant.id, key: 'one' });
 
     await projectQaPlatformStatistics();
+    await createQuestion({ sessionId: session.id, participantId: participant.id, key: 'two' });
+    await projectQaPlatformStatistics();
     await projectQaPlatformStatistics();
     const beforePurge = await prisma.qaSessionStatisticProjection.findUniqueOrThrow({
       where: { sessionId: session.id },
     });
-    expect(beforePurge.questionsAcceptedTotal).toBe(1n);
-    expect(beforePurge.questionPeakCount).toBe(1);
+    expect(beforePurge.questionsAcceptedTotal).toBe(2n);
+    expect(beforePurge.questionPeakCount).toBe(2);
 
     await prisma.session.delete({ where: { id: session.id } });
     await projectQaPlatformStatistics();
     const afterPurge = await prisma.qaSessionStatisticProjection.findUniqueOrThrow({
       where: { sessionId: session.id },
     });
-    expect(afterPurge.questionsAcceptedTotal).toBe(1n);
-    expect(afterPurge.questionPeakCount).toBe(1);
+    expect(afterPurge.questionsAcceptedTotal).toBe(2n);
+    expect(afterPurge.questionPeakCount).toBe(2);
   });
 
   it('serialisiert parallele Richtungsstimmen und hält getrennte Zähler konsistent', async () => {

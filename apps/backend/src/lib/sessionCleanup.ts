@@ -33,7 +33,7 @@ import { expireParticipantJoinReplayEnvelopes } from './participantJoin';
 const BONUS_TOKEN_RETENTION_DAYS = 90;
 const SESSION_FEEDBACK_RETENTION_DAYS = 90;
 const ADMIN_AUDIT_RETENTION_DAYS = 365;
-const SESSION_PURGE_BATCH_SIZE = 100;
+const SESSION_PURGE_BATCH_SIZE = 10;
 const CLEANUP_INTERVAL_MS = 60 * 1000;
 
 export {
@@ -320,83 +320,101 @@ export async function cleanupExpiredFinishedSessions(): Promise<number> {
     return 0;
   }
 
-  const deletedSessions = await prisma.$transaction(
-    async (tx) => {
-      const readyIds = ready.map((session) => session.id);
-      const locked = await tx.$queryRaw<
-        Array<{ id: string; code: string; quizId: string | null }>
-      >(Prisma.sql`
-        SELECT candidate."id", candidate."code", candidate."quizId"
-        FROM "Session" AS candidate
-        WHERE candidate."id" IN (${Prisma.join(readyIds)})
-          AND candidate."status" = 'FINISHED'
-          AND candidate."endedAt" IS NOT NULL
-          AND candidate."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
-            <= timezone('UTC', clock_timestamp())
-          AND (
-            candidate."legalHoldUntil" IS NULL
-            OR candidate."legalHoldUntil" <= timezone('UTC', clock_timestamp())
-          )
-        ORDER BY candidate."endedAt" ASC, candidate."id" ASC
-        FOR UPDATE OF candidate SKIP LOCKED
-      `);
-      if (locked.length === 0) {
-        return [];
-      }
+  const readyIds = ready.map((session) => session.id);
+  const deletedSessions = await prisma.$queryRaw<
+    Array<{ id: string; code: string; quizId: string | null }>
+  >(Prisma.sql`
+    DELETE FROM "Session" AS target
+    WHERE target."id" IN (${Prisma.join(readyIds)})
+      AND target."status" = 'FINISHED'
+      AND target."endedAt" IS NOT NULL
+      AND target."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
+        <= timezone('UTC', clock_timestamp())
+      AND (
+        target."legalHoldUntil" IS NULL
+        OR target."legalHoldUntil" <= timezone('UTC', clock_timestamp())
+      )
+    RETURNING target."id", target."code", target."quizId"
+  `);
+  if (deletedSessions.length === 0) {
+    return 0;
+  }
 
-      for (const session of locked) {
-        await tx.adminAuditLog.updateMany({
-          where: {
-            OR: [{ sessionId: session.id }, { sessionCode: session.code }],
-          },
-          data: {
-            sessionId: null,
-            sessionCode: null,
-            sessionReferenceHash: createHash('sha256')
-              .update(`arsnova-session-audit:${session.id}`)
-              .digest('hex'),
-          },
-        });
-      }
-      await tx.productFeedbackInviteJob.deleteMany({
-        where: { sessionId: { in: locked.map((session) => session.id) } },
-      });
-
-      const deleted = await tx.$queryRaw<
-        Array<{ id: string; code: string; quizId: string | null }>
-      >(Prisma.sql`
-        DELETE FROM "Session" AS target
-        WHERE target."id" IN (${Prisma.join(locked.map((session) => session.id))})
-          AND target."status" = 'FINISHED'
-          AND target."endedAt" IS NOT NULL
-          AND target."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
-            <= timezone('UTC', clock_timestamp())
-          AND (
-            target."legalHoldUntil" IS NULL
-            OR target."legalHoldUntil" <= timezone('UTC', clock_timestamp())
-          )
-        RETURNING target."id", target."code", target."quizId"
-      `);
-
-      const quizIds = [
-        ...new Set(
-          deleted
-            .map((session) => session.quizId)
-            .filter((quizId): quizId is string => quizId !== null),
-        ),
-      ];
-      if (quizIds.length > 0) {
-        await tx.quiz.deleteMany({
-          where: {
-            id: { in: quizIds },
-            sessions: { none: {} },
-          },
-        });
-      }
-      return deleted;
-    },
-    { isolationLevel: 'Serializable' },
+  const auditTargets = Prisma.join(
+    deletedSessions.map((session, sequence) => {
+      const referenceHash = createHash('sha256')
+        .update(`arsnova-session-audit:${session.id}`)
+        .digest('hex');
+      return Prisma.sql`(
+        ${session.id},
+        ${session.code},
+        ${referenceHash},
+        ${sequence}
+      )`;
+    }),
   );
+  await prisma.$executeRaw(Prisma.sql`
+    WITH purge_targets("sessionId", "sessionCode", "referenceHash", "sequence") AS (
+      VALUES ${auditTargets}
+    ), audit_matches AS (
+      SELECT
+        audit."id" AS "auditId",
+        target."referenceHash",
+        target."sequence"
+      FROM "AdminAuditLog" AS audit
+      JOIN purge_targets AS target
+        ON audit."sessionId" = target."sessionId"
+
+      UNION ALL
+
+      SELECT
+        audit."id" AS "auditId",
+        target."referenceHash",
+        target."sequence"
+      FROM "AdminAuditLog" AS audit
+      JOIN purge_targets AS target
+        ON audit."sessionCode" = target."sessionCode"
+    ), audit_updates AS (
+      SELECT DISTINCT ON (matches."auditId")
+        matches."auditId",
+        matches."referenceHash"
+      FROM audit_matches AS matches
+      ORDER BY matches."auditId", matches."sequence" DESC
+    )
+    UPDATE "AdminAuditLog" AS audit
+    SET
+      "sessionId" = NULL,
+      "sessionCode" = NULL,
+      "sessionReferenceHash" = audit_updates."referenceHash"
+    FROM audit_updates
+    WHERE audit."id" = audit_updates."auditId"
+  `);
+  await prisma.productFeedbackInviteJob.deleteMany({
+    where: { sessionId: { in: deletedSessions.map((session) => session.id) } },
+  });
+
+  const quizIds = [
+    ...new Set(
+      deletedSessions
+        .map((session) => session.quizId)
+        .filter((quizId): quizId is string => quizId !== null),
+    ),
+  ];
+  if (quizIds.length > 0) {
+    await prisma.quiz
+      .deleteMany({
+        where: {
+          id: { in: quizIds },
+          sessions: { none: {} },
+        },
+      })
+      .catch((error: unknown) => {
+        logger.warn(
+          'Session-Purge: Nachgelagerte Quiz-Bereinigung fehlgeschlagen:',
+          (error as Error).message,
+        );
+      });
+  }
 
   if (deletedSessions.length > 0) {
     await Promise.all(

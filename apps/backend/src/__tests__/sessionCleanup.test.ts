@@ -5,6 +5,7 @@ const { prismaMock, platformStatisticMocks, loggerMocks, credentialMocks, purgeI
     prismaMock: {
       $transaction: vi.fn(),
       $queryRaw: vi.fn(),
+      $executeRaw: vi.fn(),
       session: {
         updateMany: vi.fn(),
         updateManyAndReturn: vi.fn(),
@@ -101,6 +102,7 @@ describe('sessionCleanup', () => {
     credentialMocks.invalidateHostPairingForSession.mockResolvedValue(undefined);
     purgeInvalidationMocks.publishSessionPurgeInvalidation.mockResolvedValue(undefined);
     prismaMock.adminAuditLog.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.$executeRaw.mockResolvedValue(2);
     prismaMock.productFeedbackInviteJob.deleteMany.mockResolvedValue({ count: 0 });
   });
 
@@ -161,10 +163,6 @@ describe('sessionCleanup', () => {
       .mockResolvedValueOnce([
         { id: 'session-1', code: 'ABC123', quizId: 'quiz-1' },
         { id: 'session-2', code: 'DEF456', quizId: null },
-      ])
-      .mockResolvedValueOnce([
-        { id: 'session-1', code: 'ABC123', quizId: 'quiz-1' },
-        { id: 'session-2', code: 'DEF456', quizId: null },
       ]);
     prismaMock.quiz.deleteMany.mockResolvedValue({ count: 1 });
 
@@ -176,44 +174,40 @@ describe('sessionCleanup', () => {
     expect(credentialMocks.invalidateHostPairingForSession).toHaveBeenCalledWith('ABC123');
     expect(credentialMocks.invalidateHostPairingForSession).toHaveBeenCalledWith('DEF456');
     expect(purgeInvalidationMocks.publishSessionPurgeInvalidation).toHaveBeenCalledTimes(4);
-    const selectionSql = (
-      prismaMock.$queryRaw.mock.calls[0]?.[0] as { strings?: string[] }
-    ).strings?.join('?');
-    const lockSql = (
-      prismaMock.$queryRaw.mock.calls[1]?.[0] as { strings?: string[] }
-    ).strings?.join('?');
+    const selectionQuery = prismaMock.$queryRaw.mock.calls[0]?.[0] as {
+      strings?: string[];
+      values?: unknown[];
+    };
+    const selectionSql = selectionQuery.strings?.join('?');
     const deleteSql = (
-      prismaMock.$queryRaw.mock.calls[2]?.[0] as { strings?: string[] }
+      prismaMock.$queryRaw.mock.calls[1]?.[0] as { strings?: string[] }
     ).strings?.join('?');
     expect(selectionSql).toContain("INTERVAL '1 hour'");
     expect(selectionSql).toContain("timezone('UTC', clock_timestamp())");
     expect(selectionSql).toContain('LIMIT');
-    expect(lockSql).toContain("INTERVAL '1 hour'");
-    expect(lockSql).toContain('FOR UPDATE OF candidate SKIP LOCKED');
+    expect(selectionQuery.values?.at(-1)).toBe(10);
     expect(deleteSql).toContain('DELETE FROM "Session" AS target');
     expect(prismaMock.productFeedbackInviteJob.deleteMany).toHaveBeenCalledWith({
       where: { sessionId: { in: ['session-1', 'session-2'] } },
     });
-    expect(prismaMock.adminAuditLog.updateMany).toHaveBeenCalledTimes(2);
-    expect(prismaMock.adminAuditLog.updateMany).toHaveBeenCalledWith({
-      where: {
-        OR: [{ sessionId: 'session-1' }, { sessionCode: 'ABC123' }],
-      },
-      data: {
-        sessionId: null,
-        sessionCode: null,
-        sessionReferenceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-      },
-    });
+    expect(prismaMock.$executeRaw).toHaveBeenCalledTimes(1);
+    const auditUpdateSql = (
+      prismaMock.$executeRaw.mock.calls[0]?.[0] as { strings?: string[] }
+    ).strings?.join('?');
+    expect(auditUpdateSql).toContain('WITH purge_targets');
+    expect(auditUpdateSql).toContain('DISTINCT ON (matches."auditId")');
+    expect(auditUpdateSql).toContain('ORDER BY matches."auditId", matches."sequence" DESC');
+    expect(auditUpdateSql).toContain('audit_matches AS');
+    expect(auditUpdateSql).toContain('audit."sessionId" = target."sessionId"');
+    expect(auditUpdateSql).toContain('UNION ALL');
+    expect(auditUpdateSql).toContain('audit."sessionCode" = target."sessionCode"');
     expect(prismaMock.quiz.deleteMany).toHaveBeenCalledWith({
       where: {
         id: { in: ['quiz-1'] },
         sessions: { none: {} },
       },
     });
-    expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function), {
-      isolationLevel: 'Serializable',
-    });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
     expect(loggerMocks.info).toHaveBeenCalledWith(
       expect.stringContaining('Session-Purge: 2 beendete Session(s)'),
     );

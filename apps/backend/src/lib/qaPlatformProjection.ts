@@ -36,12 +36,24 @@ export async function projectQaPlatformStatistics(): Promise<void> {
             "projectedAt"
           )
           SELECT
-            "id",
-            "qaQuestionsAcceptedTotal",
-            "qaQuestionPeakCount",
-            "qaQuestionPeakReachedAt",
+            session."id",
+            session."qaQuestionsAcceptedTotal",
+            session."qaQuestionPeakCount",
+            session."qaQuestionPeakReachedAt",
             timezone('UTC', clock_timestamp())
-          FROM "Session"
+          FROM "Session" AS session
+          WHERE (
+            session."qaQuestionsAcceptedTotal" > 0
+            OR session."qaQuestionPeakCount" > 0
+          )
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "QaSessionStatisticProjection" AS projection
+              WHERE projection."sessionId" = session."id"
+                AND projection."questionsAcceptedTotal"
+                  >= session."qaQuestionsAcceptedTotal"
+                AND projection."questionPeakCount" >= session."qaQuestionPeakCount"
+            )
           ON CONFLICT ("sessionId") DO UPDATE
           SET
             "questionsAcceptedTotal" = GREATEST(
@@ -59,6 +71,10 @@ export async function projectQaPlatformStatistics(): Promise<void> {
               EXCLUDED."questionPeakCount"
             ),
             "projectedAt" = EXCLUDED."projectedAt"
+          WHERE EXCLUDED."questionsAcceptedTotal"
+              > "QaSessionStatisticProjection"."questionsAcceptedTotal"
+            OR EXCLUDED."questionPeakCount"
+              > "QaSessionStatisticProjection"."questionPeakCount"
         `;
 
       await tx.$executeRaw`
