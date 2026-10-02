@@ -29,7 +29,7 @@ You will find links to external services on arsnova.eu (e.g., GitHub). Clicking 
 
 ## 5. Hosting and Infrastructure
 
-arsnova.eu is hosted by Hetzner Online GmbH in Germany. Hetzner undergoes annual audits by TÜV Rheinland to ensure compliance with strict security standards under Art. 32 GDPR.
+arsnova.eu is hosted by Hetzner Online GmbH in Germany.
 
 The website and app at https://arsnova.eu run on Hetzner servers. If the software is hosted **by you or a third party** (e.g., your institution), access logs (like IP addresses) may be processed on their respective servers. If the application is hosted outside the EU (e.g., in the US), data transfers may occur, subject to appropriate safeguards (such as Standard Contractual Clauses under Art. 46 GDPR). A **separate** project landing page (for demos and marketing) may occasionally be hosted via GitHub Pages under a different domain—not the main arsnova.eu site; for details, please see the [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). The specific provider and storage location depend on the respective setup.
 

@@ -54,7 +54,7 @@ export function sessionNotFoundUiMessage(): string {
 }
 
 function sessionCreateRateLimitUiMessage(): string {
-  return $localize`:@@errors.sessionCreateRateLimit:Zu viele Session-Erstellungen. Bitte später erneut versuchen.`;
+  return $localize`:@@errors.sessionCreateRateLimit:Zu viele Sessions wurden erstellt. Bitte versuche es später erneut.`;
 }
 
 function adminLoginRateLimitUiMessage(): string {
@@ -112,7 +112,7 @@ export function localizeKnownServerMessage(message: string): string {
     normalized.startsWith(SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX) &&
     normalized.includes(SESSION_CODE_TOO_MANY_FAILURES_DE_CONTAINS)
   ) {
-    return $localize`:@@errors.sessionCodeTooManyFailures:Zu viele falsche Codes – kurz warten.`;
+    return $localize`:@@errors.sessionCodeTooManyFailures:Zu viele falsche Codes. Warte kurz und versuche es dann erneut.`;
   }
   if (ADMIN_LOGIN_RATE_LIMIT_MESSAGES_DE.has(normalized)) {
     return adminLoginRateLimitUiMessage();
@@ -164,6 +164,6 @@ export function localizeKnownServerError(error: unknown, fallbackMessage: string
     return localizedMessage;
   }
 
-  const retryHint = $localize`:@@errors.rateLimitRetryAfter:Bitte in ${retryAfterSeconds}:seconds: Sekunden erneut versuchen.`;
+  const retryHint = $localize`:@@errors.rateLimitRetryAfter:Versuche es bitte in ${retryAfterSeconds}:seconds: Sekunden erneut.`;
   return `${localizedMessage}\n${retryHint}`;
 }

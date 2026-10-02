@@ -709,7 +709,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
               title: $localize`:@@homeLiveCard.removeCtaTitle:Q&A-Session ${item.code}:code: löschen?`,
               message: $localize`:@@sessionHost.endGlobalSessionMessage:Damit beendest du Quiz, Q&A und Blitzlicht für alle.`,
               consequences,
-              note: $localize`:@@homeLiveCard.removeCtaForgetHint:Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.`,
+              note: $localize`:@@homeLiveCard.removeCtaForgetHint:Wenn du nur den Schnellzugang entfernst, bleibt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.`,
               confirmLabel: $localize`:@@homeLiveCard.removeCtaConfirm:Session löschen`,
               alternateLabel: $localize`:@@homeLiveCard.removeCtaForget:Nur Schnellzugang entfernen`,
               cancelLabel: $localize`:@@homeLiveCard.removeCtaCancel:Abbrechen`,
@@ -792,7 +792,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         setHostToken(code, issued.hostToken);
       } else if (!hasHostToken(code)) {
         this.snackBar.open(
-          $localize`:@@homeLiveCard.removeCtaError:Session konnte nicht gelöscht werden. Bitte erneut versuchen.`,
+          $localize`:@@homeLiveCard.removeCtaError:Die Session konnte nicht gelöscht werden. Bitte versuche es erneut.`,
           '',
           { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
         );
@@ -804,7 +804,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.snackBar.open(
         localizeKnownServerError(
           error,
-          $localize`:@@homeLiveCard.removeCtaError:Session konnte nicht gelöscht werden. Bitte erneut versuchen.`,
+          $localize`:@@homeLiveCard.removeCtaError:Die Session konnte nicht gelöscht werden. Bitte versuche es erneut.`,
         ),
         '',
         { duration: 4500, horizontalPosition: 'center', verticalPosition: 'top' },
@@ -1275,7 +1275,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const parsed = this.extractSyncLink(this.syncLinkValue());
     if (!parsed) {
       this.syncLinkError.set(
-        $localize`:@@homeHostCard.syncLinkError:Bitte einen gültigen Sync-Link einfügen.`,
+        $localize`:@@homeHostCard.syncLinkError:Füge bitte einen gültigen Sync-Link ein.`,
       );
       this.syncLinkInput?.nativeElement.focus();
       return;
@@ -1338,7 +1338,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.router.navigate(this.localizedCommands(['feedback', result.sessionCode]));
     } catch {
       this.quickFeedbackError.set(
-        $localize`:@@homeFeedbackCard.startError:Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.`,
+        $localize`:@@homeFeedbackCard.startError:Das Blitzlicht konnte nicht gestartet werden. Bitte versuche es erneut.`,
       );
     } finally {
       this.quickFeedbackStarting.set(null);

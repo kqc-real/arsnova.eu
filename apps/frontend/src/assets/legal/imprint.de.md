@@ -37,4 +37,4 @@ Die von den Betreibern erstellten Inhalte und Werke auf arsnova.eu unterliegen d
 
 ## Hosting (technischer Betrieb)
 
-arsnova.eu wird in der Europäischen Union gehostet von der Hetzner Online GmbH, Deutschland. Einzelheiten finden Sie in der Datenschutzerklärung.
+arsnova.eu wird in der Europäischen Union von der Hetzner Online GmbH in Deutschland gehostet. Einzelheiten findest du in der Datenschutzerklärung.

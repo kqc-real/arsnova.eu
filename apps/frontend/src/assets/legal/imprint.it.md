@@ -1,36 +1,40 @@
 # Note legali
 
-Informazioni fornite ai sensi del § 5 della legge tedesca sui servizi digitali (Digitale-Dienste-Gesetz, DDG)
+Informazioni fornite ai sensi dell’articolo 5 della legge tedesca sui servizi digitali (Digitale-Dienste-Gesetz, DDG)
 
-## Fornitore
+## Fornitore / Prestatore di servizi
 
-Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel  
-Juri-Gagarin-Ring 152  
-99084 Erfurt  
+Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel\
+IU Internationale Hochschule · Duales Studium\
+Juri-Gagarin-Ring 152\
+99084 Erfurt\
 Germania
+
+Il sito arsnova.eu è offerto nell’ambito dell’attività professionale del Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel.
 
 ## Contatto
 
-E-mail: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)
+E-mail: [klaus.quibeldey-cirkel@iu.org](mailto:klaus.quibeldey-cirkel@iu.org)\
+Sito web: [https://arsnova.eu](https://arsnova.eu)\
+Maggiori informazioni sulla IU: [https://www.iu-dualesstudium.de](https://www.iu-dualesstudium.de)
 
-## Responsabile dei contenuti
+## Responsabile dei contenuti (articolo 18, comma 2, MStV)
 
-Ai sensi del § 18 del Trattato statale tedesco sui media (MStV):
+Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel\
+Juri-Gagarin-Ring 152, 99084 Erfurt, Germania
 
-Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel  
-(Indirizzo come sopra)
+## Responsabilità per i contenuti
 
-## Hosting
+In qualità di prestatori di servizi, siamo responsabili dei nostri **propri** contenuti su arsnova.eu ai sensi delle leggi generali. Secondo le disposizioni di legge applicabili, i prestatori di servizi non sono tenuti a controllare in generale le informazioni di terzi trasmesse o memorizzate né a ricercare circostanze che indichino un’attività illecita. Restano invariati gli obblighi di rimozione delle informazioni o di blocco del loro utilizzo previsti dalle leggi generali. La responsabilità in questo ambito è possibile solo dal momento in cui veniamo a conoscenza di una violazione concreta. Quando veniamo a conoscenza di una violazione, rimuoviamo tempestivamente i contenuti interessati.
 
-arsnova.eu è ospitato nell'Unione Europea da:  
-Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Germania.
+## Responsabilità per i link
 
-## Responsabilità per i contenuti e i link
+arsnova.eu contiene link a siti web esterni di terzi sui cui contenuti non abbiamo alcun controllo. Il rispettivo fornitore o gestore è sempre responsabile del contenuto delle pagine collegate. Le pagine collegate sono state verificate al momento della creazione del link; in quel momento non erano riconoscibili contenuti illeciti. Non è ragionevole controllare in modo permanente le pagine collegate senza indizi concreti di una violazione. Quando veniamo a conoscenza di una violazione, rimuoviamo tempestivamente i link interessati.
 
-In qualità di fornitori di servizi, siamo responsabili dei nostri contenuti su queste pagine ai sensi delle leggi generali. Tuttavia, non siamo obbligati a monitorare le informazioni di terzi trasmesse o memorizzate.
+## Diritto d’autore
 
-La nostra offerta contiene link a siti web esterni di terzi sui cui contenuti non abbiamo alcuna influenza. Il rispettivo fornitore o gestore delle pagine collegate è sempre responsabile del loro contenuto. Rimuoveremo immediatamente tali link non appena verremo a conoscenza di eventuali violazioni di legge.
+I contenuti e le opere creati dai gestori di arsnova.eu sono soggetti alla legge tedesca sul diritto d’autore. La riproduzione, la modifica, la distribuzione e qualsiasi utilizzo al di fuori dei limiti di legge richiedono il consenso scritto del rispettivo titolare dei diritti. Download e copie sono consentiti solo per uso privato e non commerciale. Quando i contenuti non sono stati creati dal gestore, vengono rispettati i diritti d’autore di terzi. I contenuti di terzi sono contrassegnati come tali.
 
-## Diritto d'autore
+## Hosting (gestione tecnica)
 
-I contenuti e le opere creati dai gestori del sito sono soggetti alla legge tedesca sul diritto d'autore. La riproduzione, l'elaborazione, la distribuzione e qualsiasi tipo di utilizzo al di fuori dei limiti del diritto d'autore richiedono il consenso scritto del rispettivo autore o creatore. I contenuti di terzi sono contrassegnati come tali.
+arsnova.eu è ospitato nell’Unione europea da Hetzner Online GmbH, in Germania. Trovi maggiori informazioni nell’informativa sulla privacy.

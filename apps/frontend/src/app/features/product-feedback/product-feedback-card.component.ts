@@ -609,7 +609,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     const code = this.errorCode(error);
     if (code === 'NOT_FOUND') {
       return action === 'followUp'
-        ? $localize`:@@productFeedback.status.followUpExpired:Die Zeit für die Ergänzung ist abgelaufen. Deine Zwei-Klick-Antwort bleibt gespeichert.`
+        ? $localize`:@@productFeedback.status.followUpExpired:Die Zeit für die Ergänzung ist abgelaufen. Deine Antwort mit zwei Klicks bleibt gespeichert.`
         : $localize`:@@productFeedback.status.inviteExpired:Diese Einladung ist abgelaufen.`;
     }
     if (code === 'CONFLICT') {
@@ -622,10 +622,10 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
       return $localize`:@@productFeedback.status.notAllowed:Diese Rückmeldung kann nicht gesendet werden.`;
     }
     return action === 'claim'
-      ? $localize`:@@productFeedback.status.claimFailed:Die Frage konnte nicht geladen werden. Bitte versuche es erneut oder schließe sie.`
+      ? $localize`:@@productFeedback.status.claimFailed:Die Frage konnte nicht geladen werden. Bitte versuche es erneut oder schließe die Rückmeldung.`
       : action === 'followUp'
-        ? $localize`:@@productFeedback.status.messageRejected:Die Ergänzung konnte nicht gesendet werden. Bitte versuche es erneut oder schließe sie.`
-        : $localize`:@@productFeedback.status.rejected:Das hat nicht geklappt. Bitte erneut versuchen oder schließen.`;
+        ? $localize`:@@productFeedback.status.messageRejected:Die Ergänzung konnte nicht gesendet werden. Bitte versuche es erneut oder schließe die Rückmeldung.`
+        : $localize`:@@productFeedback.status.rejected:Das hat nicht geklappt. Bitte versuche es erneut oder schließe die Rückmeldung.`;
   }
 
   private restoreFocus(): void {

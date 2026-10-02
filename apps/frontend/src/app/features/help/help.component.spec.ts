@@ -26,6 +26,45 @@ vi.mock('../../core/locale-from-path', async (importOriginal) => {
 class HelpRouterHostComponent {}
 
 describe('HelpComponent', () => {
+  it('beschreibt nur unterstützte Einstiege und den fairen Timermechanismus', () => {
+    const template = readFileSync(
+      resolve(process.cwd(), 'src/app/features/help/help.component.html'),
+      'utf8',
+    );
+    expect(template).not.toContain('/present');
+    expect(template).not.toContain('/host');
+    expect(template).not.toContain('Host-Token');
+    expect(template).not.toContain('Nur ein Klick');
+    expect(template).toContain('Blitzlicht-Karte auf der Startseite');
+    expect(template).toContain('Zusätzliche Zeit verschafft keinen Wettbewerbsvorteil');
+  });
+
+  it('hält die überarbeiteten Hilfetexte in allen Übersetzungen synchron', () => {
+    const localeDir = resolve(process.cwd(), 'src/locale');
+    const catalogs = ['en', 'fr', 'es', 'it'].map((locale) =>
+      readFileSync(resolve(localeDir, `messages.${locale}.xlf`), 'utf8'),
+    );
+
+    for (const catalog of catalogs) {
+      const relevantUnits = [
+        'help.hostModerationBody',
+        'help.hostPulseBody',
+        'help.participantAnswerTimer',
+      ].map(
+        (id) =>
+          catalog.match(new RegExp(`<trans-unit id="${id}"[\\s\\S]*?</trans-unit>`))?.[0] ?? '',
+      );
+      expect(relevantUnits.every(Boolean)).toBe(true);
+      expect(relevantUnits.join('\n')).not.toMatch(
+        /Host-Token|\/present|\/host|Nur ein Klick|Just one click|Un seul clic|Solo un clic|Basta un clic/,
+      );
+    }
+
+    expect(catalogs[1]).toContain('« Temps personnel »');
+    expect(catalogs[2]).toContain('«Tiempo personal»');
+    expect(catalogs[3]).toContain('«Tempo personale»');
+  });
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HelpComponent],

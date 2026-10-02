@@ -293,10 +293,6 @@
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">937</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">148</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="1632524115807344357" datatype="html">
         <source>Nochmal versuchen</source>
@@ -432,15 +428,15 @@
       </trans-unit>
       <trans-unit id="session.notFound" datatype="html">
         <source>Session nicht gefunden.</source>
-        <target>Séance introuvable.</target>
+        <target>Session introuvable.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
           <context context-type="linenumber">53</context>
         </context-group>
       </trans-unit>
       <trans-unit id="errors.sessionCreateRateLimit" datatype="html">
-        <source>Zu viele Session-Erstellungen. Bitte später erneut versuchen.</source>
-        <target>Trop de séances ont été créées. Réessaie plus tard.</target>
+        <source>Zu viele Sessions wurden erstellt. Bitte versuche es später erneut.</source>
+        <target>Trop de sessions ont été créées. Réessaie plus tard.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
           <context context-type="linenumber">57</context>
@@ -463,8 +459,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="errors.sessionCodeTooManyFailures" datatype="html">
-        <source>Zu viele falsche Codes – kurz warten.</source>
-        <target>Trop de codes incorrects – un instant.</target>
+        <source>Zu viele falsche Codes. Warte kurz und versuche es dann erneut.</source>
+        <target>Trop de codes incorrects. Attends un instant avant de réessayer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
           <context context-type="linenumber">115</context>
@@ -491,8 +487,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="errors.rateLimitRetryAfter" datatype="html">
-        <source>Bitte in <x id="seconds" equiv-text="retryAfterSeconds"/> Sekunden erneut versuchen.</source>
-        <target>Réessayez dans <x id="seconds" equiv-text="retryAfterSeconds"/> secondes.</target>
+        <source>Versuche es bitte in <x id="seconds" equiv-text="retryAfterSeconds"/> Sekunden erneut.</source>
+        <target>Réessaie dans <x id="seconds" equiv-text="retryAfterSeconds"/> secondes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
           <context context-type="linenumber">167</context>
@@ -627,8 +623,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="seo.descNewsArchive" datatype="html">
-        <source>Freigegebene Meldungen aus dem News-Archiv: Chronik zu Releases, Hinweisen und Transparenz rund um arsnova.eu.</source>
-        <target>Entrées publiées dans les archives d’actualités : releases, notes et informations de transparence autour d’arsnova.eu.</target>
+        <source>Veröffentlichte Meldungen im News-Archiv: Neuigkeiten zu Versionen, Hinweisen und Transparenz rund um arsnova.eu.</source>
+        <target>Publications des archives d’actualités : nouveautés sur les versions, informations et transparence d’arsnova.eu.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/seo-route-meta.ts</context>
           <context context-type="linenumber">128</context>
@@ -5838,7 +5834,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.area.tech" datatype="html">
         <source>Technik oder Verbindung</source>
-        <target>Technique ou connexion</target>
+        <target>Problème technique ou de connexion</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
           <context context-type="linenumber">313</context>
@@ -5922,7 +5918,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.area.liveControl" datatype="html">
         <source>Live-Session steuern</source>
-        <target>Contrôler la session en direct</target>
+        <target>Animer la session en direct</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/admin/admin-product-feedback-panel.component.ts</context>
           <context context-type="linenumber">325</context>
@@ -9050,8 +9046,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostModerationBody" datatype="html">
-        <source> Nutze je nach Situation Lesephase, Timer und die Presenter-Ansicht für den Beamer. Öffne sie über den Button in der Host-Ansicht; so bleibt das Host-Token im zweiten Tab erhalten. Alternativ den Host-Tab duplizieren und in der Adresse /present statt /host nutzen. Für Peer Instruction lässt du zuerst abstimmen, startest eine Diskussionsphase und öffnest anschließend eine zweite Abstimmung. Der Vorher-Nachher-Vergleich macht Veränderungen sichtbar.</source>
-        <target> Utilise selon la situation la phase de lecture, le minuteur et la vue présentateur pour le projecteur. Ouvre-la via le bouton dans la vue hôte afin que le jeton hôte reste disponible dans le second onglet. Tu peux aussi dupliquer l’onglet hôte et remplacer /host par /present dans l’adresse. Pour l’instruction par les pairs, fais d’abord voter, lance une phase de discussion, puis ouvre un second vote. La comparaison avant/après rend les changements visibles. </target>
+        <source> Nutze je nach Situation Lesephase, Timer und die Presenter-Ansicht für den Beamer. Öffne die Presenter-Ansicht über den entsprechenden Button in der Host-Ansicht. Für Peer Instruction lässt du zuerst abstimmen, startest eine Diskussionsphase und öffnest anschließend eine zweite Abstimmung. Der Vorher-Nachher-Vergleich macht Veränderungen sichtbar.</source>
+        <target>Utilise selon la situation la phase de lecture, le minuteur et la vue présentateur pour le projecteur. Ouvre la vue présentateur avec le bouton correspondant dans la vue hôte. Pour l’instruction par les pairs, fais d’abord voter, lance une phase de discussion, puis ouvre un second vote. La comparaison avant/après rend les changements visibles.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">250,257</context>
@@ -9075,7 +9071,7 @@
       </trans-unit>
       <trans-unit id="help.hostTimerChoice" datatype="html">
         <source> Teilnehmende können »10× Zeit« oder »Ohne Frist« wählen, wenn »Persönliche Zeit« im Quiz aktiviert ist.</source>
-        <target>Les participants peuvent choisir « Temps ×10 » ou « Sans délai » lorsque l’option « Temps personnalisé » est activée pour le quiz.</target>
+        <target>Les participants peuvent choisir « Temps ×10 » ou « Sans délai » lorsque l’option « Temps personnel » est activée pour le quiz.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">272,275</context>
@@ -9099,7 +9095,7 @@
       </trans-unit>
       <trans-unit id="help.hostTimerControl" datatype="html">
         <source> Du entscheidest weiterhin selbst, wann die Frage endet: Auch bei »10× Zeit« und »Ohne Frist« kannst du sie nach dem regulären Countdown jederzeit beenden.</source>
-        <target>Vous décidez toujours du moment où la question prend fin : avec « Temps ×10 » comme avec « Sans délai », vous pouvez y mettre fin à tout moment après le compte à rebours normal.</target>
+        <target>Tu décides toujours du moment où la question prend fin : avec « Temps ×10 » comme avec « Sans délai », tu peux y mettre fin à tout moment après le compte à rebours normal.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">285,288</context>
@@ -9130,8 +9126,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.hostPulseBody" datatype="html">
-        <source> Starte ein Blitzlicht aus der Live-Session oder über »Nur ein Klick« auf der Startseite. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
-        <target>Lance un Feedback express depuis la session en direct ou avec « Un seul clic » sur la page d’accueil. Tu peux le mettre en pause, le reprendre, le réinitialiser ou démarrer un nouveau tour. Pour le retour sur le rythme, les participant·es peuvent modifier leur réponse à tout moment ; tu ne vois que la tendance agrégée.</target>
+        <source> Starte ein Blitzlicht über die Blitzlicht-Karte auf der Startseite oder innerhalb einer Live-Session. Du kannst die Abstimmung pausieren, fortsetzen, zurücksetzen oder als neue Runde starten. Beim Tempo-Feedback ändern Teilnehmende ihre Rückmeldung jederzeit; du siehst nur die aggregierte Tendenz.</source>
+        <target>Lance un feedback express depuis la carte correspondante sur la page d’accueil ou depuis une session en direct. Tu peux le mettre en pause, le reprendre, le réinitialiser ou démarrer un nouveau tour. Pour le retour sur le rythme, les participant·es peuvent modifier leur réponse à tout moment ; tu ne vois que la tendance agrégée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">316,321</context>
@@ -9147,7 +9143,7 @@
       </trans-unit>
       <trans-unit id="help.hostLibraryWhy" datatype="html">
         <source> Die Quiz-Sammlung bleibt bewusst lokal auf deinem Gerät — das schützt Inhalte im Sinne der DSGVO. Wenn du im Vortragsraum ein fremdes Gerät nutzen musst, holst du sie per Sync-Link statt per USB-Stick. Denselben Link kannst du Kolleg:innen geben, damit ihr die Sammlung gemeinsam nutzen und bearbeiten könnt.</source>
-        <target>La collection de quiz reste volontairement sur ton appareil — important pour le RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de sync plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour que vous puissiez utiliser et modifier la collection ensemble.</target>
+        <target>La collection de quiz reste volontairement sur ton appareil — important pour le RGPD. Si tu dois utiliser un ordinateur d’emprunt dans la salle, tu la récupères avec un lien de synchronisation plutôt qu’avec une clé USB. Tu peux donner le même lien à des collègues pour utiliser et modifier la collection ensemble.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">332,337</context>
@@ -9194,8 +9190,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="help.participantAnswerTimer" datatype="html">
-        <source> Falls angeboten, wählst du unter »Zeit anpassen« »10× Zeit« oder »Ohne Frist«. Mehr Zeit hilft nicht. Nach dem Countdown gibt es nur Mindestpunkte; vorn landest du damit selten.</source>
-        <target>Si l’option est proposée, sous « Adapter le temps » tu choisis « Temps ×10 » ou « Sans délai ». Prendre plus de temps n’apporte rien. Après le compte à rebours, il ne reste que le minimum de points ; tu arrives rarement en tête.</target>
+        <source> Falls angeboten, wählst du unter »Zeit anpassen« »10× Zeit« oder »Ohne Frist«. Zusätzliche Zeit verschafft keinen Wettbewerbsvorteil: Richtige Antworten nach dem regulären Countdown erhalten nur Mindestpunkte.</source>
+        <target>Si l’option est proposée, choisis « Temps ×10 » ou « Sans délai » sous « Adapter le temps ». Le temps supplémentaire ne procure aucun avantage concurrentiel : les bonnes réponses envoyées après le compte à rebours normal ne reçoivent que le minimum de points.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/help/help.component.html</context>
           <context context-type="linenumber">410,414</context>
@@ -9386,10 +9382,6 @@
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">23</context>
         </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">690,692</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="homeHero.line1Dash" datatype="html">
         <source> –</source>
@@ -9416,7 +9408,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHero.uspAudience" datatype="html">
-        <source> Für Schulen, Unis &amp; Events – bis zu 500 Personen.</source>
+        <source> Für Schulen, Hochschulen &amp; Events – bis zu 500 Personen.</source>
         <target>Pour les écoles, les universités et les événements – jusqu’à 500 personnes.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
@@ -9473,7 +9465,7 @@
       </trans-unit>
       <trans-unit id="6442998532427943414" datatype="html">
         <source>Letzte Sessions</source>
-        <target>Dernières séances</target>
+        <target>Sessions récentes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">70</context>
@@ -9495,6 +9487,14 @@
           <context context-type="linenumber">139</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeJoinCard.connecting" datatype="html">
+        <source>Verbindung wird hergestellt …</source>
+        <target>Connexion en cours…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">148</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="homeJoinCard.joinCta" datatype="html">
         <source>Los geht’s</source>
         <target>C’est parti</target>
@@ -9504,8 +9504,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostIntro.eyebrow" datatype="html">
-        <source> Für Lehrende und Vortragende</source>
-        <target>Pour les enseignants et les intervenants</target>
+        <source> Für Veranstaltende</source>
+        <target>Pour les personnes qui organisent</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">182,184</context>
@@ -9625,7 +9625,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkLabel" datatype="html">
         <source>Sync-Link</source>
-        <target>Lien de sync</target>
+        <target>Lien de synchronisation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">349</context>
@@ -9641,7 +9641,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkInputAria" datatype="html">
         <source>Link einer geteilten Sammlung einfügen</source>
-        <target>Coller le lien d’une collection partagée</target>
+        <target>Colle le lien d’une collection partagée</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">366</context>
@@ -9665,7 +9665,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncUnlinkCta" datatype="html">
         <source>Verknüpfung lösen</source>
-        <target>Se déconnecter</target>
+        <target>Dissocier</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">407</context>
@@ -9709,7 +9709,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.qaCreateLabel" datatype="html">
         <source>Neue Q&amp;A-Session</source>
-        <target>Nouvelle session Q&amp;R</target>
+        <target>Nouvelle session Q&amp;A</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">599</context>
@@ -9717,7 +9717,7 @@
       </trans-unit>
       <trans-unit id="homeScenario.classroomQaDescription" datatype="html">
         <source>Gemeinsam Unklarheiten klären</source>
-        <target>Clarifier ensemble</target>
+        <target>Clarifier ensemble les points difficiles</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">605</context>
@@ -9749,7 +9749,7 @@
       </trans-unit>
       <trans-unit id="homeScenario.eventBothDescription" datatype="html">
         <source>Q&amp;A und Blitzlicht vorbereiten</source>
-        <target>Préparer Q&amp;A et le feedback express</target>
+        <target>Préparer le Q&amp;A et le feedback express</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">640</context>
@@ -9779,8 +9779,16 @@
           <context context-type="linenumber">682,684</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="homeFeedbackCard.title" datatype="html">
+        <source> Blitzlicht</source>
+        <target>Feedback express</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
+          <context context-type="linenumber">690,692</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="homeScenario.eventFeedback" datatype="html">
-        <source> Stimmung/Tempo erfassen</source>
+        <source> Stimmung oder Tempo erfassen</source>
         <target>Sonder l’humeur ou le rythme</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
@@ -9797,7 +9805,7 @@
       </trans-unit>
       <trans-unit id="motd.overlayTitle" datatype="html">
         <source> Aktuelle Meldung</source>
-        <target>Actualités actuelles</target>
+        <target>Dernière actualité</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">812,814</context>
@@ -9805,7 +9813,7 @@
       </trans-unit>
       <trans-unit id="motd.overlayCloseAria" datatype="html">
         <source>Meldung schließen</source>
-        <target>Fermer le message</target>
+        <target>Fermer l’actualité</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">824</context>
@@ -9821,39 +9829,39 @@
       </trans-unit>
       <trans-unit id="motd.thumbGroupAria" datatype="html">
         <source>Bewertung der Meldung</source>
-        <target>Évaluation du message</target>
+        <target>Évaluer cette actualité</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">844</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.thumbUpTooltip" datatype="html">
-        <source>Hilfreich – erneut tippen zum Zurücknehmen</source>
-        <target>Utile — appuyer à nouveau pour annuler le vote</target>
+        <source>Hilfreich – erneut auswählen, um die Bewertung zurückzunehmen</source>
+        <target>Utile — sélectionne à nouveau pour retirer l’évaluation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">854</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.thumbUpAria" datatype="html">
-        <source>Hilfreich, erneut tippen zum Zurücknehmen</source>
-        <target>Utile, appuyer à nouveau pour annuler le vote</target>
+        <source>Hilfreich, erneut auswählen, um die Bewertung zurückzunehmen</source>
+        <target>Utile, sélectionne à nouveau pour retirer l’évaluation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">856</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.thumbDownTooltip" datatype="html">
-        <source>Nicht hilfreich – erneut tippen zum Zurücknehmen</source>
-        <target>Pas utile — appuyer à nouveau pour annuler le vote</target>
+        <source>Nicht hilfreich – erneut auswählen, um die Bewertung zurückzunehmen</source>
+        <target>Pas utile — sélectionne à nouveau pour retirer l’évaluation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">868</context>
         </context-group>
       </trans-unit>
       <trans-unit id="motd.thumbDownAria" datatype="html">
-        <source>Nicht hilfreich, erneut tippen zum Zurücknehmen</source>
-        <target>Pas utile, appuyer à nouveau pour annuler le vote</target>
+        <source>Nicht hilfreich, erneut auswählen, um die Bewertung zurückzunehmen</source>
+        <target>Pas utile, sélectionne à nouveau pour retirer l’évaluation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">870</context>
@@ -9861,7 +9869,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.infoLanding" datatype="html">
         <source>Einsatzmöglichkeiten</source>
-        <target>Usages</target>
+        <target>Cas d’usage</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">225</context>
@@ -9877,7 +9885,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryLabel" datatype="html">
         <source>Q&amp;A-Session <x id="code" equiv-text="code"/></source>
-        <target>Session Q&amp;R <x id="code" equiv-text="code"/></target>
+        <target>Session Q&amp;A <x id="code" equiv-text="code"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">630</context>
@@ -9885,7 +9893,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.recoveryDeadline" datatype="html">
         <source>Zugang bis <x id="deadline" equiv-text="deadlineLabel"/></source>
-        <target>Accès jusqu&apos;au <x id="deadline" equiv-text="deadlineLabel"/></target>
+        <target>Accès jusqu’au <x id="deadline" equiv-text="deadlineLabel"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">635</context>
@@ -9901,7 +9909,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.qaOpenDeadline" datatype="html">
         <source>Offen bis <x id="deadline" equiv-text="item.openUntilLabel"/></source>
-        <target>Ouvert jusqu&apos;au <x id="deadline" equiv-text="item.openUntilLabel"/></target>
+        <target>Ouvert jusqu’au <x id="deadline" equiv-text="item.openUntilLabel"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">642</context>
@@ -9925,7 +9933,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.qaQuestionCountMany" datatype="html">
         <source><x id="count" equiv-text="formatLocaleCount(item.questionCount, this.localeId)"/> Fragen</source>
-        <target><x id="count" equiv-text="formatLocaleCount(item.questionCount, this.localeId)"/> Questions</target>
+        <target><x id="count" equiv-text="formatLocaleCount(item.questionCount, this.localeId)"/> questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">657</context>
@@ -9941,7 +9949,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.removeCtaAria" datatype="html">
         <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen</source>
-        <target>Supprimer la session Q&amp;R <x id="code" equiv-text="item.code"/></target>
+        <target>Supprimer la session Q&amp;A <x id="code" equiv-text="item.code"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">679</context>
@@ -9949,7 +9957,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.removeCtaTitle" datatype="html">
         <source>Q&amp;A-Session <x id="code" equiv-text="item.code"/> löschen?</source>
-        <target>Supprimer la session Q&amp;R <x id="code" equiv-text="item.code"/> ?</target>
+        <target>Supprimer la session Q&amp;A <x id="code" equiv-text="item.code"/> ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">709</context>
@@ -9957,7 +9965,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionMessage" datatype="html">
         <source>Damit beendest du Quiz, Q&amp;A und Blitzlicht für alle.</source>
-        <target>Cela met fin au quiz, au Q&amp;A et au Feedback express pour tout le monde.</target>
+        <target>Cela met fin au quiz, au Q&amp;A et au feedback express pour tout le monde.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">710</context>
@@ -9968,7 +9976,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.removeCtaForgetHint" datatype="html">
-        <source>Nur den Schnellzugang zu entfernen lässt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.</source>
+        <source>Wenn du nur den Schnellzugang entfernst, bleibt das Forum offen. Mit der Wiederherstellungskarte kannst du den Host-Zugang später wiederherstellen.</source>
         <target>Retirer uniquement l’accès rapide laisse le forum ouvert. Tu pourras rétablir l’accès hôte plus tard avec la carte de récupération.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
@@ -10000,8 +10008,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeLiveCard.removeCtaError" datatype="html">
-        <source>Session konnte nicht gelöscht werden. Bitte erneut versuchen.</source>
-        <target>La session n’a pas pu être supprimée. Merci de réessayer.</target>
+        <source>Die Session konnte nicht gelöscht werden. Bitte versuche es erneut.</source>
+        <target>Impossible de supprimer la session. Réessaie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">795</context>
@@ -10013,7 +10021,7 @@
       </trans-unit>
       <trans-unit id="2862374619655540985" datatype="html">
         <source>gerade eben</source>
-        <target>tout à l&apos; heure</target>
+        <target>à l’instant</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1001</context>
@@ -10033,7 +10041,7 @@
       </trans-unit>
       <trans-unit id="3532753318619772032" datatype="html">
         <source>vor <x id="PH" equiv-text="minutes"/> Min.</source>
-        <target>Il y a <x id="PH" equiv-text="minutes"/> minutes</target>
+        <target>il y a <x id="PH" equiv-text="minutes"/> minutes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1003</context>
@@ -10073,7 +10081,7 @@
       </trans-unit>
       <trans-unit id="276214048875673948" datatype="html">
         <source>vor <x id="PH" equiv-text="hours"/> Std.</source>
-        <target>Il y a <x id="PH" equiv-text="hours"/> heures</target>
+        <target>il y a <x id="PH" equiv-text="hours"/> heures</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1006</context>
@@ -10113,7 +10121,7 @@
       </trans-unit>
       <trans-unit id="3903113005127984737" datatype="html">
         <source>vor <x id="PH" equiv-text="days"/> Tagen</source>
-        <target>Il y a <x id="PH" equiv-text="days"/> jours</target>
+        <target>il y a <x id="PH" equiv-text="days"/> jours</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1008</context>
@@ -10153,7 +10161,7 @@
       </trans-unit>
       <trans-unit id="homeLiveCard.quickFeedbackCreatedSnack" datatype="html">
         <source>Neue Blitzlicht-Session gestartet.</source>
-        <target>Nouvelle session éclair lancée.</target>
+        <target>Nouvelle session de feedback express lancée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1204</context>
@@ -10161,15 +10169,15 @@
       </trans-unit>
       <trans-unit id="home.heroChipStartError" datatype="html">
         <source>Der Kanal konnte nicht gestartet werden. Bitte versuche es erneut.</source>
-        <target>Impossible de démarrer le canal. Réessayez.</target>
+        <target>Impossible de démarrer le canal. Réessaie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1218</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkError" datatype="html">
-        <source>Bitte einen gültigen Sync-Link einfügen.</source>
-        <target>Merci de saisir un lien de sync valide.</target>
+        <source>Füge bitte einen gültigen Sync-Link ein.</source>
+        <target>Saisis un lien de synchronisation valide.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1278</context>
@@ -10177,7 +10185,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncLinkOwnError" datatype="html">
         <source>Das ist dein eigener Sync-Link. Hier fügst du den Link einer anderen Sammlung ein.</source>
-        <target>C’est ton propre lien de sync. Colle ici le lien d’une autre collection.</target>
+        <target>C’est ton propre lien de synchronisation. Colle ici le lien d’une autre collection.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1286</context>
@@ -10185,7 +10193,7 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncUnlinkConfirmPrompt" datatype="html">
         <source>Verknüpfung wirklich lösen? Die aktuelle Quiz-Sammlung bleibt auf diesem Gerät erhalten.</source>
-        <target>Te déconnecter de cette collection partagée ? Tes quiz restent sur cet appareil.</target>
+        <target>Dissocier cette collection partagée ? Tes quiz restent sur cet appareil.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1307</context>
@@ -10193,15 +10201,15 @@
       </trans-unit>
       <trans-unit id="homeHostCard.syncUnlinkSuccess" datatype="html">
         <source>Verknüpfung gelöst. Die Quiz-Sammlung ist jetzt nur auf diesem Gerät aktiv.</source>
-        <target>Déconnecté. La collection n’est plus active que sur cet appareil.</target>
+        <target>Collection dissociée. Elle n’est désormais active que sur cet appareil.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1315</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeFeedbackCard.startError" datatype="html">
-        <source>Blitzlicht konnte nicht gestartet werden. Bitte erneut versuchen.</source>
-        <target>Impossible de lancer le feedback express. Réessayez.</target>
+        <source>Das Blitzlicht konnte nicht gestartet werden. Bitte versuche es erneut.</source>
+        <target>Impossible de lancer le feedback express. Réessaie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1341</context>
@@ -10209,7 +10217,7 @@
       </trans-unit>
       <trans-unit id="6627607898679527757" datatype="html">
         <source>Bitte den 6-stelligen Code eingeben.</source>
-        <target>Saisissez le code à 6 caractères.</target>
+        <target>Saisis le code à 6 caractères.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1372</context>
@@ -10217,7 +10225,7 @@
       </trans-unit>
       <trans-unit id="join.sessionDeleted" datatype="html">
         <source>Diese Session wurde gelöscht.</source>
-        <target>Cette séance a été supprimée.</target>
+        <target>Cette session a été supprimée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">1429</context>
@@ -10664,8 +10672,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveEmpty" datatype="html">
-        <source> Keine archivierten Meldungen.</source>
-        <target>Aucun message archivé.</target>
+        <source> Noch keine Meldungen im Archiv.</source>
+        <target>Aucun message archivé pour le moment.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.html</context>
           <context context-type="linenumber">73,75</context>
@@ -10736,7 +10744,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveItemFallbackTitle" datatype="html">
-        <source>Archiv-Meldung</source>
+        <source>Archivierte Meldung</source>
         <target>Message archivé</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.ts</context>
@@ -10752,8 +10760,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveLoadError" datatype="html">
-        <source>Archiv konnte nicht geladen werden.</source>
-        <target>Impossible de charger les archives.</target>
+        <source>Das News-Archiv konnte nicht geladen werden. Bitte versuche es später erneut.</source>
+        <target>Impossible de charger les archives d’actualités. Réessaie plus tard.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.ts</context>
           <context context-type="linenumber">132</context>
@@ -10768,8 +10776,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveMarkedAllReadSnack" datatype="html">
-        <source>Archiv als gelesen markiert.</source>
-        <target>Tous les messages archivés sont marqués comme lus.</target>
+        <source>Alle Meldungen wurden als gelesen markiert.</source>
+        <target>Tous les messages ont été marqués comme lus.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.ts</context>
           <context context-type="linenumber">253</context>
@@ -10780,8 +10788,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="motd.archiveLoadMoreError" datatype="html">
-        <source>Weitere Meldungen konnten nicht geladen werden.</source>
-        <target>Impossible de charger d&apos;autres messages.</target>
+        <source>Weitere Meldungen konnten nicht geladen werden. Bitte versuche es erneut.</source>
+        <target>Impossible de charger d’autres messages. Réessaie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/news-archive/news-archive-page.component.ts</context>
           <context context-type="linenumber">349</context>
@@ -10853,7 +10861,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.messageLabel" datatype="html">
         <source>Deine Ergänzung (maximal 300 Zeichen)</source>
-        <target>Votre complément (maximum 300 caractères)</target>
+        <target>Ton complément (maximum 300 caractères)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.html</context>
           <context context-type="linenumber">152</context>
@@ -10885,7 +10893,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.privacyHint" datatype="html">
         <source>Bitte nenne keine Namen oder Sessioncodes und füge keine Quiz- oder Q&amp;A-Inhalte oder andere personenbezogene Angaben ein.</source>
-        <target>N’indiquez aucun nom, code de session ou autre renseignement personnel et n’ajoutez aucun contenu de quiz ou de questions-réponses.</target>
+        <target>N’indique aucun nom, code de session ou autre renseignement personnel et n’ajoute aucun contenu de quiz ou de questions-réponses.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">85</context>
@@ -10897,7 +10905,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.area.resultsHost" datatype="html">
         <source>Ergebnisse auswerten</source>
-        <target>Évaluer les résultats</target>
+        <target>Analyser les résultats</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">225</context>
@@ -10917,7 +10925,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.q.ease.participant" datatype="html">
         <source>Wie leicht fiel dir die Teilnahme mit arsnova.eu heute?</source>
-        <target>A-t-il été facile pour vous de participer à la session avec arsnova.eu aujourd’hui ?</target>
+        <target>As-tu pu participer facilement à la session avec arsnova.eu aujourd’hui ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">243</context>
@@ -10925,7 +10933,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.q.value.participant" datatype="html">
         <source>Hat arsnova.eu dir geholfen, dich aktiv an der Session zu beteiligen?</source>
-        <target>arsnova.eu vous a-t-il aidé à participer activement à la session ?</target>
+        <target>arsnova.eu t’a-t-il aidé à participer activement à la session ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">245</context>
@@ -10933,7 +10941,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.q.ease.host" datatype="html">
         <source>Wie leicht fiel es dir heute, die Session mit arsnova.eu durchzuführen?</source>
-        <target>A-t-il été facile pour vous d’animer la session avec arsnova.eu aujourd’hui ?</target>
+        <target>As-tu pu animer facilement la session avec arsnova.eu aujourd’hui ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">247</context>
@@ -10941,7 +10949,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.q.value.host" datatype="html">
         <source>Hat arsnova.eu dir geholfen, deine Gruppe einzubeziehen und einzuschätzen?</source>
-        <target>arsnova.eu vous a-t-il aidé à impliquer et à évaluer votre groupe ?</target>
+        <target>arsnova.eu t’a-t-il aidé à impliquer ton groupe et à comprendre ses réactions ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">249</context>
@@ -10965,7 +10973,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.q.hurdle" datatype="html">
         <source>Wo gab es die größte Hürde?</source>
-        <target>Où était le plus gros obstacle ?</target>
+        <target>Quel a été le principal obstacle ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">258</context>
@@ -10973,7 +10981,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.thanks" datatype="html">
         <source>Möchtest du noch etwas ergänzen?</source>
-        <target>Souhaitez-vous ajouter autre chose ?</target>
+        <target>Souhaites-tu ajouter autre chose ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">268</context>
@@ -10981,7 +10989,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.messageHeading" datatype="html">
         <source>Was möchtest du ergänzen?</source>
-        <target>Que voudriez-vous ajouter ?</target>
+        <target>Que souhaites-tu ajouter ?</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">270</context>
@@ -10989,7 +10997,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.errorHeading" datatype="html">
         <source>Senden nicht möglich</source>
-        <target>Impossible d&apos;envoyer</target>
+        <target>Impossible d’envoyer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">272</context>
@@ -11033,7 +11041,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.status.saved" datatype="html">
         <source>Deine Rückmeldung ist angekommen.</source>
-        <target>Votre retour a bien été reçu.</target>
+        <target>Ton retour a bien été reçu.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">338</context>
@@ -11045,7 +11053,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.status.queued" datatype="html">
         <source>Deine Rückmeldung ist auf diesem Gerät vorgemerkt. Wir senden sie automatisch, sobald arsnova.eu wieder erreichbar ist.</source>
-        <target>Votre retour est mis en attente sur cet appareil. Il sera envoyé automatiquement dès qu’arsnova.eu sera de nouveau accessible.</target>
+        <target>Ton retour est mis en attente sur cet appareil. Il sera envoyé automatiquement dès qu’arsnova.eu sera de nouveau accessible.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">354</context>
@@ -11057,7 +11065,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.status.messageSaved" datatype="html">
         <source>Deine Ergänzung ist angekommen.</source>
-        <target>Votre complément a bien été reçu.</target>
+        <target>Ton complément a bien été reçu.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">409</context>
@@ -11065,15 +11073,15 @@
       </trans-unit>
       <trans-unit id="productFeedback.status.messageQueued" datatype="html">
         <source>Deine Ergänzung ist auf diesem Gerät vorgemerkt und wird automatisch nachgesendet.</source>
-        <target>Votre complément est mis en attente sur cet appareil et sera envoyé automatiquement.</target>
+        <target>Ton complément est mis en attente sur cet appareil et sera envoyé automatiquement.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">424</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.followUpExpired" datatype="html">
-        <source>Die Zeit für die Ergänzung ist abgelaufen. Deine Zwei-Klick-Antwort bleibt gespeichert.</source>
-        <target>Le délai pour le supplément est expiré. Votre réponse en deux clics reste enregistrée.</target>
+        <source>Die Zeit für die Ergänzung ist abgelaufen. Deine Antwort mit zwei Klicks bleibt gespeichert.</source>
+        <target>Le délai pour ajouter un complément est écoulé. Ta réponse en deux clics reste enregistrée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">612</context>
@@ -11097,7 +11105,7 @@
       </trans-unit>
       <trans-unit id="productFeedback.status.rateLimited" datatype="html">
         <source>Gerade sind viele Rückmeldungen unterwegs. Bitte versuche es gleich noch einmal.</source>
-        <target>Il y a beaucoup de retours qui arrivent en ce moment. Veuillez réessayer immédiatement.</target>
+        <target>Beaucoup de retours sont en cours. Réessaie dans un instant.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">619</context>
@@ -11105,31 +11113,31 @@
       </trans-unit>
       <trans-unit id="productFeedback.status.notAllowed" datatype="html">
         <source>Diese Rückmeldung kann nicht gesendet werden.</source>
-        <target>Ce feedback ne peut pas être envoyé.</target>
+        <target>Ce retour ne peut pas être envoyé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">622</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.claimFailed" datatype="html">
-        <source>Die Frage konnte nicht geladen werden. Bitte versuche es erneut oder schließe sie.</source>
-        <target>La question n&apos;a pas pu être chargée. Veuillez réessayer ou fermer.</target>
+        <source>Die Frage konnte nicht geladen werden. Bitte versuche es erneut oder schließe die Rückmeldung.</source>
+        <target>Impossible de charger la question. Réessaie ou ferme-la.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">625</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.messageRejected" datatype="html">
-        <source>Die Ergänzung konnte nicht gesendet werden. Bitte versuche es erneut oder schließe sie.</source>
-        <target>Le complément n’a pas pu être envoyé. Réessayez ou fermez-le.</target>
+        <source>Die Ergänzung konnte nicht gesendet werden. Bitte versuche es erneut oder schließe die Rückmeldung.</source>
+        <target>Impossible d’envoyer le complément. Réessaie ou ferme-le.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">627</context>
         </context-group>
       </trans-unit>
       <trans-unit id="productFeedback.status.rejected" datatype="html">
-        <source>Das hat nicht geklappt. Bitte erneut versuchen oder schließen.</source>
-        <target>Cela n&apos;a pas fonctionné. Veuillez réessayer ou fermer.</target>
+        <source>Das hat nicht geklappt. Bitte versuche es erneut oder schließe die Rückmeldung.</source>
+        <target>Cela n&apos;a pas fonctionné. Réessaie ou ferme la demande de retour.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/product-feedback/product-feedback-card.component.ts</context>
           <context context-type="linenumber">628</context>
@@ -26869,7 +26877,7 @@
       </trans-unit>
       <trans-unit id="sessionParticipation.themeAria" datatype="html">
         <source>Pseudonymgruppe wählen</source>
-        <target>Sélectionnez un groupe de pseudonymes</target>
+        <target>Sélectionne un groupe de pseudonymes</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-participation-profile-dialog.component.ts</context>
           <context context-type="linenumber">114</context>
@@ -26877,7 +26885,7 @@
       </trans-unit>
       <trans-unit id="sessionParticipation.themeKindergarten" datatype="html">
         <source>Tier-Icons</source>
-        <target>Icônes d&apos;animaux</target>
+        <target>Icônes d’animaux</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-participation-profile-dialog.component.ts</context>
           <context context-type="linenumber">117</context>

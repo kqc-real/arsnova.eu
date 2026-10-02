@@ -29,7 +29,7 @@
         Für Gruppen bis zu 500 Personen.
       </p>
       <p class="home-hero-usp desktop-only" i18n="@@homeHero.uspAudience">
-        Für Schulen, Unis &amp; Events – bis zu 500 Personen.
+        Für Schulen, Hochschulen &amp; Events – bis zu 500 Personen.
       </p>
       <ul class="home-hero-usp-chips">
         <li class="home-hero-usp-chip" i18n="@@homeHero.uspChipFree">Kostenlos</li>
@@ -145,7 +145,7 @@
             @if (isJoining()) {
               <button matButton="filled" class="home-cta home-cta--join" disabled aria-busy="true">
                 <mat-icon class="home-cta__icon home-spin" aria-hidden="true">sync</mat-icon>
-                <span i18n>Verbinde…</span>
+                <span i18n="@@homeJoinCard.connecting">Verbindung wird hergestellt …</span>
               </button>
             } @else {
               <button
@@ -179,9 +179,7 @@
       aria-labelledby="home-host-title"
       [attr.inert]="syncLinkVisible() ? '' : null"
     >
-      <p class="home-section-eyebrow" i18n="@@homeHostIntro.eyebrow">
-        Für Lehrende und Vortragende
-      </p>
+      <p class="home-section-eyebrow" i18n="@@homeHostIntro.eyebrow">Für Veranstaltende</p>
       <h2 id="home-host-title" class="home-host-intro__title" i18n="@@homeScenario.title">
         Was hast du heute vor?
       </h2>
@@ -686,7 +684,7 @@
                 mat-card-title
                 class="home-card__title home-card__scenario-focus-target"
                 tabindex="-1"
-                i18n="@@homeHero.channelBlitzlicht"
+                i18n="@@homeFeedbackCard.title"
               >
                 Blitzlicht
               </h3>
@@ -706,7 +704,7 @@
               [attr.aria-busy]="hostSessionStarting() === 'quickFeedback' ? 'true' : null"
               i18n="@@homeScenario.eventFeedback"
             >
-              Stimmung/Tempo erfassen
+              Stimmung oder Tempo erfassen
             </button>
           }
           <div class="home-feedback-chip-grid">
@@ -851,9 +849,9 @@
               [attr.aria-pressed]="thumbUpRecorded() ? 'true' : 'false'"
               (click)="thumbMotd(true)"
               i18n-matTooltip="@@motd.thumbUpTooltip"
-              matTooltip="Hilfreich – erneut tippen zum Zurücknehmen"
+              matTooltip="Hilfreich – erneut auswählen, um die Bewertung zurückzunehmen"
               i18n-aria-label="@@motd.thumbUpAria"
-              aria-label="Hilfreich, erneut tippen zum Zurücknehmen"
+              aria-label="Hilfreich, erneut auswählen, um die Bewertung zurückzunehmen"
             >
               <mat-icon>thumb_up</mat-icon>
             </button>
@@ -865,9 +863,9 @@
               [attr.aria-pressed]="thumbDownRecorded() ? 'true' : 'false'"
               (click)="thumbMotd(false)"
               i18n-matTooltip="@@motd.thumbDownTooltip"
-              matTooltip="Nicht hilfreich – erneut tippen zum Zurücknehmen"
+              matTooltip="Nicht hilfreich – erneut auswählen, um die Bewertung zurückzunehmen"
               i18n-aria-label="@@motd.thumbDownAria"
-              aria-label="Nicht hilfreich, erneut tippen zum Zurücknehmen"
+              aria-label="Nicht hilfreich, erneut auswählen, um die Bewertung zurückzunehmen"
             >
               <mat-icon>thumb_down</mat-icon>
             </button>

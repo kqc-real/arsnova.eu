@@ -577,7 +577,7 @@ describe('HomeComponent', () => {
         'Publikumsfragen für deine Veranstaltung',
       );
       expect(root.querySelector('[data-testid="home-event-feedback"]')?.textContent).toContain(
-        'Stimmung/Tempo erfassen',
+        'Stimmung oder Tempo erfassen',
       );
       expect(root.querySelector('[data-testid="home-event-both"]')?.textContent).toContain(
         'Beides',
@@ -2248,11 +2248,20 @@ describe('HomeComponent', () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
-      const templatePath = join(dirname(fileURLToPath(import.meta.url)), 'home.component.html');
+      const homeDir = dirname(fileURLToPath(import.meta.url));
+      const templatePath = join(homeDir, 'home.component.html');
+      const englishCatalogPath = join(homeDir, '../../../locale/messages.en.xlf');
       const template = readFileSync(templatePath, 'utf8');
+      const englishCatalog = readFileSync(englishCatalogPath, 'utf8');
 
-      expect(template.match(/@@homeHero\.channelBlitzlicht/g)).toHaveLength(2);
-      expect(template.match(/@@homeLiveCard\.quickFeedbackLabel/g)).toBeNull();
+      expect(template.match(/@@homeHero\.channelBlitzlicht/g)).toHaveLength(1);
+      expect(template.match(/@@homeFeedbackCard\.title/g)).toHaveLength(1);
+      expect(englishCatalog).toMatch(
+        /id="homeHero\.channelBlitzlicht"[\s\S]*?<target>live polls<\/target>/,
+      );
+      expect(englishCatalog).toMatch(
+        /id="homeFeedbackCard\.title"[\s\S]*?<target>Pulse Check<\/target>/,
+      );
       expect(template).not.toContain('startQuickFeedback(');
     });
 
@@ -3044,8 +3053,8 @@ describe('HomeComponent', () => {
       await comp.openHeroHostTab('qa');
 
       expect(comp.hostSessionError()).toBe(
-        'Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
-          'Bitte in 23 Sekunden erneut versuchen.',
+        'Zu viele Sessions wurden erstellt. Bitte versuche es später erneut.\n' +
+          'Versuche es bitte in 23 Sekunden erneut.',
       );
       expect(comp.joinError()).toBeNull();
     });
@@ -4380,7 +4389,7 @@ describe('HomeComponent', () => {
       await comp.openSyncLink();
 
       expect(navSpy).not.toHaveBeenCalled();
-      expect(comp.syncLinkError()).toBe('Bitte einen gültigen Sync-Link einfügen.');
+      expect(comp.syncLinkError()).toBe('Füge bitte einen gültigen Sync-Link ein.');
     });
   });
 

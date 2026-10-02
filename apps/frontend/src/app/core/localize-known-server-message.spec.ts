@@ -92,8 +92,8 @@ describe('localizeKnownServerError', () => {
     };
 
     expect(localizeKnownServerError(error, 'Session konnte nicht gestartet werden.')).toBe(
-      'Zu viele Session-Erstellungen. Bitte später erneut versuchen.\n' +
-        'Bitte in 13 Sekunden erneut versuchen.',
+      'Zu viele Sessions wurden erstellt. Bitte versuche es später erneut.\n' +
+        'Versuche es bitte in 13 Sekunden erneut.',
     );
   });
 
@@ -109,13 +109,14 @@ describe('localizeKnownServerError', () => {
     };
 
     expect(localizeKnownServerError(error, 'Session konnte nicht gestartet werden.')).toContain(
-      'Bitte in 7 Sekunden erneut versuchen.',
+      'Versuche es bitte in 7 Sekunden erneut.',
     );
   });
 
   it('lokalisiert den Session-Code-429 (zu viele Fehlversuche) und hängt retryAfterSeconds-Hinweis an', () => {
     loadTranslations({
-      'errors.sessionCodeTooManyFailures': 'Zu viele falsche Codes – kurz warten.',
+      'errors.sessionCodeTooManyFailures':
+        'Zu viele falsche Codes. Warte kurz und versuche es dann erneut.',
       'errors.rateLimitRetryAfter': 'Please try again in {$seconds} seconds.',
     });
 
@@ -129,7 +130,10 @@ describe('localizeKnownServerError', () => {
           },
           'Beitritt fehlgeschlagen.',
         ),
-      ).toBe('Zu viele falsche Codes – kurz warten.\n' + 'Please try again in 13 seconds.');
+      ).toBe(
+        'Zu viele falsche Codes. Warte kurz und versuche es dann erneut.\n' +
+          'Please try again in 13 seconds.',
+      );
     } finally {
       clearTranslations();
     }
@@ -161,7 +165,7 @@ describe('localizeKnownServerError', () => {
     };
 
     expect(localizeKnownServerError(error, 'Session konnte nicht gestartet werden.')).toBe(
-      'Zu viele Session-Erstellungen. Bitte später erneut versuchen.',
+      'Zu viele Sessions wurden erstellt. Bitte versuche es später erneut.',
     );
   });
 });

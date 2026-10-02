@@ -22,7 +22,7 @@ Cuando una pregunta tiene una cuenta atrás, puedes elegir entre tres opciones e
 
 - **Estándar:** cuenta atrás compartida de la sesión
 - **Tiempo 10×:** diez veces el tiempo de respuesta personal
-- **Sin límite de tiempo:** sin cuenta atrás personal durante la pregunta actual
+- **Sin plazo:** sin cuenta atrás personal durante la pregunta actual
 
 La opción elegida se guarda para la sesión y se restablece si vuelves a entrar.
 

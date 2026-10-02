@@ -41,8 +41,8 @@ export const newsArchivePageResolver: ResolveFn<NewsArchiveInitialModel> = async
   const platformId = inject(PLATFORM_ID);
   const transferState = inject(TransferState);
   const stateKey = newsArchiveTransferStateKey(locale);
-  const fallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archiv-Meldung`;
-  const loadError = $localize`:@@motd.archiveLoadError:Archiv konnte nicht geladen werden.`;
+  const fallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archivierte Meldung`;
+  const loadError = $localize`:@@motd.archiveLoadError:Das News-Archiv konnte nicht geladen werden. Bitte versuche es später erneut.`;
 
   if (isPlatformBrowser(platformId) && transferState.hasKey(stateKey)) {
     const transferred = transferState.get(stateKey, {

@@ -31,7 +31,7 @@ import {
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
-import { localizeKnownServerError } from '../../core/localize-known-server-message';
+import { localizeMotdArchiveError } from '../../core/motd-archive-error';
 import { buildMotdArchiveItemDisplay } from '../../shared/motd-archive-render.util';
 import {
   splitMotdDecorativeEmoji,
@@ -128,8 +128,8 @@ export class NewsArchivePageComponent {
   readonly titleById = signal<Record<string, string>>({});
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
-  private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archiv-Meldung`;
-  private readonly archiveLoadError = $localize`:@@motd.archiveLoadError:Archiv konnte nicht geladen werden.`;
+  private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archivierte Meldung`;
+  private readonly archiveLoadError = $localize`:@@motd.archiveLoadError:Das News-Archiv konnte nicht geladen werden. Bitte versuche es später erneut.`;
   /** Steigt bei lokalen Lese-Mutationen; schützt vor veraltetem Live-Refresh-Zähler. */
   private readStateEpoch = 0;
 
@@ -250,7 +250,7 @@ export class NewsArchivePageComponent {
     this.archiveUnreadCount.set(0);
     this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
-      $localize`:@@motd.archiveMarkedAllReadSnack:Archiv als gelesen markiert.`,
+      $localize`:@@motd.archiveMarkedAllReadSnack:Alle Meldungen wurden als gelesen markiert.`,
       undefined,
       { duration: 2800 },
     );
@@ -344,9 +344,9 @@ export class NewsArchivePageComponent {
         return next;
       });
     } catch (e) {
-      const msg = localizeKnownServerError(
+      const msg = localizeMotdArchiveError(
         e,
-        $localize`:@@motd.archiveLoadMoreError:Weitere Meldungen konnten nicht geladen werden.`,
+        $localize`:@@motd.archiveLoadMoreError:Weitere Meldungen konnten nicht geladen werden. Bitte versuche es erneut.`,
       );
       this.snackBar.open(msg, undefined, { duration: 4000 });
     } finally {

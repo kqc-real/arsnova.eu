@@ -46,7 +46,59 @@ describe('ensure-schema MOTD runtime seeding', () => {
       'prisma/migrations/20260911140000_motd_personal_time/migration.sql',
       'prisma/migrations/20260916103000_motd_qa_live_channel/migration.sql',
       'prisma/migrations/20260926120000_motd_host_ux_announcement/migration.sql',
+      'prisma/migrations/20261002120000_motd_published_copy_audit/migration.sql',
     ]);
+  });
+
+  it('auditiert alle veröffentlichten MOTDs in fünf Sprachen', () => {
+    const sql = readFileSync(
+      resolve(
+        process.cwd(),
+        '../../prisma/migrations/20261002120000_motd_published_copy_audit/migration.sql',
+      ),
+      'utf8',
+    );
+    const auditedIds = [
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      'f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0',
+      'c0111111-c111-4c11-8c11-c01111111111',
+      'c0222222-c222-4c22-8c22-c02222222222',
+      'c0333333-c333-4c33-8c33-c03333333333',
+      'c0444444-c444-4c44-8c44-c04444444444',
+      'c0555555-c555-4c55-8c55-c05555555555',
+      'c0666666-c666-4c66-8c66-c06666666666',
+      'c0777777-c777-4c77-8c77-c07777777777',
+      'c0888888-c888-4c88-8c88-c08888888888',
+      'c0999999-c999-4c99-8c99-c09999999999',
+    ];
+
+    for (const id of auditedIds) {
+      expect(sql).toContain(`('${id}')`);
+    }
+    expect(sql).toContain("ml.locale IN ('de', 'en', 'fr', 'es', 'it')");
+    expect(sql).toContain('WHERE complete_locales <> 5');
+    expect(sql).toContain('El «Making of» de arsnova.eu');
+    expect(sql).toContain('Il «Making of» di arsnova.eu');
+    expect(sql).toContain('« Créer un quiz avec l’IA »');
+    expect(sql).toContain('**«Última evaluación»**');
+    expect(sql).toContain('**«Ultima valutazione»**');
+    expect(sql).toContain('**»Letzte Auswertung«**');
+    expect(sql).toContain('**»arsnova.eu verbessern«**');
+    expect(sql).toContain('Recueille les questions à l’avance – prépare ta séance.');
+    expect(sql).toContain('Recoge las preguntas antes y prepara la sesión.');
+    expect(sql).toContain('Raccogli le domande prima e prepara la sessione.');
+    expect(sql).toContain(
+      "REPLACE(\"markdown\", '**« Dernière évaluation »**', '**« Dernière évaluation »**')",
+    );
+    expect(sql).toContain(
+      "REPLACE(\"markdown\", '**« Última evaluación »**', '**«Última evaluación»**')",
+    );
+    expect(sql).toContain(
+      "REPLACE(\"markdown\", '**« Ultima valutazione »**', '**«Ultima valutazione»**')",
+    );
   });
 
   it('liefert die Produktfeedback-MOTD kurz und vollständig in allen fünf Sprachen aus', () => {

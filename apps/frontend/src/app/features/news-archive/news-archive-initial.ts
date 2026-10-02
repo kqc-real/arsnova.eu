@@ -2,7 +2,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import type { AppLocale, MotdArchiveItemDTO, MotdArchiveReadCursor } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
-import { localizeKnownServerError } from '../../core/localize-known-server-message';
+import { localizeMotdArchiveError } from '../../core/motd-archive-error';
 import {
   getMotdArchiveReadItems,
   getMotdArchiveSeenUpToCursor,
@@ -99,7 +99,7 @@ export async function loadNewsArchivePageModel(
     nextCursor = first.nextCursor;
   } else {
     const e = listResult.reason;
-    errorMessage = localizeKnownServerError(e, loadErrorMessage);
+    errorMessage = localizeMotdArchiveError(e, loadErrorMessage);
   }
 
   /* Wie Dialog `reconcileArchiveReadSignals`: fehlendes Server-Maximum aus geladener Seite. */

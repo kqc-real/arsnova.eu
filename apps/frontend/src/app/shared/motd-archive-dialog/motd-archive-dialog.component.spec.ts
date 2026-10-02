@@ -126,7 +126,9 @@ describe('MotdArchiveDialogComponent', () => {
     const fixture = TestBed.createComponent(MotdArchiveDialogComponent);
     fixture.detectChanges();
     await vi.waitFor(() => expect(fixture.componentInstance.loading()).toBe(false));
-    expect(fixture.componentInstance.error()).toBe('upstream');
+    expect(fixture.componentInstance.error()).toBe(
+      'Das News-Archiv konnte nicht geladen werden. Bitte versuche es später erneut.',
+    );
     expect(fixture.componentInstance.loading()).toBe(false);
   });
 
@@ -470,6 +472,33 @@ describe('MotdArchiveDialogComponent', () => {
     await fixture.whenStable();
 
     expect(header!.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('hält die zentralen Archivtexte in allen Sprachkatalogen korrekt', () => {
+    const localeDir = resolve(process.cwd(), 'src/locale');
+    const catalogs = {
+      de: readFileSync(resolve(localeDir, 'messages.xlf'), 'utf8'),
+      en: readFileSync(resolve(localeDir, 'messages.en.xlf'), 'utf8'),
+      fr: readFileSync(resolve(localeDir, 'messages.fr.xlf'), 'utf8'),
+      es: readFileSync(resolve(localeDir, 'messages.es.xlf'), 'utf8'),
+      it: readFileSync(resolve(localeDir, 'messages.it.xlf'), 'utf8'),
+    };
+
+    expect(catalogs.de).toContain('<source>Archivierte Meldung</source>');
+    expect(catalogs.en).toMatch(
+      /id="motd\.archiveLoadError"[\s\S]*?<target>Couldn&apos;t load the news archive\. Try again later\.<\/target>/,
+    );
+    expect(catalogs.fr).toMatch(
+      /id="motd\.archiveLoadMoreError"[\s\S]*?<target>Impossible de charger d’autres messages\. Réessaie\.<\/target>/,
+    );
+    expect(catalogs.es).toMatch(/id="motd\.archiveCloseAria"[\s\S]*?<target>Cerrar<\/target>/);
+    expect(catalogs.es).toMatch(
+      /id="motd\.archiveItemFallbackTitle"[\s\S]*?<target>Mensaje archivado<\/target>/,
+    );
+    expect(catalogs.it).toMatch(/id="motd\.archiveCloseAria"[\s\S]*?<target>Chiudi<\/target>/);
+    expect(catalogs.it).toMatch(
+      /id="motd\.archiveItemFallbackTitle"[\s\S]*?<target>Messaggio archiviato<\/target>/,
+    );
   });
 
   it('hält Expansion-Header-Styles ohne ::ng-deep', () => {

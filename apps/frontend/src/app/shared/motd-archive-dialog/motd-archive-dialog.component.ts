@@ -33,7 +33,7 @@ import {
 } from '../../core/motd-storage';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { formatMotdArchiveStartsAtForDisplay } from '../../core/motd-ends-display';
-import { localizeKnownServerError } from '../../core/localize-known-server-message';
+import { localizeMotdArchiveError } from '../../core/motd-archive-error';
 import { MarkdownImageLightboxDirective } from '../markdown-image-lightbox/markdown-image-lightbox.directive';
 import { buildMotdArchiveItemDisplay } from '../motd-archive-render.util';
 import { splitMotdDecorativeEmoji, type MotdTitleDisplay } from '../motd-decorative-emoji.util';
@@ -107,7 +107,7 @@ export class MotdArchiveDialogComponent implements OnInit {
   /** motd id → sanitized preview html (ohne führende ATX-Überschrift, falls vorhanden) */
   readonly htmlById = signal<Record<string, SafeHtml>>({});
 
-  private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archiv-Meldung`;
+  private readonly archiveItemFallbackTitle = $localize`:@@motd.archiveItemFallbackTitle:Archivierte Meldung`;
 
   /** `startsAt` (ISO-UTC) als Veröffentlichungsdatum im Archiv. */
   formatArchiveDate(iso: string): string {
@@ -140,7 +140,7 @@ export class MotdArchiveDialogComponent implements OnInit {
     this.archiveUnreadCount.set(0);
     this.motdHeaderState.setArchiveUnreadCount(0);
     this.snackBar.open(
-      $localize`:@@motd.archiveMarkedAllReadSnack:Archiv als gelesen markiert.`,
+      $localize`:@@motd.archiveMarkedAllReadSnack:Alle Meldungen wurden als gelesen markiert.`,
       undefined,
       { duration: 2800 },
     );
@@ -235,9 +235,9 @@ export class MotdArchiveDialogComponent implements OnInit {
     } else {
       const e = listResult.reason;
       this.error.set(
-        localizeKnownServerError(
+        localizeMotdArchiveError(
           e,
-          $localize`:@@motd.archiveLoadError:Archiv konnte nicht geladen werden.`,
+          $localize`:@@motd.archiveLoadError:Das News-Archiv konnte nicht geladen werden. Bitte versuche es später erneut.`,
         ),
       );
     }
@@ -279,9 +279,9 @@ export class MotdArchiveDialogComponent implements OnInit {
         return next;
       });
     } catch (e) {
-      const msg = localizeKnownServerError(
+      const msg = localizeMotdArchiveError(
         e,
-        $localize`:@@motd.archiveLoadMoreError:Weitere Meldungen konnten nicht geladen werden.`,
+        $localize`:@@motd.archiveLoadMoreError:Weitere Meldungen konnten nicht geladen werden. Bitte versuche es erneut.`,
       );
       this.snackBar.open(msg, undefined, { duration: 4000 });
     } finally {
