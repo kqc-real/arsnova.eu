@@ -434,7 +434,7 @@ describe('moderation prompt context v1', () => {
     expect(source.content.text).toBe(content.text);
   });
 
-  it('keeps analyzed topic membership without packing every member text', () => {
+  it('keeps unselected topic members reference-only but requires extractive label text', () => {
     const largerCorpus = cloneReference();
     const referenceOnlyId = 'qa-question:77777777-7777-4777-8777-777777777777';
     arrayAt(largerCorpus, 'context', 'sources').push({
@@ -458,6 +458,10 @@ describe('moderation prompt context v1', () => {
     });
 
     expect(ModerationPromptContextV1Schema.safeParse(largerCorpus).success).toBe(true);
+
+    recordAt(largerCorpus, 'context', 'topics', 'items', 0, 'labelOrigin').sourceQuestionId =
+      referenceOnlyId;
+    expectPromptIssue(largerCorpus, 'extraktive Labelquelle benötigt enthaltenen Quelltext');
   });
 
   it('allows Q&A-independent evidence and multi-select selections beyond response count', () => {

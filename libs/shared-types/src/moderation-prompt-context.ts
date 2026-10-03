@@ -1909,6 +1909,14 @@ function validateCommonDomainContext(value: ModerationDomainContextV1, ctx: z.Re
           ['qa-question'],
           ['topics', 'items', topicIndex, 'labelOrigin', 'sourceQuestionId'],
         );
+        const labelSource = sourcesById.get(topic.labelOrigin.sourceQuestionId);
+        if (labelSource?.kind === 'qa-question' && labelSource.content.state !== 'included') {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['topics', 'items', topicIndex, 'labelOrigin', 'sourceQuestionId'],
+            message: 'Die extraktive Labelquelle benötigt enthaltenen Quelltext.',
+          });
+        }
       }
       if (topic.labelOrigin.kind === 'model-generated') {
         topic.labelOrigin.derivedFromSourceIds.forEach((sourceId, sourceIndex) =>
