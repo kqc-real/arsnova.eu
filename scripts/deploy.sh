@@ -219,8 +219,7 @@ redis_persistence_field() {
 }
 
 wait_for_redis_ping() {
-  local attempt
-  for attempt in {1..30}; do
+  for _ in {1..30}; do
     if [[ "$(redis_cli PING 2>/dev/null || true)" == "PONG" ]]; then
       return 0
     fi
