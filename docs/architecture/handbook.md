@@ -5,11 +5,11 @@
 **Zuletzt aktualisiert:** 2026-09-21
 **Rolle:** Living Documentation (Documentation as Code)
 
-**Produktstatus (Stand 2026-09-21):**
+**Produktstatus (Grundstand 2026-09-21, Word-Cloud-Ergänzung 2026-10-03):**
 
 - Produktionsreif umgesetzt: Epics **0–6** (einschließlich formaler WCAG-2.2-AA-Abnahme von **6.5** und UX-Testreihen **6.6**), **7.1** (Team-Modus), der Kern von **8** (Q&A inkl. Sortiermodi, Tempo-Blitzlicht, Moderationskompass **8.9a** und optionaler Q&A-NLP-Kaskade **8.9b**; offen: 8.9c Slice 4), **9** (Admin), **10** (MOTD — ADR-0018, `docs/features/motd.md`) und **12** (Produktfeedback: **12.1–12.4 implementiert und am 2026-09-10 manuell abgenommen** — [product-feedback.md](../features/product-feedback.md)).
 - **Epic #405:** Absoluter Session-Lebenszyklus (`expiresAt`, `endedAt`, `qaClosesAt`), Host-Recovery unter `/host-recovery`, 10 Q&A-Fragen je Teilnahme. Q&A bleibt nach Quiz-`FINISHED` beschreibbar, solange der Kanal offen ist. Kanonisch: [session-lifecycle.md](../features/session-lifecycle.md).
-- **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c Stufe 1** privater Encoder + Clustering für Host-Q&A-Themen (`WORD_CLOUD_SEMANTIC_ENABLED` default aus); Stufe 2 LLM-Labels offen; **1.14d** Host-Freitext-Themen (offen, gleicher Encoder). Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [`WORD-CLOUD-3.0-STORY-VORSCHLAG.md`](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
+- **Wortwolke:** **1.14 / 1.14a** lexikalisch produktiv; **1.14b** optionale spaCy-Glättung (Kill-Switch default aus); **1.14c Stufe 1** privater Encoder + Clustering für Host-Q&A-Themen; **1.14d** Host-Freitext-Themen über denselben Pfad implementiert. `WORD_CLOUD_SEMANTIC_ENABLED` bleibt default aus, eine Produktivaktivierung ist nicht belegt. Encoder-Clustering gilt für `de`/`en`; `fr`/`es` fallen im Backend lexikalisch zurück, unter italienischer UI bleibt der Fallback ohne unterstützte Wolkensprache lokal. Stufe 2 mit LLM-Labels bleibt offen. Kanonisch: [word-cloud-spacy.md](../features/word-cloud-spacy.md), [word-cloud-semantic.md](../features/word-cloud-semantic.md), [`WORD-CLOUD-3.0-STORY-VORSCHLAG.md`](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md).
 - **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit Slice 4 nach 1.14c Stufe 1. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
 - **Quiz-Bewertung:** `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbare Fragetypen; Leaderboards, Teamwertung, Bonus-Codes und Scorecards nutzen die gemeinsame Effective-Vote-Regel aus ADR-0028.
@@ -62,9 +62,11 @@ Join, Vote, Q&A-Submit und Realtime warten **nicht** auf Modelle. Die lexikalisc
 
 - **1.14b** spaCy-Sidecar hinter Unix-Socket (Host-Aktion „Sprachformen glätten“)
 - **1.14c Stufe 1** Encoder-Sidecar hinter Unix-Socket oder privatem HTTP (Host-Q&A-Themen; Clustering im Backend)
-- **1.14d** Host-Freitext-Themen auf demselben Encoder (offen; Stufe-0-Toggle fällt in 1.14c lexikalisch zurück)
+- **1.14d** Host-Freitext-Themen auf demselben Encoder (implementiert, keine Produktivfreigabe; lexikalische Rückfallebene bleibt sichtbar)
 - **8.9b** asynchrone Q&A-NLP-Queue nach Persistenz (Host-only Kategorien)
 - **8.9c** on-demand Zusammenfassung über privaten HTTP-Adapter (ephemer, quellengebunden)
+
+Die semantische Orchestrierung hält pro Session nur `active + latest`: höchstens einen aktiven Job und den neuesten abweichenden Folgesnapshot. Gleiche Hashes teilen das Promise. Ein neuerer Snapshot verdrängt nur den wartenden Slot; dessen Aufrufer erhalten einen lexikalischen, nicht cachebaren Fallback. Nach Ende oder Fehler des aktiven Jobs läuft der letzte Ersatz serialisiert. Ein Session-Purge invalidiert aktive und wartende Arbeit über eine Epoche; zurückkehrende alte Ergebnisse werden vor dem Cache verworfen. Der Encodertransport selbst lässt global höchstens einen Sidecar-Call gleichzeitig zu.
 
 Stufe-2-LLM-Labels und 8.9c Slice 4 bleiben Zielbild auf derselben privaten Serverrolle, getrennten Queues. Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 

@@ -201,7 +201,7 @@ function compactQaWordCloudOutput(output: AnalyzeWordCloudOutput): AnalyzeWordCl
 /**
  * Word-Cloud-Analysepfad für den Host.
  * THEME bleibt der deterministische Phrasen-/Anchor-Pfad ohne spaCy.
- * SEMANTIC (1.14c Stufe 1) clustert Host-Q&A über den privaten Encoder;
+ * SEMANTIC (1.14c/1.14d) clustert Host-Q&A und Host-Freitext über den privaten Encoder;
  * ohne Kill-Switch oder bei totem Server bleibt der 2.x-Phrasenpfad.
  * LEXICAL + LEMMA glättet über den Sidecar und fällt hart auf Identity zurück.
  * Freitext-Phrasen kommen über `maxNgramLength` 2/3 in denselben LEXICAL-Snapshot;

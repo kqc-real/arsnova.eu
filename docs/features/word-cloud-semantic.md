@@ -1,11 +1,11 @@
 <!-- markdownlint-disable MD013 -->
 
-# Wortwolke: semantischer Q&A-Themenmodus (Story 1.14c Stufe 1)
+# Wortwolke: semantischer Themenmodus für Q&A und Freitext (Stories 1.14c/1.14d)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
-**Stand:** 2026-08-22
-**Status:** Stufe 1 im Repo (Encoder + Clustering, extraktive Labels); Kill-Switch produktiv default aus; kein LLM
-**Backlog:** Story 1.14c (Q&A-Themen), Story 1.14d (Freitext-Themen, offen)
+**Stand:** 2026-10-03
+**Status:** Q&A- und Freitext-Encoderpfad im Repo (Clustering, extraktive Labels); Kill-Switch produktiv default aus; kein LLM
+**Backlog:** Story 1.14c (Q&A-Themen), Story 1.14d (Freitext-Themen, implementiert; keine Produktivfreigabe)
 **Glättung bleibt getrennt:** Story 1.14b / [word-cloud-spacy.md](word-cloud-spacy.md)
 **Zielbild:** [WORD-CLOUD-3.0-STORY-VORSCHLAG.md](../implementation/WORD-CLOUD-3.0-STORY-VORSCHLAG.md)
 **Voranalyse:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md)
@@ -13,9 +13,9 @@
 
 ## Zweck
 
-Der Host sieht in der Q&A-Wortwolke orthogonal zur Gewichtung (`Stimmen` / `Beste Fragen` / `Kontroverse` / `Häufigkeit`) den dritten Analysemodus **Themen**. Sinngleiche Fragen und Paraphrasen werden ein erklärbares Thema mit Mitgliedsliste, Konfidenz und Modellversion.
+Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Stimmen` / `Beste Fragen` / `Kontroverse` / `Häufigkeit`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden ein erklärbares Thema mit Mitgliedsliste, Konfidenz und Modellversion.
 
-Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentrale Mitgliedsfrage). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
+Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentraler Mitgliedstext). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
 
 Kein Encoder-Code im Browser. Teilnehmer-DTOs enthalten keine Cluster-Felder. Live-Hotpaths (`qa.submit`, Join, Vote, WebSocket) warten nie auf Inferenz.
 
@@ -32,7 +32,7 @@ Das Host-Label ist **Themen**. Intern heißt die Variante `SEMANTIC`. Nicht in d
 | Nicht belastbar | **Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.**                                          |
 | Nicht verfügbar | **Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.**                                            |
 
-`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Der Q&A-Presenter analysiert nicht selbst, sondern projiziert den aktuellen Host-Snapshot (`session.setQaWordCloudProjection` / `session.getQaWordCloudProjection`) und zeigt Variante, Metrik und Glättung als Pills. Freitext hat denselben Stufe-0-Toggle; Encoder-Clustering gilt dort in 1.14c nicht (kontrollierter 2.x-Fallback, `status: fallback`). **Story 1.14d** hebt diesen Fallback für Host-Freitext auf, ohne neuen Sidecar oder Kill-Switch.
+`THEME` bleibt **Wörter & Phrasen** (lexikalisch 2.x) und wird nicht auf `SEMANTIC` umgebogen. Der Q&A-Presenter analysiert nicht selbst, sondern projiziert den aktuellen Host-Snapshot (`session.setQaWordCloudProjection` / `session.getQaWordCloudProjection`) und zeigt Variante, Metrik und Glättung als Pills. Story **1.14d** führt Host-Freitext bei `de`/`en` durch denselben Encoderpfad wie Q&A; `fr`/`es` antworten kontrolliert mit 2.x (`status: fallback`). Bei italienischer UI bleibt die bestehende lokale 2.x-Wolke aktiv, bis der Host eine unterstützte Analysesprache wählt; es wird kein Encoderauftrag gesendet. Presenter-Freitext bleibt außerhalb des Umfangs.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
@@ -40,25 +40,25 @@ Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 Nur der Host löst `wordCloud.analyze` aus (`hostProcedure`). Es gibt keine automatische Runde bei jeder neuen Frage, Abstimmung oder Tastendruck.
 
-| Kanal     | Encoder-Clustering                                                                                            | Ohne Kill-Switch / tot / Timeout            |
-| --------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                                                               | 2.x-Phrasen, keine leere Karte              |
-| Freitext  | nicht in 1.14c Stufe 1; Request mit `channel: 'FREETEXT'` → `status: fallback` (Story **1.14d** hebt das auf) | 2.x wie Stufe 0                             |
-| Presenter | keine eigene Analyse; übernimmt den Host-Q&A-Snapshot                                                         | Host-Projektion oder lexikalischer Fallback |
+| Kanal     | Encoder-Clustering                                                                                                    | Ohne Kill-Switch / tot / Timeout            |
+| --------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                                                                       | 2.x-Phrasen, keine leere Karte              |
+| Freitext  | sichtbare Antworten der aktuellen Host-Frage, Locale `de`/`en`, Kanal `FREETEXT`; Mindestclustergröße 2               | 2.x wie Stufe 0                             |
+| Presenter | keine eigene Analyse; Q&A übernimmt den Host-Snapshot, Presenter-Freitext bleibt ohne eigenen semantischen Analysejob | Host-Projektion oder lexikalischer Fallback |
 
-- **Neue Fragen:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), damit derselbe Locale-Snapshot ohne Sprachwechsel neu gerechnet wird.
+- **Neue Fragen oder Antworten:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren**. Keine Dauerschleife. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), damit derselbe Locale-Snapshot ohne Sprachwechsel neu gerechnet wird.
 - **Sort- oder Locale-Wechsel** im Themenmodus ist eine Host-Aktion und startet eine neue Analyse desselben Kanal-Snapshots. Locale steckt im Snapshot-Hash: `de` und `en` sind getrennte Caches. Deutsche Q&A bleibt auf **DE**; EN startet keine bessere Analyse, nur einen zweiten Lauf.
 - **`SEMANTIC + LEMMA`** ist `MODE_UNSUPPORTED`. Der Glättungsknopf bleibt in **Themen** ausgeblendet und wechselt nicht still auf `LEXICAL` (wie Freitext). Solange Themen vorbereitet werden oder der 2.x-Phrasen-Fallback gilt, bleibt eine zuvor aktive Glättung auf der sichtbaren Wörter-&-Phrasen-Wolke wirksam.
 - Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst 2.x-Phrasen **mit derselben Glättung wie unter Wörter & Phrasen**, falls die Glättung an ist. Host und Q&A-Dialog zeigen denselben Fortschritt (Text plus unbestimmte Leiste, kein Prozentwert). Die Anzeige bleibt mindestens 1 s sichtbar, damit Cache- oder Fallback-Antworten nicht nur aufblitzen; das Cluster-Ergebnis wechselt erst danach. Läuft die Analyse nach 2 s noch, kommt ein grober Zeit-Hinweis: **Das kann einen Moment dauern.**, ab etwa 100 sichtbaren Fragen bzw. Antworten **Bei vielen Fragen/Antworten kann das eine Minute dauern.** Keine exakten Anzahlen oder Obergrenzen.
-- Ohne Cluster mit mindestens zwei Mitgliedern (eine einzelne Frage, nur Singletons) ist der Status `fallback`, nicht `uncertain`. Der Encoder läuft erst ab zwei Fragen. `uncertain` gilt nur, wenn Themenblasen da sind, aber die Konfidenz unter der Host-Stufe **sicher** liegt.
+- Ohne Cluster mit mindestens zwei Mitgliedern (eine einzelne Frage oder Antwort, nur Singletons) ist der Status `fallback`, nicht `uncertain`. Der Encoder läuft erst ab zwei Quellen. `uncertain` gilt nur, wenn Themenblasen da sind, aber die Konfidenz unter der Host-Stufe **sicher** liegt.
 
-Tooltip, Fokus-/Textalternative und CSV zeigen Label, Gewichtung, Metrik, Mitgliedsfragen, Konfidenz und bei Encoder-Treffer die Modellversion.
+Tooltip, Fokus-/Textalternative und CSV zeigen Label, Gewichtung, Metrik, Mitgliedsfragen beziehungsweise -antworten, Konfidenz und bei Encoder-Treffer die Modellversion.
 
 ## Pipeline
 
 ```text
-Host-Snapshot (PINNED/ACTIVE, Gewichtung, Locale)
-  → Hash (Analyseversion 1.14c.3 + Kanal)
+Host-Snapshot (Q&A: PINNED/ACTIVE; Freitext: aktuelle sichtbare Antworten; Gewichtung, Locale, Kanal)
+  → Hash (Analyseversion 1.14d.1 + Kanal)
   → Cache (nur ready/uncertain)
   → privater Encoder (e5-small, nur Embeddings)
   → agglomeratives Clustering im Backend (Complete-Linkage, Kosinus ≥ 0,87)
@@ -66,11 +66,13 @@ Host-Snapshot (PINNED/ACTIVE, Gewichtung, Locale)
   → Zod AnalyzeWordCloud*
 ```
 
-Der Sidecar liefert ausschließlich Vektoren. Clustering und Labels laufen in TypeScript im App-Backend, nicht im Browser und nicht in spaCy. Höchstens ein Encoder-Call global (`MAX_IN_FLIGHT=1`) und höchstens ein Inflight-Job pro Session. Ein zweiter Snapshot während Inflight antwortet sofort `pending` plus 2.x.
+Der Sidecar liefert ausschließlich Vektoren. Clustering und Labels laufen in TypeScript im App-Backend, nicht im Browser und nicht in spaCy. Der Encodertransport lässt global höchstens einen Sidecar-Call gleichzeitig zu (`MAX_IN_FLIGHT=1`). Die vorgeschaltete Orchestrierung hält **pro Session** höchstens einen aktiven Job und genau den neuesten abweichenden Folgesnapshot (`active + latest`). Gleiche Snapshot-Hashes teilen das Promise des aktiven beziehungsweise wartenden Jobs. Der neueste verschiedene Snapshot wartet auf den Abschluss des aktiven Jobs; er erhält nicht sofort eine künstliche `pending`-Antwort. Kommt vorher noch ein neuerer verschiedener Snapshot, wird nur der wartende Slot ersetzt: Die verdrängten Aufrufer erhalten sofort den lexikalischen, nicht cachebaren `fallback`, während der neue `latest`-Aufruf wartet. Nach Erfolg oder Fehler des aktiven Jobs startet der verbliebene Ersatzjob serialisiert. `pending` ist dabei der Frontend-Fortschrittszustand während des wartenden Requests, kein zweiter parallel laufender Encoderjob.
+
+Ein Session-Purge erhöht die Queue-Epoche und invalidiert aktive wie wartende Arbeit. Der wartende Aufruf fällt sofort lexikalisch zurück; ein bereits laufender Sidecar-Call darf technisch auslaufen, sein Ergebnis wird nach der Rückkehr jedoch ebenfalls durch einen nicht cachebaren Fallback ersetzt. Ein danach angeforderter Ersatzsnapshot läuft erst serialisiert nach dem alten Call. So gelangen weder ein Ergebnis aus der alten Sessionepoche noch ein verdrängter Snapshot in den Cache.
 
 Circuit Breaker: drei Encoder-Fehler öffnen 30 s; danach `failed` plus 2.x ohne neuen Call.
 
-Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln `qa-question:{uuid}`. Keine Tokens, IPs, Nicknames, Participant-IDs, Session-Codes in den Item-Feldern. Extra-Felder lehnt der Sidecar ab.
+Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln. Q&A verwendet UUID-basierte Schlüssel; Freitext verwendet die stabilen `response-{index}`-Schlüssel des unveränderlichen Host-Snapshots. Der interne Encodertransport versieht beide mit demselben Prefix und bildet sie anschließend auf die ursprünglichen IDs zurück. Keine Tokens, IPs, Nicknames, Participant-IDs oder Session-Codes in den Item-Feldern. Extra-Felder lehnt der Sidecar ab.
 
 ## Betrieb
 
@@ -87,9 +89,9 @@ Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: 
 | Compose               | Profil `encoder`                                                                                                     |
 | Limits                | 1 CPU / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none`                                               |
 | Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`                                        |
-| Analyseversion        | `1.14c.3`                                                                                                            |
+| Analyseversion        | `1.14d.1`                                                                                                            |
 
-Ohne Kill-Switch: `status: disabled`, `fallbackUsed: true`, 2.x-Phrasen; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, langsamer oder überlasteter Encoder: `failed` bzw. `pending`, ebenfalls 2.x. Locales außer `de`/`en`: `fallback` plus lexikalische Wolke.
+Ohne Kill-Switch: `status: disabled`, `fallbackUsed: true`, 2.x-Phrasen; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, überlasteter oder bis zum Timeout langsamer Encoder: `failed` plus 2.x. Während ein aktiver oder neuester wartender Request läuft, zeigt das Frontend `pending` über der weiterhin sichtbaren lexikalischen Wolke. Backend-Aufträge in `fr`/`es`: `fallback` plus lexikalische Wolke; unter italienischer UI bleibt die Analyse lokal, solange keine unterstützte Wolkensprache gewählt ist, und sendet keinen Backendauftrag.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md). Lizenzen: [NOTICE](../../NOTICE), [docker/wordcloud-encoder/NOTICE](../../docker/wordcloud-encoder/NOTICE).
 
@@ -136,30 +138,30 @@ Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `f
 
 ## Qualität
 
-CI-Fixtures (geometrische Einheitsvektoren, kein Modell-Download): die drei Klausur-Paraphrasen zu Kapitel 4 fallen zusammen; Folien vs. Beamer-Hänger nicht. Dasselbe Seed auf Englisch (exam / slides / projector). Echtes e5 nur im gebauten Image.
+CI-Fixtures (geometrische Einheitsvektoren, kein Modell-Download): die drei Klausur-Paraphrasen zu Kapitel 4 fallen zusammen; Folien vs. Beamer-Hänger nicht. Dasselbe Seed auf Englisch (exam / slides / projector). Die Freitext-Fixtures prüfen je Sprache drei getrennte Familien — Stimmungssätze, Einwortsynonyme und lange TCP-Fachsätze — sowie fachfremde Gegenbeispiele. Echtes e5 läuft nur im gebauten Image.
 
 e5-small liegt bei deutschsprachigen Vorlesungsfragen oft schon bei Kosinus ~0,80 zwischen verschiedenen Themen; identische Satzrahmen („Kurze Nachfrage“, „Kann das jemand einordnen“) ziehen fremde Familien auf ~0,84–0,89. Average-Linkage bei 0,80 verkettet daraus ein Mega-Thema. Complete-Linkage bei 0,87 hält Paraphrasen zusammen und die Familien getrennt. Die Host-Stufe **sicher** (≥ 0,85) bleibt davon unabhängig; engere Cluster liegen typisch darüber.
 
 ## Tests
 
-| Check                                      | Befehl / Ort                                                                                                                                                                      |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vertrag                                    | `npm run test -w @arsnova/shared-types -- src/word-cloud-semantic.test.ts`                                                                                                        |
-| Clustering, Encoder-Client, Analyze, Cache | `npm run test -w @arsnova/backend -- --run src/lib/wordCloudSemantic*.test.ts src/lib/wordCloudEncoderClient.test.ts`                                                             |
-| Hotpath-Isolation                          | `npm run test -w @arsnova/backend -- --run src/__tests__/wordCloud.hotpath-isolation.test.ts`                                                                                     |
-| Host-Toggle, stale, Neu analysieren, CSV   | `npm run test -w @arsnova/frontend -- src/app/features/session/session-host/session-host.component.spec.ts src/app/features/session/session-present/word-cloud.component.spec.ts` |
-| Sidecar ohne Modell-Download               | `npm run test:wordcloud-encoder`                                                                                                                                                  |
-| Compose-Profil, kein TCP, cgroup           | `npm run test:wordcloud-encoder-compose`                                                                                                                                          |
+| Check                                                       | Befehl / Ort                                                                                                                                                                      |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vertrag                                                     | `npm run test -w @arsnova/shared-types -- src/word-cloud-semantic.test.ts`                                                                                                        |
+| Clustering, Encoder-Client, `active + latest`, Purge, Cache | `npm run test -w @arsnova/backend -- --run src/lib/wordCloudSemantic*.test.ts src/lib/wordCloudEncoderClient.test.ts`                                                             |
+| Hotpath-Isolation                                           | `npm run test -w @arsnova/backend -- --run src/__tests__/wordCloud.hotpath-isolation.test.ts`                                                                                     |
+| Host-Toggle, stale, Neu analysieren, CSV                    | `npm run test -w @arsnova/frontend -- src/app/features/session/session-host/session-host.component.spec.ts src/app/features/session/session-present/word-cloud.component.spec.ts` |
+| Sidecar ohne Modell-Download                                | `npm run test:wordcloud-encoder`                                                                                                                                                  |
+| Compose-Profil, kein TCP, cgroup                            | `npm run test:wordcloud-encoder-compose`                                                                                                                                          |
 
 Siehe [TESTING.md](../TESTING.md).
 
-## Folgestory 1.14d (Host-Freitext-Themen)
+## Story 1.14d (Host-Freitext-Themen)
 
-Offen. Derselbe Encoder und Kill-Switch, anderer Snapshot: sichtbare Freitextantworten der aktuellen Frage, oft ganze Sätze (Beispiel: „Schreibt, wie ihr euch gerade fühlt“). Die Stufe-0-UI bleibt; `channel: 'FREETEXT'` soll dann clustern statt hart auf `fallback` zu gehen. Presenter bleibt außen vor. Zuschnitt: [Backlog.md](../../Backlog.md) Story 1.14d.
+Im Repo implementiert. Derselbe Encoder, dieselbe Complete-Linkage-Schwelle 0,87, dieselbe Mindestclustergröße 2 und derselbe Kill-Switch verarbeiten den getrennten Snapshot der sichtbaren Freitextantworten der aktuellen Frage. Die frühere Sperre für `channel: 'FREETEXT'` beziehungsweise `response-{index}` ist entfernt. `de`/`en` clustern bei aktivem Encoder; `fr`/`es`, einzelne Antworten, reine Singletons, Timeout und Fehler fallen im Backend lexikalisch zurück. Italienisch bleibt bereits vor dem Backendauftrag auf der lokalen 2.x-Wolke, solange keine unterstützte Analysesprache gewählt ist. Live-Submit, Vote, Join und WebSocket bleiben frei von Inferenz. Das Produktivflag bleibt bis zur gesonderten Betriebs- und Qualitätsfreigabe aus. Presenter-Freitext und LLM-Labels bleiben Nicht-Ziele. Zuschnitt: [Backlog.md](../../Backlog.md) Story 1.14d.
 
 ## Nicht-Ziele (bewusst außerhalb von Stufe 1)
 
-LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Encoder-Clustering für Freitext (**Story 1.14d**), SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
+LLM-Labels (Stufe 2), 8.9c Slice 4, 8.9b-Transformer, Presenter-Freitext-Themen, SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
 
 Stufe 2 bleibt offen hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md): das LLM darf nur das Label ersetzen. Clustering bleibt Stufe 1; LLM-Ausfall fällt auf das extraktive Label, nicht auf lexikalisch 2.x. `OPEN_WEIGHT_LLM_ENABLED` aus lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
 

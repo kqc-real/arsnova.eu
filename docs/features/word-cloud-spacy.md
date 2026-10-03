@@ -3,10 +3,10 @@
 # Wortwolke: optionale Sprachformen-Glättung (Story 1.14b)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb, Lehre
-**Stand:** 2026-08-21
+**Stand:** 2026-10-03
 **Status:** ✅ umgesetzt (Analyseversion `1.14b.14`; Markdown-Aufbereitung Übergang bis #498)
 **Backlog:** Story 1.14b (Word Cloud 2.6)
-**Semantik bleibt getrennt:** Story 1.14c Stufe 1 / [word-cloud-semantic.md](word-cloud-semantic.md)
+**Semantik bleibt getrennt:** Stories 1.14c Stufe 1 und 1.14d / [word-cloud-semantic.md](word-cloud-semantic.md)
 
 ## Zweck
 
@@ -32,10 +32,10 @@ Nicht in der Host-UI: `spaCy`, `NLP`, `Lemma`, `Lemmatisierung`. Modell- und Ver
 
 Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung. **Beim Anzeigen** der Wolke startet die Glättung von selbst (`Glättung ist an`), wenn eine Wolkensprache existiert; der Host kann sie wieder ausschalten. Unter `/it/` bleibt sie aus, bis eine Lemma-Sprache gewählt ist — danach startet sie ebenfalls.
 
-| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                                   | Glättung                                                                                                                                                    |
-| -------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Wörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, Encoder-Clustering nicht in Stufe 1 → 2.x) | sichtbar bei `WORDS` und `PHRASES`; `SEMANTIC` blendet sie aus                                                                                              |
-| Q&A      | eigener `MatDialog`                                  | `Wörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)     | sichtbar bei `LEXICAL` und `THEME`; `SEMANTIC` blendet sie aus. `THEME + LEMMA` bleibt `MODE_UNSUPPORTED` (Lemma nur für Unigramme, Phrasen weiter `THEME`) |
+| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                                 | Glättung                                                                                                                                                    |
+| -------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Wörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, 1.14d: Encoder für `de`/`en`, sonst 2.x) | sichtbar bei `WORDS` und `PHRASES`; `SEMANTIC` blendet sie aus                                                                                              |
+| Q&A      | eigener `MatDialog`                                  | `Wörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)   | sichtbar bei `LEXICAL` und `THEME`; `SEMANTIC` blendet sie aus. `THEME + LEMMA` bleibt `MODE_UNSUPPORTED` (Lemma nur für Unigramme, Phrasen weiter `THEME`) |
 
 Presenter zeigt die Wolke ohne Glättungssteuerung und ohne Wolkensprache. Die vom Host gewählte Option, Sortierung und Glättung erscheinen als Pills neben Begriffe und Fragen.
 
@@ -52,7 +52,7 @@ In der Q&A-Wolke steht **Größe nach:** (Stimmen / Beste Fragen / Kontroverse /
 - **Q&A-Sortierung** `Größe nach: Stimmen` / `Beste Fragen` / `Kontroverse` / `Häufigkeit` (Forumsliste weiter `Meist unterstützt` / `Beste Fragen` / `Umstritten` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Häufigkeit` wertet alle berechtigten Fragen gleich (Gewicht 1); die Fragenliste bleibt nach Eingangszeit sortiert. Stimmen steuern die Wortgröße nicht.
 - **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, danach den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Die Session-Sperre erlaubt nur eine `analyzeQa`-Analyse gleichzeitig; der Host reiht Theme- und Lemma-Aufrufe und wiederholt `CONFLICT`. Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
-- **Freitext `Themen`:** derselbe Host-Toggle; Encoder-Clustering gilt in 1.14c nicht (kontrollierter 2.x-Fallback). **Story 1.14d** hebt das für Host-Freitext auf. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne den dritten Modus. `maxNgramLength` 1 bzw. 3 gilt weiter für `Wörter` / `Wörter & Phrasen`.
+- **Freitext `Themen`:** Story 1.14d verwendet für `de`/`en` denselben privaten Encoder- und Clusteringpfad wie Q&A. `fr`/`es` fallen im Backend auf 2.x zurück; unter italienischer UI bleibt der Fallback ohne gewählte unterstützte Wolkensprache lokal und sendet keinen Backendauftrag. Der gemeinsame Kill-Switch bleibt default aus; eine Produktivaktivierung ist nicht belegt. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne eigenen semantischen Analysejob. `maxNgramLength` 1 beziehungsweise 3 gilt weiter für `Wörter` / `Wörter & Phrasen`.
 
 Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidecar-Ausfall, Timeout oder unsupported Locale fallen hart auf den 2.x-Pfad zurück.
 
@@ -60,7 +60,7 @@ Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidec
 
 `Daten holen → Markdown/KaTeX-Aufbereitung (Übergang bis #498) → optional spaCy (Token, Lemma, POS) → lexikalisch aggregieren → rendern / Tooltip / CSV / PNG`
 
-Die gemeinsame Funktion `prepareWordCloudAnalysisText` (`@arsnova/shared-types`, Version `WORD_CLOUD_ANALYSIS_TEXT_VERSION`) nutzt `marked.lexer` (eigene `Marked`-Instanz mit KaTeX-Tokenizer-Erweiterungen inkl. Escape-Parität für `$`) als Strukturgrundlage: ein Token-Walker überspringt Links, Bilder, Code, KaTeX und HTML-Ausschlüsse, reduziert Hervorhebungen auf Text und setzt Segmentgrenzen. Zusätzlich vor dem Lexer: Q&A-Schwärzungen (kein eigener Markdown-Parser). Frontend-Fallback und Backend nutzen dieselbe Aufbereitung inkl. Ergebnis-Cache. Analyseversionen: Normalisierung `1.14b.14`, Semantik `1.14c.3`. Gespeicherte Beiträge und ihre Darstellung bleiben unverändert. Formel-Pills und Schreibweisen-Toleranz bleiben #498.
+Die gemeinsame Funktion `prepareWordCloudAnalysisText` (`@arsnova/shared-types`, Version `WORD_CLOUD_ANALYSIS_TEXT_VERSION`) nutzt `marked.lexer` (eigene `Marked`-Instanz mit KaTeX-Tokenizer-Erweiterungen inkl. Escape-Parität für `$`) als Strukturgrundlage: ein Token-Walker überspringt Links, Bilder, Code, KaTeX und HTML-Ausschlüsse, reduziert Hervorhebungen auf Text und setzt Segmentgrenzen. Zusätzlich vor dem Lexer: Q&A-Schwärzungen (kein eigener Markdown-Parser). Frontend-Fallback und Backend nutzen dieselbe Aufbereitung inkl. Ergebnis-Cache. Analyseversionen: Normalisierung `1.14b.14`, Semantik `1.14d.1`. Gespeicherte Beiträge und ihre Darstellung bleiben unverändert. Formel-Pills und Schreibweisen-Toleranz bleiben #498.
 
 Der Renderer analysiert keine Rohtexte. Gruppierungsschlüssel und Anzeigelabel bleiben getrennt; sichtbare Labels sind häufige Oberflächenformen, keine rohen Lemmaformen.
 

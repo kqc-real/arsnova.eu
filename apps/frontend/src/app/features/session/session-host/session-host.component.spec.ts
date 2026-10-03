@@ -7799,6 +7799,56 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt fuer eine einzelne italienische Nonsense-Antwort den lokalen Themen-Fallback', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Come vi sentite?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Come vi sentite?',
+      responses: ['asdfgh'],
+    });
+
+    const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 1, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+
+    expect(component.qaWordCloudAnalysisLocale()).toBeNull();
+    expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
+    expect(component.freetextWordCloudSemanticHint()).toBe(
+      'Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.',
+    );
+    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
+    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
+    expect(
+      wordCloudAnalyzeQueryMock.mock.calls.some(
+        (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
+      ),
+    ).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain(
+      'Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.',
+    );
+    fixture.destroy();
+  });
+
   it('markiert Freitext-Themen bei neuen Antworten als veraltet und analysiert erst nach Themen aktualisieren', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({

@@ -1,5 +1,5 @@
 /**
- * Host-Q&A-Themenpfad Stufe 1: Snapshot → Hash → Encoder → Cluster → Zod.
+ * Host-Themenpfad fuer Q&A und Freitext: Snapshot → Hash → Encoder → Cluster → Zod.
  * Höchstens ein Inflight-Job pro Session; Circuit Breaker bei Encoder-Fehlern.
  */
 import {
@@ -58,9 +58,31 @@ type CircuitState = {
   openedAt: number | null;
 };
 
+type SemanticAnalyzeOptions = {
+  readonly env?: NodeJS.ProcessEnv;
+  readonly tokensByItemId?: ReadonlyMap<
+    string,
+    readonly import('./wordCloudAnalysis').WordCloudRawToken[]
+  >;
+};
+
 type SessionJob = {
-  snapshotHash: string;
-  promise: Promise<AnalyzeWordCloudOutput>;
+  readonly snapshotHash: string;
+  readonly epoch: number;
+  readonly input: AnalyzeWordCloudInput;
+  readonly meta: WordCloudNormalizationMeta;
+  readonly options: SemanticAnalyzeOptions;
+  readonly promise: Promise<AnalyzeWordCloudOutput>;
+  readonly resolve: (output: AnalyzeWordCloudOutput) => void;
+  readonly reject: (reason?: unknown) => void;
+};
+
+type SessionJobQueue = {
+  // A session owns at most one active and one latest queued snapshot. Newer distinct
+  // snapshots coalesce the queued slot instead of building an unbounded encoder queue.
+  epoch: number;
+  active: SessionJob | null;
+  latest: SessionJob | null;
 };
 
 function createDefaultHooks(): SemanticHooks {
@@ -73,10 +95,22 @@ function createDefaultHooks(): SemanticHooks {
 
 let hooks: SemanticHooks = createDefaultHooks();
 const circuit: CircuitState = { failures: 0, openedAt: null };
-const jobs = new Map<string, SessionJob>();
+const jobs = new Map<string, SessionJobQueue>();
 
 export function invalidateWordCloudSemanticSession(sessionCode: string): void {
-  jobs.delete(sessionCode.trim().toUpperCase());
+  const sessionKey = sessionCode.trim().toUpperCase();
+  const queue = jobs.get(sessionKey);
+  if (!queue) {
+    return;
+  }
+  queue.epoch += 1;
+  if (queue.latest) {
+    queue.latest.resolve(buildQueueFallback(queue.latest));
+    queue.latest = null;
+  }
+  if (!queue.active && jobs.get(sessionKey) === queue) {
+    jobs.delete(sessionKey);
+  }
 }
 
 registerSessionPurgeInvalidator((event) => invalidateWordCloudSemanticSession(event.sessionCode));
@@ -88,6 +122,13 @@ export function resetWordCloudSemanticAnalyzeForTests(overrides?: Partial<Semant
   };
   circuit.failures = 0;
   circuit.openedAt = null;
+  for (const queue of jobs.values()) {
+    queue.epoch += 1;
+    if (queue.latest) {
+      queue.latest.resolve(buildQueueFallback(queue.latest));
+      queue.latest = null;
+    }
+  }
   jobs.clear();
 }
 
@@ -115,16 +156,6 @@ function defaultEmbedder(
     },
     config,
   );
-}
-
-function isFreetextChannel(input: AnalyzeWordCloudInput): boolean {
-  if (input.channel === 'FREETEXT') {
-    return true;
-  }
-  if (input.channel === 'QA') {
-    return false;
-  }
-  return input.items.some((item) => /^response-\d+$/u.test(item.id));
 }
 
 function isCircuitOpen(now: number): boolean {
@@ -229,7 +260,7 @@ async function runSemanticEncoderJob(
       modelId: null,
     });
   }
-  if (isFreetextChannel(input) || !isWordCloudSemanticLocale(input.locale)) {
+  if (!isWordCloudSemanticLocale(input.locale)) {
     return buildSemanticAnalysisOutput({
       request: input,
       entries: fallbackEntries,
@@ -319,45 +350,113 @@ async function runSemanticEncoderJob(
   }
 }
 
+function createSessionJob(
+  input: AnalyzeWordCloudInput,
+  meta: WordCloudNormalizationMeta,
+  options: SemanticAnalyzeOptions,
+  epoch: number,
+): SessionJob {
+  let resolve!: (output: AnalyzeWordCloudOutput) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<AnalyzeWordCloudOutput>((next, fail) => {
+    resolve = next;
+    reject = fail;
+  });
+  return {
+    snapshotHash: meta.snapshotHash,
+    epoch,
+    input,
+    meta,
+    options,
+    promise,
+    resolve,
+    reject,
+  };
+}
+
+function buildQueueFallback(job: SessionJob): AnalyzeWordCloudOutput {
+  return buildSemanticAnalysisOutput({
+    request: job.input,
+    entries: buildLexicalSemanticFallbackEntries(job.input, job.options.tokensByItemId),
+    meta: job.meta,
+    status: 'fallback',
+    fallbackUsed: true,
+    modelVersion: null,
+    modelId: null,
+  });
+}
+
+function finishSessionJob(sessionKey: string, queue: SessionJobQueue, job: SessionJob): void {
+  if (queue.active !== job) {
+    return;
+  }
+  queue.active = null;
+
+  const latest = queue.latest;
+  queue.latest = null;
+  if (latest) {
+    if (latest.epoch === queue.epoch) {
+      startSessionJob(sessionKey, queue, latest);
+      return;
+    }
+    latest.resolve(buildQueueFallback(latest));
+  }
+
+  if (jobs.get(sessionKey) === queue) {
+    jobs.delete(sessionKey);
+  }
+}
+
+function startSessionJob(sessionKey: string, queue: SessionJobQueue, job: SessionJob): void {
+  queue.active = job;
+  const execution = (async () => {
+    if (job.epoch !== queue.epoch) {
+      return buildQueueFallback(job);
+    }
+    const output = await runSemanticEncoderJob(
+      job.input,
+      job.meta,
+      job.options.tokensByItemId,
+      job.options.env ?? process.env,
+    );
+    return job.epoch === queue.epoch ? output : buildQueueFallback(job);
+  })();
+
+  void execution.then(job.resolve, job.reject).then(() => finishSessionJob(sessionKey, queue, job));
+}
+
 export async function analyzeSemanticWordCloudSnapshot(
   input: AnalyzeWordCloudInput,
   meta: WordCloudNormalizationMeta,
-  options: {
-    readonly env?: NodeJS.ProcessEnv;
-    readonly tokensByItemId?: ReadonlyMap<
-      string,
-      readonly import('./wordCloudAnalysis').WordCloudRawToken[]
-    >;
-  } = {},
+  options: SemanticAnalyzeOptions = {},
 ): Promise<AnalyzeWordCloudOutput> {
   const sessionKey = input.sessionCode.toUpperCase();
-  const existing = jobs.get(sessionKey);
-  if (existing) {
-    if (existing.snapshotHash === meta.snapshotHash) {
-      return existing.promise;
-    }
-    return buildSemanticAnalysisOutput({
-      request: input,
-      entries: buildLexicalSemanticFallbackEntries(input, options.tokensByItemId),
-      meta,
-      status: 'pending',
-      fallbackUsed: true,
-      modelVersion: null,
-      modelId: null,
-    });
+  let queue = jobs.get(sessionKey);
+  if (!queue) {
+    queue = {
+      epoch: 0,
+      active: null,
+      latest: null,
+    };
+    jobs.set(sessionKey, queue);
   }
 
-  const promise = runSemanticEncoderJob(
-    input,
-    meta,
-    options.tokensByItemId,
-    options.env ?? process.env,
-  ).finally(() => {
-    const active = jobs.get(sessionKey);
-    if (active?.promise === promise) {
-      jobs.delete(sessionKey);
-    }
-  });
-  jobs.set(sessionKey, { snapshotHash: meta.snapshotHash, promise });
-  return promise;
+  if (queue.active?.epoch === queue.epoch && queue.active.snapshotHash === meta.snapshotHash) {
+    return queue.active.promise;
+  }
+  if (queue.latest?.epoch === queue.epoch && queue.latest.snapshotHash === meta.snapshotHash) {
+    return queue.latest.promise;
+  }
+
+  const job = createSessionJob(input, meta, options, queue.epoch);
+  if (!queue.active) {
+    startSessionJob(sessionKey, queue, job);
+    return job.promise;
+  }
+
+  if (queue.latest) {
+    queue.latest.resolve(buildQueueFallback(queue.latest));
+  }
+  queue.latest = job;
+  return job.promise;
 }
