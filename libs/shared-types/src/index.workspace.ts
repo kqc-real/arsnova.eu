@@ -16,5 +16,7 @@ export * from './qa-summary-rank';
 export * from './qa-summary-visibility';
 export * from './product-feedback';
 export * from './host-pairing';
+export * from './moderation-prompt-context';
+export * from './moderation-prompt-context-fixtures';
 // Display rewriter stays off this barrel so the Angular initial bundle
 // does not pull it into every @arsnova/shared-types import.

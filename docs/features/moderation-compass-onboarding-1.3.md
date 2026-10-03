@@ -12,6 +12,15 @@
 
 > Dieses Dokument beschreibt den **Zielstand 1.3**. Der untersuchte Commit belegt bereits viele Regeln, Analyseverfahren und Schnittstellen, bildet aber noch nicht alle Releaseverträge ab. Abschnitte mit **„Zielvertrag 1.3“** beschreiben den verbindlich geplanten Zuschnitt aus Roadmap, Architekturentscheidungen und Issues. Sie behaupten keine bereits vorhandenen Dateien, Endpunkte oder erfolgreich ausgeführten Abnahmetests. Bei der Arbeit am fertigen Release sind dessen Tag und Implementierung zusätzlich abzugleichen.
 
+**Ergänzender Status 2026-10-03:** #456 Slice 1 führt auf Basis von `64830fad`
+den versionierten Shared-Vertrag, Zustände, Quellen, Bedeutungslexikon und
+Referenzdaten ein. Maßgeblich sind
+[moderation-prompt-context.md](moderation-prompt-context.md) und
+[ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md).
+Builder, Persistenz, UI, Runtime und Adapterintegration bleiben Zielstand späterer Slices;
+die übrige Bestandsanalyse dieses Onboardings bleibt auf den oben genannten Commit `fc84d7f`
+bezogen.
+
 ## Inhalt
 
 1. [Zweck, Umfang und Grenzen](#1-zweck-umfang-und-grenzen)
@@ -78,6 +87,7 @@ arsnova.eu ist ein TypeScript-Monorepository. Die fachlichen Verträge liegen in
 | 5           | `apps/backend/src/routers/qa.ts` und `wordCloud.ts`                | Autorisierung, Auslöser und Grenzen der Server-API            |
 | 6           | `qaNlp*.ts`, `wordCloudSemantic*.ts`, `qaSummary*.ts`              | Drei unterschiedliche Analysepipelines                        |
 | 7           | ADR 0032, ADR 0035, Issues #456 und #463                           | Zielarchitektur und die Erweiterungen für 1.3                 |
+| 8           | `moderation-prompt-context.md`, ADR 0036                           | Slice-1-Vertrag, Legacy-Grenze und Lernziel-Datenhaltung      |
 
 Alle genannten Pfade werden im Quellenverzeichnis auf den untersuchten Commit verlinkt. Für symbolgenaue Suche eignet sich beispielsweise:
 
@@ -294,10 +304,10 @@ Ohne Bewertungen ist der Wert null. Der Score bevorzugt zuverlässig unterstütz
 Die im Router implementierte Berechnung verwendet:
 
 $$
-C=\max(1,0{,}1N), \qquad K=\min\left(1,\frac{2\min(U,D)}{U+D+C}\right),
+C=\max(1,\lceil 0{,}1N \rceil), \qquad K=\min\left(1,\frac{2\min(U,D)}{U+D+C}\right),
 $$
 
-wobei $N$ die für die Berechnung verwendete Teilnehmerbasis ist. Der Kontext muss diese Basis mit ihrer Bedeutung ausweisen; sie darf nicht ungeprüft als momentan online befindliche Personen bezeichnet werden.
+wobei $N$ die Zahl der persistierten Teilnehmerdatensätze der Session (`session-participant-record-count`) ist. Weder momentan online befindliche Personen noch eine konfigurierte Maximalkapazität sind dafür zulässige Ersatzwerte. Der Kontext weist diese Basis einschließlich `qa-ranking-v1` ausdrücklich aus.
 
 Die explizite Kontroversitätsmarkierung verlangt zusätzlich $K>0{,}5$ und $n\geq\max(1,C)$. Ein hoher Nettowert und Kontroversität können gleichzeitig auftreten. Historische Featuretexte müssen bei Abweichungen gegen die aktuelle SQL-Berechnung geprüft werden.
 
@@ -578,21 +588,30 @@ Im Zielstand muss die extraktive Rückfallebene im regulären Anwendungspfad ver
 
 **Zielvertrag 1.3, Issue #456.** Der bisherige Snapshot aus wenigen Fragetexten reicht nicht aus, um Unterstützung, Kontroverse, didaktischen Bezug und Systemgrenzen auseinanderzuhalten. Der neue Kontext macht diese Informationen explizit. „Vollständig“ bedeutet vollständig hinsichtlich der relevanten Informationsarten, nicht ungefiltert vollständig hinsichtlich jedes gespeicherten Beitrags.
 
+Der konkrete Slice-1-Vertrag und sein aktueller Implementierungsstatus sind in
+[moderation-prompt-context.md](moderation-prompt-context.md) dokumentiert. Die folgenden
+Builder-, Budget- und Adapterabläufe bleiben Zielstand der Slices 2–7; Slice 1 verdrahtet sie
+noch nicht mit dem produktiven Summary-Pfad.
+
 ### 11.1 Kontextbereiche
 
-| Bereich                | Erforderliche Informationen                                                                                        | Typischer Fehler, den der Vertrag verhindert                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| Metadaten              | Schema-, Analyse-, Definitions- und Auswahlversion, Sprache, relevante Revisionen, Hash und Erstellzeit            | Gleich aussehende Ergebnisse aus inkompatiblen Verfahren vermischen              |
-| Umfang                 | Kanal, Phase, Filter, zeitlicher Bezug, Gesamt-, zulässiger, analysierter und ausgewählter Bestand                 | Eine Seite oder Stichprobe für das ganze Forum halten                            |
-| Fragen                 | Text, Status, positive/negative Stimmen, Netto, Best-Score, Kontroversität, Bezugsgröße, vorhandene Klassifikation | Netto als positive Stimmen oder Kategorie als bewiesene Absicht lesen            |
-| Themen                 | Analyseversion, Mitglieder, Labelherkunft, Kennzahlen, repräsentative Quellen, Abdeckung und Aktualität            | Ein Label als unbelegte neue Tatsache verwenden                                  |
-| Regelkompass           | Karten, Auslöser, Ton, Evidenz und priorisierter Vorschlag samt Regelversion                                       | Browserbehauptungen oder eine zweite abweichende Regelimplementierung übernehmen |
-| Lernkontext            | Manuelle, abgeleitete oder bestätigte Ziele; Aufgaben- und expliziter Abschnittsbezug; Prüfbedarf                  | Aus Quizreihenfolge einen erfundenen Lehrabschnitt ableiten                      |
-| Freigegebene Resultate | Zulässige Aggregate und ihre Frage-/Phasenbezüge                                                                   | Verborgene Lösungen oder Einzelantworten in die Live-Analyse übernehmen          |
-| Feedback               | Zulässige Tempo- und Blitzlichtaggregate, Stichprobengröße und Zeitbezug                                           | Alte oder winzige Stichproben als aktuelle Gesamtmeinung formulieren             |
-| Quellenregister        | Typisierte, auflösbare Referenzen auf Fragen, Themen, Ziele, Aggregate und Regelbelege                             | Nicht überprüfbare Verweise erzeugen                                             |
-| Einschränkungen        | Fehlend, deaktiviert, ausstehend, fehlgeschlagen, veraltet, nicht freigegeben oder budgetbedingt ausgelassen       | Fehlende Daten als negative Evidenz interpretieren                               |
-| Budgetbericht          | Modellprofil, Zählmethode, Reserven, Auswahl und Kürzungen                                                         | Unbemerkte server- oder modellseitige Abschneidung                               |
+| Bereich                | Erforderliche Informationen                                                                                                            | Typischer Fehler, den der Vertrag verhindert                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Metadaten              | Schema-, Analyse-, Definitions- und Auswahlversion, Repräsentation, Sprache, typisierte Revisionen, Hash und Erstellzeit               | Gleich aussehende Ergebnisse aus inkompatiblen Verfahren vermischen              |
+| Umfang                 | Kanal, Phase, Filter, zeitlicher Bezug, Gesamt-, zulässiger, analysierter, Kandidaten- und Auswahlbestand                              | Eine Seite, Kandidatenmenge oder Stichprobe für das ganze Forum halten           |
+| Fragen                 | Text, Moderations- und Bearbeitungsstand, positive/negative Stimmen, Netto, Best-Score, Kontroversität, Bezugsgröße und Klassifikation | `unaddressed`, `PENDING`, NLP-Zustand oder Quizantworten gleichsetzen            |
+| Themen                 | Analyseversion, Mitglieder, Labelherkunft, Kennzahlen, repräsentative Quellen, Abdeckung und Aktualität                                | Ein Label als unbelegte neue Tatsache verwenden                                  |
+| Regelkompass           | Karten, Auslöser, Ton, Evidenz und priorisierter Vorschlag samt Regelversion                                                           | Browserbehauptungen oder eine zweite abweichende Regelimplementierung übernehmen |
+| Lernkontext            | Manuelle, abgeleitete oder bestätigte Ziele; Aufgaben- und expliziter Abschnittsbezug; Prüfbedarf                                      | Aus Quizreihenfolge einen erfundenen Lehrabschnitt ableiten                      |
+| Freigegebene Resultate | Strukturierte Aggregate mit Quiz-/Fragenscope, Effective-Vote-Basis, Population und regeltypischen Messwerten                          | Beide Peer-Instruction-Runden addieren oder verborgene Lösungen übernehmen       |
+| Feedback               | Typisierte Tempo-/Blitzlichtverteilungen mit Quick-Feedback-Scope, Population und Zeitbezug                                            | Alte oder winzige Stichproben als aktuelle Gesamtmeinung formulieren             |
+| Quellenregister        | Typisierte, auflösbare Referenzen auf Fragen, Themen, Ziele, Aggregate und Regelbelege                                                 | Nicht überprüfbare Verweise erzeugen                                             |
+| Einschränkungen        | Fehlend, deaktiviert, ausstehend, fehlgeschlagen, veraltet, nicht freigegeben oder budgetbedingt ausgelassen                           | Fehlende Daten als negative Evidenz interpretieren                               |
+| Budgetbericht          | Modellprofil, Zählmethode, Reserven, Auswahl und Kürzungen                                                                             | Unbemerkte server- oder modellseitige Abschneidung                               |
+
+Slice 1 trennt Kandidaten- und Promptvertrag auch auf Schemaebene. `ModerationAnalysisContextV1Schema` verwendet `ModerationAnalysisDomainContextV1Schema` mit `representation: analysis-candidates` für den noch ungepackten Bestand; `ModerationPromptContextV1Schema` verwendet `ModerationPromptDomainContextV1Schema` mit `representation: prompt-selection` und ergänzt Hash sowie Budgetbericht. Der ältere öffentliche Name `ModerationDomainContextV1Schema` bleibt nur als Alias des Analyse-Domainschemas erhalten. Neutrale Felder wie `represented`, `representedQuestions` und `representedQuestionSourceIds` erhalten ihre Bedeutung erst durch diesen Diskriminator. Ein Kandidatenbestand darf `scope.selectionLimits` überschreiten; erst das Prompt-Domainschema erzwingt Auswahlgrenzen und die Erreichbarkeit jeder mitgelieferten Quelle im gepackten Fachgraphen.
+
+Ein Quiz-Ergebnisaggregat hat entweder den singulären Fragenscope `{ kind: question, quizScopeId, questionSourceId }` oder den Quizscope `{ kind: quiz, quizScopeId }`. Seine verpflichtende, versionierte `voteBasis` ist `effective-vote-v1`: Sobald zu einer Frage Runde 2 existiert, ersetzt sie Runde 1; ohne Runde 2 zählt Runde 1, und pro Person und Frage fließt höchstens eine effektive Stimme ein. Eine Addition beider gespeicherter Peer-Instruction-Runden ist keine zulässige Basis. Bei `answer-distribution` bezeichnet `optionSet: all-answer-options` die vollständige Optionsmenge. `responseCount` und `selectionCount` sind absichtlich getrennt: Mehrfachauswahl kann mehr Auswahlen als antwortende Einreichungen erzeugen. `selectionCardinality` begrenzt die Auswahlzahl je Antwort, `selectionCount` entspricht der Summe der vollständigen, nach `optionId` und `label` eindeutigen Buckets `{ optionId, label, count }`, und `responseCount` entspricht der eingeschlossenen effektiven Population. Die opake `optionId` ist weder Quellenreferenz noch Lösungshinweis. Richtigkeits-, Score- und Completion-Aggregate besitzen jeweils eigene strukturierte Regeln. Feedback verwendet zum Typ passende, eindeutige Buckets; deren Summe entspricht der eingeschlossenen Feedbackpopulation. Lösungshinweise wie `isCorrect` sind auch in freigegebenen Aggregaten kein Vertragsfeld. Ein numerischer Kontroversitätswert ist nur mit verfügbarer Teilnehmerbasis zulässig; fehlt diese Basis, bleibt der Wert ausdrücklich unavailable.
 
 ### 11.2 Aufbau ohne versteckte Nebenwirkungen
 
@@ -649,7 +668,11 @@ Der Adapter muss ausdrücklich angeben, welche Kontext- und Ausgabeversion er ve
 
 ### 11.5 Referenzabschluss und nachträgliche Änderungen
 
-Jede im gepackten Kontext verwendete Referenz muss im zugehörigen Quellenregister auflösbar sein. Dies gilt auch für Themen, Regeln und Aggregate, nicht nur für einzelne Fragen. Ein kompaktes Aggregat kann einen größeren Bestand repräsentieren, dessen Einzeltexte nicht alle in das Budget passen. Seine Herkunft, Bezugsmenge und Kürzung müssen dann dennoch nachvollziehbar sein.
+Jede im gepackten Kontext verwendete `sourceId`-/`SourceIds`-Kante muss im Quellenregister auflösbar und vom gepackten Fachgraphen erreichbar sein. Dies gilt auch für Themen, Kompasssignale, Ziele und Aggregate, nicht nur für einzelne Fragen. `quizScopeId`, `sectionScopeId` und `optionId` sind dagegen präfixvalidierte opake Fachschlüssel: Sie stehen nicht im Quellenregister, werden nicht dereferenziert und enthalten keinen Modelltext. Enthaltener Q&A-Text gehört stets zu `questions.items`; nicht gepackte Themenmitglieder bleiben als `reference-only` ohne vorgetäuschten Volltext auflösbar. Soweit ein Themenmitglied als dargestellte Frage vorliegt, führen Frage und Thema konsistente Gegenreferenzen; `representedQuestionSourceIds` bezeichnet tatsächlich enthaltene Mitgliedstexte. Ein kompaktes Aggregat kann einen größeren Bestand repräsentieren, dessen Einzeltexte nicht alle in das Budget passen. Seine Herkunft, Bezugsmenge und Kürzung müssen dann dennoch nachvollziehbar sein.
+
+Der Kompass bindet jeden Signaltyp an genau eine Messbasis: `high-best-score` an `best-score`, `high-controversy` an `controversy-score`, `high-frequency` an `question-frequency`, `unanswered` an `unaddressed-question-count`, `topic-concentration` an `topic-question-share`, `learning-gap` an `learning-gap-rule-score`, `result-pattern` an `released-result-rule-score` und `feedback-pattern` an `feedback-rule-score`. Q&A-Evidenz und `questionSourceIds` spiegeln einander exakt. Best-Score und Kontroversität müssen einem verfügbaren Fragenwert entsprechen; diese Fragenwerte werden zuvor gegen die `qa-ranking-v1`-Formeln und die ausdrücklich ausgewiesene Teilnehmerbasis validiert, wobei Gesamtstimmen die Basis nicht überschreiten dürfen. Häufigkeit zählt exakt die genannten Fragen; `unanswered` zählt nur ausdrücklich `unaddressed` ausgewiesene Fragen. Themenanteil und die drei Regelscores liegen zwischen 0 und 1. Lernlücken benötigen ein verfügbares Lernziel und ein tatsächlich beobachtetes freigegebenes Ergebnis mit `population.included > 0` im selben Quiz-, Abschnitts- oder Aufgaben-Scope; Ergebnis- und Feedbackmuster benötigen ebenfalls ein passendes Aggregat mit nicht leerer eingeschlossener Population.
+
+Bereichs- und Kanalzustände begrenzen den Graphen: Q&A-Inhalte benötigen `qa`; Quizergebnisse, Quizfragenreferenzen, `quiz`-/`section`-Lernziele, Aufgabenlernziele mit Quizfragen und jede modellabgeleitete Lernzielherkunft benötigen `quiz`; Feedback benötigt `quickFeedback`. `not-released` enthält keine Ergebnisreferenzen; Ergebnisquellen und Kompassevidenz auf Ergebnisse sind in diesem Zustand ungültig. Entsprechend dürfen Thema, Lernziel und Feedback nur als Kompassevidenz dienen, wenn ihr Fachbereich verfügbar ist und genau diese Quelle führt. Verfügbare Fragen, Themen, Lernziele, Ergebnisse und Feedback benötigen außerdem ihre einschlägigen `meta.revisions`-Einträge; der Kompass trägt eine eigene `rulesVersion`.
 
 Während der Inferenz kann eine Frage gelöscht, ein Zugriff widerrufen oder eine Session beendet werden. Vor der Auslieferung prüft N15 die zulässigen Quellen erneut. Ein früher korrekter Snapshot ist keine dauerhafte Berechtigung, inzwischen unzulässige Inhalte anzuzeigen.
 
@@ -665,7 +688,7 @@ Das Modell erhält in diesem Ablauf keine Berechtigung, Moderationsaktionen ausz
 
 ### 12.1 Herkunft und bewusste Übermittlung
 
-Die Lehrperson kann Ziele manuell eingeben oder aus einem bewusst übermittelten Quizsnapshot vorschlagen lassen. Dieser separate Auftrag kann Aufgaben, Lösungen und Erläuterungen benötigen. Das ist von der Live-Moderation zu unterscheiden, in der nur freigegebene Ergebnisse und zulässige Inhalte in den Kontext gelangen.
+Die Lehrperson kann Ziele manuell eingeben oder aus einem bewusst übermittelten Quizsnapshot vorschlagen lassen. Dieser separate Auftrag kann Aufgaben, Lösungen und Erläuterungen benötigen. Modellabgeleitete Ziele referenzieren in `derivedFromSourceIds` und einem etwaigen `tasks`-Scope ausschließlich Quizfragen; ein `session`-Scope ist für sie ausgeschlossen. Alle Herleitungsfragen gehören demselben `quizScopeId` an. Bei `quiz` treffen sie den Quizscope des Ziels, bei `section` zusätzlich dessen `sectionScopeId`, und bei `tasks` liegt jede Herleitungsfrage in `taskSourceIds`, die dort ebenfalls nur Quizfragen enthalten. Ein manuelles Ziel darf dagegen zulässige Q&A- oder Quizfragen referenzieren; mehrere Quizaufgaben eines Ziels gehören auch hier demselben Quizscope an. Eine reine Q&A-Session bleibt bei manuellen Zielen. Das ist von der Live-Moderation zu unterscheiden, in der nur freigegebene Ergebnisse und zulässige Inhalte in den Kontext gelangen.
 
 Ein Vorschlag enthält Aufgabenreferenzen und Herkunft. Die Lehrperson kann ihn bearbeiten, bestätigen, verwerfen oder löschen. Eine reine Q&A-Session funktioniert auch ohne Quiz und ohne Lernziele; manuell eingegebene Ziele sind dort eine mögliche Ergänzung, keine Voraussetzung für den Kompass.
 
@@ -690,7 +713,13 @@ Dieses Diagramm beschreibt den fachlichen Lebenszyklus; es definiert keine zusä
 
 Neue Modellvorschläge oder ein Modellwechsel dürfen bestätigte, manuell bearbeitete Ziele nicht still überschreiben. Ändert sich eine referenzierte Aufgabe oder Lösung, markiert die Anwendung betroffene Ableitungen als überprüfungsbedürftig. Nicht jede kosmetische Änderung muss alle Ziele entwerten; die Provenienz legt den relevanten Bezug fest.
 
-Die Speicherung folgt der vorhandenen Eigentümerschaft und dem Local-first-Lebenszyklus einschließlich Synchronisation und Import/Export. Issue #456 legt die Verantwortung fest, aber nicht für jeden Teil bereits eine konkrete Prisma-Tabelle oder einen endgültigen Yjs-Key. Solche Namen müssen aus der fertigen 1.3-Implementierung übernommen werden.
+Die verbindliche Speicher- und Lebenszyklusentscheidung steht in
+[ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md):
+Quizziele bleiben local-first und erhalten einen versionierten quizgebundenen
+Yjs-/Speicherbereich; eine kontrollierte Sessionkopie ist für den Live-Kontext autoritativ.
+Reine Q&A-Ziele leben nur in der Session. Der lösungshaltige Vorbereitungsauftrag und die
+kompakte Live-Projektion verwenden getrennte Verträge. Konkrete Prisma-, Store- und UI-Typen
+folgen erst im Persistenz-Slice.
 
 ### 12.3 Aktive Ziele statt erfundener Abschnitte
 

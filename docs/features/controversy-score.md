@@ -54,19 +54,19 @@ $$
 S = \frac{2 \cdot \min(U, D)}{U + D + C}
 $$
 
-| Symbol | Bedeutung                                                                                                                                                             |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| U      | Anzahl Upvotes                                                                                                                                                        |
-| D      | Anzahl Downvotes                                                                                                                                                      |
-| N      | Bezugsgröße für die Raumgröße (bei Implementierung **eindeutig** wählen, z. B. Maximalteilnehmerzahl der Session oder aktuell gezählte Teilnehmende — nicht mischen). |
-| C      | Glättungs-/Prior-Term im Nenner: `max(1, 0.1 * N)` (siehe technische Regeln).                                                                                         |
+| Symbol | Bedeutung                                                                                                                                                    |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| U      | Anzahl Upvotes                                                                                                                                               |
+| D      | Anzahl Downvotes                                                                                                                                             |
+| N      | Zahl der persistierten Teilnehmerdatensätze der Session (`session-participant-record-count`); weder aktuelle Onlinezahl noch konfigurierte Maximalkapazität. |
+| C      | Ganzzahliger Glättungs-/Prior-Term im Nenner: `max(1, ceil(0.1 * N))` (siehe technische Regeln).                                                             |
 
 Der Term \(C\) wirkt wie ein **Prior**: wenige Stimmen in einem großen Raum erhöhen den Score nur moderat; viele ausgeglichene Stimmen erhöhen ihn stark.
 
 ### Technische Regeln
 
 1. **Gleitkomma:** Der Score wird als Float/Decimal berechnet (keine Ganzzahl-Division).
-2. **Untergrenze für C:** \(C = \max(1,\, 0.1 \cdot N)\) verhindert einen Nenner von 0 und stabilisiert den Fall \(N = 0\).
+2. **Untergrenze für C:** \(C = \max(1,\, \lceil 0.1 \cdot N \rceil)\) verhindert einen Nenner von 0, stabilisiert den Fall \(N = 0\) und entspricht der implementierten ganzzahligen Mindeststimmenzahl.
 
 ## Sortierung (Tie-Breaker)
 
@@ -152,7 +152,7 @@ SELECT
     downvotes,
     created_at,
     (2.0 * LEAST(upvotes, downvotes))
-    / (upvotes + downvotes + GREATEST(1.0, 0.1 * :N)) AS controversy_score
+    / (upvotes + downvotes + GREATEST(1.0, CEIL(0.1 * :N))) AS controversy_score
 FROM vote_counts
 ORDER BY
     controversy_score DESC,
@@ -200,6 +200,7 @@ Erwartete Reihenfolge: F, dann H, dann G — zuerst mehr Upvotes als G; bei F vs
 | --- | --- | --- | ---- | ---------------- | ------------------------------------------ |
 | 0   | 1   | 1   | 1,0  | 0,666            | Fallback max(1, …)                         |
 | 10  | 2   | 2   | 1,0  | 0,800            | kleiner Raum                               |
+| 11  | 1   | 1   | 2,0  | 0,500            | Aufrundung der ganzzahligen Mindeststimmen |
 | 200 | 2   | 2   | 20,0 | 0,166            | großer Raum, wenige Stimmen = wenig Signal |
 
 ---

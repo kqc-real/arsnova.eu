@@ -89,11 +89,19 @@ npm run test -w @arsnova/frontend -- \
 
 Produktiv `QA_SUMMARY_ENABLED` nicht stillschweigend auf `true` setzen. Ohne privaten Inferenzserver gibt es keine Zusammenfassung. `OPEN_WEIGHT_LLM_ENABLED` (Story 8.9d, noch nicht implementiert) schaltet den Themenmodus nicht ab.
 
-## Geplante Kontextvorbereitung aus Issue #456
+## Versionierter Moderationskontext aus Issue #456
 
-[Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) bereitet einen versionierten
-Kontext mit Bewertungen, Kategorien, Themen, Kompasssignalen, Lernzielen und zulässigen
-Ergebnis-/Feedbackaggregaten vor. Dies ist noch kein implementierter Summary-Vertrag.
+[Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) ergänzt in Slice 1 einen
+versionierten Shared-Vertrag mit Zustandsmodell, Bedeutungslexikon, typisiertem
+Quellenregister und deterministischen Referenzdaten. Integrationsgrenzen und Status stehen in
+[moderation-prompt-context.md](moderation-prompt-context.md); die Lernziel-Datenhaltung und die
+Trennung des lösungshaltigen Vorbereitungsauftrags vom Live-Kontext regelt
+[ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md).
+
+Slice 1 ändert den oben beschriebenen produktiven Summary-Vertrag nicht. Der vollständige
+Kontextbuilder, Datenzugriff, Tokenpacker, Cache, Vorschau und Adapterpfad folgen erst in den
+Slices 2–7. Bis dahin sendet 8.9c weiterhin ausschließlich `locale`, `snapshotHash` und die
+begrenzten Q&A-Textquellen des bestehenden `QaSummaryInferenceRequestSchema`.
 
 Die private Runtime aus Story 8.9d ist ebenfalls noch zu implementieren.
 Ein separater **Runtime-PR R** muss vor #456 Slice 5 (Lernzielableitung) technisch
