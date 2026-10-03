@@ -325,6 +325,53 @@ export const ModerationUnitIntervalMetricSchema = z.discriminatedUnion('state', 
 ]);
 export type ModerationUnitIntervalMetric = z.infer<typeof ModerationUnitIntervalMetricSchema>;
 
+const MODERATION_QA_RANKING_WILSON_Z = 1.96;
+const MODERATION_QA_RANKING_WILSON_Z_SQUARED =
+  MODERATION_QA_RANKING_WILSON_Z * MODERATION_QA_RANKING_WILSON_Z;
+
+/**
+ * PostgreSQL and JavaScript both evaluate qa-ranking-v1 with binary64 values.
+ * The epsilon permits only their final rounding difference, not rounded or
+ * independently supplied score values.
+ */
+export const MODERATION_QA_RANKING_SCORE_TOLERANCE = 1e-12;
+
+export function calculateModerationQaBestScoreV1(input: {
+  readonly positive: number;
+  readonly negative: number;
+}): number {
+  const total = input.positive + input.negative;
+  if (total === 0) return 0;
+
+  const positiveShare = input.positive / total;
+  const score =
+    (positiveShare +
+      MODERATION_QA_RANKING_WILSON_Z_SQUARED / (2 * total) -
+      MODERATION_QA_RANKING_WILSON_Z *
+        Math.sqrt(
+          (positiveShare * (1 - positiveShare)) / total +
+            MODERATION_QA_RANKING_WILSON_Z_SQUARED / (4 * total * total),
+        )) /
+    (1 + MODERATION_QA_RANKING_WILSON_Z_SQUARED / total);
+  return Math.max(0, Math.min(1, score));
+}
+
+export function calculateModerationQaControversyScoreV1(input: {
+  readonly positive: number;
+  readonly negative: number;
+  readonly participantBasis: number;
+}): number {
+  const total = input.positive + input.negative;
+  if (total === 0) return 0;
+
+  const damping = Math.max(1, Math.ceil(input.participantBasis * 0.1));
+  return Math.min(1, (2 * Math.min(input.positive, input.negative)) / (total + damping));
+}
+
+function matchesModerationQaRankingScore(actual: number, expected: number): boolean {
+  return Math.abs(actual - expected) <= MODERATION_QA_RANKING_SCORE_TOLERANCE;
+}
+
 export const ModerationUncalibratedConfidenceMetricSchema = z.discriminatedUnion('state', [
   z
     .object({
@@ -523,12 +570,24 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
           message: 'represented muss der Zahl im Kontext dargestellter Fragen entsprechen.',
         });
       }
-      if (value.participantBasis.state === 'unavailable') {
-        value.items.forEach((question, questionIndex) => {
-          if (
-            question.votes.state === 'available' &&
-            question.votes.controversyScore.state === 'available'
-          ) {
+      value.items.forEach((question, questionIndex) => {
+        if (question.votes.state !== 'available') return;
+
+        const expectedBestScore = calculateModerationQaBestScoreV1(question.votes);
+        if (
+          question.votes.bestScore.state === 'available' &&
+          !matchesModerationQaRankingScore(question.votes.bestScore.value, expectedBestScore)
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['items', questionIndex, 'votes', 'bestScore'],
+            message:
+              'Ein verfügbarer Best-Score muss der qa-ranking-v1-Berechnung aus den Stimmen entsprechen.',
+          });
+        }
+
+        if (value.participantBasis.state === 'unavailable') {
+          if (question.votes.controversyScore.state === 'available') {
             ctx.addIssue({
               code: 'custom',
               path: ['items', questionIndex, 'votes', 'controversyScore'],
@@ -536,8 +595,36 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
                 'Ein verfügbarer Kontroversitätswert benötigt eine verfügbare Teilnehmerbasis.',
             });
           }
+          return;
+        }
+
+        if (question.votes.total > value.participantBasis.value) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['items', questionIndex, 'votes', 'total'],
+            message: 'Die Gesamtstimmenzahl darf die verfügbare Teilnehmerbasis nicht übersteigen.',
+          });
+        }
+
+        const expectedControversyScore = calculateModerationQaControversyScoreV1({
+          ...question.votes,
+          participantBasis: value.participantBasis.value,
         });
-      }
+        if (
+          question.votes.controversyScore.state === 'available' &&
+          !matchesModerationQaRankingScore(
+            question.votes.controversyScore.value,
+            expectedControversyScore,
+          )
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['items', questionIndex, 'votes', 'controversyScore'],
+            message:
+              'Ein verfügbarer Kontroversitätswert muss der qa-ranking-v1-Berechnung aus Stimmen und Teilnehmerbasis entsprechen.',
+          });
+        }
+      });
     }),
   ExplicitUnavailableStateSchema,
   ExplicitDisabledStateSchema,

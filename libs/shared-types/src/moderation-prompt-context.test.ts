@@ -8,7 +8,10 @@ import {
   MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1,
 } from './moderation-prompt-context-fixtures.js';
 import {
+  calculateModerationQaBestScoreV1,
+  calculateModerationQaControversyScoreV1,
   MODERATION_PROMPT_DEFINITION_SET_V1,
+  MODERATION_QA_RANKING_SCORE_TOLERANCE,
   ModerationAnalysisContextV1Schema,
   ModerationPromptContextV1Schema,
   ModerationPromptDefinitionSetV1Schema,
@@ -298,6 +301,122 @@ describe('moderation prompt context v1', () => {
 
     const withBasis = cloneReference();
     expect(ModerationPromptContextV1Schema.safeParse(withBasis).success).toBe(true);
+  });
+
+  it('rejects question vote totals above the declared participant basis', () => {
+    const mismatchedBasis = cloneReference();
+    recordAt(mismatchedBasis, 'context', 'questions', 'participantBasis').value = 100;
+
+    expectPromptIssue(mismatchedBasis, 'darf die verfügbare Teilnehmerbasis nicht übersteigen');
+  });
+
+  it('validates available question metrics against the qa-ranking-v1 formulas', () => {
+    const invalidBestScore = cloneReference();
+    recordAt(invalidBestScore, 'context', 'questions', 'items', 0, 'votes', 'bestScore').value = 1;
+    expectPromptIssue(invalidBestScore, 'Best-Score muss der qa-ranking-v1-Berechnung');
+
+    const invalidControversyScore = cloneReference();
+    recordAt(
+      invalidControversyScore,
+      'context',
+      'questions',
+      'items',
+      0,
+      'votes',
+      'controversyScore',
+    ).value = 1;
+    expectPromptIssue(
+      invalidControversyScore,
+      'Kontroversitätswert muss der qa-ranking-v1-Berechnung',
+    );
+  });
+
+  it('uses the qa-ranking-v1 damping rule and only binary64 rounding tolerance', () => {
+    const formulaContext = cloneMinimal();
+    recordAt(formulaContext, 'context', 'questions').participantBasis = {
+      state: 'available',
+      kind: 'session-participant-record-count',
+      value: 11,
+      calculationVersion: 'qa-ranking-v1',
+    };
+    const votes = recordAt(formulaContext, 'context', 'questions', 'items', 0, 'votes');
+    Object.assign(votes, {
+      positive: 1,
+      negative: 1,
+      net: 0,
+      total: 2,
+      bestScore: {
+        state: 'available',
+        value: calculateModerationQaBestScoreV1({ positive: 1, negative: 1 }),
+      },
+      controversyScore: {
+        state: 'available',
+        value: calculateModerationQaControversyScoreV1({
+          positive: 1,
+          negative: 1,
+          participantBasis: 11,
+        }),
+      },
+    });
+
+    expect(recordAt(votes, 'controversyScore').value).toBe(0.5);
+    expect(ModerationPromptContextV1Schema.safeParse(formulaContext).success).toBe(true);
+
+    const withinTolerance = cloneReference();
+    const withinBestScore = recordAt(
+      withinTolerance,
+      'context',
+      'questions',
+      'items',
+      0,
+      'votes',
+      'bestScore',
+    );
+    withinBestScore.value =
+      Number(withinBestScore.value) + MODERATION_QA_RANKING_SCORE_TOLERANCE / 2;
+    const withinControversyScore = recordAt(
+      withinTolerance,
+      'context',
+      'questions',
+      'items',
+      0,
+      'votes',
+      'controversyScore',
+    );
+    withinControversyScore.value =
+      Number(withinControversyScore.value) + MODERATION_QA_RANKING_SCORE_TOLERANCE / 2;
+    expect(ModerationPromptContextV1Schema.safeParse(withinTolerance).success).toBe(true);
+
+    const outsideTolerance = cloneReference();
+    const outsideBestScore = recordAt(
+      outsideTolerance,
+      'context',
+      'questions',
+      'items',
+      0,
+      'votes',
+      'bestScore',
+    );
+    outsideBestScore.value =
+      Number(outsideBestScore.value) + MODERATION_QA_RANKING_SCORE_TOLERANCE * 2;
+    expectPromptIssue(outsideTolerance, 'Best-Score muss der qa-ranking-v1-Berechnung');
+
+    const outsideControversyTolerance = cloneReference();
+    const outsideControversyScore = recordAt(
+      outsideControversyTolerance,
+      'context',
+      'questions',
+      'items',
+      0,
+      'votes',
+      'controversyScore',
+    );
+    outsideControversyScore.value =
+      Number(outsideControversyScore.value) + MODERATION_QA_RANKING_SCORE_TOLERANCE * 2;
+    expectPromptIssue(
+      outsideControversyTolerance,
+      'Kontroversitätswert muss der qa-ranking-v1-Berechnung',
+    );
   });
 
   it('keeps manipulative participant text as untrusted source data', () => {
