@@ -10,6 +10,9 @@ import {
   sourceItemsForSemanticSeed,
   WORD_CLOUD_SEMANTIC_DE_SEED,
   WORD_CLOUD_SEMANTIC_EN_SEED,
+  WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED,
+  WORD_CLOUD_SEMANTIC_FREETEXT_EN_SEED,
+  WORD_CLOUD_SEMANTIC_FREETEXT_FAMILY_IDS,
 } from './wordCloudSemanticFixtures';
 
 function memberSet(
@@ -17,6 +20,30 @@ function memberSet(
   ids: readonly string[],
 ) {
   return clusters.find((cluster) => ids.every((id) => cluster.memberIds.includes(id)));
+}
+
+function expectFreetextFamilies(
+  seed: readonly { id: string; text: string }[],
+  familyIds: {
+    readonly mood: readonly string[];
+    readonly synonyms: readonly string[];
+    readonly technical: readonly string[];
+    readonly counterexamples: readonly string[];
+  },
+): void {
+  const clusters = clusterWordCloudEmbeddings(embeddingsForSemanticSeed(seed));
+
+  for (const family of [familyIds.mood, familyIds.synonyms, familyIds.technical]) {
+    const cluster = memberSet(clusters, family);
+    expect(cluster?.memberIds.slice().sort()).toEqual(family.slice().sort());
+    expect(cluster?.confidence).toBeGreaterThanOrEqual(0.87);
+  }
+
+  for (const counterexampleId of familyIds.counterexamples) {
+    const cluster = clusters.find((candidate) => candidate.memberIds.includes(counterexampleId));
+    expect(cluster?.memberIds).toEqual([counterexampleId]);
+  }
+  expect(hasReliableSemanticCluster(clusters)).toBe(true);
 }
 
 describe('wordCloudSemanticCluster', () => {
@@ -47,6 +74,20 @@ describe('wordCloudSemanticCluster', () => {
     const projector = clusters.find((cluster) => cluster.memberIds.includes('en-projector'));
     expect(slides?.memberIds).not.toEqual(projector?.memberIds);
     expect(slides?.memberIds).not.toContain('en-projector');
+  });
+
+  it('buendelt deutsche Freitext-Stimmungssaetze, Einwortsynonyme und lange Fachsaetze getrennt', () => {
+    expectFreetextFamilies(
+      WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED,
+      WORD_CLOUD_SEMANTIC_FREETEXT_FAMILY_IDS.de,
+    );
+  });
+
+  it('buendelt englische Freitext-Stimmungssaetze, Einwortsynonyme und lange Fachsaetze getrennt', () => {
+    expectFreetextFamilies(
+      WORD_CLOUD_SEMANTIC_FREETEXT_EN_SEED,
+      WORD_CLOUD_SEMANTIC_FREETEXT_FAMILY_IDS.en,
+    );
   });
 
   it('liefert extraktive Labels und gewichtete Eintraege ohne erfundene Mitglieder', () => {

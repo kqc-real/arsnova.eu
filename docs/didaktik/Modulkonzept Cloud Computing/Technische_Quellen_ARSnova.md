@@ -762,13 +762,13 @@ Nicht zulässig ist: **ARSnova ist für 500 Teilnehmende vollständig produktiv 
 
 ### `SRC-ML-SEMANTISCHE-THEMEN` – Encoder plus Clustering
 
-**Quelle:** [Semantischer Q&A-Themenmodus](../../features/word-cloud-semantic.md), [`wordCloudSemanticAnalyze.ts`](../../../apps/backend/src/lib/wordCloudSemanticAnalyze.ts), [`wordCloudSemanticCluster.ts`](../../../apps/backend/src/lib/wordCloudSemanticCluster.ts), [`wordCloudSemanticConfig.ts`](../../../apps/backend/src/lib/wordCloudSemanticConfig.ts) und [`docker/wordcloud-encoder/`](../../../docker/wordcloud-encoder/)
+**Quelle:** [Semantischer Q&A-/Freitext-Themenmodus](../../features/word-cloud-semantic.md), [`wordCloudSemanticAnalyze.ts`](../../../apps/backend/src/lib/wordCloudSemanticAnalyze.ts), [`wordCloudSemanticAnalyze.test.ts`](../../../apps/backend/src/lib/wordCloudSemanticAnalyze.test.ts), [`wordCloudSemanticCluster.ts`](../../../apps/backend/src/lib/wordCloudSemanticCluster.ts), [`wordCloudSemanticConfig.ts`](../../../apps/backend/src/lib/wordCloudSemanticConfig.ts) und [`docker/wordcloud-encoder/`](../../../docker/wordcloud-encoder/)
 
 **Status:** implementiert; standardmäßig deaktiviert
 
-**Belegt:** Stufe 1 mit privatem multilingualem E5-Encoder, ONNX-Runtime, deterministischem Clustering im Backend, extraktiven Labels, Cache, Timeout, Circuit Breaker und lexikalischem Fallback. Öffentliche SaaS-Endpunkte sind im Konfigurationspfad gesperrt.
+**Belegt:** Story 1.14c Stufe 1 für Host-Q&A und Story 1.14d für Host-Freitext mit privatem multilingualem E5-Encoder, ONNX-Runtime, deterministischem Clustering im Backend, extraktiven Labels, Cache, Timeout, Circuit Breaker und lexikalischem Fallback. `de`/`en` nutzen den Encoder, `fr`/`es` den lexikalischen Backend-Fallback; unter italienischer UI wird ohne gewählte unterstützte Wolkensprache kein Backendauftrag gesendet. Pro Session hält die Orchestrierung nur `active + latest`; verdrängte wartende Aufrufe fallen nicht cachebar zurück, Ersatzarbeit läuft serialisiert, und ein Purge invalidiert aktive sowie wartende Arbeit. Öffentliche SaaS-Endpunkte sind im Konfigurationspfad gesperrt.
 
-**Belegt nicht:** LLM-Labels, allgemeines Sprachverständnis, produktive Aktivierung, Produktivqualität oder semantische Themen für Host-Freitext. Story 1.14d und Stufe 2 bleiben Zielbild.
+**Belegt nicht:** LLM-Labels, allgemeines Sprachverständnis, produktive Aktivierung, Produktivqualität, Encoderqualität für `fr`/`es`/`it` oder einen eigenen Presenter-Freitext-Analysejob. Stufe 2 bleibt Zielbild; `WORD_CLOUD_SEMANTIC_ENABLED=false` ist weiterhin der dokumentierte Produktionsdefault.
 
 ### `SRC-ML-QA-KASKADE` – Host-only Moderationssignale
 
