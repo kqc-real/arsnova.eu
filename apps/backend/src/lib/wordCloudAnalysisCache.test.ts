@@ -25,9 +25,11 @@ vi.mock('./logger', () => ({
 
 import {
   buildWordCloudSnapshotCacheKey,
+  buildWordCloudSnapshotSessionPattern,
   buildWordCloudTextCacheKey,
   createMemoryWordCloudAnalysisCache,
   createRedisWordCloudAnalysisCache,
+  evictWordCloudAnalysisSnapshotsForSession,
   shouldCacheWordCloudSnapshot,
 } from './wordCloudAnalysisCache';
 
@@ -226,6 +228,17 @@ describe('createRedisWordCloudAnalysisCache', () => {
         store.set(key, value);
         return 'OK';
       }),
+      scan: vi.fn(async (_cursor: string, _match: string, pattern: string) => {
+        const literalPrefix = pattern.slice(0, -1);
+        return ['0', [...store.keys()].filter((key) => key.startsWith(literalPrefix))] as const;
+      }),
+      unlink: vi.fn(async (...keys: string[]) => {
+        let deleted = 0;
+        for (const key of keys) {
+          if (store.delete(key)) deleted += 1;
+        }
+        return deleted;
+      }),
     });
   });
 
@@ -276,6 +289,81 @@ describe('createRedisWordCloudAnalysisCache', () => {
 
     vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'false');
     expect(await cache.getSnapshot(semanticInput)).toBeNull();
+  });
+
+  it('entfernt fertige Freitext-Snapshots beim Session-Purge idempotent', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    const semanticInput = {
+      ...input,
+      mode: 'SEMANTIC',
+      channel: 'FREETEXT',
+    } as const satisfies AnalyzeWordCloudInput;
+    const otherSessionInput = {
+      ...semanticInput,
+      sessionCode: 'DEF456',
+    } as const satisfies AnalyzeWordCloudInput;
+    const semanticOutput = {
+      ...output,
+      mode: 'SEMANTIC',
+      status: 'ready',
+      analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
+      modelVersion: 'intfloat/multilingual-e5-small@sha256:test',
+    } as const satisfies AnalyzeWordCloudOutput;
+
+    await cache.setSnapshot(semanticInput, semanticOutput);
+    await cache.setSnapshot(otherSessionInput, semanticOutput);
+    const targetKey = buildWordCloudSnapshotCacheKey(semanticInput);
+    const otherKey = buildWordCloudSnapshotCacheKey(otherSessionInput);
+    expect(store.get(targetKey)).toContain('Häuser');
+
+    await expect(evictWordCloudAnalysisSnapshotsForSession(' abc123 ')).resolves.toBe(1);
+    await expect(evictWordCloudAnalysisSnapshotsForSession('ABC123')).resolves.toBe(0);
+
+    expect(store.has(targetKey)).toBe(false);
+    expect(store.has(otherKey)).toBe(true);
+    expect(await cache.getSnapshot(semanticInput)).toBeNull();
+    expect(await cache.getSnapshot(otherSessionInput)).toMatchObject({ status: 'ready' });
+    expect(mocks.getRedis().scan).toHaveBeenCalledWith(
+      '0',
+      'MATCH',
+      buildWordCloudSnapshotSessionPattern('ABC123'),
+      'COUNT',
+      100,
+    );
+    expect(mocks.getRedis().unlink).toHaveBeenCalledTimes(1);
+  });
+
+  it('scannt beim Purge alle Redis-Seiten und reicht Fehler fail-closed weiter', async () => {
+    const firstKey = 'nlp:wc:snap:ABC123:SEMANTIC:TOP:NONE:first';
+    const secondKey = 'nlp:wc:snap:ABC123:SEMANTIC:TOP:NONE:second';
+    store.set(firstKey, 'first');
+    store.set(secondKey, 'second');
+    const redis = mocks.getRedis();
+    redis.scan.mockResolvedValueOnce(['17', [firstKey]]).mockResolvedValueOnce(['0', [secondKey]]);
+
+    await expect(evictWordCloudAnalysisSnapshotsForSession('ABC123')).resolves.toBe(2);
+    expect(redis.scan).toHaveBeenNthCalledWith(
+      1,
+      '0',
+      'MATCH',
+      'nlp:wc:snap:ABC123:*',
+      'COUNT',
+      100,
+    );
+    expect(redis.scan).toHaveBeenNthCalledWith(
+      2,
+      '17',
+      'MATCH',
+      'nlp:wc:snap:ABC123:*',
+      'COUNT',
+      100,
+    );
+
+    redis.scan.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+    await expect(evictWordCloudAnalysisSnapshotsForSession('ABC123')).rejects.toThrow(
+      'ECONNREFUSED',
+    );
   });
 
   it('ist fail-open bei Redis-Fehlern und kaputten Eintraegen', async () => {

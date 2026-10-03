@@ -313,6 +313,7 @@ npm test -w @arsnova/backend -- --run \
   src/lib/wordCloudSemanticAnalyze.test.ts \
   src/lib/wordCloudEncoderClient.test.ts \
   src/lib/wordCloudAnalysisCache.test.ts \
+  src/lib/sessionPurgeInvalidation.test.ts \
   src/lib/wordCloudNormalization.test.ts \
   src/__tests__/wordCloud.hotpath-isolation.test.ts
 npm run test -w @arsnova/frontend -- \

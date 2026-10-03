@@ -1,5 +1,6 @@
 /**
- * Prozesslokale Bereinigung plus Redis-Fan-out für Session-Purges.
+ * Prozesslokale Bereinigung, persistierte Cache-Eviction und Redis-Fan-out
+ * für Session-Purges.
  *
  * Der Purge-Worker sendet vor und nach dem DB-Delete. So verwerfen alle
  * Instanzen sowohl vorhandene als auch während des Delete-Races fertig
@@ -8,6 +9,7 @@
 import type Redis from 'ioredis';
 import { getRedis } from '../redis';
 import { logger } from './logger';
+import { evictWordCloudAnalysisSnapshotsForSession } from './wordCloudAnalysisCache';
 
 export const SESSION_PURGE_INVALIDATION_CHANNEL = 'session:purge:v1:invalidate';
 
@@ -63,6 +65,10 @@ export async function publishSessionPurgeInvalidation(
 ): Promise<void> {
   const normalized = normalizeEvent(event);
   await invalidateLocally(normalized);
+  // Der Redis-Snapshot-Cache ist instanzübergreifend. Der Publisher entfernt
+  // ihn einmal vor dem Fan-out; der zweite Purge-Pass nach dem DB-Delete macht
+  // die Operation idempotent und schließt das Delete-Race.
+  await evictWordCloudAnalysisSnapshotsForSession(normalized.sessionCode);
   await getRedis().publish(SESSION_PURGE_INVALIDATION_CHANNEL, JSON.stringify(normalized));
 }
 

@@ -339,7 +339,7 @@ COMPOSE_PROFILES=encoder WORD_CLOUD_ENCODER_IMAGE=arsnova-wordcloud-encoder:e5-s
 
 Nach einer gesonderten Betriebs- und Qualitätsfreigabe kann in `.env.production` `WORD_CLOUD_SEMANTIC_ENABLED=true` gesetzt und die App neu gestartet werden. Rollback: `WORD_CLOUD_SEMANTIC_ENABLED=false` und `./scripts/prod-compose.sh stop wordcloud-encoder`. Encoder-Modell: [NOTICE](../NOTICE). Host-npm auf macOS: `WORD_CLOUD_ENCODER_URL=http://127.0.0.1:8790/embed` statt Docker-Volume-Socket.
 
-Die Jobbegrenzung ist kein zusätzlicher Env-Schalter: Pro Session hält das Backend nur einen aktiven und den neuesten abweichenden wartenden Snapshot. Verdrängte wartende Aufrufe fallen lexikalisch und nicht cachebar zurück; der letzte Ersatz startet serialisiert. Ein Session-Purge invalidiert beide Slots und verhindert, dass ein später zurückkehrendes altes Ergebnis gecacht wird. Der Encoderclient lässt global höchstens einen Sidecar-Call gleichzeitig zu.
+Die Jobbegrenzung ist kein zusätzlicher Env-Schalter: Pro Session hält das Backend nur einen aktiven und den neuesten abweichenden wartenden Snapshot. Verdrängte wartende Aufrufe fallen lexikalisch und nicht cachebar zurück; der letzte Ersatz startet serialisiert. Ein Session-Purge invalidiert beide Slots, verhindert den Cache-Write später zurückkehrender alter Ergebnisse und entfernt fertige Redis-Snapshots der Session per bounded `SCAN`/`UNLINK`. Der erste Pass läuft fail-closed vor dem Session-Delete, der zweite Pass danach idempotent. Der Encoderclient lässt global höchstens einen Sidecar-Call gleichzeitig zu.
 
 ### Optionale Q&A-NLP-Kaskade (Story 8.9b)
 

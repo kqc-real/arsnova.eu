@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { redisMocks } = vi.hoisted(() => {
   const state = {
     messageHandler: null as ((channel: string, message: string) => void) | null,
+    store: new Map<string, string>(),
   };
   const subscriber = {
     on: vi.fn((event: string, handler: (channel: string, message: string) => void) => {
@@ -12,14 +13,26 @@ const { redisMocks } = vi.hoisted(() => {
     subscribe: vi.fn().mockResolvedValue(1),
     quit: vi.fn().mockResolvedValue('OK'),
   };
+  const primary = {
+    publish: vi.fn().mockResolvedValue(2),
+    duplicate: vi.fn(() => subscriber),
+    scan: vi.fn(async (_cursor: string, _match: string, pattern: string) => {
+      const literalPrefix = pattern.slice(0, -1);
+      return ['0', [...state.store.keys()].filter((key) => key.startsWith(literalPrefix))] as const;
+    }),
+    unlink: vi.fn(async (...keys: string[]) => {
+      let deleted = 0;
+      for (const key of keys) {
+        if (state.store.delete(key)) deleted += 1;
+      }
+      return deleted;
+    }),
+  };
   return {
     redisMocks: {
       state,
       subscriber,
-      primary: {
-        publish: vi.fn().mockResolvedValue(2),
-        duplicate: vi.fn(() => subscriber),
-      },
+      primary,
     },
   };
 });
@@ -42,6 +55,7 @@ describe('session purge invalidation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     redisMocks.state.messageHandler = null;
+    redisMocks.state.store.clear();
     resetSessionPurgeInvalidationForTests();
   });
 
@@ -90,6 +104,32 @@ describe('session purge invalidation', () => {
       sessionId: 'session-2',
       sessionCode: 'DEF456',
     });
+  });
+
+  it('entfernt fertige Snapshot-Caches vor dem Fan-out und beim zweiten Purge idempotent', async () => {
+    const targetKey = 'nlp:wc:snap:ABC123:SEMANTIC:TOP:NONE:1.14d.1:raw-answer';
+    const otherSessionKey = 'nlp:wc:snap:DEF456:SEMANTIC:TOP:NONE:1.14d.1:other';
+    redisMocks.state.store.set(targetKey, '{"members":[{"text":"private answer"}]}');
+    redisMocks.state.store.set(otherSessionKey, '{"members":[{"text":"other answer"}]}');
+
+    const event = { sessionId: 'session-1', sessionCode: 'abc123' };
+    await publishSessionPurgeInvalidation(event);
+    await publishSessionPurgeInvalidation(event);
+
+    expect(redisMocks.state.store.has(targetKey)).toBe(false);
+    expect(redisMocks.state.store.has(otherSessionKey)).toBe(true);
+    expect(redisMocks.primary.unlink).toHaveBeenCalledTimes(1);
+    expect(redisMocks.primary.publish).toHaveBeenCalledTimes(2);
+  });
+
+  it('bricht den ersten Purge vor dem Fan-out ab, wenn die Snapshot-Eviction fehlschlägt', async () => {
+    redisMocks.primary.scan.mockRejectedValueOnce(new Error('Redis down'));
+
+    await expect(
+      publishSessionPurgeInvalidation({ sessionId: 'session-1', sessionCode: 'ABC123' }),
+    ).rejects.toThrow('Redis down');
+
+    expect(redisMocks.primary.publish).not.toHaveBeenCalled();
   });
 
   it('verwirft unvollständige oder ungültige Nachrichten', () => {

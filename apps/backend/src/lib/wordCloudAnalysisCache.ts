@@ -4,7 +4,9 @@
  * Text-Cache: spaCy-Tokens nach locale + Text-Hash + Analyseversion.
  * Snapshot-Cache: komplette Analyse nach Session + Modus + Metrik + Normalization + Analyseversion + snapshotHash.
  *
- * Redis ist flüchtig mit TTL. Fehler sind fail-open: Analyse läuft ohne Cache weiter.
+ * Redis ist flüchtig mit TTL. Analyse-Lese-/Schreibfehler sind fail-open: Analyse
+ * läuft ohne Cache weiter. Die Session-Purge-Eviction ist dagegen fail-closed,
+ * damit bereits gecachte Mitgliedstexte nicht bis zum TTL erhalten bleiben.
  * Rohtexte stehen nicht im Redis-Schlüssel.
  */
 import {
@@ -26,6 +28,7 @@ import {
 
 const TEXT_KEY_PREFIX = 'nlp:wc:text';
 const SNAPSHOT_KEY_PREFIX = 'nlp:wc:snap';
+const SNAPSHOT_PURGE_SCAN_COUNT = 100;
 
 export interface WordCloudCachedTextTokens {
   readonly tokens: readonly WordCloudRawToken[];
@@ -56,6 +59,56 @@ export function buildWordCloudSnapshotCacheKey(input: AnalyzeWordCloudInput): st
     String(input.maxNgramLength ?? 1),
     snapshotHash,
   ].join(':');
+}
+
+function escapeRedisMatchLiteral(value: string): string {
+  return Array.from(value, (character) =>
+    character === '*' ||
+    character === '?' ||
+    character === '[' ||
+    character === ']' ||
+    character === '\\'
+      ? `\\${character}`
+      : character,
+  ).join('');
+}
+
+export function buildWordCloudSnapshotSessionPattern(sessionCode: string): string {
+  const normalizedSessionCode = sessionCode.trim().toUpperCase();
+  if (!normalizedSessionCode) {
+    throw new Error('Session code is required to evict word-cloud snapshots.');
+  }
+  return `${SNAPSHOT_KEY_PREFIX}:${escapeRedisMatchLiteral(normalizedSessionCode)}:*`;
+}
+
+/**
+ * Entfernt alle fertigen Snapshot-Ergebnisse einer Session ohne blockierendes
+ * Redis `KEYS`. Fehler werden absichtlich weitergereicht: Der erste Purge-Pass
+ * muss vor dem fachlichen Session-Delete erfolgreich sein.
+ */
+export async function evictWordCloudAnalysisSnapshotsForSession(
+  sessionCode: string,
+): Promise<number> {
+  const redis = getRedis();
+  const pattern = buildWordCloudSnapshotSessionPattern(sessionCode);
+  let cursor = '0';
+  let deleted = 0;
+
+  do {
+    const [nextCursor, keys] = await redis.scan(
+      cursor,
+      'MATCH',
+      pattern,
+      'COUNT',
+      SNAPSHOT_PURGE_SCAN_COUNT,
+    );
+    cursor = nextCursor;
+    if (keys.length > 0) {
+      deleted += await redis.unlink(...keys);
+    }
+  } while (cursor !== '0');
+
+  return deleted;
 }
 
 export function shouldCacheWordCloudSnapshot(output: AnalyzeWordCloudOutput): boolean {
