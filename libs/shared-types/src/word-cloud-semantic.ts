@@ -1,11 +1,12 @@
 /**
- * Story 1.14c Stufe 1: semantischer Q&A-Themenmodus (Encoder + Clustering).
+ * Story 1.14c/1.14d: semantischer Themenmodus fuer Q&A und Freitext
+ * (Encoder + Clustering).
  *
  * Kein 8.9b-/8.9c-Vertrag. Encoder-HTTP bleibt backend-intern; das Frontend
  * spricht nur `wordCloud.analyze`. Pflichtlocales der Stufe: de/en.
  */
 
-export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.3';
+export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14d.1';
 
 /** Hugging-Face-Karte; Digest kommt vom Inferenzdienst. */
 export const WORD_CLOUD_SEMANTIC_MODEL_ID = 'intfloat/multilingual-e5-small';

@@ -4202,8 +4202,8 @@ export const LiveFreetextDTOSchema = z.object({
 export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
 
 /**
- * Analyseansicht der Host-Q&A-Wortwolke.
- * `LEXICAL` = Einzelwörter, `THEME` = Wörter & Phrasen (2.x), `SEMANTIC` = semantische Themen (1.14c).
+ * Analyseansicht der Host-Wortwolke für Q&A und Freitext.
+ * `LEXICAL` = Einzelwörter, `THEME` = Wörter & Phrasen (2.x), `SEMANTIC` = semantische Themen (1.14c/1.14d).
  */
 export const WORD_CLOUD_ANALYSIS_VARIANT_VALUES = ['LEXICAL', 'THEME', 'SEMANTIC'] as const;
 export const WordCloudAnalysisVariantEnum = z.enum(WORD_CLOUD_ANALYSIS_VARIANT_VALUES);
@@ -4256,10 +4256,10 @@ export const WordCloudAnalysisSourceItemSchema = z.object({
 });
 export type WordCloudAnalysisSourceItem = z.infer<typeof WordCloudAnalysisSourceItemSchema>;
 
-/** Kanal des Analyseauftrags. Encoder-Clustering gilt nur für Host-Q&A. */
+/** Kanal des Analyseauftrags. Encoder-Clustering gilt für Host-Q&A und Host-Freitext. */
 export const WordCloudAnalysisChannelEnum = z.enum(WORD_CLOUD_ANALYSIS_CHANNEL_VALUES);
 
-/** Input: Analyseauftrag für Word Cloud 3.0 inklusive optionaler Glättung (1.14b). */
+/** Input: Analyseauftrag für Word Cloud 3.x inklusive optionaler Glättung (1.14b). */
 export const AnalyzeWordCloudInputSchema = z.object({
   sessionCode: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   mode: WordCloudAnalysisVariantEnum,
