@@ -165,8 +165,8 @@
     "yaml": "^2.9.0"
   },
   "dependencies": {
-    "@prisma/client": "^7.9.0",
-    "prisma": "^7.9.0",
+    "@prisma/client": "7.9.1",
+    "prisma": "7.9.1",
     "qrcode-generator": "^2.0.4",
     "yjs": "13.6.31"
   },
@@ -178,7 +178,7 @@
   "overrides": {
     "@hono/node-server": "2.0.11",
     "deepmerge-ts": "^8.0.1",
-    "fast-uri": "^3.1.6",
+    "fast-uri": "^3.1.8",
     "find-my-way": "^9.7.0",
     "hono": "^4.12.5",
     "ip-address": "$ip-address",
@@ -187,6 +187,7 @@
     "mysql2": "^3.22.0",
     "nanoid": "3.3.18",
     "postcss": "8.5.23",
+    "qs": "^6.16.0",
     "sharp": "^0.35.4",
     "shell-quote": "^1.9.0",
     "socket.io-parser": "4.2.7",
