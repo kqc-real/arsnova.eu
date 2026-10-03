@@ -23,6 +23,20 @@ function serializableConflict(): Prisma.PrismaClientKnownRequestError {
   });
 }
 
+function driverAdapterSerializableConflict(): Prisma.PrismaClientKnownRequestError {
+  return new Prisma.PrismaClientKnownRequestError('Raw query failed', {
+    code: 'P2010',
+    clientVersion: 'test',
+    meta: {
+      driverAdapterError: {
+        cause: {
+          originalCode: '40001',
+        },
+      },
+    },
+  });
+}
+
 describe('sessionDeletion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,6 +70,56 @@ describe('sessionDeletion', () => {
     });
 
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(3);
+  });
+
+  it('wiederholt einen vom Driver Adapter als P2010 verpackten SQLSTATE 40001', async () => {
+    const transactionClient = {} as Prisma.TransactionClient;
+    const operation = vi.fn().mockResolvedValue('deleted');
+    prismaMock.$transaction
+      .mockRejectedValueOnce(driverAdapterSerializableConflict())
+      .mockImplementationOnce(
+        async (callback: (tx: Prisma.TransactionClient) => Promise<unknown>) =>
+          callback(transactionClient),
+      );
+
+    await expect(runSerializableSessionDeletion(operation)).resolves.toBe('deleted');
+
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(2);
+    expect(operation).toHaveBeenCalledOnce();
+  });
+
+  it('wiederholt andere P2010-Fehler nicht', async () => {
+    const rawQueryError = new Prisma.PrismaClientKnownRequestError('Raw query failed', {
+      code: 'P2010',
+      clientVersion: 'test',
+      meta: {
+        driverAdapterError: {
+          cause: {
+            originalCode: '23503',
+          },
+        },
+      },
+    });
+    prismaMock.$transaction.mockRejectedValue(rawQueryError);
+
+    await expect(runSerializableSessionDeletion(async () => undefined)).rejects.toBe(rawQueryError);
+
+    expect(prismaMock.$transaction).toHaveBeenCalledOnce();
+  });
+
+  it('vertraut bei P2010 nur dem verschachtelten Driver-Adapter-SQLSTATE', async () => {
+    const rawQueryError = new Prisma.PrismaClientKnownRequestError('Raw query failed', {
+      code: 'P2010',
+      clientVersion: 'test',
+      meta: {
+        originalCode: '40001',
+      },
+    });
+    prismaMock.$transaction.mockRejectedValue(rawQueryError);
+
+    await expect(runSerializableSessionDeletion(async () => undefined)).rejects.toBe(rawQueryError);
+
+    expect(prismaMock.$transaction).toHaveBeenCalledOnce();
   });
 
   it('sperrt Ziel-Sessions sortiert und liest deren aktuellen Parentbezug', async () => {

@@ -3,13 +3,26 @@ import { prisma } from '../db';
 
 const SESSION_DELETION_MAX_TRANSACTION_ATTEMPTS = 3;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
 function isSerializableWriteConflict(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034';
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;
+  if (error.code === 'P2034') return true;
+  if (error.code !== 'P2010') return false;
+
+  const driverAdapterError = error.meta?.['driverAdapterError'];
+  if (!isRecord(driverAdapterError)) return false;
+
+  const cause = driverAdapterError['cause'];
+  return isRecord(cause) && cause['originalCode'] === '40001';
 }
 
 /**
  * Session- und Parent-Quiz-Löschungen teilen sich eine SERIALIZABLE-Grenze.
- * PostgreSQL-/Prisma-Schreibkonflikte werden bounded wiederholt; andere Fehler
+ * PostgreSQL-/Prisma-Schreibkonflikte werden bounded wiederholt. Prisma kann
+ * SQLSTATE 40001 mit Driver Adapters als P2010 verpacken; andere P2010-Fehler
  * werden unverändert weitergereicht.
  */
 export async function runSerializableSessionDeletion<T>(
