@@ -97,6 +97,7 @@ function addStructuredAggregateEvidence(root: Record<string, unknown>): void {
         quizScopeId: 'quiz-scope:regression',
         questionSourceId: 'quiz-question:regression-task-1',
       },
+      voteBasis: { kind: 'effective-vote', version: 'effective-vote-v1' },
       population: { kind: 'eligible-submissions', eligible: 180, included: 172 },
       aggregation: {
         rule: 'answer-distribution',
@@ -211,6 +212,9 @@ describe('moderation prompt definition set v1', () => {
     const ruleScore = MODERATION_PROMPT_DEFINITION_SET_V1.definitions.find(
       ({ key }) => key === 'compass-rule-score',
     );
+    const effectiveVote = MODERATION_PROMPT_DEFINITION_SET_V1.definitions.find(
+      ({ key }) => key === 'effective-vote',
+    );
     expect(bestScore?.caveat).toContain('fachliche Qualität');
     expect(bestScore?.caveat).toContain('Lernstand');
     expect(pending?.caveat).toContain('Klärungsbedarf');
@@ -221,6 +225,8 @@ describe('moderation prompt definition set v1', () => {
     expect(answerState?.caveat).toContain('keinen fachlichen Klärungs- oder Lernbedarf');
     expect(ruleScore?.caveat).toContain('weder Wahrscheinlichkeit');
     expect(ruleScore?.caveat).toContain('Lernstand');
+    expect(effectiveVote?.meaning).toContain('Runde 2');
+    expect(effectiveVote?.caveat).toContain('weder addiert');
   });
 
   it('rejects duplicate or missing definition keys', () => {
@@ -281,6 +287,19 @@ describe('moderation prompt context v1', () => {
     });
   });
 
+  it('requires a participant basis for every available controversy score', () => {
+    const withoutBasis = cloneMinimal();
+    recordAt(withoutBasis, 'context', 'questions', 'items', 0, 'votes').controversyScore = {
+      state: 'available',
+      value: 0,
+    };
+
+    expectPromptIssue(withoutBasis, 'benötigt eine verfügbare Teilnehmerbasis');
+
+    const withBasis = cloneReference();
+    expect(ModerationPromptContextV1Schema.safeParse(withBasis).success).toBe(true);
+  });
+
   it('keeps manipulative participant text as untrusted source data', () => {
     const injection = cloneMinimal();
     const content = recordAt(injection, 'context', 'sources', 0, 'content');
@@ -337,8 +356,27 @@ describe('moderation prompt context v1', () => {
     ) {
       throw new Error('Expected answer-distribution aggregate');
     }
+    expect(aggregate.voteBasis).toEqual({
+      kind: 'effective-vote',
+      version: 'effective-vote-v1',
+    });
     expect(aggregate.aggregation.selectionCount).toBe(260);
     expect(aggregate.population.included).toBe(172);
+  });
+
+  it('requires the versioned effective-vote basis for every quiz result aggregate', () => {
+    const missingBasis = cloneReference();
+    addStructuredAggregateEvidence(missingBasis);
+    delete sourceById(missingBasis, 'quiz-result-aggregate:regression-task-1').voteBasis;
+    expect(ModerationPromptContextV1Schema.safeParse(missingBasis).success).toBe(false);
+
+    const combinedStoredRounds = cloneReference();
+    addStructuredAggregateEvidence(combinedStoredRounds);
+    sourceById(combinedStoredRounds, 'quiz-result-aggregate:regression-task-1').voteBasis = {
+      kind: 'all-stored-votes',
+      version: 'unversioned',
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(combinedStoredRounds).success).toBe(false);
   });
 
   it('accepts typed correctness, completion, rating and flashlight aggregates', () => {

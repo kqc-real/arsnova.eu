@@ -30,6 +30,7 @@ export const MODERATION_PROMPT_DEFINITION_SET_VERSION = 'moderation-prompt-defin
 export const MODERATION_PROMPT_HASH_MATERIAL_VERSION =
   'moderation-prompt-hash-material-v1' as const;
 export const MODERATION_PROMPT_BUDGET_VERSION = 'moderation-prompt-budget-v1' as const;
+export const MODERATION_QUIZ_EFFECTIVE_VOTE_BASIS_VERSION = 'effective-vote-v1' as const;
 
 export const MODERATION_PROMPT_SOURCE_ID_PREFIXES = {
   qaQuestion: 'qa-question:',
@@ -45,6 +46,7 @@ export const ModerationPromptDefinitionKeySchema = z.enum([
   'best-score',
   'controversy-score',
   'vote-count',
+  'effective-vote',
   'question-frequency',
   'distinct-participants',
   'nlp-category',
@@ -133,6 +135,14 @@ export const MODERATION_PROMPT_DEFINITION_SET_V1 = {
         'Positive und negative Stimmen werden getrennt gezählt; Netto ist positiv minus negativ und Gesamt ist positiv plus negativ.',
       caveat:
         'Der historische upvoteCount darf nicht als Zahl positiver Stimmen interpretiert werden.',
+    },
+    {
+      key: 'effective-vote',
+      label: 'Effektive Quizstimme',
+      meaning:
+        'Pro Person und Frage zählt höchstens eine Quizstimme: Sobald für die Frage Runde 2 existiert, ersetzt diese Runde 1; andernfalls zählt Runde 1.',
+      caveat:
+        'Runde 1 und Runde 2 dürfen weder addiert noch für dieselbe Frage personenübergreifend mit unterschiedlichen Rundengrundlagen vermischt werden.',
     },
     {
       key: 'question-frequency',
@@ -511,6 +521,21 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
           code: 'custom',
           path: ['corpus', 'represented'],
           message: 'represented muss der Zahl im Kontext dargestellter Fragen entsprechen.',
+        });
+      }
+      if (value.participantBasis.state === 'unavailable') {
+        value.items.forEach((question, questionIndex) => {
+          if (
+            question.votes.state === 'available' &&
+            question.votes.controversyScore.state === 'available'
+          ) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['items', questionIndex, 'votes', 'controversyScore'],
+              message:
+                'Ein verfügbarer Kontroversitätswert benötigt eine verfügbare Teilnehmerbasis.',
+            });
+          }
         });
       }
     }),
@@ -992,6 +1017,16 @@ const ModerationPromptTimeWindowSchema = z.discriminatedUnion('kind', [
     }),
 ]);
 
+export const ModerationQuizEffectiveVoteBasisSchema = z
+  .object({
+    kind: z.literal('effective-vote'),
+    version: z.literal(MODERATION_QUIZ_EFFECTIVE_VOTE_BASIS_VERSION),
+  })
+  .strict();
+export type ModerationQuizEffectiveVoteBasis = z.infer<
+  typeof ModerationQuizEffectiveVoteBasisSchema
+>;
+
 const QuizAggregatePopulationSchema = z
   .object({
     kind: z.literal('eligible-submissions'),
@@ -1248,6 +1283,7 @@ const QuizResultAggregateSourceSchema = z
         })
         .strict(),
     ]),
+    voteBasis: ModerationQuizEffectiveVoteBasisSchema,
     population: QuizAggregatePopulationSchema,
     aggregation: QuizResultAggregationSchema,
   })
