@@ -2,7 +2,7 @@ import type {
   ModerationPromptContextV1,
   ModerationPromptQuestion,
   ModerationQuestionNlpState,
-} from './moderation-prompt-context.js';
+} from './moderation-prompt-context';
 import {
   MODERATION_DOMAIN_CONTEXT_CONTRACT_VERSION,
   MODERATION_PROMPT_BUDGET_VERSION,
@@ -10,7 +10,7 @@ import {
   MODERATION_PROMPT_CONTEXT_SCHEMA_VERSION,
   MODERATION_PROMPT_DEFINITION_SET_VERSION,
   MODERATION_PROMPT_HASH_MATERIAL_VERSION,
-} from './moderation-prompt-context.js';
+} from './moderation-prompt-context';
 
 type ReferenceQuestionKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 

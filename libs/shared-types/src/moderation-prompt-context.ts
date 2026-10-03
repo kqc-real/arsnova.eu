@@ -13,7 +13,7 @@ import {
   TrueFalseUnknownValueEnum,
   YesNoBinaryValueEnum,
   YesNoValueEnum,
-} from './schemas.js';
+} from './schemas';
 
 /**
  * Versioned contract for the domain projection and the payload packed for the
