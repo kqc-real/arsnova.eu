@@ -1453,7 +1453,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
     if (status === 'uncertain') {
-      return $localize`:@@sessionQa.wordCloudSemanticUncertainHint:Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.`;
+      return $localize`:@@sessionWordCloud.freetextSemanticUncertainHint:Einige Themen sind unsicher. Prüfe die zugehörigen Antworten.`;
     }
     if (status === 'failed') {
       return $localize`:@@sessionQa.wordCloudSemanticFailedHint:Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.`;

@@ -345,7 +345,7 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
 
-      - name: Orphan quiz cleanup PostgreSQL regression
+      - name: Session deletion and orphan quiz PostgreSQL regressions
         if: needs.changes.outputs.docs_only != 'true'
         working-directory: apps/backend
         env:
@@ -754,14 +754,20 @@ jobs:
         if: needs.changes.outputs.docs_only != 'true'
         run: npm run test:coverage
 
-      - name: Yjs share Redis 7 durability and crash regression
+      - name: Redis 7 durability and crash regressions
         if: needs.changes.outputs.docs_only != 'true'
         working-directory: apps/backend
         env:
           REDIS_URL: redis://localhost:6381
           RUN_REDIS_YJS_SHARE_TESTS: '1'
           RUN_REDIS_YJS_DURABILITY_TESTS: '1'
+          RUN_REDIS_WORD_CLOUD_CACHE_TESTS: '1'
           YJS_SHARE_REQUIRE_DURABILITY: '1'
+          WORD_CLOUD_PURGE_REQUIRE_DURABILITY: '1'
+          QUICK_FEEDBACK_PURGE_REQUIRE_DURABILITY: '1'
+          PRODUCT_FEEDBACK_PURGE_REQUIRE_DURABILITY: '1'
+          SESSION_RUNTIME_DATA_PURGE_REQUIRE_DURABILITY: '1'
+          HOST_PAIRING_PURGE_REQUIRE_DURABILITY: '1'
           YJS_SHARE_TOKEN_SECRET: ci-yjs-share-secret-at-least-32-bytes
         run: |
           set -euo pipefail
@@ -791,6 +797,25 @@ jobs:
           start_redis
 
           npx vitest run src/lib/yjsShareToken.redis.test.ts
+          npx vitest run src/lib/wordCloudAnalysisCache.redis.test.ts
+          WORD_CLOUD_DURABILITY_TEST_PHASE=prepare \
+            npx vitest run src/lib/wordCloudAnalysisCache.durability.redis.test.ts
+          SESSION_RUNTIME_DATA_DURABILITY_TEST_PHASE=prepare \
+            npx vitest run src/lib/sessionRuntimeDataPurge.durability.redis.test.ts
+          HOST_PAIRING_DURABILITY_TEST_PHASE=prepare \
+            npx vitest run src/lib/hostPairingSessionPurge.durability.redis.test.ts
+
+          docker kill --signal KILL "$container"
+          docker rm "$container"
+          start_redis
+
+          WORD_CLOUD_DURABILITY_TEST_PHASE=verify \
+            npx vitest run src/lib/wordCloudAnalysisCache.durability.redis.test.ts
+          SESSION_RUNTIME_DATA_DURABILITY_TEST_PHASE=verify \
+            npx vitest run src/lib/sessionRuntimeDataPurge.durability.redis.test.ts
+          HOST_PAIRING_DURABILITY_TEST_PHASE=verify \
+            npx vitest run src/lib/hostPairingSessionPurge.durability.redis.test.ts
+
           YJS_DURABILITY_TEST_PHASE=prepare \
             npx vitest run src/lib/yjsShareToken.durability.redis.test.ts
 

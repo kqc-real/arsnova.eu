@@ -40,11 +40,24 @@ export type HostPairedHostRecord = {
   state: 'CONNECTED';
 };
 
+export type HostPairingPurgeReferences = {
+  requestSecretHashes: string[];
+  tokenIds: string[];
+  tokenHashes: string[];
+};
+
 export type HostPairingRecord = {
+  /** Immutable DB identity. `null` only represents pre-migration legacy data. */
+  sessionId: string | null;
   version: number;
   invite: HostPairingInviteRecord | null;
   pending: HostPairingPendingRecord | null;
   pairedHosts: HostPairedHostRecord[];
+  /**
+   * Kurzlebiger Tombstone fuer die sichere Zuordnung unindizierter Legacy-
+   * Claims/Outcomes nach dem regulaeren Session-Ende.
+   */
+  purgeReferences?: HostPairingPurgeReferences;
 };
 
 export type HostPairingEffect =
@@ -54,8 +67,20 @@ export type HostPairingEffect =
   | { type: 'SET_REQUEST_LOOKUP'; requestSecretHash: string; requestId: string }
   | { type: 'SET_TOKEN_LOOKUP'; tokenHash: string; tokenId: string }
   | { type: 'DELETE_TOKEN_LOOKUP'; tokenHash: string }
-  | { type: 'ISSUE_CLAIM'; requestSecretHash: string; tokenId: string; tokenHash: string }
-  | { type: 'SET_OUTCOME'; requestSecretHash: string; state: HostPairingState; tokenId?: string }
+  | {
+      type: 'ISSUE_CLAIM';
+      requestSecretHash: string;
+      requestId: string;
+      tokenId: string;
+      tokenHash: string;
+    }
+  | {
+      type: 'SET_OUTCOME';
+      requestSecretHash: string;
+      requestId: string;
+      state: HostPairingState;
+      tokenId?: string;
+    }
   | { type: 'INVALIDATE_TOKEN_HASH'; tokenHash: string };
 
 export type HostPairingCommand =
@@ -120,8 +145,25 @@ export function hostPairingUserMessage(code: HostPairingErrorCode): string {
   return USER_MESSAGES[code];
 }
 
-export function emptyHostPairingRecord(): HostPairingRecord {
-  return { version: 1, invite: null, pending: null, pairedHosts: [] };
+export function emptyHostPairingRecord(sessionId: string | null = null): HostPairingRecord {
+  return { sessionId, version: 1, invite: null, pending: null, pairedHosts: [] };
+}
+
+function purgeReferencesFor(record: HostPairingRecord): HostPairingPurgeReferences | undefined {
+  const requestSecretHashes = new Set(record.purgeReferences?.requestSecretHashes ?? []);
+  const tokenIds = new Set(record.purgeReferences?.tokenIds ?? []);
+  const tokenHashes = new Set(record.purgeReferences?.tokenHashes ?? []);
+  if (record.pending) requestSecretHashes.add(record.pending.requestSecretHash);
+  for (const pairedHost of record.pairedHosts) {
+    tokenIds.add(pairedHost.tokenId);
+    tokenHashes.add(pairedHost.tokenHash);
+  }
+  if (requestSecretHashes.size + tokenIds.size + tokenHashes.size === 0) return undefined;
+  return {
+    requestSecretHashes: [...requestSecretHashes],
+    tokenIds: [...tokenIds],
+    tokenHashes: [...tokenHashes],
+  };
 }
 
 export function isExpiredAt(expiresAt: string, now: Date): boolean {
@@ -156,6 +198,7 @@ function expireInviteAndPending(
         {
           type: 'SET_OUTCOME',
           requestSecretHash: pending.requestSecretHash,
+          requestId: pending.requestId,
           state: 'EXPIRED',
         },
       );
@@ -169,6 +212,7 @@ function expireInviteAndPending(
       {
         type: 'SET_OUTCOME',
         requestSecretHash: pending.requestSecretHash,
+        requestId: pending.requestId,
         state: 'EXPIRED',
       },
     );
@@ -210,6 +254,7 @@ export function applyHostPairingCommand(
           {
             type: 'SET_OUTCOME',
             requestSecretHash: record.pending.requestSecretHash,
+            requestId: record.pending.requestId,
             state: 'EXPIRED',
           },
         );
@@ -230,6 +275,7 @@ export function applyHostPairingCommand(
       return {
         ok: true,
         record: {
+          sessionId: record.sessionId,
           version: record.version + 1,
           invite,
           pending: null,
@@ -272,6 +318,7 @@ export function applyHostPairingCommand(
       return {
         ok: true,
         record: {
+          sessionId: record.sessionId,
           version: record.version + 1,
           invite: { ...invite, state: 'PENDING_APPROVAL' },
           pending,
@@ -315,12 +362,14 @@ export function applyHostPairingCommand(
         {
           type: 'ISSUE_CLAIM',
           requestSecretHash: pending.requestSecretHash,
+          requestId: pending.requestId,
           tokenId: command.tokenId,
           tokenHash: command.tokenHash,
         },
         {
           type: 'SET_OUTCOME',
           requestSecretHash: pending.requestSecretHash,
+          requestId: pending.requestId,
           state: 'CONNECTED',
           tokenId: command.tokenId,
         },
@@ -332,6 +381,7 @@ export function applyHostPairingCommand(
       return {
         ok: true,
         record: {
+          sessionId: record.sessionId,
           version: record.version + 1,
           invite: null,
           pending: null,
@@ -358,6 +408,7 @@ export function applyHostPairingCommand(
         {
           type: 'SET_OUTCOME',
           requestSecretHash: pending.requestSecretHash,
+          requestId: pending.requestId,
           state: 'REJECTED',
         },
       ];
@@ -367,6 +418,7 @@ export function applyHostPairingCommand(
       return {
         ok: true,
         record: {
+          sessionId: record.sessionId,
           version: record.version + 1,
           invite: null,
           pending: null,
@@ -390,6 +442,7 @@ export function applyHostPairingCommand(
       return {
         ok: true,
         record: {
+          sessionId: record.sessionId,
           version: record.version + 1,
           invite: record.invite,
           pending: record.pending,
@@ -415,6 +468,7 @@ export function applyHostPairingCommand(
           {
             type: 'SET_OUTCOME',
             requestSecretHash: record.pending.requestSecretHash,
+            requestId: record.pending.requestId,
             state: 'SESSION_ENDED',
           },
         );
@@ -427,7 +481,10 @@ export function applyHostPairingCommand(
       }
       return {
         ok: true,
-        record: emptyHostPairingRecord(),
+        record: {
+          ...emptyHostPairingRecord(record.sessionId),
+          purgeReferences: purgeReferencesFor(current),
+        },
         effects,
       };
     }

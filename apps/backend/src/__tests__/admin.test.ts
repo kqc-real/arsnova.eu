@@ -18,6 +18,7 @@ const {
   invalidateHostSessionTokenMock,
   invalidateHostPairingForSessionMock,
   publishSessionPurgeInvalidationMock,
+  publishSessionPurgeInvalidationsMock,
 } = vi.hoisted(() => ({
   prismaMock: {
     $queryRaw: vi.fn(),
@@ -61,6 +62,7 @@ const {
   invalidateHostSessionTokenMock: vi.fn(),
   invalidateHostPairingForSessionMock: vi.fn(),
   publishSessionPurgeInvalidationMock: vi.fn(),
+  publishSessionPurgeInvalidationsMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -101,12 +103,21 @@ vi.mock('../lib/hostPairing', () => ({
 
 vi.mock('../lib/sessionPurgeInvalidation', () => ({
   publishSessionPurgeInvalidation: publishSessionPurgeInvalidationMock,
+  publishSessionPurgeInvalidations: publishSessionPurgeInvalidationsMock,
 }));
 
 import { adminRouter } from '../routers/admin';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const SESSION_CODE = 'ABC123';
+function mockSessionBoundAuditWrite(): void {
+  prismaMock.$queryRaw.mockResolvedValueOnce([
+    { id: SESSION_ID, code: SESSION_CODE, quizId: null },
+  ]);
+  prismaMock.$transaction.mockImplementationOnce(
+    async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+  );
+}
 const EMPTY_QA_API_DIAGNOSTIC = {
   samples: 0,
   successes: 0,
@@ -126,6 +137,7 @@ describe('admin router (Epic 9)', () => {
     vi.setSystemTime(new Date('2026-03-14T12:00:00.000Z'));
     vi.clearAllMocks();
     publishSessionPurgeInvalidationMock.mockResolvedValue(undefined);
+    publishSessionPurgeInvalidationsMock.mockResolvedValue(undefined);
     verifyAdminSecretMock.mockReturnValue(true);
     checkAdminLoginAttemptMock.mockResolvedValue({ allowed: true, delayMs: 100 });
     requireAdminLoginAttemptPermitMock.mockImplementation(
@@ -180,6 +192,69 @@ describe('admin router (Epic 9)', () => {
       expect(recordAdminLoginFailureMock).not.toHaveBeenCalled();
     },
   );
+
+  it('löscht die Session nicht, wenn die Pre-Delete-Fence fehlschlägt', async () => {
+    const caller = adminRouter.createCaller({ req: {} as never });
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: SESSION_CODE,
+      status: 'FINISHED',
+      endedAt: new Date(),
+      legalHoldUntil: null,
+      legalHoldReason: null,
+      quizId: null,
+    });
+    publishSessionPurgeInvalidationMock.mockRejectedValueOnce(new Error('Redis down'));
+
+    await expect(
+      caller.deleteSession({ sessionId: SESSION_ID, reason: 'Rechtliche Löschpflicht' }),
+    ).rejects.toMatchObject({
+      code: 'INTERNAL_SERVER_ERROR',
+      message:
+        'Die sichere Löschvorbereitung für Session-Zugänge und Analysecache ist fehlgeschlagen. Die Löschung wurde nicht ausgeführt.',
+    });
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('liefert nach erfolgreicher Fence auch bei fehlerhafter Nachinvalidierung Erfolg', async () => {
+    const caller = adminRouter.createCaller({ req: {} as never });
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      code: SESSION_CODE,
+      status: 'FINISHED',
+      endedAt: new Date(),
+      legalHoldUntil: null,
+      legalHoldReason: null,
+      quizId: null,
+    });
+    prismaMock.$queryRaw.mockResolvedValue([{ id: SESSION_ID, code: SESSION_CODE, quizId: null }]);
+    prismaMock.$transaction.mockImplementation(
+      async (fn: (tx: typeof prismaMock) => Promise<unknown>) =>
+        fn({
+          ...prismaMock,
+          session: {
+            ...prismaMock.session,
+            delete: vi.fn().mockResolvedValue({}),
+            count: vi.fn().mockResolvedValue(0),
+          },
+          adminAuditLog: {
+            ...prismaMock.adminAuditLog,
+            create: vi.fn().mockResolvedValue({}),
+          },
+        }),
+    );
+    publishSessionPurgeInvalidationMock
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('Redis temporarily unavailable'));
+
+    await expect(
+      caller.deleteSession({ sessionId: SESSION_ID, reason: 'Rechtliche Löschpflicht' }),
+    ).resolves.toMatchObject({ deleted: true, sessionId: SESSION_ID });
+
+    expect(prismaMock.$transaction).toHaveBeenCalledOnce();
+    expect(publishSessionPurgeInvalidationMock).toHaveBeenCalledTimes(2);
+  });
 
   trpcDodIt(
     {
@@ -316,6 +391,28 @@ describe('admin router (Epic 9)', () => {
     },
   );
 
+  it('löscht bei fehlgeschlagener Bulk-Löschvorbereitung keine Session', async () => {
+    const caller = adminRouter.createCaller({ req: {} as never });
+    prismaMock.session.findMany.mockResolvedValue([
+      { id: SESSION_ID, code: SESSION_CODE },
+      { id: '11111111-1111-4111-8111-111111111111', code: 'DEF456' },
+    ]);
+    publishSessionPurgeInvalidationsMock.mockRejectedValueOnce(new Error('Redis down'));
+
+    await expect(
+      caller.deleteAllSessions({
+        confirmationText: 'ALLE SESSIONS LOESCHEN',
+        expectedSessionCount: 2,
+      }),
+    ).rejects.toMatchObject({
+      code: 'INTERNAL_SERVER_ERROR',
+      message:
+        'Die sichere Löschvorbereitung für Session-Zugänge und Analysecaches ist fehlgeschlagen. Die Massenlöschung wurde nicht ausgeführt.',
+    });
+
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
   trpcDodIt(
     {
       procedure: 'admin.login',
@@ -405,6 +502,9 @@ describe('admin router (Epic 9)', () => {
     },
     async () => {
       const caller = adminRouter.createCaller({ req: {} as never });
+      const countQuizReferences = vi.fn().mockResolvedValue(0);
+      const deleteQuizUnconditionally = vi.fn().mockResolvedValue({});
+      const deleteQuizIfOrphaned = vi.fn().mockResolvedValue({ count: 1 });
       prismaMock.session.findUnique.mockResolvedValue({
         id: SESSION_ID,
         code: SESSION_CODE,
@@ -414,26 +514,50 @@ describe('admin router (Epic 9)', () => {
         legalHoldReason: null,
         quizId: '11111111-1111-4111-8111-111111111111',
       });
+      prismaMock.$queryRaw
+        .mockResolvedValueOnce([
+          {
+            id: SESSION_ID,
+            code: SESSION_CODE,
+            quizId: '22222222-2222-4222-8222-222222222222',
+          },
+        ])
+        .mockResolvedValueOnce([{ id: '22222222-2222-4222-8222-222222222222' }]);
+      let transactionActive = false;
+      prismaMock.adminAuditLog.updateMany.mockImplementationOnce(async () => {
+        expect(transactionActive).toBe(true);
+        return { count: 1 };
+      });
+      prismaMock.productFeedbackInviteJob.deleteMany.mockImplementationOnce(async () => {
+        expect(transactionActive).toBe(true);
+        return { count: 1 };
+      });
       prismaMock.$transaction.mockImplementation(
-        async (fn: (tx: typeof prismaMock) => Promise<void>) =>
-          fn({
-            ...prismaMock,
-            session: {
-              ...prismaMock.session,
-              delete: vi.fn().mockResolvedValue({}),
-              deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
-              count: vi.fn().mockResolvedValue(0),
-            },
-            quiz: {
-              ...prismaMock.quiz,
-              delete: vi.fn().mockResolvedValue({}),
-              deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
-            },
-            adminAuditLog: {
-              ...prismaMock.adminAuditLog,
-              create: vi.fn().mockResolvedValue({}),
-            },
-          }),
+        async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+          transactionActive = true;
+          try {
+            return await fn({
+              ...prismaMock,
+              session: {
+                ...prismaMock.session,
+                delete: vi.fn().mockResolvedValue({}),
+                deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+                count: countQuizReferences,
+              },
+              quiz: {
+                ...prismaMock.quiz,
+                delete: deleteQuizUnconditionally,
+                deleteMany: deleteQuizIfOrphaned,
+              },
+              adminAuditLog: {
+                ...prismaMock.adminAuditLog,
+                create: vi.fn().mockResolvedValue({}),
+              },
+            });
+          } finally {
+            transactionActive = false;
+          }
+        },
       );
 
       const result = await caller.deleteSession({
@@ -452,6 +576,28 @@ describe('admin router (Epic 9)', () => {
         sessionId: SESSION_ID,
         sessionCode: SESSION_CODE,
       });
+      expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith(SESSION_CODE, SESSION_ID);
+      expect(prismaMock.adminAuditLog.updateMany).toHaveBeenCalledWith({
+        where: {
+          OR: [{ sessionId: SESSION_ID }, { sessionCode: SESSION_CODE }],
+        },
+        data: {
+          sessionId: null,
+          sessionCode: null,
+          sessionReferenceHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        },
+      });
+      expect(prismaMock.productFeedbackInviteJob.deleteMany).toHaveBeenCalledWith({
+        where: { sessionId: SESSION_ID },
+      });
+      expect(deleteQuizIfOrphaned).toHaveBeenCalledWith({
+        where: {
+          id: { in: ['22222222-2222-4222-8222-222222222222'] },
+          sessions: { none: {} },
+        },
+      });
+      expect(countQuizReferences).not.toHaveBeenCalled();
+      expect(deleteQuizUnconditionally).not.toHaveBeenCalled();
     },
   );
 
@@ -527,6 +673,7 @@ describe('admin router (Epic 9)', () => {
         _count: { participants: 4 },
       });
       prismaMock.adminAuditLog.create.mockResolvedValue({});
+      mockSessionBoundAuditWrite();
 
       const result = await caller.exportForAuthorities({
         sessionId: SESSION_ID,
@@ -614,6 +761,7 @@ describe('admin router (Epic 9)', () => {
         },
       });
       prismaMock.adminAuditLog.create.mockResolvedValue({});
+      mockSessionBoundAuditWrite();
 
       const result = await caller.exportSessionAsQuizImport({
         sessionId: SESSION_ID,
@@ -694,6 +842,7 @@ describe('admin router (Epic 9)', () => {
       },
     });
     prismaMock.adminAuditLog.create.mockResolvedValue({});
+    mockSessionBoundAuditWrite();
 
     const result = await caller.exportSessionAsQuizImport({
       sessionId: SESSION_ID,
@@ -805,9 +954,16 @@ describe('admin router (Epic 9)', () => {
     async () => {
       const caller = adminRouter.createCaller({ req: {} as never });
       prismaMock.session.findMany.mockResolvedValue([
-        { id: SESSION_ID, code: SESSION_CODE },
-        { id: '11111111-1111-4111-8111-111111111111', code: 'DEF456' },
+        { id: SESSION_ID, code: SESSION_CODE, quizId: 'quiz-1' },
+        { id: '11111111-1111-4111-8111-111111111111', code: 'DEF456', quizId: null },
       ]);
+      prismaMock.$queryRaw
+        .mockResolvedValueOnce([
+          { id: SESSION_ID, code: SESSION_CODE, quizId: 'quiz-1' },
+          { id: '11111111-1111-4111-8111-111111111111', code: 'DEF456', quizId: null },
+        ])
+        .mockResolvedValueOnce([{ id: 'quiz-1' }]);
+      const deleteQuiz = vi.fn().mockResolvedValue({ count: 1 });
       prismaMock.$transaction.mockImplementation(
         async (fn: (tx: typeof prismaMock) => Promise<unknown>) =>
           fn({
@@ -818,7 +974,7 @@ describe('admin router (Epic 9)', () => {
             },
             quiz: {
               ...prismaMock.quiz,
-              deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+              deleteMany: deleteQuiz,
             },
             adminAuditLog: {
               ...prismaMock.adminAuditLog,
@@ -838,7 +994,27 @@ describe('admin router (Epic 9)', () => {
         deletedSessionCount: 2,
         deletedQuizCount: 1,
       });
-      expect(publishSessionPurgeInvalidationMock).toHaveBeenCalledTimes(4);
+      expect(deleteQuiz).toHaveBeenCalledWith({
+        where: {
+          id: { in: ['quiz-1'] },
+          sessions: { none: {} },
+        },
+      });
+      expect(publishSessionPurgeInvalidationMock).not.toHaveBeenCalled();
+      expect(publishSessionPurgeInvalidationsMock).toHaveBeenCalledTimes(2);
+      expect(publishSessionPurgeInvalidationsMock).toHaveBeenNthCalledWith(1, [
+        { sessionId: SESSION_ID, sessionCode: SESSION_CODE },
+        { sessionId: '11111111-1111-4111-8111-111111111111', sessionCode: 'DEF456' },
+      ]);
+      expect(publishSessionPurgeInvalidationsMock).toHaveBeenNthCalledWith(2, [
+        { sessionId: SESSION_ID, sessionCode: SESSION_CODE },
+        { sessionId: '11111111-1111-4111-8111-111111111111', sessionCode: 'DEF456' },
+      ]);
+      expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith(SESSION_CODE, SESSION_ID);
+      expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith(
+        'DEF456',
+        '11111111-1111-4111-8111-111111111111',
+      );
     },
   );
 

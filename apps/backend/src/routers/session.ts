@@ -241,10 +241,7 @@ const emojiStore = new Map<string, Map<string, string>>();
 type MatchingSelection = { leftId: string; rightId: string };
 type CategorizationSelection = { itemId: string; categoryId: string };
 const PARTICIPANT_NICKNAMES_CACHE_TTL_MS = 5_000;
-const participantNicknameCache = new Map<
-  string,
-  { expiresAt: number; payload: { nicknames: string[]; participantCount: number } }
->();
+type ParticipantNicknamesPayload = { nicknames: string[]; participantCount: number };
 
 /**
  * Opaque shuffle seed for MATCHING/ORDERING/CATEGORIZATION option order.
@@ -278,31 +275,6 @@ function getEmojiKey(sessionId: string, questionId: string, round: number): stri
   return `${sessionId}:${questionId}:r${r}`;
 }
 
-function getCachedParticipantNicknames(
-  code: string,
-): { nicknames: string[]; participantCount: number } | null {
-  const cached = participantNicknameCache.get(code);
-  if (!cached) return null;
-  if (cached.expiresAt <= Date.now()) {
-    participantNicknameCache.delete(code);
-    return null;
-  }
-  return cached.payload;
-}
-
-function setCachedParticipantNicknames(
-  code: string,
-  payload: { nicknames: string[]; participantCount: number },
-): void {
-  participantNicknameCache.set(code, {
-    expiresAt: Date.now() + PARTICIPANT_NICKNAMES_CACHE_TTL_MS,
-    payload,
-  });
-}
-
-export function resetParticipantNicknameCacheForTests(): void {
-  participantNicknameCache.clear();
-}
 import {
   publicProcedure,
   router,
@@ -435,16 +407,20 @@ const participantsSnapshotCache = new Map<
   string,
   CacheEntry<z.infer<typeof SessionParticipantSummaryDTOSchema>>
 >();
+const participantNicknameCache = new Map<string, CacheEntry<ParticipantNicknamesPayload>>();
 const currentQuestionCache = new Map<string, CacheEntry<unknown>>();
 const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
-const presenterSurfaceByCode = new Map<string, z.infer<typeof SessionPresenterSurfaceSchema>>();
-const presenterPageByCode = new Map<string, z.infer<typeof PresenterPageSchema>>();
-const presenterPageIdentityByCode = new Map<string, string>();
+const presenterSurfaceBySessionId = new Map<
+  string,
+  z.infer<typeof SessionPresenterSurfaceSchema>
+>();
+const presenterPageBySessionId = new Map<string, z.infer<typeof PresenterPageSchema>>();
+const presenterPageIdentityBySessionId = new Map<string, string>();
 
 function resolvePresenterPage(
-  code: string,
+  sessionId: string,
   session: { quizId?: string | null; currentQuestion?: number | null; status: string },
   channel: string,
 ): z.infer<typeof PresenterPageSchema> {
@@ -452,22 +428,25 @@ function resolvePresenterPage(
     session.quizId ?? '',
     session.currentQuestion ?? '',
     channel,
-    resolvePresenterSurface(code, channel as z.infer<typeof SessionLiveChannelSchema>),
+    resolvePresenterSurface(sessionId, channel as z.infer<typeof SessionLiveChannelSchema>),
     session.status === 'FINISHED' ? 'finished' : 'live',
   ].join(':');
-  const stored = presenterPageByCode.get(code);
-  if (stored && presenterPageIdentityByCode.get(code) === identity) return stored;
+  const stored = presenterPageBySessionId.get(sessionId);
+  if (stored && presenterPageIdentityBySessionId.get(sessionId) === identity) return stored;
   const page = { context: randomBytes(16).toString('hex'), index: 0, count: 1 };
-  presenterPageIdentityByCode.set(code, identity);
-  presenterPageByCode.set(code, page);
+  presenterPageIdentityBySessionId.set(sessionId, identity);
+  presenterPageBySessionId.set(sessionId, page);
   return page;
 }
 
-const qaWordCloudProjectionByCode = new Map<
+const qaWordCloudProjectionBySessionId = new Map<
   string,
   z.infer<typeof SetQaWordCloudProjectionInputSchema>['projection']
 >();
-const finishProjectionByCode = new Map<string, z.infer<typeof SessionFinishProjectionSchema>>();
+const finishProjectionBySessionId = new Map<
+  string,
+  z.infer<typeof SessionFinishProjectionSchema>
+>();
 const sessionInfoInFlight = new Map<
   string,
   Promise<Omit<z.infer<typeof SessionInfoDTOSchema>, 'serverTime'>>
@@ -477,6 +456,7 @@ const participantsSnapshotInFlight = new Map<
   string,
   Promise<z.infer<typeof SessionParticipantSummaryDTOSchema>>
 >();
+const participantNicknameInFlight = new Map<string, Promise<ParticipantNicknamesPayload>>();
 const currentQuestionInFlight = new Map<string, Promise<unknown>>();
 const participantMembershipInFlight = new Map<string, Promise<boolean>>();
 const voteCountInFlight = new Map<string, Promise<number>>();
@@ -564,6 +544,7 @@ function clearSessionReadCaches(code?: string): void {
     sessionInfoInFlight.clear();
     statusSnapshotInFlight.clear();
     participantsSnapshotInFlight.clear();
+    participantNicknameInFlight.clear();
     currentQuestionInFlight.clear();
     participantMembershipInFlight.clear();
     voteCountInFlight.clear();
@@ -578,7 +559,7 @@ function clearSessionReadCaches(code?: string): void {
   statusSnapshotCache.delete(code);
   participantsSnapshotCache.delete(code);
   clearCurrentQuestionCache(code);
-  participantNicknameCache.delete(code);
+  clearParticipantNicknameCache(code);
   clearVoteCaches(code);
   for (const key of participantMembershipCache.keys()) {
     if (key.startsWith(`${code}:`)) {
@@ -602,12 +583,12 @@ function clearSessionReadCaches(code?: string): void {
 
 export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
-  presenterSurfaceByCode.clear();
-  presenterPageByCode.clear();
-  presenterPageIdentityByCode.clear();
-  qaWordCloudProjectionByCode.clear();
+  presenterSurfaceBySessionId.clear();
+  presenterPageBySessionId.clear();
+  presenterPageIdentityBySessionId.clear();
+  qaWordCloudProjectionBySessionId.clear();
   clearAllQaPresenterSortModes();
-  finishProjectionByCode.clear();
+  finishProjectionBySessionId.clear();
   sessionStatusVersions.clear();
   sessionParticipantVersions.clear();
   sessionCurrentQuestionVersions.clear();
@@ -673,6 +654,12 @@ function clearVoteCaches(code: string): void {
 
 function clearParticipantNicknameCache(code: string): void {
   participantNicknameCache.delete(code);
+  participantNicknameInFlight.delete(code);
+}
+
+export function resetParticipantNicknameCacheForTests(): void {
+  participantNicknameCache.clear();
+  participantNicknameInFlight.clear();
 }
 
 function clearParticipantMembershipCache(code: string): void {
@@ -899,6 +886,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
       const session = await prisma.session.findUnique({
         where: { code },
         select: {
+          id: true,
           type: true,
           quizId: true,
           qaEnabled: true,
@@ -982,14 +970,14 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
             : null,
         channels,
         preferredChannel,
-        presenterSurface: resolvePresenterSurface(code, preferredChannel),
+        presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
         presenterPage: resolvePresenterPage(
-          code,
+          session.id,
           { ...session, status: effectiveStatus },
           preferredChannel,
         ),
         ...(effectiveStatus === 'FINISHED' && {
-          finishProjection: await resolveFinishProjection(code, effectiveStatus),
+          finishProjection: await resolveFinishProjection(session.id, effectiveStatus),
         }),
         ...(session.lastSkippedQuestionId &&
           session.lastQuestionSkippedAt && {
@@ -1037,12 +1025,12 @@ export async function purgeSessionRuntimeArtifacts(params: {
 }): Promise<void> {
   const code = params.sessionCode.toUpperCase();
   clearSessionReadCaches(code);
-  presenterSurfaceByCode.delete(code);
-  presenterPageByCode.delete(code);
-  presenterPageIdentityByCode.delete(code);
-  qaWordCloudProjectionByCode.delete(code);
-  clearQaPresenterSortMode(code);
-  finishProjectionByCode.delete(code);
+  presenterSurfaceBySessionId.delete(params.sessionId);
+  presenterPageBySessionId.delete(params.sessionId);
+  presenterPageIdentityBySessionId.delete(params.sessionId);
+  qaWordCloudProjectionBySessionId.delete(params.sessionId);
+  clearQaPresenterSortMode(params.sessionId);
+  finishProjectionBySessionId.delete(params.sessionId);
   for (const key of emojiStore.keys()) {
     if (key.startsWith(`${params.sessionId}:`)) {
       emojiStore.delete(key);
@@ -1056,7 +1044,7 @@ export async function purgeSessionRuntimeArtifacts(params: {
   sessionParticipantVersions.delete(code);
   sessionCurrentQuestionVersions.delete(code);
   sessionVoteProgressVersions.delete(code);
-  await getRedis().del(finishProjectionRedisKey(code));
+  await getRedis().del(finishProjectionRedisKey(params.sessionId));
 }
 
 registerSessionPurgeInvalidator((event) => purgeSessionRuntimeArtifacts(event));
@@ -3770,10 +3758,10 @@ function computeQaConfigurationWindow(
 }
 
 function resolvePresenterSurface(
-  code: string,
+  sessionId: string,
   preferredChannel: z.infer<typeof SessionLiveChannelSchema>,
 ): z.infer<typeof SessionPresenterSurfaceSchema> {
-  const stored = presenterSurfaceByCode.get(code.toUpperCase());
+  const stored = presenterSurfaceBySessionId.get(sessionId);
   if (stored === 'ended') return stored;
   if (stored === 'qaWordCloud' && preferredChannel === 'qa') return stored;
   if (stored === 'freetextWordCloud' && preferredChannel === 'quiz') return stored;
@@ -3782,26 +3770,25 @@ function resolvePresenterSurface(
 
 const FINISH_PROJECTION_TTL_SECONDS = 24 * 60 * 60;
 
-function finishProjectionRedisKey(code: string): string {
-  return `session:finishProjection:${code.toUpperCase()}`;
+function finishProjectionRedisKey(sessionId: string): string {
+  return `session:finishProjection:v2:${sessionId}`;
 }
 
 async function resolveFinishProjection(
-  code: string,
+  sessionId: string,
   status: string,
 ): Promise<z.infer<typeof SessionFinishProjectionSchema> | undefined> {
   if (status !== 'FINISHED') {
     return undefined;
   }
-  const normalized = code.toUpperCase();
-  const cached = finishProjectionByCode.get(normalized);
+  const cached = finishProjectionBySessionId.get(sessionId);
   if (cached) {
     return cached;
   }
   try {
-    const raw = await getRedis().get(finishProjectionRedisKey(normalized));
+    const raw = await getRedis().get(finishProjectionRedisKey(sessionId));
     if (raw === 'idle' || raw === 'leaderboard') {
-      finishProjectionByCode.set(normalized, raw);
+      finishProjectionBySessionId.set(sessionId, raw);
       return raw;
     }
   } catch {
@@ -3811,30 +3798,28 @@ async function resolveFinishProjection(
   return 'idle';
 }
 
-function markFinishProjectionLeaderboard(code: string): void {
-  const normalized = code.toUpperCase();
-  finishProjectionByCode.set(normalized, 'leaderboard');
+function markFinishProjectionLeaderboard(sessionId: string): void {
+  finishProjectionBySessionId.set(sessionId, 'leaderboard');
   void getRedis()
-    .set(finishProjectionRedisKey(normalized), 'leaderboard', 'EX', FINISH_PROJECTION_TTL_SECONDS)
+    .set(finishProjectionRedisKey(sessionId), 'leaderboard', 'EX', FINISH_PROJECTION_TTL_SECONDS)
     .catch(() => undefined);
 }
 
-async function markFinishProjectionIdle(code: string): Promise<void> {
-  const normalized = code.toUpperCase();
-  const previous = finishProjectionByCode.get(normalized);
-  finishProjectionByCode.set(normalized, 'idle');
+async function markFinishProjectionIdle(sessionId: string): Promise<void> {
+  const previous = finishProjectionBySessionId.get(sessionId);
+  finishProjectionBySessionId.set(sessionId, 'idle');
   try {
     await getRedis().set(
-      finishProjectionRedisKey(normalized),
+      finishProjectionRedisKey(sessionId),
       'idle',
       'EX',
       FINISH_PROJECTION_TTL_SECONDS,
     );
   } catch (error) {
     if (previous) {
-      finishProjectionByCode.set(normalized, previous);
+      finishProjectionBySessionId.set(sessionId, previous);
     } else {
-      finishProjectionByCode.delete(normalized);
+      finishProjectionBySessionId.delete(sessionId);
     }
     throw error;
   }
@@ -5314,14 +5299,14 @@ async function resolvePublicSessionInfo(
         title: session.title ?? null,
         channels,
         preferredChannel,
-        presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
+        presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
         presenterPage: resolvePresenterPage(
-          session.code,
+          session.id,
           { ...session, status: effectiveStatus },
           preferredChannel,
         ),
         ...(effectiveStatus === 'FINISHED' && {
-          finishProjection: await resolveFinishProjection(session.code, effectiveStatus),
+          finishProjection: await resolveFinishProjection(session.id, effectiveStatus),
         }),
         participantCount: session._count.participants,
         qaQuestionCount:
@@ -7196,34 +7181,36 @@ const sessionCoreRouter = router({
     .output(SessionParticipantNicknamesPayloadSchema)
     .query(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const cached = getCachedParticipantNicknames(code);
-      if (cached) {
-        return cached;
-      }
-      const session = await prisma.session.findUnique({
-        where: { code },
-        select: {
-          onboardingAnonymousMode: true,
-          _count: { select: { participants: true } },
-          participants: {
-            orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
-            take: 100,
-            select: { nickname: true },
-          },
+      return getOrComputeCached(
+        participantNicknameCache,
+        participantNicknameInFlight,
+        code,
+        PARTICIPANT_NICKNAMES_CACHE_TTL_MS,
+        async () => {
+          const session = await prisma.session.findUnique({
+            where: { code },
+            select: {
+              onboardingAnonymousMode: true,
+              _count: { select: { participants: true } },
+              participants: {
+                orderBy: [{ joinedAt: 'desc' }, { id: 'desc' }],
+                take: 100,
+                select: { nickname: true },
+              },
+            },
+          });
+          if (!session) {
+            return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
+          }
+          return {
+            nicknames:
+              session.onboardingAnonymousMode === true
+                ? []
+                : session.participants.map((participant) => participant.nickname),
+            participantCount: session._count.participants,
+          };
         },
-      });
-      if (!session) {
-        return rejectInvalidSessionCode(input.anonymousClientId, code, 'lookup');
-      }
-      const payload = {
-        nicknames:
-          session.onboardingAnonymousMode === true
-            ? []
-            : session.participants.map((participant) => participant.nickname),
-        participantCount: session._count.participants,
-      };
-      setCachedParticipantNicknames(code, payload);
-      return payload;
+      );
     }),
 
   /** Öffentliche Self-Info für Teilnehmende ohne komplette Teilnehmerliste preiszugeben. */
@@ -7659,12 +7646,12 @@ const sessionCoreRouter = router({
       if (changed.channelChanged) {
         // Eine ausdrücklich beendete Projektionsansicht bleibt kanalübergreifend beendet,
         // bis der Host sie wieder öffnet. Nur kanalspezifische Flächen zurücksetzen.
-        if (presenterSurfaceByCode.get(code) !== 'ended') {
-          presenterSurfaceByCode.set(code, 'default');
+        if (presenterSurfaceBySessionId.get(identity.id) !== 'ended') {
+          presenterSurfaceBySessionId.set(identity.id, 'default');
         }
-        presenterPageByCode.delete(code);
-        presenterPageIdentityByCode.delete(code);
-        qaWordCloudProjectionByCode.delete(code);
+        presenterPageBySessionId.delete(identity.id);
+        presenterPageIdentityBySessionId.delete(identity.id);
+        qaWordCloudProjectionBySessionId.delete(identity.id);
       }
       invalidateSessionStatusCachesForCode(code);
       const { channelChanged: _channelChanged, ...result } = changed;
@@ -7679,6 +7666,7 @@ const sessionCoreRouter = router({
       const session = await prisma.session.findUnique({
         where: { code },
         select: {
+          id: true,
           status: true,
           type: true,
           quizId: true,
@@ -7723,7 +7711,7 @@ const sessionCoreRouter = router({
         });
       }
 
-      const currentPage = resolvePresenterPage(code, session, preferredChannel);
+      const currentPage = resolvePresenterPage(session.id, session, preferredChannel);
       if (input.page) {
         if (input.page.context !== currentPage.context) {
           throw new TRPCError({
@@ -7738,23 +7726,26 @@ const sessionCoreRouter = router({
             : currentPage.index + (input.page.delta ?? 0);
         const index = Math.max(0, Math.min(count - 1, rawIndex));
         const presenterPage = { ...currentPage, count, index };
-        presenterPageByCode.set(code, presenterPage);
+        presenterPageBySessionId.set(session.id, presenterPage);
         clearSessionInfoCache(code);
         clearStatusSnapshotCache(code);
         emitSessionStatusSignal(code);
-        return { presenterSurface: resolvePresenterSurface(code, preferredChannel), presenterPage };
+        return {
+          presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
+          presenterPage,
+        };
       }
       if (input.surface === undefined) throw new TRPCError({ code: 'BAD_REQUEST' });
-      if (input.surface !== resolvePresenterSurface(code, preferredChannel))
-        presenterPageByCode.delete(code);
-      presenterSurfaceByCode.set(code, input.surface);
+      if (input.surface !== resolvePresenterSurface(session.id, preferredChannel))
+        presenterPageBySessionId.delete(session.id);
+      presenterSurfaceBySessionId.set(session.id, input.surface);
       if (input.surface !== 'qaWordCloud') {
-        qaWordCloudProjectionByCode.delete(code);
+        qaWordCloudProjectionBySessionId.delete(session.id);
       }
       invalidateSessionStatusCachesForCode(code);
       return {
         presenterSurface: input.surface,
-        presenterPage: resolvePresenterPage(code, session, preferredChannel),
+        presenterPage: resolvePresenterPage(session.id, session, preferredChannel),
       };
     }),
 
@@ -7766,6 +7757,7 @@ const sessionCoreRouter = router({
       const session = await prisma.session.findUnique({
         where: { code },
         select: {
+          id: true,
           status: true,
           type: true,
           quizId: true,
@@ -7794,7 +7786,7 @@ const sessionCoreRouter = router({
         });
       }
 
-      qaWordCloudProjectionByCode.set(code, input.projection);
+      qaWordCloudProjectionBySessionId.set(session.id, input.projection);
       return { projection: input.projection };
     }),
 
@@ -7806,6 +7798,7 @@ const sessionCoreRouter = router({
       const session = await prisma.session.findUnique({
         where: { code },
         select: {
+          id: true,
           type: true,
           quizId: true,
           qaEnabled: true,
@@ -7825,10 +7818,10 @@ const sessionCoreRouter = router({
 
       const channels = buildSessionChannels(session);
       const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
-      if (resolvePresenterSurface(code, preferredChannel) !== 'qaWordCloud') {
+      if (resolvePresenterSurface(session.id, preferredChannel) !== 'qaWordCloud') {
         return { projection: null };
       }
-      return { projection: qaWordCloudProjectionByCode.get(code) ?? null };
+      return { projection: qaWordCloudProjectionBySessionId.get(session.id) ?? null };
     }),
 
   /** Presenter-Exit: Leaderboard ausblenden, Branding „Session ist beendet.“ zeigen. */
@@ -7843,7 +7836,7 @@ const sessionCoreRouter = router({
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
-        select: { status: true },
+        select: { id: true, status: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
@@ -7854,7 +7847,7 @@ const sessionCoreRouter = router({
           message: 'Die Abschlussprojektion kann nur bei beendeter Session gewechselt werden.',
         });
       }
-      await markFinishProjectionIdle(code);
+      await markFinishProjectionIdle(session.id);
       invalidateSessionStatusCachesForCode(code);
       return { finishProjection: 'idle' as const };
     }),
@@ -8200,7 +8193,7 @@ const sessionCoreRouter = router({
         await clearReadingReady(outcome.sessionId, outcome.currentQuestionIdToClear);
       }
       if (outcome.finished) {
-        markFinishProjectionLeaderboard(code);
+        markFinishProjectionLeaderboard(outcome.sessionId);
         await incrementCompletedSessionsTotal();
         await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
       } else {
@@ -8582,7 +8575,7 @@ const sessionCoreRouter = router({
       }
       if (outcome.transitioned) {
         if (outcome.finished) {
-          markFinishProjectionLeaderboard(code);
+          markFinishProjectionLeaderboard(outcome.sessionId);
           await incrementCompletedSessionsTotal();
           await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
         } else {
@@ -9843,8 +9836,8 @@ const sessionCoreRouter = router({
         title: session.title ?? null,
         channels,
         preferredChannel,
-        presenterSurface: resolvePresenterSurface(session.code, preferredChannel),
-        presenterPage: resolvePresenterPage(session.code, session, preferredChannel),
+        presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
+        presenterPage: resolvePresenterPage(session.id, session, preferredChannel),
         participantCount: newParticipantCount,
         nicknameTheme: responseProfile.nicknameTheme,
         allowCustomNicknames: responseProfile.allowCustomNicknames,
@@ -10141,13 +10134,13 @@ const sessionCoreRouter = router({
       if (outcome.transitioned || outcome.channelsClosed) {
         invalidateSessionStatusCachesForCode(code);
         try {
-          await invalidateHostPairingForSession(code);
+          await invalidateHostPairingForSession(code, identity.id);
         } catch {
           /* Pairing-Registry ist Hilfszustand; Session-Ende bleibt maßgeblich. */
         }
       }
       if (outcome.transitioned) {
-        markFinishProjectionLeaderboard(code);
+        markFinishProjectionLeaderboard(identity.id);
         await incrementCompletedSessionsTotal();
         void recordSessionTransitionActivity();
         await issueProductFeedbackInvitesAfterFinishAwait(identity.id);

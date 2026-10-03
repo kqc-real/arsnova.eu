@@ -9,18 +9,32 @@
 import { prisma } from '../db';
 import { logger } from './logger';
 import { createInviteTokensForSession } from './productFeedbackTokens';
+import { runSessionBoundWrite } from './sessionDeletion';
 
 type ProductFeedbackInviteJobClient = Pick<typeof prisma, 'productFeedbackInviteJob'>;
 
 export async function enqueueProductFeedbackInviteJob(
   sessionId: string,
-  client: ProductFeedbackInviteJobClient = prisma,
-): Promise<void> {
-  await client.productFeedbackInviteJob.upsert({
-    where: { sessionId },
-    create: { sessionId },
-    update: {},
+  client?: ProductFeedbackInviteJobClient,
+): Promise<boolean> {
+  if (client) {
+    await client.productFeedbackInviteJob.upsert({
+      where: { sessionId },
+      create: { sessionId },
+      update: {},
+    });
+    return true;
+  }
+
+  const enqueued = await runSessionBoundWrite(sessionId, async (tx) => {
+    await tx.productFeedbackInviteJob.upsert({
+      where: { sessionId },
+      create: { sessionId },
+      update: {},
+    });
+    return true;
   });
+  return enqueued === true;
 }
 
 export async function completeProductFeedbackInviteJob(sessionId: string): Promise<void> {
@@ -53,7 +67,8 @@ export async function issueProductFeedbackInvitesAfterFinishAwait(
   sessionId: string,
 ): Promise<{ participantInvites: number; hostInvite: boolean }> {
   try {
-    await enqueueProductFeedbackInviteJob(sessionId);
+    const enqueued = await enqueueProductFeedbackInviteJob(sessionId);
+    if (!enqueued) return { participantInvites: 0, hostInvite: false };
     const result = await createInviteTokensForSession(sessionId);
     await completeProductFeedbackInviteJob(sessionId);
     return result;

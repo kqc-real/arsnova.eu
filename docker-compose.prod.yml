@@ -34,7 +34,9 @@ services:
     volumes:
       - redis_data:/data
     # AOF everysec hält allgemeine Redis-Last günstig; sicherheitskritische
-    # Yjs-Create/Rotate-Pfade erzwingen vor ihrer Antwort gezielt WAITAOF.
+    # Yjs-Create/Rotate-, Session-Snapshot-Purge- und Word-Cloud-Rollout-Sweep-
+    # Pfade erzwingen vor ihrer Bestätigung beziehungsweise vor dem DB-Delete
+    # gezielt WAITAOF.
     command: redis-server --appendonly yes --appendfsync everysec --save 60 1 --loglevel warning
     networks:
       - app
@@ -178,6 +180,10 @@ services:
       WORD_CLOUD_ENCODER_SOCKET_PATH: /run/wordcloud-encoder/encoder.sock
       WORD_CLOUD_ENCODER_TIMEOUT_MS: '120000'
       WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS: '1800'
+      # Sessiongebundene Blitzlicht-, ProductFeedback-, Presence-,
+      # Lesebereitschafts- und Host-Pairing-Purges sind wegen
+      # NODE_ENV=production immer per Redis-WAITAOF abgesichert; es gibt hier
+      # keinen abschaltbaren Schalter.
       # NLP_ENABLED kommt aus `.env.production` (Default false).
       # Sidecar nur mit Compose-Profil `nlp` starten; deploy.sh startet ihn nicht.
       # QA_NLP_ENABLED kommt aus `.env.production` (Default false). Story 8.9b:

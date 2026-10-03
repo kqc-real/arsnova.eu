@@ -334,7 +334,15 @@ sobald Presence abläuft oder die Session beendet ist, sinken die Live-Zahlen.
 | **Session Purge** | `FINISHED`-Sessions werden frühestens **24 h nach Beendigung** gelöscht, aber nur wenn kein aktiver Legal Hold und keine frischen Bonus-Tokens/Session-Feedbacks existieren | Stündlicher Cleanup-Job |
 | **Legal Hold**    | Sessions mit `legalHoldUntil` in der Zukunft bleiben erhalten                                                                                                               | Bis Ablauf des Holds    |
 
-Beim Purge werden auch verwaiste Quizzes gelöscht (Quizzes ohne verbleibende Sessions).
+Der Session-Purge sperrt zuerst die Ziel-Sessions und danach deren aktuelle
+Parent-Quizze deterministisch. Er löscht unreferenzierte Parent-Kopien,
+pseudonymisiert Sessionbezüge im Admin-Audit und entfernt offene Invite-Jobs
+gemeinsam mit der Session in einer serialisierbaren, bei Schreibkonflikten
+wiederholten Transaktion. Ein paralleler Quizwechsel oder eine parallel
+angelegte Session wird dadurch nie über `Quiz.onDelete=Cascade` mitgelöscht.
+Späte, FK-lose Writer für Admin-Audits und Feedback-Invite-Jobs verwenden
+dieselbe Sessionzeilensperre: Sie committen entweder vor dem Purge und werden
+mitbereinigt, oder sie legen nach dem Purge keinen neuen Sessionbezug an.
 Der angezeigte Gesamtwert `completedSessions` sinkt dadurch nicht, weil `completedSessionsTotal`
 monoton in `PlatformStatistic` geführt wird.
 

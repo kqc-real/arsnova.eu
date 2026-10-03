@@ -1016,6 +1016,40 @@ describe('session.enable channel mutations', () => {
       });
     },
   );
+
+  it('isoliert Presenter-Zustand bei Wiederverwendung desselben Session-Codes per Session-ID', async () => {
+    let currentSessionId = 'old-session-id';
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_SESSION,
+      id: currentSessionId,
+      preferredChannel: 'qa',
+      type: 'Q_AND_A',
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: 'Fragen',
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    }));
+
+    await caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' });
+    await caller.setQaWordCloudProjection({
+      code: 'ABC123',
+      projection: QA_WORD_CLOUD_PROJECTION,
+    });
+
+    currentSessionId = 'new-session-id';
+    await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+      projection: null,
+    });
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', surface: 'default' }),
+    ).resolves.toMatchObject({ presenterSurface: 'default' });
+  });
+
   it('shares page navigation between hosts, clamps counts and rejects stale question commands', async () => {
     let question = 0;
     prismaMock.session.findUnique.mockImplementation(async () => ({

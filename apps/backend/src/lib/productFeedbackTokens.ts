@@ -1,10 +1,13 @@
 /**
  * ProductFeedback Invite-Tokens & Follow-up-Capabilities (Story 12.1).
- * Opaque tokens, SHA-256 in Redis, unabhängig vom Session-Redis-Cleanup.
- * Claim-Slots speichern nur Eignungsdaten — kein Klartext-Bearer.
+ * Opaque tokens, SHA-256 in Redis. Normales Session-Ende lässt die 24-Stunden-
+ * Einladungen bewusst bestehen; der endgültige Admin-/Retention-Purge entfernt
+ * deren Sessionbezug. Claim-Slots speichern nur Eignungsdaten — kein
+ * Klartext-Bearer.
  */
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
+import type Redis from 'ioredis';
 import {
   PRODUCT_FEEDBACK_FOLLOWUP_TTL_SECONDS,
   PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
@@ -30,6 +33,19 @@ export const PRODUCT_FEEDBACK_META_PREFIX = 'productFeedback:meta:v1:';
 export const PRODUCT_FEEDBACK_CONSUME_PREFIX = 'productFeedback:consume:v1:';
 export const PRODUCT_FEEDBACK_CLAIM_LOCK_PREFIX = 'productFeedback:claimLock:v1:';
 export const PRODUCT_FEEDBACK_FOLLOWUP_CONSUME_PREFIX = 'productFeedback:followUpConsume:v1:';
+
+const PRODUCT_FEEDBACK_SESSION_SCOPE_PREFIX = 'productFeedback:session:v2';
+const PRODUCT_FEEDBACK_PURGE_DURABILITY_PREFIX = 'productFeedback:purge-durability:v1';
+const PRODUCT_FEEDBACK_SESSION_INDEX_MAX_ENTRIES = 128;
+const PRODUCT_FEEDBACK_SESSION_INDEX_TTL_GRACE_SECONDS = 5 * 60;
+const PRODUCT_FEEDBACK_PURGE_DURABILITY_MARKER_TTL_SECONDS = 5 * 60;
+const PRODUCT_FEEDBACK_PURGE_AOF_TIMEOUT_MS = 5_000;
+const PRODUCT_FEEDBACK_LEGACY_SCAN_COUNT = 250;
+const PRODUCT_FEEDBACK_LEGACY_DELETE_BATCH_SIZE = 100;
+
+export const PRODUCT_FEEDBACK_SESSION_PURGE_BATCH_SIZE = 25;
+export const PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS =
+  PRODUCT_FEEDBACK_INVITE_TTL_SECONDS + PRODUCT_FEEDBACK_SESSION_INDEX_TTL_GRACE_SECONDS;
 
 const HOST_SUBJECT_ID = 'host';
 
@@ -89,20 +105,245 @@ function metaKey(sessionId: string): string {
   return `${PRODUCT_FEEDBACK_META_PREFIX}${sessionId}`;
 }
 
+function normalizeProductFeedbackSessionId(sessionId: string): string {
+  const normalized = sessionId.trim();
+  if (!normalized || normalized.includes('{') || normalized.includes('}')) {
+    throw new Error('A valid session ID is required for product-feedback invites.');
+  }
+  return normalized;
+}
+
+export function buildProductFeedbackSessionIndexKey(sessionId: string): string {
+  return `${PRODUCT_FEEDBACK_SESSION_SCOPE_PREFIX}:{${normalizeProductFeedbackSessionId(sessionId)}}:index`;
+}
+
+export function buildProductFeedbackSessionPurgeFenceKey(sessionId: string): string {
+  return `${PRODUCT_FEEDBACK_SESSION_SCOPE_PREFIX}:{${normalizeProductFeedbackSessionId(sessionId)}}:purged`;
+}
+
 function createOpaqueToken(): string {
   return randomBytes(32).toString('base64url');
 }
 
+const WRITE_INDEXED_INVITE_ARTIFACT_LUA = `
+-- product_feedback_write_indexed_artifact_v2
+if redis.call('EXISTS', KEYS[3]) == 1 then
+  return -2
+end
+local already_indexed = redis.call('SISMEMBER', KEYS[2], KEYS[1])
+if already_indexed == 0 and redis.call('SCARD', KEYS[2]) >= tonumber(ARGV[5]) then
+  return -1
+end
+local written
+if ARGV[4] == 'NX' then
+  written = redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[2], 'NX')
+  if not written then
+    local existing = redis.call('GET', KEYS[1])
+    if not existing then return 0 end
+    local decoded, payload = pcall(cjson.decode, existing)
+    if not decoded or type(payload) ~= 'table' or payload['sessionId'] ~= ARGV[6] then
+      return -3
+    end
+  end
+else
+  written = redis.call('SET', KEYS[1], ARGV[1], 'EX', ARGV[2])
+end
+redis.call('SADD', KEYS[2], KEYS[1])
+local current_index_ttl = redis.call('TTL', KEYS[2])
+if current_index_ttl < tonumber(ARGV[3]) then
+  redis.call('EXPIRE', KEYS[2], ARGV[3])
+end
+if written then return 1 end
+return 0
+`;
+
 const CLAIM_INVITE_LUA = `
+-- product_feedback_claim_invite_v2
+if redis.call('EXISTS', KEYS[4]) == 1 then return -2 end
 local raw = redis.call('GET', KEYS[1])
 if not raw or raw ~= ARGV[1] then return 0 end
 local ttl = redis.call('TTL', KEYS[1])
 if ttl <= 0 then return 0 end
+local decoded, slot = pcall(cjson.decode, raw)
+if not decoded or type(slot) ~= 'table' or slot['sessionId'] ~= ARGV[6] then return -3 end
+local additions = 0
+if redis.call('SISMEMBER', KEYS[3], KEYS[1]) == 0 then additions = additions + 1 end
+if redis.call('SISMEMBER', KEYS[3], KEYS[2]) == 0 then additions = additions + 1 end
+if redis.call('SCARD', KEYS[3]) + additions > tonumber(ARGV[5]) then return -1 end
 local created = redis.call('SET', KEYS[2], ARGV[2], 'EX', ttl, 'NX')
 if not created then return 0 end
 redis.call('SET', KEYS[1], ARGV[3], 'EX', ttl, 'XX')
+redis.call('SADD', KEYS[3], KEYS[1], KEYS[2])
+local current_index_ttl = redis.call('TTL', KEYS[3])
+if current_index_ttl < tonumber(ARGV[4]) then redis.call('EXPIRE', KEYS[3], ARGV[4]) end
 return ttl
 `;
+
+const RESERVE_INVITE_LUA = `
+-- product_feedback_reserve_invite_v2
+if redis.call('EXISTS', KEYS[4]) == 1 then return -2 end
+local raw = redis.call('GET', KEYS[1])
+if not raw or raw ~= ARGV[1] then return 0 end
+local ttl = redis.call('TTL', KEYS[1])
+if ttl <= 0 then return 0 end
+local decoded, payload = pcall(cjson.decode, raw)
+if not decoded or type(payload) ~= 'table' or payload['sessionId'] ~= ARGV[5]
+  or payload['used'] == true then return -3 end
+local additions = 0
+if redis.call('SISMEMBER', KEYS[3], KEYS[1]) == 0 then additions = additions + 1 end
+if redis.call('SISMEMBER', KEYS[3], KEYS[2]) == 0 then additions = additions + 1 end
+if redis.call('SCARD', KEYS[3]) + additions > tonumber(ARGV[4]) then return -1 end
+local created = redis.call('SET', KEYS[2], ARGV[2], 'EX', ttl, 'NX')
+if not created then return 0 end
+redis.call('SADD', KEYS[3], KEYS[1], KEYS[2])
+local current_index_ttl = redis.call('TTL', KEYS[3])
+if current_index_ttl < tonumber(ARGV[3]) then redis.call('EXPIRE', KEYS[3], ARGV[3]) end
+return 1
+`;
+
+const FINALIZE_INVITE_LUA = `
+-- product_feedback_finalize_invite_v2
+if redis.call('EXISTS', KEYS[5]) == 1 then return -2 end
+local raw = redis.call('GET', KEYS[1])
+if not raw or raw ~= ARGV[1] then return 0 end
+local ttl = redis.call('TTL', KEYS[1])
+if ttl <= 0 then return 0 end
+local decoded, payload = pcall(cjson.decode, raw)
+if not decoded or type(payload) ~= 'table' or payload['sessionId'] ~= ARGV[5] then return -3 end
+local projected = redis.call('SCARD', KEYS[4])
+if redis.call('SISMEMBER', KEYS[4], KEYS[2]) == 1 then projected = projected - 1 end
+if redis.call('SISMEMBER', KEYS[4], KEYS[3]) == 1 then projected = projected - 1 end
+if redis.call('SISMEMBER', KEYS[4], KEYS[1]) == 0 then projected = projected + 1 end
+if projected > tonumber(ARGV[4]) then return -1 end
+redis.call('SET', KEYS[1], ARGV[2], 'EX', ttl)
+redis.call('DEL', KEYS[2], KEYS[3])
+redis.call('SREM', KEYS[4], KEYS[2], KEYS[3])
+redis.call('SADD', KEYS[4], KEYS[1])
+local current_index_ttl = redis.call('TTL', KEYS[4])
+if current_index_ttl < tonumber(ARGV[3]) then redis.call('EXPIRE', KEYS[4], ARGV[3]) end
+return 1
+`;
+
+const PURGE_INDEXED_INVITE_ARTIFACTS_LUA = `
+-- product_feedback_purge_indexed_artifacts_v2
+redis.call('SET', KEYS[2], '1', 'EX', ARGV[1])
+local expected_count = tonumber(ARGV[2])
+if redis.call('SCARD', KEYS[1]) ~= expected_count then return {0, 0} end
+for index = 4, #KEYS do
+  if redis.call('SISMEMBER', KEYS[1], KEYS[index]) == 0 then return {0, 0} end
+  local raw = redis.call('GET', KEYS[index])
+  if raw then
+    local decoded, payload = pcall(cjson.decode, raw)
+    if not decoded or type(payload) ~= 'table' or payload['sessionId'] ~= ARGV[3] then
+      return {-1, 0}
+    end
+  end
+end
+local deleted = redis.call('UNLINK', KEYS[3])
+for index = 4, #KEYS do deleted = deleted + redis.call('UNLINK', KEYS[index]) end
+redis.call('DEL', KEYS[1])
+return {1, deleted}
+`;
+
+const PURGE_LEGACY_INVITE_ARTIFACTS_LUA = `
+-- product_feedback_purge_legacy_artifacts_v2
+local deleted = 0
+for index = 1, #KEYS do
+  local expected = ARGV[(index - 1) * 2 + 1]
+  local session_id = ARGV[(index - 1) * 2 + 2]
+  local raw = redis.call('GET', KEYS[index])
+  if raw and raw == expected then
+    local decoded, payload = pcall(cjson.decode, raw)
+    if decoded and type(payload) == 'table' and payload['sessionId'] == session_id then
+      deleted = deleted + redis.call('UNLINK', KEYS[index])
+    end
+  end
+end
+return deleted
+`;
+
+function assertInviteIndexCapacityResult(result: number): void {
+  if (result === -1) {
+    throw new Error('PRODUCT_FEEDBACK_SESSION_INDEX_CAPACITY_EXCEEDED');
+  }
+  if (result === -3) {
+    throw new Error('PRODUCT_FEEDBACK_SESSION_ARTIFACT_SCOPE_MISMATCH');
+  }
+}
+
+async function writeIndexedInviteArtifact(input: {
+  redis: Redis;
+  sessionId: string;
+  key: string;
+  payload: string;
+  ttlSeconds: number;
+  mode: 'NX' | 'SET';
+}): Promise<'created' | 'existing' | 'fenced'> {
+  const sessionId = normalizeProductFeedbackSessionId(input.sessionId);
+  const result = Number(
+    await input.redis.eval(
+      WRITE_INDEXED_INVITE_ARTIFACT_LUA,
+      3,
+      input.key,
+      buildProductFeedbackSessionIndexKey(sessionId),
+      buildProductFeedbackSessionPurgeFenceKey(sessionId),
+      input.payload,
+      String(input.ttlSeconds),
+      String(PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS),
+      input.mode,
+      String(PRODUCT_FEEDBACK_SESSION_INDEX_MAX_ENTRIES),
+      sessionId,
+    ),
+  );
+  assertInviteIndexCapacityResult(result);
+  if (result === -2) return 'fenced';
+  if (result === 1) return 'created';
+  if (result === 0) return 'existing';
+  throw new Error('PRODUCT_FEEDBACK_SESSION_ARTIFACT_WRITE_FAILED');
+}
+
+function parseInvitePayload(raw: string): ProductFeedbackInvitePayload | null {
+  try {
+    const payload = JSON.parse(raw) as ProductFeedbackInvitePayload;
+    if (
+      !payload ||
+      typeof payload !== 'object' ||
+      typeof payload.sessionId !== 'string' ||
+      normalizeProductFeedbackSessionId(payload.sessionId) !== payload.sessionId
+    ) {
+      return null;
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+async function readInviteRecord(
+  inviteToken: string,
+  options: { includeUsed?: boolean } = {},
+): Promise<{
+  key: string;
+  raw: string;
+  payload: ProductFeedbackInvitePayload;
+} | null> {
+  const redis = getRedis();
+  const key = tokenKey(hashToken(inviteToken));
+  const firstRaw = await redis.get(key);
+  if (!firstRaw) return null;
+  const payload = parseInvitePayload(firstRaw);
+  if (!payload || (payload.used && !options.includeUsed)) return null;
+
+  // Der zweite, atomare Read bindet den Payload an die Fence. Beginnt der
+  // Session-Purge zwischen beiden Reads, darf weder Survey noch Submit den
+  // zuvor gelesenen Bearer weiterverwenden.
+  const [stableRaw, fence] = await redis.mget(
+    key,
+    buildProductFeedbackSessionPurgeFenceKey(payload.sessionId),
+  );
+  if (fence !== null || stableRaw !== firstRaw) return null;
+  return { key, raw: firstRaw, payload };
+}
 
 /** Stabile Stichprobe: sortierte IDs + Hash(sessionId|id) Ranking. */
 export function sampleParticipantIds(sessionId: string, eligibleIds: string[]): string[] {
@@ -331,26 +572,36 @@ export async function createInviteTokensForSession(
           : {}),
       };
       // Nur Eignungsdaten und ein Hash — kein Klartext-Bearer im Slot.
-      return redis.set(slotKeys[i]!, JSON.stringify(slotPayload), 'EX', ttl, 'NX');
+      return writeIndexedInviteArtifact({
+        redis,
+        sessionId,
+        key: slotKeys[i]!,
+        payload: JSON.stringify(slotPayload),
+        ttlSeconds: ttl,
+        mode: 'NX',
+      });
     }),
   );
   for (let i = 0; i < pending.length; i += 1) {
-    if (createResults[i] !== 'OK') continue;
+    if (createResults[i] !== 'created') continue;
     if (pending[i]!.role === 'HOST') hostInvite = true;
     else participantInvites += 1;
   }
 
-  await redis.set(
-    metaKey(sessionId),
-    JSON.stringify({
+  await writeIndexedInviteArtifact({
+    redis,
+    sessionId,
+    key: metaKey(sessionId),
+    payload: JSON.stringify({
+      sessionId,
       invitedParticipants: participantInvites,
       eligibleParticipants: eligibleIds.length,
       hostInvite,
       issuedAt: new Date().toISOString(),
     }),
-    'EX',
-    ttl,
-  );
+    ttlSeconds: ttl,
+    mode: 'SET',
+  });
 
   // Nur tatsächlich neu gesetzte Slots zählen.
   await recordProductFeedbackInviteIssuance({ participantInvites, hostInvite }).catch(
@@ -380,7 +631,14 @@ export async function claimProductFeedbackInvite(params: {
   } catch {
     return null;
   }
-  if (slotPayload.claimed) return null;
+  if (
+    slotPayload.claimed ||
+    slotPayload.sessionId !== params.sessionId ||
+    slotPayload.role !== params.role ||
+    slotPayload.subjectId !== params.subjectId
+  ) {
+    return null;
+  }
   if (
     params.role === 'PARTICIPANT' &&
     (!params.participantClaimToken ||
@@ -405,29 +663,28 @@ export async function claimProductFeedbackInvite(params: {
   const claimedSlot: ProductFeedbackSlotPayload = { ...slotPayload, claimed: true };
   const result = await redis.eval(
     CLAIM_INVITE_LUA,
-    2,
+    4,
     slot,
     tokenKey(hashToken(token)),
+    buildProductFeedbackSessionIndexKey(params.sessionId),
+    buildProductFeedbackSessionPurgeFenceKey(params.sessionId),
     raw,
     JSON.stringify(invitePayload),
     JSON.stringify(claimedSlot),
+    String(PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS),
+    String(PRODUCT_FEEDBACK_SESSION_INDEX_MAX_ENTRIES),
+    params.sessionId,
   );
-  return Number(result) > 0 ? token : null;
+  const status = Number(result);
+  assertInviteIndexCapacityResult(status);
+  return status > 0 ? token : null;
 }
 
 export async function getInvitePayloadByToken(
   inviteToken: string,
   options: { includeUsed?: boolean } = {},
 ): Promise<ProductFeedbackInvitePayload | null> {
-  const raw = await getRedis().get(tokenKey(hashToken(inviteToken)));
-  if (!raw) return null;
-  try {
-    const payload = JSON.parse(raw) as ProductFeedbackInvitePayload;
-    if (payload.used && !options.includeUsed) return null;
-    return payload;
-  } catch {
-    return null;
-  }
+  return (await readInviteRecord(inviteToken, options))?.payload ?? null;
 }
 
 /**
@@ -439,21 +696,26 @@ export async function reserveInviteForSubmit(
 ): Promise<ProductFeedbackInvitePayload | null> {
   const redis = getRedis();
   const tokenHash = hashToken(inviteToken);
-  const claimed = await redis.set(
-    consumeKey(tokenHash),
-    '1',
-    'EX',
-    PRODUCT_FEEDBACK_INVITE_TTL_SECONDS,
-    'NX',
+  const record = await readInviteRecord(inviteToken);
+  if (!record) return null;
+  const sessionId = record.payload.sessionId;
+  const result = Number(
+    await redis.eval(
+      RESERVE_INVITE_LUA,
+      4,
+      record.key,
+      consumeKey(tokenHash),
+      buildProductFeedbackSessionIndexKey(sessionId),
+      buildProductFeedbackSessionPurgeFenceKey(sessionId),
+      record.raw,
+      JSON.stringify({ sessionId }),
+      String(PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS),
+      String(PRODUCT_FEEDBACK_SESSION_INDEX_MAX_ENTRIES),
+      sessionId,
+    ),
   );
-  if (claimed !== 'OK') return null;
-
-  const payload = await getInvitePayloadByToken(inviteToken);
-  if (!payload) {
-    await redis.del(consumeKey(tokenHash));
-    return null;
-  }
-  return payload;
+  assertInviteIndexCapacityResult(result);
+  return result === 1 ? record.payload : null;
 }
 
 export async function releaseInviteReservation(inviteToken: string): Promise<void> {
@@ -464,17 +726,32 @@ export async function releaseInviteReservation(inviteToken: string): Promise<voi
 export async function finalizeInviteUsed(
   inviteToken: string,
   payload: ProductFeedbackInvitePayload,
-): Promise<void> {
+): Promise<boolean> {
   const redis = getRedis();
   const key = tokenKey(hashToken(inviteToken));
+  const raw = await redis.get(key);
+  if (!raw) return false;
+  const current = parseInvitePayload(raw);
+  if (!current || current.sessionId !== payload.sessionId) return false;
   const usedPayload: ProductFeedbackInvitePayload = { ...payload, used: true };
-  const ttl = await redis.ttl(key);
-  if (ttl > 0) {
-    await redis.set(key, JSON.stringify(usedPayload), 'EX', ttl);
-  } else {
-    await redis.set(key, JSON.stringify(usedPayload), 'EX', PRODUCT_FEEDBACK_INVITE_TTL_SECONDS);
-  }
-  await redis.del(slotKey(payload.sessionId, payload.role, payload.subjectId));
+  const result = Number(
+    await redis.eval(
+      FINALIZE_INVITE_LUA,
+      5,
+      key,
+      slotKey(payload.sessionId, payload.role, payload.subjectId),
+      consumeKey(hashToken(inviteToken)),
+      buildProductFeedbackSessionIndexKey(payload.sessionId),
+      buildProductFeedbackSessionPurgeFenceKey(payload.sessionId),
+      raw,
+      JSON.stringify(usedPayload),
+      String(PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS),
+      String(PRODUCT_FEEDBACK_SESSION_INDEX_MAX_ENTRIES),
+      payload.sessionId,
+    ),
+  );
+  assertInviteIndexCapacityResult(result);
+  return result === 1;
 }
 
 /** @deprecated Prefer reserveInviteForSubmit + finalizeInviteUsed */
@@ -483,8 +760,241 @@ export async function markInviteUsed(
 ): Promise<{ payload: ProductFeedbackInvitePayload; consumed: boolean } | null> {
   const payload = await reserveInviteForSubmit(inviteToken);
   if (!payload) return null;
-  await finalizeInviteUsed(inviteToken, payload);
-  return { payload, consumed: true };
+  const consumed = await finalizeInviteUsed(inviteToken, payload);
+  return { payload, consumed };
+}
+
+interface RedisDurabilityContext {
+  readonly clientId: string;
+  readonly serverRunId: string;
+}
+
+function requiresProductFeedbackPurgeDurability(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' ||
+    process.env.PRODUCT_FEEDBACK_PURGE_REQUIRE_DURABILITY === '1'
+  );
+}
+
+async function readRedisClientId(redis: Redis): Promise<string> {
+  const clientId = String(await redis.call('CLIENT', 'ID'));
+  if (!/^[1-9]\d*$/.test(clientId)) {
+    throw new Error('PRODUCT_FEEDBACK_PURGE_DURABILITY_UNAVAILABLE');
+  }
+  return clientId;
+}
+
+async function readRedisServerRunId(redis: Redis): Promise<string> {
+  const info = String(await redis.call('INFO', 'server'));
+  const runId = info.match(/(?:^|\r?\n)run_id:([0-9a-f]{40})(?:\r?\n|$)/i)?.[1];
+  if (!runId) throw new Error('PRODUCT_FEEDBACK_PURGE_DURABILITY_UNAVAILABLE');
+  return runId.toLowerCase();
+}
+
+async function readRedisDurabilityContext(redis: Redis): Promise<RedisDurabilityContext> {
+  const clientId = await readRedisClientId(redis);
+  const serverRunId = await readRedisServerRunId(redis);
+  const verifiedClientId = await readRedisClientId(redis);
+  if (verifiedClientId !== clientId) {
+    throw new Error('PRODUCT_FEEDBACK_PURGE_DURABILITY_UNAVAILABLE');
+  }
+  return { clientId, serverRunId };
+}
+
+function sameRedisDurabilityContext(
+  left: RedisDurabilityContext,
+  right: RedisDurabilityContext,
+): boolean {
+  return left.clientId === right.clientId && left.serverRunId === right.serverRunId;
+}
+
+async function beginProductFeedbackPurgeDurability(
+  redis: Redis,
+): Promise<RedisDurabilityContext | null> {
+  return requiresProductFeedbackPurgeDurability() ? readRedisDurabilityContext(redis) : null;
+}
+
+async function awaitProductFeedbackPurgeDurability(
+  redis: Redis,
+  expectedContext: RedisDurabilityContext | null,
+): Promise<void> {
+  if (expectedContext === null) return;
+  const beforeMarker = await readRedisDurabilityContext(redis);
+  if (!sameRedisDurabilityContext(beforeMarker, expectedContext)) {
+    throw new Error('PRODUCT_FEEDBACK_PURGE_DURABILITY_UNAVAILABLE');
+  }
+  await redis.set(
+    `${PRODUCT_FEEDBACK_PURGE_DURABILITY_PREFIX}:${randomUUID()}`,
+    randomUUID(),
+    'EX',
+    PRODUCT_FEEDBACK_PURGE_DURABILITY_MARKER_TTL_SECONDS,
+  );
+  const result = (await redis.call(
+    'WAITAOF',
+    1,
+    0,
+    PRODUCT_FEEDBACK_PURGE_AOF_TIMEOUT_MS,
+  )) as unknown;
+  const afterWait = await readRedisDurabilityContext(redis);
+  if (
+    !Array.isArray(result) ||
+    Number(result[0]) < 1 ||
+    !sameRedisDurabilityContext(afterWait, expectedContext)
+  ) {
+    throw new Error('PRODUCT_FEEDBACK_PURGE_DURABILITY_UNAVAILABLE');
+  }
+}
+
+function isProductFeedbackIndexedArtifactKey(key: string, sessionId: string): boolean {
+  return (
+    key === metaKey(sessionId) ||
+    key.startsWith(PRODUCT_FEEDBACK_SLOT_PREFIX) ||
+    key.startsWith(PRODUCT_FEEDBACK_TOKEN_PREFIX) ||
+    key.startsWith(PRODUCT_FEEDBACK_CONSUME_PREFIX)
+  );
+}
+
+async function purgeIndexedInviteArtifactsForSession(
+  redis: Redis,
+  rawSessionId: string,
+): Promise<number> {
+  const sessionId = normalizeProductFeedbackSessionId(rawSessionId);
+  const indexKey = buildProductFeedbackSessionIndexKey(sessionId);
+  const fenceKey = buildProductFeedbackSessionPurgeFenceKey(sessionId);
+
+  // Die Fence wird vor jeglichem Index-/Legacy-Read gesetzt. Damit ist der
+  // Mitgliedersatz für alle v2-Writer stabil und ein Fehler blockiert den
+  // fachlichen Session-Delete weiterhin fail-closed.
+  await redis.set(fenceKey, '1', 'EX', PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS);
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const indexedKeys = await redis.smembers(indexKey);
+    if (
+      indexedKeys.length > PRODUCT_FEEDBACK_SESSION_INDEX_MAX_ENTRIES ||
+      !indexedKeys.every((key) => isProductFeedbackIndexedArtifactKey(key, sessionId))
+    ) {
+      throw new Error('PRODUCT_FEEDBACK_SESSION_INDEX_SCOPE_MISMATCH');
+    }
+    const result = await redis.eval(
+      PURGE_INDEXED_INVITE_ARTIFACTS_LUA,
+      3 + indexedKeys.length,
+      indexKey,
+      fenceKey,
+      metaKey(sessionId),
+      ...indexedKeys,
+      String(PRODUCT_FEEDBACK_SESSION_PURGE_FENCE_TTL_SECONDS),
+      String(indexedKeys.length),
+      sessionId,
+    );
+    if (!Array.isArray(result) || result.length !== 2) {
+      throw new Error('PRODUCT_FEEDBACK_SESSION_PURGE_FAILED');
+    }
+    const status = Number(result[0]);
+    const deleted = Number(result[1]);
+    if (status === -1) throw new Error('PRODUCT_FEEDBACK_SESSION_INDEX_SCOPE_MISMATCH');
+    if (status === 1 && Number.isSafeInteger(deleted) && deleted >= 0) return deleted;
+    if (status !== 0) throw new Error('PRODUCT_FEEDBACK_SESSION_PURGE_FAILED');
+  }
+  throw new Error('PRODUCT_FEEDBACK_SESSION_INDEX_CHANGED_DURING_PURGE');
+}
+
+async function purgeLegacyInviteArtifacts(
+  redis: Redis,
+  sessionIds: readonly string[],
+): Promise<number> {
+  const targeted = new Set(sessionIds);
+  let deleted = 0;
+  for (const pattern of [`${PRODUCT_FEEDBACK_SLOT_PREFIX}*`, `${PRODUCT_FEEDBACK_TOKEN_PREFIX}*`]) {
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        PRODUCT_FEEDBACK_LEGACY_SCAN_COUNT,
+      );
+      cursor = nextCursor;
+      for (
+        let offset = 0;
+        offset < keys.length;
+        offset += PRODUCT_FEEDBACK_LEGACY_DELETE_BATCH_SIZE
+      ) {
+        const batchKeys = keys.slice(offset, offset + PRODUCT_FEEDBACK_LEGACY_DELETE_BATCH_SIZE);
+        const values = await redis.mget(...batchKeys);
+        const candidates: Array<{ key: string; raw: string; sessionId: string }> = [];
+        for (let index = 0; index < batchKeys.length; index += 1) {
+          const raw = values[index];
+          if (!raw) continue;
+          try {
+            const parsed = JSON.parse(raw) as { sessionId?: unknown };
+            if (typeof parsed.sessionId !== 'string' || !targeted.has(parsed.sessionId)) continue;
+            candidates.push({ key: batchKeys[index]!, raw, sessionId: parsed.sessionId });
+          } catch {
+            // Ohne beweisbare sessionId darf ein globaler Legacy-Key nicht
+            // einem beliebigen Session-Purge zugeordnet werden.
+          }
+        }
+        if (candidates.length === 0) continue;
+        const result = Number(
+          await redis.eval(
+            PURGE_LEGACY_INVITE_ARTIFACTS_LUA,
+            candidates.length,
+            ...candidates.map(({ key }) => key),
+            ...candidates.flatMap(({ raw, sessionId }) => [raw, sessionId]),
+          ),
+        );
+        if (!Number.isSafeInteger(result) || result < 0) {
+          throw new Error('PRODUCT_FEEDBACK_LEGACY_PURGE_FAILED');
+        }
+        deleted += result;
+      }
+    } while (cursor !== '0');
+  }
+  return deleted;
+}
+
+/**
+ * Setzt dauerhafte sessionId-Fences, entfernt den v2-Index atomar und migriert
+ * vorindexierte Slot-/Token-Payloads über einen validierten, paginierten Scan.
+ * Pro AOF-Barriere werden höchstens 25 Sessions verarbeitet.
+ */
+export async function purgeProductFeedbackInvitesForSessions(
+  sessionIds: readonly string[],
+): Promise<number> {
+  const uniqueSessionIds = [...new Set(sessionIds.map(normalizeProductFeedbackSessionId))];
+  if (uniqueSessionIds.length === 0) return 0;
+  const redis = getRedis();
+  let deleted = 0;
+  for (
+    let offset = 0;
+    offset < uniqueSessionIds.length;
+    offset += PRODUCT_FEEDBACK_SESSION_PURGE_BATCH_SIZE
+  ) {
+    const chunk = uniqueSessionIds.slice(
+      offset,
+      offset + PRODUCT_FEEDBACK_SESSION_PURGE_BATCH_SIZE,
+    );
+    const durabilityContext = await beginProductFeedbackPurgeDurability(redis);
+    const results = await Promise.allSettled(
+      chunk.map((sessionId) => purgeIndexedInviteArtifactsForSession(redis, sessionId)),
+    );
+    const failed = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failed) throw failed.reason;
+    deleted += results.reduce(
+      (sum, result) => sum + (result.status === 'fulfilled' ? result.value : 0),
+      0,
+    );
+    deleted += await purgeLegacyInviteArtifacts(redis, chunk);
+    await awaitProductFeedbackPurgeDurability(redis, durabilityContext);
+  }
+  return deleted;
+}
+
+export async function purgeProductFeedbackInvitesForSession(sessionId: string): Promise<number> {
+  return purgeProductFeedbackInvitesForSessions([sessionId]);
 }
 
 export async function createFollowUpCapability(

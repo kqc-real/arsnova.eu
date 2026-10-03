@@ -66,6 +66,7 @@ vi.mock('../lib/participantAuth', () => ({
 
 import {
   invalidateJoinCachesForCode,
+  invalidateSessionCachesForCode,
   resetParticipantNicknameCacheForTests,
   resetSessionReadCachesForTests,
   sessionRouter,
@@ -289,6 +290,42 @@ describe('session participant access (Story 2.2)', () => {
 
     expect(first).toEqual(second);
     expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it('cached nach einer Purge-Invalidierung keine verspätet gelesenen Nicknames erneut', async () => {
+    let resolveLookup!: (value: {
+      id: string;
+      code: string;
+      onboardingAnonymousMode: boolean;
+      _count: { participants: number };
+      participants: Array<{ nickname: string }>;
+    }) => void;
+    const pendingLookup = new Promise<Parameters<typeof resolveLookup>[0]>((resolve) => {
+      resolveLookup = resolve;
+    });
+    prismaMock.session.findUnique
+      .mockImplementationOnce(() => pendingLookup)
+      .mockResolvedValueOnce(null);
+
+    const startedBeforePurge = caller.getParticipantNicknames({ code: 'ABC123' });
+    await vi.waitFor(() => expect(prismaMock.session.findUnique).toHaveBeenCalledOnce());
+    invalidateSessionCachesForCode('ABC123');
+    resolveLookup({
+      id: SESSION_ID,
+      code: 'ABC123',
+      onboardingAnonymousMode: false,
+      _count: { participants: 1 },
+      participants: [{ nickname: 'Ada Lovelace' }],
+    });
+
+    await expect(startedBeforePurge).resolves.toEqual({
+      nicknames: ['Ada Lovelace'],
+      participantCount: 1,
+    });
+    await expect(caller.getParticipantNicknames({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
   });
 
   trpcDodIt(

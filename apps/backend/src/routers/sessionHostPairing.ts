@@ -57,7 +57,7 @@ function throwPairingError(error: unknown): never {
   throw error;
 }
 
-async function assertLiveSession(code: string): Promise<void> {
+async function assertLiveSession(code: string): Promise<{ id: string }> {
   const session = await prisma.session.findUnique({
     where: { code },
     select: { id: true, status: true },
@@ -71,6 +71,7 @@ async function assertLiveSession(code: string): Promise<void> {
       message: 'Die Veranstaltung ist bereits beendet.',
     });
   }
+  return { id: session.id };
 }
 
 function throwIfLimited(limit: { allowed: boolean; retryAfterSeconds?: number }): void {
@@ -90,9 +91,10 @@ export const sessionHostPairingRouter = router({
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       throwIfLimited(await checkHostPairingInviteRate(code));
-      await assertLiveSession(code);
+      const session = await assertLiveSession(code);
       try {
         const created = await createHostPairingInvite({
+          sessionId: session.id,
           sessionCode: code,
           screenVisibility: input.screenVisibility,
         });
@@ -115,9 +117,10 @@ export const sessionHostPairingRouter = router({
     .mutation(async ({ ctx, input }) => {
       throwIfLimited(await checkHostPairingRequestRate(getClientIp(ctx)));
       const code = input.code.toUpperCase();
-      await assertLiveSession(code);
+      const session = await assertLiveSession(code);
       try {
         const requested = await requestHostPairing({
+          sessionId: session.id,
           sessionCode: code,
           pairingSecret: input.pairingSecret,
           deviceLabel: input.deviceLabel,
@@ -141,8 +144,10 @@ export const sessionHostPairingRouter = router({
     .query(async ({ ctx, input }) => {
       throwIfLimited(await checkHostPairingClaimRate(getClientIp(ctx)));
       const code = input.code.toUpperCase();
+      const session = await assertLiveSession(code);
       try {
         return await getHostPairingRequest({
+          sessionId: session.id,
           sessionCode: code,
           requestId: input.requestId,
           requestSecret: input.requestSecret,
@@ -158,9 +163,10 @@ export const sessionHostPairingRouter = router({
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       throwIfLimited(await checkHostPairingDecisionRate(code));
-      await assertLiveSession(code);
+      const session = await assertLiveSession(code);
       try {
         const approved = await approveHostPairing({
+          sessionId: session.id,
           sessionCode: code,
           requestId: input.requestId,
         });
@@ -181,8 +187,10 @@ export const sessionHostPairingRouter = router({
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       throwIfLimited(await checkHostPairingDecisionRate(code));
+      const session = await assertLiveSession(code);
       try {
         await rejectHostPairing({
+          sessionId: session.id,
           sessionCode: code,
           requestId: input.requestId,
         });
@@ -198,8 +206,10 @@ export const sessionHostPairingRouter = router({
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       throwIfLimited(await checkHostPairingDecisionRate(code));
+      const session = await assertLiveSession(code);
       try {
         await revokePairedHost({
+          sessionId: session.id,
           sessionCode: code,
           tokenId: input.tokenId,
         });
@@ -214,7 +224,8 @@ export const sessionHostPairingRouter = router({
     .output(ListPairedHostsOutputSchema)
     .query(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const state = await listHostPairingState(code);
+      const session = await assertLiveSession(code);
+      const state = await listHostPairingState(code, session.id);
       return {
         devices: state.pairedHosts.map((device) => ({
           tokenId: device.tokenId,

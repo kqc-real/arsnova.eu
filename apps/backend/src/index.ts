@@ -9,7 +9,7 @@ import express from 'express';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
 import { appRouter } from './routers';
-import { getRedis, closeRedis } from './redis';
+import { beginRedisShutdown, getRedis, closeRedis } from './redis';
 import { disconnectDatabase } from './db';
 import { logger } from './lib/logger';
 import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
@@ -27,6 +27,7 @@ import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 import { createCspReportRouter } from './lib/cspReportIngest';
 import { createCspReportOnlyMiddleware } from './lib/cspReportOnly';
 import { createHttpCorsMiddleware } from './lib/httpCors';
+import { beginWordCloudAnalysisCacheShutdown } from './lib/wordCloudAnalysisCache';
 import {
   assertYjsShareTokenSecretConfigured,
   getYjsShareLegacyUuidCutoffAt,
@@ -248,22 +249,34 @@ yjsRelay.listen(() => {
 
 let shuttingDown = false;
 
+function closeHttpServer(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.close((error) => (error ? reject(error) : resolve()));
+  });
+}
+
 async function shutdown(): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
+  // Ab jetzt darf kein nachlaufender Encoder-/Normalizer-Request mehr einen
+  // persistierten Snapshot schreiben. HTTP wird sofort für neue Requests
+  // geschlossen; bestehende Requests drainen vor Redis/DB-Shutdown.
+  beginWordCloudAnalysisCacheShutdown();
+  const httpDrain = closeHttpServer();
   stopSessionCleanupScheduler();
   stopQaPlatformProjectionScheduler();
   await stopWebSocketTelemetryClusterPublisher();
   await stopUsageStatisticOutboxScheduler();
   wsHandler.broadcastReconnectNotification();
-  server.close();
   await Promise.all([
+    httpDrain,
     trpcWebSocketServer.close(),
     yjsRelay.close(),
     shutdownAbuseTelemetry(),
     shutdownPdfTelemetry(),
     stopSessionPurgeInvalidationSubscriber(),
   ]);
+  beginRedisShutdown();
   await closeRedis();
   await disconnectDatabase();
   process.exit(0);

@@ -74,6 +74,9 @@ zugehörigen Controlled-Clock-Unit- und Frontendtests laufen im normalen
 Backend-/Frontend-Testjob. Der Retention-Test prüft zusätzlich die
 14-Tage-/Legal-Hold-Bridge für alte Cleanup-Images, Cascade und Set-Null,
 Audit-Minimierung, Invite-Job-Löschung sowie die getrennten 90-/365-Tage-TTLs.
+Der Orphan-Scope-PostgreSQL-Test prüft zusätzlich die gemeinsame
+Sessionzeilensperre für Parent-Quiz-Löschung und späte FK-lose Audit-/Invite-
+Writer.
 
 ### Capabilities und Q&A-Skalierungsinvarianten (PostgreSQL + Redis)
 
@@ -323,6 +326,66 @@ npm run test:wordcloud-encoder
 npm run test:wordcloud-encoder-compose
 ```
 
+Die atomare Write-Fence, Session-ID-Isolation, Code-Wiederverwendung und die
+getrennten Runtime-/Rollout-Sweeps mit echtem Redis 7 prüfen:
+
+```bash
+RUN_REDIS_WORD_CLOUD_CACHE_TESTS=1 WORD_CLOUD_PURGE_REQUIRE_DURABILITY=1 \
+  npm run test -w @arsnova/backend -- --run \
+  src/lib/wordCloudAnalysisCache.redis.test.ts
+```
+
+CI führt zusätzlich `wordCloudAnalysisCache.durability.redis.test.ts` in einem
+eigenen Redis-Crashzyklus aus. Derselbe Prepare-/Verify-Zyklus prüft auch den
+sessiongebundenen Blitzlicht-Purge: sechs `qf:*`-Daten-Keys und die Fence müssen
+nach `WAITAOF`, `SIGKILL` und Redis-Neustart dauerhaft gelöscht bzw. erhalten
+bleiben, während `qf:host:*` unberührt bleibt. Derselbe Test belegt den
+Rollout-Cutover eines sessiongebundenen Altwerts ohne `sessionId`. Der Zyklus
+prüft außerdem, dass sessionbezogene ProductFeedback-Slots, Tokens,
+Reservierungen und Metadaten gelöscht bleiben, die Fence erhalten bleibt und
+eine bereits anonymisierte Follow-up-Capability nicht mit der
+Session-Bereinigung entfernt wird. Lokal entsprechen die CI-Opt-ins:
+
+```bash
+QUICK_FEEDBACK_PURGE_REQUIRE_DURABILITY=1 \
+  npm run test -w @arsnova/backend -- --run \
+  src/lib/quickFeedbackSessionPurge.test.ts
+
+PRODUCT_FEEDBACK_PURGE_REQUIRE_DURABILITY=1 \
+  npm run test -w @arsnova/backend -- --run \
+  src/lib/productFeedbackTokens.purge.test.ts
+```
+
+Im selben Crashzyklus prüft
+`sessionRuntimeDataPurge.durability.redis.test.ts`, dass Presence und
+Lesebereitschaft nach der AOF-bestätigten Session-ID-Fence weder durch den
+Redis-Neustart noch durch einen Late-Writer zurückkehren. Die Unit-/Race-Suite
+läuft lokal mit:
+
+```bash
+SESSION_RUNTIME_DATA_PURGE_REQUIRE_DURABILITY=1 \
+  npm run test -w @arsnova/backend -- --run \
+  src/lib/sessionRuntimeDataPurge.test.ts
+```
+
+Zusätzlich läuft `hostPairingSessionPurge.durability.redis.test.ts` im ersten
+Crashzyklus. Er prüft, dass Pairing-Record, begrenzter Artefaktindex,
+Token-Lookup und Claim dauerhaft entfernt bleiben, die Session-ID-Fence den
+Neustart überlebt und ein Late Writer keinen neuen Pairing-Record anlegt. Die
+Unit-/Race-Suite läuft lokal mit:
+
+```bash
+HOST_PAIRING_PURGE_REQUIRE_DURABILITY=1 \
+  npm run test -w @arsnova/backend -- --run \
+  src/lib/hostPairingSessionPurge.test.ts
+```
+
+Prepare und AOF-Barriere, `SIGKILL`, Redis-Neustart und Verify laufen vollständig
+vor dem entsprechenden Yjs-Zyklus. So kann ein nachgelagertes Yjs-`WAITAOF` die
+vorherigen Mutationen nicht versehentlich bestätigen. Die Unit-Suite deckt
+außerdem Reconnect und geänderten Server-`run_id` zwischen Mutation und Barriere
+sowie die auf 25 Sessions begrenzten Bulk-Chunks ab.
+
 Lokal den Encoder nur bewusst starten. Auf **macOS** nicht `npm run docker:up:encoder` für Host-Node erwarten — der Socket im Volume ist unsichtbar. Stattdessen Loopback `WORD_CLOUD_ENCODER_URL=http://127.0.0.1:8790/embed`. Unter Linux im App-Container: `npm run docker:up:encoder`. Produktion: Image selbst bauen, Compose-Profil `encoder`, `WORD_CLOUD_SEMANTIC_ENABLED=true`; Rollback `WORD_CLOUD_SEMANTIC_ENABLED=false` und `stop wordcloud-encoder`. `deploy.sh` startet den Encoder nicht.
 
 ### Optionale Q&A-NLP-Kaskade (Story 8.9b)
@@ -443,7 +506,9 @@ verändert.
 
 `npm run verify:production-serving` erwartet einen laufenden Production-Serve und prüft standardmäßig `http://localhost:3000`. Für abweichende Ports oder Domains den Ziel-URL als Argument übergeben, z. B. `npm run verify:production-serving -- http://localhost:3010` oder `npm run verify:production-serving -- https://arsnova.eu`.
 
-Auf dem Server übernimmt `scripts/deploy.sh` die Reihenfolge **Digest-Image pullen → Architektur-Preflight (Host und Image müssen `arm64` sein) → Postgres/Redis starten und auf Health warten → Prisma migrate deploy (`compose run --no-deps`, Binary unter `/app/node_modules/.bin/prisma`) → überfällige Retention vollständig bereinigen (`node /app/apps/backend/dist/runRetentionCleanup.js`, kein `npm`) → App/PDF-Worker starten → Healthcheck → Digest-Nachweis → Deploy-State schreiben**. Aktuelle Produktions-Zielplattform ist **linux/arm64**; ein amd64-only GHCR-Image wird vor Migration/Container-Änderung abgebrochen ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)). `DEPLOY_IMAGE` muss die kanonische Form `ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>` haben; `ARSNOVA_IMAGE` steuert Compose für `app` und `pdf-worker` und wird in `.env.arsnova-image` persistiert (`./scripts/prod-compose.sh`). Der Deploy ist erst erfolgreich, wenn das Retention-Gate keine überfälligen Sessionkerne meldet, der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet, die Frontend-Shell unter `/de/` ausgeliefert wird und Registry-Digest, lokale Image-ID sowie laufende Container-Image-IDs übereinstimmen. **Image-Rollback** (`./scripts/deploy.sh --rollback`) stellt `previous.state` wieder her; **Recover** (`--recover`) stellt bei unvollständigem Deploy `current.state` wieder her. Beides setzt **keine** Datenbankmigrationen zurück. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
+Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`, `git cat-file`, `git checkout --detach --force` und anschließendem `git rev-parse` **vor** Start von `scripts/deploy.sh` verifiziert werden; der alte Checkout muss den neuen Helper noch nicht enthalten. Bei späteren normalen manuellen Deploys darf `scripts/deploy/checkout-deploy-sha.sh` denselben Bootstrap übernehmen. CI führt ihn immer inline aus. Auf dem Server gilt danach die Reihenfolge **Digest-Image pullen → Architektur-Preflight und Ziel-Purge-Gate prüfen (Host und Image müssen `arm64` sein; Legacy-Ziel scheitert vor Checkout) → bestehenden lokalen Redis vor einer Neuerstellung AOF-verifizieren beziehungsweise RDB→AOF live konvertieren und per WAITAOF-Neustartprobe absichern → Postgres/Redis starten und AOF/Probe/Schlüsselzahl erneut prüfen → Prisma migrate deploy (`compose run --no-deps`, Binary unter `/app/node_modules/.bin/prisma`) → kompatiblen Word-Cloud-Purge-Runner bestimmen → bisherigen App-Writer stoppen/drainen → gesamten Word-Cloud-Analysecache AOF-bestätigt löschen → überfällige Retention vollständig bereinigen (`node /app/apps/backend/dist/runRetentionCleanup.js`, kein `npm`) → denselben AOF-bestätigten Sweep wiederholen → Ziel-Candidate unmittelbar vor Start persistieren → App/PDF-Worker starten, wobei der Ziel-Entrypoint den Sweep nochmals wiederholt → Healthcheck → Digest-Nachweis → Deploy-State schreiben und Candidate entfernen**. Die RDB→AOF-Branchtests erzwingen `BGSAVE` und `CONFIG SET appendonly yes` vor jedem Infrastruktur-Recreate und prüfen Fehler/Timeout/Missing-Container fail-closed. Der zweite Deploy-Sweep deckt insbesondere den ersten Cutover ab, bei dem der alte Writer noch kein Shutdown-Write-Gate besitzt; neue Prozesse sperren Cache-Writes beim SIGTERM und drainen HTTP vor Redis. Aktuelle Produktions-Zielplattform ist **linux/arm64**; ein amd64-only GHCR-Image wird vor Migration/Container-Änderung abgebrochen ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)). `DEPLOY_IMAGE` muss die kanonische Form `ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>` haben; `ARSNOVA_IMAGE` steuert Compose für `app` und `pdf-worker` und wird in `.env.arsnova-image` persistiert (`./scripts/prod-compose.sh`). Der Deploy ist erst erfolgreich, wenn Redis-Persistenz, Cache- und Retention-Gate erfolgreich waren, der Container healthy ist, `http://127.0.0.1:3000/trpc/health.check` antwortet, die Frontend-Shell unter `/de/` ausgeliefert wird und Registry-Digest, lokale Image-ID sowie laufende Container-Image-IDs übereinstimmen.
+
+**Image-Rollback** (`./scripts/deploy.sh --rollback`) stellt nur ein gate-kompatibles `previous.state` wieder her; **Recover** (`--recover`) stellt nur ein gate-kompatibles `current.state` wieder her. Beide starten das aktuell installierte Skript ohne Vorab-Checkout, prüfen das Ziel vor dessen Checkout, berücksichtigen einen persistierten Candidate zwingend und setzen **keine** Datenbankmigrationen zurück. Beim einmaligen Cutover werden pre-Gate-Ziele absichtlich fail-closed verweigert. Ist `current.state` noch Legacy, muss derselbe kompatible Candidate erneut normal deployt oder durch ein kompatibles Forward-Fix-/Revert-Image ersetzt werden; ein älterer Candidate bleibt bis nach Drain, beiden Sweeps und Retention bindend. Die Deploy-Branchtests bilden diesen Pfad sowie Candidate bei aktivem last-known-good, Fehler vor Drain, den zweiten Sweep und Candidate-Cleanup nach State-Commit ab. Der manuelle HTTP-Smoke über `npm run verify:production-serving -- https://<domain>` ergänzt diesen Check aus Nutzerperspektive.
 
 ---
 

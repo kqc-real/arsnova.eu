@@ -36,6 +36,9 @@ vi.mock('../lib/hostPairing', () => ({
   invalidateHostPairingForSession: vi.fn(),
   findPairedHostByToken: vi.fn(async () => null),
 }));
+vi.mock('../lib/hostPairingSessionPurge', () => ({
+  purgeHostPairingForSessions: vi.fn(async () => 0),
+}));
 
 import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
 

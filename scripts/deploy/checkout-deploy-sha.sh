@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Checkt DEPLOY_SHA aus, bevor scripts/deploy.sh gestartet wird.
-# Verhindert, dass der erste Post-Merge-Deploy noch das alte 1B-Skript (compose build) ausführt.
+# Verhindert, dass ein erster Post-Merge-Deploy noch eine veraltete Reihenfolge
+# aus dem installierten Skript ausführt (z. B. Build oder Retention vor Drain).
 # shellcheck shell=bash
 set -euo pipefail
 

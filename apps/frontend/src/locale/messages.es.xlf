@@ -23407,13 +23407,17 @@
           <context context-type="linenumber">2414</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticUncertainHint" datatype="html">
-        <source>Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.</source>
-        <target>Algunos temas son inciertos. Revisa las preguntas asociadas.</target>
+      <trans-unit id="sessionWordCloud.freetextSemanticUncertainHint" datatype="html">
+        <source>Einige Themen sind unsicher. Prüfe die zugehörigen Antworten.</source>
+        <target>Algunos temas son inciertos. Revisa las respuestas asociadas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1456</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudSemanticUncertainHint" datatype="html">
+        <source>Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.</source>
+        <target>Algunos temas son inciertos. Revisa las preguntas asociadas.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2421</context>

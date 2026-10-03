@@ -142,13 +142,15 @@ Der Deploy-Job ist an **production** als GitHub Environment gebunden und führt 
 
 ### 6.1 Deploy-Ablauf (serverseitig)
 
-- Ziel-Commit holen und exakt per `DEPLOY_SHA` detached auschecken
-- Digest-Image für `app`/`pdf-worker` pullen (`compose pull` — kein Server-Build)
-- Start von Postgres/Redis
+- Normal-Deploy vor Skriptstart auf `DEPLOY_SHA` bootstrappen; Rollback/Recover lesen zuerst ihren State
+- Digest-Image für `app`/`pdf-worker` pullen, Architektur und All-Cache-Gate vor dem Ziel-Checkout prüfen (`compose pull` — kein Server-Build)
+- bestehenden Compose-Redis vor einer Neuerstellung AOF-verifizieren oder live von RDB auf AOF konvertieren; erst nach erfolgreichem Rewrite und WAITAOF-Neustartprobe Postgres/Redis starten
 - Prisma-Migrationen (`prisma migrate deploy`)
-- App-Start/Update (`prod-compose` / `compose up -d app`)
+- bisherigen App-Writer stoppen/drainen, gesamten Word-Cloud-Analysecache AOF-bestätigt purgen, Retention ausführen und den Purge wiederholen
+- bei Normal-Deploy Ziel-Candidate unmittelbar vor App-Start persistieren; App-Entrypoint wiederholt den Purge vor `exec`
+- App-Start/Update (`prod-compose` / `compose up -d app`); pre-Gate-Rollback-/Recover-Ziele bleiben fail-closed
 - Health-Wait, Digest-Nachweis, HTTP-Verifikation (`/trpc/health.check`, Frontend-Shell unter `/de/`)
-- Deploy-State (`current.state`/`previous.state`) und `.env.arsnova-image` schreiben
+- Deploy-State (`current.state`/`previous.state`) und `.env.arsnova-image` schreiben, danach Candidate entfernen
 
 ### 6.2 Betriebsdokumente
 

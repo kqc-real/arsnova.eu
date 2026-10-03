@@ -98,7 +98,7 @@ spaCy läuft als **optionaler Sidecar** hinter dem Backend, nicht im Angular-Fro
 | Lokal (Host-npm)    | `npm run dev` startet den Sidecar (`/tmp/arsnova-nlp.sock`, `NLP_ENABLED=true` nur im Backend-Prozess). Locale-Build: `npm run spacy:macos-dev`. Docker-Volume `/run/spacy/nlp.sock` ist für Host-Node unsichtbar. |
 | Limits              | 1 CPU / 1 GiB RAM / 64 PIDs, non-root, read-only                                                                                                                                                                   |
 
-Cache: Text-Cache (`locale + hash + Analyseversion`) und Snapshot-Cache (`session + Kanal + Metrik + Normalisierung + maxNgramLength + snapshotHash`). Transiente Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) und `NLP_DISABLED` werden nicht gecacht. Telemetrie loggt Dauer, Fallback und Cache-Hits ohne Rohtexte.
+Cache: Redis persistiert ausschließlich fertige, sessiongebundene Snapshots (`Session-ID + Kanal + Metrik + Normalisierung + maxNgramLength + snapshotHash`). Normalisierte Einzeltokens werden wegen ihres globalen, nicht sessiongebundenen Lebenszyklus nicht persistent gecacht; der Rollout-Sweep entfernt vorhandene Altwerte unter `nlp:wc:text:*`. Transiente Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) und `NLP_DISABLED` werden nicht gecacht. Telemetrie loggt Dauer, Fallback und Cache-Hits ohne Rohtexte.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md).
 

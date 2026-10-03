@@ -23,6 +23,7 @@ const archLib = join(repoRoot, 'scripts/deploy/lib-arch.sh');
 const deployScript = join(repoRoot, 'scripts/deploy.sh');
 const composeFile = join(repoRoot, 'docker-compose.prod.yml');
 const ciWorkflow = join(repoRoot, '.github/workflows/ci.yml');
+const deploymentGuide = join(repoRoot, 'docs/deployment-debian-root-server.md');
 
 const VALID_DIGEST = `ghcr.io/kqc-real/arsnova.eu@sha256:${'ab'.repeat(32)}`;
 const VALID_SHA = 'a'.repeat(40);
@@ -60,6 +61,361 @@ function fileMode(path) {
     { encoding: 'utf8' },
   );
   return result.stdout.trim();
+}
+
+const RUNNER_IMAGE_A = `ghcr.io/kqc-real/arsnova.eu@sha256:${'11'.repeat(32)}`;
+const RUNNER_IMAGE_B = `ghcr.io/kqc-real/arsnova.eu@sha256:${'22'.repeat(32)}`;
+const RUNNER_IMAGE_C = `ghcr.io/kqc-real/arsnova.eu@sha256:${'33'.repeat(32)}`;
+const RUNNER_IMAGE_D = `ghcr.io/kqc-real/arsnova.eu@sha256:${'44'.repeat(32)}`;
+const RUNNER_SHA_A = '1'.repeat(40);
+const RUNNER_SHA_B = '2'.repeat(40);
+const RUNNER_SHA_C = '3'.repeat(40);
+const RUNNER_SHA_D = '4'.repeat(40);
+
+function writeRunnerSnapshot(stateDir, name, image, sha) {
+  writeFileSync(join(stateDir, name), `IMAGE=${image}\nSHA=${sha}\n`);
+}
+
+function runRunnerSelectionDeploy({
+  mode,
+  current,
+  previous,
+  known,
+  candidate,
+  activeImage,
+  target,
+  initialCheckoutSha = target.sha,
+  probeOkImages = [],
+  probeErrorImages = [],
+  completeDeploy = false,
+  failAppStart = false,
+  redisMode = 'aof',
+  redisPresent = true,
+  redisRunning = true,
+  redisVolumePresent = false,
+  redisProbeValue = '1',
+  redisTimeoutSeconds = 3,
+}) {
+  const work = mkdtempSync(join(tmpdir(), `arsnova-runner-${mode}-`));
+  const bin = join(work, 'mock-bin');
+  const stateDir = join(work, '.deploy-state');
+  const mockLog = join(work, 'mock-commands.log');
+  const mockRedisAofState = join(work, '.mock-redis-aof-enabled');
+  mkdirSync(bin, { recursive: true });
+  mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
+  mkdirSync(stateDir, { mode: 0o700 });
+  copyFileSync(composeFile, join(work, 'docker-compose.prod.yml'));
+  writeMinimalProdEnv(work);
+  if (current) {
+    writeFileSync(join(work, '.env.arsnova-image'), `ARSNOVA_IMAGE=${current.image}\n`);
+  }
+
+  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh', 'lib-arch.sh']) {
+    copyFileSync(join(repoRoot, 'scripts', 'deploy', name), join(work, 'scripts', 'deploy', name));
+  }
+  copyFileSync(deployScript, join(work, 'scripts', 'deploy.sh'));
+  chmodSync(join(work, 'scripts', 'deploy.sh'), 0o755);
+
+  if (current) {
+    writeRunnerSnapshot(stateDir, 'current.state', current.image, current.sha);
+  }
+  if (previous) {
+    writeRunnerSnapshot(stateDir, 'previous.state', previous.image, previous.sha);
+  }
+  if (known) {
+    writeRunnerSnapshot(stateDir, 'wordcloud-purge-runner.state', known.image, known.sha);
+  }
+  if (candidate) {
+    writeRunnerSnapshot(
+      stateDir,
+      'wordcloud-purge-runner-candidate.state',
+      candidate.image,
+      candidate.sha,
+    );
+  }
+
+  writeFileSync(
+    join(bin, 'git'),
+    `#!/usr/bin/env bash
+set -euo pipefail
+printf 'GIT %s\\n' "$*" >>"$MOCK_LOG"
+case "$1" in
+  fetch|cat-file) exit 0 ;;
+  checkout)
+    printf '%s\\n' "\${4:?checkout sha missing}" >"$MOCK_CHECKOUT_MARKER"
+    exit 0
+    ;;
+  rev-parse)
+    if [[ -e "$MOCK_CHECKOUT_MARKER" ]]; then
+      cat "$MOCK_CHECKOUT_MARKER"
+    else
+      printf '%s\\n' "$MOCK_INITIAL_CHECKOUT_SHA"
+    fi
+    ;;
+  log) printf 'deadbeef runner selection test\\n' ;;
+  *) exit 0 ;;
+esac
+`,
+  );
+  writeFileSync(
+    join(bin, 'curl'),
+    `#!/usr/bin/env bash
+set -euo pipefail
+printf 'CURL %s\\n' "$*" >>"$MOCK_LOG"
+printf '<app-root></app-root>\\n'
+`,
+  );
+  writeFileSync(
+    join(bin, 'docker'),
+    `#!/usr/bin/env bash
+set -euo pipefail
+
+contains_image() {
+  local list="\${1:-}"
+  local image="\${2:-}"
+  [[ ",\${list}," == *",\${image},"* ]]
+}
+
+if [[ "$1" == "info" ]]; then
+  printf 'arm64\\n'
+  exit 0
+fi
+
+if [[ "$1" == "image" && "$2" == "inspect" ]]; then
+  if [[ "$*" == *"{{.Architecture}}"* ]]; then
+    printf 'arm64\\n'
+    exit 0
+  fi
+  if [[ "$*" == *"{{.Id}}"* ]]; then
+    printf 'sha256:runner-selection-test\\n'
+    exit 0
+  fi
+  if [[ "$*" == *"{{json .RepoDigests}}"* ]]; then
+    printf '["%s"]\\n' "\${!#}"
+    exit 0
+  fi
+  exit 1
+fi
+
+if [[ "$1" == "inspect" ]]; then
+  if [[ "\${!#}" == "arsnova-v3-redis" && "$*" == *"{{.State.Running}}"* ]]; then
+    if [[ "\${MOCK_REDIS_PRESENT:-0}" != "1" ]]; then
+      exit 1
+    fi
+    printf '%s\\n' "$MOCK_REDIS_RUNNING"
+    exit 0
+  fi
+  if [[ "$*" == *"{{.Config.Image}}"* ]]; then
+    printf '%s\\n' "$MOCK_ACTIVE_IMAGE"
+    exit 0
+  fi
+  if [[ "$*" == *"{{.State.Running}}"* ]]; then
+    printf 'false\\n'
+    exit 0
+  fi
+  if [[ "$*" == *"{{.Image}}"* ]]; then
+    printf 'sha256:runner-selection-test\\n'
+    exit 0
+  fi
+  exit 1
+fi
+
+if [[ "$1" == "start" && "$2" == "arsnova-v3-redis" ]]; then
+  printf 'REDIS START\\n' >>"$MOCK_LOG"
+  exit 0
+fi
+
+if [[ "$1" == "volume" && "$2" == "ls" ]]; then
+  printf 'REDIS VOLUME_LS\\n' >>"$MOCK_LOG"
+  if [[ "\${MOCK_REDIS_VOLUME_PRESENT:-0}" == "1" ]]; then
+    printf 'arsnovaeu_redis_data\\n'
+  fi
+  exit 0
+fi
+
+if [[ "$1" == "exec" ]]; then
+  shift
+  interactive=0
+  if [[ "\${1:-}" == "-i" ]]; then
+    interactive=1
+    shift
+  fi
+  container="\${1:-}"
+  shift || true
+  if [[ "$container" != "arsnova-v3-redis" || "\${1:-}" != "redis-cli" ]]; then
+    exit 1
+  fi
+  shift
+  if [[ "\${1:-}" == "--raw" ]]; then
+    shift
+  fi
+  if [[ "$interactive" == "1" ]]; then
+    cat >/dev/null
+    printf 'REDIS AOF_PROBE\\n' >>"$MOCK_LOG"
+    printf 'OK\\n1\\n0\\n'
+    exit 0
+  fi
+  command="\${1:-}"
+  case "$command" in
+    PING)
+      printf 'PONG\\n'
+      ;;
+    INFO)
+      printf 'REDIS INFO\\n' >>"$MOCK_LOG"
+      if [[ "$MOCK_REDIS_MODE" == "stuck" ]]; then
+        aof_enabled=1
+        aof_in_progress=1
+        aof_scheduled=0
+      elif [[ "$MOCK_REDIS_MODE" == "rdb" || "$MOCK_REDIS_MODE" == "config-fail" ]] &&
+        [[ ! -e "$MOCK_REDIS_AOF_STATE" ]]; then
+        aof_enabled=0
+        aof_in_progress=0
+        aof_scheduled=0
+      else
+        aof_enabled=1
+        aof_in_progress=0
+        aof_scheduled=0
+      fi
+      printf 'rdb_bgsave_in_progress:0\\r\\n'
+      printf 'rdb_last_bgsave_status:ok\\r\\n'
+      printf 'aof_enabled:%s\\r\\n' "$aof_enabled"
+      printf 'aof_rewrite_in_progress:%s\\r\\n' "$aof_in_progress"
+      printf 'aof_rewrite_scheduled:%s\\r\\n' "$aof_scheduled"
+      printf 'aof_last_bgrewrite_status:ok\\r\\n'
+      printf 'aof_last_write_status:ok\\r\\n'
+      ;;
+    BGSAVE)
+      printf 'REDIS BGSAVE\\n' >>"$MOCK_LOG"
+      printf 'Background saving started\\n'
+      ;;
+    CONFIG)
+      printf 'REDIS CONFIG %s %s\\n' "\${3:-}" "\${4:-}" >>"$MOCK_LOG"
+      if [[ "$MOCK_REDIS_MODE" == "config-fail" && "\${3:-}" == "appendonly" ]]; then
+        exit 1
+      fi
+      if [[ "\${3:-}" == "appendonly" && "\${4:-}" == "yes" ]]; then
+        : >"$MOCK_REDIS_AOF_STATE"
+      fi
+      printf 'OK\\n'
+      ;;
+    DBSIZE)
+      printf '42\\n'
+      ;;
+    GET)
+      printf '%s\\n' "$MOCK_REDIS_PROBE_VALUE"
+      ;;
+    *)
+      exit 1
+      ;;
+  esac
+  exit 0
+fi
+
+if [[ "$1" == "compose" ]]; then
+  args="$*"
+  if [[ "$args" == *"config --format json"* ]]; then
+    printf '{"services":{"app":{"image":"%s"},"pdf-worker":{"image":"%s"}}}\\n' \
+      "$ARSNOVA_IMAGE" "$ARSNOVA_IMAGE"
+    exit 0
+  fi
+  if [[ "$args" == *"config --quiet"* || "$args" == *" pull app pdf-worker"* ]]; then
+    exit 0
+  fi
+  if [[ "$args" == *"prisma migrate deploy"* ]]; then
+    printf 'MIGRATE %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    exit 0
+  fi
+  if [[ "$args" == *"app node /app/apps/backend/dist/runWordCloudCacheMigration.js"* ]]; then
+    printf 'RUN %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    exit 0
+  fi
+  if [[ "$args" == *"app sh -eu -c"* && "$args" == *"runWordCloudCacheMigration.js"* ]]; then
+    printf 'PROBE %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    if contains_image "\${MOCK_PROBE_ERROR_IMAGES:-}" "$ARSNOVA_IMAGE"; then
+      exit 71
+    fi
+    if contains_image "\${MOCK_PROBE_OK_IMAGES:-}" "$ARSNOVA_IMAGE"; then
+      exit 0
+    fi
+    exit 42
+  fi
+  if [[ "$args" == *" stop app"* ]]; then
+    printf 'STOP %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    exit 0
+  fi
+  if [[ "$args" == *"runRetentionCleanup.js"* ]]; then
+    printf 'RETENTION %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    if [[ "\${MOCK_COMPLETE_DEPLOY:-0}" == "1" ]]; then
+      exit 0
+    fi
+    exit 73
+  fi
+  if [[ "$args" == *" up -d --wait postgres redis"* ]]; then
+    printf 'INFRA %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    exit 0
+  fi
+  if [[ "$args" == *" up -d pdf-worker app"* ]]; then
+    printf 'START %s\\n' "$ARSNOVA_IMAGE" >>"$MOCK_LOG"
+    if [[ "\${MOCK_FAIL_APP_START:-0}" == "1" ]]; then
+      exit 74
+    fi
+    exit 0
+  fi
+  if [[ "$args" == *" ps app --format json"* ]]; then
+    printf '{"Health":"healthy"}\\n'
+    exit 0
+  fi
+  exit 0
+fi
+
+exit 1
+`,
+  );
+  for (const name of ['git', 'curl', 'docker']) {
+    chmodSync(join(bin, name), 0o755);
+  }
+
+  const baseEnv = {
+    ...process.env,
+    PATH: `${bin}:${process.env.PATH}`,
+    DEPLOY_DIR: work,
+    DEPLOY_BRANCH: 'main',
+    DEPLOY_IMAGE: mode === 'normal' ? target.image : '',
+    DEPLOY_SHA: mode === 'normal' ? target.sha : '',
+    MOCK_ACTIVE_IMAGE: activeImage ?? '',
+    MOCK_INITIAL_CHECKOUT_SHA: initialCheckoutSha,
+    MOCK_CHECKOUT_MARKER: join(work, '.mock-checkout-complete'),
+    MOCK_LOG: mockLog,
+    MOCK_PROBE_OK_IMAGES: probeOkImages.join(','),
+    MOCK_PROBE_ERROR_IMAGES: probeErrorImages.join(','),
+    MOCK_COMPLETE_DEPLOY: completeDeploy ? '1' : '0',
+    MOCK_FAIL_APP_START: failAppStart ? '1' : '0',
+    MOCK_REDIS_MODE: redisMode,
+    MOCK_REDIS_PRESENT: redisPresent ? '1' : '0',
+    MOCK_REDIS_RUNNING: redisRunning ? 'true' : 'false',
+    MOCK_REDIS_VOLUME_PRESENT: redisVolumePresent ? '1' : '0',
+    MOCK_REDIS_PROBE_VALUE: redisProbeValue,
+    MOCK_REDIS_AOF_STATE: mockRedisAofState,
+    REDIS_AOF_MIGRATION_TIMEOUT_SECONDS: String(redisTimeoutSeconds),
+  };
+  const runDeploy = (nextMode = mode) => {
+    const args = [join(work, 'scripts', 'deploy.sh')];
+    if (nextMode !== 'normal') args.push(`--${nextMode}`);
+    return spawnSync('bash', args, {
+      encoding: 'utf8',
+      cwd: work,
+      env: baseEnv,
+    });
+  };
+  const result = runDeploy();
+
+  return {
+    result,
+    log: existsSync(mockLog) ? readFileSync(mockLog, 'utf8') : '',
+    mockLog,
+    runDeploy,
+    stateDir,
+  };
 }
 
 test('accepts canonical digest deploy image ref', () => {
@@ -229,19 +585,446 @@ test('prisma migrate uses --no-deps so pdf-worker is not started as dependency',
   assert.match(composeText, /pdf-worker:\s*\n\s*condition:\s*service_healthy/);
 });
 
-test('retention cleanup gates app startup after migrations', () => {
+test('writer drain and all-cache purge gate retention and app startup', () => {
   const text = readFileSync(deployScript, 'utf8');
   const migrateIdx = text.indexOf('prisma migrate deploy');
+  const stopIdx = text.indexOf('compose stop app');
+  const cachePurgeIdx = text.indexOf(
+    'app node /app/apps/backend/dist/runWordCloudCacheMigration.js',
+  );
   const retentionIdx = text.indexOf('node /app/apps/backend/dist/runRetentionCleanup.js');
   const appStartIdx = text.indexOf('compose up -d pdf-worker app');
 
+  assert.ok(stopIdx > migrateIdx, 'old writer must drain after compatible migrations');
+  assert.ok(cachePurgeIdx > stopIdx, 'all-cache purge must run after writer drain');
+  assert.ok(retentionIdx > cachePurgeIdx, 'retention must run after the all-cache purge');
   assert.ok(retentionIdx > migrateIdx, 'retention gate must run after migrations');
   assert.ok(appStartIdx > retentionIdx, 'traffic-capable app must start after retention gate');
+  assert.match(text, /ACTIVE_APP_IMAGE=.*docker inspect/);
+  assert.match(text, /PURGE_RUNNER_STATE_FILE/);
+  assert.match(text, /WORD_CLOUD_PURGE_REQUIRE_DURABILITY=1/);
   assert.doesNotMatch(
     text,
     /npm run cleanup:retention/,
     'hardened production image has no npm; deploy must invoke node directly',
   );
+});
+
+function runnerEvents(log) {
+  return log.split('\n').filter((line) => /^(MIGRATE|PROBE|STOP|RUN|RETENTION|START) /.test(line));
+}
+
+test('already-enabled Redis AOF is verified before infrastructure recreation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  const probeIdx = scenario.log.indexOf('REDIS AOF_PROBE');
+  const infraIdx = scenario.log.indexOf(`INFRA ${RUNNER_IMAGE_C}`);
+  assert.ok(probeIdx >= 0, 'durable restart probe missing');
+  assert.ok(infraIdx > probeIdx, 'Redis must be AOF-verified before compose can recreate it');
+  assert.doesNotMatch(scenario.log, /^REDIS BGSAVE$/m);
+  assert.doesNotMatch(scenario.log, /^REDIS CONFIG appendonly yes$/m);
+});
+
+test('stopped existing Redis is started and verified before infrastructure recreation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisRunning: false,
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  const startIdx = scenario.log.indexOf('REDIS START');
+  const probeIdx = scenario.log.indexOf('REDIS AOF_PROBE');
+  const infraIdx = scenario.log.indexOf(`INFRA ${RUNNER_IMAGE_C}`);
+  assert.ok(startIdx >= 0, 'stopped Redis must be started with its existing configuration');
+  assert.ok(probeIdx > startIdx, 'AOF verification must follow the existing container start');
+  assert.ok(infraIdx > probeIdx, 'Compose recreation must follow the verified restart probe');
+});
+
+test('RDB-only Redis is snapshotted and converted live before infrastructure recreation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisMode: 'rdb',
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  const backupIdx = scenario.log.indexOf('REDIS BGSAVE');
+  const fsyncIdx = scenario.log.indexOf('REDIS CONFIG appendfsync everysec');
+  const enableIdx = scenario.log.indexOf('REDIS CONFIG appendonly yes');
+  const probeIdx = scenario.log.indexOf('REDIS AOF_PROBE');
+  const infraIdx = scenario.log.indexOf(`INFRA ${RUNNER_IMAGE_C}`);
+  assert.ok(backupIdx >= 0, 'fresh RDB backup missing');
+  assert.ok(fsyncIdx > backupIdx, 'appendfsync must follow the completed RDB backup');
+  assert.ok(enableIdx > fsyncIdx, 'live appendonly enable must follow appendfsync');
+  assert.ok(probeIdx > enableIdx, 'AOF durability probe must follow the completed rewrite');
+  assert.ok(infraIdx > probeIdx, 'container recreation must follow live AOF conversion');
+  assert.match(scenario.result.stdout, /Redis-RDB→AOF-Live-Konvertierung erfolgreich/);
+  assert.match(scenario.result.stdout, /DBSIZE vorher: 42, nachher: 42/);
+});
+
+test('Redis AOF conversion failure aborts before infrastructure recreation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisMode: 'config-fail',
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stderr, /Redis-AOF konnte nicht live aktiviert werden/);
+  assert.match(scenario.log, /^REDIS BGSAVE$/m);
+  assert.doesNotMatch(scenario.log, /^(?:INFRA|MIGRATE|STOP|RUN|RETENTION|START) /m);
+});
+
+test('unfinished Redis AOF rewrite times out before infrastructure recreation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisMode: 'stuck',
+    redisTimeoutSeconds: 1,
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stderr, /Timeout beim Warten auf die Redis-AOF-Aktivierung/);
+  assert.doesNotMatch(scenario.log, /^(?:INFRA|MIGRATE|STOP|RUN|RETENTION|START) /m);
+});
+
+test('missing Redis AOF restart probe aborts after infrastructure and before migration', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisProbeValue: '',
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stderr, /Redis-AOF-Neustartprobe fehlt/);
+  assert.match(scenario.log, /^INFRA /m);
+  assert.doesNotMatch(scenario.log, /^(?:MIGRATE|STOP|RUN|RETENTION|START) /m);
+});
+
+test('existing deploy without inspectable Redis fails closed before recreation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisPresent: false,
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stderr, /Bestehendes Deployment ohne prüfbaren Redis-Container/);
+  assert.doesNotMatch(scenario.log, /^(?:INFRA|MIGRATE|STOP|RUN|RETENTION|START) /m);
+});
+
+test('retained Compose Redis volume without a container fails closed instead of fresh-starting AOF', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: undefined,
+    activeImage: undefined,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisPresent: false,
+    redisVolumePresent: true,
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stderr, /Compose-Redis-Datenvolume ist vorhanden/);
+  assert.match(scenario.log, /^REDIS VOLUME_LS$/m);
+  assert.doesNotMatch(scenario.log, /^(?:INFRA|MIGRATE|STOP|RUN|RETENTION|START) /m);
+});
+
+test('fresh install without Redis state, containers, or volumes may initialize AOF', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: undefined,
+    activeImage: undefined,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    redisPresent: false,
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stdout, /AOF startet als Fresh-Install/);
+  assert.match(scenario.log, /^REDIS VOLUME_LS$/m);
+  assert.match(scenario.log, new RegExp(`^INFRA ${RUNNER_IMAGE_C}$`, 'm'));
+});
+
+test('normal first rollout uses the generation-aware target runner', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_C}`,
+    `MIGRATE ${RUNNER_IMAGE_C}`,
+    `PROBE ${RUNNER_IMAGE_C}`,
+    `STOP ${RUNNER_IMAGE_C}`,
+    `RUN ${RUNNER_IMAGE_C}`,
+    `RETENTION ${RUNNER_IMAGE_C}`,
+  ]);
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'wordcloud-purge-runner.state')), {
+    image: RUNNER_IMAGE_C,
+    sha: RUNNER_SHA_C,
+  });
+  assert.equal(
+    existsSync(join(scenario.stateDir, 'wordcloud-purge-runner-candidate.state')),
+    false,
+    'target must not become a candidate before retention reaches app start',
+  );
+  assert.match(scenario.log, new RegExp(`GIT checkout --detach --force ${RUNNER_SHA_C}`));
+});
+
+test('normal deploy repeats the purge after retention and clears candidate only after commit', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    probeOkImages: [RUNNER_IMAGE_C],
+    completeDeploy: true,
+  });
+
+  assert.equal(scenario.result.status, 0, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_C}`,
+    `MIGRATE ${RUNNER_IMAGE_C}`,
+    `PROBE ${RUNNER_IMAGE_C}`,
+    `STOP ${RUNNER_IMAGE_C}`,
+    `RUN ${RUNNER_IMAGE_C}`,
+    `RETENTION ${RUNNER_IMAGE_C}`,
+    `RUN ${RUNNER_IMAGE_C}`,
+    `START ${RUNNER_IMAGE_C}`,
+  ]);
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'current.state')), {
+    image: RUNNER_IMAGE_C,
+    sha: RUNNER_SHA_C,
+  });
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'previous.state')), {
+    image: RUNNER_IMAGE_A,
+    sha: RUNNER_SHA_A,
+  });
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'wordcloud-purge-runner.state')), {
+    image: RUNNER_IMAGE_C,
+    sha: RUNNER_SHA_C,
+  });
+  assert.equal(
+    existsSync(join(scenario.stateDir, 'wordcloud-purge-runner-candidate.state')),
+    false,
+  );
+});
+
+test('forward fix preserves and sweeps the failed candidate before superseding it', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    candidate: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    activeImage: RUNNER_IMAGE_C,
+    target: { image: RUNNER_IMAGE_D, sha: RUNNER_SHA_D },
+    probeOkImages: [RUNNER_IMAGE_C, RUNNER_IMAGE_D],
+    completeDeploy: true,
+    failAppStart: true,
+  });
+
+  assert.equal(scenario.result.status, 74, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_D}`,
+    `MIGRATE ${RUNNER_IMAGE_D}`,
+    `PROBE ${RUNNER_IMAGE_C}`,
+    `STOP ${RUNNER_IMAGE_D}`,
+    `RUN ${RUNNER_IMAGE_C}`,
+    `RETENTION ${RUNNER_IMAGE_D}`,
+    `RUN ${RUNNER_IMAGE_C}`,
+    `START ${RUNNER_IMAGE_D}`,
+  ]);
+  assert.deepEqual(
+    readSnapshot(join(scenario.stateDir, 'wordcloud-purge-runner-candidate.state')),
+    { image: RUNNER_IMAGE_D, sha: RUNNER_SHA_D },
+    'new candidate may replace the old one only after both old-generation purges',
+  );
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'current.state')), {
+    image: RUNNER_IMAGE_A,
+    sha: RUNNER_SHA_A,
+  });
+});
+
+test('normal deploy rejects an old checkout before fetch, compose, or state mutation', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'normal',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_A,
+    target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    initialCheckoutSha: RUNNER_SHA_A,
+    probeOkImages: [RUNNER_IMAGE_C],
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.match(scenario.result.stderr, /Normal-Deploy muss bereits am DEPLOY_SHA gestartet werden/);
+  assert.deepEqual(runnerEvents(scenario.log), []);
+  assert.doesNotMatch(scenario.log, /^GIT fetch /m);
+  assert.equal(
+    existsSync(join(scenario.stateDir, 'wordcloud-purge-runner-candidate.state')),
+    false,
+  );
+});
+
+test('rollback runs the current active runner before starting the previous target', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'rollback',
+    current: { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    previous: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    activeImage: RUNNER_IMAGE_B,
+    target: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    probeOkImages: [RUNNER_IMAGE_A, RUNNER_IMAGE_B],
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_A}`,
+    `MIGRATE ${RUNNER_IMAGE_A}`,
+    `PROBE ${RUNNER_IMAGE_B}`,
+    `STOP ${RUNNER_IMAGE_A}`,
+    `RUN ${RUNNER_IMAGE_B}`,
+    `RETENTION ${RUNNER_IMAGE_A}`,
+  ]);
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'wordcloud-purge-runner.state')), {
+    image: RUNNER_IMAGE_B,
+    sha: RUNNER_SHA_B,
+  });
+  assert.match(scenario.log, new RegExp(`GIT checkout --detach --force ${RUNNER_SHA_A}`));
+});
+
+test('recover requires the pending candidate even while last-known-good is active', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'recover',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    known: { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    candidate: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    activeImage: RUNNER_IMAGE_B,
+    target: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    probeOkImages: [RUNNER_IMAGE_A, RUNNER_IMAGE_B, RUNNER_IMAGE_C],
+  });
+
+  assert.equal(scenario.result.status, 73, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_A}`,
+    `MIGRATE ${RUNNER_IMAGE_A}`,
+    `PROBE ${RUNNER_IMAGE_C}`,
+    `STOP ${RUNNER_IMAGE_A}`,
+    `RUN ${RUNNER_IMAGE_C}`,
+    `RETENTION ${RUNNER_IMAGE_A}`,
+  ]);
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'wordcloud-purge-runner.state')), {
+    image: RUNNER_IMAGE_C,
+    sha: RUNNER_SHA_C,
+  });
+  assert.match(scenario.log, new RegExp(`GIT checkout --detach --force ${RUNNER_SHA_A}`));
+});
+
+test('recover fails closed when the pending candidate cannot run its generation-aware purge', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'recover',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    known: { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    candidate: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    activeImage: RUNNER_IMAGE_B,
+    target: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    probeOkImages: [RUNNER_IMAGE_A, RUNNER_IMAGE_B],
+    probeErrorImages: [RUNNER_IMAGE_C],
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_A}`,
+    `MIGRATE ${RUNNER_IMAGE_A}`,
+    `PROBE ${RUNNER_IMAGE_C}`,
+  ]);
+  assert.doesNotMatch(scenario.log, /^(?:STOP|RUN|RETENTION) /m);
+  assert.match(scenario.result.stderr, /Potenzieller Writer/);
+});
+
+test('recover fails closed before writer drain when its started candidate lacks the gate', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'recover',
+    current: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    known: { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    candidate: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+    activeImage: RUNNER_IMAGE_C,
+    target: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    probeOkImages: [RUNNER_IMAGE_A],
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [
+    `PROBE ${RUNNER_IMAGE_A}`,
+    `MIGRATE ${RUNNER_IMAGE_A}`,
+    `PROBE ${RUNNER_IMAGE_C}`,
+  ]);
+  assert.doesNotMatch(scenario.log, /^(?:STOP|RUN|RETENTION) /m);
+  assert.match(scenario.result.stderr, /Potenzieller Writer/);
+  assert.deepEqual(readSnapshot(join(scenario.stateDir, 'wordcloud-purge-runner.state')), {
+    image: RUNNER_IMAGE_B,
+    sha: RUNNER_SHA_B,
+  });
+});
+
+test('rollback refuses a legacy target that would recreate unscoped caches', () => {
+  const scenario = runRunnerSelectionDeploy({
+    mode: 'rollback',
+    current: { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    previous: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    known: { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    activeImage: RUNNER_IMAGE_B,
+    target: { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A },
+    probeOkImages: [RUNNER_IMAGE_B],
+  });
+
+  assert.equal(scenario.result.status, 1, scenario.result.stdout + scenario.result.stderr);
+  assert.deepEqual(runnerEvents(scenario.log), [`PROBE ${RUNNER_IMAGE_A}`]);
+  assert.doesNotMatch(scenario.log, /^(?:STOP|RUN|RETENTION) /m);
+  assert.doesNotMatch(scenario.log, /^GIT checkout /m);
+  assert.match(scenario.result.stderr, /Cache-unsicherer Legacy-Writer/);
+
+  const beforeRecoverLog = scenario.log;
+  const recover = scenario.runDeploy('recover');
+  const recoverLog = readFileSync(scenario.mockLog, 'utf8').slice(beforeRecoverLog.length);
+  assert.equal(recover.status, 73, recover.stdout + recover.stderr);
+  assert.deepEqual(runnerEvents(recoverLog), [
+    `PROBE ${RUNNER_IMAGE_B}`,
+    `MIGRATE ${RUNNER_IMAGE_B}`,
+    `PROBE ${RUNNER_IMAGE_B}`,
+    `STOP ${RUNNER_IMAGE_B}`,
+    `RUN ${RUNNER_IMAGE_B}`,
+    `RETENTION ${RUNNER_IMAGE_B}`,
+  ]);
+  assert.match(recoverLog, new RegExp(`GIT checkout --detach --force ${RUNNER_SHA_B}`));
 });
 
 test('real deploy.sh aborts amd64 image before compose up/run and state writes', () => {
@@ -362,10 +1145,11 @@ exit 0
   assert.match(`${result.stderr}${result.stdout}`, /nicht kompatibel/);
 
   const log = existsSync(mockLog) ? readFileSync(mockLog, 'utf8') : '';
-  assert.match(log, /docker compose .*config/);
   assert.match(log, /docker compose .*pull/);
+  assert.doesNotMatch(log, /docker compose .*config/);
   assert.doesNotMatch(log, /docker compose .* up\b/);
   assert.doesNotMatch(log, /docker compose .* run\b/);
+  assert.doesNotMatch(log, /docker compose .* stop\b/);
   assert.equal(readFileSync(join(work, '.deploy-state', 'current.state'), 'utf8'), beforeState);
   assert.equal(readFileSync(join(work, '.env.arsnova-image'), 'utf8'), beforeEnv);
   assert.equal(existsSync(join(work, '.deploy-state', 'previous.state')), false);
@@ -779,6 +1563,27 @@ test('CI deploy bootstraps DEPLOY_SHA checkout before deploy.sh', () => {
     /(?:^|\s)(?:\.\/)?scripts\/deploy\/checkout-deploy-sha\.sh\b/,
     'bootstrap must be inline for 1B→1C cutover',
   );
+});
+
+test('first manual rollout bootstraps inline without assuming the target helper exists', () => {
+  const guide = readFileSync(deploymentGuide, 'utf8');
+  const firstRollout = guide.split('## 7. Deployment-Ablauf')[1]?.split('CI setzt')[0];
+  assert.ok(firstRollout, 'first-rollout instructions missing');
+  const bootstrapBlock = firstRollout.split('```bash')[1]?.split('```')[0];
+  assert.ok(bootstrapBlock, 'first-rollout bootstrap command block missing');
+
+  const fetchIdx = bootstrapBlock.indexOf('git fetch --prune origin "$DEPLOY_BRANCH"');
+  const verifyIdx = bootstrapBlock.indexOf('git cat-file -e "${DEPLOY_SHA}^{commit}"');
+  const checkoutIdx = bootstrapBlock.indexOf('git checkout --detach --force "$DEPLOY_SHA"');
+  const headIdx = bootstrapBlock.indexOf('test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"');
+  const deployIdx = bootstrapBlock.indexOf('./scripts/deploy.sh');
+  assert.ok(fetchIdx >= 0, 'inline fetch missing');
+  assert.ok(fetchIdx < verifyIdx, 'commit must be present before checkout');
+  assert.ok(verifyIdx < checkoutIdx, 'commit verification must precede checkout');
+  assert.ok(checkoutIdx < headIdx, 'checked-out HEAD must be verified');
+  assert.ok(headIdx < deployIdx, 'deploy.sh must start only after verified checkout');
+  assert.match(bootstrapBlock.slice(fetchIdx, deployIdx), /&&[\s\S]*&&[\s\S]*&&[\s\S]*&&/);
+  assert.doesNotMatch(bootstrapBlock, /checkout-deploy-sha\.sh/);
 });
 
 test('CI rollback starts installed script without pre-checkout', () => {

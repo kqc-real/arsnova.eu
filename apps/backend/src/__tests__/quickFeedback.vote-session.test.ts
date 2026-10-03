@@ -97,6 +97,7 @@ vi.mock('../lib/invalidSessionCode', () => ({
 }));
 
 import {
+  invalidateQuickFeedbackAudienceCacheForSession,
   quickFeedbackRouter,
   resetQuickFeedbackAudienceCacheForTests,
 } from '../routers/quickFeedback';
@@ -105,6 +106,7 @@ const caller = quickFeedbackRouter.createCaller({ req: undefined });
 const hostCaller = quickFeedbackRouter.createCaller({
   req: { headers: {}, socket: { remoteAddress: '203.0.113.10' } } as never,
 });
+const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const VOTER_ID = '33333333-3333-4333-8333-333333333333';
 let lastTempoEvalResult: { totalVotes: number; distribution: Record<string, number> } | null = null;
 let lastTempoChoiceAction: {
@@ -140,22 +142,69 @@ describe('quickFeedback.vote und Session-Status', () => {
     lastTempoEvalResult = null;
     lastTempoChoiceAction = null;
     redisMock.eval.mockImplementation(
-      async (script: string, _keyCount: number, ...args: string[]) => {
+      async (script: string, keyCount: number, ...parameters: string[]) => {
+        const keys = parameters.slice(0, keyCount);
+        const args = parameters.slice(keyCount);
+        if (script.includes('QUICK_FEEDBACK_CREATE_SESSION_BOUND')) {
+          const [key, knownKey] = keys;
+          const [sessionId, result, ttl, knownTtl] = args;
+          if ((await redisMock.exists(keys[6])) === 1) {
+            return JSON.stringify({ error: 'SESSION_MISMATCH' });
+          }
+          await redisMock.set(key, result, 'EX', Number(ttl));
+          await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
+          return JSON.stringify({ ok: true, sessionId });
+        }
+
+        if (script.includes('QUICK_FEEDBACK_MUTATE_SESSION_BOUND')) {
+          const [key, knownKey] = keys;
+          const [sessionId, result, ttl, knownTtl, action] = args;
+          const currentRaw = (await redisMock.get(key)) as string | null;
+          if (!currentRaw) return JSON.stringify({ error: 'MISSING' });
+          const current = JSON.parse(currentRaw) as { sessionBound?: boolean; sessionId?: string };
+          if (
+            current.sessionBound !== true ||
+            current.sessionId !== sessionId ||
+            (await redisMock.exists(keys[6])) === 1
+          ) {
+            return JSON.stringify({ error: 'SESSION_MISMATCH' });
+          }
+          if (action !== 'END') await redisMock.set(key, result, 'EX', Number(ttl));
+          await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
+          return JSON.stringify({ ok: true });
+        }
+
         if (script.includes('QUICK_FEEDBACK_SET_LIVE_RESULTS')) {
-          const [key, knownKey, enabled, ttl, knownTtl] = args;
+          const [key, knownKey] = keys;
+          const [expectedSessionId, enabled, ttl, knownTtl] = args;
           const raw = (await redisMock.get(key)) as string | null;
           if (!raw) {
             return JSON.stringify({ error: 'MISSING' });
           }
-          const result = JSON.parse(raw) as { showLiveResults?: boolean };
+          const result = JSON.parse(raw) as {
+            showLiveResults?: boolean;
+            sessionBound?: boolean;
+            sessionId?: string;
+          };
+          if (
+            (expectedSessionId &&
+              (result.sessionBound !== true ||
+                result.sessionId !== expectedSessionId ||
+                (await redisMock.exists(keys[2])) === 1)) ||
+            (!expectedSessionId && result.sessionBound === true)
+          ) {
+            return JSON.stringify({ error: 'SESSION_MISMATCH' });
+          }
           result.showLiveResults = enabled === '1';
+          if (expectedSessionId) result.sessionId = expectedSessionId;
           await redisMock.set(key, JSON.stringify(result), 'EX', Number(ttl));
           await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
           return JSON.stringify({ showLiveResults: result.showLiveResults });
         }
 
         if (script.includes('QUICK_FEEDBACK_STANDARD_VOTE')) {
-          const [key, vKey, cKey, knownKey, voterId, value, ttl, knownTtl] = args;
+          const [key, vKey, cKey, knownKey] = keys;
+          const [expectedSessionId, voterId, value, ttl, knownTtl] = args;
           const raw = (await redisMock.get(key)) as string | null;
           if (!raw) {
             return JSON.stringify({ error: 'MISSING' });
@@ -165,7 +214,18 @@ describe('quickFeedback.vote und Session-Status', () => {
             type?: string;
             totalVotes: number;
             distribution?: Record<string, number>;
+            sessionBound?: boolean;
+            sessionId?: string;
           };
+          if (
+            (expectedSessionId &&
+              (result.sessionBound !== true ||
+                result.sessionId !== expectedSessionId ||
+                (await redisMock.exists(keys[4])) === 1)) ||
+            (!expectedSessionId && result.sessionBound === true)
+          ) {
+            return JSON.stringify({ error: 'SESSION_MISMATCH' });
+          }
           if (result.locked === true) {
             return JSON.stringify({ error: 'LOCKED' });
           }
@@ -185,18 +245,8 @@ describe('quickFeedback.vote und Session-Status', () => {
           return JSON.stringify({ totalVotes: result.totalVotes, cKey });
         }
 
-        const [
-          key,
-          cKey,
-          _bucketKey,
-          _knownKey,
-          voterId,
-          value,
-          _ttl,
-          _bucket,
-          _knownTtl,
-          ...tempoValues
-        ] = args;
+        const [key, cKey] = keys;
+        const [expectedSessionId, voterId, value, _ttl, _bucket, _knownTtl, ...tempoValues] = args;
         const raw = (await redisMock.get(key)) as string | null;
         if (!raw) {
           return JSON.stringify({ error: 'MISSING' });
@@ -207,7 +257,18 @@ describe('quickFeedback.vote und Session-Status', () => {
           type?: string;
           totalVotes: number;
           distribution?: Record<string, number>;
+          sessionBound?: boolean;
+          sessionId?: string;
         };
+        if (
+          (expectedSessionId &&
+            (result.sessionBound !== true ||
+              result.sessionId !== expectedSessionId ||
+              (await redisMock.exists(keys[4])) === 1)) ||
+          (!expectedSessionId && result.sessionBound === true)
+        ) {
+          return JSON.stringify({ error: 'SESSION_MISMATCH' });
+        }
         if (result.type !== 'TEMPO') {
           return JSON.stringify({ error: 'TYPE_CHANGED' });
         }
@@ -289,9 +350,14 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 0,
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
-    prismaMock.session.findUnique.mockResolvedValue({ status: 'ACTIVE', type: 'QUIZ' });
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      type: 'QUIZ',
+    });
 
     await expect(caller.isActive({ sessionCode: 'ABC123' })).resolves.toEqual({
       active: true,
@@ -302,6 +368,59 @@ describe('quickFeedback.vote und Session-Status', () => {
 
     expect(prismaMock.session.findUnique).toHaveBeenCalledOnce();
     expect(rejectInvalidSessionCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('behandelt verwaiste sessiongebundene Redis-Ergebnisse nicht als aktives Standalone', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 1,
+        distribution: { YES: 1, NO: 0, MAYBE: 0 },
+        sessionBound: true,
+        sessionId: '11111111-1111-4111-8111-111111111111',
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(caller.isActive({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+  });
+
+  it('liefert Ergebnisse mit einer fremden sessionId nicht an die Öffentlichkeit aus', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'YESNO',
+        locked: false,
+        totalVotes: 1,
+        distribution: { YES: 1, NO: 0, MAYBE: 0 },
+        sessionBound: true,
+        sessionId: '11111111-1111-4111-8111-111111111111',
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '22222222-2222-4222-8222-222222222222',
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 1 },
+    });
+
+    await expect(caller.results({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+  });
+
+  it('liefert einen beschädigten Redis-Primärwert fail-closed nicht aus', async () => {
+    redisMock.get.mockResolvedValue('{kein-json');
+    prismaMock.session.findUnique.mockResolvedValue(null);
+
+    await expect(caller.results({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 
   it('löst inaktive Blitzlicht-Codes mit genau einem Session-Nachschlag auf', async () => {
@@ -466,10 +585,111 @@ describe('quickFeedback.vote und Session-Status', () => {
 
     expect(firstResults).toHaveLength(500);
     expect(firstResults.every((result) => result.value?.totalVotes === 3)).toBe(true);
-    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
+    expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
     expect(redisMock.get).toHaveBeenCalledTimes(1);
 
     await Promise.all(iterators.map((iterator) => iterator.return?.()));
+  });
+
+  it('liefert einen vor dem Purge gestarteten Audience-Cache-Lookup nicht verspätet aus', async () => {
+    const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+    const raw = JSON.stringify({
+      type: 'YESNO',
+      locked: false,
+      showLiveResults: true,
+      totalVotes: 1,
+      distribution: { YES: 1, NO: 0, MAYBE: 0 },
+      sessionBound: true,
+      sessionId,
+    });
+    redisMock.get.mockResolvedValue(raw);
+    let resolveFirstGate!: (value: unknown) => void;
+    prismaMock.session.findUnique
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstGate = resolve;
+          }),
+      )
+      .mockResolvedValue({
+        id: sessionId,
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+        status: 'ACTIVE',
+        endedAt: null,
+        expiresAt: new Date(Date.now() + 60_000),
+        _count: { participants: 1 },
+      });
+
+    const staleStream = await caller.onResults({ sessionCode: 'ABC123' });
+    const staleIterator = staleStream[Symbol.asyncIterator]();
+    const staleNext = staleIterator.next();
+    await vi.waitFor(() => expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1));
+    await invalidateQuickFeedbackAudienceCacheForSession('ABC123', sessionId);
+    resolveFirstGate({
+      id: sessionId,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 1 },
+    });
+
+    await expect(staleNext).resolves.toEqual({ done: true, value: undefined });
+
+    const freshStream = await caller.onResults({ sessionCode: 'ABC123' });
+    const freshIterator = freshStream[Symbol.asyncIterator]();
+    await expect(freshIterator.next()).resolves.toMatchObject({
+      done: false,
+      value: { totalVotes: 1 },
+    });
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
+    await freshIterator.return?.();
+  });
+
+  it('bewahrt bei Code-Wiederverwendung einen neuen Inflight-Cache vor altem Purge', async () => {
+    const oldSessionId = '11111111-1111-4111-8111-111111111111';
+    const raw = JSON.stringify({
+      type: 'YESNO',
+      locked: false,
+      showLiveResults: true,
+      totalVotes: 2,
+      distribution: { YES: 2, NO: 0, MAYBE: 0 },
+      sessionBound: true,
+      sessionId: SESSION_ID,
+    });
+    redisMock.get.mockResolvedValue(raw);
+    let resolveGate!: (value: unknown) => void;
+    prismaMock.session.findUnique.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveGate = resolve;
+        }),
+    );
+
+    const stream = await caller.onResults({ sessionCode: 'ABC123' });
+    const iterator = stream[Symbol.asyncIterator]();
+    const first = iterator.next();
+    await vi.waitFor(() => expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1));
+
+    await invalidateQuickFeedbackAudienceCacheForSession('ABC123', oldSessionId);
+    resolveGate({
+      id: SESSION_ID,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 2 },
+    });
+
+    await expect(first).resolves.toMatchObject({
+      done: false,
+      value: { totalVotes: 2 },
+    });
+    expect(redisMock.get).toHaveBeenCalledTimes(1);
+    await iterator.return?.();
   });
 
   it('gibt verdeckte Ergebnisse nach dem Sperren der Runde frei', async () => {
@@ -548,6 +768,7 @@ describe('quickFeedback.vote und Session-Status', () => {
           totalVotes: 0,
           distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
           sessionBound: true,
+          sessionId: SESSION_ID,
         }),
       );
       prismaMock.session.findUnique.mockResolvedValue({
@@ -578,6 +799,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -657,6 +879,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 0,
         distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -678,6 +901,51 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(touchParticipantPresenceMock).toHaveBeenCalledWith(
       '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       VOTER_ID,
+    );
+  });
+
+  it('verhindert atomar eine späte Session-Stimme nach gesetzter Purge-Fence', async () => {
+    const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'MOOD',
+        locked: false,
+        totalVotes: 0,
+        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+        sessionBound: true,
+        sessionId,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: sessionId,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 1 },
+    });
+    redisMock.exists.mockImplementation(async (key: string) =>
+      key === `qf:purged-session:v1:${sessionId}` ? 1 : 0,
+    );
+
+    await expect(
+      caller.vote({ sessionCode: 'ABCDEF', voterId: VOTER_ID, value: 'POSITIVE' }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining('QUICK_FEEDBACK_STANDARD_VOTE'),
+      5,
+      'qf:ABCDEF',
+      'qf:voters:ABCDEF',
+      'qf:choices:ABCDEF',
+      'qf:known:ABCDEF',
+      `qf:purged-session:v1:${sessionId}`,
+      sessionId,
+      VOTER_ID,
+      'POSITIVE',
+      expect.any(String),
+      expect.any(String),
     );
   });
 
@@ -704,11 +972,13 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(redisMock.hget).toHaveBeenCalledWith('qf:choices:ABCDEF', VOTER_ID);
     expect(redisMock.eval).toHaveBeenCalledWith(
       expect.any(String),
-      4,
+      5,
       'qf:ABCDEF',
       'qf:choices:ABCDEF',
       'qf:tempo:buckets:ABCDEF',
       'qf:known:ABCDEF',
+      'qf:purged-session:v1:standalone',
+      '',
       VOTER_ID,
       'SLOW_DOWN',
       expect.any(String),
@@ -933,6 +1203,7 @@ describe('quickFeedback.vote und Session-Status', () => {
           totalVotes: 0,
           distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
           sessionBound: true,
+          sessionId: SESSION_ID,
         }),
       );
       prismaMock.session.findUnique.mockResolvedValue({
@@ -981,6 +1252,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 0,
         distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1016,6 +1288,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 1,
         distribution: { SPEED_UP: 0, FOLLOWING: 1, SLOW_DOWN: 0, LOST: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1051,6 +1324,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 1,
         distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 1, LOST: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1088,6 +1362,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 2,
         distribution: { SPEED_UP: 0, FOLLOWING: 1, SLOW_DOWN: 1, LOST: 0 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1125,6 +1400,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         totalVotes: 3,
         distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 3 },
         sessionBound: true,
+        sessionId: SESSION_ID,
       }),
     );
     prismaMock.session.findUnique.mockResolvedValue({
@@ -1230,6 +1506,39 @@ describe('quickFeedback.vote und Session-Status', () => {
       expect(JSON.parse(String(stored))).toMatchObject({ showLiveResults: true });
     },
   );
+
+  it('speichert bei sessiongebundener Erstellung die autoritative Session-ID', async () => {
+    const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: sessionId,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 0 },
+    });
+
+    await expect(hostCaller.create({ type: 'MOOD', sessionCode: 'ABC123' })).resolves.toMatchObject(
+      { sessionCode: 'ABC123', hostToken: null },
+    );
+
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining('QUICK_FEEDBACK_CREATE_SESSION_BOUND'),
+      7,
+      'qf:ABC123',
+      'qf:known:ABC123',
+      'qf:voters:ABC123',
+      'qf:choices:ABC123',
+      'qf:choices:r1:ABC123',
+      'qf:tempo:buckets:ABC123',
+      `qf:purged-session:v1:${sessionId}`,
+      sessionId,
+      expect.stringContaining(`"sessionId":"${sessionId}"`),
+      '1800',
+      '2100',
+    );
+  });
 
   it('ignoriert gefälschte Proxy-Header für den Standalone-Create-Bucket', async () => {
     const trustedIpCaller = quickFeedbackRouter.createCaller({
@@ -1408,6 +1717,140 @@ describe('quickFeedback.vote und Session-Status', () => {
       message: 'Host-Authentifizierung erforderlich.',
     });
   });
+
+  it('verhindert atomar eine späte Host-Mutation nach gesetzter Purge-Fence', async () => {
+    const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'MOOD',
+        locked: false,
+        totalVotes: 0,
+        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+        sessionBound: true,
+        sessionId,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: sessionId,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 0 },
+    });
+    redisMock.exists.mockImplementation(async (key: string) =>
+      key === `qf:purged-session:v1:${sessionId}` ? 1 : 0,
+    );
+
+    await expect(hostCaller.toggleLock({ sessionCode: 'ABC123' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining('QUICK_FEEDBACK_MUTATE_SESSION_BOUND'),
+      7,
+      'qf:ABC123',
+      'qf:known:ABC123',
+      'qf:voters:ABC123',
+      'qf:choices:ABC123',
+      'qf:choices:r1:ABC123',
+      'qf:tempo:buckets:ABC123',
+      `qf:purged-session:v1:${sessionId}`,
+      sessionId,
+      expect.any(String),
+      '1800',
+      '2100',
+      'REPLACE',
+    );
+  });
+
+  it.each([
+    {
+      name: 'changeType',
+      initial: { discussion: false },
+      invoke: () => hostCaller.changeType({ sessionCode: 'ABC123', type: 'YESNO' }),
+      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      action: 'RESET_ALL',
+    },
+    {
+      name: 'setLiveResults',
+      initial: { discussion: false },
+      invoke: () => hostCaller.setLiveResults({ sessionCode: 'ABC123', showLiveResults: true }),
+      script: 'QUICK_FEEDBACK_SET_LIVE_RESULTS',
+      action: null,
+    },
+    {
+      name: 'reset',
+      initial: { discussion: false },
+      invoke: () => hostCaller.reset({ sessionCode: 'ABC123' }),
+      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      action: 'RESET_ALL',
+    },
+    {
+      name: 'end',
+      initial: { discussion: false },
+      invoke: () => hostCaller.end({ sessionCode: 'ABC123' }),
+      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      action: 'END',
+    },
+    {
+      name: 'toggleLock',
+      initial: { discussion: false },
+      invoke: () => hostCaller.toggleLock({ sessionCode: 'ABC123' }),
+      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      action: 'REPLACE',
+    },
+    {
+      name: 'startDiscussion',
+      initial: { discussion: false },
+      invoke: () => hostCaller.startDiscussion({ sessionCode: 'ABC123' }),
+      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      action: 'DISCUSSION',
+    },
+    {
+      name: 'startSecondRound',
+      initial: { discussion: true },
+      invoke: () => hostCaller.startSecondRound({ sessionCode: 'ABC123' }),
+      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      action: 'SECOND_ROUND',
+    },
+  ])(
+    'führt den sessiongebundenen Writer $name mit atomarer ID-/Fence-Prüfung aus',
+    async ({ initial, invoke, script, action }) => {
+      const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+      redisMock.get.mockResolvedValue(
+        JSON.stringify({
+          type: 'MOOD',
+          locked: false,
+          showLiveResults: false,
+          totalVotes: 1,
+          distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
+          sessionBound: true,
+          sessionId,
+          ...initial,
+        }),
+      );
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: sessionId,
+        quickFeedbackEnabled: true,
+        quickFeedbackOpen: true,
+        status: 'ACTIVE',
+        endedAt: null,
+        expiresAt: new Date(Date.now() + 60_000),
+        _count: { participants: 1 },
+      });
+
+      await expect(invoke()).resolves.toBeDefined();
+
+      const evalCall = redisMock.eval.mock.calls.find(([lua]) => String(lua).includes(script));
+      expect(evalCall).toBeDefined();
+      expect(evalCall).toContain(`qf:purged-session:v1:${sessionId}`);
+      expect(evalCall).toContain(sessionId);
+      if (action) expect(evalCall).toContain(action);
+      expect(redisMock.multi).not.toHaveBeenCalled();
+    },
+  );
 
   trpcDodIt(
     {

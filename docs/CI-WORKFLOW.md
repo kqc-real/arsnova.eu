@@ -154,7 +154,12 @@ Wichtig: Jobs ohne direkte Abhängigkeit laufen **parallel**.
 
 ### 4.3a migration
 
-- **Was?** Wendet die vollständige versionierte Migrationskette auf eine leere PostgreSQL-Datenbank an und vergleicht das Ergebnis mit `prisma/schema.prisma`.
+- **Was?** Wendet die vollständige versionierte Migrationskette auf eine leere
+  PostgreSQL-Datenbank an, vergleicht das Ergebnis mit `prisma/schema.prisma`
+  und prüft unter anderem den serialisierbaren Parent-Quiz-Delete gegen eine
+  parallel noch uncommittete Session-Bindung sowie einen parallelen Wechsel des
+  Parent-Quiz. Die Regression deckt außerdem ab, dass FK-lose Audit- und
+  Invite-Writer nach einem gewonnenen Session-Purge keinen Rohbezug neu anlegen.
 - **Wo?** Job `migration` in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Bei allen Events außer `schedule`; docs-only Änderungen erhalten einen schnellen grünen Platzhalter.
 - **Warum?** Verhindert, dass Schemafelder nur durch `prisma db push` existieren und frische Deployments trotz erfolgreichem `migrate deploy` zur Laufzeit scheitern.
@@ -408,13 +413,32 @@ nicht die offene S6.5-Zielhostabnahme.
   `DEPLOY_SHA` (`github.sha`). Per SSH wird zuerst `DEPLOY_SHA` ausgecheckt
   (Bootstrap), danach [../scripts/deploy.sh](../scripts/deploy.sh) gestartet.
   Das Skript setzt `ARSNOVA_IMAGE`, pullt `app`/`pdf-worker` (kein
-  Server-Build), prüft Host- vs. Image-Architektur (`arm64`), migriert mit
-  `--no-deps`, startet die Services und prüft Health/HTTP sowie
+  Server-Build), prüft Host- vs. Image-Architektur (`arm64`) und stellt vor
+  einer möglichen Redis-Neuerstellung die Persistenz sicher. Einen bestehenden
+  RDB-only-Compose-Redis konvertiert es live per `CONFIG SET appendonly yes`,
+  wartet auf erfolgreichen AOF-Rewrite und bestätigt vor dem Restart eine
+  TTL-Neustartprobe per `WAITAOF`; Fehler brechen fail-closed ab. Danach migriert
+  es mit `--no-deps`, stoppt und drained den alten App-Writer, löscht mit einem
+  verifizierten Runner den gesamten Word-Cloud-Analysecache sowie
+  sessiongebundene Blitzlicht-Altwerte ohne `sessionId` AOF-bestätigt und führt
+  erst danach Retention aus. Ein zweiter AOF-bestätigter Sweep schließt nach
+  Retention mögliche späte Writes eines pre-Gate-Workers; erst danach wird der
+  Ziel-Candidate persistiert und die App gestartet. Der Ziel-Entrypoint
+  wiederholt den Sweep vor `exec`; anschließend prüft das Skript Health/HTTP sowie
   Digest→Image-ID→Container-ID für beide Container. Danach werden atomare
-  Snapshots (`current.state`/`previous.state`) und `.env.arsnova-image` geschrieben.
+  Snapshots (`current.state`/`previous.state`), der letzte bekannte gute
+  Purge-Runner und `.env.arsnova-image` geschrieben.
 - **Wo?** Deploy-Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Nur wenn `deploy-freshness` bestätigt hat, dass `github.sha` noch aktueller `main`-HEAD ist, und `publish-image` eine Digest-Referenz geliefert hat.
 - **Warum?** Produktivdeployment bleibt kontrolliert, an alle Quality-Gates gekoppelt und auf das gescannte GHCR-Artefakt gepinnt.
+
+Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`,
+`git cat-file`, `git checkout --detach --force` und `git rev-parse` verifiziert
+werden, weil der alte Checkout den Helper noch nicht enthalten muss. Spätere
+normale manuelle Deploys dürfen vorab
+`scripts/deploy/checkout-deploy-sha.sh` ausführen. Rollback und Recover starten
+dagegen bewusst das installierte Skript ohne Vorab-Checkout, damit dessen State
+und das tatsächlich laufende Image zuerst ausgewertet werden können.
 
 ### 4.18 post-deploy-smoke
 
@@ -427,13 +451,27 @@ nicht die offene S6.5-Zielhostabnahme.
 
 - **Was?** Automatischer Image-/Commit-Rollback über
   `./scripts/deploy.sh --rollback` (ohne Checkout vor dem Skriptstart, damit
-  zuerst `previous.state` gelesen wird). `github.event.before` wird nicht
-  verwendet. Es findet kein Server-Build statt.
+  zuerst `previous.state`, der letzte erfolgreiche Purge-Runner und das
+  tatsächlich laufende Image gelesen werden). Vor Retention wird der aktuelle
+  Writer gestoppt und der Word-Cloud-/Blitzlicht-Rollout-Purge mit einem
+  kompatiblen Runner ausgeführt. `github.event.before` wird nicht verwendet. Es
+  findet kein Server-Build statt.
 - **Wo?** Job `Rollback on Smoke Failure` in
   [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
 - **Wann?** Bei `push` auf `main`, wenn `deploy` erfolgreich war, aber `post-deploy-smoke` fehlschlug (mit `always()` ausgewertet, damit der Job trotz Fehlerpfad startet).
 - **Warum?** Reduziert Ausfallzeit und stellt das zuletzt erfolgreich verifizierte Digest-Artefakt wieder her.
 - **Grenze:** Image-Rollback setzt **keine** Datenbankmigrationen zurück. Fehlt ein gültiger Previous-State, bricht das Skript mit Operator-Hinweisen ab.
+
+  Beim einmaligen Cutover auf das All-Cache-Gate kann `previous.state` noch ein
+  pre-Gate-Image bezeichnen. Dieses Image wird vor Git-Checkout, Writer-Stop und
+  Retention absichtlich fail-closed abgelehnt; der automatische Rollback bleibt
+  dann rot und erfordert Operator-Eingriff. Niemals das Gate umgehen oder den
+  Legacy-Writer manuell starten. Ist `current.state` kompatibel, den installierten
+  Stand mit `--recover` herstellen. Ist auch `current.state` noch pre-Gate,
+  denselben kompatiblen Candidate erneut normal deployen oder ein kompatibles
+  Forward-Fix-/Revert-Image ausrollen. Ein persistierter Candidate bleibt bis
+  nach Writer-Drain, beiden Sweeps und Retention der verpflichtende Runner und
+  wird erst unmittelbar vor dem neuen App-Start ersetzt.
 
 ---
 

@@ -23,6 +23,7 @@ import {
 import {
   getWordCloudAnalysisCache,
   type WordCloudAnalysisCache,
+  type WordCloudSnapshotCacheScope,
 } from '../lib/wordCloudAnalysisCache';
 import {
   normalizeWordCloudItems,
@@ -39,6 +40,8 @@ import { hostProcedure, router } from '../trpc';
 
 export interface AnalyzeWordCloudSnapshotOptions {
   readonly cache?: WordCloudAnalysisCache;
+  /** Ausschließlich serverseitig aus der autoritativen Session laden. */
+  readonly cacheScope?: WordCloudSnapshotCacheScope;
   readonly normalize?: typeof normalizeWordCloudItems;
   readonly env?: NodeJS.ProcessEnv;
   readonly sidecar?: NormalizeWordCloudOptions['sidecar'];
@@ -120,7 +123,10 @@ export async function analyzeWordCloudSnapshot(
       ? input
       : AnalyzeWordCloudInputSchema.parse({ ...input, items: analyzableItems });
 
-  const cached = effectiveInput.refresh === true ? null : await cache.getSnapshot(effectiveInput);
+  const cached =
+    effectiveInput.refresh === true
+      ? null
+      : await cache.getSnapshot(effectiveInput, options.cacheScope);
   if (cached) {
     recordWordCloudAnalyzeTelemetry({
       sessionCode: effectiveInput.sessionCode,
@@ -148,12 +154,13 @@ export async function analyzeWordCloudSnapshot(
   const rawOutput =
     effectiveInput.mode === 'SEMANTIC'
       ? await analyzeSemanticWordCloudSnapshot(effectiveInput, normalized.meta, {
+          sessionId: options.cacheScope?.sessionId,
           env: options.env,
           tokensByItemId: normalized.tokensByItemId,
         })
       : analyzeFromNormalized(effectiveInput, normalized);
   const output = options.compactOutput?.(rawOutput) ?? rawOutput;
-  await cache.setSnapshot(effectiveInput, output);
+  await cache.setSnapshot(effectiveInput, output, options.cacheScope);
   recordWordCloudAnalyzeTelemetry({
     sessionCode: effectiveInput.sessionCode,
     mode: effectiveInput.mode,
@@ -211,7 +218,23 @@ export const wordCloudRouter = router({
   analyze: hostProcedure
     .input(AnalyzeWordCloudInputSchema)
     .output(AnalyzeWordCloudOutputSchema)
-    .mutation(({ input }) => analyzeWordCloudSnapshot(input)),
+    .mutation(async ({ input, ctx }) => {
+      const sessionCode = (ctx.hostSessionCode ?? input.sessionCode).toUpperCase();
+      if (sessionCode !== input.sessionCode.toUpperCase()) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Host-Token und Session-Code passen nicht zusammen.',
+        });
+      }
+      const session = await prisma.session.findUnique({
+        where: { code: sessionCode },
+        select: { id: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      return analyzeWordCloudSnapshot(input, { cacheScope: { sessionId: session.id } });
+    }),
 
   analyzeQa: hostProcedure
     .input(AnalyzeQaWordCloudInputSchema)
@@ -405,7 +428,10 @@ export const wordCloudRouter = router({
           refresh: input.refresh,
           corpusRevision: `${corpusRevision}:limit=${input.limit}`,
         },
-        { compactOutput: compactQaWordCloudOutput },
+        {
+          compactOutput: compactQaWordCloudOutput,
+          cacheScope: { sessionId: session.id },
+        },
       )) as Omit<AnalyzeWordCloudOutput, 'entries'> & {
         entries: AnalyzeQaWordCloudOutput['entries'];
       };

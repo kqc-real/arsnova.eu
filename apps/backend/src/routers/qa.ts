@@ -1426,6 +1426,7 @@ export const qaRouter = router({
       const session = await prisma.session.findUnique({
         where: { code },
         select: {
+          id: true,
           status: true,
           type: true,
           qaEnabled: true,
@@ -1446,7 +1447,7 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      const stageView = setQaPresenterStageView(code, {
+      const stageView = setQaPresenterStageView(session.id, {
         sortMode: input.sortMode,
         search: input.search,
         pinnedOnly: input.pinnedOnly,
@@ -1497,7 +1498,7 @@ export const qaRouter = router({
           : session.qaOpen === false
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
-      const stageView = resolveQaPresenterStageView(session.code);
+      const stageView = resolveQaPresenterStageView(session.id);
       const sortMode: QaQuestionSortMode = stageView.sortMode;
       const participantCountForControversy = await prisma.participant.count({
         where: { sessionId: session.id },

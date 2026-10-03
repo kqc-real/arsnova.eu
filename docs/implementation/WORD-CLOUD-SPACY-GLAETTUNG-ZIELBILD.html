@@ -692,15 +692,27 @@
     </ul>
     <hr />
     <h2 id="cache-zielbild">Cache-Zielbild</h2>
-    <p>Damit Host-Neuberechnungen billig bleiben, braucht die Glaettung zwei Cache-Ebenen:</p>
-    <h3 id="1-text-cache">1. Text-Cache</h3>
-    <p>Normalisierte Einzeltexte nach:</p>
+    <p>
+      <strong>Aktueller Produktionsvertrag (Oktober 2026):</strong> Redis persistiert nur fertige,
+      sessiongebundene Snapshots. Der hier ursprünglich entworfene globale Textcache ist
+      deaktiviert, weil er keine vollständige sessiongebundene Purge-Fence besitzt; der
+      Rollout-Sweep entfernt vorhandene <code>nlp:wc:text:*</code>-Altwerte. Ein Textcache bleibt
+      ausschließlich als explizit injizierter Memory-Testadapter erhalten.
+    </p>
+    <p>
+      Das ursprüngliche Zielbild sah dafür zwei Cache-Ebenen vor. Produktiv umgesetzt ist davon nur
+      die zweite Ebene:
+    </p>
+    <h3 id="1-historischer-entwurf-text-cache-nicht-produktiv">
+      1. Historischer Entwurf: Text-Cache (nicht produktiv)
+    </h3>
+    <p>Vorgesehen waren normalisierte Einzeltexte nach:</p>
     <ul>
       <li>Sprache</li>
       <li>Text-Hash</li>
       <li>Analyseversion</li>
     </ul>
-    <h3 id="2-snapshot-cache">2. Snapshot-Cache</h3>
+    <h3 id="2-produktiver-snapshot-cache">2. Produktiver Snapshot-Cache</h3>
     <p>Komplette Wortwolkenanalyse nach:</p>
     <ul>
       <li>Session</li>

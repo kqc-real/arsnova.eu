@@ -421,7 +421,11 @@ export async function activateHostCredential(params: {
       credential.status === 'ACTIVE' &&
       credential.generation === credential.session.hostCredentialVersion
     ) {
-      return { code: credential.session.code, generation: credential.generation };
+      return {
+        sessionId: credential.session.id,
+        code: credential.session.code,
+        generation: credential.generation,
+      };
     }
     const exchange = credential.targetExchange;
     if (!exchange || exchange.expiresAt <= now || credential.status !== 'PENDING') {
@@ -446,16 +450,20 @@ export async function activateHostCredential(params: {
     if (exchange.adminHandoffId) {
       await closeHostAdminHandoffs(tx, { id: exchange.adminHandoffId }, now);
     }
-    return { code: credential.session.code, generation: credential.generation };
+    return {
+      sessionId: credential.session.id,
+      code: credential.session.code,
+      generation: credential.generation,
+    };
   });
   if (!activated) {
     throw publicRecoveryError();
   }
   await Promise.all([
     invalidateHostSessionToken(activated.code),
-    invalidateHostPairingForSession(activated.code),
+    invalidateHostPairingForSession(activated.code, activated.sessionId),
   ]);
-  return activated;
+  return { code: activated.code, generation: activated.generation };
 }
 
 function adminHandoffEnvelopeAad(sessionId: string, operationId: string): string {

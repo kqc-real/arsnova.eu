@@ -99,14 +99,14 @@ spaCy kommt, wenn ueberhaupt, als **separater Sidecar-Service**:
 
 ## Ist-Stand
 
-| Bereich            | Status                                                                                                                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                                                                             |
-| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                                                                            |
-| **Shared Types**   | `normalization` `NONE`/`LEMMA`, `maxNgramLength` 1–3, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`; Text-/Item-Budgets                         |
-| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma bei `LEXICAL` fuer `NOUN`/`VERB`/`ADJ`/`ADV`, Namen als Oberflaeche; harter Identity-Fallback; Redis-Text- und Snapshot-Cache |
-| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`                                                                 |
-| **UI**             | Q&A-Dialog und Freitext (kompakt plus In-Place-Maximize) mit Sekundaeraktion `Sprachformen glaetten`; neue Daten stale; Ansichts-/Sortwechsel bei aktiver Glaettung analysiert neu               |
+| Bereich            | Status                                                                                                                                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Freitext-Wolke** | laeuft fachlich lokal ueber `word-cloud-term.service.ts` und `word-cloud.util.ts` mit `de/en/fr/it/es`-Stopwortlogik                                                                                                                           |
+| **Q&A-Wolke**      | hat bereits einen hostseitigen Analysevertrag ueber `wordCloud.analyze` und erklaerbare Ergebnis-DTOs                                                                                                                                          |
+| **Shared Types**   | `normalization` `NONE`/`LEMMA`, `maxNgramLength` 1–3, angewandter Modus, Fallbackgrund, Analyseversion, `snapshotHash`; Lemma-Resolver für `de`/`en`; Text-/Item-Budgets                                                                       |
+| **Backend**        | Kill-Switch, Unix-Socket-Client, Identity-/Lemma-Normalizer; Lemma bei `LEXICAL` fuer `NOUN`/`VERB`/`ADJ`/`ADV`, Namen als Oberflaeche; harter Identity-Fallback; sessiongebundener Redis-v2-Snapshotcache, persistenter Textcache deaktiviert |
+| **Compose**        | Sidecar als Compose-Profil `nlp` (kein TCP, Limits, MIT `de`/`en`); `deploy.sh` startet ihn nicht; `NLP_ENABLED` Default `false`                                                                                                               |
+| **UI**             | Q&A-Dialog und Freitext (kompakt plus In-Place-Maximize) mit Sekundaeraktion `Sprachformen glaetten`; neue Daten stale; Ansichts-/Sortwechsel bei aktiver Glaettung analysiert neu                                                             |
 
 ---
 
@@ -156,7 +156,7 @@ Die Einfuehrung braucht einen harten Betriebs-Schutz:
 - `NLP_ENABLED` (nur `true` schaltet den Sidecar-Pfad ein; Default aus)
 - `NLP_SOCKET_PATH` (interner Unix-Socket, analog PDF-Worker; kein oeffentlicher Port)
 - `NLP_TIMEOUT_MS`
-- `NLP_CACHE_TTL_SECONDS` (Redis-TTL fuer Text- und Snapshot-Cache; Default 1800 s)
+- `NLP_CACHE_TTL_SECONDS` (Redis-TTL fuer den Snapshot-Cache; Default 1800 s; kein persistenter Textcache)
 - sauberer Fallback auf die heutige Wortwolke
 
 ---
@@ -361,19 +361,19 @@ Ziel: wiederholte Host-Analysen billig und beobachtbar machen.
 
 ### Aufgaben
 
-| #   | Task                         | Beschreibung                                                                                                        | Datei             |
-| --- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| 6.1 | **Text-Cache einziehen**     | normalisierte Einzelttexte nach `locale + hash + version` puffern.                                                  | neuer Cache-Layer |
-| 6.2 | **Snapshot-Cache einziehen** | komplette Analyseergebnisse nach `session + mode + metric + normalization + maxNgramLength + snapshotHash` puffern. | neuer Cache-Layer |
-| 6.3 | **Timing messen**            | Dauer, Timeout, Fallback und Cache-Hit-Rate loggen.                                                                 | Backend           |
-| 6.4 | **Betriebsbudget festlegen** | z. B. harte Timeouts und Request-Groessen begrenzen.                                                                | Backend Config    |
+| #   | Task                                  | Beschreibung                                                                                                         | Datei          |
+| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 6.1 | **Text-Cache (historisch verworfen)** | Urspruenglich globale Einzeltokens vorgesehen; persistent deaktiviert, Altbestand wird beim Rollout geloescht.       | Cache-Layer    |
+| 6.2 | **Snapshot-Cache einziehen**          | komplette Analyseergebnisse nach unveraenderlicher Session-ID, Kanal, Modus, Metrik, Normalisierung und Hash puffern | Cache-Layer    |
+| 6.3 | **Timing messen**                     | Dauer, Timeout, Fallback und Cache-Hit-Rate loggen.                                                                  | Backend        |
+| 6.4 | **Betriebsbudget festlegen**          | z. B. harte Timeouts und Request-Groessen begrenzen.                                                                 | Backend Config |
 
 ### Ergebnis
 
 - wiederholte Host-Klicks bleiben billig
 - der Sidecar wird nicht zum stillen Performance-Risiko
 
-**Stand August 2026:** Phase 6 ist umgesetzt. Wiederholte `wordCloud.analyze`-Aufrufe mit identischem Host-Snapshot kommen aus dem Redis-Cache (`nlp:wc:snap:…`, plus Text-Cache `nlp:wc:text:{locale}:{version}:{sha256}`). Transiente Sidecar-Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) werden nicht persistiert. `NLP_CACHE_TTL_SECONDS` default 1800 (60–28800). Telemetrie loggt Dauer, Fallback, Sidecar-Nutzung und Cache-Hits ohne Rohtexte und ohne Socketpfad. Tests nutzen einen Noop-Cache; Produktionspfad ist fail-open gegen Redis.
+**Stand Oktober 2026:** Phase 6 ist für fertige, sessiongebundene Snapshots umgesetzt. Der frühere globale Redis-Textcache `nlp:wc:text:*` ist wegen seines nicht sessiongebundenen Löschlebenszyklus deaktiviert; ein Rollout-Sweep entfernt bestehende Altwerte. Wiederholte `wordCloud.analyze`-Aufrufe mit identischem Host-Snapshot kommen aus dem v2-Snapshot-Cache. Transiente Sidecar-Fehler (`TIMEOUT`, `SIDECAR_UNAVAILABLE`, `INVALID_RESPONSE`) werden nicht persistiert. `NLP_CACHE_TTL_SECONDS` default 1800 (60–28800). Telemetrie loggt Dauer, Fallback, Sidecar-Nutzung und Cache-Hits ohne Rohtexte und ohne Socketpfad. Tests nutzen einen Noop-Cache; der produktive Snapshot-Pfad ist fail-open bei normalen Cache-Reads/-Writes, ein Session-Purge dagegen fail-closed.
 
 ---
 

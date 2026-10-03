@@ -437,7 +437,7 @@ Der dokumentierte Modellumfang umfasst Deutsch, Englisch, Französisch und Spani
 
 Der spaCy-Dienst ist eine optionale Sidecar-Komponente. Das Betriebsmodell sieht einen Unix-Socket und starke Containerbegrenzung vor, etwa keinen eigenen Netzwerkzugang, einen nicht privilegierten Nutzer und ein schreibgeschütztes Dateisystem. Er gehört nicht zur generativen Inferenzruntime.
 
-Text- und Snapshot-Caches berücksichtigen unter anderem Sprache und Verfahrensversion. Die dokumentierte Standard-TTL beträgt 1.800 Sekunden. Bei einem technischen Fehler bleibt die lexikalische Basisanalyse nutzbar. Ein legitimer leerer normalisierter Wortbestand ist dagegen kein technischer Fehler, der automatisch durch andere Daten ersetzt werden darf.
+Der persistente, sessiongebundene Snapshot-Cache berücksichtigt unter anderem Sprache und Verfahrensversion; seine dokumentierte Standard-TTL beträgt 1.800 Sekunden. Der frühere globale Text-Token-Cache ist deaktiviert. Bei einem technischen Fehler bleibt die lexikalische Basisanalyse nutzbar. Ein legitimer leerer normalisierter Wortbestand ist dagegen kein technischer Fehler, der automatisch durch andere Daten ersetzt werden darf.
 
 ### 8.4 Python-Dienst und Protokoll
 

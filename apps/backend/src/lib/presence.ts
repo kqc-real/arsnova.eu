@@ -1,6 +1,10 @@
 import { getRedis } from '../redis';
 import { logger } from './logger';
 import { markQaPresenceGap, markQaPresenceObservation } from './qaTelemetry';
+import {
+  buildSessionPresenceKey,
+  buildSessionRuntimeDataPurgeFenceKey,
+} from './sessionRuntimeDataPurge';
 
 const PRESENCE_TTL_SECONDS = 180;
 const PRESENCE_TTL_MS = PRESENCE_TTL_SECONDS * 1000;
@@ -9,9 +13,16 @@ const PRESENCE_KEY_TTL_SECONDS = PRESENCE_TTL_SECONDS + 30;
 let touchWarned = false;
 let countWarned = false;
 
-function presenceKey(sessionId: string): string {
-  return `presence:session:${sessionId}`;
-}
+const TOUCH_PARTICIPANT_PRESENCE_LUA = `
+-- participant_presence_touch_v2
+if redis.call('EXISTS', KEYS[2]) == 1 then
+  return 0
+end
+redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
+redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[3])
+redis.call('EXPIRE', KEYS[1], tonumber(ARGV[4]))
+return 1
+`;
 
 export async function touchParticipantPresence(
   sessionId: string,
@@ -24,12 +35,20 @@ export async function touchParticipantPresence(
   try {
     const cutoff = nowMs - PRESENCE_TTL_MS;
     const redis = getRedis();
-    await redis
-      .multi()
-      .zadd(presenceKey(sessionId), nowMs, participantId)
-      .zremrangebyscore(presenceKey(sessionId), 0, cutoff)
-      .expire(presenceKey(sessionId), PRESENCE_KEY_TTL_SECONDS)
-      .exec();
+    const result = Number(
+      await redis.eval(
+        TOUCH_PARTICIPANT_PRESENCE_LUA,
+        2,
+        buildSessionPresenceKey(sessionId),
+        buildSessionRuntimeDataPurgeFenceKey(sessionId),
+        String(nowMs),
+        participantId,
+        String(cutoff),
+        String(PRESENCE_KEY_TTL_SECONDS),
+      ),
+    );
+    if (result === 0) return;
+    if (result !== 1) throw new Error('PARTICIPANT_PRESENCE_WRITE_FAILED');
     await markQaPresenceObservation(nowMs);
   } catch (err) {
     markQaPresenceGap();
@@ -51,7 +70,7 @@ export async function removeParticipantPresence(
   if (!sessionId || !participantId) return;
 
   try {
-    await getRedis().zrem(presenceKey(sessionId), participantId);
+    await getRedis().zrem(buildSessionPresenceKey(sessionId), participantId);
   } catch (err) {
     markQaPresenceGap();
     if (!touchWarned) {
@@ -100,7 +119,7 @@ export async function getActiveParticipantIdsForSession(
   const redis = getRedis();
 
   try {
-    const key = presenceKey(sessionId);
+    const key = buildSessionPresenceKey(sessionId);
     await redis.zremrangebyscore(key, 0, cutoff);
     const ids = await redis.zrangebyscore(key, cutoff, '+inf');
     return new Set(ids.filter((id) => typeof id === 'string' && id.length > 0));
@@ -128,7 +147,7 @@ export async function getActiveParticipantCountsForSessions(
   const redis = getRedis();
   const multi = redis.multi();
   for (const sessionId of sessionIds) {
-    const key = presenceKey(sessionId);
+    const key = buildSessionPresenceKey(sessionId);
     multi.zremrangebyscore(key, 0, cutoff);
     multi.zcount(key, cutoff, '+inf');
   }

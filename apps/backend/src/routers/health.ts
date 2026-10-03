@@ -546,7 +546,8 @@ function usableQaSessionWhere(now: Date) {
 /**
  * Zählt aktive Quick-Feedback-Runden ohne blockierendes Redis KEYS.
  * Nutzt cursor-basiertes SCAN. Nur Primär-Payload-Keys `qf:<code>` zählen — nicht
- * `qf:voters:…`, `qf:choices:…`, `qf:choices:r1:…` oder `qf:host:…` (sonst mehrfache Zählung pro Runde).
+ * `qf:voters:…`, `qf:choices:…`, `qf:choices:r1:…`, `qf:host:…`,
+ * Purge-Fences oder Durability-Marker (sonst mehrfache Zählung pro Runde).
  */
 async function countActiveBlitzRounds(): Promise<number> {
   const redis = getRedis();

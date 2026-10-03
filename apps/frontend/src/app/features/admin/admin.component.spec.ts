@@ -17,6 +17,7 @@ vi.mock('../../core/trpc.client', () => ({
       getSessionByCode: { query: vi.fn() },
       getSessionDetail: { query: vi.fn() },
       resetSessionHostAccess: { mutate: vi.fn() },
+      deleteAllSessions: { mutate: vi.fn() },
       logout: { mutate: vi.fn().mockResolvedValue({ authenticated: true }) },
     },
   },
@@ -183,6 +184,26 @@ describe('AdminComponent', () => {
     await component.lookupByCode();
     expect(trpc.admin.getSessionByCode.query).not.toHaveBeenCalled();
     expect(component.lookupError()).toContain('keine gültige Session-Kennung');
+  });
+
+  it('meldet nach der Massenlöschung die tatsächlich gelöschten Parent-Quizze', async () => {
+    const component = createComponent();
+    component.sessionTotal.set(2);
+    component.updateDeleteAllConfirmText('ALLE SESSIONS LOESCHEN');
+    vi.mocked(trpc.admin.deleteAllSessions.mutate).mockResolvedValue({
+      deleted: true,
+      deletedSessionCount: 2,
+      deletedQuizCount: 1,
+    });
+
+    await component.deleteAllSessions();
+
+    expect(trpc.admin.deleteAllSessions.mutate).toHaveBeenCalledWith({
+      confirmationText: 'ALLE SESSIONS LOESCHEN',
+      expectedSessionCount: 2,
+      reason: undefined,
+    });
+    expect(component.deleteAllInfo()).toBe('2 Sessions und 1 Quizze wurden endgültig gelöscht.');
   });
 
   it('bindet ein verspätetes Reset-Ergebnis an Session A und zeigt es nicht unter B', async () => {

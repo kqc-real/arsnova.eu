@@ -233,14 +233,23 @@ npm run build:prod
 $COMPOSE up -d app
 ```
 
-Auf dem Server ist normalerweise `./scripts/deploy.sh` der bessere Weg, weil Image-Pull, Migrationen und Healthcheck zusammenlaufen. Digest-Deploy braucht `DEPLOY_IMAGE` und `DEPLOY_SHA`:
+Auf dem Server ist normalerweise `./scripts/deploy.sh` der bessere Weg, weil Image-Pull, Migrationen und Healthcheck zusammenlaufen. Beim ersten Rollout darf ein neuer Helper im installierten Altstand nicht vorausgesetzt werden. Deshalb Ziel-Commit inline verifizieren und das Deploy per `&&` daran binden:
 
 ```bash
-DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-DEPLOY_SHA='<40-hex>' \
-DEPLOY_BRANCH=main \
-./scripts/deploy.sh
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex>'
+export DEPLOY_BRANCH=main
+cd "$DEPLOY_DIR"
+git fetch --prune origin "$DEPLOY_BRANCH" &&
+  git cat-file -e "${DEPLOY_SHA}^{commit}" &&
+  git checkout --detach --force "$DEPLOY_SHA" &&
+  test "$(git rev-parse HEAD)" = "$DEPLOY_SHA" &&
+  ./scripts/deploy.sh
 ```
+
+Bei späteren Deploys kann derselbe Vertrag kurz als
+`./scripts/deploy/checkout-deploy-sha.sh && ./scripts/deploy.sh` ausgeführt werden.
 
 ### Assets oder Locale-Dateien 404
 
@@ -412,11 +421,13 @@ Deploys sollten denselben Lock verwenden, sonst kann der Timer nicht gegen einen
 
 ```bash
 cd /home/deploy/arsnova.eu
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex>'
+export DEPLOY_BRANCH=main
+./scripts/deploy/checkout-deploy-sha.sh
 flock -w 1800 /var/tmp/arsnova-deploy.lock \
-  env DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-      DEPLOY_SHA='<40-hex>' \
-      DEPLOY_BRANCH=main \
-      ./scripts/deploy.sh
+  ./scripts/deploy.sh
 ```
 
 Nach dem ersten Timer-Lauf prüfen:
@@ -539,6 +550,12 @@ einem frischen Wiederherstellungshost ausgeführt werden.
 
 Redis wird für Rate-Limits, Host-/Admin-Session-Tokens und flüchtige Live-Zustände genutzt.
 
+Vor dem ersten AOF-Cutover einen RDB-only-Redis nicht einfach mit der neuen
+Konfiguration neu starten. `scripts/deploy.sh` führt die erforderliche
+Live-Konvertierung (`CONFIG SET appendonly yes`), Rewrite-Prüfung und
+WAITAOF-Neustartprobe vor dem Compose-Recreate aus; bei Fehlern zuerst den
+bisherigen Container beziehungsweise das RDB-Backup wiederherstellen.
+
 ```bash
 cd /home/deploy/arsnova.eu
 COMPOSE='./scripts/prod-compose.sh'
@@ -627,9 +644,13 @@ docker image inspect --format '{{.Architecture}}' "$ARSNOVA_IMAGE"
 ```
 
 **Nicht:** Server-Build, `platform: linux/amd64` oder Emulation. Auf ein natives
-ARM64-Digest aus CI warten bzw. bei angerissenem Worker den letzten OK-Stand
-mit `./scripts/deploy.sh --recover` wiederherstellen (setzt keine DB-Migrationen
-zurück). Siehe [#229](https://github.com/kqc-real/arsnova.eu/issues/229).
+ARM64-Digest aus CI warten bzw. bei angerissenem Worker einen bereits
+gate-kompatiblen letzten OK-Stand mit `./scripts/deploy.sh --recover`
+wiederherstellen (setzt keine DB-Migrationen zurück). Beim ersten Cutover wird
+ein pre-Gate-`current.state` absichtlich nicht neu gestartet; dann denselben
+kompatiblen Candidate erneut normal deployen oder ein kompatibles
+Forward-Fix-/Revert-Image ausrollen. Siehe
+[#229](https://github.com/kqc-real/arsnova.eu/issues/229).
 
 ## 14. Deploy erneut ausführen
 
@@ -637,20 +658,33 @@ Wenn der Server gesund ist, aber der Stand inkonsistent wirkt:
 
 ```bash
 cd /home/deploy/arsnova.eu
-DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-DEPLOY_SHA='<40-hex>' \
-DEPLOY_BRANCH=main \
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex>'
+export DEPLOY_BRANCH=main
+./scripts/deploy/checkout-deploy-sha.sh
 ./scripts/deploy.sh
 ```
 
-Das Skript führt aus:
+Bootstrap und Skript führen aus:
 
-1. Digest-Image und Commit-SHA prüfen, Git-Checkout.
+1. Commit-SHA prüfen und **vor Start der Deploy-Logik** auschecken.
 2. Image für app/pdf-worker pullen (kein Server-Build).
-3. Postgres und Redis starten.
-4. Prisma-Migrationen ausführen.
-5. App und PDF-Worker starten.
-6. Healthcheck, Digest-Nachweis, HTTP-Verifikation, Deploy-State schreiben.
+3. Architektur prüfen und den bestehenden Compose-Redis vor jeder Neuerstellung AOF-verifizieren. Ein RDB-only-Redis wird auf dem laufenden alten Prozess per `CONFIG SET appendonly yes` konvertiert; Rewrite, WAITAOF-Neustartprobe und Schlüsselzahl müssen vor beziehungsweise nach dem Restart bestätigt sein.
+4. Postgres und Redis starten und Prisma-Migrationen ausführen.
+5. Vorhandenen App-Writer stoppen/drainen und mit einem kompatiblen Image den gesamten Word-Cloud-Analysecache AOF-bestätigt löschen.
+6. Retention ausführen und den gesamten Analysecache danach ein zweites Mal AOF-bestätigt löschen. Ein vorhandener Candidate bleibt bis hierhin bindender Runner.
+7. Den neuen Candidate unmittelbar vor App-Start persistieren, App und PDF-Worker starten; der App-Entrypoint wiederholt den Cache-Sweep.
+8. Healthcheck, Digest-Nachweis, HTTP-Verifikation und Deploy-State schreiben; erst danach den Candidate entfernen.
+
+`--rollback` und `--recover` prüfen ihr Ziel-Image vor dessen Git-Checkout. Ein
+pre-Gate-Ziel wird fail-closed abgelehnt und darf nicht manuell gestartet
+werden, weil es wieder ungescopte Word-Cloud-Textwerte erzeugen könnte. Beim
+einmaligen Cutover kann deshalb auch der automatische Rollback rot bleiben.
+Ist `current.state` bereits gate-kompatibel, `--recover` verwenden; ist es noch
+Legacy, den kompatiblen Candidate erneut normal ausrollen oder mit einem
+gate-kompatiblen Forward-Fix superseden. Der alte Candidate wird erst nach
+Writer-Drain, beiden Sweeps und Retention ersetzt.
 
 ## 15. Monitoring und Alerts einrichten
 

@@ -82,22 +82,58 @@ const { prismaMock, redisMock, extractAdminTokenMock, isAdminSessionTokenValidMo
       }),
       ttl: vi.fn(async () => 3600),
       mget: vi.fn(async (...keys: string[]) => keys.map((k) => redisStore.get(k) ?? null)),
-      eval: vi.fn(
-        async (
-          _script: string,
-          _keyCount: number,
-          slotKey: string,
-          tokenKey: string,
-          expectedSlot: string,
-          tokenPayload: string,
-          claimedSlot: string,
-        ) => {
-          if (redisStore.get(slotKey) !== expectedSlot || redisStore.has(tokenKey)) return 0;
-          redisStore.set(tokenKey, tokenPayload);
-          redisStore.set(slotKey, claimedSlot);
+      eval: vi.fn(async (script: string, keyCount: number, ...parameters: string[]) => {
+        const keys = parameters.slice(0, keyCount);
+        const args = parameters.slice(keyCount);
+        if (script.includes('product_feedback_write_indexed_artifact_v2')) {
+          const [key, , fenceKey] = keys;
+          if (redisStore.has(fenceKey!)) return -2;
+          const [payload, , , mode, , sessionId] = args;
+          if (mode === 'NX' && redisStore.has(key!)) {
+            const existing = JSON.parse(redisStore.get(key!)!) as { sessionId?: string };
+            return existing.sessionId === sessionId ? 0 : -3;
+          }
+          redisStore.set(key!, payload!);
+          return 1;
+        }
+        if (script.includes('product_feedback_claim_invite_v2')) {
+          const [slotKey, tokenKey, , fenceKey] = keys;
+          const [expectedSlot, tokenPayload, claimedSlot] = args;
+          if (
+            redisStore.has(fenceKey!) ||
+            redisStore.get(slotKey!) !== expectedSlot ||
+            redisStore.has(tokenKey!)
+          ) {
+            return 0;
+          }
+          redisStore.set(tokenKey!, tokenPayload!);
+          redisStore.set(slotKey!, claimedSlot!);
           return 3600;
-        },
-      ),
+        }
+        if (script.includes('product_feedback_reserve_invite_v2')) {
+          const [tokenKey, consumeKey, , fenceKey] = keys;
+          const [expectedToken, consumePayload] = args;
+          if (
+            redisStore.has(fenceKey!) ||
+            redisStore.get(tokenKey!) !== expectedToken ||
+            redisStore.has(consumeKey!)
+          ) {
+            return 0;
+          }
+          redisStore.set(consumeKey!, consumePayload!);
+          return 1;
+        }
+        if (script.includes('product_feedback_finalize_invite_v2')) {
+          const [tokenKey, slotKey, consumeKey, , fenceKey] = keys;
+          const [expectedToken, usedToken] = args;
+          if (redisStore.has(fenceKey!) || redisStore.get(tokenKey!) !== expectedToken) return 0;
+          redisStore.set(tokenKey!, usedToken!);
+          redisStore.delete(slotKey!);
+          redisStore.delete(consumeKey!);
+          return 1;
+        }
+        throw new Error('unexpected Redis script');
+      }),
       smembers: vi.fn(async () => [] as string[]),
       pipeline: vi.fn(() => {
         const ops: Array<() => void> = [];

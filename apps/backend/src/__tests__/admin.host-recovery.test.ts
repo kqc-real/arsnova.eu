@@ -29,6 +29,9 @@ vi.mock('../lib/hostAuth', () => ({
 vi.mock('../lib/hostPairing', () => ({
   invalidateHostPairingForSession: invalidateHostPairingForSessionMock,
 }));
+vi.mock('../lib/hostPairingSessionPurge', () => ({
+  purgeHostPairingForSessions: vi.fn(async () => 0),
+}));
 vi.mock('../lib/hostCredentialRecovery', () => ({
   resetSessionHostAccess: resetSessionHostAccessMock,
 }));
@@ -80,7 +83,10 @@ describe('Admin-Host-Recovery-Routervertrag', () => {
         adminIdentifier: expect.any(String),
       });
       expect(invalidateHostSessionTokenMock).toHaveBeenCalledWith('ABC123');
-      expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
+      expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith(
+        'ABC123',
+        resetOutput.sessionId,
+      );
     },
   );
 

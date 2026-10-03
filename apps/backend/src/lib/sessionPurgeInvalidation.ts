@@ -2,14 +2,21 @@
  * Prozesslokale Bereinigung, persistierte Cache-Eviction und Redis-Fan-out
  * für Session-Purges.
  *
- * Der Purge-Worker sendet vor und nach dem DB-Delete. So verwerfen alle
- * Instanzen sowohl vorhandene als auch während des Delete-Races fertig
- * gewordene In-Flight-Caches und Analyseartefakte.
+ * Der Purge-Worker sendet vor und nach dem DB-Delete. Der erste Pass setzt die
+ * persistente sessionId-Fence, sodass kein In-Flight-Write das Delete-Race
+ * überleben kann; der zweite Pass bleibt eine idempotente Fan-out-Absicherung.
  */
 import type Redis from 'ioredis';
 import { getRedis } from '../redis';
 import { logger } from './logger';
-import { evictWordCloudAnalysisSnapshotsForSession } from './wordCloudAnalysisCache';
+import {
+  evictLegacyWordCloudAnalysisSnapshots,
+  evictWordCloudAnalysisSnapshotsForSessions,
+} from './wordCloudAnalysisCache';
+import { purgeHostPairingForSessions } from './hostPairingSessionPurge';
+import { purgeProductFeedbackInvitesForSessions } from './productFeedbackTokens';
+import { purgeSessionBoundQuickFeedbackForSessions } from './quickFeedbackSessionPurge';
+import { purgeSessionRuntimeDataForSessions } from './sessionRuntimeDataPurge';
 
 export const SESSION_PURGE_INVALIDATION_CHANNEL = 'session:purge:v1:invalidate';
 
@@ -21,6 +28,7 @@ export type SessionPurgeInvalidation = {
 type SessionPurgeInvalidator = (event: SessionPurgeInvalidation) => Promise<void> | void;
 
 const localInvalidators = new Set<SessionPurgeInvalidator>();
+const SESSION_PURGE_FAN_OUT_BATCH_SIZE = 25;
 let subscriber: Redis | null = null;
 let subscriberStarting: Promise<void> | null = null;
 
@@ -57,19 +65,58 @@ export function registerSessionPurgeInvalidator(invalidator: SessionPurgeInvalid
 }
 
 async function invalidateLocally(event: SessionPurgeInvalidation): Promise<void> {
-  await Promise.all([...localInvalidators].map((invalidator) => invalidator(event)));
+  const results = await Promise.allSettled(
+    [...localInvalidators].map((invalidator) => Promise.resolve().then(() => invalidator(event))),
+  );
+  const failed = results.find(
+    (result): result is PromiseRejectedResult => result.status === 'rejected',
+  );
+  if (failed) throw failed.reason;
+}
+
+async function runInBoundedBatches<T>(
+  values: readonly T[],
+  operation: (value: T) => Promise<void>,
+): Promise<void> {
+  for (let offset = 0; offset < values.length; offset += SESSION_PURGE_FAN_OUT_BATCH_SIZE) {
+    const results = await Promise.allSettled(
+      values
+        .slice(offset, offset + SESSION_PURGE_FAN_OUT_BATCH_SIZE)
+        .map((value) => Promise.resolve().then(() => operation(value))),
+    );
+    const failed = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failed) throw failed.reason;
+  }
+}
+
+export async function publishSessionPurgeInvalidations(
+  events: readonly SessionPurgeInvalidation[],
+): Promise<void> {
+  const normalized = events.map(normalizeEvent);
+  if (normalized.length === 0) return;
+  await purgeSessionRuntimeDataForSessions(normalized.map(({ sessionId }) => sessionId));
+  await purgeProductFeedbackInvitesForSessions(normalized.map(({ sessionId }) => sessionId));
+  await purgeHostPairingForSessions(normalized);
+  await runInBoundedBatches(normalized, invalidateLocally);
+  await purgeSessionBoundQuickFeedbackForSessions(normalized);
+  // Der globale Sweep migriert ausschließlich vor v2 unindizierte Altlasten
+  // und wird auch bei parallelen Bulk-Purges pro Prozess nur einmal ausgeführt.
+  await evictLegacyWordCloudAnalysisSnapshots();
+  // Cache-Mutationen und AOF-Bestätigung werden in begrenzten Chunks gebündelt:
+  // ein Marker/WAITAOF bestätigt bis zu 25 atomare Session-Purges.
+  await evictWordCloudAnalysisSnapshotsForSessions(normalized.map(({ sessionId }) => sessionId));
+  const redis = getRedis();
+  await runInBoundedBatches(normalized, async (event) => {
+    await redis.publish(SESSION_PURGE_INVALIDATION_CHANNEL, JSON.stringify(event));
+  });
 }
 
 export async function publishSessionPurgeInvalidation(
   event: SessionPurgeInvalidation,
 ): Promise<void> {
-  const normalized = normalizeEvent(event);
-  await invalidateLocally(normalized);
-  // Der Redis-Snapshot-Cache ist instanzübergreifend. Der Publisher entfernt
-  // ihn einmal vor dem Fan-out; der zweite Purge-Pass nach dem DB-Delete macht
-  // die Operation idempotent und schließt das Delete-Race.
-  await evictWordCloudAnalysisSnapshotsForSession(normalized.sessionCode);
-  await getRedis().publish(SESSION_PURGE_INVALIDATION_CHANNEL, JSON.stringify(normalized));
+  await publishSessionPurgeInvalidations([event]);
 }
 
 export async function startSessionPurgeInvalidationSubscriber(): Promise<void> {

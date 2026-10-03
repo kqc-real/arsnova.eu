@@ -7799,6 +7799,81 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('verweist bei unsicheren Freitext-Themen auf Antworten statt auf Mitgliedsfragen', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Warum bleibt ein Satellit im Orbit?',
+      responses: ['Gravitation hält ihn im Orbit', 'Seine Trägheit verhindert den Absturz'],
+    });
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        status: 'uncertain',
+        entries: [
+          {
+            key: 'orbit',
+            label: 'Orbit',
+            count: 2,
+            basisLabel: 'Orbit',
+            members: [
+              {
+                sourceId: 'response-0',
+                text: 'Gravitation hält ihn im Orbit',
+                weight: 1,
+              },
+              {
+                sourceId: 'response-1',
+                text: 'Seine Trägheit verhindert den Absturz',
+                weight: 1,
+              },
+            ],
+            variants: ['Orbit'],
+            confidence: 0.4,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.displayedFreetextResponses().length === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+
+    const component = fixture.componentInstance;
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    await vi.waitUntil(
+      () => component.freetextWordCloudSemanticAnalysisResult()?.status === 'uncertain',
+      { timeout: 5000, interval: 25 },
+    );
+    fixture.detectChanges();
+
+    expect(component.freetextWordCloudSemanticHint()).toBe(
+      'Einige Themen sind unsicher. Prüfe die zugehörigen Antworten.',
+    );
+    expect(fixture.nativeElement.textContent).toContain(
+      'Einige Themen sind unsicher. Prüfe die zugehörigen Antworten.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Prüfe die Mitgliedsfragen.');
+    fixture.destroy();
+  });
+
   it('zeigt fuer eine einzelne italienische Nonsense-Antwort den lokalen Themen-Fallback', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({

@@ -10,7 +10,12 @@ import { prisma } from '../db';
 import { logger } from './logger';
 import { invalidateHostSessionToken } from './hostAuth';
 import { invalidateHostPairingForSession } from './hostPairing';
-import { publishSessionPurgeInvalidation } from './sessionPurgeInvalidation';
+import { publishSessionPurgeInvalidations } from './sessionPurgeInvalidation';
+import {
+  lockSessionDeletionQuizParents,
+  lockSessionDeletionTargets,
+  runSerializableSessionDeletion,
+} from './sessionDeletion';
 import { incrementCompletedSessionsTotal } from './platformStatistic';
 import {
   issueProductFeedbackInvitesAfterFinish,
@@ -270,10 +275,8 @@ export async function cleanupOrphanQuizUploads(): Promise<number> {
 }
 
 export async function cleanupExpiredFinishedSessions(): Promise<number> {
-  const sessionsToPurge = await prisma.$queryRaw<
-    Array<{ id: string; code: string; quizId: string | null }>
-  >(Prisma.sql`
-    SELECT candidate."id", candidate."code", candidate."quizId"
+  const sessionsToPurge = await prisma.$queryRaw<Array<{ id: string; code: string }>>(Prisma.sql`
+    SELECT candidate."id", candidate."code"
     FROM "Session" AS candidate
     WHERE candidate."status" = 'FINISHED'
       AND candidate."endedAt" IS NOT NULL
@@ -298,11 +301,7 @@ export async function cleanupExpiredFinishedSessions(): Promise<number> {
     sessionsToPurge.map(async (session) => {
       try {
         await invalidateHostSessionToken(session.code);
-        await invalidateHostPairingForSession(session.code);
-        await publishSessionPurgeInvalidation({
-          sessionId: session.id,
-          sessionCode: session.code,
-        });
+        await invalidateHostPairingForSession(session.code, session.id);
         return session;
       } catch (error) {
         logger.warn(
@@ -320,116 +319,130 @@ export async function cleanupExpiredFinishedSessions(): Promise<number> {
     return 0;
   }
 
-  const readyIds = ready.map((session) => session.id);
-  const deletedSessions = await prisma.$queryRaw<
-    Array<{ id: string; code: string; quizId: string | null }>
-  >(Prisma.sql`
-    DELETE FROM "Session" AS target
-    WHERE target."id" IN (${Prisma.join(readyIds)})
-      AND target."status" = 'FINISHED'
-      AND target."endedAt" IS NOT NULL
-      AND target."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
-        <= timezone('UTC', clock_timestamp())
-      AND (
-        target."legalHoldUntil" IS NULL
-        OR target."legalHoldUntil" <= timezone('UTC', clock_timestamp())
-      )
-    RETURNING target."id", target."code", target."quizId"
-  `);
-  if (deletedSessions.length === 0) {
+  try {
+    await publishSessionPurgeInvalidations(
+      ready.map((session) => ({
+        sessionId: session.id,
+        sessionCode: session.code,
+      })),
+    );
+  } catch (error) {
+    logger.warn(
+      'Session-Purge verzögert: Runtime-Cache-Fence fehlgeschlagen:',
+      (error as Error).message,
+    );
     return 0;
   }
 
-  const auditTargets = Prisma.join(
-    deletedSessions.map((session, sequence) => {
-      const referenceHash = createHash('sha256')
-        .update(`arsnova-session-audit:${session.id}`)
-        .digest('hex');
-      return Prisma.sql`(
-        ${session.id},
-        ${session.code},
-        ${referenceHash},
-        ${sequence}
-      )`;
-    }),
-  );
-  await prisma.$executeRaw(Prisma.sql`
-    WITH purge_targets("sessionId", "sessionCode", "referenceHash", "sequence") AS (
-      VALUES ${auditTargets}
-    ), audit_matches AS (
-      SELECT
-        audit."id" AS "auditId",
-        target."referenceHash",
-        target."sequence"
-      FROM "AdminAuditLog" AS audit
-      JOIN purge_targets AS target
-        ON audit."sessionId" = target."sessionId"
+  const deletedSessions = await runSerializableSessionDeletion(async (tx) => {
+    const readyIds = ready.map((session) => session.id);
+    const lockedTargets = await lockSessionDeletionTargets(tx, readyIds);
+    const quizIds = await lockSessionDeletionQuizParents(
+      tx,
+      lockedTargets.map((session) => session.quizId),
+    );
+    const deleted = await tx.$queryRaw<Array<{ id: string; code: string; quizId: string | null }>>(
+      Prisma.sql`
+        DELETE FROM "Session" AS target
+        WHERE target."id" IN (${Prisma.join(readyIds)})
+          AND target."status" = 'FINISHED'
+          AND target."endedAt" IS NOT NULL
+          AND target."endedAt" + (${SESSION_POST_PROCESSING_HOURS} * INTERVAL '1 hour')
+            <= timezone('UTC', clock_timestamp())
+          AND (
+            target."legalHoldUntil" IS NULL
+            OR target."legalHoldUntil" <= timezone('UTC', clock_timestamp())
+          )
+        RETURNING target."id", target."code", target."quizId"
+      `,
+    );
 
-      UNION ALL
+    if (deleted.length > 0) {
+      const auditTargets = Prisma.join(
+        deleted.map((session, sequence) => {
+          const referenceHash = createHash('sha256')
+            .update(`arsnova-session-audit:${session.id}`)
+            .digest('hex');
+          return Prisma.sql`(
+            ${session.id},
+            ${session.code},
+            ${referenceHash},
+            ${sequence}
+          )`;
+        }),
+      );
+      await tx.$executeRaw(Prisma.sql`
+        WITH purge_targets("sessionId", "sessionCode", "referenceHash", "sequence") AS (
+          VALUES ${auditTargets}
+        ), audit_matches AS (
+          SELECT
+            audit."id" AS "auditId",
+            target."referenceHash",
+            target."sequence"
+          FROM "AdminAuditLog" AS audit
+          JOIN purge_targets AS target
+            ON audit."sessionId" = target."sessionId"
 
-      SELECT
-        audit."id" AS "auditId",
-        target."referenceHash",
-        target."sequence"
-      FROM "AdminAuditLog" AS audit
-      JOIN purge_targets AS target
-        ON audit."sessionCode" = target."sessionCode"
-    ), audit_updates AS (
-      SELECT DISTINCT ON (matches."auditId")
-        matches."auditId",
-        matches."referenceHash"
-      FROM audit_matches AS matches
-      ORDER BY matches."auditId", matches."sequence" DESC
-    )
-    UPDATE "AdminAuditLog" AS audit
-    SET
-      "sessionId" = NULL,
-      "sessionCode" = NULL,
-      "sessionReferenceHash" = audit_updates."referenceHash"
-    FROM audit_updates
-    WHERE audit."id" = audit_updates."auditId"
-  `);
-  await prisma.productFeedbackInviteJob.deleteMany({
-    where: { sessionId: { in: deletedSessions.map((session) => session.id) } },
-  });
+          UNION ALL
 
-  const quizIds = [
-    ...new Set(
-      deletedSessions
+          SELECT
+            audit."id" AS "auditId",
+            target."referenceHash",
+            target."sequence"
+          FROM "AdminAuditLog" AS audit
+          JOIN purge_targets AS target
+            ON audit."sessionCode" = target."sessionCode"
+        ), audit_updates AS (
+          SELECT DISTINCT ON (matches."auditId")
+            matches."auditId",
+            matches."referenceHash"
+          FROM audit_matches AS matches
+          ORDER BY matches."auditId", matches."sequence" DESC
+        )
+        UPDATE "AdminAuditLog" AS audit
+        SET
+          "sessionId" = NULL,
+          "sessionCode" = NULL,
+          "sessionReferenceHash" = audit_updates."referenceHash"
+        FROM audit_updates
+        WHERE audit."id" = audit_updates."auditId"
+      `);
+      await tx.productFeedbackInviteJob.deleteMany({
+        where: { sessionId: { in: deleted.map((session) => session.id) } },
+      });
+    }
+
+    const deletedQuizIds = new Set(
+      deleted
         .map((session) => session.quizId)
         .filter((quizId): quizId is string => quizId !== null),
-    ),
-  ];
-  if (quizIds.length > 0) {
-    await prisma.quiz
-      .deleteMany({
+    );
+    const orphanCandidates = quizIds.filter((quizId) => deletedQuizIds.has(quizId));
+    if (orphanCandidates.length > 0) {
+      await tx.quiz.deleteMany({
         where: {
-          id: { in: quizIds },
+          id: { in: [...orphanCandidates] },
           sessions: { none: {} },
         },
-      })
-      .catch((error: unknown) => {
-        logger.warn(
-          'Session-Purge: Nachgelagerte Quiz-Bereinigung fehlgeschlagen:',
-          (error as Error).message,
-        );
       });
+    }
+    return deleted;
+  });
+  if (deletedSessions.length === 0) {
+    return 0;
   }
-
   if (deletedSessions.length > 0) {
-    await Promise.all(
-      deletedSessions.map((session) =>
-        publishSessionPurgeInvalidation({
-          sessionId: session.id,
-          sessionCode: session.code,
-        }).catch((error: unknown) => {
-          logger.warn(
-            `Session-Purge-Nachinvalidierung für ${session.id} fehlgeschlagen:`,
-            (error as Error).message,
-          );
-        }),
-      ),
-    );
+    await publishSessionPurgeInvalidations(
+      deletedSessions.map((session) => ({
+        sessionId: session.id,
+        sessionCode: session.code,
+      })),
+    ).catch((error: unknown) => {
+      logger.warn(
+        'Session-Purge-Nachinvalidierung für Cleanup-Batch fehlgeschlagen:',
+        (error as Error).message,
+      );
+    });
     logger.info(
       `Session-Purge: ${deletedSessions.length} beendete Session(s) nach ` +
         `${SESSION_POST_PROCESSING_HOURS}h Nachbereitung gelöscht (ohne aktiven Legal Hold).`,

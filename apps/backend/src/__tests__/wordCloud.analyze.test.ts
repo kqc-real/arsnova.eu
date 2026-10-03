@@ -3,11 +3,17 @@ import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { SpacyClientError } from '../lib/spacyClient';
 import * as spacyClient from '../lib/spacyClient';
 
-const { extractHostTokenFromContextMock, isHostSessionTokenValidMock } = vi.hoisted(() => ({
-  extractHostTokenFromContextMock: vi.fn(),
-  isHostSessionTokenValidMock: vi.fn(),
-}));
+const { extractHostTokenFromContextMock, isHostSessionTokenValidMock, prismaMock } = vi.hoisted(
+  () => ({
+    extractHostTokenFromContextMock: vi.fn(),
+    isHostSessionTokenValidMock: vi.fn(),
+    prismaMock: {
+      session: { findUnique: vi.fn() },
+    },
+  }),
+);
 
+vi.mock('../db', () => ({ prisma: prismaMock }));
 vi.mock('../lib/hostAuth', () => ({
   extractHostTokenFromContext: extractHostTokenFromContextMock,
   isHostSessionTokenValid: isHostSessionTokenValidMock,
@@ -28,6 +34,9 @@ describe('wordCloud.analyze', () => {
     vi.clearAllMocks();
     extractHostTokenFromContextMock.mockReturnValue('host-token-123');
     isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '11111111-1111-4111-8111-111111111111',
+    });
   });
 
   trpcDodIt(
@@ -103,6 +112,10 @@ describe('wordCloud.analyze', () => {
       });
       expect(result.entries[1]?.confidence).toBeGreaterThanOrEqual(0.65);
       expect(result.entries[1]?.confidence).toBeLessThan(0.85);
+      expect(prismaMock.session.findUnique).toHaveBeenCalledWith({
+        where: { code: 'ABC123' },
+        select: { id: true },
+      });
     },
   );
 
@@ -877,7 +890,7 @@ describe('wordCloud.analyze', () => {
       });
     });
 
-    it('nutzt den Text-Cache ueber Sessiongrenzen und cacht Timeouts nicht', async () => {
+    it('nutzt den expliziten Memory-Textcache in Tests und cacht Timeouts nicht', async () => {
       vi.stubEnv('NLP_ENABLED', 'true');
       const sidecar = vi.spyOn(spacyClient, 'normalizeWithSpacySidecar').mockResolvedValue({
         locale: 'de',

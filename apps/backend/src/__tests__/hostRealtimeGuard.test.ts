@@ -165,6 +165,11 @@ describe('waitWhileHostTokenValid (Story 2.10 Slice 4)', () => {
         }),
     );
 
+    // Token validation now also verifies the immutable session identity while
+    // holding the pairing lock. Wait until the guarded waiter is actually
+    // registered before exercising the realtime invalidation race.
+    await vi.waitFor(() => expect(resolvePairedWait).toBeTypeOf('function'));
+
     await hostCaller(originalToken).revokePairedHost({
       code: CODE,
       tokenId: approved.tokenId,

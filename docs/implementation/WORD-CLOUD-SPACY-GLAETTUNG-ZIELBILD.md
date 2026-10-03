@@ -282,17 +282,24 @@ Die erste Qualitaetsstufe bleibt `de`/`en`. `fr`/`es` folgen erst nach Fixtures 
 
 ## Cache-Zielbild
 
-Damit Host-Neuberechnungen billig bleiben, braucht die Glaettung zwei Cache-Ebenen:
+**Aktueller Produktionsvertrag (Oktober 2026):** Redis persistiert nur fertige,
+sessiongebundene Snapshots. Der hier ursprünglich entworfene globale Textcache
+ist deaktiviert, weil er keine vollständige sessiongebundene Purge-Fence besitzt;
+der Rollout-Sweep entfernt vorhandene `nlp:wc:text:*`-Altwerte. Ein Textcache
+bleibt ausschließlich als explizit injizierter Memory-Testadapter erhalten.
 
-### 1. Text-Cache
+Das ursprüngliche Zielbild sah dafür zwei Cache-Ebenen vor. Produktiv umgesetzt
+ist davon nur die zweite Ebene:
 
-Normalisierte Einzeltexte nach:
+### 1. Historischer Entwurf: Text-Cache (nicht produktiv)
+
+Vorgesehen waren normalisierte Einzeltexte nach:
 
 - Sprache
 - Text-Hash
 - Analyseversion
 
-### 2. Snapshot-Cache
+### 2. Produktiver Snapshot-Cache
 
 Komplette Wortwolkenanalyse nach:
 

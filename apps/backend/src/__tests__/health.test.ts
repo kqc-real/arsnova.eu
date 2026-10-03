@@ -1095,6 +1095,8 @@ describe('health.stats', () => {
             'qf:choices:ABCD12',
             'qf:choices:r1:ABCD12',
             'qf:host:ABCD12',
+            'qf:purged-session:v1:11111111-1111-4111-8111-111111111111',
+            'qf:purge-durability:v1:22222222-2222-4222-8222-222222222222',
             'qf:ZZZZ99',
           ],
         ]),

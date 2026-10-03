@@ -1,6 +1,6 @@
 import type { QaQuestionSortMode } from '@arsnova/shared-types';
 
-/** Ephemerer Host→Presenter-Bühnenkontext (wie Wortwolken-Projektion, pro Session-Code). */
+/** Ephemerer Host→Presenter-Bühnenkontext, gebunden an die unveränderliche Session-ID. */
 export type QaPresenterStageView = {
   sortMode: QaQuestionSortMode;
   search: string;
@@ -8,7 +8,7 @@ export type QaPresenterStageView = {
   authorNickname: string | null;
 };
 
-const qaPresenterStageViewByCode = new Map<string, QaPresenterStageView>();
+const qaPresenterStageViewBySessionId = new Map<string, QaPresenterStageView>();
 
 /** Host-Default; Presenter folgt dem Host, bis der Host explizit umschaltet. */
 export const QA_PRESENTER_SORT_MODE_DEFAULT: QaQuestionSortMode = 'BEST';
@@ -20,12 +20,12 @@ const QA_PRESENTER_STAGE_VIEW_DEFAULT: QaPresenterStageView = {
   authorNickname: null,
 };
 
-export function setQaPresenterSortMode(code: string, sortMode: QaQuestionSortMode): void {
-  setQaPresenterStageView(code, { sortMode });
+export function setQaPresenterSortMode(sessionId: string, sortMode: QaQuestionSortMode): void {
+  setQaPresenterStageView(sessionId, { sortMode });
 }
 
 export function setQaPresenterStageView(
-  code: string,
+  sessionId: string,
   view: {
     sortMode: QaQuestionSortMode;
     search?: string;
@@ -39,22 +39,22 @@ export function setQaPresenterStageView(
     pinnedOnly: view.pinnedOnly === true,
     authorNickname: view.authorNickname?.trim() ? view.authorNickname.trim() : null,
   };
-  qaPresenterStageViewByCode.set(code.toUpperCase(), normalized);
+  qaPresenterStageViewBySessionId.set(sessionId, normalized);
   return normalized;
 }
 
-export function resolveQaPresenterSortMode(code: string): QaQuestionSortMode {
-  return resolveQaPresenterStageView(code).sortMode;
+export function resolveQaPresenterSortMode(sessionId: string): QaQuestionSortMode {
+  return resolveQaPresenterStageView(sessionId).sortMode;
 }
 
-export function resolveQaPresenterStageView(code: string): QaPresenterStageView {
-  return qaPresenterStageViewByCode.get(code.toUpperCase()) ?? QA_PRESENTER_STAGE_VIEW_DEFAULT;
+export function resolveQaPresenterStageView(sessionId: string): QaPresenterStageView {
+  return qaPresenterStageViewBySessionId.get(sessionId) ?? QA_PRESENTER_STAGE_VIEW_DEFAULT;
 }
 
-export function clearQaPresenterSortMode(code: string): void {
-  qaPresenterStageViewByCode.delete(code.toUpperCase());
+export function clearQaPresenterSortMode(sessionId: string): void {
+  qaPresenterStageViewBySessionId.delete(sessionId);
 }
 
 export function clearAllQaPresenterSortModes(): void {
-  qaPresenterStageViewByCode.clear();
+  qaPresenterStageViewBySessionId.clear();
 }

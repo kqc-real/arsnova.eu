@@ -50,6 +50,8 @@ import {
 import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import { isSessionEffectivelyFinished } from '../lib/sessionLifecycle';
+import { buildQuickFeedbackSessionPurgeFenceKey } from '../lib/quickFeedbackSessionPurge';
+import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
 const KNOWN_FEEDBACK_GRACE_SECONDS = 5 * 60;
@@ -65,10 +67,28 @@ if not raw then
   return cjson.encode({ error = 'MISSING' })
 end
 
-local result = cjson.decode(raw)
-result['showLiveResults'] = ARGV[1] == '1'
-redis.call('SET', KEYS[1], cjson.encode(result), 'EX', tonumber(ARGV[2]))
-redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[3]))
+local decoded, result = pcall(cjson.decode, raw)
+if not decoded or type(result) ~= 'table' then
+  return cjson.encode({ error = 'MALFORMED' })
+end
+local expectedSessionId = ARGV[1]
+if expectedSessionId ~= '' then
+  if result['sessionBound'] ~= true
+    or result['sessionId'] ~= expectedSessionId
+    or redis.call('EXISTS', KEYS[3]) == 1 then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+else
+  if result['sessionBound'] == true then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+end
+result['showLiveResults'] = ARGV[2] == '1'
+if expectedSessionId ~= '' then
+  result['sessionId'] = expectedSessionId
+end
+redis.call('SET', KEYS[1], cjson.encode(result), 'EX', tonumber(ARGV[3]))
+redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
 return cjson.encode({ showLiveResults = result['showLiveResults'] })
 `;
 const STANDARD_VOTE_SCRIPT = `
@@ -78,7 +98,22 @@ if not raw then
   return cjson.encode({ error = 'MISSING' })
 end
 
-local result = cjson.decode(raw)
+local decoded, result = pcall(cjson.decode, raw)
+if not decoded or type(result) ~= 'table' then
+  return cjson.encode({ error = 'MALFORMED' })
+end
+local expectedSessionId = ARGV[1]
+if expectedSessionId ~= '' then
+  if result['sessionBound'] ~= true
+    or result['sessionId'] ~= expectedSessionId
+    or redis.call('EXISTS', KEYS[5]) == 1 then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+else
+  if result['sessionBound'] == true then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+end
 if result['locked'] == true then
   return cjson.encode({ error = 'LOCKED' })
 end
@@ -87,11 +122,11 @@ if result['type'] == 'TEMPO' then
 end
 
 local distribution = result['distribution'] or {}
-local value = ARGV[2]
+local value = ARGV[3]
 if distribution[value] == nil then
   return cjson.encode({ error = 'INVALID_VALUE' })
 end
-if redis.call('SISMEMBER', KEYS[2], ARGV[1]) == 1 then
+if redis.call('SISMEMBER', KEYS[2], ARGV[2]) == 1 then
   return cjson.encode({ error = 'ALREADY_VOTED' })
 end
 
@@ -99,13 +134,16 @@ distribution[value] = (tonumber(distribution[value]) or 0) + 1
 result['distribution'] = distribution
 result['totalVotes'] = (tonumber(result['totalVotes']) or 0) + 1
 
-local ttl = tonumber(ARGV[3])
+if expectedSessionId ~= '' then
+  result['sessionId'] = expectedSessionId
+end
+local ttl = tonumber(ARGV[4])
 redis.call('SET', KEYS[1], cjson.encode(result), 'EX', ttl)
-redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('SADD', KEYS[2], ARGV[2])
 redis.call('EXPIRE', KEYS[2], ttl)
-redis.call('HSET', KEYS[3], ARGV[1], value)
+redis.call('HSET', KEYS[3], ARGV[2], value)
 redis.call('EXPIRE', KEYS[3], ttl)
-redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[4]))
+redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[5]))
 return cjson.encode({ totalVotes = result['totalVotes'] })
 `;
 const TEMPO_VOTE_SCRIPT = `
@@ -114,7 +152,22 @@ if not raw then
   return cjson.encode({ error = 'MISSING' })
 end
 
-local result = cjson.decode(raw)
+local decoded, result = pcall(cjson.decode, raw)
+if not decoded or type(result) ~= 'table' then
+  return cjson.encode({ error = 'MALFORMED' })
+end
+local expectedSessionId = ARGV[1]
+if expectedSessionId ~= '' then
+  if result['sessionBound'] ~= true
+    or result['sessionId'] ~= expectedSessionId
+    or redis.call('EXISTS', KEYS[5]) == 1 then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+else
+  if result['sessionBound'] == true then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+end
 if result['type'] ~= 'TEMPO' then
   return cjson.encode({ error = 'TYPE_CHANGED' })
 end
@@ -126,13 +179,13 @@ end
 local valid = {}
 local existingDistribution = result['distribution'] or {}
 local distribution = {}
-for i = 6, #ARGV do
+for i = 7, #ARGV do
   local value = ARGV[i]
   valid[value] = true
   distribution[value] = tonumber(existingDistribution[value]) or 0
 end
 
-local previous = redis.call('HGET', KEYS[2], ARGV[1])
+local previous = redis.call('HGET', KEYS[2], ARGV[2])
 if previous ~= false and valid[previous] then
   local previousCount = tonumber(distribution[previous]) or 0
   if previousCount > 0 then
@@ -142,18 +195,18 @@ if previous ~= false and valid[previous] then
   end
 end
 
-local nextValue = ARGV[2]
+local nextValue = ARGV[3]
 local resetsToDefault = false
-if previous == ARGV[2] and ARGV[2] ~= 'FOLLOWING' then
+if previous == ARGV[3] and ARGV[3] ~= 'FOLLOWING' then
   nextValue = 'FOLLOWING'
   resetsToDefault = true
 end
 
 distribution[nextValue] = (tonumber(distribution[nextValue]) or 0) + 1
-redis.call('HSET', KEYS[2], ARGV[1], nextValue)
+redis.call('HSET', KEYS[2], ARGV[2], nextValue)
 
 local totalVotes = 0
-for i = 6, #ARGV do
+for i = 7, #ARGV do
   totalVotes = totalVotes + (tonumber(distribution[ARGV[i]]) or 0)
 end
 
@@ -166,21 +219,95 @@ result['round1Total'] = nil
 result['opinionShift'] = nil
 result['tempoTrend'] = nil
 
-local ttl = tonumber(ARGV[3])
+if expectedSessionId ~= '' then
+  result['sessionId'] = expectedSessionId
+end
+local ttl = tonumber(ARGV[4])
 redis.call('SET', KEYS[1], cjson.encode(result), 'EX', ttl)
 redis.call('EXPIRE', KEYS[2], ttl)
-redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[5]))
+redis.call('SET', KEYS[4], '1', 'EX', tonumber(ARGV[6]))
 redis.call(
   'HSET',
   KEYS[3],
-  ARGV[4],
+  ARGV[5],
   cjson.encode({ distribution = distribution, totalVotes = totalVotes })
 )
 redis.call('EXPIRE', KEYS[3], ttl)
 
 return cjson.encode({ totalVotes = totalVotes, resetsToDefault = resetsToDefault })
 `;
-type StoredQuickFeedbackResult = QuickFeedbackResult & { sessionBound?: boolean };
+const CREATE_SESSION_BOUND_QUICK_FEEDBACK_SCRIPT = `
+-- QUICK_FEEDBACK_CREATE_SESSION_BOUND
+if redis.call('EXISTS', KEYS[7]) == 1 then
+  return cjson.encode({ error = 'SESSION_MISMATCH' })
+end
+local currentRaw = redis.call('GET', KEYS[1])
+if currentRaw then
+  local decoded, current = pcall(cjson.decode, currentRaw)
+  if not decoded or type(current) ~= 'table' then
+    return cjson.encode({ error = 'MALFORMED' })
+  end
+  if current['sessionBound'] ~= true
+    or (current['sessionId'] ~= nil and current['sessionId'] ~= ARGV[1]) then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+end
+redis.call('SET', KEYS[1], ARGV[2], 'EX', tonumber(ARGV[3]))
+for index = 3, 6 do
+  redis.call('DEL', KEYS[index])
+end
+redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
+return cjson.encode({ ok = true })
+`;
+const MUTATE_SESSION_BOUND_QUICK_FEEDBACK_SCRIPT = `
+-- QUICK_FEEDBACK_MUTATE_SESSION_BOUND
+local raw = redis.call('GET', KEYS[1])
+if not raw then
+  return cjson.encode({ error = 'MISSING' })
+end
+local decoded, current = pcall(cjson.decode, raw)
+if not decoded or type(current) ~= 'table' then
+  return cjson.encode({ error = 'MALFORMED' })
+end
+if current['sessionBound'] ~= true
+  or current['sessionId'] ~= ARGV[1]
+  or redis.call('EXISTS', KEYS[7]) == 1 then
+  return cjson.encode({ error = 'SESSION_MISMATCH' })
+end
+
+local action = ARGV[5]
+if action == 'END' then
+  for index = 1, 6 do
+    redis.call('DEL', KEYS[index])
+  end
+  redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
+  return cjson.encode({ ok = true })
+end
+
+if action == 'RESET_ALL' then
+  for index = 3, 6 do
+    redis.call('DEL', KEYS[index])
+  end
+elseif action == 'SECOND_ROUND' then
+  redis.call('DEL', KEYS[3])
+  redis.call('DEL', KEYS[4])
+elseif action == 'DISCUSSION' then
+  local choices = redis.call('HGETALL', KEYS[4])
+  redis.call('DEL', KEYS[5])
+  if #choices > 0 then
+    redis.call('HSET', KEYS[5], unpack(choices))
+    redis.call('EXPIRE', KEYS[5], tonumber(ARGV[3]))
+  end
+end
+
+redis.call('SET', KEYS[1], ARGV[2], 'EX', tonumber(ARGV[3]))
+redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
+return cjson.encode({ ok = true })
+`;
+type StoredQuickFeedbackResult = QuickFeedbackResult & {
+  sessionBound?: boolean;
+  sessionId?: string;
+};
 type SessionQuickFeedbackGate = {
   id: string;
   quickFeedbackEnabled: boolean;
@@ -242,16 +369,22 @@ async function resolveQuickFeedbackAvailability(
   const code = input.sessionCode.toUpperCase();
   const redis = getRedis();
   const raw = await redis.get(feedbackKey(code));
+  let feedback: StoredQuickFeedbackResult | null = null;
   if (raw) {
-    const feedback = JSON.parse(raw) as StoredQuickFeedbackResult;
-    if (feedback.sessionBound !== true) {
-      return { active: true as const };
+    try {
+      feedback = parseStoredQuickFeedbackResult(raw);
+      if (feedback.sessionBound !== true) {
+        return { active: true as const };
+      }
+    } catch {
+      feedback = null;
     }
   }
 
   const session = await prisma.session.findUnique({
     where: { code },
     select: {
+      id: true,
       status: true,
       type: true,
       endedAt: true,
@@ -267,7 +400,9 @@ async function resolveQuickFeedbackAvailability(
     session !== null &&
     !(session.expiresAt instanceof Date && now.getTime() >= session.expiresAt.getTime()) &&
     isQaChannelJoinable(session, now);
-  if (raw && session) {
+  const matchingSessionFeedback =
+    feedback?.sessionBound === true && session !== null && feedback.sessionId === session.id;
+  if (matchingSessionFeedback) {
     return {
       active: !effectivelyFinished,
       sessionStatus: effectivelyFinished ? ('FINISHED' as const) : session.status,
@@ -275,7 +410,6 @@ async function resolveQuickFeedbackAvailability(
       qaJoinable,
     };
   }
-  if (raw) return { active: true as const };
   if (!session) {
     return rejectInvalidSessionCode(input.anonymousClientId, code, source);
   }
@@ -301,6 +435,103 @@ function choicesR1Key(code: string): string {
 
 function tempoBucketsKey(code: string): string {
   return `qf:tempo:buckets:${code}`;
+}
+
+function sessionFenceKey(sessionId: string | null): string {
+  return sessionId
+    ? buildQuickFeedbackSessionPurgeFenceKey(sessionId)
+    : 'qf:purged-session:v1:standalone';
+}
+
+function sessionBoundMutationKeys(code: string, sessionId: string): readonly string[] {
+  return [
+    feedbackKey(code),
+    knownFeedbackKey(code),
+    votersKey(code),
+    choicesKey(code),
+    choicesR1Key(code),
+    tempoBucketsKey(code),
+    sessionFenceKey(sessionId),
+  ];
+}
+
+type QuickFeedbackMutationError =
+  | 'MISSING'
+  | 'MALFORMED'
+  | 'SESSION_MISMATCH'
+  | 'LOCKED'
+  | 'TYPE_CHANGED'
+  | 'INVALID_VALUE'
+  | 'ALREADY_VOTED';
+
+function parseQuickFeedbackMutationResult(raw: unknown): {
+  error?: QuickFeedbackMutationError;
+  [key: string]: unknown;
+} {
+  if (typeof raw !== 'string') {
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Redis-Antwort ungültig.' });
+  }
+  try {
+    return JSON.parse(raw) as { error?: QuickFeedbackMutationError; [key: string]: unknown };
+  } catch {
+    throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Redis-Antwort ungültig.' });
+  }
+}
+
+function throwForQuickFeedbackMutationError(error: QuickFeedbackMutationError | undefined): void {
+  if (error === 'MISSING' || error === 'MALFORMED' || error === 'SESSION_MISMATCH') {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+    });
+  }
+}
+
+async function createSessionBoundQuickFeedback(
+  code: string,
+  sessionId: string,
+  result: StoredQuickFeedbackResult,
+): Promise<void> {
+  const raw = await getRedis().eval(
+    CREATE_SESSION_BOUND_QUICK_FEEDBACK_SCRIPT,
+    7,
+    ...sessionBoundMutationKeys(code, sessionId),
+    sessionId,
+    JSON.stringify(result),
+    String(FEEDBACK_TTL_SECONDS),
+    String(KNOWN_FEEDBACK_TTL_SECONDS),
+  );
+  const payload = parseQuickFeedbackMutationResult(raw);
+  throwForQuickFeedbackMutationError(payload.error);
+}
+
+type SessionBoundMutationAction = 'REPLACE' | 'RESET_ALL' | 'DISCUSSION' | 'SECOND_ROUND' | 'END';
+
+async function mutateSessionBoundQuickFeedback(
+  code: string,
+  result: StoredQuickFeedbackResult,
+  action: SessionBoundMutationAction,
+  knownTtlSeconds = KNOWN_FEEDBACK_TTL_SECONDS,
+): Promise<void> {
+  const sessionId = result.sessionId;
+  if (!sessionId) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+    });
+  }
+  const raw = await getRedis().eval(
+    MUTATE_SESSION_BOUND_QUICK_FEEDBACK_SCRIPT,
+    7,
+    ...sessionBoundMutationKeys(code, sessionId),
+    sessionId,
+    JSON.stringify(result),
+    String(FEEDBACK_TTL_SECONDS),
+    String(knownTtlSeconds),
+    action,
+  );
+  const payload = parseQuickFeedbackMutationResult(raw);
+  throwForQuickFeedbackMutationError(payload.error);
 }
 
 function generateCode(): string {
@@ -410,22 +641,9 @@ function tempoSnapshotsWithDefaultFollowing(
   }));
 }
 
-async function assertSessionQuickFeedbackEnabled(code: string): Promise<void> {
-  const session = await prisma.session.findUnique({
-    where: { code },
-    select: {
-      id: true,
-      quickFeedbackEnabled: true,
-      status: true,
-      endedAt: true,
-      expiresAt: true,
-    },
-  });
-
-  if (!session) {
-    throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
-  }
-
+function assertSessionQuickFeedbackEnabledGate(
+  session: SessionQuickFeedbackGate,
+): SessionQuickFeedbackGate {
   if (session.quickFeedbackEnabled !== true) {
     throw new TRPCError({
       code: 'FORBIDDEN',
@@ -438,6 +656,7 @@ async function assertSessionQuickFeedbackEnabled(code: string): Promise<void> {
       message: 'Die Session ist beendet. Blitzlicht ist nicht mehr möglich.',
     });
   }
+  return session;
 }
 
 async function loadSessionQuickFeedbackGate(code: string): Promise<SessionQuickFeedbackGate> {
@@ -467,6 +686,23 @@ async function loadSessionQuickFeedbackGate(code: string): Promise<SessionQuickF
     expiresAt: session.expiresAt,
     participantCount: session._count.participants,
   };
+}
+
+async function assertSessionQuickFeedbackEnabled(code: string): Promise<SessionQuickFeedbackGate> {
+  return assertSessionQuickFeedbackEnabledGate(await loadSessionQuickFeedbackGate(code));
+}
+
+function assertStoredQuickFeedbackSession(
+  result: StoredQuickFeedbackResult,
+  session: Pick<SessionQuickFeedbackGate, 'id'> | null,
+): string {
+  if (result.sessionBound !== true || !session || result.sessionId !== session.id) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+    });
+  }
+  return session.id;
 }
 
 /** Teilnehmer-Abstimmung nur solange die Live-Session nicht beendet ist. */
@@ -500,7 +736,18 @@ async function assertSessionAllowsQuickFeedbackVote(
 }
 
 function parseStoredQuickFeedbackResult(raw: string): StoredQuickFeedbackResult {
-  return JSON.parse(raw) as StoredQuickFeedbackResult;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('invalid payload');
+    }
+    return parsed as StoredQuickFeedbackResult;
+  } catch {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+    });
+  }
 }
 
 async function loadQuickFeedbackForVote(code: string): Promise<StoredQuickFeedbackResult> {
@@ -535,9 +782,9 @@ async function loadQuickFeedbackForHost(
   const result = parseStoredQuickFeedbackResult(raw);
   if (result.sessionBound === true) {
     await assertHostSessionAccessFromContext(ctx, code);
-    if (!allowEndedRead) {
-      await assertSessionQuickFeedbackEnabled(code);
-    }
+    const gate = await loadSessionQuickFeedbackGate(code);
+    assertStoredQuickFeedbackSession(result, gate);
+    if (!allowEndedRead) assertSessionQuickFeedbackEnabledGate(gate);
   } else {
     await assertFeedbackHostAccess(ctx.req, code, ctx.connectionParams);
   }
@@ -549,9 +796,16 @@ const QUICK_FEEDBACK_AUDIENCE_CACHE_MS = 250;
 const QUICK_FEEDBACK_AUDIENCE_CACHE_MAX_ENTRIES = 512;
 type QuickFeedbackAudienceCacheEntry = {
   expiresAt: number;
+  ownerSessionIdPromise: Promise<string | null>;
   promise: Promise<QuickFeedbackResult | null>;
+  invalidated: boolean;
 };
 const quickFeedbackAudienceCache = new Map<string, QuickFeedbackAudienceCacheEntry>();
+
+type QuickFeedbackAudienceSource = {
+  result: StoredQuickFeedbackResult | null;
+  ownerSessionId: string | null;
+};
 
 function pruneQuickFeedbackAudienceCache(nowMs: number): void {
   for (const [code, entry] of quickFeedbackAudienceCache) {
@@ -568,10 +822,42 @@ function pruneQuickFeedbackAudienceCache(nowMs: number): void {
   }
 }
 
+async function loadQuickFeedbackAudienceSource(code: string): Promise<QuickFeedbackAudienceSource> {
+  const raw = await getRedis().get(feedbackKey(code));
+  if (!raw) {
+    return { result: null, ownerSessionId: null };
+  }
+
+  const result = parseStoredQuickFeedbackResult(raw);
+  return {
+    result,
+    ownerSessionId:
+      result.sessionBound === true && typeof result.sessionId === 'string'
+        ? result.sessionId
+        : null,
+  };
+}
+
 async function buildQuickFeedbackAudienceSnapshot(
   code: string,
+  sourcePromise: Promise<QuickFeedbackAudienceSource>,
 ): Promise<QuickFeedbackResult | null> {
-  const gate = await loadSessionQuickFeedbackGate(code).catch(() => null);
+  const { result } = await sourcePromise;
+  if (!result) {
+    await protectMissingQuickFeedbackCode(code, 'pollReconnect');
+    return null;
+  }
+  const gate =
+    result.sessionBound === true
+      ? await loadSessionQuickFeedbackGate(code).catch(() => null)
+      : null;
+  if (result.sessionBound === true) {
+    try {
+      assertStoredQuickFeedbackSession(result, gate);
+    } catch {
+      return null;
+    }
+  }
   if (
     gate &&
     (!gate.quickFeedbackEnabled ||
@@ -580,49 +866,91 @@ async function buildQuickFeedbackAudienceSnapshot(
   ) {
     return null;
   }
-
-  const raw = await getRedis().get(feedbackKey(code));
-  if (!raw) {
-    await protectMissingQuickFeedbackCode(code, 'pollReconnect');
-    return null;
-  }
-
-  const result = parseStoredQuickFeedbackResult(raw);
   await enrichOpinionShift(result, code);
   await enrichTempoTrend(result, code, gate ?? undefined);
   return QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
 }
 
 function loadQuickFeedbackAudienceSnapshot(code: string): Promise<QuickFeedbackResult | null> {
+  const normalizedCode = code.toUpperCase();
   const nowMs = Date.now();
-  const cached = quickFeedbackAudienceCache.get(code);
+  const cached = quickFeedbackAudienceCache.get(normalizedCode);
   if (cached && cached.expiresAt > nowMs) {
     return cached.promise;
   }
 
   pruneQuickFeedbackAudienceCache(nowMs);
+  const sourcePromise = loadQuickFeedbackAudienceSource(normalizedCode);
   const entry: QuickFeedbackAudienceCacheEntry = {
     expiresAt: Number.POSITIVE_INFINITY,
+    ownerSessionIdPromise: sourcePromise.then(
+      ({ ownerSessionId }) => ownerSessionId,
+      () => null,
+    ),
     promise: Promise.resolve(null),
+    invalidated: false,
   };
-  entry.promise = buildQuickFeedbackAudienceSnapshot(code)
+  entry.promise = buildQuickFeedbackAudienceSnapshot(normalizedCode, sourcePromise)
     .then((result) => {
+      if (entry.invalidated || quickFeedbackAudienceCache.get(normalizedCode) !== entry) {
+        return null;
+      }
       entry.expiresAt = Date.now() + QUICK_FEEDBACK_AUDIENCE_CACHE_MS;
       return result;
     })
     .catch((error: unknown) => {
-      if (quickFeedbackAudienceCache.get(code) === entry) {
-        quickFeedbackAudienceCache.delete(code);
+      if (quickFeedbackAudienceCache.get(normalizedCode) === entry) {
+        quickFeedbackAudienceCache.delete(normalizedCode);
       }
       throw error;
     });
-  quickFeedbackAudienceCache.set(code, entry);
+  quickFeedbackAudienceCache.set(normalizedCode, entry);
   return entry.promise;
 }
 
+function invalidateQuickFeedbackAudienceCacheEntry(
+  code: string,
+  entry: QuickFeedbackAudienceCacheEntry,
+): void {
+  entry.invalidated = true;
+  if (quickFeedbackAudienceCache.get(code) === entry) {
+    quickFeedbackAudienceCache.delete(code);
+  }
+}
+
+export function invalidateQuickFeedbackAudienceCache(code: string): void {
+  const normalizedCode = code.toUpperCase();
+  const entry = quickFeedbackAudienceCache.get(normalizedCode);
+  if (entry) invalidateQuickFeedbackAudienceCacheEntry(normalizedCode, entry);
+}
+
+export async function invalidateQuickFeedbackAudienceCacheForSession(
+  code: string,
+  sessionId: string,
+): Promise<void> {
+  const normalizedCode = code.toUpperCase();
+  const entry = quickFeedbackAudienceCache.get(normalizedCode);
+  if (!entry) return;
+  const ownerSessionId = await entry.ownerSessionIdPromise;
+  if (
+    ownerSessionId !== sessionId.trim() ||
+    quickFeedbackAudienceCache.get(normalizedCode) !== entry
+  ) {
+    return;
+  }
+  invalidateQuickFeedbackAudienceCacheEntry(normalizedCode, entry);
+}
+
 export function resetQuickFeedbackAudienceCacheForTests(): void {
+  for (const entry of quickFeedbackAudienceCache.values()) {
+    entry.invalidated = true;
+  }
   quickFeedbackAudienceCache.clear();
 }
+
+registerSessionPurgeInvalidator(({ sessionCode, sessionId }) =>
+  invalidateQuickFeedbackAudienceCacheForSession(sessionCode, sessionId),
+);
 
 export const quickFeedbackRouter = router({
   create: publicProcedure
@@ -632,6 +960,7 @@ export const quickFeedbackRouter = router({
       const redis = getRedis();
       const code = input.sessionCode?.toUpperCase() ?? generateCode();
       const sessionBound = !!input.sessionCode;
+      let sessionId: string | undefined;
       if (input.sessionCode) {
         await assertHostSessionAccessFromContext(ctx, code);
         const limit = await checkQuickFeedbackSessionCreateRate(code);
@@ -642,7 +971,7 @@ export const quickFeedbackRouter = router({
             cause: { retryAfterSeconds: limit.retryAfterSeconds },
           });
         }
-        await assertSessionQuickFeedbackEnabled(code);
+        sessionId = (await assertSessionQuickFeedbackEnabled(code)).id;
       } else {
         const limit = await checkQuickFeedbackStandaloneCreateRate(resolveClientIp(ctx.req).ip);
         if (!limit.allowed) {
@@ -662,16 +991,21 @@ export const quickFeedbackRouter = router({
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
         sessionBound,
+        ...(sessionId ? { sessionId } : {}),
       };
 
-      const multi = redis.multi();
-      multi.set(key, JSON.stringify(initial), 'EX', FEEDBACK_TTL_SECONDS);
-      multi.del(votersKey(code));
-      multi.del(choicesKey(code));
-      multi.del(choicesR1Key(code));
-      multi.del(tempoBucketsKey(code));
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-      await multi.exec();
+      if (sessionId) {
+        await createSessionBoundQuickFeedback(code, sessionId, initial);
+      } else {
+        const multi = redis.multi();
+        multi.set(key, JSON.stringify(initial), 'EX', FEEDBACK_TTL_SECONDS);
+        multi.del(votersKey(code));
+        multi.del(choicesKey(code));
+        multi.del(choicesR1Key(code));
+        multi.del(tempoBucketsKey(code));
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+        await multi.exec();
+      }
 
       const hostToken = sessionBound ? null : await createFeedbackHostToken(code);
       return { feedbackId: key, sessionCode: code, hostToken };
@@ -696,14 +1030,18 @@ export const quickFeedbackRouter = router({
       result.opinionShift = undefined;
       result.tempoTrend = undefined;
 
-      const multi = redis.multi();
-      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      multi.del(votersKey(code));
-      multi.del(choicesKey(code));
-      multi.del(choicesR1Key(code));
-      multi.del(tempoBucketsKey(code));
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-      await multi.exec();
+      if (result.sessionBound === true) {
+        await mutateSessionBoundQuickFeedback(code, result, 'RESET_ALL');
+      } else {
+        const multi = redis.multi();
+        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+        multi.del(votersKey(code));
+        multi.del(choicesKey(code));
+        multi.del(choicesR1Key(code));
+        multi.del(tempoBucketsKey(code));
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+        await multi.exec();
+      }
 
       return { ok: true };
     }),
@@ -713,27 +1051,27 @@ export const quickFeedbackRouter = router({
     .mutation(async ({ ctx, input }) => {
       const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      await loadQuickFeedbackForHost(ctx, code);
+      const result = await loadQuickFeedbackForHost(ctx, code);
+      const sessionId = result.sessionBound === true ? (result.sessionId ?? null) : null;
       const raw = await redis.eval(
         SET_LIVE_RESULTS_SCRIPT,
-        2,
+        3,
         feedbackKey(code),
         knownFeedbackKey(code),
+        sessionFenceKey(sessionId),
+        sessionId ?? '',
         input.showLiveResults ? '1' : '0',
         String(FEEDBACK_TTL_SECONDS),
         String(KNOWN_FEEDBACK_TTL_SECONDS),
       );
-      const payload =
-        typeof raw === 'string'
-          ? (JSON.parse(raw) as { error?: 'MISSING'; showLiveResults?: boolean })
-          : null;
-      if (payload?.error === 'MISSING') {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
-        });
-      }
-      return { showLiveResults: payload?.showLiveResults ?? input.showLiveResults };
+      const payload = parseQuickFeedbackMutationResult(raw);
+      throwForQuickFeedbackMutationError(payload.error);
+      return {
+        showLiveResults:
+          typeof payload.showLiveResults === 'boolean'
+            ? payload.showLiveResults
+            : input.showLiveResults,
+      };
     }),
 
   reset: publicProcedure
@@ -753,14 +1091,18 @@ export const quickFeedbackRouter = router({
       result.opinionShift = undefined;
       result.tempoTrend = undefined;
 
-      const multi = redis.multi();
-      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      multi.del(votersKey(code));
-      multi.del(choicesKey(code));
-      multi.del(choicesR1Key(code));
-      multi.del(tempoBucketsKey(code));
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-      await multi.exec();
+      if (result.sessionBound === true) {
+        await mutateSessionBoundQuickFeedback(code, result, 'RESET_ALL');
+      } else {
+        const multi = redis.multi();
+        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+        multi.del(votersKey(code));
+        multi.del(choicesKey(code));
+        multi.del(choicesR1Key(code));
+        multi.del(tempoBucketsKey(code));
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+        await multi.exec();
+      }
 
       return { ok: true };
     }),
@@ -771,16 +1113,20 @@ export const quickFeedbackRouter = router({
       const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
 
-      await loadQuickFeedbackForHost(ctx, code);
+      const result = await loadQuickFeedbackForHost(ctx, code);
 
-      const multi = redis.multi();
-      multi.del(feedbackKey(code));
-      multi.del(votersKey(code));
-      multi.del(choicesKey(code));
-      multi.del(choicesR1Key(code));
-      multi.del(tempoBucketsKey(code));
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_GRACE_SECONDS);
-      await multi.exec();
+      if (result.sessionBound === true) {
+        await mutateSessionBoundQuickFeedback(code, result, 'END', KNOWN_FEEDBACK_GRACE_SECONDS);
+      } else {
+        const multi = redis.multi();
+        multi.del(feedbackKey(code));
+        multi.del(votersKey(code));
+        multi.del(choicesKey(code));
+        multi.del(choicesR1Key(code));
+        multi.del(tempoBucketsKey(code));
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_GRACE_SECONDS);
+        await multi.exec();
+      }
       await invalidateFeedbackHostToken(code);
 
       return { ok: true };
@@ -795,10 +1141,14 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.locked = !result.locked;
 
-      const multi = redis.multi();
-      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-      await multi.exec();
+      if (result.sessionBound === true) {
+        await mutateSessionBoundQuickFeedback(code, result, 'REPLACE');
+      } else {
+        const multi = redis.multi();
+        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+        await multi.exec();
+      }
       return { locked: result.locked };
     }),
 
@@ -822,17 +1172,20 @@ export const quickFeedbackRouter = router({
 
       const cKey = choicesKey(code);
       const r1Key = choicesR1Key(code);
-      const currentChoices = await redis.hgetall(cKey);
-
-      const multi = redis.multi();
-      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-      if (Object.keys(currentChoices).length > 0) {
-        multi.del(r1Key);
-        multi.hset(r1Key, currentChoices);
-        multi.expire(r1Key, FEEDBACK_TTL_SECONDS);
+      if (result.sessionBound === true) {
+        await mutateSessionBoundQuickFeedback(code, result, 'DISCUSSION');
+      } else {
+        const currentChoices = await redis.hgetall(cKey);
+        const multi = redis.multi();
+        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+        if (Object.keys(currentChoices).length > 0) {
+          multi.del(r1Key);
+          multi.hset(r1Key, currentChoices);
+          multi.expire(r1Key, FEEDBACK_TTL_SECONDS);
+        }
+        await multi.exec();
       }
-      await multi.exec();
       return { ok: true };
     }),
 
@@ -855,12 +1208,16 @@ export const quickFeedbackRouter = router({
       result.locked = false;
       result.opinionShift = undefined;
 
-      const multi = redis.multi();
-      multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-      multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-      multi.del(votersKey(code));
-      multi.del(choicesKey(code));
-      await multi.exec();
+      if (result.sessionBound === true) {
+        await mutateSessionBoundQuickFeedback(code, result, 'SECOND_ROUND');
+      } else {
+        const multi = redis.multi();
+        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
+        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
+        multi.del(votersKey(code));
+        multi.del(choicesKey(code));
+        await multi.exec();
+      }
 
       return { ok: true };
     }),
@@ -892,6 +1249,9 @@ export const quickFeedbackRouter = router({
 
     const gate =
       result.sessionBound === true ? await assertSessionAllowsQuickFeedbackVote(code) : null;
+    if (result.sessionBound === true) {
+      assertStoredQuickFeedbackSession(result, gate);
+    }
 
     if (result.locked) {
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Abstimmung ist geschlossen.' });
@@ -908,11 +1268,11 @@ export const quickFeedbackRouter = router({
     }
 
     if (result.type === 'TEMPO') {
-      await submitTempoVote(input, key);
+      await submitTempoVote(input, key, result.sessionId ?? null);
       return { ok: true };
     }
 
-    await submitStandardVote(input, key);
+    await submitStandardVote(input, key, result.sessionId ?? null);
 
     return { ok: true };
   }),
@@ -922,7 +1282,8 @@ export const quickFeedbackRouter = router({
     .mutation(async ({ input }) => {
       const result = await loadQuickFeedbackForVote(input.sessionCode.toUpperCase());
       if (result.sessionBound === true) {
-        await assertSessionAllowsQuickFeedbackVote(input.sessionCode.toUpperCase());
+        const gate = await assertSessionAllowsQuickFeedbackVote(input.sessionCode.toUpperCase());
+        assertStoredQuickFeedbackSession(result, gate);
       }
       await clearTempoVote(input);
       return { ok: true };
@@ -932,9 +1293,26 @@ export const quickFeedbackRouter = router({
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .output(QuickFeedbackResultSchema)
     .query(async ({ input }) => {
-      const gate = await loadSessionQuickFeedbackGate(input.sessionCode.toUpperCase()).catch(
-        () => null,
-      );
+      const code = input.sessionCode.toUpperCase();
+      const redis = getRedis();
+      const raw = await redis.get(feedbackKey(code));
+
+      if (!raw) {
+        await protectMissingQuickFeedbackCode(code, 'pollReconnect');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
+        });
+      }
+
+      const result = parseStoredQuickFeedbackResult(raw);
+      const gate =
+        result.sessionBound === true
+          ? await loadSessionQuickFeedbackGate(code).catch(() => null)
+          : null;
+      if (result.sessionBound === true) {
+        assertStoredQuickFeedbackSession(result, gate);
+      }
       if (gate) {
         if (!gate.quickFeedbackEnabled) {
           throw new TRPCError({
@@ -955,21 +1333,6 @@ export const quickFeedbackRouter = router({
           });
         }
       }
-
-      const redis = getRedis();
-      const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
-      const raw = await redis.get(key);
-
-      if (!raw) {
-        await protectMissingQuickFeedbackCode(code, 'pollReconnect');
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
-        });
-      }
-
-      const result = JSON.parse(raw) as StoredQuickFeedbackResult;
       await enrichOpinionShift(result, code);
       await enrichTempoTrend(result, code, gate ?? undefined);
       return QuickFeedbackResultSchema.parse(audienceQuickFeedbackResult(result));
@@ -1047,59 +1410,61 @@ export const quickFeedbackRouter = router({
     }),
 });
 
-async function submitStandardVote(input: QuickFeedbackVoteInput, key: string): Promise<void> {
+async function submitStandardVote(
+  input: QuickFeedbackVoteInput,
+  key: string,
+  sessionId: string | null,
+): Promise<void> {
   const redis = getRedis();
   const code = input.sessionCode.toUpperCase();
   const raw = await redis.eval(
     STANDARD_VOTE_SCRIPT,
-    4,
+    5,
     key,
     votersKey(code),
     choicesKey(code),
     knownFeedbackKey(code),
+    sessionFenceKey(sessionId),
+    sessionId ?? '',
     input.voterId,
     input.value,
     String(FEEDBACK_TTL_SECONDS),
     String(KNOWN_FEEDBACK_TTL_SECONDS),
   );
-  const payload =
-    typeof raw === 'string'
-      ? (JSON.parse(raw) as {
-          error?: 'MISSING' | 'LOCKED' | 'TYPE_CHANGED' | 'INVALID_VALUE' | 'ALREADY_VOTED';
-        })
-      : null;
+  const payload = parseQuickFeedbackMutationResult(raw);
 
-  if (payload?.error === 'MISSING') {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
-    });
-  }
-  if (payload?.error === 'LOCKED') {
+  throwForQuickFeedbackMutationError(payload.error);
+  if (payload.error === 'LOCKED') {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Abstimmung ist geschlossen.' });
   }
-  if (payload?.error === 'ALREADY_VOTED') {
+  if (payload.error === 'ALREADY_VOTED') {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Du hast bereits abgestimmt.' });
   }
-  if (payload?.error === 'TYPE_CHANGED' || payload?.error === 'INVALID_VALUE') {
+  if (payload.error === 'TYPE_CHANGED' || payload.error === 'INVALID_VALUE') {
     throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültige Auswahl.' });
   }
 
   void recordVoteActivity();
 }
 
-async function submitTempoVote(input: QuickFeedbackVoteInput, key: string): Promise<void> {
+async function submitTempoVote(
+  input: QuickFeedbackVoteInput,
+  key: string,
+  sessionId: string | null,
+): Promise<void> {
   const redis = getRedis();
   const code = input.sessionCode.toUpperCase();
   const cKey = choicesKey(code);
   const bucketKey = tempoBucketsKey(code);
   const raw = await redis.eval(
     TEMPO_VOTE_SCRIPT,
-    4,
+    5,
     key,
     cKey,
     bucketKey,
     knownFeedbackKey(code),
+    sessionFenceKey(sessionId),
+    sessionId ?? '',
     input.voterId,
     input.value,
     String(FEEDBACK_TTL_SECONDS),
@@ -1107,23 +1472,15 @@ async function submitTempoVote(input: QuickFeedbackVoteInput, key: string): Prom
     String(KNOWN_FEEDBACK_TTL_SECONDS),
     ...TempoValueEnum.options,
   );
-  const payload =
-    typeof raw === 'string'
-      ? (JSON.parse(raw) as { error?: 'MISSING' | 'TYPE_CHANGED' | 'LOCKED' })
-      : null;
+  const payload = parseQuickFeedbackMutationResult(raw);
 
-  if (payload?.error === 'MISSING') {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
-    });
-  }
+  throwForQuickFeedbackMutationError(payload.error);
 
-  if (payload?.error === 'LOCKED') {
+  if (payload.error === 'LOCKED') {
     throw new TRPCError({ code: 'FORBIDDEN', message: 'Abstimmung ist geschlossen.' });
   }
 
-  if (payload?.error === 'TYPE_CHANGED') {
+  if (payload.error === 'TYPE_CHANGED') {
     throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ungültige Auswahl.' });
   }
 

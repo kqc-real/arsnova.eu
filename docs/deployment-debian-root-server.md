@@ -602,8 +602,11 @@ Ohne `.env.arsnova-image` (Fresh-Host) nur Infrastruktur starten, danach Digest-
 
 ```bash
 ./scripts/prod-compose.sh up -d postgres redis
-DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-DEPLOY_SHA='<40-hex>' \
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex>'
+export DEPLOY_BRANCH=main
+./scripts/deploy/checkout-deploy-sha.sh
 ./scripts/deploy.sh
 ```
 
@@ -761,29 +764,42 @@ Lokale Entwicklung (localhost) verwendet weiterhin die Ports 3001 und 3002. Kein
 
 ## 7. Deployment-Ablauf
 
-Empfohlen ist das versionierte Deploy-Skript:
+Empfohlen ist der versionierte Bootstrap vor dem Deploy-Skript. Das ist auch beim manuellen ersten Rollout verbindlich: Eine bereits laufende Bash liest ihre Logik nicht aus einem späteren Git-Checkout neu ein. Weil der installierte Altstand den neuen Helper noch nicht enthalten muss, erfolgt der erste Bootstrap inline und startet das Deploy-Skript nur nach erfolgreich verifiziertem Checkout:
 
 ```bash
 cd /home/deploy/arsnova.eu
-DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-DEPLOY_SHA='<40-hex-commit>' \
-DEPLOY_BRANCH=main \
-./scripts/deploy.sh
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex-commit>'
+export DEPLOY_BRANCH=main
+git fetch --prune origin "$DEPLOY_BRANCH" &&
+  git cat-file -e "${DEPLOY_SHA}^{commit}" &&
+  git checkout --detach --force "$DEPLOY_SHA" &&
+  test "$(git rev-parse HEAD)" = "$DEPLOY_SHA" &&
+  ./scripts/deploy.sh
 ```
+
+Bei späteren manuellen Deploys darf der nun nachweislich vorhandene
+`./scripts/deploy/checkout-deploy-sha.sh` die vier Git-Prüfschritte ersetzen;
+`./scripts/deploy.sh` folgt nur nach erfolgreichem Helper-Lauf. Rollback und
+Recover verwenden dagegen keinen Vorab-Checkout.
 
 CI setzt `DEPLOY_IMAGE` aus `publish-image.outputs.image_ref` und `DEPLOY_SHA` auf
 den geprüften Commit, checkt `DEPLOY_SHA` per SSH **vor** `./scripts/deploy.sh` aus
 (Bootstrap gegen altes Working-Tree-Skript) und führt dann aus:
 
-1. `DEPLOY_IMAGE`/`DEPLOY_SHA` prüfen und `ARSNOVA_IMAGE` exportieren (vor Änderung laufender App-Container).
-2. Git-Checkout auf `DEPLOY_SHA` (Compose, Migrationen, Skripte) — zusätzlich zum CI-Bootstrap.
-3. Image für `app` und `pdf-worker` pullen (`compose pull` — **kein** `docker build` / `compose build` auf dem Server).
+1. Bootstrap: `DEPLOY_SHA` prüfen und auschecken, **bevor** `scripts/deploy.sh` startet.
+2. `DEPLOY_IMAGE`/`DEPLOY_SHA` erneut prüfen und `ARSNOVA_IMAGE` exportieren (vor Änderung laufender App-Container).
+3. Image für `app` und `pdf-worker` pullen (`compose pull` — **kein** `docker build` / `compose build` auf dem Server), Architektur prüfen und das All-Cache-Purge-Gate im Ziel-Image ausführen. Diese Zielprobe liegt auch bei Rollback/Recover vor dessen Git-Checkout; ein pre-Gate-Image wird abgelehnt, solange noch das sichere installierte Skript läuft.
 4. Architektur-Preflight: Docker-Host und gepulltes Image müssen `arm64` sein; sonst Abbruch **vor** Migration/`compose up` und **ohne** State-/Env-Änderung ([#229](https://github.com/kqc-real/arsnova.eu/issues/229)).
-5. PostgreSQL und Redis starten und auf Health warten (`compose up -d --wait`).
-6. Prisma-Migrationen mit `compose run --rm --no-deps` (kein vorzeitiger Start von `pdf-worker`/`app`).
-7. App- und PDF-Worker-Container starten.
-8. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.
-9. Deploy-State unter `.deploy-state/` als atomare Snapshots (`current.state` / `previous.state`, Image+SHA gemeinsam) schreiben; aktive Referenz zusätzlich in `.env.arsnova-image` für Operator-Compose (`./scripts/prod-compose.sh`).
+5. Vor jeder möglichen Redis-Neuerstellung den bestehenden lokalen Redis prüfen. Ist AOF noch deaktiviert, erzeugt das Skript live einen aktuellen RDB-Snapshot, aktiviert mit `CONFIG SET appendonly yes` AOF und wartet fail-closed auf den erfolgreichen Rewrite. Eine per `WAITAOF` bestätigte Neustartprobe und `DBSIZE` werden für die Prüfung nach der Neuerstellung festgehalten.
+6. PostgreSQL und Redis starten und auf Health warten (`compose up -d --wait`); danach AOF-Status, Neustartprobe und Schlüsselzahl erneut prüfen.
+7. Prisma-Migrationen mit `compose run --rm --no-deps` (kein vorzeitiger Start von `pdf-worker`/`app`).
+8. Kompatiblen Word-Cloud-/Blitzlicht-Rollout-Purge-Runner für Ziel, Rollback oder Recover bestimmen. Ein persistierter Candidate eines unvollständigen Normal-Deploys ist bindend, auch wenn wieder der letzte gute Container läuft. Danach den alten App-Writer stoppen/drainen und seinen Container-Status prüfen.
+9. Den gesamten Word-Cloud-Analysecache sowie sessiongebundene Blitzlicht-Altwerte ohne `sessionId` AOF-bestätigt löschen, Retention ausführen und anschließend denselben AOF-bestätigten Sweep wiederholen. So bleibt auch ein erster Cutover mit altem Shutdown-Verhalten ohne spätes v1-/Textcache- oder Legacy-Blitzlicht-Fenster. Standalone- und bereits ID-gebundene Blitzlichter bleiben erhalten.
+10. Bei einem Normal-Deploy den Ziel-Candidate erst jetzt atomar persistieren, dann App und PDF-Worker starten. Der Ziel-Entrypoint wiederholt den Rollout-Sweep vor `exec`.
+11. Container-Healthcheck, Digest-Nachweis (Registry → lokale Image-ID → Container), `health.check` und Frontend-Shell unter `/de/` prüfen.
+12. Deploy-State unter `.deploy-state/` als atomare Snapshots (`current.state` / `previous.state`, Image+SHA gemeinsam) schreiben; aktive Referenz zusätzlich in `.env.arsnova-image` für Operator-Compose (`./scripts/prod-compose.sh`). Ein erfolgreich ausgeführter Purge-Runner wird separat als letzter bekannter guter Runner gespeichert; nach erfolgreichem Ziel-Healthcheck wird ein kompatibles Ziel-Image für künftige Cachegenerationen befördert. Erst nach erfolgreichem State-/Env-Commit wird der Candidate entfernt.
 
 **Bei Architekturfehler (Operator):** laufende Container nicht mit dem inkompatiblen Digest neu erstellen; Image-/Hostarchitektur prüfen (`docker info`, `docker image inspect`); auf ein natives ARM64-Digest-Deploy warten bzw. `--recover` auf den letzten OK-Stand. Kein Server-Build, keine Emulation (`platform: linux/amd64`).
 
@@ -803,6 +819,20 @@ Bei unvollständigem Deploy (Abbruch vor State-Rotation; State noch auf dem letz
 ```
 
 **Wichtig:** Image-Rollback/Recover setzt **keine** Datenbankmigrationen zurück.
+
+**Einmalige Cutover-Grenze:** `--rollback` und `--recover` starten kein
+pre-Gate-Image. Zeigt beim ersten Rollout `previous.state` oder `current.state`
+noch auf einen Stand ohne
+`apps/backend/dist/runWordCloudCacheMigration.js`, bricht die Zielprobe vor
+Git-Checkout, Writer-Stop und Retention ab. Ein automatischer Rollback nach dem
+ersten Cutover kann deshalb absichtlich fail-closed bleiben. Nicht das Gate
+umgehen und keinen Legacy-Container manuell starten. Ist `current.state`
+bereits kompatibel, `--recover` verwenden. Ist es noch Legacy, denselben
+kompatiblen Candidate erneut als normalen Deploy ausführen oder ein
+kompatibles Forward-Fix-/Revert-Image deployen. Ein alter Candidate wird dabei
+erst nach Writer-Stop, beiden AOF-bestätigten Sweeps und Retention unmittelbar
+vor dem Start durch das neue Ziel ersetzt; ein Abbruch davor bewahrt ihn für
+den nächsten sicheren Versuch.
 
 ### Einmalig vor der ersten AOF-Aktivierung
 
@@ -826,18 +856,55 @@ docker cp arsnova-v3-redis:/data/dump.rdb \
 ```
 
 Alternativ beziehungsweise zusätzlich einen Snapshot des Redis-Volumes oder der
-VM anlegen. Die von `DBSIZE` gemeldete Schlüsselzahl notieren. Danach erst den
-neuen Redis-7.4-Container per Deployment neu erstellen. Nach dem Neustart
-`redis-cli PING`, `DBSIZE` und `INFO persistence` prüfen; TTL-bedingte Abweichungen
-bei der Schlüsselzahl sind möglich.
+VM anlegen. Die von `DBSIZE` gemeldete Schlüsselzahl notieren. Den Container
+danach **nicht manuell** nur mit einer AOF-Konfiguration neu starten: Redis
+verlangt beim Wechsel von RDB zu AOF eine Live-Konvertierung. Der neue
+`deploy.sh` erledigt sie vor `compose up` auf dem noch laufenden alten Prozess:
+
+1. aktuellen `BGSAVE` abwarten,
+2. `CONFIG SET appendfsync everysec` und `CONFIG SET appendonly yes` ausführen,
+3. in `INFO persistence` auf `aof_enabled:1`,
+   `aof_rewrite_in_progress:0`, `aof_rewrite_scheduled:0`,
+   `aof_last_bgrewrite_status:ok` und `aof_last_write_status:ok` warten,
+4. einen zufälligen, nicht sensitiven TTL-Marker auf derselben Verbindung
+   schreiben und lokal per `WAITAOF` bestätigen,
+5. erst dann Redis per Compose neu erstellen und danach AOF-Status, Marker und
+   `DBSIZE` erneut prüfen. TTL-bedingte Abweichungen bei der Schlüsselzahl sind
+   möglich.
+
+Fehler oder Timeout brechen vor der Redis-Neuerstellung ab. Bei einem bereits
+etablierten Deploy ist auch ein fehlender beziehungsweise nicht prüfbarer
+`arsnova-v3-redis` ein fail-closed Fehler; zuerst den bisherigen Container oder
+das Backup wiederherstellen. Dasselbe gilt ohne Deploy-State und Container,
+sobald noch ein Docker-Volume mit dem Compose-Label
+`com.docker.compose.volume=redis_data` existiert: `docker compose down` entfernt
+Volumes standardmäßig nicht, daher darf dieser Zustand nicht als leere
+Neuinstallation behandelt werden. Das betroffene Volume mit
+`docker volume ls --filter label=com.docker.compose.volume=redis_data` ermitteln,
+den bisherigen Redis mit seiner RDB-Konfiguration daran wiederherstellen und
+erst danach den normalen Deploy für die Live-Konvertierung ausführen. Dieser automatische Pfad gilt für den lokalen,
+fest benannten Compose-Redis ohne ACL/TLS. Ein externer oder Managed Redis muss
+vorher nach Anbieter-Verfahren live auf AOF umgestellt und auf die unten
+genannten Befehle/ACLs geprüft werden. Maßgeblich ist die
+[Redis-Anleitung zur Live-Umstellung von RDB auf AOF](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/#how-i-can-switch-to-aof-if-im-currently-using-dumprdb-snapshots).
 
 Der Compose-Redis ist bewusst auf Redis 7.4 mit AOF `everysec` festgelegt.
-Yjs-Share-Erstellung und -Rotation rufen zusätzlich `WAITAOF` auf und geben
-Token erst zurück, nachdem der lokale AOF-Fsync bestätigt wurde. Dadurch kann
-ein bestätigter Widerruf nach Redis-/Host-Crash nicht auf eine ältere Generation
-zurückfallen, ohne alle übrigen Redis-Schreibpfade mit `appendfsync always` zu
-belasten. Bei externem/Managed Redis müssen AOF und `WAITAOF` unterstützt sein;
-andernfalls schlagen Create/Rotate in Produktion fail-closed fehl.
+Yjs-Share-Erstellung/-Rotation sowie Session-Snapshot-Purges rufen zusätzlich
+`WAITAOF` auf. Share-Tokens werden erst nach lokal bestätigtem AOF-Fsync
+zurückgegeben; ein Session-Delete beginnt erst, nachdem Purge-Fence und
+Snapshot-Löschungen lokal bestätigt sind. Auch der Rollout-Sweep des gesamten
+Word-Cloud-Analysecaches und sessiongebundener Legacy-Blitzlichter muss nach
+Writer-Drain und vor Retention beziehungsweise Prozessstart diese Bestätigung
+erhalten. Seine Barriere erfasst vor dem
+Mutationssegment Redis-Server-`run_id` und `CLIENT ID`, schreibt danach einen
+zufälligen, nicht sensitiven TTL-Marker und akzeptiert `WAITAOF` nur bei
+unverändertem Serverlauf und unveränderter Verbindung. Dadurch kann ein
+Reconnect oder Redis-Neustart zwischen Löschung und Bestätigung nicht als
+erfolgreicher Purge erscheinen. Bei externem/Managed Redis müssen AOF,
+`WAITAOF`, `INFO server` und `CLIENT ID` unterstützt und per ACL erlaubt sein;
+andernfalls schlagen diese Pfade in Produktion fail-closed fehl. Der globale
+Sweep setzt den einzelnen Redis-Primary aus `docker-compose.prod.yml` voraus;
+Redis Cluster wird nicht unterstützt.
 
 Optionaler HTTP-Smoke aus Nutzerperspektive:
 
@@ -849,10 +916,15 @@ npm run verify:production-serving -- https://<domain>
 
 ```bash
 cd /home/deploy/arsnova.eu
-DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-DEPLOY_SHA='<40-hex-commit>' \
-DEPLOY_BRANCH=main \
-./scripts/deploy.sh
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex-commit>'
+export DEPLOY_BRANCH=main
+git fetch --prune origin "$DEPLOY_BRANCH" &&
+  git cat-file -e "${DEPLOY_SHA}^{commit}" &&
+  git checkout --detach --force "$DEPLOY_SHA" &&
+  test "$(git rev-parse HEAD)" = "$DEPLOY_SHA" &&
+  ./scripts/deploy.sh
 ```
 
 Nur Infrastruktur / Diagnose danach:
@@ -920,19 +992,20 @@ spontan anheben oder durch enge IP-Limits ersetzen; zuerst
 
 ## 9. Kurzreferenz Befehle
 
-| Aktion                  | Befehl                                                                                                                                   |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Deploy ausführen        | `DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' DEPLOY_SHA='<40-hex>' DEPLOY_BRANCH=main ./scripts/deploy.sh`                |
-| Stack starten           | `./scripts/prod-compose.sh up -d`                                                                                                        |
-| App starten             | `./scripts/prod-compose.sh up -d app`                                                                                                    |
-| App stoppen             | `./scripts/prod-compose.sh stop app`                                                                                                     |
-| Logs anzeigen           | `./scripts/prod-compose.sh logs -f app`                                                                                                  |
-| Migrationen             | `./scripts/prod-compose.sh run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma` |
-| Retention-Gate          | `./scripts/prod-compose.sh run --rm --no-deps --entrypoint "" app node /app/apps/backend/dist/runRetentionCleanup.js`                    |
-| Recover (unvollständig) | `./scripts/deploy.sh --recover`                                                                                                          |
-| Rollback                | `./scripts/deploy.sh --rollback`                                                                                                         |
-| Nginx neu laden         | `sudo systemctl reload nginx`                                                                                                            |
-| Zertifikat erneuern     | `sudo certbot renew` (läuft automatisch per Timer)                                                                                       |
+| Aktion                  | Befehl                                                                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Erster manueller Deploy | Inline-Bootstrap aus Abschnitt 7; `deploy.sh` ist per `&&` an den verifizierten Ziel-Checkout gebunden                                          |
+| Späterer Deploy         | `./scripts/deploy/checkout-deploy-sha.sh && ./scripts/deploy.sh` (mit exportiertem `DEPLOY_DIR`, `DEPLOY_IMAGE`, `DEPLOY_SHA`, `DEPLOY_BRANCH`) |
+| Stack starten           | `./scripts/prod-compose.sh up -d`                                                                                                               |
+| App starten             | `./scripts/prod-compose.sh up -d app`                                                                                                           |
+| App stoppen             | `./scripts/prod-compose.sh stop app`                                                                                                            |
+| Logs anzeigen           | `./scripts/prod-compose.sh logs -f app`                                                                                                         |
+| Migrationen             | `./scripts/prod-compose.sh run --rm --entrypoint "" app /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma`        |
+| Retention-Gate          | `./scripts/prod-compose.sh run --rm --no-deps --entrypoint "" app node /app/apps/backend/dist/runRetentionCleanup.js`                           |
+| Recover (unvollständig) | `./scripts/deploy.sh --recover`                                                                                                                 |
+| Rollback                | `./scripts/deploy.sh --rollback`                                                                                                                |
+| Nginx neu laden         | `sudo systemctl reload nginx`                                                                                                                   |
+| Zertifikat erneuern     | `sudo certbot renew` (läuft automatisch per Timer)                                                                                              |
 
 ---
 
@@ -985,11 +1058,15 @@ Ohne CI (z. B. Hotfix oder bei ausgefallener CI):
 
 ```bash
 cd /home/deploy/arsnova.eu   # oder $DEPLOY_DIR
-git fetch origin
-DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>' \
-DEPLOY_SHA='<40-hex-commit>' \
-DEPLOY_BRANCH=main \
-./scripts/deploy.sh
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-hex>'
+export DEPLOY_SHA='<40-hex-commit>'
+export DEPLOY_BRANCH=main
+git fetch --prune origin "$DEPLOY_BRANCH" &&
+  git cat-file -e "${DEPLOY_SHA}^{commit}" &&
+  git checkout --detach --force "$DEPLOY_SHA" &&
+  test "$(git rev-parse HEAD)" = "$DEPLOY_SHA" &&
+  ./scripts/deploy.sh
 ```
 
 Rollback nach erfolgreichem Deploy (lädt `previous.state`, ohne DB-Migrations-Rollback):
@@ -998,11 +1075,21 @@ Rollback nach erfolgreichem Deploy (lädt `previous.state`, ohne DB-Migrations-R
 ./scripts/deploy.sh --rollback
 ```
 
+Das Ziel muss bereits das All-Cache-Purge-Gate enthalten. Beim einmaligen
+Cutover auf diesen Vertrag wird ein pre-Gate-`previous.state` absichtlich
+abgelehnt; dann den kompatiblen aktuellen Stand recovern oder ein kompatibles
+Forward-Fix-/Revert-Image normal deployen.
+
 Recover bei unvollständigem Deploy (lädt `current.state`):
 
 ```bash
 ./scripts/deploy.sh --recover
 ```
+
+Ist `current.state` beim ersten fehlgeschlagenen Cutover noch pre-Gate, darf es
+nicht neu gestartet werden. Denselben kompatiblen Candidate erneut normal
+deployen oder durch ein kompatibles Forward-Fix ersetzen; der persistierte
+Candidate wird vor dem Wechsel verpflichtend zum Cache-Sweep verwendet.
 
 Operator-Compose nach Deploy (nutzt `.env.arsnova-image`):
 

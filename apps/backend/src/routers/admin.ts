@@ -59,7 +59,16 @@ import { buildSessionRetentionTimeline } from '../lib/sessionLifecycle';
 import { invalidateHostSessionToken } from '../lib/hostAuth';
 import { invalidateHostPairingForSession } from '../lib/hostPairing';
 import { logger } from '../lib/logger';
-import { publishSessionPurgeInvalidation } from '../lib/sessionPurgeInvalidation';
+import {
+  lockSessionDeletionQuizParents,
+  lockSessionDeletionTargets,
+  runSessionBoundWrite,
+  runSerializableSessionDeletion,
+} from '../lib/sessionDeletion';
+import {
+  publishSessionPurgeInvalidation,
+  publishSessionPurgeInvalidations,
+} from '../lib/sessionPurgeInvalidation';
 import { resetSessionHostAccess } from '../lib/hostCredentialRecovery';
 
 const DEFAULT_LEGAL_HOLD_DAYS = 30;
@@ -68,6 +77,24 @@ const MAX_LEGAL_HOLD_DAYS = 365;
 const ADMIN_EXPORT_SCHEMA_VERSION = 1;
 const ADMIN_BULK_DELETE_CONFIRMATION = 'ALLE SESSIONS LOESCHEN';
 const ADMIN_RESET_RECORD_CONFIRMATION = 'REKORD RESETZEN';
+const ADMIN_SESSION_PURGE_BATCH_SIZE = 25;
+
+async function runAdminSessionBatches<T>(
+  values: readonly T[],
+  operation: (value: T) => Promise<void>,
+): Promise<void> {
+  for (let offset = 0; offset < values.length; offset += ADMIN_SESSION_PURGE_BATCH_SIZE) {
+    const results = await Promise.allSettled(
+      values
+        .slice(offset, offset + ADMIN_SESSION_PURGE_BATCH_SIZE)
+        .map((value) => Promise.resolve().then(() => operation(value))),
+    );
+    const failed = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failed) throw failed.reason;
+  }
+}
 
 function resolveDefaultLegalHoldDays(): number {
   const raw = process.env['ADMIN_LEGAL_HOLD_DEFAULT_DAYS'];
@@ -403,6 +430,31 @@ function toBufferFromPdf(doc: InstanceType<typeof PDFDocument>): Promise<Buffer>
 
 function hashSha256(input: Buffer | string): string {
   return createHash('sha256').update(input).digest('hex');
+}
+
+async function writeSessionBoundExportAudit(input: {
+  sessionId: string;
+  adminIdentifier: string;
+  reason: string | null;
+}): Promise<void> {
+  const written = await runSessionBoundWrite(input.sessionId, async (tx, target) => {
+    await tx.adminAuditLog.create({
+      data: {
+        action: 'EXPORT_FOR_AUTHORITIES',
+        sessionId: target.id,
+        sessionCode: target.code,
+        adminIdentifier: input.adminIdentifier,
+        reason: input.reason,
+      },
+    });
+    return true;
+  });
+  if (written === null) {
+    throw new TRPCError({
+      code: 'CONFLICT',
+      message: 'Export abgebrochen: Die Session wurde zwischenzeitlich gelöscht.',
+    });
+  }
 }
 
 function pseudonymousAdminIdentifier(adminToken: string | undefined): string {
@@ -779,7 +831,7 @@ export const adminRouter = router({
       });
       await Promise.allSettled([
         invalidateHostSessionToken(result.code),
-        invalidateHostPairingForSession(result.code),
+        invalidateHostPairingForSession(result.code, result.sessionId),
       ]);
       return result;
     }),
@@ -798,7 +850,6 @@ export const adminRouter = router({
           endedAt: true,
           legalHoldUntil: true,
           legalHoldReason: true,
-          quizId: true,
         },
       });
       if (!existing) {
@@ -817,7 +868,7 @@ export const adminRouter = router({
       const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
       try {
         await invalidateHostSessionToken(existing.code);
-        await invalidateHostPairingForSession(existing.code);
+        await invalidateHostPairingForSession(existing.code, existing.id);
         await publishSessionPurgeInvalidation({
           sessionId: existing.id,
           sessionCode: existing.code,
@@ -826,56 +877,65 @@ export const adminRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message:
-            'Session-Credentials konnten nicht sicher entwertet werden. Die Löschung wurde nicht ausgeführt.',
+            'Die sichere Löschvorbereitung für Session-Zugänge und Analysecache ist fehlgeschlagen. Die Löschung wurde nicht ausgeführt.',
         });
       }
 
-      await prisma.$transaction(async (tx) => {
+      const deletedTarget = await runSerializableSessionDeletion(async (tx) => {
+        const [target] = await lockSessionDeletionTargets(tx, [existing.id]);
+        if (!target) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        const quizIds = await lockSessionDeletionQuizParents(tx, [target.quizId]);
+        await tx.adminAuditLog.updateMany({
+          where: {
+            OR: [{ sessionId: target.id }, { sessionCode: target.code }],
+          },
+          data: {
+            sessionId: null,
+            sessionCode: null,
+            sessionReferenceHash: hashSha256(`arsnova-session-audit:${target.id}`),
+          },
+        });
         await tx.productFeedbackInviteJob.deleteMany({
-          where: { sessionId: existing.id },
+          where: { sessionId: target.id },
         });
         await tx.session.delete({
-          where: { id: existing.id },
+          where: { id: target.id },
         });
-
-        if (existing.quizId) {
-          const stillReferenced = await tx.session.count({
-            where: { quizId: existing.quizId },
+        if (quizIds.length > 0) {
+          await tx.quiz.deleteMany({
+            where: {
+              id: { in: [...quizIds] },
+              sessions: { none: {} },
+            },
           });
-          if (stillReferenced === 0) {
-            await tx.quiz
-              .delete({
-                where: { id: existing.quizId },
-              })
-              .catch(() => {
-                // Best effort: Falls Quiz parallel entfernt wurde, ist die Session trotzdem gelöscht.
-              });
-          }
         }
 
         await tx.adminAuditLog.create({
           data: {
             action: 'SESSION_DELETE',
-            sessionReferenceHash: hashSha256(`arsnova-session-audit:${existing.id}`),
+            sessionReferenceHash: hashSha256(`arsnova-session-audit:${target.id}`),
             adminIdentifier,
             reason,
           },
         });
+        return target;
       });
       await publishSessionPurgeInvalidation({
-        sessionId: existing.id,
-        sessionCode: existing.code,
+        sessionId: deletedTarget.id,
+        sessionCode: deletedTarget.code,
       }).catch((error: unknown) => {
         logger.warn(
-          `Admin-Session-Nachinvalidierung für ${existing.id} fehlgeschlagen:`,
+          `Admin-Session-Nachinvalidierung für ${deletedTarget.id} fehlgeschlagen:`,
           (error as Error).message,
         );
       });
 
       return {
         deleted: true as const,
-        sessionId: existing.id,
-        sessionCode: existing.code,
+        sessionId: deletedTarget.id,
+        sessionCode: deletedTarget.code,
       };
     }),
 
@@ -907,24 +967,43 @@ export const adminRouter = router({
       const reason = input.reason?.trim() || null;
       const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
       try {
-        for (const session of sessionsToDelete) {
-          await invalidateHostSessionToken(session.code);
-          await invalidateHostPairingForSession(session.code);
-          await publishSessionPurgeInvalidation({
+        await runAdminSessionBatches(sessionsToDelete, async (session) => {
+          await Promise.all([
+            invalidateHostSessionToken(session.code),
+            invalidateHostPairingForSession(session.code, session.id),
+          ]);
+        });
+        await publishSessionPurgeInvalidations(
+          sessionsToDelete.map((session) => ({
             sessionId: session.id,
             sessionCode: session.code,
-          });
-        }
+          })),
+        );
       } catch {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message:
-            'Nicht alle Session-Credentials konnten sicher entwertet werden. Die Massenlöschung wurde nicht ausgeführt.',
+            'Die sichere Löschvorbereitung für Session-Zugänge und Analysecaches ist fehlgeschlagen. Die Massenlöschung wurde nicht ausgeführt.',
         });
       }
 
-      const result = await prisma.$transaction(async (tx) => {
-        for (const session of sessionsToDelete) {
+      const result = await runSerializableSessionDeletion(async (tx) => {
+        const lockedTargets = await lockSessionDeletionTargets(
+          tx,
+          sessionsToDelete.map((session) => session.id),
+        );
+        if (lockedTargets.length !== sessionsToDelete.length) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message:
+              'Session-Liste hat sich geändert. Bitte Ansicht aktualisieren und erneut bestätigen.',
+          });
+        }
+        const quizIds = await lockSessionDeletionQuizParents(
+          tx,
+          lockedTargets.map((session) => session.quizId),
+        );
+        for (const session of lockedTargets) {
           await tx.adminAuditLog.updateMany({
             where: {
               OR: [{ sessionId: session.id }, { sessionCode: session.code }],
@@ -936,16 +1015,22 @@ export const adminRouter = router({
             },
           });
         }
-        const sessionIds = sessionsToDelete.map((session) => session.id);
+        const sessionIds = lockedTargets.map((session) => session.id);
         await tx.productFeedbackInviteJob.deleteMany({
           where: { sessionId: { in: sessionIds } },
         });
         const deletedSessions = await tx.session.deleteMany({
           where: { id: { in: sessionIds } },
         });
-        const deletedQuizzes = await tx.quiz.deleteMany({
-          where: { sessions: { none: {} } },
-        });
+        const deletedQuizzes =
+          quizIds.length === 0
+            ? { count: 0 }
+            : await tx.quiz.deleteMany({
+                where: {
+                  id: { in: [...quizIds] },
+                  sessions: { none: {} },
+                },
+              });
 
         await tx.adminAuditLog.create({
           data: {
@@ -958,21 +1043,20 @@ export const adminRouter = router({
         return {
           deletedSessionCount: deletedSessions.count,
           deletedQuizCount: deletedQuizzes.count,
+          deletedTargets: lockedTargets,
         };
       });
-      await Promise.all(
-        sessionsToDelete.map((session) =>
-          publishSessionPurgeInvalidation({
-            sessionId: session.id,
-            sessionCode: session.code,
-          }).catch((error: unknown) => {
-            logger.warn(
-              `Admin-Session-Nachinvalidierung für ${session.id} fehlgeschlagen:`,
-              (error as Error).message,
-            );
-          }),
-        ),
-      );
+      await publishSessionPurgeInvalidations(
+        result.deletedTargets.map((session) => ({
+          sessionId: session.id,
+          sessionCode: session.code,
+        })),
+      ).catch((error: unknown) => {
+        logger.warn(
+          'Admin-Session-Nachinvalidierung für Massenlöschung fehlgeschlagen:',
+          (error as Error).message,
+        );
+      });
 
       return {
         deleted: true as const,
@@ -1138,14 +1222,10 @@ export const adminRouter = router({
         fileBuffer = await buildAuthorityPdf(payload, payloadHash);
       }
 
-      await prisma.adminAuditLog.create({
-        data: {
-          action: 'EXPORT_FOR_AUTHORITIES',
-          sessionId: session.id,
-          sessionCode: session.code,
-          adminIdentifier,
-          reason,
-        },
+      await writeSessionBoundExportAudit({
+        sessionId: session.id,
+        adminIdentifier,
+        reason,
       });
 
       return {
@@ -1357,14 +1437,10 @@ export const adminRouter = router({
       const fileName = `quiz-import-${session.code}-${generatedAt.slice(0, 10)}.json`;
       const adminIdentifier = pseudonymousAdminIdentifier(ctx.adminToken);
 
-      await prisma.adminAuditLog.create({
-        data: {
-          action: 'EXPORT_FOR_AUTHORITIES',
-          sessionId: session.id,
-          sessionCode: session.code,
-          adminIdentifier,
-          reason: 'QUIZ_IMPORT_EXPORT',
-        },
+      await writeSessionBoundExportAudit({
+        sessionId: session.id,
+        adminIdentifier,
+        reason: 'QUIZ_IMPORT_EXPORT',
       });
 
       return {

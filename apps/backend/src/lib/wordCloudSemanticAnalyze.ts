@@ -59,6 +59,8 @@ type CircuitState = {
 };
 
 type SemanticAnalyzeOptions = {
+  /** Serverseitig aufgelöste, unveränderliche Session-ID; niemals aus dem Client ableiten. */
+  readonly sessionId?: string;
   readonly env?: NodeJS.ProcessEnv;
   readonly tokensByItemId?: ReadonlyMap<
     string,
@@ -97,8 +99,18 @@ let hooks: SemanticHooks = createDefaultHooks();
 const circuit: CircuitState = { failures: 0, openedAt: null };
 const jobs = new Map<string, SessionJobQueue>();
 
-export function invalidateWordCloudSemanticSession(sessionCode: string): void {
-  const sessionKey = sessionCode.trim().toUpperCase();
+function sessionJobKey(sessionId: string): string {
+  return `session:${sessionId.trim()}`;
+}
+
+function unscopedJobKey(sessionCode: string): string {
+  // Reine Library-/Testaufrufe ohne serverseitigen Cache-Scope bleiben getrennt
+  // von produktiven, unveränderlich per sessionId gebundenen Queues.
+  return `unscoped:${sessionCode.trim().toUpperCase()}`;
+}
+
+export function invalidateWordCloudSemanticSession(sessionId: string): void {
+  const sessionKey = sessionJobKey(sessionId);
   const queue = jobs.get(sessionKey);
   if (!queue) {
     return;
@@ -113,7 +125,7 @@ export function invalidateWordCloudSemanticSession(sessionCode: string): void {
   }
 }
 
-registerSessionPurgeInvalidator((event) => invalidateWordCloudSemanticSession(event.sessionCode));
+registerSessionPurgeInvalidator((event) => invalidateWordCloudSemanticSession(event.sessionId));
 
 export function resetWordCloudSemanticAnalyzeForTests(overrides?: Partial<SemanticHooks>): void {
   hooks = {
@@ -430,7 +442,9 @@ export async function analyzeSemanticWordCloudSnapshot(
   meta: WordCloudNormalizationMeta,
   options: SemanticAnalyzeOptions = {},
 ): Promise<AnalyzeWordCloudOutput> {
-  const sessionKey = input.sessionCode.toUpperCase();
+  const sessionKey = options.sessionId
+    ? sessionJobKey(options.sessionId)
+    : unscopedJobKey(input.sessionCode);
   let queue = jobs.get(sessionKey);
   if (!queue) {
     queue = {

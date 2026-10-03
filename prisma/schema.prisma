@@ -798,7 +798,7 @@ model AdminAuditLog {
 }
 
 enum AdminAuditAction {
-  SESSION_DELETE // Story 9.2: Session inkl. Quiz-Daten gelöscht
+  SESSION_DELETE // Story 9.2: Session und ggf. unreferenziertes Parent-Quiz gelöscht
   EXPORT_FOR_AUTHORITIES // Story 9.3: Auszug für Behörden exportiert
   HOST_ACCESS_RESET // #408: auditierter Credential-Widerruf ohne Geheimnisse/Inhalte
 }

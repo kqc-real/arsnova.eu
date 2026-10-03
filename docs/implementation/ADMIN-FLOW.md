@@ -134,6 +134,9 @@ Zusätzliche Sicherheits-/Bedienregeln:
 - Der Admin-Schlüssel ist **nicht** der Bestätigungscode.
 - Bei Retention-Status `PURGED` wird Löschen serverseitig abgelehnt.
 - Ein Audit-Log-Eintrag mit Action `SESSION_DELETE` wird angelegt.
+- Vorhandene Auditbezüge auf Session-ID oder -Code werden beim Purge in
+  derselben Datenbanktransaktion pseudonymisiert; offene Invite-Jobs werden
+  darin ebenfalls entfernt.
 - Zusätzlich gibt es eine Massenlöschung aller Sessions mit Sicherheitsphrase **`ALLE SESSIONS LOESCHEN`** und erwarteter Session-Anzahl. Sie ist für Betreiber-Reset/Notfall gedacht, nicht für normale Wartung.
 
 ### 4.2 Export-Flow (Story 9.3)
@@ -142,6 +145,9 @@ Zusätzliche Sicherheits-/Bedienregeln:
 - Ausgabe enthält normalisierte Markdown-/KaTeX-Inhalte in lesbarer Textform
 - Bei `PURGED` wird Export serverseitig abgelehnt
 - Audit-Log-Eintrag mit Action `EXPORT_FOR_AUTHORITIES`
+- Unmittelbar vor dem Audit-Write wird die Sessionzeile erneut gesperrt. Hat
+  der Purge inzwischen gewonnen, wird der Export abgebrochen; ein später
+  geschriebener Rohbezug auf die gelöschte Session ist damit ausgeschlossen.
 - Optional kann ein Grund und eine Fallreferenz mitgegeben werden.
 
 ### 4.3 Plattformstatistik
@@ -205,7 +211,10 @@ Die folgenden Prozedurnamen und Aufgaben sind **kanonisch**. Für Rohaufrufe per
 - Output: `deleted`, `sessionId`, `sessionCode`
 - Procedure: `admin.deleteAllSessions`
 - Input: `confirmationText`, `expectedSessionCount`, optional `reason`
-- Output: Anzahl gelöschter Sessions und unreferenzierter Quizze
+- Output: Anzahl gelöschter Sessions und unreferenzierter Parent-Quizze. Die
+  Ziel-Sessions und anschließend ihre aktuellen Parent-Quizze werden unter
+  einer wiederholbaren serialisierbaren Transaktion deterministisch gesperrt;
+  parallele Quizwechsel oder Session-Bindungen werden nicht mitkaskadiert.
 
 ## 5.6 Export
 

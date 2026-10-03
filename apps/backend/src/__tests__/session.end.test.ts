@@ -45,6 +45,7 @@ const { redisMock } = vi.hoisted(() => ({
   redisMock: {
     get: vi.fn(),
     set: vi.fn(),
+    del: vi.fn(),
   },
 }));
 
@@ -81,8 +82,15 @@ vi.mock('../lib/hostPairing', () => ({
     invalidateHostPairingForSessionMock(...args),
   findPairedHostByToken: vi.fn(async () => null),
 }));
+vi.mock('../lib/hostPairingSessionPurge', () => ({
+  purgeHostPairingForSessions: vi.fn(async () => 0),
+}));
 
-import { sessionRouter, resetSessionReadCachesForTests } from '../routers/session';
+import {
+  purgeSessionRuntimeArtifacts,
+  resetSessionReadCachesForTests,
+  sessionRouter,
+} from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 
@@ -127,7 +135,7 @@ describe('session.end', () => {
 
     await caller.end({ code: 'ABC123' });
 
-    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123', 'sess-1');
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).toHaveBeenCalledWith();
     expect(prismaMock.productFeedbackInviteJob.upsert).toHaveBeenCalledWith({
       where: { sessionId: 'sess-1' },
@@ -169,7 +177,7 @@ describe('session.end', () => {
     invalidateHostPairingForSessionMock.mockRejectedValueOnce(new Error('Redis nicht erreichbar'));
 
     await expect(caller.end({ code: 'ABC123' })).resolves.toMatchObject({ status: 'FINISHED' });
-    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123', 'sess-1');
   });
 
   trpcDodIt(
@@ -298,7 +306,7 @@ describe('session.end', () => {
       }),
     );
     expect(platformStatisticMocks.incrementCompletedSessionsTotal).not.toHaveBeenCalled();
-    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123', 'sess-1');
   });
 
   it('markiert ein bereits beendetes Quiz nach session.end als hostEnded', async () => {
@@ -339,7 +347,7 @@ describe('session.end', () => {
         },
       }),
     );
-    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123');
+    expect(invalidateHostPairingForSessionMock).toHaveBeenCalledWith('ABC123', 'sess-1');
   });
 
   it('liefert bei bereits fälliger Frist das trigger-kanonische endedAt = expiresAt', async () => {
@@ -405,16 +413,27 @@ describe('session.dismissFinishProjection', () => {
       title: 'setzt die Presenter-Abschlussprojektion auf Idle',
     },
     async () => {
-      prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'session-finished',
+        status: 'FINISHED',
+      });
 
       await expect(caller.dismissFinishProjection({ code: 'ABC123' })).resolves.toEqual({
         finishProjection: 'idle',
       });
       expect(redisMock.set).toHaveBeenCalledWith(
-        'session:finishProjection:ABC123',
+        'session:finishProjection:v2:session-finished',
         'idle',
         'EX',
         24 * 60 * 60,
+      );
+      await purgeSessionRuntimeArtifacts({
+        sessionId: 'deleted-session',
+        sessionCode: 'ABC123',
+      });
+      expect(redisMock.del).toHaveBeenCalledWith('session:finishProjection:v2:deleted-session');
+      expect(redisMock.del).not.toHaveBeenCalledWith(
+        'session:finishProjection:v2:session-finished',
       );
     },
   );
@@ -428,7 +447,7 @@ describe('session.dismissFinishProjection', () => {
       title: 'lehnt Dismiss ab, wenn die Session noch nicht beendet ist',
     },
     async () => {
-      prismaMock.session.findUnique.mockResolvedValue({ status: 'RESULTS' });
+      prismaMock.session.findUnique.mockResolvedValue({ id: 'session-active', status: 'RESULTS' });
 
       await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({
         code: 'BAD_REQUEST',
@@ -437,7 +456,7 @@ describe('session.dismissFinishProjection', () => {
   );
 
   it('bestätigt Dismiss nicht, wenn Redis die Idle-Projektion nicht persistieren kann', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({ status: 'FINISHED' });
+    prismaMock.session.findUnique.mockResolvedValue({ id: 'session-finished', status: 'FINISHED' });
     redisMock.set.mockRejectedValueOnce(new Error('redis down'));
 
     await expect(caller.dismissFinishProjection({ code: 'ABC123' })).rejects.toMatchObject({

@@ -6,6 +6,7 @@ const {
   extractHostTokenFromContextMock,
   isHostSessionTokenValidMock,
   prismaMock,
+  wordCloudCacheMocks,
 } = vi.hoisted(() => ({
   acquireQaWordCloudAnalysisLockMock: vi.fn(),
   extractHostTokenFromContextMock: vi.fn(),
@@ -14,6 +15,10 @@ const {
     $queryRaw: vi.fn(),
     participant: { count: vi.fn() },
     session: { findUnique: vi.fn() },
+  },
+  wordCloudCacheMocks: {
+    getSnapshot: vi.fn().mockResolvedValue(null),
+    setSnapshot: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -27,8 +32,8 @@ vi.mock('../lib/qaWordCloudAnalysisLock', () => ({
 }));
 vi.mock('../lib/wordCloudAnalysisCache', () => ({
   getWordCloudAnalysisCache: () => ({
-    getSnapshot: vi.fn().mockResolvedValue(null),
-    setSnapshot: vi.fn().mockResolvedValue(undefined),
+    getSnapshot: wordCloudCacheMocks.getSnapshot,
+    setSnapshot: wordCloudCacheMocks.setSnapshot,
     getText: vi.fn().mockResolvedValue(null),
     setText: vi.fn().mockResolvedValue(undefined),
   }),
@@ -108,6 +113,14 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
         Math.max(0, ...result.entries.map((entry) => entry.members.length)),
       ).toBeLessThanOrEqual(1);
       expect(Buffer.byteLength(JSON.stringify(result), 'utf8')).toBeLessThanOrEqual(256 * 1024);
+      expect(wordCloudCacheMocks.getSnapshot).toHaveBeenCalledWith(expect.anything(), {
+        sessionId: '11111111-1111-4111-8111-111111111111',
+      });
+      expect(wordCloudCacheMocks.setSnapshot).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        { sessionId: '11111111-1111-4111-8111-111111111111' },
+      );
       if (returnedCount === 500) {
         expect(result.entries.some((entry) => entry.membersTruncated)).toBe(true);
         expect(Math.max(...result.entries.map((entry) => entry.memberCount))).toBe(500);

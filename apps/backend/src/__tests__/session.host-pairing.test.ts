@@ -358,6 +358,58 @@ describe('session host pairing (Story 2.10 Slice 1)', () => {
     });
   });
 
+  it('isoliert ein wiederverwendetes Kürzel über die unveränderliche sessionId', async () => {
+    const invite = await hostCaller(originalToken).createHostPairingInvite({
+      code: CODE,
+    });
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-2',
+      status: 'LOBBY',
+      hostCredentialVersion: 0,
+    });
+
+    await expect(
+      publicCaller().requestHostPairing({
+        code: CODE,
+        pairingSecret: invite.pairingSecret,
+      }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+      message: 'Dieser Verbindungslink ist ungültig oder abgelaufen.',
+    });
+  });
+
+  it('lehnt Legacy-Lookups ohne sessionId fail-closed ab', async () => {
+    const legacyToken = 'legacy-paired-host-token';
+    await memoryRedis.set(
+      `host:pairing:v1:token:${hashHostPairingSecret(legacyToken)}`,
+      JSON.stringify({ sessionCode: CODE, tokenId: 'legacy-token-id', credentialVersion: 0 }),
+      'EX',
+      600,
+    );
+    await memoryRedis.set(
+      `host:pairing:v1:session:${CODE}`,
+      JSON.stringify({
+        version: 1,
+        invite: null,
+        pending: null,
+        pairedHosts: [
+          {
+            tokenId: 'legacy-token-id',
+            tokenHash: hashHostPairingSecret(legacyToken),
+            deviceLabel: null,
+            pairedAt: new Date().toISOString(),
+            state: 'CONNECTED',
+          },
+        ],
+      }),
+      'EX',
+      600,
+    );
+
+    expect(await isHostSessionTokenValid(CODE, legacyToken)).toBe(false);
+  });
+
   it('lehnt abgelaufene Einladungen ohne Token ab', async () => {
     const invite = await hostCaller(originalToken).createHostPairingInvite({
       code: CODE,

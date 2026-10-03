@@ -33,6 +33,8 @@ const enabledConfig: WordCloudSemanticConfig = {
   timeoutMs: 8000,
   cacheTtlSeconds: 1800,
 };
+const SESSION_ID = '11111111-1111-4111-8111-111111111111';
+const REUSED_CODE_SESSION_ID = '22222222-2222-4222-8222-222222222222';
 
 const items = WORD_CLOUD_SEMANTIC_DE_SEED.map((item, index) => ({
   id: `11111111-1111-4111-8111-11111111111${index}`,
@@ -52,8 +54,10 @@ function deferred(): { readonly promise: Promise<void>; readonly resolve: () => 
   return { promise, resolve };
 }
 
-function runSemanticDirect(input: AnalyzeWordCloudInput) {
-  return analyzeSemanticWordCloudSnapshot(input, resolveWordCloudNormalizationMeta(input));
+function runSemanticDirect(input: AnalyzeWordCloudInput, sessionId = SESSION_ID) {
+  return analyzeSemanticWordCloudSnapshot(input, resolveWordCloudNormalizationMeta(input), {
+    sessionId,
+  });
 }
 
 function qaSemanticInput(sessionCode = 'ABC123'): AnalyzeWordCloudInput {
@@ -302,12 +306,15 @@ describe('wordCloudSemanticAnalyze', () => {
 
     const cache = createMemoryWordCloudAnalysisCache();
     const activeInput = qaSemanticInput();
-    const activeQa = analyzeWordCloudSnapshot(activeInput, { cache });
+    const activeQa = analyzeWordCloudSnapshot(activeInput, {
+      cache,
+      cacheScope: { sessionId: SESSION_ID },
+    });
     await vi.waitUntil(() => calls.length === 1);
     const freetextInput = freetextSemanticInput(WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED, 'de');
     const invalidatedFreetext = runSemanticDirect(freetextInput);
 
-    invalidateWordCloudSemanticSession('abc123');
+    invalidateWordCloudSemanticSession(SESSION_ID);
     const replacementQa = runSemanticDirect(activeInput);
     gates[0]!.resolve();
 
@@ -330,7 +337,53 @@ describe('wordCloudSemanticAnalyze', () => {
     expect(shouldCacheWordCloudSnapshot(invalidatedResult)).toBe(false);
     expect(replacementResult.status).toBe('ready');
     expect(replacementResult.modelVersion).toBe('intfloat/multilingual-e5-small@sha256:purge-1');
-    expect(await cache.getSnapshot(activeInput)).toBeNull();
+    expect(await cache.getSnapshot(activeInput, { sessionId: SESSION_ID })).toBeNull();
+  });
+
+  it('laesst einen Job der neuen sessionId bei verspaetetem Purge desselben Codes weiterlaufen', async () => {
+    const gates = [deferred(), deferred()];
+    const calls: string[] = [];
+    resetWordCloudSemanticAnalyzeForTests({
+      config: () => enabledConfig,
+      embed: async (input) => {
+        const index = calls.length;
+        calls.push(input.items[0]?.text ?? 'empty');
+        await gates[index]!.promise;
+        return {
+          modelId: 'intfloat/multilingual-e5-small',
+          modelVersion: `intfloat/multilingual-e5-small@sha256:reuse-${index}`,
+          items: input.items.map((item) => ({
+            id: toWordCloudSemanticSourceId(item.id),
+            embedding: geometricEmbeddingForSeedText(item.text),
+          })),
+        };
+      },
+    });
+
+    const cache = createMemoryWordCloudAnalysisCache();
+    const oldSession = analyzeWordCloudSnapshot(qaSemanticInput('ABC123'), {
+      cache,
+      cacheScope: { sessionId: SESSION_ID },
+    });
+    await vi.waitUntil(() => calls.length === 1);
+    const reusedCodeSession = analyzeWordCloudSnapshot(
+      freetextSemanticInput(WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED, 'de', 'ABC123'),
+      {
+        cache,
+        cacheScope: { sessionId: REUSED_CODE_SESSION_ID },
+      },
+    );
+    await vi.waitUntil(() => calls.length === 2);
+
+    invalidateWordCloudSemanticSession(SESSION_ID);
+    gates[0]!.resolve();
+    gates[1]!.resolve();
+
+    const [oldResult, reusedCodeResult] = await Promise.all([oldSession, reusedCodeSession]);
+    expect(oldResult.status).toBe('fallback');
+    expect(oldResult.modelVersion).toBeNull();
+    expect(reusedCodeResult.status).toBe('ready');
+    expect(reusedCodeResult.modelVersion).toBe('intfloat/multilingual-e5-small@sha256:reuse-1');
   });
 
   it('faellt bei Timeout hart auf 2.x und oeffnet den Circuit nach Wiederholungen', async () => {
