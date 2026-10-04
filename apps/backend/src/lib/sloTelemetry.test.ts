@@ -151,19 +151,24 @@ describe('sloTelemetry', () => {
   });
 
   it('legt bei Flush-Fehler den Batch mit gleicher Flush-ID zurück', async () => {
+    const dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(20_000);
     const evalMock = vi
       .fn()
       .mockRejectedValueOnce(new Error('redis down'))
       .mockResolvedValueOnce(1);
     mocks.getRedis.mockReturnValue(createRedis({ eval: evalMock }));
 
-    await recordLiveRequestTelemetry({ durationMs: 100, nowMs: 10_000, groupId: 'qa' });
-    await flushSloTelemetry();
-    await flushSloTelemetry();
+    try {
+      await recordLiveRequestTelemetry({ durationMs: 100, nowMs: 10_000, groupId: 'qa' });
+      await flushSloTelemetry();
+      await flushSloTelemetry();
 
-    expect(evalMock).toHaveBeenCalledTimes(2);
-    expect(evalMock.mock.calls[0]![2]).toBe(evalMock.mock.calls[1]![2]);
-    expect(evalMock.mock.calls[0]!.slice(3)).toEqual(evalMock.mock.calls[1]!.slice(3));
+      expect(evalMock).toHaveBeenCalledTimes(2);
+      expect(evalMock.mock.calls[0]![2]).toBe(evalMock.mock.calls[1]![2]);
+      expect(evalMock.mock.calls[0]!.slice(3)).toEqual(evalMock.mock.calls[1]!.slice(3));
+    } finally {
+      dateNowSpy.mockRestore();
+    }
   });
 
   it('zählt nicht doppelt wenn Redis angewendet hat aber der Client einen Fehler sieht', async () => {
@@ -193,7 +198,7 @@ describe('sloTelemetry', () => {
 
     expect(incrTotal).toBe(1);
     expect(evalMock).toHaveBeenCalledTimes(2);
-    expect(evalMock.mock.results[1]?.value).resolves.toBe(0);
+    await expect(evalMock.mock.results[1]?.value).resolves.toBe(0);
   });
 
   it('aggregiert Buckets zu Durchschnitt, Spitze, Fehlerklassen und p95/p99', async () => {
