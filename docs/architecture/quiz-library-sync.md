@@ -3,10 +3,10 @@
 # Quiz-Sammlung – Synchronisierung
 
 **Zielgruppe:** Entwicklerinnen, Entwickler und technisch interessierte Personen
-**Stand:** 2026-07-25
+**Stand:** 2026-10-04
 **Status:** Living Document
 
-**Repo-Abgleich 2026-07-25:** Die Sync-Architektur ist weiterhin
+**Repo-Abgleich 2026-10-04:** Die Sync-Architektur ist weiterhin
 frontendzentriert. `QuizStoreService` ist die zentrale Implementierung,
 `getYjsWsUrl()` liefert lokale Direkt- und Proxy-Pfade und der Yjs-Stack ist im
 Frontend auf `yjs@13.6.31`, der Server auf das Yjs-13-kompatible
@@ -15,6 +15,9 @@ Frontend auf `yjs@13.6.31`, der Server auf das Yjs-13-kompatible
 Mehrclient-Lasttest. W2.2 ersetzt den ungefilterten Paket-Entry durch einen
 gehärteten, protokollkompatiblen Relay. Browser-Smoke und Mehrclient-Reconnect
 bleiben die verpflichtende Abnahme.
+Seit #456 Slice 4 synchronisiert dasselbe Yjs-Dokument zusätzlich den getrennten,
+versionierten Lernziel-Sidecar `quiz-learning-objectives-v1`. Er wird bewusst
+nicht in den von älteren Clients normalisierten Quiz-JSON-Blob eingebettet.
 
 ## 1. Zweck
 
@@ -45,6 +48,9 @@ Dieses Dokument ergänzt insbesondere:
   und 4 KiB JSON-State zu. Bereits bekannte Peer-IDs dürfen vom
   Standardprovider rebroadcastet werden; zusammen mit dem Raum-Verbindungscap
   bleibt der flüchtige Zustand über Transport-Zeitfenster hinweg begrenzt.
+- **Lernziel-Sidecar:** Strikt validierte, nach lokaler Quiz-ID geschlüsselte
+  Zusatz-Map im selben Yjs-Dokument. Sie gehört fachlich zur Quiz-Sammlung,
+  bleibt aber gegenüber älteren `quizzes`-Blob-Whitelists getrennt.
 
 ## 3. Architekturüberblick
 
@@ -109,6 +115,43 @@ Die Sammlung wird bewusst auf mehreren Ebenen gehalten:
 - **localStorage Room-Mirror:** serialisierte Sammlung pro Raum, plus Legacy-Mirror
 - **IndexedDB via `y-indexeddb`:** lokale Yjs-Persistenz
 - **Yjs Relay:** Übertragung der Deltas zwischen Geräten
+
+Für Lernziele existieren parallel zur Quiz-Arbeitskopie:
+
+- das Signal `learningObjectiveBundles` im `QuizStoreService`;
+- der raumbezogene localStorage-Spiegel
+  `quiz-learning-objectives-v1:<roomId>` ohne globalen Legacy-Mirror;
+- die Yjs-Root-Map `quiz-learning-objectives-v1`, deren Quiz-UUID-Keys den
+  Marker `oplog-v1` tragen;
+- je Quiz die stabil benannte Yjs-Map
+  `quiz-learning-objectives-v1-oplog:<quizId>`, deren Operations-UUID-Keys
+  strikt validierte, kausal verknüpfte Upsert- oder Löschoperationen tragen;
+- der Marker `quiz-learning-objectives-v1-initialized` in der bestehenden
+  `quiz-library`-Map.
+
+Der Marker ist Teil des Löschvertrags: fehlt er in einem frischen Raum, darf der
+lokale Spiegel einmalig säen. Ist er vorhanden und die Sidecar-Map leer, ist
+dieser leere Zustand autoritativ; ein Offline-Spiegel darf entfernte Ziele nicht
+wieder einfügen. Ein einzelner fehlerhafter Sidecar-Wert gilt dagegen nicht als
+Löschung. Der Client behält den letzten validierten Wert und überschreibt den
+unbekannten Rohwert nicht still.
+
+Das Oplog materialisiert pro Lernziel die kausal höchsten Operationen.
+Unabhängige Änderungen an verschiedenen Zielen werden zusammengeführt.
+Mehrere inhaltlich verschiedene Köpfe desselben Ziels bleiben als sichtbarer
+Konflikt erhalten, bis die Lehrperson eine Fassung auswählt; weder
+Schreibzeitpunkt noch Geräteuhr entscheiden den Konflikt. Die Auflösung
+referenziert alle bisherigen Köpfe. Lösch-Tombstones verhindern, dass ein
+verspäteter Offline-Client entfernte Ziele wiederbelebt. Eindeutig aufgelöste
+Verläufe werden begrenzt ausgedünnt, und eine harte Obergrenze verhindert ein
+unbegrenztes Wachstum des Yjs-Dokuments.
+
+Vollständige Bundle-JSON-Werte aus dem Zwischenformat werden beim Lesen
+transaktional in Operationen migriert. Das gilt auch für verspätete Writes
+eines noch verbundenen Legacy-Clients: Sie werden in den aktuellen Verlauf
+eingehängt, ohne parallel neu entstandene Ziele als implizit gelöscht zu
+behandeln. Der localStorage-Spiegel bleibt ein materialisierter Fallback und
+ist keine konkurrierende Quelle.
 
 ### 4.3 WebSocket-Ziele
 
@@ -186,7 +229,9 @@ Bei `activateSyncRoom()` passiert in komprimierter Form:
 5. Sync-Metadaten für diesen Raum laden
 6. vorhandenen Token/Capability-Zustand laden; Legacy-Raum nicht registrieren
 7. Sammlung aus lokalem Room-Mirror laden
-8. Yjs + IndexedDB + Awareness starten
+8. Lernziel-Sidecar aus seinem raumbezogenen Mirror laden
+9. Yjs + IndexedDB + Awareness starten; vorhandenen Initialisierungsmarker und
+   Sidecar anwenden oder einen wirklich frischen Raum einmalig säen
 
 Das ist wichtig für die UX:
 
@@ -260,6 +305,8 @@ Lokale Änderungen entstehen etwa bei:
 - Quiz-Metadaten ändern
 - Fragen hinzufügen, ändern, löschen, sortieren
 - Quiz importieren oder duplizieren
+- Lernziel anlegen, bearbeiten, bestätigen oder löschen
+- eine für ein modellabgeleitetes Ziel relevante Aufgabe inhaltlich ändern
 
 Bei jeder lokalen Änderung ergänzt der Store Geräte-Metadaten am betroffenen `QuizDocument`:
 
@@ -267,7 +314,9 @@ Bei jeder lokalen Änderung ergänzt der Store Geräte-Metadaten am betroffenen 
 - `updatedByDeviceLabel`
 - `updatedByBrowserLabel`
 
-Danach läuft die Persistenzkette:
+Danach läuft die Persistenzkette. Zusammengehörige Quiz- und
+Lernzieländerungen werden in derselben Yjs-Transaktion geschrieben; beide
+localStorage-Spiegel bleiben getrennt:
 
 ```mermaid
 sequenceDiagram
@@ -282,6 +331,7 @@ sequenceDiagram
     Store->>Store: recordLocalChange()
     Store->>LS: Room-Mirror schreiben
     Store->>Y: JSON-Snapshot in Y.Map schreiben
+    Store->>Y: kausale Lernziel-Operationen + Marker schreiben
     Y->>Relay: Delta senden
 ```
 
@@ -299,6 +349,7 @@ sequenceDiagram
 
     Remote->>Relay: Yjs-Delta
     Relay->>Store: Root-Änderung
+    Store->>Store: validiertes Lernziel-Oplog materialisieren
     Store->>Store: applyYjsSnapshot()
     Store->>Store: JSON in QuizDocument[] normalisieren
     Store->>Store: determineLastChangedQuiz()
@@ -314,6 +365,11 @@ Wichtige Ableitungen dabei:
 - **betroffenes Quiz**
 - **Gerät der letzten Remote-Änderung**
 - **Zeitpunkt der letzten Remote-Übernahme**
+- **Lernziel-Veraltung:** relevante Änderungen an Text, Antworten,
+  Korrektheitsmarkierungen oder typabhängigen Lösungsparametern markieren
+  betroffene modellabgeleitete Ziele als `needs-review`; entfernte explizite
+  Scope-Referenzen markieren auch manuelle Ziele. Timer, Schwierigkeit und
+  Reihenfolge allein verändern diese fachliche Bewertung nicht.
 
 ## 9. Sync-Metadatenmodell
 

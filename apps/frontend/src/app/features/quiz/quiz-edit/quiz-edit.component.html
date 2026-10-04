@@ -523,6 +523,8 @@
       </mat-card>
     }
 
+    <app-quiz-learning-objectives [quizId]="quizData.id" [questions]="quizData.questions" />
+
     @if (!isEditing()) {
       <mat-card appearance="outlined" class="quiz-edit__form-card">
         <mat-card-content>

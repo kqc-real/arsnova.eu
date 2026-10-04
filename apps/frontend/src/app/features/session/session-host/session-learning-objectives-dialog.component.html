@@ -1,0 +1,396 @@
+<h2
+  mat-dialog-title
+  class="dialog-title-header"
+  id="session-learning-objectives-heading"
+  tabindex="-1"
+>
+  <span class="dialog-title-header__icon" aria-hidden="true">
+    <mat-icon>school</mat-icon>
+  </span>
+  <span class="dialog-title-header__copy">
+    <span class="dialog-title-header__heading" i18n="@@sessionLearningObjectives.title"
+      >Lernziele</span
+    >
+    <span class="dialog-title-header__sub" i18n="@@sessionLearningObjectives.subtitle">
+      Ziele für Quiz und Q&amp;A dieser Session
+    </span>
+  </span>
+</h2>
+
+<mat-dialog-content
+  class="session-objectives__content"
+  [attr.aria-busy]="pending() || loadState() === 'loading'"
+>
+  @if (loadState() === 'loading') {
+    <div class="session-objectives__loading" role="status">
+      <mat-spinner diameter="32" />
+      <span i18n="@@sessionLearningObjectives.loading">Lernziele werden geladen …</span>
+    </div>
+  } @else if (loadState() === 'error') {
+    <div class="session-objectives__callout session-objectives__callout--error" role="alert">
+      <p i18n="@@sessionLearningObjectives.loadFailed">Lernziele konnten nicht geladen werden.</p>
+      <button mat-stroked-button type="button" (click)="retryLoad()">
+        <mat-icon aria-hidden="true">refresh</mat-icon>
+        <span i18n="@@common.retry">Erneut versuchen</span>
+      </button>
+    </div>
+  } @else {
+    @if (isReadOnly()) {
+      <div class="session-objectives__callout" role="status">
+        <mat-icon aria-hidden="true">lock</mat-icon>
+        <p i18n="@@sessionLearningObjectives.readOnly">
+          Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.
+        </p>
+      </div>
+    }
+
+    @if (conflictMessage(); as conflict) {
+      <div
+        id="session-learning-objectives-conflict"
+        class="session-objectives__callout session-objectives__callout--warning"
+        role="alert"
+        tabindex="-1"
+      >
+        <mat-icon aria-hidden="true">sync_problem</mat-icon>
+        <p>{{ conflict }}</p>
+        @if (authoritativeReloadRequired()) {
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="pending()"
+            (click)="retryConflictReload()"
+          >
+            <mat-icon aria-hidden="true">refresh</mat-icon>
+            <span i18n="@@sessionLearningObjectives.reloadCurrent">Aktuellen Stand laden</span>
+          </button>
+        }
+      </div>
+    }
+
+    <div class="session-objectives__announcer" aria-live="polite" aria-atomic="true">
+      {{ statusMessage() }}
+    </div>
+
+    <p class="session-objectives__origin-intro" i18n="@@learningObjectives.originIntro">
+      Manuelle Lernziele formulierst du selbst. Automatisch aus Aufgaben formulierte Lernziele
+      erscheinen als modellunterstützte Vorschläge. Sie bleiben entsprechend gekennzeichnet und
+      müssen von dir fachlich geprüft werden.
+    </p>
+
+    @if (objectives().length === 0 && !formOpen()) {
+      <p class="session-objectives__empty" i18n="@@sessionLearningObjectives.empty">
+        Für diese Session sind noch keine Lernziele konfiguriert.
+      </p>
+    }
+
+    <div class="session-objectives__list">
+      @for (objective of objectives(); track objective.id) {
+        <article
+          class="session-objectives__item"
+          [attr.aria-labelledby]="'session-objective-' + objective.id"
+        >
+          <div>
+            <p class="session-objectives__text" [id]="'session-objective-' + objective.id">
+              {{ objective.text }}
+            </p>
+            <div class="session-objectives__meta">
+              <span
+                class="session-objectives__status"
+                [class.session-objectives__status--review]="
+                  objective.confirmation.state === 'needs-review'
+                "
+              >
+                {{ statusLabel(objective) }}
+              </span>
+              <span>{{ scopeLabel(objective) }}</span>
+              <span>{{ ownershipLabel(objective) }}</span>
+              @if (objective.origin.kind === 'model-derived') {
+                <span i18n="@@sessionLearningObjectives.modelDerived">Modellunterstützt</span>
+              }
+            </div>
+            @if (reviewReason(objective); as reason) {
+              <p class="session-objectives__reference-warning" role="status">
+                <mat-icon aria-hidden="true">warning</mat-icon>
+                <span>{{ reason }}</span>
+              </p>
+            }
+            @if (hasUnresolvedReferences(objective)) {
+              <p class="session-objectives__reference-warning" role="status">
+                <mat-icon aria-hidden="true">link_off</mat-icon>
+                <span i18n="@@sessionLearningObjectives.unresolvedReference">
+                  Mindestens ein Aufgabenverweis ist nicht mehr verfügbar. Das Ziel bleibt sichtbar
+                  und muss vor einer Inhaltsänderung neu zugeordnet werden.
+                </span>
+              </p>
+            }
+          </div>
+
+          @if (!isReadOnly()) {
+            @if (pendingDeleteId() === objective.id) {
+              <div
+                class="session-objectives__delete-confirm"
+                role="group"
+                i18n-aria-label="@@sessionLearningObjectives.deleteConfirmGroup"
+                aria-label="Löschen bestätigen"
+              >
+                <span i18n="@@sessionLearningObjectives.deleteQuestion"
+                  >Dieses Lernziel wirklich löschen?</span
+                >
+                <button
+                  mat-flat-button
+                  type="button"
+                  [id]="'session-learning-objective-confirm-delete-' + objective.id"
+                  [disabled]="pending()"
+                  (click)="confirmDelete(objective)"
+                  i18n="@@sessionLearningObjectives.deleteConfirm"
+                >
+                  Löschen
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  [disabled]="pending()"
+                  (click)="cancelDelete(objective.id)"
+                  i18n="@@common.cancel"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            } @else {
+              <div class="session-objectives__actions">
+                <button
+                  mat-button
+                  type="button"
+                  [id]="'session-learning-objective-edit-' + objective.id"
+                  [disabled]="pending()"
+                  (click)="beginEdit(objective)"
+                >
+                  <mat-icon aria-hidden="true">edit</mat-icon>
+                  <span i18n="@@sessionLearningObjectives.edit">Bearbeiten</span>
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  [id]="'session-learning-objective-delete-' + objective.id"
+                  [disabled]="pending()"
+                  (click)="requestDelete(objective.id)"
+                >
+                  <mat-icon aria-hidden="true">delete</mat-icon>
+                  <span i18n="@@sessionLearningObjectives.delete">Löschen</span>
+                </button>
+              </div>
+            }
+          }
+        </article>
+      }
+    </div>
+
+    @if (formOpen()) {
+      <form class="session-objectives__form" (submit)="$event.preventDefault(); save()" novalidate>
+        @if (editingId()) {
+          <h3 i18n="@@sessionLearningObjectives.editTitle">Lernziel bearbeiten</h3>
+        } @else {
+          <h3 i18n="@@sessionLearningObjectives.addTitle">Lernziel hinzufügen</h3>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@sessionLearningObjectives.textLabel">Lernziel</mat-label>
+          <textarea
+            #objectiveText
+            matInput
+            rows="3"
+            required
+            [maxLength]="maxTextLength"
+            [value]="text()"
+            [attr.aria-invalid]="errorMessage() ? 'true' : null"
+            aria-describedby="session-learning-objective-text-hint session-learning-objective-error"
+            (input)="setText($any($event.target).value)"
+          ></textarea>
+          <mat-hint id="session-learning-objective-text-hint" align="end"
+            >{{ text().length }}/{{ maxTextLength }}</mat-hint
+          >
+        </mat-form-field>
+
+        <fieldset id="session-learning-objective-scope" class="session-objectives__fieldset">
+          <legend i18n="@@sessionLearningObjectives.scopeLegend">Bereich</legend>
+          <mat-radio-group
+            [value]="scopeKind()"
+            (change)="setScopeKind($event.value)"
+            i18n-aria-label="@@sessionLearningObjectives.scopeAria"
+            aria-label="Bereich des Lernziels"
+          >
+            <mat-radio-button
+              id="session-learning-objective-scope-session"
+              value="session"
+              i18n="@@sessionLearningObjectives.scopeSessionOption"
+            >
+              Ganze Session einschließlich Q&amp;A
+            </mat-radio-button>
+            @if (data.hasQuiz()) {
+              <mat-radio-button
+                value="quiz-wide"
+                i18n="@@sessionLearningObjectives.scopeQuizOption"
+              >
+                Gesamtes Quiz
+              </mat-radio-button>
+            }
+            <mat-radio-button
+              value="question-set"
+              i18n="@@sessionLearningObjectives.scopeTasksOption"
+            >
+              Ausgewählte Quiz- oder Q&amp;A-Aufgaben
+            </mat-radio-button>
+          </mat-radio-group>
+
+          @if (scopeKind() === 'question-set') {
+            <div
+              class="session-objectives__tasks"
+              role="group"
+              i18n-aria-label="@@sessionLearningObjectives.taskSelection"
+              aria-label="Aufgaben auswählen"
+            >
+              @for (
+                option of selectableTaskOptions();
+                track option.reference.kind + ':' + option.reference.questionId
+              ) {
+                <mat-checkbox
+                  [id]="
+                    'session-learning-objective-task-' +
+                    option.reference.kind +
+                    ':' +
+                    option.reference.questionId
+                  "
+                  [checked]="isTaskSelected(option.reference)"
+                  [disabled]="isTaskSelectionDisabled(option.reference)"
+                  (change)="toggleTask(option.reference, $event.checked)"
+                >
+                  <span
+                    class="session-objectives__task-text markdown-body"
+                    [innerHTML]="renderTaskMarkdown(option.label)"
+                  ></span>
+                </mat-checkbox>
+              } @empty {
+                <p i18n="@@sessionLearningObjectives.noTasks">
+                  Aktuell sind keine auswählbaren Aufgaben verfügbar. Nutze den Sessionbereich.
+                </p>
+              }
+            </div>
+
+            @if (selectedTaskKeys().size >= maxReferences) {
+              <p class="session-objectives__hint" role="status">
+                {{ referenceLimitMessage }}
+              </p>
+            }
+          }
+        </fieldset>
+
+        <fieldset class="session-objectives__fieldset">
+          <legend i18n="@@sessionLearningObjectives.confirmationLegend">Status</legend>
+          <mat-radio-group
+            [value]="confirmationState()"
+            (change)="setConfirmationState($event.value)"
+            i18n-aria-label="@@sessionLearningObjectives.confirmationAria"
+            aria-label="Status des Lernziels"
+          >
+            <mat-radio-button id="session-learning-objective-status-draft" value="draft">
+              <span class="session-objectives__status-option">
+                <span
+                  class="session-objectives__status-option-title"
+                  i18n="@@sessionLearningObjectives.draft"
+                  >Entwurf</span
+                >
+                <span
+                  class="session-objectives__status-option-hint"
+                  i18n="@@learningObjectives.draftHint"
+                >
+                  Noch nicht fachlich geprüft. Nutze diesen Status, solange du Inhalt oder Bereich
+                  abstimmst.
+                </span>
+              </span>
+            </mat-radio-button>
+            <mat-radio-button value="confirmed">
+              <span class="session-objectives__status-option">
+                <span
+                  class="session-objectives__status-option-title"
+                  i18n="@@sessionLearningObjectives.confirmed"
+                  >Bestätigt</span
+                >
+                <span
+                  class="session-objectives__status-option-hint"
+                  i18n="@@learningObjectives.confirmedHint"
+                >
+                  Von dir fachlich geprüft. Relevante Quellenänderungen lösen erneut Prüfbedarf aus.
+                </span>
+              </span>
+            </mat-radio-button>
+          </mat-radio-group>
+        </fieldset>
+
+        @if (editingId()) {
+          <p class="session-objectives__hint" i18n="@@sessionLearningObjectives.overrideHint">
+            Wenn du Text oder Bereich eines Quiz-Lernziels änderst, bleibt diese Sessionfassung bei
+            einem erneuten Quiz-Anhängen erhalten.
+          </p>
+        }
+
+        @if (hasUnresolvedDerivation()) {
+          <p class="session-objectives__reference-warning" role="alert">
+            <mat-icon aria-hidden="true">warning</mat-icon>
+            <span i18n="@@sessionLearningObjectives.missingDerivationHint">
+              Eine Herleitungsaufgabe fehlt. Das Ziel bleibt bis zu einer neuen Herleitung
+              prüfbedürftig und kann nicht bestätigt werden.
+            </span>
+          </p>
+        }
+
+        <p
+          id="session-learning-objective-error"
+          class="session-objectives__error"
+          aria-live="assertive"
+        >
+          {{ errorMessage() }}
+        </p>
+
+        <div class="session-objectives__form-actions">
+          <button
+            mat-button
+            type="button"
+            [disabled]="pending()"
+            (click)="cancelEdit()"
+            i18n="@@common.cancel"
+          >
+            Abbrechen
+          </button>
+          <button
+            mat-flat-button
+            type="submit"
+            [disabled]="pending() || authoritativeReloadRequired()"
+          >
+            @if (pending()) {
+              <mat-spinner diameter="20" aria-label="Speichern" i18n-aria-label="@@common.saving" />
+            } @else {
+              <span i18n="@@common.save">Speichern</span>
+            }
+          </button>
+        </div>
+      </form>
+    } @else if (!isReadOnly()) {
+      <button
+        mat-stroked-button
+        type="button"
+        id="session-learning-objective-add"
+        [disabled]="pending() || objectives().length >= maxObjectives"
+        (click)="beginAdd()"
+      >
+        <mat-icon aria-hidden="true">add</mat-icon>
+        <span i18n="@@sessionLearningObjectives.add">Lernziel hinzufügen</span>
+      </button>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [disabled]="pending()" (click)="close()" i18n="@@common.close">
+    Schließen
+  </button>
+</mat-dialog-actions>

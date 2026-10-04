@@ -1268,6 +1268,61 @@ html {
   max-width: 100%;
 }
 
+/* Kompakte, nicht-interaktive Markdown-Vorschau in Lernziel-Auswahllabels. */
+.learning-objectives__question-text.markdown-body,
+.session-objectives__task-text.markdown-body {
+  max-block-size: 7.5rem;
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.learning-objectives__question-text.markdown-body > :first-child,
+.session-objectives__task-text.markdown-body > :first-child {
+  margin-block-start: 0;
+}
+
+.learning-objectives__question-text.markdown-body > :last-child,
+.session-objectives__task-text.markdown-body > :last-child {
+  margin-block-end: 0;
+}
+
+.learning-objectives__question-text.markdown-body p,
+.learning-objectives__question-text.markdown-body h4,
+.learning-objectives__question-text.markdown-body h5,
+.learning-objectives__question-text.markdown-body h6,
+.learning-objectives__question-text.markdown-body ul,
+.learning-objectives__question-text.markdown-body ol,
+.learning-objectives__question-text.markdown-body blockquote,
+.session-objectives__task-text.markdown-body p,
+.session-objectives__task-text.markdown-body h4,
+.session-objectives__task-text.markdown-body h5,
+.session-objectives__task-text.markdown-body h6,
+.session-objectives__task-text.markdown-body ul,
+.session-objectives__task-text.markdown-body ol,
+.session-objectives__task-text.markdown-body blockquote {
+  margin-block: 0 0.25rem;
+}
+
+.learning-objectives__question-text.markdown-body h4,
+.learning-objectives__question-text.markdown-body h5,
+.learning-objectives__question-text.markdown-body h6,
+.session-objectives__task-text.markdown-body h4,
+.session-objectives__task-text.markdown-body h5,
+.session-objectives__task-text.markdown-body h6 {
+  font: var(--mat-sys-body-medium);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.learning-objectives__question-text.markdown-body pre,
+.session-objectives__task-text.markdown-body pre {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* Zitate kursiv – inkl. verschachtelter <p> (sonst überschreibt Typo font-style: normal). */
 .markdown-body blockquote,
 .markdown-body blockquote p,

@@ -56,6 +56,8 @@ function state(overrides: Partial<AuthorizedModerationState> = {}): AuthorizedMo
     sessionLifecycleRevision: 1,
     qaRankingRevision: 0,
     participantRevision: 2,
+    learningContextRevision: 4,
+    learningContextConfigured: true,
     activeSortMode: 'BEST',
     authorizedAt: new Date('2026-10-04T10:00:00.000Z'),
     ...overrides,

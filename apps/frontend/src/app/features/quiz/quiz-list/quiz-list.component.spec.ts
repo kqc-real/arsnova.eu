@@ -146,6 +146,7 @@ describe('QuizListComponent', () => {
     deleteQuiz: vi.fn(),
     exportQuiz: vi.fn(),
     getUploadPayload: vi.fn(),
+    takeUploadLearningObjectiveWarning: vi.fn(),
     importQuiz: vi.fn(),
     setLastServerUploadAccess: vi.fn(),
     setLastServerQuizAccessProof: vi.fn(),
@@ -174,6 +175,7 @@ describe('QuizListComponent', () => {
     mockStore.currentBrowserLabel.set('Firefox');
     mockStore.syncPeerInfos.set([]);
     mockStore.getUploadPayload.mockReturnValue(uploadPayload);
+    mockStore.takeUploadLearningObjectiveWarning.mockReturnValue(null);
     vi.stubGlobal('crypto', webcrypto);
     getActiveQuizIdsQueryMock.mockResolvedValue([]);
     getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([]);
@@ -406,6 +408,11 @@ describe('QuizListComponent', () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(urlCreateSpy).toHaveBeenCalledTimes(1);
     expect(urlRevokeSpy).toHaveBeenCalledWith('blob:quiz-export');
+    expect(snackBarOpenMock).toHaveBeenCalledWith(
+      expect.stringContaining('Ältere arsnova.eu-Versionen'),
+      '',
+      expect.objectContaining({ duration: 10000 }),
+    );
 
     createElementSpy.mockRestore();
     urlCreateSpy.mockRestore();

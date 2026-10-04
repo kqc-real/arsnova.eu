@@ -58,6 +58,16 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
   const mockStore = {
     getQuizById: vi.fn((id: string) => (id === QUIZ_ID ? quiz : null)),
+    getLearningObjectiveBundle: vi.fn(() => ({
+      schemaVersion: 1 as const,
+      revision: 0,
+      objectives: [],
+    })),
+    learningObjectiveSyncConflicts: signal([]),
+    learningObjectiveSyncError: signal<string | null>(null),
+    saveQuizLearningObjective: vi.fn(),
+    deleteQuizLearningObjective: vi.fn(),
+    resolveQuizLearningObjectiveSyncConflict: vi.fn(),
     addQuestion: vi.fn(),
     updateQuestion: vi.fn(),
     updateQuizMetadata: vi.fn(),

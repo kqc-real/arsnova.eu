@@ -40,6 +40,13 @@ const { prismaMock, hostAuthMocks, participantAuthMocks, qaTelemetryMocks, rawQu
         update: vi.fn(),
         delete: vi.fn(),
       },
+      sessionLearningObjectiveReference: {
+        findMany: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      sessionLearningObjective: {
+        update: vi.fn(),
+      },
       $queryRaw: vi.fn(),
       $executeRaw: vi.fn(),
       $transaction: vi.fn(),
@@ -114,6 +121,7 @@ const ACTIVE_QA_SESSION = {
   qaClosesAt: new Date('2099-01-01T00:00:00.000Z'),
   sessionLifecycleRevision: 1,
   qaRankingRevision: 7,
+  learningContextRevision: 4,
   qaQuestionCount: 0,
   onboardingAnonymousMode: false,
 };
@@ -252,6 +260,7 @@ describe('qa router (Epic 8)', () => {
     prismaMock.participant.count.mockResolvedValue(0);
     prismaMock.qaUpvote.findMany.mockResolvedValue([]);
     prismaMock.qaUpvote.groupBy.mockResolvedValue([]);
+    prismaMock.sessionLearningObjectiveReference.findMany.mockResolvedValue([]);
   });
 
   trpcDodIt(
@@ -1451,6 +1460,19 @@ describe('qa router (Epic 8)', () => {
       passagesRedacted: false,
     });
     prismaMock.qaQuestion.delete.mockResolvedValue({});
+    prismaMock.sessionLearningObjectiveReference.findMany.mockResolvedValue([
+      {
+        id: '77777777-7777-4777-8777-777777777777',
+        objective: {
+          id: '88888888-8888-4888-8888-888888888888',
+          revision: 2,
+          confirmationState: 'CONFIRMED',
+          confirmationRevision: 2,
+          confirmationAt: new Date('2026-03-13T11:00:00.000Z'),
+          previousConfirmationState: null,
+        },
+      },
+    ]);
 
     const result = await hostCaller.moderate({
       sessionCode: 'ABC123',
@@ -1460,6 +1482,24 @@ describe('qa router (Epic 8)', () => {
 
     expect(prismaMock.qaQuestion.delete).toHaveBeenCalledWith({
       where: { id: QUESTION_ID },
+    });
+    expect(prismaMock.sessionLearningObjectiveReference.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ['77777777-7777-4777-8777-777777777777'] } },
+      data: { qaQuestionId: null, unresolvedReason: 'SOURCE_REMOVED' },
+    });
+    expect(prismaMock.sessionLearningObjective.update).toHaveBeenCalledWith({
+      where: { id: '88888888-8888-4888-8888-888888888888' },
+      data: expect.objectContaining({
+        revision: 3,
+        confirmationState: 'NEEDS_REVIEW',
+        confirmationRevision: 2,
+        previousConfirmationState: 'CONFIRMED',
+        needsReviewReason: 'SOURCE_REFERENCE_REMOVED',
+      }),
+    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith({
+      where: { id: SESSION_ID },
+      data: { learningContextRevision: 5, learningContextConfigured: true },
     });
     expect(prismaMock.qaQuestion.update).not.toHaveBeenCalled();
     expect(result).toMatchObject({
@@ -1889,7 +1929,6 @@ describe('qa router (Epic 8)', () => {
       });
       prismaMock.qaQuestion.findMany.mockResolvedValue([{ id: QUESTION_ID }]);
       prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 1 });
-
       await expect(
         hostCaller.releasePending({
           sessionCode: 'ABC123',
@@ -3475,6 +3514,19 @@ describe('qa router (Epic 8)', () => {
         status: 'ACTIVE',
       });
       prismaMock.qaQuestion.updateMany.mockResolvedValue({ count: 1 });
+      prismaMock.sessionLearningObjectiveReference.findMany.mockResolvedValue([
+        {
+          id: '77777777-7777-4777-8777-777777777777',
+          objective: {
+            id: '88888888-8888-4888-8888-888888888888',
+            revision: 0,
+            confirmationState: 'DRAFT',
+            confirmationRevision: null,
+            confirmationAt: null,
+            previousConfirmationState: null,
+          },
+        },
+      ]);
 
       await expect(
         caller.deleteOwn({ questionId: QUESTION_ID, participantId: PARTICIPANT_ID }),
@@ -3486,6 +3538,24 @@ describe('qa router (Epic 8)', () => {
           status: { not: 'DELETED' },
         },
         data: { status: 'DELETED' },
+      });
+      expect(prismaMock.sessionLearningObjectiveReference.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['77777777-7777-4777-8777-777777777777'] } },
+        data: { qaQuestionId: null, unresolvedReason: 'SOURCE_REMOVED' },
+      });
+      expect(prismaMock.sessionLearningObjective.update).toHaveBeenCalledWith({
+        where: { id: '88888888-8888-4888-8888-888888888888' },
+        data: expect.objectContaining({
+          revision: 1,
+          confirmationState: 'NEEDS_REVIEW',
+          confirmationRevision: 0,
+          previousConfirmationState: 'DRAFT',
+          needsReviewReason: 'SOURCE_REFERENCE_REMOVED',
+        }),
+      });
+      expect(prismaMock.session.update).toHaveBeenCalledWith({
+        where: { id: SESSION_ID },
+        data: { learningContextRevision: 5, learningContextConfigured: true },
       });
     },
   );

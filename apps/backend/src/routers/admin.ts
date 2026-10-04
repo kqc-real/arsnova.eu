@@ -26,8 +26,8 @@ import {
   AdminWhoAmIOutputSchema,
   HealthSecurityStatsDTOSchema,
   QuestionType,
-  QUIZ_EXPORT_VERSION,
-  QuizExportSchema,
+  QUIZ_EXPORT_LEGACY_VERSION,
+  QuizExportV1Schema,
   SESSION_POST_PROCESSING_HOURS,
   resolveShortTextMaxLength,
 } from '@arsnova/shared-types';
@@ -1270,7 +1270,6 @@ export const adminRouter = router({
               nicknameTheme: true,
               bonusTokenCount: true,
               readingPhaseEnabled: true,
-              preset: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: {
@@ -1334,8 +1333,8 @@ export const adminRouter = router({
         });
       }
 
-      const quizExportPayload = QuizExportSchema.parse({
-        exportVersion: QUIZ_EXPORT_VERSION,
+      const quizExportPayload = QuizExportV1Schema.parse({
+        exportVersion: QUIZ_EXPORT_LEGACY_VERSION,
         exportedAt: new Date().toISOString(),
         quiz: {
           name: session.quiz.name,
@@ -1359,7 +1358,6 @@ export const adminRouter = router({
           nicknameTheme: session.quiz.nicknameTheme,
           bonusTokenCount: session.quiz.bonusTokenCount ?? null,
           readingPhaseEnabled: session.quiz.readingPhaseEnabled,
-          preset: session.quiz.preset,
           questions: session.quiz.questions.map((question, index) => ({
             text: question.text,
             type: question.type,

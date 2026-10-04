@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
+const { prismaMock, hostAuthMocks, learningObjectivesMocks } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -25,6 +25,10 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     vote: {
       count: vi.fn(),
     },
+    sessionQuizAttachReplay: {
+      findUnique: vi.fn(),
+      upsert: vi.fn(),
+    },
     $transaction: vi.fn(),
     $executeRaw: vi.fn().mockResolvedValue(1),
   },
@@ -32,6 +36,12 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     extractHostTokenMock: vi.fn(),
     extractHostTokenFromConnectionParamsMock: vi.fn(() => null as string | null),
     isHostSessionTokenValidMock: vi.fn(),
+  },
+  learningObjectivesMocks: {
+    get: vi.fn(),
+    save: vi.fn(),
+    replace: vi.fn(),
+    snapshot: vi.fn(),
   },
 }));
 
@@ -41,6 +51,14 @@ vi.mock('../db', () => ({
 
 vi.mock('../lib/rateLimit', () => ({
   checkSessionCreateRate: vi.fn(),
+}));
+
+vi.mock('../lib/sessionLearningObjectives', () => ({
+  getSessionLearningObjectives: learningObjectivesMocks.get,
+  saveSessionLearningObjectives: learningObjectivesMocks.save,
+  initializeSessionLearningObjectivesFromQuiz: vi.fn(),
+  replaceSessionQuizLearningObjectives: learningObjectivesMocks.replace,
+  getSessionLearningObjectivesSnapshotWithDb: learningObjectivesMocks.snapshot,
 }));
 
 vi.mock('../lib/hostAuth', async () => {
@@ -59,6 +77,55 @@ const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
 const TEAM_A = '22222222-2222-4222-8222-222222222222';
 const TEAM_B = '33333333-3333-4333-8333-333333333333';
+const OPERATION_ID = '44444444-4444-4444-8444-444444444444';
+
+function attachSessionRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: SESSION_ID,
+    type: 'QUIZ' as const,
+    status: 'LOBBY' as const,
+    currentQuestion: null,
+    quizId: null,
+    qaEnabled: false,
+    qaOpen: false,
+    qaClosesAt: null,
+    qaTitle: null,
+    qaModerationMode: false,
+    title: null,
+    moderationMode: false,
+    quickFeedbackEnabled: false,
+    quickFeedbackOpen: false,
+    onboardingProfileConfigured: true,
+    onboardingAllowCustomNicknames: false,
+    onboardingAnonymousMode: false,
+    onboardingTeamMode: false,
+    onboardingTeamCount: null,
+    onboardingTeamAssignment: 'AUTO' as const,
+    onboardingTeamNames: [],
+    onboardingNicknameTheme: 'HIGH_SCHOOL' as const,
+    firstParticipantJoinedAt: null,
+    endedAt: null,
+    expiresAt: new Date('2099-01-01T00:00:00.000Z'),
+    learningContextRevision: 0,
+    learningContextConfigured: false,
+    ...overrides,
+  };
+}
+
+function attachQuizRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: QUIZ_ID,
+    historyScopeId: null,
+    nicknameTheme: 'HIGH_SCHOOL' as const,
+    allowCustomNicknames: false,
+    anonymousMode: false,
+    teamMode: false,
+    teamCount: null,
+    teamAssignment: 'AUTO' as const,
+    teamNames: [],
+    ...overrides,
+  };
+}
 
 describe('session.attachQuizToSession', () => {
   beforeEach(() => {
@@ -85,8 +152,69 @@ describe('session.attachQuizToSession', () => {
     });
     prismaMock.team.deleteMany.mockResolvedValue({ count: 0 });
     prismaMock.vote.count.mockResolvedValue(0);
+    prismaMock.sessionQuizAttachReplay.findUnique.mockResolvedValue(null);
+    prismaMock.sessionQuizAttachReplay.upsert.mockResolvedValue({});
+    learningObjectivesMocks.replace.mockResolvedValue({ configured: false, revision: 1 });
+    learningObjectivesMocks.snapshot.mockResolvedValue({
+      schemaVersion: 1,
+      sessionId: SESSION_ID,
+      learningContextRevision: 1,
+      configured: false,
+      access: { state: 'writable' },
+      availableQuizTasks: [],
+      objectives: [],
+    });
+    learningObjectivesMocks.get.mockResolvedValue({
+      schemaVersion: 1,
+      sessionId: SESSION_ID,
+      learningContextRevision: 0,
+      configured: false,
+      access: { state: 'writable' },
+      availableQuizTasks: [],
+      objectives: [],
+    });
+    learningObjectivesMocks.save.mockResolvedValue({
+      schemaVersion: 1,
+      sessionId: SESSION_ID,
+      learningContextRevision: 1,
+      configured: true,
+      access: { state: 'writable' },
+      availableQuizTasks: [],
+      objectives: [],
+    });
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
+    );
+  });
+
+  it('guards learning-objective reads and writes with the host capability', async () => {
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValueOnce(false);
+    await expect(caller.getLearningObjectives({ code: 'ABC123' })).rejects.toMatchObject({
+      code: 'UNAUTHORIZED',
+    });
+    expect(learningObjectivesMocks.get).not.toHaveBeenCalled();
+
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    await expect(caller.getLearningObjectives({ code: 'ABC123' })).resolves.toMatchObject({
+      sessionId: SESSION_ID,
+      access: { state: 'writable' },
+    });
+    await expect(
+      caller.saveLearningObjectives({
+        code: 'ABC123',
+        expectedLearningContextRevision: 0,
+        mutations: [
+          {
+            action: 'delete',
+            objectiveId: '55555555-5555-4555-8555-555555555555',
+            expectedRevision: 0,
+          },
+        ],
+      }),
+    ).resolves.toMatchObject({ learningContextRevision: 1, configured: true });
+    expect(learningObjectivesMocks.get).toHaveBeenCalledWith('ABC123');
+    expect(learningObjectivesMocks.save).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', expectedLearningContextRevision: 0 }),
     );
   });
 
@@ -152,12 +280,13 @@ describe('session.attachQuizToSession', () => {
       expect(prismaMock.session.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: SESSION_ID },
-          data: {
+          data: expect.objectContaining({
             type: 'QUIZ',
             quizId: QUIZ_ID,
             currentQuestion: null,
             currentRound: 1,
             answerDisplayOrder: Prisma.JsonNull,
+            learningContextRevision: 1,
             onboardingProfileConfigured: true,
             onboardingAllowCustomNicknames: false,
             onboardingAnonymousMode: false,
@@ -166,7 +295,7 @@ describe('session.attachQuizToSession', () => {
             onboardingTeamAssignment: 'AUTO',
             onboardingTeamNames: [],
             onboardingNicknameTheme: 'HIGH_SCHOOL',
-          },
+          }),
           select: expect.any(Object),
         }),
       );
@@ -176,6 +305,101 @@ describe('session.attachQuizToSession', () => {
       expect(prismaMock.participant.update).not.toHaveBeenCalled();
     },
   );
+
+  it('replays an exact attach operation after a lost response without projecting twice', async () => {
+    const attached = attachSessionRow({
+      quizId: QUIZ_ID,
+      learningContextRevision: 1,
+      learningContextConfigured: false,
+    });
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: SESSION_ID })
+      .mockResolvedValueOnce(attachSessionRow())
+      .mockResolvedValueOnce({ id: SESSION_ID })
+      .mockResolvedValueOnce(attached);
+    prismaMock.quiz.findUnique.mockResolvedValue(attachQuizRow());
+    prismaMock.session.update.mockResolvedValue(attached);
+    prismaMock.sessionQuizAttachReplay.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        sessionId: SESSION_ID,
+        operationId: OPERATION_ID,
+        quizId: QUIZ_ID,
+        adoptQuizTeams: false,
+        expectedLearningContextRevision: 0,
+        resultLearningContextRevision: 1,
+      });
+
+    const input = {
+      code: 'ABC123',
+      quizId: QUIZ_ID,
+      expectedLearningContextRevision: 0,
+      learningContextOperationId: OPERATION_ID,
+    };
+    const first = await caller.attachQuizToSession(input);
+    const replay = await caller.attachQuizToSession(input);
+
+    expect(first.learningContextOperationId).toBe(OPERATION_ID);
+    expect(replay.learningContextOperationId).toBe(OPERATION_ID);
+    expect(learningObjectivesMocks.replace).toHaveBeenCalledTimes(1);
+    expect(prismaMock.sessionQuizAttachReplay.upsert).toHaveBeenCalledTimes(1);
+    expect(prismaMock.quiz.findUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects reuse of an attach operation id with different semantics', async () => {
+    prismaMock.session.findUnique.mockResolvedValueOnce({ id: SESSION_ID }).mockResolvedValueOnce(
+      attachSessionRow({
+        quizId: QUIZ_ID,
+        learningContextRevision: 1,
+      }),
+    );
+    prismaMock.sessionQuizAttachReplay.findUnique.mockResolvedValue({
+      sessionId: SESSION_ID,
+      operationId: OPERATION_ID,
+      quizId: QUIZ_ID,
+      adoptQuizTeams: false,
+      expectedLearningContextRevision: 0,
+      resultLearningContextRevision: 1,
+    });
+
+    await expect(
+      caller.attachQuizToSession({
+        code: 'ABC123',
+        quizId: QUIZ_ID,
+        adoptQuizTeams: true,
+        expectedLearningContextRevision: 0,
+        learningContextOperationId: OPERATION_ID,
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect(learningObjectivesMocks.replace).not.toHaveBeenCalled();
+  });
+
+  it('accepts omitted learning CAS only for a virgin context and rejects it after configuration', async () => {
+    const attached = attachSessionRow({ quizId: QUIZ_ID, learningContextRevision: 1 });
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: SESSION_ID })
+      .mockResolvedValueOnce(attachSessionRow())
+      .mockResolvedValueOnce({ id: SESSION_ID })
+      .mockResolvedValueOnce(
+        attachSessionRow({ learningContextConfigured: true, learningContextRevision: 1 }),
+      );
+    prismaMock.quiz.findUnique.mockResolvedValue(attachQuizRow());
+    prismaMock.session.update.mockResolvedValue(attached);
+
+    const legacyResult = await caller.attachQuizToSession({ code: 'ABC123', quizId: QUIZ_ID });
+    expect(legacyResult.learningContextOperationId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+    expect(prismaMock.sessionQuizAttachReplay.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ expectedLearningContextRevision: 0 }),
+      }),
+    );
+
+    await expect(
+      caller.attachQuizToSession({ code: 'ABC123', quizId: QUIZ_ID }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+  });
 
   it('weist bestehende Teilnehmende bei AUTO-Teammodus nachträglich Teams zu', async () => {
     prismaMock.session.findUnique.mockResolvedValue({

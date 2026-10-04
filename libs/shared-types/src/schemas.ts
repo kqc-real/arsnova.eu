@@ -23,6 +23,16 @@ import {
   QA_REDACTION_MIN_RANGE_CODE_POINTS,
   qaTextCodePointLength,
 } from './qa-redaction';
+import {
+  LearningObjectiveRevisionSchema,
+  QuizLearningObjectiveBundleV1Schema,
+  QuizSourceQuestionIdSchema,
+  SessionLearningObjectivesSnapshotSchema,
+  findUnresolvedQuizLearningObjectiveReferences,
+} from './learning-objectives';
+import { QUIZ_QUESTION_TEXT_MAX_LENGTH, QUIZ_UPLOAD_MAX_QUESTIONS } from './quiz-contract-limits';
+
+export { QUIZ_QUESTION_TEXT_MAX_LENGTH, QUIZ_UPLOAD_MAX_QUESTIONS } from './quiz-contract-limits';
 
 export const QA_MAX_QUESTIONS_PER_PARTICIPANT = 10;
 export const QA_MAX_QUESTIONS_PER_SESSION = 25_000;
@@ -1434,7 +1444,6 @@ export const HostRecoveryCardDTOSchema = z.object({
 export type HostRecoveryCardDTO = z.infer<typeof HostRecoveryCardDTOSchema>;
 
 /** Schema für eine einzelne Antwortoption beim Hinzufügen/Bearbeiten */
-export const QUIZ_UPLOAD_MAX_QUESTIONS = 200;
 export const QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION = 8;
 export const QUIZ_UPLOAD_MAX_PAYLOAD_BYTES = 1_250_000;
 /** KI-Paste-Import: produktseitig max. 30 Fragen (Hörsaal-taugliche Pakete). */
@@ -1886,7 +1895,10 @@ export function buildCategorizationStats(
 /** Schema für das Hinzufügen/Bearbeiten einer Frage (Story 1.2a, 1.2b, 1.3) */
 export const AddQuestionInputSchema = z
   .object({
-    text: z.string().min(1, { error: 'Fragenstamm darf nicht leer sein' }).max(2000),
+    text: z
+      .string()
+      .min(1, { error: 'Fragenstamm darf nicht leer sein' })
+      .max(QUIZ_QUESTION_TEXT_MAX_LENGTH),
     type: QuestionTypeEnum,
     timer: z.number().int().min(5).max(300).nullable().optional(),
     difficulty: DifficultyEnum.optional().default('MEDIUM'),
@@ -2506,10 +2518,22 @@ export const AddQuestionInputSchema = z
   });
 export type AddQuestionInput = z.infer<typeof AddQuestionInputSchema>;
 
+/**
+ * Dedicated live-upload question contract. `sourceQuestionId` is optional only
+ * for rolling compatibility with legacy upload clients; once an upload uses
+ * source identity, every question must provide it (validated below).
+ */
+export const QuizUploadQuestionInputSchema = AddQuestionInputSchema.safeExtend({
+  sourceQuestionId: QuizSourceQuestionIdSchema.optional(),
+});
+export type QuizUploadQuestionInput = z.input<typeof QuizUploadQuestionInputSchema>;
+
 /** Schema für den Quiz-Upload beim Live-Schalten (Story 2.1a) */
 export const QuizUploadInputSchema = z
   .object({
     historyScopeId: z.uuid().optional(),
+    /** Lokale Quiz-ID; weder Server-Quiz-ID noch Historien-Capability. */
+    sourceQuizId: z.uuid().optional(),
     name: z.string().min(1).max(200),
     description: z.string().max(5000).optional(),
     /** Wie CreateQuiz: Leerstring/undefined → null (vermeidet Upload-Fehler bei leerem Feld). */
@@ -2535,12 +2559,87 @@ export const QuizUploadInputSchema = z
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(),
     preset: QuizPresetEnum.optional(),
+    /** Versionierter Sidecar-Snapshot; enthält keine Antwort-/Lösungsdaten. */
+    learningObjectives: QuizLearningObjectiveBundleV1Schema.optional(),
     questions: z
-      .array(AddQuestionInputSchema)
+      .array(QuizUploadQuestionInputSchema)
       .min(1, { error: 'Mindestens eine Frage erforderlich' })
       .max(QUIZ_UPLOAD_MAX_QUESTIONS),
   })
   .superRefine((value, ctx) => {
+    const sourceQuestionIds = value.questions.flatMap((question) =>
+      question.sourceQuestionId ? [question.sourceQuestionId] : [],
+    );
+    const usesSourceIdentity =
+      value.sourceQuizId !== undefined ||
+      value.learningObjectives !== undefined ||
+      sourceQuestionIds.length > 0;
+
+    if (usesSourceIdentity && value.sourceQuizId === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['sourceQuizId'],
+        message: 'Uploads mit stabilen Quellen benötigen eine sourceQuizId.',
+      });
+    }
+
+    if (usesSourceIdentity) {
+      value.questions.forEach((question, index) => {
+        if (!question.sourceQuestionId) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['questions', index, 'sourceQuestionId'],
+            message: 'Uploads mit stabilen Quellen benötigen IDs für alle Fragen.',
+          });
+        }
+      });
+    }
+
+    const seenSourceQuestionIds = new Set<string>();
+    value.questions.forEach((question, index) => {
+      if (!question.sourceQuestionId) return;
+      if (seenSourceQuestionIds.has(question.sourceQuestionId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['questions', index, 'sourceQuestionId'],
+          message: 'sourceQuestionId muss innerhalb eines Uploads eindeutig sein.',
+        });
+      }
+      seenSourceQuestionIds.add(question.sourceQuestionId);
+    });
+
+    if (value.learningObjectives) {
+      if (
+        value.sourceQuizId !== undefined &&
+        value.learningObjectives.quizId !== value.sourceQuizId
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['learningObjectives', 'quizId'],
+          message: 'Lernziel-Bundle und Upload müssen dasselbe Quellquiz referenzieren.',
+        });
+      }
+      for (const issue of findUnresolvedQuizLearningObjectiveReferences(
+        value.learningObjectives,
+        seenSourceQuestionIds,
+      )) {
+        const referenceField =
+          issue.field === 'scope' ? 'sourceQuestionIds' : 'derivedFromSourceQuestionIds';
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [
+            'learningObjectives',
+            'objectives',
+            issue.objectiveIndex,
+            issue.field,
+            referenceField,
+            issue.referenceIndex,
+          ],
+          message: 'Lernzielreferenz gehört nicht zu einer hochgeladenen Frage.',
+        });
+      }
+    }
+
     const payloadBytes = new TextEncoder().encode(JSON.stringify(value)).byteLength;
     if (payloadBytes > QUIZ_UPLOAD_MAX_PAYLOAD_BYTES) {
       ctx.addIssue({
@@ -3152,8 +3251,30 @@ export type GetCurrentQuestionForStudentInput = z.infer<
 /** Input: Ein Quiz an eine laufende Quiz-Session anhängen. */
 export const AttachQuizToSessionInputSchema = GetSessionInfoInputSchema.extend({
   quizId: z.uuid(),
+  /**
+   * Global CAS for the session-authoritative learning-objective projection.
+   * Rolling-compatibility omission is backend-valid only for an unconfigured
+   * revision-0 learning context; new clients always send this field.
+   */
+  expectedLearningContextRevision: LearningObjectiveRevisionSchema.optional(),
+  /**
+   * Idempotency key: an exact lost-response retry returns the original result.
+   * On the legacy-safe first attach the backend generates and returns one.
+   */
+  learningContextOperationId: z.uuid().optional(),
   /** Host bestätigt: Teambindung der Session an das Quiz anpassen und Teilnehmende neu zuordnen. */
   adoptQuizTeams: z.boolean().optional(),
+}).superRefine((value, ctx) => {
+  if (
+    (value.expectedLearningContextRevision === undefined) !==
+    (value.learningContextOperationId === undefined)
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['expectedLearningContextRevision'],
+      message: 'Lernkontextrevision und Operation-ID müssen gemeinsam angegeben werden.',
+    });
+  }
 });
 export type AttachQuizToSessionInput = z.infer<typeof AttachQuizToSessionInputSchema>;
 
@@ -4081,6 +4202,17 @@ export type SessionChannelsDTO = z.infer<typeof SessionChannelsDTOSchema>;
 /** Output: Kanalstatus nach Zuschalten eines Session-Kanals (Host, ADR-0009). */
 export const UpdateSessionChannelsOutputSchema = SessionChannelsDTOSchema;
 export type UpdateSessionChannelsOutput = z.infer<typeof UpdateSessionChannelsOutputSchema>;
+
+/**
+ * Additive attach response: legacy channel fields stay at the top level while
+ * the learning-objective projection is returned atomically beside them. The
+ * operation ID identifies an exact idempotent replay.
+ */
+export const AttachQuizToSessionOutputSchema = SessionChannelsDTOSchema.extend({
+  learningContextOperationId: z.uuid(),
+  learningObjectives: SessionLearningObjectivesSnapshotSchema,
+}).strict();
+export type AttachQuizToSessionOutput = z.infer<typeof AttachQuizToSessionOutputSchema>;
 
 export const SessionInfoDTOSchema = z.object({
   id: z.uuid(),
@@ -5205,77 +5337,84 @@ export type HealthPingEvent = z.infer<typeof HealthPingEventSchema>;
 // Quiz-Export / Import (Story 1.8, 1.9)
 // ---------------------------------------------------------------------------
 
-/** Aktuelle Export-Schema-Version */
-export const QUIZ_EXPORT_VERSION = 1;
+/** Aktuelle Export-Schema-Version; v1 bleibt ausschließlich für Legacy-/KI-Importe erhalten. */
+export const QUIZ_EXPORT_LEGACY_VERSION = 1 as const;
+export const QUIZ_EXPORT_VERSION = 2 as const;
 
 /** Schema für eine exportierte Antwortoption */
-const ExportedAnswerOptionSchema = z.object({
-  text: z.string(),
-  isCorrect: z.boolean(),
-});
+const ExportedAnswerOptionSchema = z
+  .object({
+    text: z.string(),
+    isCorrect: z.boolean(),
+  })
+  .strict();
 
 /** Schema für eine exportierte Frage */
-const ExportedQuestionSchema = z.object({
-  text: z.string(),
-  type: QuestionTypeEnum,
-  timer: z.number().nullable().optional(),
-  difficulty: DifficultyEnum,
-  order: z.number(),
-  answers: z.array(ExportedAnswerOptionSchema),
-  skipReadingPhase: z.boolean().optional(),
-  ratingMin: z.number().nullable().optional(), // Nur bei RATING
-  ratingMax: z.number().nullable().optional(), // Nur bei RATING
-  ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
-  ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
-  shortTextEvaluationKind: ShortTextEvaluationKindEnum.optional(),
-  shortTextMaxLength: z
-    .number()
-    .int()
-    .min(1)
-    .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
-    .nullable()
-    .optional(),
-  shortTextCaseSensitive: z.boolean().optional(),
-  shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
-  shortTextToleranceLevel: ToleranceLevelEnum.optional(),
-  shortTextAllowPartialCredit: z.boolean().optional(),
-  shortTextTrimWhitespace: z.boolean().optional(),
-  shortTextNormalizeWhitespace: z.boolean().optional(),
-  numericInputKind: NumericInputKindEnum.optional(),
-  numericToleranceMode: QuestionNumericToleranceModeSchema.optional(),
-  numericAbsoluteTolerance: z.number().nullable().optional(),
-  numericRelativeTolerancePercent: z.number().nullable().optional(),
-  numericUnitFamily: NumericUnitFamilyEnum.optional(),
-  numericRequireUnit: z.boolean().optional(),
-  numericAcceptEquivalentUnits: z.boolean().optional(),
-  numericReferenceValue: z.number().nullable().optional(),
-  numericTolerancePercent: z.number().nullable().optional(),
-  numericIntervalLeft: z.number().nullable().optional(),
-  numericIntervalRight: z.number().nullable().optional(),
-  numericInputType: NumericInputTypeEnum.optional(),
-  numericDecimalPlaces: z.number().int().nullable().optional(),
-  numericMin: z.number().nullable().optional(),
-  numericMax: z.number().nullable().optional(),
-  numericTwoRounds: z.boolean().optional(),
-  confidenceEnabled: z.boolean().optional(),
-  confidenceLabelLow: z.string().nullable().optional(),
-  confidenceLabelHigh: z.string().nullable().optional(),
-  // Story 1.2g, 1.2h, 1.2j: Neue Fragentypen in Export/Import
-  matchingPairs: z.array(MatchingPairInputSchema).optional(),
-  matchingShuffleRight: z.boolean().optional(),
-  orderingItems: z.array(OrderingItemInputSchema).optional(),
-  categories: z.array(CategorizationCategoryInputSchema).optional(),
-  categorizationItems: z.array(CategorizationItemInputSchema).optional(),
-  categorizationShuffleItems: z.boolean().optional(),
-  /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
-  enabled: z.boolean().optional().default(true),
-});
+const ExportedQuestionSchema = z
+  .object({
+    text: z.string(),
+    type: QuestionTypeEnum,
+    timer: z.number().nullable().optional(),
+    difficulty: DifficultyEnum,
+    order: z.number(),
+    answers: z.array(ExportedAnswerOptionSchema),
+    skipReadingPhase: z.boolean().optional(),
+    ratingMin: z.number().nullable().optional(), // Nur bei RATING
+    ratingMax: z.number().nullable().optional(), // Nur bei RATING
+    ratingLabelMin: z.string().nullable().optional(), // Nur bei RATING
+    ratingLabelMax: z.string().nullable().optional(), // Nur bei RATING
+    shortTextEvaluationKind: ShortTextEvaluationKindEnum.optional(),
+    shortTextMaxLength: z
+      .number()
+      .int()
+      .min(1)
+      .max(SHORT_TEXT_MAX_LENGTH_LIMIT)
+      .nullable()
+      .optional(),
+    shortTextCaseSensitive: z.boolean().optional(),
+    shortTextEvaluationMode: ShortAnswerEvaluationModeEnum.optional(),
+    shortTextToleranceLevel: ToleranceLevelEnum.optional(),
+    shortTextAllowPartialCredit: z.boolean().optional(),
+    shortTextTrimWhitespace: z.boolean().optional(),
+    shortTextNormalizeWhitespace: z.boolean().optional(),
+    numericInputKind: NumericInputKindEnum.optional(),
+    numericToleranceMode: QuestionNumericToleranceModeSchema.optional(),
+    numericAbsoluteTolerance: z.number().nullable().optional(),
+    numericRelativeTolerancePercent: z.number().nullable().optional(),
+    numericUnitFamily: NumericUnitFamilyEnum.optional(),
+    numericRequireUnit: z.boolean().optional(),
+    numericAcceptEquivalentUnits: z.boolean().optional(),
+    numericReferenceValue: z.number().nullable().optional(),
+    numericTolerancePercent: z.number().nullable().optional(),
+    numericIntervalLeft: z.number().nullable().optional(),
+    numericIntervalRight: z.number().nullable().optional(),
+    numericInputType: NumericInputTypeEnum.optional(),
+    numericDecimalPlaces: z.number().int().nullable().optional(),
+    numericMin: z.number().nullable().optional(),
+    numericMax: z.number().nullable().optional(),
+    numericTwoRounds: z.boolean().optional(),
+    confidenceEnabled: z.boolean().optional(),
+    confidenceLabelLow: z.string().nullable().optional(),
+    confidenceLabelHigh: z.string().nullable().optional(),
+    // Story 1.2g, 1.2h, 1.2j: Neue Fragentypen in Export/Import
+    matchingPairs: z.array(MatchingPairInputSchema).optional(),
+    matchingShuffleRight: z.boolean().optional(),
+    orderingItems: z.array(OrderingItemInputSchema).optional(),
+    categories: z.array(CategorizationCategoryInputSchema).optional(),
+    categorizationItems: z.array(CategorizationItemInputSchema).optional(),
+    categorizationShuffleItems: z.boolean().optional(),
+    /** false = in lokaler Bibliothek behalten, aber nicht in Live/Vorschau */
+    enabled: z.boolean().optional().default(true),
+  })
+  .strict();
 
-/** Schema für das gesamte Quiz-Export-Format */
-export const QuizExportSchema = z.object({
-  exportVersion: z.number().int().min(1),
-  exportedAt: z.string(), // ISO-8601 Timestamp
-  quiz: z.object({
+export const ExportedQuestionV2Schema = ExportedQuestionSchema.safeExtend({
+  sourceQuestionId: QuizSourceQuestionIdSchema,
+});
+export type ExportedQuestionV2 = z.infer<typeof ExportedQuestionV2Schema>;
+
+const ExportedQuizMetadataSchema = z
+  .object({
     name: z.string().min(1).max(200),
     description: z.string().max(5000).optional(),
     motifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
@@ -5299,9 +5438,99 @@ export const QuizExportSchema = z.object({
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(), // Story 2.6: Lesephase
-    questions: z.array(ExportedQuestionSchema).min(1),
-  }),
-});
+  })
+  .strict();
+
+/** Exact legacy format. V1 intentionally has no stable source IDs or learning objectives. */
+export const QuizExportV1Schema = z
+  .object({
+    exportVersion: z.literal(QUIZ_EXPORT_LEGACY_VERSION),
+    exportedAt: z.string().datetime({ offset: true }),
+    quiz: ExportedQuizMetadataSchema.safeExtend({
+      questions: z.array(ExportedQuestionSchema).min(1),
+    }),
+  })
+  .strict();
+export type QuizExportV1 = z.infer<typeof QuizExportV1Schema>;
+
+const QuizExportV2ShapeSchema = z
+  .object({
+    exportVersion: z.literal(QUIZ_EXPORT_VERSION),
+    exportedAt: z.string().datetime({ offset: true }),
+    quiz: ExportedQuizMetadataSchema.safeExtend({
+      sourceQuizId: z.uuid(),
+      questions: z.array(ExportedQuestionV2Schema).min(1),
+      learningObjectives: QuizLearningObjectiveBundleV1Schema,
+    }),
+  })
+  .strict();
+type QuizExportV2Shape = z.infer<typeof QuizExportV2ShapeSchema>;
+
+function validateQuizExportV2(value: QuizExportV2Shape, ctx: z.RefinementCtx): void {
+  if (value.quiz.learningObjectives.quizId !== value.quiz.sourceQuizId) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['quiz', 'learningObjectives', 'quizId'],
+      message: 'Lernziel-Bundle und Export müssen dasselbe Quellquiz referenzieren.',
+    });
+  }
+
+  const sourceQuestionIds = new Set<string>();
+  value.quiz.questions.forEach((question, index) => {
+    if (sourceQuestionIds.has(question.sourceQuestionId)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['quiz', 'questions', index, 'sourceQuestionId'],
+        message: 'sourceQuestionId muss innerhalb eines Exports eindeutig sein.',
+      });
+    }
+    sourceQuestionIds.add(question.sourceQuestionId);
+  });
+
+  for (const issue of findUnresolvedQuizLearningObjectiveReferences(
+    value.quiz.learningObjectives,
+    sourceQuestionIds,
+  )) {
+    const objective = value.quiz.learningObjectives.objectives[issue.objectiveIndex];
+    // A removed local source remains part of the auditable V2 backup while the
+    // objective is explicitly marked stale. Live upload keeps using the
+    // stricter validator above and must never stage an unresolved reference.
+    if (
+      objective?.confirmation.state === 'needs-review' &&
+      objective.confirmation.reason === 'source-reference-removed'
+    ) {
+      continue;
+    }
+    const referenceField =
+      issue.field === 'scope' ? 'sourceQuestionIds' : 'derivedFromSourceQuestionIds';
+    ctx.addIssue({
+      code: 'custom',
+      path: [
+        'quiz',
+        'learningObjectives',
+        'objectives',
+        issue.objectiveIndex,
+        issue.field,
+        referenceField,
+        issue.referenceIndex,
+      ],
+      message: 'Lernzielreferenz gehört nicht zu einer exportierten Frage.',
+    });
+  }
+}
+
+export const QuizExportV2Schema = QuizExportV2ShapeSchema.superRefine(validateQuizExportV2);
+export type QuizExportV2 = z.infer<typeof QuizExportV2Schema>;
+
+/**
+ * Exact version union: v1 remains importable, v2 preserves learning objectives,
+ * and unknown future versions fail instead of being stripped as a lower version.
+ */
+export const QuizExportSchema = z
+  .discriminatedUnion('exportVersion', [QuizExportV1Schema, QuizExportV2ShapeSchema])
+  .superRefine((value, ctx) => {
+    if (value.exportVersion === QUIZ_EXPORT_VERSION) validateQuizExportV2(value, ctx);
+  });
 export type QuizExport = z.infer<typeof QuizExportSchema>;
 
 /**

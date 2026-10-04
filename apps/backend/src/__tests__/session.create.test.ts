@@ -7,12 +7,14 @@ const {
   checkSessionCreateRateMock,
   shouldBypassSessionCreateRateMock,
   createCredentialBoundHostTokenMock,
+  initializeLearningObjectivesMock,
 } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
     quiz: {
       findUnique: vi.fn(),
@@ -27,6 +29,7 @@ const {
   checkSessionCreateRateMock: vi.fn(),
   shouldBypassSessionCreateRateMock: vi.fn(),
   createCredentialBoundHostTokenMock: vi.fn(),
+  initializeLearningObjectivesMock: vi.fn(),
 }));
 
 vi.mock('../db', () => ({
@@ -40,6 +43,14 @@ vi.mock('../lib/rateLimit', () => ({
 
 vi.mock('../lib/hostAuth', () => ({
   createCredentialBoundHostToken: createCredentialBoundHostTokenMock,
+}));
+
+vi.mock('../lib/sessionLearningObjectives', () => ({
+  getSessionLearningObjectives: vi.fn(),
+  saveSessionLearningObjectives: vi.fn(),
+  getSessionLearningObjectivesSnapshotWithDb: vi.fn(),
+  replaceSessionQuizLearningObjectives: vi.fn(),
+  initializeSessionLearningObjectivesFromQuiz: initializeLearningObjectivesMock,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -60,6 +71,7 @@ describe('session.create (Story 2.1a)', () => {
       token: HOST_TOKEN,
       expiresAt: HOST_TOKEN_EXPIRES_AT,
     });
+    initializeLearningObjectivesMock.mockResolvedValue(false);
     prismaMock.session.findUnique.mockResolvedValue(null);
     prismaMock.session.findMany.mockResolvedValue([]);
     prismaMock.quiz.findUnique.mockResolvedValue({
@@ -136,6 +148,19 @@ describe('session.create (Story 2.1a)', () => {
       );
     },
   );
+
+  it('projects a staged quiz bundle and marks the learning context configured in the create transaction', async () => {
+    initializeLearningObjectivesMock.mockResolvedValue(true);
+    prismaMock.session.update.mockResolvedValue({});
+
+    await caller.create({ quizId: QUIZ_ID });
+
+    expect(initializeLearningObjectivesMock).toHaveBeenCalledWith(prismaMock, SESSION_ID, QUIZ_ID);
+    expect(prismaMock.session.update).toHaveBeenCalledWith({
+      where: { id: SESSION_ID },
+      data: { learningContextConfigured: true },
+    });
+  });
 
   it('setzt beim Start ab bestimmter Frage nur den initialen Fragenzeiger', async () => {
     await caller.create({ quizId: QUIZ_ID, startQuestionIndex: 2 });

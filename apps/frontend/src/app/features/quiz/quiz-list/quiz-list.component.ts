@@ -700,6 +700,15 @@ export class QuizListComponent implements OnInit {
       URL.revokeObjectURL(url);
       this.actionInfoWarnings.set([]);
       this.setActionInfo($localize`»${quiz.quiz.name}« wurde exportiert.`);
+      this.snackBar.open(
+        $localize`:@@quizList.exportV2CompatibilityWarning:Kompatibilitätshinweis: Ältere arsnova.eu-Versionen können Lernziele aus dieser Exportdatei entfernen. Verwende sie nur mit einer aktuellen Version.`,
+        '',
+        {
+          duration: 10000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+        },
+      );
     } catch (error) {
       this.actionError.set(
         error instanceof Error ? error.message : $localize`Export fehlgeschlagen.`,
@@ -1296,6 +1305,14 @@ export class QuizListComponent implements OnInit {
         return;
       }
       let payload = this.quizStore.getUploadPayload(options.quizId);
+      const learningObjectiveWarning = this.quizStore.takeUploadLearningObjectiveWarning();
+      if (learningObjectiveWarning) {
+        this.snackBar.open(learningObjectiveWarning, '', {
+          duration: 8000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+        });
+      }
       const presetKey = homePresetOptionsKeyForQuizPreset(payload.preset);
       try {
         const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(presetKey) : null;

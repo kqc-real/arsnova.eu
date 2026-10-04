@@ -1,4 +1,6 @@
 import {
+  LEARNING_OBJECTIVE_MAX_OBJECTIVES,
+  LEARNING_OBJECTIVE_MAX_REFERENCES,
   QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION,
   QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
   QUIZ_UPLOAD_MAX_QUESTIONS,
@@ -15,7 +17,9 @@ export const SESSION_CREATE_PER_IP_PER_WINDOW_DEFAULT = 10;
 export const SESSION_CREATE_GLOBAL_PER_WINDOW_DEFAULT = 120;
 export const SESSION_CREATE_GLOBAL_PER_WINDOW_PRODUCTION_DEFAULT = 2_400;
 export const QUIZ_UPLOAD_MAX_COMPLEXITY =
-  1 + QUIZ_UPLOAD_MAX_QUESTIONS * (1 + QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION);
+  1 +
+  QUIZ_UPLOAD_MAX_QUESTIONS * (1 + QUIZ_UPLOAD_MAX_OPTIONS_PER_QUESTION) +
+  LEARNING_OBJECTIVE_MAX_OBJECTIVES * (1 + 2 * LEARNING_OBJECTIVE_MAX_REFERENCES);
 
 /**
  * Gemeinsames W1.3-Speicherbudget:
@@ -57,10 +61,23 @@ export const ORPHAN_QUIZ_CLEANUP_CAPACITY_PER_RUN =
  */
 export const ORPHAN_QUIZ_MAX_SESSIONLESS_PER_HISTORY_SCOPE = 5;
 
-export function calculateQuizUploadComplexity(input: Pick<QuizUploadInput, 'questions'>): number {
+export function calculateQuizUploadComplexity(
+  input: Pick<QuizUploadInput, 'questions' | 'learningObjectives'>,
+): number {
+  const learningObjectiveComplexity =
+    input.learningObjectives?.objectives.reduce((sum, objective) => {
+      const taskReferences =
+        objective.scope.kind === 'question-set' ? objective.scope.sourceQuestionIds.length : 0;
+      const derivationReferences =
+        objective.origin.kind === 'model-derived'
+          ? objective.origin.derivedFromSourceQuestionIds.length
+          : 0;
+      return sum + 1 + taskReferences + derivationReferences;
+    }, 0) ?? 0;
   return (
     1 +
     input.questions.length +
-    input.questions.reduce((sum, question) => sum + question.answers.length, 0)
+    input.questions.reduce((sum, question) => sum + question.answers.length, 0) +
+    learningObjectiveComplexity
   );
 }

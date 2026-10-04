@@ -53,7 +53,10 @@ function getMarkdownCopyCodeLabel(): string {
 /**
  * HTML für einen Markdown-Codeblock (` ```lang ` bzw. eingerückt), inkl. Syntax-Highlighting.
  */
-export function renderMarkdownCodeBlockHtml({ text, lang }: Tokens.Code): string {
+export function renderMarkdownCodeBlockHtml(
+  { text, lang }: Tokens.Code,
+  options: { includeCopyButton?: boolean } = {},
+): string {
   const normalized = text.replace(/\n$/, '') + '\n';
   const body = normalized.replace(/\n$/, '');
 
@@ -79,6 +82,12 @@ export function renderMarkdownCodeBlockHtml({ text, lang }: Tokens.Code): string
     ? fenceLanguageClassToken(lang)
     : `language-${escapeHtml(DEFAULT_MARKDOWN_FENCE_LANGUAGE)}`;
   const classes = ['hljs', langClass].filter(Boolean).join(' ');
-  const copyCodeLabel = escapeHtml(getMarkdownCopyCodeLabel());
-  return `<div class="markdown-code-block" data-markdown-code-block="true"><button type="button" class="markdown-code-block__copy" data-markdown-code-copy="true" title="${copyCodeLabel}" aria-label="${copyCodeLabel}">${copyCodeLabel}</button><pre><code class="${classes}">${highlighted}</code></pre></div>\n`;
+  const copyButton =
+    options.includeCopyButton === false
+      ? ''
+      : (() => {
+          const copyCodeLabel = escapeHtml(getMarkdownCopyCodeLabel());
+          return `<button type="button" class="markdown-code-block__copy" data-markdown-code-copy="true" title="${copyCodeLabel}" aria-label="${copyCodeLabel}">${copyCodeLabel}</button>`;
+        })();
+  return `<div class="markdown-code-block" data-markdown-code-block="true">${copyButton}<pre><code class="${classes}">${highlighted}</code></pre></div>\n`;
 }

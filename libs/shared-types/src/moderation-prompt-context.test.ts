@@ -1670,6 +1670,39 @@ describe('moderation prompt context v1', () => {
     expect(ModerationPromptContextV1Schema.safeParse(derivedFromQuiz).success).toBe(true);
   });
 
+  it('represents needs-review from both draft and confirmed learning-objective revisions', () => {
+    const staleDraft = cloneReference();
+    recordAt(staleDraft, 'context', 'learningContext', 'objectives', 0).confirmation = {
+      state: 'needs-review',
+      previousConfirmation: { state: 'draft', revision: 'objective-r1' },
+      currentRevision: 'objective-r2',
+      reason: 'Eine referenzierte Aufgabe wurde geändert.',
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(staleDraft).success).toBe(true);
+
+    const staleConfirmed = cloneReference();
+    recordAt(staleConfirmed, 'context', 'learningContext', 'objectives', 0).confirmation = {
+      state: 'needs-review',
+      previousConfirmation: {
+        state: 'confirmed',
+        revision: 'objective-r1',
+        confirmedAt: '2026-01-15T09:45:00.000Z',
+      },
+      currentRevision: 'objective-r2',
+      reason: 'Eine referenzierte Aufgabe wurde geändert.',
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(staleConfirmed).success).toBe(true);
+
+    const contradictory = cloneReference();
+    recordAt(contradictory, 'context', 'learningContext', 'objectives', 0).confirmation = {
+      state: 'needs-review',
+      previousConfirmation: { state: 'draft', revision: 'same' },
+      currentRevision: 'same',
+      reason: 'Fixture-Widerspruch',
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(contradictory).success).toBe(false);
+  });
+
   it('requires quiz channels, scoped model derivation and unique learning references', () => {
     const quizScopeWithoutChannel = cloneReference();
     recordAt(quizScopeWithoutChannel, 'context', 'scope').channels = ['qa'];

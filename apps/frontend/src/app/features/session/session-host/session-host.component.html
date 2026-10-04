@@ -640,6 +640,22 @@
               >Kompass</span
             >
           </button>
+          <button
+            type="button"
+            class="session-host__moderation-control session-host__learning-objectives-control"
+            data-testid="host-learning-objectives"
+            (click)="openLearningObjectivesDialog()"
+            aria-haspopup="dialog"
+            i18n-aria-label="@@sessionHost.learningObjectivesAria"
+            aria-label="Lernziele für diese Session öffnen"
+          >
+            <mat-icon aria-hidden="true">school</mat-icon>
+            <span
+              class="session-host__moderation-control-label"
+              i18n="@@sessionHost.learningObjectivesButton"
+              >Ziele</span
+            >
+          </button>
         </div>
       </div>
     }

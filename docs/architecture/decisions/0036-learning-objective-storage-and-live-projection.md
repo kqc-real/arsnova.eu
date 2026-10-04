@@ -5,13 +5,13 @@
 **Status:** Accepted
 **Datum:** 2026-10-03
 **Entscheider:** Projektteam (Issue #456, Slice 1)
-**Letzter Repo-Abgleich:** 2026-10-03 (`64830fad`)
+**Letzter Repo-Abgleich:** 2026-10-04 (Issue #456, Slice-4-Implementierung)
 
 ## Kontext
 
 Issue [#456](https://github.com/kqc-real/arsnova.eu/issues/456) ergänzt den Moderationskontext um Lernziele. Ein Ziel kann von einer Lehrperson manuell formuliert oder in einem eigenen Vorbereitungsauftrag aus Quizaufgaben, Antwortmöglichkeiten, Musterlösungen und später gegebenenfalls Erläuterungen abgeleitet werden. Der Live-Moderationsauftrag darf dagegen keine noch nicht freigegebenen Lösungen oder vollständigen Lösungsschlüssel erhalten.
 
-Der abgeglichene Repository-Stand besitzt noch keine Lernziel-Datenhaltung:
+Vor Slice 4 besaß der abgeglichene Repository-Stand noch keine Lernziel-Datenhaltung:
 
 - Die dauerhafte Quiz-Sammlung ist nach [ADR-0004](0004-use-yjs-for-local-first-storage.md) local-first. `QuizDocument` liegt im Browser, wird über Yjs/IndexedDB und lokale Spiegel synchronisiert und beim Live-Start als zeitlich begrenzte Serverkopie hochgeladen.
 - Der aktuelle Yjs-Root `quiz-library` hält die Quizliste als normalisierten JSON-String unter `quizzes`. Ältere Clients lesen, whitelisten und schreiben diesen Gesamtwert zurück. Neue Felder direkt im `QuizDocument` könnten deshalb im Mischbetrieb verloren gehen. Ein getrennter Root-Key wird bereits für `home-presets` verwendet und zeigt das kompatible Erweiterungsmuster.
@@ -28,9 +28,13 @@ Ohne eine verbindliche Entscheidung drohen drei Fehlerklassen: Lernziele gehen b
 
 Quizgebundene Lernziele gehören fachlich zur local-first Quiz-Sammlung. Solange ältere Clients denselben Sync-Raum verwenden können, werden sie jedoch **nicht** als neue Felder in den bestehenden serialisierten `quizzes`-Blob eingebettet. Ihre kanonische Bearbeitungsversion lebt in einem eigenen versionierten Lernziel-Sidecar, der lokale Quizkennungen zu Lernzielen und stabilen Aufgabenreferenzen abbildet.
 
-Der Sidecar verwendet im selben Yjs-Dokument eine eigene Root-Map `quiz-learning-objectives-v1`, getrennt von `yDoc.getMap('quiz-library')`. Map-Key ist die lokale `quizId`; Map-Value ist das strikt validierte JSON eines `QuizLearningObjectiveBundleV1` mit `schemaVersion`, `quizId`, `revision` und begrenzten `objectives`. Der raumbezogene lokale Spiegel heißt `quiz-learning-objectives-v1:<roomId>`; ein globaler Legacy-Mirror wird dafür nicht eingeführt.
+Der Sidecar verwendet im selben Yjs-Dokument eine eigene Root-Map `quiz-learning-objectives-v1`, getrennt von `yDoc.getMap('quiz-library')`. Der Eintrag zur lokalen `quizId` enthält den Marker `oplog-v1`; die eigentlichen Änderungen liegen in der stabil benannten Yjs-Map `quiz-learning-objectives-v1-oplog:<quizId>`. Deren Schlüssel sind opake Operations-UUIDs, deren strikt validierte JSON-Werte je ein einzelnes Lernziel kausal ändern oder löschen. Erwartete und resultierende Zielrevision, Bundle-Revision und explizite Eltern-Operationen bilden daraus pro Lernziel einen gerichteten azyklischen Verlauf. Der raumbezogene lokale Spiegel `quiz-learning-objectives-v1:<roomId>` enthält weiterhin materialisierte `QuizLearningObjectiveBundleV1`-Werte mit `schemaVersion`, `quizId`, `revision` und begrenzten `objectives`; ein globaler Legacy-Mirror wird nicht eingeführt.
 
-Ein Client, der diese Root-Map nicht versteht, darf sie nicht schreiben oder löschen. Damit können ältere Clients weiterhin den `quizzes`-Blob aktualisieren, ohne Lernziele durch ihre Whitelist-Normalisierung zu entfernen. Neue Clients aktualisieren zusammengehörige Quiz- und Zieländerungen in einer Yjs-Transaktion. Sie bereinigen Sidecar-Einträge erst, wenn die zugehörige Quizlöschung im zusammengeführten Yjs-Zustand feststeht; ein kurzzeitig unbekanntes Quiz bei Reconnect genügt nicht. Zielzahl, Textlänge und Referenzzahl bleiben begrenzt, damit der bestehende Yjs-Dokument- und Relay-Rahmen nicht umgangen wird.
+Unabhängige Änderungen an verschiedenen Lernzielen werden dadurch zusammengeführt, statt einen vollständigen Bundle-String nach Last-Writer-Wins zu überschreiben. Gleichzeitige, kausal nicht geordnete Änderungen desselben Lernziels bleiben als mehrere Köpfe sichtbar und verlangen eine ausdrückliche Hostentscheidung; Zeitstempel oder eine vorgestellte Zukunftsuhr verleihen keiner Fassung Autorität. Die Entscheidung schreibt eine neue Operation mit allen Konfliktköpfen als Eltern. Löschungen bleiben als Tombstones erhalten, damit ein verspäteter Offline-Client ein Ziel nicht wiederbelebt. Bereits eindeutig aufgelöste Verläufe werden begrenzt ausgedünnt; zusätzlich schützt eine harte Operationsgrenze den bestehenden Yjs-Rahmen.
+
+Die bestehende Map `quiz-library` trägt zusätzlich den Initialisierungsmarker `quiz-learning-objectives-v1-initialized`. Er unterscheidet einen neuen Sync-Raum, der einmalig aus dem lokalen Spiegel befüllt werden darf, von einem autoritativ synchronisierten, bewusst leeren Sidecar. Ohne diese Unterscheidung könnte ein alter Offline-Spiegel entfernte Ziele nach einem Reconnect wieder einfügen. Fehlerhafte einzelne Map-Werte werden nicht als Löschung interpretiert; der letzte lokal validierte Wert bleibt erhalten, bis ein gültiger synchronisierter Wert oder eine ausdrückliche Entfernung vorliegt.
+
+Ein Client, der diese Root-Map nicht versteht, darf sie nicht schreiben oder löschen. Damit können ältere Clients weiterhin den `quizzes`-Blob aktualisieren, ohne Lernziele durch ihre Whitelist-Normalisierung zu entfernen. Ein vor Einführung des Oplogs geschriebener vollständiger Bundle-Wert wird beim ersten Lesen transaktional in einzelne Operationen übersetzt. Auch ein verspäteter Bundle-Write eines noch verbundenen Legacy-Clients wird als kausale Änderung übernommen; er darf weder parallel neu angelegte Ziele still löschen noch konkurrierende Fassungen verbergen. Neue Clients aktualisieren zusammengehörige Quiz- und Zieländerungen in einer Yjs-Transaktion. Sie bereinigen Sidecar-Einträge erst, wenn die zugehörige Quizlöschung im zusammengeführten Yjs-Zustand feststeht; ein kurzzeitig unbekanntes Quiz bei Reconnect genügt nicht. Zielzahl, Textlänge, Referenzzahl und Operationshistorie bleiben begrenzt, damit der bestehende Yjs-Dokument- und Relay-Rahmen nicht umgangen wird.
 
 Der Sidecar nimmt fachlich an Yjs-Sync, Duplizieren, Export und Import teil. Die getrennte physische Ablage ist eine Legacy-Schutzmaßnahme und keine zweite unabhängige Lernzielquelle. Es entsteht keine dauerhafte zentrale Quizbibliothek.
 
@@ -38,7 +42,7 @@ Beim Live-Start wird eine kontrollierte Kopie der für diese Session bestimmten 
 
 Manuelle Ziele einer reinen Q&A-Session leben ausschließlich im sessionautoritativen Bestand. Sie werden nicht in eine künstliche lokale Quizdatei zurückgeschrieben.
 
-Die konkreten Prisma- und Frontend-Typnamen werden in Slice 4 festgelegt. Unabhängig vom Namen gelten folgende Besitzverhältnisse:
+Slice 4 setzt diese Besitzverhältnisse mit `QuizLearningObjectiveBundleV1` im Browser und den Prisma-Modellen `QuizLearningObjectiveBundle` beziehungsweise `SessionLearningObjective` um:
 
 | Bereich                                   | Autoritative Quelle                                          | Lebensdauer                                                     |
 | ----------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------- |
@@ -72,7 +76,7 @@ Modellabgeleitete Ziele entstehen ausschließlich aus Quizfragen des getrennten,
 
 Der lokale Persistenzvertrag unterstützt zunächst `quiz-wide` und `question-set` mit mindestens einer auflösbaren Aufgabenreferenz. Der Shared-/Live-Vertrag darf einen `section`-Scope nur verwenden, wenn eine ausdrücklich gespeicherte stabile Abschnittsidentität vorliegt, die zusammen mit dem `quizScopeId` als `sectionScopeId` projiziert werden kann. Der aktuelle Repo-Stand besitzt keine solche Abschnittsentität; aus Reihenfolge, `currentQuestion` oder aktiver Phase wird daher kein »aktueller Lernabschnitt« erfunden. Für Q&A-only ist der Scope `session` zulässig.
 
-Hostbearbeitungen verwenden eine erwartete Revision. Eine erneute Ableitung, ein Modellwechsel oder ein verspäteter Client darf eine neuere bestätigte Bearbeitung nicht überschreiben. Änderungen an referenzierten Aufgabentexten, Antwortmöglichkeiten, richtigen Lösungen oder Erläuterungen markieren betroffene modellgestützte Ziele als `needs-review`; sie löschen oder ersetzen bestätigte Texte nicht automatisch.
+Hostbearbeitungen verwenden eine erwartete globale Lernkontextrevision und bei Änderungen oder Löschungen zusätzlich die erwartete Zielrevision. Lokale Bearbeitungen halten die beim Öffnen des Formulars geladene Zielrevision fest. Eine erneute Ableitung, ein Modellwechsel, ein zweiter Tab oder ein verspäteter Client darf dadurch eine neuere bestätigte Bearbeitung nicht überschreiben. Änderungen an referenzierten Aufgabentexten, Antwortmöglichkeiten, richtigen Lösungen oder Erläuterungen markieren betroffene modellgestützte Ziele als `needs-review`; sie löschen oder ersetzen bestätigte Texte nicht automatisch. Das Entfernen einer im Scope referenzierten Aufgabe markiert auch ein manuelles Ziel als prüfbedürftig. Ziele mit unaufgelösten Referenzen dürfen nicht erneut als bestätigt gespeichert werden.
 
 Der interne Quelldigest umfasst die inhaltlich relevante Aufgabensemantik, darunter Fragetyp, Text, Antworten und Korrektheitsmarkierungen sowie typabhängige Musterlösungen, Toleranzen, Zuordnungen, Reihenfolgen oder Kategorien; spätere Erläuterungen werden einbezogen, sobald sie persistiert werden. Timer, Schwierigkeit und Reihenfolge gehören nur bei ausdrücklicher fachlicher Begründung hinein. Der Digest dient ausschließlich der Invalidierung. Er wird weder als Quellen-ID noch als Modellinhalt verwendet.
 
@@ -84,9 +88,11 @@ Die Prisma-Frage erhält für rollende Kompatibilität eine nullable `sourceQues
 
 Ab dieser Projektion liest der Live-Kontext ausschließlich den Sessionbestand. Modellseitige Quellen verwenden sichere Serverreferenzen wie `quiz-question:${Question.id}` und `learning-objective:${SessionLearningObjective.id}`, niemals lokale IDs oder `historyScopeId`. Davon getrennte `quizScopeId`- und `sectionScopeId`-Werte sind opake, präfixvalidierte Bereichsschlüssel: Sie werden nicht im Quellenregister dereferenziert und nicht mit `historyScopeId` gleichgesetzt. Q&A-only-Ziele werden direkt als sessionmanuelle Ziele gespeichert; ein Fake-Quiz entsteht nicht.
 
-Die Session erhält eine eigene monotone Lernkontextrevision. `sessionLifecycleRevision` behält seine bestehende Lifecycle-/Kanalbedeutung. Jede Änderung an Zieltext, Scope, Herkunfts-/Prüfstatus oder Quellenbezug sowie ein kontrolliertes Quiz-Anhängen beziehungsweise -Ersetzen erhöht die Lernkontextrevision transaktional und invalidiert davon abhängige Hashes und Caches.
+Die Session erhält eine eigene monotone `learningContextRevision`; `learningContextConfigured` unterscheidet einen noch nie eingerichteten Bestand von einer ausdrücklich leeren Konfiguration. `sessionLifecycleRevision` behält seine bestehende Lifecycle-/Kanalbedeutung. Jede Änderung an Zieltext, Scope, Herkunfts-/Prüfstatus oder Quellenbezug sowie ein kontrolliertes Quiz-Anhängen beziehungsweise -Ersetzen erhöht die Lernkontextrevision transaktional und invalidiert davon abhängige Hashes und Caches.
 
-Beim vorhandenen `attachQuizToSession` ersetzt ein autorisierter, zeilengesperrter Vorgang nur die quizprojizierten Ziele. Sessionmanuelle beziehungsweise Q&A-only-Ziele bleiben erhalten. Jeder Schreibvorgang benötigt `hostProcedure` oder den dafür vorgesehenen validierten Host-/Capability-Vertrag sowie eine erwartete Revision. Es gibt keinen impliziten Rücksync in die lokale Quizbibliothek.
+Beim vorhandenen `attachQuizToSession` ersetzt ein autorisierter, zeilengesperrter Vorgang nur unveränderte quizprojizierte Ziele. Sessionmanuelle beziehungsweise Q&A-only-Ziele und in der Session bearbeitete `session-override`-Ziele bleiben erhalten. Aufgabenbezüge werden ausschließlich über die stabile Upload-Zuordnung auf die neue Serverkopie umgesetzt; fehlende Quellen bleiben als unaufgelöste Referenzen mit Prüfbedarf sichtbar. Erwartete Lernkontextrevision und `learningContextOperationId` bilden ein gemeinsames CAS-/Idempotenzpaar. Für rollende Kompatibilität darf ein alter Client beide Felder nur beim noch unkonfigurierten Revisionsstand 0 auslassen; die additive Antwort behält `quiz`, `qa` und `quickFeedback` auf der bisherigen obersten Ebene.
+
+`getLearningObjectives` und `saveLearningObjectives` sind hostgeschützte tRPC-Verträge. Der lesbare Snapshot enthält nur Zieltext, Status, Provenienz, Scope, Revisionen und einen begrenzten Katalog zulässiger Server-Quizaufgaben `{ kind, questionId, text, order }`. Lokale IDs, Quelldigests, Antwortoptionen und Korrektheitsfelder sind darin strukturell ausgeschlossen. Aktive Sessions sind beschreibbar; nach dem fachlichen Sessionende bleibt der Bestand höchstens im bestehenden Host-Nachbereitungsfenster lesbar. Ein Legal Hold verlängert diese fachliche Zugriffsdauer nicht.
 
 ### 5. Lösungshaltiger Vorbereitungsauftrag und Live-Kontext sind verschiedene Verträge
 
@@ -122,8 +128,8 @@ Ohne Lernziele, bei veralteten Zielen oder bei nicht verfügbarer Runtime bleibe
 
 Die Umsetzung erfolgt additiv und schema-first:
 
-1. Slice 1 definiert Kontext-, Quellen- und Zustandsverträge sowie diese Entscheidung, aber noch keine Lernzielpersistenz.
-2. Slice 4 ergänzt den versionierten Yjs-/Local-Mirror-Sidecar, den strikt versionierten Export/Import, stabile Referenzen, Live-Upload, sessionautoritative Speicherung, Host-UX und Konfliktbehandlung. Datenbankänderungen sind additiv; `Question.sourceQuestionId` bleibt für Legacykopien nullable, die neue Lernkontextrevision startet bei 0. Alte `quizzes`-Snapshots, v1-Exporte und laufende Sessions ohne Lernziele bleiben gültig.
+1. Slice 1 definiert Kontext-, Quellen- und Zustandsverträge sowie diese Entscheidung.
+2. Slice 4 ergänzt den versionierten Yjs-/Local-Mirror-Sidecar samt Initialisierungsmarker, den strikt versionierten Export/Import, stabile Referenzen, Live-Upload, sessionautoritative Speicherung, Host-UX und Konfliktbehandlung. Datenbankänderungen sind additiv; `Question.sourceQuestionId` bleibt für Legacykopien nullable, die neue Lernkontextrevision startet bei 0. Alte `quizzes`-Snapshots, v1-Exporte und laufende Sessions ohne Lernziele bleiben gültig. Der administrative Session-Quizexport bleibt ausdrücklich V1, solange er keine vollständige V2-Provenienz liefern kann.
 3. Erst Slice 5 darf nach technischer Abnahme der Runtime den lösungshaltigen Ableitungsauftrag verdrahten.
 4. Der Live-Kontext übernimmt Ziele erst über den späteren autorisierten Builder. Ein alter Summary-Adapter erhält weiterhin ausschließlich seinen bisherigen Textauftrag; neue Felder werden ihm nicht still angehängt.
 
@@ -163,6 +169,8 @@ Der bestehende Quiz-Historiennachweis wird nicht still verändert. `sourceQuesti
 
 ## Implementierungsstand
 
-Mit #456 Slice 1 ist die Entscheidung dokumentiert; der versionierte Moderationskontext kann Lernzielherkunft und -status ausdrücken. Yjs-/Local-Mirror-Sidecar, Datenbankmodelle, Export-/Importmigration, Live-Upload, Host-UI, Ableitungsauftrag und Laufzeitintegration sind **nicht** Bestandteil dieses Slices und bleiben für Slices 4, 5, 6 und 7 geplant.
+Mit #456 Slice 4 sind der Yjs-/Local-Mirror-Sidecar, Datenbankmodelle und Migration, Export/Import V2, Live-Upload und Sessionprojektion, Q&A-only-Ziele sowie die lokale und live-sessiongebundene Host-UI umgesetzt. Quelländerungen und -löschungen, optimistische Konkurrenz, ausdrücklich leere Bestände, Quizersetzung, Reload und das Nachbereitungsfenster besitzen eigene Zustände und Tests.
+
+Nicht umgesetzt bleiben der lösungshaltige Runtime-Ableitungsauftrag aus Slice 5, die Übernahme der Ziele in den vollständigen gepackten Moderationskontext aus Slice 6 sowie Adapter-/Vorschauintegration und Betriebsabnahme aus Slices 7 und 8. Die in Slice 4 gespeicherte modellabgeleitete Provenienz ist Lebenszyklusvorbereitung und kein Nachweis einer vorhandenen oder fachlich abgenommenen Modellableitung.
 
 Die Integrationsgrenzen und der vollständige Slice-Status stehen in [moderation-prompt-context.md](../../features/moderation-prompt-context.md).

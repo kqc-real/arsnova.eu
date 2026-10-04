@@ -2,12 +2,13 @@
  * Session-Router (Story 2.1a, 3.1, 4.1, 4.2, 4.6, 4.7, 0.5).
  */
 import { EventEmitter } from 'node:events';
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import {
   AttachQuizToSessionInputSchema,
+  AttachQuizToSessionOutputSchema,
   ConfirmReadingReadyInputSchema,
   ConfirmReadingReadyOutputSchema,
   CreateSessionInputSchema,
@@ -178,6 +179,11 @@ import {
   type CategorizationCategoryInput,
   type CategorizationItemInput,
   isQaChannelJoinable,
+  GetSessionLearningObjectivesInputSchema,
+  GetSessionLearningObjectivesOutputSchema,
+  SaveSessionLearningObjectivesInputSchema,
+  SaveSessionLearningObjectivesOutputSchema,
+  LEARNING_OBJECTIVE_REVISION_MAX,
 } from '@arsnova/shared-types';
 import {
   isExactCorrectSelection,
@@ -330,6 +336,13 @@ import {
 import { emitQaQuestionsSignal } from '../lib/qaQuestionsSignal';
 import { clearAllQaPresenterSortModes, clearQaPresenterSortMode } from '../lib/qaPresenterSortMode';
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
+import {
+  getSessionLearningObjectives,
+  getSessionLearningObjectivesSnapshotWithDb,
+  initializeSessionLearningObjectivesFromQuiz,
+  replaceSessionQuizLearningObjectives,
+  saveSessionLearningObjectives,
+} from '../lib/sessionLearningObjectives';
 
 const QUESTION_TEXT_SHORT_MAX = 100;
 const SESSION_INFO_CACHE_TTL_MS = 1_000;
@@ -5485,7 +5498,7 @@ const sessionCoreRouter = router({
             });
           }
         }
-        return tx.session.create({
+        const createdSession = await tx.session.create({
           data: {
             code,
             type: input.type ?? 'QUIZ',
@@ -5513,6 +5526,20 @@ const sessionCoreRouter = router({
             ...hostCredentialMaterial.credentialData,
           },
         });
+        if (quiz) {
+          const configured = await initializeSessionLearningObjectivesFromQuiz(
+            tx,
+            createdSession.id,
+            quiz.id,
+          );
+          if (configured) {
+            await tx.session.update({
+              where: { id: createdSession.id },
+              data: { learningContextConfigured: true },
+            });
+          }
+        }
+        return createdSession;
       });
       if (onboardingProfile.teamMode) {
         await ensureSessionTeams(
@@ -6463,9 +6490,19 @@ const sessionCoreRouter = router({
       return buildSessionChannels(session);
     }),
 
+  getLearningObjectives: hostProcedure
+    .input(GetSessionLearningObjectivesInputSchema)
+    .output(GetSessionLearningObjectivesOutputSchema)
+    .query(({ input }) => getSessionLearningObjectives(input.code)),
+
+  saveLearningObjectives: hostProcedure
+    .input(SaveSessionLearningObjectivesInputSchema)
+    .output(SaveSessionLearningObjectivesOutputSchema)
+    .mutation(({ input }) => saveSessionLearningObjectives(input)),
+
   attachQuizToSession: hostProcedure
     .input(AttachQuizToSessionInputSchema)
-    .output(UpdateSessionChannelsOutputSchema)
+    .output(AttachQuizToSessionOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       const identity = await prisma.session.findUnique({
@@ -6505,10 +6542,68 @@ const sessionCoreRouter = router({
             endedAt: true,
             expiresAt: true,
             qaClosesAt: true,
+            learningContextRevision: true,
+            learningContextConfigured: true,
           },
         });
         if (!session) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+        }
+        const currentLearningContextRevision = session.learningContextRevision ?? 0;
+        const currentLearningContextConfigured = session.learningContextConfigured ?? false;
+        const legacyLearningContextAttach =
+          input.expectedLearningContextRevision === undefined &&
+          input.learningContextOperationId === undefined;
+        if (
+          legacyLearningContextAttach &&
+          (currentLearningContextConfigured || currentLearningContextRevision !== 0)
+        ) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message:
+              'Der Lernkontext ist bereits eingerichtet. Bitte den Client aktualisieren und erneut versuchen.',
+          });
+        }
+        const expectedLearningContextRevision = input.expectedLearningContextRevision ?? 0;
+        const learningContextOperationId = input.learningContextOperationId ?? randomUUID();
+        const adoptQuizTeams = input.adoptQuizTeams === true;
+        const priorOperation = await tx.sessionQuizAttachReplay.findUnique({
+          where: { operationId: learningContextOperationId },
+        });
+        if (priorOperation) {
+          const exactReplay =
+            priorOperation.sessionId === session.id &&
+            priorOperation.quizId === input.quizId &&
+            priorOperation.adoptQuizTeams === adoptQuizTeams &&
+            priorOperation.expectedLearningContextRevision === expectedLearningContextRevision &&
+            priorOperation.resultLearningContextRevision === currentLearningContextRevision &&
+            session.quizId === input.quizId;
+          if (!exactReplay) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Diese Lernkontext-Operation wurde bereits anders verwendet.',
+            });
+          }
+          return {
+            changed: false,
+            output: {
+              learningContextOperationId,
+              ...buildSessionChannels(session),
+              learningObjectives: await getSessionLearningObjectivesSnapshotWithDb(tx, session.id),
+            },
+          };
+        }
+        if (currentLearningContextRevision !== expectedLearningContextRevision) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Der Lernzielstand wurde zwischenzeitlich geändert.',
+          });
+        }
+        if (currentLearningContextRevision >= LEARNING_OBJECTIVE_REVISION_MAX) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Der Lernzielstand hat seine maximale Revisionsnummer erreicht.',
+          });
         }
         const participantCount = await tx.participant.count({
           where: { sessionId: session.id },
@@ -6575,7 +6670,6 @@ const sessionCoreRouter = router({
           quizOnboardingProfile,
           participantCount,
         );
-        const adoptQuizTeams = input.adoptQuizTeams === true;
         if (
           !areSessionOnboardingProfilesCompatible(
             sessionOnboardingProfile,
@@ -6631,6 +6725,7 @@ const sessionCoreRouter = router({
             currentQuestion: null,
             currentRound: 1,
             answerDisplayOrder: Prisma.JsonNull,
+            learningContextRevision: currentLearningContextRevision + 1,
             ...((session.status === 'FINISHED' || session.endedAt instanceof Date) &&
             finishedFollowUp
               ? finishedSessionReopenData()
@@ -6649,8 +6744,27 @@ const sessionCoreRouter = router({
             moderationMode: true,
             quickFeedbackEnabled: true,
             quickFeedbackOpen: true,
+            status: true,
+            endedAt: true,
+            expiresAt: true,
+            qaClosesAt: true,
           },
         });
+
+        const learningProjection = await replaceSessionQuizLearningObjectives({
+          tx,
+          sessionId: session.id,
+          previousQuizId: session.quizId,
+          quizId: quiz.id,
+          currentRevision: currentLearningContextRevision,
+          currentConfigured: currentLearningContextConfigured,
+        });
+        if (learningProjection.configured !== currentLearningContextConfigured) {
+          await tx.session.update({
+            where: { id: session.id },
+            data: { learningContextConfigured: learningProjection.configured },
+          });
+        }
 
         if (quizOnboardingProfile.teamMode) {
           if (adoptQuizTeams) {
@@ -6672,11 +6786,38 @@ const sessionCoreRouter = router({
           await clearSessionTeamRows(session.id, tx);
         }
 
-        return attached;
+        await tx.sessionQuizAttachReplay.upsert({
+          where: { sessionId: session.id },
+          create: {
+            sessionId: session.id,
+            operationId: learningContextOperationId,
+            quizId: quiz.id,
+            adoptQuizTeams,
+            expectedLearningContextRevision,
+            resultLearningContextRevision: learningProjection.revision,
+          },
+          update: {
+            operationId: learningContextOperationId,
+            quizId: quiz.id,
+            adoptQuizTeams,
+            expectedLearningContextRevision,
+            resultLearningContextRevision: learningProjection.revision,
+            createdAt: new Date(),
+          },
+        });
+        const learningObjectives = await getSessionLearningObjectivesSnapshotWithDb(tx, session.id);
+        return {
+          changed: true,
+          output: {
+            learningContextOperationId,
+            ...buildSessionChannels(attached),
+            learningObjectives,
+          },
+        };
       });
 
-      invalidateSessionStatusCachesForCode(code);
-      return buildSessionChannels(updated);
+      if (updated.changed) invalidateSessionStatusCachesForCode(code);
+      return updated.output;
     }),
 
   closeQaChannel: hostProcedure

@@ -16,6 +16,7 @@ export * from './qa-summary-rank';
 export * from './qa-summary-visibility';
 export * from './product-feedback';
 export * from './host-pairing';
+export * from './learning-objectives';
 export * from './moderation-compass-rules';
 export * from './moderation-prompt-context';
 export * from './moderation-prompt-context-fixtures';

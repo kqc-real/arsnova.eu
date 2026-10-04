@@ -62,7 +62,8 @@ vollständig migrierte PostgreSQL-Datenbank aus:
 RUN_PG_SESSION_LIFECYCLE_TESTS=1 \
   npm run test -w @arsnova/backend -- \
   --run src/__tests__/session.absolute-lifecycle.pg.test.ts \
-        src/__tests__/session.retention.pg.test.ts
+        src/__tests__/session.retention.pg.test.ts \
+        src/__tests__/session.learning-objectives.pg.test.ts
 ```
 
 Der Test benötigt echtes PostgreSQL; ein Prisma-Mock ist kein Ersatz. Er prüft
@@ -77,6 +78,11 @@ Audit-Minimierung, Invite-Job-Löschung sowie die getrennten 90-/365-Tage-TTLs.
 Der Orphan-Scope-PostgreSQL-Test prüft zusätzlich die gemeinsame
 Sessionzeilensperre für Parent-Quiz-Löschung und späte FK-lose Audit-/Invite-
 Writer.
+Der Lernzieltest prüft die Quelllöschung für Quiz- und Q&A-Referenzen,
+monotone Ziel-/Kontextrevisionen, den Abbruch am Revisionsmaximum sowie
+vollständige Session-/Quiz-Cascades. Damit wird insbesondere die Reihenfolge
+der PostgreSQL-Trigger und Fremdschlüssel gegen eine echte Migration statt nur
+gegen Prisma-Mocks validiert.
 
 ### Capabilities und Q&A-Skalierungsinvarianten (PostgreSQL + Redis)
 

@@ -1,5 +1,5 @@
 import {
-  QUIZ_EXPORT_VERSION,
+  QUIZ_EXPORT_LEGACY_VERSION,
   SHORT_TEXT_DEFAULT_MAX_LENGTH,
   SHORT_TEXT_MAX_LENGTH_LIMIT,
   normalizeShortTextValue,
@@ -207,7 +207,7 @@ function convertArsnovaClickExport(source: JsonRecord): NormalizedQuizImportPayl
 
   return {
     payload: {
-      exportVersion: QUIZ_EXPORT_VERSION,
+      exportVersion: QUIZ_EXPORT_LEGACY_VERSION,
       exportedAt: new Date().toISOString(),
       quiz: sourceQuiz,
     } satisfies QuizExport,

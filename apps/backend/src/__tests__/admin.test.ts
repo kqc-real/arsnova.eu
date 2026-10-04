@@ -771,9 +771,14 @@ describe('admin router (Epic 9)', () => {
       expect(result.mimeType).toBe('application/json');
       expect(result.fileName.endsWith('.json')).toBe(true);
       const payloadRaw = Buffer.from(result.contentBase64, 'base64').toString('utf8');
-      const payload = JSON.parse(payloadRaw) as { exportVersion: number; quiz: { name: string } };
+      const payload = JSON.parse(payloadRaw) as {
+        exportVersion: number;
+        quiz: { name: string; preset?: unknown; learningObjectives?: unknown };
+      };
       expect(payload.exportVersion).toBe(1);
       expect(payload.quiz.name).toBe('Importierbares Quiz');
+      expect(payload.quiz).not.toHaveProperty('preset');
+      expect(payload.quiz).not.toHaveProperty('learningObjectives');
       expect(prismaMock.adminAuditLog.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({

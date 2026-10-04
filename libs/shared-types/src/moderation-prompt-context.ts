@@ -17,7 +17,7 @@ import {
 import {
   MODERATION_COMPASS_CARD_KINDS,
   MODERATION_COMPASS_RULES_VERSION,
-} from './moderation-compass-rules.js';
+} from './moderation-compass-rules';
 
 /**
  * Versioned contract for the domain projection and the payload packed for the
@@ -1067,6 +1067,22 @@ export const ModerationLearningObjectiveOriginSchema = z
     }
   });
 
+export const ModerationLearningObjectivePreviousConfirmationSchema = z.discriminatedUnion('state', [
+  z
+    .object({
+      state: z.literal('draft'),
+      revision: z.string().trim().min(1).max(120),
+    })
+    .strict(),
+  z
+    .object({
+      state: z.literal('confirmed'),
+      revision: z.string().trim().min(1).max(120),
+      confirmedAt: z.string().datetime(),
+    })
+    .strict(),
+]);
+
 export const ModerationLearningObjectiveConfirmationSchema = z.discriminatedUnion('state', [
   z.object({ state: z.literal('draft') }).strict(),
   z
@@ -1079,13 +1095,13 @@ export const ModerationLearningObjectiveConfirmationSchema = z.discriminatedUnio
   z
     .object({
       state: z.literal('needs-review'),
-      confirmedRevision: z.string().trim().min(1).max(120),
+      previousConfirmation: ModerationLearningObjectivePreviousConfirmationSchema,
       currentRevision: z.string().trim().min(1).max(120),
       reason: z.string().trim().min(1).max(200),
     })
     .strict()
     .superRefine((value, ctx) => {
-      if (value.confirmedRevision === value.currentRevision) {
+      if (value.previousConfirmation.revision === value.currentRevision) {
         ctx.addIssue({
           code: 'custom',
           path: ['currentRevision'],

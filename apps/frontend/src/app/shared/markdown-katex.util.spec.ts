@@ -9,6 +9,20 @@ import {
 } from './markdown-katex.util';
 
 describe('renderMarkdownWithKatex', () => {
+  it('rendert nicht-interaktive Auswahllabels ohne verschachtelte Links, Bilder oder Code-Aktionen', () => {
+    const result = renderMarkdownWithKatex(
+      '### **Titel** mit [Quelle](https://example.org)\n\n![Skizze](https://example.org/a.png)\n\n```js\nconst x = 1;\n```',
+      { interactive: false, headingStartLevel: 4 },
+    );
+
+    expect(result.html).toContain('<h4><strong>Titel</strong> mit Quelle</h4>');
+    expect(result.html).toContain('Skizze');
+    expect(result.html).toContain('const');
+    expect(result.html).not.toContain('<a ');
+    expect(result.html).not.toContain('<img ');
+    expect(result.html).not.toContain('data-markdown-code-copy');
+  });
+
   it('rendert Markdown und KaTeX-Inline-Ausdrücke', () => {
     const result = renderMarkdownWithKatex('**Test** mit $a^2 + b^2 = c^2$');
 

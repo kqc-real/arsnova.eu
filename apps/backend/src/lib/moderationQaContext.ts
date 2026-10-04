@@ -64,6 +64,8 @@ type ModerationSessionRow = {
   sessionLifecycleRevision: number;
   qaRankingRevision: number;
   participantRevision: number;
+  learningContextRevision: number;
+  learningContextConfigured: boolean;
 };
 
 export type AuthorizedModerationState = ModerationSessionRow & {
@@ -156,6 +158,8 @@ function sessionSelect() {
     sessionLifecycleRevision: true,
     qaRankingRevision: true,
     participantRevision: true,
+    learningContextRevision: true,
+    learningContextConfigured: true,
   } as const;
 }
 
@@ -957,6 +961,8 @@ export function assertModerationStateStillCurrent(
     initial.sessionLifecycleRevision === current.sessionLifecycleRevision &&
     initial.qaRankingRevision === current.qaRankingRevision &&
     initial.participantRevision === current.participantRevision &&
+    initial.learningContextRevision === current.learningContextRevision &&
+    initial.learningContextConfigured === current.learningContextConfigured &&
     initial.activeSortMode === current.activeSortMode;
   if (!unchanged) {
     throw new TRPCError({

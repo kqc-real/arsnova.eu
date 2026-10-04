@@ -171,6 +171,7 @@ describe('QuizPreviewComponent', () => {
   const mockStore = {
     getQuizById: vi.fn((id: string) => (id === QUIZ_ID ? quiz : null)),
     getUploadPayload: vi.fn(() => toUploadPayload(quiz)),
+    takeUploadLearningObjectiveWarning: vi.fn(() => null),
     setLastServerUploadAccess: vi.fn(),
     updateQuestion: vi.fn(),
     updateQuizSettings: vi.fn(),

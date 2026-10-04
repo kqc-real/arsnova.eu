@@ -76,6 +76,7 @@ import {
   waitForQaQuestionsSignal,
 } from '../lib/qaQuestionsSignal';
 import { zAsyncIterable } from '../lib/zAsyncIterable';
+import { markSessionLearningObjectiveQaSourceRemoved } from '../lib/sessionLearningObjectives';
 
 type QaQuestionVoteRecord = {
   participantId?: string;
@@ -1592,6 +1593,11 @@ export const qaRouter = router({
           }
 
           if (input.action === 'DELETE') {
+            await markSessionLearningObjectiveQaSourceRemoved({
+              tx,
+              sessionId: session.id,
+              questionId: question.id,
+            });
             await tx.qaQuestion.delete({ where: { id: question.id } });
             return QaQuestionDTOSchema.parse({
               id: question.id,
@@ -1911,7 +1917,7 @@ export const qaRouter = router({
       }
       try {
         await prisma.$transaction(async (tx) => {
-          await tx.$executeRaw`SELECT arsnova_lock_active_session(${question.sessionId})`;
+          await tx.$executeRaw`SELECT arsnova_lock_qa_contribution_open(${question.sessionId})`;
           const updated = await tx.qaQuestion.updateMany({
             where: {
               id: input.questionId,
@@ -1923,6 +1929,11 @@ export const qaRouter = router({
           if (updated.count !== 1) {
             throw new TRPCError({ code: 'NOT_FOUND', message: 'Frage nicht gefunden.' });
           }
+          await markSessionLearningObjectiveQaSourceRemoved({
+            tx,
+            sessionId: question.sessionId,
+            questionId: input.questionId,
+          });
         });
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {

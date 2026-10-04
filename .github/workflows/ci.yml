@@ -375,6 +375,7 @@ jobs:
           npx vitest run
           src/__tests__/session.absolute-lifecycle.pg.test.ts
           src/__tests__/session.retention.pg.test.ts
+          src/__tests__/session.learning-objectives.pg.test.ts
 
       - name: Capability and Q&A scale PostgreSQL and Redis regressions
         if: needs.changes.outputs.docs_only != 'true'

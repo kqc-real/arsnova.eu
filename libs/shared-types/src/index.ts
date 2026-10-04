@@ -18,6 +18,7 @@ export * from './qa-summary-scan.js';
 export * from './qa-summary-visibility.js';
 export * from './product-feedback.js';
 export * from './host-pairing.js';
+export * from './learning-objectives.js';
 export * from './moderation-compass-rules.js';
 export * from './moderation-prompt-context.js';
 export * from './moderation-prompt-context-fixtures.js';

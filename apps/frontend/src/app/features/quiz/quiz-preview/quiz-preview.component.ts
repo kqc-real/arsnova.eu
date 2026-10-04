@@ -1455,7 +1455,16 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   private buildLiveStartPayload(_mode: LiveStartMode): QuizUploadInput {
-    return this.quizStore.getUploadPayload(this.id);
+    const payload = this.quizStore.getUploadPayload(this.id);
+    const learningObjectiveWarning = this.quizStore.takeUploadLearningObjectiveWarning();
+    if (learningObjectiveWarning) {
+      this.snackBar.open(learningObjectiveWarning, '', {
+        duration: 8000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+      });
+    }
+    return payload;
   }
 
   private async startLiveSession(mode: LiveStartMode): Promise<void> {

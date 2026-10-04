@@ -1,0 +1,353 @@
+<mat-card
+  class="learning-objectives"
+  appearance="outlined"
+  aria-labelledby="learning-objectives-title"
+>
+  <mat-card-header>
+    <mat-icon mat-card-avatar aria-hidden="true">school</mat-icon>
+    <mat-card-title id="learning-objectives-title" i18n="@@learningObjectives.title">
+      Lernziele
+    </mat-card-title>
+    <mat-card-subtitle i18n="@@learningObjectives.subtitle">
+      Formuliere Ziele für das gesamte Quiz oder für ausgewählte Aufgaben.
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p class="learning-objectives__origin-intro" i18n="@@learningObjectives.originIntro">
+      Manuelle Lernziele formulierst du selbst. Automatisch aus Aufgaben formulierte Lernziele
+      erscheinen als modellunterstützte Vorschläge. Sie bleiben entsprechend gekennzeichnet und
+      müssen von dir fachlich geprüft werden.
+    </p>
+    <p class="learning-objectives__intro" i18n="@@learningObjectives.intro">
+      Lernziele werden beim Live-Schalten übernommen. Deaktivierte oder fehlende Aufgaben werden
+      niemals automatisch ersetzt.
+    </p>
+
+    <div class="learning-objectives__announcer" aria-live="polite" aria-atomic="true">
+      {{ statusMessage() }}
+    </div>
+
+    @if (syncError()) {
+      <p class="learning-objectives__sync-error" role="alert">{{ syncError() }}</p>
+    }
+
+    @for (conflict of syncConflicts(); track conflict.objectiveId) {
+      <section
+        class="learning-objectives__sync-conflict"
+        role="alert"
+        [attr.aria-labelledby]="'learning-objective-conflict-title-' + conflict.objectiveId"
+      >
+        <h3
+          [id]="'learning-objective-conflict-title-' + conflict.objectiveId"
+          i18n="@@learningObjectives.syncConflictTitle"
+        >
+          Gleichzeitige Änderungen prüfen
+        </h3>
+        <p i18n="@@learningObjectives.syncConflictExplanation">
+          Zwei Geräte haben dasselbe Lernziel gleichzeitig geändert. Beide Fassungen bleiben
+          erhalten. Wähle bewusst die Fassung, mit der du weiterarbeiten möchtest.
+        </p>
+        <ul>
+          @for (alternative of conflict.alternatives; track alternative.operationId) {
+            <li>
+              @if (alternative.objective; as objective) {
+                <span class="learning-objectives__conflict-text">{{ objective.text }}</span>
+                <span class="learning-objectives__conflict-meta">
+                  {{ statusLabel(objective) }} · {{ scopeLabel(objective) }} ·
+                  {{ originLabel(objective) }}
+                </span>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [attr.aria-label]="conflictChoiceAriaLabel(objective)"
+                  (click)="resolveSyncConflict(conflict.objectiveId, alternative.operationId)"
+                  i18n="@@learningObjectives.useConflictVersion"
+                >
+                  Diese Fassung übernehmen
+                </button>
+              } @else {
+                <span i18n="@@learningObjectives.deletedConflictVersion">Gelöschte Fassung</span>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="resolveSyncConflict(conflict.objectiveId, alternative.operationId)"
+                  i18n="@@learningObjectives.useDeletedConflictVersion"
+                >
+                  Löschung übernehmen
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    @if (objectives().length === 0 && !formOpen()) {
+      <p class="learning-objectives__empty" i18n="@@learningObjectives.empty">
+        Noch keine Lernziele angelegt.
+      </p>
+    }
+
+    <div class="learning-objectives__list">
+      @for (objective of objectives(); track objective.id) {
+        <article
+          class="learning-objectives__item"
+          [attr.aria-labelledby]="'objective-' + objective.id"
+        >
+          <div class="learning-objectives__item-main">
+            <p class="learning-objectives__text" [id]="'objective-' + objective.id">
+              {{ objective.text }}
+            </p>
+            <div class="learning-objectives__meta">
+              <span
+                class="learning-objectives__status"
+                [class.learning-objectives__status--review]="
+                  objective.confirmation.state === 'needs-review'
+                "
+              >
+                {{ statusLabel(objective) }}
+              </span>
+              <span>{{ scopeLabel(objective) }}</span>
+              @if (objective.origin.kind === 'model-derived') {
+                <span i18n="@@learningObjectives.modelDerived">Modellunterstützt</span>
+              }
+            </div>
+            @if (reviewReason(objective); as reason) {
+              <p class="learning-objectives__review" role="status">
+                <mat-icon aria-hidden="true">warning</mat-icon>
+                <span>{{ reason }}</span>
+              </p>
+            }
+          </div>
+
+          @if (pendingDeleteId() === objective.id) {
+            <div
+              class="learning-objectives__delete-confirm"
+              role="group"
+              i18n-aria-label="@@learningObjectives.deleteConfirmGroup"
+              aria-label="Löschen bestätigen"
+            >
+              <span i18n="@@learningObjectives.deleteQuestion"
+                >Dieses Lernziel wirklich löschen?</span
+              >
+              <button
+                mat-flat-button
+                type="button"
+                [id]="'learning-objective-confirm-delete-' + objective.id"
+                (click)="confirmDelete(objective)"
+                i18n="@@learningObjectives.deleteConfirm"
+              >
+                Löschen
+              </button>
+              <button
+                mat-button
+                type="button"
+                (click)="cancelDelete(objective.id)"
+                i18n="@@common.cancel"
+              >
+                Abbrechen
+              </button>
+            </div>
+          } @else {
+            <div class="learning-objectives__actions">
+              <button
+                mat-button
+                type="button"
+                [id]="'learning-objective-edit-' + objective.id"
+                [disabled]="hasSyncConflict(objective.id)"
+                (click)="beginEdit(objective)"
+              >
+                <mat-icon aria-hidden="true">edit</mat-icon>
+                <span i18n="@@learningObjectives.edit">Bearbeiten</span>
+              </button>
+              <button
+                mat-button
+                type="button"
+                [id]="'learning-objective-delete-' + objective.id"
+                [disabled]="hasSyncConflict(objective.id)"
+                (click)="requestDelete(objective)"
+              >
+                <mat-icon aria-hidden="true">delete</mat-icon>
+                <span i18n="@@learningObjectives.delete">Löschen</span>
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+
+    @if (formOpen()) {
+      <form class="learning-objectives__form" (submit)="$event.preventDefault(); save()" novalidate>
+        @if (editingId()) {
+          <h3 i18n="@@learningObjectives.editTitle">Lernziel bearbeiten</h3>
+        } @else {
+          <h3 i18n="@@learningObjectives.addTitle">Lernziel hinzufügen</h3>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label i18n="@@learningObjectives.textLabel">Lernziel</mat-label>
+          <textarea
+            #objectiveText
+            matInput
+            rows="3"
+            required
+            [maxLength]="maxTextLength"
+            [value]="text()"
+            [attr.aria-invalid]="errorMessage() ? 'true' : null"
+            aria-describedby="learning-objective-text-hint learning-objective-error"
+            (input)="setText($any($event.target).value)"
+          ></textarea>
+          <mat-hint id="learning-objective-text-hint" align="end"
+            >{{ text().length }}/{{ maxTextLength }}</mat-hint
+          >
+        </mat-form-field>
+
+        <fieldset id="learning-objective-scope" class="learning-objectives__fieldset">
+          <legend i18n="@@learningObjectives.scopeLegend">Bereich</legend>
+          <mat-radio-group
+            [value]="scopeKind()"
+            (change)="setScopeKind($event.value)"
+            i18n-aria-label="@@learningObjectives.scopeAriaLabel"
+            aria-label="Bereich des Lernziels"
+          >
+            <mat-radio-button
+              id="learning-objective-scope-all"
+              value="quiz-wide"
+              i18n="@@learningObjectives.scopeAll"
+            >
+              Gesamtes Quiz
+            </mat-radio-button>
+            <mat-radio-button value="question-set" i18n="@@learningObjectives.scopeSelected">
+              Ausgewählte Aufgaben
+            </mat-radio-button>
+          </mat-radio-group>
+
+          @if (scopeKind() === 'question-set') {
+            <div
+              class="learning-objectives__questions"
+              role="group"
+              i18n-aria-label="@@learningObjectives.questionSelection"
+              aria-label="Aufgaben auswählen"
+            >
+              @for (question of questions(); track question.id; let index = $index) {
+                <mat-checkbox
+                  [checked]="isQuestionSelected(question.id)"
+                  [disabled]="isQuestionSelectionDisabled(question.id)"
+                  (change)="toggleQuestion(question.id, $event.checked)"
+                >
+                  <span class="learning-objectives__question-option">
+                    <span class="learning-objectives__question-number">
+                      <span i18n="@@learningObjectives.questionNumber"
+                        >Aufgabe {{ index + 1 }}:</span
+                      >
+                      @if (!question.enabled) {
+                        <span i18n="@@learningObjectives.questionDisabled">(deaktiviert)</span>
+                      }
+                    </span>
+                    <span
+                      class="learning-objectives__question-text markdown-body"
+                      [innerHTML]="renderQuestionMarkdown(question.text)"
+                    ></span>
+                  </span>
+                </mat-checkbox>
+              }
+            </div>
+
+            @if (selectedQuestionIds().size >= maxReferences) {
+              <p class="learning-objectives__intro" role="status">
+                {{ referenceLimitMessage }}
+              </p>
+            }
+
+            @if (missingReferences().length > 0) {
+              <div class="learning-objectives__missing" role="alert">
+                <p i18n="@@learningObjectives.missingReferences">
+                  Mindestens eine referenzierte Aufgabe fehlt. Entferne den Verweis oder wähle einen
+                  anderen Bereich.
+                </p>
+                @for (missingId of missingReferences(); track missingId) {
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    [id]="'learning-objective-remove-missing-' + missingId"
+                    (click)="removeMissingReference(missingId)"
+                  >
+                    <mat-icon aria-hidden="true">link_off</mat-icon>
+                    <span i18n="@@learningObjectives.removeMissingReference"
+                      >Fehlenden Verweis entfernen</span
+                    >
+                  </button>
+                }
+              </div>
+            }
+          }
+        </fieldset>
+
+        <fieldset class="learning-objectives__fieldset">
+          <legend i18n="@@learningObjectives.confirmationLegend">Status</legend>
+          <mat-radio-group
+            [value]="confirmationState()"
+            (change)="setConfirmationState($event.value)"
+            i18n-aria-label="@@learningObjectives.confirmationAriaLabel"
+            aria-label="Status des Lernziels"
+          >
+            <mat-radio-button id="learning-objective-status-draft" value="draft">
+              <span class="learning-objectives__status-option">
+                <span
+                  class="learning-objectives__status-option-title"
+                  i18n="@@learningObjectives.draft"
+                  >Entwurf</span
+                >
+                <span
+                  class="learning-objectives__status-option-hint"
+                  i18n="@@learningObjectives.draftHint"
+                >
+                  Noch nicht fachlich geprüft. Nutze diesen Status, solange du Inhalt oder Bereich
+                  abstimmst.
+                </span>
+              </span>
+            </mat-radio-button>
+            <mat-radio-button value="confirmed">
+              <span class="learning-objectives__status-option">
+                <span
+                  class="learning-objectives__status-option-title"
+                  i18n="@@learningObjectives.confirmed"
+                  >Bestätigt</span
+                >
+                <span
+                  class="learning-objectives__status-option-hint"
+                  i18n="@@learningObjectives.confirmedHint"
+                >
+                  Von dir fachlich geprüft. Relevante Quellenänderungen lösen erneut Prüfbedarf aus.
+                </span>
+              </span>
+            </mat-radio-button>
+          </mat-radio-group>
+        </fieldset>
+
+        <p id="learning-objective-error" class="learning-objectives__error" aria-live="assertive">
+          {{ errorMessage() }}
+        </p>
+
+        <div class="learning-objectives__form-actions">
+          <button mat-button type="button" (click)="cancelEdit()" i18n="@@common.cancel">
+            Abbrechen
+          </button>
+          <button mat-flat-button type="submit" i18n="@@common.save">Speichern</button>
+        </div>
+      </form>
+    } @else {
+      <button
+        mat-stroked-button
+        type="button"
+        id="learning-objective-add"
+        [disabled]="objectives().length >= maxObjectives"
+        (click)="beginAdd()"
+      >
+        <mat-icon aria-hidden="true">add</mat-icon>
+        <span i18n="@@learningObjectives.add">Lernziel hinzufügen</span>
+      </button>
+    }
+  </mat-card-content>
+</mat-card>

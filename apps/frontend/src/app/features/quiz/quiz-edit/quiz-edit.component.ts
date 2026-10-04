@@ -117,6 +117,7 @@ import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji
 import { answerOptionColor, answerOptionShape } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
 import { InfoLandingLinkComponent } from '../../../shared/info-landing-link/info-landing-link.component';
+import { QuizLearningObjectivesComponent } from '../quiz-learning-objectives/quiz-learning-objectives.component';
 import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
 import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
@@ -372,6 +373,7 @@ type QuizMetadataComparable = {
     MarkdownKatexEditorComponent,
     AnswerOptionBadgeComponent,
     InfoLandingLinkComponent,
+    QuizLearningObjectivesComponent,
   ],
   templateUrl: './quiz-edit.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-edit.component.scss'],

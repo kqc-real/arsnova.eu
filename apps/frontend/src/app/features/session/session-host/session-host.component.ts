@@ -2791,6 +2791,31 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   };
 
+  readonly openLearningObjectivesDialog = async (): Promise<void> => {
+    const { SessionLearningObjectivesDialogComponent } =
+      await import('./session-learning-objectives-dialog.component');
+    this.dialog.open(SessionLearningObjectivesDialogComponent, {
+      data: {
+        code: this.code.toUpperCase(),
+        hasQuiz: () => this.channels().quiz,
+        taskOptions: () =>
+          this.qaQuestions()
+            .filter((question) => question.status !== 'DELETED')
+            .map((question) => ({
+              reference: { kind: 'qa-question' as const, questionId: question.id },
+              label: question.text,
+            })),
+      },
+      autoFocus: 'dialog',
+      restoreFocus: true,
+      width: 'min(48rem, calc(100vw - 1.5rem))',
+      maxWidth: 'calc(100vw - 1rem)',
+      maxHeight: 'calc(100dvh - 1rem)',
+      enterAnimationDuration: 180,
+      exitAnimationDuration: 140,
+    });
+  };
+
   private moderationCompassQaTerms(): ModerationCompassTerm[] {
     const sortMode = this.qaSortMode();
     const lemmaEntries =
@@ -11044,6 +11069,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.channelActivationPending.set('quiz');
       try {
         const payload = this.quizStore.getUploadPayload(choice.quizId);
+        const learningObjectiveWarning = this.quizStore.takeUploadLearningObjectiveWarning();
+        if (learningObjectiveWarning) {
+          this.snackBar.open(learningObjectiveWarning, '', { duration: 8000 });
+        }
         const { quizId: uploadedQuizId } = await trpc.quiz.upload.mutate(payload);
         this.quizStore.setLastServerUploadAccess(
           choice.quizId,
@@ -11067,17 +11096,32 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async attachUploadedQuizToSession(
     uploadedQuizId: string,
     adoptQuizTeams = false,
+    learningContext?: {
+      expectedLearningContextRevision: number;
+      learningContextOperationId: string;
+    },
   ): Promise<void> {
     let attached = false;
+    let attemptedLearningContext = learningContext;
     try {
-      const channels = await trpc.session.attachQuizToSession.mutate({
+      if (!attemptedLearningContext) {
+        const snapshot = await trpc.session.getLearningObjectives.query({
+          code: this.code.toUpperCase(),
+        });
+        attemptedLearningContext = {
+          expectedLearningContextRevision: snapshot.learningContextRevision,
+          learningContextOperationId: generateClientUuid(),
+        };
+      }
+      const attachResult = await trpc.session.attachQuizToSession.mutate({
         code: this.code.toUpperCase(),
         quizId: uploadedQuizId,
+        ...attemptedLearningContext,
         ...(adoptQuizTeams ? { adoptQuizTeams: true } : {}),
       });
       attached = true;
       // Kanal sofort lokal aktivieren, bevor Folge-Refreshes (getInfo/Teams/…) durchlaufen.
-      this.patchSessionChannels(channels);
+      this.patchSessionChannels(attachResult);
       this.activeChannel.set('quiz');
       this.ensureActiveChannel();
       await this.finalizeQuizChannelActivation();
@@ -11085,7 +11129,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch (error) {
       const retry = attached
         ? () => this.finalizeQuizChannelActivation()
-        : () => this.attachUploadedQuizToSession(uploadedQuizId, adoptQuizTeams);
+        : () =>
+            this.attachUploadedQuizToSession(
+              uploadedQuizId,
+              adoptQuizTeams,
+              isLearningContextConflictError(error) ? undefined : attemptedLearningContext,
+            );
       this.openHostSteeringCalloutForSteeringFailure(
         () => void this.runChannelNavigationAction('quiz', retry),
         error,
@@ -14642,4 +14691,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
 function escapeCsv(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
+}
+
+function generateClientUuid(): string {
+  if (typeof globalThis.crypto?.randomUUID === 'function') return globalThis.crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = character === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+function isLearningContextConflictError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const candidate = error as {
+    data?: { code?: unknown };
+    shape?: { data?: { code?: unknown } };
+  };
+  return candidate.data?.code === 'CONFLICT' || candidate.shape?.data?.code === 'CONFLICT';
 }

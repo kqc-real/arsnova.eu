@@ -34218,6 +34218,1163 @@
           <context context-type="linenumber">208</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="learningObjectives.quizMissing" datatype="html">
+        <source>Quiz nicht gefunden.</source>
+        <target>Quiz not found.
+        </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1386</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncConflictMustResolve" datatype="html">
+        <source>Wähle zuerst bewusst eine der synchronisierten Fassungen aus.</source>
+        <target>Select one of the conflicting versions first.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1397</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1490</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.objectiveMissing" datatype="html">
+        <source>Lernziel nicht gefunden.</source>
+        <target>Learning objective not found.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1404</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1496</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.expectedRevisionRequired" datatype="html">
+        <source>Änderungen an einem Lernziel benötigen den geladenen Revisionsstand.</source>
+        <target>Changes to a learning objective require the loaded revision.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1408</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.localConflict" datatype="html">
+        <source>Das Lernziel wurde inzwischen geändert. Lade den aktuellen Stand und versuche es erneut.</source>
+        <target>This learning objective has changed in the meantime. Load the current version and try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1417</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1500</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.missingScopeCannotConfirm" datatype="html">
+        <source>Ein Lernziel mit fehlendem Aufgabenverweis kann nicht bestätigt werden.</source>
+        <target>A learning objective with a missing task reference cannot be confirmed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1433</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">202</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncConflictGone" datatype="html">
+        <source>Der Synchronisierungskonflikt ist nicht mehr aktuell. Prüfe den neuesten Stand.</source>
+        <target>The sync conflict is no longer current. Check the latest status.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1527</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.revisionLimit" datatype="html">
+        <source>Dieses Lernziel hat die maximale Revisionszahl erreicht.</source>
+        <target>This learning objective has reached the maximum number of revisions.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1534</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncUnavailable" datatype="html">
+        <source>Der Synchronisierungsstand ist nicht verfügbar. Versuche es nach dem erneuten Verbinden noch einmal.</source>
+        <target>The synchronization state is unavailable. Reconnect and try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">1567</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.uploadOmitted" datatype="html">
+        <source><x id="count" equiv-text="omittedObjectiveCount"/> Lernziel(e) wurden nicht live geschaltet, weil mindestens eine referenzierte Aufgabe fehlt oder deaktiviert ist.</source>
+        <target><x id="count" equiv-text="omittedObjectiveCount"/> learning objective(s) were not included in the live session because at least one referenced task is missing or disabled.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">2057</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.importReferenceError" datatype="html">
+        <source>Import fehlgeschlagen: Lernzielreferenzen konnten nicht eindeutig zugeordnet werden.</source>
+        <target>Import failed: Learning objective references could not be clearly assigned.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">2363</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncInvalid" datatype="html">
+        <source>Mindestens ein synchronisierter Lernzielstand ist beschädigt oder zu groß. Der letzte gültige Stand bleibt erhalten.</source>
+        <target>At least one synchronized learning objective is corrupted or too large. The last valid state is retained.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">3546</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncLimit" datatype="html">
+        <source>Der synchronisierte Lernzielverlauf ist zu groß. Änderungen bleiben lokal, bis der Konflikt bereinigt wurde.</source>
+        <target>The synchronized learning-objective history is too large. Changes remain local until the conflict is resolved.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/data/quiz-store.service.ts</context>
+          <context context-type="linenumber">3862</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.title" datatype="html">
+        <source> Lernziele</source>
+        <target>Learning objectives</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">8,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.subtitle" datatype="html">
+        <source> Formuliere Ziele für das gesamte Quiz oder für ausgewählte Aufgaben.</source>
+        <target>Formulate goals for the entire quiz or for selected tasks.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">11,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.originIntro" datatype="html">
+        <source> Manuelle Lernziele formulierst du selbst. Automatisch aus Aufgaben formulierte Lernziele erscheinen als modellunterstützte Vorschläge. Sie bleiben entsprechend gekennzeichnet und müssen von dir fachlich geprüft werden.</source>
+        <target>You write manual learning objectives yourself. Learning objectives formulated automatically from tasks appear as model-assisted suggestions. They remain labelled as such and require your subject-matter review.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">20,25</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">76,81</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.intro" datatype="html">
+        <source> Lernziele werden beim Live-Schalten übernommen. Deaktivierte oder fehlende Aufgaben werden niemals automatisch ersetzt.</source>
+        <target>Learning objectives are adopted when going live. Disabled or missing tasks are never automatically replaced.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">17,20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncConflictTitle" datatype="html">
+        <source> Gleichzeitige Änderungen prüfen</source>
+        <target>Check concurrent changes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">39,41</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncConflictExplanation" datatype="html">
+        <source> Zwei Geräte haben dasselbe Lernziel gleichzeitig geändert. Beide Fassungen bleiben erhalten. Wähle bewusst die Fassung, mit der du weiterarbeiten möchtest.</source>
+        <target>Two devices changed the same learning objective at the same time. Both versions have been retained. Select the version you want to continue with.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">42,45</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.useConflictVersion" datatype="html">
+        <source> Diese Fassung übernehmen</source>
+        <target>Adopt this version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">61,63</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deletedConflictVersion" datatype="html">
+        <source>Gelöschte Fassung</source>
+        <target>Deleted version</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">65</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.useDeletedConflictVersion" datatype="html">
+        <source> Löschung übernehmen</source>
+        <target>Apply deletion</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">71,73</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.empty" datatype="html">
+        <source> Noch keine Lernziele angelegt.</source>
+        <target>No learning objectives created yet.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">82,84</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.modelDerived" datatype="html">
+        <source>Modellunterstützt</source>
+        <target>Model-assisted</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">334</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteConfirmGroup" datatype="html">
+        <source>Löschen bestätigen</source>
+        <target>Confirm deletion</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">124</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteQuestion" datatype="html">
+        <source>Dieses Lernziel wirklich löschen?</source>
+        <target>Really delete this learning objective?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">127</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteConfirm" datatype="html">
+        <source> Löschen</source>
+        <target>Delete</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">135,137</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.edit" datatype="html">
+        <source>Bearbeiten</source>
+        <target>Edit</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">157</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.delete" datatype="html">
+        <source>Löschen</source>
+        <target>Delete</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">167</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.editTitle" datatype="html">
+        <source>Lernziel bearbeiten</source>
+        <target>Edit learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.addTitle" datatype="html">
+        <source>Lernziel hinzufügen</source>
+        <target>Add learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">180</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.textLabel" datatype="html">
+        <source>Lernziel</source>
+        <target>Learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">184</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeLegend" datatype="html">
+        <source>Bereich</source>
+        <target>Scope</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">202</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeAriaLabel" datatype="html">
+        <source>Bereich des Lernziels</source>
+        <target>Learning-objective scope</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">207</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeAll" datatype="html">
+        <source> Gesamtes Quiz</source>
+        <target>Entire quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">213,215</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeSelected" datatype="html">
+        <source> Ausgewählte Aufgaben</source>
+        <target>Selected tasks</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">216,218</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.questionSelection" datatype="html">
+        <source>Aufgaben auswählen</source>
+        <target>Select tasks</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">226</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.questionNumber" datatype="html">
+        <source>Aufgabe <x id="INTERPOLATION" equiv-text="{{ index + 1 }}"/>:</source>
+        <target>Task <x id="INTERPOLATION" equiv-text="{{ index + 1 }}"/>:</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">234</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.questionDisabled" datatype="html">
+        <source>(deaktiviert)</source>
+        <target>(disabled)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">237</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.missingReferences" datatype="html">
+        <source> Mindestens eine referenzierte Aufgabe fehlt. Entferne den Verweis oder wähle einen anderen Bereich.</source>
+        <target>At least one referenced task is missing. Remove the reference or select a different scope.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">245,248</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.removeMissingReference" datatype="html">
+        <source>Fehlenden Verweis entfernen</source>
+        <target>Remove missing reference</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">258</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.confirmationLegend" datatype="html">
+        <source>Status</source>
+        <target>Status</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">268</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.confirmationAriaLabel" datatype="html">
+        <source>Status des Lernziels</source>
+        <target>Status of the learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">273</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.draft" datatype="html">
+        <source>Entwurf</source>
+        <target>Draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">279</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.confirmed" datatype="html">
+        <source>Bestätigt</source>
+        <target>Confirmed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">282</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.draftHint" datatype="html">
+        <source>Noch nicht fachlich geprüft. Nutze diesen Status, solange du Inhalt oder Bereich abstimmst.</source>
+        <target>Not yet reviewed for subject-matter accuracy. Use this status while refining the content or scope.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">300</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">322</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.confirmedHint" datatype="html">
+        <source>Von dir fachlich geprüft. Relevante Quellenänderungen lösen erneut Prüfbedarf aus.</source>
+        <target>Reviewed by you for subject-matter accuracy. Relevant source changes trigger another review.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">316</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">338</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="common.save" datatype="html">
+        <source>Speichern</source>
+        <target>Save</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">295</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">335</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.add" datatype="html">
+        <source>Lernziel hinzufügen</source>
+        <target>Add learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">307</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.referenceLimit" datatype="html">
+        <source>Höchstens <x id="maxReferences" equiv-text="this.maxReferences"/> Aufgaben können einem Lernziel zugeordnet werden.</source>
+        <target>A maximum of <x id="maxReferences" equiv-text="this.maxReferences"/> tasks can be assigned to a learning objective.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">137</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.textRequired" datatype="html">
+        <source>Formuliere ein Lernziel.</source>
+        <target>Formulate a learning goal.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">177</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.textTooLong" datatype="html">
+        <source>Das Lernziel ist zu lang.</source>
+        <target>The learning objective is too long.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">182</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeRequired" datatype="html">
+        <source>Wähle mindestens eine Aufgabe oder nutze den gesamten Quizbereich.</source>
+        <target>Select at least one task or use the entire quiz.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">189</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.missingDerivationCannotConfirm" datatype="html">
+        <source>Eine Herleitungsaufgabe fehlt. Das Ziel bleibt bis zu einer neuen Herleitung prüfbedürftig und kann nicht bestätigt werden.</source>
+        <target>A source task is missing. The objective requires review until it is generated again and cannot be confirmed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">213</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.updated" datatype="html">
+        <source>Lernziel aktualisiert.</source>
+        <target>Learning objective updated.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">242</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.created" datatype="html">
+        <source>Lernziel hinzugefügt.</source>
+        <target>Added learning objective.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">243</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.saveFailed" datatype="html">
+        <source>Lernziel konnte nicht gespeichert werden.</source>
+        <target>Learning objective could not be saved.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">250</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deletePrompt" datatype="html">
+        <source>Löschen bestätigen oder abbrechen.</source>
+        <target>Confirm or cancel deletion.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">259</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleted" datatype="html">
+        <source>Lernziel gelöscht.</source>
+        <target>Learning objective deleted.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteFailed" datatype="html">
+        <source>Lernziel konnte nicht gelöscht werden.</source>
+        <target>Learning objective could not be deleted.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">284</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncConflictResolved" datatype="html">
+        <source>Synchronisierungskonflikt gelöst.</source>
+        <target>Sync conflict resolved.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">299</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.syncConflictResolveFailed" datatype="html">
+        <source>Der Synchronisierungskonflikt konnte nicht gelöst werden.</source>
+        <target>The sync conflict could not be resolved.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">309</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.statusConfirmed" datatype="html">
+        <source>Bestätigt</source>
+        <target>Confirmed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">317</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.statusNeedsReview" datatype="html">
+        <source>Prüfung nötig</source>
+        <target>Review required</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">319</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.statusDraft" datatype="html">
+        <source>Entwurf</source>
+        <target>Draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">321</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeQuizWide" datatype="html">
+        <source>Gesamtes Quiz</source>
+        <target>Entire quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">327</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.scopeQuestionCount" datatype="html">
+        <source><x id="count" equiv-text="objective.scope.sourceQuestionIds.length"/> Aufgabe(n)</source>
+        <target><x id="count" equiv-text="objective.scope.sourceQuestionIds.length"/> task(s)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">329</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.manualOrigin" datatype="html">
+        <source>Manuell erstellt</source>
+        <target>Created manually</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">335</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.useConflictVersionAria" datatype="html">
+        <source>Fassung übernehmen: <x id="text" equiv-text="objective.text"/>; <x id="status" equiv-text="this.statusLabel(objective)"/>; <x id="scope" equiv-text="this.scopeLabel(objective)"/>; <x id="origin" equiv-text="this.originLabel(objective)"/></source>
+        <target>Adopt version: <x id="text" equiv-text="objective.text"/>; <x id="status" equiv-text="this.statusLabel(objective)"/>; <x id="scope" equiv-text="this.scopeLabel(objective)"/>; <x id="origin" equiv-text="this.originLabel(objective)"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">339</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.reviewReferenceRemoved" datatype="html">
+        <source>Eine referenzierte Aufgabe wurde gelöscht. Prüfe den Bereich.</source>
+        <target>A referenced task was deleted. Review the scope.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">345</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="learningObjectives.reviewSourceChanged" datatype="html">
+        <source>Der Aufgabeninhalt hat sich seit der Herleitung geändert.</source>
+        <target>The task content has changed since the objective was generated.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.ts</context>
+          <context context-type="linenumber">346</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.exportV2CompatibilityWarning" datatype="html">
+        <source>Kompatibilitätshinweis: Ältere arsnova.eu-Versionen können Lernziele aus dieser Exportdatei entfernen. Verwende sie nur mit einer aktuellen Version.</source>
+        <target>Compatibility note: Older arsnova.eu versions can remove learning objectives from this export file. Only use it with a current version.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">704</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectivesAria" datatype="html">
+        <source>Lernziele für diese Session öffnen</source>
+        <target>Open learning objectives for this session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">650</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectivesButton" datatype="html">
+        <source>Ziele</source>
+        <target>Goals</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">656</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.title" datatype="html">
+        <source>Lernziele</source>
+        <target>Learning objectives</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.subtitle" datatype="html">
+        <source> Ziele für Quiz und Q&amp;A dieser Session</source>
+        <target>Learning objectives from the quiz and Q&amp;A for this session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">14,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.loading" datatype="html">
+        <source>Lernziele werden geladen …</source>
+        <target>Learning objectives are loading...</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">27</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.loadFailed" datatype="html">
+        <source>Lernziele konnten nicht geladen werden.</source>
+        <target>Learning objectives could not be loaded.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="common.retry" datatype="html">
+        <source>Erneut versuchen</source>
+        <target>Try again</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
+        <source> Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.</source>
+        <target>This session has ended and is read-only. Learning objectives can no longer be changed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">41,43</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.reloadCurrent" datatype="html">
+        <source>Aktuellen Stand laden</source>
+        <target>Load current status</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.empty" datatype="html">
+        <source> Für diese Session sind noch keine Lernziele konfiguriert.</source>
+        <target>There are no learning objectives configured for this session yet.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">75,77</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.modelDerived" datatype="html">
+        <source>Modellunterstützt</source>
+        <target>Model-assisted</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">102</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.unresolvedReference" datatype="html">
+        <source> Mindestens ein Aufgabenverweis ist nicht mehr verfügbar. Das Ziel bleibt sichtbar und muss vor einer Inhaltsänderung neu zugeordnet werden.</source>
+        <target>At least one task reference is no longer available. The objective remains visible and must be remapped before its content can be changed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">114,117</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deleteConfirmGroup" datatype="html">
+        <source>Löschen bestätigen</source>
+        <target>Confirm deletion</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">128</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deleteQuestion" datatype="html">
+        <source>Dieses Lernziel wirklich löschen?</source>
+        <target>Really delete this learning objective?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">131</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deleteConfirm" datatype="html">
+        <source> Löschen</source>
+        <target>Delete</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">140,142</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.edit" datatype="html">
+        <source>Bearbeiten</source>
+        <target>Edit</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">163</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.delete" datatype="html">
+        <source>Löschen</source>
+        <target>Delete</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">173</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.editTitle" datatype="html">
+        <source>Lernziel bearbeiten</source>
+        <target>Edit learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">185</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.addTitle" datatype="html">
+        <source>Lernziel hinzufügen</source>
+        <target>Add learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">187</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.textLabel" datatype="html">
+        <source>Lernziel</source>
+        <target>Learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">191</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeLegend" datatype="html">
+        <source>Bereich</source>
+        <target>Scope</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">209</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeAria" datatype="html">
+        <source>Bereich des Lernziels</source>
+        <target>Learning-objective scope</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">214</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeSessionOption" datatype="html">
+        <source> Ganze Session einschließlich Q&amp;A</source>
+        <target>Full session including Q&amp;A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">220,222</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeQuizOption" datatype="html">
+        <source> Gesamtes Quiz</source>
+        <target>Entire quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">227,229</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeTasksOption" datatype="html">
+        <source> Ausgewählte Quiz- oder Q&amp;A-Aufgaben</source>
+        <target> Selected quiz or Q&amp;A tasks</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">234,236</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.taskSelection" datatype="html">
+        <source>Aufgaben auswählen</source>
+        <target>Select tasks</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">244</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.noTasks" datatype="html">
+        <source> Aktuell sind keine auswählbaren Aufgaben verfügbar. Nutze den Sessionbereich.</source>
+        <target> No selectable tasks are currently available. Use the entire session.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">264,266</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.confirmationLegend" datatype="html">
+        <source>Status</source>
+        <target>Status</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">273</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.confirmationAria" datatype="html">
+        <source>Status des Lernziels</source>
+        <target>Status of the learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">278</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.draft" datatype="html">
+        <source>Entwurf</source>
+        <target>Draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">284</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.confirmed" datatype="html">
+        <source>Bestätigt</source>
+        <target>Confirmed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">287</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.overrideHint" datatype="html">
+        <source> Wenn du Text oder Bereich eines Quiz-Lernziels änderst, bleibt diese Sessionfassung bei einem erneuten Quiz-Anhängen erhalten.</source>
+        <target>If you change the text or scope of a quiz learning objective, this session-specific version is retained when the quiz is attached again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">293,296</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.missingDerivationHint" datatype="html">
+        <source> Eine Herleitungsaufgabe fehlt. Das Ziel bleibt bis zu einer neuen Herleitung prüfbedürftig und kann nicht bestätigt werden.</source>
+        <target>A source task is missing. The objective requires review until it is generated again and cannot be confirmed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">302,305</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="common.saving" datatype="html">
+        <source>Speichern</source>
+        <target>Save</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">333</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.add" datatype="html">
+        <source>Lernziel hinzufügen</source>
+        <target>Add learning objective</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">349</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.quizTaskLabel" datatype="html">
+        <source>Quizaufgabe <x id="order" equiv-text="task.order + 1"/>: <x id="text" equiv-text="task.text"/></source>
+        <target>Quiz task <x id="order" equiv-text="task.order + 1"/>: <x id="text" equiv-text="task.text"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.qaTaskFallback" datatype="html">
+        <source>Q&amp;A-Frage</source>
+        <target>Q&amp;A question</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">121</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.quizTaskFallback" datatype="html">
+        <source>Quizaufgabe</source>
+        <target>Quiz task</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">122</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.referenceLimit" datatype="html">
+        <source>Höchstens <x id="maxReferences" equiv-text="this.maxReferences"/> Aufgaben können einem Lernziel zugeordnet werden.</source>
+        <target>A maximum of <x id="maxReferences" equiv-text="this.maxReferences"/> tasks can be assigned to a learning objective.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">236</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.textRequired" datatype="html">
+        <source>Formuliere ein Lernziel.</source>
+        <target>Formulate a learning goal.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.textTooLong" datatype="html">
+        <source>Das Lernziel ist zu lang.</source>
+        <target>The learning objective is too long.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">275</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.rescopeRequired" datatype="html">
+        <source>Mindestens ein Aufgabenverweis ist nicht mehr verfügbar. Wähle den Bereich neu, bevor du speicherst.</source>
+        <target>At least one task reference is no longer available. Select the scope again before saving.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">282</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.missingDerivationCannotConfirm" datatype="html">
+        <source>Eine Herleitungsaufgabe fehlt. Das Ziel bleibt bis zu einer neuen Herleitung prüfbedürftig und kann nicht bestätigt werden.</source>
+        <target>A source task is missing. The objective requires review until it is generated again and cannot be confirmed.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">290</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.taskRequired" datatype="html">
+        <source>Wähle mindestens eine Aufgabe oder einen anderen Bereich.</source>
+        <target>Select at least one task or a different scope.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">301</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.created" datatype="html">
+        <source>Lernziel hinzugefügt.</source>
+        <target>Added learning objective.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">336</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.updated" datatype="html">
+        <source>Lernziel aktualisiert.</source>
+        <target>Learning objective updated.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">337</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.saveFailed" datatype="html">
+        <source>Lernziel konnte nicht gespeichert werden. Versuche es erneut.</source>
+        <target>Learning objective could not be saved. Try again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">345</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deletePrompt" datatype="html">
+        <source>Löschen bestätigen oder abbrechen.</source>
+        <target>Confirm or cancel deletion.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">358</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deleted" datatype="html">
+        <source>Lernziel gelöscht.</source>
+        <target>Learning objective deleted.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">388</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deleteConflict" datatype="html">
+        <source>Der Stand hat sich geändert. Prüfe die neu geladene Liste und lösche bei Bedarf erneut.</source>
+        <target>The state has changed. Review the reloaded list and delete the objective again if necessary.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">396</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.conflictReloadFailed" datatype="html">
+        <source>Der Stand hat sich geändert, konnte aber nicht neu geladen werden. Änderungen bleiben gesperrt, bis das Neuladen gelingt.</source>
+        <target>The state changed but could not be reloaded. Editing remains locked until reloading succeeds.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">397</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">474</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">509</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.deleteFailed" datatype="html">
+        <source>Lernziel konnte nicht gelöscht werden.</source>
+        <target>Learning objective could not be deleted.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">404</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.statusConfirmed" datatype="html">
+        <source>Bestätigt</source>
+        <target>Confirmed</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">416</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.statusNeedsReview" datatype="html">
+        <source>Prüfung nötig</source>
+        <target>Review required</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">418</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.statusDraft" datatype="html">
+        <source>Entwurf</source>
+        <target>Draft</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">420</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.reviewReferenceRemoved" datatype="html">
+        <source>Eine referenzierte Aufgabe wurde entfernt. Ordne den Bereich neu oder leite das Ziel erneut her.</source>
+        <target>A referenced task was removed. Select a new scope or generate the objective again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">428</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.reviewDerivationReplaced" datatype="html">
+        <source>Die Herleitung wurde ersetzt. Prüfe das Ziel, bevor du es erneut bestätigst.</source>
+        <target>The source was replaced. Review the objective before confirming it again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">430</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.reviewSourceChanged" datatype="html">
+        <source>Der Inhalt einer Herleitungsaufgabe hat sich geändert. Prüfe das Ziel erneut.</source>
+        <target>The content of a source task changed. Review the objective again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">432</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.projected" datatype="html">
+        <source>Aus dem Quiz übernommen</source>
+        <target>Inherited from the quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">439</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.override" datatype="html">
+        <source>In dieser Session angepasst</source>
+        <target>Adapted for this session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">441</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.manual" datatype="html">
+        <source>In dieser Session erstellt</source>
+        <target>Created in this session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">443</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeSession" datatype="html">
+        <source>Ganze Session</source>
+        <target>Whole session</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">449</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeQuiz" datatype="html">
+        <source>Gesamtes Quiz</source>
+        <target>Entire quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">452</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.scopeTasks" datatype="html">
+        <source><x id="count" equiv-text="objective.scope.taskReferences.length"/> Aufgabe(n)</source>
+        <target><x id="count" equiv-text="objective.scope.taskReferences.length"/> task(s)</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">454</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.conflictReloaded" datatype="html">
+        <source>Der aktuelle Stand wurde geladen. Öffne das Lernziel erneut, um deine Änderung abzugleichen.</source>
+        <target>The current state was loaded. Reopen the learning objective to review your change.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">483</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.saveConflict" datatype="html">
+        <source>Der Stand hat sich geändert. Die aktuelle Serverfassung wurde geladen. Öffne das Lernziel erneut und gleiche deine Änderung ab.</source>
+        <target>The state has changed. The current server version was loaded. Reopen the learning objective and make your changes again.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">520</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.rowRemovedConflict" datatype="html">
+        <source>Dieses Lernziel wurde inzwischen gelöscht. Die aktuelle Liste wurde geladen.</source>
+        <target>This learning objective has been deleted in the meantime. The current list was loaded.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
+          <context context-type="linenumber">521</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

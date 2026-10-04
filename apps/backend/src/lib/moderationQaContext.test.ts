@@ -8,6 +8,7 @@ import {
 } from '@arsnova/shared-types';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  assertModerationStateStillCurrent,
   collectQaContextCandidates,
   collectQaTopicContext,
   moderationQaContextInternals,
@@ -47,6 +48,8 @@ function state(overrides: Partial<AuthorizedModerationState> = {}): AuthorizedMo
     sessionLifecycleRevision: 3,
     qaRankingRevision: 17,
     participantRevision: 5,
+    learningContextRevision: 7,
+    learningContextConfigured: true,
     activeSortMode: 'BEST',
     authorizedAt: new Date('2026-10-04T10:00:00.000Z'),
     ...overrides,
@@ -128,6 +131,15 @@ function flattenSql(value: unknown): string {
   if (value && typeof value === 'object') return flattenSql(Object.values(value));
   return String(value ?? '');
 }
+
+describe('moderation authorization state', () => {
+  it('invalidates a collected context when the learning revision changes', () => {
+    expect(() => assertModerationStateStillCurrent(state(), state())).not.toThrow();
+    expect(() =>
+      assertModerationStateStillCurrent(state(), state({ learningContextRevision: 8 })),
+    ).toThrowError(expect.objectContaining({ code: 'CONFLICT' }));
+  });
+});
 
 describe('moderationQaContext N6', () => {
   it('projects directional counters independently of the legacy net field', async () => {

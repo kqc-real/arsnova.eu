@@ -141,6 +141,7 @@ const {
   revealResultsMutateMock,
   startSecondRoundMutateMock,
   startQaMutateMock,
+  getLearningObjectivesQueryMock,
   attachQuizToSessionMutateMock,
   enableQaChannelMutateMock,
   enableQuickFeedbackChannelMutateMock,
@@ -205,6 +206,7 @@ const {
   revealResultsMutateMock: vi.fn(),
   startSecondRoundMutateMock: vi.fn(),
   startQaMutateMock: vi.fn(),
+  getLearningObjectivesQueryMock: vi.fn(),
   attachQuizToSessionMutateMock: vi.fn(),
   enableQaChannelMutateMock: vi.fn(),
   enableQuickFeedbackChannelMutateMock: vi.fn(),
@@ -270,6 +272,7 @@ vi.mock('../../../core/trpc.client', () => ({
       revealResults: { mutate: revealResultsMutateMock },
       startSecondRound: { mutate: startSecondRoundMutateMock },
       startQa: { mutate: startQaMutateMock },
+      getLearningObjectives: { query: getLearningObjectivesQueryMock },
       attachQuizToSession: { mutate: attachQuizToSessionMutateMock },
       enableQaChannel: { mutate: enableQaChannelMutateMock },
       enableQuickFeedbackChannel: { mutate: enableQuickFeedbackChannelMutateMock },
@@ -515,6 +518,7 @@ const quizStoreMock = {
           : null,
   ),
   getUploadPayload: vi.fn(),
+  takeUploadLearningObjectiveWarning: vi.fn(() => null),
   setLastServerUploadAccess: vi.fn(),
   ensureDemoQuiz: vi.fn(() => true),
 };
@@ -640,6 +644,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       currentQuestion: 0,
       currentRound: 2,
       activeAt: '2026-03-24T12:00:00.000Z',
+    });
+    getLearningObjectivesQueryMock.mockResolvedValue({
+      schemaVersion: 1,
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      learningContextRevision: 0,
+      configured: false,
+      access: { state: 'writable' },
+      availableQuizTasks: [],
+      objectives: [],
     });
     attachQuizToSessionMutateMock.mockResolvedValue({
       quiz: { enabled: true },
@@ -5635,6 +5648,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
+      expectedLearningContextRevision: 0,
+      learningContextOperationId: '11111111-1111-4111-8111-111111111111',
     });
     expect(quizStoreMock.setLastServerUploadAccess).toHaveBeenCalledTimes(1);
     expect(fixture.componentInstance.activeChannel()).toBe('quiz');
@@ -5818,6 +5833,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
+      expectedLearningContextRevision: 0,
+      learningContextOperationId: '11111111-1111-4111-8111-111111111111',
     });
     fixture.destroy();
   });
@@ -6130,6 +6147,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(attachQuizToSessionMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
+      expectedLearningContextRevision: 0,
+      learningContextOperationId: '11111111-1111-4111-8111-111111111111',
       adoptQuizTeams: true,
     });
     fixture.destroy();
@@ -6168,6 +6187,74 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.hostSteeringCallout()?.body).toContain(
       'Dieses Quiz passt nicht zur Teamsituation der laufenden Session.',
     );
+    fixture.destroy();
+  });
+
+  it('lädt bei einem Lernziel-CAS-Konflikt vor dem Attach-Retry Revision und Idempotenz-ID neu', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      quizName: null,
+      preferredChannel: 'qa',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({
+      afterClosed: () => of({ quizId: 'local-quiz-1', adoptQuizTeams: false }),
+    });
+    getLearningObjectivesQueryMock
+      .mockResolvedValueOnce({
+        schemaVersion: 1,
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        learningContextRevision: 4,
+        configured: true,
+        access: { state: 'writable' },
+        availableQuizTasks: [],
+        objectives: [],
+      })
+      .mockResolvedValueOnce({
+        schemaVersion: 1,
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        learningContextRevision: 5,
+        configured: true,
+        access: { state: 'writable' },
+        availableQuizTasks: [],
+        objectives: [],
+      });
+    attachQuizToSessionMutateMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.detectChanges();
+    vi.mocked(globalThis.crypto.randomUUID)
+      .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('22222222-2222-4222-8222-222222222222');
+
+    await fixture.componentInstance.addChannel('quiz');
+    await fixture.whenStable();
+    expect(fixture.componentInstance.hostSteeringCallout()).not.toBeNull();
+
+    fixture.componentInstance.hostSteeringCallout()?.retry();
+    await vi.waitUntil(() => attachQuizToSessionMutateMock.mock.calls.length === 2);
+    await fixture.whenStable();
+
+    expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(2);
+    expect(attachQuizToSessionMutateMock).toHaveBeenNthCalledWith(1, {
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+      expectedLearningContextRevision: 4,
+      learningContextOperationId: '11111111-1111-4111-8111-111111111111',
+    });
+    expect(attachQuizToSessionMutateMock).toHaveBeenNthCalledWith(2, {
+      code: 'ABC123',
+      quizId: '44444444-4444-4444-8444-444444444444',
+      expectedLearningContextRevision: 5,
+      learningContextOperationId: '22222222-2222-4222-8222-222222222222',
+    });
+    expect(fixture.componentInstance.activeChannel()).toBe('quiz');
     fixture.destroy();
   });
 

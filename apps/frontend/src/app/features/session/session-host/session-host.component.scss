@@ -1308,6 +1308,13 @@
     color: var(--mat-sys-primary);
   }
 
+  > mat-icon {
+    color: var(--mat-sys-primary);
+    font-size: 1.5rem;
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+
   &:hover {
     background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-low));
   }

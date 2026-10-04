@@ -2,6 +2,7 @@
  * Quiz-Router (Story 2.1a).
  * quiz.upload: Quiz-Daten beim Live-Schalten an den Server übertragen und in PostgreSQL speichern.
  */
+import { randomUUID } from 'node:crypto';
 import {
   NUMERIC_DEFAULT_INPUT_KIND,
   NUMERIC_DEFAULT_TOLERANCE_MODE,
@@ -29,6 +30,7 @@ import { quizUploadAttemptProcedure, resolveClientIp, router } from '../trpc';
 import { prisma } from '../db';
 import { checkQuizUploadStorageRate } from '../lib/rateLimit';
 import { calculateQuizUploadComplexity } from '../lib/publicCreateCapacity';
+import { buildQuizLearningObjectiveBundleCreate } from '../lib/sessionLearningObjectives';
 
 function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   historyScopeId: string | null;
@@ -221,135 +223,168 @@ export const quizRouter = router({
         });
       }
       const historyScopeId = input.historyScopeId ?? null;
-      const quiz = await prisma.quiz.create({
-        data: {
-          historyScopeId,
-          name: input.name,
-          description: input.description ?? null,
-          motifImageUrl: input.motifImageUrl ?? null,
-          motifImageCredit: input.motifImageCredit ?? null,
-          showLeaderboard: input.showLeaderboard,
-          allowCustomNicknames: input.allowCustomNicknames,
-          defaultTimer: input.defaultTimer ?? null,
-          timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
-          enableTimerAccommodation: input.enableTimerAccommodation ?? true,
-          enableSoundEffects: input.enableSoundEffects,
-          enableRewardEffects: input.enableRewardEffects,
-          enableMotivationMessages: input.enableMotivationMessages,
-          enableEmojiReactions: input.enableEmojiReactions,
-          showQuestionTypeIndicators: input.showQuestionTypeIndicators ?? true,
-          anonymousMode: input.anonymousMode,
-          teamMode: input.teamMode,
-          teamCount: input.teamCount ?? null,
-          teamAssignment: input.teamAssignment ?? 'AUTO',
-          teamNames: input.teamNames ?? [],
-          backgroundMusic: input.backgroundMusic ?? null,
-          nicknameTheme: input.nicknameTheme,
-          bonusTokenCount: input.bonusTokenCount ?? null,
-          readingPhaseEnabled: input.readingPhaseEnabled ?? true,
-          preset: input.preset ?? 'PLAYFUL',
-          questions: {
-            create: input.questions.map((q) => ({
-              text: q.text,
-              type: q.type,
-              timer: q.timer ?? input.defaultTimer ?? null,
-              difficulty: q.difficulty,
-              order: q.order,
-              skipReadingPhase: q.skipReadingPhase ?? false,
-              ratingMin: q.ratingMin ?? null,
-              ratingMax: q.ratingMax ?? null,
-              ratingLabelMin: q.ratingLabelMin ?? null,
-              ratingLabelMax: q.ratingLabelMax ?? null,
-              shortTextEvaluationKind:
-                q.type === 'SHORT_TEXT'
-                  ? (q.shortTextEvaluationKind ?? SHORT_TEXT_DEFAULT_EVALUATION_KIND)
-                  : SHORT_TEXT_DEFAULT_EVALUATION_KIND,
-              shortTextMaxLength:
-                q.type === 'SHORT_TEXT' ? resolveShortTextMaxLength(q.shortTextMaxLength) : null,
-              shortTextCaseSensitive:
-                q.type === 'SHORT_TEXT' ? (q.shortTextCaseSensitive ?? false) : false,
-              shortTextEvaluationMode:
-                q.type === 'SHORT_TEXT'
-                  ? (q.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE)
-                  : SHORT_TEXT_DEFAULT_EVALUATION_MODE,
-              shortTextToleranceLevel:
-                q.type === 'SHORT_TEXT'
-                  ? (q.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL)
-                  : SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
-              shortTextAllowPartialCredit:
-                q.type === 'SHORT_TEXT' ? (q.shortTextAllowPartialCredit ?? true) : true,
-              shortTextTrimWhitespace:
-                q.type === 'SHORT_TEXT' ? (q.shortTextTrimWhitespace ?? true) : true,
-              shortTextNormalizeWhitespace:
-                q.type === 'SHORT_TEXT' ? (q.shortTextNormalizeWhitespace ?? true) : true,
-              numericInputKind:
-                q.type === 'SHORT_TEXT' ? (q.numericInputKind ?? NUMERIC_DEFAULT_INPUT_KIND) : null,
-              numericToleranceMode:
-                q.type === 'SHORT_TEXT'
-                  ? isNumericToleranceMode(q.numericToleranceMode)
-                    ? q.numericToleranceMode
-                    : NUMERIC_DEFAULT_TOLERANCE_MODE
-                  : q.type === 'NUMERIC_ESTIMATE'
-                    ? resolveNumericEstimateToleranceMode(q.numericToleranceMode)
+      const questionsWithServerIds = input.questions.map((question) => ({
+        question,
+        serverQuestionId: randomUUID(),
+      }));
+      const questionIdBySourceId = new Map(
+        questionsWithServerIds.flatMap(({ question, serverQuestionId }) =>
+          question.sourceQuestionId
+            ? ([[question.sourceQuestionId, serverQuestionId]] as const)
+            : [],
+        ),
+      );
+      const quiz = await prisma.$transaction(async (tx) => {
+        const createdQuiz = await tx.quiz.create({
+          data: {
+            sourceQuizId: input.sourceQuizId ?? null,
+            historyScopeId,
+            name: input.name,
+            description: input.description ?? null,
+            motifImageUrl: input.motifImageUrl ?? null,
+            motifImageCredit: input.motifImageCredit ?? null,
+            showLeaderboard: input.showLeaderboard,
+            allowCustomNicknames: input.allowCustomNicknames,
+            defaultTimer: input.defaultTimer ?? null,
+            timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
+            enableTimerAccommodation: input.enableTimerAccommodation ?? true,
+            enableSoundEffects: input.enableSoundEffects,
+            enableRewardEffects: input.enableRewardEffects,
+            enableMotivationMessages: input.enableMotivationMessages,
+            enableEmojiReactions: input.enableEmojiReactions,
+            showQuestionTypeIndicators: input.showQuestionTypeIndicators ?? true,
+            anonymousMode: input.anonymousMode,
+            teamMode: input.teamMode,
+            teamCount: input.teamCount ?? null,
+            teamAssignment: input.teamAssignment ?? 'AUTO',
+            teamNames: input.teamNames ?? [],
+            backgroundMusic: input.backgroundMusic ?? null,
+            nicknameTheme: input.nicknameTheme,
+            bonusTokenCount: input.bonusTokenCount ?? null,
+            readingPhaseEnabled: input.readingPhaseEnabled ?? true,
+            preset: input.preset ?? 'PLAYFUL',
+            questions: {
+              create: questionsWithServerIds.map(({ question: q, serverQuestionId }) => ({
+                id: serverQuestionId,
+                sourceQuestionId: q.sourceQuestionId ?? null,
+                text: q.text,
+                type: q.type,
+                timer: q.timer ?? input.defaultTimer ?? null,
+                difficulty: q.difficulty,
+                order: q.order,
+                skipReadingPhase: q.skipReadingPhase ?? false,
+                ratingMin: q.ratingMin ?? null,
+                ratingMax: q.ratingMax ?? null,
+                ratingLabelMin: q.ratingLabelMin ?? null,
+                ratingLabelMax: q.ratingLabelMax ?? null,
+                shortTextEvaluationKind:
+                  q.type === 'SHORT_TEXT'
+                    ? (q.shortTextEvaluationKind ?? SHORT_TEXT_DEFAULT_EVALUATION_KIND)
+                    : SHORT_TEXT_DEFAULT_EVALUATION_KIND,
+                shortTextMaxLength:
+                  q.type === 'SHORT_TEXT' ? resolveShortTextMaxLength(q.shortTextMaxLength) : null,
+                shortTextCaseSensitive:
+                  q.type === 'SHORT_TEXT' ? (q.shortTextCaseSensitive ?? false) : false,
+                shortTextEvaluationMode:
+                  q.type === 'SHORT_TEXT'
+                    ? (q.shortTextEvaluationMode ?? SHORT_TEXT_DEFAULT_EVALUATION_MODE)
+                    : SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+                shortTextToleranceLevel:
+                  q.type === 'SHORT_TEXT'
+                    ? (q.shortTextToleranceLevel ?? SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL)
+                    : SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+                shortTextAllowPartialCredit:
+                  q.type === 'SHORT_TEXT' ? (q.shortTextAllowPartialCredit ?? true) : true,
+                shortTextTrimWhitespace:
+                  q.type === 'SHORT_TEXT' ? (q.shortTextTrimWhitespace ?? true) : true,
+                shortTextNormalizeWhitespace:
+                  q.type === 'SHORT_TEXT' ? (q.shortTextNormalizeWhitespace ?? true) : true,
+                numericInputKind:
+                  q.type === 'SHORT_TEXT'
+                    ? (q.numericInputKind ?? NUMERIC_DEFAULT_INPUT_KIND)
                     : null,
-              numericAbsoluteTolerance:
-                q.type === 'SHORT_TEXT' ? (q.numericAbsoluteTolerance ?? null) : null,
-              numericRelativeTolerancePercent:
-                q.type === 'SHORT_TEXT' ? (q.numericRelativeTolerancePercent ?? null) : null,
-              numericUnitFamily:
-                q.type === 'SHORT_TEXT'
-                  ? (q.numericUnitFamily ?? NUMERIC_DEFAULT_UNIT_FAMILY)
-                  : null,
-              numericRequireUnit: q.type === 'SHORT_TEXT' ? (q.numericRequireUnit ?? false) : false,
-              numericAcceptEquivalentUnits:
-                q.type === 'SHORT_TEXT' ? (q.numericAcceptEquivalentUnits ?? true) : true,
-              numericReferenceValue:
-                q.type === 'NUMERIC_ESTIMATE' ? (q.numericReferenceValue ?? null) : null,
-              numericTolerancePercent:
-                q.type === 'NUMERIC_ESTIMATE' ? (q.numericTolerancePercent ?? null) : null,
-              numericIntervalLeft:
-                q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalLeft ?? null) : null,
-              numericIntervalRight:
-                q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalRight ?? null) : null,
-              numericInputType: q.type === 'NUMERIC_ESTIMATE' ? (q.numericInputType ?? null) : null,
-              numericDecimalPlaces:
-                q.type === 'NUMERIC_ESTIMATE' ? (q.numericDecimalPlaces ?? null) : null,
-              numericMin: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMin ?? null) : null,
-              numericMax: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMax ?? null) : null,
-              numericTwoRounds:
-                q.type === 'NUMERIC_ESTIMATE' ? (q.numericTwoRounds ?? false) : false,
-              confidenceEnabled:
-                questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false),
-              confidenceLabelLow:
-                questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
-                  ? (q.confidenceLabelLow ?? null)
-                  : null,
-              confidenceLabelHigh:
-                questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
-                  ? (q.confidenceLabelHigh ?? null)
-                  : null,
-              matchingPairs:
-                q.type === 'MATCHING' ? (q.matchingPairs ?? Prisma.DbNull) : Prisma.DbNull,
-              matchingShuffleRight: q.type === 'MATCHING' ? (q.matchingShuffleRight ?? true) : true,
-              orderingItems:
-                q.type === 'ORDERING' ? (q.orderingItems ?? Prisma.DbNull) : Prisma.DbNull,
-              categories:
-                q.type === 'CATEGORIZATION' ? (q.categories ?? Prisma.DbNull) : Prisma.DbNull,
-              categorizationItems:
-                q.type === 'CATEGORIZATION'
-                  ? (q.categorizationItems ?? Prisma.DbNull)
-                  : Prisma.DbNull,
-              categorizationShuffleItems:
-                q.type === 'CATEGORIZATION' ? (q.categorizationShuffleItems ?? true) : true,
-              answers: {
-                create: q.answers.map((a) => ({
-                  text: a.text,
-                  isCorrect: a.isCorrect,
-                })),
-              },
-            })),
+                numericToleranceMode:
+                  q.type === 'SHORT_TEXT'
+                    ? isNumericToleranceMode(q.numericToleranceMode)
+                      ? q.numericToleranceMode
+                      : NUMERIC_DEFAULT_TOLERANCE_MODE
+                    : q.type === 'NUMERIC_ESTIMATE'
+                      ? resolveNumericEstimateToleranceMode(q.numericToleranceMode)
+                      : null,
+                numericAbsoluteTolerance:
+                  q.type === 'SHORT_TEXT' ? (q.numericAbsoluteTolerance ?? null) : null,
+                numericRelativeTolerancePercent:
+                  q.type === 'SHORT_TEXT' ? (q.numericRelativeTolerancePercent ?? null) : null,
+                numericUnitFamily:
+                  q.type === 'SHORT_TEXT'
+                    ? (q.numericUnitFamily ?? NUMERIC_DEFAULT_UNIT_FAMILY)
+                    : null,
+                numericRequireUnit:
+                  q.type === 'SHORT_TEXT' ? (q.numericRequireUnit ?? false) : false,
+                numericAcceptEquivalentUnits:
+                  q.type === 'SHORT_TEXT' ? (q.numericAcceptEquivalentUnits ?? true) : true,
+                numericReferenceValue:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericReferenceValue ?? null) : null,
+                numericTolerancePercent:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericTolerancePercent ?? null) : null,
+                numericIntervalLeft:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalLeft ?? null) : null,
+                numericIntervalRight:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericIntervalRight ?? null) : null,
+                numericInputType:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericInputType ?? null) : null,
+                numericDecimalPlaces:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericDecimalPlaces ?? null) : null,
+                numericMin: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMin ?? null) : null,
+                numericMax: q.type === 'NUMERIC_ESTIMATE' ? (q.numericMax ?? null) : null,
+                numericTwoRounds:
+                  q.type === 'NUMERIC_ESTIMATE' ? (q.numericTwoRounds ?? false) : false,
+                confidenceEnabled:
+                  questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false),
+                confidenceLabelLow:
+                  questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
+                    ? (q.confidenceLabelLow ?? null)
+                    : null,
+                confidenceLabelHigh:
+                  questionSupportsConfidence(q.type) && (q.confidenceEnabled ?? false)
+                    ? (q.confidenceLabelHigh ?? null)
+                    : null,
+                matchingPairs:
+                  q.type === 'MATCHING' ? (q.matchingPairs ?? Prisma.DbNull) : Prisma.DbNull,
+                matchingShuffleRight:
+                  q.type === 'MATCHING' ? (q.matchingShuffleRight ?? true) : true,
+                orderingItems:
+                  q.type === 'ORDERING' ? (q.orderingItems ?? Prisma.DbNull) : Prisma.DbNull,
+                categories:
+                  q.type === 'CATEGORIZATION' ? (q.categories ?? Prisma.DbNull) : Prisma.DbNull,
+                categorizationItems:
+                  q.type === 'CATEGORIZATION'
+                    ? (q.categorizationItems ?? Prisma.DbNull)
+                    : Prisma.DbNull,
+                categorizationShuffleItems:
+                  q.type === 'CATEGORIZATION' ? (q.categorizationShuffleItems ?? true) : true,
+                answers: {
+                  create: q.answers.map((a) => ({
+                    text: a.text,
+                    isCorrect: a.isCorrect,
+                  })),
+                },
+              })),
+            },
           },
-        },
+        });
+        if (input.learningObjectives) {
+          await tx.quizLearningObjectiveBundle.create({
+            data: {
+              quizId: createdQuiz.id,
+              ...buildQuizLearningObjectiveBundleCreate(
+                input.learningObjectives,
+                questionIdBySourceId,
+              ),
+            },
+          });
+        }
+        return createdQuiz;
       });
 
       if (historyScopeId) {

@@ -7,6 +7,10 @@ const { prismaMock, checkQuizUploadAttemptRateMock, checkQuizUploadStorageRateMo
       quiz: {
         create: vi.fn(),
       },
+      quizLearningObjectiveBundle: {
+        create: vi.fn(),
+      },
+      $transaction: vi.fn(),
     },
     checkQuizUploadAttemptRateMock: vi.fn(),
     checkQuizUploadStorageRateMock: vi.fn(),
@@ -26,11 +30,17 @@ import { quizRouter } from '../routers/quiz';
 
 const caller = quizRouter.createCaller({});
 const QUIZ_ID = '11111111-1111-4111-8111-111111111111';
+const SOURCE_QUIZ_ID = '22222222-2222-4222-8222-222222222222';
+const SOURCE_QUESTION_ID = '33333333-3333-4333-8333-333333333333';
+const OBJECTIVE_ID = '44444444-4444-4444-8444-444444444444';
 
 describe('quiz.upload (Story 2.1a)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.create.mockResolvedValue({ id: QUIZ_ID });
+    prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
+      fn(prismaMock),
+    );
     checkQuizUploadAttemptRateMock.mockResolvedValue({ allowed: true, remaining: 1199 });
     checkQuizUploadStorageRateMock.mockResolvedValue({ allowed: true, remaining: 299 });
   });
@@ -91,6 +101,85 @@ describe('quiz.upload (Story 2.1a)', () => {
       expect(createCall.data.timerScaleByDifficulty).toBe(true);
     },
   );
+
+  it('stages source identities and objective references atomically with the quiz upload', async () => {
+    await caller.upload({
+      name: 'Quiz mit Lernzielen',
+      showLeaderboard: true,
+      allowCustomNicknames: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      nicknameTheme: 'HIGH_SCHOOL',
+      sourceQuizId: SOURCE_QUIZ_ID,
+      questions: [
+        {
+          sourceQuestionId: SOURCE_QUESTION_ID,
+          text: 'Was ist eine Steigung?',
+          type: 'SINGLE_CHOICE',
+          difficulty: 'MEDIUM',
+          order: 0,
+          answers: [
+            { text: 'Eine Änderungsrate', isCorrect: true },
+            { text: 'Ein Achsenabschnitt', isCorrect: false },
+          ],
+        },
+      ],
+      learningObjectives: {
+        schemaVersion: 1,
+        quizId: SOURCE_QUIZ_ID,
+        revision: 0,
+        objectives: [
+          {
+            id: OBJECTIVE_ID,
+            revision: 0,
+            text: 'Steigungen interpretieren',
+            scope: { kind: 'question-set', sourceQuestionIds: [SOURCE_QUESTION_ID] },
+            origin: { kind: 'manual' },
+            confirmation: { state: 'draft' },
+            createdAt: '2026-10-04T08:00:00.000Z',
+            updatedAt: '2026-10-04T08:00:00.000Z',
+          },
+        ],
+      },
+    });
+
+    expect(prismaMock.$transaction).toHaveBeenCalledOnce();
+    const quizCreate = prismaMock.quiz.create.mock.calls[0]![0];
+    const storedQuestion = quizCreate.data.questions.create[0];
+    expect(storedQuestion).toMatchObject({ sourceQuestionId: SOURCE_QUESTION_ID });
+    expect(storedQuestion.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+    expect(prismaMock.quizLearningObjectiveBundle.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        quizId: QUIZ_ID,
+        sourceQuizId: SOURCE_QUIZ_ID,
+        objectives: {
+          create: [
+            expect.objectContaining({
+              objectiveId: OBJECTIVE_ID,
+              references: {
+                create: [
+                  expect.objectContaining({
+                    kind: 'TASK',
+                    questionId: storedQuestion.id,
+                  }),
+                ],
+              },
+            }),
+          ],
+        },
+      }),
+    });
+    expect(checkQuizUploadStorageRateMock).toHaveBeenCalledWith('0.0.0.0', {
+      payloadBytes: expect.any(Number),
+      complexity: 6,
+    });
+  });
 
   trpcDodIt(
     {

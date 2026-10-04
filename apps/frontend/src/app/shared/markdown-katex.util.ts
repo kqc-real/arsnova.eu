@@ -22,6 +22,13 @@ export type MarkdownImagePolicy =
 export interface MarkdownRenderOptions {
   imagePolicy?: MarkdownImagePolicy;
   /**
+   * Erzeugt bei `false` nur nicht-interaktive Einbettungsinhalte: Links werden zu Text,
+   * Bilder zu ihrem Alternativtext und Codeblöcke erhalten keine Kopieraktion. Das ist für
+   * Markdown innerhalb von Checkbox-/Radio-Labels gedacht, in denen verschachtelte Aktionen
+   * ungültig und für Tastatur- sowie Screenreader-Nutzung mehrdeutig wären.
+   */
+  interactive?: boolean;
+  /**
    * Niedrigste Überschriftenebene für ein Markdown-`#`.
    * Eingebettete Inhalte starten meist bei 2+, damit sie die Seiten-H1 nicht duplizieren.
    * Ausnahme: Legal-Markdown mit `1`, wenn die führende `#`-Überschrift ohnehin entfernt wird.
@@ -165,6 +172,7 @@ export function renderMarkdownWithKatex(
     // im lockeren Modus sind in Dev zusätzlich Loopback-HTTP-Bilder erlaubt.
     imagePolicy: options?.imagePolicy ?? 'external-https-only',
     headingStartLevel: options?.headingStartLevel ?? 2,
+    interactive: options?.interactive ?? true,
   });
   const html = renderedMath.reduce(
     (current, value, index) => current.replaceAll(mathPlaceholder(index), value),
@@ -225,7 +233,9 @@ function restoreQaRedactionPlaceholders(html: string): string {
 
 function parseMarkdownEscapingInlineHtml(
   source: string,
-  options: Required<Pick<MarkdownRenderOptions, 'imagePolicy' | 'headingStartLevel'>>,
+  options: Required<
+    Pick<MarkdownRenderOptions, 'imagePolicy' | 'headingStartLevel' | 'interactive'>
+  >,
 ): string {
   source = protectQaRedactionPlaceholders(source);
   const renderer = new marked.Renderer();
@@ -237,7 +247,8 @@ function parseMarkdownEscapingInlineHtml(
   }, null);
   const headingOffset =
     shallowestHeadingDepth === null ? 0 : options.headingStartLevel - shallowestHeadingDepth;
-  renderer.code = (token) => renderMarkdownCodeBlockHtml(token);
+  renderer.code = (token) =>
+    renderMarkdownCodeBlockHtml(token, { includeCopyButton: options.interactive });
   renderer.html = ({ text }) => renderTrustedInlineHtml(text);
   renderer.heading = function ({ tokens, depth }): string {
     const level = Math.min(6, Math.max(options.headingStartLevel, depth + headingOffset));
@@ -258,6 +269,9 @@ function parseMarkdownEscapingInlineHtml(
     const hrefEsc = escapeHtml(safeHref);
     const hasTitle = title !== undefined && title !== null && String(title).trim() !== '';
     const renderedText = looksLikeRenderedHtml(text) ? text : renderMarkdownText(text);
+    if (!options.interactive) {
+      return renderedText;
+    }
     const isExternal = isExternalHttpsMarkdownUrl(safeHref);
     const isAppAsset = isAppAssetMarkdownUrl(safeHref);
     const linkTitle = hasTitle ? String(title).trim() : '';
@@ -277,6 +291,9 @@ function parseMarkdownEscapingInlineHtml(
   };
   /** `alt` allein löst keinen Hover-Tooltip aus; `title` schon (optional explizit in `![](url "title")`). */
   renderer.image = ({ href, title, text }): string => {
+    if (!options.interactive) {
+      return escapeHtml(text);
+    }
     const safeHref = sanitizeMarkdownUrl(href, 'image', options.imagePolicy);
     if (!safeHref) {
       return escapeHtml(text);
@@ -309,6 +326,7 @@ export function renderMarkdownWithoutKatex(source = '', options?: MarkdownRender
     parseMarkdownEscapingInlineHtml(source, {
       imagePolicy: options?.imagePolicy ?? 'allow-relative-and-https',
       headingStartLevel: options?.headingStartLevel ?? 2,
+      interactive: options?.interactive ?? true,
     }),
   );
 }
