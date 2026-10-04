@@ -15,6 +15,7 @@ const {
   checkQuickFeedbackSessionCreateRateMock,
   checkQuickFeedbackStandaloneCreateRateMock,
   rejectInvalidSessionCodeMock,
+  assertParticipantCapabilityMock,
 } = vi.hoisted(() => ({
   redisMock: {
     get: vi.fn(),
@@ -42,6 +43,7 @@ const {
   checkQuickFeedbackSessionCreateRateMock: vi.fn(),
   checkQuickFeedbackStandaloneCreateRateMock: vi.fn(),
   rejectInvalidSessionCodeMock: vi.fn(),
+  assertParticipantCapabilityMock: vi.fn(),
 }));
 
 vi.mock('../redis', () => ({
@@ -96,6 +98,10 @@ vi.mock('../lib/invalidSessionCode', () => ({
   rejectInvalidSessionCode: rejectInvalidSessionCodeMock,
 }));
 
+vi.mock('../lib/participantAuth', () => ({
+  assertParticipantCapability: assertParticipantCapabilityMock,
+}));
+
 import {
   invalidateQuickFeedbackAudienceCacheForSession,
   quickFeedbackRouter,
@@ -139,6 +145,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     redisMock.sismember.mockResolvedValue(0);
     redisMock.exists.mockResolvedValue(0);
     rejectInvalidSessionCodeMock.mockRejectedValue(new TRPCError({ code: 'NOT_FOUND' }));
+    assertParticipantCapabilityMock.mockResolvedValue(undefined);
     lastTempoEvalResult = null;
     lastTempoChoiceAction = null;
     redisMock.eval.mockImplementation(
@@ -216,6 +223,8 @@ describe('quickFeedback.vote und Session-Status', () => {
             distribution?: Record<string, number>;
             sessionBound?: boolean;
             sessionId?: string;
+            participantVotesValidated?: true;
+            validatedParticipantVoteCount?: number;
           };
           if (
             (expectedSessionId &&
@@ -240,6 +249,10 @@ describe('quickFeedback.vote und Session-Status', () => {
           }
           result.distribution[value] = (result.distribution[value] ?? 0) + 1;
           result.totalVotes += 1;
+          if (expectedSessionId) {
+            result.participantVotesValidated = true;
+            result.validatedParticipantVoteCount = (result.validatedParticipantVoteCount ?? 0) + 1;
+          }
           await redisMock.set(key, JSON.stringify(result), 'EX', Number(ttl));
           await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
           return JSON.stringify({ totalVotes: result.totalVotes, cKey });
@@ -861,6 +874,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       ).resolves.toEqual({ ok: true });
 
       expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+      expect(assertParticipantCapabilityMock).not.toHaveBeenCalled();
       expect(redisMock.sismember).toHaveBeenCalledWith('qf:voters:ABCDEF', VOTER_ID);
       const saved = redisMock.set.mock.calls.find(([key]) => key === 'qf:ABCDEF')?.[1] as string;
       expect(JSON.parse(saved)).toMatchObject({
@@ -902,6 +916,54 @@ describe('quickFeedback.vote und Session-Status', () => {
       '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       VOTER_ID,
     );
+    expect(assertParticipantCapabilityMock).toHaveBeenCalledWith({
+      ctx: { req: undefined },
+      sessionId: SESSION_ID,
+      participantId: VOTER_ID,
+    });
+    expect(assertParticipantCapabilityMock.mock.invocationCallOrder[0]).toBeLessThan(
+      touchParticipantPresenceMock.mock.invocationCallOrder[0]!,
+    );
+    expect(assertParticipantCapabilityMock.mock.invocationCallOrder[0]).toBeLessThan(
+      redisMock.eval.mock.invocationCallOrder[0]!,
+    );
+    const storedVote = redisMock.set.mock.calls.find(([key]) => key === 'qf:ABCDEF')?.[1];
+    expect(JSON.parse(String(storedVote))).toMatchObject({
+      participantVotesValidated: true,
+      validatedParticipantVoteCount: 1,
+      totalVotes: 1,
+    });
+  });
+
+  it('rejects a forged voter ID before touching presence or storing a session vote', async () => {
+    redisMock.get.mockResolvedValue(
+      JSON.stringify({
+        type: 'MOOD',
+        locked: false,
+        totalVotes: 0,
+        distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+        sessionBound: true,
+        sessionId: SESSION_ID,
+        participantVotesValidated: true,
+      }),
+    );
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      status: 'ACTIVE',
+      endedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      _count: { participants: 1 },
+    });
+    assertParticipantCapabilityMock.mockRejectedValueOnce(new TRPCError({ code: 'UNAUTHORIZED' }));
+
+    await expect(
+      caller.vote({ sessionCode: 'ABCDEF', voterId: VOTER_ID, value: 'POSITIVE' }),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+
+    expect(touchParticipantPresenceMock).not.toHaveBeenCalled();
+    expect(redisMock.eval).not.toHaveBeenCalled();
   });
 
   it('verhindert atomar eine späte Session-Stimme nach gesetzter Purge-Fence', async () => {
@@ -1204,6 +1266,8 @@ describe('quickFeedback.vote und Session-Status', () => {
           distribution: { SPEED_UP: 0, FOLLOWING: 0, SLOW_DOWN: 0, LOST: 0 },
           sessionBound: true,
           sessionId: SESSION_ID,
+          roundStartedAt: '2026-10-04T09:00:00.000Z',
+          participantVotesValidated: true,
         }),
       );
       prismaMock.session.findUnique.mockResolvedValue({
@@ -1241,6 +1305,8 @@ describe('quickFeedback.vote und Session-Status', () => {
         requiredVotes: 3,
       });
       expect(JSON.stringify(result)).not.toContain(VOTER_ID);
+      expect(result).not.toHaveProperty('participantVotesValidated');
+      expect(result).not.toHaveProperty('roundStartedAt');
     },
   );
 
@@ -1436,6 +1502,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       activeParticipants: 3,
       tempoVotes: 3,
     });
+    expect(result).not.toHaveProperty('roundStartedAt');
   });
 
   it('haelt die Tempo-Tendenz unterhalb der Mindestquote neutral', async () => {
@@ -1503,7 +1570,13 @@ describe('quickFeedback.vote und Session-Status', () => {
       };
       expect(multi.set).toHaveBeenCalledWith(`qf:known:${result.sessionCode}`, '1', 'EX', 2_100);
       const stored = multi.set.mock.calls.find(([key]) => key === `qf:${result.sessionCode}`)?.[1];
-      expect(JSON.parse(String(stored))).toMatchObject({ showLiveResults: true });
+      const storedResult = JSON.parse(String(stored));
+      expect(storedResult).toMatchObject({
+        showLiveResults: true,
+        roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+      });
+      expect(storedResult).not.toHaveProperty('participantVotesValidated');
+      expect(storedResult).not.toHaveProperty('validatedParticipantVoteCount');
     },
   );
 
@@ -1538,6 +1611,23 @@ describe('quickFeedback.vote und Session-Status', () => {
       '1800',
       '2100',
     );
+    const serialized = redisMock.eval.mock.calls.find(([script]) =>
+      String(script).includes('QUICK_FEEDBACK_CREATE_SESSION_BOUND'),
+    )?.[10];
+    expect(JSON.parse(String(serialized))).toMatchObject({
+      sessionBound: true,
+      sessionId,
+      participantVotesValidated: true,
+      validatedParticipantVoteCount: 0,
+      roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+    });
+    const createCall = redisMock.eval.mock.calls.find(([lua]) =>
+      String(lua).includes('QUICK_FEEDBACK_CREATE_SESSION_BOUND'),
+    );
+    expect(JSON.parse(String(createCall?.[10]))).toMatchObject({
+      sessionId,
+      roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+    });
   });
 
   it('ignoriert gefälschte Proxy-Header für den Standalone-Create-Bucket', async () => {
@@ -1817,7 +1907,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     },
   ])(
     'führt den sessiongebundenen Writer $name mit atomarer ID-/Fence-Prüfung aus',
-    async ({ initial, invoke, script, action }) => {
+    async ({ name, initial, invoke, script, action }) => {
       const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
       redisMock.get.mockResolvedValue(
         JSON.stringify({
@@ -1828,6 +1918,8 @@ describe('quickFeedback.vote und Session-Status', () => {
           distribution: { POSITIVE: 1, NEUTRAL: 0, NEGATIVE: 0 },
           sessionBound: true,
           sessionId,
+          roundStartedAt: '2026-10-04T09:00:00.000Z',
+          participantVotesValidated: true,
           ...initial,
         }),
       );
@@ -1848,6 +1940,19 @@ describe('quickFeedback.vote und Session-Status', () => {
       expect(evalCall).toContain(`qf:purged-session:v1:${sessionId}`);
       expect(evalCall).toContain(sessionId);
       if (action) expect(evalCall).toContain(action);
+      if (script === 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND') {
+        const stored = JSON.parse(String(evalCall?.[10])) as {
+          participantVotesValidated?: boolean;
+          roundStartedAt?: string;
+        };
+        expect(stored.participantVotesValidated).toBe(true);
+        if (['changeType', 'reset', 'startSecondRound'].includes(name)) {
+          expect(stored.roundStartedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+          expect(stored.roundStartedAt).not.toBe('2026-10-04T09:00:00.000Z');
+        } else {
+          expect(stored.roundStartedAt).toBe('2026-10-04T09:00:00.000Z');
+        }
+      }
       expect(redisMock.multi).not.toHaveBeenCalled();
     },
   );
@@ -1886,6 +1991,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         locked: false,
         totalVotes: 0,
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       });
       expect(multi.del).toHaveBeenCalledWith('qf:choices:r1:ABC123');
     },
@@ -2158,6 +2264,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         currentRound: 2,
         totalVotes: 0,
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
+        roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       });
       expect(multi.del).toHaveBeenCalledWith('qf:choices:ABC123');
     },

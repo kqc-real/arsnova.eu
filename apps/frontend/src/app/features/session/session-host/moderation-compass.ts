@@ -1,38 +1,56 @@
 import { extractExportQuestionText } from '../../../core/markdown-plain-text.util';
 import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
+  MODERATION_COMPASS_STORED_SOURCE_COUNT,
+  MODERATION_COMPASS_VISIBLE_SOURCE_COUNT,
+  collectModerationQuizFacts as collectSharedModerationQuizFacts,
+  isNegativeFeedbackKey,
+  notableQuickFeedbackSplit,
+  planModerationCompass,
+  resolveModerationCompassAnalysisMode,
+  selectFrictionQuestionSourceIds,
+  selectModerationCompassTopicSourceIds,
+  selectPendingModerationQuestionSourceIds,
   type QaNlpCategory,
   type QaNlpResult,
-  type QaNlpStatus,
   type QuestionType,
+  type ModerationCompassAnalysisMode as SharedModerationCompassAnalysisMode,
+  type ModerationCompassCardKind as SharedModerationCompassCardKind,
+  type ModerationCompassCardTone as SharedModerationCompassCardTone,
+  type ModerationCompassNextStepReason as SharedModerationCompassNextStepReason,
+  type ModerationCompassQuizInsightKind as SharedModerationCompassQuizInsightKind,
+  type ModerationCompassQuizQuestion as SharedModerationCompassQuizQuestion,
+  type ModerationCompassRuleQuestion,
+  type ModerationCompassSortMode as SharedModerationCompassSortMode,
+  type ModerationCompassTopicRuleSource,
+  type ModerationCompassTopicTermRuleSource,
+  type ModerationQuizFact as SharedModerationQuizFact,
 } from '@arsnova/shared-types';
 import {
   toQaSummaryScanBullet,
   type QaSummaryScanLocale,
 } from '@arsnova/shared-types/qa-summary-scan';
 
-export type ModerationCompassCardKind =
-  'topics' | 'clarification' | 'friction' | 'tempo' | 'nextStep';
+export {
+  MODERATION_COMPASS_STORED_SOURCE_COUNT,
+  MODERATION_COMPASS_VISIBLE_SOURCE_COUNT,
+  isNegativeFeedbackKey,
+  notableQuickFeedbackSplit,
+  resolveModerationCompassAnalysisMode,
+};
 
-export type ModerationCompassNextStepReason =
-  | 'pending-qa'
-  | 'quiz-confusion'
-  | 'quiz-survey'
-  | 'quiz-rating'
-  | 'controversy'
-  | 'tempo'
-  | 'feedback'
-  | 'topics'
-  | 'steady';
+export type ModerationCompassCardKind = SharedModerationCompassCardKind | 'nextStep';
 
-export type ModerationCompassQuizInsightKind = 'scorable' | 'survey' | 'rating';
+export type ModerationCompassNextStepReason = SharedModerationCompassNextStepReason;
+
+export type ModerationCompassQuizInsightKind = SharedModerationCompassQuizInsightKind;
 
 export type ModerationCompassSourceKind =
   'qa-question' | 'qa-term' | 'freetext-term' | 'tempo' | 'quiz-result';
 
 export type ModerationCompassLiveChannel = 'quiz' | 'qa' | 'quickFeedback';
 
-export type ModerationCompassSortMode = 'TOP' | 'BEST' | 'CONTROVERSIAL' | 'TIME';
+export type ModerationCompassSortMode = SharedModerationCompassSortMode;
 export type ModerationCompassAnalysisVariant = 'LEXICAL' | 'THEME';
 
 export type ModerationCompassSourceTarget = {
@@ -54,7 +72,7 @@ export type ModerationCompassSource = {
   readonly target?: ModerationCompassSourceTarget;
 };
 
-export type ModerationCompassCardTone = 'neutral' | 'caution' | 'alert';
+export type ModerationCompassCardTone = SharedModerationCompassCardTone;
 
 export type ModerationCompassCard = {
   readonly kind: ModerationCompassCardKind;
@@ -70,8 +88,7 @@ export type ModerationCompassQuizSourceCacheEntry = {
   readonly sources: readonly ModerationCompassSource[];
 };
 
-export type ModerationCompassAnalysisMode =
-  'rule-based' | 'disabled' | 'pending' | 'uncertain' | 'failed' | 'classified';
+export type ModerationCompassAnalysisMode = SharedModerationCompassAnalysisMode;
 
 export type ModerationCompassQaQuestion = {
   readonly id: string;
@@ -121,109 +138,11 @@ export type ModerationCompassSnapshot = {
   readonly quizInsightKind?: ModerationCompassQuizInsightKind | null;
 };
 
-export type ModerationCompassQuizQuestion = {
-  readonly type?: QuestionType;
-  readonly totalVotes?: number;
-  readonly correctVoterCount?: number;
-  readonly incorrectVoterCount?: number;
-  readonly voteDistribution?: readonly {
-    readonly text: string;
-    readonly isCorrect: boolean;
-    readonly voteCount: number;
-  }[];
-  readonly numericReferenceValue?: number | null;
-  readonly numericIntervalLeft?: number | null;
-  readonly numericIntervalRight?: number | null;
-  readonly numericStats?: {
-    readonly n: number;
-    readonly median?: number | null;
-    readonly stdDev?: number | null;
-    readonly inBandPercent?: number | null;
-  } | null;
-  readonly numericHistogram?: readonly {
-    readonly from: number;
-    readonly to: number;
-    readonly count: number;
-    readonly inBand: boolean;
-  }[];
-  readonly numericRoundComparison?: {
-    readonly inBandPercentDelta?: number | null;
-    readonly pairedAnalysis?: {
-      readonly fartherCount: number;
-      readonly closerCount: number;
-    } | null;
-  } | null;
-  readonly roundComparison?: {
-    readonly round1CorrectCount?: number;
-    readonly round2CorrectCount?: number;
-  } | null;
-  readonly matchingStats?: {
-    readonly totalVotes: number;
-    readonly fullyCorrectCount: number;
-    readonly commonConfusions?: readonly {
-      readonly left: string;
-      readonly wrongRight: string;
-      readonly count: number;
-    }[];
-  } | null;
-  readonly orderingStats?: {
-    readonly totalVotes: number;
-    readonly fullyCorrectCount: number;
-    readonly commonSwaps?: readonly {
-      readonly itemAText: string;
-      readonly itemBText: string;
-      readonly count: number;
-    }[];
-  } | null;
-  readonly categorizationStats?: {
-    readonly totalVotes: number;
-    readonly fullyCorrectCount: number;
-    readonly commonMisclassifications?: readonly {
-      readonly itemText: string;
-      readonly wrongCategoryName: string;
-      readonly count: number;
-    }[];
-  } | null;
-  readonly ratingAvg?: number | null;
-  readonly ratingCount?: number;
-  readonly freeTextResponses?: readonly string[];
-};
+export type ModerationCompassQuizQuestion = SharedModerationCompassQuizQuestion;
 
-export type ModerationQuizFact =
-  | { readonly type: 'wrong-majority'; readonly incorrect: number; readonly total: number }
-  | { readonly type: 'in-band'; readonly percent: number }
-  | { readonly type: 'numeric-round-worse'; readonly percentPoints: number }
-  | { readonly type: 'numeric-round-farther' }
-  | { readonly type: 'matching-confusion'; readonly left: string; readonly wrong: string }
-  | { readonly type: 'ordering-swap'; readonly a: string; readonly b: string }
-  | { readonly type: 'categorization-miss'; readonly item: string; readonly wrongCategory: string }
-  | { readonly type: 'wrong-option'; readonly option: string }
-  | { readonly type: 'survey-top'; readonly option: string; readonly share: number }
-  | { readonly type: 'numeric-median'; readonly median: number; readonly reference: number }
-  | { readonly type: 'numeric-spread' }
-  | {
-      readonly type: 'histogram-peak-out';
-      readonly from: number;
-      readonly to: number;
-      readonly share: number;
-    }
-  | { readonly type: 'round-drop' }
-  | { readonly type: 'rating-low'; readonly avg: number }
-  | { readonly type: 'freetext-repeat'; readonly text: string; readonly count: number };
+export type ModerationQuizFact = SharedModerationQuizFact;
 
-export const MODERATION_COMPASS_VISIBLE_SOURCE_COUNT = 3;
-export const MODERATION_COMPASS_STORED_SOURCE_COUNT = 8;
-
-const MAX_TOPIC_TERMS = 5;
 const SOURCE_LABEL_MAX = 88;
-const NEGATIVE_FEEDBACK_KEYS = new Set(['NEGATIVE', 'NO', 'FALSE', 'LOST', 'SLOW_DOWN', '1', '2']);
-const CARD_KIND_ORDER: readonly ModerationCompassCardKind[] = [
-  'tempo',
-  'friction',
-  'clarification',
-  'topics',
-  'nextStep',
-];
 
 export type ModerationCompassSourceDestination = 'qa' | 'quiz' | 'word-cloud' | 'quickFeedback';
 
@@ -368,271 +287,20 @@ export function compassQuestionStem(text: string, max = 56): string {
 export function collectModerationQuizFacts(
   question: ModerationCompassQuizQuestion,
 ): ModerationQuizFact[] {
-  if (question.type === 'SURVEY') {
-    return collectSurveyQuizFacts(question);
-  }
-  if (question.type === 'RATING') {
-    return collectRatingQuizFacts(question);
-  }
-  if (question.type === 'FREETEXT') {
-    return collectFreetextQuizFacts(question);
-  }
-  return collectScorableQuizFacts(question);
-}
-
-function topVoteDistributionOption(
-  voteDistribution: ModerationCompassQuizQuestion['voteDistribution'],
-): { text: string; voteCount: number } | null {
-  const top = [...(voteDistribution ?? [])]
-    .filter((option) => option.voteCount > 0)
-    .sort((left, right) => right.voteCount - left.voteCount)[0];
-  return top ?? null;
-}
-
-function collectSurveyQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
-  const facts: ModerationQuizFact[] = [];
-  const total = question.totalVotes ?? 0;
-  const top = topVoteDistributionOption(question.voteDistribution);
-  if (top && total > 0) {
-    facts.push({
-      type: 'survey-top',
-      option: top.text,
-      share: Math.round((top.voteCount / total) * 100),
+  // Legacy frontend callers omitted numericStats or its band percentage when a histogram
+  // implied a configured band.
+  // Explicit null/object states remain authoritative; all thresholds and fact selection stay shared.
+  if (question.numericHistogram?.length && question.numericStats?.inBandPercent === undefined) {
+    return collectSharedModerationQuizFacts({
+      ...question,
+      numericStats: {
+        ...(question.numericStats ?? {}),
+        n: question.numericStats?.n ?? 0,
+        inBandPercent: 100,
+      },
     });
   }
-  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
-  if (repeat) {
-    facts.push(repeat);
-  }
-  return facts.slice(0, 6);
-}
-
-function collectRatingQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
-  const facts: ModerationQuizFact[] = [];
-  if (
-    typeof question.ratingAvg === 'number' &&
-    (question.ratingCount ?? 0) >= 3 &&
-    question.ratingAvg <= 2.5
-  ) {
-    facts.push({ type: 'rating-low', avg: question.ratingAvg });
-  }
-  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
-  if (repeat) {
-    facts.push(repeat);
-  }
-  return facts.slice(0, 6);
-}
-
-function collectFreetextQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
-  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
-  return repeat ? [repeat] : [];
-}
-
-function collectScorableQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
-  const facts: ModerationQuizFact[] = [];
-  const correct = question.correctVoterCount;
-  const incorrect = question.incorrectVoterCount;
-  const total = question.totalVotes;
-  if (
-    typeof correct === 'number' &&
-    typeof incorrect === 'number' &&
-    typeof total === 'number' &&
-    total > 0 &&
-    incorrect > correct
-  ) {
-    facts.push({ type: 'wrong-majority', incorrect, total });
-  }
-
-  const inBandPercent = question.numericStats?.inBandPercent;
-  if (typeof inBandPercent === 'number' && inBandPercent < 50) {
-    facts.push({ type: 'in-band', percent: Math.round(inBandPercent) });
-  }
-
-  const histogramPeak = outOfBandHistogramPeak(question.numericHistogram);
-  if (histogramPeak) {
-    facts.push(histogramPeak);
-  }
-
-  const inBandDelta = question.numericRoundComparison?.inBandPercentDelta;
-  if (typeof inBandDelta === 'number' && inBandDelta <= -5) {
-    facts.push({ type: 'numeric-round-worse', percentPoints: Math.round(Math.abs(inBandDelta)) });
-  }
-
-  const paired = question.numericRoundComparison?.pairedAnalysis;
-  if (paired && paired.fartherCount > paired.closerCount && paired.fartherCount > 0) {
-    facts.push({ type: 'numeric-round-farther' });
-  }
-
-  const confusion = question.matchingStats?.commonConfusions?.[0];
-  if (confusion && confusion.count > 0) {
-    facts.push({
-      type: 'matching-confusion',
-      left: confusion.left,
-      wrong: confusion.wrongRight,
-    });
-  }
-
-  const swap = question.orderingStats?.commonSwaps?.[0];
-  if (swap && swap.count > 0) {
-    facts.push({ type: 'ordering-swap', a: swap.itemAText, b: swap.itemBText });
-  }
-
-  const miss = question.categorizationStats?.commonMisclassifications?.[0];
-  if (miss && miss.count > 0) {
-    facts.push({
-      type: 'categorization-miss',
-      item: miss.itemText,
-      wrongCategory: miss.wrongCategoryName,
-    });
-  }
-
-  const wrongOption = [...(question.voteDistribution ?? [])]
-    .filter((option) => !option.isCorrect && option.voteCount > 0)
-    .sort((left, right) => right.voteCount - left.voteCount)[0];
-  if (wrongOption) {
-    facts.push({ type: 'wrong-option', option: wrongOption.text });
-  }
-
-  const median = question.numericStats?.median;
-  const reference = question.numericReferenceValue;
-  if (
-    typeof median === 'number' &&
-    typeof reference === 'number' &&
-    Number.isFinite(median) &&
-    Number.isFinite(reference)
-  ) {
-    const gap = Math.abs(median - reference);
-    const scale = Math.max(Math.abs(reference), 1);
-    if (gap / scale >= 0.1) {
-      facts.push({ type: 'numeric-median', median, reference });
-    }
-  }
-
-  const stdDev = question.numericStats?.stdDev;
-  const left = question.numericIntervalLeft;
-  const right = question.numericIntervalRight;
-  const bandWidth = typeof left === 'number' && typeof right === 'number' ? right - left : null;
-  if (
-    (question.numericStats?.n ?? 0) >= 8 &&
-    typeof stdDev === 'number' &&
-    typeof bandWidth === 'number' &&
-    bandWidth > 0 &&
-    stdDev > bandWidth * 0.75
-  ) {
-    facts.push({ type: 'numeric-spread' });
-  }
-
-  const round1 = question.roundComparison?.round1CorrectCount;
-  const round2 = question.roundComparison?.round2CorrectCount;
-  if (typeof round1 === 'number' && typeof round2 === 'number' && round2 < round1) {
-    facts.push({ type: 'round-drop' });
-  }
-
-  const repeat = mostCommonFreeText(question.freeTextResponses ?? []);
-  if (repeat) {
-    facts.push(repeat);
-  }
-
-  return facts.slice(0, 6);
-}
-
-export function notableQuickFeedbackSplit(
-  totalVotes: number,
-  distribution: Record<string, number>,
-): {
-  majorityKey: string | null;
-  majorityRatio: number;
-  split: boolean;
-  starAverage: number | null;
-} {
-  const entries = Object.entries(distribution)
-    .map(([key, count]) => [key, positiveCount(count)] as const)
-    .filter(([, count]) => count > 0)
-    .sort((left, right) => right[1] - left[1]);
-  const top = entries[0];
-  const second = entries[1];
-  const majorityRatio = top && totalVotes > 0 ? top[1] / totalVotes : 0;
-  const secondRatio = second && totalVotes > 0 ? second[1] / totalVotes : 0;
-  return {
-    majorityKey: top?.[0] ?? null,
-    majorityRatio,
-    split: majorityRatio < 0.6 && secondRatio >= 0.3,
-    starAverage: starAverage(distribution, totalVotes),
-  };
-}
-
-function positiveCount(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
-}
-
-function starAverage(distribution: Record<string, number>, totalVotes: number): number | null {
-  if (totalVotes <= 0) {
-    return null;
-  }
-  let weighted = 0;
-  let counted = 0;
-  for (const [key, count] of Object.entries(distribution)) {
-    const stars = Number.parseInt(key, 10);
-    if (Number.isInteger(stars) && stars >= 1 && stars <= 5) {
-      weighted += stars * positiveCount(count);
-      counted += positiveCount(count);
-    }
-  }
-  return counted > 0 ? weighted / counted : null;
-}
-
-export function isNegativeFeedbackKey(key: string | null): boolean {
-  return key !== null && NEGATIVE_FEEDBACK_KEYS.has(key);
-}
-
-function outOfBandHistogramPeak(
-  histogram: ModerationCompassQuizQuestion['numericHistogram'],
-): Extract<ModerationQuizFact, { type: 'histogram-peak-out' }> | null {
-  if (!histogram?.length) {
-    return null;
-  }
-  const total = histogram.reduce((sum, bin) => sum + positiveCount(bin.count), 0);
-  if (total < 8) {
-    return null;
-  }
-  const peak = [...histogram].sort(
-    (left, right) => positiveCount(right.count) - positiveCount(left.count),
-  )[0];
-  if (!peak || peak.inBand || positiveCount(peak.count) / total < 0.3) {
-    return null;
-  }
-  return {
-    type: 'histogram-peak-out',
-    from: peak.from,
-    to: peak.to,
-    share: Math.round((positiveCount(peak.count) / total) * 100),
-  };
-}
-
-function mostCommonFreeText(
-  responses: readonly string[],
-): Extract<ModerationQuizFact, { type: 'freetext-repeat' }> | null {
-  const counts = new Map<string, number>();
-  for (const response of responses) {
-    const normalized = response.trim().replace(/\s+/g, ' ');
-    if (normalized.length < 8) {
-      continue;
-    }
-    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
-  }
-  const winner = [...counts.entries()].sort((left, right) => right[1] - left[1])[0];
-  if (!winner || winner[1] < 2) {
-    return null;
-  }
-  return { type: 'freetext-repeat', text: winner[0], count: winner[1] };
-}
-
-function termHasEnoughSupport(term: ModerationCompassTerm): boolean {
-  return term.documentFrequency >= 2 || term.sourceCount >= 2;
-}
-
-function pickTopicTerms(terms: readonly ModerationCompassTerm[]): ModerationCompassTerm[] {
-  return terms.filter(termHasEnoughSupport).slice(0, MAX_TOPIC_TERMS);
+  return collectSharedModerationQuizFacts(question);
 }
 
 export function compassTermsFromAnalysisEntries(
@@ -769,142 +437,35 @@ function uniqueNonEmpty(values: readonly string[] | undefined): string[] {
   return result;
 }
 
-function termSources(
-  terms: readonly ModerationCompassTerm[],
+function termSource(
+  term: ModerationCompassTerm,
   kind: Extract<ModerationCompassSourceKind, 'qa-term' | 'freetext-term'>,
-): ModerationCompassSource[] {
+): ModerationCompassSource | null {
   const channel = kind === 'freetext-term' ? 'quiz' : 'qa';
-  return terms.flatMap((term) => {
-    const topic = truncateCompassLabel(term.label);
-    if (!topic) {
-      return [];
-    }
-    const memberTexts = uniqueNonEmpty(term.memberTexts);
-    const example = memberTexts[0] ? truncateCompassLabel(memberTexts[0], 64) : '';
-    const label = example ? `${topic} · ${example}` : topic;
-    const memberIds = kind === 'qa-term' ? uniqueNonEmpty(term.memberSourceIds) : [];
-    return [
-      {
-        kind,
-        label,
-        focusHint: topic,
-        target: {
-          channel,
-          surface: 'word-cloud',
-          termLabel: topic,
-          ...(example ? { memberText: example } : {}),
-          ...(memberTexts.length > 0 ? { memberTexts } : {}),
-          ...(memberIds[0] ? { questionId: memberIds[0] } : {}),
-          ...(memberIds.length > 0 ? { questionIds: memberIds } : {}),
-          ...(term.sortMode ? { sortMode: term.sortMode } : {}),
-          ...(term.analysisVariant ? { analysisVariant: term.analysisVariant } : {}),
-        },
-      },
-    ];
-  });
-}
-
-function mixTopicSources(snapshot: ModerationCompassSnapshot): ModerationCompassSource[] {
-  const qa = termSources(pickTopicTerms(snapshot.qaTerms), 'qa-term');
-  const freetext = termSources(pickTopicTerms(snapshot.freetextTerms), 'freetext-term');
-  const extras = snapshot.extraTopicSources
-    .filter((source) => source.label.trim().length > 0)
-    .map(withDefaultSourceTarget);
-  const nlp = (snapshot.nlpTopicSources ?? [])
-    .filter((source) => source.label.trim().length > 0)
-    .map(withDefaultSourceTarget);
-  const mixed: ModerationCompassSource[] = [];
-  const seen = new Set<string>();
-  const push = (source: ModerationCompassSource | undefined) => {
-    if (!source || mixed.length >= MODERATION_COMPASS_STORED_SOURCE_COUNT) {
-      return;
-    }
-    const key = `${source.kind}:${source.label}`;
-    if (seen.has(key)) {
-      return;
-    }
-    seen.add(key);
-    mixed.push(source);
+  const topic = truncateCompassLabel(term.label);
+  if (!topic) {
+    return null;
+  }
+  const memberTexts = uniqueNonEmpty(term.memberTexts);
+  const example = memberTexts[0] ? truncateCompassLabel(memberTexts[0], 64) : '';
+  const label = example ? `${topic} · ${example}` : topic;
+  const memberIds = kind === 'qa-term' ? uniqueNonEmpty(term.memberSourceIds) : [];
+  return {
+    kind,
+    label,
+    focusHint: topic,
+    target: {
+      channel,
+      surface: 'word-cloud',
+      termLabel: topic,
+      ...(example ? { memberText: example } : {}),
+      ...(memberTexts.length > 0 ? { memberTexts } : {}),
+      ...(memberIds[0] ? { questionId: memberIds[0] } : {}),
+      ...(memberIds.length > 0 ? { questionIds: memberIds } : {}),
+      ...(term.sortMode ? { sortMode: term.sortMode } : {}),
+      ...(term.analysisVariant ? { analysisVariant: term.analysisVariant } : {}),
+    },
   };
-
-  for (const source of nlp) {
-    push(source);
-  }
-  push(qa[0]);
-  push(freetext[0]);
-  push(extras[0]);
-  for (const source of [...qa.slice(1), ...freetext.slice(1), ...extras.slice(1)]) {
-    push(source);
-  }
-  if (
-    mixed.length > 0 &&
-    mixed.length < MODERATION_COMPASS_VISIBLE_SOURCE_COUNT &&
-    snapshot.topicWeightLabel
-  ) {
-    push({
-      kind: 'qa-term',
-      label: snapshot.topicWeightLabel,
-      target: { channel: 'qa' },
-    });
-  }
-  return mixed;
-}
-
-function qaRankValue(
-  question: ModerationCompassQaQuestion,
-  sortMode: ModerationCompassSortMode | undefined,
-): number {
-  if (sortMode === 'BEST') {
-    return question.bestScore ?? 0;
-  }
-  if (sortMode === 'CONTROVERSIAL') {
-    return question.controversyScore ?? 0;
-  }
-  if (typeof question.score === 'number') {
-    return question.score;
-  }
-  return (question.positiveVoteCount ?? 0) - (question.negativeVoteCount ?? 0);
-}
-
-function compareQaQuestions(
-  left: ModerationCompassQaQuestion,
-  right: ModerationCompassQaQuestion,
-  sortMode: ModerationCompassSortMode | undefined,
-): number {
-  const rankDiff = qaRankValue(right, sortMode) - qaRankValue(left, sortMode);
-  if (rankDiff !== 0) {
-    return rankDiff;
-  }
-  return left.id.localeCompare(right.id);
-}
-
-function pendingQuestions(
-  questions: readonly ModerationCompassQaQuestion[],
-  sortMode: ModerationCompassSortMode | undefined,
-): ModerationCompassQaQuestion[] {
-  return questions
-    .filter((question) => question.status === 'PENDING')
-    .sort((left, right) => compareQaQuestions(left, right, sortMode));
-}
-
-function isFrictionQuestion(question: ModerationCompassQaQuestion): boolean {
-  if (question.status === 'ARCHIVED' || question.status === 'DELETED') {
-    return false;
-  }
-  // Nur das serverseitige Label (Score > 0,5 und p+n ≥ T) — Sortierung bleibt unabhängig.
-  return question.isControversial === true;
-}
-
-function controversialQuestions(
-  questions: readonly ModerationCompassQaQuestion[],
-): ModerationCompassQaQuestion[] {
-  return questions.filter(isFrictionQuestion).sort((left, right) => {
-    const scoreDiff = (right.controversyScore ?? 0) - (left.controversyScore ?? 0);
-    if (scoreDiff !== 0) {
-      return scoreDiff;
-    }
-    return left.id.localeCompare(right.id);
-  });
 }
 
 function quizConfusionSources(
@@ -928,219 +489,158 @@ function qaQuestionSource(question: ModerationCompassQaQuestion): ModerationComp
   };
 }
 
-function tempoCardTone(tone: ModerationCompassTempo['tone']): ModerationCompassCardTone {
-  if (tone === 'alert') {
-    return 'alert';
-  }
-  if (tone === 'caution') {
-    return 'caution';
-  }
-  return 'neutral';
+function sourceDedupeKey(source: ModerationCompassSource): string {
+  return JSON.stringify([source.kind, source.label]);
 }
 
-function nextStepCardTone(
-  reason: ModerationCompassNextStepReason,
-  tempoTone: ModerationCompassTempo['tone'] | null,
-): ModerationCompassCardTone {
-  if ((reason === 'tempo' || reason === 'feedback') && tempoTone === 'alert') {
-    return 'alert';
-  }
-  if (reason === 'topics' || reason === 'steady') {
-    return 'neutral';
-  }
-  return 'caution';
+function registerRuleSource(
+  registry: Map<string, ModerationCompassSource>,
+  sourceId: string,
+  source: ModerationCompassSource,
+): string {
+  registry.set(sourceId, source);
+  return sourceId;
 }
 
-function nextStepReason(input: {
-  pendingCount: number;
-  hasQuizConfusion: boolean;
-  quizInsightKind?: ModerationCompassQuizInsightKind | null;
-  hasFriction: boolean;
-  tempoTone: ModerationCompassTempo['tone'] | null;
-  tempoVariant: ModerationCompassTempo['variant'];
-  hasTopics: boolean;
-}): ModerationCompassNextStepReason | null {
-  if (input.tempoTone === 'alert') {
-    return input.tempoVariant === 'feedback' ? 'feedback' : 'tempo';
-  }
-  if (input.hasQuizConfusion) {
-    if (input.quizInsightKind === 'survey') {
-      return 'quiz-survey';
+function topicRuleSources(
+  sources: readonly ModerationCompassSource[],
+  prefix: string,
+  registry: Map<string, ModerationCompassSource>,
+): ModerationCompassTopicRuleSource[] {
+  return sources.flatMap((candidate, index) => {
+    if (!candidate.label.trim()) {
+      return [];
     }
-    if (input.quizInsightKind === 'rating') {
-      return 'quiz-rating';
+    const source = withDefaultSourceTarget(candidate);
+    const sourceId = registerRuleSource(registry, `${prefix}:${index}`, source);
+    return [{ sourceId, dedupeKey: sourceDedupeKey(source) }];
+  });
+}
+
+function topicTermRuleSources(
+  terms: readonly ModerationCompassTerm[],
+  kind: Extract<ModerationCompassSourceKind, 'qa-term' | 'freetext-term'>,
+  prefix: string,
+  registry: Map<string, ModerationCompassSource>,
+): ModerationCompassTopicTermRuleSource[] {
+  return terms.map((term, index) => {
+    const source = termSource(term, kind);
+    const sourceId = source ? registerRuleSource(registry, `${prefix}:${index}`, source) : '';
+    return {
+      sourceId,
+      ...(source ? { dedupeKey: sourceDedupeKey(source) } : {}),
+      documentFrequency: term.documentFrequency,
+      sourceCount: term.sourceCount,
+    };
+  });
+}
+
+function questionRuleSources(
+  questions: readonly ModerationCompassQaQuestion[],
+  prefix: string,
+  registry: Map<string, ModerationCompassSource>,
+): ModerationCompassRuleQuestion[] {
+  return questions.flatMap((question, index) => {
+    const source = qaQuestionSource(question);
+    if (!source) {
+      return [];
     }
-    return 'quiz-confusion';
-  }
-  if (input.tempoTone === 'caution') {
-    return input.tempoVariant === 'feedback' ? 'feedback' : 'tempo';
-  }
-  if (input.pendingCount > 0) {
-    return 'pending-qa';
-  }
-  if (input.hasFriction) {
-    return 'controversy';
-  }
-  if (input.hasTopics) {
-    return 'topics';
-  }
-  if (input.tempoTone === 'good') {
-    return 'steady';
-  }
-  return null;
+    return [
+      {
+        sourceId: registerRuleSource(
+          registry,
+          `${prefix}:${question.id}:${String(index).padStart(10, '0')}`,
+          source,
+        ),
+        status: question.status,
+        isControversial: question.isControversial,
+        positiveVoteCount: question.positiveVoteCount,
+        negativeVoteCount: question.negativeVoteCount,
+        score: question.score,
+        bestScore: question.bestScore,
+        controversyScore: question.controversyScore,
+      },
+    ];
+  });
 }
 
-function nextStepSourceKind(reason: ModerationCompassNextStepReason): ModerationCompassCardKind {
-  switch (reason) {
-    case 'pending-qa':
-    case 'quiz-confusion':
-    case 'quiz-survey':
-    case 'quiz-rating':
-      return 'clarification';
-    case 'controversy':
-      return 'friction';
-    case 'tempo':
-    case 'feedback':
-    case 'steady':
-      return 'tempo';
-    case 'topics':
-      return 'topics';
-  }
-}
-
-function preferredNextStepCardIndex(
-  cards: readonly ModerationCompassCard[],
-  reason: ModerationCompassNextStepReason,
-): number {
-  const preferredKind = nextStepSourceKind(reason);
-  const preferred = cards.findIndex((card) => card.kind === preferredKind);
-  if (preferred >= 0) {
-    return preferred;
-  }
-  const tempo = cards.findIndex((card) => card.kind === 'tempo');
-  return tempo >= 0 ? tempo : 0;
-}
-
-function isTautologicalNextStep(
-  reason: ModerationCompassNextStepReason,
-  cardKind: ModerationCompassCardKind,
-): boolean {
-  return (
-    (reason === 'pending-qa' && cardKind === 'clarification') ||
-    (reason === 'controversy' && cardKind === 'friction') ||
-    (reason === 'topics' && cardKind === 'topics')
-  );
+function registeredSourceIds(
+  sources: readonly ModerationCompassSource[],
+  prefix: string,
+  registry: Map<string, ModerationCompassSource>,
+): string[] {
+  return sources.map((source, index) => registerRuleSource(registry, `${prefix}:${index}`, source));
 }
 
 export function buildModerationCompassCards(
   snapshot: ModerationCompassSnapshot,
 ): ModerationCompassCard[] {
-  const cards: ModerationCompassCard[] = [];
-
-  const topicSources = mixTopicSources(snapshot);
-  if (topicSources.length > 0) {
-    cards.push({ kind: 'topics', tone: 'neutral', sources: topicSources });
-  }
-
-  const pending = pendingQuestions(snapshot.qaQuestions, snapshot.qaSortMode).filter(
-    (question) => truncateCompassLabel(question.text).length > 0,
+  const registry = new Map<string, ModerationCompassSource>();
+  const topicWeightSource: ModerationCompassSource | null = snapshot.topicWeightLabel
+    ? {
+        kind: 'qa-term',
+        label: snapshot.topicWeightLabel,
+        target: { channel: 'qa' },
+      }
+    : null;
+  const topicWeight = topicWeightSource
+    ? {
+        sourceId: registerRuleSource(registry, 'topic:weight', topicWeightSource),
+        dedupeKey: sourceDedupeKey(topicWeightSource),
+      }
+    : null;
+  const topicSourceIds = selectModerationCompassTopicSourceIds({
+    classified: topicRuleSources(snapshot.nlpTopicSources ?? [], 'topic:nlp', registry),
+    qaTerms: topicTermRuleSources(snapshot.qaTerms, 'qa-term', 'topic:qa', registry),
+    freetextTerms: topicTermRuleSources(
+      snapshot.freetextTerms,
+      'freetext-term',
+      'topic:freetext',
+      registry,
+    ),
+    extras: topicRuleSources(snapshot.extraTopicSources, 'topic:extra', registry),
+    topicWeight,
+  });
+  const pendingQuestionSourceIds = selectPendingModerationQuestionSourceIds(
+    questionRuleSources(snapshot.qaQuestions, 'pending', registry),
+    snapshot.qaSortMode,
+  );
+  const frictionQuestionSourceIds = selectFrictionQuestionSourceIds(
+    questionRuleSources(snapshot.qaQuestions, 'friction', registry),
   );
   const quizSources = quizConfusionSources(snapshot.quizSources);
-  const quizTake = Math.min(
-    quizSources.length,
-    pending.length > 0 ? 2 : MODERATION_COMPASS_STORED_SOURCE_COUNT,
-  );
-  const takenQuiz = quizSources.slice(0, quizTake);
-  const pendingSources = pending
-    .slice(0, MODERATION_COMPASS_STORED_SOURCE_COUNT - takenQuiz.length)
-    .flatMap((question) => {
-      const source = qaQuestionSource(question);
-      return source ? [source] : [];
-    });
-  const clarificationSources: ModerationCompassSource[] = [...takenQuiz, ...pendingSources];
-  if (clarificationSources.length > 0) {
-    cards.push({
-      kind: 'clarification',
-      tone: 'caution',
-      sources: clarificationSources,
-    });
-  }
-
-  const frictionSources = controversialQuestions(snapshot.qaQuestions)
-    .flatMap((question) => {
-      const source = qaQuestionSource(question);
-      return source ? [source] : [];
-    })
-    .slice(0, MODERATION_COMPASS_STORED_SOURCE_COUNT);
-  if (frictionSources.length > 0) {
-    cards.push({ kind: 'friction', tone: 'caution', sources: frictionSources });
-  }
-
-  if (snapshot.tempo) {
-    cards.push({
-      kind: 'tempo',
-      title: snapshot.tempo.title,
-      tone: tempoCardTone(snapshot.tempo.tone),
-      sources: [
-        {
+  const quizResultSourceIds = registeredSourceIds(quizSources, 'quiz', registry);
+  const feedback = snapshot.tempo
+    ? {
+        sourceId: registerRuleSource(registry, 'feedback:0', {
           kind: 'tempo',
           label: snapshot.tempo.label,
           target: { channel: 'quickFeedback' },
-        },
-      ],
-    });
-  }
-
-  const tempoTone = snapshot.tempo?.tone ?? null;
-  const reason = nextStepReason({
-    pendingCount: pending.length,
-    hasQuizConfusion: quizSources.length > 0,
+        }),
+        tone: snapshot.tempo.tone,
+        variant: snapshot.tempo.variant,
+      }
+    : null;
+  const plan = planModerationCompass({
+    topicSourceIds,
+    pendingQuestionSourceIds,
+    frictionQuestionSourceIds,
+    quizResultSourceIds,
     quizInsightKind: snapshot.quizInsightKind,
-    hasFriction: frictionSources.length > 0,
-    tempoTone,
-    tempoVariant: snapshot.tempo?.variant,
-    hasTopics: topicSources.length > 0,
+    feedback,
   });
-  if (reason && cards.length > 0) {
-    const preferredIndex = preferredNextStepCardIndex(cards, reason);
-    const sourceCard = cards[preferredIndex];
-    if (sourceCard && (cards.length > 1 || !isTautologicalNextStep(reason, sourceCard.kind))) {
-      cards[preferredIndex] = {
-        ...sourceCard,
-        nextStepReason: reason,
-        tone: nextStepCardTone(reason, tempoTone),
-      };
-    }
-  }
-
-  return [...cards].sort(
-    (left, right) => CARD_KIND_ORDER.indexOf(left.kind) - CARD_KIND_ORDER.indexOf(right.kind),
-  );
-}
-
-export function resolveModerationCompassAnalysisMode(input: {
-  readonly enabled: boolean;
-  readonly statuses?: readonly (QaNlpStatus | undefined)[];
-}): ModerationCompassAnalysisMode {
-  if (!input.enabled) {
-    return 'disabled';
-  }
-  const statuses = (input.statuses ?? []).filter((status): status is QaNlpStatus =>
-    Boolean(status),
-  );
-  if (statuses.includes('pending')) {
-    return 'pending';
-  }
-  if (statuses.includes('failed')) {
-    return 'failed';
-  }
-  if (statuses.includes('classified')) {
-    return 'classified';
-  }
-  if (statuses.includes('uncertain')) {
-    return 'uncertain';
-  }
-  return 'rule-based';
+  return plan.cards.map((card) => {
+    const mapped: ModerationCompassCard = {
+      kind: card.kind,
+      tone: card.tone,
+      sources: card.sourceIds.flatMap((sourceId) => {
+        const source = registry.get(sourceId);
+        return source ? [source] : [];
+      }),
+      ...(card.nextStepReason ? { nextStepReason: card.nextStepReason } : {}),
+    };
+    return card.kind === 'tempo' ? { ...mapped, title: snapshot.tempo?.title } : mapped;
+  });
 }
 
 export function collectQaNlpCategorySources(
@@ -1149,7 +649,11 @@ export function collectQaNlpCategorySources(
 ): ModerationCompassSource[] {
   const grouped = new Map<QaNlpCategory, string[]>();
   for (const question of questions) {
-    if (question.nlp?.status !== 'classified' || !question.nlp.category) {
+    if (
+      (question.status !== 'ACTIVE' && question.status !== 'PINNED') ||
+      question.nlp?.status !== 'classified' ||
+      !question.nlp.category
+    ) {
       continue;
     }
     const ids = grouped.get(question.nlp.category) ?? [];

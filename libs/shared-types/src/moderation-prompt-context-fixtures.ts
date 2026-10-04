@@ -11,6 +11,7 @@ import {
   MODERATION_PROMPT_DEFINITION_SET_VERSION,
   MODERATION_PROMPT_HASH_MATERIAL_VERSION,
 } from './moderation-prompt-context';
+import { MODERATION_COMPASS_RULES_VERSION } from './moderation-compass-rules';
 
 type ReferenceQuestionKey = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
@@ -362,12 +363,13 @@ export const MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1 = {
     },
     compass: {
       state: 'available',
-      rulesVersion: 'fixture-compass-rules-v1',
+      rulesVersion: MODERATION_COMPASS_RULES_VERSION,
       signals: [
         {
           sourceId: 'compass-signal:highest-best-score',
           signal: 'high-best-score',
           basis: 'best-score',
+          cardKind: 'topics',
           questionSourceIds: [REFERENCE_QUESTION_SOURCE_IDS[2]],
           value: MODERATION_PROMPT_REFERENCE_RANKING_FIXTURE_V1[2].bestScore,
           reason: 'Frage C hat im Auswahlkorpus den höchsten Best-Score.',
@@ -386,6 +388,7 @@ export const MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1 = {
           sourceId: 'compass-signal:highest-controversy',
           signal: 'high-controversy',
           basis: 'controversy-score',
+          cardKind: 'friction',
           questionSourceIds: [REFERENCE_QUESTION_SOURCE_IDS[4]],
           value: MODERATION_PROMPT_REFERENCE_RANKING_FIXTURE_V1[4].controversyScore,
           reason: 'Frage E hat im Auswahlkorpus die höchste Kontroversität.',
@@ -401,6 +404,7 @@ export const MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1 = {
           },
         },
       ],
+      primarySignalSourceId: 'compass-signal:highest-controversy',
     },
     learningContext: {
       state: 'available',

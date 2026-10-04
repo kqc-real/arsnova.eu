@@ -52,6 +52,7 @@ import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import { isSessionEffectivelyFinished } from '../lib/sessionLifecycle';
 import { buildQuickFeedbackSessionPurgeFenceKey } from '../lib/quickFeedbackSessionPurge';
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
+import { assertParticipantCapability } from '../lib/participantAuth';
 
 const FEEDBACK_TTL_SECONDS = 30 * 60;
 const KNOWN_FEEDBACK_GRACE_SECONDS = 5 * 60;
@@ -136,6 +137,9 @@ result['totalVotes'] = (tonumber(result['totalVotes']) or 0) + 1
 
 if expectedSessionId ~= '' then
   result['sessionId'] = expectedSessionId
+  result['participantVotesValidated'] = true
+  result['validatedParticipantVoteCount'] =
+    (tonumber(result['validatedParticipantVoteCount']) or 0) + 1
 end
 local ttl = tonumber(ARGV[4])
 redis.call('SET', KEYS[1], cjson.encode(result), 'EX', ttl)
@@ -307,6 +311,12 @@ return cjson.encode({ ok = true })
 type StoredQuickFeedbackResult = QuickFeedbackResult & {
   sessionBound?: boolean;
   sessionId?: string;
+  /** Internal round boundary; intentionally stripped from public result DTOs. */
+  roundStartedAt?: string;
+  /** True only for session rounds whose voter IDs require participant capabilities. */
+  participantVotesValidated?: true;
+  /** One-shot votes written after successful participant-capability validation. */
+  validatedParticipantVoteCount?: number;
 };
 type SessionQuickFeedbackGate = {
   id: string;
@@ -327,18 +337,20 @@ function showLiveResults(result: Pick<QuickFeedbackResult, 'type' | 'showLiveRes
 }
 
 function audienceQuickFeedbackResult(result: StoredQuickFeedbackResult): QuickFeedbackResult {
-  const resultsVisible = showLiveResults(result) || result.locked || result.discussion === true;
+  const publicResult = QuickFeedbackResultSchema.parse(result);
+  const resultsVisible =
+    showLiveResults(publicResult) || publicResult.locked || publicResult.discussion === true;
   const distribution = resultsVisible
-    ? result.distribution
-    : Object.fromEntries(Object.keys(result.distribution).map((key) => [key, 0]));
+    ? publicResult.distribution
+    : Object.fromEntries(Object.keys(publicResult.distribution).map((key) => [key, 0]));
   return {
-    ...result,
-    showLiveResults: showLiveResults(result),
+    ...publicResult,
+    showLiveResults: showLiveResults(publicResult),
     resultsVisible,
     distribution,
-    round1Distribution: resultsVisible ? result.round1Distribution : undefined,
-    opinionShift: resultsVisible ? result.opinionShift : undefined,
-    tempoTrend: resultsVisible ? result.tempoTrend : undefined,
+    round1Distribution: resultsVisible ? publicResult.round1Distribution : undefined,
+    opinionShift: resultsVisible ? publicResult.opinionShift : undefined,
+    tempoTrend: resultsVisible ? publicResult.tempoTrend : undefined,
   };
 }
 
@@ -990,8 +1002,15 @@ export const quickFeedbackRouter = router({
         showLiveResults: input.showLiveResults ?? quickFeedbackDefaultsToLiveResults(input.type),
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
+        roundStartedAt: new Date().toISOString(),
         sessionBound,
-        ...(sessionId ? { sessionId } : {}),
+        ...(sessionId
+          ? {
+              sessionId,
+              participantVotesValidated: true as const,
+              validatedParticipantVoteCount: 0,
+            }
+          : {}),
       };
 
       if (sessionId) {
@@ -1029,6 +1048,11 @@ export const quickFeedbackRouter = router({
       result.round1Total = undefined;
       result.opinionShift = undefined;
       result.tempoTrend = undefined;
+      result.roundStartedAt = new Date().toISOString();
+      if (result.sessionBound === true) {
+        result.participantVotesValidated = true;
+        result.validatedParticipantVoteCount = 0;
+      }
 
       if (result.sessionBound === true) {
         await mutateSessionBoundQuickFeedback(code, result, 'RESET_ALL');
@@ -1090,6 +1114,11 @@ export const quickFeedbackRouter = router({
       result.round1Total = undefined;
       result.opinionShift = undefined;
       result.tempoTrend = undefined;
+      result.roundStartedAt = new Date().toISOString();
+      if (result.sessionBound === true) {
+        result.participantVotesValidated = true;
+        result.validatedParticipantVoteCount = 0;
+      }
 
       if (result.sessionBound === true) {
         await mutateSessionBoundQuickFeedback(code, result, 'RESET_ALL');
@@ -1207,6 +1236,11 @@ export const quickFeedbackRouter = router({
       result.discussion = false;
       result.locked = false;
       result.opinionShift = undefined;
+      result.roundStartedAt = new Date().toISOString();
+      if (result.sessionBound === true) {
+        result.participantVotesValidated = true;
+        result.validatedParticipantVoteCount = 0;
+      }
 
       if (result.sessionBound === true) {
         await mutateSessionBoundQuickFeedback(code, result, 'SECOND_ROUND');
@@ -1237,7 +1271,7 @@ export const quickFeedbackRouter = router({
     .output(QuickFeedbackIsActiveOutputSchema)
     .query(({ input }) => resolveQuickFeedbackAvailability(input, 'pollReconnect')),
 
-  vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ input }) => {
+  vote: publicProcedure.input(QuickFeedbackVoteInputSchema).mutation(async ({ ctx, input }) => {
     const code = input.sessionCode.toUpperCase();
     const key = feedbackKey(code);
     const result = await loadQuickFeedbackForVote(code).catch(async (error: unknown) => {
@@ -1250,7 +1284,12 @@ export const quickFeedbackRouter = router({
     const gate =
       result.sessionBound === true ? await assertSessionAllowsQuickFeedbackVote(code) : null;
     if (result.sessionBound === true) {
-      assertStoredQuickFeedbackSession(result, gate);
+      const sessionId = assertStoredQuickFeedbackSession(result, gate);
+      await assertParticipantCapability({
+        ctx,
+        sessionId,
+        participantId: input.voterId,
+      });
     }
 
     if (result.locked) {
@@ -1279,11 +1318,16 @@ export const quickFeedbackRouter = router({
 
   leaveTempo: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true, voterId: true }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const result = await loadQuickFeedbackForVote(input.sessionCode.toUpperCase());
       if (result.sessionBound === true) {
         const gate = await assertSessionAllowsQuickFeedbackVote(input.sessionCode.toUpperCase());
         assertStoredQuickFeedbackSession(result, gate);
+        await assertParticipantCapability({
+          ctx,
+          sessionId: gate.id,
+          participantId: input.voterId,
+        });
       }
       await clearTempoVote(input);
       return { ok: true };

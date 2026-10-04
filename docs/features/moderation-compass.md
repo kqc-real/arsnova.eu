@@ -38,21 +38,23 @@ Der Kompass liest nur, was der Host ohnehin sehen darf:
 
 Vor Ergebnisfreigabe gelten die Data-Stripping-Regeln weiter. Keine Rohverteilungen oder Lösungshinweise, solange sie dem Host fachlich nicht offenstehen.
 
+Seit #456 Slice 3 liegt die seiteneffektfreie Fachentscheidung mit Version `moderation-compass-rules-v1` in `libs/shared-types/src/moderation-compass-rules.ts`. Dort stehen Schwellen, Faktenermittlung, Quellenauswahl, Kartenreihenfolge und Priorisierung genau einmal für Browser und Backend. Der Frontend-Adapter in `moderation-compass.ts` bleibt für Beschriftung, Kürzung, Sprungziele und andere Präsentationsdetails zuständig; er berechnet keine zweite Schwellenlogik. Ein Histogramm gilt nur mit nachgewiesenem numerischem Toleranzband als »außerhalb des Bands«; `inBandPercent: null` ist ausdrücklich kein negatives Signal.
+
 ## Wann eine Karte erscheint
 
 Es gibt **keine** globale Teilnehmer- oder Frageschwelle für den Dialog. Karten entstehen nur bei belastbarer Evidenz (`buildModerationCompassCards`). Ohne Quellen keine Karte.
 
-| Karte                      | Schwelle (Auszug)                                                                                                 |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Themen                     | Begriff mindestens zweimal (`documentFrequency >= 2` oder `sourceCount >= 2`)                                     |
-| Klärung                    | ausstehende Q&A und/oder Quiz-Fakten (u. a. Histogramm-Spitze ≥ 30 %, numerisch n ≥ 8, Freitext-Wiederholung ≥ 2) |
-| Reibung                    | `controversyScore > 0.5` oder explizit kontrovers; Archiv/gelöscht ohne Reibung                                   |
-| Feedback zum Vortragstempo | nur wenn eine Tempo-/Feedback-Tendenz vorliegt; Split z. B. Mehrheit &lt; 60 % und Zweite ≥ 30 %                  |
-| Nächster Schritt           | nur wenn bereits eine andere Karte da ist                                                                         |
+| Karte                      | Schwelle (Auszug)                                                                                                                                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Themen                     | Begriff mindestens zweimal (`documentFrequency >= 2` oder `sourceCount >= 2`)                                                                                                                                         |
+| Klärung                    | ausstehende Q&A und/oder Quiz-Fakten (u. a. Histogramm-Spitze bei vorhandenem Toleranzband ≥ 30 %, numerisch n ≥ 8, Freitext-Wiederholung ≥ 2)                                                                        |
+| Reibung                    | `ACTIVE`/`PINNED` mit `controversyScore > 0.5` und mindestens der raumgrößenabhängigen Stimmenzahl `T`, oder explizit kontrovers; `PENDING` bleibt ein reiner Moderationshinweis, Archiv/gelöscht bleibt ohne Reibung |
+| Feedback zum Vortragstempo | nur wenn eine Tempo-/Feedback-Tendenz vorliegt; Split z. B. Mehrheit &lt; 60 % und Zweite ≥ 30 %                                                                                                                      |
+| Nächster Schritt           | nur wenn bereits eine andere Karte da ist                                                                                                                                                                             |
 
 Die optionale 8.9c-Kurzfassung ist kein Signalkarten-Typ. Sie erscheint nur bei Kill-Switch, konfiguriertem privatem Endpunkt und mindestens drei sichtbaren Q&A-Beiträgen; siehe [qa-summary.md](qa-summary.md).
 
-Implementierung: `apps/frontend/src/app/features/session/session-host/moderation-compass.ts`.
+Fachregeln: `libs/shared-types/src/moderation-compass-rules.ts`. Frontend-Präsentationsadapter: `apps/frontend/src/app/features/session/session-host/moderation-compass.ts`.
 
 ## Grenzen
 
@@ -63,4 +65,4 @@ Implementierung: `apps/frontend/src/app/features/session/session-host/moderation
 
 ## Tests
 
-`moderation-compass.spec.ts`, `moderation-compass-dialog.component.spec.ts` und Host-Component-Tests unter `apps/frontend/src/app/features/session/session-host/`. Seed für lokale Demo: `npm run seed:moderation-compass -w @arsnova/backend`.
+`libs/shared-types/src/moderation-compass-rules.test.ts`, `moderation-compass.spec.ts`, `moderation-compass-dialog.component.spec.ts` und Host-Component-Tests unter `apps/frontend/src/app/features/session/session-host/`. Seed für lokale Demo: `npm run seed:moderation-compass -w @arsnova/backend`.

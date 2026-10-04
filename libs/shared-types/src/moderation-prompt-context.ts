@@ -14,6 +14,10 @@ import {
   YesNoBinaryValueEnum,
   YesNoValueEnum,
 } from './schemas';
+import {
+  MODERATION_COMPASS_CARD_KINDS,
+  MODERATION_COMPASS_RULES_VERSION,
+} from './moderation-compass-rules.js';
 
 /**
  * Versioned contract for the domain projection and the payload packed for the
@@ -31,6 +35,7 @@ export const MODERATION_PROMPT_HASH_MATERIAL_VERSION =
   'moderation-prompt-hash-material-v1' as const;
 export const MODERATION_PROMPT_BUDGET_VERSION = 'moderation-prompt-budget-v1' as const;
 export const MODERATION_QUIZ_EFFECTIVE_VOTE_BASIS_VERSION = 'effective-vote-v1' as const;
+export const MODERATION_QUIZ_ROUND_COMPARISON_BASIS_VERSION = 'round-comparison-v1' as const;
 
 export const MODERATION_PROMPT_SOURCE_ID_PREFIXES = {
   qaQuestion: 'qa-question:',
@@ -47,6 +52,7 @@ export const ModerationPromptDefinitionKeySchema = z.enum([
   'controversy-score',
   'vote-count',
   'effective-vote',
+  'round-comparison',
   'question-frequency',
   'distinct-participants',
   'nlp-category',
@@ -143,6 +149,14 @@ export const MODERATION_PROMPT_DEFINITION_SET_V1 = {
         'Pro Person und Frage zählt höchstens eine Quizstimme: Sobald für die Frage Runde 2 existiert, ersetzt diese Runde 1; andernfalls zählt Runde 1.',
       caveat:
         'Runde 1 und Runde 2 dürfen weder addiert noch für dieselbe Frage personenübergreifend mit unterschiedlichen Rundengrundlagen vermischt werden.',
+    },
+    {
+      key: 'round-comparison',
+      label: 'Rundenvergleich',
+      meaning:
+        'Vergleicht Runde 1 und Runde 2 derselben Quizfrage als getrennte Populationen; die Rundenwerte werden nicht zur effektiven Stimme zusammengeführt.',
+      caveat:
+        'Ein Rundenvergleich beschreibt Veränderungen zwischen den Runden und darf nicht als effektive Abstimmung oder kausaler Lerneffekt ausgegeben werden.',
     },
     {
       key: 'question-frequency',
@@ -841,6 +855,8 @@ export const ModerationCompassSignalSchema = z
       'high-best-score',
       'high-controversy',
       'high-frequency',
+      'pinned-question',
+      'pending-moderation',
       'unanswered',
       'topic-concentration',
       'learning-gap',
@@ -851,12 +867,15 @@ export const ModerationCompassSignalSchema = z
       'best-score',
       'controversy-score',
       'question-frequency',
+      'pinned-question-count',
+      'pending-question-count',
       'unaddressed-question-count',
       'topic-question-share',
       'learning-gap-rule-score',
       'released-result-rule-score',
       'feedback-rule-score',
     ]),
+    cardKind: z.enum(MODERATION_COMPASS_CARD_KINDS),
     questionSourceIds: z.array(z.string().trim().min(1).max(160)).max(40),
     value: z.number(),
     reason: z.string().trim().min(1).max(280),
@@ -876,6 +895,7 @@ export const ModerationCompassSignalSchema = z
         action: z.enum([
           'address-question',
           'request-clarification',
+          'review-moderation',
           'open-discussion',
           'connect-learning-objective',
           'monitor',
@@ -890,6 +910,8 @@ export const ModerationCompassSignalSchema = z
       'high-best-score': 'best-score',
       'high-controversy': 'controversy-score',
       'high-frequency': 'question-frequency',
+      'pinned-question': 'pinned-question-count',
+      'pending-moderation': 'pending-question-count',
       unanswered: 'unaddressed-question-count',
       'topic-concentration': 'topic-question-share',
       'learning-gap': 'learning-gap-rule-score',
@@ -903,16 +925,66 @@ export const ModerationCompassSignalSchema = z
         message: `Signaltyp ${value.signal} benötigt die Messbasis ${expectedBasis[value.signal]}.`,
       });
     }
+    const expectedCardKind = {
+      'high-best-score': 'topics',
+      'high-controversy': 'friction',
+      'high-frequency': 'topics',
+      'pinned-question': 'topics',
+      'pending-moderation': 'clarification',
+      unanswered: 'clarification',
+      'topic-concentration': 'topics',
+      'learning-gap': 'clarification',
+      'result-pattern': 'clarification',
+      'feedback-pattern': 'tempo',
+    } as const;
+    if (value.cardKind !== expectedCardKind[value.signal]) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['cardKind'],
+        message: `Signaltyp ${value.signal} gehört zur Kartenart ${expectedCardKind[value.signal]}.`,
+      });
+    }
+    if (
+      (value.signal === 'pending-moderation') !==
+      (value.suggestedNextStep.action === 'review-moderation')
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['suggestedNextStep', 'action'],
+        message:
+          'Nur ein ausstehendes Moderationssignal darf und muss die Aktion review-moderation verwenden.',
+      });
+    }
   });
 
 export const ModerationCompassSectionSchema = z.discriminatedUnion('state', [
   z
     .object({
       state: z.literal('available'),
-      rulesVersion: z.string().trim().min(1).max(120),
+      rulesVersion: z.literal(MODERATION_COMPASS_RULES_VERSION),
       signals: z.array(ModerationCompassSignalSchema).max(30),
+      primarySignalSourceId: z.string().trim().min(1).max(160).nullable(),
     })
-    .strict(),
+    .strict()
+    .superRefine((value, ctx) => {
+      if (value.signals.length > 0 && value.primarySignalSourceId === null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['primarySignalSourceId'],
+          message: 'Ein nicht leerer Kompassabschnitt benötigt ein primäres Signal.',
+        });
+      }
+      if (
+        value.primarySignalSourceId !== null &&
+        !value.signals.some((signal) => signal.sourceId === value.primarySignalSourceId)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['primarySignalSourceId'],
+          message: 'Das primäre Kompasssignal muss im selben Kompassabschnitt enthalten sein.',
+        });
+      }
+    }),
   ExplicitUnavailableStateSchema,
   ExplicitDisabledStateSchema,
   ExplicitPendingStateSchema,
@@ -1115,6 +1187,107 @@ export type ModerationQuizEffectiveVoteBasis = z.infer<
   typeof ModerationQuizEffectiveVoteBasisSchema
 >;
 
+export const ModerationQuizRoundComparisonBasisSchema = z
+  .object({
+    kind: z.literal('round-comparison'),
+    version: z.literal(MODERATION_QUIZ_ROUND_COMPARISON_BASIS_VERSION),
+  })
+  .strict();
+export type ModerationQuizRoundComparisonBasis = z.infer<
+  typeof ModerationQuizRoundComparisonBasisSchema
+>;
+
+const CorrectnessRoundSnapshotSchema = z
+  .object({
+    responseCount: z.number().int().nonnegative(),
+    correct: z.number().int().nonnegative(),
+    incorrect: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.correct + value.incorrect !== value.responseCount) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['responseCount'],
+        message: 'Richtige und falsche Antworten müssen die Rundenpopulation abdecken.',
+      });
+    }
+  });
+
+const CorrectnessRoundComparisonSchema = z
+  .object({
+    basis: ModerationQuizRoundComparisonBasisSchema,
+    round1: CorrectnessRoundSnapshotSchema,
+    round2: CorrectnessRoundSnapshotSchema,
+  })
+  .strict();
+
+const NumericRoundSnapshotSchema = z
+  .object({
+    responseCount: z.number().int().positive(),
+    inBandCount: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.inBandCount > value.responseCount) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['inBandCount'],
+        message: 'Treffer im erwarteten Bereich dürfen die Rundenpopulation nicht übersteigen.',
+      });
+    }
+  });
+
+const NumericPairedRoundComparisonSchema = z
+  .object({
+    pairedCount: z.number().int().positive(),
+    closerCount: z.number().int().nonnegative(),
+    fartherCount: z.number().int().nonnegative(),
+    unchangedCount: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.closerCount + value.fartherCount + value.unchangedCount !== value.pairedCount) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['pairedCount'],
+        message: 'Die paarweisen Vergleichsklassen müssen alle Vergleichspaare abdecken.',
+      });
+    }
+  });
+
+const NumericRoundComparisonSchema = z
+  .object({
+    basis: ModerationQuizRoundComparisonBasisSchema,
+    round1: NumericRoundSnapshotSchema,
+    round2: NumericRoundSnapshotSchema,
+    inBandPercentDelta: z.number().min(-100).max(100),
+    pairedAnalysis: NumericPairedRoundComparisonSchema.optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const round1Percent = (value.round1.inBandCount / value.round1.responseCount) * 100;
+    const round2Percent = (value.round2.inBandCount / value.round2.responseCount) * 100;
+    if (Math.abs(value.inBandPercentDelta - (round2Percent - round1Percent)) > 0.0002) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['inBandPercentDelta'],
+        message: 'Die Änderung des In-Band-Anteils muss zu beiden Runden passen.',
+      });
+    }
+    if (
+      value.pairedAnalysis &&
+      value.pairedAnalysis.pairedCount >
+        Math.min(value.round1.responseCount, value.round2.responseCount)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['pairedAnalysis', 'pairedCount'],
+        message: 'Die Zahl der Vergleichspaare darf keine Rundenpopulation übersteigen.',
+      });
+    }
+  });
+
 const QuizAggregatePopulationSchema = z
   .object({
     kind: z.literal('eligible-submissions'),
@@ -1190,13 +1363,261 @@ const QuizResultAggregationSchema = z.discriminatedUnion('rule', [
     .strict(),
   z
     .object({
+      rule: z.literal('freetext-pattern-summary'),
+      unit: z.literal('responses'),
+      responseCount: z.number().int().nonnegative(),
+      repeatedPatterns: z
+        .array(
+          z
+            .object({
+              count: z.number().int().min(2),
+            })
+            .strict(),
+        )
+        .max(20),
+    })
+    .strict()
+    .superRefine((value, ctx) => {
+      const repeatedResponseCount = value.repeatedPatterns.reduce(
+        (sum, pattern) => sum + pattern.count,
+        0,
+      );
+      if (repeatedResponseCount > value.responseCount) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['repeatedPatterns'],
+          message:
+            'Wiederholte Freitextmuster dürfen zusammen nicht mehr Antworten als die Population abdecken.',
+        });
+      }
+      value.repeatedPatterns.forEach((pattern, index) => {
+        if (pattern.count > value.responseCount) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['repeatedPatterns', index, 'count'],
+            message: 'Ein Freitextmuster darf die Antwortpopulation nicht übersteigen.',
+          });
+        }
+        const nextPattern = value.repeatedPatterns[index + 1];
+        if (nextPattern && pattern.count < nextPattern.count) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['repeatedPatterns', index + 1, 'count'],
+            message: 'Freitextmuster müssen absteigend nach Häufigkeit sortiert sein.',
+          });
+        }
+      });
+    }),
+  z
+    .object({
       rule: z.literal('correctness-summary'),
       unit: z.literal('responses'),
       correct: z.number().int().nonnegative(),
       incorrect: z.number().int().nonnegative(),
       unanswered: z.number().int().nonnegative(),
+      roundComparison: CorrectnessRoundComparisonSchema.optional(),
     })
     .strict(),
+  z
+    .object({
+      rule: z.literal('rating-summary'),
+      unit: z.literal('ratings'),
+      responseCount: z.number().int().nonnegative(),
+      scale: z
+        .object({
+          minimum: z.number().int().min(0).max(10),
+          maximum: z.number().int().min(1).max(10),
+        })
+        .strict(),
+      mean: z.number().nullable(),
+      buckets: z
+        .array(
+          z
+            .object({
+              value: z.number().int().min(0).max(10),
+              count: z.number().int().nonnegative(),
+            })
+            .strict(),
+        )
+        .min(2)
+        .max(11),
+    })
+    .strict()
+    .superRefine((value, ctx) => {
+      if (value.scale.minimum >= value.scale.maximum) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['scale', 'maximum'],
+          message: 'Das Skalenmaximum muss größer als das Skalenminimum sein.',
+        });
+      }
+      const expectedValues = Array.from(
+        { length: Math.max(0, value.scale.maximum - value.scale.minimum + 1) },
+        (_, index) => value.scale.minimum + index,
+      );
+      const actualValues = value.buckets.map((bucket) => bucket.value).sort((a, b) => a - b);
+      if (
+        actualValues.length !== expectedValues.length ||
+        actualValues.some((bucketValue, index) => bucketValue !== expectedValues[index])
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['buckets'],
+          message: 'Rating-Buckets müssen jeden Skalenwert genau einmal enthalten.',
+        });
+      }
+      const bucketTotal = value.buckets.reduce((sum, bucket) => sum + bucket.count, 0);
+      if (bucketTotal !== value.responseCount) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['responseCount'],
+          message: 'Die Ratingverteilung muss alle eingeschlossenen Antworten abdecken.',
+        });
+      }
+      if (value.responseCount === 0) {
+        if (value.mean !== null) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['mean'],
+            message: 'Ohne Ratingantworten muss der Mittelwert null sein.',
+          });
+        }
+      } else if (value.mean === null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['mean'],
+          message: 'Mit Ratingantworten ist ein Mittelwert erforderlich.',
+        });
+      } else {
+        const expectedMean =
+          value.buckets.reduce((sum, bucket) => sum + bucket.value * bucket.count, 0) /
+          value.responseCount;
+        if (Math.abs(value.mean - expectedMean) > 1e-12) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['mean'],
+            message: 'Der Ratingmittelwert muss zur vollständigen Verteilung passen.',
+          });
+        }
+      }
+    }),
+  z
+    .object({
+      rule: z.literal('numeric-summary'),
+      unit: z.literal('numeric-responses'),
+      responseCount: z.number().int().nonnegative(),
+      median: z.number().nullable(),
+      standardDeviation: z.number().nonnegative().nullable(),
+      inBandCount: z.number().int().nonnegative(),
+      inBandPercent: z.number().min(0).max(100).nullable(),
+      histogram: z
+        .array(
+          z
+            .object({
+              from: z.number(),
+              to: z.number(),
+              count: z.number().int().nonnegative(),
+              inBand: z.boolean(),
+            })
+            .strict()
+            .superRefine((bucket, ctx) => {
+              if (bucket.from >= bucket.to) {
+                ctx.addIssue({
+                  code: 'custom',
+                  path: ['to'],
+                  message: 'Die obere Histogrammgrenze muss größer als die untere sein.',
+                });
+              }
+            }),
+        )
+        .max(50)
+        .optional(),
+      roundComparison: NumericRoundComparisonSchema.optional(),
+    })
+    .strict()
+    .superRefine((value, ctx) => {
+      if (value.inBandCount > value.responseCount) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['inBandCount'],
+          message: 'Treffer im erwarteten Bereich dürfen die Antwortzahl nicht übersteigen.',
+        });
+      }
+      if (value.responseCount === 0) {
+        if (
+          value.median !== null ||
+          value.standardDeviation !== null ||
+          value.inBandCount !== 0 ||
+          value.inBandPercent !== null ||
+          (value.histogram?.length ?? 0) !== 0 ||
+          value.roundComparison !== undefined
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            message:
+              'Ohne numerische Antworten müssen Kennzahlen, Histogramm und Rundenvergleich leer sein.',
+          });
+        }
+      } else if (value.median === null || value.standardDeviation === null) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Mit numerischen Antworten sind Median und Streuung erforderlich.',
+        });
+      } else if (value.inBandPercent !== null) {
+        const expectedPercent = (value.inBandCount / value.responseCount) * 100;
+        if (Math.abs(value.inBandPercent - expectedPercent) > 0.0001) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['inBandPercent'],
+            message: 'Der In-Band-Anteil muss zur Antwortzahl passen.',
+          });
+        }
+      } else if (
+        value.inBandCount !== 0 ||
+        value.histogram?.some((bucket) => bucket.inBand) ||
+        value.roundComparison !== undefined
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['inBandPercent'],
+          message: 'Ohne erwarteten Bereich müssen In-Band-Zahl und Rundenvergleich leer bleiben.',
+        });
+      }
+      if (
+        value.responseCount > 0 &&
+        value.histogram !== undefined &&
+        value.histogram.reduce((sum, bucket) => sum + bucket.count, 0) !== value.responseCount
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['histogram'],
+          message: 'Das numerische Histogramm muss alle eingeschlossenen Antworten abdecken.',
+        });
+      }
+      const histogram = value.histogram;
+      histogram?.forEach((bucket, bucketIndex) => {
+        const next = histogram[bucketIndex + 1];
+        if (next && bucket.to > next.from) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['histogram', bucketIndex + 1, 'from'],
+            message: 'Numerische Histogramm-Buckets dürfen sich nicht überlappen.',
+          });
+        }
+      });
+      if (
+        value.roundComparison &&
+        (value.roundComparison.round2.responseCount !== value.responseCount ||
+          value.roundComparison.round2.inBandCount !== value.inBandCount)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['roundComparison', 'round2'],
+          message:
+            'Bei vorhandenem Rundenvergleich müssen Population und In-Band-Zahl der effektiven numerischen Übersicht Runde 2 entsprechen.',
+        });
+      }
+    }),
   z
     .object({
       rule: z.literal('score-summary'),
@@ -1377,15 +1798,22 @@ const QuizResultAggregateSourceSchema = z
   })
   .strict()
   .superRefine((value, ctx) => {
-    const questionRule =
+    const questionOnlyRule =
       value.aggregation.rule === 'answer-distribution' ||
-      value.aggregation.rule === 'correctness-summary';
-    if ((value.scope.kind === 'question') !== questionRule) {
+      value.aggregation.rule === 'freetext-pattern-summary' ||
+      value.aggregation.rule === 'correctness-summary' ||
+      value.aggregation.rule === 'rating-summary' ||
+      value.aggregation.rule === 'numeric-summary';
+    const quizOnlyRule = value.aggregation.rule === 'score-summary';
+    if (
+      (questionOnlyRule && value.scope.kind !== 'question') ||
+      (quizOnlyRule && value.scope.kind !== 'quiz')
+    ) {
       ctx.addIssue({
         code: 'custom',
         path: ['aggregation', 'rule'],
         message:
-          'Fragenscope ist nur für Antwortverteilung/Richtigkeitsübersicht zulässig; Quizscope nur für Score/Completion.',
+          'Antwort-, Freitextmuster-, Richtigkeits-, Rating- und numerische Aggregate benötigen Fragenscope; Score benötigt Quizscope; Completion erlaubt beide.',
       });
     }
 
@@ -1461,9 +1889,59 @@ const QuizResultAggregateSourceSchema = z
         });
         break;
       }
-      case 'correctness-summary':
+      case 'freetext-pattern-summary':
+        includedByAggregation = value.aggregation.responseCount;
+        break;
+      case 'correctness-summary': {
         includedByAggregation =
           value.aggregation.correct + value.aggregation.incorrect + value.aggregation.unanswered;
+        const roundComparison = value.aggregation.roundComparison;
+        if (roundComparison) {
+          const effectiveRound =
+            roundComparison.round2.responseCount > 0
+              ? roundComparison.round2
+              : roundComparison.round1;
+          if (
+            value.aggregation.correct !== effectiveRound.correct ||
+            value.aggregation.incorrect !== effectiveRound.incorrect
+          ) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['aggregation', 'roundComparison'],
+              message:
+                'Die Richtigkeitsübersicht muss der effektiven Runde entsprechen: Runde 2 bei vorhandenen Runde-2-Antworten, sonst Runde 1.',
+            });
+          }
+          if (
+            roundComparison.round1.responseCount > value.population.eligible ||
+            roundComparison.round2.responseCount > value.population.eligible
+          ) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['aggregation', 'roundComparison'],
+              message:
+                'Keine Rundenpopulation darf die für diese Frage berechtigte Population übersteigen.',
+            });
+          }
+        }
+        break;
+      }
+      case 'rating-summary':
+      case 'numeric-summary':
+        includedByAggregation = value.aggregation.responseCount;
+        if (
+          value.aggregation.rule === 'numeric-summary' &&
+          value.aggregation.roundComparison &&
+          (value.aggregation.roundComparison.round1.responseCount > value.population.eligible ||
+            value.aggregation.roundComparison.round2.responseCount > value.population.eligible)
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['aggregation', 'roundComparison'],
+            message:
+              'Keine Rundenpopulation darf die für diese Frage berechtigte Population übersteigen.',
+          });
+        }
         break;
       case 'score-summary':
         includedByAggregation = value.aggregation.responseCount;
@@ -1701,6 +2179,23 @@ function addReferenceIssue(
       path,
       message: `Quellenart ${actualKind} ist an dieser Stelle unzulässig.`,
     });
+  }
+}
+
+function observedQuizResponseCount(
+  source: Extract<ModerationPromptSource, { kind: 'quiz-result-aggregate' }>,
+): number {
+  switch (source.aggregation.rule) {
+    case 'answer-distribution':
+    case 'freetext-pattern-summary':
+    case 'rating-summary':
+    case 'numeric-summary':
+    case 'score-summary':
+      return source.aggregation.responseCount;
+    case 'correctness-summary':
+      return source.aggregation.correct + source.aggregation.incorrect;
+    case 'completion-summary':
+      return source.aggregation.completed;
   }
 }
 
@@ -2083,7 +2578,7 @@ function validateCommonDomainContext(value: ModerationDomainContextV1, ctx: z.Re
         return (
           source?.kind === 'quiz-result-aggregate' &&
           availableResultAggregateIds.has(source.id) &&
-          source.population.included > 0
+          observedQuizResponseCount(source) > 0
         );
       });
       const hasObservedFeedbackEvidence = signal.evidence.some((evidence) => {
@@ -2098,7 +2593,7 @@ function validateCommonDomainContext(value: ModerationDomainContextV1, ctx: z.Re
         const source = sourcesById.get(evidence.sourceId);
         return source?.kind === 'quiz-result-aggregate' &&
           availableResultAggregateIds.has(source.id) &&
-          source.population.included > 0
+          observedQuizResponseCount(source) > 0
           ? [source]
           : [];
       });
@@ -2161,6 +2656,8 @@ function validateCommonDomainContext(value: ModerationDomainContextV1, ctx: z.Re
         signal.signal === 'high-best-score' ||
         signal.signal === 'high-controversy' ||
         signal.signal === 'high-frequency' ||
+        signal.signal === 'pinned-question' ||
+        signal.signal === 'pending-moderation' ||
         signal.signal === 'unanswered';
       if (qaSignal && signal.questionSourceIds.length === 0) {
         ctx.addIssue({
@@ -2219,6 +2716,34 @@ function validateCommonDomainContext(value: ModerationDomainContextV1, ctx: z.Re
             path: ['compass', 'signals', signalIndex, 'value'],
             message:
               'Der Wert eines high-frequency-Signals muss der Zahl belegter Q&A-Fragen entsprechen.',
+          });
+        }
+      }
+      if (signal.signal === 'pinned-question') {
+        if (
+          !Number.isInteger(signal.value) ||
+          signal.value !== signal.questionSourceIds.length ||
+          referencedQuestions.some((question) => question.status !== 'PINNED')
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['compass', 'signals', signalIndex, 'value'],
+            message:
+              'Ein pinned-question-Signal zählt genau seine ausdrücklich als PINNED ausgewiesenen Q&A-Fragen.',
+          });
+        }
+      }
+      if (signal.signal === 'pending-moderation') {
+        if (
+          !Number.isInteger(signal.value) ||
+          signal.value !== signal.questionSourceIds.length ||
+          referencedQuestions.some((question) => question.status !== 'PENDING')
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['compass', 'signals', signalIndex, 'value'],
+            message:
+              'Ein pending-moderation-Signal zählt genau seine ausdrücklich als PENDING ausgewiesenen Q&A-Fragen.',
           });
         }
       }

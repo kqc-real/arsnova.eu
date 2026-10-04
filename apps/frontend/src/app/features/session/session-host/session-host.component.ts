@@ -120,6 +120,7 @@ import {
 } from './qa-channel-configuration-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import {
+  collectModerationFeedbackDecision,
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
   resolveNumericTolerance,
@@ -215,9 +216,7 @@ import {
   collectQaNlpCategorySources,
   compassQuestionStem,
   compassTermsFromAnalysisEntries,
-  isNegativeFeedbackKey,
   mergeModerationQuizSources,
-  notableQuickFeedbackSplit,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
   truncateCompassLabel,
@@ -3363,42 +3362,45 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (result?.type === 'TEMPO' || !result) {
       return tempo ? { label: tempo.label, tone: tempo.tone, variant: 'tempo' } : null;
     }
-    if (result.totalVotes < 3) {
+    const decision = collectModerationFeedbackDecision({
+      type: result.type,
+      totalVotes: result.totalVotes,
+      distribution: result.distribution,
+    });
+    if (!decision || decision.variant !== 'feedback') {
       return null;
     }
 
-    const summary = notableQuickFeedbackSplit(result.totalVotes, result.distribution);
     const title = $localize`:@@sessionHost.moderationCardFeedback:Rückmeldungen`;
-    if (summary.starAverage !== null && summary.starAverage <= 2.5) {
-      const avg = formatNumber(summary.starAverage, this.localeId, '1.0-1');
-      return {
-        variant: 'feedback',
-        title,
-        tone: 'caution',
-        label: $localize`:@@sessionHost.moderationFeedbackStars:Durchschnitt ${avg}:avg: von 5 Sternen`,
-      };
-    }
-    if (summary.split) {
-      return {
-        variant: 'feedback',
-        title,
-        tone: 'caution',
-        label: $localize`:@@sessionHost.moderationFeedbackSplit:Die Rückmeldungen sind geteilt.`,
-      };
-    }
-    if (summary.majorityRatio >= 0.6 && summary.majorityKey) {
-      if (!isNegativeFeedbackKey(summary.majorityKey)) {
-        return null;
+    switch (decision.trigger.type) {
+      case 'rating-low': {
+        const avg = formatNumber(decision.trigger.average, this.localeId, '1.0-1');
+        return {
+          variant: 'feedback',
+          title,
+          tone: decision.tone,
+          label: $localize`:@@sessionHost.moderationFeedbackStars:Durchschnitt ${avg}:avg: von 5 Sternen`,
+        };
       }
-      const option = feedbackDisplayLabel(summary.majorityKey, result.type);
-      return {
-        variant: 'feedback',
-        title,
-        tone: 'caution',
-        label: $localize`:@@sessionHost.moderationFeedbackMajority:Die meisten: ${option}:option:`,
-      };
+      case 'split':
+        return {
+          variant: 'feedback',
+          title,
+          tone: decision.tone,
+          label: $localize`:@@sessionHost.moderationFeedbackSplit:Die Rückmeldungen sind geteilt.`,
+        };
+      case 'negative-majority': {
+        const option = feedbackDisplayLabel(decision.trigger.key, result.type);
+        return {
+          variant: 'feedback',
+          title,
+          tone: decision.tone,
+          label: $localize`:@@sessionHost.moderationFeedbackMajority:Die meisten: ${option}:option:`,
+        };
+      }
+      case 'tempo-trend':
+        return null;
     }
-    return null;
   }
 
   private moderationCompassQuizSources(): ModerationCompassSource[] {

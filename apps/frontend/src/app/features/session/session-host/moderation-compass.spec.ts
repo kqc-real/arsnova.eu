@@ -148,6 +148,22 @@ describe('buildModerationCompassCards', () => {
     expect(cards.find((card) => card.kind === 'topics')?.nextStepReason).toBeUndefined();
   });
 
+  it('füllt einen leeren Begriff unter den ersten fünf nicht mit dem sechsten auf', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaTerms: ['Eins', '   ', 'Drei', 'Vier', 'Fünf', 'Sechs'].map((label) => ({
+        label,
+        documentFrequency: 2,
+        sourceCount: 2,
+        memberTexts: [],
+      })),
+    });
+
+    expect(
+      cards.find((card) => card.kind === 'topics')?.sources.map((source) => source.label),
+    ).toEqual(['Eins', 'Drei', 'Vier', 'Fünf']);
+  });
+
   it('mischt Q&A- und Freitext-Begriffe in der Themenkarte', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
@@ -556,6 +572,31 @@ describe('buildModerationCompassCards', () => {
     ).toEqual(['Stark umstritten', 'Leicht umstritten']);
   });
 
+  it('lässt leere Reibungsquellen das Acht-Quellen-Limit nicht verbrauchen', () => {
+    const blank = Array.from({ length: 2 }, (_, index) => ({
+      id: `blank-${index}`,
+      text: '   ',
+      status: 'ACTIVE' as const,
+      isControversial: true,
+      controversyScore: 1 - index * 0.01,
+    }));
+    const visible = Array.from({ length: 9 }, (_, index) => ({
+      id: `visible-${index}`,
+      text: `Sichtbar ${index + 1}`,
+      status: 'ACTIVE' as const,
+      isControversial: true,
+      controversyScore: 0.9 - index * 0.01,
+    }));
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaQuestions: [...blank, ...visible],
+    });
+
+    expect(
+      cards.find((card) => card.kind === 'friction')?.sources.map((source) => source.label),
+    ).toEqual(visible.slice(0, 8).map((question) => question.text));
+  });
+
   it('übernimmt Tempo nur mit vorhandener Tendenz', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
@@ -567,6 +608,123 @@ describe('buildModerationCompassCards', () => {
     ]);
     expect(cards.find((card) => card.kind === 'tempo')?.nextStepReason).toBe('tempo');
     expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
+  });
+
+  it('bewahrt eine neutrale Tempokarte ohne Handlungsvorschlag', () => {
+    expect(
+      buildModerationCompassCards({
+        ...emptySnapshot,
+        tempo: { label: 'Noch keine klare Tendenz.', tone: 'neutral' },
+      }),
+    ).toEqual([
+      {
+        kind: 'tempo',
+        title: undefined,
+        tone: 'neutral',
+        sources: [
+          {
+            kind: 'tempo',
+            label: 'Noch keine klare Tendenz.',
+            target: { channel: 'quickFeedback' },
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('bildet Karten und navigierbare Quellen im gemeinsamen Adapter unverändert ab', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaTerms: [
+        {
+          label: 'Median',
+          documentFrequency: 2,
+          sourceCount: 2,
+          memberTexts: ['Wie berechnet man den Median?'],
+          memberSourceIds: ['topic-question'],
+          sortMode: 'BEST',
+          analysisVariant: 'THEME',
+        },
+      ],
+      qaQuestions: [
+        { id: 'pending-question', text: 'Wartet auf Freigabe?', status: 'PENDING' },
+        {
+          id: 'friction-question',
+          text: 'Ist das umstritten?',
+          status: 'ACTIVE',
+          isControversial: true,
+          controversyScore: 0.8,
+        },
+      ],
+      quizInsightKind: 'scorable',
+      quizSources: [{ kind: 'quiz-result', label: 'Viele lagen daneben.' }],
+      tempo: { label: 'Es wirkt zu schnell.', tone: 'caution' },
+    });
+
+    expect(cards).toEqual([
+      {
+        kind: 'tempo',
+        title: undefined,
+        tone: 'caution',
+        sources: [
+          {
+            kind: 'tempo',
+            label: 'Es wirkt zu schnell.',
+            target: { channel: 'quickFeedback' },
+          },
+        ],
+      },
+      {
+        kind: 'friction',
+        tone: 'caution',
+        sources: [
+          {
+            kind: 'qa-question',
+            label: 'Ist das umstritten?',
+            target: { channel: 'qa', questionId: 'friction-question' },
+          },
+        ],
+      },
+      {
+        kind: 'clarification',
+        tone: 'caution',
+        nextStepReason: 'quiz-confusion',
+        sources: [
+          {
+            kind: 'quiz-result',
+            label: 'Viele lagen daneben.',
+            target: { channel: 'quiz' },
+          },
+          {
+            kind: 'qa-question',
+            label: 'Wartet auf Freigabe?',
+            target: { channel: 'qa', questionId: 'pending-question' },
+          },
+        ],
+      },
+      {
+        kind: 'topics',
+        tone: 'neutral',
+        sources: [
+          {
+            kind: 'qa-term',
+            label: 'Median · Wie berechnet man den Median?',
+            focusHint: 'Median',
+            target: {
+              channel: 'qa',
+              surface: 'word-cloud',
+              termLabel: 'Median',
+              memberText: 'Wie berechnet man den Median?',
+              memberTexts: ['Wie berechnet man den Median?'],
+              questionId: 'topic-question',
+              questionIds: ['topic-question'],
+              sortMode: 'BEST',
+              analysisVariant: 'THEME',
+            },
+          },
+        ],
+      },
+    ]);
   });
 
   it('unterdrückt Karten ohne nachvollziehbare Quelle', () => {
@@ -603,6 +761,21 @@ describe('buildModerationCompassCards', () => {
     expect(clarification?.sources.some((source) => source.kind === 'quiz-result')).toBe(true);
   });
 
+  it('reserviert bei offenen Fragen höchstens zwei Plätze für Quiz-Quellen', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaQuestions: [{ id: 'pending', text: 'Wartet auf Freigabe?', status: 'PENDING' }],
+      quizSources: ['Quiz eins', 'Quiz zwei', 'Quiz drei'].map((label) => ({
+        kind: 'quiz-result' as const,
+        label,
+      })),
+    });
+
+    expect(
+      cards.find((card) => card.kind === 'clarification')?.sources.map((source) => source.label),
+    ).toEqual(['Quiz eins', 'Quiz zwei', 'Wartet auf Freigabe?']);
+  });
+
   it('hängt die Gewichtungsbasis an, wenn in der Themenkarte Platz ist', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
@@ -633,6 +806,32 @@ describe('buildModerationCompassCards', () => {
     expect(cards.find((card) => card.kind === 'topics')?.sources[0]?.label).toBe(
       'Hervorgehoben: Bitte Kapitel 4 erklären',
     );
+  });
+
+  it('ignoriert leere Zusatzquellen vor der priorisierten Themenauswahl', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaTerms: Array.from({ length: 5 }, (_, index) => ({
+        label: `Q&A ${index + 1}`,
+        documentFrequency: 2,
+        sourceCount: 2,
+        memberTexts: [],
+      })),
+      freetextTerms: Array.from({ length: 5 }, (_, index) => ({
+        label: `Freitext ${index + 1}`,
+        documentFrequency: 2,
+        sourceCount: 2,
+        memberTexts: [],
+      })),
+      extraTopicSources: [
+        { kind: 'qa-question', label: '   ' },
+        { kind: 'qa-question', label: 'Hervorgehobene Frage' },
+      ],
+    });
+
+    expect(
+      cards.find((card) => card.kind === 'topics')?.sources.map(({ label }) => label),
+    ).toContain('Hervorgehobene Frage');
   });
 
   it('leitet bei Blitzlicht-Rückmeldungen den nächsten Schritt auf Feedback', () => {
@@ -919,6 +1118,28 @@ describe('collectModerationQuizFacts', () => {
         ],
       }),
     ).toEqual([{ type: 'histogram-peak-out', from: 40, to: 60, share: 75 }]);
+
+    expect(
+      collectModerationQuizFacts({
+        numericStats: { n: 16 },
+        numericHistogram: [
+          { from: 40, to: 60, count: 12, inBand: false },
+          { from: 90, to: 110, count: 4, inBand: true },
+        ],
+      }),
+    ).toEqual([{ type: 'histogram-peak-out', from: 40, to: 60, share: 75 }]);
+  });
+
+  it('deutet ein explizit bandloses numerisches Ergebnis nicht als Histogrammsignal', () => {
+    expect(
+      collectModerationQuizFacts({
+        numericStats: { n: 16, inBandPercent: null },
+        numericHistogram: [
+          { from: 40, to: 60, count: 12, inBand: false },
+          { from: 90, to: 110, count: 4, inBand: true },
+        ],
+      }),
+    ).toEqual([]);
   });
 });
 
@@ -1011,6 +1232,15 @@ describe('resolveModerationCompassAnalysisMode', () => {
     ).toBe('pending');
   });
 
+  it('priorisiert classified vor uncertain', () => {
+    expect(
+      resolveModerationCompassAnalysisMode({
+        enabled: true,
+        statuses: ['uncertain', 'classified'],
+      }),
+    ).toBe('classified');
+  });
+
   it('faellt ohne NLP-Status auf die regelbasierte Basis zurueck', () => {
     expect(resolveModerationCompassAnalysisMode({ enabled: true, statuses: ['disabled'] })).toBe(
       'rule-based',
@@ -1045,6 +1275,12 @@ describe('collectQaNlpCategorySources', () => {
           text: 'WLAN tot',
           status: 'ACTIVE',
           nlp: { status: 'uncertain' },
+        },
+        {
+          id: '55555555-5555-4555-8555-555555555555',
+          text: 'Noch nicht freigegebene Inhaltsfrage',
+          status: 'PENDING',
+          nlp: { status: 'classified', category: 'content' },
         },
       ],
       {

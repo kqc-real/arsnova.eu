@@ -48,11 +48,19 @@ type ModerationSessionRow = {
   code: string;
   type: 'QUIZ' | 'Q_AND_A';
   status: SessionStatus;
+  currentQuestion: number | null;
+  currentRound: number;
+  questionProgress: Prisma.JsonValue | null;
+  questionProgressComplete: boolean;
+  quizId: string | null;
   endedAt: Date | null;
   expiresAt: Date;
   qaEnabled: boolean;
   qaOpen: boolean;
   qaClosesAt: Date | null;
+  quickFeedbackEnabled: boolean;
+  quickFeedbackOpen: boolean;
+  participantCount: number;
   sessionLifecycleRevision: number;
   qaRankingRevision: number;
   participantRevision: number;
@@ -132,18 +140,29 @@ function sessionSelect() {
     code: true,
     type: true,
     status: true,
+    currentQuestion: true,
+    currentRound: true,
+    questionProgress: true,
+    questionProgressComplete: true,
+    quizId: true,
     endedAt: true,
     expiresAt: true,
     qaEnabled: true,
     qaOpen: true,
     qaClosesAt: true,
+    quickFeedbackEnabled: true,
+    quickFeedbackOpen: true,
+    _count: { select: { participants: true } },
     sessionLifecycleRevision: true,
     qaRankingRevision: true,
     participantRevision: true,
   } as const;
 }
 
-function assertHostContentReadAllowed(session: ModerationSessionRow, now: Date): void {
+function assertHostContentReadAllowed(
+  session: Pick<ModerationSessionRow, 'status' | 'endedAt' | 'expiresAt'>,
+  now: Date,
+): void {
   if (
     isSessionEffectivelyFinished(session, now) &&
     !buildSessionRetentionTimeline(session, now).hostPostProcessingAccessAllowed
@@ -172,8 +191,10 @@ export async function loadAuthorizedModerationState(input: {
   await assertHostSessionAccessFromContext(input.access, session.code);
   const now = input.clock?.now() ?? new Date();
   assertHostContentReadAllowed(session, now);
+  const { _count, ...sessionState } = session;
   return {
-    ...session,
+    ...sessionState,
+    participantCount: _count.participants,
     activeSortMode: resolveQaPresenterSortMode(session.id),
     authorizedAt: now,
   };
@@ -897,7 +918,21 @@ function availableRevision(value: string): ModerationSourceRevision {
   return { state: 'available', value };
 }
 
-function assertModerationStateStillCurrent(
+function stableJson(value: Prisma.JsonValue | null | undefined): string {
+  if (value === undefined) return 'null';
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableJson(item)).join(',')}]`;
+  }
+  if (value !== null && typeof value === 'object') {
+    return `{${Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => `${JSON.stringify(key)}:${stableJson(item)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export function assertModerationStateStillCurrent(
   initial: AuthorizedModerationState,
   current: AuthorizedModerationState,
 ): void {
@@ -906,11 +941,19 @@ function assertModerationStateStillCurrent(
     initial.code === current.code &&
     initial.type === current.type &&
     initial.status === current.status &&
+    initial.currentQuestion === current.currentQuestion &&
+    initial.currentRound === current.currentRound &&
+    stableJson(initial.questionProgress) === stableJson(current.questionProgress) &&
+    initial.questionProgressComplete === current.questionProgressComplete &&
+    initial.quizId === current.quizId &&
     initial.endedAt?.getTime() === current.endedAt?.getTime() &&
     initial.expiresAt.getTime() === current.expiresAt.getTime() &&
     initial.qaEnabled === current.qaEnabled &&
     initial.qaOpen === current.qaOpen &&
     initial.qaClosesAt?.getTime() === current.qaClosesAt?.getTime() &&
+    initial.quickFeedbackEnabled === current.quickFeedbackEnabled &&
+    initial.quickFeedbackOpen === current.quickFeedbackOpen &&
+    initial.participantCount === current.participantCount &&
     initial.sessionLifecycleRevision === current.sessionLifecycleRevision &&
     initial.qaRankingRevision === current.qaRankingRevision &&
     initial.participantRevision === current.participantRevision &&

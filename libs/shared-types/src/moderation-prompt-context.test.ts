@@ -13,6 +13,7 @@ import {
   MODERATION_PROMPT_DEFINITION_SET_V1,
   MODERATION_QA_RANKING_SCORE_TOLERANCE,
   ModerationAnalysisContextV1Schema,
+  ModerationCompassSectionSchema,
   ModerationPromptContextV1Schema,
   ModerationPromptDefinitionSetV1Schema,
 } from './moderation-prompt-context.js';
@@ -160,6 +161,7 @@ function addStructuredAggregateEvidence(root: Record<string, unknown>): void {
     sourceId: 'compass-signal:regression-learning-gap',
     signal: 'learning-gap',
     basis: 'learning-gap-rule-score',
+    cardKind: 'clarification',
     questionSourceIds: [],
     value: 0.58,
     reason: 'Das freigegebene Aggregat deutet auf Klärungsbedarf zum Lernziel hin.',
@@ -218,6 +220,9 @@ describe('moderation prompt definition set v1', () => {
     const effectiveVote = MODERATION_PROMPT_DEFINITION_SET_V1.definitions.find(
       ({ key }) => key === 'effective-vote',
     );
+    const roundComparison = MODERATION_PROMPT_DEFINITION_SET_V1.definitions.find(
+      ({ key }) => key === 'round-comparison',
+    );
     expect(bestScore?.caveat).toContain('fachliche Qualität');
     expect(bestScore?.caveat).toContain('Lernstand');
     expect(pending?.caveat).toContain('Klärungsbedarf');
@@ -230,6 +235,8 @@ describe('moderation prompt definition set v1', () => {
     expect(ruleScore?.caveat).toContain('Lernstand');
     expect(effectiveVote?.meaning).toContain('Runde 2');
     expect(effectiveVote?.caveat).toContain('weder addiert');
+    expect(roundComparison?.meaning).toContain('getrennte Populationen');
+    expect(roundComparison?.caveat).toContain('nicht als effektive Abstimmung');
   });
 
   it('rejects duplicate or missing definition keys', () => {
@@ -591,6 +598,21 @@ describe('moderation prompt context v1', () => {
     };
     expect(ModerationPromptContextV1Schema.safeParse(rating).success).toBe(true);
 
+    const freetextPatterns = cloneReference();
+    addStructuredAggregateEvidence(freetextPatterns);
+    const freetextPatternAggregate = sourceById(
+      freetextPatterns,
+      'quiz-result-aggregate:regression-task-1',
+    );
+    recordAt(freetextPatternAggregate, 'population').included = 8;
+    freetextPatternAggregate.aggregation = {
+      rule: 'freetext-pattern-summary',
+      unit: 'responses',
+      responseCount: 8,
+      repeatedPatterns: [{ count: 3 }, { count: 2 }],
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(freetextPatterns).success).toBe(true);
+
     const flashlight = cloneReference();
     addStructuredAggregateEvidence(flashlight);
     sourceById(flashlight, 'feedback-aggregate:regression-block').aggregation = {
@@ -604,6 +626,365 @@ describe('moderation prompt context v1', () => {
       ],
     };
     expect(ModerationPromptContextV1Schema.safeParse(flashlight).success).toBe(true);
+  });
+
+  it('accepts released quiz rating, numeric and versioned round aggregates', () => {
+    const correctness = cloneReference();
+    addStructuredAggregateEvidence(correctness);
+    const correctnessAggregate = sourceById(correctness, 'quiz-result-aggregate:regression-task-1');
+    recordAt(correctnessAggregate, 'population').included = 12;
+    correctnessAggregate.aggregation = {
+      rule: 'correctness-summary',
+      unit: 'responses',
+      correct: 4,
+      incorrect: 6,
+      unanswered: 2,
+      roundComparison: {
+        basis: { kind: 'round-comparison', version: 'round-comparison-v1' },
+        round1: { responseCount: 8, correct: 5, incorrect: 3 },
+        round2: { responseCount: 10, correct: 4, incorrect: 6 },
+      },
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(correctness).success).toBe(true);
+
+    const correctnessBeforeRound2Votes = structuredClone(correctness);
+    const beforeRound2Aggregate = recordAt(
+      sourceById(correctnessBeforeRound2Votes, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    );
+    beforeRound2Aggregate.correct = 5;
+    beforeRound2Aggregate.incorrect = 3;
+    beforeRound2Aggregate.unanswered = 4;
+    Object.assign(recordAt(beforeRound2Aggregate, 'roundComparison', 'round2'), {
+      responseCount: 0,
+      correct: 0,
+      incorrect: 0,
+    });
+    expect(ModerationPromptContextV1Schema.safeParse(correctnessBeforeRound2Votes).success).toBe(
+      true,
+    );
+
+    const rating = cloneReference();
+    addStructuredAggregateEvidence(rating);
+    const ratingAggregate = sourceById(rating, 'quiz-result-aggregate:regression-task-1');
+    recordAt(ratingAggregate, 'population').included = 5;
+    ratingAggregate.aggregation = {
+      rule: 'rating-summary',
+      unit: 'ratings',
+      responseCount: 5,
+      scale: { minimum: 1, maximum: 5 },
+      mean: 2.6,
+      buckets: [
+        { value: 1, count: 1 },
+        { value: 2, count: 1 },
+        { value: 3, count: 2 },
+        { value: 4, count: 1 },
+        { value: 5, count: 0 },
+      ],
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(rating).success).toBe(true);
+
+    const numeric = cloneReference();
+    addStructuredAggregateEvidence(numeric);
+    const numericAggregate = sourceById(numeric, 'quiz-result-aggregate:regression-task-1');
+    recordAt(numericAggregate, 'population').included = 10;
+    numericAggregate.aggregation = {
+      rule: 'numeric-summary',
+      unit: 'numeric-responses',
+      responseCount: 10,
+      median: 42,
+      standardDeviation: 8.5,
+      inBandCount: 4,
+      inBandPercent: 40,
+      histogram: [
+        { from: 20, to: 40, count: 6, inBand: false },
+        { from: 40, to: 60, count: 4, inBand: true },
+      ],
+      roundComparison: {
+        basis: { kind: 'round-comparison', version: 'round-comparison-v1' },
+        round1: { responseCount: 8, inBandCount: 6 },
+        round2: { responseCount: 10, inBandCount: 4 },
+        inBandPercentDelta: -35,
+        pairedAnalysis: {
+          pairedCount: 8,
+          closerCount: 2,
+          fartherCount: 4,
+          unchangedCount: 2,
+        },
+      },
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(numeric).success).toBe(true);
+
+    const numericWithoutHistogram = structuredClone(numeric);
+    delete recordAt(
+      sourceById(numericWithoutHistogram, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    ).histogram;
+    expect(ModerationPromptContextV1Schema.safeParse(numericWithoutHistogram).success).toBe(true);
+
+    const numericWithoutBand = structuredClone(numeric);
+    const numericWithoutBandAggregation = recordAt(
+      sourceById(numericWithoutBand, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    );
+    numericWithoutBandAggregation.inBandCount = 0;
+    numericWithoutBandAggregation.inBandPercent = null;
+    delete numericWithoutBandAggregation.roundComparison;
+    arrayAt(numericWithoutBandAggregation, 'histogram').forEach((bucket) => {
+      recordAt(bucket).inBand = false;
+    });
+    expect(ModerationPromptContextV1Schema.safeParse(numericWithoutBand).success).toBe(true);
+
+    const numericWithoutBandButMarkedBucket = structuredClone(numericWithoutBand);
+    recordAt(
+      sourceById(numericWithoutBandButMarkedBucket, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+      'histogram',
+      0,
+    ).inBand = true;
+    expectPromptIssue(numericWithoutBandButMarkedBucket, 'Ohne erwarteten Bereich');
+
+    const numericWithoutResponses = cloneReference();
+    addStructuredAggregateEvidence(numericWithoutResponses);
+    const emptyNumericAggregate = sourceById(
+      numericWithoutResponses,
+      'quiz-result-aggregate:regression-task-1',
+    );
+    recordAt(emptyNumericAggregate, 'population').included = 0;
+    emptyNumericAggregate.aggregation = {
+      rule: 'numeric-summary',
+      unit: 'numeric-responses',
+      responseCount: 0,
+      median: null,
+      standardDeviation: null,
+      inBandCount: 0,
+      inBandPercent: null,
+      histogram: [],
+    };
+    const emptyNumericSignals = arrayAt(numericWithoutResponses, 'context', 'compass', 'signals');
+    emptyNumericSignals.splice(emptyNumericSignals.length - 1, 1);
+    const emptyNumericSources = arrayAt(numericWithoutResponses, 'context', 'sources');
+    const learningGapSourceIndex = emptyNumericSources.findIndex(
+      (source) => recordAt(source).id === 'compass-signal:regression-learning-gap',
+    );
+    emptyNumericSources.splice(learningGapSourceIndex, 1);
+    expect(ModerationPromptContextV1Schema.safeParse(numericWithoutResponses).success).toBe(true);
+
+    const questionCompletion = cloneReference();
+    addStructuredAggregateEvidence(questionCompletion);
+    const questionCompletionAggregate = sourceById(
+      questionCompletion,
+      'quiz-result-aggregate:regression-task-1',
+    );
+    recordAt(questionCompletionAggregate, 'population').included = 12;
+    questionCompletionAggregate.aggregation = {
+      rule: 'completion-summary',
+      unit: 'responses',
+      completed: 10,
+      incomplete: 2,
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(questionCompletion).success).toBe(true);
+  });
+
+  it('rejects inconsistent rating, numeric and round aggregate evidence', () => {
+    const wrongRatingMean = cloneReference();
+    addStructuredAggregateEvidence(wrongRatingMean);
+    const ratingAggregate = sourceById(wrongRatingMean, 'quiz-result-aggregate:regression-task-1');
+    recordAt(ratingAggregate, 'population').included = 2;
+    ratingAggregate.aggregation = {
+      rule: 'rating-summary',
+      unit: 'ratings',
+      responseCount: 2,
+      scale: { minimum: 1, maximum: 3 },
+      mean: 3,
+      buckets: [
+        { value: 1, count: 1 },
+        { value: 2, count: 1 },
+        { value: 3, count: 0 },
+      ],
+    };
+    expectPromptIssue(wrongRatingMean, 'Ratingmittelwert');
+
+    const wrongNumericRound = cloneReference();
+    addStructuredAggregateEvidence(wrongNumericRound);
+    const numericAggregate = sourceById(
+      wrongNumericRound,
+      'quiz-result-aggregate:regression-task-1',
+    );
+    recordAt(numericAggregate, 'population').included = 4;
+    numericAggregate.aggregation = {
+      rule: 'numeric-summary',
+      unit: 'numeric-responses',
+      responseCount: 4,
+      median: 42,
+      standardDeviation: 2,
+      inBandCount: 2,
+      inBandPercent: 50,
+      histogram: [{ from: 40, to: 50, count: 4, inBand: true }],
+      roundComparison: {
+        basis: { kind: 'round-comparison', version: 'round-comparison-v1' },
+        round1: { responseCount: 4, inBandCount: 1 },
+        round2: { responseCount: 4, inBandCount: 2 },
+        inBandPercentDelta: -25,
+      },
+    };
+    expectPromptIssue(wrongNumericRound, 'Änderung des In-Band-Anteils');
+
+    const incompleteNumericHistogram = structuredClone(wrongNumericRound);
+    const incompleteHistogramAggregation = recordAt(
+      sourceById(incompleteNumericHistogram, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    );
+    recordAt(incompleteHistogramAggregation, 'roundComparison').inBandPercentDelta = 25;
+    recordAt(incompleteHistogramAggregation, 'histogram', 0).count = 3;
+    expectPromptIssue(
+      incompleteNumericHistogram,
+      'Histogramm muss alle eingeschlossenen Antworten',
+    );
+
+    const contradictoryNumericRound = structuredClone(wrongNumericRound);
+    const contradictoryAggregation = recordAt(
+      sourceById(contradictoryNumericRound, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    );
+    recordAt(contradictoryAggregation, 'roundComparison').inBandPercentDelta = 50;
+    recordAt(contradictoryAggregation, 'roundComparison', 'round2').inBandCount = 3;
+    expectPromptIssue(contradictoryNumericRound, 'In-Band-Zahl');
+
+    const missingNumericStatistics = structuredClone(wrongNumericRound);
+    const missingStatisticsAggregation = recordAt(
+      sourceById(missingNumericStatistics, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    );
+    missingStatisticsAggregation.median = null;
+    missingStatisticsAggregation.standardDeviation = null;
+    missingStatisticsAggregation.inBandPercent = null;
+    delete missingStatisticsAggregation.roundComparison;
+    expectPromptIssue(missingNumericStatistics, 'Median und Streuung');
+
+    const wrongRoundVersion = structuredClone(wrongNumericRound);
+    const roundComparison = recordAt(
+      sourceById(wrongRoundVersion, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+      'roundComparison',
+    );
+    roundComparison.inBandPercentDelta = 25;
+    recordAt(roundComparison, 'basis').version = 'round-comparison-v2';
+    expect(ModerationPromptContextV1Schema.safeParse(wrongRoundVersion).success).toBe(false);
+
+    const oversizedRoundPopulation = cloneReference();
+    addStructuredAggregateEvidence(oversizedRoundPopulation);
+    const oversizedAggregate = sourceById(
+      oversizedRoundPopulation,
+      'quiz-result-aggregate:regression-task-1',
+    );
+    recordAt(oversizedAggregate, 'population').eligible = 10;
+    recordAt(oversizedAggregate, 'population').included = 5;
+    oversizedAggregate.aggregation = {
+      rule: 'correctness-summary',
+      unit: 'responses',
+      correct: 3,
+      incorrect: 2,
+      unanswered: 0,
+      roundComparison: {
+        basis: { kind: 'round-comparison', version: 'round-comparison-v1' },
+        round1: { responseCount: 11, correct: 6, incorrect: 5 },
+        round2: { responseCount: 5, correct: 3, incorrect: 2 },
+      },
+    };
+    expectPromptIssue(oversizedRoundPopulation, 'Rundenpopulation');
+
+    const emptyRound2UsedAsEffective = cloneReference();
+    addStructuredAggregateEvidence(emptyRound2UsedAsEffective);
+    const emptyRound2Aggregate = sourceById(
+      emptyRound2UsedAsEffective,
+      'quiz-result-aggregate:regression-task-1',
+    );
+    recordAt(emptyRound2Aggregate, 'population').included = 10;
+    emptyRound2Aggregate.aggregation = {
+      rule: 'correctness-summary',
+      unit: 'responses',
+      correct: 0,
+      incorrect: 0,
+      unanswered: 10,
+      roundComparison: {
+        basis: { kind: 'round-comparison', version: 'round-comparison-v1' },
+        round1: { responseCount: 5, correct: 3, incorrect: 2 },
+        round2: { responseCount: 0, correct: 0, incorrect: 0 },
+      },
+    };
+    expectPromptIssue(emptyRound2UsedAsEffective, 'effektiven Runde');
+  });
+
+  it('rejects inconsistent or identifying free-text pattern aggregates', () => {
+    const makeFreetextPatterns = () => {
+      const context = cloneReference();
+      addStructuredAggregateEvidence(context);
+      const aggregate = sourceById(context, 'quiz-result-aggregate:regression-task-1');
+      recordAt(aggregate, 'population').included = 5;
+      aggregate.aggregation = {
+        rule: 'freetext-pattern-summary',
+        unit: 'responses',
+        responseCount: 5,
+        repeatedPatterns: [{ count: 3 }, { count: 2 }],
+      };
+      return context;
+    };
+
+    const unsorted = makeFreetextPatterns();
+    recordAt(
+      sourceById(unsorted, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    ).repeatedPatterns = [{ count: 2 }, { count: 3 }];
+    expectPromptIssue(unsorted, 'absteigend');
+
+    const overPopulation = makeFreetextPatterns();
+    recordAt(
+      sourceById(overPopulation, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+    ).repeatedPatterns = [{ count: 4 }, { count: 2 }];
+    expectPromptIssue(overPopulation, 'nicht mehr Antworten');
+
+    const zeroWithPattern = makeFreetextPatterns();
+    const zeroAggregate = sourceById(zeroWithPattern, 'quiz-result-aggregate:regression-task-1');
+    recordAt(zeroAggregate, 'population').included = 0;
+    zeroAggregate.aggregation = {
+      rule: 'freetext-pattern-summary',
+      unit: 'responses',
+      responseCount: 0,
+      repeatedPatterns: [{ count: 2 }],
+    };
+    expectPromptIssue(zeroWithPattern, 'Antwortpopulation');
+
+    const identifying = makeFreetextPatterns();
+    recordAt(
+      sourceById(identifying, 'quiz-result-aggregate:regression-task-1'),
+      'aggregation',
+      'repeatedPatterns',
+      0,
+    ).text = 'Rohtext darf nicht gepackt werden';
+    expect(ModerationPromptContextV1Schema.safeParse(identifying).success).toBe(false);
+  });
+
+  it('does not treat an included but unanswered-only result as observed evidence', () => {
+    const unansweredOnly = cloneReference();
+    addStructuredAggregateEvidence(unansweredOnly);
+    const aggregate = sourceById(unansweredOnly, 'quiz-result-aggregate:regression-task-1');
+    recordAt(aggregate, 'population').included = 5;
+    aggregate.aggregation = {
+      rule: 'correctness-summary',
+      unit: 'responses',
+      correct: 0,
+      incorrect: 0,
+      unanswered: 5,
+    };
+    const signals = arrayAt(unansweredOnly, 'context', 'compass', 'signals');
+    Object.assign(recordAt(signals, signals.length - 1), {
+      signal: 'result-pattern',
+      basis: 'released-result-rule-score',
+    });
+
+    expectPromptIssue(unansweredOnly, 'mindestens einer beobachteten Quizantwort');
   });
 
   it('separates the larger pre-packing candidate context from prompt limits', () => {
@@ -683,6 +1064,7 @@ describe('moderation prompt context v1', () => {
     Object.assign(recordAt(resultWithoutAggregate, 'context', 'compass', 'signals', 0), {
       signal: 'result-pattern',
       basis: 'released-result-rule-score',
+      cardKind: 'clarification',
     });
     expectPromptIssue(resultWithoutAggregate, 'result-pattern-Signal benötigt Evidenz');
     expectPromptIssue(resultWithoutAggregate, 'freigegebene Ergebnisse');
@@ -692,6 +1074,7 @@ describe('moderation prompt context v1', () => {
     Object.assign(recordAt(feedbackWithoutAggregate, 'context', 'compass', 'signals', 0), {
       signal: 'feedback-pattern',
       basis: 'feedback-rule-score',
+      cardKind: 'tempo',
     });
     expectPromptIssue(feedbackWithoutAggregate, 'feedback-pattern-Signal benötigt Evidenz');
     expectPromptIssue(feedbackWithoutAggregate, 'verfügbares Feedback');
@@ -707,6 +1090,7 @@ describe('moderation prompt context v1', () => {
     const feedbackPattern = recordAt(signals, 0);
     feedbackPattern.signal = 'feedback-pattern';
     feedbackPattern.basis = 'feedback-rule-score';
+    feedbackPattern.cardKind = 'tempo';
     feedbackPattern.questionSourceIds = [];
     feedbackPattern.evidence = [
       {
@@ -757,6 +1141,7 @@ describe('moderation prompt context v1', () => {
     Object.assign(emptyFeedbackSignal, {
       signal: 'feedback-pattern',
       basis: 'feedback-rule-score',
+      cardKind: 'tempo',
       questionSourceIds: [],
       evidence: [
         {
@@ -809,6 +1194,7 @@ describe('moderation prompt context v1', () => {
     Object.assign(recordAt(unanswered, 'context', 'compass', 'signals', 0), {
       signal: 'unanswered',
       basis: 'unaddressed-question-count',
+      cardKind: 'clarification',
       questionSourceIds: [MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1[0].sourceId],
       value: 1,
       evidence: [
@@ -860,6 +1246,7 @@ describe('moderation prompt context v1', () => {
     Object.assign(recordAt(learningGapWithoutGoal, 'context', 'compass', 'signals', 0), {
       signal: 'learning-gap',
       basis: 'learning-gap-rule-score',
+      cardKind: 'clarification',
       value: 0.5,
     });
     expectPromptIssue(learningGapWithoutGoal, 'verfügbare Lernzielevidenz');
@@ -868,6 +1255,7 @@ describe('moderation prompt context v1', () => {
     Object.assign(recordAt(learningGoalWithoutObservation, 'context', 'compass', 'signals', 0), {
       signal: 'learning-gap',
       basis: 'learning-gap-rule-score',
+      cardKind: 'clarification',
       questionSourceIds: [],
       value: 0.5,
       evidence: [
@@ -878,6 +1266,128 @@ describe('moderation prompt context v1', () => {
       ],
     });
     expectPromptIssue(learningGoalWithoutObservation, 'beobachtete Evidenz');
+  });
+
+  it('keeps pending moderation separate from unanswered and learning-gap signals', () => {
+    const pending = cloneReference();
+    const pendingQuestionId = MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1[0].sourceId;
+    Object.assign(recordAt(pending, 'context', 'compass', 'signals', 0), {
+      signal: 'pending-moderation',
+      basis: 'pending-question-count',
+      cardKind: 'clarification',
+      questionSourceIds: [pendingQuestionId],
+      value: 1,
+      evidence: [
+        {
+          sourceId: pendingQuestionId,
+          detail: 'Die Frage wartet ausschließlich auf die Moderationsfreigabe.',
+        },
+      ],
+      suggestedNextStep: {
+        action: 'review-moderation',
+        rationale: 'Ausstehende Frage prüfen und über ihre Freigabe entscheiden.',
+      },
+    });
+    recordAt(pending, 'context', 'questions', 'items', 0).answerState = {
+      state: 'addressed',
+    };
+    expect(ModerationPromptContextV1Schema.safeParse(pending).success).toBe(true);
+
+    const wrongPendingAction = structuredClone(pending);
+    recordAt(wrongPendingAction, 'context', 'compass', 'signals', 0, 'suggestedNextStep').action =
+      'address-question';
+    expectPromptIssue(wrongPendingAction, 'review-moderation');
+
+    const activeQuestion = structuredClone(pending);
+    recordAt(activeQuestion, 'context', 'questions', 'items', 0).status = 'ACTIVE';
+    expectPromptIssue(activeQuestion, 'ausdrücklich als PENDING');
+
+    const unanswered = structuredClone(pending);
+    Object.assign(recordAt(unanswered, 'context', 'compass', 'signals', 0), {
+      signal: 'unanswered',
+      basis: 'unaddressed-question-count',
+    });
+    expectPromptIssue(unanswered, 'ausdrücklich als unaddressed');
+
+    const learningGap = structuredClone(pending);
+    Object.assign(recordAt(learningGap, 'context', 'compass', 'signals', 0), {
+      signal: 'learning-gap',
+      basis: 'learning-gap-rule-score',
+      questionSourceIds: [],
+      value: 0.5,
+    });
+    expectPromptIssue(learningGap, 'verfügbare Lernzielevidenz');
+    expectPromptIssue(learningGap, 'beobachtete Evidenz');
+  });
+
+  it('represents host-pinned Q&A as its own topic-card signal', () => {
+    const pinned = cloneReference();
+    const pinnedQuestionId = MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1[0].sourceId;
+    recordAt(pinned, 'context', 'questions', 'items', 0).status = 'PINNED';
+    Object.assign(recordAt(pinned, 'context', 'compass', 'signals', 0), {
+      signal: 'pinned-question',
+      basis: 'pinned-question-count',
+      cardKind: 'topics',
+      questionSourceIds: [pinnedQuestionId],
+      value: 1,
+      evidence: [
+        {
+          sourceId: pinnedQuestionId,
+          detail: 'The host explicitly pinned this question.',
+        },
+      ],
+      suggestedNextStep: {
+        action: 'address-question',
+        rationale: 'Keep the host-highlighted question visible in the discussion.',
+      },
+    });
+    expect(ModerationPromptContextV1Schema.safeParse(pinned).success).toBe(true);
+
+    recordAt(pinned, 'context', 'questions', 'items', 0).status = 'ACTIVE';
+    expectPromptIssue(pinned, 'ausdrücklich als PINNED');
+  });
+
+  it('binds signals to canonical card kinds and a contained primary signal', () => {
+    const wrongCard = cloneReference();
+    recordAt(wrongCard, 'context', 'compass', 'signals', 0).cardKind = 'tempo';
+    expectPromptIssue(wrongCard, 'Kartenart topics');
+
+    const reviewWithoutPendingModeration = cloneReference();
+    recordAt(
+      reviewWithoutPendingModeration,
+      'context',
+      'compass',
+      'signals',
+      0,
+      'suggestedNextStep',
+    ).action = 'review-moderation';
+    expectPromptIssue(reviewWithoutPendingModeration, 'review-moderation');
+
+    const missingPrimary = cloneReference();
+    recordAt(missingPrimary, 'context', 'compass').primarySignalSourceId =
+      'compass-signal:not-contained';
+    expectPromptIssue(missingPrimary, 'im selben Kompassabschnitt');
+
+    const noPrimary = cloneReference();
+    recordAt(noPrimary, 'context', 'compass').primarySignalSourceId = null;
+    expectPromptIssue(noPrimary, 'benötigt ein primäres Signal');
+
+    expect(
+      ModerationCompassSectionSchema.safeParse({
+        state: 'available',
+        rulesVersion: 'moderation-compass-rules-v1',
+        signals: [],
+        primarySignalSourceId: null,
+      }).success,
+    ).toBe(true);
+
+    const omittedPrimary = cloneReference();
+    delete recordAt(omittedPrimary, 'context', 'compass').primarySignalSourceId;
+    expect(ModerationPromptContextV1Schema.safeParse(omittedPrimary).success).toBe(false);
+
+    const unknownRuleVersion = cloneReference();
+    recordAt(unknownRuleVersion, 'context', 'compass').rulesVersion = 'moderation-compass-rules-v2';
+    expect(ModerationPromptContextV1Schema.safeParse(unknownRuleVersion).success).toBe(false);
   });
 
   it('rejects topic, learning and feedback sources without their available section', () => {

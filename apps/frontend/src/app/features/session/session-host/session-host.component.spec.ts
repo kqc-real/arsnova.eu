@@ -26240,7 +26240,51 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       const tempo = component.moderationCompassCards().find((card) => card.kind === 'tempo');
       expect(tempo?.title).toBe('Rückmeldungen');
-      expect(tempo?.sources[0]?.label).toContain('Die meisten:');
+      expect(tempo?.sources[0]?.label).toBe('Die meisten: 😟');
+      expect(tempo?.nextStepReason).toBe('feedback');
+      fixture.destroy();
+    });
+
+    it('lokalisiert eine niedrige Sternebewertung aus der gemeinsamen Feedbackregel', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      component.quickFeedbackResult.set({
+        type: 'STARS',
+        locked: false,
+        totalVotes: 10,
+        distribution: { '1': 4, '2': 4, '5': 2 },
+      });
+      fixture.detectChanges();
+
+      const tempo = component.moderationCompassCards().find((card) => card.kind === 'tempo');
+      expect(tempo?.title).toBe('Rückmeldungen');
+      expect(tempo?.sources[0]?.label).toBe('Durchschnitt 2.2 von 5 Sternen');
+      expect(tempo?.nextStepReason).toBe('feedback');
+      fixture.destroy();
+    });
+
+    it('lokalisiert geteilte Rückmeldungen aus der gemeinsamen Feedbackregel', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+
+      component.quickFeedbackResult.set({
+        type: 'MOOD',
+        locked: false,
+        totalVotes: 10,
+        distribution: { POSITIVE: 5, NEGATIVE: 5 },
+      });
+      fixture.detectChanges();
+
+      const tempo = component.moderationCompassCards().find((card) => card.kind === 'tempo');
+      expect(tempo?.title).toBe('Rückmeldungen');
+      expect(tempo?.sources[0]?.label).toBe('Die Rückmeldungen sind geteilt.');
       expect(tempo?.nextStepReason).toBe('feedback');
       fixture.destroy();
     });
