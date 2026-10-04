@@ -1508,6 +1508,34 @@ describe('QuizStoreService', () => {
     expect(ensureShareRegisteredAndConnect).not.toHaveBeenCalled();
   });
 
+  it('behält Pending bei einem identischen Storage-Token aus einem anderen Tab', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const importedToken = `v1.${roomId}.3.${'e'.repeat(43)}`;
+    const internals = service as unknown as {
+      initYjsPersistence: ReturnType<typeof vi.fn>;
+      pendingImportedShareToken: object | null;
+      pendingImportedQuizRestore: object | null;
+    };
+    internals.initYjsPersistence = vi.fn();
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+    const pendingShare = internals.pendingImportedShareToken;
+    const pendingRestore = internals.pendingImportedQuizRestore;
+
+    globalThis.dispatchEvent(
+      new StorageEvent('storage', {
+        key: `quiz-sync-share-token:${roomId}`,
+        newValue: importedToken,
+      }),
+    );
+
+    expect(service.syncShareStatus()).toBe('pending');
+    expect(service.syncShareToken()).toBe(importedToken);
+    expect(internals.pendingImportedShareToken).toBe(pendingShare);
+    expect(internals.pendingImportedQuizRestore).toBe(pendingRestore);
+  });
+
   it('behält Pending auch bei abgewiesenen Reimport-Links desselben Raums', () => {
     const service = TestBed.inject(QuizStoreService);
     const roomId = service.syncRoomId();

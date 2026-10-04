@@ -1112,6 +1112,51 @@ describe('session learning-objective service', () => {
     expect(tx.sessionLearningObjective.update).not.toHaveBeenCalled();
   });
 
+  it('keeps a legacy question reference resolved when the identical quiz is reattached', async () => {
+    const tx = txMock();
+    const legacyQuestion = {
+      id: OLD_QUESTION_ID,
+      sourceQuestionId: null,
+      text: 'Legacy-Frage',
+      type: 'SINGLE_CHOICE',
+      answers: [{ text: 'Ja', isCorrect: true }],
+    };
+    tx.sessionLearningObjective.findMany.mockResolvedValue([
+      objectiveRow({
+        projection: 'SESSION_OVERRIDE',
+        references: objectiveRow().references.map((reference) => ({
+          ...reference,
+          sourceReferenceId: OLD_QUESTION_ID,
+          quizQuestionId: OLD_QUESTION_ID,
+          quizQuestion: legacyQuestion,
+        })),
+      }),
+    ]);
+    tx.question.findMany.mockResolvedValue([legacyQuestion]);
+    tx.quizLearningObjectiveBundle.findUnique.mockResolvedValue(null);
+
+    await replaceSessionQuizLearningObjectives({
+      tx: tx as unknown as Prisma.TransactionClient,
+      sessionId: SESSION_ID,
+      previousQuizId: QUIZ_A_ID,
+      quizId: QUIZ_A_ID,
+      currentRevision: 5,
+      currentConfigured: true,
+    });
+
+    expect(tx.sessionLearningObjectiveReference.update).toHaveBeenCalledTimes(2);
+    for (const call of tx.sessionLearningObjectiveReference.update.mock.calls) {
+      expect(call[0]).toMatchObject({
+        data: {
+          sourceReferenceId: OLD_QUESTION_ID,
+          quizQuestionId: OLD_QUESTION_ID,
+          unresolvedReason: null,
+        },
+      });
+    }
+    expect(tx.sessionLearningObjective.update).not.toHaveBeenCalled();
+  });
+
   it('serializes unresolved task and derivation rows with one stable source identity', async () => {
     const unresolved = objectiveRow({
       revision: 3,

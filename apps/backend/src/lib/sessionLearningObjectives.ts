@@ -1136,7 +1136,7 @@ export async function replaceSessionQuizLearningObjectives(input: {
       },
     }),
     input.tx.question.findMany({
-      where: { quizId: input.quizId, sourceQuestionId: { not: null } },
+      where: { quizId: input.quizId },
       select: learningSourceQuestionSelect,
     }),
     loadQuizBundle(input.tx, input.quizId),
@@ -1160,9 +1160,7 @@ export async function replaceSessionQuizLearningObjectives(input: {
   }
   const manualRows = loadedOwnedRows.filter((row) => !retiredTombstoneIds.includes(row.id));
   const newQuestionBySourceId = new Map<string, LearningSourceQuestion>(
-    newQuestions.flatMap((question) =>
-      question.sourceQuestionId ? [[question.sourceQuestionId, question] as const] : [],
-    ),
+    newQuestions.map((question) => [question.sourceQuestionId ?? question.id, question]),
   );
   const referenceRemaps: QuizReferenceRemap[] = [];
 

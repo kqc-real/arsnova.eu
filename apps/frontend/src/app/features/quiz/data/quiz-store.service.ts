@@ -4914,8 +4914,7 @@ export class QuizStoreService implements OnDestroy {
 
     const normalized = candidate.trim();
     const changed = currentToken !== normalized;
-    const repeatedPendingImport =
-      source === 'import' &&
+    const repeatedPendingToken =
       !changed &&
       this.pendingImportedShareToken?.roomId === roomId &&
       this.pendingImportedShareToken.token === normalized &&
@@ -4939,10 +4938,10 @@ export class QuizStoreService implements OnDestroy {
         providerSerialized: null,
       };
       this.syncShareStatus.set('pending');
-    } else if (repeatedPendingImport) {
-      // Opening the same share URL again must not turn an unfinished import
-      // into a confirmed one. In particular, retain the failed-cache state so
-      // a later provider sync cannot persist the token without cache recovery.
+    } else if (repeatedPendingToken) {
+      // Reopening the same share URL or observing the same token from another
+      // tab must not turn an unfinished import into a confirmed one. Retain
+      // the failed-cache state until this tab completes its own restore gates.
       this.syncShareStatus.set('pending');
     } else {
       this.pendingImportedShareToken = null;
