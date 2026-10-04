@@ -1508,6 +1508,48 @@ describe('QuizStoreService', () => {
     expect(ensureShareRegisteredAndConnect).not.toHaveBeenCalled();
   });
 
+  it('behält Pending auch bei abgewiesenen Reimport-Links desselben Raums', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const importedToken = `v1.${roomId}.3.${'d'.repeat(43)}`;
+    const initYjsPersistence = vi.fn();
+    const ensureShareRegisteredAndConnect = vi.fn();
+    const internals = service as unknown as {
+      initYjsPersistence: typeof initYjsPersistence;
+      ensureShareRegisteredAndConnect: typeof ensureShareRegisteredAndConnect;
+      pendingImportedShareToken: object | null;
+      pendingImportedQuizRestore: {
+        persistenceStarted: boolean;
+        providerSynced: boolean;
+      } | null;
+    };
+    internals.initYjsPersistence = initYjsPersistence;
+    internals.ensureShareRegisteredAndConnect = ensureShareRegisteredAndConnect;
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+    const pendingShare = internals.pendingImportedShareToken;
+    const pendingRestore = internals.pendingImportedQuizRestore;
+    pendingRestore!.persistenceStarted = true;
+    pendingRestore!.providerSynced = true;
+
+    const rejectedTokens = [
+      'kein-token',
+      `v1.${roomId}.2.${'e'.repeat(43)}`,
+      `v1.${roomId}.3.${'f'.repeat(43)}`,
+    ];
+    for (const rejectedToken of rejectedTokens) {
+      service.activateSyncRoom(roomId, { markShared: true, shareToken: rejectedToken });
+
+      expect(service.syncShareStatus()).toBe('pending');
+      expect(service.syncShareToken()).toBe(importedToken);
+      expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBeNull();
+      expect(internals.pendingImportedShareToken).toBe(pendingShare);
+      expect(internals.pendingImportedQuizRestore).toBe(pendingRestore);
+    }
+    expect(initYjsPersistence).toHaveBeenCalledOnce();
+    expect(ensureShareRegisteredAndConnect).not.toHaveBeenCalled();
+  });
+
   it('finalisiert einen importierten Share erst nach Provider- und IndexedDB-Sync', async () => {
     vi.stubGlobal('indexedDB', {});
     const service = TestBed.inject(QuizStoreService);

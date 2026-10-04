@@ -4888,9 +4888,14 @@ export class QuizStoreService implements OnDestroy {
     candidate: string,
     source: 'import' | 'storage',
   ): boolean {
+    const hasPendingImport =
+      this.pendingImportedShareToken?.roomId === roomId &&
+      this.pendingImportedQuizRestore?.roomId === roomId;
     const incoming = parseSyncShareToken(candidate);
     if (!incoming || incoming.roomId !== roomId.toLowerCase()) {
-      this.syncShareStatus.set(this.syncShareToken() ? 'ready' : 'error');
+      this.syncShareStatus.set(
+        hasPendingImport ? 'pending' : this.syncShareToken() ? 'ready' : 'error',
+      );
       this.syncShareError.set($localize`Ungültiger Sync-Share-Token wurde ignoriert.`);
       return false;
     }
@@ -4902,7 +4907,7 @@ export class QuizStoreService implements OnDestroy {
       (current.generation > incoming.generation ||
         (current.generation === incoming.generation && currentToken !== candidate.trim()))
     ) {
-      this.syncShareStatus.set('ready');
+      this.syncShareStatus.set(hasPendingImport ? 'pending' : 'ready');
       this.syncShareError.set($localize`Ein älterer Sync-Link wurde ignoriert.`);
       return false;
     }
