@@ -6520,6 +6520,7 @@ export const SubmitQaQuestionInputSchema = z.object({
   participantId: z.uuid(),
   text: z
     .string()
+    .trim()
     .min(1)
     .refine((value) => qaTextCodePointLength(value) <= QA_QUESTION_TEXT_MAX_CODE_POINTS, {
       message: `Frage darf maximal ${QA_QUESTION_TEXT_MAX_CODE_POINTS} Zeichen haben.`,

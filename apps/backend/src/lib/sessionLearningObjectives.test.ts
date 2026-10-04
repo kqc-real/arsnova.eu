@@ -248,6 +248,25 @@ describe('session learning-objective service', () => {
     expect(snapshot.availableQaTasksTruncated).toBe(true);
   });
 
+  it('ignores legacy blank Q&A questions and normalizes surrounding whitespace', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(sessionRow({ quizId: null }));
+    prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([
+      { id: QA_QUESTION_ID, text: '   ' },
+      { id: '00000000-0000-4000-8004-000000000002', text: '  Gültige Frage  ' },
+    ]);
+
+    const snapshot = await getSessionLearningObjectives('abc123', NOW);
+
+    expect(snapshot.availableQaTasks).toEqual([
+      {
+        kind: 'qa-question',
+        questionId: '00000000-0000-4000-8004-000000000002',
+        text: 'Gültige Frage',
+      },
+    ]);
+  });
+
   it('keeps finished-session reads immutable only during the host post-processing window', async () => {
     prismaMock.session.findUnique.mockResolvedValue(
       sessionRow({

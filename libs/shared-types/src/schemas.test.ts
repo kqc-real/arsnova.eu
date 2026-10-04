@@ -107,6 +107,7 @@ describe('öffentliche Contract-Schemas', () => {
     const atLimit = '😀'.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS);
     expect(atLimit.length).toBe(QA_QUESTION_TEXT_MAX_CODE_POINTS * 2);
     expect(SubmitQaQuestionInputSchema.safeParse({ ...base, text: atLimit }).success).toBe(true);
+    expect(SubmitQaQuestionInputSchema.safeParse({ ...base, text: '   ' }).success).toBe(false);
     expect(
       SubmitQaQuestionInputSchema.safeParse({
         ...base,

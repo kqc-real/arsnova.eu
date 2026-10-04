@@ -333,10 +333,9 @@ async function snapshotWithDb(
       take: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1,
     }),
   ]);
-  const availableQaTasks = availableQaTaskCandidates.slice(
-    0,
-    SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
-  );
+  const availableQaTasks = availableQaTaskCandidates
+    .filter((question) => question.text.trim().length > 0)
+    .slice(0, SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX);
   return SessionLearningObjectivesSnapshotSchema.parse({
     schemaVersion: SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION,
     sessionId: session.id,
@@ -352,7 +351,7 @@ async function snapshotWithDb(
     availableQaTasks: availableQaTasks.map((question) => ({
       kind: 'qa-question' as const,
       questionId: question.id,
-      text: question.text,
+      text: question.text.trim(),
     })),
     availableQaTasksTruncated:
       availableQaTaskCandidates.length > SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,

@@ -1192,6 +1192,11 @@ export class QuizStoreService implements OnDestroy {
     token: string;
     previousToken: string | null;
   } | null = null;
+  private pendingImportedQuizRestore: {
+    roomId: string;
+    baselineSerialized: string;
+    latestSerialized: string;
+  } | null = null;
   private yjsInitGeneration = 0;
   private yjsProviderAttachGeneration = 0;
   private hostLibraryStarted = false;
@@ -2895,6 +2900,14 @@ export class QuizStoreService implements OnDestroy {
     }
 
     this.loadFromStorage(normalizedRoomId, false);
+    if (this.pendingImportedShareToken?.roomId === normalizedRoomId) {
+      const serialized = this.serializeQuizDocuments();
+      this.pendingImportedQuizRestore = {
+        roomId: normalizedRoomId,
+        baselineSerialized: serialized,
+        latestSerialized: serialized,
+      };
+    }
     void this.initYjsPersistence(normalizedRoomId);
   }
 
@@ -3062,6 +3075,15 @@ export class QuizStoreService implements OnDestroy {
     this.recordLocalChange();
     const serialized = this.serializeQuizDocuments();
     const serializedLearningObjectives = this.serializeLearningObjectiveBundles();
+    if (
+      !this.isApplyingYjsSnapshot &&
+      this.pendingImportedShareToken?.roomId === this.syncRoomId()
+    ) {
+      const pendingRestore = this.pendingImportedQuizRestore;
+      if (pendingRestore?.roomId === this.syncRoomId()) {
+        pendingRestore.latestSerialized = serialized;
+      }
+    }
     this.capturePendingInitialLearningObjectiveOperations();
     this.persistLocalMirror(serialized);
     this.persistLearningObjectiveMirror(serializedLearningObjectives);
@@ -3590,9 +3612,14 @@ export class QuizStoreService implements OnDestroy {
 
     const hasQuizSnapshot = typeof this.yRoot?.get(QUIZ_YDOC_ROOT_KEY) === 'string';
     if (hasQuizSnapshot) {
-      this.applyYjsSnapshot();
+      if (this.applyYjsSnapshot()) {
+        this.reapplyPendingImportedQuizChanges();
+      }
     } else if (this.quizDocuments().length > 0) {
+      this.pendingImportedQuizRestore = null;
       this.writeYjsSnapshot();
+    } else {
+      this.pendingImportedQuizRestore = null;
     }
 
     const hasPresetSnapshot = typeof this.yRoot?.get(QUIZ_YDOC_PRESET_KEY) === 'string';
@@ -3842,16 +3869,22 @@ export class QuizStoreService implements OnDestroy {
     this.persistLearningObjectiveMirror(serialized);
   }
 
-  private applyYjsSnapshot(): void {
-    if (!this.yRoot) return;
+  private applyYjsSnapshot(): boolean {
+    if (!this.yRoot) return false;
 
     const raw = this.yRoot.get(QUIZ_YDOC_ROOT_KEY);
-    if (typeof raw !== 'string') return;
-    if (raw === this.lastSerializedQuizDocuments && this.lastSerializedRoomId === this.syncRoomId())
-      return;
+    if (typeof raw !== 'string') return false;
+    if (
+      this.pendingImportedQuizRestore?.roomId !== this.syncRoomId() &&
+      raw === this.lastSerializedQuizDocuments &&
+      this.lastSerializedRoomId === this.syncRoomId()
+    ) {
+      return true;
+    }
 
     let demoReseeded = false;
     let learningObjectivesChanged = false;
+    let applied = false;
     try {
       const parsed = JSON.parse(raw) as unknown;
       const validQuizzes = normalizeStoredQuizzes(parsed);
@@ -3875,6 +3908,7 @@ export class QuizStoreService implements OnDestroy {
       } else {
         this.persistToStorage();
       }
+      applied = true;
     } catch {
       // Ignore malformed CRDT payload and keep current in-memory state.
     } finally {
@@ -3890,6 +3924,48 @@ export class QuizStoreService implements OnDestroy {
         this.writeYjsSnapshot(undefined, serializedLearningObjectives);
       }
     }
+    return applied;
+  }
+
+  private reapplyPendingImportedQuizChanges(): void {
+    const pending = this.pendingImportedQuizRestore;
+    if (!pending || pending.roomId !== this.syncRoomId()) return;
+
+    let baseline: QuizDocument[];
+    let latest: QuizDocument[];
+    try {
+      baseline = normalizeStoredQuizzes(JSON.parse(pending.baselineSerialized) as unknown);
+      latest = normalizeStoredQuizzes(JSON.parse(pending.latestSerialized) as unknown);
+    } catch {
+      this.pendingImportedQuizRestore = null;
+      return;
+    }
+    this.pendingImportedQuizRestore = null;
+
+    const baselineById = new Map(baseline.map((quiz) => [quiz.id, quiz]));
+    const latestById = new Map(latest.map((quiz) => [quiz.id, quiz]));
+    const mergedById = new Map(this.quizDocuments().map((quiz) => [quiz.id, quiz]));
+    let changed = false;
+
+    for (const quiz of latest) {
+      const before = baselineById.get(quiz.id);
+      if (before && JSON.stringify(before) === JSON.stringify(quiz)) continue;
+      mergedById.set(quiz.id, quiz);
+      changed = true;
+    }
+    for (const quiz of baseline) {
+      if (latestById.has(quiz.id)) continue;
+      changed = mergedById.delete(quiz.id) || changed;
+    }
+    if (!changed) return;
+
+    const merged = [...mergedById.values()].sort(
+      (left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
+    );
+    this.quizDocuments.set(merged);
+    const serialized = JSON.stringify(merged);
+    this.persistLocalMirror(serialized);
+    this.writeYjsSnapshot(serialized);
   }
 
   private reconcileRemoteQuestionChanges(
@@ -4252,6 +4328,7 @@ export class QuizStoreService implements OnDestroy {
     if (!this.yRoot || !this.yLearningObjectivesRoot || !this.yDoc || this.isApplyingYjsSnapshot) {
       return;
     }
+    if (this.pendingImportedShareToken?.roomId === this.syncRoomId()) return;
     const payload = serialized ?? this.serializeQuizDocuments();
     const deferLearningObjectives = this.learningObjectiveYjsRestorePending;
     try {
@@ -4397,6 +4474,7 @@ export class QuizStoreService implements OnDestroy {
   private loadShareSecrets(roomId: string): void {
     if (this.pendingImportedShareToken?.roomId !== roomId) {
       this.pendingImportedShareToken = null;
+      this.pendingImportedQuizRestore = null;
     }
     if (!isPlatformBrowser(this.platformId)) {
       this.syncShareToken.set(null);
@@ -4446,6 +4524,8 @@ export class QuizStoreService implements OnDestroy {
       queueMicrotask(() => {
         void this.attachYjsWebSocketProviderIfNeeded(this.yjsInitGeneration, roomId);
       });
+    } else {
+      this.pendingImportedQuizRestore = null;
     }
   }
 
@@ -4487,9 +4567,16 @@ export class QuizStoreService implements OnDestroy {
         token: normalized,
         previousToken: currentToken,
       };
+      const serialized = this.serializeQuizDocuments();
+      this.pendingImportedQuizRestore = {
+        roomId,
+        baselineSerialized: serialized,
+        latestSerialized: serialized,
+      };
       this.syncShareStatus.set('pending');
     } else {
       this.pendingImportedShareToken = null;
+      this.pendingImportedQuizRestore = null;
       this.syncShareStatus.set('ready');
     }
     this.syncShareError.set(null);

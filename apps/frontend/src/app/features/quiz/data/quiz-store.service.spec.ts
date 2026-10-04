@@ -1475,24 +1475,39 @@ describe('QuizStoreService', () => {
       beginLearningObjectiveYjsRestore: (roomId: string) => void;
       confirmPendingImportedShareToken: (roomId: string, token: string) => void;
       syncFromYjsOrSeed: () => void;
+      applyYjsSnapshot: () => boolean;
+      serializeQuizDocuments: () => string;
     };
     internals.initYjsPersistence = vi.fn().mockResolvedValue(undefined);
+
+    service.createQuiz({ name: 'Remote vorhanden' });
+    const remoteSerialized = internals.serializeQuizDocuments();
 
     service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
     internals.beginLearningObjectiveYjsRestore(roomId);
     internals.yDoc = yDoc;
     internals.yRoot = yRoot;
     internals.yLearningObjectivesRoot = yObjectives;
+    yRoot.set('quizzes', remoteSerialized);
 
+    const earlyLocalQuiz = service.createQuiz({ name: 'Frühe lokale Änderung' });
+
+    // Yjs kann Remote-Updates bereits vor dem abschließenden provider.sync-Event beobachten.
+    internals.applyYjsSnapshot();
     internals.syncFromYjsOrSeed();
 
-    expect(yRoot.has('quizzes')).toBe(false);
+    expect(yRoot.get('quizzes')).toBe(remoteSerialized);
     expect(yRoot.has('quiz-learning-objectives-v1-initialized')).toBe(false);
 
     internals.confirmPendingImportedShareToken(roomId, importedToken);
     internals.syncFromYjsOrSeed();
 
-    expect(yRoot.get('quizzes')).toBe('[]');
+    expect(service.quizzes().map((quiz) => quiz.name)).toEqual(
+      expect.arrayContaining(['Remote vorhanden', 'Frühe lokale Änderung']),
+    );
+    expect(
+      (JSON.parse(yRoot.get('quizzes') ?? '[]') as Array<{ id: string }>).map((quiz) => quiz.id),
+    ).toEqual(expect.arrayContaining([earlyLocalQuiz.id]));
     expect(yRoot.get('quiz-learning-objectives-v1-initialized')).toBe('1');
   });
 
