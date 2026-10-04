@@ -576,6 +576,7 @@ const QUIZ_LEARNING_OBJECTIVES_OPLOG_HARD_LIMIT = 4096;
 const QUIZ_LEARNING_OBJECTIVES_OPLOG_RECENT_PER_OBJECTIVE = 8;
 const QUIZ_LEARNING_OBJECTIVES_DELETE_SETTLEMENT_MS = 1500;
 const QUIZ_IMPORTED_PERSISTENCE_SYNC_TIMEOUT_MS = 5000;
+const QUIZ_IMPORTED_PERSISTENCE_CLEAR_TIMEOUT_MS = 1000;
 const QUIZ_SYNC_ROOM_STORAGE_KEY = 'quiz-sync-room-id';
 const QUIZ_SYNC_METADATA_PREFIX = 'quiz-sync-meta';
 const QUIZ_SYNC_DEVICE_ID_KEY = 'quiz-sync-device-id';
@@ -3405,7 +3406,7 @@ export class QuizStoreService implements OnDestroy {
     this.clearPendingImportedPersistenceSyncTimeout();
     this.pendingImportedPersistenceSyncTimeoutId = setTimeout(() => {
       this.pendingImportedPersistenceSyncTimeoutId = null;
-      this.recoverPendingImportedPersistenceFailure(roomId, yDoc, generation, persistence);
+      void this.recoverPendingImportedPersistenceFailure(roomId, yDoc, generation, persistence);
     }, QUIZ_IMPORTED_PERSISTENCE_SYNC_TIMEOUT_MS);
   }
 
@@ -3415,12 +3416,12 @@ export class QuizStoreService implements OnDestroy {
     this.pendingImportedPersistenceSyncTimeoutId = null;
   }
 
-  private recoverPendingImportedPersistenceFailure(
+  private async recoverPendingImportedPersistenceFailure(
     roomId: string,
     yDoc: YDoc,
     generation: number,
     persistence: IndexedDbPersistenceInstance | null = null,
-  ): void {
+  ): Promise<void> {
     if (!this.canUseYjsSetupResult(generation, roomId) || this.yDoc !== yDoc) return;
     if (
       this.pendingImportedShareToken?.roomId !== roomId ||
@@ -3435,13 +3436,72 @@ export class QuizStoreService implements OnDestroy {
     this.clearPendingImportedPersistenceSyncTimeout();
     if (persistence !== null) {
       this.yPersistence = null;
-      try {
-        void Promise.resolve(persistence.destroy()).catch(() => undefined);
-      } catch {
-        // The broken cache is already detached from the active document.
+      const cacheCleared = await this.clearFailedImportedPersistence(roomId, persistence);
+      if (
+        !this.canUseYjsSetupResult(generation, roomId) ||
+        this.yDoc !== yDoc ||
+        this.yPersistence !== null ||
+        this.pendingImportedShareToken?.roomId !== roomId ||
+        this.pendingImportedQuizRestore?.roomId !== roomId
+      ) {
+        return;
+      }
+      if (!cacheCleared) {
+        // Never confirm an import while a known stale cache could be attached
+        // normally on the next reload and forwarded to the live relay.
+        this.teardownYjs();
+        this.syncConnectionState.set('disconnected');
+        return;
       }
     }
     this.handleInitialYjsSourceSynced(roomId, 'persistence');
+  }
+
+  private async clearFailedImportedPersistence(
+    roomId: string,
+    persistence: IndexedDbPersistenceInstance,
+  ): Promise<boolean> {
+    let clearTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    const clearResult = await Promise.race([
+      Promise.resolve()
+        .then(() => persistence.clearData())
+        .then(
+          () => true,
+          () => false,
+        ),
+      new Promise<boolean>((resolve) => {
+        clearTimeoutId = setTimeout(
+          () => resolve(false),
+          QUIZ_IMPORTED_PERSISTENCE_CLEAR_TIMEOUT_MS,
+        );
+      }),
+    ]);
+    if (clearTimeoutId !== null) clearTimeout(clearTimeoutId);
+    if (clearResult) return true;
+
+    return this.deleteIndexedDbDatabase(`${QUIZ_YDOC_NAME}:${roomId}`);
+  }
+
+  private deleteIndexedDbDatabase(name: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (deleted: boolean): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        resolve(deleted);
+      };
+      const timeoutId = setTimeout(() => finish(false), QUIZ_IMPORTED_PERSISTENCE_CLEAR_TIMEOUT_MS);
+      try {
+        const request = globalThis.indexedDB.deleteDatabase(name);
+        request.onsuccess = () => finish(true);
+        request.onerror = () => finish(false);
+        // A blocked deletion stays pending until the old connection closes;
+        // only onsuccess proves that a later reload cannot restore stale data.
+      } catch {
+        finish(false);
+      }
+    });
   }
 
   /** Yjs-WebSocket nur bei geteilter Bibliothek – lokal reicht IndexedDB (keine WS-Konsolenfehler ohne Server). */
@@ -3743,7 +3803,7 @@ export class QuizStoreService implements OnDestroy {
           const generation = this.yjsInitGeneration;
           void this.attachYjsIndexedDbPersistence(roomId, yDoc, generation).catch(() => {
             if (this.canUseYjsSetupResult(generation, roomId) && this.yDoc === yDoc) {
-              this.recoverPendingImportedPersistenceFailure(roomId, yDoc, generation);
+              void this.recoverPendingImportedPersistenceFailure(roomId, yDoc, generation);
             }
           });
         }

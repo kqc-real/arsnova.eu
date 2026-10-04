@@ -1754,12 +1754,17 @@ describe('QuizStoreService', () => {
       const yLearningObjectivesRoot = yDoc.getMap<string>('quiz-learning-objectives-v1');
       const roomId = '00000000-0000-4000-8000-000000000459';
       const importedToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
-      const destroyPersistence = vi.fn().mockResolvedValue(undefined);
-      const reconnect = vi.fn().mockResolvedValue(undefined);
+      const lifecycle: string[] = [];
+      const clearPersistence = vi.fn().mockImplementation(async () => {
+        lifecycle.push('cache-cleared');
+      });
+      const reconnect = vi.fn().mockImplementation(async () => {
+        lifecycle.push('provider-reconnect');
+      });
 
       class NeverSyncedPersistence {
         readonly synced = false;
-        readonly destroy = destroyPersistence;
+        readonly clearData = clearPersistence;
         readonly once = vi.fn();
       }
 
@@ -1823,16 +1828,104 @@ describe('QuizStoreService', () => {
 
       await vi.advanceTimersByTimeAsync(5000);
 
-      expect(destroyPersistence).toHaveBeenCalledOnce();
+      expect(clearPersistence).toHaveBeenCalledOnce();
       expect(internals.yPersistence).toBeNull();
       expect(internals.pendingImportedPersistenceSyncTimeoutId).toBeNull();
       expect(internals.pendingImportedShareToken).toBeNull();
       expect(internals.pendingImportedQuizRestore).toBeNull();
       expect(service.syncShareStatus()).toBe('ready');
       expect(reconnect).toHaveBeenCalledWith(internals.yjsInitGeneration, roomId);
+      expect(lifecycle).toEqual(['cache-cleared', 'provider-reconnect']);
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('bestätigt den Import nicht, wenn sich der defekte IndexedDB-Cache nicht entfernen lässt', async () => {
+    const deleteRequest = {
+      onsuccess: null as ((event: Event) => void) | null,
+      onerror: null as ((event: Event) => void) | null,
+    };
+    const deleteDatabase = vi.fn(() => {
+      queueMicrotask(() => deleteRequest.onerror?.(new Event('error')));
+      return deleteRequest as unknown as IDBOpenDBRequest;
+    });
+    vi.stubGlobal('indexedDB', { deleteDatabase });
+
+    const service = TestBed.inject(QuizStoreService);
+    const Y = await import('yjs');
+    const yDoc = new Y.Doc();
+    const yRoot = yDoc.getMap<string>('quiz-library');
+    const yLearningObjectivesRoot = yDoc.getMap<string>('quiz-learning-objectives-v1');
+    const roomId = '00000000-0000-4000-8000-000000000460';
+    const importedToken = `v1.${roomId}.1.${'b'.repeat(43)}`;
+    const clearPersistence = vi.fn().mockRejectedValue(new DOMException('delete failed'));
+    const persistence = { clearData: clearPersistence };
+    const internals = service as unknown as {
+      yDoc: InstanceType<typeof Y.Doc> | null;
+      yRoot: import('yjs').Map<string> | null;
+      yLearningObjectivesRoot: import('yjs').Map<string> | null;
+      yPersistence: typeof persistence | null;
+      yjsInitGeneration: number;
+      pendingImportedShareToken: {
+        roomId: string;
+        token: string;
+        previousToken: string | null;
+      } | null;
+      pendingImportedQuizRestore: {
+        roomId: string;
+        baselineSerialized: string;
+        latestSerialized: string;
+        persistenceStarted: boolean;
+        persistenceSynced: boolean;
+        providerSynced: boolean;
+        providerPresetSerialized: string | null;
+        providerSerialized: string | null;
+      } | null;
+      recoverPendingImportedPersistenceFailure: (
+        roomId: string,
+        yDoc: InstanceType<typeof Y.Doc>,
+        generation: number,
+        persistence: typeof persistence,
+      ) => Promise<void>;
+    };
+
+    service.syncRoomId.set(roomId);
+    service.syncShareToken.set(importedToken);
+    service.syncShareStatus.set('pending');
+    internals.yDoc = yDoc;
+    internals.yRoot = yRoot;
+    internals.yLearningObjectivesRoot = yLearningObjectivesRoot;
+    internals.yPersistence = persistence;
+    internals.pendingImportedShareToken = {
+      roomId,
+      token: importedToken,
+      previousToken: null,
+    };
+    internals.pendingImportedQuizRestore = {
+      roomId,
+      baselineSerialized: '[]',
+      latestSerialized: '[]',
+      persistenceStarted: true,
+      persistenceSynced: false,
+      providerSynced: true,
+      providerPresetSerialized: null,
+      providerSerialized: '[]',
+    };
+
+    await internals.recoverPendingImportedPersistenceFailure(
+      roomId,
+      yDoc,
+      internals.yjsInitGeneration,
+      persistence,
+    );
+
+    expect(clearPersistence).toHaveBeenCalledOnce();
+    expect(deleteDatabase).toHaveBeenCalledWith('arsnova-quiz-library-v1:' + roomId);
+    expect(internals.yDoc).toBeNull();
+    expect(internals.pendingImportedShareToken).not.toBeNull();
+    expect(internals.pendingImportedQuizRestore).not.toBeNull();
+    expect(service.syncShareStatus()).toBe('pending');
   });
 
   it('beendet den Provider dauerhaft bei einem serverseitig abgelehnten Sync-Token', () => {
