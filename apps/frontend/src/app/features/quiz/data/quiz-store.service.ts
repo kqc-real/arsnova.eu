@@ -1199,6 +1199,7 @@ export class QuizStoreService implements OnDestroy {
     persistenceStarted: boolean;
     persistenceSynced: boolean;
     providerSynced: boolean;
+    providerPresetSerialized: string | null;
     providerSerialized: string | null;
   } | null = null;
   private yjsInitGeneration = 0;
@@ -2917,6 +2918,7 @@ export class QuizStoreService implements OnDestroy {
         persistenceStarted: false,
         persistenceSynced: !hasIndexedDbSupport(),
         providerSynced: false,
+        providerPresetSerialized: null,
         providerSerialized: null,
       };
     }
@@ -3696,6 +3698,7 @@ export class QuizStoreService implements OnDestroy {
       const merged = this.rebasePendingImportedQuizChanges(providerQuizzes);
       const serialized = JSON.stringify(merged);
       this.quizDocuments.set(merged);
+      this.restorePendingImportedProviderPreset();
       this.confirmPendingImportedShareToken(roomId, pendingShare.token);
       this.pendingImportedQuizRestore = null;
       this.persistLocalMirror(serialized);
@@ -3719,9 +3722,58 @@ export class QuizStoreService implements OnDestroy {
         typeof raw === 'string'
           ? JSON.stringify(normalizeStoredQuizzes(JSON.parse(raw) as unknown))
           : '[]';
+      const rawPreset = this.yRoot?.get(QUIZ_YDOC_PRESET_KEY);
+      try {
+        const providerPreset =
+          typeof rawPreset === 'string'
+            ? normalizeHomePresetSnapshot(JSON.parse(rawPreset) as unknown)
+            : null;
+        pendingRestore.providerPresetSerialized = providerPreset
+          ? JSON.stringify(providerPreset)
+          : null;
+      } catch {
+        pendingRestore.providerPresetSerialized = null;
+      }
       return true;
     } catch {
       return false;
+    }
+  }
+
+  private restorePendingImportedProviderPreset(): void {
+    const pendingRestore = this.pendingImportedQuizRestore;
+    if (!pendingRestore || !this.yDoc || !this.yRoot || !isPlatformBrowser(this.platformId)) return;
+
+    let providerPreset: HomePresetSnapshot | null;
+    try {
+      providerPreset = pendingRestore.providerPresetSerialized
+        ? normalizeHomePresetSnapshot(
+            JSON.parse(pendingRestore.providerPresetSerialized) as unknown,
+          )
+        : null;
+    } catch {
+      return;
+    }
+
+    this.isWritingYjsSnapshot = true;
+    try {
+      this.yDoc.transact(() => {
+        if (pendingRestore.providerPresetSerialized === null) {
+          this.yRoot!.delete(QUIZ_YDOC_PRESET_KEY);
+        } else {
+          this.yRoot!.set(QUIZ_YDOC_PRESET_KEY, pendingRestore.providerPresetSerialized);
+        }
+      }, this);
+      applyHomePresetSnapshot(
+        providerPreset ?? {
+          theme: null,
+          preset: null,
+          seriousOptions: null,
+          playfulOptions: null,
+        },
+      );
+    } finally {
+      this.isWritingYjsSnapshot = false;
     }
   }
 
@@ -4719,6 +4771,7 @@ export class QuizStoreService implements OnDestroy {
         persistenceStarted: false,
         persistenceSynced: !hasIndexedDbSupport(),
         providerSynced: false,
+        providerPresetSerialized: null,
         providerSerialized: null,
       };
       this.syncShareStatus.set('pending');

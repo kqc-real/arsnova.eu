@@ -1538,6 +1538,18 @@ describe('QuizStoreService', () => {
     const service = TestBed.inject(QuizStoreService);
     const roomId = '00000000-0000-4000-8000-000000000457';
     const importedToken = `v1.${roomId}.1.${'e'.repeat(43)}`;
+    const remotePreset = {
+      theme: 'contrast',
+      preset: 'serious',
+      seriousOptions: 'remote-serious',
+      playfulOptions: null,
+    };
+    const cachedPreset = {
+      theme: 'dark',
+      preset: 'playful',
+      seriousOptions: null,
+      playfulOptions: 'stale-playful',
+    };
     const lifecycle: string[] = [];
     let providerDoc: import('yjs').Doc | null = null;
     let providerSyncListener: ((isSynced: boolean) => void) | null = null;
@@ -1572,7 +1584,9 @@ describe('QuizStoreService', () => {
         persistenceAttached = true;
         // Simuliert den bereits vorhandenen, aber veralteten Cache. Entscheidend
         // ist, dass er erst nach dem isolierten Provider-Snapshot angehängt wird.
-        doc.getMap<string>('quiz-library').set('quizzes', '[]');
+        const cachedRoot = doc.getMap<string>('quiz-library');
+        cachedRoot.set('quizzes', '[]');
+        cachedRoot.set('home-presets', JSON.stringify(cachedPreset));
       }
 
       readonly once = vi.fn((event: string, listener: () => void) => {
@@ -1596,7 +1610,9 @@ describe('QuizStoreService', () => {
     await vi.waitFor(() => expect(providerDoc).not.toBeNull());
     expect(persistenceAttached).toBe(false);
 
-    providerDoc!.getMap<string>('quiz-library').set('quizzes', remoteSerialized);
+    const providerRoot = providerDoc!.getMap<string>('quiz-library');
+    providerRoot.set('quizzes', remoteSerialized);
+    providerRoot.set('home-presets', JSON.stringify(remotePreset));
     const earlyLocalQuiz = service.createQuiz({ name: 'Frühe lokale Änderung' });
     lifecycle.push('provider-sync');
     providerSyncListener?.(true);
@@ -1620,6 +1636,11 @@ describe('QuizStoreService', () => {
         }>
       ).map((quiz) => quiz.id),
     ).toEqual(expect.arrayContaining([remoteQuiz.id, earlyLocalQuiz.id, secondEarlyLocalQuiz.id]));
+    expect(JSON.parse(providerRoot.get('home-presets') ?? 'null')).toEqual(remotePreset);
+    expect(localStorage.getItem('home-theme')).toBe(remotePreset.theme);
+    expect(localStorage.getItem('home-preset')).toBe(remotePreset.preset);
+    expect(localStorage.getItem('home-preset-options-serious')).toBe(remotePreset.seriousOptions);
+    expect(localStorage.getItem('home-preset-options-spielerisch')).toBeNull();
     expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
   });
 
