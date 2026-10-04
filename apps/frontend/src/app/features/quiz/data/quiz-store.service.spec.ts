@@ -1459,6 +1459,55 @@ describe('QuizStoreService', () => {
     expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
   });
 
+  it('behält beim erneuten Import desselben Tokens den laufenden Pending-Zustand', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = service.syncRoomId();
+    const importedToken = `v1.${roomId}.3.${'d'.repeat(43)}`;
+    const initYjsPersistence = vi.fn();
+    const ensureShareRegisteredAndConnect = vi.fn();
+    const internals = service as unknown as {
+      initYjsPersistence: typeof initYjsPersistence;
+      ensureShareRegisteredAndConnect: typeof ensureShareRegisteredAndConnect;
+      pendingImportedShareToken: {
+        roomId: string;
+        token: string;
+        previousToken: string | null;
+      } | null;
+      pendingImportedQuizRestore: {
+        roomId: string;
+        baselineSerialized: string;
+        latestSerialized: string;
+        persistenceStarted: boolean;
+        persistenceSynced: boolean;
+        providerSynced: boolean;
+        providerPresetSerialized: string | null;
+        providerSerialized: string | null;
+      } | null;
+    };
+    internals.initYjsPersistence = initYjsPersistence;
+    internals.ensureShareRegisteredAndConnect = ensureShareRegisteredAndConnect;
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+    const pendingShare = internals.pendingImportedShareToken;
+    const pendingRestore = internals.pendingImportedQuizRestore;
+    expect(pendingShare).not.toBeNull();
+    expect(pendingRestore).not.toBeNull();
+    pendingRestore!.persistenceStarted = true;
+    pendingRestore!.providerSynced = true;
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+
+    expect(service.syncShareStatus()).toBe('pending');
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBeNull();
+    expect(internals.pendingImportedShareToken).toBe(pendingShare);
+    expect(internals.pendingImportedQuizRestore).toBe(pendingRestore);
+    expect(internals.pendingImportedQuizRestore).toEqual(
+      expect.objectContaining({ persistenceStarted: true, providerSynced: true }),
+    );
+    expect(initYjsPersistence).toHaveBeenCalledOnce();
+    expect(ensureShareRegisteredAndConnect).not.toHaveBeenCalled();
+  });
+
   it('finalisiert einen importierten Share erst nach Provider- und IndexedDB-Sync', async () => {
     vi.stubGlobal('indexedDB', {});
     const service = TestBed.inject(QuizStoreService);
