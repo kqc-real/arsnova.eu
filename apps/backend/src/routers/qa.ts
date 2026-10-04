@@ -53,6 +53,7 @@ import {
   isQaControversyInsufficientVotes,
   resolveQaControversyThreshold,
 } from '../lib/qaControversy';
+import { buildQaRankingMetricOrderSql, buildQaRankingScoreSelectSql } from '../lib/qaRankingSql';
 import {
   buildSessionRetentionTimeline,
   isSessionEffectivelyFinished,
@@ -75,12 +76,6 @@ import {
   waitForQaQuestionsSignal,
 } from '../lib/qaQuestionsSignal';
 import { zAsyncIterable } from '../lib/zAsyncIterable';
-
-const QA_WILSON_Z = 1.96;
-const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
-/** Prisma/pg leitet uncastete Zahlen neben INT-Spalten als integer ab; 1,96² ist 3,8416. */
-const QA_WILSON_Z_SQL = Prisma.sql`${QA_WILSON_Z}::DOUBLE PRECISION`;
-const QA_WILSON_Z_SQUARED_SQL = Prisma.sql`${QA_WILSON_Z_SQUARED}::DOUBLE PRECISION`;
 
 type QaQuestionVoteRecord = {
   participantId?: string;
@@ -840,7 +835,6 @@ async function buildQaQuestionPayloadFromDb(options: {
   const includeVoteMetrics = moderatorView || options.includeVoteMetrics === true;
   const participantCount = options.participantCountForControversy ?? 0;
   const controversyThreshold = resolveQaControversyThreshold(participantCount);
-  const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
   const canSharePublicRanking =
     !moderatorView &&
     options.participantId !== undefined &&
@@ -917,22 +911,8 @@ async function buildQaQuestionPayloadFromDb(options: {
           WHEN 'ARCHIVED' THEN 3
           ELSE 4
         END`;
-  const modeOrder =
-    options.sortMode === 'BEST'
-      ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC,`
-      : options.sortMode === 'CONTROVERSIAL'
-        ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC,`
-        : options.sortMode === 'TIME'
-          ? Prisma.sql`ranked."createdAt" DESC,`
-          : Prisma.sql`ranked."upvoteCount" DESC,`;
-  const pageModeOrder =
-    options.sortMode === 'BEST'
-      ? Prisma.sql`page."bestScore" DESC, page."positiveVoteCount" DESC, page."upvoteCount" DESC,`
-      : options.sortMode === 'CONTROVERSIAL'
-        ? Prisma.sql`page."controversyScore" DESC, page."positiveVoteCount" DESC, page."upvoteCount" DESC,`
-        : options.sortMode === 'TIME'
-          ? Prisma.sql`page."createdAt" DESC,`
-          : Prisma.sql`page."upvoteCount" DESC,`;
+  const modeOrder = buildQaRankingMetricOrderSql(options.sortMode);
+  const pageModeOrder = buildQaRankingMetricOrderSql(options.sortMode, 'page');
   const createdAtTie =
     options.sortMode === 'TIME' ? Prisma.empty : Prisma.sql`ranked."createdAt" ASC,`;
   const pageCreatedAtTie =
@@ -944,56 +924,7 @@ async function buildQaQuestionPayloadFromDb(options: {
   const needsScoreMetrics =
     includeVoteMetrics || options.sortMode === 'BEST' || options.sortMode === 'CONTROVERSIAL';
   const scoreSelect = needsScoreMetrics
-    ? Prisma.sql`
-        CASE
-          WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
-          ELSE GREATEST(
-            0,
-            LEAST(
-              1,
-              (
-                question."positiveVoteCount"::DOUBLE PRECISION
-                  / (question."positiveVoteCount" + question."negativeVoteCount")
-                + ${QA_WILSON_Z_SQUARED_SQL}
-                  / (2 * (question."positiveVoteCount" + question."negativeVoteCount"))
-                - ${QA_WILSON_Z_SQL} * SQRT(
-                  (
-                    (
-                      question."positiveVoteCount"::DOUBLE PRECISION
-                        / (question."positiveVoteCount" + question."negativeVoteCount")
-                    ) * (
-                      1 - question."positiveVoteCount"::DOUBLE PRECISION
-                        / (question."positiveVoteCount" + question."negativeVoteCount")
-                    )
-                  ) / (question."positiveVoteCount" + question."negativeVoteCount")
-                  + ${QA_WILSON_Z_SQUARED_SQL}
-                    / (
-                      4 * POWER(
-                        question."positiveVoteCount" + question."negativeVoteCount",
-                        2
-                      )
-                    )
-                )
-              ) / (
-                1 + ${QA_WILSON_Z_SQUARED_SQL}
-                  / (question."positiveVoteCount" + question."negativeVoteCount")
-              )
-            )
-          )
-        END AS "bestScore",
-        CASE
-          WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
-          ELSE LEAST(
-            1,
-            2 * LEAST(question."positiveVoteCount", question."negativeVoteCount")
-              / (
-                question."positiveVoteCount"
-                + question."negativeVoteCount"
-                + ${controversyThresholdSql}
-              )
-          )
-        END AS "controversyScore"
-      `
+    ? buildQaRankingScoreSelectSql(participantCount)
     : Prisma.sql`
         0::DOUBLE PRECISION AS "bestScore",
         0::DOUBLE PRECISION AS "controversyScore"

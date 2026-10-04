@@ -25,11 +25,13 @@ vi.mock('./logger', () => ({
 
 import {
   beginWordCloudAnalysisCacheShutdown,
+  buildLatestQaSemanticTopicSnapshotCacheKey,
   buildWordCloudSnapshotCacheKey,
   buildWordCloudSnapshotIndexKey,
   buildWordCloudSnapshotPurgeFenceKey,
   buildWordCloudTextCacheKey,
   createMemoryWordCloudAnalysisCache,
+  createNoopWordCloudAnalysisCache,
   createRedisWordCloudAnalysisCache,
   evictAllWordCloudAnalysisCacheForRollout,
   evictLegacyWordCloudAnalysisSnapshots,
@@ -40,6 +42,7 @@ import {
   WORD_CLOUD_SNAPSHOT_PURGE_BATCH_SIZE,
   WORD_CLOUD_SNAPSHOT_PURGE_FENCE_TTL_SECONDS,
 } from './wordCloudAnalysisCache';
+import type { QaSemanticTopicSnapshot } from './qaSemanticTopicSnapshot';
 
 const scope = { sessionId: '11111111-1111-4111-8111-111111111111' } as const;
 const otherScope = { sessionId: '22222222-2222-4222-8222-222222222222' } as const;
@@ -82,6 +85,32 @@ const output = {
   ],
 } as const satisfies AnalyzeWordCloudOutput;
 
+const latestQaSemanticTopicSnapshot = {
+  version: 'qa-semantic-topic-snapshot-v1',
+  status: 'ready',
+  metric: 'TOP',
+  corpusRevision: 'revision-4',
+  analyzedAt: '2026-08-15T10:00:00.000Z',
+  analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
+  model: {
+    id: 'intfloat/multilingual-e5-small',
+    version: 'sha256:test-model',
+  },
+  eligibleQuestionCount: 2,
+  analyzedQuestionCount: 2,
+  topics: [
+    {
+      topicId: 'b'.repeat(64),
+      confidence: 0.91,
+      labelSourceQuestionId: 'question-2',
+      members: [
+        { questionId: 'question-1', textDigest: 'c'.repeat(64) },
+        { questionId: 'question-2', textDigest: 'd'.repeat(64) },
+      ],
+    },
+  ],
+} as const satisfies QaSemanticTopicSnapshot;
+
 describe('wordCloudAnalysisCache', () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -113,6 +142,9 @@ describe('wordCloudAnalysisCache', () => {
     expect(buildWordCloudSnapshotIndexKey(scope.sessionId)).toContain(`{${scope.sessionId}}:index`);
     expect(buildWordCloudSnapshotPurgeFenceKey(scope.sessionId)).toContain(
       `{${scope.sessionId}}:purged`,
+    );
+    expect(buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId)).toBe(
+      `nlp:wc:snapshot:v2:{${scope.sessionId}}:value:latest-qa-semantic`,
     );
   });
 
@@ -236,6 +268,38 @@ describe('wordCloudAnalysisCache', () => {
     expect(await cache.getSnapshot(semanticInput)).toMatchObject({ status: 'ready' });
     vi.advanceTimersByTime(60_000);
     expect(await cache.getSnapshot(semanticInput)).toBeNull();
+  });
+
+  it('isoliert den Latest-Q&A-Semantik-Snapshot im Memory-Cache per Session-ID und Encoder-TTL', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-15T12:00:00.000Z'));
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    vi.stubEnv('WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS', '120');
+    const cache = createMemoryWordCloudAnalysisCache(60);
+
+    await cache.setLatestQaSemanticTopicSnapshot(latestQaSemanticTopicSnapshot, scope);
+
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toEqual(
+      latestQaSemanticTopicSnapshot,
+    );
+    expect(await cache.getLatestQaSemanticTopicSnapshot(otherScope)).toBeNull();
+    vi.advanceTimersByTime(119_999);
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).not.toBeNull();
+    vi.advanceTimersByTime(1);
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toBeNull();
+  });
+
+  it('liefert Latest-Q&A-Semantik nach Kill-Switch-Rollback nicht aus und bleibt im Noop-Cache leer', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const memory = createMemoryWordCloudAnalysisCache();
+    const noop = createNoopWordCloudAnalysisCache();
+    await memory.setLatestQaSemanticTopicSnapshot(latestQaSemanticTopicSnapshot, scope);
+    await noop.setLatestQaSemanticTopicSnapshot(latestQaSemanticTopicSnapshot, scope);
+
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'false');
+
+    expect(await memory.getLatestQaSemanticTopicSnapshot(scope)).toBeNull();
+    expect(await noop.getLatestQaSemanticTopicSnapshot(scope)).toBeNull();
   });
 });
 
@@ -409,6 +473,72 @@ describe('createRedisWordCloudAnalysisCache', () => {
 
     vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'false');
     expect(await cache.getSnapshot(semanticInput, scope)).toBeNull();
+  });
+
+  it('liest und überschreibt den Latest-Q&A-Semantik-Snapshot in O(1) unter demselben Index und Fence', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    vi.stubEnv('WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS', '120');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    const updated = {
+      ...latestQaSemanticTopicSnapshot,
+      corpusRevision: 'revision-5',
+      analyzedAt: '2026-08-15T10:01:00.000Z',
+    } as const satisfies QaSemanticTopicSnapshot;
+
+    await cache.setLatestQaSemanticTopicSnapshot(latestQaSemanticTopicSnapshot, scope);
+    await cache.setLatestQaSemanticTopicSnapshot(updated, scope);
+
+    const latestKey = buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId);
+    expect(snapshotIndexes.get(buildWordCloudSnapshotIndexKey(scope.sessionId))).toEqual(
+      new Set([latestKey]),
+    );
+    expect(redisMock.eval).toHaveBeenLastCalledWith(
+      expect.stringContaining('wordcloud_snapshot_write_v2'),
+      3,
+      latestKey,
+      buildWordCloudSnapshotIndexKey(scope.sessionId),
+      buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
+      JSON.stringify(updated),
+      '120',
+      '420',
+      '2048',
+    );
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toEqual(updated);
+    expect(redisMock.mget).toHaveBeenLastCalledWith(
+      buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
+      latestKey,
+    );
+    expect(store.get(latestKey)).not.toContain('vertraulich');
+  });
+
+  it('purgt Latest-Q&A-Semantik atomar, fenced spätere Writes und isoliert andere Session-IDs', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    await cache.setLatestQaSemanticTopicSnapshot(latestQaSemanticTopicSnapshot, scope);
+    await cache.setLatestQaSemanticTopicSnapshot(latestQaSemanticTopicSnapshot, otherScope);
+
+    await expect(evictWordCloudAnalysisSnapshotsForSession(scope.sessionId)).resolves.toBe(1);
+    await cache.setLatestQaSemanticTopicSnapshot(
+      { ...latestQaSemanticTopicSnapshot, corpusRevision: 'late-write' },
+      scope,
+    );
+
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toBeNull();
+    expect(await cache.getLatestQaSemanticTopicSnapshot(otherScope)).toEqual(
+      latestQaSemanticTopicSnapshot,
+    );
+    expect(store.has(buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId))).toBe(false);
+  });
+
+  it('behandelt beschädigte Latest-Snapshots und Redis-Lesefehler fail-open', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    const key = buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId);
+    store.set(key, JSON.stringify({ ...latestQaSemanticTopicSnapshot, rawText: 'nicht erlaubt' }));
+
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toBeNull();
+    redisMock.mget.mockRejectedValueOnce(new Error('Redis unavailable'));
+    await expect(cache.getLatestQaSemanticTopicSnapshot(scope)).resolves.toBeNull();
   });
 
   it('fenced Writes atomar, purgt idempotent und isoliert wiederverwendete Codes per Session-ID', async () => {

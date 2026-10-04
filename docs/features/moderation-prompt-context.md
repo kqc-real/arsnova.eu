@@ -3,43 +3,45 @@
 # Versionierter Moderations-Prompt-Kontext (#456)
 
 **Zielgruppe:** Product Owner, Entwicklerinnen und Entwickler von Shared Types, Backend, Frontend und Runtime
-**Stand:** 2026-10-03
-**Repo-Abgleich:** `64830fad` vom 2026-10-02
-**Status:** Slice 1/8 definiert Vertrag, Zustände, Quellen, Bedeutungslexikon, Referenzdaten und Speicherentscheidung. Produktiver Kontextbuilder, Datenzugriff, Tokenpacker, Persistenz, Host-UI, Runtime und Adapterintegration bleiben geplant.
+**Stand:** 2026-10-04
+**Repo-Abgleich:** Slice-2-Arbeitsstand auf Basis `6cd84f3f`
+**Status:** Slice 1/8 definiert Vertrag, Zustände, Quellen, Bedeutungslexikon, Referenzdaten und Speicherentscheidung. Slice 2/8 implementiert den backend-internen, hostautorisierten Q&A- und Themenzugriff N5–N7. Vollständiger Kontextbuilder, Tokenpacker, Lernzielpersistenz, Host-UI, Runtime und Adapterintegration bleiben geplant.
 **Issue:** [#456 – Vollständiger LLM-Kontext für Moderationsprompt vorbereiten](https://github.com/kqc-real/arsnova.eu/issues/456)
 **Roadmap:** [#463 – Release 1.3.0](https://github.com/kqc-real/arsnova.eu/issues/463)
 **ADR:** [ADR-0036 – Lernziel-Datenhaltung und getrennte Live-Projektion](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md)
 
-## 1. Ergebnis und Grenze von Slice 1
+## 1. Ergebnis und Grenze der Slices 1 und 2
 
 Slice 1 schafft eine gemeinsame Sprache für den späteren Moderationskontext. Der Vertrag kann ausdrücken, **welche** zulässigen Informationen vorliegen, welchen Zustand sie haben, worauf sie sich beziehen und welche Quellen sie tragen. Das verbindliche Sechs-Fragen-Szenario liegt als deterministische Referenz vor. Die Daten werden in diesem Slice noch nicht aus einer Live-Session geladen und nicht an ein Modell gesendet.
+
+Slice 2 ergänzt den ersten autorisierten Live-Datenzugriff: N5 löst die Session über ihre unveränderliche ID auf und prüft die tatsächliche Hostberechtigung, N6 bildet einen begrenzten Q&A-Kandidatenbestand aus persistierten Zählern und vorhandenen NLP-Ergebnissen, und N7 projiziert einen bereits vorhandenen semantischen Q&A-Analysestand mit vollständigen Cluster-Mitgliedschaften. Diese Funktionen bleiben backend-intern. Sie sind weder ein neuer tRPC-Pfad noch eine Browser- oder Teilnehmendenschnittstelle und starten beim Kontextaufbau keine NLP-, Encoder- oder Modelljobs.
 
 Damit gelten insbesondere folgende Grenzen:
 
 - Der bestehende 8.9c-Summary-Pfad und `QaSummaryInferenceRequestSchema` bleiben unverändert.
-- Es gibt noch keinen serverseitigen Builder für den vollständigen Kontext.
+- N5–N7 liefern validierte Fachfragmente; der vollständige serverseitige N10-Kontextbuilder aus Slice 6 fehlt weiterhin.
 - Es gibt noch keine Lernzielpersistenz, Migration, Yjs-Erweiterung oder Host-Oberfläche.
-- Es gibt noch keine Tokenisierung, Budgetauswahl, Kontextvorschau oder Cacheverdrahtung.
+- Es gibt noch keine Tokenisierung, Budgetauswahl, Kontextvorschau oder Cacheverdrahtung für einen vollständigen Moderationskontext; der Latest-Themenbeleg ist nur ein interner Eingangsbestand.
 - Die private Runtime aus Story 8.9d ist weiterhin nicht implementiert. Der Gemini-Entwicklungshelfer, der bestehende HTTP-Adapter und der Encoder sind kein Runtime-Nachweis.
 - Ein Vertragstest oder eine Fixture belegt keine Promptqualität und keine didaktische Wirksamkeit.
 
-Der neue Vertrag ist deshalb eine **vorbereitete, noch nicht produktiv verdrahtete Schnittstelle**. Feature-Flags bleiben unverändert; Slice 1 ändert weder Summary-Auswahl noch UI noch Live-Verhalten.
+Der neue Vertrag und die internen Fachfragmente sind deshalb **vorbereitete, noch nicht produktiv zum Gesamtauftrag verdrahtete Schnittstellen**. Feature-Flags bleiben unverändert; Slice 2 ändert weder Summary-Auswahl noch UI noch Adapterauftrag. Nur ein ohnehin hostgestarteter erfolgreicher semantischer Q&A-Lauf aktualisiert zusätzlich den minimierten internen Themenbeleg.
 
 ## 2. Repo-Abgleich und Integrationslandkarte
 
-Ausgangspunkt ist der tatsächliche Bestand auf `64830fad`, nicht ein angenommenes Zielsystem:
+Die historische Slice-1-Landkarte begann auf `64830fad`. Die rechte Spalte ergänzt den tatsächlichen Slice-2-Stand statt eines angenommenen Zielsystems:
 
-| Bereich                              | Vor Slice 1 vorhanden                                                                                                                                                                             | Noch fehlende Integration                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Q&A-Kurzfassung                      | `QaSummaryInferenceRequestSchema` mit `locale`, `snapshotHash` und höchstens 40 Quellen `{ id, kind, text }`; produktiver Snapshot standardmäßig höchstens 20 Fragen mit je höchstens 500 Zeichen | vollständigen Kontext erst in Slice 7 über Adapterfähigkeit anbinden                 |
-| Q&A-Bewertungen                      | `QaQuestion` speichert positive und negative Stimmen sowie `upvoteCount`; der Legacy-Name `upvoteCount` bezeichnet im aktuellen Pfad den Nettowert                                                | autorisierte Projektion und Revisionsbezug in Slice 2                                |
-| Q&A-Klassifikation                   | Status, Kategorie `content`/`organization`/`technical`, Konfidenz, Modellversion und Analysezeit im Hostpfad                                                                                      | vorhandene Ergebnisse lesen, niemals beim Kontextaufbau neu starten                  |
-| Semantische Themen                   | begrenzter Snapshot, Encoder, Clustering, optionale Labelherkunft und Analysezustände in 1.14c                                                                                                    | vorhandenen Analysestand mit Korpus- und Altersbezug in Slice 2 projizieren          |
-| Regelkompass                         | deterministische Karten- und Priorisierungslogik im Session-Host                                                                                                                                  | benötigte Fachlogik in Slice 3 gemeinsam und serverseitig autoritativ nutzbar machen |
-| Quizbibliothek                       | `QuizDocument` local-first in Signals, lokalen Spiegeln und Yjs/IndexedDB; Exportformat Version 1                                                                                                 | Lernziele, stabile Aufgabenreferenzen und Export-/Uploadpfade erst in Slice 4        |
-| Live-Quiz                            | zeitlich begrenzte Prisma-Quizkopie mit Lösungen für den Quizbetrieb                                                                                                                              | sessionautoritative Lernzielkopie und strikte Live-Projektion erst in Slice 4        |
-| Freigegebene Ergebnisse und Feedback | vorhandene Host-Aggregate und Freigabe-/Phasengrenzen                                                                                                                                             | autorisierte Kontextprojektion in Slice 3                                            |
-| Runtime                              | ADR-0035 und bestehender privater Summary-HTTP-Vertrag; keine abgenommene `llama-server`-Runtime                                                                                                  | separater Runtime-PR R nach Slice 4, vor Slice 5                                     |
+| Bereich                              | Vor Slice 1 vorhanden                                                                                                                                                                             | Stand nach Slice 2 / noch fehlende Integration                                                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q&A-Kurzfassung                      | `QaSummaryInferenceRequestSchema` mit `locale`, `snapshotHash` und höchstens 40 Quellen `{ id, kind, text }`; produktiver Snapshot standardmäßig höchstens 20 Fragen mit je höchstens 500 Zeichen | unverändert; vollständigen Kontext erst in Slice 7 über Adapterfähigkeit anbinden                                                                                             |
+| Q&A-Bewertungen                      | `QaQuestion` speichert positive und negative Stimmen sowie `upvoteCount`; der Legacy-Name `upvoteCount` bezeichnet im aktuellen Pfad den Nettowert                                                | N6 projiziert Richtungszähler und Revisionen; gemeinsame SQL-Berechnung liegt in `qaRankingSql.ts`                                                                            |
+| Q&A-Klassifikation                   | Status, Kategorie `content`/`organization`/`technical`, Konfidenz, Modellversion und Analysezeit im Hostpfad                                                                                      | N6 liest nur vorhandene persistierte Ergebnisse; Kontextaufbau startet keine Klassifikation                                                                                   |
+| Semantische Themen                   | begrenzter Snapshot, Encoder, Clustering, optionale Labelherkunft und Analysezustände in 1.14c                                                                                                    | N7 projiziert den letzten geeigneten `ALL_ELIGIBLE`-Analysestand mit vollständigen Cluster-Mitgliedschaften; Neuberechnung und LLM-Label bleiben außerhalb des Kontextaufbaus |
+| Regelkompass                         | deterministische Karten- und Priorisierungslogik im Session-Host                                                                                                                                  | benötigte Fachlogik in Slice 3 gemeinsam und serverseitig autoritativ nutzbar machen                                                                                          |
+| Quizbibliothek                       | `QuizDocument` local-first in Signals, lokalen Spiegeln und Yjs/IndexedDB; Exportformat Version 1                                                                                                 | Lernziele, stabile Aufgabenreferenzen und Export-/Uploadpfade erst in Slice 4                                                                                                 |
+| Live-Quiz                            | zeitlich begrenzte Prisma-Quizkopie mit Lösungen für den Quizbetrieb                                                                                                                              | sessionautoritative Lernzielkopie und strikte Live-Projektion erst in Slice 4                                                                                                 |
+| Freigegebene Ergebnisse und Feedback | vorhandene Host-Aggregate und Freigabe-/Phasengrenzen                                                                                                                                             | autorisierte Kontextprojektion in Slice 3                                                                                                                                     |
+| Runtime                              | ADR-0035 und bestehender privater Summary-HTTP-Vertrag; keine abgenommene `llama-server`-Runtime                                                                                                  | separater Runtime-PR R nach Slice 4, vor Slice 5                                                                                                                              |
 
 ### 2.1 Maßgebliche bestehende Pfade
 
@@ -47,13 +49,31 @@ Ausgangspunkt ist der tatsächliche Bestand auf `64830fad`, nicht ein angenommen
 - Summary-Snapshot und Hash: `apps/backend/src/lib/qaSummarySnapshot.ts`
 - Queue und flüchtiger Ergebniszustand: `apps/backend/src/lib/qaSummaryQueue.ts`
 - HTTP-Adapter: `apps/backend/src/lib/qaSummaryAdapter.ts`
-- Q&A-Scoreberechnung und Themenzugriff: `apps/backend/src/routers/wordCloud.ts`
+- Gemeinsame Q&A-Ranking-SQL-Projektion: `apps/backend/src/lib/qaRankingSql.ts`
+- Interner Q&A-/Themenkontext N5–N7: `apps/backend/src/lib/moderationQaContext.ts`
+- Minimierter semantischer Themenbeleg: `apps/backend/src/lib/qaSemanticTopicSnapshot.ts`
+- Themenanalyse und Aktualisierung des Belegs: `apps/backend/src/routers/wordCloud.ts`
 - Moderationskompass: `apps/frontend/src/app/features/session/session-host/moderation-compass.ts`
 - Local-first Quizmodell, Import, Export und Upload: `apps/frontend/src/app/features/quiz/data/quiz-store.service.ts`
 - Export- und Uploadschemas: `libs/shared-types/src/schemas.ts`
 - Serverkopie und Sessionlebenszyklus: `prisma/schema.prisma` und [session-lifecycle.md](session-lifecycle.md)
 
 Diese Pfade bleiben für ihre heutigen Aufgaben maßgeblich. Der neue Vertrag ersetzt keine bestehende Fachberechnung und eröffnet keine zweite NLP- oder Themenpipeline.
+
+### 2.2 Interner Datenfluss in Slice 2
+
+| Stufe  | Autoritative Eingabe                                                                                        | Ergebnis und feste Grenze                                                                                                                                                                                                                |
+| ------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| N5     | unveränderliche Session-ID, serverseitig validierter Hostkontext und Retentionzeitpunkt                     | Sessionzustand, aktive Sortierung und Revisionen; Sessioncode, Route oder Browserzustand reichen nicht als Berechtigung                                                                                                                  |
+| N6     | N5-Zustand, persistierte Teilnehmerzahl und Q&A-Bestand                                                     | höchstens 200 Kandidaten aus einer set-basierten Abfrage für `PENDING`, `ACTIVE` und `PINNED`; keine Teilnehmer-, Token-, Nickname- oder Vote-Identitäten                                                                                |
+| N7     | letzter geeigneter semantischer `ALL_ELIGIBLE`-Beleg und aktueller Q&A-Bestand                              | Themenfragment mit vollständig geprüfter Mitgliedschaft, aktueller extraktiver Labelquelle, Korpusgrößen, Analyseversion und expliziter Aktualität; kein neuer Analysejob                                                                |
+| Ablauf | feste Zahl set-basierter Leseoperationen innerhalb einer `RepeatableRead`-Transaktion plus Abschlussprüfung | keine N+1-Abfragen; nach der Transaktion werden Hostrecht, Nachbereitungs-Retention und relevante Session-, Ranking- und Teilnehmerrevisionen erneut geprüft; ein inzwischen unzulässiger oder gemischter Stand wird nicht zurückgegeben |
+
+N6 verwendet die Richtungszähler `positiveVoteCount` und `negativeVoteCount` als Quelle. Netto, Wilson-Untergrenze und Kontroversität werden daraus nach `qa-ranking-v1` gebildet; `upvoteCount` bleibt ein Legacy-Nettowert und ist keine positive Stimmenzahl. Derselbe SQL-Helfer liefert die Score- und Sortierprojektion für die bestehenden Q&A- und Wortwolkenpfade sowie N6. Die Extraktion ändert deren Rankingverhalten nicht. NLP wird ausschließlich aus dem persistierten Status projiziert; sowohl `classified` als auch `uncertain` benötigen dabei den gespeicherten Analysezeitpunkt. Unvollständige gespeicherte Resultate degradieren kontrolliert zu `failed`, fehlende beziehungsweise deaktivierte Ergebnisse zu ihrem ausdrücklichen Zustand.
+
+Der Themenbeleg wird nur aus einem erfolgreichen, nicht als Fallback markierten Q&A-Lauf mit `SEMANTIC`, `ALL_ELIGIBLE` und Status `ready` oder `uncertain` aktualisiert. Er liegt unter der unveränderlichen Session-ID im bestehenden Redis-v2-Sessionnamespace. Gespeichert werden Analyse- und Modellversion, Metrik, Korpusrevision und -größen, stabile Themenkennung, Konfidenz, Labelquellen-ID sowie für jedes vollständig aufgeführte Mitglied Fragen-ID und Textdigest. Rohtexte und das extraktive Label werden dort nicht dupliziert. Ein gekürztes oder inkonsistentes Analyseergebnis wird nicht als Latest-Beleg gespeichert.
+
+Beim Lesen lädt N7 die betroffenen Fragen erneut aus der autoritativen Session, prüft Sichtbarkeitsstatus und Textdigest und rekonstruiert ein extraktives Label nur aus dem aktuellen Text der ausgewiesenen Mitgliedsfrage. Eine ungültige Mitgliedschaft lässt das betroffene Thema entfallen, statt einen alten Text oder ein altes Label offenzulegen. Der Kill-Switch ergibt `disabled`, ein fehlender Beleg `unavailable`/`no-data`; abweichende Korpus-, Ranking- oder Teilnehmerrevisionen werden als `stale` ausgewiesen. Der Beleg verwendet dieselbe TTL, denselben begrenzten Sessionindex und dieselbe Purge-Fence wie die übrigen Wortwolken-Snapshots, sodass eine Sessionlöschung auch diesen internen Wert erfasst.
 
 ## 3. Drei strikt getrennte Ebenen
 
@@ -161,7 +181,9 @@ Verfügbare Analysebereiche kennzeichnen zusätzlich `current` oder `stale`. `st
 
 `not-released` ist ausschließlich ein Ergebniszustand und enthält keine Aggregate. Messwerte verwenden nur `available` oder `unavailable`; bei `unavailable` ist `value` verpflichtend `null`, während ein berechneter Wert 0 `available` bleibt. Verfügbare Q&A-Messwerte werden nicht als freie Herstellerwerte akzeptiert: `bestScore` muss der Wilson-Untergrenze mit `z = 1,96` aus positiven und negativen Stimmen entsprechen; `controversyScore` muss mit `2 × min(positiv, negativ) / (gesamt + max(1, ceil(0,1 × Teilnehmerbasis)))` berechnet sein. Zulässig ist nur eine Binary64-Rundungsabweichung von höchstens `1e-12`. Kontroversität hängt zusätzlich von der ausdrücklich ausgewiesenen Teilnehmerbasis ab: Ist `questions.participantBasis` unavailable, muss jeder `controversyScore` ebenfalls unavailable sein; ein numerischer Wert 0 darf ohne Basis nicht als berechnetes Ergebnis erscheinen. Bei verfügbarer Basis darf die Gesamtstimmenzahl keiner Frage diese Basis überschreiten. Der Q&A-Bearbeitungsstand ist separat `addressed`, `unaddressed` oder `unavailable`; er ist weder aus `PENDING`/`ACTIVE`/`PINNED` noch aus NLP-Zustand oder Quizantworten abzuleiten. Lernziele trennen die Herkunft von der Bestätigung mit `draft`, `confirmed` und `needs-review`. Diese speziellen Zustände ersetzen die allgemeinen Abschnittszustände nicht.
 
-`meta.revisions` weist die Quellstände für Fragetext, Stimmen, Moderationsstatus, Bearbeitungsstand (`questionAnswerState`), Themen, Lernziele, freigegebene Ergebnisse und Feedback einzeln als `available`, `unavailable` oder `not-applicable` aus. Damit kann ein späterer Builder einen teilweise revisionslosen Bestand ausdrücklich begrenzen, statt eine globale Revision fälschlich auf alle Bereiche zu übertragen.
+`meta.revisions` weist die Quellstände für Fragetext, Stimmen, Moderationsstatus, Bearbeitungsstand (`questionAnswerState`), persistierte Q&A-Klassifikation (`questionNlp`), Themen, Lernziele, freigegebene Ergebnisse und Feedback einzeln als `available`, `unavailable` oder `not-applicable` aus. Damit kann ein späterer Builder einen teilweise revisionslosen Bestand ausdrücklich begrenzen, statt eine globale Revision fälschlich auf alle Bereiche zu übertragen. Ein verfügbarer Fragenbereich benötigt auch bei leerem gemessenem Korpus eine verfügbare `questionNlp`-Revision; ein unsicherer NLP-Zustand trägt wie ein klassifizierter Zustand seinen persistierten Analysezeitpunkt.
+
+Die schema-first Korrektur aus Slice 2 bindet die Pflicht zur Bearbeitungsstandsrevision an tatsächlich erhobene Daten: Sobald mindestens eine verfügbare Frage `addressed` oder `unaddressed` trägt, muss `questionAnswerState` eine verfügbare Revision ausweisen. Sind dagegen alle Bearbeitungsstände ausdrücklich `unavailable`, darf auch die Revision `unavailable`/`not-collected` bleiben. N6 erfindet deshalb weder einen Bearbeitungsstand noch eine Revision aus Moderationsstatus oder NLP.
 
 ### 5.3 Statusbegriffe nicht vermischen
 
@@ -300,7 +322,7 @@ Auch Quiz-Legacy bleibt kontrolliert: `exportVersion: 1` enthält keine Lernziel
 
 ## 10. Berechtigungs- und Datengrenzen
 
-Der Kontextaufbau wird später ausschließlich nach validierter Hostautorisierung ausgeführt. Sessioncode, Route, URL-Parameter und Browserzustand sind keine Berechtigungsquelle. Teilnehmer- und Presenter-DTOs erhalten keine internen Kontextfelder.
+Der backend-interne N5–N7-Aufbau wird ausschließlich nach validierter Hostautorisierung ausgeführt. Sessioncode, Route, URL-Parameter und Browserzustand sind keine Berechtigungsquelle. Teilnehmer- und Presenter-DTOs erhalten keine internen Kontextfelder. Der spätere Gesamtbuilder und die Vorschau müssen dieselbe Grenze weiterführen; Slice 2 stellt dafür keinen öffentlichen oder tRPC-basierten Ersatzweg bereit.
 
 Unabhängig von der Autorisierung gelten Datenminimierung und Freigabe:
 
@@ -311,7 +333,7 @@ Unabhängig von der Autorisierung gelten Datenminimierung und Freigabe:
 - keine Rohprompts oder vollständigen Texte in Standardlogs; Telemetrie bleibt auf Mengen, Versionen, Budget, Laufzeiten und Fehlerklassen begrenzt;
 - Fragen, Quiztexte und Lernziele bleiben untrusted content und können weder Instruktionen noch Rechte ändern.
 
-Löschung, Rechteentzug oder Revision während eines späteren Modelllaufs erfordern vor Anzeige eine erneute Quellenprüfung. Ein früher gültiger Hash ist keine dauerhafte Auslieferungsberechtigung.
+Löschung, Rechteentzug oder Revision während eines späteren Modelllaufs erfordern vor Anzeige eine erneute Quellenprüfung. Bereits Slice 2 prüft Hostrecht, Retention und relevante Revisionen nach seinem konsistenten Lese-Snapshot erneut. Das ersetzt N15 vor der späteren Auslieferung nicht: Ein früher gültiger Hash ist keine dauerhafte Auslieferungsberechtigung.
 
 ## 11. Lernziel-Datenhaltung
 
@@ -333,19 +355,19 @@ Diese Entscheidung ist in Slice 1 dokumentiert, aber noch nicht persistiert oder
 
 Die neuere Acht-Slice-Reihenfolge aus #456 ersetzt die ältere grobe Sechs-Slice-Skizze:
 
-| Schritt      | Inhalt                                                                           | Status nach Slice 1                    |
-| ------------ | -------------------------------------------------------------------------------- | -------------------------------------- |
-| Slice 1      | Verträge, Lexikon, Quellenregister, Zustände, Referenzdaten, ADR                 | im Repo; keine Produktivverdrahtung    |
-| Slice 2      | autorisierter Q&A-Kontext, Bewertungen, Klassifikation und vorhandene Themen     | geplant                                |
-| Slice 3      | gemeinsame Kompasslogik, freigegebene Quizresultate und Feedback                 | geplant                                |
-| Slice 4      | manuelle Lernziele, Persistenz, Yjs/Import/Export/Live-Kopie und Host-UX         | geplant                                |
-| Runtime-PR R | gemeinsame private `llama-server`-Runtime für Label, Summary und Lernzielauftrag | geplant; Eingangskriterium für Slice 5 |
-| Slice 5      | bewusste modellgestützte Lernzielableitung                                       | geplant; abhängig von abgenommenem R   |
-| Slice 6      | vollständiger Builder, deterministische Auswahl, Tokenbudget, Hash und Cache     | geplant                                |
-| Slice 7      | Summary-Anfragepfad, Adapterfähigkeit, Vorschau und erneute Quellenprüfung       | geplant                                |
-| Slice 8      | Gesamtintegration, produktionsnahe Messungen und Abschlussabnahme                | geplant                                |
+| Schritt      | Inhalt                                                                           | Status nach Slice 2                                                   |
+| ------------ | -------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Slice 1      | Verträge, Lexikon, Quellenregister, Zustände, Referenzdaten, ADR                 | im Repo; keine Produktivverdrahtung                                   |
+| Slice 2      | autorisierter Q&A-Kontext, Bewertungen, Klassifikation und vorhandene Themen     | im Repo als backend-interne N5–N7-Fragmente; kein öffentlicher Aufruf |
+| Slice 3      | gemeinsame Kompasslogik, freigegebene Quizresultate und Feedback                 | geplant                                                               |
+| Slice 4      | manuelle Lernziele, Persistenz, Yjs/Import/Export/Live-Kopie und Host-UX         | geplant                                                               |
+| Runtime-PR R | gemeinsame private `llama-server`-Runtime für Label, Summary und Lernzielauftrag | geplant; Eingangskriterium für Slice 5                                |
+| Slice 5      | bewusste modellgestützte Lernzielableitung                                       | geplant; abhängig von abgenommenem R                                  |
+| Slice 6      | vollständiger Builder, deterministische Auswahl, Tokenbudget, Hash und Cache     | geplant; N5–N7 allein erzeugen keinen `ModerationAnalysisContextV1`   |
+| Slice 7      | Summary-Anfragepfad, Adapterfähigkeit, Vorschau und erneute Quellenprüfung       | geplant; insbesondere noch kein N14-tRPC-Pfad                         |
+| Slice 8      | Gesamtintegration, produktionsnahe Messungen und Abschlussabnahme                | geplant                                                               |
 
-»Im Repo« bedeutet für Slice 1 ausschließlich, dass gemeinsame Begriffe und Datenverträge prüfbar sind. Es bedeutet nicht, dass ein Live-Aufruf bereits `ModerationPromptContextV1` erzeugt, verarbeitet oder anzeigt.
+»Im Repo« bedeutet für Slice 1, dass gemeinsame Begriffe und Datenverträge prüfbar sind, und für Slice 2, dass autorisierte Q&A-/Themenfragmente intern aufgebaut werden können. Es bedeutet nicht, dass ein Live-Aufruf bereits `ModerationPromptContextV1` erzeugt, packt, an einen Adapter sendet oder in einer Vorschau anzeigt. Fokussierte Tests decken die Answer-State-Revisionsregel, die gemeinsame Ranking-SQL-Projektion, den begrenzten identitätsfreien Q&A-Zugriff, gespeicherte NLP-Zustände, den minimierten Latest-Beleg sowie Konsistenz- und Abschlussprüfungen ab.
 
 ## 13. Weiterführende Dokumente
 

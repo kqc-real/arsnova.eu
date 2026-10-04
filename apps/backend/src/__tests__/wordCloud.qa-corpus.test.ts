@@ -3,12 +3,14 @@ import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const {
   acquireQaWordCloudAnalysisLockMock,
+  analyzeSemanticWordCloudSnapshotMock,
   extractHostTokenFromContextMock,
   isHostSessionTokenValidMock,
   prismaMock,
   wordCloudCacheMocks,
 } = vi.hoisted(() => ({
   acquireQaWordCloudAnalysisLockMock: vi.fn(),
+  analyzeSemanticWordCloudSnapshotMock: vi.fn(),
   extractHostTokenFromContextMock: vi.fn(),
   isHostSessionTokenValidMock: vi.fn(),
   prismaMock: {
@@ -19,6 +21,8 @@ const {
   wordCloudCacheMocks: {
     getSnapshot: vi.fn().mockResolvedValue(null),
     setSnapshot: vi.fn().mockResolvedValue(undefined),
+    getLatestQaSemanticTopicSnapshot: vi.fn().mockResolvedValue(null),
+    setLatestQaSemanticTopicSnapshot: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -30,12 +34,17 @@ vi.mock('../lib/hostAuth', () => ({
 vi.mock('../lib/qaWordCloudAnalysisLock', () => ({
   acquireQaWordCloudAnalysisLock: acquireQaWordCloudAnalysisLockMock,
 }));
+vi.mock('../lib/wordCloudSemanticAnalyze', () => ({
+  analyzeSemanticWordCloudSnapshot: analyzeSemanticWordCloudSnapshotMock,
+}));
 vi.mock('../lib/wordCloudAnalysisCache', () => ({
   getWordCloudAnalysisCache: () => ({
     getSnapshot: wordCloudCacheMocks.getSnapshot,
     setSnapshot: wordCloudCacheMocks.setSnapshot,
     getText: vi.fn().mockResolvedValue(null),
     setText: vi.fn().mockResolvedValue(undefined),
+    getLatestQaSemanticTopicSnapshot: wordCloudCacheMocks.getLatestQaSemanticTopicSnapshot,
+    setLatestQaSemanticTopicSnapshot: wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot,
   }),
 }));
 
@@ -167,6 +176,135 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
     const corpusSql = flattenSql(prismaMock.$queryRaw.mock.calls[0]);
     expect(corpusSql).toContain('ranked."createdAt" DESC');
     expect(corpusSql).not.toContain('ranked."upvoteCount" DESC');
+  });
+
+  it('speichert nur intern die vollständige Membership eines frischen semantischen Ergebnisses', async () => {
+    const corpus = corpusRows(2, 2);
+    prismaMock.$queryRaw.mockResolvedValue(corpus);
+    analyzeSemanticWordCloudSnapshotMock.mockResolvedValue({
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      generatedAt: '2026-10-04T10:00:00.000Z',
+      fallbackUsed: false,
+      normalization: 'NONE',
+      normalizationApplied: 'NONE',
+      normalizationFallbackUsed: false,
+      normalizationFallbackReason: null,
+      fallbackLocale: 'de',
+      analysisVersion: '1.14c.4',
+      modelId: 'intfloat/multilingual-e5-small',
+      snapshotHash: 'a'.repeat(64),
+      status: 'ready',
+      modelVersion: 'sha256:test-model',
+      entries: [
+        {
+          key: 'semantic-topic',
+          label: corpus[1]!.text,
+          count: 2,
+          basisLabel: corpus[1]!.text,
+          members: corpus.map((question) => ({
+            sourceId: question.id,
+            text: question.text,
+            weight: 1,
+          })),
+          variants: corpus.map((question) => question.text),
+          confidence: 0.9,
+        },
+      ],
+    });
+
+    const result = await caller.analyzeQa({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      filter: 'ALL_ELIGIBLE',
+      normalization: 'NONE',
+      maxEntries: 40,
+      limit: 500,
+    });
+
+    expect(result.entries[0]).toMatchObject({ memberCount: 2, membersTruncated: true });
+    expect(result.entries[0]?.members).toHaveLength(1);
+    expect(wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
+    const [latest, scope] = wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mock.calls[0]!;
+    expect(scope).toEqual({ sessionId: '11111111-1111-4111-8111-111111111111' });
+    expect(latest.topics[0]?.members).toHaveLength(2);
+    expect(JSON.stringify(latest)).not.toContain(corpus[0]!.text);
+    expect(JSON.stringify(latest)).not.toContain(corpus[1]!.text);
+    expect(wordCloudCacheMocks.setSnapshot).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        entries: [expect.objectContaining({ memberCount: 2, membersTruncated: true })],
+      }),
+      { sessionId: '11111111-1111-4111-8111-111111111111' },
+    );
+  });
+
+  it('bindet den Latest-Beleg an den tatsächlich analysierbaren Korpus', async () => {
+    const corpus = corpusRows(3, 3);
+    corpus[2]!.text = '![Diagramm](https://example.org/bild.png)';
+    prismaMock.$queryRaw.mockResolvedValue(corpus);
+    analyzeSemanticWordCloudSnapshotMock.mockImplementation(async (analysisInput) => {
+      expect(analysisInput.items).toEqual(
+        corpus
+          .slice(0, 2)
+          .map((question) => expect.objectContaining({ id: question.id, text: question.text })),
+      );
+      return {
+        mode: 'SEMANTIC',
+        locale: 'de',
+        metric: 'BEST',
+        generatedAt: '2026-10-04T10:00:00.000Z',
+        fallbackUsed: false,
+        normalization: 'NONE',
+        normalizationApplied: 'NONE',
+        normalizationFallbackUsed: false,
+        normalizationFallbackReason: null,
+        fallbackLocale: 'de',
+        analysisVersion: '1.14c.4',
+        modelId: 'intfloat/multilingual-e5-small',
+        snapshotHash: 'b'.repeat(64),
+        status: 'ready',
+        modelVersion: 'sha256:test-model',
+        entries: [
+          {
+            key: 'semantic-topic',
+            label: corpus[0]!.text,
+            count: 2,
+            basisLabel: corpus[0]!.text,
+            members: corpus.slice(0, 2).map((question) => ({
+              sourceId: question.id,
+              text: question.text,
+              weight: 1,
+            })),
+            variants: corpus.slice(0, 2).map((question) => question.text),
+            confidence: 0.9,
+          },
+        ],
+      };
+    });
+
+    await caller.analyzeQa({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      filter: 'ALL_ELIGIBLE',
+      normalization: 'NONE',
+      maxEntries: 40,
+      limit: 500,
+    });
+
+    expect(wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
+    const [latest] = wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mock.calls[0]!;
+    expect(latest).toMatchObject({
+      eligibleQuestionCount: 3,
+      analyzedQuestionCount: 2,
+      topics: [{ members: [{ questionId: corpus[0]!.id }, { questionId: corpus[1]!.id }] }],
+    });
+    expect(JSON.stringify(latest)).not.toContain(corpus[2]!.id);
   });
 
   trpcDodIt(

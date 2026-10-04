@@ -15,7 +15,9 @@ import {
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { prisma } from '../db';
-import { resolveQaControversyThreshold } from '../lib/qaControversy';
+import { logger } from '../lib/logger';
+import { buildQaRankingMetricOrderSql, buildQaRankingScoreSelectSql } from '../lib/qaRankingSql';
+import { recordLatestQaSemanticTopicSnapshot } from '../lib/qaSemanticTopicSnapshot';
 import {
   buildLexicalWordCloudEntries,
   buildThemeWordCloudAnalysis,
@@ -46,6 +48,10 @@ export interface AnalyzeWordCloudSnapshotOptions {
   readonly env?: NodeJS.ProcessEnv;
   readonly sidecar?: NormalizeWordCloudOptions['sidecar'];
   readonly compactOutput?: (output: AnalyzeWordCloudOutput) => AnalyzeWordCloudOutput;
+  readonly onFreshOutput?: (
+    output: AnalyzeWordCloudOutput,
+    effectiveInput: AnalyzeWordCloudInput,
+  ) => Promise<void> | void;
 }
 
 function buildAnalysisOutput(
@@ -159,6 +165,15 @@ export async function analyzeWordCloudSnapshot(
           tokensByItemId: normalized.tokensByItemId,
         })
       : analyzeFromNormalized(effectiveInput, normalized);
+  if (options.onFreshOutput) {
+    try {
+      await options.onFreshOutput(rawOutput, effectiveInput);
+    } catch (error) {
+      logger.warn('wordcloud:fresh_output_hook_failed', {
+        reason: error instanceof Error ? error.name : 'unknown',
+      });
+    }
+  }
   const output = options.compactOutput?.(rawOutput) ?? rawOutput;
   await cache.setSnapshot(effectiveInput, output, options.cacheScope);
   recordWordCloudAnalyzeTelemetry({
@@ -289,16 +304,12 @@ export const wordCloudRouter = router({
         input.filter === 'PINNED_ONLY'
           ? Prisma.sql`question."status" = 'PINNED'`
           : Prisma.sql`question."status" IN ('PINNED', 'ACTIVE')`;
-      const modeOrder =
-        input.metric === 'BEST'
-          ? Prisma.sql`ranked."bestScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`
-          : input.metric === 'CONTROVERSIAL'
-            ? Prisma.sql`ranked."controversyScore" DESC, ranked."positiveVoteCount" DESC, ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`
-            : input.metric === 'TIME'
-              ? Prisma.sql`ranked."createdAt" DESC, ranked."id" ASC`
-              : Prisma.sql`ranked."upvoteCount" DESC, ranked.status_tie ASC, ranked."createdAt" ASC, ranked."id" ASC`;
-      const controversyThreshold = resolveQaControversyThreshold(participantCount);
-      const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
+      const modeOrder = buildQaRankingMetricOrderSql(input.metric);
+      const stableMetricTies =
+        input.metric === 'TIME'
+          ? Prisma.empty
+          : Prisma.sql`ranked.status_tie ASC, ranked."createdAt" ASC,`;
+      const scoreSelect = buildQaRankingScoreSelectSql(participantCount);
       type CorpusRow = {
         id: string;
         text: string;
@@ -319,53 +330,7 @@ export const wordCloudRouter = router({
             question."positiveVoteCount",
             question."negativeVoteCount",
             question."createdAt",
-            CASE
-              WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
-              ELSE GREATEST(
-                0,
-                LEAST(
-                  1,
-                  (
-                    question."positiveVoteCount"::DOUBLE PRECISION
-                      / (question."positiveVoteCount" + question."negativeVoteCount")
-                    + 3.8416
-                      / (2 * (question."positiveVoteCount" + question."negativeVoteCount"))
-                    - 1.96 * SQRT(
-                      (
-                        (
-                          question."positiveVoteCount"::DOUBLE PRECISION
-                            / (question."positiveVoteCount" + question."negativeVoteCount")
-                        ) * (
-                          1 - question."positiveVoteCount"::DOUBLE PRECISION
-                            / (question."positiveVoteCount" + question."negativeVoteCount")
-                        )
-                      ) / (question."positiveVoteCount" + question."negativeVoteCount")
-                      + 3.8416 / (
-                        4 * POWER(
-                          question."positiveVoteCount" + question."negativeVoteCount",
-                          2
-                        )
-                      )
-                    )
-                  ) / (
-                    1 + 3.8416
-                      / (question."positiveVoteCount" + question."negativeVoteCount")
-                  )
-                )
-              )
-            END AS "bestScore",
-            CASE
-              WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
-              ELSE LEAST(
-                1,
-                2 * LEAST(question."positiveVoteCount", question."negativeVoteCount")
-                  / (
-                    question."positiveVoteCount"
-                    + question."negativeVoteCount"
-                    + ${controversyThresholdSql}
-                  )
-              )
-            END AS "controversyScore",
+            ${scoreSelect},
             CASE question."status" WHEN 'PINNED' THEN 0 ELSE 1 END AS status_tie
           FROM "QaQuestion" AS question
           WHERE question."sessionId" = ${session.id}
@@ -379,6 +344,8 @@ export const wordCloudRouter = router({
         FROM ranked
         ORDER BY
           ${modeOrder}
+          ${stableMetricTies}
+          ranked."id" ASC
         LIMIT ${input.limit}
       `;
       const current = await prisma.session.findUnique({
@@ -414,6 +381,8 @@ export const wordCloudRouter = router({
                 ? 1
                 : upvoteWeight(question.upvoteCount),
       }));
+      const eligibleQuestionCount = Number(corpus[0]?.eligibleCount ?? 0);
+      const cache = getWordCloudAnalysisCache();
       const analysis = (await analyzeWordCloudSnapshot(
         {
           sessionCode: input.sessionCode.toUpperCase(),
@@ -429,15 +398,27 @@ export const wordCloudRouter = router({
           corpusRevision: `${corpusRevision}:limit=${input.limit}`,
         },
         {
+          cache,
           compactOutput: compactQaWordCloudOutput,
           cacheScope: { sessionId: session.id },
+          onFreshOutput: async (rawAnalysis, effectiveAnalysisInput) => {
+            await recordLatestQaSemanticTopicSnapshot({
+              cache,
+              scope: { sessionId: session.id },
+              request: input,
+              analysis: rawAnalysis,
+              corpusRevision,
+              eligibleQuestionCount,
+              corpusItems: effectiveAnalysisInput.items,
+            });
+          },
         },
       )) as Omit<AnalyzeWordCloudOutput, 'entries'> & {
         entries: AnalyzeQaWordCloudOutput['entries'];
       };
       return {
         ...analysis,
-        eligibleQuestionCount: Number(corpus[0]?.eligibleCount ?? 0),
+        eligibleQuestionCount,
         analyzedQuestionCount: corpus.length,
         corpusRevision,
         sortMode: input.metric,

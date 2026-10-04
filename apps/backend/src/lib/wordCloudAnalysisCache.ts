@@ -26,6 +26,10 @@ import type Redis from 'ioredis';
 import { getRedis } from '../redis';
 import { logger } from './logger';
 import { resolveNlpSidecarConfig } from './nlpSidecarConfig';
+import {
+  QaSemanticTopicSnapshotSchema,
+  type QaSemanticTopicSnapshot,
+} from './qaSemanticTopicSnapshot';
 import type { WordCloudRawToken } from './wordCloudAnalysis';
 import { buildWordCloudSnapshotHash } from './wordCloudNormalization';
 import {
@@ -101,6 +105,13 @@ export interface WordCloudAnalysisCache {
     output: AnalyzeWordCloudOutput,
     scope?: WordCloudSnapshotCacheScope,
   ): Promise<void>;
+  getLatestQaSemanticTopicSnapshot(
+    scope: WordCloudSnapshotCacheScope,
+  ): Promise<QaSemanticTopicSnapshot | null>;
+  setLatestQaSemanticTopicSnapshot(
+    snapshot: QaSemanticTopicSnapshot,
+    scope: WordCloudSnapshotCacheScope,
+  ): Promise<void>;
 }
 
 export function buildWordCloudTextCacheKey(locale: string, textHash: string): string {
@@ -149,6 +160,10 @@ export function buildWordCloudSnapshotIndexKey(sessionId: string): string {
 
 export function buildWordCloudSnapshotPurgeFenceKey(sessionId: string): string {
   return `${snapshotSessionPrefix(sessionId)}:purged`;
+}
+
+export function buildLatestQaSemanticTopicSnapshotCacheKey(sessionId: string): string {
+  return `${snapshotSessionPrefix(sessionId)}:value:latest-qa-semantic`;
 }
 
 function requiresWordCloudSnapshotPurgeDurability(): boolean {
@@ -426,6 +441,10 @@ export function createMemoryWordCloudAnalysisCache(
 ): WordCloudAnalysisCache & { clear(): void } {
   const texts = new Map<string, { expiresAt: number; tokens: readonly WordCloudRawToken[] }>();
   const snapshots = new Map<string, { expiresAt: number; output: AnalyzeWordCloudOutput }>();
+  const latestQaSemanticTopicSnapshots = new Map<
+    string,
+    { expiresAt: number; snapshot: QaSemanticTopicSnapshot }
+  >();
   const ttlMs = ttlSeconds * 1000;
   const memorySnapshotKey = (input: AnalyzeWordCloudInput) =>
     [input.sessionCode.trim().toUpperCase(), ...snapshotCacheKeyParts(input)].join(':');
@@ -467,9 +486,32 @@ export function createMemoryWordCloudAnalysisCache(
         output,
       });
     },
+    async getLatestQaSemanticTopicSnapshot(scope) {
+      const key = normalizeSnapshotSessionId(scope.sessionId);
+      const entry = latestQaSemanticTopicSnapshots.get(key);
+      if (!entry || entry.expiresAt <= Date.now()) {
+        if (entry) latestQaSemanticTopicSnapshots.delete(key);
+        return null;
+      }
+      if (!isWordCloudSemanticEnabled()) {
+        return null;
+      }
+      return entry.snapshot;
+    },
+    async setLatestQaSemanticTopicSnapshot(snapshot, scope) {
+      const parsed = QaSemanticTopicSnapshotSchema.safeParse(snapshot);
+      if (!parsed.success) {
+        return;
+      }
+      latestQaSemanticTopicSnapshots.set(normalizeSnapshotSessionId(scope.sessionId), {
+        expiresAt: Date.now() + resolveWordCloudEncoderCacheTtlSeconds() * 1000,
+        snapshot: parsed.data,
+      });
+    },
     clear() {
       texts.clear();
       snapshots.clear();
+      latestQaSemanticTopicSnapshots.clear();
     },
   };
 }
@@ -484,6 +526,10 @@ export function createNoopWordCloudAnalysisCache(): WordCloudAnalysisCache {
       return null;
     },
     async setSnapshot() {},
+    async getLatestQaSemanticTopicSnapshot() {
+      return null;
+    },
+    async setLatestQaSemanticTopicSnapshot() {},
   };
 }
 
@@ -538,6 +584,54 @@ export function createRedisWordCloudAnalysisCache(
           buildWordCloudSnapshotIndexKey(scope.sessionId),
           buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
           JSON.stringify(output),
+          String(ttl),
+          String(ttl + SNAPSHOT_INDEX_TTL_GRACE_SECONDS),
+          String(SNAPSHOT_INDEX_MAX_ENTRIES),
+        );
+        if (Number(result) === -1) {
+          logger.warn('wordcloud:snapshot_cache_index_full', {
+            maxEntries: SNAPSHOT_INDEX_MAX_ENTRIES,
+          });
+        }
+      } catch (error) {
+        logger.warn('wordcloud:snapshot_cache_write_failed', {
+          reason: error instanceof Error ? error.name : 'unknown',
+        });
+      }
+    },
+    async getLatestQaSemanticTopicSnapshot(scope) {
+      try {
+        const [fence, raw] = await getRedis().mget(
+          buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
+          buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId),
+        );
+        if (fence !== null || raw === null || !isWordCloudSemanticEnabled()) {
+          return null;
+        }
+        const parsed = QaSemanticTopicSnapshotSchema.safeParse(JSON.parse(raw));
+        return parsed.success ? parsed.data : null;
+      } catch {
+        return null;
+      }
+    },
+    async setLatestQaSemanticTopicSnapshot(snapshot, scope) {
+      if (snapshotWritesDisabledForShutdown) {
+        return;
+      }
+      const parsed = QaSemanticTopicSnapshotSchema.safeParse(snapshot);
+      if (!parsed.success) {
+        logger.warn('wordcloud:latest_qa_semantic_snapshot_invalid');
+        return;
+      }
+      try {
+        const ttl = resolveWordCloudEncoderCacheTtlSeconds();
+        const result = await getRedis().eval(
+          WRITE_INDEXED_SNAPSHOT_LUA,
+          3,
+          buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId),
+          buildWordCloudSnapshotIndexKey(scope.sessionId),
+          buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
+          JSON.stringify(parsed.data),
           String(ttl),
           String(ttl + SNAPSHOT_INDEX_TTL_GRACE_SECONDS),
           String(SNAPSHOT_INDEX_MAX_ENTRIES),

@@ -163,6 +163,7 @@ function toPromptQuestion(
           confidence: { value: 0.54, meaning: 'uncalibrated-model-score' },
           modelId: 'fixture-qa-classifier',
           modelVersion: '1',
+          analyzedAt: '2026-01-15T10:00:00.000Z',
           reason: 'Fixture für einen ausdrücklich unsicheren Klassifikationsstand.',
         }
       : classifiedNlp(item.key === 'A' || item.key === 'B' ? 'content' : 'organization');
@@ -211,6 +212,7 @@ export const MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1 = {
         questionVotes: { state: 'available', value: 'question-votes-r1' },
         questionStatus: { state: 'available', value: 'question-status-r1' },
         questionAnswerState: { state: 'available', value: 'question-answer-state-r1' },
+        questionNlp: { state: 'available', value: 'question-nlp-r1' },
         topics: { state: 'available', value: 'questions-r1' },
         learningObjectives: { state: 'available', value: 'objectives-r1' },
         releasedResults: { state: 'available', value: 'quiz-results-r1' },
@@ -514,6 +516,7 @@ export const MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1 = {
         questionVotes: { state: 'available', value: 'question-votes-r1' },
         questionStatus: { state: 'available', value: 'question-status-r1' },
         questionAnswerState: { state: 'available', value: 'question-answer-state-r1' },
+        questionNlp: { state: 'available', value: 'question-nlp-r1' },
         topics: { state: 'not-applicable', reason: 'Themenmodul ist deaktiviert.' },
         learningObjectives: { state: 'unavailable', reason: 'not-collected' },
         releasedResults: { state: 'available', value: 'quiz-results-r1' },

@@ -454,6 +454,7 @@ export const ModerationQuestionNlpStateSchema = z.discriminatedUnion('state', [
       confidence: ModerationModelConfidenceSchema,
       modelId: z.string().trim().min(1).max(120),
       modelVersion: z.string().trim().min(1).max(120),
+      analyzedAt: z.string().datetime(),
       reason: z.string().trim().min(1).max(200),
     })
     .strict(),
@@ -1652,6 +1653,7 @@ export const ModerationDomainMetaV1Schema = z
         questionVotes: ModerationSourceRevisionSchema,
         questionStatus: ModerationSourceRevisionSchema,
         questionAnswerState: ModerationSourceRevisionSchema,
+        questionNlp: ModerationSourceRevisionSchema,
         topics: ModerationSourceRevisionSchema,
         learningObjectives: ModerationSourceRevisionSchema,
         releasedResults: ModerationSourceRevisionSchema,
@@ -2730,7 +2732,10 @@ function validateCommonDomainContext(value: ModerationDomainContextV1, ctx: z.Re
 
   const requiredRevisionKeys: Array<keyof typeof value.meta.revisions> = [];
   if (value.questions.state === 'available') {
-    requiredRevisionKeys.push('questionText', 'questionStatus', 'questionAnswerState');
+    requiredRevisionKeys.push('questionText', 'questionStatus', 'questionNlp');
+    if (value.questions.items.some((question) => question.answerState.state !== 'unavailable')) {
+      requiredRevisionKeys.push('questionAnswerState');
+    }
     if (value.questions.items.some((question) => question.votes.state === 'available')) {
       requiredRevisionKeys.push('questionVotes');
     }

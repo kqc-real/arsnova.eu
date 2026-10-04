@@ -290,6 +290,46 @@ describe('moderation prompt context v1', () => {
     });
   });
 
+  it('does not require an answer-state revision when every available question lacks that state', () => {
+    const withoutAnswerState = cloneMinimal();
+    recordAt(withoutAnswerState, 'context', 'questions', 'items', 0).answerState = {
+      state: 'unavailable',
+      reason: 'not-collected',
+    };
+    recordAt(withoutAnswerState, 'context', 'meta', 'revisions').questionAnswerState = {
+      state: 'unavailable',
+      reason: 'not-collected',
+    };
+
+    expect(ModerationPromptContextV1Schema.safeParse(withoutAnswerState).success).toBe(true);
+  });
+
+  it.each(['addressed', 'unaddressed'] as const)(
+    'requires an answer-state revision when an available question is %s',
+    (answerState) => {
+      const withoutAnswerStateRevision = cloneMinimal();
+      recordAt(withoutAnswerStateRevision, 'context', 'questions', 'items', 0).answerState = {
+        state: answerState,
+      };
+      recordAt(withoutAnswerStateRevision, 'context', 'meta', 'revisions').questionAnswerState = {
+        state: 'unavailable',
+        reason: 'not-collected',
+      };
+
+      expectPromptIssue(withoutAnswerStateRevision, 'questionAnswerState');
+    },
+  );
+
+  it('requires an NLP revision whenever the questions section is available', () => {
+    const withoutNlpRevision = cloneMinimal();
+    recordAt(withoutNlpRevision, 'context', 'meta', 'revisions').questionNlp = {
+      state: 'unavailable',
+      reason: 'not-collected',
+    };
+
+    expectPromptIssue(withoutNlpRevision, 'questionNlp');
+  });
+
   it('requires a participant basis for every available controversy score', () => {
     const withoutBasis = cloneMinimal();
     recordAt(withoutBasis, 'context', 'questions', 'items', 0, 'votes').controversyScore = {
@@ -1411,7 +1451,7 @@ describe('moderation prompt context v1', () => {
     expectPromptIssue(invalidTopicSelection, 'Themenmitgliedstexte');
   });
 
-  it('rejects archived questions and incomplete classified NLP states', () => {
+  it('rejects archived questions and incomplete classified or uncertain NLP states', () => {
     const archived = cloneReference();
     recordAt(archived, 'context', 'questions', 'items', 0).status = 'ARCHIVED';
     expect(ModerationPromptContextV1Schema.safeParse(archived).success).toBe(false);
@@ -1419,6 +1459,13 @@ describe('moderation prompt context v1', () => {
     const unclassified = cloneReference();
     delete recordAt(unclassified, 'context', 'questions', 'items', 0, 'nlp').category;
     expect(ModerationPromptContextV1Schema.safeParse(unclassified).success).toBe(false);
+
+    const uncertainWithoutAnalysisTime = cloneReference();
+    delete recordAt(uncertainWithoutAnalysisTime, 'context', 'questions', 'items', 5, 'nlp')
+      .analyzedAt;
+    expect(ModerationPromptContextV1Schema.safeParse(uncertainWithoutAnalysisTime).success).toBe(
+      false,
+    );
   });
 
   it('rejects foreign, duplicate and wrong-kind source references', () => {
