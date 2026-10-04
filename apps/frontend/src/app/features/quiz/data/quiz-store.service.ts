@@ -1196,6 +1196,9 @@ export class QuizStoreService implements OnDestroy {
     roomId: string;
     baselineSerialized: string;
     latestSerialized: string;
+    persistenceSynced: boolean;
+    providerSynced: boolean;
+    providerSerialized: string | null;
   } | null = null;
   private yjsInitGeneration = 0;
   private yjsProviderAttachGeneration = 0;
@@ -2906,6 +2909,9 @@ export class QuizStoreService implements OnDestroy {
         roomId: normalizedRoomId,
         baselineSerialized: serialized,
         latestSerialized: serialized,
+        persistenceSynced: false,
+        providerSynced: false,
+        providerSerialized: null,
       };
     }
     void this.initYjsPersistence(normalizedRoomId);
@@ -3344,11 +3350,11 @@ export class QuizStoreService implements OnDestroy {
         this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
         this.yPersistence.once('synced', () => {
           if (this.yDoc === yDoc && this.syncRoomId() === roomId) {
-            this.syncFromYjsOrSeed();
+            this.handleInitialYjsSourceSynced(roomId, 'persistence');
           }
         });
       } else {
-        this.syncFromYjsOrSeed();
+        this.handleInitialYjsSourceSynced(roomId, 'persistence');
       }
 
       await this.ensureShareRegisteredAndConnect(generation, roomId);
@@ -3450,8 +3456,7 @@ export class QuizStoreService implements OnDestroy {
     provider.awareness.on('change', this.onAwarenessChanged);
     provider.on('sync', (isSynced: boolean) => {
       if (isSynced && this.yDoc === yDoc && this.syncRoomId() === expectedRoomId) {
-        this.confirmPendingImportedShareToken(expectedRoomId, shareToken);
-        this.syncFromYjsOrSeed();
+        this.handleInitialYjsSourceSynced(expectedRoomId, 'provider', shareToken);
       }
     });
     let rejectionCheckInFlight = false;
@@ -3593,7 +3598,7 @@ export class QuizStoreService implements OnDestroy {
     // Wait for the provider's first successful sync before seeding anything;
     // otherwise an empty local snapshot can win Y.Map's last-writer merge and
     // erase the already shared library. The provider confirms the pending token
-    // immediately before calling this method again.
+    // only after both the provider and IndexedDB restore have completed.
     if (this.pendingImportedShareToken?.roomId === this.syncRoomId()) return;
 
     const hasLearningObjectiveMarker =
@@ -3634,8 +3639,72 @@ export class QuizStoreService implements OnDestroy {
     }
   }
 
-  private readonly onYjsRootChanged = (): void => {
+  private handleInitialYjsSourceSynced(
+    roomId: string,
+    source: 'persistence' | 'provider',
+    shareToken: string | null = null,
+  ): void {
+    const pendingShare = this.pendingImportedShareToken;
+    const pendingRestore = this.pendingImportedQuizRestore;
+    if (pendingShare?.roomId === roomId) {
+      if (pendingRestore?.roomId !== roomId) return;
+      if (source === 'provider') {
+        if (!shareToken || pendingShare.token !== shareToken) return;
+        if (!this.capturePendingImportedProviderSnapshot()) return;
+        pendingRestore.providerSynced = true;
+      } else {
+        pendingRestore.persistenceSynced = true;
+      }
+      if (!pendingRestore.providerSynced || !pendingRestore.persistenceSynced) return;
+
+      let providerQuizzes: QuizDocument[];
+      try {
+        providerQuizzes = normalizeStoredQuizzes(
+          JSON.parse(pendingRestore.providerSerialized ?? '[]') as unknown,
+        );
+      } catch {
+        return;
+      }
+      const merged = this.rebasePendingImportedQuizChanges(providerQuizzes);
+      const serialized = JSON.stringify(merged);
+      this.quizDocuments.set(merged);
+      this.confirmPendingImportedShareToken(roomId, pendingShare.token);
+      this.pendingImportedQuizRestore = null;
+      this.persistLocalMirror(serialized);
+      this.writeYjsSnapshot(serialized);
+      this.syncFromYjsOrSeed();
+      return;
+    }
+
+    if (source === 'provider') {
+      this.confirmPendingImportedShareToken(roomId, shareToken);
+    }
+    this.syncFromYjsOrSeed();
+  }
+
+  private capturePendingImportedProviderSnapshot(): boolean {
+    const pendingRestore = this.pendingImportedQuizRestore;
+    if (!pendingRestore || pendingRestore.roomId !== this.syncRoomId()) return false;
+    const raw = this.yRoot?.get(QUIZ_YDOC_ROOT_KEY);
+    try {
+      pendingRestore.providerSerialized =
+        typeof raw === 'string'
+          ? JSON.stringify(normalizeStoredQuizzes(JSON.parse(raw) as unknown))
+          : '[]';
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private readonly onYjsRootChanged = (
+    _event: import('yjs').YMapEvent<string>,
+    transaction: import('yjs').Transaction,
+  ): void => {
     if (this.isWritingYjsSnapshot) return;
+    if (transaction.origin === this.yProvider && this.pendingImportedQuizRestore?.providerSynced) {
+      this.capturePendingImportedProviderSnapshot();
+    }
     if (!this.learningObjectiveYjsRestorePending) {
       this.migrateLegacyLearningObjectiveEntries();
       this.applyYjsLearningObjectivesSnapshot();
@@ -4606,6 +4675,9 @@ export class QuizStoreService implements OnDestroy {
         roomId,
         baselineSerialized: serialized,
         latestSerialized: serialized,
+        persistenceSynced: this.yPersistence?.synced === true || !hasIndexedDbSupport(),
+        providerSynced: false,
+        providerSerialized: null,
       };
       this.syncShareStatus.set('pending');
     } else {

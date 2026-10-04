@@ -1459,7 +1459,7 @@ describe('QuizStoreService', () => {
     expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
   });
 
-  it('seedet einen neu importierten Share erst nach dem ersten WebSocket-Abgleich', async () => {
+  it('finalisiert einen importierten Share erst nach Provider- und IndexedDB-Sync', async () => {
     const service = TestBed.inject(QuizStoreService);
     const roomId = '00000000-0000-4000-8000-000000000456';
     const importedToken = `v1.${roomId}.1.${'d'.repeat(43)}`;
@@ -1473,8 +1473,11 @@ describe('QuizStoreService', () => {
       yLearningObjectivesRoot: import('yjs').Map<string> | null;
       initYjsPersistence: (roomId: string) => Promise<void>;
       beginLearningObjectiveYjsRestore: (roomId: string) => void;
-      confirmPendingImportedShareToken: (roomId: string, token: string) => void;
-      syncFromYjsOrSeed: () => void;
+      handleInitialYjsSourceSynced: (
+        roomId: string,
+        source: 'persistence' | 'provider',
+        token?: string,
+      ) => void;
       applyYjsSnapshot: () => boolean;
       serializeQuizDocuments: () => string;
     };
@@ -1494,17 +1497,24 @@ describe('QuizStoreService', () => {
 
     // Yjs kann Remote-Updates bereits vor dem abschließenden provider.sync-Event beobachten.
     internals.applyYjsSnapshot();
-    internals.syncFromYjsOrSeed();
 
     const secondEarlyLocalQuiz = service.createQuiz({
       name: 'Zweite frühe lokale Änderung',
     });
 
-    expect(yRoot.get('quizzes')).toBe(remoteSerialized);
+    // Der Provider kann vor dem IndexedDB-Restore synchron sein. Der Puffer
+    // bleibt aktiv und merkt sich den dabei beobachteten autoritativen Stand.
+    internals.handleInitialYjsSourceSynced(roomId, 'provider', importedToken);
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBeNull();
+
+    // Ein verspäteter Cache-Wert darf weder den Remote-Katalog noch A/B gewinnen.
+    yRoot.set('quizzes', '[]');
+    internals.applyYjsSnapshot();
+
+    expect(yRoot.get('quizzes')).toBe('[]');
     expect(yRoot.has('quiz-learning-objectives-v1-initialized')).toBe(false);
 
-    internals.confirmPendingImportedShareToken(roomId, importedToken);
-    internals.syncFromYjsOrSeed();
+    internals.handleInitialYjsSourceSynced(roomId, 'persistence');
 
     expect(service.quizzes().map((quiz) => quiz.name)).toEqual(
       expect.arrayContaining([
