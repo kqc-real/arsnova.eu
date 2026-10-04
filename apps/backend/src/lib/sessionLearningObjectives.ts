@@ -307,13 +307,47 @@ function assertHostReadWindow(session: SessionSnapshotRow, now: Date): boolean {
   return finished;
 }
 
+async function loadAvailableQaTaskCatalog(db: LearningObjectiveDb, sessionId: string) {
+  const eligible: Array<{ id: string; text: string }> = [];
+  const pageSize = SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1;
+  let cursor: { id: string } | undefined;
+
+  while (eligible.length <= SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX) {
+    const candidates = await db.qaQuestion.findMany({
+      where: { sessionId, status: { not: 'DELETED' } },
+      select: { id: true, text: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: pageSize,
+      ...(cursor ? { cursor, skip: 1 } : {}),
+    });
+    for (const candidate of candidates) {
+      const text = candidate.text.trim();
+      if (text.length > 0) eligible.push({ id: candidate.id, text });
+    }
+    if (
+      candidates.length < pageSize ||
+      eligible.length > SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX
+    ) {
+      break;
+    }
+    const lastCandidate = candidates.at(-1);
+    if (!lastCandidate) break;
+    cursor = { id: lastCandidate.id };
+  }
+
+  return {
+    tasks: eligible.slice(0, SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX),
+    truncated: eligible.length > SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
+  };
+}
+
 async function snapshotWithDb(
   db: LearningObjectiveDb,
   session: SessionSnapshotRow,
   now: Date,
 ): Promise<SessionLearningObjectivesSnapshot> {
   const finished = assertHostReadWindow(session, now);
-  const [rows, availableQuizTasks, availableQaTaskCandidates] = await Promise.all([
+  const [rows, availableQuizTasks, availableQaTaskCatalog] = await Promise.all([
     db.sessionLearningObjective.findMany({
       where: { sessionId: session.id, suppressedAt: null },
       include: sessionObjectiveInclude,
@@ -326,16 +360,8 @@ async function snapshotWithDb(
           orderBy: [{ order: 'asc' }, { id: 'asc' }],
         })
       : [],
-    db.qaQuestion.findMany({
-      where: { sessionId: session.id, status: { not: 'DELETED' } },
-      select: { id: true, text: true },
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
-      take: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1,
-    }),
+    loadAvailableQaTaskCatalog(db, session.id),
   ]);
-  const availableQaTasks = availableQaTaskCandidates
-    .filter((question) => question.text.trim().length > 0)
-    .slice(0, SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX);
   return SessionLearningObjectivesSnapshotSchema.parse({
     schemaVersion: SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION,
     sessionId: session.id,
@@ -348,13 +374,12 @@ async function snapshotWithDb(
       text: question.text,
       order: question.order,
     })),
-    availableQaTasks: availableQaTasks.map((question) => ({
+    availableQaTasks: availableQaTaskCatalog.tasks.map((question) => ({
       kind: 'qa-question' as const,
       questionId: question.id,
-      text: question.text.trim(),
+      text: question.text,
     })),
-    availableQaTasksTruncated:
-      availableQaTaskCandidates.length > SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
+    availableQaTasksTruncated: availableQaTaskCatalog.truncated,
     objectives: rows.map(objectiveFromRow),
   });
 }

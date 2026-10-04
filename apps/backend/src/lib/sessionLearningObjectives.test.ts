@@ -267,6 +267,46 @@ describe('session learning-objective service', () => {
     ]);
   });
 
+  it('continues past a full Q&A page containing legacy blanks before deciding truncation', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(sessionRow({ quizId: null }));
+    prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
+    const firstPage = Array.from(
+      { length: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX - 1 },
+      (_, index) => ({
+        id: `00000000-0000-4000-8004-${String(index).padStart(12, '0')}`,
+        text: `Frage ${index + 1}`,
+      }),
+    );
+    const firstBlankId = '00000000-0000-4000-8004-000000000499';
+    const lastBlankId = '00000000-0000-4000-8004-000000000500';
+    const olderValidId = '00000000-0000-4000-8004-000000000501';
+    prismaMock.qaQuestion.findMany
+      .mockResolvedValueOnce([
+        ...firstPage,
+        { id: firstBlankId, text: '' },
+        { id: lastBlankId, text: '   ' },
+      ])
+      .mockResolvedValueOnce([{ id: olderValidId, text: 'Ältere gültige Frage' }]);
+
+    const snapshot = await getSessionLearningObjectives('abc123', NOW);
+
+    expect(snapshot.availableQaTasks).toHaveLength(SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX);
+    expect(snapshot.availableQaTasks.at(-1)).toEqual({
+      kind: 'qa-question',
+      questionId: olderValidId,
+      text: 'Ältere gültige Frage',
+    });
+    expect(snapshot.availableQaTasksTruncated).toBe(false);
+    expect(prismaMock.qaQuestion.findMany).toHaveBeenNthCalledWith(2, {
+      where: { sessionId: SESSION_ID, status: { not: 'DELETED' } },
+      select: { id: true, text: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1,
+      cursor: { id: lastBlankId },
+      skip: 1,
+    });
+  });
+
   it('keeps finished-session reads immutable only during the host post-processing window', async () => {
     prismaMock.session.findUnique.mockResolvedValue(
       sessionRow({

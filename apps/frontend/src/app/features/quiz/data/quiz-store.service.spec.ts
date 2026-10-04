@@ -1496,6 +1496,10 @@ describe('QuizStoreService', () => {
     internals.applyYjsSnapshot();
     internals.syncFromYjsOrSeed();
 
+    const secondEarlyLocalQuiz = service.createQuiz({
+      name: 'Zweite frühe lokale Änderung',
+    });
+
     expect(yRoot.get('quizzes')).toBe(remoteSerialized);
     expect(yRoot.has('quiz-learning-objectives-v1-initialized')).toBe(false);
 
@@ -1503,11 +1507,15 @@ describe('QuizStoreService', () => {
     internals.syncFromYjsOrSeed();
 
     expect(service.quizzes().map((quiz) => quiz.name)).toEqual(
-      expect.arrayContaining(['Remote vorhanden', 'Frühe lokale Änderung']),
+      expect.arrayContaining([
+        'Remote vorhanden',
+        'Frühe lokale Änderung',
+        'Zweite frühe lokale Änderung',
+      ]),
     );
     expect(
       (JSON.parse(yRoot.get('quizzes') ?? '[]') as Array<{ id: string }>).map((quiz) => quiz.id),
-    ).toEqual(expect.arrayContaining([earlyLocalQuiz.id]));
+    ).toEqual(expect.arrayContaining([earlyLocalQuiz.id, secondEarlyLocalQuiz.id]));
     expect(yRoot.get('quiz-learning-objectives-v1-initialized')).toBe('1');
   });
 
