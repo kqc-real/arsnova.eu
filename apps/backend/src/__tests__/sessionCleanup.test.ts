@@ -288,6 +288,34 @@ describe('sessionCleanup', () => {
     );
   });
 
+  it('behält bei einem zwischen Auswahl und DELETE aktivierten Legal Hold alle DB-Nebenbestände', async () => {
+    prismaMock.$queryRaw
+      .mockResolvedValueOnce([{ id: 'session-1', code: 'ABC123', quizId: 'quiz-1' }])
+      .mockResolvedValueOnce([{ id: 'session-1', code: 'ABC123', quizId: 'quiz-1' }])
+      .mockResolvedValueOnce([{ id: 'quiz-1' }])
+      // Die DELETE-Recheck-Bedingung sieht den inzwischen gesetzten Legal Hold.
+      .mockResolvedValueOnce([]);
+
+    await expect(cleanupExpiredFinishedSessions()).resolves.toBe(0);
+
+    expect(credentialMocks.invalidateHostSessionToken).toHaveBeenCalledWith('ABC123');
+    expect(credentialMocks.invalidateHostPairingForSession).toHaveBeenCalledWith(
+      'ABC123',
+      'session-1',
+    );
+    expect(purgeInvalidationMocks.publishSessionPurgeInvalidations).toHaveBeenCalledOnce();
+
+    const deleteSql = (
+      prismaMock.$queryRaw.mock.calls[3]?.[0] as { strings?: string[] }
+    ).strings?.join('?');
+    expect(deleteSql).toContain('DELETE FROM "Session" AS target');
+    expect(deleteSql).toContain('target."legalHoldUntil" IS NULL');
+    expect(deleteSql).toContain('target."legalHoldUntil" <= timezone(\'UTC\', clock_timestamp())');
+    expect(prismaMock.$executeRaw).not.toHaveBeenCalled();
+    expect(prismaMock.productFeedbackInviteJob.deleteMany).not.toHaveBeenCalled();
+    expect(prismaMock.quiz.deleteMany).not.toHaveBeenCalled();
+  });
+
   it('braucht nach erfolgreicher Fence bei fehlerhafter Nachinvalidierung keinen DB-Retry', async () => {
     prismaMock.$queryRaw
       .mockResolvedValueOnce([{ id: 'session-1', code: 'ABC123', quizId: null }])

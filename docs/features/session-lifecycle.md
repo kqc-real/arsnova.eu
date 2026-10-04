@@ -254,11 +254,17 @@ Der Lifecyclevertrag projiziert und liefert:
 - `deletionDelayedByLegalHold`: Hinweis auf die technische Verzögerung;
 - `hostContentAccessAllowed`: serverseitig berechnete Inhaltsfreigabe.
 
-Ein Legal Hold verändert ausschließlich die technische Löschreife. Er öffnet
-keinen Host- oder Teilnehmerzugriff und reaktiviert keine Schreibmutation.
-Reguläre Purges invalidieren Host- und Pairing-Nachweise vor der
-DB-Transaktion. Scheitert die Entwertung, bleibt der Sessionkern für einen
-Retry bestehen.
+Ein Legal Hold verzögert ausschließlich die Löschung des autoritativen
+Sessionkerns in PostgreSQL. Er öffnet keinen Host- oder Teilnehmerzugriff,
+reaktiviert keine Schreibmutation und verlängert weder Host-Credentials noch
+Capabilities oder ephemere Redis-Daten und -Caches; für diese gelten weiterhin
+ihre unabhängigen TTLs und Invalidierungsregeln. Reguläre Purges invalidieren
+Host- und Pairing-Nachweise sowie sessiongebundene Redis-Daten vor der
+DB-Transaktion. Wird zwischen Kandidatenauswahl und `DELETE` ein Legal Hold
+aktiv, verhindert die erneute Prüfung in `DELETE` die Sessionlöschung und damit
+auch Audit-Minimierung, Invite-Job- und Quiz-Cleanup. Die bereits erfolgte
+Entwertung ephemerer Nachweise und Redis-Daten bleibt dagegen zulässig.
+Scheitert die Entwertung, bleibt der Sessionkern für einen Retry bestehen.
 
 Beim Purge löscht PostgreSQL Teilnehmer, Stimmen, Q&A-Fragen und Upvotes
 kaskadierend. Bonusnachweise und Sessionbewertungen werden für ihre eigene
