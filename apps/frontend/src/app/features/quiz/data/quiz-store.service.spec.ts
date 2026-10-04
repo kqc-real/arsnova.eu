@@ -1460,6 +1460,7 @@ describe('QuizStoreService', () => {
   });
 
   it('finalisiert einen importierten Share erst nach Provider- und IndexedDB-Sync', async () => {
+    vi.stubGlobal('indexedDB', {});
     const service = TestBed.inject(QuizStoreService);
     const roomId = '00000000-0000-4000-8000-000000000456';
     const importedToken = `v1.${roomId}.1.${'d'.repeat(43)}`;
@@ -1527,6 +1528,99 @@ describe('QuizStoreService', () => {
       (JSON.parse(yRoot.get('quizzes') ?? '[]') as Array<{ id: string }>).map((quiz) => quiz.id),
     ).toEqual(expect.arrayContaining([earlyLocalQuiz.id, secondEarlyLocalQuiz.id]));
     expect(yRoot.get('quiz-learning-objectives-v1-initialized')).toBe('1');
+  });
+
+  it('isoliert den Provider-Snapshot von einem bereits vorhandenen IndexedDB-Cache', async () => {
+    vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0 Chrome/120' });
+    vi.stubGlobal('WebSocket', class {});
+    vi.stubGlobal('indexedDB', {});
+
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = '00000000-0000-4000-8000-000000000457';
+    const importedToken = `v1.${roomId}.1.${'e'.repeat(43)}`;
+    const lifecycle: string[] = [];
+    let providerDoc: import('yjs').Doc | null = null;
+    let providerSyncListener: ((isSynced: boolean) => void) | null = null;
+    let persistenceAttached = false;
+    let persistenceSyncedListener: (() => void) | null = null;
+
+    class FakeProvider {
+      readonly awareness = {
+        setLocalStateField: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
+      };
+      readonly destroy = vi.fn();
+
+      constructor(_url: string, _room: string, doc: import('yjs').Doc) {
+        lifecycle.push('provider');
+        providerDoc = doc;
+      }
+
+      readonly on = vi.fn((event: string, listener: (value: never) => void) => {
+        if (event === 'sync') {
+          providerSyncListener = listener as unknown as (isSynced: boolean) => void;
+        }
+      });
+    }
+
+    class FakePersistence {
+      readonly destroy = vi.fn();
+      synced = false;
+      constructor(_name: string, doc: import('yjs').Doc) {
+        lifecycle.push('persistence');
+        persistenceAttached = true;
+        // Simuliert den bereits vorhandenen, aber veralteten Cache. Entscheidend
+        // ist, dass er erst nach dem isolierten Provider-Snapshot angehängt wird.
+        doc.getMap<string>('quiz-library').set('quizzes', '[]');
+      }
+
+      readonly once = vi.fn((event: string, listener: () => void) => {
+        if (event === 'synced') persistenceSyncedListener = listener;
+      });
+    }
+
+    const internals = service as unknown as {
+      loadIndexedDbPersistenceCtor: () => Promise<unknown>;
+      loadWebsocketProviderCtor: () => Promise<unknown>;
+      serializeQuizDocuments: () => string;
+    };
+    internals.loadIndexedDbPersistenceCtor = vi.fn().mockResolvedValue(FakePersistence);
+    internals.loadWebsocketProviderCtor = vi.fn().mockResolvedValue(FakeProvider);
+
+    const remoteQuiz = service.createQuiz({ name: 'Autoritativer Remote-Stand' });
+    const remoteSerialized = internals.serializeQuizDocuments();
+    service.deleteQuiz(remoteQuiz.id);
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+    await vi.waitFor(() => expect(providerDoc).not.toBeNull());
+    expect(persistenceAttached).toBe(false);
+
+    providerDoc!.getMap<string>('quiz-library').set('quizzes', remoteSerialized);
+    const earlyLocalQuiz = service.createQuiz({ name: 'Frühe lokale Änderung' });
+    lifecycle.push('provider-sync');
+    providerSyncListener?.(true);
+
+    await vi.waitFor(() => expect(persistenceAttached).toBe(true));
+    expect(lifecycle).toEqual(['provider', 'provider-sync', 'persistence']);
+    const secondEarlyLocalQuiz = service.createQuiz({ name: 'Zweite frühe lokale Änderung' });
+    persistenceSyncedListener?.();
+
+    expect(service.quizzes().map((quiz) => quiz.name)).toEqual(
+      expect.arrayContaining([
+        'Autoritativer Remote-Stand',
+        'Frühe lokale Änderung',
+        'Zweite frühe lokale Änderung',
+      ]),
+    );
+    expect(
+      (
+        JSON.parse(providerDoc!.getMap<string>('quiz-library').get('quizzes') ?? '[]') as Array<{
+          id: string;
+        }>
+      ).map((quiz) => quiz.id),
+    ).toEqual(expect.arrayContaining([remoteQuiz.id, earlyLocalQuiz.id, secondEarlyLocalQuiz.id]));
+    expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
   });
 
   it('beendet den Provider dauerhaft bei einem serverseitig abgelehnten Sync-Token', () => {

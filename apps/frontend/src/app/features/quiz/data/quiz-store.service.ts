@@ -1196,6 +1196,7 @@ export class QuizStoreService implements OnDestroy {
     roomId: string;
     baselineSerialized: string;
     latestSerialized: string;
+    persistenceStarted: boolean;
     persistenceSynced: boolean;
     providerSynced: boolean;
     providerSerialized: string | null;
@@ -2857,14 +2858,18 @@ export class QuizStoreService implements OnDestroy {
       this.setLibrarySharingMode('shared');
     }
     if (sameRoom) {
+      let importedTokenChanged = false;
       if (options?.shareToken) {
-        const tokenChanged = this.acceptShareTokenMonotonically(
+        importedTokenChanged = this.acceptShareTokenMonotonically(
           normalizedRoomId,
           options.shareToken,
           'import',
         );
-        if (tokenChanged) {
-          this.teardownYjsProvider();
+        if (importedTokenChanged) {
+          // Recreate the document so an already restored IndexedDB snapshot
+          // cannot be mixed into the authoritative first provider snapshot.
+          this.teardownYjs();
+          void this.initYjsPersistence(normalizedRoomId);
         }
       } else {
         this.loadShareSecrets(normalizedRoomId);
@@ -2873,7 +2878,7 @@ export class QuizStoreService implements OnDestroy {
       if (shouldSecureAsOrigin) {
         this.recordSyncOriginIfMissing();
       }
-      if (options?.markShared) {
+      if (options?.markShared && !importedTokenChanged) {
         void this.ensureShareRegisteredAndConnect();
       }
       return;
@@ -2909,7 +2914,8 @@ export class QuizStoreService implements OnDestroy {
         roomId: normalizedRoomId,
         baselineSerialized: serialized,
         latestSerialized: serialized,
-        persistenceSynced: false,
+        persistenceStarted: false,
+        persistenceSynced: !hasIndexedDbSupport(),
         providerSynced: false,
         providerSerialized: null,
       };
@@ -3338,23 +3344,14 @@ export class QuizStoreService implements OnDestroy {
       this.yRoot = yRoot;
       this.yLearningObjectivesRoot = yLearningObjectivesRoot;
 
-      if (hasIndexedDbSupport()) {
-        const IndexeddbPersistence = await this.loadIndexedDbPersistenceCtor();
-        if (!this.canUseYjsSetupResult(generation, roomId)) {
-          yRoot.unobserve(this.onYjsRootChanged);
-          yLearningObjectivesRoot.unobserve(this.onYjsLearningObjectivesChanged);
-          yDoc.off('update', this.onYjsDocumentUpdated);
-          yDoc.destroy();
-          return;
-        }
-        this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
-        this.yPersistence.once('synced', () => {
-          if (this.yDoc === yDoc && this.syncRoomId() === roomId) {
-            this.handleInitialYjsSourceSynced(roomId, 'persistence');
-          }
-        });
-      } else {
+      const deferPersistenceUntilProvider =
+        hasIndexedDbSupport() &&
+        this.pendingImportedShareToken?.roomId === roomId &&
+        this.pendingImportedQuizRestore?.roomId === roomId;
+      if (!hasIndexedDbSupport()) {
         this.handleInitialYjsSourceSynced(roomId, 'persistence');
+      } else if (!deferPersistenceUntilProvider) {
+        await this.attachYjsIndexedDbPersistence(roomId, yDoc, generation);
       }
 
       await this.ensureShareRegisteredAndConnect(generation, roomId);
@@ -3364,6 +3361,22 @@ export class QuizStoreService implements OnDestroy {
         this.syncConnectionState.set('disconnected');
       }
     }
+  }
+
+  private async attachYjsIndexedDbPersistence(
+    roomId: string,
+    yDoc: YDoc,
+    generation: number,
+  ): Promise<void> {
+    if (this.yPersistence || !hasIndexedDbSupport()) return;
+    const IndexeddbPersistence = await this.loadIndexedDbPersistenceCtor();
+    if (!this.canUseYjsSetupResult(generation, roomId) || this.yDoc !== yDoc) return;
+    this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
+    this.yPersistence.once('synced', () => {
+      if (this.yDoc === yDoc && this.syncRoomId() === roomId) {
+        this.handleInitialYjsSourceSynced(roomId, 'persistence');
+      }
+    });
   }
 
   /** Yjs-WebSocket nur bei geteilter Bibliothek – lokal reicht IndexedDB (keine WS-Konsolenfehler ohne Server). */
@@ -3652,7 +3665,22 @@ export class QuizStoreService implements OnDestroy {
         if (!shareToken || pendingShare.token !== shareToken) return;
         if (!this.capturePendingImportedProviderSnapshot()) return;
         pendingRestore.providerSynced = true;
+        if (!pendingRestore.persistenceSynced && !pendingRestore.persistenceStarted) {
+          const yDoc = this.yDoc;
+          if (!yDoc) return;
+          pendingRestore.persistenceStarted = true;
+          const generation = this.yjsInitGeneration;
+          void this.attachYjsIndexedDbPersistence(roomId, yDoc, generation).catch(() => {
+            if (this.canUseYjsSetupResult(generation, roomId) && this.yDoc === yDoc) {
+              this.teardownYjs();
+              this.syncConnectionState.set('disconnected');
+            }
+          });
+        }
       } else {
+        // Imported rooms attach IndexedDB only after capturing an isolated
+        // provider snapshot. Ignore callbacks from a superseded persistence.
+        if (!pendingRestore.providerSynced) return;
         pendingRestore.persistenceSynced = true;
       }
       if (!pendingRestore.providerSynced || !pendingRestore.persistenceSynced) return;
@@ -4619,16 +4647,29 @@ export class QuizStoreService implements OnDestroy {
     const pending = this.pendingImportedShareToken;
     if (!token || pending?.roomId !== roomId || pending.token !== token) return;
     this.pendingImportedShareToken = null;
+    this.pendingImportedQuizRestore = null;
     this.syncShareToken.set(pending.previousToken);
     this.syncShareStatus.set(pending.previousToken ? 'ready' : 'error');
     this.syncShareError.set($localize`Ungültiger Sync-Share-Token wurde ignoriert.`);
     this.teardownYjsProvider();
+    const yDoc = this.yDoc;
+    const generation = this.yjsInitGeneration;
+    if (yDoc && !this.yPersistence) {
+      if (hasIndexedDbSupport()) {
+        void this.attachYjsIndexedDbPersistence(roomId, yDoc, generation).catch(() => {
+          if (this.canUseYjsSetupResult(generation, roomId) && this.yDoc === yDoc) {
+            this.teardownYjs();
+            this.syncConnectionState.set('disconnected');
+          }
+        });
+      } else {
+        this.handleInitialYjsSourceSynced(roomId, 'persistence');
+      }
+    }
     if (pending.previousToken) {
       queueMicrotask(() => {
         void this.attachYjsWebSocketProviderIfNeeded(this.yjsInitGeneration, roomId);
       });
-    } else {
-      this.pendingImportedQuizRestore = null;
     }
   }
 
@@ -4675,7 +4716,8 @@ export class QuizStoreService implements OnDestroy {
         roomId,
         baselineSerialized: serialized,
         latestSerialized: serialized,
-        persistenceSynced: this.yPersistence?.synced === true || !hasIndexedDbSupport(),
+        persistenceStarted: false,
+        persistenceSynced: !hasIndexedDbSupport(),
         providerSynced: false,
         providerSerialized: null,
       };
