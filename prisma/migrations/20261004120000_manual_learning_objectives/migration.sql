@@ -232,7 +232,7 @@ CREATE UNIQUE INDEX "QuizLearningObjective_bundleQuizId_objectiveId_key"
   ON "QuizLearningObjective"("bundleQuizId", "objectiveId");
 CREATE INDEX "QuizLearningObjective_bundleQuizId_idx"
   ON "QuizLearningObjective"("bundleQuizId");
-CREATE UNIQUE INDEX "QuizLearningObjectiveReference_objectiveRowId_kind_questionId_key"
+CREATE UNIQUE INDEX "QuizLearningObjectiveReference_objectiveRowId_kind_question_key"
   ON "QuizLearningObjectiveReference"("objectiveRowId", "kind", "questionId");
 CREATE INDEX "QuizLearningObjectiveReference_questionId_idx"
   ON "QuizLearningObjectiveReference"("questionId");
@@ -240,11 +240,11 @@ CREATE UNIQUE INDEX "SessionLearningObjective_sessionId_objectiveId_key"
   ON "SessionLearningObjective"("sessionId", "objectiveId");
 CREATE INDEX "SessionLearningObjective_sessionId_projection_idx"
   ON "SessionLearningObjective"("sessionId", "projection");
-CREATE UNIQUE INDEX "SessionLearningObjectiveReference_objectiveRowId_kind_quizQuestionId_key"
+CREATE UNIQUE INDEX "SessionLearningObjectiveReference_objectiveRowId_kind_quizQ_key"
   ON "SessionLearningObjectiveReference"("objectiveRowId", "kind", "quizQuestionId");
-CREATE UNIQUE INDEX "SessionLearningObjectiveReference_objectiveRowId_kind_qaQuestionId_key"
+CREATE UNIQUE INDEX "SessionLearningObjectiveReference_objectiveRowId_kind_qaQue_key"
   ON "SessionLearningObjectiveReference"("objectiveRowId", "kind", "qaQuestionId");
-CREATE UNIQUE INDEX "SessionLearningObjectiveReference_objectiveRowId_kind_sourceReferenceId_key"
+CREATE UNIQUE INDEX "SessionLearningObjectiveReference_objectiveRowId_kind_sourc_key"
   ON "SessionLearningObjectiveReference"("objectiveRowId", "kind", "sourceReferenceId");
 CREATE INDEX "SessionLearningObjectiveReference_quizQuestionId_idx"
   ON "SessionLearningObjectiveReference"("quizQuestionId");
