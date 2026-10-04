@@ -3671,6 +3671,11 @@ export class QuizStoreService implements OnDestroy {
           const yDoc = this.yDoc;
           if (!yDoc) return;
           pendingRestore.persistenceStarted = true;
+          // Keep a stale IndexedDB update away from the live relay. y-indexeddb
+          // applies cached updates with its own origin, which y-websocket would
+          // otherwise forward before the authoritative provider snapshot is
+          // restored below.
+          this.teardownYjsProvider();
           const generation = this.yjsInitGeneration;
           void this.attachYjsIndexedDbPersistence(roomId, yDoc, generation).catch(() => {
             if (this.canUseYjsSetupResult(generation, roomId) && this.yDoc === yDoc) {
@@ -3704,6 +3709,7 @@ export class QuizStoreService implements OnDestroy {
       this.persistLocalMirror(serialized);
       this.writeYjsSnapshot(serialized);
       this.syncFromYjsOrSeed();
+      void this.attachYjsWebSocketProviderIfNeeded(this.yjsInitGeneration, roomId);
       return;
     }
 
@@ -3764,14 +3770,19 @@ export class QuizStoreService implements OnDestroy {
           this.yRoot!.set(QUIZ_YDOC_PRESET_KEY, pendingRestore.providerPresetSerialized);
         }
       }, this);
-      applyHomePresetSnapshot(
-        providerPreset ?? {
-          theme: null,
-          preset: null,
-          seriousOptions: null,
-          playfulOptions: null,
-        },
-      );
+      try {
+        applyHomePresetSnapshot(
+          providerPreset ?? {
+            theme: null,
+            preset: null,
+            seriousOptions: null,
+            playfulOptions: null,
+          },
+        );
+      } catch {
+        // localStorage may be disabled or full. The authoritative Yjs value is
+        // already restored; do not strand the imported share in pending state.
+      }
     } finally {
       this.isWritingYjsSnapshot = false;
     }
@@ -3782,7 +3793,11 @@ export class QuizStoreService implements OnDestroy {
     transaction: import('yjs').Transaction,
   ): void => {
     if (this.isWritingYjsSnapshot) return;
-    if (transaction.origin === this.yProvider && this.pendingImportedQuizRestore?.providerSynced) {
+    if (
+      this.yProvider !== null &&
+      transaction.origin === this.yProvider &&
+      this.pendingImportedQuizRestore?.providerSynced
+    ) {
       this.capturePendingImportedProviderSnapshot();
     }
     if (!this.learningObjectiveYjsRestorePending) {
