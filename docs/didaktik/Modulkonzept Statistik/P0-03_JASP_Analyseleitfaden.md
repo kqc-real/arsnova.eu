@@ -54,9 +54,9 @@ Datei: `P0-03_Lehrdaten_S1_Servicezeiten.csv`
 4. Unter `Plots` `Distribution plots`, `Boxplots`, `Q-Q plots` und `Dot plots` aktivieren.
 5. Achse und Befund mit der Einheit Sekunden beschriften.
 
-Importkontrolle: \(n=20\), Mittelwert \(120{,}000\) s, Median \(120{,}000\) s, Stichprobenstandardabweichung \(31{,}486\) s, Minimum 60 s, Maximum 180 s.
+Importkontrolle: $n=20$, Mittelwert $120{,}000\,\mathrm{s}$, Median $120{,}000\,\mathrm{s}$, Stichprobenstandardabweichung $31{,}486\,\mathrm{s}$, Minimum $60\,\mathrm{s}$, Maximum $180\,\mathrm{s}$.
 
-Die JASP-Stichprobenstandardabweichung verwendet \(n-1\). Falls ein arsnova.eu-Aggregat mit Division durch \(n\) verglichen wird, muss die andere Konvention ausdrücklich benannt werden; für diese 20 Werte beträgt die deskriptive Standardabweichung mit Division durch \(n\) \(30{,}689\) s.
+Die JASP-Stichprobenstandardabweichung verwendet $n-1$. Falls ein arsnova.eu-Aggregat mit Division durch $n$ verglichen wird, muss die andere Konvention ausdrücklich benannt werden; für diese $20$ Werte beträgt die deskriptive Standardabweichung mit Division durch $n$ $30{,}689\,\mathrm{s}$.
 
 ### 4.2 S6-Modellläufe nach Lehrmodell
 
@@ -69,8 +69,8 @@ Datei: `P0-03_Lehrdaten_S6_Modelllaeufe.csv`
 
 Importkontrolle:
 
-- `LEHRMODELL_A`: \(n=12\), Mittelwert \(0{,}794792\), Stichproben-SD \(0{,}024690\), Minimum \(0{,}762500\), Maximum \(0{,}837500\).
-- `LEHRMODELL_B`: \(n=12\), Mittelwert \(0{,}839583\), Stichproben-SD \(0{,}023737\), Minimum \(0{,}800000\), Maximum \(0{,}875000\).
+- `LEHRMODELL_A`: $n=12$, Mittelwert $0{,}794792$, Stichproben-SD $0{,}024690$, Minimum $0{,}762500$, Maximum $0{,}837500$.
+- `LEHRMODELL_B`: $n=12$, Mittelwert $0{,}839583$, Stichproben-SD $0{,}023737$, Minimum $0{,}800000$, Maximum $0{,}875000$.
 
 Diese Streuung betrifft nur die zwölf vorab festgelegten synthetischen Resamples. Sie ist ausdrücklich nicht die Streuung des festen Repository-Seed-Evals.
 
@@ -90,9 +90,9 @@ Datei: `P0-03_Lehrdaten_S2_Confidence.csv`
 
 Sollhäufigkeiten:
 
-- niedrig: 6 richtig, 16 falsch, insgesamt 22; korrekt \(=27{,}273\,\%\);
-- mittel: 7 richtig, 5 falsch, insgesamt 12; korrekt \(=58{,}333\,\%\);
-- hoch: 21 richtig, 5 falsch, insgesamt 26; korrekt \(=80{,}769\,\%\).
+- niedrig: 6 richtig, 16 falsch, insgesamt 22; korrekt $=27{,}273\,\%$;
+- mittel: 7 richtig, 5 falsch, insgesamt 12; korrekt $=58{,}333\,\%$;
+- hoch: 21 richtig, 5 falsch, insgesamt 26; korrekt $=80{,}769\,\%$.
 
 Für eine 2 × 5-Tafel wird `confidence` statt `confidence_gruppe` in `Columns` gelegt. Confidence bleibt ordinal; ein Abstand von 1 zu 2 wird nicht als gleich großer psychologischer Abstand wie 4 zu 5 interpretiert.
 
@@ -109,12 +109,12 @@ Datei: `P0-03_Lehrdaten_S6_Klassifikation.csv`
 
 Sollmatrix:
 
-- Ist `TECHNIK`, Prognose `TECHNIK`: \(TP=32\).
-- Ist `TECHNIK`, Prognose `NICHT_TECHNIK`: \(FN=8\).
-- Ist `NICHT_TECHNIK`, Prognose `TECHNIK`: \(FP=6\).
-- Ist `NICHT_TECHNIK`, Prognose `NICHT_TECHNIK`: \(TN=34\).
+- Ist `TECHNIK`, Prognose `TECHNIK`: $TP=32$.
+- Ist `TECHNIK`, Prognose `NICHT_TECHNIK`: $FN=8$.
+- Ist `NICHT_TECHNIK`, Prognose `TECHNIK`: $FP=6$.
+- Ist `NICHT_TECHNIK`, Prognose `NICHT_TECHNIK`: $TN=34$.
 
-Daraus folgen Accuracy \(0{,}825000\), Precision Technik \(0{,}842105\), Recall Technik \(0{,}800000\) und F1 Technik \(0{,}820513\). Die alphabetische Anzeige der Klassen kann die optische Position der vier Zellen verändern; maßgeblich sind die Labels, nicht eine angenommene Position oben links.
+Daraus folgen Accuracy $0{,}825000$, Precision Technik $0{,}842105$, Recall Technik $0{,}800000$ und F1 Technik $0{,}820513$. Die alphabetische Anzeige der Klassen kann die optische Position der vier Zellen verändern; maßgeblich sind die Labels, nicht eine angenommene Position oben links.
 
 ## 6. Gepaarter t-Test
 
@@ -140,11 +140,11 @@ Positive Werte bedeuten geringeren absoluten Fehler in Runde 2.
 1. `T-Tests > Paired Samples T-Test` öffnen.
 2. `abs_fehler_r1_s` als erste und `abs_fehler_r2_s` als zweite Variable zu einem Paar hinzufügen.
 3. Den klassischen Student-t-Test und die zweiseitige Alternative aktivieren.
-4. `Descriptives`, Mittelwertdifferenz, 95-%-Konfidenzintervall und Effektgröße aktivieren.
+4. `Descriptives`, Mittelwertdifferenz, $95\,\%$-Konfidenzintervall und Effektgröße aktivieren.
 5. Unter `Assumption Checks` den Normalitätstest und Q-Q-Plot der Differenzen aktivieren, sofern diese Optionen angezeigt werden.
 6. Im Output kontrollieren, dass die Differenz als R1 minus R2 berechnet wird. Bei umgekehrter Variablenreihenfolge ändern sich Vorzeichen von Mittelwertdifferenz und t-Wert.
 
-Sollwerte bei R1 minus R2: \(n=30\), mittlerer Fehler R1 \(16{,}200\) s, mittlerer Fehler R2 \(8{,}667\) s, mittlere Differenz \(7{,}533\) s, Stichproben-SD der Differenzen \(6{,}410\) s und \(t(29)=6{,}437\), zweiseitig \(p<0{,}001\).
+Sollwerte bei R1 minus R2: $n=30$, mittlerer Fehler R1 $16{,}200\,\mathrm{s}$, mittlerer Fehler R2 $8{,}667\,\mathrm{s}$, mittlere Differenz $7{,}533\,\mathrm{s}$, Stichproben-SD der Differenzen $6{,}410\,\mathrm{s}$ und $t(29)=6{,}437$, zweiseitig $p<0{,}001$.
 
 Der Befund darf nur als Unterschied in diesen konstruierten Paaren formuliert werden. Wiederholung, Übung, Ausfälle und Abhängigkeit durch eine gedachte Diskussion sind durch diese Tabelle nicht als Ursachen getrennt.
 
@@ -164,15 +164,15 @@ Die beiden Latenzspalten sind alternative Fassungen derselben 16 Lehrläufe. Zue
 
 Sollwerte:
 
-- Basis: \(r=0{,}995822\).
-- Ausreißervariante: \(r=0{,}794976\).
+- Basis: $r=0{,}995822$.
+- Ausreißervariante: $r=0{,}794976$.
 
 ### 7.2 Lineare Regression
 
 1. `Regression > Linear Regression` öffnen.
 2. `median_latenz_basis_ms` nach `Dependent Variable` verschieben.
 3. `last_vu` nach `Covariates` verschieben.
-4. Unter `Statistics` Modellanpassung, \(R^2\), Koeffizienten, Konfidenzintervalle und deskriptive Werte aktivieren.
+4. Unter `Statistics` Modellanpassung, $R^2$, Koeffizienten, Konfidenzintervalle und deskriptive Werte aktivieren.
 5. Unter `Plots` Residuen gegen vorhergesagte Werte und den Q-Q-Plot der Residuen aktivieren.
 6. Die Analyse ein zweites Mal mit `median_latenz_ausreisser_ms` als abhängiger Variable ausführen.
 
@@ -183,10 +183,10 @@ $$
 $$
 
 $$
-\widehat{Latenz}_{Ausreißer}=74{,}570588+0{,}229176\cdot Last,\qquad R^2=0{,}631987
+\widehat{Latenz}_{Ausreisser}=74{,}570588+0{,}229176\cdot Last,\qquad R^2=0{,}631987
 $$
 
-Die Steigung der Basis bedeutet innerhalb dieser Lehrtabelle eine geschätzte Zunahme von rund 0,183 ms Medianlatenz je zusätzlichem VU. Sie ist kein Produktivbenchmark und keine kausale Hardwarewirkung. Vorhersagen werden nur im konstruierten Bereich 50–425 VU betrachtet.
+Die Steigung der Basis bedeutet innerhalb dieser Lehrtabelle eine geschätzte Zunahme von rund $0{,}183\,\mathrm{ms}$ Medianlatenz je zusätzlichem VU. Sie ist kein Produktivbenchmark und keine kausale Hardwarewirkung. Vorhersagen werden nur im konstruierten Bereich $50$–$425$ VU betrachtet.
 
 ## 8. S3-Rankingfelder reproduzierbar prüfen
 
@@ -197,13 +197,13 @@ Datei: `P0-03_Lehrdaten_S3_QA_Ranking.csv`
 3. `snapshot_phase` bei Bedarf nach `Split` verschieben.
 4. Die Einzelzeilen in der Datenansicht anhand der Formeln im Datenwörterbuch prüfen; JASP soll die bereits berechneten Felder hier nicht stillschweigend durch andere Intervallkonventionen ersetzen.
 
-Kontrollfall `S3-SNP-002`: \(N=100\), \(U=40\), \(D=40\), \(C=10\), Netto \(=0\), Zustimmung \(=0{,}500000\), Wilson-Untergrenze \(=0{,}392972\), Kontroversität \(=0{,}888889\).
+Kontrollfall `S3-SNP-002`: $N=100$, $U=40$, $D=40$, $C=10$, Netto $=0$, Zustimmung $=0{,}500000$, Wilson-Untergrenze $=0{,}392972$, Kontroversität $=0{,}888889$.
 
 Eine Rangfolge nach Zustimmung, Wilson-Untergrenze oder Kontroversität beantwortet jeweils eine andere Frage. Die Kontroversität nach arsnova.eu-Formel ist kein p-Wert und die Wilson-Untergrenze ist nicht das gesamte Konfidenzintervall.
 
 ## 9. Ergebnis sichern und exportieren
 
-1. Im Ergebnisbereich über die Ergebnisoptionen aussagekräftige Titel und kurze Notizen zu Datei, `source_ref`, \(n\), Rundung und Analyseentscheidung ergänzen.
+1. Im Ergebnisbereich über die Ergebnisoptionen aussagekräftige Titel und kurze Notizen zu Datei, `source_ref`, $n$, Rundung und Analyseentscheidung ergänzen.
 2. Die echte Analysedatei mit `File > Save As` im `.jasp`-Format speichern. Nur diese von JASP erzeugte Datei ist eine gültige JASP-Binärdatei.
 3. Für ein lesbares Abgabeformat `File > Export Results` und anschließend HTML oder PDF wählen.
 4. Einzelne Tabellen oder Grafiken können über die Ergebnisoptionen kopiert oder exportiert werden.

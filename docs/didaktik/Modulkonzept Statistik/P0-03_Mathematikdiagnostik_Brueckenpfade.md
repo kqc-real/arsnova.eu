@@ -47,11 +47,11 @@ Ein Wiederholungscheck gilt bei richtiger Lösung einschließlich nachvollziehba
 
 **A1 – 1 Punkt**
 
-Schreiben Sie den Bruch \(\frac{3}{5}\) als Dezimalzahl.
+Schreiben Sie den Bruch $\frac{3}{5}$ als Dezimalzahl.
 
 **A2 – 1 Punkt**
 
-Welche Zahl ist größer: \(0{,}62\) oder \(\frac{3}{5}\)? Begründen Sie durch eine gemeinsame Darstellung.
+Welche Zahl ist größer: $0{,}62$ oder $\frac{3}{5}$? Begründen Sie durch eine gemeinsame Darstellung.
 
 ### Block B – Prozentrechnung
 
@@ -70,31 +70,31 @@ Eine Bearbeitungszeit sinkt von 150 Sekunden auf 120 Sekunden. Berechnen Sie
 
 **C1 – 1 Punkt**
 
-Berechnen Sie \(4^2+3^2\).
+Berechnen Sie $4^2+3^2$.
 
 **C2 – 1 Punkt**
 
-Berechnen Sie \(\sqrt{225}\) und prüfen Sie das Ergebnis durch Quadrieren.
+Berechnen Sie $\sqrt{225}$ und prüfen Sie das Ergebnis durch Quadrieren.
 
 ### Block D – Gleichungen und Formelumformung
 
 **D1 – 1 Punkt**
 
-Lösen Sie \(3x+6=30\).
+Lösen Sie $3x+6=30$.
 
 **D2 – 1 Punkt**
 
-Für einen Anteil gilt \(p=\frac{x}{n}\). Stellen Sie die Formel nach \(x\) um.
+Für einen Anteil gilt $p=\frac{x}{n}$. Stellen Sie die Formel nach $x$ um.
 
 ### Block E – Taschenrechner und Klammern
 
 **E1 – 1 Punkt**
 
-Geben Sie \(\frac{15}{\sqrt{12}}\) mit Klammern in den Taschenrechner ein und runden Sie auf drei Dezimalstellen.
+Geben Sie $\frac{15}{\sqrt{12}}$ mit Klammern in den Taschenrechner ein und runden Sie auf drei Dezimalstellen.
 
 **E2 – 1 Punkt**
 
-Berechnen Sie zuerst \(2+3\cdot4\) und danach \((2+3)\cdot4\). Erklären Sie den Unterschied.
+Berechnen Sie zuerst $2+3\cdot4$ und danach $(2+3)\cdot4$. Erklären Sie den Unterschied.
 
 ### Block F – Tabellen und Diagramme lesen
 
@@ -114,81 +114,81 @@ Ein Balkendiagramm zu dieser Tabelle beginnt auf der Häufigkeitsachse bei 10. N
 
 ## 4. Lösungen zur Selbstkontrolle
 
-| Aufgabe | Lösung                                                                                           |
-| ------- | ------------------------------------------------------------------------------------------------ |
-| A1      | \(\frac{3}{5}=3\div5=0{,}6\).                                                                    |
-| A2      | \(\frac{3}{5}=0{,}60\); daher ist \(0{,}62\) größer.                                             |
-| B1      | \(18/60=0{,}30=30\,\%\).                                                                         |
-| B2      | absolut \(120-150=-30\) s, also 30 s kürzer; relativ \(30/150=0{,}20=20\,\%\) Abnahme.           |
-| C1      | \(4^2+3^2=16+9=25\).                                                                             |
-| C2      | \(\sqrt{225}=15\), Kontrolle: \(15^2=225\).                                                      |
-| D1      | \(3x=24\), daher \(x=8\).                                                                        |
-| D2      | Beide Seiten mit \(n\) multiplizieren: \(x=p\cdot n\).                                           |
-| E1      | \(15/\sqrt{12}=4{,}330127\ldots\approx4{,}330\).                                                 |
-| E2      | \(2+3\cdot4=14\), aber \((2+3)\cdot4=20\); Klammern ändern die Reihenfolge der Rechenschritte.   |
-| F1      | B mit 12 Fällen; \(12/30=0{,}40=40\,\%\).                                                        |
-| F2      | A mit 8 Fällen wäre nicht sichtbar; außerdem würden Unterschiede der Balken optisch übertrieben. |
+| Aufgabe | Lösung                                                                                                   |
+| ------- | -------------------------------------------------------------------------------------------------------- |
+| A1      | $\frac{3}{5}=3\div5=0{,}6$.                                                                              |
+| A2      | $\frac{3}{5}=0{,}60$; daher ist $0{,}62$ größer.                                                         |
+| B1      | $18/60=0{,}30=30\,\%$.                                                                                   |
+| B2      | absolut $120-150=-30\,\mathrm{s}$, also $30\,\mathrm{s}$ kürzer; relativ $30/150=0{,}20=20\,\%$ Abnahme. |
+| C1      | $4^2+3^2=16+9=25$.                                                                                       |
+| C2      | $\sqrt{225}=15$, Kontrolle: $15^2=225$.                                                                  |
+| D1      | $3x=24$, daher $x=8$.                                                                                    |
+| D2      | Beide Seiten mit $n$ multiplizieren: $x=p\cdot n$.                                                       |
+| E1      | $15/\sqrt{12}=4{,}330127\ldots\approx4{,}330$.                                                           |
+| E2      | $2+3\cdot4=14$, aber $(2+3)\cdot4=20$; Klammern ändern die Reihenfolge der Rechenschritte.               |
+| F1      | B mit 12 Fällen; $12/30=0{,}40=40\,\%$.                                                                  |
+| F2      | A mit 8 Fällen wäre nicht sichtbar; außerdem würden Unterschiede der Balken optisch übertrieben.         |
 
 ## 5. Brückenpfade
 
 ### BP-A – Brüche und Dezimalzahlen
 
-**Worked Example:** \(\frac{7}{20}=7\div20=0{,}35\). Umgekehrt gilt \(0{,}35=\frac{35}{100}=\frac{7}{20}\).
+**Worked Example:** $\frac{7}{20}=7\div20=0{,}35$. Umgekehrt gilt $0{,}35=\frac{35}{100}=\frac{7}{20}$.
 
-**Übung:** Schreiben Sie \(\frac{9}{25}\) als Dezimalzahl.  
-**Lösung:** \(\frac{9}{25}=\frac{36}{100}=0{,}36\).
+**Übung:** Schreiben Sie $\frac{9}{25}$ als Dezimalzahl.
+**Lösung:** $\frac{9}{25}=\frac{36}{100}=0{,}36$.
 
-**Wiederholungscheck:** Ordnen Sie \(0{,}48\), \(\frac{1}{2}\) und \(0{,}52\) aufsteigend.  
-**Lösung:** \(0{,}48<\frac{1}{2}=0{,}50<0{,}52\).
+**Wiederholungscheck:** Ordnen Sie $0{,}48$, $\frac{1}{2}$ und $0{,}52$ aufsteigend.
+**Lösung:** $0{,}48<\frac{1}{2}=0{,}50<0{,}52$.
 
 ### BP-B – Prozentrechnung
 
-**Worked Example:** 24 von 80 Fällen entsprechen \(24/80=0{,}30=30\,\%\). Eine Zunahme von 80 auf 100 beträgt absolut 20 und relativ \(20/80=25\,\%\).
+**Worked Example:** 24 von 80 Fällen entsprechen $24/80=0{,}30=30\,\%$. Eine Zunahme von 80 auf 100 beträgt absolut 20 und relativ $20/80=25\,\%$.
 
-**Übung:** 15 von 50 Fällen erfüllen ein Kriterium.  
-**Lösung:** \(15/50=0{,}30=30\,\%\).
+**Übung:** 15 von 50 Fällen erfüllen ein Kriterium.
+**Lösung:** $15/50=0{,}30=30\,\%$.
 
-**Wiederholungscheck:** Ein Wert steigt von 40 auf 46. Bestimmen Sie absolute und relative Zunahme.  
-**Lösung:** absolut \(+6\), relativ \(6/40=0{,}15=15\,\%\).
+**Wiederholungscheck:** Ein Wert steigt von 40 auf 46. Bestimmen Sie absolute und relative Zunahme.
+**Lösung:** absolut $+6$, relativ $6/40=0{,}15=15\,\%$.
 
 ### BP-C – Potenzen und Wurzeln
 
-**Worked Example:** \(6^2=36\) und \(\sqrt{36}=6\). Quadrieren und Wurzelziehen sind für nichtnegative Werte Umkehroperationen.
+**Worked Example:** $6^2=36$ und $\sqrt{36}=6$. Quadrieren und Wurzelziehen sind für nichtnegative Werte Umkehroperationen.
 
-**Übung:** Berechnen Sie \(5^2+12^2\).  
-**Lösung:** \(25+144=169\).
+**Übung:** Berechnen Sie $5^2+12^2$.
+**Lösung:** $25+144=169$.
 
-**Wiederholungscheck:** Berechnen Sie \(\sqrt{169}\) und prüfen Sie das Ergebnis.  
-**Lösung:** \(13\), denn \(13^2=169\).
+**Wiederholungscheck:** Berechnen Sie $\sqrt{169}$ und prüfen Sie das Ergebnis.
+**Lösung:** $13$, denn $13^2=169$.
 
 ### BP-D – Gleichungen und Formeln
 
-**Worked Example:** \(2x+5=17\Rightarrow2x=12\Rightarrow x=6\). Bei \(m=a/b\) folgt durch Multiplikation mit \(b\): \(a=m\cdot b\).
+**Worked Example:** $2x+5=17\Rightarrow2x=12\Rightarrow x=6$. Bei $m=a/b$ folgt durch Multiplikation mit $b$: $a=m\cdot b$.
 
-**Übung:** Lösen Sie \(4x-8=20\).  
-**Lösung:** \(4x=28\), also \(x=7\).
+**Übung:** Lösen Sie $4x-8=20$.
+**Lösung:** $4x=28$, also $x=7$.
 
-**Wiederholungscheck:** Stellen Sie \(SE=s/\sqrt n\) nach \(s\) um.  
-**Lösung:** \(s=SE\cdot\sqrt n\).
+**Wiederholungscheck:** Stellen Sie $SE=s/\sqrt n$ nach $s$ um.
+**Lösung:** $s=SE\cdot\sqrt n$.
 
 ### BP-E – Taschenrechner
 
-**Worked Example:** Für \(\frac{10}{\sqrt5}\) wird zuerst `sqrt(5)` oder die Klammer `10 / (sqrt(5))` eingegeben. Ergebnis: \(4{,}472135\ldots\).
+**Worked Example:** Für $\frac{10}{\sqrt5}$ wird zuerst `sqrt(5)` oder die Klammer `10 / (sqrt(5))` eingegeben. Ergebnis: $4{,}472135\ldots$.
 
-**Übung:** Berechnen Sie \(2{,}201\cdot(15/\sqrt{12})\) ohne gerundeten Zwischenwert.  
-**Lösung:** \(9{,}530609\ldots\approx9{,}531\).
+**Übung:** Berechnen Sie $2{,}201\cdot(15/\sqrt{12})$ ohne gerundeten Zwischenwert.
+**Lösung:** $9{,}530609\ldots\approx9{,}531$.
 
-**Wiederholungscheck:** Berechnen Sie \(\sqrt{(0{,}7\cdot0{,}3)/100}\).  
-**Lösung:** \(0{,}045825\ldots\approx0{,}046\).
+**Wiederholungscheck:** Berechnen Sie $\sqrt{(0{,}7\cdot0{,}3)/100}$.
+**Lösung:** $0{,}045825\ldots\approx0{,}046$.
 
 ### BP-F – Tabellen und Diagramme
 
-**Worked Example:** In einer Tabelle mit den Häufigkeiten 5, 15 und 10 ist die zweite Kategorie am häufigsten; ihr Anteil ist \(15/30=50\,\%\). Der Tabellenrand liefert den Nenner.
+**Worked Example:** In einer Tabelle mit den Häufigkeiten 5, 15 und 10 ist die zweite Kategorie am häufigsten; ihr Anteil ist $15/30=50\,\%$. Der Tabellenrand liefert den Nenner.
 
-**Übung:** Bei 9, 6 und 5 Fällen: Welche Kategorie ist am häufigsten, und wie groß ist ihr Anteil?  
-**Lösung:** die erste Kategorie; \(9/20=45\,\%\).
+**Übung:** Bei 9, 6 und 5 Fällen: Welche Kategorie ist am häufigsten, und wie groß ist ihr Anteil?
+**Lösung:** die erste Kategorie; $9/20=45\,\%$.
 
-**Wiederholungscheck:** Warum ist ein Histogramm für ungeordnete Produktkategorien ungeeignet?  
+**Wiederholungscheck:** Warum ist ein Histogramm für ungeordnete Produktkategorien ungeeignet?
 **Lösung:** Ein Histogramm setzt eine metrische, zusammenhängende Skala mit Klassen voraus; nominale Kategorien werden als getrennte Balken dargestellt.
 
 ## 6. Lehrendenentscheidung und Dokumentation

@@ -195,7 +195,7 @@ Du programmierst im Statistikmodul nicht an ARSnova.eu. Stattdessen nutzt du aus
 
 - welche Beobachtungseinheit und welcher Nenner hinter einer Anzeige stehen,
 - wie eine Kennzahl im Datenvertrag oder in der Dokumentation definiert ist,
-- warum für unterschiedliche Zwecke mit \(n\) oder \(n-1\) gerechnet wird,
+- warum für unterschiedliche Zwecke mit $n$ oder $n-1$ gerechnet wird,
 - welche Daten ein Export tatsächlich enthält und welche nicht,
 - ob ein Wert aus LIVE-Kursdaten, einem dokumentierten Repository-Nachweis oder synthetischen LEHRDATEN stammt,
 - welche Grenze ein Test-, Last- oder Modellwert für Aussagen über den realen Betrieb besitzt.
