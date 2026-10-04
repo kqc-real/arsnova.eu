@@ -1663,6 +1663,7 @@ describe('QuizStoreService', () => {
     const Y = await import('yjs');
     const yDoc = new Y.Doc();
     const yRoot = yDoc.getMap<string>('quiz-library');
+    const yLearningObjectivesRoot = yDoc.getMap<string>('quiz-learning-objectives-v1');
     const roomId = '00000000-0000-4000-8000-000000000458';
     const importedToken = `v1.${roomId}.1.${'f'.repeat(43)}`;
     const remotePreset = {
@@ -1675,6 +1676,7 @@ describe('QuizStoreService', () => {
     const internals = service as unknown as {
       yDoc: InstanceType<typeof Y.Doc> | null;
       yRoot: import('yjs').Map<string> | null;
+      yLearningObjectivesRoot: import('yjs').Map<string> | null;
       pendingImportedShareToken: {
         roomId: string;
         token: string;
@@ -1702,6 +1704,7 @@ describe('QuizStoreService', () => {
     service.syncShareToken.set(importedToken);
     internals.yDoc = yDoc;
     internals.yRoot = yRoot;
+    internals.yLearningObjectivesRoot = yLearningObjectivesRoot;
     internals.pendingImportedShareToken = {
       roomId,
       token: importedToken,
@@ -1718,6 +1721,9 @@ describe('QuizStoreService', () => {
       providerSerialized: '[]',
     };
     internals.attachYjsWebSocketProviderIfNeeded = reconnect;
+    localStorage.setItem('home-theme', 'dark');
+    localStorage.setItem('home-preset', 'playful');
+    localStorage.setItem('home-preset-options-spielerisch', 'stale-playful');
 
     const storageSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new DOMException('Storage unavailable', 'SecurityError');
@@ -1732,7 +1738,101 @@ describe('QuizStoreService', () => {
     expect(internals.pendingImportedQuizRestore).toBeNull();
     expect(service.syncShareToken()).toBe(importedToken);
     expect(JSON.parse(yRoot.get('home-presets') ?? 'null')).toEqual(remotePreset);
+    expect(localStorage.getItem('home-theme')).toBe('dark');
+    expect(localStorage.getItem('home-preset')).toBe('playful');
     expect(reconnect).toHaveBeenCalledWith(expect.any(Number), roomId);
+  });
+
+  it('stellt den Provider nach einem ausbleibenden IndexedDB-Sync kontrolliert wieder her', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('indexedDB', {});
+    try {
+      const service = TestBed.inject(QuizStoreService);
+      const Y = await import('yjs');
+      const yDoc = new Y.Doc();
+      const yRoot = yDoc.getMap<string>('quiz-library');
+      const yLearningObjectivesRoot = yDoc.getMap<string>('quiz-learning-objectives-v1');
+      const roomId = '00000000-0000-4000-8000-000000000459';
+      const importedToken = `v1.${roomId}.1.${'a'.repeat(43)}`;
+      const destroyPersistence = vi.fn().mockResolvedValue(undefined);
+      const reconnect = vi.fn().mockResolvedValue(undefined);
+
+      class NeverSyncedPersistence {
+        readonly synced = false;
+        readonly destroy = destroyPersistence;
+        readonly once = vi.fn();
+      }
+
+      const internals = service as unknown as {
+        yDoc: InstanceType<typeof Y.Doc> | null;
+        yRoot: import('yjs').Map<string> | null;
+        yLearningObjectivesRoot: import('yjs').Map<string> | null;
+        yPersistence: NeverSyncedPersistence | null;
+        yjsInitGeneration: number;
+        pendingImportedShareToken: {
+          roomId: string;
+          token: string;
+          previousToken: string | null;
+        } | null;
+        pendingImportedQuizRestore: {
+          roomId: string;
+          baselineSerialized: string;
+          latestSerialized: string;
+          persistenceStarted: boolean;
+          persistenceSynced: boolean;
+          providerSynced: boolean;
+          providerPresetSerialized: string | null;
+          providerSerialized: string | null;
+        } | null;
+        pendingImportedPersistenceSyncTimeoutId: ReturnType<typeof setTimeout> | null;
+        loadIndexedDbPersistenceCtor: () => Promise<unknown>;
+        attachYjsIndexedDbPersistence: (
+          roomId: string,
+          yDoc: InstanceType<typeof Y.Doc>,
+          generation: number,
+        ) => Promise<void>;
+        attachYjsWebSocketProviderIfNeeded: (generation: number, roomId: string) => Promise<void>;
+      };
+
+      service.syncRoomId.set(roomId);
+      service.syncShareToken.set(importedToken);
+      service.syncShareStatus.set('pending');
+      internals.yDoc = yDoc;
+      internals.yRoot = yRoot;
+      internals.yLearningObjectivesRoot = yLearningObjectivesRoot;
+      internals.pendingImportedShareToken = {
+        roomId,
+        token: importedToken,
+        previousToken: null,
+      };
+      internals.pendingImportedQuizRestore = {
+        roomId,
+        baselineSerialized: '[]',
+        latestSerialized: '[]',
+        persistenceStarted: true,
+        persistenceSynced: false,
+        providerSynced: true,
+        providerPresetSerialized: null,
+        providerSerialized: '[]',
+      };
+      internals.loadIndexedDbPersistenceCtor = vi.fn().mockResolvedValue(NeverSyncedPersistence);
+      internals.attachYjsWebSocketProviderIfNeeded = reconnect;
+
+      await internals.attachYjsIndexedDbPersistence(roomId, yDoc, internals.yjsInitGeneration);
+      expect(internals.yPersistence).toBeInstanceOf(NeverSyncedPersistence);
+
+      await vi.advanceTimersByTimeAsync(5000);
+
+      expect(destroyPersistence).toHaveBeenCalledOnce();
+      expect(internals.yPersistence).toBeNull();
+      expect(internals.pendingImportedPersistenceSyncTimeoutId).toBeNull();
+      expect(internals.pendingImportedShareToken).toBeNull();
+      expect(internals.pendingImportedQuizRestore).toBeNull();
+      expect(service.syncShareStatus()).toBe('ready');
+      expect(reconnect).toHaveBeenCalledWith(internals.yjsInitGeneration, roomId);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('beendet den Provider dauerhaft bei einem serverseitig abgelehnten Sync-Token', () => {

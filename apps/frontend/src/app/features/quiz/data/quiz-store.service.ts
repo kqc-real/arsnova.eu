@@ -575,6 +575,7 @@ const QUIZ_LEARNING_OBJECTIVES_OPLOG_PREFIX = 'quiz-learning-objectives-v1-oplog
 const QUIZ_LEARNING_OBJECTIVES_OPLOG_HARD_LIMIT = 4096;
 const QUIZ_LEARNING_OBJECTIVES_OPLOG_RECENT_PER_OBJECTIVE = 8;
 const QUIZ_LEARNING_OBJECTIVES_DELETE_SETTLEMENT_MS = 1500;
+const QUIZ_IMPORTED_PERSISTENCE_SYNC_TIMEOUT_MS = 5000;
 const QUIZ_SYNC_ROOM_STORAGE_KEY = 'quiz-sync-room-id';
 const QUIZ_SYNC_METADATA_PREFIX = 'quiz-sync-meta';
 const QUIZ_SYNC_DEVICE_ID_KEY = 'quiz-sync-device-id';
@@ -1182,6 +1183,7 @@ export class QuizStoreService implements OnDestroy {
   private yRoot: YMapDoc<string> | null = null;
   private yLearningObjectivesRoot: YMapDoc<string> | null = null;
   private yPersistence: IndexedDbPersistenceInstance | null = null;
+  private pendingImportedPersistenceSyncTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private yProvider: WebsocketProviderInstance | null = null;
   private yjsModulePromise: Promise<YjsModule> | null = null;
   private indexedDbPersistencePromise: Promise<IndexedDbPersistenceCtor> | null = null;
@@ -3373,12 +3375,73 @@ export class QuizStoreService implements OnDestroy {
     if (this.yPersistence || !hasIndexedDbSupport()) return;
     const IndexeddbPersistence = await this.loadIndexedDbPersistenceCtor();
     if (!this.canUseYjsSetupResult(generation, roomId) || this.yDoc !== yDoc) return;
-    this.yPersistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
-    this.yPersistence.once('synced', () => {
-      if (this.yDoc === yDoc && this.syncRoomId() === roomId) {
+    const persistence = new IndexeddbPersistence(`${QUIZ_YDOC_NAME}:${roomId}`, yDoc);
+    this.yPersistence = persistence;
+    persistence.once('synced', () => {
+      if (this.yPersistence === persistence && this.yDoc === yDoc && this.syncRoomId() === roomId) {
+        this.clearPendingImportedPersistenceSyncTimeout();
         this.handleInitialYjsSourceSynced(roomId, 'persistence');
       }
     });
+    this.schedulePendingImportedPersistenceSyncTimeout(roomId, yDoc, generation, persistence);
+  }
+
+  private schedulePendingImportedPersistenceSyncTimeout(
+    roomId: string,
+    yDoc: YDoc,
+    generation: number,
+    persistence: IndexedDbPersistenceInstance,
+  ): void {
+    const pendingShare = this.pendingImportedShareToken;
+    const pendingRestore = this.pendingImportedQuizRestore;
+    if (
+      pendingShare?.roomId !== roomId ||
+      pendingRestore?.roomId !== roomId ||
+      !pendingRestore.providerSynced
+    ) {
+      return;
+    }
+
+    this.clearPendingImportedPersistenceSyncTimeout();
+    this.pendingImportedPersistenceSyncTimeoutId = setTimeout(() => {
+      this.pendingImportedPersistenceSyncTimeoutId = null;
+      this.recoverPendingImportedPersistenceFailure(roomId, yDoc, generation, persistence);
+    }, QUIZ_IMPORTED_PERSISTENCE_SYNC_TIMEOUT_MS);
+  }
+
+  private clearPendingImportedPersistenceSyncTimeout(): void {
+    if (this.pendingImportedPersistenceSyncTimeoutId === null) return;
+    clearTimeout(this.pendingImportedPersistenceSyncTimeoutId);
+    this.pendingImportedPersistenceSyncTimeoutId = null;
+  }
+
+  private recoverPendingImportedPersistenceFailure(
+    roomId: string,
+    yDoc: YDoc,
+    generation: number,
+    persistence: IndexedDbPersistenceInstance | null = null,
+  ): void {
+    if (!this.canUseYjsSetupResult(generation, roomId) || this.yDoc !== yDoc) return;
+    if (
+      this.pendingImportedShareToken?.roomId !== roomId ||
+      this.pendingImportedQuizRestore?.roomId !== roomId ||
+      !this.pendingImportedQuizRestore.providerSynced
+    ) {
+      return;
+    }
+    if (persistence !== null && this.yPersistence !== persistence) return;
+    if (persistence === null && this.yPersistence !== null) return;
+
+    this.clearPendingImportedPersistenceSyncTimeout();
+    if (persistence !== null) {
+      this.yPersistence = null;
+      try {
+        void Promise.resolve(persistence.destroy()).catch(() => undefined);
+      } catch {
+        // The broken cache is already detached from the active document.
+      }
+    }
+    this.handleInitialYjsSourceSynced(roomId, 'persistence');
   }
 
   /** Yjs-WebSocket nur bei geteilter Bibliothek – lokal reicht IndexedDB (keine WS-Konsolenfehler ohne Server). */
@@ -3530,6 +3593,7 @@ export class QuizStoreService implements OnDestroy {
 
   private teardownYjs(): void {
     this.yjsInitGeneration++;
+    this.clearPendingImportedPersistenceSyncTimeout();
     try {
       this.yRoot?.unobserve(this.onYjsRootChanged);
       this.yLearningObjectivesRoot?.unobserve(this.onYjsLearningObjectivesChanged);
@@ -3679,8 +3743,7 @@ export class QuizStoreService implements OnDestroy {
           const generation = this.yjsInitGeneration;
           void this.attachYjsIndexedDbPersistence(roomId, yDoc, generation).catch(() => {
             if (this.canUseYjsSetupResult(generation, roomId) && this.yDoc === yDoc) {
-              this.teardownYjs();
-              this.syncConnectionState.set('disconnected');
+              this.recoverPendingImportedPersistenceFailure(roomId, yDoc, generation);
             }
           });
         }
@@ -3707,7 +3770,7 @@ export class QuizStoreService implements OnDestroy {
       this.confirmPendingImportedShareToken(roomId, pendingShare.token);
       this.pendingImportedQuizRestore = null;
       this.persistLocalMirror(serialized);
-      this.writeYjsSnapshot(serialized);
+      this.writeYjsSnapshot(serialized, undefined, pendingRestore.providerPresetSerialized);
       this.syncFromYjsOrSeed();
       void this.attachYjsWebSocketProviderIfNeeded(this.yjsInitGeneration, roomId);
       return;
@@ -4522,7 +4585,11 @@ export class QuizStoreService implements OnDestroy {
     }
   }
 
-  private writeYjsSnapshot(serialized?: string, serializedLearningObjectives?: string): void {
+  private writeYjsSnapshot(
+    serialized?: string,
+    serializedLearningObjectives?: string,
+    serializedHomePreset?: string | null,
+  ): void {
     if (!this.yRoot || !this.yLearningObjectivesRoot || !this.yDoc || this.isApplyingYjsSnapshot) {
       return;
     }
@@ -4559,7 +4626,13 @@ export class QuizStoreService implements OnDestroy {
           serializedLearningObjectives ?? this.serializeLearningObjectiveBundles(),
         );
       }
-      this.writePresetSnapshotToYjs();
+      if (serializedHomePreset === undefined) {
+        this.writePresetSnapshotToYjs();
+      } else if (serializedHomePreset === null) {
+        this.yRoot.delete(QUIZ_YDOC_PRESET_KEY);
+      } else {
+        this.yRoot.set(QUIZ_YDOC_PRESET_KEY, serializedHomePreset);
+      }
     } catch {
       // Keep local state even if Yjs write fails.
     } finally {
@@ -4713,6 +4786,7 @@ export class QuizStoreService implements OnDestroy {
   private rejectPendingImportedShareToken(roomId: string, token: string | null): void {
     const pending = this.pendingImportedShareToken;
     if (!token || pending?.roomId !== roomId || pending.token !== token) return;
+    this.clearPendingImportedPersistenceSyncTimeout();
     this.pendingImportedShareToken = null;
     this.pendingImportedQuizRestore = null;
     this.syncShareToken.set(pending.previousToken);
