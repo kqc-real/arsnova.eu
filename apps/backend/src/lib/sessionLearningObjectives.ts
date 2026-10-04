@@ -801,7 +801,11 @@ export function buildQuizLearningObjectiveBundleCreate(
 type QuizBundleRow = Prisma.QuizLearningObjectiveBundleGetPayload<{
   include: {
     objectives: {
-      include: { references: true };
+      include: {
+        references: {
+          include: { question: { select: { sourceQuestionId: true } } };
+        };
+      };
     };
   };
 }>;
@@ -814,7 +818,11 @@ async function loadQuizBundle(
     where: { quizId },
     include: {
       objectives: {
-        include: { references: true },
+        include: {
+          references: {
+            include: { question: { select: { sourceQuestionId: true } } },
+          },
+        },
         orderBy: [{ createdAt: 'asc' }, { objectiveId: 'asc' }],
       },
     },
@@ -861,7 +869,7 @@ async function cloneLoadedQuizBundle(
   const references = objectiveRows.flatMap(({ id: objectiveRowId, source }) =>
     source.references.map((reference) => ({
       id: randomUUID(),
-      sourceReferenceId: reference.questionId,
+      sourceReferenceId: reference.question.sourceQuestionId ?? reference.questionId,
       objectiveRowId,
       kind: reference.kind,
       sourceKind: 'QUIZ_QUESTION' as const,
@@ -1164,22 +1172,15 @@ export async function replaceSessionQuizLearningObjectives(input: {
       row.sourceQuizId !== null && newSourceQuizId !== null
         ? row.sourceQuizId === newSourceQuizId
         : input.previousQuizId === input.quizId;
-    let becameUnresolved =
-      (row.scope === 'QUIZ' && !sameSourceQuiz) ||
-      row.references.some(
-        (reference) =>
-          reference.sourceKind === 'QUIZ_QUESTION' && reference.quizQuestionId === null,
-      );
+    let becameUnresolved = row.scope === 'QUIZ' && !sameSourceQuiz;
     let sourceContentChanged = false;
     for (const reference of row.references) {
-      if (reference.sourceKind !== 'QUIZ_QUESTION' || !reference.quizQuestionId) {
-        continue;
-      }
-      const sourceQuestionId = reference.quizQuestion?.sourceQuestionId ?? null;
-      const replacement =
-        sameSourceQuiz && sourceQuestionId
-          ? (newQuestionBySourceId.get(sourceQuestionId) ?? null)
-          : null;
+      if (reference.sourceKind !== 'QUIZ_QUESTION') continue;
+      const sourceQuestionId =
+        reference.quizQuestion?.sourceQuestionId ?? reference.sourceReferenceId;
+      const replacement = sameSourceQuiz
+        ? (newQuestionBySourceId.get(sourceQuestionId) ?? null)
+        : null;
       const replacementId = replacement?.id ?? null;
       if (
         replacement &&
@@ -1190,7 +1191,7 @@ export async function replaceSessionQuizLearningObjectives(input: {
       }
       referenceRemaps.push({
         id: reference.id,
-        sourceReferenceId: replacementId ?? reference.sourceReferenceId,
+        sourceReferenceId: sourceQuestionId,
         quizQuestionId: replacementId,
         unresolvedReason: replacementId ? null : 'SOURCE_NOT_IN_UPLOAD',
       });

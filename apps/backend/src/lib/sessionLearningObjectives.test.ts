@@ -611,14 +611,28 @@ describe('session learning-objective service', () => {
           id: 'quiz-row-collision',
           bundleQuizId: QUIZ_B_ID,
           sourceDigest: null,
-          references: [{ id: 'collision-ref', kind: 'TASK', questionId: NEW_QUESTION_ID }],
+          references: [
+            {
+              id: 'collision-ref',
+              kind: 'TASK',
+              questionId: NEW_QUESTION_ID,
+              question: { sourceQuestionId: SOURCE_QUESTION_ID },
+            },
+          ],
         },
         {
           ...objectiveRow({ objectiveId: '10000000-0000-4000-8000-000000000099' }),
           id: 'quiz-row-new',
           bundleQuizId: QUIZ_B_ID,
           sourceDigest: null,
-          references: [{ id: 'new-ref', kind: 'TASK', questionId: NEW_QUESTION_ID }],
+          references: [
+            {
+              id: 'new-ref',
+              kind: 'TASK',
+              questionId: NEW_QUESTION_ID,
+              question: { sourceQuestionId: SOURCE_QUESTION_ID },
+            },
+          ],
         },
       ],
     });
@@ -636,7 +650,7 @@ describe('session learning-objective service', () => {
     expect(tx.sessionLearningObjectiveReference.update).toHaveBeenCalledTimes(2);
     for (const call of tx.sessionLearningObjectiveReference.update.mock.calls) {
       expect(call[0].data).toEqual({
-        sourceReferenceId: NEW_QUESTION_ID,
+        sourceReferenceId: SOURCE_QUESTION_ID,
         quizQuestionId: NEW_QUESTION_ID,
         unresolvedReason: null,
       });
@@ -650,6 +664,61 @@ describe('session learning-objective service', () => {
     const clonedReferences = tx.sessionLearningObjectiveReference.createMany.mock.calls[0]![0].data;
     expect(clonedReferences).toHaveLength(1);
     expect(clonedReferences[0].objectiveRowId).toBe(clonedObjectives[0].id);
+    expect(clonedReferences[0]).toMatchObject({
+      sourceReferenceId: SOURCE_QUESTION_ID,
+      quizQuestionId: NEW_QUESTION_ID,
+    });
+  });
+
+  it('resolves a previously missing same-source question by its stable source id', async () => {
+    const tx = txMock();
+    tx.sessionLearningObjective.findMany.mockResolvedValue([
+      objectiveRow({
+        projection: 'SESSION_OVERRIDE',
+        confirmationState: 'NEEDS_REVIEW',
+        confirmationRevision: 2,
+        previousConfirmationState: 'DRAFT',
+        needsReviewReason: 'SOURCE_REFERENCE_REMOVED',
+        references: objectiveRow().references.map((reference) => ({
+          ...reference,
+          sourceReferenceId: SOURCE_QUESTION_ID,
+          quizQuestionId: null,
+          unresolvedReason: 'SOURCE_NOT_IN_UPLOAD',
+          quizQuestion: null,
+        })),
+      }),
+    ]);
+    tx.question.findMany.mockResolvedValue([
+      {
+        id: NEW_QUESTION_ID,
+        sourceQuestionId: SOURCE_QUESTION_ID,
+        text: 'Wieder vorhandene Frage',
+        type: 'SINGLE_CHOICE',
+        answers: [{ text: 'Ja', isCorrect: true }],
+      },
+    ]);
+    tx.quizLearningObjectiveBundle.findUnique.mockResolvedValue(null);
+
+    await replaceSessionQuizLearningObjectives({
+      tx: tx as unknown as Prisma.TransactionClient,
+      sessionId: SESSION_ID,
+      previousQuizId: QUIZ_A_ID,
+      quizId: QUIZ_B_ID,
+      currentRevision: 5,
+      currentConfigured: true,
+    });
+
+    expect(tx.sessionLearningObjectiveReference.update).toHaveBeenCalledTimes(2);
+    for (const call of tx.sessionLearningObjectiveReference.update.mock.calls) {
+      expect(call[0]).toMatchObject({
+        data: {
+          sourceReferenceId: SOURCE_QUESTION_ID,
+          quizQuestionId: NEW_QUESTION_ID,
+          unresolvedReason: null,
+        },
+      });
+    }
+    expect(tx.sessionLearningObjective.update).not.toHaveBeenCalled();
   });
 
   it('batches a large valid reference remap instead of issuing one statement per reference', async () => {
