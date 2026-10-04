@@ -4,8 +4,10 @@ import {
   LEARNING_OBJECTIVE_MAX_REFERENCES,
   LEARNING_OBJECTIVE_REVISION_MAX,
   LEARNING_OBJECTIVE_TEXT_MAX_LENGTH,
+  SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
   QuizLearningObjectiveBundleV1Schema,
   SaveSessionLearningObjectivesInputSchema,
+  SessionLearningObjectiveAvailableQaTaskSchema,
   SessionLearningObjectiveAvailableQuizTaskSchema,
   SessionLearningObjectiveDTOSchema,
   SessionLearningObjectivesSnapshotSchema,
@@ -235,6 +237,14 @@ describe('session learning-objective host contract', () => {
           order: 0,
         },
       ],
+      availableQaTasks: [
+        {
+          kind: 'qa-question',
+          questionId: QA_QUESTION_ID,
+          text: 'Wie hängt das zusammen?',
+        },
+      ],
+      availableQaTasksTruncated: false,
       objectives: [validSessionObjective()],
     };
     expect(SessionLearningObjectivesSnapshotSchema.parse(snapshot)).toEqual(snapshot);
@@ -302,6 +312,28 @@ describe('session learning-objective host contract', () => {
       },
     };
     expect(SessionLearningObjectiveDTOSchema.safeParse(objective).success).toBe(true);
+  });
+
+  it('exposes a bounded, trimmed, solution-free Q&A task catalog', () => {
+    expect(
+      SessionLearningObjectiveAvailableQaTaskSchema.parse({
+        kind: 'qa-question',
+        questionId: QA_QUESTION_ID,
+        text: '  Wie hängt das zusammen?  ',
+      }),
+    ).toEqual({
+      kind: 'qa-question',
+      questionId: QA_QUESTION_ID,
+      text: 'Wie hängt das zusammen?',
+    });
+    expect(
+      SessionLearningObjectiveAvailableQaTaskSchema.safeParse({
+        kind: 'qa-question',
+        questionId: QA_QUESTION_ID,
+        text: 'Frage?',
+        participantId: SESSION_ID,
+      }).success,
+    ).toBe(false);
   });
 
   it('keeps a removed last task reference traceable without widening its scope', () => {
@@ -546,6 +578,8 @@ describe('session learning-objective host contract', () => {
       learningContextRevision: 0,
       access: { state: 'writable' },
       availableQuizTasks: [],
+      availableQaTasks: [],
+      availableQaTasksTruncated: false,
       objectives: [] as ReturnType<typeof validSessionObjective>[],
     };
     expect(
@@ -570,6 +604,8 @@ describe('session learning-objective host contract', () => {
       learningContextRevision: 0,
       configured: false,
       access: { state: 'writable' as const },
+      availableQaTasks: [],
+      availableQaTasksTruncated: false,
       objectives: [],
     };
     const availableQuizTasks = Array.from({ length: QUIZ_UPLOAD_MAX_QUESTIONS }, (_, order) => ({
@@ -597,6 +633,49 @@ describe('session learning-objective host contract', () => {
             questionId: '00000000-0000-4000-8002-000000000200',
             text: 'Eine Aufgabe zu viel',
             order: QUIZ_UPLOAD_MAX_QUESTIONS,
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('bounds and de-duplicates the available Q&A task catalog', () => {
+    const base = {
+      schemaVersion: 1,
+      sessionId: SESSION_ID,
+      learningContextRevision: 0,
+      configured: false,
+      access: { state: 'writable' as const },
+      availableQuizTasks: [],
+      availableQaTasksTruncated: false,
+      objectives: [],
+    };
+    const availableQaTasks = Array.from(
+      { length: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX },
+      (_, index) => ({
+        kind: 'qa-question' as const,
+        questionId: `00000000-0000-4000-8003-${String(index).padStart(12, '0')}`,
+        text: `Q&A-Aufgabe ${index + 1}`,
+      }),
+    );
+    expect(
+      SessionLearningObjectivesSnapshotSchema.safeParse({ ...base, availableQaTasks }).success,
+    ).toBe(true);
+    expect(
+      SessionLearningObjectivesSnapshotSchema.safeParse({
+        ...base,
+        availableQaTasks: [availableQaTasks[0], availableQaTasks[0]],
+      }).success,
+    ).toBe(false);
+    expect(
+      SessionLearningObjectivesSnapshotSchema.safeParse({
+        ...base,
+        availableQaTasks: [
+          ...availableQaTasks,
+          {
+            kind: 'qa-question',
+            questionId: '00000000-0000-4000-8003-000000000500',
+            text: 'Eine Q&A-Aufgabe zu viel',
           },
         ],
       }).success,

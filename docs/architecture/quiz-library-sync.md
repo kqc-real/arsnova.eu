@@ -146,6 +146,17 @@ verspäteter Offline-Client entfernte Ziele wiederbelebt. Eindeutig aufgelöste
 Verläufe werden begrenzt ausgedünnt, und eine harte Obergrenze verhindert ein
 unbegrenztes Wachstum des Yjs-Dokuments.
 
+Solange `y-indexeddb` den ersten Stand wiederherstellt, puffert der Store neue
+lokale Lernzieländerungen als Operationen. Erst nach der Wiederherstellung
+werden passende kausale Eltern aus dem Oplog zugeordnet. Damit kann ein bereits
+initialisierter Sidecar eine unmittelbar nach dem Öffnen gespeicherte lokale
+Änderung nicht still durch seinen ersten Snapshot ersetzen.
+
+Bei einem neu importierten Share-Link schreibt der Client vor dem ersten
+erfolgreichen WebSocket-Abgleich keinen lokalen Yjs-Snapshot in den Raum. So
+kann ein zunächst leerer IndexedDB-Stand die bereits geteilte Bibliothek nicht
+durch einen Last-Writer-Write leeren.
+
 Vollständige Bundle-JSON-Werte aus dem Zwischenformat werden beim Lesen
 transaktional in Operationen migriert. Das gilt auch für verspätete Writes
 eines noch verbundenen Legacy-Clients: Sie werden in den aktuellen Verlauf

@@ -331,6 +331,8 @@ describe('learning-objective attach contract', () => {
               order: question.order,
             },
           ],
+          availableQaTasks: [],
+          availableQaTasksTruncated: false,
           objectives: [],
         },
       }).success,

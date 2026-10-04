@@ -34989,6 +34989,14 @@
           <context context-type="linenumber">264,266</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionLearningObjectives.qaTaskCatalogTruncated" datatype="html">
+        <source> Bei sehr großen Foren werden nur die neuesten Q&amp;A-Aufgaben angeboten.</source>
+        <target> En foros muy grandes, solo se ofrecen las tareas de preguntas y respuestas más recientes.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
+          <context context-type="linenumber">281,283</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionLearningObjectives.confirmationLegend" datatype="html">
         <source>Status</source>
         <target>estado</target>

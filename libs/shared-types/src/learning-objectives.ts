@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { QUIZ_QUESTION_TEXT_MAX_LENGTH, QUIZ_UPLOAD_MAX_QUESTIONS } from './quiz-contract-limits';
+import { QA_QUESTION_TEXT_MAX_CODE_POINTS, qaTextCodePointLength } from './qa-redaction';
 
 /**
  * Shared persistence and host-API contracts for manual learning objectives.
@@ -16,6 +17,8 @@ export const LEARNING_OBJECTIVE_MAX_OBJECTIVES = 100;
 export const LEARNING_OBJECTIVE_MAX_REFERENCES = 100;
 export const LEARNING_OBJECTIVE_TEXT_MAX_LENGTH = 500;
 export const LEARNING_OBJECTIVE_MODEL_METADATA_MAX_LENGTH = 120;
+/** Bounded host catalog; larger forums expose truncation explicitly. */
+export const SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX = 500;
 /** PostgreSQL/Prisma `Int` upper bound used by bundle, row, and CAS revisions. */
 export const LEARNING_OBJECTIVE_REVISION_MAX = 2_147_483_647;
 
@@ -669,6 +672,22 @@ export type SessionLearningObjectiveAvailableQuizTask = z.infer<
   typeof SessionLearningObjectiveAvailableQuizTaskSchema
 >;
 
+/** Host-only, solution-free Q&A task entry independent of forum UI pagination/filtering. */
+export const SessionLearningObjectiveAvailableQaTaskSchema = z
+  .object({
+    kind: z.literal('qa-question'),
+    questionId: z.uuid(),
+    text: z
+      .string()
+      .trim()
+      .min(1)
+      .refine((value) => qaTextCodePointLength(value) <= QA_QUESTION_TEXT_MAX_CODE_POINTS),
+  })
+  .strict();
+export type SessionLearningObjectiveAvailableQaTask = z.infer<
+  typeof SessionLearningObjectiveAvailableQaTaskSchema
+>;
+
 export const SessionLearningObjectivesSnapshotSchema = z
   .object({
     schemaVersion: z.literal(SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION),
@@ -679,6 +698,10 @@ export const SessionLearningObjectivesSnapshotSchema = z
     availableQuizTasks: z
       .array(SessionLearningObjectiveAvailableQuizTaskSchema)
       .max(QUIZ_UPLOAD_MAX_QUESTIONS),
+    availableQaTasks: z
+      .array(SessionLearningObjectiveAvailableQaTaskSchema)
+      .max(SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX),
+    availableQaTasksTruncated: z.boolean(),
     objectives: z.array(SessionLearningObjectiveDTOSchema).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
   })
   .strict()
@@ -694,6 +717,12 @@ export const SessionLearningObjectivesSnapshotSchema = z
       ctx,
       ['availableQuizTasks'],
       'Verfügbare Quizaufgaben müssen innerhalb einer Session eindeutig sein.',
+    );
+    addUniqueStringIssues(
+      value.availableQaTasks.map((task) => task.questionId),
+      ctx,
+      ['availableQaTasks'],
+      'Verfügbare Q&A-Aufgaben müssen innerhalb einer Session eindeutig sein.',
     );
     if (!value.configured && value.objectives.length > 0) {
       ctx.addIssue({

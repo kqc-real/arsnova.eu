@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import { SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX } from '@arsnova/shared-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prismaMock } = vi.hoisted(() => ({
@@ -121,6 +122,7 @@ function txMock() {
     session: { findUnique: vi.fn(), update: vi.fn() },
     quiz: { findUnique: vi.fn().mockResolvedValue({ sourceQuizId: SOURCE_QUIZ_ID }) },
     question: { findMany: vi.fn() },
+    qaQuestion: { findMany: vi.fn().mockResolvedValue([]) },
     quizLearningObjectiveBundle: { findUnique: vi.fn() },
     sessionLearningObjective: {
       findMany: vi.fn(),
@@ -203,6 +205,47 @@ describe('session learning-objective service', () => {
       select: { id: true, text: true, order: true },
       orderBy: [{ order: 'asc' }, { id: 'asc' }],
     });
+  });
+
+  it('returns a bounded host catalog of non-deleted Q&A tasks independent of forum pagination', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(sessionRow({ quizId: null }));
+    prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
+    prismaMock.qaQuestion.findMany.mockResolvedValue([
+      { id: QA_QUESTION_ID, text: 'Wie hängt das zusammen?' },
+    ]);
+
+    const snapshot = await getSessionLearningObjectives('abc123', NOW);
+
+    expect(snapshot.availableQaTasks).toEqual([
+      {
+        kind: 'qa-question',
+        questionId: QA_QUESTION_ID,
+        text: 'Wie hängt das zusammen?',
+      },
+    ]);
+    expect(snapshot.availableQaTasksTruncated).toBe(false);
+    expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
+      where: { sessionId: SESSION_ID, status: { not: 'DELETED' } },
+      select: { id: true, text: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1,
+    });
+  });
+
+  it('marks the Q&A task catalog when more eligible tasks exist than can be returned', async () => {
+    prismaMock.session.findUnique.mockResolvedValue(sessionRow({ quizId: null }));
+    prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
+    prismaMock.qaQuestion.findMany.mockResolvedValue(
+      Array.from({ length: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1 }, (_, index) => ({
+        id: `00000000-0000-4000-8004-${String(index).padStart(12, '0')}`,
+        text: `Frage ${index + 1}`,
+      })),
+    );
+
+    const snapshot = await getSessionLearningObjectives('abc123', NOW);
+
+    expect(snapshot.availableQaTasks).toHaveLength(SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX);
+    expect(snapshot.availableQaTasksTruncated).toBe(true);
   });
 
   it('keeps finished-session reads immutable only during the host post-processing window', async () => {

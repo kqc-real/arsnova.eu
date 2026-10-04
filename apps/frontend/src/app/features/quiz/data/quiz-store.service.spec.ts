@@ -1459,6 +1459,43 @@ describe('QuizStoreService', () => {
     expect(localStorage.getItem(`quiz-sync-share-token:${roomId}`)).toBe(importedToken);
   });
 
+  it('seedet einen neu importierten Share erst nach dem ersten WebSocket-Abgleich', async () => {
+    const service = TestBed.inject(QuizStoreService);
+    const roomId = '00000000-0000-4000-8000-000000000456';
+    const importedToken = `v1.${roomId}.1.${'d'.repeat(43)}`;
+    const Y = await import('yjs');
+    const yDoc = new Y.Doc();
+    const yRoot = yDoc.getMap<string>('quiz-library');
+    const yObjectives = yDoc.getMap<string>('quiz-learning-objectives-v1');
+    const internals = service as unknown as {
+      yDoc: InstanceType<typeof Y.Doc> | null;
+      yRoot: import('yjs').Map<string> | null;
+      yLearningObjectivesRoot: import('yjs').Map<string> | null;
+      initYjsPersistence: (roomId: string) => Promise<void>;
+      beginLearningObjectiveYjsRestore: (roomId: string) => void;
+      confirmPendingImportedShareToken: (roomId: string, token: string) => void;
+      syncFromYjsOrSeed: () => void;
+    };
+    internals.initYjsPersistence = vi.fn().mockResolvedValue(undefined);
+
+    service.activateSyncRoom(roomId, { markShared: true, shareToken: importedToken });
+    internals.beginLearningObjectiveYjsRestore(roomId);
+    internals.yDoc = yDoc;
+    internals.yRoot = yRoot;
+    internals.yLearningObjectivesRoot = yObjectives;
+
+    internals.syncFromYjsOrSeed();
+
+    expect(yRoot.has('quizzes')).toBe(false);
+    expect(yRoot.has('quiz-learning-objectives-v1-initialized')).toBe(false);
+
+    internals.confirmPendingImportedShareToken(roomId, importedToken);
+    internals.syncFromYjsOrSeed();
+
+    expect(yRoot.get('quizzes')).toBe('[]');
+    expect(yRoot.get('quiz-learning-objectives-v1-initialized')).toBe('1');
+  });
+
   it('beendet den Provider dauerhaft bei einem serverseitig abgelehnten Sync-Token', () => {
     const service = TestBed.inject(QuizStoreService);
     const roomId = service.syncRoomId();
@@ -2486,13 +2523,84 @@ describe('QuizStoreService', () => {
       yRoot: import('yjs').Map<string>;
       yLearningObjectivesRoot: import('yjs').Map<string>;
       syncFromYjsOrSeed: () => void;
+      finishLearningObjectiveYjsRestore: () => void;
     };
+    // Dieser Test modelliert einen bereits vorhandenen, aber veralteten Mirror,
+    // nicht eine neue Bearbeitung während der initialen Wiederherstellung.
+    internals.finishLearningObjectiveYjsRestore();
     internals.yDoc = yDoc;
     internals.yRoot = yRoot;
     internals.yLearningObjectivesRoot = yObjectives;
     internals.syncFromYjsOrSeed();
 
     expect(service.getUploadPayload(created.id).learningObjectives).toBeUndefined();
+  });
+
+  it('führt eine lokale Lernzieländerung während der initialen Yjs-Wiederherstellung kausal zusammen', async () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Frühe Bearbeitung' });
+    service.addQuestion(created.id, {
+      text: 'Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const original = service.saveQuizLearningObjective(created.id, {
+      text: 'Ausgangsfassung',
+      scope: { kind: 'quiz-wide' },
+      confirmationState: 'draft',
+    });
+    const remoteBaseline = service.getLearningObjectiveBundle(created.id);
+
+    const Y = await import('yjs');
+    const yDoc = new Y.Doc();
+    const yRoot = yDoc.getMap<string>('quiz-library');
+    const yObjectives = yDoc.getMap<string>('quiz-learning-objectives-v1');
+    yRoot.set('quizzes', localStorage.getItem(QUIZ_STORAGE_KEY) ?? '[]');
+    yRoot.set('quiz-learning-objectives-v1-initialized', '1');
+    yObjectives.set(created.id, JSON.stringify(remoteBaseline));
+    const internals = service as unknown as {
+      yDoc: InstanceType<typeof Y.Doc> | null;
+      yRoot: import('yjs').Map<string> | null;
+      yLearningObjectivesRoot: import('yjs').Map<string> | null;
+      syncRoomId: () => string;
+      beginLearningObjectiveYjsRestore: (roomId: string) => void;
+      finishLearningObjectiveYjsRestore: () => void;
+      syncFromYjsOrSeed: () => void;
+    };
+    internals.finishLearningObjectiveYjsRestore();
+    internals.yDoc = null;
+    internals.yRoot = null;
+    internals.yLearningObjectivesRoot = null;
+    internals.beginLearningObjectiveYjsRestore(internals.syncRoomId());
+
+    service.saveQuizLearningObjective(
+      created.id,
+      {
+        text: 'Direkt nach dem Öffnen bearbeitet',
+        scope: { kind: 'quiz-wide' },
+        confirmationState: 'confirmed',
+      },
+      { objectiveId: original.id, expectedRevision: original.revision },
+    );
+
+    internals.yDoc = yDoc;
+    internals.yRoot = yRoot;
+    internals.yLearningObjectivesRoot = yObjectives;
+    internals.syncFromYjsOrSeed();
+
+    expect(service.getLearningObjectiveBundle(created.id).objectives[0]).toEqual(
+      expect.objectContaining({
+        id: original.id,
+        revision: 2,
+        text: 'Direkt nach dem Öffnen bearbeitet',
+        confirmation: expect.objectContaining({ state: 'confirmed' }),
+      }),
+    );
+    expect(service.learningObjectiveSyncConflicts()).toEqual([]);
   });
 
   it('seedet einen frischen unmarkierten Yjs-Sidecar aus dem lokalen Mirror', async () => {

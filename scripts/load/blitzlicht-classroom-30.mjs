@@ -32,12 +32,20 @@ const VOTE_P95_LIMIT_MS = Math.max(100, Number(process.env.VOTE_P95_LIMIT_MS || 
 
 const TEMPO_VALUES = ['SPEED_UP', 'FOLLOWING', 'SLOW_DOWN', 'LOST'];
 
-function createHttpClient(hostToken) {
+function createHttpClient(hostToken, participantCapability) {
   return createTRPCProxyClient({
     links: [
       httpLink({
         url: TRPC_URL,
-        headers: hostToken ? () => ({ 'x-host-token': hostToken }) : undefined,
+        headers:
+          hostToken || participantCapability
+            ? () => ({
+                ...(hostToken ? { 'x-host-token': hostToken } : {}),
+                ...(participantCapability
+                  ? { 'x-participant-capability': participantCapability }
+                  : {}),
+              })
+            : undefined,
       }),
     ],
   });
@@ -121,14 +129,15 @@ async function joinParticipants(publicTrpc, code) {
   );
 }
 
-async function castTempoVotes(publicTrpc, code, participants) {
+async function castTempoVotes(code, participants) {
   const durations = [];
   const startedAt = performance.now();
   const results = await mapLimit(participants, VOTE_CONCURRENCY, async (participant, index) => {
     const requestStartedAt = performance.now();
     const value = tempoValueForParticipant(index);
     try {
-      await publicTrpc.quickFeedback.vote.mutate({
+      const participantTrpc = createHttpClient(undefined, participant.rejoinToken);
+      await participantTrpc.quickFeedback.vote.mutate({
         sessionCode: code,
         voterId: participant.participantId,
         value,
@@ -172,7 +181,7 @@ async function run() {
     sessionCode: code,
   });
 
-  const votePhase = await castTempoVotes(publicTrpc, code, participants);
+  const votePhase = await castTempoVotes(code, participants);
   const hostResults = await hostTrpc.quickFeedback.hostResults.query({ sessionCode: code });
   const isActive = await publicTrpc.quickFeedback.isActive.query({ sessionCode: code });
 

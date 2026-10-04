@@ -375,7 +375,13 @@ export async function maybeSubmitQa(userContext, events) {
 export async function submitBlitzlicht(userContext, events) {
   try {
     const ctx = loadSessionContext();
-    const trpc = createHttpTrpcSingle(ctx.trpcUrl);
+    const trpc = createHttpTrpcSingle(
+      ctx.trpcUrl,
+      undefined,
+      undefined,
+      undefined,
+      userContext.vars.rejoinToken,
+    );
     const value = tempoValueForIndex(Number(userContext.vars.participantIndex ?? 0));
     await trpc.quickFeedback.vote.mutate({
       sessionCode: ctx.code,

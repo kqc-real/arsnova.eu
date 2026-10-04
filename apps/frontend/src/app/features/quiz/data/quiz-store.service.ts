@@ -605,6 +605,11 @@ interface LearningObjectiveYjsOperation {
   objective?: QuizLearningObjectiveV1;
 }
 
+interface PendingInitialLearningObjectiveOperation {
+  operation: LearningObjectiveYjsOperation;
+  baseFingerprint: string | null;
+}
+
 export interface QuizLearningObjectiveSyncAlternative {
   operationId: string;
   kind: 'upsert' | 'delete';
@@ -1200,6 +1205,14 @@ export class QuizStoreService implements OnDestroy {
   private lastSerializedLearningObjectivesRoomId = '';
   private malformedLearningObjectiveKeys = new Set<string>();
   private isWritingYjsSnapshot = false;
+  private learningObjectiveYjsRestoreRoomId: string | null = null;
+  private learningObjectiveYjsRestorePending = false;
+  private pendingInitialLearningObjectiveMirror: Record<
+    string,
+    QuizLearningObjectiveBundleV1
+  > | null = null;
+  private pendingInitialLearningObjectiveOperations: PendingInitialLearningObjectiveOperation[] =
+    [];
   private readonly pendingLearningObjectiveDeleteSettlements = new Map<
     string,
     ReturnType<typeof setTimeout>
@@ -3049,6 +3062,7 @@ export class QuizStoreService implements OnDestroy {
     this.recordLocalChange();
     const serialized = this.serializeQuizDocuments();
     const serializedLearningObjectives = this.serializeLearningObjectiveBundles();
+    this.capturePendingInitialLearningObjectiveOperations();
     this.persistLocalMirror(serialized);
     this.persistLearningObjectiveMirror(serializedLearningObjectives);
     this.writeYjsSnapshot(serialized, serializedLearningObjectives);
@@ -3099,6 +3113,169 @@ export class QuizStoreService implements OnDestroy {
     }
   }
 
+  private beginLearningObjectiveYjsRestore(roomId: string): void {
+    if (
+      this.learningObjectiveYjsRestorePending &&
+      this.learningObjectiveYjsRestoreRoomId === roomId
+    ) {
+      return;
+    }
+    this.learningObjectiveYjsRestoreRoomId = roomId;
+    this.learningObjectiveYjsRestorePending = true;
+    this.pendingInitialLearningObjectiveMirror = this.learningObjectiveBundles();
+    this.pendingInitialLearningObjectiveOperations = [];
+  }
+
+  /**
+   * Preserve edits made while y-indexeddb is still restoring its Y.Doc. The
+   * operations receive their causal parent only after the persisted oplog is
+   * available, so an early local edit becomes a normal branch/conflict instead
+   * of being replaced by the first remote snapshot.
+   */
+  private capturePendingInitialLearningObjectiveOperations(): void {
+    const previous = this.pendingInitialLearningObjectiveMirror;
+    if (!this.learningObjectiveYjsRestorePending || !previous) return;
+
+    const current = this.learningObjectiveBundles();
+    const quizIds = new Set([...Object.keys(previous), ...Object.keys(current)]);
+    for (const quizId of [...quizIds].sort()) {
+      const previousBundle = previous[quizId];
+      const currentBundle = current[quizId];
+      const previousById = new Map(
+        (previousBundle?.objectives ?? []).map((objective) => [objective.id, objective]),
+      );
+      const currentById = new Map(
+        (currentBundle?.objectives ?? []).map((objective) => [objective.id, objective]),
+      );
+      const objectiveIds = new Set([...previousById.keys(), ...currentById.keys()]);
+
+      for (const objectiveId of [...objectiveIds].sort()) {
+        const before = previousById.get(objectiveId);
+        const after = currentById.get(objectiveId);
+        if (
+          before &&
+          after &&
+          objectivePayloadFingerprint(before) === objectivePayloadFingerprint(after)
+        ) {
+          continue;
+        }
+        if (!before && !after) continue;
+
+        const operationId = generateUuid();
+        if (after) {
+          const expectedRevision = Math.max(0, after.revision - 1);
+          this.pendingInitialLearningObjectiveOperations.push({
+            operation: {
+              schemaVersion: 1,
+              operationId,
+              quizId,
+              objectiveId,
+              kind: 'upsert',
+              expectedRevision,
+              resultingRevision: after.revision,
+              bundleResultRevision: currentBundle?.revision ?? after.revision,
+              parentOperationIds: [],
+              writtenAt: after.updatedAt,
+              objective: after,
+            },
+            baseFingerprint:
+              before?.revision === expectedRevision ? objectivePayloadFingerprint(before) : null,
+          });
+          continue;
+        }
+
+        if (!before) continue;
+
+        if (before.revision >= LEARNING_OBJECTIVE_REVISION_MAX) {
+          this.learningObjectiveSyncError.set(
+            $localize`:@@learningObjectives.revisionLimit:Dieses Lernziel hat die maximale Revisionszahl erreicht.`,
+          );
+          continue;
+        }
+        this.pendingInitialLearningObjectiveOperations.push({
+          operation: {
+            schemaVersion: 1,
+            operationId,
+            quizId,
+            objectiveId,
+            kind: 'delete',
+            expectedRevision: before.revision,
+            resultingRevision: before.revision + 1,
+            bundleResultRevision:
+              currentBundle?.revision ??
+              Math.min(LEARNING_OBJECTIVE_REVISION_MAX, (previousBundle?.revision ?? 0) + 1),
+            parentOperationIds: [],
+            writtenAt: monotoneLearningObjectiveTimestamp(before),
+          },
+          baseFingerprint: objectivePayloadFingerprint(before),
+        });
+      }
+    }
+    this.pendingInitialLearningObjectiveMirror = current;
+  }
+
+  private flushPendingInitialLearningObjectiveOperations(): boolean {
+    if (!this.yDoc || !this.yLearningObjectivesRoot) return false;
+    if (this.pendingInitialLearningObjectiveOperations.length === 0) return true;
+
+    this.isWritingYjsSnapshot = true;
+    try {
+      this.yDoc.transact(() => {
+        for (const pending of this.pendingInitialLearningObjectiveOperations) {
+          const operationMap = this.learningObjectiveOperationMap(pending.operation.quizId);
+          if (!operationMap) throw new Error('learning-objective-oplog-unavailable');
+          if (operationMap.has(pending.operation.operationId)) continue;
+          const materialized = materializeLearningObjectiveOperations(
+            pending.operation.quizId,
+            operationMap,
+          );
+          if (operationMap.size > 0 && materialized.malformed) {
+            throw new Error('learning-objective-oplog-invalid');
+          }
+          const parentOperationIds = pending.baseFingerprint
+            ? (materialized.operationsByObjective.get(pending.operation.objectiveId) ?? [])
+                .filter(
+                  (candidate) =>
+                    candidate.kind === 'upsert' &&
+                    candidate.resultingRevision === pending.operation.expectedRevision &&
+                    objectivePayloadFingerprint(candidate.objective!) === pending.baseFingerprint,
+                )
+                .sort((left, right) => left.operationId.localeCompare(right.operationId))
+                .slice(0, 1)
+                .map((candidate) => candidate.operationId)
+            : [];
+          if (
+            !this.appendLearningObjectiveOperation(operationMap, {
+              ...pending.operation,
+              parentOperationIds,
+            })
+          ) {
+            throw new Error('learning-objective-oplog-limit');
+          }
+          this.yLearningObjectivesRoot!.set(
+            pending.operation.quizId,
+            QUIZ_LEARNING_OBJECTIVES_OPLOG_MARKER,
+          );
+        }
+      }, this);
+      return true;
+    } catch {
+      this.learningObjectiveSyncError.set(
+        $localize`:@@learningObjectives.syncLimit:Der synchronisierte Lernzielverlauf ist zu groß. Änderungen bleiben lokal, bis der Konflikt bereinigt wurde.`,
+      );
+      return false;
+    } finally {
+      this.isWritingYjsSnapshot = false;
+    }
+  }
+
+  private finishLearningObjectiveYjsRestore(): void {
+    this.learningObjectiveYjsRestorePending = false;
+    this.learningObjectiveYjsRestoreRoomId = null;
+    this.pendingInitialLearningObjectiveMirror = null;
+    this.pendingInitialLearningObjectiveOperations = [];
+  }
+
   private persistLearningObjectiveMirror(serialized?: string): void {
     if (!isPlatformBrowser(this.platformId)) return;
     const roomId = this.syncRoomId();
@@ -3114,6 +3291,8 @@ export class QuizStoreService implements OnDestroy {
 
   private async initYjsPersistence(roomId: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
+
+    this.beginLearningObjectiveYjsRestore(roomId);
 
     const generation = ++this.yjsInitGeneration;
 
@@ -3146,6 +3325,8 @@ export class QuizStoreService implements OnDestroy {
             this.syncFromYjsOrSeed();
           }
         });
+      } else {
+        this.syncFromYjsOrSeed();
       }
 
       await this.ensureShareRegisteredAndConnect(generation, roomId);
@@ -3321,6 +3502,7 @@ export class QuizStoreService implements OnDestroy {
     this.yRoot = null;
     this.yLearningObjectivesRoot = null;
     this.yDoc = null;
+    this.finishLearningObjectiveYjsRestore();
     for (const timeoutId of this.pendingLearningObjectiveDeleteSettlements.values()) {
       clearTimeout(timeoutId);
     }
@@ -3385,13 +3567,25 @@ export class QuizStoreService implements OnDestroy {
   }
 
   private syncFromYjsOrSeed(): void {
+    // A newly imported share has no authoritative local IndexedDB state yet.
+    // Wait for the provider's first successful sync before seeding anything;
+    // otherwise an empty local snapshot can win Y.Map's last-writer merge and
+    // erase the already shared library. The provider confirms the pending token
+    // immediately before calling this method again.
+    if (this.pendingImportedShareToken?.roomId === this.syncRoomId()) return;
+
     const hasLearningObjectiveMarker =
       this.yRoot?.get(QUIZ_LEARNING_OBJECTIVES_INITIALIZED_KEY) === '1';
     const hasLearningObjectiveSnapshot =
       hasLearningObjectiveMarker || (this.yLearningObjectivesRoot?.size ?? 0) > 0;
     if (hasLearningObjectiveSnapshot) {
       this.migrateLegacyLearningObjectiveEntries();
-      this.applyYjsLearningObjectivesSnapshot();
+      if (this.flushPendingInitialLearningObjectiveOperations()) {
+        this.finishLearningObjectiveYjsRestore();
+        this.applyYjsLearningObjectivesSnapshot();
+      }
+    } else {
+      this.finishLearningObjectiveYjsRestore();
     }
 
     const hasQuizSnapshot = typeof this.yRoot?.get(QUIZ_YDOC_ROOT_KEY) === 'string';
@@ -3415,21 +3609,25 @@ export class QuizStoreService implements OnDestroy {
 
   private readonly onYjsRootChanged = (): void => {
     if (this.isWritingYjsSnapshot) return;
-    this.migrateLegacyLearningObjectiveEntries();
-    this.applyYjsLearningObjectivesSnapshot();
+    if (!this.learningObjectiveYjsRestorePending) {
+      this.migrateLegacyLearningObjectiveEntries();
+      this.applyYjsLearningObjectivesSnapshot();
+    }
     this.applyYjsSnapshot();
     this.applyYjsPresetSnapshot();
   };
 
   private readonly onYjsLearningObjectivesChanged = (): void => {
-    if (this.isWritingYjsSnapshot) return;
+    if (this.isWritingYjsSnapshot || this.learningObjectiveYjsRestorePending) return;
     this.migrateLegacyLearningObjectiveEntries();
     this.applyYjsLearningObjectivesSnapshot();
     this.applyYjsSnapshot();
   };
 
   private readonly onYjsDocumentUpdated = (_update: Uint8Array, origin: unknown): void => {
-    if (origin === this || this.isWritingYjsSnapshot) return;
+    if (origin === this || this.isWritingYjsSnapshot || this.learningObjectiveYjsRestorePending) {
+      return;
+    }
     this.migrateLegacyLearningObjectiveEntries();
     this.applyYjsLearningObjectivesSnapshot();
   };
@@ -4055,8 +4253,9 @@ export class QuizStoreService implements OnDestroy {
       return;
     }
     const payload = serialized ?? this.serializeQuizDocuments();
+    const deferLearningObjectives = this.learningObjectiveYjsRestorePending;
     try {
-      this.migrateLegacyLearningObjectiveEntries();
+      if (!deferLearningObjectives) this.migrateLegacyLearningObjectiveEntries();
       const bundles = this.learningObjectiveBundles();
       const quizIds = new Set([
         ...Object.keys(bundles),
@@ -4065,22 +4264,26 @@ export class QuizStoreService implements OnDestroy {
       this.isWritingYjsSnapshot = true;
       this.yDoc.transact(() => {
         this.yRoot!.set(QUIZ_YDOC_ROOT_KEY, payload);
-        this.yRoot!.set(QUIZ_LEARNING_OBJECTIVES_INITIALIZED_KEY, '1');
-        for (const quizId of [...quizIds].sort()) {
-          if (this.malformedLearningObjectiveKeys.has(quizId)) continue;
-          const bundle = bundles[quizId];
-          this.synchronizeLearningObjectiveBundleOperations(quizId, bundle);
-          if (bundle) {
-            this.yLearningObjectivesRoot!.set(quizId, QUIZ_LEARNING_OBJECTIVES_OPLOG_MARKER);
-          } else {
-            this.yLearningObjectivesRoot!.delete(quizId);
+        if (!deferLearningObjectives) {
+          this.yRoot!.set(QUIZ_LEARNING_OBJECTIVES_INITIALIZED_KEY, '1');
+          for (const quizId of [...quizIds].sort()) {
+            if (this.malformedLearningObjectiveKeys.has(quizId)) continue;
+            const bundle = bundles[quizId];
+            this.synchronizeLearningObjectiveBundleOperations(quizId, bundle);
+            if (bundle) {
+              this.yLearningObjectivesRoot!.set(quizId, QUIZ_LEARNING_OBJECTIVES_OPLOG_MARKER);
+            } else {
+              this.yLearningObjectivesRoot!.delete(quizId);
+            }
           }
         }
       }, this);
-      this.updateSerializedLearningObjectiveCache(
-        this.syncRoomId(),
-        serializedLearningObjectives ?? this.serializeLearningObjectiveBundles(),
-      );
+      if (!deferLearningObjectives) {
+        this.updateSerializedLearningObjectiveCache(
+          this.syncRoomId(),
+          serializedLearningObjectives ?? this.serializeLearningObjectiveBundles(),
+        );
+      }
       this.writePresetSnapshotToYjs();
     } catch {
       // Keep local state even if Yjs write fails.

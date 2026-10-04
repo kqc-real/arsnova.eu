@@ -45,6 +45,14 @@ function snapshot(
     configured: true,
     access: { state: 'writable' },
     availableQuizTasks: [],
+    availableQaTasks: [
+      {
+        kind: 'qa-question',
+        questionId: QA_QUESTION_ID,
+        text: 'Wie hängt das zusammen?',
+      },
+    ],
+    availableQaTasksTruncated: false,
     objectives: [],
     ...overrides,
   };
@@ -70,12 +78,6 @@ describe('SessionLearningObjectivesDialogComponent', () => {
   const data: SessionLearningObjectivesDialogData = {
     code: 'ABC123',
     hasQuiz: hasQuizMock,
-    taskOptions: () => [
-      {
-        reference: { kind: 'qa-question', questionId: QA_QUESTION_ID },
-        label: 'Wie hängt das zusammen?',
-      },
-    ],
   };
 
   beforeEach(() => {

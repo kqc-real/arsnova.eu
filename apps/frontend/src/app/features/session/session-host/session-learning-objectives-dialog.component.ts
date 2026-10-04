@@ -43,7 +43,6 @@ export interface SessionLearningObjectiveTaskOption {
 export interface SessionLearningObjectivesDialogData {
   code: string;
   hasQuiz: () => boolean;
-  taskOptions: () => readonly SessionLearningObjectiveTaskOption[];
 }
 
 type LoadState = 'loading' | 'ready' | 'error';
@@ -106,8 +105,12 @@ export class SessionLearningObjectivesDialogComponent {
   readonly objectives = computed(() => this.snapshot()?.objectives ?? []);
   readonly taskOptions = computed(() => {
     const byKey = new Map<string, SessionLearningObjectiveTaskOption>();
-    for (const option of this.data.taskOptions()) {
-      byKey.set(referenceKey(option.reference), option);
+    for (const task of this.snapshot()?.availableQaTasks ?? []) {
+      const reference = { kind: 'qa-question' as const, questionId: task.questionId };
+      byKey.set(referenceKey(reference), {
+        reference,
+        label: task.text,
+      });
     }
     for (const task of this.snapshot()?.availableQuizTasks ?? []) {
       const reference = { kind: 'quiz-question' as const, questionId: task.questionId };

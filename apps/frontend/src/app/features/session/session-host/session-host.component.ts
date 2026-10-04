@@ -2798,13 +2798,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       data: {
         code: this.code.toUpperCase(),
         hasQuiz: () => this.channels().quiz,
-        taskOptions: () =>
-          this.qaQuestions()
-            .filter((question) => question.status !== 'DELETED')
-            .map((question) => ({
-              reference: { kind: 'qa-question' as const, questionId: question.id },
-              label: question.text,
-            })),
       },
       autoFocus: 'dialog',
       restoreFocus: true,

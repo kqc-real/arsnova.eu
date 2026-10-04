@@ -274,6 +274,15 @@
                   Aktuell sind keine auswählbaren Aufgaben verfügbar. Nutze den Sessionbereich.
                 </p>
               }
+              @if (snapshot()?.availableQaTasksTruncated) {
+                <p
+                  class="session-objectives__hint"
+                  role="status"
+                  i18n="@@sessionLearningObjectives.qaTaskCatalogTruncated"
+                >
+                  Bei sehr großen Foren werden nur die neuesten Q&amp;A-Aufgaben angeboten.
+                </p>
+              }
             </div>
 
             @if (selectedTaskKeys().size >= maxReferences) {

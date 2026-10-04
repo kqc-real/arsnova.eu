@@ -19,7 +19,7 @@
     },
     "admin.exportSessionAsQuizImport": {
       "kind": "mutation",
-      "fingerprint": "sha256:7a3f1279fe34c59fc24eaaea755d5c8dcd0ad500fc5b5bc2350a3996fd1c9fce",
+      "fingerprint": "sha256:b9004e0bc553d875dc1ce7cac45ac22ce23a18688cd09f623dc6a41aa31b632d",
       "missing": []
     },
     "admin.getSessionByCode": {
@@ -284,7 +284,7 @@
     },
     "qa.deleteOwn": {
       "kind": "mutation",
-      "fingerprint": "sha256:342898f994e282fbc55b04c7d6aae3319f4b6e0beadc8c0544bf5c7ee7bea1b8",
+      "fingerprint": "sha256:3df2ae3e828844468ec5b81f3602ce023436dad35eedf8b876e81c90e8f6be05",
       "missing": []
     },
     "qa.list": {
@@ -294,7 +294,7 @@
     },
     "qa.moderate": {
       "kind": "mutation",
-      "fingerprint": "sha256:4bffc63105c58e37e03a170ca0e3e7528891a92e2887a23dc174e0719866e75f",
+      "fingerprint": "sha256:379b1cec15a8bcca899176627db7985e3e0838b47b8383305e7e9dbfc0bb6ee9",
       "missing": []
     },
     "qa.nlpRuntime": {
@@ -364,12 +364,12 @@
     },
     "quickFeedback.changeType": {
       "kind": "mutation",
-      "fingerprint": "sha256:29bf63a762b03fcba1f4c201a1920c75f9cc67eac1bc80726e9f355b38472c2c",
+      "fingerprint": "sha256:7c6cfe95a6548c71d145ebdfefc38f629fa4d26d2b5cfd1c9206394e69b2ef0e",
       "missing": []
     },
     "quickFeedback.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:fe2116175075dd58c3b504d584f69fa4c1dd9f34ede24ef1a524afb299ef779c",
+      "fingerprint": "sha256:cb50f37f73b48f94ce953856aee30b8a344355f1158f6b0679a2e1e98951604c",
       "missing": []
     },
     "quickFeedback.end": {
@@ -394,7 +394,7 @@
     },
     "quickFeedback.leaveTempo": {
       "kind": "mutation",
-      "fingerprint": "sha256:de91b969c6051d8eaff78a9b31f71fa3f3a21fd11592e7b3975075b6f96df364",
+      "fingerprint": "sha256:3d48e06b0d1f364fb0cd8ae99e819e41876aae85ad6a0345a5a331fb8ecf8ce9",
       "missing": []
     },
     "quickFeedback.onHostResults": {
@@ -409,7 +409,7 @@
     },
     "quickFeedback.reset": {
       "kind": "mutation",
-      "fingerprint": "sha256:3456ccc78c960297a46bb0b4af875c4f3162c31452f438e14768488b5c6a2113",
+      "fingerprint": "sha256:a2f1afb6612f91a96f66e929ddf12cb81258f586df0d0c326fc0e551ee71dc63",
       "missing": []
     },
     "quickFeedback.results": {
@@ -429,7 +429,7 @@
     },
     "quickFeedback.startSecondRound": {
       "kind": "mutation",
-      "fingerprint": "sha256:1a4b4c56d2fad54bbf5ac226624bb635a65e410d822e1425bc4b80af857a655e",
+      "fingerprint": "sha256:1215dc62a4d4cbe06db28cea569865ac0e9104a29090ff4b331416a1149ead12",
       "missing": []
     },
     "quickFeedback.toggleLock": {
@@ -439,12 +439,12 @@
     },
     "quickFeedback.vote": {
       "kind": "mutation",
-      "fingerprint": "sha256:1ff0aaafdd3a5beb0098812590165589af2e81e0f13ab7fcf0d69c09b383156c",
+      "fingerprint": "sha256:f1573adba810577b182f225a046c358d225734110eafd1eea51a8e24adeb8def",
       "missing": []
     },
     "quiz.upload": {
       "kind": "mutation",
-      "fingerprint": "sha256:1a98a64c6441b3087ce028cc4f30ce39761a0630804490cda87c7acc9b33fd8e",
+      "fingerprint": "sha256:8f2b2aadd2cb0a958f86e89c12bb951efa37042d706d19282a0cdaede5cfdfc9",
       "missing": []
     },
     "quizSync.createShare": {
@@ -474,7 +474,7 @@
     },
     "session.attachQuizToSession": {
       "kind": "mutation",
-      "fingerprint": "sha256:ede19a289ffa312b6a556e4eb1d1d2020fe3b85695bc8a69280e8aff41e3c431",
+      "fingerprint": "sha256:18bb304e9e7aa3865836023fcefa553988003918ae5cb12112ede1f347164d0d",
       "missing": []
     },
     "session.bindQuizHistoryScope": {
@@ -519,7 +519,7 @@
     },
     "session.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:990b3111c3293425f173e65b4b786183ac53d1e5ac299e17e4d212c69e7663ca",
+      "fingerprint": "sha256:991efb67e889e8207159171922a8e1bd6176420291ce45d8bce6856e99610abf",
       "missing": []
     },
     "session.createHostPairingInvite": {
@@ -630,6 +630,11 @@
     "session.getLeaderboard": {
       "kind": "query",
       "fingerprint": "sha256:753491de106173217f9278830e05c1e297589a269d2aef88039f66f8ff082d40",
+      "missing": []
+    },
+    "session.getLearningObjectives": {
+      "kind": "query",
+      "fingerprint": "sha256:3e2360f2423676f9df93e06c18ea1f2f14bcbfa704a298b4bd2599406b118889",
       "missing": []
     },
     "session.getLifecycleForHost": {
@@ -842,6 +847,11 @@
       "fingerprint": "sha256:cfa273a4814c6c533ac8c818478356b011fc6297bc6cb669583295dcf700f2cf",
       "missing": []
     },
+    "session.saveLearningObjectives": {
+      "kind": "mutation",
+      "fingerprint": "sha256:0886717a994398b1128006574c05a928cf5b1f1f811385a44dadad7838a76b66",
+      "missing": []
+    },
     "session.searchParticipants": {
       "kind": "query",
       "fingerprint": "sha256:653ec75cd4856c7b241464bbfebfae24ba3730fd5fb07b84210bd3988d77d4c2",
@@ -914,7 +924,7 @@
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:f8f2cc745b7de657a6438c118d74ee9ca4a9f1b998365aaad0408856279693b9",
+      "fingerprint": "sha256:b266738513aabc66955fb9d4df4f1645a780cc51577cfc8df75457372680233c",
       "missing": []
     }
   }

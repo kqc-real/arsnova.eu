@@ -162,6 +162,8 @@ describe('session.attachQuizToSession', () => {
       configured: false,
       access: { state: 'writable' },
       availableQuizTasks: [],
+      availableQaTasks: [],
+      availableQaTasksTruncated: false,
       objectives: [],
     });
     learningObjectivesMocks.get.mockResolvedValue({
@@ -171,6 +173,8 @@ describe('session.attachQuizToSession', () => {
       configured: false,
       access: { state: 'writable' },
       availableQuizTasks: [],
+      availableQaTasks: [],
+      availableQaTasksTruncated: false,
       objectives: [],
     });
     learningObjectivesMocks.save.mockResolvedValue({
@@ -180,6 +184,8 @@ describe('session.attachQuizToSession', () => {
       configured: true,
       access: { state: 'writable' },
       availableQuizTasks: [],
+      availableQaTasks: [],
+      availableQaTasksTruncated: false,
       objectives: [],
     });
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
@@ -187,36 +193,88 @@ describe('session.attachQuizToSession', () => {
     );
   });
 
-  it('guards learning-objective reads and writes with the host capability', async () => {
-    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValueOnce(false);
-    await expect(caller.getLearningObjectives({ code: 'ABC123' })).rejects.toMatchObject({
-      code: 'UNAUTHORIZED',
-    });
-    expect(learningObjectivesMocks.get).not.toHaveBeenCalled();
+  trpcDodIt(
+    {
+      procedure: 'session.getLearningObjectives',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'schützt das Lesen von Lernzielen mit der Host-Capability',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+      await expect(caller.getLearningObjectives({ code: 'ABC123' })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(learningObjectivesMocks.get).not.toHaveBeenCalled();
+    },
+  );
 
-    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
-    await expect(caller.getLearningObjectives({ code: 'ABC123' })).resolves.toMatchObject({
-      sessionId: SESSION_ID,
-      access: { state: 'writable' },
-    });
-    await expect(
-      caller.saveLearningObjectives({
-        code: 'ABC123',
-        expectedLearningContextRevision: 0,
-        mutations: [
-          {
-            action: 'delete',
-            objectiveId: '55555555-5555-4555-8555-555555555555',
-            expectedRevision: 0,
-          },
-        ],
-      }),
-    ).resolves.toMatchObject({ learningContextRevision: 1, configured: true });
-    expect(learningObjectivesMocks.get).toHaveBeenCalledWith('ABC123');
-    expect(learningObjectivesMocks.save).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'ABC123', expectedLearningContextRevision: 0 }),
-    );
-  });
+  trpcDodIt(
+    {
+      procedure: 'session.getLearningObjectives',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liefert einem autorisierten Host den Lernzielstand',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+      await expect(caller.getLearningObjectives({ code: 'ABC123' })).resolves.toMatchObject({
+        sessionId: SESSION_ID,
+        access: { state: 'writable' },
+      });
+      expect(learningObjectivesMocks.get).toHaveBeenCalledWith('ABC123');
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.saveLearningObjectives',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'schützt das Schreiben von Lernzielen mit der Host-Capability',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+      await expect(
+        caller.saveLearningObjectives({
+          code: 'ABC123',
+          expectedLearningContextRevision: 0,
+          mutations: [],
+        }),
+      ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(learningObjectivesMocks.save).not.toHaveBeenCalled();
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.saveLearningObjectives',
+      case: 'happy',
+      mode: 'direct',
+      title: 'speichert Lernziele für einen autorisierten Host',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+      await expect(
+        caller.saveLearningObjectives({
+          code: 'ABC123',
+          expectedLearningContextRevision: 0,
+          mutations: [
+            {
+              action: 'delete',
+              objectiveId: '55555555-5555-4555-8555-555555555555',
+              expectedRevision: 0,
+            },
+          ],
+        }),
+      ).resolves.toMatchObject({ learningContextRevision: 1, configured: true });
+      expect(learningObjectivesMocks.save).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'ABC123', expectedLearningContextRevision: 0 }),
+      );
+    },
+  );
 
   trpcDodIt(
     {

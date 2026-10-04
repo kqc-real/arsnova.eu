@@ -652,6 +652,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       configured: false,
       access: { state: 'writable' },
       availableQuizTasks: [],
+      availableQaTasks: [],
+      availableQaTasksTruncated: false,
       objectives: [],
     });
     attachQuizToSessionMutateMock.mockResolvedValue({
@@ -6212,6 +6214,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         configured: true,
         access: { state: 'writable' },
         availableQuizTasks: [],
+        availableQaTasks: [],
+        availableQaTasksTruncated: false,
         objectives: [],
       })
       .mockResolvedValueOnce({
@@ -6221,6 +6225,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         configured: true,
         access: { state: 'writable' },
         availableQuizTasks: [],
+        availableQaTasks: [],
+        availableQaTasksTruncated: false,
         objectives: [],
       });
     attachQuizToSessionMutateMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });

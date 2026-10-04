@@ -4,6 +4,7 @@ import { TRPCError } from '@trpc/server';
 import {
   LEARNING_OBJECTIVE_MAX_OBJECTIVES,
   LEARNING_OBJECTIVE_REVISION_MAX,
+  SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
   SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION,
   SessionLearningObjectivesSnapshotSchema,
   type LearningObjectiveConfirmation,
@@ -312,7 +313,7 @@ async function snapshotWithDb(
   now: Date,
 ): Promise<SessionLearningObjectivesSnapshot> {
   const finished = assertHostReadWindow(session, now);
-  const [rows, availableQuizTasks] = await Promise.all([
+  const [rows, availableQuizTasks, availableQaTaskCandidates] = await Promise.all([
     db.sessionLearningObjective.findMany({
       where: { sessionId: session.id, suppressedAt: null },
       include: sessionObjectiveInclude,
@@ -325,7 +326,17 @@ async function snapshotWithDb(
           orderBy: [{ order: 'asc' }, { id: 'asc' }],
         })
       : [],
+    db.qaQuestion.findMany({
+      where: { sessionId: session.id, status: { not: 'DELETED' } },
+      select: { id: true, text: true },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX + 1,
+    }),
   ]);
+  const availableQaTasks = availableQaTaskCandidates.slice(
+    0,
+    SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
+  );
   return SessionLearningObjectivesSnapshotSchema.parse({
     schemaVersion: SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION,
     sessionId: session.id,
@@ -338,6 +349,13 @@ async function snapshotWithDb(
       text: question.text,
       order: question.order,
     })),
+    availableQaTasks: availableQaTasks.map((question) => ({
+      kind: 'qa-question' as const,
+      questionId: question.id,
+      text: question.text,
+    })),
+    availableQaTasksTruncated:
+      availableQaTaskCandidates.length > SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX,
     objectives: rows.map(objectiveFromRow),
   });
 }

@@ -194,8 +194,15 @@ async function runCycle({ cycle, code, publicTrpc, hostTrpc, participants, metri
 
   const votes = await mapLimit(participants, config.voteConcurrency, async (participant, index) => {
     try {
+      const participantTrpc = createHttpTrpc(
+        config.trpcUrl,
+        undefined,
+        undefined,
+        undefined,
+        participant.rejoinToken,
+      );
       await metrics.measure('quickFeedback.vote', () =>
-        publicTrpc.quickFeedback.vote.mutate({
+        participantTrpc.quickFeedback.vote.mutate({
           sessionCode: code,
           voterId: participant.participantId,
           value: tempoValue(index, cycle),

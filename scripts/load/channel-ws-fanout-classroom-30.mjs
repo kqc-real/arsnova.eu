@@ -376,7 +376,7 @@ async function run() {
     const blitzWriteStartedAt = performance.now();
     const blitzWriteResults = await Promise.allSettled(
       participants.map((participant, index) =>
-        publicTrpc.quickFeedback.vote.mutate({
+        participant.qaTrpc.quickFeedback.vote.mutate({
           sessionCode: session.code,
           voterId: participant.participantId,
           value: TEMPO_VALUES[index % TEMPO_VALUES.length],
