@@ -22,8 +22,7 @@ Dieses Runbook macht den zehnwöchigen Pilot des Moduls „Angewandte Statistik�
 6. **Zweck:** ARSnova-, MC-Test- und sonstige LIVE-Daten dienen Lehre und interner Modulevaluation. Sie dürfen nicht für individuelle Leistungsbewertung, Forschung, Publikation oder nachträgliche Umwidmung verwendet werden. Eine separate Klausur mit ausschließlich freigegebenen LEHRDATEN bleibt zulässig.
 7. **Freiwilligkeit:** Live-Abstimmung, Confidence und Feedback sind freiwillig und ohne Notennachteil. Eine gleichwertige Teilnahme ohne persönliches Gerät ist möglich.
 8. **MC-Arbeitsumfang:** `meta.test_duration_minutes=32` ist der Richtwert für den Präsenzdurchlauf, kein technischer Countdown. Jede Datei enthält 12 mittlere und 18 schwere Items, aber keine leichten Items. Der zweite vollständige Durchlauf erfolgt nach zwei bis drei Tagen; Kernkonzepte werden nach zwei bis vier Wochen erneut eingeplant. Die App erzwingt weder Versuchsanzahl noch Bearbeitungszeit.
-9. **Mathematischer Zugang:** Die [W01-Mathematikdiagnostik](./P0-03_Mathematikdiagnostik_Brueckenpfade.md) wird in den sieben Tagen vor der ersten Präsenz-UE asynchron bearbeitet, ist unbenotet und führt ausschließlich zu Brückenpfaden innerhalb des bestehenden Workloads.
-10. **Gleichwertiger Transfer und Zugang:** Die [BWL-/WI-Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) und die [Material-/A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md) sind verbindliche Bestandteile der Vorbereitung.
+9. **Gleichwertiger Transfer:** Die [BWL-/WI-Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) ist verbindlicher Bestandteil der Vorbereitung.
 
 ### 1.2 Rollenkürzel
 
@@ -60,18 +59,18 @@ Die Standardtaktung ist:
 - Pausen sind keine UE. Bei mehreren Präsenztagen bleiben Reihenfolge, UE-Nummern und Live-IDs erhalten.
 - Die letzte UE jeder Woche ist der gemeinsame MC-Test-Abschluss; die erste UE derselben LE schließt Fachinhalt und JASP-/Transferertrag ab.
 
-| Woche | LE / UE      | Präsenzauftrag                                                                                  | Livefragen                                       | Verbindliche JASP-/Datengrundlage                                                                                                         | Letzte UE und Spaced-Repetition-Nachlauf                                                                                                     |
-| ----: | ------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-|   W01 | 2 / UE 1–4   | Diagnose-Debrief; statistischer Prozess; Beobachtungseinheit; Stichprobe; Skalen; Datenqualität | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_01.json) | [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Import, Zeile/Variable und Messniveau                                         | UE 4: [MC W01](./MC-Test/P0-03_MC-Test_Woche_01.json) + Lösungsklärung; vor UE 1 Mathematikdiagnostik, Wiederholung nach 2–3 Tagen           |
-|   W02 | 2 / UE 5–8   | Häufigkeiten; Nenner; Diagramme; Mittelwert/Median; Robustheit                                  | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_02.json) | [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Deskriptivübersicht und Histogramm                                            | UE 8: [MC W02](./MC-Test/P0-03_MC-Test_Woche_02.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                            |
-|   W03 | 3 / UE 9–14  | Streuung; `n`/`n−1`; Quartile; Boxplot; Ausreißer; Latenzquantile                               | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_03.json) | [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Streuung/Boxplot; REPO-Latenzwerte nur aus dem Livequiz lesen                 | UE 14: [MC W03](./MC-Test/P0-03_MC-Test_Woche_03.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W04 | 2 / UE 15–18 | Münzwurf; Multiplikation; bedingte Wahrscheinlichkeit; Confidence; Basisrate                    | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_04.json) | [S2-Confidence](./P0-03_Lehrdaten_S2_Confidence.csv): 2×3-/2×5-Kontingenztafel                                                            | UE 18: [MC W04](./MC-Test/P0-03_MC-Test_Woche_04.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W05 | 3 / UE 19–24 | Zufallsvariablen; Binomial-/Normalmodell; Stichprobenvariabilität                               | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_05.json) | [S6-Modellläufe](./P0-03_Lehrdaten_S6_Modelllaeufe.csv): Verteilungen der zwölf festen Lehrresamples getrennt nach Lehrmodell             | UE 24: [MC W05](./MC-Test/P0-03_MC-Test_Woche_05.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W06 | 2 / UE 25–28 | Punkt-/Intervallschätzung; Intervallbreite; Wilson; Wald                                        | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_06.json) | [S3-Q&A-Ranking](./P0-03_Lehrdaten_S3_QA_Ranking.csv) und [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Intervalle/Rangmaße | UE 28: [MC W06](./MC-Test/P0-03_MC-Test_Woche_06.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W07 | 3 / UE 29–34 | Hypothesen; p-Wert; Fehlerarten; Relevanz; gepaarter Vergleich                                  | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_07.json) | [S1-Paare](./P0-03_Lehrdaten_S1_Paare.csv): gepaarter t-Test und Differenzdiagnostik                                                      | UE 34: [MC W07](./MC-Test/P0-03_MC-Test_Woche_07.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W08 | 2 / UE 35–38 | Streudiagramm; Pearson-r; Regression; Residuum; Extrapolation                                   | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_08.json) | [S5-Last/Latenz](./P0-03_Lehrdaten_S5_Last_Latenz.csv): Basis- und Ausreißermodell                                                        | UE 38: [MC W08](./MC-Test/P0-03_MC-Test_Woche_08.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W09 | 3 / UE 39–44 | Train/Test; Overfitting; Matrix; Accuracy/Precision/Recall/F1; Coverage                         | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_09.json) | [S6-Klassifikation](./P0-03_Lehrdaten_S6_Klassifikation.csv) und [S6-Modellläufe](./P0-03_Lehrdaten_S6_Modelllaeufe.csv): Matrix/Metriken | UE 44: [MC W09](./MC-Test/P0-03_MC-Test_Woche_09.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
-|   W10 | 2 / UE 45–48 | Qualitätscheck; Peer Review; Klausurtraining; Transfer; Evaluation                              | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_10.json) | JASP-Kernauszug des seit W03 gewählten S1-/S5-/S6-Strangs                                                                                 | UE 48: [MC W10](./MC-Test/P0-03_MC-Test_Woche_10.json) + Ergebnis-/Lösungsbesprechung; gezielte Wiederholung anhand persönlicher Fehlerliste |
+| Woche | LE / UE      | Präsenzauftrag                                                                | Livefragen                                       | Verbindliche JASP-/Datengrundlage                                                                                                         | Letzte UE und Spaced-Repetition-Nachlauf                                                                                                     |
+| ----: | ------------ | ----------------------------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+|   W01 | 2 / UE 1–4   | Statistischer Prozess; Beobachtungseinheit; Stichprobe; Skalen; Datenqualität | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_01.json) | [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Import, Zeile/Variable und Messniveau                                         | UE 4: [MC W01](./MC-Test/P0-03_MC-Test_Woche_01.json) + Lösungsklärung; Wiederholung nach 2–3 Tagen                                          |
+|   W02 | 2 / UE 5–8   | Häufigkeiten; Nenner; Diagramme; Mittelwert/Median; Robustheit                | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_02.json) | [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Deskriptivübersicht und Histogramm                                            | UE 8: [MC W02](./MC-Test/P0-03_MC-Test_Woche_02.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                            |
+|   W03 | 3 / UE 9–14  | Streuung; `n`/`n−1`; Quartile; Boxplot; Ausreißer; Latenzquantile             | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_03.json) | [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Streuung/Boxplot; REPO-Latenzwerte nur aus dem Livequiz lesen                 | UE 14: [MC W03](./MC-Test/P0-03_MC-Test_Woche_03.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W04 | 2 / UE 15–18 | Münzwurf; Multiplikation; bedingte Wahrscheinlichkeit; Confidence; Basisrate  | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_04.json) | [S2-Confidence](./P0-03_Lehrdaten_S2_Confidence.csv): 2×3-/2×5-Kontingenztafel                                                            | UE 18: [MC W04](./MC-Test/P0-03_MC-Test_Woche_04.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W05 | 3 / UE 19–24 | Zufallsvariablen; Binomial-/Normalmodell; Stichprobenvariabilität             | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_05.json) | [S6-Modellläufe](./P0-03_Lehrdaten_S6_Modelllaeufe.csv): Verteilungen der zwölf festen Lehrresamples getrennt nach Lehrmodell             | UE 24: [MC W05](./MC-Test/P0-03_MC-Test_Woche_05.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W06 | 2 / UE 25–28 | Punkt-/Intervallschätzung; Intervallbreite; Wilson; Wald                      | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_06.json) | [S3-Q&A-Ranking](./P0-03_Lehrdaten_S3_QA_Ranking.csv) und [S1-Servicezeiten](./P0-03_Lehrdaten_S1_Servicezeiten.csv): Intervalle/Rangmaße | UE 28: [MC W06](./MC-Test/P0-03_MC-Test_Woche_06.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W07 | 3 / UE 29–34 | Hypothesen; p-Wert; Fehlerarten; Relevanz; gepaarter Vergleich                | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_07.json) | [S1-Paare](./P0-03_Lehrdaten_S1_Paare.csv): gepaarter t-Test und Differenzdiagnostik                                                      | UE 34: [MC W07](./MC-Test/P0-03_MC-Test_Woche_07.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W08 | 2 / UE 35–38 | Streudiagramm; Pearson-r; Regression; Residuum; Extrapolation                 | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_08.json) | [S5-Last/Latenz](./P0-03_Lehrdaten_S5_Last_Latenz.csv): Basis- und Ausreißermodell                                                        | UE 38: [MC W08](./MC-Test/P0-03_MC-Test_Woche_08.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W09 | 3 / UE 39–44 | Train/Test; Overfitting; Matrix; Accuracy/Precision/Recall/F1; Coverage       | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_09.json) | [S6-Klassifikation](./P0-03_Lehrdaten_S6_Klassifikation.csv) und [S6-Modellläufe](./P0-03_Lehrdaten_S6_Modelllaeufe.csv): Matrix/Metriken | UE 44: [MC W09](./MC-Test/P0-03_MC-Test_Woche_09.json) + Ergebnis-/Lösungsbesprechung; Wiederholung nach 2–3 Tagen                           |
+|   W10 | 2 / UE 45–48 | Qualitätscheck; Peer Review; Klausurtraining; Transfer; Evaluation            | [L01–L10](./ARSnova/P0-03_ARSnova_Woche_10.json) | JASP-Kernauszug des seit W03 gewählten S1-/S5-/S6-Strangs                                                                                 | UE 48: [MC W10](./MC-Test/P0-03_MC-Test_Woche_10.json) + Ergebnis-/Lösungsbesprechung; gezielte Wiederholung anhand persönlicher Fehlerliste |
 
 Ab W02 enthält jeder neue MC-Satz zusätzlich ältere Inhalte nach dem Spaced-Repetition-Plan. Der zweite Durchlauf derselben Datei und die spätere Wiederaufnahme in neuen Wochen-Dateien sind getrennte Wiederholungsstufen.
 
@@ -108,10 +107,8 @@ LD führt für die betreffende Woche die folgenden Schritte in dieser Reihenfolg
 10. Die Wochen-CSV in JASP 0.98.1 öffnen und den vorgesehenen Pfad aus dem [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md) vollständig ausführen. Warnungen, falsche Skalenniveaus oder abweichende Sollwerte verhindern den Einsatz. Die echte `.jasp`-Datei wird im geschützten Kursbereich erzeugt, nicht im Repository.
 11. Die betreffende `P0-03_ARSnova_Woche_NN.json`, eine lesbare Fragenansicht, Papier-Antwortkarten und einen Zählbogen lokal netzunabhängig bereithalten.
 12. Prüfen, dass die eingesetzte [Formelsammlung](./P0-03_Formelsammlung_Statistik.md) dieselben Konventionen wie Probeklausur, Lehrdaten und JASP-Leitfaden verwendet.
-13. Für W01 Diagnosebogen, Lösungen und sechs Brückenpfade sieben Tage vor der ersten Präsenz-UE bereitstellen; Abschluss bis zum Vortag kommunizieren. Es werden keine individuellen Diagnoseergebnisse erfasst.
-14. Die wochenrelevante BWL-/Management- und WI-/Informatik-Variante der [Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) auf gleiche Zahlen und Kernhandlung prüfen.
-15. Die einschlägigen Punkte der [Material-/A11y-Probe](./P0-03_Barrierefreiheit_Material_und_Probe.md) durchführen und Abweichungen vor Freigabe schließen.
-16. Im Wochenprotokoll nur Paketversion und geplante Datenquellen vortragen; Beobachtungen werden erst nach der Sitzung eingetragen.
+13. Die wochenrelevante BWL-/Management- und WI-/Informatik-Variante der [Transfermatrix](./P0-03_Transfermatrix_BWL_WI.md) auf gleiche Zahlen und Kernhandlung prüfen.
+14. Im Wochenprotokoll nur Paketversion und geplante Datenquellen vortragen; Beobachtungen werden erst nach der Sitzung eingetragen.
 
 ### 3.2 Ein Tag vor dem Präsenztermin: Freigabe-Preflight
 
@@ -125,7 +122,6 @@ Der Preflight ist bestanden, wenn jede Zeile mit „ja“ beantwortet ist:
 | Gamification          | Sind Rangliste, 60-Sekunden-Standardtimer mit Schwierigkeitsskalierung und Zeitunterstützung, vier Teams mit den vereinbarten Shortcut-Icons, drei Boni sowie Sound-, Belohnungs-, Motivations- und Emoji-Effekte aktiv; bleibt die Lesephase aktiv?  |
 | Fragen                | Enthält die Datei zehn Fragen und jeden unterstützten Fragetyp genau einmal; sind Reihenfolge, Markdown, Formeln, Alternativtexte, Lösungen, mindestens mittlere Schwierigkeit, Distraktorparallelität und variierte statische Lösungsmuster korrekt? |
 | Kurztextbewertung     | Akzeptieren die gepflegten Positivbeispiele alle vorgesehenen Schreibformen und erhalten fachlich falsche Zahlen, Einheiten oder Gegenbegriffe in dokumentierten Negativbeispielen sicher null Punkte?                                                |
-| Mathematikdiagnostik  | Sind in W01 identische Papier-/Digitalfassungen, Selbstkontrolle und Brückenpfade ohne individuelle Ergebnisspeicherung vorbereitet?                                                                                                                  |
 | Transferpaar          | Bleiben beim eingesetzten BWL-/WI-Paar Zahlen, Kernhandlung, Schwierigkeit und Erwartungshorizont isomorph?                                                                                                                                           |
 | Peer Instruction      | Ist bei den vorgesehenen Lernfragen die zweite Runde vorbereitet und bleibt die erste Verteilung dokumentiert?                                                                                                                                        |
 | MC-Lernmodus          | Ist `practice` gewählt, bestätigt die Oberfläche „kein Timer, Sofortfeedback“, und fehlt jeder Countdown?                                                                                                                                             |
@@ -137,8 +133,7 @@ Der Preflight ist bestanden, wenn jede Zeile mit „ja“ beantwortet ist:
 | Datenschutz           | Sind nur freigegebene LIVE-Aggregate, REPO-Daten oder LEHRDATEN vorgesehen?                                                                                                                                                                           |
 | JASP                  | Öffnet die Wochen-CSV in JASP 0.98.1 lokal; stimmen Skalenniveaus und Kontrollwerte mit Leitfaden/Datenwörterbuch überein?                                                                                                                            |
 | Projektion            | Sind Schrift, Kontrast, Diagramme und Formeln aus dem hinteren Raum lesbar?                                                                                                                                                                           |
-| Alternative Teilnahme | Ist für jede verwendete Materialklasse die gleichwertige Alternative aus der A11y-Matrix vollständig nutzbar?                                                                                                                                         |
-| A11y-Materialprobe    | Sind die für die Sitzung einschlägigen Prüfpunkte mit Datum, Version und Ergebnis im A11y-Protokoll dokumentiert?                                                                                                                                     |
+| Alternative Teilnahme | Ist für Formelsammlung, JASP-Auszug, Tabelle, MC-Test und Probeklausur eine gleichwertige Teilnahme ohne persönliches Gerät möglich?                                                                                                                  |
 | Exportweg             | Ist ausreichend lokaler Speicher vorhanden und ist der Zielordner zugriffsbeschränkt?                                                                                                                                                                 |
 | Offline               | Sind Wochen-JSON, gedruckte Fragenansicht, Zählbogen, Lehrdaten und vorab erzeugter JASP-Referenzoutput lokal verfügbar?                                                                                                                              |
 
@@ -167,7 +162,7 @@ LD beginnt jede Woche mit demselben 8-Minuten-Rahmen. Er bildet die Aktivierungs
 4. Bei LIVE-Aktivität erklären: Teilnahme freiwillig; Pseudonym, Rang, Zeit, Teamstand und Bonus dienen nur der Motivation und haben keine Notenwirkung; eine untimierte Alternative ist verfügbar.
 5. Formelsammlung und JASP-Datei öffnen; verwendete Konventionen nennen.
 
-Die Punkte 1–5 und eine kurze inhaltliche Rückblicksfrage teilen sich diesen 8-Minuten-Rahmen. Für W01 ersetzt das höchstens fünfminütige Diagnose-Debrief die Rückblicksfrage. Die übrigen Phasen werden innerhalb derselben 90-Minuten-LE entsprechend gekürzt; der LE-Umfang bleibt unverändert.
+Die Punkte 1–5 und eine kurze inhaltliche Rückblicksfrage teilen sich diesen 8-Minuten-Rahmen. Die übrigen Phasen werden innerhalb derselben 90-Minuten-LE entsprechend gekürzt; der LE-Umfang bleibt unverändert.
 
 ### 4.2 Ablauf jeder Livefrage
 
@@ -176,7 +171,7 @@ Für jede ID des Wochenpools gilt:
 1. **Rahmen setzen, 30–60 Sekunden:** Modus als „Diagnose“, „Lernen“ oder „Spiel/Team“ nennen; bei SURVEY ausdrücklich „keine richtige Antwort“ sagen.
 2. **Lesen, 45–90 Sekunden:** Frage projizieren und vorlesen. Die Lesephase endet erst, wenn Frage und Antwortwege einschließlich der untimierten Alternative zugänglich sind.
 3. **Abgeben:** Antworten öffnen. Der Standardtimer startet erst jetzt, wird nach Schwierigkeit skaliert und berücksichtigt die freigegebene persönliche Zeitunterstützung. Zahl anwesender Personen, verbundener Geräte und abgegebener Antworten nicht gleichsetzen.
-4. **Schließen:** Regulär nach Ablauf der effektiven Zeit oder wenn alle Antwortwege abgeschlossen sind; bei fortbestehender Barriere nicht schließen. `n_responses` notieren.
+4. **Schließen:** Regulär nach Ablauf der effektiven Zeit oder wenn alle Antwortwege abgeschlossen sind; solange ein vorgesehener Antwortweg noch nicht nutzbar ist, nicht schließen. `n_responses` notieren.
 5. **Auswerten:** Fachliche Verteilung, Nenner und relevante Distraktoren besprechen. Rangliste, Teamstand und Bonus dürfen als motivierender Spielabschluss sichtbar sein, werden aber nicht als Lernstandskennzahl interpretiert; individuelle Antwortzeit bleibt unbeachtet.
 6. **Nachsteuern:** Bei Lernfragen kurze Einzelbegründung, Partneraustausch und zweite Abstimmung einsetzen. Runde 1 und Runde 2 getrennt halten.
 7. **Entscheiden:** Unter etwa 67 % korrekten Antworten oder bei vielen sicheren Falschantworten wird das Konzept im Wochenprotokoll markiert. Der Wert ist eine Lehrregel, kein App-Schwellenwert und keine Bestehensgrenze.
@@ -197,7 +192,7 @@ Bei Multiple Choice darf die Summe der Optionsnennungen über 100 % liegen. Für
 | Exit                      |     4 Min. | mündliches oder pseudonymes Blitzlicht; kein zusätzliches bewertetes Quizitem |
 | **Flexpuffer**            | **4 Min.** | Technik, Nachfragen, alternative Teilnahme oder Übergang                      |
 
-Die Phasen summieren sich auf 90 Minuten. Der Puffer wird zuerst für Technik, Rückfragen und gleichwertige Teilnahme verwendet. Reichen vier Minuten nicht, entfällt zuerst ein optionales zweites Beispiel oder eine Vertiefung. Kernanwendung, notwendige Barrierekompensation und Exit-Evidenz werden nicht ersatzlos gestrichen.
+Die Phasen summieren sich auf 90 Minuten. Der Puffer wird zuerst für Technik, Rückfragen und gleichwertige Teilnahme verwendet. Reichen vier Minuten nicht, entfällt zuerst ein optionales zweites Beispiel oder eine Vertiefung. Kernanwendung, notwendige Zeit für gleichwertige Teilnahme und Exit-Evidenz werden nicht ersatzlos gestrichen.
 
 Für die letzte LE jeder Woche gilt ein Sondermuster: Die erste UE schließt den Fachinhalt und den JASP-/Transferertrag ab. Die zweite UE besteht aus 32 Minuten MC-Test, 10 Minuten Ergebnis-/Lösungsbesprechung und 3 Minuten Sicherung des Spaced-Repetition-Auftrags.
 
@@ -320,7 +315,7 @@ Der Löschvollzug ist für jedes Wochenfenster spätestens **sieben Kalendertage
 - Der zweite Durchlauf wird für zwei bis drei Tage nach dem Präsenztermin empfohlen und dient der korrigierenden Wiederholung.
 - Mindestens ein Kernkonzept jeder behandelten Woche erscheint nach zwei bis vier Wochen in einer späteren Wochen-Datei erneut.
 - Weitere Durchläufe bleiben möglich; die App begrenzt weder Sessionzahl noch Bearbeitungszeit.
-- Der Folgeauftrag nennt höchstens zwei Konzepte und verweist auf Erklärung, Mini-Glossar, Formelsammlung oder Brückenpfad. Er erzeugt keine individuelle Sanktion.
+- Der Folgeauftrag nennt höchstens zwei Konzepte und verweist auf Erklärung, Mini-Glossar oder Formelsammlung. Er erzeugt keine individuelle Sanktion.
 
 ### 6.3 Lernanalytik
 
@@ -339,7 +334,7 @@ Antwortzeit ist höchstens ein technisches Nutzungssignal und kein Kompetenzmaß
 
 QE und LD wählen anhand des freigegebenen Wochenaggregats:
 
-1. höchstens zwei Konzepte unter etwa 67 % aggregierten korrekten Antworten,
+1. höchstens zwei Konzepte mit einer aggregierten Lösungsquote unter etwa 67 %,
 2. höchstens eine häufige sichere Fehlvorstellung aus der Live-Sitzung,
 3. ein länger zurückliegendes Konzept für die nächste Spaced-Repetition-Stufe.
 
@@ -375,7 +370,7 @@ Für eine anonyme numerische Schätzung werden unbeschriftete Zettel verwendet. 
 - Frage, Optionen, Formel und Diagramm werden vorgelesen; Farbe ist nie alleiniger Informationsträger.
 - Ergebnisse werden nicht einzelnen Personen zugeordnet.
 - Die Zahl der Personen, Gruppen und Antworten wird getrennt notiert.
-- Für Formelsammlung, JASP-Auszug, Tabelle, MC-Test und Probeklausur gilt die jeweilige gleichwertige Alternative der [Material-/A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md); ein bloßes Vorlesen komplexer Tabellen ersetzt die strukturierte Textfassung nicht.
+- Für Formelsammlung, JASP-Auszug, Tabelle, MC-Test und Probeklausur liegt eine gleichwertige Textfassung vor; ein bloßes Vorlesen komplexer Tabellen ersetzt sie nicht.
 
 ### 7.4 JASP-Ausfall
 

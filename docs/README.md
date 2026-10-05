@@ -31,7 +31,7 @@ Formale A11y-Abnahmedokumentation (2026-07-27):
 
 **Studierende – Angewandte Statistik (48 UE):**
 [Modulbeschreibung und Lernweg](didaktik/Modulkonzept%20Statistik/Modulbeschreibung_Studierende.md)
-→ [Mathematikdiagnostik und Brückenpfade](didaktik/Modulkonzept%20Statistik/P0-03_Mathematikdiagnostik_Brueckenpfade.md)
+→ [Mathematische Voraussetzungen](didaktik/Modulkonzept%20Statistik/Mathematische_Voraussetzungen.md)
 → [Formelsammlung](didaktik/Modulkonzept%20Statistik/P0-03_Formelsammlung_Statistik.md)
 → [Probeklausur](didaktik/Modulkonzept%20Statistik/P0-03_Probeklausur_90_Minuten.md)
 

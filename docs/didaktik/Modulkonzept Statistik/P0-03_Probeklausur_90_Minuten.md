@@ -2,7 +2,7 @@
 
 **Kürzel vorab:** **MZ7** bezeichnet das siebte Modulziel „Statistische Evidenz kommunizieren und begrenzen“, **W09** die neunte Kurswoche, **JASP** die verwendete Analysesoftware und **`source_ref`** die Quellenkennung eines Datensatzes. **A1–A6** und **V1** innerhalb dieser Quellenkennungen bezeichnen Klausuraufgabe 1–6 und Datensatzversion 1, nicht die Formelblöcke oder curriculare Vertiefungscodes.
 
-- **Version:** 2.0.1 · **Stand:** 13.09.2026
+- **Version:** 2.0.2 · **Stand:** 04.10.2026
 - **Bearbeitungszeit:** 90 Minuten
 - **Gesamtpunktzahl:** 60 Punkte
 - **Hilfsmittel:** offizielle Formelsammlung und nicht programmierbarer
@@ -27,12 +27,8 @@
    Produktdetails von ARSnova oder JASP abgefragt.
 7. Ein ausdrücklich als **Wilson** bezeichnetes Intervall wird als
    Wilson-Intervall gelesen. Es wird nicht mit der Wald-Formel nachgerechnet.
-8. Kritische \(z\)- und \(t\)-Werte stehen jeweils in der Aufgabe, sofern sie
+8. Kritische $z$- und $t$-Werte stehen jeweils in der Aufgabe, sofern sie
    benötigt werden.
-9. Eine inhaltlich und zeitlich gleichwertige barrierearme Fassung wird nach
-   der [Material- und A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md)
-   bereitgestellt. JASP-Tabellen müssen ohne Farbcodierung und ohne eine nur
-   grafisch erkennbare Information lösbar sein.
 
 ## Verbindliche Punkte- und Minutenplanung
 
@@ -41,7 +37,7 @@
 |       1 | Daten, Häufigkeit, Lage und Streuung         | positive Anwendung und negative Fehlerdiagnose   |     12 |     18 Min. |
 |       2 | Wahrscheinlichkeit, Bayes und Binomialmodell | positive Anwendung und negative Modellprüfung    |      9 |     14 Min. |
 |       3 | Standardfehler und Konfidenzintervalle       | positive Anwendung und negative Interpretation   |      9 |     13 Min. |
-|       4 | gepaarter \(t\)-Test                         | positive Auswertung und negative Kausalaussage   |      9 |     14 Min. |
+|       4 | gepaarter $t$-Test                           | positive Auswertung und negative Kausalaussage   |      9 |     14 Min. |
 |       5 | Korrelation, Regression und Residuum         | Anwendung, Fehlerdiagnose und Transfer           |      9 |     13 Min. |
 |       6 | Train/Test und Klassifikationsmetriken       | Anwendung, Fehlerdiagnose und Managementtransfer |     12 |     18 Min. |
 |         | **Gesamt**                                   |                                                  | **60** | **90 Min.** |
@@ -61,7 +57,7 @@ querschnittlichen Kompetenzen nur einmal gezählt:
 | Hypothesentests                                 | Aufgabe 4                         |      9 |      15 % |
 | Korrelation und Regression                      | Aufgabe 5                         |      9 |      15 % |
 | Train/Test und binäre ML-Evaluation             | 6a–6c sowie Diagnoseanteil von 6d |      9 |      15 % |
-| integrierte Datenkritik und Kommunikation       | Grenzanteil von 6d sowie 6e       |      3 |       5 % |
+| integrierte Datenkritik und Kommunikation       | Aussagegrenze in 6d sowie 6e      |      3 |       5 % |
 | **Gesamt**                                      |                                   | **60** | **100 %** |
 
 In 6d entfällt ein Punkt auf die fachliche Diagnose und ein Punkt auf deren
@@ -98,9 +94,9 @@ $$
 
 Die ARSnova-Zusammenfassung zeigt:
 
-| \(n\) | Mittelwert | deskriptive Standardabweichung, Division durch \(n\) |
-| ----: | ---------: | ---------------------------------------------------: |
-|     5 |   120,00 s |                                              14,14 s |
+| $n$ |             Mittelwert | deskriptive Standardabweichung, Division durch $n$ |
+| --: | ---------------------: | -------------------------------------------------: |
+| $5$ | $120{,}00\,\mathrm{s}$ |                              $14{,}14\,\mathrm{s}$ |
 
 ### Teilaufgaben
 
@@ -122,13 +118,13 @@ würde.
 
 #### d) Positive Anwendung – 3 Punkte · 5 Minuten
 
-Berechnen Sie aus den fünf Einzelwerten die Stichprobenvarianz \(s^2\) und die
-Stichprobenstandardabweichung \(s\) mit Division durch \(n-1\). Zeigen Sie,
+Berechnen Sie aus den fünf Einzelwerten die Stichprobenvarianz $s^2$ und die
+Stichprobenstandardabweichung $s$ mit Division durch $n-1$. Zeigen Sie,
 warum das Ergebnis von der ARSnova-Anzeige abweicht.
 
 #### e) Interpretation – 2 Punkte · 3 Minuten
 
-Interpretieren Sie \(s\) in einem vollständigen Satz mit Kontext und Einheit.
+Interpretieren Sie $s$ in einem vollständigen Satz mit Kontext und Einheit.
 Formulieren Sie keine Aussage, die für jeden Einzelwert gelten müsste.
 
 ---
@@ -143,39 +139,39 @@ Formulieren Sie keine Aussage, die für jeden Einzelwert gelten müsste.
 
 Für 100 anonymisierte Einzelantworten wurde festgehalten:
 
-- \(W\): Die Antwort war fachlich falsch.
-- \(F\): Das zugehörige Konzept wurde für eine Wiederholung markiert.
+- $W$: Die Antwort war fachlich falsch.
+- $F$: Das zugehörige Konzept wurde für eine Wiederholung markiert.
 
-|                          | \(F\): markiert | \(\overline F\): nicht markiert |   Summe |
-| ------------------------ | --------------: | ------------------------------: | ------: |
-| \(W\): falsch            |              16 |                               4 |      20 |
-| \(\overline W\): richtig |               8 |                              72 |      80 |
-| **Summe**                |          **24** |                          **76** | **100** |
+|                        | $F$: markiert | $\overline F$: nicht markiert |   Summe |
+| ---------------------- | ------------: | ----------------------------: | ------: |
+| $W$: falsch            |            16 |                             4 |      20 |
+| $\overline W$: richtig |             8 |                            72 |      80 |
+| **Summe**              |        **24** |                        **76** | **100** |
 
 Ein gesondertes idealisiertes Übungsmodell nimmt für drei gleichartige
 Abruffragen unabhängige Versuche mit konstanter
-Erfolgswahrscheinlichkeit \(p=0{,}70\) an.
+Erfolgswahrscheinlichkeit $p=0{,}70$ an.
 
 ### Teilaufgaben
 
 #### a) Positive Anwendung – 2 Punkte · 3 Minuten
 
-Berechnen Sie \(P(W\cup F)\) mit der Additionsregel.
+Berechnen Sie $P(W\cup F)$ mit der Additionsregel.
 
 #### b) Bayes-Denken – 3 Punkte · 5 Minuten
 
-Berechnen Sie \(P(W\mid F)\) und \(P(F\mid W)\). Erklären Sie in einem Satz,
+Berechnen Sie $P(W\mid F)$ und $P(F\mid W)$. Erklären Sie in einem Satz,
 warum die beiden Wahrscheinlichkeiten verschiedene Fragen beantworten.
 
 #### c) Positive Anwendung – 2 Punkte · 3 Minuten
 
-Für das idealisierte Übungsmodell gilt \(X\sim Bin(3;0{,}70)\). Berechnen Sie
+Für das idealisierte Übungsmodell gilt $X\sim Bin(3;0{,}70)$. Berechnen Sie
 die Wahrscheinlichkeit, genau zwei Fragen richtig zu beantworten.
 
 #### d) Negative Modellprüfung – 2 Punkte · 3 Minuten
 
 Im echten kumulativen MC-Test reichen die beobachteten Lösungsquoten
-verschiedener Items von 0,42 bis 0,90; außerdem beantworten dieselben Personen
+verschiedener Items von $0{,}42$ bis $0{,}90$; außerdem beantworten dieselben Personen
 mehrere Items. Nennen Sie zwei Bedingungen des Binomialmodells, die deshalb
 für die Gesamtzahl richtiger Antworten fraglich sind.
 
@@ -193,7 +189,7 @@ Für das konstruierte Aufgabenaggregat gilt: Bei einer Konzeptfrage antworteten
 37 von 52 Personen korrekt. Für den zugrunde liegenden Anteil wurde aus diesen
 Daten folgendes Leseintervall bereitgestellt:
 
-> **95-%-Wilson-Konfidenzintervall:** \([0{,}577;\ 0{,}817]\)
+> **$95\,\%$-Wilson-Konfidenzintervall:** $[0{,}577;\ 0{,}817]$
 
 ### Auszug B: JASP Descriptives (LEHRDATEN)
 
@@ -201,11 +197,11 @@ Daten folgendes Leseintervall bereitgestellt:
 
 Die Variable `service_time_s` enthält unabhängige Servicezeiten in Sekunden.
 
-| Variable         | Valid \(n\) |    Mean | Std. Deviation \(s\) |
-| ---------------- | ----------: | ------: | -------------------: |
-| `service_time_s` |          12 | 120,000 |               15,000 |
+| Variable         | Valid $n$ |        Mean | Std. Deviation $s$ |
+| ---------------- | --------: | ----------: | -----------------: |
+| `service_time_s` |      $12$ | $120{,}000$ |         $15{,}000$ |
 
-Für das 95-%-\(t\)-Konfidenzintervall ist gegeben:
+Für das $95\,\%$-$t$-Konfidenzintervall ist gegeben:
 
 $$
 t_{0{,}975;\,11}=2{,}201
@@ -215,8 +211,8 @@ $$
 
 #### a) Positive Anwendung – 2 Punkte · 3 Minuten
 
-Berechnen Sie für Auszug A den beobachteten Anteil \(\hat p\) und seinen
-geschätzten Standardfehler \(SE(\hat p)\). Berechnen Sie kein zweites
+Berechnen Sie für Auszug A den beobachteten Anteil $\hat p$ und seinen
+geschätzten Standardfehler $SE(\hat p)$. Berechnen Sie kein zweites
 Konfidenzintervall.
 
 #### b) Positive Interpretation – 2 Punkte · 3 Minuten
@@ -228,17 +224,17 @@ Kontext.
 
 Widerlegen Sie mit zwei fachlichen Gründen die Aussage:
 
-> „Das Intervall zeigt, dass 95 % aller BWL-Studierenden zwischen 57,7 % und
-> 81,7 % der Fragen richtig beantworten.“
+> „Das Intervall zeigt, dass $95\,\%$ aller BWL-Studierenden zwischen $57{,}7\,\%$ und
+> $81{,}7\,\%$ der Fragen richtig beantworten.“
 
 #### d) Positive Anwendung – 3 Punkte · 4 Minuten
 
-Berechnen Sie aus Auszug B das 95-%-\(t\)-Konfidenzintervall für die mittlere
+Berechnen Sie aus Auszug B das $95\,\%$-$t$-Konfidenzintervall für die mittlere
 Servicezeit. Interpretieren Sie es in einem Satz.
 
 ---
 
-## Aufgabe 4 – Gepaarter \(t\)-Test mit JASP
+## Aufgabe 4 – Gepaarter $t$-Test mit JASP
 
 **9 Punkte · 14 Minuten**
 
@@ -258,12 +254,12 @@ Positive Differenzen bedeuten damit eine Verbesserung.
 
 ### JASP-Auszug: Paired Samples T-Test (LEHRDATEN)
 
-| Paar                  | \(n\) | Mean difference | SD difference | SE difference | \(t\) | \(df\) | \(p\), zweiseitig | 95 % CI mean difference |
-| --------------------- | ----: | --------------: | ------------: | ------------: | ----: | -----: | ----------------: | ----------------------: |
-| Fehler R1 – Fehler R2 |    10 |           4,000 |         5,000 |         1,581 | 2,530 |      9 |             0,032 |          [0,423; 7,577] |
+| Paar                  |  $n$ | Mean difference | SD difference | SE difference |       $t$ | $df$ | $p$, zweiseitig | $95\,\%$ CI mean difference |
+| --------------------- | ---: | --------------: | ------------: | ------------: | --------: | ---: | --------------: | --------------------------: |
+| Fehler R1 – Fehler R2 | $10$ |       $4{,}000$ |     $5{,}000$ |     $1{,}581$ | $2{,}530$ |  $9$ |       $0{,}032$ |       $[0{,}423;\ 7{,}577]$ |
 
-Es gelten \(\alpha=0{,}05\) und
-\(t_{0{,}975;\,9}=2{,}262\).
+Es gelten $\alpha=0{,}05$ und
+$t_{0{,}975;\,9}=2{,}262$.
 
 ### Teilaufgaben
 
@@ -275,18 +271,18 @@ einer positiven Differenz.
 #### b) Hypothesen – 2 Punkte · 3 Minuten
 
 Formulieren Sie die zweiseitige Null- und Alternativhypothese für den
-Populationsmittelwert \(\mu_d\).
+Populationsmittelwert $\mu_d$.
 
 #### c) Positive Anwendung – 2 Punkte · 3 Minuten
 
-Berechnen Sie \(SE(\bar d)\) und \(t\) aus \(n=10\), \(\bar d=4{,}000\) und
-\(s_d=5{,}000\). Vergleichen Sie mit der JASP-Ausgabe.
+Berechnen Sie $SE(\bar d)$ und $t$ aus $n=10$, $\bar d=4{,}000$ und
+$s_d=5{,}000$. Vergleichen Sie mit der JASP-Ausgabe.
 
 #### d) Testentscheidung und Interpretation – 2 Punkte · 3 Minuten
 
-Treffen Sie die Entscheidung bei \(\alpha=0{,}05\) anhand von \(p\) oder des
-kritischen \(t\)-Werts. Interpretieren Sie Richtung und Größenordnung des
-beobachteten Effekts, ohne den \(p\)-Wert als Wahrscheinlichkeit der
+Treffen Sie die Entscheidung bei $\alpha=0{,}05$ anhand von $p$ oder des
+kritischen $t$-Werts. Interpretieren Sie Richtung und Größenordnung des
+beobachteten Effekts, ohne den $p$-Wert als Wahrscheinlichkeit der
 Nullhypothese zu deuten.
 
 #### e) Negative Kausalaussage – 1 Punkt · 2 Minuten
@@ -300,9 +296,9 @@ nicht beweist, dass die Peer-Diskussion die Verbesserung verursacht hat.
 
 **9 Punkte · 13 Minuten**
 
-Zwölf ausdrücklich synthetische Lastläufe bilden **LEHRDATEN**. \(x\) ist die
-Zahl gleichzeitiger Nutzungen, \(y\) die Medianlatenz in Millisekunden. Der
-beobachtete Bereich von \(x\) reicht von 100 bis 500.
+Zwölf ausdrücklich synthetische Lastläufe bilden **LEHRDATEN**. $x$ ist die
+Zahl gleichzeitiger Nutzungen, $y$ die Medianlatenz in Millisekunden. Der
+beobachtete Bereich von $x$ reicht von 100 bis 500.
 
 **source_ref:** `P0-03-PROBEKLAUSUR-A5-REGRESSION-V1`
 
@@ -310,43 +306,43 @@ beobachtete Bereich von \(x\) reicht von 100 bis 500.
 
 **Pearson's Correlations**
 
-| Variablenpaar                          | \(n\) | Pearson's \(r\) |   \(p\) |
-| -------------------------------------- | ----: | --------------: | ------: |
-| gleichzeitige Nutzungen – Medianlatenz |    12 |           0,840 | < 0,001 |
+| Variablenpaar                          |  $n$ | Pearson's $r$ |         $p$ |
+| -------------------------------------- | ---: | ------------: | ----------: |
+| gleichzeitige Nutzungen – Medianlatenz | $12$ |     $0{,}840$ | $< 0{,}001$ |
 
 **Linear Regression**
 
-| Modellkennzahl |  Wert |
-| -------------- | ----: |
-| \(R^2\)        | 0,706 |
+| Modellkennzahl |      Wert |
+| -------------- | --------: |
+| $R^2$          | $0{,}706$ |
 
-| Koeffizient                     | Estimate |
-| ------------------------------- | -------: |
-| Intercept \(b_0\)               |   40,000 |
-| gleichzeitige Nutzungen \(b_1\) |    0,180 |
+| Koeffizient                   |   Estimate |
+| ----------------------------- | ---------: |
+| Intercept $b_0$               | $40{,}000$ |
+| gleichzeitige Nutzungen $b_1$ |  $0{,}180$ |
 
-Für einen der zwölf Läufe gilt \(x=300\) und \(y=100\) ms.
+Für einen der zwölf Läufe gilt $x=300$ und $y=100\,\mathrm{ms}$.
 
 ### Teilaufgaben
 
 #### a) Positive Interpretation – 2 Punkte · 3 Minuten
 
-Interpretieren Sie Richtung und Stärke von \(r\). Grenzen Sie die Aussage von
+Interpretieren Sie Richtung und Stärke von $r$. Grenzen Sie die Aussage von
 einem Kausalnachweis ab.
 
 #### b) Modellverständnis – 2 Punkte · 3 Minuten
 
-Interpretieren Sie \(b_1\) mit Einheiten. Erklären Sie, warum \(b_0\) hier
+Interpretieren Sie $b_1$ mit Einheiten. Erklären Sie, warum $b_0$ hier
 nicht zwingend eine sinnvolle reale Betriebssituation beschreibt.
 
 #### c) Positive Anwendung – 3 Punkte · 4 Minuten
 
-Berechnen Sie für \(x=300\) die Vorhersage \(\hat y\) und das Residuum
-\(e=y-\hat y\). Interpretieren Sie das Vorzeichen des Residuums.
+Berechnen Sie für $x=300$ die Vorhersage $\hat y$ und das Residuum
+$e=y-\hat y$. Interpretieren Sie das Vorzeichen des Residuums.
 
 #### d) Negative Transferdiagnose – 2 Punkte · 3 Minuten
 
-Eine Führungskraft setzt \(x=900\) in die Gerade ein und behauptet, der so
+Eine Führungskraft setzt $x=900$ in die Gerade ein und behauptet, der so
 berechnete Wert sei eine sichere Produktionsprognose. Nennen Sie zwei
 fachliche Einwände.
 
@@ -375,18 +371,18 @@ Ein binäres Modell ordnet synthetische neue Testfälle der Zielklasse
 
 | Auswertung     | Accuracy |
 | -------------- | -------: |
-| Trainingsdaten |     0,98 |
-| neue Testdaten |     0,87 |
+| Trainingsdaten | $0{,}98$ |
+| neue Testdaten | $0{,}87$ |
 
 Der Train/Test-Auszug ist ein eigener konstruierter Lehrfall. Seine
 Test-Accuracy darf nicht aus der darüberstehenden 100-Fälle-Matrix hergeleitet
-oder mit dem W09-Beispiel 98 %/71 % gleichgesetzt werden.
+oder mit dem W09-Beispiel $98\,\%/71\,\%$ gleichgesetzt werden.
 
 ### Teilaufgaben
 
 #### a) Matrix lesen – 2 Punkte · 3 Minuten
 
-Ordnen Sie die vier inneren Zellen \(TP\), \(TN\), \(FP\) und \(FN\) zu.
+Ordnen Sie die vier inneren Zellen $TP$, $TN$, $FP$ und $FN$ zu.
 
 #### b) Positive Anwendung – 4 Punkte · 6 Minuten
 

@@ -97,15 +97,15 @@ Befund.
 
 ### 2.2 Population, Stichprobe und Beobachtungseinheit
 
-| Element                                         | präzise Festlegung |
-| ----------------------------------------------- | ------------------ |
-| Zielpopulation                                  |                    |
-| tatsächlich untersuchte Stichprobe              |                    |
-| Beobachtungseinheit einer Tabellenzeile         |                    |
-| Erhebungs- oder Auswahlverfahren                |                    |
-| ausgewertetes \(n\)                             |                    |
-| davon vollständige Paare \(n_{\mathrm{Paare}}\) |                    |
-| fehlende bzw. ausgeschlossene Fälle             |                    |
+| Element                                       | präzise Festlegung |
+| --------------------------------------------- | ------------------ |
+| Zielpopulation                                |                    |
+| tatsächlich untersuchte Stichprobe            |                    |
+| Beobachtungseinheit einer Tabellenzeile       |                    |
+| Erhebungs- oder Auswahlverfahren              |                    |
+| ausgewertetes $n$                             |                    |
+| davon vollständige Paare $n_{\mathrm{Paare}}$ |                    |
+| fehlende bzw. ausgeschlossene Fälle           |                    |
 
 Eingeschriebene Personen, anwesende Personen, verbundene Geräte, abgegebene
 Antworten und vollständige Paare werden nicht gleichgesetzt.
@@ -164,8 +164,8 @@ Boxplot-Grenzen sind Prüfsignale und keine automatische Löschregel.
 
 - [ ] ausdrücklich bezeichnetes Wilson-Leseintervall für einen Anteil
 - [ ] Wald-Näherungsintervall für einen Anteil bei erfüllter Lehrregel
-- [ ] \(t\)-Konfidenzintervall für einen Mittelwert
-- [ ] gepaarter \(t\)-Test
+- [ ] $t$-Konfidenzintervall für einen Mittelwert
+- [ ] gepaarter $t$-Test
 - [ ] Pearson-Korrelation und einfache lineare Regression
 - [ ] Confusion Matrix mit Accuracy, Precision, Recall und F1
 
@@ -183,12 +183,12 @@ Boxplot-Grenzen sind Prüfsignale und keine automatische Löschregel.
 
 **Vorab festgelegte Entscheidungen:**
 
-| Entscheidung              | Eintrag |
-| ------------------------- | ------- |
-| \(\alpha\)                |         |
-| Konfidenzniveau           |         |
-| positive Klasse           |         |
-| Differenzrichtung \(d_i\) |         |
+| Entscheidung            | Eintrag |
+| ----------------------- | ------- |
+| $\alpha$                |         |
+| Konfidenzniveau         |         |
+| positive Klasse         |         |
+| Differenzrichtung $d_i$ |         |
 
 Nicht benötigte Einträge bleiben leer; die fachlich erforderlichen
 Entscheidungen müssen vor der Ergebnisdeutung feststehen.
@@ -205,12 +205,12 @@ Entscheidungen müssen vor der Ergebnisdeutung feststehen.
 
 ---
 
-| Ergebnisart                  | Wert mit Rundung | Einheit | \(n\)/Nenner |
-| ---------------------------- | ---------------: | ------- | -----------: |
-| Lagekennzahl                 |                  |         |              |
-| Streuungskennzahl            |                  |         |              |
-| Anteil/Häufigkeit            |                  |         |              |
-| weitere deskriptive Kennzahl |                  |         |              |
+| Ergebnisart                  | Wert mit Rundung | Einheit | $n$/Nenner |
+| ---------------------------- | ---------------: | ------- | ---------: |
+| Lagekennzahl                 |                  |         |            |
+| Streuungskennzahl            |                  |         |            |
+| Anteil/Häufigkeit            |                  |         |            |
+| weitere deskriptive Kennzahl |                  |         |            |
 
 **Zentrales Inferenz- oder Modellergebnis:**
 
@@ -220,10 +220,10 @@ Entscheidungen müssen vor der Ergebnisdeutung feststehen.
 
 Dabei werden die Verfahren benannt, zum Beispiel:
 
-- „95-%-**Wilson**-Konfidenzintervall \([L;U]\)“,
-- „95-%-\(t\)-Konfidenzintervall für \(\mu\)“,
-- „gepaarter \(t\)-Test: \(t(df)=\ldots,\ p=\ldots\)“,
-- „Pearson-\(r\), Regressionsgerade und Residuum“,
+- „$95\,\%$-**Wilson**-Konfidenzintervall $[L;U]$“,
+- „$95\,\%$-$t$-Konfidenzintervall für $\mu$“,
+- „gepaarter $t$-Test: $t(df)=\ldots,\ p=\ldots$“,
+- „Pearson-$r$, Regressionsgerade und Residuum“,
 - „Accuracy, Precision, Recall und F1 auf den Testdaten“.
 
 **Manuelle Plausibilitätskontrolle eines Schlüsselwerts:**
@@ -266,7 +266,7 @@ Dabei werden die Verfahren benannt, zum Beispiel:
 
 ### 2.8 Management Summary – höchstens fünf Sätze
 
-Die fünf Satzfunktionen dürfen zusammengezogen werden, keine darf durch ein
+Die fünf Satzfunktionen dürfen zusammengezogen werden; keine darf durch ein
 Schlagwort ersetzt werden:
 
 1. Fragestellung und Datenbasis:
@@ -314,7 +314,7 @@ umbenannte Karten mehrerer Personen gelten nicht als individuelle Evidenz.
 
 ---
 
-**Abgelesener Wert einschließlich \(n\), Einheit oder Klasse:**
+**Abgelesener Wert einschließlich $n$, Einheit oder Klasse:**
 
 ---
 
@@ -381,9 +381,9 @@ Begründung:**
       eindeutig.
 - [ ] Jede Variable hat Skalenniveau und Einheit bzw. Kategorien.
 - [ ] Alle berichteten Anteile nennen Zähler und Nenner.
-- [ ] \(n\), fehlende Fälle und bei Paaranalysen \(n_{\mathrm{Paare}}\) sind
+- [ ] $n$, fehlende Fälle und bei Paaranalysen $n_{\mathrm{Paare}}$ sind
       sichtbar.
-- [ ] Deskriptive Division durch \(n\) und Stichprobenschätzung mit \(n-1\)
+- [ ] Deskriptive Division durch $n$ und Stichprobenschätzung mit $n-1$
       werden nicht verwechselt.
 - [ ] Darstellung, Kennzahlen und Verfahren passen zu Frage und Skalen.
 - [ ] Voraussetzungen sind geprüft und nicht nur aufgezählt.
@@ -446,30 +446,30 @@ Begründung:**
 | prüfbare Evidenz                                                                                    | Punkte |
 | --------------------------------------------------------------------------------------------------- | -----: |
 | Quellenstatus LIVE (nur formativ), REPO/LEHRDATEN, Referenz, Datum und Datenversion nachvollziehbar |      3 |
-| gültiges \(n\), fehlende Werte, Ausschlüsse und gegebenenfalls vollständige Paare transparent       |      3 |
+| gültiges $n$, fehlende Werte, Ausschlüsse und gegebenenfalls vollständige Paare transparent         |      3 |
 | Prüf-, Bereinigungs- und Filterentscheidungen sind reproduzierbar und sachlich begründet            |      3 |
 | Auswahlverzerrung, Datenschutz, Aggregationsrunde und Datenherkunft werden angemessen begrenzt      |      3 |
 | **Maximum B**                                                                                       | **12** |
 
 ### C. Deskriptive Analyse und Darstellung – 12 Punkte
 
-| prüfbare Evidenz                                                                       | Punkte |
-| -------------------------------------------------------------------------------------- | -----: |
-| Grafik oder Tabelle passt zu Skalenniveau und Fragestellung                            |      3 |
-| Titel, Achsen, Kategorien, Einheit, Quelle und textliche Kernaussage vollständig       |      2 |
-| Lage-, Streuungs- und Häufigkeitskennzahlen rechnerisch korrekt                        |      4 |
-| Kennzahlenwahl, Nenner sowie robuste gegenüber ausreißerempfindlichen Größen begründet |      3 |
-| **Maximum C**                                                                          | **12** |
+| prüfbare Evidenz                                                                                        | Punkte |
+| ------------------------------------------------------------------------------------------------------- | -----: |
+| Grafik oder Tabelle passt zu Skalenniveau und Fragestellung                                             |      3 |
+| Titel, Achsen, Kategorien, Einheit, Quelle und textliche Kernaussage vollständig                        |      2 |
+| Lage-, Streuungs- und Häufigkeitskennzahlen rechnerisch korrekt                                         |      4 |
+| Kennzahlenwahl, Nenner und die Abgrenzung robuster von ausreißerempfindlichen Kennzahlen sind begründet |      3 |
+| **Maximum C**                                                                                           | **12** |
 
 ### D. Verfahrenswahl und Voraussetzungen – 12 Punkte
 
-| prüfbare Evidenz                                                                                     | Punkte |
-| ---------------------------------------------------------------------------------------------------- | -----: |
-| inferenzstatistisches oder modellbezogenes Verfahren passt zu Frage, Skalen und Design               |      4 |
-| konkrete Voraussetzungen werden mit Daten oder Grafik geprüft und zutreffend beurteilt               |      4 |
-| Konfidenzniveau, \(\alpha\), Hypothesen, Differenzrichtung oder positive Klasse sind vorab eindeutig |      2 |
-| Grenzen des Verfahrens bzw. eine sachlich mögliche Alternative werden erklärt                        |      2 |
-| **Maximum D**                                                                                        | **12** |
+| prüfbare Evidenz                                                                                   | Punkte |
+| -------------------------------------------------------------------------------------------------- | -----: |
+| inferenzstatistisches oder modellbezogenes Verfahren passt zu Frage, Skalen und Design             |      4 |
+| konkrete Voraussetzungen werden mit Daten oder Grafik geprüft und zutreffend beurteilt             |      4 |
+| Konfidenzniveau, $\alpha$, Hypothesen, Differenzrichtung oder positive Klasse sind vorab eindeutig |      2 |
+| Grenzen des Verfahrens bzw. eine sachlich mögliche Alternative werden erklärt                      |      2 |
+| **Maximum D**                                                                                      | **12** |
 
 ### E. JASP und Reproduzierbarkeit – 10 Punkte
 
@@ -485,7 +485,7 @@ Begründung:**
 
 | prüfbare Evidenz                                                                                                | Punkte |
 | --------------------------------------------------------------------------------------------------------------- | -----: |
-| Punktschätzer und deskriptive Ergebnisse enthalten \(n\), Nenner und Einheit                                    |      3 |
+| Punktschätzer und deskriptive Ergebnisse enthalten $n$, Nenner und Einheit                                      |      3 |
 | Intervall, Test oder Modell ist vollständig berichtet; Wilson/Wald bzw. Testdatensatz sind eindeutig bezeichnet |      4 |
 | Einsetzung, Vorzeichen, Nullnenner-Konvention und Rundung sind rechnerisch korrekt                              |      3 |
 | Ergebnissatz deutet Größe und Richtung im Kontext und trennt statistische von praktischer Bedeutung             |      4 |

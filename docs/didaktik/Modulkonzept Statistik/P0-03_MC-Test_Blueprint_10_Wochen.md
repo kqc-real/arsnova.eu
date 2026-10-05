@@ -23,7 +23,7 @@
 - Nach jeder Antwort erscheinen eine fachliche Erklärung und zwei bis vier itemnahe Einträge aus `mini_glossary`.
 - Lernanalytik wird nur aggregiert für Lehre und interne Modulevaluation genutzt. Antwortzeit ist kein Kompetenzmaß.
 - Rechen- und Softwareergebnisse werden in JASP 0.98.1 nach dem [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md) geprüft.
-- Für jede Datei steht nach der [Material-/A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md) eine vollständige, untimierte Alternativfassung mit denselben 30 Fragen, Lösungen, Erklärungen und Glossaren bereit.
+- Für jede Datei steht eine vollständige, untimierte Alternativfassung mit denselben 30 Fragen, Lösungen, Erklärungen und Glossaren bereit.
 - Der Blueprint misst die 24 Lernziele des Hauptkonzepts. Er führt keine Forschungsvariablen, experimentellen Gruppen oder externen Vergleichskohorten ein.
 - ARSnova-, MC-Test- und sonstige LIVE-Daten dürfen nicht zur individuellen Leistungsbewertung verwendet werden. Eine getrennte Klausur mit ausschließlich dafür freigegebenen LEHRDATEN bleibt zulässig.
 
@@ -145,7 +145,7 @@ Die Wochenplanung unterscheidet außerhalb des JSON:
 - Diagnose einer dokumentierten Fehlvorstellung,
 - Transfer oder klausurnahe integrierte Anwendung.
 
-Diese Ziele steuern Themenwahl, `concept` und Erklärungen redaktionell. Der Blueprint behauptet dafür keine maschinellen Tags oder aus dem JSON berechenbaren Rollensummen. Brüche, Prozentrechnung, Potenzen/Wurzeln, Gleichungen und Taschenrechnerbedienung prüft getrennt die [Mathematikdiagnostik mit Brückenpfaden](./P0-03_Mathematikdiagnostik_Brueckenpfade.md); sie verdrängt kein W01-Statistikitem.
+Diese Ziele steuern Themenwahl, `concept` und Erklärungen redaktionell. Der Blueprint behauptet dafür keine maschinellen Tags oder aus dem JSON berechenbaren Rollensummen.
 
 Die zeitliche Abfolge ist verbindlich: Präsenzdurchlauf am Ende der Themenwoche, korrigierender Durchlauf nach zwei bis drei Tagen und erneute Einbettung ausgewählter Kernkonzepte nach zwei bis vier Wochen. Damit bezeichnet Spaced Repetition nicht bloß eine gemischte Fragensammlung, sondern die geplanten Abstände zwischen den Abrufen.
 
@@ -166,7 +166,6 @@ Die Häufigkeiten für `topic`, `cognitive_level` und `weight` sind direkt aus d
 - **`weight`-Profil (Σ=30):** `1`/leicht=0; `2`/mittel=12; `3`/schwer=18.
 - **LI-Schwerpunkte:** LI01, LI02, LI03 und LI04.
 - **Curricularer Schwerpunkt und Spaced Repetition:** Der Einstieg verbindet Statistikprozess, Bezugsgruppen, Beobachtungseinheiten, Merkmalsarten und Datenqualität. Als Eingangsdiagnose werden begriffliche Abgrenzungen, korrekte Nenner sowie Grenzen deskriptiver und kausaler Aussagen abgerufen.
-- **Abgrenzung:** W01 diagnostiziert fachstatistische Begriffe. Mathematische Arbeitsvoraussetzungen werden vor UE 1 mit dem eigenständigen Diagnosebogen geprüft.
 
 ### W02 – Häufigkeiten, Diagramme und Lage
 
@@ -289,7 +288,7 @@ Nicht in die Wochenvorlage übernommen werden Pseudonyme, Namen, E-Mail-Adressen
 
 - Unter etwa 67 % aggregierter korrekter Antworten im festgelegten Auswertungsfenster: Konzept mit neuem Beispiel erneut abrufen.
 - Häufig gewählter gemeinsamer Distraktor: Fehlvorstellung explizit kontrastieren.
-- Hohe Auslassung: Verständlichkeit, Barriere oder Arbeitslast prüfen, nicht automatisch mangelnde Kompetenz unterstellen.
+- Hohe Auslassung: Verständlichkeit, Zugang oder Arbeitslast prüfen, nicht automatisch mangelnde Kompetenz unterstellen.
 - Schwierigkeit wird nach einem Lehrdurchlauf nur anhand von Itemfunktion, fachlicher Anforderung und Rückmeldung rekalibriert; sie ist kein Studierendenlabel.
 
 ## 7. Wöchentliche Freigabeprüfung
@@ -400,4 +399,4 @@ print("OK: 10 Dateien, 300 eindeutige Fragen, exaktes Schema, 0/12/18-Profil und
 PY
 ```
 
-Erst nach dieser Prüfung darf LD die Datei im [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) festgelegten Zeitfenster veröffentlichen.
+Erst nach dieser Prüfung darf die Lehrdurchführung die Datei in dem im [Lehrenden-Runbook](./P0-03_Lehrenden_Runbook.md) festgelegten Zeitfenster veröffentlichen.

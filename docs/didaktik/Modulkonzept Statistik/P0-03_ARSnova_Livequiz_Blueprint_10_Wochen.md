@@ -142,7 +142,7 @@ Jede Frage besteht die technische Basisprüfung: importierbares JSON, lückenlos
 - **QA-R:** unabhängige Rechen-, Quellen- oder JASP-Reproduktion,
 - **QA-P:** Datenschutz-/Zweckbindungsprüfung für LIVE-, Confidence-, Freitext-, Survey- oder Rating-Daten.
 
-Die barrierearme Darstellung folgt der [Material-/A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md): vollständiger vorlesbarer Wortlaut, nicht nur farblich oder räumlich unterscheidbare Optionen, vorgeschaltete Lesephase, funktionierende Zeitunterstützung und typgerechte untimierte Papierantwort.
+Die Darstellung verlangt einen vollständigen vorlesbaren Wortlaut, nicht nur farblich oder räumlich unterscheidbare Optionen, eine vorgeschaltete Lesephase, funktionierende Zeitunterstützung und eine typgerechte untimierte Papierantwort.
 
 ## 4. Verbindliche Wochenmatrix
 
