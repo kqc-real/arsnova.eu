@@ -20,7 +20,7 @@ Vor dem ersten Lehrtermin gelten folgende reproduzierbare Rahmenbedingungen:
 4. Studierende erhalten ausschließlich LEHRDATEN oder freigegebene anonyme Aggregate; schutzbedürftige LIVE-Arbeitsdateien verbleiben im lokalen Arbeitsbereich der Lehrdurchführung.
 5. Automatische Versionswechsel werden für die Lehrphase vermieden. Ein Versionswechsel während des Semesters erfordert einen erneuten Import- und Klickpfadtest sowie eine neue Materialversion.
 6. Die optionale JASP-KI-Funktion bleibt für diese Analysen deaktiviert; sie ist weder für Berechnung noch Interpretation Bestandteil des Analyseplans.
-7. Im Ergebnisprotokoll werden JASP-Version, Betriebssystem, CSV-Dateiname, `source_ref`, Analysepfad und Ausschlüsse festgehalten. Für die V1-Dateien lautet der Ausschluss: keine Zeile.
+7. Im Ergebnisprotokoll werden JASP-Version, Betriebssystem, CSV-Dateiname, `source_ref`, Analysepfad und Ausschlüsse festgehalten. In den V1-Dateien wird keine Zeile ausgeschlossen.
 8. Die Zahl der Dezimalstellen in JASP wird für Tabellen auf drei gesetzt. Die CSV-Grundwerte und die auf sechs Stellen gespeicherten abgeleiteten Felder bleiben unverändert.
 
 Die Menünamen dieses Leitfadens folgen der englischen Oberfläche von JASP 0.98.1. Bei einer lokalisierten Oberfläche ist der inhaltlich gleich benannte Menüpunkt zu verwenden; die Semester-Version bleibt trotzdem unverändert.
@@ -94,7 +94,7 @@ Sollhäufigkeiten:
 - mittel: 7 richtig, 5 falsch, insgesamt 12; korrekt $=58{,}333\,\%$;
 - hoch: 21 richtig, 5 falsch, insgesamt 26; korrekt $=80{,}769\,\%$.
 
-Für eine 2 × 5-Tafel wird `confidence` statt `confidence_gruppe` in `Columns` gelegt. Confidence bleibt ordinal; ein Abstand von 1 zu 2 wird nicht als gleich großer psychologischer Abstand wie 4 zu 5 interpretiert.
+Für eine 2 × 5-Tafel wird `confidence` statt `confidence_gruppe` in `Columns` gelegt. Confidence bleibt ordinal; der Abstand von 1 zu 2 wird nicht als ebenso großer psychologischer Abstand wie der von 4 zu 5 interpretiert.
 
 Zulässiger Befund: In diesen Lehrdaten steigt der beobachtete Korrektheitsanteil über die vorab definierten Confidence-Gruppen. Unzulässig sind Aussagen über reale Personen, individuelle Kompetenz oder kausale Wirkung von Sicherheit.
 
@@ -220,8 +220,4 @@ Eine Rangfolge nach Zustimmung, Wilson-Untergrenze oder Kontroversität beantwor
 
 Die Ergebnisdatei wird nicht als Beleg realer arsnova.eu-Nutzung, Produktionsleistung oder Modellqualität bezeichnet. Der sichtbare Hinweis **LEHRDATEN** bleibt in Titel oder Befund erhalten.
 
-Vor dem ersten Kurseinsatz wird mindestens ein Export je verpflichtender Analyseklasse
-gegen die [Material- und A11y-Matrix](./P0-03_Barrierefreiheit_Material_und_Probe.md)
-geprüft. Der JASP-Export allein gilt nicht als barrierefreie Alternative, wenn
-Grafik, Sternsymbol, Farbe oder räumliche Tabellenlage für die Lösung
-unverzichtbar bleibt.
+Vor dem ersten Kurseinsatz wird mindestens ein Export je verpflichtender Analyseklasse geprüft. Der JASP-Export allein genügt nicht, wenn Grafik, Sternsymbol, Farbe oder räumliche Tabellenlage für die Lösung unverzichtbar bleibt.

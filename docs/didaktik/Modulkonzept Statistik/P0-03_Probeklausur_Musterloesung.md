@@ -16,8 +16,8 @@
   zwei Dezimalstellen; Test- und Modellkennzahlen: drei Dezimalstellen.
 - Rechnerbedingte Abweichungen in der letzten angegebenen Stelle werden
   anerkannt.
-- Ein richtiger Folgeweg wird nicht erneut für denselben übernommenen
-  Rechenfehler bestraft, sofern das Folgeergebnis plausibel interpretiert wird.
+- Für denselben übernommenen Rechenfehler wird ein danach richtiger Rechenweg
+  nicht erneut bestraft, sofern das Folgeergebnis plausibel interpretiert wird.
 - Pro Teilaufgabe werden höchstens die angegebenen Punkte vergeben; es gibt
   keine Minuspunkte.
 
@@ -489,7 +489,7 @@ Je ein Punkt für zwei fachlich unterschiedliche Einwände:
    die Übertragung verhindern.
 
 Das bloße Einsetzen in eine Gerade beseitigt keine Modell- und
-Generaliserungsunsicherheit.
+Generalisierungsunsicherheit.
 
 ---
 

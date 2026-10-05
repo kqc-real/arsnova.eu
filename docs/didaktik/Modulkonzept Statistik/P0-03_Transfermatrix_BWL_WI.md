@@ -1,6 +1,6 @@
 # P0-03 – Isomorphe Transfermatrix BWL/Management und WI/Informatik
 
-**Kürzel vorab:** **BWL/WI** steht für Betriebswirtschaftslehre/Wirtschaftsinformatik, **MZ1–MZ7** für die Modulziele, **W01–W10** für die Kurswochen, **MC** für Multiple Choice, **LIVE/LEHRDATEN** für Kursdaten beziehungsweise synthetische Übungsdaten sowie **IR/QE** für Item-Redaktion und Qualitäts-/Evaluationsverantwortung.
+**Kürzel vorab:** **BWL/WI** steht für Betriebswirtschaftslehre/Wirtschaftsinformatik, **MZ1–MZ7** für die Modulziele, **W01–W10** für die Kurswochen, **MC** für Multiple Choice, **LIVE/LEHRDATEN** für Kursdaten beziehungsweise synthetische Übungsdaten sowie **IR/QE/LD** für Item-Redaktion, Qualitäts-/Evaluationsverantwortung und Lehrdurchführung.
 
 **Version:** 1.0.1 · **Stand:** 13.09.2026<br>
 **Status:** verbindliche Parallelaufgabenbank für den Pflichtkern
@@ -144,7 +144,7 @@ $$
 
 Bei $x=300$ wurden $y=100$ Millisekunden beobachtet. Interpretieren Sie die Steigung, berechnen Sie Vorhersage und Residuum und beurteilen Sie eine Vorhersage für $x=900$.
 
-**Gemeinsamer Erwartungshorizont – 5 Punkte:** Je zusätzliche x-Einheit steigt die modellierte Zielgröße um $0{,}18$ y-Einheiten; $\hat y=94$; $e=y-\hat y=+6$; $x=900$ ist Extrapolation und keine sichere Betriebs- oder Managementprognose.
+**Gemeinsamer Erwartungshorizont – 5 Punkte:** Je zusätzlicher $x$-Einheit steigt die modellierte Zielgröße um $0{,}18$ $y$-Einheiten; $\hat y=94$; $e=y-\hat y=+6$; $x=900$ ist Extrapolation und keine sichere Betriebs- oder Managementprognose.
 
 **Quellenabgrenzung:** Dieses Paar verwendet den eigenständigen klausurnahen Lehrfall `P0-03-PROBEKLAUSUR-A5-REGRESSION-V1` mit zwölf konstruierten Läufen. Das verbindliche W08-JASP-Labor verwendet dagegen die 16 Zeilen aus `P0-03-S5-LAST-LATENZ-V1` mit eigenen Regressionswerten. Die Datensätze werden nicht zusammengeführt oder zahlenmäßig gleichgesetzt.
 

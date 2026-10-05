@@ -301,12 +301,12 @@ P(A\mid B)
 {P(B\mid A)P(A)+P(B\mid\overline A)P(\overline A)}
 $$
 
-- **Größen:** $P(A)$ = Basisrate; $P(B\mid A)$ = Trefferwahrscheinlichkeit;
+- **Größen:** $P(A)$ = Basisrate; $P(B\mid A)$ = Wahrscheinlichkeit von $B$, wenn $A$ vorliegt;
   $P(A\mid B)$ = gesuchte umgekehrte Bedingung.
 - **Voraussetzungen:** $P(B)>0$; die Aufteilung und Wahrscheinlichkeiten
   beziehen sich auf dieselbe Population.
 - **Einheit:** einheitenlos.
-- **Warnung:** Eine hohe Trefferwahrscheinlichkeit
+- **Warnung:** Eine hohe bedingte Wahrscheinlichkeit
   $P(B\mid A)$ garantiert bei seltener Basisrate keine hohe
   $P(A\mid B)$. Eine Vierfeldertafel mit absoluten Häufigkeiten ist oft der
   sicherste Rechenweg.
@@ -481,7 +481,7 @@ $$
   Stichprobenstandardabweichung mit $n-1$;
   $t_{1-\alpha/2;\,n-1}$ = in der Aufgabe angegebener kritischer Wert.
 - **Voraussetzungen:** metrische Daten, unabhängige Beobachtungen; bei kleinem
-  $n$ annähernd verträgliche Normalform ohne dominierende Ausreißer.
+  $n$ eine mit der Normalverteilung verträgliche Form ohne dominierende Ausreißer.
 - **Einheit:** dieselbe Einheit wie $x$.
 - **Warnung:** Das Intervall betrifft den Populationsmittelwert, nicht $95\,\%$ der
   Einzelwerte. Repräsentativität folgt nicht aus einer schmalen Intervallbreite.
@@ -514,8 +514,7 @@ $$
   Differenz; $s_d$ = Stichprobenstandardabweichung der Differenzen;
   $n$ = Zahl vollständiger Paare.
 - **Voraussetzungen:** echte Zuordnung vor/nach je Einheit; unabhängige Paare;
-  metrische Differenzen; bei kleinem $n$ annähernd normalverträgliche
-  Differenzen ohne dominierende Ausreißer.
+  metrische Differenzen; bei kleinem $n$ eine mit der Normalverteilung verträgliche Form dieser Differenzen, ohne dominierende Ausreißer.
 - **Einheit:** $d_i,\bar d,s_d,SE(\bar d)$ in der Einheit der Messgröße;
   $t$ und $df$ einheitenlos.
 - **Warnung:** Nicht die Standardabweichungen zweier Runden voneinander

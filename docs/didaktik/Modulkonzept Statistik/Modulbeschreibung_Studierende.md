@@ -19,6 +19,8 @@
 
 Vielleicht denkst du bei Statistik zuerst an komplizierte Formeln, unverständliche Symbole oder frühere Erfahrungen mit Mathematik. Damit bist du nicht allein. Für dieses Modul musst du weder ein »Mathe-Genie« sein noch bereits Statistik, Programmierung oder eine Analysesoftware beherrschen.
 
+Mitbringen solltest du das Rechnen, auf dem die Formeln dieses Moduls aufbauen. Ausgerechnete Beispiele stehen in den [mathematischen Voraussetzungen](./Mathematische_Voraussetzungen.md).
+
 Du wirst im Kurs rechnen – aber nicht ohne Zusammenhang und nicht als Selbstzweck. Wir beginnen mit einer verständlichen Situation, übersetzen sie in eine klare Frage, betrachten Daten und Grafiken und führen erst dann die passende Formel ein. Anschließend klären wir gemeinsam, was das Ergebnis bedeutet und was es gerade **nicht** aussagt.
 
 Fehler sind in diesem Modul kein Urteil über deine Fähigkeiten. Sie zeigen, an welcher Stelle ein Begriff, ein Rechenweg oder eine Interpretation noch nicht trägt. Genau deshalb arbeiten wir mit kurzen Rückmeldeschleifen, Erklärungen und neuen Beispielen. Statistik ist lernbar: Schritt für Schritt, mit Übung und mit nachvollziehbaren Entscheidungen.
@@ -81,8 +83,6 @@ Jede neue Methode folgt möglichst demselben Weg:
 
 Die Formelsammlung begleitet dich ab der ersten Woche und steht auch in der Klausur zur Verfügung. Kleine Datensätze, ausgeschriebene Zwischenschritte und feste Rundungsregeln helfen dir beim Einstieg. Mit JASP untersuchst du vorbereitete Daten, ohne programmieren zu müssen. Die Software ist frei verfügbar; Installationshinweise, Datendateien und Klickpfade werden im Kurs bereitgestellt.
 
-Vor der ersten Präsenzveranstaltung bearbeitest du eine kurze, unbenotete Mathematikdiagnostik. Sie prüft Grundlagen wie Brüche, Prozentrechnung, Wurzeln, einfache Gleichungen, Taschenrechnerbedienung sowie das Lesen von Tabellen und Diagrammen. Das Ergebnis ist keine Zulassungshürde und keine Note. Es führt lediglich zu passenden Brückenübungen mit Lösungen.
-
 ## ARSnova.eu – gemeinsam denken und unmittelbar Rückmeldung erhalten
 
 [ARSnova.eu](https://arsnova.eu) begleitet die Präsenzveranstaltungen als Live-Werkzeug. Du öffnest die Anwendung im Browser über einen QR-Code oder Session-Code; eine App-Installation ist nicht nötig.
@@ -99,7 +99,7 @@ Je nach Thema:
 - stellst oder bewertest du Fragen im Q&A-Bereich,
 - gibst du über ein Blitzlicht eine kurze Rückmeldung zum Lernstand oder zur Veranstaltung.
 
-Nach einer Antwort betrachten wir nicht nur, welche Option häufig gewählt wurde. Wir fragen vor allem: **Warum** erscheint eine Antwort plausibel? Welcher Denkfehler steckt hinter einem Distraktor? Welche zusätzliche Information würde unsere Entscheidung verändern? Nach einer kurzen Peer-Diskussion kannst du deine Einschätzung erneut prüfen.
+Nach einer Antwort betrachten wir nicht nur, welche Option häufig gewählt wurde. Wir fragen vor allem: **Warum** erscheint eine Antwort plausibel? Welcher Denkfehler steckt hinter einem Distraktor, also einer falschen, aber plausiblen Antwort? Welche zusätzliche Information würde unsere Entscheidung verändern? Nach einer kurzen Peer-Diskussion kannst du deine Einschätzung erneut prüfen.
 
 ### Warum ARSnova.eu wichtig ist
 
@@ -235,13 +235,12 @@ Keines der Werkzeuge ersetzt dein eigenes Urteil. Zusammen bilden sie jedoch ein
 
 ## Dein typischer Lernrhythmus
 
-1. **Vor dem Start:** Du nutzt die Mathematikdiagnostik zur Selbstkontrolle und bearbeitest bei Bedarf einen kurzen Brückenpfad.
-2. **In den 90-minütigen Lerneinheiten:** Du lernst an Fällen, beantwortest ARSnova-Fragen, nutzt motivierende Spielphasen, diskutierst Lösungswege und arbeitest mit JASP oder vorbereiteten Ausgaben.
-3. **In der letzten UE jeder Woche:** Du bearbeitest den 30-Fragen-MC-Test; anschließend diskutieren wir Ergebnisse, Lösungen und typische Fehlvorstellungen.
-4. **Bei ausgewählten Kennzahlen:** Du vergleichst Anzeige, Dokumentation oder Testnachweis mit einem kuratierten Ausschnitt aus dem ARSnova.eu-Repository.
-5. **Zwischen den Wochen:** Du wiederholst den MC-Test nach zwei bis drei Tagen; ältere Kernideen kehren nach zwei bis vier Wochen wieder.
-6. **Über das Semester:** Du entwickelst schrittweise einen kurzen Statistikbefund zu einer Fallstudie und erhältst formative Rückmeldung.
-7. **Vor der Klausur:** Du arbeitest mit derselben Formelsammlung, vergleichbaren Aufgabentypen und einer vollständigen Probeklausur.
+1. **In den 90-minütigen Lerneinheiten:** Du lernst an Fällen, beantwortest ARSnova-Fragen, nutzt motivierende Spielphasen, diskutierst Lösungswege und arbeitest mit JASP oder vorbereiteten Ausgaben.
+2. **In der letzten UE jeder Woche:** Du bearbeitest den 30-Fragen-MC-Test; anschließend diskutieren wir Ergebnisse, Lösungen und typische Fehlvorstellungen.
+3. **Bei ausgewählten Kennzahlen:** Du vergleichst Anzeige, Dokumentation oder Testnachweis mit einem kuratierten Ausschnitt aus dem ARSnova.eu-Repository.
+4. **Zwischen den Wochen:** Du wiederholst den MC-Test nach zwei bis drei Tagen; ältere Kernideen kehren nach zwei bis vier Wochen wieder.
+5. **Über das Semester:** Du entwickelst schrittweise einen kurzen Statistikbefund zu einer Fallstudie und erhältst formative Rückmeldung.
+6. **Vor der Klausur:** Du arbeitest mit derselben Formelsammlung, vergleichbaren Aufgabentypen und einer vollständigen Probeklausur.
 
 ## Prüfung und Vorbereitung
 
@@ -253,7 +252,7 @@ Geprüft wird, ob du Daten strukturieren, ein passendes Verfahren auswählen, na
 
 Für Livefragen, MC-Test, JASP-Ausgaben, Repository-Ausschnitte, Datentabellen, Formeln und die Probeklausur sind gleichwertige alternative Darstellungen vorgesehen. Fehlendes Endgerät, eine benötigte vergrößerte Darstellung oder ein anderer Zugangsweg dürfen keinen fachlichen Nachteil verursachen. Ein genehmigter individueller Nachteilsausgleich hat Vorrang.
 
-Wenn du bei einem Rechenschritt festhängst, nutze die Brückenpfade, die Formelsammlung, das Feedback im MC-Test, Partnerarbeit, Tutorium oder Sprechstunde. Früh nachzufragen ist kein Zeichen mangelnder Eignung, sondern Teil professionellen Arbeitens mit Daten.
+Wenn du bei einem Rechenschritt festhängst, nutze die Formelsammlung, das Feedback im MC-Test, Partnerarbeit, Tutorium oder Sprechstunde. Früh nachzufragen ist kein Zeichen mangelnder Eignung, sondern Teil professionellen Arbeitens mit Daten.
 
 ## Was du aus diesem Modul mitnehmen sollst
 
@@ -270,11 +269,10 @@ Wenn du diese Fragen stellen und begründet beantworten kannst, hast du den wich
 
 ## Deine Startunterlagen
 
-- [Mathematikdiagnostik und Brückenpfade](./P0-03_Mathematikdiagnostik_Brueckenpfade.md)
+- [Mathematische Voraussetzungen](./Mathematische_Voraussetzungen.md)
 - [Formelsammlung Statistik](./P0-03_Formelsammlung_Statistik.md)
 - [JASP-Analyseleitfaden](./P0-03_JASP_Analyseleitfaden.md)
 - [ARSnova.eu-Repository](https://github.com/kqc-real/arsnova.eu)
 - [Probeklausur](./P0-03_Probeklausur_90_Minuten.md) und [Musterlösung](./P0-03_Probeklausur_Musterloesung.md)
-- [Hinweise zu gleichwertigen Zugangswegen](./P0-03_Barrierefreiheit_Material_und_Probe.md)
 
 Die Nutzung von Kursdaten dient ausschließlich der Lehre und der internen Verbesserung des Moduls. Sie ist kein Forschungsprojekt und begründet keine Veröffentlichung oder individuelle Leistungsanalyse.

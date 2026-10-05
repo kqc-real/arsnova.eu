@@ -57,7 +57,7 @@ querschnittlichen Kompetenzen nur einmal gezählt:
 | Hypothesentests                                 | Aufgabe 4                         |      9 |      15 % |
 | Korrelation und Regression                      | Aufgabe 5                         |      9 |      15 % |
 | Train/Test und binäre ML-Evaluation             | 6a–6c sowie Diagnoseanteil von 6d |      9 |      15 % |
-| integrierte Datenkritik und Kommunikation       | Grenzanteil von 6d sowie 6e       |      3 |       5 % |
+| integrierte Datenkritik und Kommunikation       | Aussagegrenze in 6d sowie 6e      |      3 |       5 % |
 | **Gesamt**                                      |                                   | **60** | **100 %** |
 
 In 6d entfällt ein Punkt auf die fachliche Diagnose und ein Punkt auf deren

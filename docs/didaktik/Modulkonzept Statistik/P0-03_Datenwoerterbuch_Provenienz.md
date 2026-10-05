@@ -28,7 +28,7 @@ Die folgenden konstruierten `source_ref` stehen ausschließlich im Aufgabenstamm
 | `P0-03-PROBEKLAUSUR-A6-MATRIX-V1`     | binäre 100-Fälle-Testmatrix                            |
 | `P0-03-PROBEKLAUSUR-A6-TRAINTEST-V1`  | eigenständiger $98\,\%$-/$87\,\%$-Train/Test-Vergleich |
 
-Insbesondere sind A5 nicht die 16 Zeilen aus `P0-03-S5-LAST-LATENZ-V1`, A6-Matrix nicht die 80 Zeilen aus `P0-03-S6-KLASSIFIKATION-V1` und A6-Train/Test nicht das W09-Zahlenbeispiel $98\,\%/71\,\%$. Gleiche oder ähnliche Kennwerte begründen keine gemeinsame Datenquelle.
+Insbesondere ist A5 nicht mit den 16 Zeilen aus `P0-03-S5-LAST-LATENZ-V1` identisch. Die A6-Matrix ist nicht mit den 80 Zeilen aus `P0-03-S6-KLASSIFIKATION-V1` identisch, und A6-Train/Test ist nicht das W09-Zahlenbeispiel $98\,\%/71\,\%$. Gleiche oder ähnliche Kennwerte begründen keine gemeinsame Datenquelle.
 
 ## 2. Gemeinsame CSV- und Rundungskonventionen
 

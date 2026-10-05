@@ -266,7 +266,7 @@ Dabei werden die Verfahren benannt, zum Beispiel:
 
 ### 2.8 Management Summary – höchstens fünf Sätze
 
-Die fünf Satzfunktionen dürfen zusammengezogen werden, keine darf durch ein
+Die fünf Satzfunktionen dürfen zusammengezogen werden; keine darf durch ein
 Schlagwort ersetzt werden:
 
 1. Fragestellung und Datenbasis:
@@ -453,13 +453,13 @@ Begründung:**
 
 ### C. Deskriptive Analyse und Darstellung – 12 Punkte
 
-| prüfbare Evidenz                                                                       | Punkte |
-| -------------------------------------------------------------------------------------- | -----: |
-| Grafik oder Tabelle passt zu Skalenniveau und Fragestellung                            |      3 |
-| Titel, Achsen, Kategorien, Einheit, Quelle und textliche Kernaussage vollständig       |      2 |
-| Lage-, Streuungs- und Häufigkeitskennzahlen rechnerisch korrekt                        |      4 |
-| Kennzahlenwahl, Nenner sowie robuste gegenüber ausreißerempfindlichen Größen begründet |      3 |
-| **Maximum C**                                                                          | **12** |
+| prüfbare Evidenz                                                                                        | Punkte |
+| ------------------------------------------------------------------------------------------------------- | -----: |
+| Grafik oder Tabelle passt zu Skalenniveau und Fragestellung                                             |      3 |
+| Titel, Achsen, Kategorien, Einheit, Quelle und textliche Kernaussage vollständig                        |      2 |
+| Lage-, Streuungs- und Häufigkeitskennzahlen rechnerisch korrekt                                         |      4 |
+| Kennzahlenwahl, Nenner und die Abgrenzung robuster von ausreißerempfindlichen Kennzahlen sind begründet |      3 |
+| **Maximum C**                                                                                           | **12** |
 
 ### D. Verfahrenswahl und Voraussetzungen – 12 Punkte
 
