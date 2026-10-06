@@ -156,7 +156,7 @@
     "@eslint/js": "^10.0.1",
     "@types/qrcode": "^1.5.6",
     "ajv": "^8.18.0",
-    "angular-eslint": "^21.4.0",
+    "angular-eslint": "^22.5.0",
     "artillery": "^2.0.33",
     "concurrently": "^10.0.3",
     "cookie": "^2.0.1",
