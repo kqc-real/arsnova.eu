@@ -35,7 +35,7 @@
     "highlight.js": "^11.11.1",
     "ioredis": "^5.10.0",
     "ipaddr.js": "^2.4.0",
-    "katex": "^0.18.1",
+    "katex": "^0.18.10",
     "marked": "^18.0.7",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
