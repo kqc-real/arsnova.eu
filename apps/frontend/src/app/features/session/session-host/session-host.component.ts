@@ -762,6 +762,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly qaPresenterStageOrderedQuestions = signal<QaQuestionDTO[] | null>(null);
   /** Invalidiert in-flight `presentProjection`-Refreshes (Beenden / Kanalwechsel). */
   private qaPresenterStageRefreshGeneration = 0;
+  /** Hero/Presenter-Index nach Kriterienwechsel noch aus einem übernommenen Snapshot setzen. */
+  private qaHeroResetPending = false;
   /** Sortiermodus des zuletzt übernommenen presentProjection-Snapshots (null: unbekannt). */
   private qaPresenterStageSortMode: QaQuestionSortMode | null = null;
   /** Presenter-Sync, der auf eine Bühne im aktuellen Sortiermodus wartet. */
@@ -3902,6 +3904,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         if (navigable.length === 0 || stage.length === 0) {
           return;
         }
+        // Bühne im alten Sortiermodus: Ihr Index zeigt auf eine andere Frage. Der Effekt
+        // läuft erneut, sobald die Bühne im aktuellen Modus eintrifft.
+        if (this.isQaPresenterStageInOtherSortMode()) {
+          return;
+        }
         const stageQuestion = stage[Math.max(0, Math.min(stage.length - 1, pageIndex))];
         if (!stageQuestion || !navigable.some((question) => question.id === stageQuestion.id)) {
           return;
@@ -6446,18 +6453,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * Verwaltungsfilter (Pending/Archiv) lösen nur den Listen-Cursor und lassen den Beamer unberührt.
    */
   /**
-   * Liste für geänderte Kriterien laden, dann Hero und Presenter-Index setzen. Überholt ein
-   * paralleler Refresh (Live-Invalidierung, Polling) diesen Request, verwirft der
-   * Generationsschutz die Antwort; der Hero käme dann aus der Liste der alten Kriterien und
-   * der Presenter-Index zeigte dauerhaft auf die falsche Frage. Deshalb einmal neu laden.
+   * Liste für geänderte Kriterien laden, dann Hero und Presenter-Index setzen. Parallele
+   * Refreshes (Live-Invalidierung, Polling) können diesen Request beliebig oft überholen; der
+   * Generationsschutz verwirft ihn dann. Der Reset hängt deshalb nicht an diesem Request,
+   * sondern läuft nach dem ersten übernommenen Snapshot für die neuen Kriterien (siehe
+   * `refreshQaQuestions`). Sonst käme der Hero aus der Liste der alten Kriterien.
    */
   private async refreshQaQuestionsAndResetHero(
     options?: Parameters<SessionHostComponent['refreshQaQuestions']>[0],
   ): Promise<void> {
-    if (!(await this.refreshQaQuestions(options))) {
-      await this.refreshQaQuestions(options);
-    }
-    await this.resetQaNavigableHeroToFirstAndSyncPresenter();
+    this.qaHeroResetPending = true;
+    await this.refreshQaQuestions(options);
   }
 
   private async resetQaNavigableHeroToFirstAndSyncPresenter(): Promise<void> {
@@ -13045,6 +13051,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaListPageIndex.set(pageReached);
       }
       this.dismissQaSteeringCallout();
+      if (this.qaHeroResetPending) {
+        this.qaHeroResetPending = false;
+        await this.resetQaNavigableHeroToFirstAndSyncPresenter();
+      }
       return true;
     } catch (error) {
       if (options?.isCurrent && !options.isCurrent()) {

@@ -17492,7 +17492,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('setzt Hero und Presenter-Index nach Sortwechsel aus der neuen Liste, auch wenn ein paralleler Refresh überholt', async () => {
+  it('setzt Hero und Presenter-Index nach Sortwechsel aus der neuen Liste, auch wenn parallele Refreshes mehrfach überholen', async () => {
     const question = (id: string, text: string, upvoteCount: number, minute: number) => ({
       id,
       text,
@@ -17554,29 +17554,41 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    // Erster TOP-Request wird von einem parallelen Live-Refresh überholt (Generationsschutz
-    // verwirft ihn); der überholende Request antwortet später.
-    let topRequests = 0;
+    // Reihenfolge wie im CI-Mitschnitt: Der Sort-Request und sein erneuter Versuch werden
+    // jeweils von einem parallelen Live-Refresh überholt; diese antworten erst danach.
+    const pendingListResponses: Array<{ resolve: () => void }> = [];
     const refreshQaQuestions = (
       component as unknown as { refreshQaQuestions: (options?: object) => Promise<boolean> }
     ).refreshQaQuestions.bind(component);
-    qaListQueryMock.mockImplementation(async (input?: { sort?: string }) => {
-      if (input?.sort === 'TOP') {
-        topRequests += 1;
-        if (topRequests === 1) {
-          void refreshQaQuestions({ silent: true, preservePaging: true });
-          await flushMacroTask(10);
-        } else {
-          await flushMacroTask(30);
-        }
-        return qaHostSnapshot(sortedByTop);
-      }
-      return qaHostSnapshot(questions);
-    });
+    qaListQueryMock.mockImplementation(
+      (input?: { sort?: string }) =>
+        new Promise((resolve) => {
+          pendingListResponses.push({
+            resolve: () => resolve(qaHostSnapshot(input?.sort === 'TOP' ? sortedByTop : questions)),
+          });
+        }),
+    );
+    const answer = async (index: number): Promise<void> => {
+      pendingListResponses[index]!.resolve();
+      await flushMacroTask(5);
+    };
 
     setPresenterSurfaceMutateMock.mockClear();
-    await component.setQaSortMode('TOP');
-    await flushMacroTask(80);
+    const sortChange = component.setQaSortMode('TOP');
+    await flushMacroTask(5);
+    void refreshQaQuestions({ silent: true, preservePaging: true });
+    await flushMacroTask(5);
+    await answer(0); // eigener Request: überholt → verworfen, erneuter Versuch startet
+    void refreshQaQuestions({ silent: true, preservePaging: true });
+    await flushMacroTask(5);
+    await answer(2); // erneuter Versuch: ebenfalls überholt
+    await answer(1); // erster paralleler Refresh: veraltet
+    await answer(3); // zweiter paralleler Refresh: wird übernommen
+    for (let index = 4; index < pendingListResponses.length; index += 1) {
+      await answer(index);
+    }
+    await sortChange;
+    await flushMacroTask(3000);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -17669,6 +17681,90 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(presenterIndices.filter((index) => index !== 0)).toEqual([]);
     expect(component.qaPresenterHeroQuestionId()).toBe('active-high');
     expect(component.qaVisibleQuestions()[0]?.id).toBe('active-high');
+    fixture.destroy();
+  });
+
+  it('lässt einen älteren Hero-Reset den Presenter nach einem neueren Sortwechsel nicht überschreiben', async () => {
+    const question = (id: string, text: string, upvoteCount: number, minute: number) => ({
+      id,
+      text,
+      upvoteCount,
+      status: 'ACTIVE' as const,
+      createdAt: `2026-03-13T12:0${minute}:00.000Z`,
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    });
+    const questions = [
+      question('active-low', 'Alpha niedrig', 1, 0),
+      question('active-high', 'Beta hoch', 9, 1),
+      question('active-mid', 'Gamma mitte', 4, 2),
+    ];
+    const sortedByTop = [questions[1]!, questions[2]!, questions[0]!];
+    let serverStageMode = 'TIME';
+    setQaPresenterSortModeMutateMock.mockImplementation(async (input: { sortMode: string }) => {
+      await flushMacroTask(15);
+      serverStageMode = input.sortMode;
+      return { ok: true };
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { index?: number; count?: number } }) => {
+        await flushMacroTask(15);
+        return {
+          presenterSurface: 'default',
+          presenterPage: {
+            context: 'qa-questions',
+            index: input.page?.index ?? 0,
+            count: input.page?.count ?? 3,
+          },
+        };
+      },
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, questions as never);
+    qaPresentProjectionQueryMock.mockImplementation(async () => ({
+      questions: serverStageMode === 'TOP' ? sortedByTop : questions,
+      state: 'ACTIVE',
+      sortMode: serverStageMode,
+    }));
+    qaListQueryMock.mockImplementation(async (input?: { sort?: string }) => {
+      await flushMacroTask(input?.sort === 'TOP' ? 25 : 5);
+      return qaHostSnapshot(input?.sort === 'TOP' ? sortedByTop : questions);
+    });
+    component.qaSortMode.set('TIME');
+    component.qaSearch.set('a');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushMacroTask(60);
+
+    setPresenterSurfaceMutateMock.mockClear();
+    // Älterer Kriterienwechsel (Suche leeren) läuft noch, während der Sortwechsel startet.
+    component.clearQaSearch();
+    await flushMacroTask(8);
+    await component.setQaSortMode('TOP');
+    await flushMacroTask(3000);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-high');
+    expect(component.qaVisibleQuestions()[0]?.id).toBe('active-high');
+    expect(component.session()?.presenterPage?.index).toBe(0);
     fixture.destroy();
   });
 
