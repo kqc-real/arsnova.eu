@@ -17492,6 +17492,365 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('setzt Hero und Presenter-Index nach Sortwechsel aus der neuen Liste, auch wenn parallele Refreshes mehrfach überholen', async () => {
+    const question = (id: string, text: string, upvoteCount: number, minute: number) => ({
+      id,
+      text,
+      upvoteCount,
+      status: 'ACTIVE' as const,
+      createdAt: `2026-03-13T12:0${minute}:00.000Z`,
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    });
+    const questions = [
+      question('active-low', 'Alpha niedrig', 1, 0),
+      question('active-high', 'Beta hoch', 9, 1),
+      question('active-mid', 'Gamma mitte', 4, 2),
+    ];
+    const sortedByTop = [questions[1]!, questions[2]!, questions[0]!];
+    let serverStageMode = 'TIME';
+    setQaPresenterSortModeMutateMock.mockImplementation(async (input: { sortMode: string }) => {
+      serverStageMode = input.sortMode;
+      return { ok: true };
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: 'qa-questions',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 3,
+        },
+      }),
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, questions as never);
+    qaPresentProjectionQueryMock.mockImplementation(async () => ({
+      questions: serverStageMode === 'TOP' ? sortedByTop : questions,
+      state: 'ACTIVE',
+      sortMode: serverStageMode,
+    }));
+    qaListQueryMock.mockImplementation(async (input?: { sort?: string }) =>
+      qaHostSnapshot(input?.sort === 'TOP' ? sortedByTop : questions),
+    );
+    component.qaSortMode.set('TIME');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    // Reihenfolge wie im CI-Mitschnitt: Der Sort-Request und sein erneuter Versuch werden
+    // jeweils von einem parallelen Live-Refresh überholt; diese antworten erst danach.
+    const pendingListResponses: Array<{ resolve: () => void }> = [];
+    const refreshQaQuestions = (
+      component as unknown as { refreshQaQuestions: (options?: object) => Promise<boolean> }
+    ).refreshQaQuestions.bind(component);
+    qaListQueryMock.mockImplementation(
+      (input?: { sort?: string }) =>
+        new Promise((resolve) => {
+          pendingListResponses.push({
+            resolve: () => resolve(qaHostSnapshot(input?.sort === 'TOP' ? sortedByTop : questions)),
+          });
+        }),
+    );
+    const answer = async (index: number): Promise<void> => {
+      pendingListResponses[index]!.resolve();
+      await flushMacroTask(5);
+    };
+
+    setPresenterSurfaceMutateMock.mockClear();
+    const sortChange = component.setQaSortMode('TOP');
+    await flushMacroTask(5);
+    void refreshQaQuestions({ silent: true, preservePaging: true });
+    await flushMacroTask(5);
+    await answer(0); // eigener Request: überholt → verworfen, erneuter Versuch startet
+    void refreshQaQuestions({ silent: true, preservePaging: true });
+    await flushMacroTask(5);
+    await answer(2); // erneuter Versuch: ebenfalls überholt
+    await answer(1); // erster paralleler Refresh: veraltet
+    await answer(3); // zweiter paralleler Refresh: wird übernommen
+    for (let index = 4; index < pendingListResponses.length; index += 1) {
+      await answer(index);
+    }
+    await sortChange;
+    await flushMacroTask(3000);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-high');
+    expect(component.qaVisibleQuestions()[0]?.id).toBe('active-high');
+    const presenterIndices = setPresenterSurfaceMutateMock.mock.calls
+      .map(([input]) => (input as { page?: { index?: number } }).page?.index)
+      .filter((index): index is number => typeof index === 'number');
+    expect(presenterIndices.filter((index) => index !== 0)).toEqual([]);
+    expect(component.session()?.presenterPage?.index).toBe(0);
+    fixture.destroy();
+  });
+
+  it('synchronisiert den Presenter-Index erst gegen eine Bühne im neuen Sortiermodus', async () => {
+    const question = (id: string, text: string, upvoteCount: number, minute: number) => ({
+      id,
+      text,
+      upvoteCount,
+      status: 'ACTIVE' as const,
+      createdAt: `2026-03-13T12:0${minute}:00.000Z`,
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    });
+    const questions = [
+      question('active-low', 'Alpha niedrig', 1, 0),
+      question('active-high', 'Beta hoch', 9, 1),
+      question('active-mid', 'Gamma mitte', 4, 2),
+    ];
+    const sortedByTop = [questions[1]!, questions[2]!, questions[0]!];
+    // Bühne folgt dem zuletzt publizierten Modus; der Moduswechsel erreicht den Server verzögert.
+    let serverStageMode = 'TIME';
+    setQaPresenterSortModeMutateMock.mockImplementation(async (input: { sortMode: string }) => {
+      await flushMacroTask(20);
+      serverStageMode = input.sortMode;
+      return { ok: true };
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: 'qa-questions',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 3,
+        },
+      }),
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, questions as never);
+    qaPresentProjectionQueryMock.mockImplementation(async () => ({
+      questions: serverStageMode === 'TOP' ? sortedByTop : questions,
+      state: 'ACTIVE',
+      sortMode: serverStageMode,
+    }));
+    qaListQueryMock.mockImplementation(async (input?: { sort?: string }) =>
+      qaHostSnapshot(input?.sort === 'TOP' ? sortedByTop : questions),
+    );
+    component.qaSortMode.set('TIME');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushMacroTask(50);
+
+    setPresenterSurfaceMutateMock.mockClear();
+    await component.setQaSortMode('TOP');
+    await flushMacroTask(80);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // Ohne Abwarten der Bühne läge active-high in der TIME-Bühne auf Index 1; nach dem
+    // Bühnen-Refresh im TOP-Modus zeigte Index 1 dann active-mid.
+    const presenterIndices = setPresenterSurfaceMutateMock.mock.calls
+      .map(([input]) => (input as { page?: { index?: number } }).page?.index)
+      .filter((index): index is number => typeof index === 'number');
+    expect(presenterIndices.filter((index) => index !== 0)).toEqual([]);
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-high');
+    expect(component.qaVisibleQuestions()[0]?.id).toBe('active-high');
+    fixture.destroy();
+  });
+
+  it('lässt einen älteren Hero-Reset den Presenter nach einem neueren Sortwechsel nicht überschreiben', async () => {
+    const question = (id: string, text: string, upvoteCount: number, minute: number) => ({
+      id,
+      text,
+      upvoteCount,
+      status: 'ACTIVE' as const,
+      createdAt: `2026-03-13T12:0${minute}:00.000Z`,
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    });
+    const questions = [
+      question('active-low', 'Alpha niedrig', 1, 0),
+      question('active-high', 'Beta hoch', 9, 1),
+      question('active-mid', 'Gamma mitte', 4, 2),
+    ];
+    const sortedByTop = [questions[1]!, questions[2]!, questions[0]!];
+    let serverStageMode = 'TIME';
+    setQaPresenterSortModeMutateMock.mockImplementation(async (input: { sortMode: string }) => {
+      await flushMacroTask(15);
+      serverStageMode = input.sortMode;
+      return { ok: true };
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { index?: number; count?: number } }) => {
+        await flushMacroTask(15);
+        return {
+          presenterSurface: 'default',
+          presenterPage: {
+            context: 'qa-questions',
+            index: input.page?.index ?? 0,
+            count: input.page?.count ?? 3,
+          },
+        };
+      },
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, questions as never);
+    qaPresentProjectionQueryMock.mockImplementation(async () => ({
+      questions: serverStageMode === 'TOP' ? sortedByTop : questions,
+      state: 'ACTIVE',
+      sortMode: serverStageMode,
+    }));
+    qaListQueryMock.mockImplementation(async (input?: { sort?: string }) => {
+      await flushMacroTask(input?.sort === 'TOP' ? 25 : 5);
+      return qaHostSnapshot(input?.sort === 'TOP' ? sortedByTop : questions);
+    });
+    component.qaSortMode.set('TIME');
+    component.qaSearch.set('a');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushMacroTask(60);
+
+    setPresenterSurfaceMutateMock.mockClear();
+    // Älterer Kriterienwechsel (Suche leeren) läuft noch, während der Sortwechsel startet.
+    component.clearQaSearch();
+    await flushMacroTask(8);
+    await component.setQaSortMode('TOP');
+    await flushMacroTask(3000);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-high');
+    expect(component.qaVisibleQuestions()[0]?.id).toBe('active-high');
+    expect(component.session()?.presenterPage?.index).toBe(0);
+    fixture.destroy();
+  });
+
+  it('synchronisiert den Presenter-Index nach Suchwechsel erst gegen die gefilterte Bühne', async () => {
+    const question = (id: string, text: string, upvoteCount: number, minute: number) => ({
+      id,
+      text,
+      upvoteCount,
+      status: 'ACTIVE' as const,
+      createdAt: `2026-03-13T12:0${minute}:00.000Z`,
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+    });
+    const questions = [
+      question('active-a', 'Alpha niedrig', 1, 0),
+      question('active-b', 'Beta Frist', 9, 1),
+      question('active-c', 'Gamma Frist', 4, 2),
+    ];
+    const filtered = (search: string) =>
+      search ? questions.filter((entry) => entry.text.includes(search)) : questions;
+    // Sortiermodus bleibt gleich; nur die publizierte Suche ändert die Bühne – verzögert.
+    let serverStageSearch = '';
+    setQaPresenterSortModeMutateMock.mockImplementation(async (input: { search?: string }) => {
+      await flushMacroTask(20);
+      serverStageSearch = input.search ?? '';
+      return { ok: true };
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: 'qa-questions',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 3,
+        },
+      }),
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.set({
+      ...defaultSession,
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-questions', index: 0, count: 3 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    component.presenterWindowOpen.set(true);
+    component.activeChannel.set('qa');
+    seedQaPresenterStage(component, questions as never);
+    qaPresentProjectionQueryMock.mockImplementation(async () => ({
+      questions: filtered(serverStageSearch),
+      state: 'ACTIVE',
+      sortMode: 'TIME',
+    }));
+    qaListQueryMock.mockImplementation(async (input?: { search?: string }) =>
+      qaHostSnapshot(filtered(input?.search ?? '')),
+    );
+    component.qaSortMode.set('TIME');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushMacroTask(60);
+
+    setPresenterSurfaceMutateMock.mockClear();
+    // „Frist“ trifft Beta und Gamma: B steht in der alten Bühne auf Index 1, gefiltert auf Index 0.
+    component.onQaSearchInput('Frist');
+    await flushMacroTask(400);
+    await flushMacroTask(2500);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const presenterIndices = setPresenterSurfaceMutateMock.mock.calls
+      .map(([input]) => (input as { page?: { index?: number } }).page?.index)
+      .filter((index): index is number => typeof index === 'number');
+    expect(presenterIndices.filter((index) => index !== 0)).toEqual([]);
+    expect(component.qaPresenterHeroQuestionId()).toBe('active-b');
+    expect(component.qaVisibleQuestions()[0]?.id).toBe('active-b');
+    fixture.destroy();
+  });
+
   it('lässt Presenter bei Pending/Archiv unverändert und stellt den Hero nach Rückkehr wieder her', async () => {
     const mixedQuestions = [
       {
