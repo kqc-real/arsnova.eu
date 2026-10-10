@@ -41,26 +41,26 @@ Antwortdaten. Host-Fallpräferenzen gelangen nicht in Teilnehmer-Datenverträge.
 
 ## Zustandsmatrix
 
-| Situation                         | Hauptinhalt und Aktion                         | Schutz und ergänzende Anzeige                                                |
-| --------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| Startseite                        | Code und **Los geht’s**                        | Letzte Codes sind eine Rückkehrhilfe; Host-Einstieg folgt danach             |
-| Anonym, ohne manuelles Team       | Automatischer Beitritt                         | Keine zusätzliche Pflichtfrage                                               |
-| Name erforderlich                 | Vorgesehene Namenswahl, **Jetzt beitreten**    | Vergebene Namen gesperrt; Fehler und Retry im Formular                       |
-| Manuelles Team                    | Offene Teamkarten                              | Auswahl erforderlich; Fehler bewahrt Name und Team                           |
-| Automatische Teams                | Zuteilungshinweis                              | **Teams ansehen** zunächst eingeklappt                                       |
-| Quiz `LOBBY` / `PAUSED`           | Warten / Quiz pausiert                         | Persönliche Zeit nach bestehenden Regeln erreichbar                          |
-| Quiz `QUESTION_OPEN`              | Lesen und Bereitschaft                         | Keine Antwortoptionen oder Lösungen vor Freigabe                             |
-| Quiz `ACTIVE`                     | Antwort offen, **Antwort senden**              | Alle Antworttypen und Selbsteinschätzung; kein automatischer Submit          |
-| Antwort gesendet / Timeout        | Antwort gesendet / Frist abgelaufen            | Keine zweite reguläre Stimme; Freigabe des Ergebnisses bleibt serverseitig   |
-| `DISCUSSION` / `RESULTS`          | Warten / Ergebnis                              | Zweite Runde behält die bestehende Wertung                                   |
-| Q&A offen                         | Editor, **Frage senden**, Fragenliste          | Erlaubte Bewertungen unmittelbar an der Frage                                |
-| Q&A leer / `PENDING`              | Leerhinweis / eigene Frage wartet auf Freigabe | Vorabmoderation bleibt sichtbar erklärt                                      |
-| Q&A geschlossen / abgelaufen      | Grund und Status                               | Vorhandener Entwurf bleibt lesbar, nicht absendbar                           |
-| Suche / andere Sortierung         | **Fragen finden & sortieren**                  | Kriterien bleiben beim Einklappen erhalten; Suche wird im Werkzeug geleert   |
-| Blitzlicht                        | Abstimmen / Pausiert / Schon abgestimmt        | Tempo bleibt änderbar und abwählbar; Vergleichsrunde erlaubt erneute Stimme  |
-| Mehrere Formate                   | Aufgabenstatus in jedem Tab                    | Begonnene Aufgabe und Fokus werden nicht durch einen anderen Kanal verdrängt |
-| Quiz `FINISHED`, Nebenkanal offen | Quizabschluss, erreichbare Nebenkanäle         | Kein vorzeitiges globales End-Gate                                           |
-| Session endgültig beendet         | Bonuscode, **Zur Startseite**                  | Freiwillige Session- und Produktbewertung, keine neue Teilnahme              |
+| Situation                         | Hauptinhalt und Aktion                         | Schutz und ergänzende Anzeige                                                                     |
+| --------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Startseite                        | Code und **Los geht’s**                        | Letzte Codes sind eine Rückkehrhilfe; Host-Einstieg folgt danach                                  |
+| Anonym, ohne manuelles Team       | Automatischer Beitritt                         | Keine zusätzliche Pflichtfrage                                                                    |
+| Name erforderlich                 | Vorgesehene Namenswahl, **Jetzt beitreten**    | Vergebene Namen gesperrt; Fehler und Retry im Formular                                            |
+| Manuelles Team                    | Offene Teamkarten                              | Auswahl erforderlich; Fehler bewahrt Name und Team                                                |
+| Automatische Teams                | Zuteilungshinweis                              | **Teams ansehen** zunächst eingeklappt                                                            |
+| Quiz `LOBBY` / `PAUSED`           | Warten / Quiz pausiert                         | Persönliche Zeit nach bestehenden Regeln erreichbar                                               |
+| Quiz `QUESTION_OPEN`              | Lesen und Bereitschaft                         | Keine Antwortoptionen oder Lösungen vor Freigabe                                                  |
+| Quiz `ACTIVE`                     | Antwort offen, **Antwort senden**              | Alle Antworttypen und Selbsteinschätzung; kein automatischer Submit                               |
+| Antwort gesendet / Timeout        | Antwort gesendet / Frist abgelaufen            | Keine zweite reguläre Stimme; Freigabe des Ergebnisses bleibt serverseitig                        |
+| `DISCUSSION` / `RESULTS`          | Warten / Ergebnis                              | Zweite Runde behält die bestehende Wertung                                                        |
+| Q&A offen                         | Editor, **Frage senden**, Fragenliste          | Erlaubte Bewertungen unmittelbar an der Frage                                                     |
+| Q&A leer / `PENDING`              | Leerhinweis / eigene Frage wartet auf Freigabe | Vorabmoderation bleibt sichtbar erklärt                                                           |
+| Q&A geschlossen / abgelaufen      | Grund und Status                               | Vorhandener Entwurf bleibt lesbar, nicht absendbar                                                |
+| Suche / andere Sortierung         | **Fragen finden & sortieren**                  | Kriterien bleiben beim Einklappen erhalten; Suche wird im Werkzeug geleert                        |
+| Blitzlicht                        | Pausiert / Schon abgestimmt                    | Offene Abstimmung ohne Zusatzlabel; Tempo bleibt änderbar; Vergleichsrunde erlaubt erneute Stimme |
+| Mehrere Formate                   | Aufgabenstatus in jedem Tab                    | Begonnene Aufgabe und Fokus werden nicht durch einen anderen Kanal verdrängt                      |
+| Quiz `FINISHED`, Nebenkanal offen | Quizabschluss, erreichbare Nebenkanäle         | Kein vorzeitiges globales End-Gate                                                                |
+| Session endgültig beendet         | Bonuscode, **Zur Startseite**                  | Freiwillige Session- und Produktbewertung, keine neue Teilnahme                                   |
 
 ## Q&A-Werkzeuge und Fokus
 

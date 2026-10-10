@@ -111,8 +111,28 @@
 }
 
 .qa-word-cloud-dialog__freeze {
-  width: 2.7rem;
+  --mat-icon-button-state-layer-size: 2.75rem;
+  --mat-icon-button-icon-size: 1.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
+  min-width: var(--mat-icon-button-state-layer-size);
+  min-height: var(--mat-icon-button-state-layer-size);
   padding: 0;
+
+  .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    margin: 0;
+    font-size: var(--mat-icon-button-icon-size);
+    line-height: 0;
+  }
 }
 
 .qa-word-cloud-dialog__smooth-cluster {

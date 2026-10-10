@@ -156,7 +156,7 @@ describe('JoinComponent', () => {
     expect(comp.session()).toEqual(mockSession);
     expect(comp.error()).toBeNull();
     expect(comp.loading()).toBe(false);
-    expect(comp.anonymousNickname(6)).toBe('Teilnehmende 6');
+    expect(comp.anonymousNickname(6)).toBe('User 6');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Dein Name');
     expect(trpc.session.getParticipantNicknames.query).not.toHaveBeenCalled();
   });
@@ -540,7 +540,7 @@ describe('JoinComponent', () => {
 
     expect(trpc.session.join.mutate).toHaveBeenCalledWith({
       code: 'ABC123',
-      nickname: 'Teilnehmende 6',
+      nickname: 'User 6',
       anonymousClientId: ANONYMOUS_CLIENT_ID,
       rejoinToken: undefined,
       joinIdempotencyKey: expect.any(String),

@@ -55,15 +55,15 @@
 <mat-dialog-content class="moderation-compass-dialog__content">
   @if (hasCards()) {
     @if (nextStepText(primaryNextStepReason()); as suggestion) {
-      <p
+      <div
         class="moderation-compass-dialog__now"
         role="status"
         [attr.data-tone]="leadCard()?.tone ?? 'neutral'"
         data-testid="moderation-next-step"
       >
-        <strong class="moderation-compass-dialog__now-label">{{ nextStepHeading() }}</strong>
-        {{ suggestion }}
-      </p>
+        <p class="moderation-compass-dialog__now-label">{{ nextStepHeading() }}</p>
+        <p class="moderation-compass-dialog__now-action">{{ suggestion }}</p>
+      </div>
     }
     <p
       class="moderation-compass-dialog__signals-kicker"

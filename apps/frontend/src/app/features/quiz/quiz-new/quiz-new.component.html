@@ -300,15 +300,29 @@
 
               <fieldset class="quiz-form__fieldset">
                 <legend class="quiz-form__legend" i18n>Teilnahme &amp; Namen</legend>
-                <mat-checkbox formControlName="allowCustomNicknames" i18n>
-                  Eigene Nicks erlauben
-                </mat-checkbox>
-                <mat-checkbox
-                  i18n="@@quizSettings.pseudonymParticipation"
-                  [checked]="!form.controls.anonymousMode.value"
-                  (change)="form.controls.anonymousMode.setValue(!$event.checked)"
-                  >Mit einem Pseudonym teilnehmen…</mat-checkbox
+                <mat-radio-group
+                  class="quiz-form__name-mode"
+                  i18n-aria-label="@@sessionParticipation.modeLegend"
+                  aria-label="Namensdarstellung"
+                  [value]="participantNameMode()"
+                  (change)="setParticipantNameMode($event.value)"
                 >
+                  <mat-radio-button
+                    value="nicknameTheme"
+                    i18n="@@sessionParticipation.pseudonymLabel"
+                    >Vorgegebene Pseudonyme</mat-radio-button
+                  >
+                  <mat-radio-button
+                    value="allowCustomNicknames"
+                    i18n="@@sessionParticipation.customLabel"
+                    >Eigener Nickname</mat-radio-button
+                  >
+                  <mat-radio-button
+                    value="anonymousMode"
+                    i18n="@@sessionParticipation.anonymousLabel"
+                    >Anonymmodus</mat-radio-button
+                  >
+                </mat-radio-group>
                 @if (isNicknameThemeSectionVisible()) {
                   <div class="quiz-form__nickname-theme quiz-form__nickname-theme--nested">
                     <mat-form-field appearance="outline">

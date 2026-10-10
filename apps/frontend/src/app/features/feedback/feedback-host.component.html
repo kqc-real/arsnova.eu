@@ -11,7 +11,7 @@
     }
   </h2>
   <p class="feedback-host__action-status" role="status" aria-live="polite">
-    @if (roundActionPending()) {
+    @if (roundActionStatusVisible()) {
       <span i18n="@@feedbackHost.roundActionPending">Blitzlicht wird aktualisiert …</span>
     }
   </p>
@@ -98,96 +98,13 @@
   </mat-card>
 } @else if (result(); as data) {
   <ng-template #feedbackHostJoinActions>
-    <div class="feedback-host__actions">
-      @if (isDiscussion() && embeddedInSession()) {
-        <button
-          mat-flat-button
-          color="primary"
-          type="button"
-          class="feedback-host__next-round-cta"
-          data-feedback-round-transition
-          data-testid="feedback-second-round"
-          [attr.aria-disabled]="roundActionBusy()"
-          (click)="startSecondRound()"
-          i18n-aria-label="@@feedback.secondRoundStartAria"
-          aria-label="Zweite Abstimmung starten"
-        >
-          <mat-icon>replay</mat-icon>
-          <span i18n>Zweite Abstimmung</span>
-        </button>
-      } @else if (!isRound2()) {
-        @if (data.totalVotes > 0 && embeddedInSession() && data.type !== 'TEMPO') {
-          <button
-            mat-button
-            type="button"
-            (click)="startDiscussion()"
-            data-feedback-round-transition
-            data-testid="feedback-compare-round"
-            [attr.aria-disabled]="roundActionBusy()"
-            i18n-aria-label="@@feedback.compareRoundStartAria"
-            aria-label="Vergleichsrunde starten"
-          >
-            <mat-icon>groups</mat-icon>
-            <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
-          </button>
-        }
-      }
-      <button
-        mat-button
-        type="button"
-        (click)="copyLink()"
-        i18n-aria-label="@@feedback.copyJoinLinkAria"
-        aria-label="Beitrittslink kopieren"
-      >
-        <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
-        @if (copied()) {
-          <span i18n="@@feedback.copyJoinLinkCopied">Kopiert</span>
-        } @else {
-          <span i18n="@@feedback.copyJoinLinkButton">Link kopieren</span>
-        }
-      </button>
-      <button
-        mat-button
-        type="button"
-        (click)="resetRound()"
-        [disabled]="resetting() || (embeddedInSession() && roundActionBusy())"
-        [disabledInteractive]="embeddedInSession()"
-        data-testid="feedback-reset-round"
-        i18n-aria-label="@@feedback.resetResultsAria"
-        aria-label="Ergebnisse zurücksetzen"
-      >
-        <mat-icon>restart_alt</mat-icon>
-        <span i18n>Zurücksetzen</span>
-      </button>
-    </div>
-    @if (data.type === 'TEMPO') {
-      <div
-        class="feedback-host__tempo-view-toggle"
-        role="group"
-        i18n-aria-label="@@feedback.tempoViewToggleAria"
-        aria-label="Tempo-Ansicht wählen"
-      >
-        <button
-          type="button"
-          class="feedback-host__tempo-view-button"
-          [class.feedback-host__tempo-view-button--active]="tempoViewMode() === 'details'"
-          [attr.aria-pressed]="tempoViewMode() === 'details'"
-          (click)="setTempoViewMode('details')"
-        >
-          <mat-icon aria-hidden="true">bar_chart</mat-icon>
-          <span i18n="@@feedback.tempoViewDetails">Details</span>
-        </button>
-        <button
-          type="button"
-          class="feedback-host__tempo-view-button"
-          [class.feedback-host__tempo-view-button--active]="tempoViewMode() === 'trend'"
-          [attr.aria-pressed]="tempoViewMode() === 'trend'"
-          (click)="setTempoViewMode('trend')"
-        >
-          <mat-icon aria-hidden="true">speed</mat-icon>
-          <span i18n="@@feedback.tempoViewTrend">Tendenz</span>
-        </button>
+    @if (!embeddedInSession()) {
+      <div class="feedback-host__actions">
+        <ng-container *ngTemplateOutlet="feedbackResetAction" />
       </div>
+    }
+    @if (!embeddedInSession()) {
+      <ng-container *ngTemplateOutlet="tempoViewToggle" />
     }
     <div class="feedback-host__template-switch">
       <button
@@ -280,6 +197,88 @@
         }
       </p>
     </div>
+  </ng-template>
+
+  <ng-template #feedbackRoundTransition>
+    @if (isDiscussion()) {
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        class="feedback-host__next-round-cta"
+        data-feedback-round-transition
+        data-testid="feedback-second-round"
+        [attr.aria-disabled]="roundActionBusy()"
+        (click)="startSecondRound()"
+        i18n-aria-label="@@feedback.secondRoundStartAria"
+        aria-label="Zweite Abstimmung starten"
+      >
+        <mat-icon>replay</mat-icon>
+        <span i18n>Zweite Abstimmung</span>
+      </button>
+    } @else if (!isRound2() && data.totalVotes > 0 && data.type !== 'TEMPO') {
+      <button
+        mat-button
+        type="button"
+        (click)="startDiscussion()"
+        data-feedback-round-transition
+        data-testid="feedback-compare-round"
+        [attr.aria-disabled]="roundActionBusy()"
+        i18n-aria-label="@@feedback.compareRoundStartAria"
+        aria-label="Vergleichsrunde starten"
+      >
+        <mat-icon>forum</mat-icon>
+        <span i18n="@@feedback.compareRoundLabel">Vergleichsrunde</span>
+      </button>
+    }
+  </ng-template>
+
+  <ng-template #feedbackResetAction>
+    <button
+      mat-button
+      type="button"
+      (click)="resetRound()"
+      [disabled]="resetting() || (embeddedInSession() && roundActionBusy())"
+      [disabledInteractive]="embeddedInSession()"
+      data-testid="feedback-reset-round"
+      i18n-aria-label="@@feedback.resetResultsAria"
+      aria-label="Ergebnisse zurücksetzen"
+    >
+      <mat-icon>restart_alt</mat-icon>
+      <span i18n>Zurücksetzen</span>
+    </button>
+  </ng-template>
+
+  <ng-template #tempoViewToggle>
+    @if (data.type === 'TEMPO') {
+      <div
+        class="feedback-host__tempo-view-toggle"
+        role="group"
+        i18n-aria-label="@@feedback.tempoViewToggleAria"
+        aria-label="Tempo-Ansicht wählen"
+      >
+        <button
+          type="button"
+          class="feedback-host__tempo-view-button"
+          [class.feedback-host__tempo-view-button--active]="tempoViewMode() === 'details'"
+          [attr.aria-pressed]="tempoViewMode() === 'details'"
+          (click)="setTempoViewMode('details')"
+        >
+          <mat-icon aria-hidden="true">bar_chart</mat-icon>
+          <span i18n="@@feedback.tempoViewDetails">Details</span>
+        </button>
+        <button
+          type="button"
+          class="feedback-host__tempo-view-button"
+          [class.feedback-host__tempo-view-button--active]="tempoViewMode() === 'trend'"
+          [attr.aria-pressed]="tempoViewMode() === 'trend'"
+          (click)="setTempoViewMode('trend')"
+        >
+          <mat-icon aria-hidden="true">speed</mat-icon>
+          <span i18n="@@feedback.tempoViewTrend">Tendenz</span>
+        </button>
+      </div>
+    }
   </ng-template>
 
   <div
@@ -403,75 +402,81 @@
           @if (!embeddedInSession()) {
             <h2 class="feedback-host__title">{{ feedbackTitle(data.type) }}</h2>
           }
-          @if (data.type === 'TEMPO' && tempoViewMode() === 'details') {
-            <button
-              mat-icon-button
-              type="button"
-              class="feedback-host__tempo-help-button"
-              (click)="openTempoHelp($event)"
-              [attr.aria-label]="tempoHelpTriggerAria"
-            >
-              <mat-icon aria-hidden="true">help_outline</mat-icon>
-            </button>
-          }
         </div>
 
-        @if (data.type === 'TEMPO' && tempoViewMode() === 'trend') {
-          <div
-            class="feedback-host__tempo-trend"
-            [class.feedback-host__tempo-trend--standalone]="!embeddedInSession()"
-            [class.feedback-host__tempo-trend--good]="
-              tempoTrendTone(data.tempoTrend?.status) === 'good'
-            "
-            [class.feedback-host__tempo-trend--caution]="
-              tempoTrendTone(data.tempoTrend?.status) === 'caution'
-            "
-            [class.feedback-host__tempo-trend--alert]="
-              tempoTrendTone(data.tempoTrend?.status) === 'alert'
-            "
-            [class.feedback-host__tempo-trend--mixed]="
-              tempoTrendTone(data.tempoTrend?.status) === 'mixed'
-            "
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <span
-              class="feedback-host__tempo-trend-icon"
-              [class.feedback-host__tempo-trend-icon--compound]="
-                tempoTrendEmojiCompound(data.tempoTrend?.status, data.tempoTrend?.marginMet)
-              "
-              aria-hidden="true"
+        @if (data.type === 'TEMPO') {
+          <div class="feedback-host__tempo-stage">
+            <div
+              class="feedback-host__tempo-pane"
+              [class.feedback-host__tempo-pane--inactive]="tempoViewMode() !== 'trend'"
+              [attr.inert]="tempoViewMode() === 'trend' ? null : ''"
+              [attr.aria-hidden]="tempoViewMode() === 'trend' ? null : 'true'"
             >
-              {{ tempoTrendEmoji(data.tempoTrend?.status, data.tempoTrend?.marginMet) }}
-            </span>
-            <div class="feedback-host__tempo-trend-heading">
-              <p class="feedback-host__tempo-trend-eyebrow" i18n="@@feedback.tempoTrendEyebrow">
-                Tendenz
-              </p>
-              <button
-                mat-icon-button
-                type="button"
-                class="feedback-host__tempo-help-button feedback-host__tempo-help-button--trend"
-                (click)="openTempoHelp($event)"
-                [attr.aria-label]="tempoHelpTriggerAria"
+              <div
+                class="feedback-host__tempo-trend"
+                [class.feedback-host__tempo-trend--standalone]="!embeddedInSession()"
+                [class.feedback-host__tempo-trend--good]="
+                  tempoTrendTone(data.tempoTrend?.status) === 'good'
+                "
+                [class.feedback-host__tempo-trend--caution]="
+                  tempoTrendTone(data.tempoTrend?.status) === 'caution'
+                "
+                [class.feedback-host__tempo-trend--alert]="
+                  tempoTrendTone(data.tempoTrend?.status) === 'alert'
+                "
+                [class.feedback-host__tempo-trend--mixed]="
+                  tempoTrendTone(data.tempoTrend?.status) === 'mixed'
+                "
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
               >
-                <mat-icon aria-hidden="true">help_outline</mat-icon>
-              </button>
+                <span
+                  class="feedback-host__tempo-trend-icon"
+                  [class.feedback-host__tempo-trend-icon--compound]="
+                    tempoTrendEmojiCompound(data.tempoTrend?.status, data.tempoTrend?.marginMet)
+                  "
+                  aria-hidden="true"
+                >
+                  {{ tempoTrendEmoji(data.tempoTrend?.status, data.tempoTrend?.marginMet) }}
+                </span>
+                <div class="feedback-host__tempo-trend-heading">
+                  <p class="feedback-host__tempo-trend-eyebrow" i18n="@@feedback.tempoTrendEyebrow">
+                    Tendenz
+                  </p>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="feedback-host__tempo-help-button feedback-host__tempo-help-button--trend"
+                    (click)="openTempoHelp($event)"
+                    [attr.aria-label]="tempoHelpTriggerAria"
+                  >
+                    <mat-icon aria-hidden="true">help_outline</mat-icon>
+                  </button>
+                </div>
+                <p class="feedback-host__tempo-trend-label">
+                  {{ tempoTrendLabel(data.tempoTrend?.status) }}
+                </p>
+                <dl class="feedback-host__tempo-trend-metrics">
+                  <div>
+                    <dt i18n="@@feedback.tempoMetricActive">Online</dt>
+                    <dd>{{ formatCount(data.tempoTrend?.activeParticipants) }}</dd>
+                  </div>
+                  <div>
+                    <dt i18n="@@feedback.tempoMetricResponses">Im Barometer</dt>
+                    <dd>{{ formatCount(data.tempoTrend?.tempoVotes ?? data.totalVotes) }}</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
-            <p class="feedback-host__tempo-trend-label">
-              {{ tempoTrendLabel(data.tempoTrend?.status) }}
-            </p>
-            <dl class="feedback-host__tempo-trend-metrics">
-              <div>
-                <dt i18n="@@feedback.tempoMetricActive">Online</dt>
-                <dd>{{ formatCount(data.tempoTrend?.activeParticipants) }}</dd>
-              </div>
-              <div>
-                <dt i18n="@@feedback.tempoMetricResponses">Im Barometer</dt>
-                <dd>{{ formatCount(data.tempoTrend?.tempoVotes ?? data.totalVotes) }}</dd>
-              </div>
-            </dl>
+            <div
+              class="feedback-host__tempo-pane"
+              [class.feedback-host__tempo-pane--inactive]="tempoViewMode() !== 'details'"
+              [attr.inert]="tempoViewMode() === 'details' ? null : ''"
+              [attr.aria-hidden]="tempoViewMode() === 'details' ? null : 'true'"
+            >
+              <ng-container *ngTemplateOutlet="feedbackDistribution" />
+            </div>
           </div>
         } @else if (isDiscussion()) {
           <div class="feedback-host__discussion" role="status" aria-live="polite">
@@ -733,6 +738,22 @@
             }
           </div>
         } @else {
+          <ng-container *ngTemplateOutlet="feedbackDistribution" />
+        }
+        <ng-template #feedbackDistribution>
+          @if (data.type === 'TEMPO') {
+            <div class="feedback-host__tempo-details-help">
+              <button
+                mat-icon-button
+                type="button"
+                class="feedback-host__tempo-help-button"
+                (click)="openTempoHelp($event)"
+                [attr.aria-label]="tempoHelpTriggerAria"
+              >
+                <mat-icon aria-hidden="true">help_outline</mat-icon>
+              </button>
+            </div>
+          }
           @if (currentStarAverage(); as average) {
             <div class="feedback-host__average-strip" role="status" aria-live="polite">
               <span class="feedback-host__average-label" i18n="@@feedback.starAverageCurrent"
@@ -863,10 +884,13 @@
               </div>
             }
           </div>
-        }
+        </ng-template>
       </section>
       @if (embeddedInSession()) {
         <div class="feedback-host__round-primary">
+          <ng-container *ngTemplateOutlet="tempoViewToggle" />
+          <ng-container *ngTemplateOutlet="feedbackRoundTransition" />
+          <ng-container *ngTemplateOutlet="feedbackResetAction" />
           <ng-content select="[feedbackRoundControl]" />
         </div>
         <section class="feedback-host__round-settings">
@@ -884,7 +908,7 @@
             <mat-icon aria-hidden="true">{{
               roundSettingsOpen() ? 'expand_less' : 'expand_more'
             }}</mat-icon>
-            <span i18n="@@feedbackHost.roundSettings">Rundeneinstellungen</span>
+            <span i18n="@@feedbackHost.roundSettings">Weitere Formate</span>
           </button>
           <div
             #roundSettingsContent

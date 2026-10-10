@@ -45,7 +45,10 @@ import {
   persistInitialHostRecovery,
 } from '../../core/host-recovery-access';
 import { ConfirmLeaveDialogComponent } from '../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
-import { createDefaultLiveSessionOnboardingProfile } from '../../core/home-preset-storage';
+import {
+  createDefaultLiveSessionOnboardingProfile,
+  readHomePresetOnboardingProfile,
+} from '../../core/home-preset-storage';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { HostScenarioService, type HostScenario } from '../../core/host-scenario.service';
 import { PresetSnackbarFocusService } from '../../core/preset-snackbar-focus.service';
@@ -1147,9 +1150,16 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     quickFeedbackAfterQa = false,
   ): Promise<void> {
     try {
-      const onboardingProfile = createDefaultLiveSessionOnboardingProfile(
-        this.themePreset.preset(),
+      const bucket = this.themePreset.preset();
+      const savedNameProfile = readHomePresetOnboardingProfile(
+        bucket === 'serious' ? 'SERIOUS' : 'PLAYFUL',
       );
+      const onboardingProfile = {
+        ...createDefaultLiveSessionOnboardingProfile(bucket),
+        nicknameTheme: savedNameProfile.nicknameTheme,
+        allowCustomNicknames: savedNameProfile.allowCustomNicknames,
+        anonymousMode: savedNameProfile.anonymousMode,
+      };
       if (tab === 'qa') {
         const dialogRef = this.dialog.open<
           SessionParticipationProfileDialogComponent,

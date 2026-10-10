@@ -123,7 +123,7 @@ Regeln:
 
 #### Eingebettet im Session-Host (Tab Blitzlicht)
 
-- **Sessiongebundene Arbeitsfläche:** Titel, **Ergebnisbereich** (Tempo-Trend bzw. Ergebnis und Beteiligung), **Stopp/Fortsetzen** und **Rundeneinstellungen** folgen derselben DOM- und visuellen Reihenfolge. Formatwechsel, Vergleichsrunde, Zurücksetzen, Tempo-Details und Live-Ergebnis-Anzeige liegen im beschrifteten Werkzeugbereich. Ohne Runde stehen empfohlenes Tempo und kompakte Formatwahl im Vordergrund. QR/Beitritt bleiben in der gemeinsamen Session-Shell.
+- **Sessiongebundene Arbeitsfläche:** Titel, **Ergebnisbereich** (Tempo-Trend bzw. Ergebnis und Beteiligung), **Vergleichsrunde** beziehungsweise **Zweite Abstimmung**, **Zurücksetzen**, **Stopp/Fortsetzen** und **Weitere Formate** folgen derselben DOM- und visuellen Reihenfolge. Formatwechsel und Live-Ergebnis-Anzeige liegen unter **Weitere Formate**. Tempo-Ansicht, Vergleichsrunde und Zurücksetzen bleiben direkt sichtbar. Der Beitrittslink liegt nur in der QR-Karte. Ohne Runde stehen empfohlenes Tempo und kompakte Formatwahl im Vordergrund. QR/Beitritt bleiben in der gemeinsamen Session-Shell.
 - **Referenz:** `feedback-host.component.scss` (Suche nach `feedback-host--embedded`).
 
 ### Leere Zustaende und Listen-Einstieg
@@ -287,12 +287,13 @@ Die vollständige [Host-Führung und Abnahmematrix](HOST-FUEHRUNG.md) verbindet 
 - Der Fragen-Navigator erscheint bei mindestens einer in der Host-Liste sichtbaren Frage und folgt exakt Sortierung sowie Suche/Autor/Pin-/Pending-/Archiv-Filter aus »Auswertung & Werkzeuge« (Fragen durchsuchen, Teilnahmen durchsuchen; nicht nur ACTIVE/PINNED).
 - Der Werkzeugbereich beginnt mit der Wortwolke (falls Fragen vorhanden), danach Suche, alle vier Sortierungen, Pinned-/Pending-/Archiv-Filter, Teilnahmeverzeichnis, CSV und »Pro Seite«. Einklappen verwirft keine Auswahl. Aktive Filter sowie Quellenmarkierung sind auch geschlossen sichtbar und mit einem Klick lösbar. Kompass und Rückkehrhinweis behalten ihren stabilen Platz außerhalb der Werkzeuge.
 - Die Disclosure-Auslöser sind beschriftete Material-Buttons mit `aria-expanded` und `aria-controls`; ausgeblendete Inhalte sind weder sichtbar noch in der Tastaturfolge. Vor Einklappen oder Entfernen eines fokussierten Filters wird ein vorhandener sichtbarer Auslöser fokussiert. Spätere Listenantworten setzen keinen zweiten Fokus. Beim Q&A-Wechsel zwischen Desktop-Sortierung und mobilem Menü übernimmt derselbe stabile Werkzeugauslöser den Fokus. Auf kleinen Displays liegen Sortierung, »Nur hervorgehobene«, »Nur im Archiv« und CSV-Export im Mehr-Menü.
-- Im sessiongebundenen Blitzlicht bleibt die bisherige Stopp-/Fortsetzen-Aktion einschließlich Musik- und Fehlerpfad erhalten und wird beim Ergebnis angezeigt. **Rundeneinstellungen** enthalten die bisherigen fachlichen Aktionen mit ihren Format- und Runden-Sperren. Der Legacy-Standalone-Einstieg wird nicht erweitert. Q&A-Setup, Profil-Sperre, Fristen und Verlängerungsbestätigung bleiben unverändert.
+- Im sessiongebundenen Blitzlicht bleibt die bisherige Stopp-/Fortsetzen-Aktion einschließlich Musik- und Fehlerpfad erhalten und wird beim Ergebnis angezeigt. **Vergleichsrunde**, **Zweite Abstimmung** und **Zurücksetzen** stehen daneben im sichtbaren Bereich. **Weitere Formate** enthält Formatwechsel und Live-Ergebnisse mit den bisherigen Format- und Runden-Sperren. Der Beitrittslink bleibt in der QR-Karte. Der Legacy-Standalone-Einstieg wird nicht erweitert. Q&A-Setup, Profil-Sperre, Fristen und Verlängerungsbestätigung bleiben unverändert.
 
 ### Teilnehmer-Aufgabenstatus (#472)
 
 - Die Kanalwahl zeigt Format und sichtbaren Aufgabenstatus übereinander. Der
   Material-Auswahlhaken entfällt; `aria-checked` und Auswahlfläche bleiben erhalten.
+  Die offene Blitzlicht-Abstimmung trägt keinen Zusatzstatus **Abstimmen**.
 - Der eng begrenzte globale Selektor `.vote-page .session-channel-tabs
 .mat-button-toggle-label-content` in `styles.scss` erlaubt Zeilenumbruch und
   reduziert den Innenabstand für drei lesbare Tabs auf 320 px. Material bietet

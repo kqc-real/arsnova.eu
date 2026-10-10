@@ -1935,6 +1935,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly phaseTracks = signal<Record<MusicPhase, HostMusicTrack>>(loadPhaseTracksFromStorage());
   readonly mutedMusicPhases = signal<ReadonlySet<MusicPhase>>(loadMutedMusicPhasesFromStorage());
   readonly musicMuted = signal(false);
+  /**
+   * Blitzlicht startet ohne Hintergrundmusik. Ein Einschalten gilt nur für diese
+   * Host-Sitzung und ändert die Quiz-Vorgabe nicht.
+   */
+  readonly quickFeedbackMusicEnabled = signal(false);
+  readonly musicSilenced = computed(
+    () =>
+      this.musicMuted() ||
+      (this.activeChannel() === 'quickFeedback' && !this.quickFeedbackMusicEnabled()),
+  );
   readonly currentMusicPhase = computed<MusicPhase | null>(() => {
     const status = this.effectiveStatus();
     if (status === 'LOBBY') return 'lobby';
@@ -1958,7 +1968,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       (this.blockingTimerAccommodationCount() > 0 || this.pendingTimerAccommodationCount() > 0),
   );
   readonly activeMusicTrack = computed<HostMusicTrack | null>(() => {
-    if (this.musicMuted()) return null;
+    if (this.musicSilenced()) return null;
     if (this.activeChannel() === 'qa') return null;
     if (this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult()?.locked) {
       return null;
@@ -2746,6 +2756,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return terms.map((term) => ({ ...term, questionId: question.questionId }));
   }
   readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
+  /** Im reinen Blitzlicht wiederholt der Kompass nur die sichtbare Rückmeldung. */
+  readonly showModerationCompass = computed(
+    () => this.activeChannel() !== 'quickFeedback' || this.channels().quiz || this.channels().qa,
+  );
+  readonly showHostModerationStack = computed(
+    () => this.moderationCompassReturn() !== null || this.showModerationCompass(),
+  );
   readonly moderationCompassReturn = signal<{ readonly channel: SessionChannelTab } | null>(null);
   readonly moderationCompassFocusedTerm = signal<string | null>(null);
   readonly moderationCompassButtonAria = computed(() => {
@@ -7643,12 +7660,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   toggleMuteMusic(): void {
     this.sound.unlock();
     this.sound.stopPreview();
-    this.musicMuted.set(!this.musicMuted());
+    if (this.activeChannel() === 'quickFeedback') {
+      if (this.musicSilenced()) {
+        this.musicMuted.set(false);
+        this.quickFeedbackMusicEnabled.set(true);
+      } else {
+        this.quickFeedbackMusicEnabled.set(false);
+      }
+    } else {
+      this.musicMuted.set(!this.musicMuted());
+    }
     this.syncMusic();
   }
 
   musicToggleLabel(): string {
-    return this.musicMuted()
+    return this.musicSilenced()
       ? $localize`:@@sessionHost.musicToggleOn:Ton an`
       : $localize`:@@sessionHost.musicToggleOff:Ton aus`;
   }
@@ -7662,6 +7688,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.phaseTracks.set(nextTracks);
     this.mutedMusicPhases.set(nextMuted);
     persistPhaseMusicSettings(nextTracks, nextMuted);
+    if (this.activeChannel() === 'quickFeedback') {
+      this.musicMuted.set(false);
+      this.quickFeedbackMusicEnabled.set(true);
+    }
     this.syncMusic();
   }
 
@@ -7680,6 +7710,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.mutedMusicPhases.set(nextMuted);
     persistPhaseMusicSettings(this.phaseTracks(), nextMuted);
+    if (this.activeChannel() === 'quickFeedback' && !nextMuted.has(phase)) {
+      this.musicMuted.set(false);
+      this.quickFeedbackMusicEnabled.set(true);
+    }
     this.syncMusic();
   }
 

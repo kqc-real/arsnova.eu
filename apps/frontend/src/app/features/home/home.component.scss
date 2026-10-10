@@ -411,12 +411,6 @@
   }
 }
 
-.home-scenario-feedback {
-  width: 100%;
-  margin-bottom: 1rem;
-  white-space: normal;
-}
-
 .home-host-stack {
   --home-host-action-min-height: 4.75rem;
   display: grid;
@@ -719,13 +713,6 @@
   box-sizing: border-box;
 }
 
-/* Muss nach .home-choice-button stehen: sonst gewinnt height:100% und bläht
-   den EVENT-CTA in der Desktop-3-Spalten-Blitzlicht-Karte auf. */
-.home-choice-button.home-scenario-feedback {
-  height: auto;
-  flex: 0 0 auto;
-}
-
 .home-choice-button__copy {
   display: flex;
   flex-direction: column;
@@ -1012,6 +999,13 @@
 
 .home-live-grid > :last-child:not(.home-live-last-quiz) {
   grid-column: 1 / -1;
+}
+
+/* Zwei Spalten lassen den ersten von zwei Event-Aktionen nur halb so breit. */
+@media (max-width: 479.98px) {
+  .home-live-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (min-width: 600px) {

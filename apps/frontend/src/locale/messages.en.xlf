@@ -7830,8 +7830,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Rundeneinstellungen</source>
-        <target>Round settings</target>
+        <source>Weitere Formate</source>
+        <target>More formats</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -10333,8 +10333,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="join.anonymousNickname" datatype="html">
-        <source>Teilnehmende <x id="position" equiv-text="position"/></source>
-        <target>Participant <x id="position" equiv-text="position"/></target>
+        <source>User <x id="position" equiv-text="position"/></source>
+        <target>User <x id="position" equiv-text="position"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/join/join.component.ts</context>
           <context context-type="linenumber">278</context>
@@ -29454,8 +29454,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.sessionDeletedLead" datatype="html">
-        <source> Diese Session wurde gelöscht. Quiz, Q&amp;A und Blitzlicht sind nicht mehr verfügbar.</source>
-        <target>This session has been deleted. Quiz, Q&amp;A and Pulse Check are no longer available.</target>
+        <source> Quiz, Q&amp;A und Blitzlicht sind nicht mehr verfügbar.</source>
+        <target>Quiz, Q&amp;A and Pulse Check are no longer available.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">146,148</context>

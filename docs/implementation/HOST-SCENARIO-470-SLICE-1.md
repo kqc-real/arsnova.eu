@@ -8,14 +8,14 @@ Quelle und Umfang: [Issue #470](https://github.com/kqc-real/arsnova.eu/issues/47
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ohne Aufgabenwahl       | Teilnahme und alle drei Host-Karten bleiben sofort bedienbar. Ein direkter Kartenstart verwendet für diese Aktion `QUICK`, ohne daraus eine explizite letzte Präferenz zu machen. |
 | `CLASSROOM`             | Die Startseite priorisiert das eigene letzte Quiz, die Quiz-Auswahl, ein neues Quiz und Fragen aus dem Kurs.                                                                      |
-| `EVENT`                 | Die Startseite bietet Fragen sammeln, Stimmung/Tempo erfassen und Beides; Quiz-Sammlung und vorhandene Q&A-Zugänge bleiben erreichbar.                                            |
+| `EVENT`                 | Die Startseite bietet Fragen sammeln, den normalen Tempo-Chip und Beides; Quiz-Sammlung und vorhandene Q&A-Zugänge bleiben erreichbar.                                            |
 | `QUICK`                 | Die vorhandenen direkten Formatstarts bleiben erreichbar; ein Blitzlicht-Chip startet ohne zusätzliche Abfrage eine sessiongebundene Runde.                                       |
 | Quiz-Sammlung           | Kurs- und Direktstarts priorisieren Starten neben Bearbeiten. Die vorhandene Live-Startlogik und weiteren Kartenaktionen bleiben erhalten.                                        |
 | Bestehender Host-Zugang | Öffnet die bestehende Session ohne erneutes Aufgaben-Onboarding. Eine globale letzte Präferenz allein weist dieser Session keine Aufgabe zu.                                      |
 
 Die kompakte Aufgabenwahl steht unmittelbar vor `.home-host-stack`. Die Karten `home-card--create`, `home-card--live` und `home-card--feedback` bleiben im DOM und in der Tastaturfolge. Die Wahl startet selbst weder eine Session noch einen Dialog. Teilnahme und Code-Eingabe behalten ihre Priorität; die Aufgabenwahl ist unabhängig von Seriös/Spielerisch.
 
-**Stimmung/Tempo erfassen** verwendet denselben direkten, sessiongebundenen Tempo-Start wie der bestehende Tempo-Chip. Eine vorherige Q&A-Session ohne Blitzlicht-Kanal wird dabei nicht irrtümlich als Ziel des Tempo-Starts geöffnet. Das Fortsetzen einer vorhandenen Session erhält nur eine bereits vorhandene pro-Code-Zuordnung; ein fehlender Eintrag bleibt auch bei gespeicherter globaler Präferenz neutral.
+Der **Tempo**-Chip startet das sessiongebundene Tempo-Blitzlicht. Eine vorherige Q&A-Session ohne Blitzlicht-Kanal wird dabei nicht irrtümlich als Ziel des Tempo-Starts geöffnet. Das Fortsetzen einer vorhandenen Session erhält nur eine bereits vorhandene pro-Code-Zuordnung; ein fehlender Eintrag bleibt auch bei gespeicherter globaler Präferenz neutral.
 
 ## Lokaler Zustand und Grenzen
 

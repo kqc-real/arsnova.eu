@@ -20,6 +20,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -47,6 +48,11 @@ import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-edi
 import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { homePresetOptionsKeyForQuizPreset } from '../../../core/home-preset-storage';
+import {
+  quizParticipantNameFlags,
+  quizParticipantNameMode,
+  type QuizParticipantNameMode,
+} from '../quiz-name-mode';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { localizeCommands } from '../../../core/locale-router';
 import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
@@ -64,6 +70,8 @@ import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util
     ReactiveFormsModule,
     MatButton,
     MatCheckbox,
+    MatRadioButton,
+    MatRadioGroup,
     MatCard,
     MatCardActions,
     MatCardContent,
@@ -170,9 +178,21 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     return this.form.controls.bonusEnabled.value;
   }
 
-  /** Sichtbar wenn vorgegebene Pseudonym-Listen genutzt werden (nicht reiner Anonym-Modus). */
+  participantNameMode(): QuizParticipantNameMode {
+    return quizParticipantNameMode({
+      allowCustomNicknames: this.form.controls.allowCustomNicknames.value,
+      anonymousMode: this.form.controls.anonymousMode.value,
+    });
+  }
+
+  setParticipantNameMode(mode: QuizParticipantNameMode): void {
+    this.form.patchValue(quizParticipantNameFlags(mode));
+    this.form.markAsDirty();
+  }
+
+  /** Altersgruppe nur bei vorgegebenen Pseudonymen. */
   isNicknameThemeSectionVisible(): boolean {
-    return !this.form.controls.anonymousMode.value;
+    return this.participantNameMode() === 'nicknameTheme';
   }
 
   defaultTimerSelectOptions(): number[] {
@@ -292,7 +312,6 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     const selectedPreset = this.currentQuizPreset();
     return {
       showLeaderboard: this.form.controls.showLeaderboard.value,
-      allowCustomNicknames: this.form.controls.allowCustomNicknames.value,
       defaultTimer: this.defaultTimerControl.value,
       timerScaleByDifficulty: this.form.controls.timerScaleByDifficulty.value,
       enableTimerAccommodation: this.form.controls.enableTimerAccommodation.value,
@@ -301,7 +320,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
       enableMotivationMessages: this.form.controls.enableMotivationMessages.value,
       enableEmojiReactions: this.form.controls.enableEmojiReactions.value,
       showQuestionTypeIndicators: this.form.controls.showQuestionTypeIndicators.value,
-      anonymousMode: this.form.controls.anonymousMode.value,
+      ...quizParticipantNameFlags(this.participantNameMode()),
       teamMode: this.form.controls.teamMode.value,
       teamCount: this.form.controls.teamMode.value ? this.teamCountControl.value : null,
       teamAssignment: this.form.controls.teamAssignment.value ?? 'AUTO',

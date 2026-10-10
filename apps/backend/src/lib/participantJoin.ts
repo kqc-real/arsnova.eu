@@ -90,7 +90,7 @@ function appendParticipantNumber(nickname: string, participantNumber: number): s
 }
 
 function anonymousNickname(requestedNickname: string, participantNumber: number): string {
-  const stem = requestedNickname.replace(/\s+\d+$/, '').trim() || 'Teilnehmende';
+  const stem = requestedNickname.replace(/\s+\d+$/, '').trim() || 'User';
   return appendParticipantNumber(stem, participantNumber);
 }
 
@@ -325,7 +325,7 @@ export async function prepareParticipantJoin(params: {
   if (params.profile.anonymousMode) {
     nickname = anonymousNickname(nickname, participantNumber);
   } else if (!params.profile.allowCustomNicknames) {
-    const presetNickname = nickname.replace(/\s+\d+$/, '').trim() || 'Teilnehmende';
+    const presetNickname = nickname.replace(/\s+\d+$/, '').trim() || 'User';
     nickname = appendParticipantNumber(presetNickname, participantNumber);
   }
 
