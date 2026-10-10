@@ -302,7 +302,7 @@ const HOST_CLOCK_POLL_MS = 15000;
 const HOST_REALTIME_RESUBSCRIBE_MS = 5000;
 const HOST_MANUAL_RECONNECT_TIMEOUT_MS = 12000;
 const QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS = 180;
-/** Frist, nach der ein Presenter-Sync ohne Bühne im aktuellen Sortiermodus trotzdem läuft. */
+/** Frist, nach der ein Presenter-Sync ohne Bühne in der aktuellen Ansicht trotzdem läuft. */
 const QA_PRESENTER_STAGE_SYNC_FALLBACK_MS = 2000;
 const QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES = 3;
 const QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRY_MS = 80;
@@ -764,9 +764,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaPresenterStageRefreshGeneration = 0;
   /** Hero/Presenter-Index nach Kriterienwechsel noch aus einem übernommenen Snapshot setzen. */
   private qaHeroResetPending = false;
-  /** Sortiermodus des zuletzt übernommenen presentProjection-Snapshots (null: unbekannt). */
+  /**
+   * Bühnenansicht (Sortierung, Suche, Favoriten, Autor), nach deren Publish der zuletzt
+   * übernommene presentProjection-Snapshot angefragt wurde (null: unbekannt).
+   */
+  private qaPresenterStageViewKey: string | null = null;
+  /** Sortiermodus laut presentProjection-Snapshot (null: unbekannt). */
   private qaPresenterStageSortMode: QaQuestionSortMode | null = null;
-  /** Presenter-Sync, der auf eine Bühne im aktuellen Sortiermodus wartet. */
+  /** Zuletzt erfolgreich per `qa.setPresenterSortMode` publizierte Bühnenansicht. */
+  private publishedQaPresenterStageViewKey: string | null = null;
+  /** Presenter-Sync, der auf eine Bühne der aktuellen Ansicht wartet. */
   private pendingPresenterStageSyncQuestionId: string | null = null;
   readonly qaListTotalCount = signal(0);
   /** Host: PENDING-Zähler aus qa.list (filterweit, seitenunabhängig); null = Fallback auf geladene Seite. */
@@ -3904,9 +3911,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         if (navigable.length === 0 || stage.length === 0) {
           return;
         }
-        // Bühne im alten Sortiermodus: Ihr Index zeigt auf eine andere Frage. Der Effekt
-        // läuft erneut, sobald die Bühne im aktuellen Modus eintrifft.
-        if (this.isQaPresenterStageInOtherSortMode()) {
+        // Bühne einer veralteten Ansicht: Ihr Index zeigt auf eine andere Frage. Der Effekt
+        // läuft erneut, sobald die Bühne der aktuellen Ansicht eintrifft.
+        if (this.isQaPresenterStageStale()) {
           return;
         }
         const stageQuestion = stage[Math.max(0, Math.min(stage.length - 1, pageIndex))];
@@ -6346,13 +6353,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       session?.presenterSurface === 'ended'
     );
   });
-  private isQaPresenterStageInOtherSortMode(): boolean {
+  private buildQaPresenterStageViewKey(sortMode: QaQuestionSortMode = this.qaSortMode()): string {
+    const authorNickname = this.qaSelectedAuthorNickname();
+    return `${sortMode}\u0001${this.qaSearch()}\u0001${this.qaShowPinnedOnly() ? '1' : '0'}\u0001${authorNickname ?? ''}`;
+  }
+
+  /**
+   * Veraltet, wenn die Bühne nach einer anderen Ansicht angefragt wurde oder der Server einen
+   * anderen Sortiermodus meldet (Letzteres greift auch vor dem ersten erfolgreichen Publish).
+   */
+  private isQaPresenterStageStale(): boolean {
     return (
-      this.qaPresenterStageSortMode !== null && this.qaPresenterStageSortMode !== this.qaSortMode()
+      (this.qaPresenterStageViewKey !== null &&
+        this.qaPresenterStageViewKey !== this.buildQaPresenterStageViewKey()) ||
+      (this.qaPresenterStageSortMode !== null &&
+        this.qaPresenterStageSortMode !== this.qaSortMode())
     );
   }
 
   private clearQaPresenterStageSortState(): void {
+    this.qaPresenterStageViewKey = null;
     this.qaPresenterStageSortMode = null;
     this.pendingPresenterStageSyncQuestionId = null;
   }
@@ -6366,13 +6386,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       this.pendingPresenterStageSyncQuestionId = null;
-      void this.syncPresenterToStageQuestionId(questionId, { ignoreStageSortMode: true });
+      void this.syncPresenterToStageQuestionId(questionId, { ignoreStageView: true });
     }, QA_PRESENTER_STAGE_SYNC_FALLBACK_MS);
   }
 
   private async syncPresenterToStageQuestionId(
     questionId: string,
-    options: { readonly ignoreStageSortMode?: boolean } = {},
+    options: { readonly ignoreStageView?: boolean } = {},
   ): Promise<void> {
     if (
       !this.projectionNavigationIsQaQuestions() ||
@@ -6385,9 +6405,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!page || !this.code) {
       return;
     }
-    // Der Presenter-Index bezieht sich auf die Bühnenreihenfolge. Liegt sie noch im alten
-    // Sortiermodus vor, träfe der Index nach dem Bühnen-Refresh eine andere Frage.
-    if (!options.ignoreStageSortMode && this.isQaPresenterStageInOtherSortMode()) {
+    // Der Presenter-Index bezieht sich auf die Bühnenreihenfolge. Liegt sie noch in einer veralteten
+    // Ansicht (Sortierung, Suche, Favoriten, Autor) vor, träfe der Index danach eine andere Frage.
+    if (!options.ignoreStageView && this.isQaPresenterStageStale()) {
       this.deferPresenterStageSync(questionId);
       return;
     }
@@ -6412,7 +6432,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       // Die Bühne kann sich während des Seitenzahl-Syncs geändert haben.
-      if (!options.ignoreStageSortMode && this.isQaPresenterStageInOtherSortMode()) {
+      if (!options.ignoreStageView && this.isQaPresenterStageStale()) {
         this.deferPresenterStageSync(questionId);
         return;
       }
@@ -11813,7 +11833,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const search = this.qaSearch();
     const pinnedOnly = this.qaShowPinnedOnly();
     const authorNickname = this.qaSelectedAuthorNickname();
-    const stageViewKey = `${sortMode}\u0001${search}\u0001${pinnedOnly ? '1' : '0'}\u0001${authorNickname ?? ''}`;
+    const stageViewKey = this.buildQaPresenterStageViewKey(sortMode);
     if (!options?.force && stageViewKey === this.lastQaPresenterStageViewKey) {
       return Promise.resolve();
     }
@@ -11827,6 +11847,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           pinnedOnly,
           ...(authorNickname ? { authorNickname } : {}),
         });
+        this.publishedQaPresenterStageViewKey = stageViewKey;
         // Refresh nicht in der Sync-Queue awaiten: sonst blockiert z. B. endPresentationView,
         // wenn presentProjection noch hängt. Self-Heal nutzt skipStageRefresh gegen Loops.
         if (!options?.skipStageRefresh && this.projectionNavigationIsQaQuestions()) {
@@ -12583,6 +12604,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     const generation = ++this.qaPresenterStageRefreshGeneration;
+    // Der Snapshot spiegelt höchstens die Ansicht, die vor dieser Anfrage publiziert war.
+    const requestedViewKey = this.publishedQaPresenterStageViewKey;
     try {
       const snapshot: QaQuestionsListDTO | QaQuestionDTO[] = await trpc.qa.presentProjection.query({
         sessionId,
@@ -12601,9 +12624,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ...visible.filter((question) => question.status === 'PINNED'),
         ...visible.filter((question) => question.status === 'ACTIVE'),
       ]);
+      this.qaPresenterStageViewKey = requestedViewKey;
       this.qaPresenterStageSortMode = Array.isArray(snapshot) ? null : (snapshot.sortMode ?? null);
       const pendingSyncId = this.pendingPresenterStageSyncQuestionId;
-      if (pendingSyncId && !this.isQaPresenterStageInOtherSortMode()) {
+      if (pendingSyncId && !this.isQaPresenterStageStale()) {
         this.pendingPresenterStageSyncQuestionId = null;
         void this.syncPresenterToStageQuestionId(pendingSyncId);
       }
