@@ -330,8 +330,35 @@ async function inspectHomeKeyboardNavigation(page) {
   if ((await menuButton.getAttribute('aria-expanded')) !== 'false') {
     issues.push('Mobile Einstellungen schließen nicht mit Escape');
   }
-  if (!(await menuButton.evaluate((element) => element === document.activeElement))) {
-    issues.push('Fokus kehrt nach Escape nicht zum Menüauslöser zurück');
+  // Die Toolbar stellt den Fokus per setTimeout nach dem Schließen wieder her;
+  // aria-expanded kann daher vor dem Fokus wechseln (Race auf langsamen CI-Runnern).
+  // Nachziehendes MOTD wie beim Footer-Mehr-Check kurz dismissen und erneut warten.
+  const menuButtonHasFocus = () =>
+    document.querySelector('.top-toolbar__menu-btn') === document.activeElement;
+  let menuFocusReturned = await page
+    .waitForFunction(menuButtonHasFocus, undefined, { timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!menuFocusReturned) {
+    await dismissOptionalOverlay(page);
+    menuFocusReturned = await page
+      .waitForFunction(menuButtonHasFocus, undefined, { timeout: 3_000 })
+      .then(() => true)
+      .catch(() => false);
+  }
+  if (!menuFocusReturned) {
+    const activeInfo = await page.evaluate(() => {
+      const el = document.activeElement;
+      if (!(el instanceof Element)) return { tag: null, id: null, cls: null };
+      return {
+        tag: el.tagName.toLowerCase(),
+        id: el.id || null,
+        cls: typeof el.className === 'string' ? el.className.slice(0, 80) : null,
+      };
+    });
+    issues.push(
+      `Fokus kehrt nach Escape nicht zum Menüauslöser zurück (active=${activeInfo.tag}${activeInfo.id ? '#' + activeInfo.id : ''}${activeInfo.cls ? '.' + activeInfo.cls.split(/\s+/).slice(0, 2).join('.') : ''})`,
+    );
   }
 
   await page.locator('.home-code-segments').click();
