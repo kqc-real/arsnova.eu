@@ -192,6 +192,13 @@
   font-weight: 600;
 }
 
+.quiz-form__name-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
 .quiz-form__fieldset-hint {
   margin: 0.125rem 0 0.25rem;
   font: var(--mat-sys-body-small);

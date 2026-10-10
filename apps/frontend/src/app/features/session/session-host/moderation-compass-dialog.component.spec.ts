@@ -182,6 +182,9 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).toContain('Median · Wie berechnet man den Median?');
     expect(text).toContain('Als Nächstes');
     expect(text).toContain('Fass die häufigsten Themen kurz zusammen.');
+    expect(
+      fixture.nativeElement.querySelector('.moderation-compass-dialog__now-action')?.textContent,
+    ).toContain('Fass die häufigsten Themen kurz zusammen.');
     expect(text).toContain('Aus der Live-Runde');
     expect(text).toContain('Tippe einen Eintrag an, um zur Frage oder zur Wortwolke zu springen.');
     expect(text).toContain('Wortwolke');

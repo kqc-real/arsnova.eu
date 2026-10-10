@@ -274,9 +274,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   });
 
   anonymousNickname(position: number): string {
-    return toParticipantNickname(
-      $localize`:@@join.anonymousNickname:Teilnehmende ${position}:position:`,
-    );
+    return toParticipantNickname($localize`:@@join.anonymousNickname:User ${position}:position:`);
   }
 
   /** i18n: participant count label (singular). */

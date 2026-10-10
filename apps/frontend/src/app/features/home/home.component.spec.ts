@@ -512,7 +512,7 @@ describe('HomeComponent', () => {
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
       fixture.detectChanges();
       const action = fixture.nativeElement.querySelector(
-        '[data-testid="home-event-feedback"]',
+        '#host-quick-feedback .home-feedback-chip[aria-label="Tempo"]',
       ) as HTMLButtonElement;
 
       action.click();
@@ -576,9 +576,10 @@ describe('HomeComponent', () => {
       expect(root.querySelector('.home-card--live')?.textContent).toContain(
         'Publikumsfragen für deine Veranstaltung',
       );
-      expect(root.querySelector('[data-testid="home-event-feedback"]')?.textContent).toContain(
-        'Stimmung oder Tempo erfassen',
-      );
+      expect(root.querySelector('[data-testid="home-event-feedback"]')).toBeNull();
+      expect(
+        root.querySelector('#host-quick-feedback .home-feedback-chip[aria-label="Tempo"]'),
+      ).not.toBeNull();
       expect(root.querySelector('[data-testid="home-event-both"]')?.textContent).toContain(
         'Beides',
       );
@@ -2106,6 +2107,9 @@ describe('HomeComponent', () => {
         /\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)[^}]*grid-auto-rows:\s*1fr[^}]*column-gap:\s*0\.75rem[^}]*row-gap:\s*1rem/,
       );
       expect(scss).toMatch(
+        /@media \(max-width:\s*479\.98px\)\s*\{[^}]*\.home-live-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+      );
+      expect(scss).toMatch(
         /@media \(min-width:\s*600px\)\s*\{[\s\S]*?\.home-live-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*row-gap:\s*0\.75rem/,
       );
       expect(scss).toMatch(
@@ -2171,9 +2175,7 @@ describe('HomeComponent', () => {
       expect(desktopLayout).toMatch(
         /\.home-feedback-chip\s*\{[^}]*min-height:\s*var\(--home-host-action-min-height[^}]*padding:\s*0\.75rem 0\.65rem/,
       );
-      expect(scss).toMatch(
-        /\.home-choice-button\.home-scenario-feedback\s*\{[^}]*height:\s*auto[^}]*flex:\s*0 0 auto/,
-      );
+      expect(scss).not.toMatch(/\.home-scenario-feedback/);
       expect(scss).toMatch(/\.home-feedback-chip__label--wide-compact\s*\{[^}]*display:\s*none/);
       expect(desktopLayout).not.toMatch(
         /\.home-feedback-chip__label--wide-full\s*\{[^}]*display:\s*none/,

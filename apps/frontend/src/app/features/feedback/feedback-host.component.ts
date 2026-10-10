@@ -59,6 +59,7 @@ import { scrollAndFocusInAppMain } from '../session/session-auto-scroll.util';
 type StarAverageIcon = 'star' | 'star_half' | 'star_border';
 type TempoViewMode = 'details' | 'trend';
 const BOTTOM_ACTIONS_TOUCH_SCROLL_THRESHOLD_PX = 6;
+const ROUND_ACTION_STATUS_DELAY_MS = 400;
 
 interface StarAverageSummary {
   scoreLabel: string;
@@ -107,6 +108,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly roundControlPending = input(false);
   readonly roundSettingsOpen = signal(false);
   readonly roundActionPending = signal(false);
+  /** Sichtbarer Hinweis erst nach kurzer Wartezeit, damit schnelle Aktionen die Karte nicht verschieben. */
+  readonly roundActionStatusVisible = signal(false);
   readonly roundActionError = signal<string | null>(null);
   readonly roundActionBusy = computed(
     () =>
@@ -228,7 +231,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly result = signal<QuickFeedbackResult | null>(null);
   readonly qrDataUrl = signal<string>('');
   readonly error = signal<string | null>(null);
-  readonly copied = signal(false);
   readonly resetting = signal(false);
   readonly liveResultsPending = signal(false);
   readonly locked = signal(false);
@@ -285,6 +287,17 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
+    effect((onCleanup) => {
+      if (!this.roundActionPending()) {
+        this.roundActionStatusVisible.set(false);
+        return;
+      }
+      const handle = setTimeout(() => {
+        this.roundActionStatusVisible.set(true);
+      }, ROUND_ACTION_STATUS_DELAY_MS);
+      onCleanup(() => clearTimeout(handle));
+    });
+
     /** Wie Session-Host Lobby: Beitritts-Menü mit QR nach Laden einmal automatisch öffnen. */
     effect(() => {
       if (this.embeddedInSession()) {
@@ -595,16 +608,6 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async copyLink(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(this.joinUrl);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    } catch {
-      // Clipboard not available
-    }
-  }
-
   async toggleLock(): Promise<void> {
     const code = this.code();
     if (!code) {
@@ -703,7 +706,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       case 'second-round':
         return 'replay';
       case 'discussion':
-        return 'groups';
+        return 'forum';
       default:
         return this.locked() ? 'play_arrow' : 'stop';
     }

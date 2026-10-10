@@ -47,6 +47,12 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
+import {
+  quizParticipantNameFlags,
+  quizParticipantNameMode,
+  type QuizParticipantNameMode,
+} from '../quiz-name-mode';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -355,6 +361,8 @@ type QuizMetadataComparable = {
     MatCardActions,
     MatCardContent,
     MatCheckbox,
+    MatRadioButton,
+    MatRadioGroup,
     MatExpansionModule,
     MatError,
     MatFormField,
@@ -903,9 +911,21 @@ export class QuizEditComponent implements OnDestroy {
     return this.settingsForm.controls.teamMode.value;
   }
 
-  /** Sichtbar wenn vorgegebene Pseudonym-Listen genutzt werden (nicht reiner Anonym-Modus). */
+  participantNameMode(): QuizParticipantNameMode {
+    return quizParticipantNameMode({
+      allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
+      anonymousMode: this.settingsForm.controls.anonymousMode.value,
+    });
+  }
+
+  setParticipantNameMode(mode: QuizParticipantNameMode): void {
+    this.settingsForm.patchValue(quizParticipantNameFlags(mode));
+    this.settingsForm.markAsDirty();
+  }
+
+  /** Altersgruppe nur bei vorgegebenen Pseudonymen. */
   isNicknameThemeSectionVisible(): boolean {
-    return !this.settingsForm.controls.anonymousMode.value;
+    return this.participantNameMode() === 'nicknameTheme';
   }
 
   defaultTimerSelectOptions(): number[] {
@@ -2884,7 +2904,12 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsForm.setValue(
       {
         showLeaderboard: settings.showLeaderboard,
-        allowCustomNicknames: settings.allowCustomNicknames,
+        ...quizParticipantNameFlags(
+          quizParticipantNameMode({
+            allowCustomNicknames: settings.allowCustomNicknames,
+            anonymousMode: settings.anonymousMode,
+          }),
+        ),
         defaultTimer: settings.defaultTimer,
         timerScaleByDifficulty: settings.timerScaleByDifficulty ?? true,
         enableTimerAccommodation: settings.enableTimerAccommodation ?? true,
@@ -2893,7 +2918,6 @@ export class QuizEditComponent implements OnDestroy {
         enableMotivationMessages: settings.enableMotivationMessages,
         enableEmojiReactions: settings.enableEmojiReactions,
         showQuestionTypeIndicators: settings.showQuestionTypeIndicators,
-        anonymousMode: settings.anonymousMode,
         readingPhaseEnabled: settings.readingPhaseEnabled,
         teamMode: settings.teamMode,
         teamCount: settings.teamCount ?? DEFAULT_TEAM_COUNT,
@@ -2916,7 +2940,7 @@ export class QuizEditComponent implements OnDestroy {
   private readSettingsFromForm(): QuizSettings {
     return {
       showLeaderboard: this.settingsForm.controls.showLeaderboard.value,
-      allowCustomNicknames: this.settingsForm.controls.allowCustomNicknames.value,
+      ...quizParticipantNameFlags(this.participantNameMode()),
       defaultTimer: this.settingsForm.controls.defaultTimer.value,
       timerScaleByDifficulty: this.settingsForm.controls.timerScaleByDifficulty.value,
       enableTimerAccommodation: this.settingsForm.controls.enableTimerAccommodation.value,
@@ -2925,7 +2949,6 @@ export class QuizEditComponent implements OnDestroy {
       enableMotivationMessages: this.settingsForm.controls.enableMotivationMessages.value,
       enableEmojiReactions: this.settingsForm.controls.enableEmojiReactions.value,
       showQuestionTypeIndicators: this.settingsForm.controls.showQuestionTypeIndicators.value,
-      anonymousMode: this.settingsForm.controls.anonymousMode.value,
       teamMode: this.settingsForm.controls.teamMode.value,
       teamCount: this.settingsForm.controls.teamMode.value
         ? this.settingsForm.controls.teamCount.value
@@ -2983,7 +3006,12 @@ export class QuizEditComponent implements OnDestroy {
   private toComparableSettings(settings: QuizSettings): QuizSettings {
     return {
       showLeaderboard: settings.showLeaderboard,
-      allowCustomNicknames: settings.allowCustomNicknames,
+      ...quizParticipantNameFlags(
+        quizParticipantNameMode({
+          allowCustomNicknames: settings.allowCustomNicknames,
+          anonymousMode: settings.anonymousMode,
+        }),
+      ),
       defaultTimer: settings.defaultTimer ?? null,
       timerScaleByDifficulty: settings.timerScaleByDifficulty ?? true,
       enableTimerAccommodation: settings.enableTimerAccommodation ?? true,
@@ -2992,7 +3020,6 @@ export class QuizEditComponent implements OnDestroy {
       enableMotivationMessages: settings.enableMotivationMessages,
       enableEmojiReactions: settings.enableEmojiReactions,
       showQuestionTypeIndicators: settings.showQuestionTypeIndicators,
-      anonymousMode: settings.anonymousMode,
       teamMode: settings.teamMode,
       teamCount: settings.teamMode ? (settings.teamCount ?? DEFAULT_TEAM_COUNT) : null,
       teamAssignment: settings.teamAssignment,

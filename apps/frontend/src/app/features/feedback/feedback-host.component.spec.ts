@@ -174,10 +174,17 @@ describe('FeedbackHostComponent', () => {
     const settings = fixture.nativeElement.querySelector(
       '[data-testid="feedback-round-settings"]',
     ) as HTMLElement;
+    const primary = fixture.nativeElement.querySelector(
+      '.feedback-host__round-primary',
+    ) as HTMLElement;
+    expect(trigger.textContent).toContain('Weitere Formate');
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(settings.hidden).toBe(true);
-    expect(settings.querySelector('[data-testid="feedback-compare-round"]')).not.toBeNull();
-    expect(settings.querySelector('[data-testid="feedback-reset-round"]')).not.toBeNull();
+    expect(settings.querySelector('[data-testid="feedback-compare-round"]')).toBeNull();
+    expect(settings.querySelector('[data-testid="feedback-reset-round"]')).toBeNull();
+    expect(settings.textContent).not.toContain('Link kopieren');
+    expect(primary.querySelector('[data-testid="feedback-compare-round"]')).not.toBeNull();
+    expect(primary.querySelector('[data-testid="feedback-reset-round"]')).not.toBeNull();
     expect(settings.querySelector('[data-testid="feedback-live-results"]')).not.toBeNull();
     expect(
       fixture.nativeElement
@@ -187,10 +194,10 @@ describe('FeedbackHostComponent', () => {
     trigger.click();
     fixture.detectChanges();
     expect(settings.hidden).toBe(false);
-    const reset = settings.querySelector(
-      '[data-testid="feedback-reset-round"]',
+    const liveResults = settings.querySelector(
+      '[data-testid="feedback-live-results"] button',
     ) as HTMLButtonElement;
-    reset.focus();
+    liveResults.focus();
     comp.toggleRoundSettings();
     expect(document.activeElement).toBe(trigger);
     fixture.detectChanges();
@@ -209,6 +216,7 @@ describe('FeedbackHostComponent', () => {
     const trigger = fixture.nativeElement.querySelector(
       '[data-testid="feedback-round-settings-trigger"]',
     );
+    const heading = fixture.nativeElement.querySelector('.feedback-host__workspace-title');
     const compare = fixture.nativeElement.querySelector(
       '[data-testid="feedback-compare-round"]',
     ) as HTMLButtonElement;
@@ -220,14 +228,14 @@ describe('FeedbackHostComponent', () => {
       round1Total: 3,
       round1Distribution: moodRound.distribution,
     });
-    expect(document.activeElement).toBe(trigger);
+    expect(document.activeElement).toBe(heading);
     fixture.detectChanges();
     const second = fixture.nativeElement.querySelector(
       '[data-testid="feedback-second-round"]',
     ) as HTMLButtonElement;
     second.focus();
     applyResult({ ...moodRound, discussion: false, currentRound: 2, totalVotes: 0 });
-    expect(document.activeElement).toBe(trigger);
+    expect(document.activeElement).toBe(heading);
     fixture.detectChanges();
     const stars = fixture.nativeElement.querySelector(
       '[data-feedback-type="STARS"]',
@@ -316,6 +324,23 @@ describe('FeedbackHostComponent', () => {
     expect(await comp.startRound('TEMPO')).toBe('applied');
     expect(comp.roundActionError()).toBeNull();
     expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledTimes(2);
+    fixture.destroy();
+  });
+
+  it('zeigt den Aktualisierungshinweis beim Zurücksetzen nicht sofort', async () => {
+    vi.useFakeTimers();
+    const { fixture, comp } = createEmbeddedFixture(moodRound);
+    comp.roundActionPending.set(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Blitzlicht wird aktualisiert');
+
+    await vi.advanceTimersByTimeAsync(400);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Blitzlicht wird aktualisiert');
+
+    comp.roundActionPending.set(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Blitzlicht wird aktualisiert');
     fixture.destroy();
   });
 
@@ -923,7 +948,7 @@ describe('FeedbackHostComponent', () => {
 
     expect(bottomActions?.textContent).toContain('Vergleichsrunde');
     expect(bottomActions?.textContent).toContain('Blitzlicht beenden');
-    expect(inlineActions?.textContent).toContain('Link kopieren');
+    expect(inlineActions?.textContent).not.toContain('Link kopieren');
     expect(inlineActions?.textContent).toContain('Zurücksetzen');
     expect(inlineActions?.textContent).not.toContain('Vergleichsrunde');
     expect(inlineActions?.textContent).not.toContain('Blitzlicht beenden');
@@ -1066,6 +1091,30 @@ describe('FeedbackHostComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Blitzlicht beenden');
   });
 
+  it('zeigt den Tempo-Umschalter im eingebetteten Host neben der Rundenaktion', () => {
+    const { fixture } = createEmbeddedFixture({
+      type: 'TEMPO',
+      locked: false,
+      totalVotes: 4,
+      distribution: { SPEED_UP: 0, FOLLOWING: 3, SLOW_DOWN: 1, LOST: 0 },
+    });
+    const settings = fixture.nativeElement.querySelector(
+      '[data-testid="feedback-round-settings"]',
+    ) as HTMLElement;
+    const primary = fixture.nativeElement.querySelector(
+      '.feedback-host__round-primary',
+    ) as HTMLElement;
+
+    expect(settings.querySelector('.feedback-host__tempo-view-toggle')).toBeNull();
+    expect(primary.querySelector('.feedback-host__tempo-view-toggle')).not.toBeNull();
+    expect(primary.textContent).toContain('Details');
+    expect(primary.textContent).toContain('Tendenz');
+    expect(
+      primary.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    fixture.destroy();
+  });
+
   it('zeigt im Standalone-Tempo-Modus Tendenz, Zaehler, Umschalter und Ende-Aktion', () => {
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     const comp = fixture.componentInstance;
@@ -1096,6 +1145,15 @@ describe('FeedbackHostComponent', () => {
     expect(text).toContain('Details');
     expect(text).toContain('Tendenz');
     expect(text).toContain('Blitzlicht beenden');
+    const trendPane = fixture.nativeElement.querySelector(
+      '.feedback-host__tempo-pane:has(.feedback-host__tempo-trend)',
+    );
+    const detailsPane = fixture.nativeElement.querySelector(
+      '.feedback-host__tempo-pane:has(.feedback-host__tempo-strip)',
+    );
+    expect(trendPane?.getAttribute('aria-hidden')).toBeNull();
+    expect(detailsPane?.getAttribute('aria-hidden')).toBe('true');
+    expect(detailsPane?.hasAttribute('inert')).toBe(true);
     expect(
       fixture.nativeElement.querySelector('.feedback-host__tempo-trend--standalone'),
     ).toBeTruthy();
@@ -1117,6 +1175,9 @@ describe('FeedbackHostComponent', () => {
       fixture.nativeElement.querySelector('.feedback-host__tempo-strip-icon')?.textContent?.trim(),
     ).toBe('🙂');
     expect(fixture.nativeElement.querySelector('.feedback-host__bars')).toBeTruthy();
+    expect(trendPane?.getAttribute('aria-hidden')).toBe('true');
+    expect(detailsPane?.getAttribute('aria-hidden')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.feedback-host__tempo-trend')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -1141,7 +1202,7 @@ describe('FeedbackHostComponent', () => {
     fixture.detectChanges();
 
     const detailHelp = fixture.nativeElement.querySelector<HTMLButtonElement>(
-      '.feedback-host__title-row .feedback-host__tempo-help-button',
+      '.feedback-host__tempo-details-help .feedback-host__tempo-help-button',
     );
     expect(detailHelp?.getAttribute('aria-label')).toBe('Tempo-Barometer erklären');
     detailHelp?.click();

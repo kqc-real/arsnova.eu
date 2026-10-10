@@ -353,7 +353,7 @@
         </div>
       </div>
       <button mat-menu-item type="button" (click)="toggleMuteMusic()">
-        <mat-icon aria-hidden="true">{{ musicMuted() ? 'volume_up' : 'volume_off' }}</mat-icon>
+        <mat-icon aria-hidden="true">{{ musicSilenced() ? 'volume_up' : 'volume_off' }}</mat-icon>
         <span>{{ musicToggleLabel() }}</span>
       </button>
       <div
@@ -378,7 +378,7 @@
                   <mat-icon class="session-host__music-phase-toggle-mute" aria-hidden="true"
                     >volume_off</mat-icon
                   >
-                } @else if (currentMusicPhase() === phase.id && !musicMuted()) {
+                } @else if (currentMusicPhase() === phase.id && !musicSilenced()) {
                   <app-music-equalizer-icon
                     class="session-host__music-phase-toggle-live"
                     size="small"
@@ -498,14 +498,14 @@
                   type="button"
                   class="session-host__meta-sound-control session-host__live-sound-control"
                   [class.session-host__meta-sound-control--active]="
-                    !musicMuted() && !isCurrentMusicPhaseMuted()
+                    !musicSilenced() && !isCurrentMusicPhaseMuted()
                   "
                   [matMenuTriggerFor]="hostMusicMenu"
                   (click)="onHostMusicMenuOpening()"
                   i18n-aria-label="@@sessionHost.musicControlAria"
                   aria-label="Soundsteuerung öffnen"
                 >
-                  @if (musicMuted() || isCurrentMusicPhaseMuted()) {
+                  @if (musicSilenced() || isCurrentMusicPhaseMuted()) {
                     <mat-icon aria-hidden="true">volume_off</mat-icon>
                   } @else {
                     <app-music-equalizer-icon class="session-host__live-sound-icon" />
@@ -600,63 +600,71 @@
             </div>
           }
         </section>
-        <div class="session-host__moderation-stack">
-          @if (activeChannel() === 'quiz') {
-            <span class="session-host__tool-label" i18n="@@sessionHost.moderationArea"
-              >Moderation</span
-            >
-          }
-          @if (moderationCompassReturn()) {
-            <button
-              type="button"
-              class="session-host__moderation-return"
-              data-testid="host-moderation-compass-return"
-              (click)="returnToModerationCompass()"
-              i18n-aria-label="@@sessionHost.moderationReturnAria"
-              aria-label="Zurück zum Moderationskompass"
-            >
-              <mat-icon aria-hidden="true">arrow_back</mat-icon>
-              <span
-                class="session-host__moderation-return-label"
-                i18n="@@sessionHost.moderationReturnToCompass"
-                >Zurück zum Kompass</span
+        @if (showHostModerationStack()) {
+          <div class="session-host__moderation-stack">
+            @if (activeChannel() === 'quiz') {
+              <span class="session-host__tool-label" i18n="@@sessionHost.moderationArea"
+                >Moderation</span
               >
-            </button>
-          }
-          <button
-            #moderationCompassButton
-            type="button"
-            class="session-host__moderation-control"
-            data-testid="host-moderation-compass"
-            [class.session-host__moderation-control--has-signals]="moderationCompassHasSignals()"
-            (click)="openModerationCompassDialog()"
-            aria-haspopup="dialog"
-            [attr.aria-label]="moderationCompassButtonAria()"
-          >
-            <app-moderation-compass-icon />
-            <span
-              class="session-host__moderation-control-label"
-              i18n="@@sessionHost.moderationButton"
-              >Kompass</span
-            >
-          </button>
-          <button
-            type="button"
-            class="session-host__moderation-control session-host__learning-objectives-control"
-            data-testid="host-learning-objectives"
-            (click)="openLearningObjectivesDialog()"
-            aria-haspopup="dialog"
-            i18n-aria-label="@@sessionHost.learningObjectivesAria"
-            aria-label="Lernziele für diese Session öffnen"
-          >
-            <mat-icon aria-hidden="true">school</mat-icon>
-            <span
-              class="session-host__moderation-control-label"
-              i18n="@@sessionHost.learningObjectivesButton"
-              >Ziele</span
-            >
-          </button>
-        </div>
+            }
+            @if (moderationCompassReturn()) {
+              <button
+                type="button"
+                class="session-host__moderation-return"
+                data-testid="host-moderation-compass-return"
+                (click)="returnToModerationCompass()"
+                i18n-aria-label="@@sessionHost.moderationReturnAria"
+                aria-label="Zurück zum Moderationskompass"
+              >
+                <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                <span
+                  class="session-host__moderation-return-label"
+                  i18n="@@sessionHost.moderationReturnToCompass"
+                  >Zurück zum Kompass</span
+                >
+              </button>
+            }
+            @if (showModerationCompass()) {
+              <button
+                #moderationCompassButton
+                type="button"
+                class="session-host__moderation-control"
+                data-testid="host-moderation-compass"
+                [class.session-host__moderation-control--has-signals]="
+                  moderationCompassHasSignals()
+                "
+                (click)="openModerationCompassDialog()"
+                aria-haspopup="dialog"
+                [attr.aria-label]="moderationCompassButtonAria()"
+              >
+                <app-moderation-compass-icon />
+                <span
+                  class="session-host__moderation-control-label"
+                  i18n="@@sessionHost.moderationButton"
+                  >Kompass</span
+                >
+              </button>
+            }
+            @if (activeChannel() !== 'quickFeedback') {
+              <button
+                type="button"
+                class="session-host__moderation-control session-host__learning-objectives-control"
+                data-testid="host-learning-objectives"
+                (click)="openLearningObjectivesDialog()"
+                aria-haspopup="dialog"
+                i18n-aria-label="@@sessionHost.learningObjectivesAria"
+                aria-label="Lernziele für diese Session öffnen"
+              >
+                <mat-icon aria-hidden="true">school</mat-icon>
+                <span
+                  class="session-host__moderation-control-label"
+                  i18n="@@sessionHost.learningObjectivesButton"
+                  >Ziele</span
+                >
+              </button>
+            }
+          </div>
+        }
       </div>
     }
 

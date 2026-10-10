@@ -693,20 +693,6 @@
         </mat-card-header>
 
         <mat-card-content class="home-card__content">
-          @if (hostScenario.preference() === 'EVENT') {
-            <button
-              matButton="outlined"
-              type="button"
-              class="home-cta home-cta--secondary home-choice-button home-scenario-feedback"
-              data-testid="home-event-feedback"
-              (click)="startSessionBoundQuickFeedback('TEMPO')"
-              [disabled]="!!hostSessionStarting()"
-              [attr.aria-busy]="hostSessionStarting() === 'quickFeedback' ? 'true' : null"
-              i18n="@@homeScenario.eventFeedback"
-            >
-              Stimmung oder Tempo erfassen
-            </button>
-          }
           <div class="home-feedback-chip-grid">
             @for (chip of quickFeedbackPresetChips; track chip.type) {
               <button

@@ -2107,8 +2107,8 @@ html.dark .app-qr-image {
 }
 
 .feedback-compare-round-snackbar.mat-mdc-snack-bar-container {
-  --mdc-snackbar-container-color: transparent;
-  --mat-snack-bar-container-color: transparent;
+  --mdc-snackbar-container-color: var(--mat-sys-surface-container-high);
+  --mat-snack-bar-container-color: var(--mat-sys-surface-container-high);
   --mat-snack-bar-supporting-text-color: var(--mat-sys-on-surface);
   --mat-snack-bar-button-color: var(--mat-sys-on-primary-container);
 }
@@ -2116,13 +2116,12 @@ html.dark .app-qr-image {
 .feedback-compare-round-snackbar .mat-mdc-snackbar-surface {
   border-radius: 1.15rem;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 20%, var(--mat-sys-outline-variant));
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
-      transparent 62%
-    ),
-    color-mix(in srgb, var(--mat-sys-surface-container-high) 92%, var(--mat-sys-surface));
+  background-color: var(--mat-sys-surface-container-high);
+  background-image: radial-gradient(
+    circle at top left,
+    color-mix(in srgb, var(--mat-sys-primary) 14%, transparent),
+    transparent 62%
+  );
   box-shadow: 0 1rem 2rem color-mix(in srgb, black 16%, transparent);
   color: var(--mat-sys-on-surface);
 }
@@ -2779,10 +2778,25 @@ html.preset-playful
 }
 
 // Participant task labels can wrap without the toggle's single-line default padding.
+// The group stretches every tab to the tallest sibling. The inner button must fill
+// that height; otherwise a tab without a status line leaves the selected fill as an
+// empty band where the badge used to be.
+.vote-page .session-channel-tabs .mat-button-toggle {
+  display: flex;
+}
+
+.vote-page .session-channel-tabs .mat-button-toggle-button {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .vote-page .session-channel-tabs .mat-button-toggle-label-content {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
   padding: 0.5rem;
   line-height: 1.4;

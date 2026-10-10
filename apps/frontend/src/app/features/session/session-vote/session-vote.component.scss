@@ -724,6 +724,10 @@
   padding: 0 0.75rem;
 }
 
+.vote-page--with-channel-tabs .vote-live-banner + .vote-kita-hero-host {
+  padding-top: 2.25rem;
+}
+
 .vote-page--with-channel-tabs .vote-lobby__kita-emoji {
   font-size: clamp(3.5rem, 16vw, 5rem);
 }

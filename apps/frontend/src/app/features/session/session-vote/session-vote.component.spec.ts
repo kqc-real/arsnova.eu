@@ -4424,7 +4424,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(inst.isFinished()).toBe(true);
     expect(inst.showSessionEndGate()).toBe(true);
     expect(inst.showChannelTabs()).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain('Diese Session wurde gelöscht');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Quiz, Q&A und Blitzlicht sind nicht mehr verfügbar.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Diese Session wurde gelöscht');
     expect(fixture.nativeElement.textContent).toContain('Blitzlicht');
     expect(fixture.nativeElement.querySelector('.vote-feedback-card')).toBeNull();
     fixture.destroy();
@@ -5528,6 +5531,46 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('leitet bei eigenem Namen auf die Beitrittsseite statt einen Platzhalter zu vergeben', async () => {
+    localStorage.removeItem('arsnova-participant-ABC123');
+    localStorage.removeItem('arsnova-nickname-ABC123');
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      quizName: null,
+      title: 'Offene Fragen',
+      participantCount: 2,
+      preset: 'SERIOUS',
+      nicknameTheme: 'HIGH_SCHOOL',
+      allowCustomNicknames: true,
+      anonymousMode: false,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const navSpy = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const component = fixture.componentInstance;
+    component.activeChannel.set('qa');
+    component.updateQaDraft('Wie heißt du?');
+    await component.submitQaQuestion();
+
+    expect(joinMutateMock).not.toHaveBeenCalled();
+    expect(qaSubmitMutateMock).not.toHaveBeenCalled();
+    expect(navSpy).toHaveBeenCalledWith(['join', 'ABC123']);
+    fixture.destroy();
+  });
+
   it('selektiert Q&A-Fragen per Tier-Badge und hebt die Auswahl wieder auf', () => {
     localStorage.setItem('arsnova-nickname-ABC123', 'Roter Drache 2');
     const fixture = TestBed.createComponent(SessionVoteComponent);
@@ -6033,7 +6076,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Blitzlicht');
-    expect(text).toContain('Abstimmen');
+    expect(text).not.toContain('Abstimmen');
     expect(text).toContain('2. Runde');
     fixture.destroy();
   });

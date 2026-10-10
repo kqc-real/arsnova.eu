@@ -203,7 +203,7 @@ async function main(): Promise<void> {
         token: generateBonusCode(),
         sessionId: session.id,
         participantId: pid,
-        nickname: nicknameById.get(pid) ?? `Teilnehmende #${i + 1}`,
+        nickname: nicknameById.get(pid) ?? `User ${i + 1}`,
         quizName: quiz.name,
         totalScore,
         rank: i + 1,

@@ -4033,7 +4033,7 @@ async function generateBonusTokens(
     token: generateBonusCode(),
     sessionId: session.id,
     participantId: entry.pid,
-    nickname: nicknameById.get(entry.pid) ?? `Teilnehmende #${i + 1}`,
+    nickname: nicknameById.get(entry.pid) ?? `User ${i + 1}`,
     quizName: session.quiz!.name,
     totalScore: entry.totalScore,
     rank: i + 1,

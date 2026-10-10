@@ -85,7 +85,7 @@ Von der Startseite aus können Hosts direkt:
 - gespeicherte **Host-Zugänge** wieder öffnen (Live-Karte, höchstens 8 von 32 Capabilities; ab 3 offenen Sessions werden offene und geschlossene Zugänge gemeinsam im Pulldown gebündelt)
 - ohne gespeicherte Capability über **Host-Zugang wiederherstellen** nach `/host-recovery`
 
-Die optionale Aufgabenwahl **Was hast du heute vor?** steht unmittelbar über den drei Host-Karten. **Meinen Kurs begleiten** priorisiert den Quizstart und das Sammeln von Kursfragen; **Eine Veranstaltung moderieren** bietet **Fragen sammeln**, **Stimmung/Tempo erfassen** und **Beides**; **Schnell ein Format einsetzen** lässt die direkten Formatstarts im Vordergrund. Nach der Auswahl scrollt die Startseite zur zugehörigen, visuell hervorgehobenen Karte; der Tastaturfokus bleibt auf der Auswahl. Alle drei Karten und bestehende Q&A-Zugänge bleiben erreichbar. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
+Die optionale Aufgabenwahl **Was hast du heute vor?** steht unmittelbar über den drei Host-Karten. **Meinen Kurs begleiten** priorisiert den Quizstart und das Sammeln von Kursfragen; **Eine Veranstaltung moderieren** bietet **Fragen sammeln**, den normalen **Tempo**-Chip und **Beides**; **Schnell ein Format einsetzen** lässt die direkten Formatstarts im Vordergrund. Nach der Auswahl scrollt die Startseite zur zugehörigen, visuell hervorgehobenen Karte; der Tastaturfokus bleibt auf der Auswahl. Alle drei Karten und bestehende Q&A-Zugänge bleiben erreichbar. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
 
 Der direkte Q&A-Start und **Beides** führen durch zwei bestehende Schritte: Teilnahmeprofil auf der Startseite, danach Bestätigung der Host-Zugangskarte. Die Session übernimmt die Q&A-Initialwerte bereits beim Anlegen; ein zusätzlicher Q&A-Konfigurationsdialog gehört nicht zu diesem Einstieg. Frist und Vormoderation bleiben über **Q&A-Einstellungen** erreichbar. Erst nach Bestätigung der Zugangskarte und erfolgreichem Q&A-Start wird bei **Beides** Blitzlicht unter demselben Sessioncode hinzugefügt; die Fragenwand bleibt der priorisierte Einstieg. Schlägt nur das Hinzufügen von Blitzlicht fehl, bleibt Q&A offen und **Blitzlicht hinzufügen** wiederholt den fehlenden Schritt in derselben Session.
 
@@ -412,6 +412,7 @@ Während der Session kann der Host zusätzlich:
 Die Host-Ansicht enthält ein eigenes Musik-/Audio-System:
 
 - Phasenmusik für Lobby, Lesephase und Countdown
+- Im Blitzlicht ist die Hintergrundmusik zunächst aus und läuft erst, wenn der Host sie einschaltet
 - Track-Auswahl pro Phase
 - Stummschalten
 - SFX-Steuerung

@@ -66,7 +66,7 @@ Damit behalten Teilnehmende die Kontrolle darüber, ob für sie **Seriös**/**Sp
 - Lesephase: **aus**
 - Foyer-Einflug im Live-Betrieb: In der Host- und Presenter-Lobby erscheinen neue Teilnehmende im lokalen UI-Preset `spielerisch` als dezente Einflug-Chips und danach als Teilnehmer-Badge oben in der Spalte (neueste zuerst), sofern `enableRewardEffects !== false`; auf Teilnehmendengeräten gibt es nur dann einen kurzen Ankunftsmoment, wenn deren lokales UI-Preset ebenfalls `spielerisch` ist.
 
-**Hinweis Startseite:** Im **Preset-Toast** (localStorage) kann die **Altersgruppe** für Nicks separat gewählt werden; beim **neuen Quiz** legt das Preset aber **`QUIZ_PRESETS`** fest (derzeit **Oberstufe** für beide Modi).
+**Hinweis Startseite:** Im **Preset-Toast** (localStorage) kann die **Altersgruppe** für Nicks separat gewählt werden; beim **neuen Quiz** legt das Preset aber **`QUIZ_PRESETS`** fest (derzeit **Oberstufe** für beide Modi). Die Namensart ist immer genau eine von drei: vorgegebene Pseudonyme, eigener Name oder Anonymmodus. Ein direkter Start von der Startseite übernimmt die im Toast gespeicherte Namensart.
 
 **Typischer Einsatz:** Auflockerung in der Vorlesung, Wettbewerbs-Quizze, Gamified Learning.
 
