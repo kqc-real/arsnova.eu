@@ -100,7 +100,7 @@
     "@types/marked": "^5.0.2",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.18",
-    "autoprefixer": "^10.5.4",
+    "autoprefixer": "^10.6.1",
     "d3-cloud": "^1.2.9",
     "jsdom": "^26.1.0",
     "playwright": "^1.62.0",
