@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "marked": "^18.0.14",
-    "zod": "^4.0.0"
+    "marked": "^18.1.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.10",
