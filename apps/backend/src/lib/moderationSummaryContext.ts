@@ -240,44 +240,65 @@ function trimSummaryAnalysisQuestions(
     }
   }
 
-  // Keep any topic member IDs that are still in keptIds, or keep the topic's representative
+  // Ensure every available semantic topic retains at least 2 members (ModerationSemanticTopicSchema min(2))
+  // and keep keptAndProtectedIds synchronized before filtering topic memberships and question items.
   const keptAndProtectedIds = new Set([...keptIds, ...protectedIds]);
-  const updatedTopics =
-    context.topics.state === 'available'
-      ? {
-          ...context.topics,
-          items: context.topics.items.map((topic) => {
-            const filteredMembers = topic.memberQuestionSourceIds.filter((id) =>
-              keptAndProtectedIds.has(id),
-            );
-            const members =
-              filteredMembers.length > 0 ? filteredMembers : [topic.representativeQuestionSourceId];
-            return {
-              ...topic,
-              memberQuestionSourceIds: members,
-              representedQuestionSourceIds: topic.representedQuestionSourceIds.filter((id) =>
-                members.includes(id),
-              ),
-            };
-          }),
+  if (context.topics.state === 'available') {
+    for (const topic of context.topics.items) {
+      let retainedCount = topic.memberQuestionSourceIds.filter((id) =>
+        keptAndProtectedIds.has(id),
+      ).length;
+      for (const memberId of topic.memberQuestionSourceIds) {
+        if (retainedCount >= 2) break;
+        if (!keptAndProtectedIds.has(memberId)) {
+          keptAndProtectedIds.add(memberId);
+          retainedCount += 1;
         }
-      : context.topics;
-
-  const finalReferencedQuestionIds = new Set(keptIds);
-  if (updatedTopics.state === 'available') {
-    for (const topic of updatedTopics.items) {
-      topic.memberQuestionSourceIds.forEach((id) => finalReferencedQuestionIds.add(id));
-      finalReferencedQuestionIds.add(topic.representativeQuestionSourceId);
-      if (topic.labelOrigin.kind === 'source-extractive') {
-        finalReferencedQuestionIds.add(topic.labelOrigin.sourceQuestionId);
-      } else if (topic.labelOrigin.kind === 'model-generated') {
-        topic.labelOrigin.derivedFromSourceIds.forEach((id) => finalReferencedQuestionIds.add(id));
       }
     }
   }
-  for (const id of protectedIds) {
-    finalReferencedQuestionIds.add(id);
-  }
+
+  const updatedTopics =
+    context.topics.state === 'available'
+      ? (() => {
+          const items = context.topics.items.map((topic) => {
+            const members = topic.memberQuestionSourceIds.filter((id) =>
+              keptAndProtectedIds.has(id),
+            );
+            const representedQuestionSourceIds = topic.representedQuestionSourceIds.filter((id) =>
+              members.includes(id),
+            );
+            return {
+              ...topic,
+              aggregates: {
+                ...topic.aggregates,
+                questionCount: members.length,
+              },
+              memberQuestionSourceIds: members,
+              representedQuestionSourceIds:
+                representedQuestionSourceIds.length > 0
+                  ? representedQuestionSourceIds
+                  : [topic.representativeQuestionSourceId],
+            };
+          });
+          const representedTopicQuestionIds = new Set(
+            items.flatMap((topic) => topic.representedQuestionSourceIds),
+          );
+          return {
+            ...context.topics,
+            corpus: {
+              ...context.topics.corpus,
+              representedQuestions: Math.min(
+                context.topics.corpus.analyzedQuestions,
+                representedTopicQuestionIds.size,
+              ),
+            },
+            items,
+          };
+        })()
+      : context.topics;
+
+  const finalReferencedQuestionIds = new Set(keptAndProtectedIds);
 
   const finalQuestionItems = context.questions.items.filter((q) =>
     finalReferencedQuestionIds.has(q.sourceId),

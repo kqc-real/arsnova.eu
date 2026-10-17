@@ -127,6 +127,108 @@ describe('moderationSummaryContext', () => {
     expect(prepared.plan.selectedMode).toBe('full-context');
   });
 
+  it('hält semantische Themenmitgliedschaft und questionCount konsistent wenn >12 Fragen gekürzt werden', () => {
+    const base = analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
+    if (base.context.questions.state !== 'available' || base.context.topics.state !== 'available') {
+      throw new Error('Erwartete verfügbare Fragen und Themen im Referenzfixture.');
+    }
+    const templateQuestion = base.context.questions.items[1]!;
+    const templateSource = base.context.sources.find((source) => source.kind === 'qa-question');
+    if (!templateSource || templateSource.kind !== 'qa-question') {
+      throw new Error('Erwartete Q&A-Quelle im Referenzfixture.');
+    }
+
+    const firstTopic = base.context.topics.items[0]!;
+    const extraQuestions = Array.from({ length: 14 }, (_, index) => {
+      const sourceId = `qa-question:99999999-9999-4999-8999-${String(index + 1).padStart(12, '0')}`;
+      const isThirdTopicMember = index === 12 || index === 13;
+      const topicId = isThirdTopicMember ? firstTopic.sourceId : undefined;
+      return {
+        question: {
+          ...structuredClone(templateQuestion),
+          sourceId,
+          status: 'ACTIVE' as const,
+          votes: {
+            state: 'available' as const,
+            positive: 0,
+            negative: 0,
+            net: 0,
+            total: 0,
+            bestScore: { state: 'available' as const, value: 0 },
+            controversyScore: { state: 'available' as const, value: 0 },
+          },
+          topicSourceIds: topicId ? [topicId] : [],
+        },
+        source: {
+          ...structuredClone(templateSource),
+          id: sourceId,
+          content: {
+            state: 'included' as const,
+            text: `Zusatzfrage ${index + 1} mit niedrigem Rang zur Konsistenzprüfung.`,
+            truncated: false,
+          },
+        },
+      };
+    });
+
+    const extraTopicMemberIds = extraQuestions.slice(12).map(({ question }) => question.sourceId);
+    const updatedFirstTopic = {
+      ...firstTopic,
+      aggregates: {
+        ...firstTopic.aggregates,
+        questionCount: firstTopic.memberQuestionSourceIds.length + extraTopicMemberIds.length,
+      },
+      memberQuestionSourceIds: [...firstTopic.memberQuestionSourceIds, ...extraTopicMemberIds],
+      representedQuestionSourceIds: [
+        ...firstTopic.representedQuestionSourceIds,
+        ...extraTopicMemberIds,
+      ],
+    };
+
+    const allQuestions = [
+      ...base.context.questions.items,
+      ...extraQuestions.map(({ question }) => question),
+    ];
+    const analysis = ModerationAnalysisContextV1Schema.parse({
+      ...base,
+      context: {
+        ...base.context,
+        questions: {
+          ...base.context.questions,
+          corpus: {
+            total: allQuestions.length,
+            eligible: allQuestions.length,
+            analyzed: allQuestions.length,
+            deduplicated: allQuestions.length,
+            represented: allQuestions.length,
+          },
+          items: allQuestions,
+        },
+        topics: {
+          ...base.context.topics,
+          corpus: {
+            eligibleQuestions: allQuestions.length,
+            analyzedQuestions: allQuestions.length,
+            representedQuestions:
+              base.context.topics.corpus.representedQuestions + extraTopicMemberIds.length,
+          },
+          items: [updatedFirstTopic, ...base.context.topics.items.slice(1)],
+        },
+        sources: [...base.context.sources, ...extraQuestions.map(({ source }) => source)],
+      },
+    });
+
+    const prepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });
+    expect(prepared.plan.selectedMode).toBe('full-context');
+    expect(prepared.request.promptContext.context.topics.state).toBe('available');
+    if (prepared.request.promptContext.context.topics.state === 'available') {
+      for (const topic of prepared.request.promptContext.context.topics.items) {
+        expect(topic.memberQuestionSourceIds.length).toBeGreaterThanOrEqual(2);
+        expect(topic.aggregates.questionCount).toBe(topic.memberQuestionSourceIds.length);
+      }
+    }
+  });
+
   it('stellt Mindest-Q&A-Coverage her wenn der erste Pack keine included Sources liefert', () => {
     const analysis = analysisFixture(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
     const prepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });
