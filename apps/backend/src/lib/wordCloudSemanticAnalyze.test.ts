@@ -21,6 +21,7 @@ import {
   analyzeSemanticWordCloudSnapshot,
   invalidateWordCloudSemanticSession,
   resetWordCloudSemanticAnalyzeForTests,
+  scheduleWordCloudSemanticEmbeddingPrewarm,
 } from './wordCloudSemanticAnalyze';
 import { WordCloudEncoderError } from './wordCloudEncoderClient';
 import type { WordCloudSemanticConfig } from './wordCloudSemanticConfig';
@@ -768,5 +769,53 @@ describe('wordCloudSemanticAnalyze', () => {
     expect(first.status).toBe('ready');
     expect(second.status).toBe('ready');
     expect(embeddedBatchSizes).toEqual([6, 2]);
+  });
+
+  it('wärmt Einzel-Embeddings im Hintergrund vor (scheduleWordCloudSemanticEmbeddingPrewarm), sodass der spätere Host-Aufruf den Encoder nicht mehr benötigt', async () => {
+    vi.useFakeTimers();
+    try {
+      let embedCalls = 0;
+      resetWordCloudSemanticAnalyzeForTests({
+        config: () => enabledConfig,
+        embed: async (input) => {
+          embedCalls += 1;
+          return {
+            modelId: 'intfloat/multilingual-e5-small',
+            modelVersion: 'intfloat/multilingual-e5-small@sha256:prewarm-live',
+            items: input.items.map((item) => ({
+              id: toWordCloudSemanticSourceId(item.id),
+              embedding: geometricEmbeddingForSeedText(item.text),
+            })),
+          };
+        },
+      });
+
+      const items = freetextItems(WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED.slice(0, 6));
+      for (const item of items) {
+        scheduleWordCloudSemanticEmbeddingPrewarm({
+          sessionId: SESSION_ID,
+          text: item.text,
+        });
+      }
+
+      await vi.advanceTimersByTimeAsync(1_600);
+      expect(embedCalls).toBe(1);
+
+      const result = await runSemanticDirect({
+        sessionCode: 'ABC123',
+        mode: 'SEMANTIC',
+        locale: 'de',
+        metric: 'TOP',
+        channel: 'FREETEXT',
+        normalization: 'NONE',
+        items,
+      });
+
+      expect(result.status).toBe('ready');
+      // Da alle 6 Texte bereits im Hintergrund vorgewärmt wurden, war beim Host-Klick kein weiterer Encoder-Call nötig
+      expect(embedCalls).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

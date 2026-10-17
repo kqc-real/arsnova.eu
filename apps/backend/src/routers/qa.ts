@@ -43,6 +43,7 @@ import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
 import { enqueueQaNlpJob, invalidateQaNlpForQuestion } from '../lib/qaNlpQueue';
+import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudSemanticAnalyze';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import {
   getQaSummaryRuntime,
@@ -1823,6 +1824,10 @@ export const qaRouter = router({
               text: redactedText,
             });
           }
+          scheduleWordCloudSemanticEmbeddingPrewarm({
+            sessionId: session.id,
+            text: redactedText,
+          });
         }
         emitQaQuestionsSignal(session.id, { immediate: true });
         return redacted;
@@ -1893,6 +1898,10 @@ export const qaRouter = router({
         });
       }
       if (!created.replayed) {
+        scheduleWordCloudSemanticEmbeddingPrewarm({
+          sessionId: input.sessionId,
+          text: created.text,
+        });
         void recordQaQuestionAccepted(created.id);
         await enqueueUsageStatisticEventAndSchedule({
           kind: 'QA_QUESTION',

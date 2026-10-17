@@ -59,6 +59,39 @@ function enforceRuntimeRequestByteLimit(value: unknown, ctx: z.RefinementCtx): v
   }
 }
 
+export const OpenWeightLlmTopicLabelBatchItemSchema = z
+  .object({
+    clusterId: z.string().trim().min(1).max(80),
+    sources: z
+      .array(
+        z
+          .object({
+            id: RuntimeSourceIdSchema,
+            text: RuntimeSourceTextSchema,
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(8),
+  })
+  .strict();
+export type OpenWeightLlmTopicLabelBatchItem = z.infer<
+  typeof OpenWeightLlmTopicLabelBatchItemSchema
+>;
+
+export const OpenWeightLlmTopicLabelBatchRequestSchema = z
+  .object({
+    schemaVersion: z.literal(2),
+    taskType: z.literal('topic_label'),
+    locale: QaSummaryLocaleEnum,
+    clusters: z.array(OpenWeightLlmTopicLabelBatchItemSchema).min(1).max(12),
+  })
+  .strict()
+  .superRefine(enforceRuntimeRequestByteLimit);
+export type OpenWeightLlmTopicLabelBatchRequest = z.infer<
+  typeof OpenWeightLlmTopicLabelBatchRequestSchema
+>;
+
 export const OpenWeightLlmTopicLabelRequestSchema = z
   .object({
     schemaVersion: OpenWeightLlmSchemaVersionField,
@@ -132,6 +165,7 @@ export type OpenWeightLlmLearningObjectivesRequest = z.infer<
 
 export const OpenWeightLlmRequestSchema = z.union([
   OpenWeightLlmTopicLabelRequestSchema,
+  OpenWeightLlmTopicLabelBatchRequestSchema,
   OpenWeightLlmSummaryRequestV2Schema,
   OpenWeightLlmSummaryRequestSchema,
   OpenWeightLlmLearningObjectivesRequestSchema,
@@ -147,6 +181,28 @@ export const OpenWeightLlmTopicLabelOutputSchema = z
   })
   .strict();
 export type OpenWeightLlmTopicLabelOutput = z.infer<typeof OpenWeightLlmTopicLabelOutputSchema>;
+
+export const OpenWeightLlmTopicLabelBatchOutputItemSchema = z
+  .object({
+    clusterId: z.string().trim().min(1).max(80),
+    label: z.string().trim().min(1).max(120),
+    sourceIds: z.array(RuntimeSourceIdSchema).min(1).max(8),
+  })
+  .strict();
+export type OpenWeightLlmTopicLabelBatchOutputItem = z.infer<
+  typeof OpenWeightLlmTopicLabelBatchOutputItemSchema
+>;
+
+export const OpenWeightLlmTopicLabelBatchOutputSchema = z
+  .object({
+    schemaVersion: z.literal(2),
+    taskType: z.literal('topic_label'),
+    labels: z.array(OpenWeightLlmTopicLabelBatchOutputItemSchema).min(1).max(12),
+  })
+  .strict();
+export type OpenWeightLlmTopicLabelBatchOutput = z.infer<
+  typeof OpenWeightLlmTopicLabelBatchOutputSchema
+>;
 
 export const OpenWeightLlmSummaryOutputSchema = z
   .object({
@@ -188,6 +244,7 @@ export type OpenWeightLlmLearningObjectivesOutput = z.infer<
 // discriminatedUnion könnte die Versionskonsistenz daher nicht ausdrücken.
 export const OpenWeightLlmOutputSchema = z.union([
   OpenWeightLlmTopicLabelOutputSchema,
+  OpenWeightLlmTopicLabelBatchOutputSchema,
   OpenWeightLlmSummaryOutputV2Schema,
   OpenWeightLlmSummaryOutputSchema,
   OpenWeightLlmLearningObjectivesOutputSchema,
@@ -250,6 +307,21 @@ export function hasOnlyAllowedOpenWeightLlmReferences(
   switch (request.taskType) {
     case 'topic_label': {
       if (output.taskType !== 'topic_label') return false;
+      if (request.schemaVersion !== output.schemaVersion) return false;
+      if (request.schemaVersion === 2) {
+        if (output.schemaVersion !== 2) return false;
+        const allowedSourcesByCluster = new Map(
+          request.clusters.map((cluster) => [
+            cluster.clusterId,
+            new Set(cluster.sources.map((source) => source.id)),
+          ]),
+        );
+        return output.labels.every((item) => {
+          const allowed = allowedSourcesByCluster.get(item.clusterId);
+          return Boolean(allowed) && item.sourceIds.every((sourceId) => allowed!.has(sourceId));
+        });
+      }
+      if (output.schemaVersion !== 1) return false;
       const allowed = new Set(request.sources.map((source) => source.id));
       return output.sourceIds.every((sourceId) => allowed.has(sourceId));
     }

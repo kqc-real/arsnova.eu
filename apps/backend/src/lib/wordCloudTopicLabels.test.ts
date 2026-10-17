@@ -600,4 +600,58 @@ describe('applyWordCloudTopicLabels', () => {
     expect(result.labelSettlement).toBe('transient');
     expect(result.entries[1]?.labelOrigin).toBe('extractive');
   });
+
+  it('bündelt mehrere unbenannte Cluster im Batch-Pfad (schemaVersion 2) in einem einzigen LLM-Aufruf', async () => {
+    const firstCluster = entry('Was ist die Steigung?', [
+      'Was ist die Steigung?',
+      'Wie bestimmt man die Steigung?',
+    ]);
+    const secondCluster = entry('Was ist die Ableitung?', [
+      'Was ist die Ableitung?',
+      'Wie leitet man ab?',
+    ]);
+    let batchCalls = 0;
+
+    const result = await applyWordCloudTopicLabels(input, output([firstCluster, secondCluster]), {
+      env: enabledEnv,
+      labelBatch: async (batchRequest) => {
+        batchCalls += 1;
+        expect(batchRequest.schemaVersion).toBe(2);
+        expect(batchRequest.clusters).toHaveLength(2);
+        return {
+          status: 'completed',
+          output: {
+            schemaVersion: 2,
+            taskType: 'topic_label',
+            labels: [
+              {
+                clusterId: batchRequest.clusters[0]!.clusterId,
+                label: 'Steigung linearer Funktionen',
+                sourceIds: [batchRequest.clusters[0]!.sources[0]!.id],
+              },
+              {
+                clusterId: batchRequest.clusters[1]!.clusterId,
+                label: 'Ableitungsregeln',
+                sourceIds: [batchRequest.clusters[1]!.sources[0]!.id],
+              },
+            ],
+          },
+          telemetry: {
+            taskType: 'topic_label',
+            elapsedMs: 12,
+            model: null,
+            promptTokens: 80,
+            completionTokens: 25,
+          },
+        };
+      },
+    });
+
+    expect(batchCalls).toBe(1);
+    expect(result.labelSettlement).toBe('complete');
+    expect(result.entries[0]?.label).toBe('Steigung linearer Funktionen');
+    expect(result.entries[0]?.labelOrigin).toBe('model');
+    expect(result.entries[1]?.label).toBe('Ableitungsregeln');
+    expect(result.entries[1]?.labelOrigin).toBe('model');
+  });
 });

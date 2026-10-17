@@ -34,7 +34,11 @@ function assertEncoderHardening(block, label) {
     `${label}: Socket-Pfad`,
   );
   assert.match(block, /mem_limit:\s*2g/, `${label}: RAM-cgroup`);
-  assert.match(block, /cpus:\s*'1\.0'/, `${label}: CPU-cgroup`);
+  assert.match(
+    block,
+    label === 'prod' ? /cpus:\s*'4\.0'/ : /cpus:\s*'1\.0'/,
+    `${label}: CPU-cgroup`,
+  );
 }
 
 test('docker-compose.yml startet den Encoder nur über Profil encoder ohne öffentlichen Port', () => {

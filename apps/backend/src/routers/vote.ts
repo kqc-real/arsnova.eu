@@ -64,6 +64,7 @@ import {
   parseSessionQuestionProgress,
 } from '../lib/sessionQuestionProgress';
 import { assertSessionEffectivelyActive } from '../lib/sessionLifecycle';
+import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudSemanticAnalyze';
 
 function normalizeNumericInputType(value: string | null | undefined): NumericInputType {
   return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';
@@ -918,6 +919,12 @@ export const voteRouter = router({
           },
           participant.session.id,
         );
+        if (questionType === 'FREETEXT' && freeText) {
+          scheduleWordCloudSemanticEmbeddingPrewarm({
+            sessionId: participant.session.id,
+            text: freeText,
+          });
+        }
         invalidateHostVoteProgressForCode(participant.session.code);
       }
       return { voteId: vote.id };

@@ -115,6 +115,14 @@ type CachedItemEmbedding = {
   readonly vector: readonly number[];
 };
 
+type PrewarmSessionBuffer = {
+  timer: ReturnType<typeof setTimeout> | null;
+  readonly texts: Set<string>;
+};
+
+const PREWARM_DEBOUNCE_MS = 1_500;
+const prewarmBuffers = new Map<string, PrewarmSessionBuffer>();
+let prewarmInFlight = false;
 const MAX_CACHED_CLUSTER_ENTRIES = 64;
 const MAX_CACHED_ITEM_EMBEDDINGS = 4_096;
 let hooks: SemanticHooks = createDefaultHooks();
@@ -188,6 +196,13 @@ export function invalidateWordCloudSemanticSession(sessionId: string): void {
       sessionItemEmbeddingsCache.delete(key);
     }
   }
+  const prewarm = prewarmBuffers.get(sessionKey);
+  if (prewarm) {
+    if (prewarm.timer) {
+      clearTimeout(prewarm.timer);
+    }
+    prewarmBuffers.delete(sessionKey);
+  }
   const queue = jobs.get(sessionKey);
   if (!queue) {
     return;
@@ -213,6 +228,13 @@ export function resetWordCloudSemanticAnalyzeForTests(overrides?: Partial<Semant
   circuit.openedAt = null;
   sessionClustersCache.clear();
   sessionItemEmbeddingsCache.clear();
+  for (const prewarm of prewarmBuffers.values()) {
+    if (prewarm.timer) {
+      clearTimeout(prewarm.timer);
+    }
+  }
+  prewarmBuffers.clear();
+  prewarmInFlight = false;
   resetWordCloudTopicLabelCacheForTests();
   for (const queue of jobs.values()) {
     queue.epoch += 1;
@@ -772,4 +794,148 @@ export async function analyzeSemanticWordCloudSnapshot(
   }
   queue.latest = job;
   return job.promise;
+}
+
+async function flushPrewarmBuffer(sessionId: string): Promise<void> {
+  const sessionKey = sessionJobKey(sessionId);
+  const buffer = prewarmBuffers.get(sessionKey);
+  if (!buffer || buffer.texts.size === 0) {
+    return;
+  }
+  const config = hooks.config();
+  if (!config.enabled || isCircuitOpen(hooks.now())) {
+    buffer.texts.clear();
+    return;
+  }
+  // Solange ein interaktiver Host-Job läuft oder bereits ein Prewarm aktiv ist,
+  // kurz zurückstellen, damit der single-inflight Encoder-Sidecar frei bleibt.
+  const activeQueue = jobs.get(sessionKey);
+  if (prewarmInFlight || activeQueue?.active) {
+    if (!buffer.timer) {
+      buffer.timer = setTimeout(() => {
+        buffer.timer = null;
+        void flushPrewarmBuffer(sessionId);
+      }, PREWARM_DEBOUNCE_MS);
+      buffer.timer.unref?.();
+    }
+    return;
+  }
+
+  const now = hooks.now();
+  purgeExpiredSessionClusters(now);
+  const pendingTexts = Array.from(buffer.texts).slice(0, 64);
+  for (const text of pendingTexts) {
+    buffer.texts.delete(text);
+  }
+  // Die E5-Embeddings hängen nur von `"query: " + sourceText` ab (nicht von `locale`).
+  // Wir wärmen den Standard-Locale-Schlüssel ('de') vor und spiegeln ihn auf ('en'),
+  // damit unabhängig von der späteren Host-Sprache sofort ein Cache-Hit vorliegt.
+  const missingTexts = pendingTexts.filter((sourceText) => {
+    const deKey = buildSessionItemEmbeddingKey(sessionKey, 'de', sourceText);
+    const hit = sessionItemEmbeddingsCache.get(deKey);
+    return !hit || hit.expiresAt <= now;
+  });
+  if (missingTexts.length === 0) {
+    return;
+  }
+
+  const syntheticItems = missingTexts.map((text, idx) => ({
+    id: `prewarm-${idx + 1}`,
+    text,
+    weight: 1,
+  }));
+  const syntheticInput: AnalyzeWordCloudInput = {
+    sessionCode: 'PREWRM',
+    mode: 'SEMANTIC',
+    locale: 'de',
+    metric: 'TOP',
+    channel: 'QA',
+    normalization: 'NONE',
+    items: syntheticItems,
+    maxEntries: 40,
+  };
+  const snapshotHash = createHash('sha256')
+    .update(JSON.stringify({ sessionKey, missingTexts }), 'utf8')
+    .digest('hex');
+
+  prewarmInFlight = true;
+  try {
+    const response = await hooks.embed(syntheticInput, snapshotHash, config);
+    // Nur schreiben, wenn die Session während des Laufs nicht gepurget wurde
+    if (!prewarmBuffers.has(sessionKey)) {
+      return;
+    }
+    const expiresAt = hooks.now() + config.cacheTtlSeconds * 1_000;
+    const vectorById = new Map(
+      response.items.map((entry) => [fromWordCloudSemanticSourceId(entry.id), entry.embedding]),
+    );
+    for (let idx = 0; idx < missingTexts.length; idx += 1) {
+      const sourceText = missingTexts[idx]!;
+      const vector = vectorById.get(`prewarm-${idx + 1}`);
+      if (!vector) continue;
+      for (const locale of ['de', 'en'] as const) {
+        const key = buildSessionItemEmbeddingKey(sessionKey, locale, sourceText);
+        writeSessionItemEmbedding(key, {
+          expiresAt,
+          modelId: response.modelId,
+          modelVersion: response.modelVersion,
+          vector,
+        });
+      }
+    }
+  } catch {
+    // Stilles Pre-Warming: Fehler beeinflussen niemals den Teilnehmer-Submit oder den Circuit Breaker.
+  } finally {
+    prewarmInFlight = false;
+    if (buffer.texts.size > 0 && !buffer.timer && prewarmBuffers.has(sessionKey)) {
+      buffer.timer = setTimeout(() => {
+        buffer.timer = null;
+        void flushPrewarmBuffer(sessionId);
+      }, PREWARM_DEBOUNCE_MS);
+      buffer.timer.unref?.();
+    }
+  }
+}
+
+/**
+ * Wärmt im Hintergrund die semantischen Einzel-Text-Embeddings für neu eingegangene
+ * Q&A-Fragen oder Freitext-Antworten vor, solange der Encoder-Sidecar frei ist.
+ */
+export function scheduleWordCloudSemanticEmbeddingPrewarm(input: {
+  readonly sessionId: string;
+  readonly text: string;
+}): void {
+  const trimmedSessionId = input.sessionId.trim();
+  if (!trimmedSessionId) {
+    return;
+  }
+  const config = hooks.config();
+  if (!config.enabled) {
+    return;
+  }
+  const sourceText = toWordCloudAnalysisSourceText(input.text);
+  if (!sourceText) {
+    return;
+  }
+  const sessionKey = sessionJobKey(trimmedSessionId);
+  const now = hooks.now();
+  const existing = sessionItemEmbeddingsCache.get(
+    buildSessionItemEmbeddingKey(sessionKey, 'de', sourceText),
+  );
+  if (existing && existing.expiresAt > now) {
+    return;
+  }
+  let buffer = prewarmBuffers.get(sessionKey);
+  if (!buffer) {
+    buffer = { timer: null, texts: new Set() };
+    prewarmBuffers.set(sessionKey, buffer);
+  }
+  buffer.texts.add(sourceText);
+  if (!buffer.timer) {
+    buffer.timer = setTimeout(() => {
+      buffer.timer = null;
+      void flushPrewarmBuffer(trimmedSessionId);
+    }, PREWARM_DEBOUNCE_MS);
+    buffer.timer.unref?.();
+  }
 }

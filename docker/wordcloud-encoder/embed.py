@@ -90,7 +90,16 @@ class OnnxE5Embedder:
             raise FileNotFoundError(str(tokenizer_path))
 
         self._np = np
-        self._session = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
+        session_options = ort.SessionOptions()
+        configured_threads = os.environ.get("WORD_CLOUD_ENCODER_THREADS", "").strip()
+        intra_threads = int(configured_threads) if configured_threads.isdigit() and int(configured_threads) > 0 else max(1, min(4, os.cpu_count() or 1))
+        session_options.intra_op_num_threads = intra_threads
+        session_options.inter_op_num_threads = 1
+        self._session = ort.InferenceSession(
+            str(onnx_path),
+            sess_options=session_options,
+            providers=["CPUExecutionProvider"],
+        )
         self._tokenizer = Tokenizer.from_file(str(tokenizer_path))
         self._tokenizer.enable_truncation(max_length=MAX_SEQ_LENGTH)
         # Pad to the longest sequence in the batch, not 512. Q&A items are short;
@@ -103,10 +112,17 @@ class OnnxE5Embedder:
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
         if not texts:
             return []
-        vectors: list[list[float]] = []
-        for start in range(0, len(texts), EMBED_BATCH_SIZE):
-            vectors.extend(self._embed_batch(texts[start : start + EMBED_BATCH_SIZE]))
-        return vectors
+        # Sort by character length before slicing into 16-item batches so short
+        # questions/answers are not padded up to a single outlier's sequence length.
+        indexed = sorted(enumerate(texts), key=lambda pair: len(pair[1]))
+        sorted_texts = [pair[1] for pair in indexed]
+        sorted_vectors: list[list[float]] = []
+        for start in range(0, len(sorted_texts), EMBED_BATCH_SIZE):
+            sorted_vectors.extend(self._embed_batch(sorted_texts[start : start + EMBED_BATCH_SIZE]))
+        restored: list[list[float]] = [[] for _ in range(len(texts))]
+        for (original_index, _), vector in zip(indexed, sorted_vectors, strict=True):
+            restored[original_index] = vector
+        return restored
 
     def _embed_batch(self, texts: Sequence[str]) -> list[list[float]]:
         prefixed = [f"{E5_PREFIX}{text}" for text in texts]

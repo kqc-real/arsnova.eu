@@ -8,6 +8,9 @@ import {
   OPEN_WEIGHT_LLM_MAX_REQUEST_BYTES,
   type AnalyzeWordCloudInput,
   type AnalyzeWordCloudOutput,
+  type OpenWeightLlmTopicLabelBatchItem,
+  type OpenWeightLlmTopicLabelBatchOutput,
+  type OpenWeightLlmTopicLabelBatchRequest,
   type OpenWeightLlmTopicLabelOutput,
   type OpenWeightLlmTopicLabelRequest,
   type WordCloudAnalysisEntryDTO,
@@ -21,7 +24,13 @@ import {
   OPEN_WEIGHT_LLM_MODEL_VERSION,
   resolveOpenWeightLlmLabelTimeoutMs,
 } from './openWeightLlmConfig';
-import { runOpenWeightLlmTopicLabel, type OpenWeightLlmLiveResult } from './openWeightLlmClient';
+import {
+  runOpenWeightLlmTopicLabel,
+  runOpenWeightLlmTopicLabelBatch,
+  type OpenWeightLlmFailureResult,
+  type OpenWeightLlmLiveResult,
+  type OpenWeightLlmTelemetry,
+} from './openWeightLlmClient';
 import { analyzeSemanticWordCloudSnapshot } from './wordCloudSemanticAnalyze';
 import type { WordCloudNormalizationMeta } from './wordCloudNormalization';
 
@@ -59,11 +68,24 @@ export type TopicLabelCaller = (
   options: { readonly signal?: AbortSignal },
 ) => Promise<OpenWeightLlmLiveResult<OpenWeightLlmTopicLabelOutput>>;
 
+export type TopicLabelBatchCaller = (
+  request: OpenWeightLlmTopicLabelBatchRequest,
+  options: { readonly signal?: AbortSignal },
+) => Promise<
+  | {
+      readonly status: 'completed';
+      readonly output: OpenWeightLlmTopicLabelBatchOutput;
+      readonly telemetry: OpenWeightLlmTelemetry;
+    }
+  | OpenWeightLlmFailureResult
+>;
+
 type LabelOptions = {
   readonly sessionId?: string;
   readonly signal?: AbortSignal;
   readonly now?: () => number;
   readonly label?: TopicLabelCaller;
+  readonly labelBatch?: TopicLabelBatchCaller;
   readonly useProcessLabelCache?: boolean;
   readonly env?: NodeJS.ProcessEnv;
 };
@@ -184,7 +206,9 @@ function wordCount(label: string): number {
     .filter((part) => part.length > 0).length;
 }
 
-function requestByteLength(request: OpenWeightLlmTopicLabelRequest): number {
+function requestByteLength(
+  request: OpenWeightLlmTopicLabelRequest | OpenWeightLlmTopicLabelBatchRequest,
+): number {
   return new TextEncoder().encode(JSON.stringify(request)).byteLength;
 }
 
@@ -284,6 +308,93 @@ export function resolveTopicLabelPhaseBudgetMs(
   );
 }
 
+type PendingBatchClusterCandidate = {
+  readonly entryIndex: number;
+  readonly entry: WordCloudAnalysisEntryDTO;
+  readonly request: OpenWeightLlmTopicLabelRequest;
+  readonly labelCacheKey: string;
+};
+
+function packBatchRequests(
+  locale: 'de' | 'en',
+  candidates: readonly PendingBatchClusterCandidate[],
+): Array<{
+  readonly batchRequest: OpenWeightLlmTopicLabelBatchRequest;
+  readonly byClusterId: ReadonlyMap<string, PendingBatchClusterCandidate>;
+}> {
+  const batches: Array<{
+    readonly batchRequest: OpenWeightLlmTopicLabelBatchRequest;
+    readonly byClusterId: ReadonlyMap<string, PendingBatchClusterCandidate>;
+  }> = [];
+  let index = 0;
+
+  while (index < candidates.length) {
+    const items: OpenWeightLlmTopicLabelBatchItem[] = [];
+    const byClusterId = new Map<string, PendingBatchClusterCandidate>();
+
+    while (index < candidates.length && items.length < TOPIC_LABEL_MAX_CANDIDATES) {
+      const candidate = candidates[index]!;
+      const clusterId = `c${items.length + 1}`;
+      const nextItem: OpenWeightLlmTopicLabelBatchItem = {
+        clusterId,
+        sources: candidate.request.sources,
+      };
+      const trial: OpenWeightLlmTopicLabelBatchRequest = {
+        schemaVersion: 2,
+        taskType: 'topic_label',
+        locale,
+        clusters: [...items, nextItem],
+      };
+      if (requestByteLength(trial) <= OPEN_WEIGHT_LLM_MAX_REQUEST_BYTES) {
+        items.push(nextItem);
+        byClusterId.set(clusterId, candidate);
+        index += 1;
+        continue;
+      }
+      // Falls selbst der erste Kandidat mit 6 Quellen > 2.500 Bytes wäre, Quellen schrittweise kürzen.
+      if (items.length === 0) {
+        let kept = candidate.request.sources.slice(0, -1);
+        let fitted = false;
+        while (kept.length >= 2) {
+          const shrunkItem: OpenWeightLlmTopicLabelBatchItem = { clusterId, sources: kept };
+          const shrunkTrial: OpenWeightLlmTopicLabelBatchRequest = {
+            schemaVersion: 2,
+            taskType: 'topic_label',
+            locale,
+            clusters: [shrunkItem],
+          };
+          if (requestByteLength(shrunkTrial) <= OPEN_WEIGHT_LLM_MAX_REQUEST_BYTES) {
+            items.push(shrunkItem);
+            byClusterId.set(clusterId, candidate);
+            index += 1;
+            fitted = true;
+            break;
+          }
+          kept = kept.slice(0, -1);
+        }
+        if (!fitted) {
+          index += 1;
+        }
+      }
+      break;
+    }
+
+    if (items.length > 0) {
+      batches.push({
+        batchRequest: {
+          schemaVersion: 2,
+          taskType: 'topic_label',
+          locale,
+          clusters: items,
+        },
+        byClusterId,
+      });
+    }
+  }
+
+  return batches;
+}
+
 export async function applyWordCloudTopicLabels(
   input: AnalyzeWordCloudInput,
   output: AnalyzeWordCloudOutput,
@@ -312,6 +423,8 @@ export async function applyWordCloudTopicLabels(
 
   const now = options.now ?? Date.now;
   const label = options.label ?? runOpenWeightLlmTopicLabel;
+  const labelBatch =
+    options.labelBatch ?? (options.label ? undefined : runOpenWeightLlmTopicLabelBatch);
   const startedAt = now();
   const perCallCap = labelTimeoutMs(env);
   const candidateCount = output.entries.filter((entry) => entry.members.length >= 2).length;
@@ -326,8 +439,132 @@ export async function applyWordCloudTopicLabels(
       : externalSignals.length === 1
         ? externalSignals[0]
         : AbortSignal.any(externalSignals);
+  const useProcessLabelCache =
+    (!options.label && !options.labelBatch) || options.useProcessLabelCache === true;
+  const scopePrefix = sessionLabelCachePrefix(options.sessionId, input.sessionCode);
   let transient = false;
   let acceptedModelLabel = false;
+
+  // Schneller Batch-Pfad (Standard, sobald ≥ 2 unbenannte Cluster vorliegen und kein Einzel-Mock übergeben wurde):
+  // fasst bis zu 12 Cluster in einem einzigen LLM-Call (<= 2.500 UTF-8-Bytes) zusammen.
+  if (labelBatch && (output.locale === 'de' || output.locale === 'en')) {
+    const resolvedEntries: Array<WordCloudAnalysisEntryDTO | null> = output.entries.map(() => null);
+    const pendingCandidates: PendingBatchClusterCandidate[] = [];
+
+    for (let i = 0; i < output.entries.length; i += 1) {
+      const entry = output.entries[i]!;
+      if (entry.members.length < 2) {
+        resolvedEntries[i] = withOrigin(entry, 'extractive');
+        continue;
+      }
+      const request = packRequest(entry, output.locale, output.snapshotHash);
+      if (!request) {
+        resolvedEntries[i] = withOrigin(entry, 'extractive');
+        continue;
+      }
+      const labelCacheKey = useProcessLabelCache
+        ? buildClusterTopicLabelCacheKey(scopePrefix, output.locale, request.sources)
+        : '';
+      if (useProcessLabelCache) {
+        const cachedLabel = readCachedClusterTopicLabel(labelCacheKey, now());
+        if (cachedLabel !== null && acceptLabel(cachedLabel, request.sources)) {
+          acceptedModelLabel = true;
+          resolvedEntries[i] = withOrigin(entry, 'model', cachedLabel);
+          continue;
+        }
+      }
+      pendingCandidates.push({ entryIndex: i, entry, request, labelCacheKey });
+    }
+
+    if (pendingCandidates.length === 0) {
+      return {
+        ...output,
+        labelSettlement: 'complete',
+        labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
+        labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+        entries: resolvedEntries.map(
+          (entry, idx) => entry ?? withOrigin(output.entries[idx]!, 'extractive'),
+        ),
+      };
+    }
+
+    if (pendingCandidates.length >= 2) {
+      const batches = packBatchRequests(output.locale, pendingCandidates);
+      let previousBatchAbortedOrTimedOut = false;
+
+      for (const batch of batches) {
+        if (callerSignal?.aborted) {
+          transient = true;
+          break;
+        }
+        if (previousBatchAbortedOrTimedOut) {
+          await new Promise((resolve) => setTimeout(resolve, 1_500));
+          previousBatchAbortedOrTimedOut = false;
+          if (callerSignal?.aborted) {
+            transient = true;
+            break;
+          }
+        }
+        const remaining = phaseBudgetMs - (now() - startedAt);
+        if (remaining < 50) {
+          transient = true;
+          break;
+        }
+        const batchCapMs = Math.min(
+          remaining,
+          Math.max(
+            perCallCap,
+            Math.min(phaseBudgetMs, perCallCap * batch.batchRequest.clusters.length),
+          ),
+        );
+        const timeoutSignal = AbortSignal.timeout(batchCapMs);
+        const callSignal = callerSignal
+          ? AbortSignal.any([timeoutSignal, callerSignal])
+          : timeoutSignal;
+        const batchResult = await labelBatch(batch.batchRequest, { signal: callSignal });
+        if (batchResult.status === 'completed' && !sessionSignal?.aborted) {
+          for (const item of batchResult.output.labels) {
+            const candidate = batch.byClusterId.get(item.clusterId);
+            if (!candidate || resolvedEntries[candidate.entryIndex] !== null) {
+              continue;
+            }
+            if (acceptLabel(item.label, candidate.request.sources)) {
+              const cleanLabel = item.label.trim();
+              if (useProcessLabelCache) {
+                writeCachedClusterTopicLabel(candidate.labelCacheKey, cleanLabel, now());
+              }
+              acceptedModelLabel = true;
+              resolvedEntries[candidate.entryIndex] = withOrigin(
+                candidate.entry,
+                'model',
+                cleanLabel,
+              );
+            }
+          }
+          continue;
+        }
+        if (batchResult.status !== 'completed') {
+          previousBatchAbortedOrTimedOut =
+            batchResult.status === 'aborted' || batchResult.status === 'timeout';
+          if (TRANSIENT_REASONS.has(batchResult.status)) {
+            transient = true;
+          }
+        }
+      }
+
+      const finalEntries = output.entries.map(
+        (entry, idx) => resolvedEntries[idx] ?? withOrigin(entry, 'extractive'),
+      );
+      return {
+        ...output,
+        labelSettlement: transient ? 'transient' : 'complete',
+        labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
+        labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+        entries: finalEntries,
+      };
+    }
+  }
+
   const entries: WordCloudAnalysisEntryDTO[] = [];
 
   let previousAbortedOrTimedOut = false;

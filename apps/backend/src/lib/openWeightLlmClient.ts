@@ -11,6 +11,7 @@ import {
   OpenWeightLlmRequestSchema,
   OpenWeightLlmSummaryOutputSchema,
   OpenWeightLlmSummaryOutputV2Schema,
+  OpenWeightLlmTopicLabelBatchOutputSchema,
   OpenWeightLlmTopicLabelOutputSchema,
   type OpenWeightLlmLearningObjectivesOutput,
   type OpenWeightLlmLearningObjectivesRequest,
@@ -22,6 +23,8 @@ import {
   type OpenWeightLlmSummaryRequest,
   type OpenWeightLlmSummaryRequestV2,
   type OpenWeightLlmTaskType,
+  type OpenWeightLlmTopicLabelBatchOutput,
+  type OpenWeightLlmTopicLabelBatchRequest,
   type OpenWeightLlmTopicLabelOutput,
   type OpenWeightLlmTopicLabelRequest,
 } from '@arsnova/shared-types';
@@ -231,7 +234,9 @@ function waitForAbort<T>(operation: Promise<T>, signal: AbortSignal): Promise<T>
 function outputSchemaFor(request: OpenWeightLlmRequest) {
   switch (request.taskType) {
     case 'topic_label':
-      return OpenWeightLlmTopicLabelOutputSchema;
+      return request.schemaVersion === 2
+        ? OpenWeightLlmTopicLabelBatchOutputSchema
+        : OpenWeightLlmTopicLabelOutputSchema;
     case 'qa_summary':
       return request.schemaVersion === 2
         ? OpenWeightLlmSummaryOutputV2Schema
@@ -300,7 +305,10 @@ function buildChatCompletionBody(
       type: 'json_object',
       schema: z.toJSONSchema(outputSchema, { target: 'draft-7' }),
     },
-    max_tokens: config.maxOutputTokens[request.taskType],
+    max_tokens:
+      request.taskType === 'topic_label' && request.schemaVersion === 2
+        ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
+        : config.maxOutputTokens[request.taskType],
     temperature: 0,
     stream: false,
     reasoning_effort: 'none',
@@ -387,7 +395,17 @@ export async function runOpenWeightLlm(
 
   inFlight = true;
   const startedAt = hooks.now();
-  const timeoutSignal = AbortSignal.timeout(config.timeoutsMs[request.data.taskType]);
+  const taskTimeoutMs =
+    request.data.taskType === 'topic_label' && request.data.schemaVersion === 2
+      ? Math.min(
+          120_000,
+          Math.max(
+            config.timeoutsMs.topic_label,
+            config.timeoutsMs.topic_label * request.data.clusters.length,
+          ),
+        )
+      : config.timeoutsMs[request.data.taskType];
+  const timeoutSignal = AbortSignal.timeout(taskTimeoutMs);
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
 
   let result: OpenWeightLlmRunResult;
@@ -473,7 +491,11 @@ export async function runOpenWeightLlmTopicLabel(
   options: { readonly signal?: AbortSignal } = {},
 ): Promise<OpenWeightLlmLiveResult<OpenWeightLlmTopicLabelOutput>> {
   const result = await runOpenWeightLlm(request, options);
-  if (result.status === 'completed' && result.output.taskType === 'topic_label') {
+  if (
+    result.status === 'completed' &&
+    result.output.taskType === 'topic_label' &&
+    result.output.schemaVersion === 1
+  ) {
     return { ...result, output: result.output };
   }
   return {
@@ -481,6 +503,28 @@ export async function runOpenWeightLlmTopicLabel(
     reason: result.status === 'completed' ? 'invalid_response' : result.status,
     output: fallback,
   };
+}
+
+export async function runOpenWeightLlmTopicLabelBatch(
+  request: OpenWeightLlmTopicLabelBatchRequest,
+  options: { readonly signal?: AbortSignal } = {},
+): Promise<
+  | {
+      readonly status: 'completed';
+      readonly output: OpenWeightLlmTopicLabelBatchOutput;
+      readonly telemetry: OpenWeightLlmTelemetry;
+    }
+  | OpenWeightLlmFailureResult
+> {
+  const result = await runOpenWeightLlm(request, options);
+  if (
+    result.status === 'completed' &&
+    result.output.taskType === 'topic_label' &&
+    result.output.schemaVersion === 2
+  ) {
+    return { ...result, output: result.output };
+  }
+  return result.status === 'completed' ? { status: 'invalid_response' } : result;
 }
 
 export async function runOpenWeightLlmSummary(
