@@ -281,6 +281,38 @@ function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, 
     string,
     unknown
   >;
+  if (request.taskType === 'learning_objectives') {
+    const allowedIds = request.questions.map((question) => question.id);
+    const properties = (base['properties'] as Record<string, unknown> | undefined) ?? {};
+    const objectives = (properties['objectives'] as Record<string, unknown> | undefined) ?? {};
+    const objectiveItem = (objectives['items'] as Record<string, unknown> | undefined) ?? {};
+    const objectiveProperties =
+      (objectiveItem['properties'] as Record<string, unknown> | undefined) ?? {};
+    const questionIds =
+      (objectiveProperties['questionIds'] as Record<string, unknown> | undefined) ?? {};
+    return {
+      ...base,
+      properties: {
+        ...properties,
+        objectives: {
+          ...objectives,
+          items: {
+            ...objectiveItem,
+            properties: {
+              ...objectiveProperties,
+              questionIds: {
+                ...questionIds,
+                items:
+                  allowedIds.length > 0
+                    ? { type: 'string', enum: allowedIds }
+                    : { type: 'string', minLength: 1, maxLength: 36 },
+              },
+            },
+          },
+        },
+      },
+    };
+  }
   if (request.taskType !== 'qa_summary' || request.schemaVersion !== 2) {
     return base;
   }

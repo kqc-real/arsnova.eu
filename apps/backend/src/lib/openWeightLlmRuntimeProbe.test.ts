@@ -8,6 +8,7 @@ import { OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_DEFAULT_MS } from './openWeightLlmConfi
 import {
   getOpenWeightLlmRuntimeProbe,
   getOpenWeightLlmSummaryV2ProbeRequestForTests,
+  OPEN_WEIGHT_LLM_PROBE_LEARNING_TIMEOUT_MS,
   resetOpenWeightLlmRuntimeProbeForTests,
   resolveOpenWeightLlmProbeTaskTimeoutsMs,
   wouldOpenWeightLlmRuntimeProbeRequireLiveMeasurement,
@@ -223,11 +224,11 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
     );
   });
 
-  it('hält Topic/Learning beim kurzen Probe-Budget und Summary beim konfigurierten Timeout', () => {
+  it('hält Topic beim kurzen Probe-Budget, Learning gedeckelt und Summary beim konfigurierten Timeout', () => {
     expect(resolveOpenWeightLlmProbeTaskTimeoutsMs(enabledEnv)).toEqual({
       topic_label: 20_000,
       qa_summary: OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_DEFAULT_MS,
-      learning_objectives: 20_000,
+      learning_objectives: OPEN_WEIGHT_LLM_PROBE_LEARNING_TIMEOUT_MS,
     });
     expect(
       resolveOpenWeightLlmProbeTaskTimeoutsMs({
@@ -239,8 +240,14 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
     ).toEqual({
       topic_label: 20_000,
       qa_summary: 180_000,
-      learning_objectives: 20_000,
+      learning_objectives: OPEN_WEIGHT_LLM_PROBE_LEARNING_TIMEOUT_MS,
     });
+    expect(
+      resolveOpenWeightLlmProbeTaskTimeoutsMs({
+        ...enabledEnv,
+        OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS: '45000',
+      }).learning_objectives,
+    ).toBe(45_000);
     expect(resolveOpenWeightLlmProbeTaskTimeoutsMs(enabledEnv, 2_500)).toEqual({
       topic_label: 2_500,
       qa_summary: 2_500,
@@ -346,7 +353,8 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
 
     expect(timeoutSpy).toHaveBeenCalledWith(20_000);
     expect(timeoutSpy).toHaveBeenCalledWith(180_000);
-    expect(timeoutSpy.mock.calls.filter((call) => call[0] === 20_000)).toHaveLength(2);
+    expect(timeoutSpy).toHaveBeenCalledWith(OPEN_WEIGHT_LLM_PROBE_LEARNING_TIMEOUT_MS);
+    expect(timeoutSpy.mock.calls.filter((call) => call[0] === 20_000)).toHaveLength(1);
     timeoutSpy.mockRestore();
   });
 

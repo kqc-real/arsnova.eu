@@ -22,6 +22,7 @@ import {
 import {
   isOpenWeightLlmEnabled,
   OPEN_WEIGHT_LLM_MODEL_ALIAS,
+  resolveOpenWeightLlmLearningTimeoutMs,
   resolveOpenWeightLlmSummaryTimeoutMs,
 } from './openWeightLlmConfig';
 import {
@@ -37,10 +38,14 @@ import {
 /** Ergebnis-Cache und Mindestabstand zwischen Live-Messungen (auch bei refresh). */
 export const OPEN_WEIGHT_LLM_PROBE_CACHE_TTL_MS = 5 * 60_000;
 /**
- * Kurzes Probe-Budget für Topic/Learning (Erreichbarkeit/Schema).
- * Nur die Summary-Probe braucht die konfigurierte Produktions-Deadline (CPU-Prefill).
+ * Kurzes Probe-Budget für Topic (Erreichbarkeit/Schema).
+ * Learning braucht mehr als 20 s, weil der Wire-Schema-Enum und die
+ * Lernziel-Ausgabe auf CPU hinter einem Summary-Lauf sonst als `aborted`
+ * und damit im Statusdialog als »nicht erreichbar« landen.
+ * Summary nutzt die konfigurierte Produktions-Deadline (CPU-Prefill).
  */
 export const OPEN_WEIGHT_LLM_PROBE_TASK_TIMEOUT_MS = 20_000;
+export const OPEN_WEIGHT_LLM_PROBE_LEARNING_TIMEOUT_MS = 90_000;
 
 export type OpenWeightLlmProbeTaskTimeoutsMs = {
   readonly topic_label: number;
@@ -68,7 +73,10 @@ export function resolveOpenWeightLlmProbeTaskTimeoutsMs(
   return {
     topic_label: OPEN_WEIGHT_LLM_PROBE_TASK_TIMEOUT_MS,
     qa_summary: resolveOpenWeightLlmSummaryTimeoutMs(env['OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS']),
-    learning_objectives: OPEN_WEIGHT_LLM_PROBE_TASK_TIMEOUT_MS,
+    learning_objectives: Math.min(
+      resolveOpenWeightLlmLearningTimeoutMs(env['OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS']),
+      OPEN_WEIGHT_LLM_PROBE_LEARNING_TIMEOUT_MS,
+    ),
   };
 }
 

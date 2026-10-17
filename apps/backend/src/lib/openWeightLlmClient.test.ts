@@ -365,6 +365,42 @@ describe('openWeightLlmClient', () => {
     );
   });
 
+  it('zwingt learning_objectives questionIds im Wire-Schema auf die Quell-IDs statt UUID-Regex', async () => {
+    let translatedBody: string | null = null;
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) => {
+        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+        translatedBody = input.body;
+        return completionResponse(outputs.learning_objectives);
+      },
+    });
+
+    await expect(
+      runOpenWeightLlmLearningObjectives(requests.learning_objectives),
+    ).resolves.toMatchObject({ status: 'completed' });
+    const body = JSON.parse(translatedBody ?? '{}') as {
+      response_format: {
+        schema: {
+          properties?: {
+            objectives?: {
+              items?: {
+                properties?: {
+                  questionIds?: { items?: { enum?: string[]; pattern?: string; format?: string } };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+    const questionIds =
+      body.response_format.schema.properties?.objectives?.items?.properties?.questionIds?.items;
+    expect(questionIds?.enum).toEqual([QUESTION_ID]);
+    expect(questionIds?.pattern).toBeUndefined();
+    expect(questionIds?.format).toBeUndefined();
+  });
+
   it('weist einen kontextsprengenden Auftrag vor Config, Slot und Modellaufruf ab', async () => {
     const config = vi.fn(() => defaultConfig);
     const request = vi.fn();
