@@ -1149,6 +1149,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
+  private wordCloudHttpAbortController = new AbortController();
   private lastFreetextWordCloudProjectionKey: string | null = null;
   private freetextProjectionScope: string | null = null;
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
@@ -6240,9 +6241,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.clearFreetextWordCloudSemanticAnalysisTimer();
     this.clearQaWordCloudSemanticWaitHint();
     this.clearFreetextWordCloudSemanticWaitHint();
+    this.qaWordCloudThemeAnalysisRunId += 1;
     this.qaWordCloudLemmaAnalysisRunId += 1;
     this.freetextWordCloudLemmaAnalysisRunId += 1;
     this.freetextWordCloudSemanticAnalysisRunId += 1;
+    this.wordCloudHttpAbortController.abort();
     this.clearHostQuestionDetailsRetry();
     this.clearQuizAttachSessionInfoRetry();
     this.clearHostRealtimeSubscriptionRetry();
@@ -7174,7 +7177,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     clearFeedbackHostToken(this.code);
   }
 
+  private abortInflightWordCloudHttpRequests(): void {
+    this.clearQaWordCloudThemeAnalysisTimer();
+    this.clearFreetextWordCloudSemanticAnalysisTimer();
+    this.clearQaWordCloudSemanticWaitHint();
+    this.clearFreetextWordCloudSemanticWaitHint();
+    this.qaWordCloudThemeAnalysisRunId += 1;
+    this.qaWordCloudLemmaAnalysisRunId += 1;
+    this.freetextWordCloudLemmaAnalysisRunId += 1;
+    this.freetextWordCloudSemanticAnalysisRunId += 1;
+    this.qaWordCloudThemeAnalysisPending.set(false);
+    this.qaWordCloudLemmaPending.set(false);
+    this.freetextWordCloudLemmaPending.set(false);
+    this.freetextWordCloudSemanticAnalysisPending.set(false);
+    this.wordCloudHttpAbortController.abort();
+    this.wordCloudHttpAbortController = new AbortController();
+  }
+
   private markSessionUnavailable(options?: { keepHostToken?: boolean }): void {
+    this.abortInflightWordCloudHttpRequests();
     this.keepHostTokenOnDeactivate = options?.keepHostToken === true;
     this.sessionUnavailable.set(true);
     this.stopCountdown();
@@ -7191,6 +7212,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private markSessionFinishedLocally(): void {
+    this.abortInflightWordCloudHttpRequests();
     this.stopCountdown();
     this.countdownSeconds.set(null);
     this.syncCurrentQuestionForHost(null);
@@ -13796,7 +13818,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!request) {
       return;
     }
-    // Laufende Analyse nicht mit neuem Korpus ersetzen — Abschluss gleicht Stale ab.
+    // Laufende Analyse nicht während aktiver Abstimmung mit neuem Korpus ersetzen —
+    // ist die Frage jedoch bereits bei RESULTS eingefroren, aktualisieren wir auf den finalen Stand.
     if (this.freetextWordCloudSemanticAnalysisPending()) {
       return;
     }
@@ -13805,6 +13828,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     this.syncFreetextWordCloudSemanticStale(request);
+    if (this.effectiveStatus() === 'RESULTS' && this.freetextWordCloudSemanticStale()) {
+      this.queueFreetextWordCloudSemanticAnalysis(request);
+    }
   }
 
   refreshFreetextWordCloudThemes(): void {
@@ -13849,7 +13875,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const analyzedKey = wordCloudAnalysisRequestKey(request);
 
     try {
-      const result = await trpc.wordCloud.analyze.mutate(request);
+      const result = await trpc.wordCloud.analyze.mutate(request, {
+        signal: this.wordCloudHttpAbortController.signal,
+      });
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
       }
@@ -13862,7 +13890,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.freetextWordCloudSemanticAnalysisResult.set(result);
       this.lastFreetextWordCloudSemanticAnalyzedKey = analyzedKey;
       // Korpus kann während der Anfrage gewachsen sein — dann bleibt die Analyse veraltet.
-      this.reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey);
+      this.reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey, {
+        allowAutoRefreshOnResults: true,
+      });
     } catch {
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
@@ -13890,13 +13920,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   /** Stale, wenn der aktuelle Korpus nicht der analysierten Anfrage entspricht. */
-  private reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey: string | null): void {
+  private reconcileFreetextWordCloudSemanticStaleAfterAnalysis(
+    analyzedKey: string | null,
+    options: { readonly allowAutoRefreshOnResults?: boolean } = {},
+  ): void {
     const current = this.buildFreetextWordCloudSemanticAnalysisRequest();
     if (!current || !analyzedKey) {
       this.freetextWordCloudSemanticStale.set(false);
       return;
     }
-    this.freetextWordCloudSemanticStale.set(wordCloudAnalysisRequestKey(current) !== analyzedKey);
+    const isStale = wordCloudAnalysisRequestKey(current) !== analyzedKey;
+    this.freetextWordCloudSemanticStale.set(isStale);
+    // Wenn während eines laufenden Analyse-Requests auf »Ergebnis anzeigen« (RESULTS)
+    // gewechselt wurde und kurz davor noch finale Antworten hereinkamen, einmalig den
+    // finalen eingefrorenen Stand automatisch nachziehen.
+    if (options.allowAutoRefreshOnResults && isStale && this.effectiveStatus() === 'RESULTS') {
+      this.queueFreetextWordCloudSemanticAnalysis(current);
+    }
   }
 
   private buildQaWordCloudLemmaAnalysisRequest(): AnalyzeWordCloudInput | null {
@@ -14036,11 +14076,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
     let lastError: unknown;
     for (let attempt = 0; attempt <= QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES; attempt += 1) {
+      if (this.wordCloudHttpAbortController.signal.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
+      }
       try {
-        return await trpc.wordCloud.analyzeQa.mutate(input);
+        return await trpc.wordCloud.analyzeQa.mutate(input, {
+          signal: this.wordCloudHttpAbortController.signal,
+        });
       } catch (error) {
         lastError = error;
         if (
+          this.wordCloudHttpAbortController.signal.aborted ||
           !this.isTrpcConflictError(error) ||
           attempt === QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES
         ) {
@@ -14111,7 +14157,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.freetextWordCloudLemmaPending.set(true);
 
     try {
-      const result = await trpc.wordCloud.analyze.mutate(request);
+      const result = await trpc.wordCloud.analyze.mutate(request, {
+        signal: this.wordCloudHttpAbortController.signal,
+      });
       if (runId !== this.freetextWordCloudLemmaAnalysisRunId) {
         return;
       }
@@ -15014,6 +15062,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       this.stopCountdown();
       this.countdownSeconds.set(null);
+      this.abortInflightWordCloudHttpRequests();
       const result = await trpc.session.end.mutate({ code: this.code.toUpperCase() });
       this.statusUpdate.set(result);
       this.syncCurrentQuestionForHost(null);

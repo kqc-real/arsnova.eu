@@ -125,11 +125,15 @@ describe('trpc.client host transport', () => {
 
     expect(shouldUseUnbatchedHttpTransport('quiz.deriveLearningObjectives')).toBe(true);
     expect(shouldUseUnbatchedHttpTransport('health.openWeightLlmProbe')).toBe(true);
+    expect(shouldUseUnbatchedHttpTransport('wordCloud.analyze')).toBe(true);
+    expect(shouldUseUnbatchedHttpTransport('wordCloud.analyzeQa')).toBe(true);
     expect(shouldUseUnbatchedHttpTransport('health.stats')).toBe(false);
     expect(shouldUseUnbatchedHttpTransport('quiz.prepareLearningObjectiveDerivation')).toBe(false);
     expect(shouldUseUnbatchedHttpTransport('quiz.upload')).toBe(false);
     expect(httpSplitOptions.condition({ path: 'quiz.deriveLearningObjectives' })).toBe(true);
     expect(httpSplitOptions.condition({ path: 'health.openWeightLlmProbe' })).toBe(true);
+    expect(httpSplitOptions.condition({ path: 'wordCloud.analyze' })).toBe(true);
+    expect(httpSplitOptions.condition({ path: 'wordCloud.analyzeQa' })).toBe(true);
     expect(httpSplitOptions.condition({ path: 'health.stats' })).toBe(false);
     expect(httpSplitOptions.condition({ path: 'quiz.prepareLearningObjectiveDerivation' })).toBe(
       false,

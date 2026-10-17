@@ -61,6 +61,7 @@ export type TopicLabelCaller = (
 
 type LabelOptions = {
   readonly sessionId?: string;
+  readonly signal?: AbortSignal;
   readonly now?: () => number;
   readonly label?: TopicLabelCaller;
   readonly useProcessLabelCache?: boolean;
@@ -73,6 +74,7 @@ type CachedClusterTopicLabel = {
 };
 
 const clusterTopicLabelCache = new Map<string, CachedClusterTopicLabel>();
+const sessionLabelAbortControllers = new Map<string, AbortController>();
 
 function sessionLabelCachePrefix(sessionId?: string, sessionCode = ''): string {
   const trimmedSessionId = sessionId?.trim();
@@ -80,6 +82,20 @@ function sessionLabelCachePrefix(sessionId?: string, sessionCode = ''): string {
     return `session:${trimmedSessionId}`;
   }
   return `unscoped:${sessionCode.trim().toUpperCase()}`;
+}
+
+function getOrCreateSessionLabelSignal(sessionId?: string): AbortSignal | undefined {
+  const trimmedSessionId = sessionId?.trim();
+  if (!trimmedSessionId) {
+    return undefined;
+  }
+  const key = sessionLabelCachePrefix(trimmedSessionId);
+  let controller = sessionLabelAbortControllers.get(key);
+  if (!controller || controller.signal.aborted) {
+    controller = new AbortController();
+    sessionLabelAbortControllers.set(key, controller);
+  }
+  return controller.signal;
 }
 
 function purgeExpiredClusterTopicLabels(nowMs: number): void {
@@ -92,7 +108,13 @@ function purgeExpiredClusterTopicLabels(nowMs: number): void {
 
 export function invalidateWordCloudTopicLabelSession(sessionId: string, nowMs = Date.now()): void {
   purgeExpiredClusterTopicLabels(nowMs);
-  const prefix = `${sessionLabelCachePrefix(sessionId)}:`;
+  const scopeKey = sessionLabelCachePrefix(sessionId);
+  const controller = sessionLabelAbortControllers.get(scopeKey);
+  if (controller) {
+    controller.abort();
+    sessionLabelAbortControllers.delete(scopeKey);
+  }
+  const prefix = `${scopeKey}:`;
   for (const key of clusterTopicLabelCache.keys()) {
     if (key.startsWith(prefix)) {
       clusterTopicLabelCache.delete(key);
@@ -102,6 +124,10 @@ export function invalidateWordCloudTopicLabelSession(sessionId: string, nowMs = 
 
 export function resetWordCloudTopicLabelCacheForTests(): void {
   clusterTopicLabelCache.clear();
+  for (const controller of sessionLabelAbortControllers.values()) {
+    controller.abort();
+  }
+  sessionLabelAbortControllers.clear();
 }
 
 function buildClusterTopicLabelCacheKey(
@@ -290,6 +316,16 @@ export async function applyWordCloudTopicLabels(
   const perCallCap = labelTimeoutMs(env);
   const candidateCount = output.entries.filter((entry) => entry.members.length >= 2).length;
   const phaseBudgetMs = resolveTopicLabelPhaseBudgetMs(env, candidateCount);
+  const sessionSignal = getOrCreateSessionLabelSignal(options.sessionId);
+  const externalSignals = [options.signal, sessionSignal].filter(
+    (sig): sig is AbortSignal => sig !== undefined,
+  );
+  const callerSignal =
+    externalSignals.length === 0
+      ? undefined
+      : externalSignals.length === 1
+        ? externalSignals[0]
+        : AbortSignal.any(externalSignals);
   let transient = false;
   let acceptedModelLabel = false;
   const entries: WordCloudAnalysisEntryDTO[] = [];
@@ -300,9 +336,19 @@ export async function applyWordCloudTopicLabels(
       entries.push(withOrigin(entry, 'extractive'));
       continue;
     }
+    if (callerSignal?.aborted) {
+      transient = true;
+      entries.push(withOrigin(entry, 'extractive'));
+      continue;
+    }
     if (previousAbortedOrTimedOut) {
       await new Promise((resolve) => setTimeout(resolve, 1_500));
       previousAbortedOrTimedOut = false;
+      if (callerSignal?.aborted) {
+        transient = true;
+        entries.push(withOrigin(entry, 'extractive'));
+        continue;
+      }
     }
     const request = packRequest(entry, output.locale, output.snapshotHash);
     if (!request) {
@@ -334,13 +380,21 @@ export async function applyWordCloudTopicLabels(
       label: entry.label.slice(0, 120),
       sourceIds: request.sources.slice(0, 8).map((source) => source.id),
     };
+    const timeoutSignal = AbortSignal.timeout(Math.min(perCallCap, remaining));
+    const callSignal = callerSignal
+      ? AbortSignal.any([timeoutSignal, callerSignal])
+      : timeoutSignal;
     const result = await label(request, fallback, {
-      signal: AbortSignal.timeout(Math.min(perCallCap, remaining)),
+      signal: callSignal,
     });
     if (result.status === 'fallback') {
       previousAbortedOrTimedOut = result.reason === 'aborted' || result.reason === 'timeout';
     }
-    if (result.status === 'completed' && acceptLabel(result.output.label, request.sources)) {
+    if (
+      !sessionSignal?.aborted &&
+      result.status === 'completed' &&
+      acceptLabel(result.output.label, request.sources)
+    ) {
       const cleanLabel = result.output.label.trim();
       if (useProcessLabelCache) {
         writeCachedClusterTopicLabel(labelCacheKey, cleanLabel, now());

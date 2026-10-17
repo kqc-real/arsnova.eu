@@ -44,6 +44,7 @@ export interface AnalyzeWordCloudSnapshotOptions {
   readonly cache?: WordCloudAnalysisCache;
   /** Ausschließlich serverseitig aus der autoritativen Session laden. */
   readonly cacheScope?: WordCloudSnapshotCacheScope;
+  readonly signal?: AbortSignal;
   readonly normalize?: typeof normalizeWordCloudItems;
   readonly env?: NodeJS.ProcessEnv;
   readonly sidecar?: NormalizeWordCloudOptions['sidecar'];
@@ -163,6 +164,7 @@ export async function analyzeWordCloudSnapshot(
     effectiveInput.mode === 'SEMANTIC'
       ? await labelSemanticWordCloudSnapshot(effectiveInput, normalized.meta, {
           sessionId: options.cacheScope?.sessionId,
+          signal: options.signal,
           env: options.env,
           tokensByItemId: normalized.tokensByItemId,
         })
@@ -226,6 +228,37 @@ function compactQaWordCloudOutput(output: AnalyzeWordCloudOutput): AnalyzeWordCl
   };
 }
 
+function createRequestDisconnectSignal(req?: import('node:http').IncomingMessage): {
+  readonly signal?: AbortSignal;
+  readonly cleanup: () => void;
+} {
+  if (!req || typeof req.once !== 'function') {
+    return { cleanup: () => undefined };
+  }
+  const controller = new AbortController();
+  const socket = req.socket;
+  const onDisconnect = () => {
+    if (!controller.signal.aborted) {
+      controller.abort();
+    }
+  };
+  req.once('aborted', onDisconnect);
+  if (socket && typeof socket.once === 'function') {
+    socket.once('close', onDisconnect);
+  }
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      if (typeof req.removeListener === 'function') {
+        req.removeListener('aborted', onDisconnect);
+      }
+      if (socket && typeof socket.removeListener === 'function') {
+        socket.removeListener('close', onDisconnect);
+      }
+    },
+  };
+}
+
 /**
  * Word-Cloud-Analysepfad für den Host.
  * THEME bleibt der deterministische Phrasen-/Anchor-Pfad ohne spaCy.
@@ -254,7 +287,15 @@ export const wordCloudRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      return analyzeWordCloudSnapshot(input, { cacheScope: { sessionId: session.id } });
+      const disconnect = createRequestDisconnectSignal(ctx.req);
+      try {
+        return await analyzeWordCloudSnapshot(input, {
+          cacheScope: { sessionId: session.id },
+          signal: disconnect.signal,
+        });
+      } finally {
+        disconnect.cleanup();
+      }
     }),
 
   analyzeQa: hostProcedure
@@ -389,39 +430,48 @@ export const wordCloudRouter = router({
       }));
       const eligibleQuestionCount = Number(corpus[0]?.eligibleCount ?? 0);
       const cache = getWordCloudAnalysisCache();
-      const analysis = (await analyzeWordCloudSnapshot(
-        {
-          sessionCode: input.sessionCode.toUpperCase(),
-          mode: input.mode,
-          locale: input.locale,
-          metric: input.metric,
-          channel: 'QA',
-          normalization: input.normalization,
-          items,
-          maxEntries: input.maxEntries,
-          maxNgramLength: input.maxNgramLength,
-          refresh: input.refresh,
-          corpusRevision: `${corpusRevision}:limit=${input.limit}`,
-        },
-        {
-          cache,
-          compactOutput: compactQaWordCloudOutput,
-          cacheScope: { sessionId: session.id },
-          onFreshOutput: async (rawAnalysis, effectiveAnalysisInput) => {
-            await recordLatestQaSemanticTopicSnapshot({
-              cache,
-              scope: { sessionId: session.id },
-              request: input,
-              analysis: rawAnalysis,
-              corpusRevision,
-              eligibleQuestionCount,
-              corpusItems: effectiveAnalysisInput.items,
-            });
-          },
-        },
-      )) as Omit<AnalyzeWordCloudOutput, 'entries'> & {
+      const disconnect = createRequestDisconnectSignal(ctx.req);
+      let analysis: Omit<AnalyzeWordCloudOutput, 'entries'> & {
         entries: AnalyzeQaWordCloudOutput['entries'];
       };
+      try {
+        analysis = (await analyzeWordCloudSnapshot(
+          {
+            sessionCode: input.sessionCode.toUpperCase(),
+            mode: input.mode,
+            locale: input.locale,
+            metric: input.metric,
+            channel: 'QA',
+            normalization: input.normalization,
+            items,
+            maxEntries: input.maxEntries,
+            maxNgramLength: input.maxNgramLength,
+            refresh: input.refresh,
+            corpusRevision: `${corpusRevision}:limit=${input.limit}`,
+          },
+          {
+            cache,
+            signal: disconnect.signal,
+            compactOutput: compactQaWordCloudOutput,
+            cacheScope: { sessionId: session.id },
+            onFreshOutput: async (rawAnalysis, effectiveAnalysisInput) => {
+              await recordLatestQaSemanticTopicSnapshot({
+                cache,
+                scope: { sessionId: session.id },
+                request: input,
+                analysis: rawAnalysis,
+                corpusRevision,
+                eligibleQuestionCount,
+                corpusItems: effectiveAnalysisInput.items,
+              });
+            },
+          },
+        )) as Omit<AnalyzeWordCloudOutput, 'entries'> & {
+          entries: AnalyzeQaWordCloudOutput['entries'];
+        };
+      } finally {
+        disconnect.cleanup();
+      }
       return {
         ...analysis,
         eligibleQuestionCount,

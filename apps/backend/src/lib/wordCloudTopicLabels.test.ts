@@ -540,4 +540,64 @@ describe('applyWordCloudTopicLabels', () => {
     expect(afterPurgeB.entries[0]?.label).toBe('Thema Lauf 2');
     expect(afterPurgeA.entries[0]?.label).toBe('Thema Lauf 3');
   });
+
+  it('bricht die LLM-Cluster-Schleife sofort ab, wenn der Client die Verbindung trennt (AbortSignal) oder die Session invalidiert wird', async () => {
+    const firstCluster = entry('Was ist die Steigung?', [
+      'Was ist die Steigung?',
+      'Wie bestimmt man die Steigung?',
+    ]);
+    const secondCluster = entry('Was ist die Ableitung?', [
+      'Was ist die Ableitung?',
+      'Wie leitet man ab?',
+    ]);
+    const disconnectController = new AbortController();
+    let llmCalls = 0;
+
+    const label = labeler(async (request, fallback, options) => {
+      llmCalls += 1;
+      // Während der erste Cluster benannt wird, verlässt der Host die Session-Seite
+      disconnectController.abort();
+      if (options.signal?.aborted) {
+        return {
+          status: 'fallback',
+          reason: 'aborted',
+          output: fallback,
+          telemetry: {
+            taskType: 'topic_label',
+            elapsedMs: 1,
+            model: null,
+            promptTokens: null,
+            completionTokens: null,
+          },
+        };
+      }
+      return {
+        status: 'completed',
+        output: {
+          schemaVersion: 1,
+          taskType: 'topic_label',
+          label: 'Steigung linearer Funktionen',
+          sourceIds: [request.sources[0]!.id],
+        },
+        telemetry: {
+          taskType: 'topic_label',
+          elapsedMs: 1,
+          model: null,
+          promptTokens: null,
+          completionTokens: null,
+        },
+      };
+    });
+
+    const result = await applyWordCloudTopicLabels(input, output([firstCluster, secondCluster]), {
+      env: enabledEnv,
+      signal: disconnectController.signal,
+      label,
+    });
+
+    // Der zweite Cluster darf nach dem Abbruch gar nicht mehr bei llama-server angefragt werden
+    expect(llmCalls).toBe(1);
+    expect(result.labelSettlement).toBe('transient');
+    expect(result.entries[1]?.labelOrigin).toBe('extractive');
+  });
 });
