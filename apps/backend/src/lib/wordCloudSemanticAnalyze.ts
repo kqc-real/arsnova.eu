@@ -2,6 +2,7 @@
  * Host-Themenpfad fuer Q&A und Freitext: Snapshot → Hash → Encoder → Cluster → Zod.
  * Höchstens ein Inflight-Job pro Session; Circuit Breaker bei Encoder-Fehlern.
  */
+import { createHash } from 'node:crypto';
 import {
   AnalyzeWordCloudOutputSchema,
   fromWordCloudSemanticSourceId,
@@ -39,7 +40,9 @@ import {
   rankSemanticClusters,
   semanticClustersToEntries,
   type WordCloudEmbedding,
+  type WordCloudSemanticCluster,
 } from './wordCloudSemanticCluster';
+import { resetWordCloudTopicLabelCacheForTests } from './wordCloudTopicLabels';
 
 export type WordCloudSemanticEmbedder = (
   input: AnalyzeWordCloudInput,
@@ -95,9 +98,18 @@ function createDefaultHooks(): SemanticHooks {
   };
 }
 
+type CachedSessionClusters = {
+  readonly expiresAt: number;
+  readonly modelId: string;
+  readonly modelVersion: string;
+  readonly rawClusters: readonly WordCloudSemanticCluster[];
+};
+
+const MAX_CACHED_CLUSTER_ENTRIES = 64;
 let hooks: SemanticHooks = createDefaultHooks();
 const circuit: CircuitState = { failures: 0, openedAt: null };
 const jobs = new Map<string, SessionJobQueue>();
+const sessionClustersCache = new Map<string, CachedSessionClusters>();
 
 function sessionJobKey(sessionId: string): string {
   return `session:${sessionId.trim()}`;
@@ -109,8 +121,29 @@ function unscopedJobKey(sessionCode: string): string {
   return `unscoped:${sessionCode.trim().toUpperCase()}`;
 }
 
+function buildWeightAgnosticCorpusKey(sessionKey: string, input: AnalyzeWordCloudInput): string {
+  const hash = createHash('sha256')
+    .update(
+      JSON.stringify({
+        locale: input.locale,
+        channel: input.channel ?? null,
+        items: [...input.items]
+          .map((item) => ({ id: item.id, text: item.text }))
+          .sort((left, right) => left.id.localeCompare(right.id)),
+      }),
+      'utf8',
+    )
+    .digest('hex');
+  return `${sessionKey}:${hash}`;
+}
+
 export function invalidateWordCloudSemanticSession(sessionId: string): void {
   const sessionKey = sessionJobKey(sessionId);
+  for (const key of sessionClustersCache.keys()) {
+    if (key.startsWith(`${sessionKey}:`)) {
+      sessionClustersCache.delete(key);
+    }
+  }
   const queue = jobs.get(sessionKey);
   if (!queue) {
     return;
@@ -134,6 +167,8 @@ export function resetWordCloudSemanticAnalyzeForTests(overrides?: Partial<Semant
   };
   circuit.failures = 0;
   circuit.openedAt = null;
+  sessionClustersCache.clear();
+  resetWordCloudTopicLabelCacheForTests();
   for (const queue of jobs.values()) {
     queue.epoch += 1;
     if (queue.latest) {
@@ -251,11 +286,13 @@ function embeddingsFromEncoder(
 }
 
 async function runSemanticEncoderJob(
+  sessionKey: string,
   input: AnalyzeWordCloudInput,
   meta: WordCloudNormalizationMeta,
   tokensByItemId:
     ReadonlyMap<string, readonly import('./wordCloudAnalysis').WordCloudRawToken[]> | undefined,
   env: NodeJS.ProcessEnv,
+  canCacheClusters: () => boolean,
 ): Promise<AnalyzeWordCloudOutput> {
   const fallbackEntries = buildLexicalSemanticFallbackEntries(input, tokensByItemId);
   const config = hooks.config(env);
@@ -305,6 +342,38 @@ async function runSemanticEncoderJob(
       modelId: null,
     });
   }
+
+  const corpusKey = buildWeightAgnosticCorpusKey(sessionKey, input);
+  const cachedClusters = input.refresh === true ? undefined : sessionClustersCache.get(corpusKey);
+  if (cachedClusters && cachedClusters.expiresAt > now) {
+    const clusters = rankSemanticClusters(cachedClusters.rawClusters, input.items);
+    if (!hasReliableSemanticCluster(clusters)) {
+      return buildSemanticAnalysisOutput({
+        request: input,
+        entries: fallbackEntries,
+        meta,
+        status: 'fallback',
+        fallbackUsed: true,
+        modelVersion: cachedClusters.modelVersion,
+        modelId: cachedClusters.modelId,
+      });
+    }
+    const entries = semanticClustersToEntries(clusters, input.items);
+    const uncertain = clusters.every((cluster) => cluster.confidence < 0.85);
+    return buildSemanticAnalysisOutput({
+      request: input,
+      entries,
+      meta,
+      status: uncertain ? 'uncertain' : 'ready',
+      fallbackUsed: false,
+      modelVersion: cachedClusters.modelVersion,
+      modelId: cachedClusters.modelId,
+    });
+  }
+  if (cachedClusters) {
+    sessionClustersCache.delete(corpusKey);
+  }
+
   if (isCircuitOpen(now)) {
     return buildSemanticAnalysisOutput({
       request: input,
@@ -320,10 +389,22 @@ async function runSemanticEncoderJob(
   try {
     const response = await hooks.embed(input, meta.snapshotHash, config);
     recordCircuitSuccess();
-    const clusters = rankSemanticClusters(
-      clusterWordCloudEmbeddings(embeddingsFromEncoder(input, response)),
-      input.items,
-    );
+    const rawClusters = clusterWordCloudEmbeddings(embeddingsFromEncoder(input, response));
+    if (canCacheClusters()) {
+      if (sessionClustersCache.size >= MAX_CACHED_CLUSTER_ENTRIES) {
+        const oldestKey = sessionClustersCache.keys().next().value;
+        if (oldestKey !== undefined) {
+          sessionClustersCache.delete(oldestKey);
+        }
+      }
+      sessionClustersCache.set(corpusKey, {
+        expiresAt: hooks.now() + config.cacheTtlSeconds * 1_000,
+        modelId: response.modelId,
+        modelVersion: response.modelVersion,
+        rawClusters,
+      });
+    }
+    const clusters = rankSemanticClusters(rawClusters, input.items);
     if (!hasReliableSemanticCluster(clusters)) {
       return buildSemanticAnalysisOutput({
         request: input,
@@ -426,10 +507,12 @@ function startSessionJob(sessionKey: string, queue: SessionJobQueue, job: Sessio
       return buildQueueFallback(job);
     }
     const output = await runSemanticEncoderJob(
+      sessionKey,
       job.input,
       job.meta,
       job.options.tokensByItemId,
       job.options.env ?? process.env,
+      () => job.epoch === queue.epoch,
     );
     return job.epoch === queue.epoch ? output : buildQueueFallback(job);
   })();

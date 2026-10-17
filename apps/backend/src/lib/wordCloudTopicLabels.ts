@@ -40,6 +40,8 @@ const TOPIC_LABEL_MAX_CANDIDATES = 12;
 export const TOPIC_LABEL_MAX_SOURCES_PER_CLUSTER = 6;
 const TOPIC_LABEL_MAX_SOURCE_TEXT_CHARS = 240;
 const TOPIC_LABEL_COMPACT_ID_MAX_LENGTH = 20;
+const TOPIC_LABEL_CACHE_TTL_MS = 30 * 60_000;
+const TOPIC_LABEL_CACHE_MAX_ENTRIES = 512;
 const TOPIC_LABEL_LOCALES = new Set(['de', 'en']);
 const TRANSIENT_REASONS = new Set([
   'busy',
@@ -59,8 +61,55 @@ export type TopicLabelCaller = (
 type LabelOptions = {
   readonly now?: () => number;
   readonly label?: TopicLabelCaller;
+  readonly useProcessLabelCache?: boolean;
   readonly env?: NodeJS.ProcessEnv;
 };
+
+type CachedClusterTopicLabel = {
+  readonly label: string;
+  readonly expiresAt: number;
+};
+
+const clusterTopicLabelCache = new Map<string, CachedClusterTopicLabel>();
+
+export function resetWordCloudTopicLabelCacheForTests(): void {
+  clusterTopicLabelCache.clear();
+}
+
+function buildClusterTopicLabelCacheKey(
+  locale: string,
+  sources: readonly { readonly id: string; readonly text: string }[],
+): string {
+  return JSON.stringify({
+    model: OPEN_WEIGHT_LLM_MODEL_ID,
+    version: OPEN_WEIGHT_LLM_MODEL_VERSION,
+    locale,
+    sources,
+  });
+}
+
+function readCachedClusterTopicLabel(key: string, nowMs: number): string | null {
+  const hit = clusterTopicLabelCache.get(key);
+  if (!hit) return null;
+  if (hit.expiresAt <= nowMs) {
+    clusterTopicLabelCache.delete(key);
+    return null;
+  }
+  return hit.label;
+}
+
+function writeCachedClusterTopicLabel(key: string, label: string, nowMs: number): void {
+  if (clusterTopicLabelCache.size >= TOPIC_LABEL_CACHE_MAX_ENTRIES) {
+    const oldestKey = clusterTopicLabelCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      clusterTopicLabelCache.delete(oldestKey);
+    }
+  }
+  clusterTopicLabelCache.set(key, {
+    label,
+    expiresAt: nowMs + TOPIC_LABEL_CACHE_TTL_MS,
+  });
+}
 
 function normalizeComparable(value: string): string {
   return value.trim().toLocaleLowerCase('de');
@@ -106,7 +155,9 @@ function packRequest(
     id: compactTopicLabelSourceId(member.sourceId, index),
     text: member.text.trim().slice(0, TOPIC_LABEL_MAX_SOURCE_TEXT_CHARS),
   }));
-  const clusterId = `${snapshotHash.slice(0, 16)}:${entry.key}`.slice(0, 80);
+  // Konstante clusterId hält den JSON-Präfix vor `sources` über alle Cluster
+  // identisch, damit llama.cpp Systemprompt + JSON-Header im KV-Cache behält.
+  const clusterId = entry.key === 'echo' ? `${snapshotHash.slice(0, 16)}:echo` : 'cluster';
   let kept = sources;
   while (kept.length >= 2) {
     const request: OpenWeightLlmTopicLabelRequest = {
@@ -217,14 +268,26 @@ export async function applyWordCloudTopicLabels(
       await new Promise((resolve) => setTimeout(resolve, 1_500));
       previousAbortedOrTimedOut = false;
     }
-    const remaining = phaseBudgetMs - (now() - startedAt);
-    if (remaining < 50) {
-      transient = true;
+    const request = packRequest(entry, output.locale, output.snapshotHash);
+    if (!request) {
       entries.push(withOrigin(entry, 'extractive'));
       continue;
     }
-    const request = packRequest(entry, output.locale, output.snapshotHash);
-    if (!request) {
+    const useProcessLabelCache = !options.label || options.useProcessLabelCache === true;
+    const labelCacheKey = useProcessLabelCache
+      ? buildClusterTopicLabelCacheKey(output.locale, request.sources)
+      : '';
+    if (useProcessLabelCache) {
+      const cachedLabel = readCachedClusterTopicLabel(labelCacheKey, now());
+      if (cachedLabel !== null && acceptLabel(cachedLabel, request.sources)) {
+        acceptedModelLabel = true;
+        entries.push(withOrigin(entry, 'model', cachedLabel));
+        continue;
+      }
+    }
+    const remaining = phaseBudgetMs - (now() - startedAt);
+    if (remaining < 50) {
+      transient = true;
       entries.push(withOrigin(entry, 'extractive'));
       continue;
     }
@@ -241,8 +304,12 @@ export async function applyWordCloudTopicLabels(
       previousAbortedOrTimedOut = result.reason === 'aborted' || result.reason === 'timeout';
     }
     if (result.status === 'completed' && acceptLabel(result.output.label, request.sources)) {
+      const cleanLabel = result.output.label.trim();
+      if (useProcessLabelCache) {
+        writeCachedClusterTopicLabel(labelCacheKey, cleanLabel, now());
+      }
       acceptedModelLabel = true;
-      entries.push(withOrigin(entry, 'model', result.output.label.trim()));
+      entries.push(withOrigin(entry, 'model', cleanLabel));
       continue;
     }
     if (result.status === 'fallback' && TRANSIENT_REASONS.has(result.reason)) {

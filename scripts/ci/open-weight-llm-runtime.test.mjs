@@ -48,7 +48,7 @@ test('Entry-Point erzwingt Auth, CPU-only, einen Slot und die vereinbarten Hartf
     /model_sha256=3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597/,
   );
   assert.match(entrypoint, /OPEN_WEIGHT_LLM_TOKEN/);
-  assert.match(entrypoint, /OPEN_WEIGHT_LLM_THREADS must be an integer from 1 to 4/);
+  assert.match(entrypoint, /OPEN_WEIGHT_LLM_THREADS must be an integer from 1 to 8/);
   assert.match(entrypoint, /export LC_ALL=C/);
   assert.match(entrypoint, /validate_open_weight_llm_token/);
   assert.match(entrypoint, /validate_open_weight_llm_bind_address/);

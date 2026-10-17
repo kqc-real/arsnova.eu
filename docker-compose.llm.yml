@@ -20,7 +20,7 @@ services:
     pids_limit: 128
     mem_limit: 8g
     memswap_limit: 10g
-    cpus: '4.0'
+    cpus: '8.0'
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
     volumes:
@@ -29,7 +29,7 @@ services:
       - .env.llm
     environment:
       OPEN_WEIGHT_LLM_TRANSPORT: http
-      OPEN_WEIGHT_LLM_THREADS: '4'
+      OPEN_WEIGHT_LLM_THREADS: '8'
     healthcheck:
       test: ['CMD', '/opt/arsnova/healthcheck.sh']
       interval: 15s

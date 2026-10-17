@@ -10,6 +10,7 @@ import { resolveWordCloudNormalizationMeta } from './wordCloudNormalization';
 import {
   applyWordCloudTopicLabels,
   labelSemanticWordCloudSnapshot,
+  resetWordCloudTopicLabelCacheForTests,
   resolveTopicLabelPhaseBudgetMs,
   WORD_CLOUD_TOPIC_LABEL_PHASE_BUDGET_CAP_MS,
   WORD_CLOUD_TOPIC_LABEL_PHASE_BUDGET_MS,
@@ -92,6 +93,7 @@ describe('resolveTopicLabelPhaseBudgetMs', () => {
 describe('applyWordCloudTopicLabels', () => {
   afterEach(() => {
     resetWordCloudSemanticAnalyzeForTests();
+    resetWordCloudTopicLabelCacheForTests();
   });
 
   it('lässt bei ausgeschalteter Runtime den Mitgliedstext stehen', async () => {
@@ -425,5 +427,49 @@ describe('applyWordCloudTopicLabels', () => {
     expect(result.entries[0]?.label).toBe('Klausurtermine');
     expect(result.entries[0]?.labelOrigin).toBe('model');
     expect(result.entries[0]?.members[0]?.sourceId).toBe('0199e3a4-7b2c-7d8e-9f10-1a2b3c4d5e00');
+  });
+
+  it('cacht bereits benannte Cluster im Default-Labeler über Sortierwechsel und Transienten hinweg', async () => {
+    resetWordCloudSemanticAnalyzeForTests();
+    const clusterEntry = entry('Was ist die Steigung?', [
+      'Was ist die Steigung?',
+      'Wie bestimmt man die Steigung?',
+    ]);
+    let llmCalls = 0;
+    const label = labeler(async (request) => {
+      llmCalls += 1;
+      expect(request.clusterId).toBe('cluster');
+      return {
+        status: 'completed',
+        output: {
+          schemaVersion: 1,
+          taskType: 'topic_label',
+          label: 'Steigung linearer Funktionen',
+          sourceIds: [request.sources[0]!.id],
+        },
+        telemetry: {
+          taskType: 'topic_label',
+          elapsedMs: 1,
+          model: null,
+          promptTokens: null,
+          completionTokens: null,
+        },
+      };
+    });
+    const first = await applyWordCloudTopicLabels(input, output([clusterEntry]), {
+      env: enabledEnv,
+      label,
+      useProcessLabelCache: true,
+    });
+    const second = await applyWordCloudTopicLabels(input, output([clusterEntry]), {
+      env: enabledEnv,
+      label,
+      useProcessLabelCache: true,
+    });
+    expect(llmCalls).toBe(1);
+    expect(first.entries[0]?.label).toBe('Steigung linearer Funktionen');
+    expect(second.entries[0]?.label).toBe('Steigung linearer Funktionen');
+    expect(second.entries[0]?.labelOrigin).toBe('model');
+    expect(second.labelSettlement).toBe('complete');
   });
 });

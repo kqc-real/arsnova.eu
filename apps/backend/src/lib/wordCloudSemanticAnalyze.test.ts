@@ -627,4 +627,45 @@ describe('wordCloudSemanticAnalyze', () => {
       expect(result.modelVersion).toBeNull();
     },
   );
+
+  it('verwendet einmal berechnete Embeddings/Cluster beim Sortierwechsel (BEST -> TOP -> TIME) ohne erneuten Encoder-Lauf wieder', async () => {
+    let embedCalls = 0;
+    resetWordCloudSemanticAnalyzeForTests({
+      config: () => enabledConfig,
+      embed: async (input) => {
+        embedCalls += 1;
+        return {
+          modelId: 'intfloat/multilingual-e5-small',
+          modelVersion: 'intfloat/multilingual-e5-small@sha256:metric-reuse',
+          items: input.items.map((item) => ({
+            id: toWordCloudSemanticSourceId(item.id),
+            embedding: geometricEmbeddingForSeedText(item.text),
+          })),
+        };
+      },
+    });
+
+    const base = qaSemanticInput('ABC123');
+    const bestResult = await runSemanticDirect({
+      ...base,
+      metric: 'BEST',
+      items: base.items.map((item, idx) => ({ ...item, weight: idx + 1 })),
+    });
+    const topResult = await runSemanticDirect({
+      ...base,
+      metric: 'TOP',
+      items: base.items.map((item, idx) => ({ ...item, weight: (base.items.length - idx) * 2 })),
+    });
+    const timeResult = await runSemanticDirect({
+      ...base,
+      metric: 'TIME',
+      items: base.items.map((item) => ({ ...item, weight: 1 })),
+    });
+
+    expect(embedCalls).toBe(1);
+    expect(bestResult.status).toBe('ready');
+    expect(topResult.status).toBe('ready');
+    expect(timeResult.status).toBe('ready');
+    expect(topResult.entries[0]?.count).not.toBe(timeResult.entries[0]?.count);
+  });
 });
