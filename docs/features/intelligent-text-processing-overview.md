@@ -2,8 +2,8 @@
 
 # Intelligente Textverarbeitung in arsnova.eu: Freitext, Q&A, Lernziele und Moderationskompass
 
-**Zielgruppe:** Product Owner, Lehrende, Entwickler:innen, Betrieb, Studierende (Cloud Computing / Data Analytics)  
-**Stand:** 2026-10-17  
+**Zielgruppe:** Product Owner, Lehrende, Entwickler:innen, Betrieb, Studierende (Cloud Computing / Data Analytics)
+**Stand:** 2026-10-17
 **Kanonische Detaildokumente:** [Moderationskompass (8.9a)](moderation-compass.md) · [Q&A-NLP-Kaskade (8.9b)](qa-nlp-moderation.md) · [Moderationszusammenfassung (8.9c)](qa-summary.md) · [Moderations-Prompt-Kontext (#456)](moderation-prompt-context.md) · [Lernzielableitung (#456 Slice 5)](learning-objective-derivation.md) · [Wortwolken-Glättung mit spaCy (1.14b)](word-cloud-spacy.md) · [Semantische Themenwolke (1.14c/1.14d)](word-cloud-semantic.md) · [Private Open-Weight-LLM-Runtime (8.9d)](open-weight-llm-runtime.md) · [ADR-0032](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) · [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) · [ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md)
 
 ---
