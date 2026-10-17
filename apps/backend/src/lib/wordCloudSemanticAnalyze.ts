@@ -42,7 +42,10 @@ import {
   type WordCloudEmbedding,
   type WordCloudSemanticCluster,
 } from './wordCloudSemanticCluster';
-import { resetWordCloudTopicLabelCacheForTests } from './wordCloudTopicLabels';
+import {
+  invalidateWordCloudTopicLabelSession,
+  resetWordCloudTopicLabelCacheForTests,
+} from './wordCloudTopicLabels';
 
 export type WordCloudSemanticEmbedder = (
   input: AnalyzeWordCloudInput,
@@ -111,6 +114,14 @@ const circuit: CircuitState = { failures: 0, openedAt: null };
 const jobs = new Map<string, SessionJobQueue>();
 const sessionClustersCache = new Map<string, CachedSessionClusters>();
 
+function purgeExpiredSessionClusters(nowMs: number): void {
+  for (const [key, entry] of sessionClustersCache.entries()) {
+    if (entry.expiresAt <= nowMs) {
+      sessionClustersCache.delete(key);
+    }
+  }
+}
+
 function sessionJobKey(sessionId: string): string {
   return `session:${sessionId.trim()}`;
 }
@@ -138,6 +149,9 @@ function buildWeightAgnosticCorpusKey(sessionKey: string, input: AnalyzeWordClou
 }
 
 export function invalidateWordCloudSemanticSession(sessionId: string): void {
+  const now = hooks.now();
+  purgeExpiredSessionClusters(now);
+  invalidateWordCloudTopicLabelSession(sessionId, now);
   const sessionKey = sessionJobKey(sessionId);
   for (const key of sessionClustersCache.keys()) {
     if (key.startsWith(`${sessionKey}:`)) {
@@ -254,8 +268,9 @@ export function buildSemanticAnalysisOutput(input: {
   readonly fallbackUsed: boolean;
   readonly modelVersion: string | null;
   readonly modelId?: string | null;
+  readonly encoderCalled?: boolean;
 }): AnalyzeWordCloudOutput {
-  return AnalyzeWordCloudOutputSchema.parse({
+  const output = AnalyzeWordCloudOutputSchema.parse({
     mode: input.request.mode,
     locale: input.request.locale,
     metric: input.request.metric,
@@ -267,6 +282,9 @@ export function buildSemanticAnalysisOutput(input: {
     ...input.meta,
     analysisVersion: WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION,
     modelId: input.modelId ?? (input.modelVersion ? WORD_CLOUD_SEMANTIC_MODEL_ID : null),
+  });
+  return Object.assign(output, {
+    encoderCalled: input.encoderCalled ?? Boolean(input.modelVersion),
   });
 }
 
@@ -343,6 +361,7 @@ async function runSemanticEncoderJob(
     });
   }
 
+  purgeExpiredSessionClusters(now);
   const corpusKey = buildWeightAgnosticCorpusKey(sessionKey, input);
   const cachedClusters = input.refresh === true ? undefined : sessionClustersCache.get(corpusKey);
   if (cachedClusters && cachedClusters.expiresAt > now) {
@@ -356,6 +375,7 @@ async function runSemanticEncoderJob(
         fallbackUsed: true,
         modelVersion: cachedClusters.modelVersion,
         modelId: cachedClusters.modelId,
+        encoderCalled: false,
       });
     }
     const entries = semanticClustersToEntries(clusters, input.items);
@@ -368,6 +388,7 @@ async function runSemanticEncoderJob(
       fallbackUsed: false,
       modelVersion: cachedClusters.modelVersion,
       modelId: cachedClusters.modelId,
+      encoderCalled: false,
     });
   }
   if (cachedClusters) {
@@ -391,7 +412,11 @@ async function runSemanticEncoderJob(
     recordCircuitSuccess();
     const rawClusters = clusterWordCloudEmbeddings(embeddingsFromEncoder(input, response));
     if (canCacheClusters()) {
-      if (sessionClustersCache.size >= MAX_CACHED_CLUSTER_ENTRIES) {
+      purgeExpiredSessionClusters(hooks.now());
+      if (
+        !sessionClustersCache.has(corpusKey) &&
+        sessionClustersCache.size >= MAX_CACHED_CLUSTER_ENTRIES
+      ) {
         const oldestKey = sessionClustersCache.keys().next().value;
         if (oldestKey !== undefined) {
           sessionClustersCache.delete(oldestKey);

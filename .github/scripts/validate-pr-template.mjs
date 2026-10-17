@@ -35,12 +35,12 @@ const REQUIRED_HEADINGS = [
 const RISK_LEVELS = ['Niedrig', 'Mittel', 'Hoch'];
 
 export function section(body, title) {
-  const marker = `## ${title}`;
-  const start = body.indexOf(marker);
-  if (start < 0) {
+  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const headingMatch = new RegExp(`^##[ \\t]+${escaped}[ \\t]*$`, 'm').exec(body);
+  if (!headingMatch) {
     return '';
   }
-  const remainder = body.slice(start + marker.length);
+  const remainder = body.slice(headingMatch.index + headingMatch[0].length);
   const nextHeading = remainder.search(/^##\s+/m);
   return nextHeading < 0 ? remainder : remainder.slice(0, nextHeading);
 }

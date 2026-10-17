@@ -4,7 +4,10 @@ import type {
   OpenWeightLlmTopicLabelOutput,
   WordCloudAnalysisEntryDTO,
 } from '@arsnova/shared-types';
-import { resetWordCloudSemanticAnalyzeForTests } from './wordCloudSemanticAnalyze';
+import {
+  invalidateWordCloudSemanticSession,
+  resetWordCloudSemanticAnalyzeForTests,
+} from './wordCloudSemanticAnalyze';
 import { geometricEmbeddingForSeedText } from './wordCloudSemanticFixtures';
 import { resolveWordCloudNormalizationMeta } from './wordCloudNormalization';
 import {
@@ -471,5 +474,70 @@ describe('applyWordCloudTopicLabels', () => {
     expect(second.entries[0]?.label).toBe('Steigung linearer Funktionen');
     expect(second.entries[0]?.labelOrigin).toBe('model');
     expect(second.labelSettlement).toBe('complete');
+  });
+
+  it('isoliert den Prozess-Label-Cache strikt nach sessionId und räumt beim Session-Purge sowie nach Ablauf auf', async () => {
+    resetWordCloudSemanticAnalyzeForTests();
+    const clusterEntry = entry('Was ist die Steigung?', [
+      'Was ist die Steigung?',
+      'Wie bestimmt man die Steigung?',
+    ]);
+    let llmCalls = 0;
+    const label = labeler(async (request) => {
+      llmCalls += 1;
+      return {
+        status: 'completed',
+        output: {
+          schemaVersion: 1,
+          taskType: 'topic_label',
+          label: `Thema Lauf ${llmCalls}`,
+          sourceIds: [request.sources[0]!.id],
+        },
+        telemetry: {
+          taskType: 'topic_label',
+          elapsedMs: 1,
+          model: null,
+          promptTokens: null,
+          completionTokens: null,
+        },
+      };
+    });
+
+    const sessionA = '11111111-1111-4111-8111-111111111111';
+    const sessionB = '22222222-2222-4222-8222-222222222222';
+
+    const firstA = await applyWordCloudTopicLabels(input, output([clusterEntry]), {
+      sessionId: sessionA,
+      env: enabledEnv,
+      label,
+      useProcessLabelCache: true,
+    });
+    const firstB = await applyWordCloudTopicLabels(input, output([clusterEntry]), {
+      sessionId: sessionB,
+      env: enabledEnv,
+      label,
+      useProcessLabelCache: true,
+    });
+    expect(llmCalls).toBe(2);
+    expect(firstA.entries[0]?.label).toBe('Thema Lauf 1');
+    expect(firstB.entries[0]?.label).toBe('Thema Lauf 2');
+
+    invalidateWordCloudSemanticSession(sessionA);
+
+    const afterPurgeB = await applyWordCloudTopicLabels(input, output([clusterEntry]), {
+      sessionId: sessionB,
+      env: enabledEnv,
+      label,
+      useProcessLabelCache: true,
+    });
+    const afterPurgeA = await applyWordCloudTopicLabels(input, output([clusterEntry]), {
+      sessionId: sessionA,
+      env: enabledEnv,
+      label,
+      useProcessLabelCache: true,
+    });
+    expect(llmCalls).toBe(3);
+    expect(afterPurgeB.entries[0]?.label).toBe('Thema Lauf 2');
+    expect(afterPurgeA.entries[0]?.label).toBe('Thema Lauf 3');
   });
 });

@@ -30,7 +30,7 @@ arsnova.eu / App-Host  ── privates Netz, TCP 8080 ──>  CPU-Inferenz-Host
 - App und Runtime authentifizieren sich zusätzlich mit einem eigenen Secret.
 - Das Modell wird einmal heruntergeladen und vor jedem Start per SHA-256 geprüft.
 - Es gibt keinen SaaS-Fallback und keinen automatischen Modell-Download beim Start.
-- Der Container verwendet höchstens 4 CPUs, 8 GiB RAM, 10 GiB RAM plus Swap und einen Inferenz-Slot.
+- Der Container verwendet höchstens 8 CPUs, 8 GiB RAM, 10 GiB RAM plus Swap und einen Inferenz-Slot.
 - Der normale arsnova.eu-Deploy startet oder aktualisiert diese Box nicht.
 
 > **Wichtig:** Ein grüner Runtime-Test ist noch keine allgemeine Produktivfreigabe
@@ -50,7 +50,7 @@ Als praktische Untergrenze gelten:
 | freier Datenträger |                  10 GiB |                         20 GiB |
 | Netz               |    private IPv4-Adresse |  eigenes privates Segment/VLAN |
 
-Der Container selbst ist auf 4 CPUs und 8 GiB RAM begrenzt. Die kombinierte
+Der Container selbst ist auf 8 CPUs und 8 GiB RAM begrenzt. Die kombinierte
 RAM-und-Swap-Grenze liegt bei 10 GiB; Swap ist keine Ersatzkapazität für
 zeitkritische Inferenz. Auf dem Produktionshost mit 15 GiB nutzbarem RAM löste
 das frühere 5-GiB-Containerlimit am 12.10.2026 bei Batch 3 einer vierteiligen

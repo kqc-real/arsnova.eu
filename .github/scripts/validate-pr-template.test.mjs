@@ -181,3 +181,9 @@ test('lehnt ersetzte Selbstreview-Texte ab', () => {
   assert.ok(result.errors.some((error) => error.includes('fehlt oder weicht ab')));
   assert.ok(result.errors.some((error) => error.includes('Unerwartete Selbstreview-Punkte')));
 });
+
+test('ordnet Überschriften exakt zu, wenn ein früherer Abschnitt ein gleiches Präfix besitzt', () => {
+  const body = `## Validierung & Tests\n\nVorab-Notiz ohne Tabelle.\n\n${buildValidBody()}`;
+  const result = validatePrTemplateBody(body);
+  assert.equal(result.ok, true, result.errors.join('; '));
+});

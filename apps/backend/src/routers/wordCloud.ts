@@ -159,7 +159,7 @@ export async function analyzeWordCloudSnapshot(
     env: options.env,
     sidecar: options.sidecar,
   });
-  const rawOutput =
+  const rawOutput: AnalyzeWordCloudOutput & { readonly encoderCalled?: boolean } =
     effectiveInput.mode === 'SEMANTIC'
       ? await labelSemanticWordCloudSnapshot(effectiveInput, normalized.meta, {
           sessionId: options.cacheScope?.sessionId,
@@ -191,7 +191,9 @@ export async function analyzeWordCloudSnapshot(
     textCacheHits: normalized.cache.textHits,
     textCacheMisses: normalized.cache.textMisses,
     sidecarCalled: normalized.cache.sidecarCalled,
-    encoderCalled: effectiveInput.mode === 'SEMANTIC' && Boolean(output.modelVersion),
+    encoderCalled:
+      effectiveInput.mode === 'SEMANTIC' &&
+      (rawOutput.encoderCalled ?? Boolean(output.modelVersion)),
     labelSettlement: output.labelSettlement ?? null,
     labelModelAccepted: Boolean(output.labelModelId),
   });

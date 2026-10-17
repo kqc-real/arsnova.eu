@@ -3,6 +3,7 @@
  * Der Schritt hält die Session-Queue nicht: der Aufrufer startet ihn erst,
  * nachdem `analyzeSemanticWordCloudSnapshot` das Slot freigegeben hat.
  */
+import { createHash } from 'node:crypto';
 import {
   OPEN_WEIGHT_LLM_MAX_REQUEST_BYTES,
   type AnalyzeWordCloudInput,
@@ -59,6 +60,7 @@ export type TopicLabelCaller = (
 ) => Promise<OpenWeightLlmLiveResult<OpenWeightLlmTopicLabelOutput>>;
 
 type LabelOptions = {
+  readonly sessionId?: string;
   readonly now?: () => number;
   readonly label?: TopicLabelCaller;
   readonly useProcessLabelCache?: boolean;
@@ -72,34 +74,68 @@ type CachedClusterTopicLabel = {
 
 const clusterTopicLabelCache = new Map<string, CachedClusterTopicLabel>();
 
+function sessionLabelCachePrefix(sessionId?: string, sessionCode = ''): string {
+  const trimmedSessionId = sessionId?.trim();
+  if (trimmedSessionId && trimmedSessionId.length > 0) {
+    return `session:${trimmedSessionId}`;
+  }
+  return `unscoped:${sessionCode.trim().toUpperCase()}`;
+}
+
+function purgeExpiredClusterTopicLabels(nowMs: number): void {
+  for (const [key, entry] of clusterTopicLabelCache.entries()) {
+    if (entry.expiresAt <= nowMs) {
+      clusterTopicLabelCache.delete(key);
+    }
+  }
+}
+
+export function invalidateWordCloudTopicLabelSession(sessionId: string, nowMs = Date.now()): void {
+  purgeExpiredClusterTopicLabels(nowMs);
+  const prefix = `${sessionLabelCachePrefix(sessionId)}:`;
+  for (const key of clusterTopicLabelCache.keys()) {
+    if (key.startsWith(prefix)) {
+      clusterTopicLabelCache.delete(key);
+    }
+  }
+}
+
 export function resetWordCloudTopicLabelCacheForTests(): void {
   clusterTopicLabelCache.clear();
 }
 
 function buildClusterTopicLabelCacheKey(
+  scopePrefix: string,
   locale: string,
   sources: readonly { readonly id: string; readonly text: string }[],
 ): string {
-  return JSON.stringify({
-    model: OPEN_WEIGHT_LLM_MODEL_ID,
-    version: OPEN_WEIGHT_LLM_MODEL_VERSION,
-    locale,
-    sources,
-  });
+  const digest = createHash('sha256')
+    .update(
+      JSON.stringify({
+        model: OPEN_WEIGHT_LLM_MODEL_ID,
+        version: OPEN_WEIGHT_LLM_MODEL_VERSION,
+        locale,
+        sources,
+      }),
+      'utf8',
+    )
+    .digest('hex');
+  return `${scopePrefix}:${digest}`;
 }
 
 function readCachedClusterTopicLabel(key: string, nowMs: number): string | null {
+  purgeExpiredClusterTopicLabels(nowMs);
   const hit = clusterTopicLabelCache.get(key);
   if (!hit) return null;
-  if (hit.expiresAt <= nowMs) {
-    clusterTopicLabelCache.delete(key);
-    return null;
-  }
   return hit.label;
 }
 
 function writeCachedClusterTopicLabel(key: string, label: string, nowMs: number): void {
-  if (clusterTopicLabelCache.size >= TOPIC_LABEL_CACHE_MAX_ENTRIES) {
+  purgeExpiredClusterTopicLabels(nowMs);
+  if (
+    !clusterTopicLabelCache.has(key) &&
+    clusterTopicLabelCache.size >= TOPIC_LABEL_CACHE_MAX_ENTRIES
+  ) {
     const oldestKey = clusterTopicLabelCache.keys().next().value;
     if (oldestKey !== undefined) {
       clusterTopicLabelCache.delete(oldestKey);
@@ -274,8 +310,9 @@ export async function applyWordCloudTopicLabels(
       continue;
     }
     const useProcessLabelCache = !options.label || options.useProcessLabelCache === true;
+    const scopePrefix = sessionLabelCachePrefix(options.sessionId, input.sessionCode);
     const labelCacheKey = useProcessLabelCache
-      ? buildClusterTopicLabelCacheKey(output.locale, request.sources)
+      ? buildClusterTopicLabelCacheKey(scopePrefix, output.locale, request.sources)
       : '';
     if (useProcessLabelCache) {
       const cachedLabel = readCachedClusterTopicLabel(labelCacheKey, now());
@@ -339,6 +376,10 @@ export async function labelSemanticWordCloudSnapshot(
     >;
   } = {},
 ): Promise<AnalyzeWordCloudOutput> {
-  const encoded = await analyzeSemanticWordCloudSnapshot(input, meta, options);
-  return applyWordCloudTopicLabels(input, encoded, options);
+  const encoded: AnalyzeWordCloudOutput & { readonly encoderCalled?: boolean } =
+    await analyzeSemanticWordCloudSnapshot(input, meta, options);
+  const labeled = await applyWordCloudTopicLabels(input, encoded, options);
+  return Object.assign(labeled, {
+    encoderCalled: encoded.encoderCalled ?? Boolean(encoded.modelVersion),
+  });
 }

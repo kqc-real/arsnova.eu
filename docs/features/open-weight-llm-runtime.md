@@ -143,7 +143,7 @@ Der Entry-Point erzwingt unter anderem:
 --n-gpu-layers 0 --slot-prompt-similarity 0 --jinja --offline
 ```
 
-Containergrenzen: 4 CPU, 128 PIDs, read-only Root-Dateisystem, alle Linux-Capabilities entfernt und `no-new-privileges`. Die Same-Host-Laborprofile bleiben auf 5 GiB RAM begrenzt. Der separate Produktionshost nutzt 8 GiB RAM und 10 GiB als Gesamtgrenze für RAM plus Swap; die höhere Grenze ist für den vollständigen Lernzielauftrag vorgesehen. Der Server bindet nie automatisch an eine Wildcard.
+Containergrenzen: 4 CPU im Same-Host-Labor (`docker-compose.yml`, `docker-compose.prod.yml`) bzw. 8 CPU auf dem zweiten Produktionshost (`docker-compose.llm.yml`), 128 PIDs, read-only Root-Dateisystem, alle Linux-Capabilities entfernt und `no-new-privileges`. Die Same-Host-Laborprofile bleiben auf 5 GiB RAM begrenzt. Der separate Produktionshost nutzt 8 GiB RAM und 10 GiB als Gesamtgrenze für RAM plus Swap; die höhere Grenze ist für den vollständigen Lernzielauftrag vorgesehen. Der Server bindet nie automatisch an eine Wildcard.
 
 Der `/health`-Endpunkt des gepinnten llama.cpp-Builds erzwingt selbst keinen API-Key. Der Container-Healthcheck sendet den Bearer-Header zwar mit, aber die Readiness-Antwort ist keine Authentisierungsgrenze. Deshalb bleiben privates Netz beziehungsweise `network_mode: none` und die Host-Firewall verbindlich. Die auftragsrelevanten Endpunkte `/slots` und `/v1/chat/completions` erzwingen das exakte Runtime-Credential.
 
