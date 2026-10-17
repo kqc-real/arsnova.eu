@@ -10,7 +10,9 @@ import {
 } from '@arsnova/shared-types';
 import type { PreparedModerationSummaryContext } from './moderationSummaryContext';
 
-const DROPPED_UNSOURCED_LIMITATION = 'Aussagen ohne belegte Quelle wurden entfernt.';
+export const DROPPED_UNSOURCED_QA_SUMMARY_LIMITATION =
+  'Aussagen ohne belegte Quelle wurden entfernt.';
+const DROPPED_UNSOURCED_LIMITATION = DROPPED_UNSOURCED_QA_SUMMARY_LIMITATION;
 
 function truncateCodeUnits(text: string, maxLength: number): string {
   let result = '';

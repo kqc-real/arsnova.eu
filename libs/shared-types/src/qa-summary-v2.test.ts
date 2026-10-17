@@ -85,10 +85,17 @@ describe('Q&A summary V2 contracts', () => {
     expect(QaSummaryInferenceRequestV2Schema.safeParse(request).success).toBe(true);
     expect(OpenWeightLlmSummaryRequestV2Schema.safeParse(request).success).toBe(true);
     expect(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION).toBe('qa-summary-technical-handoff-v2');
+    expect(QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION).toBe('qa-summary-model-output-v3');
     expect(
       QaSummaryInferenceRequestV2Schema.safeParse({
         ...request,
         instructionVersion: 'qa-summary-technical-handoff-v1',
+      }).success,
+    ).toBe(false);
+    expect(
+      QaSummaryInferenceRequestV2Schema.safeParse({
+        ...request,
+        outputContract: 'qa-summary-model-output-v2',
       }).success,
     ).toBe(false);
   });
@@ -275,6 +282,45 @@ describe('Q&A summary V2 contracts', () => {
     } as const;
     expect(OpenWeightLlmRequestSchema.safeParse(request).success).toBe(true);
     expect(OpenWeightLlmSummaryOutputV2Schema.safeParse(output).success).toBe(true);
+    expect(
+      OpenWeightLlmSummaryOutputV2Schema.safeParse({
+        ...output,
+        outputContract: 'qa-summary-model-output-v2',
+      }).success,
+    ).toBe(false);
+    expect(
+      OpenWeightLlmSummaryOutputV2Schema.safeParse({
+        ...output,
+        output: {
+          ...output.output,
+          statements: Array.from({ length: 5 }, (_, index) => ({
+            text: `Aussage ${index + 1}`,
+            sourceIds: [SOURCE_ID],
+          })),
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      OpenWeightLlmSummaryOutputV2Schema.safeParse({
+        ...output,
+        output: {
+          ...output.output,
+          suggestedNextSteps: Array.from({ length: 3 }, (_, index) => ({
+            text: `Schritt ${index + 1}`,
+            sourceIds: [SOURCE_ID],
+          })),
+        },
+      }).success,
+    ).toBe(false);
+    expect(
+      OpenWeightLlmSummaryOutputV2Schema.safeParse({
+        ...output,
+        output: {
+          ...output.output,
+          limitations: ['Hinweis 1', 'Hinweis 2', 'Hinweis 3'],
+        },
+      }).success,
+    ).toBe(false);
     expect(hasOnlyAllowedOpenWeightLlmReferences(request, output)).toBe(true);
     expect(
       hasOnlyAllowedOpenWeightLlmReferences(request, {

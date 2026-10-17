@@ -26561,7 +26561,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
             {
               kind: 'full-context',
               requestContract: 'qa-summary-context-v2',
-              outputContract: 'qa-summary-model-output-v2',
+              outputContract: 'qa-summary-model-output-v3',
               promptContextContract: 'moderation-prompt-context-v1',
               definitionVersion: 'moderation-prompt-definitions-v1',
             },

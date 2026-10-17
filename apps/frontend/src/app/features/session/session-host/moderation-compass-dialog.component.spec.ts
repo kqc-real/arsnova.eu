@@ -25,7 +25,7 @@ describe('ModerationCompassDialogComponent', () => {
           {
             kind: 'full-context',
             requestContract: 'qa-summary-context-v2',
-            outputContract: 'qa-summary-model-output-v2',
+            outputContract: 'qa-summary-model-output-v3',
             promptContextContract: 'moderation-prompt-context-v1',
             definitionVersion: 'moderation-prompt-definitions-v1',
           },
@@ -47,7 +47,7 @@ describe('ModerationCompassDialogComponent', () => {
       fallback: {
         contractVersion: 'qa-summary-fallback-v1',
         requestedRequestContract: 'qa-summary-context-v2',
-        requestedOutputContract: 'qa-summary-model-output-v2',
+        requestedOutputContract: 'qa-summary-model-output-v3',
         mode: 'extractive',
         reason: 'disabled',
         retry: 'not-applicable',
@@ -965,7 +965,7 @@ describe('ModerationCompassDialogComponent', () => {
             fallback: {
               contractVersion: 'qa-summary-fallback-v1',
               requestedRequestContract: 'qa-summary-context-v2',
-              requestedOutputContract: 'qa-summary-model-output-v2',
+              requestedOutputContract: 'qa-summary-model-output-v3',
               mode: 'extractive',
               reason: 'disabled',
               retry: 'not-applicable',

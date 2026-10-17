@@ -115,7 +115,7 @@ describe('trpc.client host transport', () => {
     globalThis.window.history.replaceState({}, '', '/');
   });
 
-  it('nimmt nur die abbrechbare Lernziel-Herleitung aus dem HTTP-Batching', async () => {
+  it('nimmt langlaufende LLM-Operationen (Lernziel-Herleitung und Runtime-Probe) aus dem HTTP-Batching', async () => {
     const { shouldUseUnbatchedHttpTransport } = await loadClientModule('/de/quiz');
     const httpSplitOptions = splitLinkMock.mock.calls[0]?.[0] as {
       condition: (op: { path: string }) => boolean;
@@ -124,9 +124,13 @@ describe('trpc.client host transport', () => {
     };
 
     expect(shouldUseUnbatchedHttpTransport('quiz.deriveLearningObjectives')).toBe(true);
+    expect(shouldUseUnbatchedHttpTransport('health.openWeightLlmProbe')).toBe(true);
+    expect(shouldUseUnbatchedHttpTransport('health.stats')).toBe(false);
     expect(shouldUseUnbatchedHttpTransport('quiz.prepareLearningObjectiveDerivation')).toBe(false);
     expect(shouldUseUnbatchedHttpTransport('quiz.upload')).toBe(false);
     expect(httpSplitOptions.condition({ path: 'quiz.deriveLearningObjectives' })).toBe(true);
+    expect(httpSplitOptions.condition({ path: 'health.openWeightLlmProbe' })).toBe(true);
+    expect(httpSplitOptions.condition({ path: 'health.stats' })).toBe(false);
     expect(httpSplitOptions.condition({ path: 'quiz.prepareLearningObjectiveDerivation' })).toBe(
       false,
     );

@@ -159,7 +159,7 @@ anzuwenden. Verbindlich ist daher das ebenfalls dokumentierte und real geprüfte
 Produktionspfad und keine Übersetzerschicht in Produktion.
 
 **Umsetzungsabgleich #456 Slice 7:** Summary V2 verwendet den Node-Client direkt und bindet
-`qa-summary-context-v2`, `qa-summary-model-output-v2`,
+`qa-summary-context-v2`, `qa-summary-model-output-v3`,
 `moderation-prompt-context-v1`, die technische Instruktionsversion und das
 Bedeutungslexikon ausdrücklich. Die Runtime erhält genau zwei Systemnachrichten
 (Instruktion und Definition) sowie als Usernachricht ausschließlich das kanonische JSON

@@ -383,7 +383,7 @@ MODERATION_PROMPT_CONTEXT_CONTRACT_VERSION = moderation-prompt-context-v1
   versionierter, gepackter Kontext mit typisierten Quellen und Budgetbericht
 
 QaSummaryInferenceRequestV2Schema
-  schemaVersion 2 + qa-summary-context-v2 + qa-summary-model-output-v2
+  schemaVersion 2 + qa-summary-context-v2 + qa-summary-model-output-v3
   + technische Instruktion + Definition + ModerationPromptContextV1
 ```
 

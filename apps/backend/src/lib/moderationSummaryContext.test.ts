@@ -13,6 +13,7 @@ import {
   QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   assemblePreparedModerationSummaryContext,
   countIncludedQaQuestionSources,
+  createQaSummaryFallback,
   ensureMinimumQaQuestionCoverage,
   prepareModerationSummaryContextFromAnalysis,
   qaSummaryTechnicalHandoffTokenCounts,
@@ -22,8 +23,10 @@ import {
   canonicalModerationPromptJson,
   estimateModerationPromptUtf8Tokens,
 } from './moderationPromptContextPacking';
+import { resetQaSummaryAdapterForTests } from './qaSummaryAdapter';
 import { createExtractiveQaSummaryOutput } from './qaSummaryExtractive';
 import { runPreparedQaSummary } from './qaSummaryRuntimeAdapter';
+import { bindQaSummaryModelOutputV2 } from './qaSummaryValidateV2';
 
 function withEmptyQaEvidence(
   promptContext: ReturnType<
@@ -82,7 +85,10 @@ const plan = {
 };
 
 describe('moderationSummaryContext', () => {
-  afterEach(() => vi.unstubAllEnvs());
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    resetQaSummaryAdapterForTests();
+  });
 
   it('bindet die exakten technischen Texte an die konservativen UTF-8-Zähler', () => {
     const counts = qaSummaryTechnicalHandoffTokenCounts();
@@ -388,6 +394,86 @@ describe('moderationSummaryContext', () => {
     expect(run.execution.attemptedMode).toBe('full-context');
     expect(run.execution.effectiveMode).toBe('extractive');
     expect(run.execution.fallback).toMatchObject({ reason: 'no_packed_sources' });
+  });
+
+  it('filtert und sortiert Legacy-Statements gegen den Kontext vor der 4/2/2-Kappung', async () => {
+    const legacyPlan = {
+      capabilities: resolveQaSummaryAdapterPlan().capabilities,
+      selectedMode: 'legacy-text' as const,
+      fallback: createQaSummaryFallback('legacy-text', 'adapter_incompatible'),
+      inferenceConfigured: true,
+    };
+    const prepared = prepareModerationSummaryContextFromAnalysis({
+      analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
+      plan: legacyPlan,
+    });
+    const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources.map(
+      (source) => source.id,
+    );
+    if (!firstSourceId || !secondSourceId) {
+      throw new Error('Erwartete mindestens zwei Quellen im Referenzfixture.');
+    }
+
+    resetQaSummaryAdapterForTests({
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1_000,
+        queueLimit: 8,
+        concurrency: 1,
+        cooldownMs: 30_000,
+        ttlMs: 1_800_000,
+        maxSources: 20,
+        inferenceUrl: 'http://127.0.0.1:8787/summary',
+        inferenceToken: null,
+      }),
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            status: 'ready',
+            statements: [
+              { text: 'Fremd 1', sourceIds: ['qa-question:foreign-1'] },
+              { text: 'Fremd 2', sourceIds: ['qa-question:foreign-2'] },
+              { text: 'Fremd 3', sourceIds: ['qa-question:foreign-3'] },
+              { text: 'Fremd 4', sourceIds: ['qa-question:foreign-4'] },
+              { text: 'Zweiter Beleg', sourceIds: [secondSourceId, 'qa-question:foreign-5'] },
+              { text: 'Erster Beleg', sourceIds: [firstSourceId] },
+            ],
+            suggestedNextSteps: [
+              { text: 'Fremder Schritt 1', sourceIds: ['qa-question:foreign-1'] },
+              { text: 'Fremder Schritt 2', sourceIds: ['qa-question:foreign-2'] },
+              { text: 'Gültiger Schritt', sourceIds: [firstSourceId] },
+            ],
+            limitations: ['Hinweis 1', 'Hinweis 2', 'Hinweis 3'],
+            modelVersion: 'legacy-fixture',
+          }),
+      }),
+    });
+
+    const run = await runPreparedQaSummary(prepared);
+    expect(run.output.status).toBe('ready');
+    expect(run.output.statements).toEqual([
+      { text: 'Erster Beleg', sourceIds: [firstSourceId] },
+      { text: 'Zweiter Beleg', sourceIds: [secondSourceId] },
+    ]);
+    expect(run.output.suggestedNextSteps).toEqual([
+      { text: 'Gültiger Schritt', sourceIds: [firstSourceId] },
+    ]);
+    expect(run.output.limitations).toEqual([
+      'Hinweis 1',
+      'Aussagen ohne belegte Quelle wurden entfernt.',
+    ]);
+
+    const bound = bindQaSummaryModelOutputV2({
+      output: run.output,
+      prepared,
+      execution: run.execution,
+      analyzedAt: '2026-10-17T07:30:00.000Z',
+    });
+    expect(bound.status).toBe('ready');
+    expect(bound.statements.map((item) => item.text)).toEqual(['Erster Beleg', 'Zweiter Beleg']);
+    expect(bound.limitations).toContain('Aussagen ohne belegte Quelle wurden entfernt.');
   });
 
   it('verwendet für Vorschau und Auftrag dasselbe gepackte Objekt ohne technische Prompttexte', () => {

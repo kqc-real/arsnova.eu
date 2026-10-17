@@ -128,7 +128,7 @@ function createTrpcHeaders(): Record<string, string> {
 }
 
 export function shouldUseUnbatchedHttpTransport(path: string): boolean {
-  return path === 'quiz.deriveLearningObjectives';
+  return path === 'quiz.deriveLearningObjectives' || path === 'health.openWeightLlmProbe';
 }
 
 function createHttpRequestLink(): TRPCLink<AppRouter> {

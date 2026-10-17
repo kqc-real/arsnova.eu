@@ -313,7 +313,7 @@ describe('openWeightLlmClient', () => {
     const output = {
       schemaVersion: 2,
       taskType: 'qa_summary',
-      outputContract: 'qa-summary-model-output-v2',
+      outputContract: 'qa-summary-model-output-v3',
       output: {
         status: 'ready',
         statements: [{ text: 'Belegt.', sourceIds: [sourceId] }],
