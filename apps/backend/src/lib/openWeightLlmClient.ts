@@ -276,11 +276,68 @@ function systemInstructionFor(taskType: OpenWeightLlmTaskType): string {
   ].join(' ');
 }
 
+function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, unknown> {
+  const base = z.toJSONSchema(outputSchemaFor(request), { target: 'draft-7' }) as Record<
+    string,
+    unknown
+  >;
+  if (request.taskType !== 'qa_summary' || request.schemaVersion !== 2) {
+    return base;
+  }
+  const allowedIds = request.promptContext.context.sources.map((source) => source.id);
+  const statementSchema = {
+    type: 'object',
+    properties: {
+      text: { type: 'string', minLength: 1, maxLength: 180 },
+      sourceIds: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 2,
+        items:
+          allowedIds.length > 0
+            ? { type: 'string', enum: allowedIds }
+            : { type: 'string', minLength: 1, maxLength: 160 },
+      },
+    },
+    required: ['text', 'sourceIds'],
+    additionalProperties: false,
+  };
+  return {
+    ...base,
+    properties: {
+      ...(base['properties'] as Record<string, unknown>),
+      output: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', enum: ['ready', 'uncertain', 'failed'] },
+          statements: {
+            type: 'array',
+            minItems: 2,
+            maxItems: 3,
+            items: statementSchema,
+          },
+          suggestedNextSteps: {
+            type: 'array',
+            maxItems: 1,
+            items: statementSchema,
+          },
+          limitations: {
+            type: 'array',
+            maxItems: 0,
+            items: { type: 'string' },
+          },
+        },
+        required: ['status', 'statements', 'suggestedNextSteps', 'limitations'],
+        additionalProperties: false,
+      },
+    },
+  };
+}
+
 function buildChatCompletionBody(
   request: OpenWeightLlmRequest,
   config: OpenWeightLlmConfig,
 ): string {
-  const outputSchema = outputSchemaFor(request);
   const messages =
     request.taskType === 'qa_summary' && request.schemaVersion === 2
       ? [
@@ -303,7 +360,7 @@ function buildChatCompletionBody(
       // chat endpoint only applies the grammar reliably for json_object plus
       // the sibling schema. A real-model contract probe protects this choice.
       type: 'json_object',
-      schema: z.toJSONSchema(outputSchema, { target: 'draft-7' }),
+      schema: wireOutputJsonSchemaFor(request),
     },
     max_tokens:
       request.taskType === 'topic_label' && request.schemaVersion === 2
@@ -325,9 +382,9 @@ function parseCompletion(
     reason: string,
     completion?: z.infer<typeof ChatCompletionResponseSchema>,
   ): null => {
-    if (request.taskType === 'learning_objectives') {
+    if (request.taskType === 'learning_objectives' || request.taskType === 'qa_summary') {
       const finishReason = completion?.choices[0]?.finish_reason;
-      logger.warn('learning_objectives:invalid_model_response', {
+      logger.warn(`${request.taskType}:invalid_model_response`, {
         reason,
         finishReason:
           finishReason === 'stop' || finishReason === 'length' ? finishReason : 'unknown',

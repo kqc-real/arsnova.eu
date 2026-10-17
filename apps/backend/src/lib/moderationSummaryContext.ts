@@ -184,7 +184,8 @@ export type PreparedModerationSummaryContext = Readonly<{
 /** Short reasons keep the empty packing shell under the configured token budget. */
 const QA_BASELINE_OMIT_REASON = 'qa-baseline';
 const QA_FORCE_FIT_OMIT_REASON = 'qa-force-fit';
-const QA_SUMMARY_MAX_QUESTION_CANDIDATES = 12;
+const QA_SUMMARY_MAX_QUESTION_CANDIDATES = 4;
+const QA_SUMMARY_MAX_SIGNAL_QUESTION_EVIDENCE = 2;
 
 function trimSummaryAnalysisQuestions(
   analysis: ModerationAnalysisContextV1,
@@ -202,14 +203,19 @@ function trimSummaryAnalysisQuestions(
       if (topic.labelOrigin.kind === 'source-extractive') {
         protectedIds.add(topic.labelOrigin.sourceQuestionId);
       } else if (topic.labelOrigin.kind === 'model-generated') {
-        topic.labelOrigin.derivedFromSourceIds.forEach((id) => protectedIds.add(id));
+        topic.labelOrigin.derivedFromSourceIds.slice(0, 2).forEach((id) => protectedIds.add(id));
       }
     }
   }
   if (context.compass.state === 'available') {
     for (const signal of context.compass.signals) {
-      signal.questionSourceIds.forEach((id) => protectedIds.add(id));
-      signal.evidence.forEach(({ sourceId }) => protectedIds.add(sourceId));
+      signal.questionSourceIds
+        .slice(0, QA_SUMMARY_MAX_SIGNAL_QUESTION_EVIDENCE)
+        .forEach((id) => protectedIds.add(id));
+      signal.evidence
+        .filter(({ sourceId }) => sourceId.startsWith('qa-question:'))
+        .slice(0, QA_SUMMARY_MAX_SIGNAL_QUESTION_EVIDENCE)
+        .forEach(({ sourceId }) => protectedIds.add(sourceId));
     }
   }
   if (context.learningContext.state === 'available') {
@@ -300,6 +306,39 @@ function trimSummaryAnalysisQuestions(
 
   const finalReferencedQuestionIds = new Set(keptAndProtectedIds);
 
+  const updatedCompass =
+    context.compass.state === 'available'
+      ? {
+          ...context.compass,
+          signals: context.compass.signals.map((signal) => {
+            const trimmedQuestionIds = signal.questionSourceIds.filter((id) =>
+              finalReferencedQuestionIds.has(id),
+            );
+            const finalSignalQuestionIds =
+              trimmedQuestionIds.length > 0
+                ? trimmedQuestionIds
+                : signal.questionSourceIds.slice(0, 1);
+            const trimmedEvidence = signal.evidence.filter(
+              ({ sourceId }) =>
+                !sourceId.startsWith('qa-question:') || finalReferencedQuestionIds.has(sourceId),
+            );
+            const countBasedValue =
+              signal.signal === 'high-frequency' ||
+              signal.signal === 'pinned-question' ||
+              signal.signal === 'pending-moderation' ||
+              signal.signal === 'unanswered'
+                ? finalSignalQuestionIds.length
+                : signal.value;
+            return {
+              ...signal,
+              value: countBasedValue,
+              questionSourceIds: finalSignalQuestionIds,
+              evidence: trimmedEvidence.length > 0 ? trimmedEvidence : signal.evidence.slice(0, 1),
+            };
+          }),
+        }
+      : context.compass;
+
   const finalQuestionItems = context.questions.items.filter((q) =>
     finalReferencedQuestionIds.has(q.sourceId),
   );
@@ -328,6 +367,7 @@ function trimSummaryAnalysisQuestions(
         items: finalQuestionItems,
       },
       topics: updatedTopics,
+      compass: updatedCompass,
       sources: finalSources,
     },
   });
