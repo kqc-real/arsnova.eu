@@ -312,7 +312,6 @@ function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, 
           status: { type: 'string', enum: ['ready', 'uncertain', 'failed'] },
           statements: {
             type: 'array',
-            minItems: 2,
             maxItems: 3,
             items: statementSchema,
           },

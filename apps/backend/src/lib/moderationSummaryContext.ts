@@ -322,16 +322,26 @@ function trimSummaryAnalysisQuestions(
               ({ sourceId }) =>
                 !sourceId.startsWith('qa-question:') || finalReferencedQuestionIds.has(sourceId),
             );
-            const countBasedValue =
+            const isCountBasedSignal =
               signal.signal === 'high-frequency' ||
               signal.signal === 'pinned-question' ||
               signal.signal === 'pending-moderation' ||
-              signal.signal === 'unanswered'
-                ? finalSignalQuestionIds.length
-                : signal.value;
+              signal.signal === 'unanswered';
+            const countBasedValue = isCountBasedSignal
+              ? finalSignalQuestionIds.length
+              : signal.value;
+            const updatedReason =
+              isCountBasedSignal &&
+              finalSignalQuestionIds.length !== signal.questionSourceIds.length
+                ? signal.reason.replace(
+                    new RegExp(`^${signal.questionSourceIds.length}\\b`),
+                    String(finalSignalQuestionIds.length),
+                  )
+                : signal.reason;
             return {
               ...signal,
               value: countBasedValue,
+              reason: updatedReason,
               questionSourceIds: finalSignalQuestionIds,
               evidence: trimmedEvidence.length > 0 ? trimmedEvidence : signal.evidence.slice(0, 1),
             };

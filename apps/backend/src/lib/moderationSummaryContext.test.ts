@@ -229,6 +229,88 @@ describe('moderationSummaryContext', () => {
     }
   });
 
+  it('hält value und reason bei gekürzten zählbasierten Kompass-Signalen synchron', () => {
+    const base = analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
+    if (
+      base.context.questions.state !== 'available' ||
+      base.context.compass.state !== 'available'
+    ) {
+      throw new Error('Erwartete verfügbare Fragen und Kompass im Referenzfixture.');
+    }
+    const questionIds = base.context.questions.items.map((item) => item.sourceId);
+    const analysis = ModerationAnalysisContextV1Schema.parse({
+      ...base,
+      context: {
+        ...base.context,
+        scope: {
+          ...base.context.scope,
+          selectionLimits: {
+            ...base.context.scope.selectionLimits,
+            topics: 0,
+          },
+        },
+        questions: {
+          ...base.context.questions,
+          items: base.context.questions.items.map((item) => ({
+            ...item,
+            topicSourceIds: [],
+          })),
+        },
+        topics: {
+          state: 'disabled',
+          reason: 'no-semantic-topics',
+        },
+        compass: {
+          ...base.context.compass,
+          primarySignalSourceId: 'compass-signal:high-frequency-test',
+          signals: [
+            {
+              sourceId: 'compass-signal:high-frequency-test',
+              signal: 'high-frequency',
+              basis: 'question-frequency',
+              cardKind: 'topics',
+              questionSourceIds: questionIds,
+              value: questionIds.length,
+              reason: `${questionIds.length} selected Q&A question(s) share the stored technical classification.`,
+              evidence: questionIds.map((sourceId) => ({
+                sourceId,
+                detail: 'Stored Q&A NLP category: technical.',
+              })),
+              suggestedNextStep: {
+                action: 'address-question',
+                rationale: 'Address the classified question group as a bounded topic cue.',
+              },
+            },
+          ],
+        },
+        sources: [
+          ...base.context.sources.filter(
+            (source) => source.kind !== 'semantic-topic' && source.kind !== 'compass-signal',
+          ),
+          {
+            id: 'compass-signal:high-frequency-test',
+            kind: 'compass-signal',
+            label: 'Q&A classification group',
+          },
+        ],
+      },
+    });
+
+    const prepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });
+    if (prepared.request.promptContext.context.compass.state !== 'available') {
+      throw new Error('Erwartete verfügbaren Kompass im gepackten Kontext.');
+    }
+    const freqSignal = prepared.request.promptContext.context.compass.signals.find(
+      (signal) => signal.sourceId === 'compass-signal:high-frequency-test',
+    );
+    expect(freqSignal).toBeDefined();
+    expect(freqSignal?.value).toBe(freqSignal?.questionSourceIds.length);
+    expect(freqSignal?.value).toBeLessThan(questionIds.length);
+    expect(freqSignal?.reason).toBe(
+      `${freqSignal?.value} selected Q&A question(s) share the stored technical classification.`,
+    );
+  });
+
   it('stellt Mindest-Q&A-Coverage her wenn der erste Pack keine included Sources liefert', () => {
     const analysis = analysisFixture(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
     const prepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });

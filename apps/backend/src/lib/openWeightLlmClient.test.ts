@@ -352,11 +352,13 @@ describe('openWeightLlmClient', () => {
     const outputProp = body.response_format.schema.properties?.['output'] as {
       properties?: {
         statements?: {
+          minItems?: number;
           maxItems?: number;
           items?: { properties?: { sourceIds?: { items?: { enum?: string[] } } } };
         };
       };
     };
+    expect(outputProp?.properties?.statements?.minItems).toBeUndefined();
     expect(outputProp?.properties?.statements?.maxItems).toBe(3);
     expect(outputProp?.properties?.statements?.items?.properties?.sourceIds?.items?.enum).toEqual(
       prepared.request.promptContext.context.sources.map((s) => s.id),
