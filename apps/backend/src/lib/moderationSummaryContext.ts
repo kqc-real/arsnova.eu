@@ -184,6 +184,133 @@ export type PreparedModerationSummaryContext = Readonly<{
 /** Short reasons keep the empty packing shell under the configured token budget. */
 const QA_BASELINE_OMIT_REASON = 'qa-baseline';
 const QA_FORCE_FIT_OMIT_REASON = 'qa-force-fit';
+const QA_SUMMARY_MAX_QUESTION_CANDIDATES = 12;
+
+function trimSummaryAnalysisQuestions(
+  analysis: ModerationAnalysisContextV1,
+  maxQuestions = QA_SUMMARY_MAX_QUESTION_CANDIDATES,
+): ModerationAnalysisContextV1 {
+  const context = analysis.context;
+  if (context.questions.state !== 'available' || context.questions.items.length <= maxQuestions) {
+    return analysis;
+  }
+
+  const protectedIds = new Set<string>();
+  if (context.topics.state === 'available') {
+    for (const topic of context.topics.items) {
+      protectedIds.add(topic.representativeQuestionSourceId);
+      if (topic.labelOrigin.kind === 'source-extractive') {
+        protectedIds.add(topic.labelOrigin.sourceQuestionId);
+      } else if (topic.labelOrigin.kind === 'model-generated') {
+        topic.labelOrigin.derivedFromSourceIds.forEach((id) => protectedIds.add(id));
+      }
+    }
+  }
+  if (context.compass.state === 'available') {
+    for (const signal of context.compass.signals) {
+      signal.questionSourceIds.forEach((id) => protectedIds.add(id));
+      signal.evidence.forEach(({ sourceId }) => protectedIds.add(sourceId));
+    }
+  }
+  if (context.learningContext.state === 'available') {
+    for (const objective of context.learningContext.objectives) {
+      if (objective.scope.kind === 'tasks') {
+        objective.scope.taskSourceIds.forEach((id) => protectedIds.add(id));
+      }
+      if (objective.origin.kind === 'model-derived') {
+        objective.origin.derivedFromSourceIds.forEach((id) => protectedIds.add(id));
+      }
+    }
+  }
+
+  const ranked = forceFitQuestionCandidates(context.questions.items);
+  const kept: ForceFitQuestion[] = [];
+  const keptIds = new Set<string>();
+  for (const question of ranked) {
+    if (protectedIds.has(question.sourceId) && kept.length < maxQuestions) {
+      kept.push(question);
+      keptIds.add(question.sourceId);
+    }
+  }
+  for (const question of ranked) {
+    if (kept.length >= maxQuestions) break;
+    if (!keptIds.has(question.sourceId)) {
+      kept.push(question);
+      keptIds.add(question.sourceId);
+    }
+  }
+
+  // Keep any topic member IDs that are still in keptIds, or keep the topic's representative
+  const keptAndProtectedIds = new Set([...keptIds, ...protectedIds]);
+  const updatedTopics =
+    context.topics.state === 'available'
+      ? {
+          ...context.topics,
+          items: context.topics.items.map((topic) => {
+            const filteredMembers = topic.memberQuestionSourceIds.filter((id) =>
+              keptAndProtectedIds.has(id),
+            );
+            const members =
+              filteredMembers.length > 0 ? filteredMembers : [topic.representativeQuestionSourceId];
+            return {
+              ...topic,
+              memberQuestionSourceIds: members,
+              representedQuestionSourceIds: topic.representedQuestionSourceIds.filter((id) =>
+                members.includes(id),
+              ),
+            };
+          }),
+        }
+      : context.topics;
+
+  const finalReferencedQuestionIds = new Set(keptIds);
+  if (updatedTopics.state === 'available') {
+    for (const topic of updatedTopics.items) {
+      topic.memberQuestionSourceIds.forEach((id) => finalReferencedQuestionIds.add(id));
+      finalReferencedQuestionIds.add(topic.representativeQuestionSourceId);
+      if (topic.labelOrigin.kind === 'source-extractive') {
+        finalReferencedQuestionIds.add(topic.labelOrigin.sourceQuestionId);
+      } else if (topic.labelOrigin.kind === 'model-generated') {
+        topic.labelOrigin.derivedFromSourceIds.forEach((id) => finalReferencedQuestionIds.add(id));
+      }
+    }
+  }
+  for (const id of protectedIds) {
+    finalReferencedQuestionIds.add(id);
+  }
+
+  const finalQuestionItems = context.questions.items.filter((q) =>
+    finalReferencedQuestionIds.has(q.sourceId),
+  );
+  const finalSources = context.sources.filter(
+    (source) => source.kind !== 'qa-question' || finalReferencedQuestionIds.has(source.id),
+  );
+
+  return ModerationAnalysisContextV1Schema.parse({
+    ...analysis,
+    context: {
+      ...context,
+      scope: {
+        ...context.scope,
+        selectionLimits: {
+          ...context.scope.selectionLimits,
+          questions: Math.min(context.scope.selectionLimits.questions, finalQuestionItems.length),
+        },
+      },
+      questions: {
+        ...context.questions,
+        corpus: {
+          ...context.questions.corpus,
+          deduplicated: Math.min(context.questions.corpus.deduplicated, finalQuestionItems.length),
+          represented: finalQuestionItems.length,
+        },
+        items: finalQuestionItems,
+      },
+      topics: updatedTopics,
+      sources: finalSources,
+    },
+  });
+}
 
 function qaTextBaselineAnalysis(
   analysis: ModerationAnalysisContextV1,
@@ -555,17 +682,18 @@ export function packSummaryModerationPromptContext(input: {
   readonly packedAt?: Date;
 }): ModerationPromptContextV1 {
   const packedAt = input.packedAt;
-  let initialPack = tryPackOnce({ analysis: input.analysis, packedAt });
+  const trimmedAnalysis = trimSummaryAnalysisQuestions(input.analysis);
+  let initialPack = tryPackOnce({ analysis: trimmedAnalysis, packedAt });
   if (!initialPack) {
     // Full analysis shell exceeds budget — try Q&A baseline before force-fit.
     initialPack = tryPackOnce({
-      analysis: qaTextBaselineAnalysis(input.analysis),
+      analysis: qaTextBaselineAnalysis(trimmedAnalysis),
       packedAt,
     });
   }
 
   return ensureMinimumQaQuestionCoverage({
-    analysis: input.analysis,
+    analysis: trimmedAnalysis,
     packedAt,
     initialPack,
   });

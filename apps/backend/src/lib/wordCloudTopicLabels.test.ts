@@ -601,6 +601,62 @@ describe('applyWordCloudTopicLabels', () => {
     expect(result.entries[1]?.labelOrigin).toBe('extractive');
   });
 
+  it('komprimiert auch Freitext-SourceIds (response-0..response-N) auf s1..s6 und bündelt höchstens 4 Cluster à 3 Quellen pro Batch', async () => {
+    const freetextClusters: WordCloudAnalysisEntryDTO[] = Array.from({ length: 6 }, (_, idx) => ({
+      key: `ft-${idx}`,
+      label: `Freitext-Cluster ${idx + 1}`,
+      basisLabel: `Freitext-Cluster ${idx + 1}`,
+      count: 20,
+      confidence: 0.9,
+      variants: [],
+      members: Array.from({ length: 5 }, (__, mIdx) => ({
+        sourceId: `response-${idx * 5 + mIdx}`,
+        text: `Beispielantwort ${mIdx + 1} in Cluster ${idx + 1}`,
+        weight: 1,
+      })),
+    }));
+
+    const batchSizes: number[] = [];
+    const seenSourceIds: string[][] = [];
+    const result = await applyWordCloudTopicLabels(
+      { ...input, channel: 'FREETEXT' },
+      output(freetextClusters),
+      {
+        env: enabledEnv,
+        labelBatch: async (batchRequest) => {
+          batchSizes.push(batchRequest.clusters.length);
+          for (const cluster of batchRequest.clusters) {
+            seenSourceIds.push(cluster.sources.map((s) => s.id));
+          }
+          return {
+            status: 'completed',
+            output: {
+              schemaVersion: 2,
+              taskType: 'topic_label',
+              labels: batchRequest.clusters.map((cluster, cIdx) => ({
+                clusterId: cluster.clusterId,
+                label: `Kurzthema ${cIdx + 1}`,
+                sourceIds: [cluster.sources[0]!.id],
+              })),
+            },
+            telemetry: {
+              taskType: 'topic_label',
+              elapsedMs: 10,
+              model: null,
+              promptTokens: 50,
+              completionTokens: 20,
+            },
+          };
+        },
+      },
+    );
+
+    expect(batchSizes).toEqual([4, 2]);
+    expect(seenSourceIds[0]).toEqual(['s1', 's2', 's3']);
+    expect(result.labelSettlement).toBe('complete');
+    expect(result.entries.every((e) => e.labelOrigin === 'model')).toBe(true);
+  });
+
   it('bündelt mehrere unbenannte Cluster im Batch-Pfad (schemaVersion 2) in einem einzigen LLM-Aufruf', async () => {
     const firstCluster = entry('Was ist die Steigung?', [
       'Was ist die Steigung?',

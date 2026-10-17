@@ -43,6 +43,8 @@ export const WORD_CLOUD_TOPIC_LABEL_PHASE_BUDGET_MS = 8_000;
 /** Harte Obergrenze, damit die Host-Wartezeit im Hörsaal nicht ungebunden wächst. */
 export const WORD_CLOUD_TOPIC_LABEL_PHASE_BUDGET_CAP_MS = 120_000;
 const TOPIC_LABEL_MAX_CANDIDATES = 12;
+const TOPIC_LABEL_MAX_BATCH_CLUSTERS = 4;
+const TOPIC_LABEL_MAX_BATCH_SOURCES_PER_CLUSTER = 3;
 /**
  * Repräsentative Obergrenze pro Cluster: hält CPU-Prefill kurz und vermeidet,
  * dass lange UUID-Listen in `sourceIds` das 96-Token-Ausgabebudget sprengen.
@@ -225,7 +227,7 @@ function orderedMembers(entry: WordCloudAnalysisEntryDTO) {
 
 function compactTopicLabelSourceId(rawId: string, index: number): string {
   const trimmed = rawId.trim().slice(0, 80);
-  if (trimmed.length <= TOPIC_LABEL_COMPACT_ID_MAX_LENGTH) {
+  if (trimmed.length <= TOPIC_LABEL_COMPACT_ID_MAX_LENGTH && !/^response-\d+$/i.test(trimmed)) {
     return trimmed;
   }
   return trimmed.startsWith('qa') ? `qa-${index + 1}` : `s${index + 1}`;
@@ -332,12 +334,16 @@ function packBatchRequests(
     const items: OpenWeightLlmTopicLabelBatchItem[] = [];
     const byClusterId = new Map<string, PendingBatchClusterCandidate>();
 
-    while (index < candidates.length && items.length < TOPIC_LABEL_MAX_CANDIDATES) {
+    while (index < candidates.length && items.length < TOPIC_LABEL_MAX_BATCH_CLUSTERS) {
       const candidate = candidates[index]!;
       const clusterId = `c${items.length + 1}`;
+      const batchSources = candidate.request.sources.slice(
+        0,
+        TOPIC_LABEL_MAX_BATCH_SOURCES_PER_CLUSTER,
+      );
       const nextItem: OpenWeightLlmTopicLabelBatchItem = {
         clusterId,
-        sources: candidate.request.sources,
+        sources: batchSources,
       };
       const trial: OpenWeightLlmTopicLabelBatchRequest = {
         schemaVersion: 2,
