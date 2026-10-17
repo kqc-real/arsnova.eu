@@ -64,7 +64,7 @@ import {
   parseSessionQuestionProgress,
 } from '../lib/sessionQuestionProgress';
 import { assertSessionEffectivelyActive } from '../lib/sessionLifecycle';
-import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudSemanticAnalyze';
+import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudPrewarmQueue';
 
 function normalizeNumericInputType(value: string | null | undefined): NumericInputType {
   return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';

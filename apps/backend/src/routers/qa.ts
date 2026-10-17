@@ -43,7 +43,7 @@ import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
 import { enqueueQaNlpJob, invalidateQaNlpForQuestion } from '../lib/qaNlpQueue';
-import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudSemanticAnalyze';
+import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudPrewarmQueue';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import {
   getQaSummaryRuntime,
