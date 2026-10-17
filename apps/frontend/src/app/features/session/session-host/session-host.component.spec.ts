@@ -8140,6 +8140,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         metric: 'TOP',
         normalization: 'NONE',
       }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(
       fixture.nativeElement.querySelector(
@@ -13070,6 +13071,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         sessionCode: 'ABC123',
         mode: 'THEME',
       }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
       {
@@ -13231,6 +13233,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({ mode: 'THEME', locale: 'fr', normalization: 'NONE' }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
 
     await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
@@ -13332,16 +13335,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith({
-      sessionCode: 'ABC123',
-      mode: 'THEME',
-      locale: fixture.componentInstance.qaWordCloudAnalysisLocale(),
-      metric: 'BEST',
-      filter: 'ALL_ELIGIBLE',
-      normalization: 'NONE',
-      maxEntries: 40,
-      limit: 100,
-    });
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+      {
+        sessionCode: 'ABC123',
+        mode: 'THEME',
+        locale: fixture.componentInstance.qaWordCloudAnalysisLocale(),
+        metric: 'BEST',
+        filter: 'ALL_ELIGIBLE',
+        normalization: 'NONE',
+        maxEntries: 40,
+        limit: 100,
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()).toMatchObject([
       {
@@ -14024,9 +14030,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   }
 
   function lemmaAnalyzeCalls(): unknown[] {
-    return wordCloudAnalyzeQueryMock.mock.calls.filter(
-      (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
-    );
+    return wordCloudAnalyzeQueryMock.mock.calls
+      .filter((call) => (call[0] as { normalization?: string }).normalization === 'LEMMA')
+      .map((call) => [call[0]]);
   }
 
   it('startet Sprachformen-Glaettung beim Oeffnen als LEXICAL+LEMMA', async () => {
@@ -14141,6 +14147,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         mode: 'THEME',
         normalization: 'NONE',
       }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
 
     expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('THEME');
