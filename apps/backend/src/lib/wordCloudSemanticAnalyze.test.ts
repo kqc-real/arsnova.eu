@@ -720,4 +720,53 @@ describe('wordCloudSemanticAnalyze', () => {
       expect.objectContaining({ metric: 'TOP', snapshotCache: 'miss', encoderCalled: false }),
     ]);
   });
+
+  it('berechnet bei wachsendem Live-Korpus (Freitext/Q&A) nur die neu hinzugekommenen Texte im Encoder nach', async () => {
+    const embeddedBatchSizes: number[] = [];
+    resetWordCloudSemanticAnalyzeForTests({
+      config: () => enabledConfig,
+      embed: async (input) => {
+        embeddedBatchSizes.push(input.items.length);
+        return {
+          modelId: 'intfloat/multilingual-e5-small',
+          modelVersion: 'intfloat/multilingual-e5-small@sha256:incremental-live',
+          items: input.items.map((item) => ({
+            id: toWordCloudSemanticSourceId(item.id),
+            embedding: geometricEmbeddingForSeedText(item.text),
+          })),
+        };
+      },
+    });
+
+    const initialItems = freetextItems(WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED.slice(0, 6));
+    const grownItems = [
+      ...initialItems,
+      { id: 'ft-new-1', text: 'Kapitel 4 und Klausurstoff sind noch unklar', weight: 1 },
+      { id: 'ft-new-2', text: 'Wann kommt die Klausur zu Kapitel 4?', weight: 1 },
+    ];
+
+    const first = await runSemanticDirect({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'TOP',
+      channel: 'FREETEXT',
+      normalization: 'NONE',
+      items: initialItems,
+    });
+    const second = await runSemanticDirect({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'TOP',
+      channel: 'FREETEXT',
+      normalization: 'NONE',
+      items: grownItems,
+      refresh: true,
+    });
+
+    expect(first.status).toBe('ready');
+    expect(second.status).toBe('ready');
+    expect(embeddedBatchSizes).toEqual([6, 2]);
+  });
 });
