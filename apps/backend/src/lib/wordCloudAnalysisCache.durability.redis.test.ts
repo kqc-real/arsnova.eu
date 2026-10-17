@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
 import { closeRedis, getRedis } from '../redis';
 import {
@@ -27,6 +27,11 @@ import {
 } from './productFeedbackTokens';
 
 const PHASE = process.env['WORD_CLOUD_DURABILITY_TEST_PHASE'];
+
+// Die Prepare-Phase wartet fünfmal nacheinander per WAITAOF auf den nächsten fsync
+// (`appendfsync everysec`), zusammen gut 4 s; 5 s Standardtimeout reichen nicht verlässlich (#562).
+vi.setConfig({ testTimeout: 20_000 });
+
 const ROLLOUT_SESSION_ID = '30000000-0000-4000-8000-000000000001';
 const PURGE_SESSION_ID = '30000000-0000-4000-8000-000000000002';
 const QUICK_FEEDBACK_SESSION_ID = '30000000-0000-4000-8000-000000000003';
