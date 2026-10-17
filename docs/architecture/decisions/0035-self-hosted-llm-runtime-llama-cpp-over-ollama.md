@@ -257,13 +257,13 @@ Diese Entscheidung betrifft ausschließlich die **Betreiber-seitige** Serving-Ru
 
 Implementierungsfolge: **Runtime-Baustein zuerst** (Image, Profil,
 Flags, gemeinsames Inflight, Health, Tests ohne Modell-Download) → 1.14c Stufe 2 (kurze Labels)
-→ 8.9c Slice 4 nach Prefill-Messung. Runtime R sowie der ausdrücklich gestartete
-Lernziel-Consumer und der Summary-V2-Consumer sind umgesetzt; diese ADR autorisiert weiterhin
-keine allgemeine Produktivfreigabe. Label benötigt seine eigene Ausbaustufe. Der
-Lernzielpfad erzeugte am 12.10.2026 auf dem privaten Produktionshost für das
-vollständige Demo-Quiz zehn Entwürfe; seine vollständige Mess- und Qualitätsabnahme
-bleibt offen. Summary V2 benötigt weiterhin einen realen Consumer-/Hardwarelauf;
-das reichhaltige 8.192-Summaryprofil ist derzeit nicht belegt.
+→ 8.9c Slice 4 nach Prefill-Messung. Runtime R sowie alle drei Consumer (`topic_label` V1/V2,
+`learning_objectives` und `qa_summary` V2) sind umgesetzt und auf dem privaten 8-vCPU-Produktionshost
+funktional und zeitlich vermessen (`learning_objectives`: 10 Demo-Quiz-Entwürfe bei ~3,56 GiB Peak-RAM;
+`qa_summary` V2: 56,9 s / 374 Completion-Tokens; `topic_label` V2 Batch: 6 Cluster in 22,9 s / 179 Completion-Tokens).
+Diese ADR autorisiert weiterhin keine standardmäßige Aktivierung der Repository-Flags; die formale
+Prefill-/RSS-Abnahme des reichhaltigen 8.192-Vollkontexts an der Obergrenze und die fachliche
+Qualitätsfreigabe bleiben getrennt in der Slice-8-Abnahme geführt.
 
 ## Performance-Steckbrief
 
@@ -368,10 +368,10 @@ das reichhaltige 8.192-Summaryprofil ist derzeit nicht belegt.
 - Freigabestufen unverändert: Offline-Vergleich → isolierter Zwei-Server-Laborpfad →
   produktionsnahe Last-/Fehler-/Security-/Privacy-/Kostenprüfung, erst danach bewusste
   Produktivaktivierung.
-- Runtime R setzt diese Leitplanken technisch um. Die ADR autorisiert weder die Aktivierung
-  noch den offenen Label-Consumer aus 1.14c Stufe 2. Lernziel- und Summary-V2-Consumer sind
-  implementiert, bleiben aber bis zu realen Consumer-/Hardwaremessungen und einer getrennten
-  Betreiberentscheidung produktiv aus.
+- Runtime R und alle drei Consumer (`topic_label` V1/V2, `learning_objectives` und `qa_summary` V2)
+  setzen diese Leitplanken technisch um und wurden auf dem privaten 8-vCPU-Produktionshost real
+  ausgeführt. Die ADR autorisiert keine standardmäßige Aktivierung der Repository-Flags; das
+  Einschalten in Produktion bleibt eine explizite Betreiberentscheidung.
 
 ---
 
@@ -389,7 +389,7 @@ das reichhaltige 8.192-Summaryprofil ist derzeit nicht belegt.
 
 ## Ergänzung 2026-09-22: Runtime-Voraussetzung für Issue #456
 
-**Status:** Runtime R am 2026-10-05 technisch implementiert und lokal mit echtem kurzem Labelauftrag geprüft; Lernziel- und Summary-V2-Consumer implementiert, aber noch keine Produktivaktivierung oder reale Consumer-/Slice-8-Betriebsfreigabe.
+**Status:** Runtime R am 2026-10-05 technisch implementiert und lokal mit echtem kurzem Labelauftrag geprüft; `topic_label` V1/V2, `learning_objectives` und `qa_summary` V2 sind als Consumer implementiert und wurden bis zum 2026-10-17 auf dem privaten 8-vCPU-Produktionshost real ausgeführt (formale Vollkontext-RSS-/TTFT- und Qualitätsabnahme in Slice 8 noch offen; Repository-Defaults bleiben `false`).
 [Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) erweitert den bisherigen
 Geltungsbereich (Labels und Summary) um einen dritten Auftrag: **Lernzielableitung**.
 Frühere Aussagen über zwei Aufträge beschreiben den bisherigen Scope; die übrigen
@@ -452,9 +452,10 @@ deaktiviert und seine Abnahme offen; Kompass, extraktive Labels und manuelle Zie
 
 Der integrierte Summary-V2-Packer bestätigt die Budgetgrenze konkret: Wenn der reichhaltige
 Referenzkontext nicht passt, wird kontrolliert die ausgewiesene Q&A-Textbaseline bzw. ein
-Force-Fit-Mindestbeleg gepackt. Für `qa_summary` V2 und `learning_objectives` stand in der
-Slice-8-Integration keine reale Zielruntime zur Verfügung. Beide Betriebsnachweise bleiben
-offen; Details stehen in
-[Issue #456 – Slice-8-Abnahme](../../implementation/ISSUE-456-SLICE-8-ABNAHME.md).
+Force-Fit-Mindestbeleg gepackt. Auf dem privaten 8-vCPU-Produktionshost wurden sowohl
+`learning_objectives` (10 Entwürfe im Demo-Quiz) als auch `qa_summary` V2 (56,9 s, 374 Tokens)
+und `topic_label` V2 (6 Cluster in 22,9 s) erfolgreich real ausgeführt; die formale
+Prefill-/RSS-Detailabnahme an der 8.192-Obergrenze und die fachliche Qualitätsabnahme sind in
+[Issue #456 – Slice-8-Abnahme](../../implementation/ISSUE-456-SLICE-8-ABNAHME.md) dokumentiert.
 
 Der finale Moderationsprompt bleibt Folgearbeit; der Lernzielauftrag gehört zu #456.

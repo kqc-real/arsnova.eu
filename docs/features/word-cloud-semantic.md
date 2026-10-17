@@ -179,11 +179,11 @@ Siehe [TESTING.md](../TESTING.md).
 
 Im Repo implementiert. Derselbe Encoder, dieselbe Complete-Linkage-Schwelle 0,87, dieselbe Mindestclustergröße 2 und derselbe Kill-Switch verarbeiten den getrennten Snapshot der sichtbaren Freitextantworten der aktuellen Frage. Die frühere Sperre für `channel: 'FREETEXT'` beziehungsweise `response-{index}` ist entfernt. `de`/`en` clustern bei aktivem Encoder; `fr`/`es`, einzelne Antworten, reine Singletons, Timeout und Fehler fallen im Backend lexikalisch zurück. Italienisch bleibt bereits vor dem Backendauftrag auf der lokalen 2.x-Wolke, solange keine unterstützte Analysesprache gewählt ist. Live-Submit, Vote, Join und WebSocket bleiben frei von Inferenz. Das Produktivflag bleibt bis zur gesonderten Betriebs- und Qualitätsfreigabe aus. Die kurze Themenzeile der Stufe 2 gilt für diesen Host-Kanal genauso wie für Q&A. Der Presenter zeigt diese Ansicht mit, sobald der Host sie aktiviert hat, und startet keinen eigenen Analysejob. Zuschnitt: [Backlog.md](../../Backlog.md) Story 1.14d.
 
-## Nicht-Ziele (bewusst außerhalb von Stufe 1)
+## Stufe 2 (Kurze Themennamen) und bewusste Nicht-Ziele
 
-LLM-Labels (Stufe 2, einschließlich Presenter-Anzeige der Host-Ansicht), 8.9c Slice 4, 8.9b-Transformer, ein vom Presenter selbst gestarteter Analysejob, SaaS-Fallback, Angular-Initial-Bundle-`maximumError` anheben, Produktivaktivierung.
+Stufe 2 ist hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) gemäß [WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md](../implementation/WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md) implementiert: Ist `OPEN_WEIGHT_LLM_ENABLED=true`, ersetzt dasselbe Modell in Host-Q&A und Host-Freitext (einschließlich der Presenter-Projektion der aktiven Host-Ansicht) ausschließlich den sichtbaren Namen (`labelOrigin: 'model'`), während die Cluster-Mitgliedschaft unverändert aus Stufe 1 stammt und ein fehlendes Modelllabel deterministisch beim extraktiven Mitgliedstext bleibt. `OPEN_WEIGHT_LLM_ENABLED=false` lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
 
-Stufe 2 bleibt offen hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md). Der Anschluss ist geplant in [WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md](../implementation/WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md): dasselbe Modell ersetzt in Host-Q&A und Host-Freitext nur den sichtbaren Namen, die Mitgliedschaft bleibt Stufe 1, und ein fehlendes Modelllabel behält den Mitgliedstext. `OPEN_WEIGHT_LLM_ENABLED` aus lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
+Bewusste Nicht-Ziele bleiben: 8.9b-Transformer auf dem LLM-Slot, ein vom Presenter selbst gestarteter Analysejob, SaaS-Fallback, Anheben von Angular-Initial-Bundle-`maximumError` sowie eine standardmäßige Produktivaktivierung der Kill-Switches im Repository.
 
 ## Verträge und Code
 
