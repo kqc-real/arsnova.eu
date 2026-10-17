@@ -2,9 +2,9 @@
 
 # Private Open-Weight-LLM-Runtime (Story 8.9d / Runtime R)
 
-**Stand:** 2026-10-13
+**Stand:** 2026-10-17
 
-**Status:** Runtime, App-Verträge und Betriebswrapper implementiert; Lernzielableitung und Summary V2 als getrennte Consumer verdrahtet; vollständiger Demo-Quiz-Lernziellauf auf dem privaten Produktionshost erfolgreich, Summary-V2- und formale Betriebsabnahme offen
+**Status:** Runtime, App-Verträge und Betriebswrapper implementiert; `topic_label` (Einzel- und Multi-Cluster-Batching), `qa_summary` V2 (`qa-summary-model-output-v3`) und `learning_objectives` sind als getrennte Consumer verdrahtet und auf dem privaten 8-vCPU-Produktionshost (`arsnova-privat`) real vermessen
 
 **ADR:** [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
 
@@ -24,7 +24,7 @@ Der Summary-V2-Referenzkontext passt im 8.192-Profil mit Q&A-Belegen und sichtba
 
 `OPEN_WEIGHT_LLM_ENABLED` bleibt standardmäßig `false` und ist unabhängig von `NLP_ENABLED`, `QA_NLP_ENABLED`, `WORD_CLOUD_SEMANTIC_ENABLED` und `QA_SUMMARY_ENABLED`. Es gibt keinen SaaS-Fallback.
 
-Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokale Text-KI** das Ergebnis von `health.openWeightLlmProbe`: feste Mini-Fixtures für `topic_label` und `learning_objectives` sowie denselben Summary-V2-Vertrag wie der produktive Full-Context-Pfad, mit Kurzbeschreibung für Erstnutzer und dem Hinweis auf das lokal betriebene Open-Weight-Modell (kein Cloud-Anbieter). Die Prüfung ist vom Footer-Poll und vom Kern-`serviceStatus` getrennt, cached fünf Minuten (auch `refresh: true` umgeht diese Abkühlzeit nicht) und bricht pro Aufgabe nach 20 Sekunden ab. Ist die Runtime aus, erscheint der Status »ausgeschaltet« ohne Inferenzaufruf.
+Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokale Text-KI** das Ergebnis von `health.openWeightLlmProbe`: feste Mini-Fixtures für `topic_label` und `learning_objectives` sowie denselben Summary-V2-Vertrag wie der produktive Full-Context-Pfad, mit Kurzbeschreibung für Erstnutzer und dem Hinweis auf das lokal betriebene Open-Weight-Modell (kein Cloud-Anbieter). Die Prüfung ist vom Footer-Poll und vom Kern-`serviceStatus` getrennt, läuft im Frontend über den ungebündelten `httpLink` (damit ein laufender Probe-Call niemals `health.stats` im HTTP-Batch blockiert), cached fünf Minuten (auch `refresh: true` umgeht diese Abkühlzeit nicht) und bricht pro Aufgabe nach 20 Sekunden ab (mit 1,5 s Slot-Cooldown nach Abbruch/Timeout, damit `llama-server` seinen Einzel-Slot vor dem Folgeauftrag freigibt). Ist die Runtime aus, erscheint der Status »ausgeschaltet« ohne Inferenzaufruf.
 
 ## Gepinnte Artefakte
 
@@ -238,7 +238,12 @@ Der finale isolierte Container war zusätzlich effektiv als UID/GID `65532:65532
 
 Die drei lokalen Läufe belegen Schemaerzwingung und Ausführbarkeit des kurzen Labelauftrags. Danach wurde `learning_objectives` am 12.10.2026 auf dem privaten Produktionshost mit dem vollständigen Demo-Quiz ausgeführt: Nach Anpassung der Containergrenze auf 8 GiB RAM und 10 GiB RAM plus Swap wurden zehn Vorschläge als Entwürfe hinzugefügt; `memory.peak` der aktuellen cgroup betrug rund 3,56 GiB ohne neues OOM-Ereignis. Der vorangegangene Versuch war bei Batch 3 an der früheren 5-GiB-Grenze durch ein Docker-OOM-Ereignis abgebrochen. Details und verbleibende Nachweise stehen in [Modellgestützte Lernzielableitung](learning-objective-derivation.md) und der [Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md).
 
-Dieser Produktionslauf belegt keine vollständige Lernzielqualität, keine p95 unter Last und keine Summary-V2-Prefill-/RSS-Messung. Der reichhaltige 8.192-Kontext bleibt offen. `OPEN_WEIGHT_LLM_ENABLED` ist im Repository standardmäßig `false`; der Betreiber hatte es für den Produktionslauf aktiviert. Aus diesem Lauf folgt keine allgemeine Freigabe der optionalen Consumer.
+Dieser Produktionslauf belegt keine vollständige Lernzielqualität und keine p95 unter Last. Am 17.10.2026 wurden zusätzlich auf derselben Zwei-Host-Produktionsarchitektur (`arsnova` ↔ `arsnova-privat` über privates Netz `10.0.0.2:8080`) sowohl `qa_summary` V2 als auch das Multi-Cluster-Batching für `topic_label` real vermessen:
+
+- **`qa_summary` V2 (`qa-summary-technical-handoff-v2` + `qa-summary-model-output-v3`):** Durch die einzeilige JSON-Kompaktierung, die explizite Beschränkung auf `included`-Quellen und die Schema-Obergrenzen `statements.max(4)`, `suggestedNextSteps.max(2)`, `limitations.max(2)` sank die Antwortgröße von 640 Tokens (`finish_reason: "length"`, Timeout nach 90 s) auf **374 Completion-Tokens** (`finish_reason: "stop"`) und **56,9 Sekunden** Ende-zu-Ende-Laufzeit.
+- **`topic_label` Multi-Cluster-Batching (`schemaVersion: 2`) & kompakte Quell-IDs (`s1`..`s6`):** Durch Komprimierung langer UUID-Quell-IDs auf `s1`..`s6` (max. 6 repräsentative Quellen à 240 Zeichen pro Cluster) und Bündelung mehrerer unbenannter Cluster in einem einzigen `topic_label`-Batch-Aufruf (≤ 2.500 UTF-8-Bytes) wurden **6 Cluster gemeinsam in 22,9 Sekunden** (`promptTokens: 411`, `completionTokens: 179`) benannt. Zusammen mit dem session-gescopeten `clusterTopicLabelCache`, `sessionClustersCache` und `sessionItemEmbeddingsCache` verkürzt sich die Themen-Verarbeitung bei 500 Fragen im Q&A-Forum über alle vier Sortieransichten von 10–15 Minuten auf **< 5 ms** pro Sortierwechsel (und ~20–30 s beim allerersten Kaltstart).
+
+`OPEN_WEIGHT_LLM_ENABLED` ist im Repository standardmäßig `false`; der Betreiber aktiviert das Flag explizit in seiner Produktionsumgebung.
 
 ## Verifikation
 

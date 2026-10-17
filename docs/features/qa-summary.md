@@ -3,8 +3,8 @@
 # Generative Moderationszusammenfassung (Story 8.9c)
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
-**Stand:** 2026-10-05
-**Status:** Versionierter Summary-V2-Pfad, private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert; Kill-Switches produktiv default aus; reale CPU-/Prefill-/Speicherabnahme und reichhaltiges 8.192-Token-Profil offen
+**Stand:** 2026-10-17
+**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v2`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert und auf dem privaten 8-vCPU-Produktionshost real vermessen (~56,9 s / 374 Completion-Tokens); Kill-Switches im Repo standardmäßig `false`
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Kaskade), [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) (Slice-4-Runtime)
 
@@ -42,7 +42,7 @@ Aussagen sind weiterhin `{ text, sourceIds }`; V2 erlaubt dabei typisierte Quell
 Host-only:
 
 - `qa.summaryRuntime` — Kill-Switch, Adapterfähigkeiten, Inferenzkonfiguration und letztes V1-/V2-Ergebnis; vor Auslieferung wird ein fertiges V2-Ergebnis gegen einen frisch autorisierten Hash geprüft
-- `qa.requestSummary` — startet einen Job, kehrt sofort mit `pending` zurück
+- `qa.requestSummary` — startet einen Job (auch während der 14-tägigen Host-Nachbereitungsfrist bei aktiviertem Q&A-Kanal via `assertQaHostContentReadAllowed`), kehrt sofort mit `pending` zurück
 - `qa.summaryContextPreview` — hostgeschützte, ausdrücklich geladene Diagnose desselben gepackten V2-Kontexts
 
 Teilnehmer-DTOs enthalten kein Summary- oder Kontextfeld. V2 entsteht ausschließlich aus dem hostautorisierten N10–N12-Pfad; Tokens, IPs, Nicknames und Participant-IDs sind nicht zulässig. Nicht freigegebene Quizresultate und Lösungen gelangen nicht in den Live-Kontext. Der Lernziel-Vorbereitungsauftrag ist davon getrennt und darf lösungshaltige Quizdaten nur nach der eigenen ausdrücklichen Hostaktion verwenden.

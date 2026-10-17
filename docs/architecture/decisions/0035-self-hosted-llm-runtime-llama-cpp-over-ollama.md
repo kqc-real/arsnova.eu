@@ -5,7 +5,7 @@
 **Status:** Accepted
 **Datum:** 2026-08-22
 **Entscheider:** Projektteam (Architekturentscheid auf Basis der 1.14c-Voranalyse, PO-Auftrag 2026-08-22)
-**Letzter Repo-Abgleich:** 2026-10-13 (Runtime R und Consumer implementiert; vollständiger Demo-Quiz-Lernziellauf erfolgreich; Label-Consumer, Summary-V2-Realmodelllauf und formale Betriebsabnahme offen; PO-Entscheidung: `topic_label` gilt für Host-Q&A und Host-Freitext)
+**Letzter Repo-Abgleich:** 2026-10-17 (Runtime R und alle drei Consumer `topic_label` inkl. Multi-Cluster-Batching V2, `qa_summary` V2 `qa-summary-model-output-v3` und `learning_objectives` implementiert und auf dem privaten 8-vCPU-Produktionshost real vermessen; PO-Entscheidung: `topic_label` gilt für Host-Q&A und Host-Freitext)
 **Kontext-Tags:** Machine Learning, Inferenz-Runtime, Selbst-Hosting, Backend-Architektur, Betrieb, Open-Weight-LLM
 
 **Ersetzt keine Produktentscheidung, nur die Runtime:** [WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md](../../implementation/WORD-CLOUD-3.0-1.14c-VORANALYSE-2026-08-20.md), [ADR-0032](0032-optional-nlp-cascade-for-qa-moderation-signals.md), Backlog Story 1.14c, Story 8.9c, Story 8.9d.
@@ -269,8 +269,7 @@ das reichhaltige 8.192-Summaryprofil ist derzeit nicht belegt.
 
 - **Lastklasse:** performance-kritisch (ADR-0025), solange nicht durch Messung entschärft.
 - **Pfadtyp:** privater Hintergrund-/On-Demand-Dienst, kein synchroner Live-Hotpath.
-- **Kostenprofil:** CPU-Threads (2–4 laut Voranalyse), RAM (~4 GB Modell plus KV für den
-  gepinnten Kontext, nicht für den nativen Modellkontext), Image ohne eingebettetes GGUF.
+- **Kostenprofil:** CPU-Threads (4 im Same-Host-Labor `docker-compose.yml`/`docker-compose.prod.yml`, bis zu 8 auf dem dedizierten Zweit-Host `docker-compose.llm.yml`), RAM (5 GiB im Labor bzw. 8 GiB RAM / 10 GiB RAM+Swap auf dem Zweit-Host plus KV für den gepinnten 8.192-Kontext), Image ohne eingebettetes GGUF.
 - **Skalierungsprofil:** ein Slot, ein Inflight über drei Auftragstypen. Drei Auftragstypen
   teilen sich denselben Prozess; ein konkurrierender Job fällt sofort auf Fallback beziehungsweise manuellen Retry, statt in llama.cpp
   zu warten (Voranalyse §4.3, geschärft).

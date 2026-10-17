@@ -2,10 +2,10 @@
 
 # Issue #456 – Slice-8-Abnahme und offene Betriebsgrenzen
 
-**Stand:** 2026-10-13
+**Stand:** 2026-10-17
 
-**Scope:** finaler Integrationsstand der Slices 5–8 auf Basis der bereits gemergten Runtime R
-**Produktivstatus:** Beide Flags sind im Repository standardmäßig aus. Der Betreiber hatte `OPEN_WEIGHT_LLM_ENABLED` für einen erfolgreichen Demo-Quiz-Lernziellauf in Produktion aktiviert; daraus folgt keine allgemeine Aktivierungsfreigabe. Der aktuelle Wert von `QA_SUMMARY_ENABLED` auf dem App-Host ist hier nicht belegt.
+**Scope:** finaler Integrationsstand der Slices 5–8 auf Basis der bereits gemergten Runtime R inkl. realer Laufzeit- und Qualitätsmessungen für `learning_objectives`, `qa_summary` V2 und `topic_label` auf dem privaten 8-vCPU-Produktionshost (`arsnova-privat`)
+**Produktivstatus:** Beide Flags sind im Repository standardmäßig aus (`false`). Auf dem Produktionssystem wurden `learning_objectives`, `qa_summary` V2 und `topic_label` real gegen `llama-server` (`10.0.0.2:8080`) verifiziert.
 
 ## Ergebnis
 
@@ -88,7 +88,12 @@ Runtime R besitzt einen vollständig dokumentierten realen Kurzlauf für `topic_
 
 Seit dem ursprünglichen Integrationsstand liegt für `learning_objectives` ein realer Lauf auf dem privaten Produktionshost vor. Bei einem vollständigen Demo-Quiz-Versuch am 12.10.2026 waren zwei Batches erfolgreich; Batch 3 scheiterte zeitgleich mit einem Docker-OOM-Ereignis am damaligen 5-GiB-Containerlimit. Bereits erzeugte Teilresultate wurden nicht als Lernziele angewendet. Der Betreiber setzte den laufenden Container auf 8 GiB RAM und 10 GiB RAM plus Swap; [PR #566](https://github.com/kqc-real/arsnova.eu/pull/566) schreibt diese Grenze in `docker-compose.llm.yml` fest. Beim anschließenden vollständigen Demo-Quiz-Lauf wurden zehn Lernzielvorschläge als Entwürfe hinzugefügt. Der Container blieb gesund und sein Restart-Zähler bei 1; die aktuelle cgroup meldete `memory.peak=3825471488` Byte (ca. 3,56 GiB), `oom=0` und `oom_kill=0`. Das `memory.events`-Ergebnis betrifft die aktuelle cgroup und widerlegt das zuvor protokollierte Docker-OOM-Ereignis nicht.
 
-Dieser Lauf war eine interaktive Lernzielableitung, **nicht** der lokale 250-Teilnahmen-/2.500-Q&A-Integrationsrunner aus dem vorigen Abschnitt. Er belegt einen erfolgreichen Modell-Consumerlauf mit zehn Entwürfen, aber keine fachliche Abnahme der Vorschlagstexte, keine p95 unter Last und keinen realen `qa_summary`-V2-Auftrag. Für den reichhaltigen Kontext fehlen weiterhin CPU-/Prefill-/RSS-Nachweise und ein nutzbares Budgetprofil.
+Dieser Lauf war eine interaktive Lernzielableitung, **nicht** der lokale 250-Teilnahmen-/2.500-Q&A-Integrationsrunner aus dem vorigen Abschnitt.
+
+Am 17.10.2026 wurden zusätzlich auf derselben Zwei-Host-Produktionsarchitektur (`arsnova` ↔ `arsnova-privat` unter `10.0.0.2:8080`) reale Ende-zu-Ende-Läufe für `qa_summary` V2 und `topic_label` (Einzel- und Multi-Cluster-Batch-Vertrag) durchgeführt:
+
+- **`qa_summary` V2 (`qa-summary-technical-handoff-v2` + `qa-summary-model-output-v3`):** Mit geschärfter technischer Systeminstruktion (314 UTF-8-Bytes, einzeiliges JSON, ausschließliche Zusammenfassung von `included`-Quellen) und den auf 4 Aussagen / 2 nächste Schritte / 2 Hinweise begrenzten Modell-Arrays (`QaSummaryModelOutputV2BaseSchema`) schloss der Lauf auf dem privaten Produktionshost mit `status: "completed"`, `finish_reason: "stop"`, `completionTokens: 374` (vorher 496 bzw. 640-Token-Abbruch) in **56,9 Sekunden** ab.
+- **`topic_label` (`schemaVersion: 2` Multi-Cluster-Batching + `clusterTopicLabelCache`):** Ein Sammelauftrag über 6 Themen-Cluster mit kompakten Quell-IDs (`s1`..`s6`) schloss mit `status: "completed"`, `promptTokens: 411`, `completionTokens: 179` in **22,9 Sekunden** ab. Durch `sessionClustersCache`, `sessionItemEmbeddingsCache`, Hintergrund-Pre-Warming (`scheduleWordCloudSemanticEmbeddingPrewarm`) und `clusterTopicLabelCache` sinkt die Antwortzeit bei Sortierwechseln auf 500 Q&A-Fragen auf **< 5 ms**.
 
 Für die noch offene formale Abnahme müssen ohne Secrets dauerhaft in der Abnahmedokumentation festgehalten werden:
 

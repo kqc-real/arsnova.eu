@@ -2,8 +2,8 @@
 
 # Implementierungsplan: Themennamen und Presenter-Inhalt (1.14c Stufe 2)
 
-**Status:** Umgesetzt, produktiv aus (`WORD_CLOUD_SEMANTIC_ENABLED` und `OPEN_WEIGHT_LLM_ENABLED` bleiben `false`)
-**Stand:** 2026-10-13
+**Status:** Umgesetzt und auf der Zwei-Host-Produktionsarchitektur real vermessen (`WORD_CLOUD_SEMANTIC_ENABLED` und `OPEN_WEIGHT_LLM_ENABLED` bleiben als Repo-Defaults `false`)
+**Stand:** 2026-10-17
 **Story:** 1.14c Stufe 2; Host-Freitext aus Story 1.14d nutzt denselben Namen-Schritt
 **Kanonische Produktdoku:** [word-cloud-semantic.md](../features/word-cloud-semantic.md)
 **Runtime:** [open-weight-llm-runtime.md](../features/open-weight-llm-runtime.md), [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md)
@@ -44,10 +44,10 @@ Umschalter, **Themen aktualisieren**, **Sprachformen glätten**, Export, Maximie
 
 Nach einem belastbaren Encoder-Ergebnis und vor `semanticClustersToEntries`:
 
-1. Kandidaten sind die gerankten Cluster mit mindestens zwei Mitgliedern, schwerstes Bündel zuerst, höchstens die bestehenden zwölf Themen.
-2. Pro Kandidat ein Auftrag `topic_label` über `runOpenWeightLlmTopicLabel`. Der Vertrag in `libs/shared-types/src/open-weight-llm.ts` bleibt. Ein Sammelauftrag scheitert an 2.500 UTF-8-Bytes und am einen Server-Slot.
-3. Die User-Nachricht enthält Locale, eine stabile `clusterId` und die zentralsten Mitgliedstexte, gekürzt bis das JSON in 2.500 Bytes passt. Die Wolke behält alle `memberIds`. Zurückgegebene `sourceIds` belegen nur zitierte Quellen.
-4. Alle Namen eines Snapshots teilen ein gemeinsames Wanduhr-Budget: mindestens `OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS` pro Kandidat mit ≥2 Mitgliedern (Untergrenze 8 s, Obergrenze 120 s). Jeder Aufruf endet bei `min(Restbudget, OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS)`. Was nicht mehr passt, behält den Mitgliedstext im selben Ergebnis. Die frühere feste 8‑Sekunden-Grenze war auf CPU-llama.cpp praktisch immer zu knapp und ließ nach dem Encoder-Lauf nur Mitgliedsfragen stehen.
+1. Kandidaten sind die gerankten Cluster mit mindestens zwei Mitgliedern, schwerstes Bündel zuerst, höchstens die bestehenden zwölf Themen (`TOPIC_LABEL_MAX_CANDIDATES = 12`).
+2. Liegen mindestens zwei unbenannte Kandidaten vor, bündelt `applyWordCloudTopicLabels` deren repräsentative Quellen (höchstens `TOPIC_LABEL_MAX_SOURCES_PER_CLUSTER = 6` je Cluster à max. 240 Zeichen, mit kompakten Kurz-IDs `s1`..`s6` bzw. `qa-1`..`qa-6`) in einem einzigen Sammelauftrag `topic_label` (`OpenWeightLlmTopicLabelBatchRequestSchema`, `schemaVersion: 2`) bis maximal 2.500 UTF-8-Bytes über `runOpenWeightLlmTopicLabelBatch`. Für einzelne unbenannte Cluster bleibt der Einzelvertrag (`schemaVersion: 1`, `runOpenWeightLlmTopicLabel`) mit konstanter `clusterId: 'cluster'` (für KV-Prefix-Cache-Reuse) aktiv.
+3. Die User-Nachricht enthält Locale, kurze `clusterId` (`c1`..`c12` bzw. `'cluster'`) und die bis zu sechs zentralsten Mitgliedstexte. Die Wolke behält alle `memberIds`. Zurückgegebene `sourceIds` belegen nur zitierte Quellen und werden pro Cluster gegen dessen erlaubte Kurz-IDs validiert.
+4. Alle Namen eines Snapshots teilen ein gemeinsames Wanduhr-Budget: mindestens `OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS` pro Kandidat mit ≥2 Mitgliedern (Untergrenze 8 s, Obergrenze 120 s). Erfolgreich validierte Modellnamen werden zusätzlich im session-gescopeten, SHA-256-indizierten `clusterTopicLabelCache` (TTL 30 Min., max. 512 Einträge) zwischengespeichert, sodass bereits benannte Cluster nach einem Teil-Timeout (`transient`), bei Sortierwechseln (`BEST`, `CONTROVERSIAL`, `TIME`, `TOP`) oder bei neu eintreffenden Live-Antworten sofort in `0 ms` wiederverwendet werden. Verlässt der Host die Session-Ansicht oder wird die Session beendet, bricht ein `AbortSignal` den laufenden LLM-Aufruf sofort ab.
 5. Ein angenommener Name ersetzt `entry.label`. `basisLabel` bleibt dieser sichtbare Name, damit »Zusammengefasst als …« nicht einen Mitgliedstext als Glättungsbasis zeigt. `members` und `variants` bleiben die Beiträge.
 
 Der Themenpfad behält den Mitgliedstext, wenn die Runtime aus, falsch konfiguriert, der Slot belegt, die Zeit um, der Circuit offen oder die Antwort schemawidrig ist. Dasselbe gilt, wenn der Name leer ist, länger als 80 Zeichen, mehr als sechs Wörter hat, nach Trim und Groß-/Kleinschreibung ein Mitgliedstext ist, einen Zeilenumbruch enthält, oder schon die zwei zentralsten Texte nicht in 2.500 Bytes passen. Der Client prüft Zod und verwirft unbekannte Quell-IDs weiterhin selbst.
