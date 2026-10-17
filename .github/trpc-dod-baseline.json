@@ -324,7 +324,7 @@
     },
     "qa.redactPassages": {
       "kind": "mutation",
-      "fingerprint": "sha256:df78a6d5660945eb1516712c1abbad835808ea47222ca0bd64a119a2ac30192c",
+      "fingerprint": "sha256:edcece1799d26e1252c6d384057d11628351d691210a02c71259c0e0107545e5",
       "missing": []
     },
     "qa.releasePending": {
@@ -344,7 +344,7 @@
     },
     "qa.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:7465cb791886d2602a72f9fddf638ccc828a9bae6ca14ccb0d2840191b7100a8",
+      "fingerprint": "sha256:8df389d12678287c5257152742810709c014b0fa721eeafd48e6acd680c636d3",
       "missing": []
     },
     "qa.summaryContextPreview": {
@@ -949,17 +949,17 @@
     },
     "vote.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:30e47780ca9cf3be89c92decc079eaac6e6f2d09ba94f449f580da639e565d54",
+      "fingerprint": "sha256:8b239caccd535aae54321c2882bac62e91c5217ca15092ea454f436db2fd10ee",
       "missing": []
     },
     "wordCloud.analyze": {
       "kind": "mutation",
-      "fingerprint": "sha256:bde6e6b00b04ba39c93b6b69d5e01026500a19466955bbdfce9ac20a02950ae6",
+      "fingerprint": "sha256:fe8442a2ef67cb5edecd282418508ef9b1536003086a2117e616bd90f4c74f07",
       "missing": []
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:b266738513aabc66955fb9d4df4f1645a780cc51577cfc8df75457372680233c",
+      "fingerprint": "sha256:638fad76a8113b032b51d9a7ec9a4c73bf73386414d35089c687c08cbe4373e1",
       "missing": []
     }
   }
