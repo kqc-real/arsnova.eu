@@ -547,32 +547,32 @@ Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`, 
 
 ## Browser- und A11y-Checks
 
-| Befehl (Frontend-Workspace)        | Zweck                                                                                                                       |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                                                      |
-| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                                                     |
-| `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                                                            |
-| `smoke:host-present-auth`          | Host/Present-Auth-Smoke                                                                                                     |
-| `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf                                                |
-| `smoke:presenter-viewports`        | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                                                   |
-| `smoke:host-music`                 | Host-Musik-/Sound-Smoke                                                                                                     |
-| `smoke:host-qa-feedback-tools`     | Q&A-/Blitzlicht-Werkzeuge, Filter, Fokus, Fristen, Runden und fünf Locales                                                  |
-| `smoke:host-home-entry`            | Echte Home-Chips, Q&A-Menü-Lifecycle, EVENT-Beides/Abbruch/Retry und CLASSROOM bis Gesamtende                               |
-| `smoke:host-phase-controls`        | Quiz-Phasen, PI, fünf Locales, mobile Labels und Menü-/Dialogfokus                                                          |
-| `smoke:short-text`                 | Kurzantwort-Flow inklusive axe                                                                                              |
-| `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                                                           |
-| `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                                                        |
-| `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                                                     |
-| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                                                       |
-| `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                                                    |
-| `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                                                       |
-| `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                                                          |
-| `smoke:product-feedback`           | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                                                                         |
-| `smoke:product-feedback-in-app`    | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ                                            |
-| `smoke:epic-405-host-qa-lifecycle` | Epic #405: Host-Zugangskarte, Q&A-Footer, Self-Service-Wiederherstellung (lokal, nicht in `e2e-chromium`)                   |
-| `smoke:epic-405-participant-qa`    | Epic #405: Q&A-Join, Frage senden, Sortierung, Favoriten, Wortwolke, Schreibpfad nach Ende (lokal, nicht in `e2e-chromium`) |
-| `lighthouse:a11y`                  | Score und A11y-Einzelaudits (lokal)                                                                                         |
-| `benchmark:word-cloud`             | Wortwolken-Benchmark / Regressionen                                                                                         |
+| Befehl (Frontend-Workspace)        | Zweck                                                                                                     |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                                    |
+| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                                   |
+| `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                                          |
+| `smoke:host-present-auth`          | Host/Present-Auth-Smoke                                                                                   |
+| `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf                              |
+| `smoke:presenter-viewports`        | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                                 |
+| `smoke:host-music`                 | Host-Musik-/Sound-Smoke                                                                                   |
+| `smoke:host-qa-feedback-tools`     | Q&A-/Blitzlicht-Werkzeuge, Filter, Fokus, Fristen, Runden und fünf Locales                                |
+| `smoke:host-home-entry`            | Echte Home-Chips, Q&A-Menü-Lifecycle, EVENT-Beides/Abbruch/Retry und CLASSROOM bis Gesamtende             |
+| `smoke:host-phase-controls`        | Quiz-Phasen, PI, fünf Locales, mobile Labels und Menü-/Dialogfokus                                        |
+| `smoke:short-text`                 | Kurzantwort-Flow inklusive axe                                                                            |
+| `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                                         |
+| `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                                      |
+| `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                                   |
+| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                                     |
+| `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                                  |
+| `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                                     |
+| `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                                        |
+| `smoke:product-feedback`           | ProductFeedback 12.1: Host-Sheet + Vote-Sessionende                                                       |
+| `smoke:product-feedback-in-app`    | ProductFeedback 12.2: Footer/Hilfe/Host/Vote/Join/Blitzlicht + Presenter-Negativ                          |
+| `smoke:epic-405-host-qa-lifecycle` | Epic #405: Host-Zugangskarte, Q&A-Footer, Self-Service-Wiederherstellung (lokal, nicht in `e2e-chromium`) |
+| `smoke:epic-405-participant-qa`    | Epic #405: Q&A-Join, Frage senden, Sortierung, Favoriten, Wortwolke, Schreibpfad nach Ende                |
+| `lighthouse:a11y`                  | Score und A11y-Einzelaudits (lokal)                                                                       |
+| `benchmark:word-cloud`             | Wortwolken-Benchmark / Regressionen                                                                       |
 
 Das PDF/UA-Gate liegt im Root-Workspace:
 
@@ -586,12 +586,13 @@ gegen das Profil `ua1`. Das manuelle Prüfprotokoll steht unter
 
 `a11y:axe:static`, `a11y:layout`, `smoke:presenter-viewports`,
 `smoke:short-text`, `smoke:session-question-progress` und
-`smoke:unified-session` sind Bestandteile des Chromium-Jobs `e2e-chromium`.
-`smoke:epic-405-host-qa-lifecycle` und `smoke:epic-405-participant-qa` bleiben
-lokale Smokes. Der Teilnehmer-Smoke lief als letzter Schritt im Chromium-Job
-und ist dort wiederholt mit Timeout oder `Target crashed` ausgefallen, während
-die vorherigen Smokes grün waren. Der Host-Lifecycle-Smoke bleibt lokal, weil
-der Host-Reload nach der Zugangskarte in CI wiederholt nicht stabil war.
+`smoke:unified-session` und `smoke:epic-405-participant-qa` sind Bestandteile
+des Chromium-Jobs `e2e-chromium`. Die früheren Ausfälle des Teilnehmer-Smokes
+(Timeout oder `Target crashed` als letzter Schritt) gingen auf den eingefrorenen
+Host-Tab beim WebSocket-Binding-Refresh (#546) und die Q&A-Sortier-Races (#549)
+zurück; beide sind behoben. `smoke:epic-405-host-qa-lifecycle` bleibt ein lokaler
+Smoke, weil der Host-Reload nach der Zugangskarte in CI wiederholt nicht stabil
+war.
 Der Presenter-Smoke legt vorab 50 Personen in einer Lobby an und blockiert bei
 Scroll, Clipping oder Überlappung in 712×1138, 1138×712, 820×1180 und
 1280×720 CSS-Pixeln; Fehlerscreenshots landen im E2E-Artefakt. Der Job

@@ -366,9 +366,8 @@ BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
   npm run smoke:epic-405-participant-qa -w @arsnova/frontend
 ```
 
-Beide Browser-Smokes sind lokal. `smoke:epic-405-participant-qa` ist nicht Teil
-von `e2e-chromium`: als letzter Schritt ist dort der Chromium-Prozess wiederholt
-mit Timeout oder `Target crashed` ausgefallen.
+`smoke:epic-405-participant-qa` läuft zusätzlich im Chromium-Job `e2e-chromium`;
+`smoke:epic-405-host-qa-lifecycle` bleibt lokal (siehe `docs/TESTING.md`).
 
 Controlled-Clock-Tests prüfen Zeitzonen, DST, Operator-/Hard-Cap und den
 monotonen Clientfallback. Frontend-Komponententests prüfen beide Warnschwellen,
