@@ -23903,6 +23903,10 @@
           <context context-type="linenumber">2854</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationFreetextRepeatHeadline" datatype="html">
+        <source>Mehrfach genannt</source>
+        <target>Mencionado varias veces</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationFreetextRepeat" datatype="html">
         <source>Mehrfach genannt: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></source>
         <target>Mencionado varias veces: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></target>
@@ -24011,6 +24015,10 @@
           <context context-type="linenumber">3484</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizMatchHeadline" datatype="html">
+        <source>Häufige Verwechslung</source>
+        <target>Confusión frecuente</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizMatch" datatype="html">
         <source>Häufige Verwechslung: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></source>
         <target>Confusión frecuente: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></target>
@@ -24018,6 +24026,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">3488</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizOrderHeadline" datatype="html">
+        <source>Häufig vertauscht</source>
+        <target>A menudo intercambiados</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizOrder" datatype="html">
         <source>Häufig vertauscht: <x id="a" equiv-text="truncateCompassLabel(fact.a, 32)"/> und <x id="b" equiv-text="truncateCompassLabel(fact.b, 32)"/></source>
@@ -24027,6 +24039,10 @@
           <context context-type="linenumber">3492</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizCategoryHeadline" datatype="html">
+        <source>Häufig falsch einsortiert</source>
+        <target>A menudo mal clasificado</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizCategory" datatype="html">
         <source>Häufig falsch einsortiert: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></source>
         <target>A menudo mal clasificado: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></target>
@@ -24035,6 +24051,10 @@
           <context context-type="linenumber">3496</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrongOptionHeadline" datatype="html">
+        <source>Häufigste andere Antwort</source>
+        <target>Otra respuesta más frecuente</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
         <target>Otra respuesta más frecuente: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></target>
@@ -24042,6 +24062,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">3500</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizSurveyTopHeadline" datatype="html">
+        <source>Häufigste Antwort</source>
+        <target>Respuesta más frecuente</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizSurveyTop" datatype="html">
         <source>Häufigste Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
@@ -34917,7 +34941,7 @@
           <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
+<trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
         <source> Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.</source>
         <target>Esta sesión finalizada solo es legible. Los objetivos de aprendizaje ya no se pueden cambiar.</target>
         <context-group purpose="location">
@@ -35937,7 +35961,7 @@
         <source>Auftrag konnte nicht geladen werden.</source>
         <target>No se pudo cargar la tarea.</target>
       </trans-unit>
-      <trans-unit id="sessionQaAssignments.readOnly" datatype="html">
+<trans-unit id="sessionQaAssignments.readOnly" datatype="html">
         <source>Diese beendete Session ist nur noch lesbar. Aufträge können nicht mehr geändert werden.</source>
         <target>Esta sesión finalizada es de solo lectura. Las tareas ya no se pueden modificar.</target>
       </trans-unit>

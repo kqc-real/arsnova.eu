@@ -218,11 +218,12 @@ import {
   moderationQuizFactEvidenceRole,
   collectQaNlpCategorySources,
   compassQuestionStem,
+  pickCompassSourceDetail,
   compassTermsFromAnalysisEntries,
   mergeModerationQuizSources,
   rememberModerationQuizSnapshot,
   resolveModerationCompassAnalysisMode,
-  truncateCompassLabel,
+  truncateCompassLabelAtWord,
   type ModerationCompassCardKind,
   type ModerationCompassAnalysisVariant,
   type ModerationCompassQuizInsightKind,
@@ -2763,7 +2764,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     buildModerationCompassCards({
       qaQuestions: this.moderationCompassInventoryQuestions().map((question) => ({
         id: question.id,
-        text: this.moderationCompassQaSourceText(question),
+        text: question.text,
+        sourceHeadline: this.moderationCompassQaSourceHeadline(question),
         status: question.status,
         isControversial: question.isControversial,
         positiveVoteCount: question.positiveVoteCount,
@@ -2784,7 +2786,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       nlpTopicSources: collectQaNlpCategorySources(
         this.moderationCompassInventoryQuestions().map((question) => ({
           id: question.id,
-          text: this.moderationCompassQaSourceText(question),
+          text: question.text,
+          sourceHeadline: this.moderationCompassQaSourceHeadline(question),
           status: question.status,
           nlp: question.nlp,
         })),
@@ -3577,27 +3580,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       .sort((left, right) => right[1] - left[1])
       .slice(0, 3)
       .map(([text, count]) => ({
-        label: $localize`:@@sessionHost.moderationFreetextRepeat:Mehrfach genannt: ${truncateCompassLabel(text, 64)}:text:`,
+        label: $localize`:@@sessionHost.moderationFreetextRepeatHeadline:Mehrfach genannt`,
         documentFrequency: count,
         sourceCount: count,
-        memberTexts: [],
+        memberTexts: [text],
       }));
   }
 
-  private moderationCompassQaSourceText(question: {
-    text: string;
+  private moderationCompassQaSourceHeadline(question: {
     isControversial?: boolean;
     positiveVoteCount?: number;
     negativeVoteCount?: number;
-  }): string {
+  }): string | undefined {
     if (
       question.isControversial === true &&
       typeof question.positiveVoteCount === 'number' &&
       typeof question.negativeVoteCount === 'number'
     ) {
-      return $localize`:@@sessionHost.moderationFrictionVotes:${question.positiveVoteCount}:up: dafür, ${question.negativeVoteCount}:down: dagegen · ${question.text}:question:`;
+      return $localize`:@@sessionQa.votesBreakdownAria:${question.positiveVoteCount}:up: dafür, ${question.negativeVoteCount}:down: dagegen`;
     }
-    return question.text;
+    return undefined;
   }
 
   private moderationCompassFeedback(): ModerationCompassTempo | null {
@@ -3710,32 +3712,30 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       .slice(0, 3);
   }
 
-  private withQuizQuestionStem(message: string, question: { text: string }): string {
-    const stem = compassQuestionStem(question.text);
-    if (!stem || message.includes(stem)) {
-      return message;
-    }
-    return `${message} · ${stem}`;
-  }
-
   private localizeModerationQuizFact(
     fact: ModerationQuizFact,
     question: HostCurrentQuestionDTO,
   ): ModerationCompassSource | null {
-    const quizSource = (label: string): ModerationCompassSource => ({
-      kind: 'quiz-result',
-      label: this.withQuizQuestionStem(label, question),
-      target: { channel: 'quiz', questionId: question.questionId },
-    });
+    const quizSource = (label: string, evidence?: string): ModerationCompassSource => {
+      const stem = compassQuestionStem(question.text, 64);
+      const distinctEvidence = pickCompassSourceDetail(label, evidence);
+      const context = pickCompassSourceDetail(
+        [label, distinctEvidence].filter(Boolean).join(' '),
+        stem,
+      );
+      return {
+        kind: 'quiz-result',
+        label,
+        ...(distinctEvidence ? { evidence: distinctEvidence } : {}),
+        ...(context ? { context } : {}),
+        target: { channel: 'quiz', questionId: question.questionId },
+      };
+    };
     switch (fact.type) {
-      case 'wrong-majority': {
-        const stem = compassQuestionStem(question.text);
+      case 'wrong-majority':
         return quizSource(
-          stem
-            ? $localize`:@@sessionHost.moderationQuizWrong:${fact.incorrect}:wrong: von ${fact.total}:total: liegen daneben · ${stem}:question:`
-            : $localize`:@@sessionHost.moderationQuizWrongPlain:${fact.incorrect}:wrong: von ${fact.total}:total: liegen daneben`,
+          $localize`:@@sessionHost.moderationQuizWrongPlain:${fact.incorrect}:wrong: von ${fact.total}:total: liegen daneben`,
         );
-      }
       case 'in-band':
         return quizSource(
           $localize`:@@sessionHost.moderationQuizInBand:Nur ${fact.percent}:percent: % der Schätzungen liegen im erwarteten Bereich`,
@@ -3750,23 +3750,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         );
       case 'matching-confusion':
         return quizSource(
-          $localize`:@@sessionHost.moderationQuizMatch:Häufige Verwechslung: ${truncateCompassLabel(fact.left, 32)}:left: → ${truncateCompassLabel(fact.wrong, 32)}:wrong:`,
+          $localize`:@@sessionHost.moderationQuizMatchHeadline:Häufige Verwechslung`,
+          `${truncateCompassLabelAtWord(fact.left, 42)} → ${truncateCompassLabelAtWord(fact.wrong, 42)}`,
         );
       case 'ordering-swap':
         return quizSource(
-          $localize`:@@sessionHost.moderationQuizOrder:Häufig vertauscht: ${truncateCompassLabel(fact.a, 32)}:a: und ${truncateCompassLabel(fact.b, 32)}:b:`,
+          $localize`:@@sessionHost.moderationQuizOrderHeadline:Häufig vertauscht`,
+          `${truncateCompassLabelAtWord(fact.a, 42)} · ${truncateCompassLabelAtWord(fact.b, 42)}`,
         );
       case 'categorization-miss':
         return quizSource(
-          $localize`:@@sessionHost.moderationQuizCategory:Häufig falsch einsortiert: ${truncateCompassLabel(fact.item, 32)}:item: → ${truncateCompassLabel(fact.wrongCategory, 32)}:wrong:`,
+          $localize`:@@sessionHost.moderationQuizCategoryHeadline:Häufig falsch einsortiert`,
+          `${truncateCompassLabelAtWord(fact.item, 42)} → ${truncateCompassLabelAtWord(fact.wrongCategory, 42)}`,
         );
       case 'wrong-option':
         return quizSource(
-          $localize`:@@sessionHost.moderationQuizWrongOption:Häufigste andere Antwort: ${truncateCompassLabel(fact.option, 64)}:option:`,
+          $localize`:@@sessionHost.moderationQuizWrongOptionHeadline:Häufigste andere Antwort`,
+          truncateCompassLabelAtWord(fact.option, 72),
         );
       case 'survey-top':
         return quizSource(
-          $localize`:@@sessionHost.moderationQuizSurveyTop:Häufigste Antwort: ${truncateCompassLabel(fact.option, 64)}:option:`,
+          $localize`:@@sessionHost.moderationQuizSurveyTopHeadline:Häufigste Antwort`,
+          truncateCompassLabelAtWord(fact.option, 72),
         );
       case 'numeric-median':
         return quizSource(
@@ -3790,7 +3795,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         );
       case 'freetext-repeat':
         return quizSource(
-          $localize`:@@sessionHost.moderationFreetextRepeat:Mehrfach genannt: ${truncateCompassLabel(fact.text, 64)}:text:`,
+          $localize`:@@sessionHost.moderationFreetextRepeatHeadline:Mehrfach genannt`,
+          truncateCompassLabelAtWord(fact.text, 72),
         );
       default:
         return null;
