@@ -34941,7 +34941,7 @@
           <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
-<trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
+      <trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
         <source> Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.</source>
         <target>Cette session terminée est uniquement lisible. Les objectifs d’apprentissage ne peuvent plus être modifiés.</target>
         <context-group purpose="location">
@@ -35961,7 +35961,7 @@
         <source>Auftrag konnte nicht geladen werden.</source>
         <target>Impossible de charger la consigne.</target>
       </trans-unit>
-<trans-unit id="sessionQaAssignments.readOnly" datatype="html">
+      <trans-unit id="sessionQaAssignments.readOnly" datatype="html">
         <source>Diese beendete Session ist nur noch lesbar. Aufträge können nicht mehr geändert werden.</source>
         <target>Cette session terminée est en lecture seule. Les consignes ne peuvent plus être modifiées.</target>
       </trans-unit>

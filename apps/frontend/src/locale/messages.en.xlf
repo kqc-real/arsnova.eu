@@ -34999,7 +34999,7 @@
           <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
-<trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
+      <trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
         <source> Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.</source>
         <target>This session has ended and is read-only. Learning objectives can no longer be changed.</target>
         <context-group purpose="location">
@@ -36019,7 +36019,7 @@
         <source>Auftrag konnte nicht geladen werden.</source>
         <target>Task could not be loaded.</target>
       </trans-unit>
-<trans-unit id="sessionQaAssignments.readOnly" datatype="html">
+      <trans-unit id="sessionQaAssignments.readOnly" datatype="html">
         <source>Diese beendete Session ist nur noch lesbar. Aufträge können nicht mehr geändert werden.</source>
         <target>This session has ended and is read-only. Tasks can no longer be changed.</target>
       </trans-unit>
