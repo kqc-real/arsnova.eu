@@ -135,8 +135,10 @@ Der normale Audit blockiert:
 Unveränderte Legacy-Schuld blockiert nicht. Nach einer vollständigen neuen oder
 geänderten Prozedur, einer behobenen Legacy-Lücke, einem Rename oder einer Löschung
 ist `npm run audit:trpc-dod -- --update-baseline` auszuführen und die geänderte
-`.github/trpc-dod-baseline.json` mit zu committen. Der Updater verweigert neue oder
-erhöhte Schuld sowie konkurrierende Schreibzugriffe. Exit 1 bedeutet Gate-Verstoß
+`.github/trpc-dod-baseline.json` mit zu committen. Die Audit-Tests leiten
+Gesamtzahl, `kind`-Zahlen und `Complete` aus dieser Baseline ab; ein zweites
+manuelles Nachziehen fester Prozedurzahlen ist nicht nötig. Der Updater verweigert
+neue oder erhöhte Schuld sowie konkurrierende Schreibzugriffe. Exit 1 bedeutet Gate-Verstoß
 oder erforderliche Baseline-Fortschreibung; Exit 2 bedeutet einen Struktur- oder
 Historienfehler. Details stehen in
 [ADR-0034](architecture/decisions/0034-trpc-dod-evidence-helper-and-fingerprint.md).
