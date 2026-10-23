@@ -381,6 +381,44 @@ describe('QuizLearningObjectivesComponent', () => {
     );
   });
 
+  it('schreibt das Anfangswort gespeicherter KI-Lernziele groß', () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Großschreibung' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Was ist eine Regression?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      answers: [
+        { text: 'Ein Modell', isCorrect: true },
+        { text: 'Ein Diagramm', isCorrect: false },
+      ],
+    });
+    store.applyDerivedLearningObjectiveDrafts(
+      quiz.id,
+      store.getLearningObjectiveBundle(quiz.id).revision,
+      '50000000-0000-4000-8000-0000000000bb',
+      [
+        derivedDraft(
+          '50000000-0000-4000-8000-000000000021',
+          question.id,
+          'lineare Regressionsmodelle anwenden',
+        ),
+      ],
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    const rendered = fixture.nativeElement.querySelector(
+      '.learning-objectives__text.markdown-body',
+    ) as HTMLElement;
+    expect(rendered.textContent).toContain('Lineare Regressionsmodelle anwenden.');
+    expect(store.getLearningObjectiveBundle(quiz.id).objectives[0]?.text).toBe(
+      'lineare Regressionsmodelle anwenden',
+    );
+  });
+
   it('nennt mehrere neue Entwürfe klar und zeigt ohne Einschränkung keine Hinweisliste', async () => {
     const store = TestBed.inject(QuizStoreService);
     const quiz = store.createQuiz({ name: 'Mehrere Vorschläge' });

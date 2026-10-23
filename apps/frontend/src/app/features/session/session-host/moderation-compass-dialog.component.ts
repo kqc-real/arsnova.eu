@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, signal, ViewEncapsulation } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
@@ -24,6 +25,7 @@ import {
 } from '@arsnova/shared-types';
 import { ModerationCompassIconComponent } from './moderation-compass-icon.component';
 import {
+  compassSourceSpokenLabel,
   extraModerationCompassSources,
   moderationCompassSourceDestination,
   resolveModerationCompassMoreSourcesKind,
@@ -96,6 +98,7 @@ export type ModerationCompassDialogData = {
   selector: 'app-moderation-compass-dialog',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     MatButton,
     MatIconButton,
     MatDialogClose,
@@ -214,16 +217,6 @@ export class ModerationCompassDialogComponent {
     }
   }
 
-  moreSourcesHint(card: ModerationCompassCard): string | null {
-    switch (this.moreSourcesKind(card)) {
-      case 'word-cloud-top':
-      case 'word-cloud-more':
-        return $localize`:@@sessionHost.moderationMoreWordCloudHint:Zuerst der Begriff aus der Wortwolke, danach ein Beispiel aus einer zugehörigen Frage.`;
-      default:
-        return null;
-    }
-  }
-
   sourceDestinationLabel(source: ModerationCompassSource): string {
     return this.destinationLabel(moderationCompassSourceDestination(source));
   }
@@ -253,7 +246,11 @@ export class ModerationCompassDialogComponent {
 
   sourceJumpAria(source: ModerationCompassSource): string {
     const destination = this.sourceDestinationLabel(source);
-    return $localize`:@@sessionHost.moderationSourceOpenAria:Öffnet ${destination}:destination:: ${this.displaySourceLabel(source.label)}:label:`;
+    return $localize`:@@sessionHost.moderationSourceOpenAria:Öffnet ${destination}:destination:: ${this.displaySourceLabel(compassSourceSpokenLabel(source))}:label:`;
+  }
+
+  sourceTrackKey(source: ModerationCompassSource): string {
+    return [source.kind, source.label, source.evidence ?? '', source.context ?? ''].join('\0');
   }
 
   summarySourceJumpAria(source: CompatibleQaSummarySource): string {

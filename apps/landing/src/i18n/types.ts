@@ -177,6 +177,22 @@ export interface FeaturesMessages {
   items: Array<{ title: string; description: string; icon: string }>;
 }
 
+export interface LeaderboardMessages {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  points: string[];
+  demoAria: string;
+  boardTitle: string;
+  winnerLabel: string;
+  winnerMeta: string;
+  rankCol: string;
+  nicknameCol: string;
+  pointsCol: string;
+  correctCol: string;
+  names: string[];
+}
+
 export interface StructuredQuestionTypesMessages {
   eyebrow: string;
   title: string;
@@ -258,6 +274,7 @@ export interface Messages {
   workflow: WorkflowMessages;
   pairing: PairingMessages;
   features: FeaturesMessages;
+  leaderboard: LeaderboardMessages;
   structuredQuestionTypes: StructuredQuestionTypesMessages;
   accessibility: AccessibilityMessages;
   trust: TrustMessages;

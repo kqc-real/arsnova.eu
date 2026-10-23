@@ -17,6 +17,7 @@ const legacyAliases = [
   'fragenwand',
   'moderationskompass',
   'ablauf',
+  'rangliste',
   'barrierefreiheit',
   'vertrauen',
   'vergleich',
@@ -24,6 +25,7 @@ const legacyAliases = [
 const canonicalAnchors = [
   'workflow',
   'features',
+  'leaderboard',
   'host-pairing',
   'structured-question-types',
   'numeric-estimate',
@@ -39,6 +41,7 @@ const canonicalAnchors = [
 const sectionOrder = [
   'workflow',
   'features',
+  'leaderboard',
   'host-pairing',
   'structured-question-types',
   'numeric-estimate',
@@ -128,6 +131,8 @@ const removedNavAnchors = [
   'host-pairing',
 ];
 const deSmokePhrases = [
+  'Preset Spielerisch',
+  'Die Rangliste, die den Hörsaal mitzieht',
   'Jetzt ausprobieren',
   'Zum Inhalt springen',
   'Menü öffnen',
@@ -307,6 +312,8 @@ const localeContentSmoke = {
       'Aussagekräftige Wortwolke',
       'Live-Aktualisierung pausiert',
       'Was arsnova.eu auszeichnet',
+      'Die Rangliste, die den Hörsaal mitzieht',
+      'Preset Spielerisch',
       'Der Moderationskompass zeigt, wo der Raum gerade steht',
       'Was macht der Moderationskompass?',
       'Zuerst fürs Handy',
@@ -354,6 +361,8 @@ const localeContentSmoke = {
     wcag: 'Conforms to WCAG 2.2 Level AA',
     term: 'numeric estimation question',
     editorial: [
+      'The leaderboard that pulls the room in',
+      'Gamification preset',
       'With the confidence rating,',
       'Confidently wrong answers may indicate misconceptions.',
       'Pedagogical analysis',
@@ -405,6 +414,8 @@ const localeContentSmoke = {
     wcag: 'Conforme aux WCAG 2.2, niveau AA',
     term: 'sondage express',
     editorial: [
+      'Le classement qui emporte la salle',
+      'Style Ludique',
       'D’abord pour le téléphone',
       'Créer et animer d’abord sur téléphone',
       'Puis-je vraiment créer un quiz et animer une session entièrement depuis le téléphone',
@@ -469,6 +480,8 @@ const localeContentSmoke = {
       'Cosa fa la bussola di moderazione?',
       'si adattano a contesti che vanno dalla classe e dal seminario al workshop',
       'mostrano il quiz, la bacheca delle domande',
+      'La classifica che trascina la sala',
+      'Stile Giocoso',
       'Pensata per lo smartphone',
       'Crea e conduci dal telefono',
       'Posso creare un quiz e condurre una sessione per intero dal telefono',
@@ -528,6 +541,8 @@ const localeContentSmoke = {
       'infraestructura de despliegue y operación de la plataforma',
       'El anfitrión y el presentador muestran el cuestionario',
       'Presenta desde cualquier punto de la sala',
+      'La clasificación que arrastra a la sala',
+      'Ajuste Lúdico',
       'Primero para el móvil',
       'Crear y dirigir primero en el móvil',
       '¿Puedo crear un cuestionario y dirigir una sesión por completo desde el móvil?',
@@ -707,7 +722,7 @@ function extractMainSectionOrder(html) {
   if (!mainMatch) return null;
   const order = [];
   const re =
-    /id="(workflow|features|host-pairing|structured-question-types|numeric-estimate|confidence|qa-wall|moderation-compass|accessibility|trust|comparison|faq)"/g;
+    /id="(workflow|features|leaderboard|host-pairing|structured-question-types|numeric-estimate|confidence|qa-wall|moderation-compass|accessibility|trust|comparison|faq)"/g;
   let match;
   while ((match = re.exec(mainMatch[1])) !== null) {
     order.push(match[1]);

@@ -74,6 +74,10 @@ export type ModerationCompassSourceTarget = {
 export type ModerationCompassSource = {
   readonly kind: ModerationCompassSourceKind;
   readonly label: string;
+  /** Konkreter Beleg unter der Überschrift, etwa ein Antwortpaar. */
+  readonly evidence?: string;
+  /** Kurzkontext, etwa der Fragenstamm — nie eine Wiederholung von label/evidence. */
+  readonly context?: string;
   readonly focusHint?: string;
   readonly target?: ModerationCompassSourceTarget;
   readonly evidenceRole?: ModerationCompassEvidenceRole;
@@ -102,6 +106,8 @@ export type ModerationCompassAnalysisMode = SharedModerationCompassAnalysisMode;
 export type ModerationCompassQaQuestion = {
   readonly id: string;
   readonly text: string;
+  /** Optionaler kurzer Kopf, etwa das Stimmenverhältnis bei Reibung. */
+  readonly sourceHeadline?: string;
   readonly status: 'PENDING' | 'ACTIVE' | 'PINNED' | 'ARCHIVED' | 'DELETED';
   readonly isControversial?: boolean;
   readonly positiveVoteCount?: number;
@@ -119,6 +125,8 @@ export type ModerationCompassTermOrigin = {
 
 export type ModerationCompassTerm = {
   readonly label: string;
+  /** Presentation headline; jump and focus still use `label`. */
+  readonly displayLabel?: string;
   readonly documentFrequency: number;
   readonly sourceCount: number;
   readonly memberTexts: readonly string[];
@@ -277,8 +285,8 @@ export function truncateCompassLabel(text: string, max = SOURCE_LABEL_MAX): stri
   return `${trimmed.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
 }
 
-function truncateCompassLabelAtWord(text: string, max: number): string {
-  const trimmed = text.trim().replace(/\s+/g, ' ');
+export function truncateCompassLabelAtWord(text: string, max: number): string {
+  const trimmed = replaceEmojiShortcodes(text).trim().replace(/\s+/g, ' ');
   if (trimmed.length <= max) {
     return trimmed;
   }
@@ -288,6 +296,85 @@ function truncateCompassLabelAtWord(text: string, max: number): string {
   const minKeep = Math.max(8, Math.floor(budget * 0.6));
   const kept = (breakAt >= minKeep ? slice.slice(0, breakAt) : slice).trimEnd();
   return `${kept}…`;
+}
+
+function normalizeCompassCompareText(text: string): string {
+  return text
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('de-DE')
+    .replace(/[.…]+$/u, '');
+}
+
+function compassContentTokens(text: string): string[] {
+  const seen = new Set<string>();
+  const tokens: string[] = [];
+  for (const token of normalizeCompassCompareText(text).split(/[^\p{L}\p{N}-]+/u)) {
+    if (token.length < 4 || seen.has(token)) {
+      continue;
+    }
+    seen.add(token);
+    tokens.push(token);
+  }
+  return tokens;
+}
+
+function looksLikeCompassSentence(text: string): boolean {
+  const trimmed = text.trim();
+  if (/[.?!…]/.test(trimmed)) {
+    return true;
+  }
+  return /^(wie|was|warum|weshalb|wieso|welche|welcher|welches|wann|wo|womit|wodurch|how|what|why|when|where|which|qui|que|pourquoi|quand|où|cuál|qué|quando|perché)\b/iu.test(
+    trimmed,
+  );
+}
+
+export function compassSourcePartsOverlap(primary: string, extra: string): boolean {
+  const left = normalizeCompassCompareText(primary);
+  const right = normalizeCompassCompareText(extra);
+  if (!left || !right) {
+    return true;
+  }
+  if (left === right || left.includes(right)) {
+    return true;
+  }
+  const extraTokens = compassContentTokens(extra);
+  if (extraTokens.length === 0) {
+    return normalizeCompassCompareText(extra).replace(/[^\p{L}\p{N}]+/gu, '').length === 0;
+  }
+  const hits = extraTokens.filter((token) => left.includes(token)).length;
+  return hits / extraTokens.length >= 0.6;
+}
+
+/** Liefert einen Zweittext nur, wenn er zur Überschrift etwas Neues beiträgt. */
+export function pickCompassSourceDetail(
+  primary: string,
+  extra: string | undefined,
+): string | undefined {
+  const trimmed = extra?.trim() ?? '';
+  if (!trimmed) {
+    return undefined;
+  }
+  if (compassSourcePartsOverlap(primary, trimmed)) {
+    return undefined;
+  }
+  const extraTokens = compassContentTokens(trimmed);
+  const primaryNorm = normalizeCompassCompareText(primary);
+  if (
+    !looksLikeCompassSentence(trimmed) &&
+    extraTokens.length <= 2 &&
+    extraTokens.some((token) => primaryNorm.includes(token))
+  ) {
+    return undefined;
+  }
+  return trimmed;
+}
+
+export function compassSourceSpokenLabel(source: ModerationCompassSource): string {
+  return [source.label, source.evidence, source.context]
+    .map((part) => part?.trim() ?? '')
+    .filter((part) => part.length > 0)
+    .join('. ');
 }
 
 /** Kurzer Fragetitel für Kompass-Quellen, ohne Markdown und Medien. */
@@ -385,6 +472,8 @@ function quizSourceCacheEquals(
       entry.sources.every(
         (source, sourceIndex) =>
           source.label === other.sources[sourceIndex]?.label &&
+          source.evidence === other.sources[sourceIndex]?.evidence &&
+          source.context === other.sources[sourceIndex]?.context &&
           source.evidenceRole === other.sources[sourceIndex]?.evidenceRole &&
           JSON.stringify(source.target ?? null) ===
             JSON.stringify(other.sources[sourceIndex]?.target ?? null),
@@ -406,10 +495,11 @@ export function mergeModerationQuizSources(
       return;
     }
     const label = source.label.trim();
-    if (!label || seen.has(label)) {
+    const key = sourceDedupeKey(source);
+    if (!label || seen.has(key)) {
       return;
     }
-    seen.add(label);
+    seen.add(key);
     merged.push(withDefaultSourceTarget(source));
   };
 
@@ -473,23 +563,25 @@ function termSource(
   kind: Extract<ModerationCompassSourceKind, 'qa-term' | 'freetext-term'>,
 ): ModerationCompassSource | null {
   const channel = kind === 'freetext-term' ? 'quiz' : 'qa';
-  const topic = truncateCompassLabel(term.label);
+  const topic = truncateCompassLabelAtWord(term.label, SOURCE_LABEL_MAX);
   if (!topic) {
     return null;
   }
+  const presentation = term.displayLabel?.trim() || topic;
   const memberTexts = uniqueNonEmpty(term.memberTexts);
-  const example = memberTexts[0] ? truncateCompassLabel(memberTexts[0], 64) : '';
-  const label = example ? `${topic} · ${example}` : topic;
+  const rawExample = memberTexts[0] ? truncateCompassLabelAtWord(memberTexts[0], 72) : '';
+  const example = rawExample ? pickCompassSourceDetail(presentation, rawExample) : undefined;
   const memberIds = kind === 'qa-term' ? uniqueNonEmpty(term.memberSourceIds) : [];
   return {
     kind,
-    label,
+    label: presentation,
+    ...(example ? { evidence: example } : {}),
     focusHint: topic,
     target: {
       channel,
       surface: 'word-cloud',
       termLabel: topic,
-      ...(example ? { memberText: example } : {}),
+      ...(rawExample ? { memberText: rawExample } : {}),
       ...(memberTexts.length > 0 ? { memberTexts } : {}),
       ...(memberIds[0] ? { questionId: memberIds[0] } : {}),
       ...(memberIds.length > 0 ? { questionIds: memberIds } : {}),
@@ -510,19 +602,35 @@ function quizConfusionSources(
 }
 
 function qaQuestionSource(question: ModerationCompassQaQuestion): ModerationCompassSource | null {
-  const label = truncateCompassLabel(question.text);
-  if (!label) {
+  const headline = question.sourceHeadline?.trim() ?? '';
+  const stem = compassQuestionStem(question.text, 72);
+  if (headline) {
+    const context = pickCompassSourceDetail(headline, stem);
+    return {
+      kind: 'qa-question',
+      label: headline,
+      ...(context ? { context } : {}),
+      target: { channel: 'qa', questionId: question.id },
+    };
+  }
+  if (!stem) {
     return null;
   }
   return {
     kind: 'qa-question',
-    label,
+    label: stem,
     target: { channel: 'qa', questionId: question.id },
   };
 }
 
 function sourceDedupeKey(source: ModerationCompassSource): string {
-  return JSON.stringify([source.kind, source.label]);
+  return JSON.stringify([
+    source.kind,
+    source.label,
+    source.evidence ?? '',
+    source.context ?? '',
+    source.target?.questionId ?? '',
+  ]);
 }
 
 function registerRuleSource(

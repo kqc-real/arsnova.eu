@@ -4,7 +4,9 @@ import {
   collectModerationQuizFacts,
   collectQaNlpCategorySources,
   compassQuestionStem,
+  compassSourceSpokenLabel,
   compassTermsFromAnalysisEntries,
+  pickCompassSourceDetail,
   extraModerationCompassSources,
   mergeModerationQuizSources,
   moderationCompassSourceDestination,
@@ -14,6 +16,7 @@ import {
   resolveModerationCompassMoreSourcesKind,
   splitModerationSummaryLead,
   truncateCompassLabel,
+  truncateCompassLabelAtWord,
   visibleModerationCompassSources,
   type ModerationCompassSnapshot,
 } from './moderation-compass';
@@ -43,6 +46,45 @@ describe('truncateCompassLabel', () => {
     const label = truncateCompassLabel('a'.repeat(120), 20);
     expect(label.endsWith('…')).toBe(true);
     expect(label.length).toBeLessThanOrEqual(20);
+  });
+});
+
+describe('truncateCompassLabelAtWord', () => {
+  it('schneidet an der Wortgrenze statt mitten im Wort', () => {
+    expect(truncateCompassLabelAtWord('Häufige Verwechslung langer Begriffspaare', 24)).toBe(
+      'Häufige Verwechslung…',
+    );
+  });
+});
+
+describe('pickCompassSourceDetail', () => {
+  it('behält eine echte Frage unter einem kurzen Thema', () => {
+    expect(pickCompassSourceDetail('Median', 'Wie berechnet man den Median?')).toBe(
+      'Wie berechnet man den Median?',
+    );
+  });
+
+  it('lässt Keyword-Wiederholungen weg', () => {
+    expect(
+      pickCompassSourceDetail('Skalierung und Kontext', 'Skalierung prüfen Kontext prüfen'),
+    ).toBeUndefined();
+  });
+
+  it('behält kurze Belege und Fragesätze', () => {
+    expect(pickCompassSourceDetail('Häufigste andere Antwort', '5')).toBe('5');
+    expect(pickCompassSourceDetail('22 von 30 liegen daneben', 'Was ist 2+2?')).toBe(
+      'Was ist 2+2?',
+    );
+  });
+
+  it('spricht gestapelte Quellen ohne Mittelpunkt', () => {
+    expect(
+      compassSourceSpokenLabel({
+        kind: 'qa-term',
+        label: 'Median',
+        evidence: 'Wie berechnet man den Median?',
+      }),
+    ).toBe('Median. Wie berechnet man den Median?');
   });
 });
 
@@ -129,7 +171,8 @@ describe('buildModerationCompassCards', () => {
     expect(topics?.sources).toEqual([
       {
         kind: 'qa-term',
-        label: 'Median · Wie berechnet man den Median?',
+        label: 'Median',
+        evidence: 'Wie berechnet man den Median?',
         focusHint: 'Median',
         target: {
           channel: 'qa',
@@ -146,6 +189,35 @@ describe('buildModerationCompassCards', () => {
     ]);
     expect(cards.some((card) => card.kind === 'nextStep')).toBe(false);
     expect(cards.find((card) => card.kind === 'topics')?.nextStepReason).toBeUndefined();
+  });
+
+  it('zeigt Mehrfach genannt, springt aber zum tatsächlichen Freitext', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      freetextTerms: [
+        {
+          label: 'Bitte Kapitel 4 erklären',
+          displayLabel: 'Mehrfach genannt',
+          documentFrequency: 2,
+          sourceCount: 2,
+          memberTexts: ['Bitte Kapitel 4 erklären'],
+        },
+      ],
+    });
+
+    expect(cards.find((card) => card.kind === 'topics')?.sources[0]).toEqual(
+      expect.objectContaining({
+        kind: 'freetext-term',
+        label: 'Mehrfach genannt',
+        evidence: 'Bitte Kapitel 4 erklären',
+        focusHint: 'Bitte Kapitel 4 erklären',
+        target: expect.objectContaining({
+          surface: 'word-cloud',
+          termLabel: 'Bitte Kapitel 4 erklären',
+          memberText: 'Bitte Kapitel 4 erklären',
+        }),
+      }),
+    );
   });
 
   it('füllt einen leeren Begriff unter den ersten fünf nicht mit dem sechsten auf', () => {
@@ -306,7 +378,12 @@ describe('buildModerationCompassCards', () => {
       'Fragen zum Ablauf',
       'Technische Fragen',
     ]);
-    expect(labels).toContain('Median · Wie berechnet man den Median?');
+    expect(labels).toContain('Median');
+    expect(
+      cards
+        .find((card) => card.kind === 'topics')
+        ?.sources.some((source) => source.evidence === 'Wie berechnet man den Median?'),
+    ).toBe(true);
   });
 
   it('bildet Themenkarten auch nur aus Freitext-Begriffen', () => {
@@ -622,6 +699,33 @@ describe('buildModerationCompassCards', () => {
     ).toEqual(visible.slice(0, 8).map((question) => question.text));
   });
 
+  it('setzt Reibungsstimmen als Überschrift und die Frage als Kontext', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      qaQuestions: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          text: 'Ist das umstritten?',
+          sourceHeadline: '8 dafür, 5 dagegen',
+          status: 'ACTIVE',
+          isControversial: true,
+          controversyScore: 0.8,
+          positiveVoteCount: 8,
+          negativeVoteCount: 5,
+        },
+      ],
+    });
+
+    expect(cards.find((card) => card.kind === 'friction')?.sources).toEqual([
+      {
+        kind: 'qa-question',
+        label: '8 dafür, 5 dagegen',
+        context: 'Ist das umstritten?',
+        target: { channel: 'qa', questionId: '11111111-1111-4111-8111-111111111111' },
+      },
+    ]);
+  });
+
   it('übernimmt Tempo nur mit vorhandener Tendenz', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
@@ -733,7 +837,8 @@ describe('buildModerationCompassCards', () => {
         sources: [
           {
             kind: 'qa-term',
-            label: 'Median · Wie berechnet man den Median?',
+            label: 'Median',
+            evidence: 'Wie berechnet man den Median?',
             focusHint: 'Median',
             target: {
               channel: 'qa',
@@ -816,9 +921,8 @@ describe('buildModerationCompassCards', () => {
     });
 
     const topics = cards.find((card) => card.kind === 'topics');
-    expect(topics?.sources.map((source) => source.label)).toEqual([
-      'Median · Wie berechnet man den Median?',
-    ]);
+    expect(topics?.sources.map((source) => source.label)).toEqual(['Median']);
+    expect(topics?.sources[0]?.evidence).toBe('Wie berechnet man den Median?');
     expect(topics?.hint).toBe('Gewichtung: beste Fragen');
   });
 
@@ -1267,6 +1371,40 @@ describe('mergeModerationQuizSources', () => {
 
     expect(refreshed).not.toBe(cached);
     expect(refreshed[0]?.sources[0]?.evidenceRole).toBe('clarification');
+  });
+
+  it('behält gleichlautende Quiz-Headlines verschiedener Fragen', () => {
+    const merged = mergeModerationQuizSources(
+      [
+        {
+          kind: 'quiz-result',
+          label: 'Häufigste Antwort',
+          evidence: 'Ganz okay',
+          target: { channel: 'quiz', questionId: 'bbbbbbbb-2222-4222-8222-222222222222' },
+        },
+      ],
+      rememberModerationQuizSnapshot([], 'aaaaaaaa-1111-4111-8111-111111111111', [
+        {
+          kind: 'quiz-result',
+          label: 'Häufigste Antwort',
+          evidence: 'Trifft zu',
+        },
+      ]),
+      'bbbbbbbb-2222-4222-8222-222222222222',
+    );
+
+    expect(merged).toEqual([
+      expect.objectContaining({
+        label: 'Häufigste Antwort',
+        evidence: 'Ganz okay',
+        target: expect.objectContaining({ questionId: 'bbbbbbbb-2222-4222-8222-222222222222' }),
+      }),
+      expect.objectContaining({
+        label: 'Häufigste Antwort',
+        evidence: 'Trifft zu',
+        target: expect.objectContaining({ questionId: 'aaaaaaaa-1111-4111-8111-111111111111' }),
+      }),
+    ]);
   });
 });
 

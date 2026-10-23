@@ -28,6 +28,7 @@ import {
   LearningObjectiveDerivationQuestionSchema,
   RunLearningObjectiveDerivationInputSchema,
   isNumericToleranceMode,
+  normalizeLearningObjectiveText,
   questionSupportsConfidence,
   resolveNumericEstimateToleranceMode,
   type LearningObjectiveDerivationQuestion,
@@ -595,18 +596,23 @@ export class QuizLearningObjectivesComponent {
     return rendered;
   }
 
+  displayObjectiveText(value: string): string {
+    return normalizeLearningObjectiveText(value, this.locale);
+  }
+
   renderObjectiveMarkdown(value: string): SafeHtml {
-    const cached = this.objectiveMarkdownCache.get(value);
+    const normalized = normalizeLearningObjectiveText(value, this.locale);
+    const cached = this.objectiveMarkdownCache.get(normalized);
     if (cached) return cached;
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, {
+      renderMarkdownWithKatex(normalized, {
         escapeListMarkers: true,
         headingStartLevel: 4,
         imagePolicy: 'allow-relative-and-https',
         interactive: false,
       }).html,
     );
-    this.objectiveMarkdownCache.set(value, rendered);
+    this.objectiveMarkdownCache.set(normalized, rendered);
     return rendered;
   }
 
@@ -784,7 +790,7 @@ export class QuizLearningObjectivesComponent {
   }
 
   conflictChoiceAriaLabel(objective: QuizLearningObjectiveV1): string {
-    return $localize`:@@learningObjectives.useConflictVersionAria:Fassung übernehmen: ${objective.text}:text:; ${this.statusLabel(objective)}:status:; ${this.scopeLabel(objective)}:scope:; ${this.originLabel(objective)}:origin:`;
+    return $localize`:@@learningObjectives.useConflictVersionAria:Fassung übernehmen: ${this.displayObjectiveText(objective.text)}:text:; ${this.statusLabel(objective)}:status:; ${this.scopeLabel(objective)}:scope:; ${this.originLabel(objective)}:origin:`;
   }
 
   reviewReason(objective: QuizLearningObjectiveV1): string | null {

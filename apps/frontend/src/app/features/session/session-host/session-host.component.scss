@@ -5810,13 +5810,35 @@ button.session-host__btn-discussion {
 }
 
 .session-host__extra-close-maximize {
+  --mat-icon-button-state-layer-size: 2.75rem;
+  --mat-icon-button-icon-size: 1.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
   position: absolute;
   top: max(0.65rem, env(safe-area-inset-top, 0px));
   right: max(0.65rem, env(safe-area-inset-right, 0px));
   z-index: 251;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
+  padding: 0;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   color: var(--mat-sys-on-surface);
+  line-height: 0;
+
+  .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    margin: 0;
+    font-size: var(--mat-icon-button-icon-size);
+    line-height: 1;
+    overflow: hidden;
+  }
 }
 
 .session-host__extra--maximized app-word-cloud {
@@ -5924,16 +5946,34 @@ button.session-host__btn-discussion {
 }
 
 .session-host__extra-action--icon {
+  --mat-icon-button-state-layer-size: 2.75rem;
+  --mat-icon-button-icon-size: 1.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.7rem;
-  min-height: 2.7rem;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
+  min-width: var(--mat-icon-button-state-layer-size);
+  min-height: var(--mat-icon-button-state-layer-size);
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-  border-radius: var(--mat-sys-corner-small, 0.5rem);
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
   color: inherit;
+  line-height: 0;
+
+  .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    margin: 0;
+    font-size: var(--mat-icon-button-icon-size);
+    line-height: 1;
+    overflow: hidden;
+  }
 }
 
 .session-host__extra-action--smooth-active {

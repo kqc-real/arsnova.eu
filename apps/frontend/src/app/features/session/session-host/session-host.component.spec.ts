@@ -8792,6 +8792,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(
         fixture.nativeElement.querySelector('.session-host__extra-close-maximize'),
       ).not.toBeNull();
+      const freezeControl = fixture.nativeElement.querySelector(
+        '.session-host__extra-action--icon',
+      ) as HTMLButtonElement;
+      expect(freezeControl).not.toBeNull();
+      expect(freezeControl.classList.contains('mat-mdc-icon-button')).toBe(true);
+      expect(freezeControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
       expect(fixture.nativeElement.querySelector('.word-cloud-host--presentation')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).toBeNull();
       expect(fixture.nativeElement.textContent).not.toContain('Maximieren');
@@ -26774,8 +26780,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.detectChanges();
 
       const friction = component.moderationCompassCards().find((card) => card.kind === 'friction');
-      expect(friction?.sources[0]?.label).toContain('5 dafür, 5 dagegen');
-      expect(friction?.sources[0]?.label).toContain('Ist die Klausur open book?');
+      expect(friction?.sources[0]?.label).toBe('5 dafür, 5 dagegen');
+      expect(friction?.sources[0]?.context).toBe('Ist die Klausur open book?');
       fixture.destroy();
     });
 
@@ -26846,11 +26852,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const clarification = component
         .moderationCompassCards()
         .find((card) => card.kind === 'clarification');
-      expect(clarification?.sources.map((source) => source.label)).toEqual(
+      expect(clarification?.sources).toEqual(
         expect.arrayContaining([
-          '22 von 30 liegen daneben · Was ist 2+2?',
-          'Häufigste andere Antwort: 5 · Was ist 2+2?',
-          'Häufige Verwechslung: IaaS → SaaS · Was ist 2+2?',
+          expect.objectContaining({
+            label: '22 von 30 liegen daneben',
+            context: 'Was ist 2+2?',
+          }),
+          expect.objectContaining({
+            label: 'Häufigste andere Antwort',
+            evidence: '5',
+            context: 'Was ist 2+2?',
+          }),
+          expect.objectContaining({
+            label: 'Häufige Verwechslung',
+            evidence: 'IaaS → SaaS',
+            context: 'Was ist 2+2?',
+          }),
         ]),
       );
       expect(

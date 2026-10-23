@@ -510,6 +510,52 @@ describe('learningObjectiveDerivation', () => {
     }
   });
 
+  it('capitalizes lowercase model-authored infinitive phrases in the requested locale', async () => {
+    const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+        taskType: 'learning_objectives' as const,
+        objectives: [
+          { text: '  lineare   Modelle anwenden  ', questionIds: [request.questions[0]!.id] },
+          { text: 'überprüfen, ob die Annahme gilt', questionIds: [request.questions[0]!.id] },
+        ],
+        limitations: [],
+      },
+      telemetry,
+    }));
+    const german = await deriveLearningObjectiveDrafts(input([choiceQuestion(QUESTION_IDS[0])]), {
+      run,
+      now: () => new Date('2026-10-05T12:00:00.000Z'),
+    });
+    expect(german).toMatchObject({
+      status: 'completed',
+      drafts: [{ text: 'Lineare Modelle anwenden.' }, { text: 'Überprüfen, ob die Annahme gilt.' }],
+    });
+
+    const frenchInput = { ...input([choiceQuestion(QUESTION_IDS[0])]), locale: 'fr' as const };
+    const frenchRun = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+        taskType: 'learning_objectives' as const,
+        objectives: [
+          { text: 'établir un modèle linéaire', questionIds: [request.questions[0]!.id] },
+        ],
+        limitations: [],
+      },
+      telemetry,
+    }));
+    const french = await deriveLearningObjectiveDrafts(frenchInput, {
+      run: frenchRun,
+      now: () => new Date('2026-10-05T12:00:00.000Z'),
+    });
+    expect(french).toMatchObject({
+      status: 'completed',
+      drafts: [{ text: 'Établir un modèle linéaire.' }],
+    });
+  });
+
   it('discards model-authored boilerplate and creates deterministic draft IDs and digests', async () => {
     expect(OPEN_WEIGHT_LLM_MODEL_ID).toBe(
       'unsloth/Qwen3-4B-Instruct-2507-GGUF@sha256:3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597',
@@ -552,7 +598,7 @@ describe('learningObjectiveDerivation', () => {
       limitations: [],
       drafts: [
         {
-          text: 'Ableiten können',
+          text: 'Ableiten können.',
           origin: {
             modelId: OPEN_WEIGHT_LLM_MODEL_ID,
             modelVersion: OPEN_WEIGHT_LLM_MODEL_VERSION,
