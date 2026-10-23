@@ -3580,7 +3580,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       .sort((left, right) => right[1] - left[1])
       .slice(0, 3)
       .map(([text, count]) => ({
-        label: $localize`:@@sessionHost.moderationFreetextRepeatHeadline:Mehrfach genannt`,
+        label: text,
+        displayLabel: $localize`:@@sessionHost.moderationFreetextRepeatHeadline:Mehrfach genannt`,
         documentFrequency: count,
         sourceCount: count,
         memberTexts: [text],

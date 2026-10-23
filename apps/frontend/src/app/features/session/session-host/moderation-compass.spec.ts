@@ -191,6 +191,35 @@ describe('buildModerationCompassCards', () => {
     expect(cards.find((card) => card.kind === 'topics')?.nextStepReason).toBeUndefined();
   });
 
+  it('zeigt Mehrfach genannt, springt aber zum tatsächlichen Freitext', () => {
+    const cards = buildModerationCompassCards({
+      ...emptySnapshot,
+      freetextTerms: [
+        {
+          label: 'Bitte Kapitel 4 erklären',
+          displayLabel: 'Mehrfach genannt',
+          documentFrequency: 2,
+          sourceCount: 2,
+          memberTexts: ['Bitte Kapitel 4 erklären'],
+        },
+      ],
+    });
+
+    expect(cards.find((card) => card.kind === 'topics')?.sources[0]).toEqual(
+      expect.objectContaining({
+        kind: 'freetext-term',
+        label: 'Mehrfach genannt',
+        evidence: 'Bitte Kapitel 4 erklären',
+        focusHint: 'Bitte Kapitel 4 erklären',
+        target: expect.objectContaining({
+          surface: 'word-cloud',
+          termLabel: 'Bitte Kapitel 4 erklären',
+          memberText: 'Bitte Kapitel 4 erklären',
+        }),
+      }),
+    );
+  });
+
   it('füllt einen leeren Begriff unter den ersten fünf nicht mit dem sechsten auf', () => {
     const cards = buildModerationCompassCards({
       ...emptySnapshot,
@@ -1342,6 +1371,40 @@ describe('mergeModerationQuizSources', () => {
 
     expect(refreshed).not.toBe(cached);
     expect(refreshed[0]?.sources[0]?.evidenceRole).toBe('clarification');
+  });
+
+  it('behält gleichlautende Quiz-Headlines verschiedener Fragen', () => {
+    const merged = mergeModerationQuizSources(
+      [
+        {
+          kind: 'quiz-result',
+          label: 'Häufigste Antwort',
+          evidence: 'Ganz okay',
+          target: { channel: 'quiz', questionId: 'bbbbbbbb-2222-4222-8222-222222222222' },
+        },
+      ],
+      rememberModerationQuizSnapshot([], 'aaaaaaaa-1111-4111-8111-111111111111', [
+        {
+          kind: 'quiz-result',
+          label: 'Häufigste Antwort',
+          evidence: 'Trifft zu',
+        },
+      ]),
+      'bbbbbbbb-2222-4222-8222-222222222222',
+    );
+
+    expect(merged).toEqual([
+      expect.objectContaining({
+        label: 'Häufigste Antwort',
+        evidence: 'Ganz okay',
+        target: expect.objectContaining({ questionId: 'bbbbbbbb-2222-4222-8222-222222222222' }),
+      }),
+      expect.objectContaining({
+        label: 'Häufigste Antwort',
+        evidence: 'Trifft zu',
+        target: expect.objectContaining({ questionId: 'aaaaaaaa-1111-4111-8111-111111111111' }),
+      }),
+    ]);
   });
 });
 

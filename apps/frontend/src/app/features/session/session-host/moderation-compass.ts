@@ -125,6 +125,8 @@ export type ModerationCompassTermOrigin = {
 
 export type ModerationCompassTerm = {
   readonly label: string;
+  /** Presentation headline; jump and focus still use `label`. */
+  readonly displayLabel?: string;
   readonly documentFrequency: number;
   readonly sourceCount: number;
   readonly memberTexts: readonly string[];
@@ -493,10 +495,11 @@ export function mergeModerationQuizSources(
       return;
     }
     const label = source.label.trim();
-    if (!label || seen.has(label)) {
+    const key = sourceDedupeKey(source);
+    if (!label || seen.has(key)) {
       return;
     }
-    seen.add(label);
+    seen.add(key);
     merged.push(withDefaultSourceTarget(source));
   };
 
@@ -564,13 +567,14 @@ function termSource(
   if (!topic) {
     return null;
   }
+  const presentation = term.displayLabel?.trim() || topic;
   const memberTexts = uniqueNonEmpty(term.memberTexts);
   const rawExample = memberTexts[0] ? truncateCompassLabelAtWord(memberTexts[0], 72) : '';
-  const example = rawExample ? pickCompassSourceDetail(topic, rawExample) : undefined;
+  const example = rawExample ? pickCompassSourceDetail(presentation, rawExample) : undefined;
   const memberIds = kind === 'qa-term' ? uniqueNonEmpty(term.memberSourceIds) : [];
   return {
     kind,
-    label: topic,
+    label: presentation,
     ...(example ? { evidence: example } : {}),
     focusHint: topic,
     target: {
@@ -620,7 +624,13 @@ function qaQuestionSource(question: ModerationCompassQaQuestion): ModerationComp
 }
 
 function sourceDedupeKey(source: ModerationCompassSource): string {
-  return JSON.stringify([source.kind, source.label, source.evidence ?? '', source.context ?? '']);
+  return JSON.stringify([
+    source.kind,
+    source.label,
+    source.evidence ?? '',
+    source.context ?? '',
+    source.target?.questionId ?? '',
+  ]);
 }
 
 function registerRuleSource(
