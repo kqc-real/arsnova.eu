@@ -22,9 +22,9 @@ Die Landingpage ist fünfsprachig (`de`, `en`, `fr`, `it`, `es`), analog zur App
 
 - `/` leitet auf `/de/` weiter und behält dabei Legacy-Hashes (`/#schaetzfrage` → `/de/#schaetzfrage`).
 - Texte liegen in typisierten Dictionaries unter `src/i18n/` (`de.ts` … `es.ts`); fehlende Keys werfen beim Import einen Build-Fehler.
-- Abschnitte nutzen **kanonische Anker** (`#workflow`, `#features`, `#host-pairing`, `#numeric-estimate`, `#confidence`, `#qa-wall`, `#moderation-compass`, …). Alte deutsche Hashes (`#schaetzfrage`, `#ablauf`, `#moderationskompass`, …) bleiben als Alias-IDs gültig.
+- Abschnitte nutzen **kanonische Anker** (`#workflow`, `#features`, `#leaderboard`, `#host-pairing`, `#numeric-estimate`, `#confidence`, `#qa-wall`, `#moderation-compass`, …). Alte deutsche Hashes (`#schaetzfrage`, `#ablauf`, `#rangliste`, `#moderationskompass`, …) bleiben als Alias-IDs gültig.
 - **Kopfnavigation** (Desktop und Mobil, Issue #198): Ablauf → Funktionen → Barrierefreiheit → Vertrauen → Vergleich → FAQ, plus CTA „Jetzt ausprobieren“ (`#start`). Schätzfrage, Selbsteinschätzung, Q&A und Moderationskompass bleiben als Spotlight-Abschnitte mit Deep Links erreichbar, stehen aber nicht in der Hauptnavigation.
-- **Abschnittsreihenfolge:** Hero → Workflow → Features → Host-Pairing-Spotlight → strukturierte Fragetypen → Estimate-/Confidence-/Q&A-/Kompass-Spotlights → Accessibility → Trust → Comparison → FAQ → CTA.
+- **Abschnittsreihenfolge:** Hero → Workflow → Features → Leaderboard-Spotlight (Preset Spielerisch) → Host-Pairing-Spotlight → strukturierte Fragetypen → Estimate-/Confidence-/Q&A-/Kompass-Spotlights → Accessibility → Trust → Comparison → FAQ → CTA.
 - **Zwei getrennte Mobil-Claims:** **Zuerst fürs Smartphone** umfasst Quiz-Erstellung in allen Frageformaten und die Host-Ansicht (ADR-0014 / Story 2.8): Hero (Karte 1 und Lead), Ablauf-Schritt 01, erstes Feature, strukturierte Fragetypen, erster Vergleichspunkt, eigene FAQ und Meta/JSON-LD. **Host-Pairing** (`#host-pairing`) bleibt der Zwei-Geräte-Claim (Beamer am Laptop, Steuerung vom Handy) und wird damit nicht vermischt.
 - App-CTAs verlinken immer locale-sicher auf `https://arsnova.eu/{locale}/` (`appHomeUrl`).
 - **Impressum** und **Datenschutz** bleiben bewusst deutschsprachig unter `/impressum/` und `/datenschutz/` (rechtliche Pflichttexte); die lokalisierten Homepages verlinken dorthin.

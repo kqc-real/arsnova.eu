@@ -15,6 +15,7 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 const CANONICAL_ANCHORS = [
   'workflow',
   'features',
+  'leaderboard',
   'host-pairing',
   'numeric-estimate',
   'confidence',
@@ -30,6 +31,7 @@ const CANONICAL_ANCHORS = [
 /** Legacy German hash aliases → canonical anchors. */
 const LEGACY_ALIASES = {
   ablauf: 'workflow',
+  rangliste: 'leaderboard',
   schaetzfrage: 'numeric-estimate',
   selbsteinschaetzung: 'confidence',
   fragenwand: 'qa-wall',

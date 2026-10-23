@@ -30,6 +30,7 @@ import {
   LEARNING_OBJECTIVE_MAX_OBJECTIVES,
   LEARNING_OBJECTIVE_MAX_REFERENCES,
   LEARNING_OBJECTIVE_TEXT_MAX_LENGTH,
+  normalizeLearningObjectiveText,
   type DeriveSessionLearningObjectivesResult,
   type SessionLearningObjectiveDTO,
   type SessionLearningObjectiveResolvedTaskReference,
@@ -487,17 +488,18 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   renderObjectiveMarkdown(value: string): SafeHtml {
-    const cached = this.objectiveMarkdownCache.get(value);
+    const normalized = normalizeLearningObjectiveText(value, this.locale);
+    const cached = this.objectiveMarkdownCache.get(normalized);
     if (cached) return cached;
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, {
+      renderMarkdownWithKatex(normalized, {
         escapeListMarkers: true,
         headingStartLevel: 4,
         imagePolicy: 'allow-relative-and-https',
         interactive: false,
       }).html,
     );
-    this.objectiveMarkdownCache.set(value, rendered);
+    this.objectiveMarkdownCache.set(normalized, rendered);
     return rendered;
   }
 

@@ -1,0 +1,310 @@
+---
+import type { Locale, Messages } from '@/i18n';
+
+export interface Props {
+  locale: Locale;
+  t: Messages;
+}
+
+const { locale, t } = Astro.props;
+const l = t.leaderboard;
+
+const emojis = ['🐱', '🦜', '🐻', '🐭', '🦢', '🐉', '🦋', '🐻', '🐉', '🦒'] as const;
+const medals = ['🥇', '🥈', '🥉'] as const;
+const scores = [236.64, 203.91, 122.25, 101.74, 98.77, 78.43, 58.44, 53.65, 51.96, 26.8];
+const correct = [7, 7, 5, 5, 5, 4, 4, 2, 2, 2];
+const totalQuestions = 7;
+
+const formatScore = (value: number) =>
+  new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+    value,
+  );
+
+const entries = l.names.map((name, index) => ({
+  rank: index + 1,
+  name,
+  emoji: emojis[index],
+  medal: medals[index],
+  score: formatScore(scores[index] ?? 0),
+  hits: `${correct[index] ?? 0}/${totalQuestions}`,
+}));
+
+const winner = entries[0];
+const winnerMeta = winner ? l.winnerMeta.replace('{score}', winner.score) : '';
+---
+
+<section
+  id="leaderboard"
+  class="relative px-4 py-16 sm:px-6 sm:py-24"
+  aria-labelledby="leaderboard-heading"
+>
+  <span id="rangliste" class="absolute top-0 left-0 h-0 w-0 overflow-hidden" aria-hidden="true"></span>
+  <div class="mx-auto grid min-w-0 max-w-6xl gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+    <div class="min-w-0">
+      <p class="landing-eyebrow">{l.eyebrow}</p>
+      <h2
+        id="leaderboard-heading"
+        class="mt-3 break-words font-display text-3xl font-bold tracking-tight text-landing-fg sm:text-4xl"
+      >
+        {l.title}
+      </h2>
+      <p class="mt-5 break-words text-lg leading-8 text-landing-fg-muted">{l.lead}</p>
+      <ul class="mt-8 grid min-w-0 gap-3 text-sm leading-6 text-landing-fg-body" role="list">
+        {l.points.map((item) => (
+          <li class="rounded-landing-panel border border-landing-outline-variant bg-landing-surface-container p-4">
+            <span class="font-semibold text-landing-fg">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div
+      class="leaderboard-stage relative min-w-0 overflow-hidden rounded-landing-card border border-landing-outline-variant p-3 shadow-landing-2 sm:p-5"
+      role="region"
+      aria-label={l.demoAria}
+    >
+      <article class="leaderboard-card">
+        <h3 class="leaderboard-card__title">
+          <span class="leaderboard-card__title-icon" aria-hidden="true"></span>
+          {l.boardTitle}
+        </h3>
+        {
+          winner && (
+            <div class="leaderboard-card__winner">
+              <p class="leaderboard-card__winner-label">
+                <span aria-hidden="true">🏆</span>
+                {l.winnerLabel}
+              </p>
+              <p class="leaderboard-card__winner-emoji" aria-hidden="true">
+                {winner.emoji}
+              </p>
+              <p class="leaderboard-card__winner-name">{winner.name}</p>
+              <p class="leaderboard-card__winner-meta">{winnerMeta}</p>
+            </div>
+          )
+        }
+        <div class="leaderboard-card__table-wrap">
+          <table class="leaderboard-card__table">
+            <thead>
+              <tr>
+                <th class="leaderboard-card__rank" scope="col">
+                  <span class="sr-only">{l.rankCol}</span>
+                </th>
+                <th scope="col">{l.nicknameCol}</th>
+                <th class="leaderboard-card__num" scope="col">{l.pointsCol}</th>
+                <th class="leaderboard-card__num" scope="col">{l.correctCol}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry) => (
+                <tr
+                  class:list={[
+                    'leaderboard-card__row',
+                    entry.rank <= 3 && 'leaderboard-card__row--top',
+                    entry.rank === 1 && 'leaderboard-card__row--1',
+                    entry.rank === 2 && 'leaderboard-card__row--2',
+                    entry.rank === 3 && 'leaderboard-card__row--3',
+                  ]}
+                >
+                  <td class="leaderboard-card__rank">
+                    {entry.medal ? (
+                      <>
+                        <span aria-hidden="true">{entry.medal}</span>
+                        <span class="sr-only">{entry.rank}</span>
+                      </>
+                    ) : (
+                      entry.rank
+                    )}
+                  </td>
+                  <td>
+                    <span class="leaderboard-card__name">
+                      <span aria-hidden="true">{entry.emoji}</span>
+                      {entry.name}
+                    </span>
+                  </td>
+                  <td class="leaderboard-card__num">{entry.score}</td>
+                  <td class="leaderboard-card__num">{entry.hits}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .leaderboard-stage {
+    background:
+      radial-gradient(90% 70% at 0% 100%, rgb(var(--landing-tertiary-rgb) / 0.55), transparent 58%),
+      radial-gradient(80% 70% at 100% 0%, rgb(var(--landing-primary-rgb) / 0.55), transparent 55%),
+      #140810;
+  }
+
+  .leaderboard-card {
+    min-width: 0;
+    padding: 1.15rem 1rem 1.25rem;
+    border-radius: 1.5rem;
+    background:
+      radial-gradient(circle at top, rgb(255 171 243 / 0.14), transparent 60%),
+      #1c161a;
+    border: 1px solid rgb(255 171 243 / 0.22);
+    color: #f4eaf3;
+    box-shadow: 0 1rem 2rem rgb(0 0 0 / 0.28);
+  }
+
+  .leaderboard-card__title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .leaderboard-card__title-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 0.2rem;
+    background:
+      linear-gradient(#ffabf3, #ffabf3) center / 0.18rem 0.7rem no-repeat,
+      linear-gradient(#ffabf3, #ffabf3) 35% 70% / 0.18rem 0.45rem no-repeat,
+      linear-gradient(#ffabf3, #ffabf3) 65% 55% / 0.18rem 0.55rem no-repeat;
+  }
+
+  .leaderboard-card__winner {
+    display: grid;
+    justify-items: center;
+    gap: 0.2rem;
+    margin-top: 0.9rem;
+    padding: 0.95rem 0.85rem 1rem;
+    border-radius: 1rem;
+    background:
+      linear-gradient(135deg, rgb(249 168 37 / 0.2), transparent 60%),
+      #141014;
+    border: 1px solid rgb(249 168 37 / 0.35);
+    text-align: center;
+  }
+
+  .leaderboard-card__winner-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: #ffabf3;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .leaderboard-card__winner-emoji {
+    margin: 0.15rem 0 0;
+    font-size: clamp(2.4rem, 7vw, 3.4rem);
+    line-height: 1;
+  }
+
+  .leaderboard-card__winner-name {
+    margin: 0;
+    font-size: clamp(1.55rem, 4.4vw, 2.15rem);
+    font-weight: 700;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  .leaderboard-card__winner-meta {
+    margin: 0.15rem 0 0;
+    color: #c9becb;
+    font-size: 0.92rem;
+  }
+
+  .leaderboard-card__table-wrap {
+    overflow-x: auto;
+    margin-top: 1rem;
+  }
+
+  .leaderboard-card__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+  }
+
+  .leaderboard-card__table th,
+  .leaderboard-card__table td {
+    padding: 0.55rem 0.4rem;
+    text-align: left;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    vertical-align: middle;
+  }
+
+  .leaderboard-card__table th {
+    color: #c9becb;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .leaderboard-card__rank {
+    width: 2.5rem;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .leaderboard-card__num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .leaderboard-card__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    font-weight: 600;
+  }
+
+  .leaderboard-card__row--top .leaderboard-card__name {
+    color: #ffabf3;
+  }
+
+  .leaderboard-card__row--1 {
+    background: linear-gradient(90deg, rgb(249 168 37 / 0.18), transparent 85%);
+  }
+
+  .leaderboard-card__row--1 .leaderboard-card__name {
+    color: #f3c15b;
+  }
+
+  .leaderboard-card__row--2 {
+    background: linear-gradient(90deg, rgb(144 164 174 / 0.16), transparent 82%);
+  }
+
+  .leaderboard-card__row--3 {
+    background: linear-gradient(90deg, rgb(141 110 99 / 0.16), transparent 82%);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (min-width: 640px) {
+    .leaderboard-card {
+      padding: 1.35rem 1.25rem 1.5rem;
+    }
+
+    .leaderboard-card__table {
+      font-size: 0.92rem;
+    }
+  }
+</style>

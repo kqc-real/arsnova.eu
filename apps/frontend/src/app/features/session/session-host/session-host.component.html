@@ -3780,24 +3780,38 @@
                           >Thema</mat-button-toggle
                         >
                       </mat-button-toggle-group>
-                      <button
-                        mat-button
-                        type="button"
-                        class="session-host__extra-action"
-                        [class.session-host__extra-action--icon]="freetextWordCloudMaximized()"
-                        [attr.aria-pressed]="wordCloudFrozen()"
-                        [attr.aria-label]="wordCloudFreezeLabel()"
-                        [matTooltip]="wordCloudFreezeLabel()"
-                        matTooltipTouchGestures="off"
-                        (click)="toggleWordCloudFreeze()"
-                      >
-                        <mat-icon aria-hidden="true">{{
-                          wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
-                        }}</mat-icon>
-                        @if (!freetextWordCloudMaximized()) {
+                      @if (freetextWordCloudMaximized()) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          class="session-host__extra-action session-host__extra-action--icon"
+                          [attr.aria-pressed]="wordCloudFrozen()"
+                          [attr.aria-label]="wordCloudFreezeLabel()"
+                          [matTooltip]="wordCloudFreezeLabel()"
+                          matTooltipTouchGestures="off"
+                          (click)="toggleWordCloudFreeze()"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            wordCloudFrozen() ? 'play_arrow' : 'pause'
+                          }}</mat-icon>
+                        </button>
+                      } @else {
+                        <button
+                          mat-button
+                          type="button"
+                          class="session-host__extra-action"
+                          [attr.aria-pressed]="wordCloudFrozen()"
+                          [attr.aria-label]="wordCloudFreezeLabel()"
+                          [matTooltip]="wordCloudFreezeLabel()"
+                          matTooltipTouchGestures="off"
+                          (click)="toggleWordCloudFreeze()"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
+                          }}</mat-icon>
                           <span>{{ wordCloudFreezeLabel() }}</span>
-                        }
-                      </button>
+                        </button>
+                      }
                       @if (freetextWordCloudShowSmoothing()) {
                         <div class="session-host__smooth-cluster">
                           <button

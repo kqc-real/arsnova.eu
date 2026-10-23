@@ -67,7 +67,9 @@
             @for (alternative of conflict.alternatives; track alternative.operationId) {
               <li>
                 @if (alternative.objective; as objective) {
-                  <span class="learning-objectives__conflict-text">{{ objective.text }}</span>
+                  <span class="learning-objectives__conflict-text">{{
+                    displayObjectiveText(objective.text)
+                  }}</span>
                   <span class="learning-objectives__conflict-meta">
                     {{ statusLabel(objective) }} · {{ scopeLabel(objective) }} ·
                     {{ originLabel(objective) }}

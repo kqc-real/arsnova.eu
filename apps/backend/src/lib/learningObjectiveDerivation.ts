@@ -8,6 +8,7 @@ import {
   LEARNING_OBJECTIVE_MAX_OBJECTIVES,
   LearningObjectiveDerivationInputSchema,
   LearningObjectiveDerivationResultSchema,
+  normalizeLearningObjectiveText,
   OpenWeightLlmLearningObjectivesOutputSchema,
   OpenWeightLlmLearningObjectivesRequestSchema,
   OPEN_WEIGHT_LLM_SCHEMA_VERSION,
@@ -342,10 +343,6 @@ function modelVersionFor(configuredVersion: string | undefined): string {
   return normalizeMetadata(configuredVersion, OPEN_WEIGHT_LLM_MODEL_VERSION);
 }
 
-function normalizeSuggestionText(value: string): string {
-  return value.trim().replace(/\s+/gu, ' ');
-}
-
 function suggestionKey(text: string, sourceQuestionIds: readonly string[]): string {
   return `${text.toLowerCase()}\u0000${sourceQuestionIds.join('\u0000')}`;
 }
@@ -502,7 +499,7 @@ export async function deriveLearningObjectiveDrafts(
         const sourceQuestionIds = [...objective.questionIds].sort(compareCodeUnits);
         const sourceQuestions = sourceQuestionIds.map((id) => canonicalById.get(id));
         if (sourceQuestions.some((question) => question === undefined)) return null;
-        const text = normalizeSuggestionText(objective.text);
+        const text = normalizeLearningObjectiveText(objective.text, input.locale);
         return {
           text,
           sourceQuestionIds,

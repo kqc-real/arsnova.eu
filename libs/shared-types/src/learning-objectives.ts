@@ -42,6 +42,36 @@ const LearningObjectiveTextSchema = z
   .trim()
   .min(1)
   .max(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH);
+
+const FIRST_LEARNING_OBJECTIVE_LETTER = /\p{L}/u;
+const LEARNING_OBJECTIVE_SENTENCE_END = /[.!?…]$/u;
+
+/**
+ * Infinitive learning-objective phrases are displayed as sentences. Model
+ * output is normalized after inference: first letter capitalized, a closing
+ * period added when missing. This does not change the prompt payload.
+ */
+export function normalizeLearningObjectiveText(value: string, locale?: string): string {
+  const normalized = value.trim().replace(/\s+/gu, ' ');
+  if (!normalized) return normalized;
+  return ensureLearningObjectivePeriod(capitalizeLearningObjectiveStart(normalized, locale));
+}
+
+function capitalizeLearningObjectiveStart(value: string, locale?: string): string {
+  const match = FIRST_LEARNING_OBJECTIVE_LETTER.exec(value);
+  if (!match) return value;
+  const letter = match[0];
+  const upper = locale ? letter.toLocaleUpperCase(locale) : letter.toLocaleUpperCase();
+  if (upper === letter || upper.length !== letter.length) return value;
+  return `${value.slice(0, match.index)}${upper}${value.slice(match.index + letter.length)}`;
+}
+
+function ensureLearningObjectivePeriod(value: string): string {
+  if (LEARNING_OBJECTIVE_SENTENCE_END.test(value)) return value;
+  if (value.length >= LEARNING_OBJECTIVE_TEXT_MAX_LENGTH) return value;
+  return `${value}.`;
+}
+
 export const QuizSourceQuestionIdSchema = z.uuid();
 export type QuizSourceQuestionId = z.infer<typeof QuizSourceQuestionIdSchema>;
 

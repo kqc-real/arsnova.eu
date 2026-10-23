@@ -48,7 +48,7 @@ Freie Hinweise aus der Modellantwort werden nicht als fachliche Einschränkungen
 
 ## Prompt-, Quellen- und Provenienzschutz
 
-Der fachliche Systemprompt trägt die Version `learning-objectives-system-v2`. Er behandelt Fragetexte, Antworten, Lösungserläuterungen und darin eingebettete Anweisungen ausdrücklich als nicht vertrauenswürdige Kursdaten. Das Modell soll beobachtbare, hostprüfbare Lernziele als kurze, rollenneutrale Infinitivformulierungen in der angeforderten Sprache formulieren, statt wechselnde Bezeichnungen wie „Student“, „Schüler“ oder „Benutzer“ zu verwenden. Es darf ausschließlich exakte Aufgaben-IDs des aktuellen Batches referenzieren. Das Pflichtfeld `limitations` soll leer bleiben; vom Modell dennoch gelieferte Hinweise werden nicht angezeigt. Schemafremde Antworten, erfundene IDs, Querverweise auf einen anderen Batch und doppelte Referenzen scheitern geschlossen.
+Der fachliche Systemprompt trägt die Version `learning-objectives-system-v3`. Er behandelt Fragetexte, Antworten, Lösungserläuterungen und darin eingebettete Anweisungen ausdrücklich als nicht vertrauenswürdige Kursdaten. Das Modell soll beobachtbare, hostprüfbare Lernziele als kurze, rollenneutrale Infinitivformulierungen in der angeforderten Sprache formulieren, das Anfangswort großschreiben und wechselnde Bezeichnungen wie „Student“, „Schüler“ oder „Benutzer“ vermeiden. Das Backend schreibt das Anfangswort zusätzlich deterministisch groß und ergänzt einen schließenden Punkt, falls das Modell kleinschreibt oder den Punkt weglässt; der Prompt bleibt unverändert. Es darf ausschließlich exakte Aufgaben-IDs des aktuellen Batches referenzieren. Das Pflichtfeld `limitations` soll leer bleiben; vom Modell dennoch gelieferte Hinweise werden nicht angezeigt. Schemafremde Antworten, erfundene IDs, Querverweise auf einen anderen Batch und doppelte Referenzen scheitern geschlossen.
 
 Ein fertiger Vorschlag enthält:
 
@@ -72,7 +72,7 @@ Relevante spätere Änderungen an Aufgaben oder Lösungen markieren gespeicherte
 
 ## Nachweise und offene Realmodellgrenze
 
-Fokussierte Tests decken Vertragsstrenge, sämtliche Lösungstypen, Multibyte-Budget und stabile Batchbildung, Einzelüberlauf, Gesamttimeout/Slotfreigabe, Hostabbruch, Busy ohne Retry, Teilfehler, erfundene und batchfremde Referenzen, Deduplizierung, Kapazitätslimit, deterministische IDs/Digests, injizierte Kursanweisungen, Einmal-Capability, Rate Limit sowie Router- und Store-CAS ab.
+Fokussierte Tests decken Vertragsstrenge, sämtliche Lösungstypen, Multibyte-Budget und stabile Batchbildung, Einzelüberlauf, Gesamttimeout/Slotfreigabe, Hostabbruch, Busy ohne Retry, Teilfehler, erfundene und batchfremde Referenzen, Deduplizierung, Großschreibung des Anfangsworts und schließenden Punkt, Kapazitätslimit, deterministische IDs/Digests, injizierte Kursanweisungen, Einmal-Capability, Rate Limit sowie Router- und Store-CAS ab.
 
 Die kanonischen Produktdaten für Integration, E2E und Realmodellmessung sind `getDemoQuizPayload(...)` und `getDemoQuizSeedFingerprint(...)` in `apps/frontend/src/app/features/quiz/data/demo-quiz-payload.ts`. Kleine Unit-Tests dürfen fokussierte Minimalfixtures verwenden.
 

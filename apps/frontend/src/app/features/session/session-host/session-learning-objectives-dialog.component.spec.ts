@@ -337,15 +337,86 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(preview.querySelector('a, img, button')).toBeNull();
   });
 
-  it('erklärt manuelle und automatisch aus Aufgaben formulierte Lernziele', async () => {
+  it('schreibt das Anfangswort eines Lernziels groß', async () => {
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        objectives: [existingObjective('lineare Modelle anwenden')],
+      }),
+    );
+    const fixture = await createComponent();
+    const rendered = fixture.nativeElement.querySelector(
+      '.session-objectives__text.markdown-body',
+    ) as HTMLElement;
+    expect(rendered.textContent).toContain('Lineare Modelle anwenden.');
+  });
+
+  it('zeigt in einer beendeten Session keine überflüssige Nur-Lesen-Erklärung', async () => {
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        access: { state: 'read-only' },
+        objectives: [confirmedObjective('Lineare Modelle anwenden.')],
+      }),
+    );
     const fixture = await createComponent();
 
-    const intro = fixture.nativeElement.querySelector(
+    expect(fixture.nativeElement.textContent).toContain('Lineare Modelle anwenden.');
+    expect(fixture.nativeElement.textContent).not.toContain('nur noch lesbar');
+    expect(fixture.nativeElement.textContent).not.toContain('nicht mehr geändert');
+    expect(
+      fixture.nativeElement.querySelector('.session-objectives__audience-edit-btn'),
+    ).toBeNull();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
+  });
+
+  it('erklärt automatische Vorschläge nur, wenn die KI-Herleitung verfügbar ist', async () => {
+    const fixture = await createComponent();
+    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
+
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        availableQuizTasks: [
+          {
+            kind: 'quiz-question',
+            questionId: 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3',
+            order: 0,
+            text: 'Frage A',
+            eligibleForDerivation: true,
+          },
+        ],
+      }),
+    );
+    const withDerivation = await createComponent();
+    const intro = withDerivation.nativeElement.querySelector(
       '.session-objectives__origin-intro',
     ) as HTMLElement;
     expect(intro.textContent).toContain('Du kannst Lernziele selbst schreiben');
     expect(intro.textContent).toContain('automatisch aus deinen Fragen vorschlagen lassen');
     expect(intro.textContent).toContain('prüfst und bestätigst');
+  });
+
+  it('blendet den Hinweis auf automatische Vorschläge aus, wenn zur Frage keine Herleitung möglich ist', async () => {
+    const quizQuestionA = 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3';
+    focusedQuestionIdMock.mockReturnValue(quizQuestionA);
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        availableQuizTasks: [
+          {
+            kind: 'quiz-question',
+            questionId: quizQuestionA,
+            order: 0,
+            text: 'Frage A',
+            eligibleForDerivation: false,
+          },
+        ],
+      }),
+    );
+    const fixture = await createComponent();
+    fixture.componentInstance.beginAdd();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Lernziel zur Frage');
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-derive')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
   });
 
   it('erklärt Entwurf und Bestätigt direkt an den Statusoptionen', async () => {
@@ -499,7 +570,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
       fixture.nativeElement.querySelector('.session-objectives__audience-edit-btn'),
     ).toBeNull();
     expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
   });
 
   it('bietet die KI-Herleitung an, wenn noch kein Lernziel vorliegt, aber geeignete Quiz-Fragen existieren', async () => {

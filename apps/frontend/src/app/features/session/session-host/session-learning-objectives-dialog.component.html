@@ -55,21 +55,6 @@
       </button>
     </div>
   } @else {
-    @if (isReadOnly()) {
-      <div class="session-objectives__callout" role="status">
-        <mat-icon aria-hidden="true">lock</mat-icon>
-        @if (isQaMode()) {
-          <p i18n="@@sessionQaAssignments.readOnly">
-            Diese beendete Session ist nur noch lesbar. Aufträge können nicht mehr geändert werden.
-          </p>
-        } @else {
-          <p i18n="@@sessionLearningObjectives.readOnly">
-            Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.
-          </p>
-        }
-      </div>
-    }
-
     @if (conflictMessage(); as conflict) {
       <div
         id="session-learning-objectives-conflict"
@@ -104,11 +89,13 @@
           Sobald ein Auftrag vorhanden ist, sehen Teilnehmende im Forum den Button »Auftrag«.
         </p>
       } @else {
-        <p class="session-objectives__origin-intro" i18n="@@learningObjectives.originIntro">
-          Du kannst Lernziele selbst schreiben oder automatisch aus deinen Fragen vorschlagen
-          lassen. Automatische Vorschläge werden als Entwurf angelegt, bis du sie prüfst und
-          bestätigst.
-        </p>
+        @if (hasEligibleQuizTasksForDerivation()) {
+          <p class="session-objectives__origin-intro" i18n="@@learningObjectives.originIntro">
+            Du kannst Lernziele selbst schreiben oder automatisch aus deinen Fragen vorschlagen
+            lassen. Automatische Vorschläge werden als Entwurf angelegt, bis du sie prüfst und
+            bestätigst.
+          </p>
+        }
       }
     }
 

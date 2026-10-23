@@ -8792,6 +8792,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(
         fixture.nativeElement.querySelector('.session-host__extra-close-maximize'),
       ).not.toBeNull();
+      const freezeControl = fixture.nativeElement.querySelector(
+        '.session-host__extra-action--icon',
+      ) as HTMLButtonElement;
+      expect(freezeControl).not.toBeNull();
+      expect(freezeControl.classList.contains('mat-mdc-icon-button')).toBe(true);
+      expect(freezeControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
       expect(fixture.nativeElement.querySelector('.word-cloud-host--presentation')).not.toBeNull();
       expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).toBeNull();
       expect(fixture.nativeElement.textContent).not.toContain('Maximieren');

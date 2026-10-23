@@ -12,6 +12,7 @@ import {
   SessionLearningObjectiveDTOSchema,
   SessionLearningObjectivesSnapshotSchema,
   findUnresolvedQuizLearningObjectiveReferences,
+  normalizeLearningObjectiveText,
   type QuizLearningObjectiveBundleV1,
 } from './learning-objectives.js';
 import {
@@ -149,6 +150,28 @@ describe('quiz learning-objective sidecar contract', () => {
         sourceQuestionId: QUESTION_B_ID,
       },
     ]);
+  });
+
+  it('capitalizes the first letter of infinitive learning-objective phrases and closes them with a period', () => {
+    expect(normalizeLearningObjectiveText('  lineare   Modelle anwenden  ', 'de')).toBe(
+      'Lineare Modelle anwenden.',
+    );
+    expect(normalizeLearningObjectiveText('Überprüfen, ob die Annahme gilt', 'de')).toBe(
+      'Überprüfen, ob die Annahme gilt.',
+    );
+    expect(normalizeLearningObjectiveText('überprüfen, ob die Annahme gilt.', 'de')).toBe(
+      'Überprüfen, ob die Annahme gilt.',
+    );
+    expect(normalizeLearningObjectiveText('établir un modèle linéaire', 'fr')).toBe(
+      'Établir un modèle linéaire.',
+    );
+    expect(normalizeLearningObjectiveText('**lineare** Modelle anwenden', 'de')).toBe(
+      '**Lineare** Modelle anwenden.',
+    );
+    expect(normalizeLearningObjectiveText('ß-Fehler erklären', 'de')).toBe('ß-Fehler erklären.');
+    expect(
+      normalizeLearningObjectiveText('x'.repeat(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH), 'de'),
+    ).toHaveLength(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH);
   });
 
   it('enforces objective, reference, and compact-text limits', () => {
