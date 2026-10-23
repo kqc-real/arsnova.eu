@@ -215,6 +215,25 @@ const add = (c: Case) => cases.push(c);
   });
 }
 
+// K9 examiner case: high controversy while still PENDING (only reachable in synthetic
+// snapshots: the 1.3 DB rejects votes on PENDING and no moderation action returns to PENDING)
+{
+  const pendingF = run(with_('F', { status: 'PENDING' }));
+  const pendingF4040 = run(with_('F', { status: 'PENDING', positive: 40, negative: 40 }));
+  const fSignal = toCompassQuestion(
+    { ...base.find((q) => q.key === 'F')!, status: 'PENDING' },
+    200,
+  );
+  add({
+    id: 'K9',
+    title: 'Hohe Kontroversität bei Status PENDING',
+    condition: 'F (20:20) bzw. F (40:40) auf PENDING, übrige Fragen freigegeben, N = 200',
+    result: `F 20:20 PENDING (K = ${fSignal.controversyScore?.toFixed(3)}, Label umstritten = ${fSignal.isControversial}): ${describeCards(pendingF)} · F 40:40 PENDING: ${describeCards(pendingF4040)}`,
+    finding:
+      'Trotz Label „umstritten“ erscheint F nicht auf der Reibungskarte, sondern in der Klärungskarte: Reibung berücksichtigt nur ACTIVE/PINNED (selectFrictionQuestionSourceIds), PENDING ist Freigabestatus. Im Releasepfad ist der Zustand nicht erreichbar, weil die Datenbank Stimmen auf PENDING-Fragen ablehnt (E3: ARSNOVA_QA_QUESTION_NOT_VOTABLE) und keine Moderationsaktion zu PENDING zurückführt.',
+  });
+}
+
 mkdirSync(`${EVIDENCE}/E2`, { recursive: true });
 writeFileSync(`${EVIDENCE}/E2/e2-${env.commitShort}.json`, JSON.stringify({ env, cases }, null, 2));
 const md = [

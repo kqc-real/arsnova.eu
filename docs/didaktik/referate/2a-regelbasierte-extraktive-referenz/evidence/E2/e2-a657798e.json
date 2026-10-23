@@ -9,7 +9,7 @@
     "cpuCount": 4,
     "memoryGb": 8,
     "platform": "linux 6.6.87.2-microsoft-standard-WSL2",
-    "timestamp": "2026-10-21T12:10:44.032Z"
+    "timestamp": "2026-10-23T12:17:59.764Z"
   },
   "cases": [
     {
@@ -67,6 +67,13 @@
       "condition": "E wird archiviert",
       "result": "friction[F]→controversy | topics[»linearen · Gibt es ein weiteres Beispiel zur linearen Regression?«,»Regression · Gibt es ein weiteres Beispiel zur linearen Regression?«]",
       "finding": "Archivierte Fragen fallen aus Reibung und Wortwolke heraus; die geteilte Bewertung ist für den Kompass erledigt."
+    },
+    {
+      "id": "K9",
+      "title": "Hohe Kontroversität bei Status PENDING",
+      "condition": "F (20:20) bzw. F (40:40) auf PENDING, übrige Fragen freigegeben, N = 200",
+      "result": "F 20:20 PENDING (K = 0.667, Label umstritten = true): friction[E] | clarification[F]→pending-qa | topics[»linearen · Gibt es ein weiteres Beispiel zur linearen Regression?«,»Regression · Gibt es ein weiteres Beispiel zur linearen Regression?«] · F 40:40 PENDING: friction[E] | clarification[F]→pending-qa | topics[»linearen · Gibt es ein weiteres Beispiel zur linearen Regression?«,»Regression · Gibt es ein weiteres Beispiel zur linearen Regression?«]",
+      "finding": "Trotz Label „umstritten“ erscheint F nicht auf der Reibungskarte, sondern in der Klärungskarte: Reibung berücksichtigt nur ACTIVE/PINNED (selectFrictionQuestionSourceIds), PENDING ist Freigabestatus. Im Releasepfad ist der Zustand nicht erreichbar, weil die Datenbank Stimmen auf PENDING-Fragen ablehnt (E3: ARSNOVA_QA_QUESTION_NOT_VOTABLE) und keine Moderationsaktion zu PENDING zurückführt."
     }
   ]
 }
