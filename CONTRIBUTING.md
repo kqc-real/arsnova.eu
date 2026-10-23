@@ -53,8 +53,8 @@ Für den Einstieg ist Node 24.18.0 LTS aus `.nvmrc` der Standardweg; Node 22.22.
 
 Mindestens prüfen:
 
-- [ ] `npm run typecheck`
-- [ ] `npm test`
+- [ ] `npm run typecheck` (läuft zusätzlich im Pre-Push-Hook)
+- [ ] `npm test` (volle Suite; der Pre-Commit-Hook prüft nur Related-Tests)
 - [ ] `npm run lint`
 - [ ] passende fokussierte Tests für die geänderte Stelle
 - [ ] bei Markdown-only Änderungen mindestens `npx prettier --check <dateien>` und `git diff --check -- <dateien>`

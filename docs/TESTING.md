@@ -4,6 +4,8 @@
 
 **Lokal** vor PR: mindestens `npm run build`, `npm run lint`, `npm test` (entspricht den wesentlichen CI-Gates). Vollständige DoD: [Backlog.md](../Backlog.md) „Definition of Done“. Nach größeren Änderungen an **`@arsnova/shared-types`**: wie in Root-[README](../README.md) zuerst `npm run build -w @arsnova/shared-types` bzw. Root-`npm run build` nutzen.
 
+**Git-Hooks:** Pre-commit führt `lint-staged` und `npm run test:related` aus (nur Tests zu gestagten Dateien). Pre-push führt `npm run typecheck` aus. Die volle Suite bleibt verbindlich in der CI und in der PR-Checkliste; der Hook ersetzt sie nicht.
+
 **Stand:** 2026-09-21 · Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (Node **22** und **24**; inkl. `dependency-review`, `actionlint`, Format-, i18n-, Template-A11y-, axe-, Lighthouse-, Reflow-, PDF/UA-, Trivy- und Migrations-Gates) · SAST: [`.github/workflows/codeql.yml`](../.github/workflows/codeql.yml) · Deploy-Skript: [`scripts/deploy.sh`](../scripts/deploy.sh)
 
 ---
@@ -21,6 +23,8 @@
 | `npm run prisma:migrate`                      | Versionierte Prisma-Migrationen auf die lokale Dev-DB (`migrate deploy`)                                                                                                       |
 | `npm run prisma:migrate:test`                 | Vertragstest: lokale Dev-Skripte rufen `migrate deploy` auf, nicht `db push`                                                                                                   |
 | `npm test`                                    | **Shared Contracts**, **Session-Export-Report**, **Backend** und **Frontend** mit Vitest (sequentiell)                                                                         |
+| `npm run test:related`                        | Pre-commit: Vitest `related` plus Node-Skripttests für gestagte Dateien; Docs-only überspringt Tests                                                                           |
+| `npm run test:related:test`                   | Unit-Tests für den Related-Test-Planer                                                                                                                                         |
 | `npm run test:spacy-sidecar`                  | Unix-Socket-Unittests des optionalen spaCy-Sidecars ohne Modell-Download (`docker/spacy/tests`)                                                                                |
 | `npm run test:spacy-compose`                  | Compose-Smoke: Sidecar nur über Profil `nlp`, kein TCP-Port, `SPACY_IMAGE` getrennt von `ARSNOVA_IMAGE`                                                                        |
 | `npm run docker:up:nlp`                       | Optionalen spaCy-Sidecar lokal bauen und starten (`docker compose --profile nlp`)                                                                                              |
