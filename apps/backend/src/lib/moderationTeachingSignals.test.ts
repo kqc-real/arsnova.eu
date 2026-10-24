@@ -953,11 +953,12 @@ describe('buildCompassContext', () => {
     };
 
     const result = buildCompassContext({ released, feedback: noFeedback() });
-    if (result.compass.state !== 'available') {
+    const compass = result.compass;
+    if (compass.state !== 'available') {
       throw new Error('compass unavailable');
     }
-    const primary = result.compass.signals.find(
-      (signal) => signal.sourceId === result.compass.primarySignalSourceId,
+    const primary = compass.signals.find(
+      (signal) => signal.sourceId === compass.primarySignalSourceId,
     );
 
     expect(primary?.evidence[0]?.sourceId).toBe(clarificationSourceId);
