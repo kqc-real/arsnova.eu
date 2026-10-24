@@ -4,6 +4,7 @@ import {
   MODERATION_COMPASS_STORED_SOURCE_COUNT,
   MODERATION_COMPASS_VISIBLE_SOURCE_COUNT,
   collectModerationQuizFacts as collectSharedModerationQuizFacts,
+  confidenceResultResponseCount,
   isNegativeFeedbackKey,
   notableQuickFeedbackSplit,
   planModerationCompass,
@@ -28,6 +29,7 @@ import {
   type ModerationCompassTopicRuleSource,
   type ModerationCompassTopicTermRuleSource,
   type ModerationQuizFact as SharedModerationQuizFact,
+  type ConfidenceResult,
 } from '@arsnova/shared-types';
 import {
   toQaSummaryScanBullet,
@@ -382,15 +384,35 @@ export function compassQuestionStem(text: string, max = 56): string {
   return truncateCompassLabelAtWord(extractExportQuestionText(text, max + 24), max);
 }
 
+function confidenceMisconceptionFromResult(
+  result: ConfidenceResult | null | undefined,
+): ModerationCompassQuizQuestion['confidenceMisconception'] {
+  if (!result || result.highConfidenceWrongCount <= 0) {
+    return undefined;
+  }
+  return {
+    responseCount: confidenceResultResponseCount(result),
+    highConfidenceWrongCount: result.highConfidenceWrongCount,
+    wrongOptions: result.highConfidenceWrongOptions?.map((option) => ({
+      text: option.text,
+      count: option.count,
+    })),
+  };
+}
+
 export function collectModerationQuizFacts(
-  question: ModerationCompassQuizQuestion,
+  question: ModerationCompassQuizQuestion & { confidenceResult?: ConfidenceResult | null },
 ): ModerationQuizFact[] {
+  const confidenceMisconception =
+    question.confidenceMisconception ??
+    confidenceMisconceptionFromResult(question.confidenceResult);
   // Legacy frontend callers omitted numericStats or its band percentage when a histogram
   // implied a configured band.
   // Explicit null/object states remain authoritative; all thresholds and fact selection stay shared.
   if (question.numericHistogram?.length && question.numericStats?.inBandPercent === undefined) {
     return collectSharedModerationQuizFacts({
       ...question,
+      ...(confidenceMisconception ? { confidenceMisconception } : {}),
       numericStats: {
         ...(question.numericStats ?? {}),
         n: question.numericStats?.n ?? 0,
@@ -398,7 +420,10 @@ export function collectModerationQuizFacts(
       },
     });
   }
-  return collectSharedModerationQuizFacts(question);
+  return collectSharedModerationQuizFacts({
+    ...question,
+    ...(confidenceMisconception ? { confidenceMisconception } : {}),
+  });
 }
 
 export function compassTermsFromAnalysisEntries(

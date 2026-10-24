@@ -425,6 +425,27 @@ describe('collectReleasedQuizSignals', () => {
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).not.toContain('histogram-peak-out');
   });
 
+  it('records a repeated confidently wrong option as possible-misconception evidence', async () => {
+    const result = await collectReleasedQuizSignals({
+      tx: txWithRows([
+        row({
+          confidenceEnabled: true,
+          confidenceResponseCount: 2n,
+          highConfidenceWrongCount: 2n,
+          highConfidenceWrongOptions: [{ text: 'First', count: 2 }],
+        }),
+      ]),
+      state: state(),
+    });
+
+    const fact = result.insights[0]?.facts.find(
+      (entry) => entry.kind === 'confidence-misconception',
+    );
+    expect(fact?.evidenceRole).toBe('clarification');
+    expect(fact?.reason).toContain('possible misconception');
+    expect(result.insights[0]?.facts.map(({ kind }) => kind)).not.toContain('wrong-option');
+  });
+
   it('derives wrong-option parity internally without serializing solution flags', async () => {
     const result = await collectReleasedQuizSignals({ tx: txWithRows([row()]), state: state() });
 

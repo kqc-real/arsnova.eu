@@ -1261,6 +1261,39 @@ describe('collectModerationQuizFacts', () => {
     ).toEqual([{ type: 'histogram-peak-out', from: 40, to: 60, share: 75 }]);
   });
 
+  it('übernimmt selbstsicher falsche Antworten aus der Host-Auswertung', () => {
+    expect(
+      collectModerationQuizFacts({
+        confidenceResult: {
+          distribution: { '1': 2, '2': 2, '3': 4, '4': 6, '5': 6 },
+          crossTab: {
+            correctHigh: 6,
+            correctMid: 2,
+            correctLow: 2,
+            incorrectHigh: 6,
+            incorrectMid: 2,
+            incorrectLow: 2,
+          },
+          highConfidenceWrongCount: 6,
+          highConfidenceWrongOptions: [
+            {
+              answerId: '44444444-4444-4444-8444-444444444444',
+              text: 'Attraktor',
+              count: 6,
+            },
+          ],
+        },
+      }),
+    ).toEqual([
+      {
+        type: 'confidence-misconception',
+        option: 'Attraktor',
+        count: 6,
+        responseCount: 20,
+      },
+    ]);
+  });
+
   it('deutet ein explizit bandloses numerisches Ergebnis nicht als Histogrammsignal', () => {
     expect(
       collectModerationQuizFacts({

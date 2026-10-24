@@ -174,7 +174,7 @@ Ohne jedes KI-Modell wertet `buildModerationCompassCards` (`moderation-compass.t
 - **Tempo- & Blitzlicht-Signale:** Wenn z. B. im Tempo-Blitzlicht ein relevanter Anteil _»Zu schnell«_ oder _»Ich komme nicht mehr mit«_ meldet.
 - **Reibung / Kontroverse im Q&A:** Fragen mit hohem Kontroversitäts-Score (viele Up- _und_ Downvotes gleichzeitig).
 - **Klärungsbedarf / Top-Anliegen:** Stark unterstützte, noch unbeantwortete oder angeheftete Fragen (`Best-Score` / Wilson-Score) sowie erkannte Kategorien aus 8.9b (`content`, `organization`, `technical`).
-- **Quiz-Ergebnisindikatoren (erst nach Ergebnisfreigabe `RESULTS`):** Niedrige Trefferquote, starke Antwortstreuung oder der didaktisch besonders wichtige Indikator **»Selbstsicher falsch«** (Teilnehmende wählten eine falsche Antwort mit hoher Selbsteinschätzung 4–5).
+- **Quiz-Ergebnisindikatoren (erst nach Ergebnisfreigabe `RESULTS`):** Niedrige Trefferquote, starke Antwortstreuung und, wenn die Selbsteinschätzung an war, **selbstsicher falsch** als mögliches Fehlkonzept. Eine wiederkehrende falsche Option ab 30 % der Antworten mit Selbsteinschätzung wird Klärung und kann den nächsten Schritt bestimmen. Darunter oder ohne benennbare Option bleibt es eine Erwähnung.
 
 Jede Karte verweist direkt auf ihre konkreten Quellen (Sprung zur Q&A-Frage, zur Wortwolke oder zur Quiz-Auswertung).
 

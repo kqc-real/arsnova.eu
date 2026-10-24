@@ -3769,6 +3769,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           $localize`:@@sessionHost.moderationQuizWrongOptionHeadline:Häufigste andere Antwort`,
           truncateCompassLabelAtWord(fact.option, 72),
         );
+      case 'confidence-misconception':
+        return fact.option
+          ? quizSource(
+              $localize`:@@sessionHost.moderationQuizConfidenceMisconception:Selbstsicher falsch – mögliches Fehlkonzept`,
+              truncateCompassLabelAtWord(fact.option, 72),
+            )
+          : quizSource(this.confidenceMisconceptionLabel(fact.count));
       case 'survey-top':
         return quizSource(
           $localize`:@@sessionHost.moderationQuizSurveyTopHeadline:Häufigste Antwort`,
