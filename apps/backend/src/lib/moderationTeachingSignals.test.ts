@@ -517,6 +517,9 @@ describe('collectReleasedQuizSignals', () => {
     });
 
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).toContain('matching-confusion');
+    expect(
+      result.insights[0]?.facts.find((fact) => fact.kind === 'matching-confusion')?.evidenceRole,
+    ).toBe('clarification');
     expect(JSON.stringify(result)).not.toContain(secretLeft);
     expect(JSON.stringify(result)).not.toContain(secretRight);
   });
@@ -542,6 +545,9 @@ describe('collectReleasedQuizSignals', () => {
     });
 
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).toContain('ordering-swap');
+    expect(
+      result.insights[0]?.facts.find((fact) => fact.kind === 'ordering-swap')?.evidenceRole,
+    ).toBe('clarification');
     expect(JSON.stringify(result)).not.toContain('ORDER_A_MUST_NOT_SERIALIZE');
     expect(JSON.stringify(result)).not.toContain('ORDER_B_MUST_NOT_SERIALIZE');
   });
@@ -577,6 +583,9 @@ describe('collectReleasedQuizSignals', () => {
     });
 
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).toContain('categorization-miss');
+    expect(
+      result.insights[0]?.facts.find((fact) => fact.kind === 'categorization-miss')?.evidenceRole,
+    ).toBe('clarification');
     const serialized = JSON.stringify(result);
     expect(serialized).not.toContain('CATEGORY_A_MUST_NOT_SERIALIZE');
     expect(serialized).not.toContain('CATEGORY_B_MUST_NOT_SERIALIZE');

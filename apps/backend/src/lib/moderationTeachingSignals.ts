@@ -1433,7 +1433,7 @@ function buildRowSources(
       kind: fact.type,
       reason: factReason(fact),
       sourceId: source.id,
-      evidenceRole: moderationQuizFactEvidenceRole(fact, {}),
+      evidenceRole: moderationQuizFactEvidenceRole(fact, detailedQuizFactInput(row)),
     })),
   );
   const kind: ModerationCompassQuizInsightKind =
