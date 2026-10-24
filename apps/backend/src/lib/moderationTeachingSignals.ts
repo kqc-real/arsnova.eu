@@ -656,6 +656,7 @@ async function loadReleasedQuizRows(
     confidence_wrong_option_counts AS (
       SELECT
         vote."questionId",
+        answer."id" AS "id",
         answer."text" AS "text",
         COUNT(*) AS "count"
       FROM effective_votes AS vote
@@ -664,16 +665,16 @@ async function loadReleasedQuizRows(
       WHERE vote."confidenceValue" >= 4
         AND vote."isCorrect" IS FALSE
         AND answer."isCorrect" IS FALSE
-      GROUP BY vote."questionId", answer."text"
+      GROUP BY vote."questionId", answer."id", answer."text"
     ),
     confidence_wrong_option_sets AS (
       SELECT
         question."id" AS "questionId",
         COALESCE(
           jsonb_agg(
-            jsonb_build_object('text', wrong."text", 'count', wrong."count")
-            ORDER BY wrong."count" DESC, wrong."text" ASC
-          ) FILTER (WHERE wrong."text" IS NOT NULL),
+            jsonb_build_object('id', wrong."id", 'text', wrong."text", 'count', wrong."count")
+            ORDER BY wrong."count" DESC, wrong."id" ASC
+          ) FILTER (WHERE wrong."id" IS NOT NULL),
           '[]'::jsonb
         ) AS "highConfidenceWrongOptions"
       FROM completed_scope AS question
@@ -2055,8 +2056,16 @@ export function buildCompassContext(input: {
     switch (plan.recommendation?.reason) {
       case 'quiz-confusion':
       case 'quiz-survey':
-      case 'quiz-rating':
-        return signals.find((signal) => signal.signal === 'result-pattern');
+      case 'quiz-rating': {
+        const primarySourceId = quizResultSourceIds[0];
+        return (
+          signals.find(
+            (signal) =>
+              signal.signal === 'result-pattern' &&
+              signal.evidence.some((item) => item.sourceId === primarySourceId),
+          ) ?? signals.find((signal) => signal.signal === 'result-pattern')
+        );
+      }
       case 'feedback':
       case 'tempo':
       case 'steady':

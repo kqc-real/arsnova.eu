@@ -24057,7 +24057,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizConfidenceMisconception" datatype="html">
         <source>Selbstsicher falsch – mögliches Fehlkonzept</source>
-        <target>Risposta sbagliata e sicura – possibile malinteso</target>
+        <target>Risposta errata data con elevata sicurezza – possibile concezione errata</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
