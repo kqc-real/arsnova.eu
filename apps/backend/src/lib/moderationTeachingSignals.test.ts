@@ -953,6 +953,9 @@ describe('buildCompassContext', () => {
     };
 
     const result = buildCompassContext({ released, feedback: noFeedback() });
+    if (result.compass.state !== 'available') {
+      throw new Error('compass unavailable');
+    }
     const primary = result.compass.signals.find(
       (signal) => signal.sourceId === result.compass.primarySignalSourceId,
     );
