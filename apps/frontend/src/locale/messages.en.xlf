@@ -24112,6 +24112,10 @@
         <source>Häufigste andere Antwort</source>
         <target>Most common other answer</target>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizConfidenceMisconception" datatype="html">
+        <source>Selbstsicher falsch – mögliches Fehlkonzept</source>
+        <target>Confidently wrong – possible misconception</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
         <target>Most common other answer: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></target>

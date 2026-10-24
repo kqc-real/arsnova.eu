@@ -180,7 +180,7 @@
     "semver": "^7.7.4",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.72.0",
-    "undici": "^7.29.1",
+    "undici": "^7.30.1",
     "yaml": "^2.9.0"
   },
   "dependencies": {
@@ -194,7 +194,8 @@
     "compression": "^1.8.2",
     "dompurify": "3.4.17",
     "deepmerge-ts": "^8.0.1",
-    "fast-uri": "^3.1.8",
+    "body-parser": "2.4.0",
+    "fast-uri": "^3.1.9",
     "find-my-way": "^9.7.0",
     "hono": "^4.12.5",
     "ip-address": "$ip-address",
@@ -223,10 +224,10 @@
       "js-yaml": "$js-yaml"
     },
     "node-gyp": {
-      "undici": "7.29.1"
+      "undici": "7.30.1"
     },
     "@angular/build": {
-      "undici": "7.29.1"
+      "undici": "7.30.1"
     }
   }
 }

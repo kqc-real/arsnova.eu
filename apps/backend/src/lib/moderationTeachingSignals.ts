@@ -21,6 +21,8 @@ import {
   buildOrderingStats,
   collectModerationFeedbackDecision,
   collectModerationQuizFacts,
+  moderationQuizFactEvidenceRole,
+  type ModerationCompassEvidenceRole,
   isNumericValueInBand,
   planModerationCompass,
   resolveNumericEstimateToleranceMode,
@@ -123,6 +125,10 @@ export type ReleasedQuizRow = {
   readonly numericPairCount: bigint | number;
   readonly numericPairs: unknown;
   readonly factVotes: unknown;
+  readonly confidenceEnabled?: boolean | null;
+  readonly confidenceResponseCount?: bigint | number | null;
+  readonly highConfidenceWrongCount?: bigint | number | null;
+  readonly highConfidenceWrongOptions?: unknown;
 };
 
 type SupportedQuizFact = Extract<
@@ -135,6 +141,7 @@ type SupportedQuizFact = Extract<
   | { type: 'ordering-swap' }
   | { type: 'categorization-miss' }
   | { type: 'wrong-option' }
+  | { type: 'confidence-misconception' }
   | { type: 'numeric-median' }
   | { type: 'numeric-spread' }
   | { type: 'survey-top' }
@@ -152,6 +159,7 @@ type ReleasedQuizInsight = {
     readonly kind: SupportedQuizFact['type'];
     readonly reason: string;
     readonly sourceId: string;
+    readonly evidenceRole?: ModerationCompassEvidenceRole;
   }[];
 };
 
@@ -378,6 +386,7 @@ async function loadReleasedQuizRows(
         question."numericTolerancePercent",
         question."numericIntervalLeft",
         question."numericIntervalRight",
+        question."confidenceEnabled",
         question."matchingPairs",
         question."orderingItems",
         question."categories",
@@ -432,6 +441,12 @@ async function loadReleasedQuizRows(
         COUNT(vote."id") FILTER (WHERE vote."isCorrect" IS TRUE) AS "correctCount",
         COUNT(vote."id") FILTER (WHERE vote."isCorrect" IS FALSE) AS "incorrectCount",
         COUNT(vote."id") FILTER (WHERE vote."isCorrect" IS NULL) AS "unansweredCount",
+        COUNT(vote."id") FILTER (
+          WHERE vote."confidenceValue" BETWEEN 1 AND 5
+        ) AS "confidenceResponseCount",
+        COUNT(vote."id") FILTER (
+          WHERE vote."confidenceValue" >= 4 AND vote."isCorrect" IS FALSE
+        ) AS "highConfidenceWrongCount",
         COUNT(vote."ratingValue") AS "ratingValueCount",
         COALESCE(
           jsonb_agg(
@@ -637,6 +652,34 @@ async function loadReleasedQuizRows(
       FROM completed_scope AS question
       LEFT JOIN numeric_pair_rows AS pair ON pair."questionId" = question."id"
       GROUP BY question."id"
+    ),
+    confidence_wrong_option_counts AS (
+      SELECT
+        vote."questionId",
+        answer."id" AS "id",
+        answer."text" AS "text",
+        COUNT(*) AS "count"
+      FROM effective_votes AS vote
+      INNER JOIN "VoteAnswer" AS selected ON selected."voteId" = vote."id"
+      INNER JOIN "AnswerOption" AS answer ON answer."id" = selected."answerOptionId"
+      WHERE vote."confidenceValue" >= 4
+        AND vote."isCorrect" IS FALSE
+        AND answer."isCorrect" IS FALSE
+      GROUP BY vote."questionId", answer."id", answer."text"
+    ),
+    confidence_wrong_option_sets AS (
+      SELECT
+        question."id" AS "questionId",
+        COALESCE(
+          jsonb_agg(
+            jsonb_build_object('id', wrong."id", 'text', wrong."text", 'count', wrong."count")
+            ORDER BY wrong."count" DESC, wrong."id" ASC
+          ) FILTER (WHERE wrong."id" IS NOT NULL),
+          '[]'::jsonb
+        ) AS "highConfidenceWrongOptions"
+      FROM completed_scope AS question
+      LEFT JOIN confidence_wrong_option_counts AS wrong ON wrong."questionId" = question."id"
+      GROUP BY question."id"
     )
     SELECT
       question."id" AS "questionId",
@@ -650,6 +693,7 @@ async function loadReleasedQuizRows(
       question."numericTolerancePercent",
       question."numericIntervalLeft",
       question."numericIntervalRight",
+      question."confidenceEnabled",
       question."matchingPairs",
       question."orderingItems",
       question."categories",
@@ -678,7 +722,10 @@ async function loadReleasedQuizRows(
       round_numeric_sets."round2NumericValues",
       numeric_pairs."numericPairCount",
       numeric_pairs."numericPairs",
-      effective_stats."factVotes"
+      effective_stats."factVotes",
+      effective_stats."confidenceResponseCount",
+      effective_stats."highConfidenceWrongCount",
+      confidence_wrong_option_sets."highConfidenceWrongOptions"
     FROM completed_scope AS question
     CROSS JOIN participant_scope
     INNER JOIN effective_round ON effective_round."questionId" = question."id"
@@ -689,6 +736,8 @@ async function loadReleasedQuizRows(
     INNER JOIN round_numeric_sets ON round_numeric_sets."questionId" = question."id"
     INNER JOIN option_sets ON option_sets."questionId" = question."id"
     INNER JOIN numeric_pairs ON numeric_pairs."questionId" = question."id"
+    INNER JOIN confidence_wrong_option_sets
+      ON confidence_wrong_option_sets."questionId" = question."id"
     ORDER BY question."order" ASC, question."id" ASC
   `);
 }
@@ -918,6 +967,7 @@ function isSupportedFact(fact: ModerationQuizFact): fact is SupportedQuizFact {
     'ordering-swap',
     'categorization-miss',
     'wrong-option',
+    'confidence-misconception',
     'numeric-median',
     'numeric-spread',
     'survey-top',
@@ -982,12 +1032,60 @@ function detailedQuizFactInput(row: ReleasedQuizRow): Partial<ModerationCompassQ
   return {};
 }
 
+function optionalCount(value: bigint | number | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  return asCount(value);
+}
+
+function confidenceWrongOptions(value: unknown): { text: string; count: number }[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return [];
+    const record = entry as Record<string, unknown>;
+    const text = typeof record.text === 'string' ? record.text.trim() : '';
+    const count = Number(record.count);
+    if (!text || !Number.isSafeInteger(count) || count < 1) return [];
+    return [{ text, count }];
+  });
+}
+
+function confidenceMisconceptionInput(
+  row: ReleasedQuizRow,
+): Pick<ModerationCompassQuizQuestion, 'confidenceMisconception'> {
+  if (row.confidenceEnabled !== true) return {};
+  const responseCount = optionalCount(row.confidenceResponseCount);
+  const highConfidenceWrongCount = optionalCount(row.highConfidenceWrongCount);
+  if (responseCount === 0 || highConfidenceWrongCount === 0) return {};
+  const wrongOptions = confidenceWrongOptions(row.highConfidenceWrongOptions);
+  return {
+    confidenceMisconception: {
+      responseCount,
+      highConfidenceWrongCount,
+      ...(wrongOptions.length > 0 ? { wrongOptions } : {}),
+    },
+  };
+}
+
+function attachesConfidence(rule: string, questionType: QuestionType): boolean {
+  if (rule === 'numeric-summary') return true;
+  if (rule === 'answer-distribution') {
+    return questionType === 'SINGLE_CHOICE' || questionType === 'MULTIPLE_CHOICE';
+  }
+  if (rule === 'correctness-summary') {
+    return questionType !== 'SINGLE_CHOICE' && questionType !== 'MULTIPLE_CHOICE';
+  }
+  return false;
+}
+
 function factsForSource(input: {
   readonly questionType: QuestionType;
   readonly source: Extract<ModerationPromptSource, { kind: 'quiz-result-aggregate' }>;
   readonly row: ReleasedQuizRow;
 }): SupportedQuizFact[] {
   const aggregation = input.source.aggregation;
+  const confidence = attachesConfidence(aggregation.rule, input.questionType)
+    ? confidenceMisconceptionInput(input.row)
+    : {};
   if (aggregation.rule === 'answer-distribution') {
     const optionsById = new Map(
       optionBuckets(input.row.options).map((option) => [answerOptionId(option.id), option]),
@@ -995,6 +1093,7 @@ function factsForSource(input: {
     return collectModerationQuizFacts({
       type: input.questionType,
       ...detailedQuizFactInput(input.row),
+      ...confidence,
       totalVotes: aggregation.responseCount,
       voteDistribution: aggregation.buckets.map((bucket) => ({
         text: bucket.label,
@@ -1022,6 +1121,7 @@ function factsForSource(input: {
     return collectModerationQuizFacts({
       type: input.questionType,
       ...detailedQuizFactInput(input.row),
+      ...confidence,
       totalVotes: aggregation.correct + aggregation.incorrect + aggregation.unanswered,
       correctVoterCount: aggregation.correct,
       incorrectVoterCount: aggregation.incorrect,
@@ -1045,6 +1145,7 @@ function factsForSource(input: {
     const band = numericBand(input.row);
     return collectModerationQuizFacts({
       type: input.questionType,
+      ...confidence,
       numericReferenceValue: numericReference(input.row, band),
       numericIntervalLeft: input.row.numericIntervalLeft,
       numericIntervalRight: input.row.numericIntervalRight,
@@ -1333,6 +1434,7 @@ function buildRowSources(
       kind: fact.type,
       reason: factReason(fact),
       sourceId: source.id,
+      evidenceRole: moderationQuizFactEvidenceRole(fact, detailedQuizFactInput(row)),
     })),
   );
   const kind: ModerationCompassQuizInsightKind =
@@ -1512,6 +1614,10 @@ function factReason(fact: SupportedQuizFact): string {
       return 'A recurring misclassification pattern appears in the released categorization responses.';
     case 'wrong-option':
       return 'The authoritative released evaluation found a recurring incorrect-option pattern.';
+    case 'confidence-misconception':
+      return fact.option
+        ? `${fact.count} of ${fact.responseCount} released responses with a confidence rating chose the same incorrect option with high confidence, a possible misconception.`
+        : `${fact.count} of ${fact.responseCount} released responses with a confidence rating are incorrect with high confidence, without one repeated option.`;
     case 'numeric-spread':
       return 'The released numeric responses are broadly dispersed relative to the expected band.';
     case 'numeric-median':
@@ -1621,7 +1727,19 @@ export function buildCompassContext(input: {
       factIndex,
     })),
   );
-  const quizResultSourceIds = allResultFacts.map((fact) => fact.sourceId);
+  const primaryQuizSourceIds = new Set(
+    allResultFacts.filter((fact) => fact.evidenceRole !== 'mention').map((fact) => fact.sourceId),
+  );
+  const quizResultSourceIds = [...primaryQuizSourceIds];
+  const mentionQuizSourceIds = [
+    ...new Set(
+      allResultFacts
+        .filter(
+          (fact) => fact.evidenceRole === 'mention' && !primaryQuizSourceIds.has(fact.sourceId),
+        )
+        .map((fact) => fact.sourceId),
+    ),
+  ];
   const feedbackDecision = input.feedback.ruleInput
     ? collectModerationFeedbackDecision(input.feedback.ruleInput)
     : null;
@@ -1662,6 +1780,7 @@ export function buildCompassContext(input: {
     pendingQuestionSourceIds,
     frictionQuestionSourceIds,
     quizResultSourceIds,
+    mentionQuizSourceIds,
     quizInsightKind: allResultFacts[0]?.insightKind ?? null,
     feedback:
       feedbackDecision && feedbackSourceId
@@ -1937,8 +2056,16 @@ export function buildCompassContext(input: {
     switch (plan.recommendation?.reason) {
       case 'quiz-confusion':
       case 'quiz-survey':
-      case 'quiz-rating':
-        return signals.find((signal) => signal.signal === 'result-pattern');
+      case 'quiz-rating': {
+        const primarySourceId = quizResultSourceIds[0];
+        return (
+          signals.find(
+            (signal) =>
+              signal.signal === 'result-pattern' &&
+              signal.evidence.some((item) => item.sourceId === primarySourceId),
+          ) ?? signals.find((signal) => signal.signal === 'result-pattern')
+        );
+      }
       case 'feedback':
       case 'tempo':
       case 'steady':

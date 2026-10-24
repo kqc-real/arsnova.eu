@@ -227,6 +227,94 @@ describe('moderation compass shared rules', () => {
     expect(quiet.cards.find((card) => card.kind === 'survey')?.sourceIds).toEqual(['survey']);
   });
 
+  it('treats a repeated confidently wrong option as clarification and a weaker one as a mention', () => {
+    const strong = collectModerationQuizFacts({
+      totalVotes: 20,
+      correctVoterCount: 8,
+      incorrectVoterCount: 12,
+      voteDistribution: [
+        { text: 'richtig', isCorrect: true, voteCount: 8 },
+        { text: 'Attraktor', isCorrect: false, voteCount: 10 },
+        { text: 'andere', isCorrect: false, voteCount: 2 },
+      ],
+      confidenceMisconception: {
+        responseCount: 20,
+        highConfidenceWrongCount: 8,
+        wrongOptions: [{ text: 'Attraktor', count: 8 }],
+      },
+    });
+    expect(strong.find((fact) => fact.type === 'confidence-misconception')).toEqual({
+      type: 'confidence-misconception',
+      option: 'Attraktor',
+      count: 8,
+      responseCount: 20,
+    });
+    expect(strong.some((fact) => fact.type === 'wrong-option')).toBe(false);
+    expect(
+      moderationQuizFactEvidenceRole(
+        {
+          type: 'confidence-misconception',
+          option: 'Attraktor',
+          count: 6,
+          responseCount: 20,
+        },
+        {},
+      ),
+    ).toBe('clarification');
+
+    const mention = collectModerationQuizFacts({
+      totalVotes: 20,
+      voteDistribution: [
+        { text: 'richtig', isCorrect: true, voteCount: 16 },
+        { text: 'Attraktor', isCorrect: false, voteCount: 4 },
+      ],
+      confidenceMisconception: {
+        responseCount: 20,
+        highConfidenceWrongCount: 2,
+        wrongOptions: [{ text: 'Attraktor', count: 2 }],
+      },
+    });
+    const mentionFact = mention.find((fact) => fact.type === 'confidence-misconception');
+    expect(mentionFact).toEqual({
+      type: 'confidence-misconception',
+      option: 'Attraktor',
+      count: 2,
+      responseCount: 20,
+    });
+    expect(mention.some((fact) => fact.type === 'wrong-option')).toBe(false);
+    expect(mentionFact && moderationQuizFactEvidenceRole(mentionFact, {})).toBe('mention');
+
+    expect(
+      collectModerationQuizFacts({
+        confidenceMisconception: {
+          responseCount: 20,
+          highConfidenceWrongCount: 1,
+          wrongOptions: [{ text: 'Attraktor', count: 1 }],
+        },
+      }),
+    ).toEqual([]);
+
+    const unnamed = collectModerationQuizFacts({
+      confidenceMisconception: {
+        responseCount: 20,
+        highConfidenceWrongCount: 3,
+        wrongOptions: [
+          { text: 'A', count: 1 },
+          { text: 'B', count: 1 },
+        ],
+      },
+    });
+    expect(unnamed).toEqual([
+      {
+        type: 'confidence-misconception',
+        option: null,
+        count: 3,
+        responseCount: 20,
+      },
+    ]);
+    expect(moderationQuizFactEvidenceRole(unnamed[0]!, {})).toBe('mention');
+  });
+
   it('separates survey, rating and repeated-text rules', () => {
     expect(
       collectModerationQuizFacts({

@@ -425,6 +425,64 @@ describe('collectReleasedQuizSignals', () => {
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).not.toContain('histogram-peak-out');
   });
 
+  it('records a repeated confidently wrong option as possible-misconception evidence', async () => {
+    const result = await collectReleasedQuizSignals({
+      tx: txWithRows([
+        row({
+          confidenceEnabled: true,
+          confidenceResponseCount: 2n,
+          highConfidenceWrongCount: 2n,
+          highConfidenceWrongOptions: [{ text: 'First', count: 2 }],
+        }),
+      ]),
+      state: state(),
+    });
+
+    const fact = result.insights[0]?.facts.find(
+      (entry) => entry.kind === 'confidence-misconception',
+    );
+    expect(fact?.evidenceRole).toBe('clarification');
+    expect(fact?.reason).toContain('possible misconception');
+    expect(result.insights[0]?.facts.map(({ kind }) => kind)).not.toContain('wrong-option');
+  });
+
+  it('does not merge same-text options chosen by the same confident respondents', async () => {
+    const correctOptionId = '66666666-6666-4666-8666-666666666666';
+    const result = await collectReleasedQuizSignals({
+      tx: txWithRows([
+        row({
+          participantCount: 10n,
+          effectiveResponseCount: 10n,
+          correctCount: 8n,
+          incorrectCount: 2n,
+          round2ResponseCount: 10n,
+          round2CorrectCount: 8n,
+          round2IncorrectCount: 2n,
+          options: [
+            { id: OPTION_A, text: 'Gleich', isCorrect: false, count: 2 },
+            { id: OPTION_B, text: 'Gleich', isCorrect: false, count: 2 },
+            { id: correctOptionId, text: 'Richtig', isCorrect: true, count: 8 },
+          ],
+          confidenceEnabled: true,
+          confidenceResponseCount: 10n,
+          highConfidenceWrongCount: 2n,
+          highConfidenceWrongOptions: [
+            { id: OPTION_A, text: 'Gleich', count: 2 },
+            { id: OPTION_B, text: 'Gleich', count: 2 },
+          ],
+        }),
+      ]),
+      state: state(),
+    });
+
+    const fact = result.insights[0]?.facts.find(
+      (entry) => entry.kind === 'confidence-misconception',
+    );
+    expect(fact?.evidenceRole).toBe('mention');
+    expect(fact?.reason).toContain('2 of 10');
+    expect(fact?.reason).not.toContain('4 of 10');
+  });
+
   it('derives wrong-option parity internally without serializing solution flags', async () => {
     const result = await collectReleasedQuizSignals({ tx: txWithRows([row()]), state: state() });
 
@@ -496,6 +554,9 @@ describe('collectReleasedQuizSignals', () => {
     });
 
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).toContain('matching-confusion');
+    expect(
+      result.insights[0]?.facts.find((fact) => fact.kind === 'matching-confusion')?.evidenceRole,
+    ).toBe('clarification');
     expect(JSON.stringify(result)).not.toContain(secretLeft);
     expect(JSON.stringify(result)).not.toContain(secretRight);
   });
@@ -521,6 +582,9 @@ describe('collectReleasedQuizSignals', () => {
     });
 
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).toContain('ordering-swap');
+    expect(
+      result.insights[0]?.facts.find((fact) => fact.kind === 'ordering-swap')?.evidenceRole,
+    ).toBe('clarification');
     expect(JSON.stringify(result)).not.toContain('ORDER_A_MUST_NOT_SERIALIZE');
     expect(JSON.stringify(result)).not.toContain('ORDER_B_MUST_NOT_SERIALIZE');
   });
@@ -556,6 +620,9 @@ describe('collectReleasedQuizSignals', () => {
     });
 
     expect(result.insights[0]?.facts.map(({ kind }) => kind)).toContain('categorization-miss');
+    expect(
+      result.insights[0]?.facts.find((fact) => fact.kind === 'categorization-miss')?.evidenceRole,
+    ).toBe('clarification');
     const serialized = JSON.stringify(result);
     expect(serialized).not.toContain('CATEGORY_A_MUST_NOT_SERIALIZE');
     expect(serialized).not.toContain('CATEGORY_B_MUST_NOT_SERIALIZE');
@@ -840,6 +907,62 @@ describe('buildCompassContext', () => {
       signals: [],
       primarySignalSourceId: null,
     });
+  });
+
+  it('selects the prioritized clarification instead of an earlier mention', () => {
+    const mentionSourceId = `quiz-result-aggregate:${QUESTION_ID}.answers`;
+    const clarificationQuestionId = '77777777-7777-4777-8777-777777777777';
+    const clarificationSourceId = `quiz-result-aggregate:${clarificationQuestionId}.answers`;
+    const released: ReleasedQuizProjection = {
+      releasedResults: {
+        state: 'available',
+        aggregates: [{ sourceId: mentionSourceId }, { sourceId: clarificationSourceId }],
+      },
+      sources: [],
+      limitations: [],
+      revision: { state: 'available', value: 'released-priority' },
+      fingerprint: 'released-priority',
+      insights: [
+        {
+          questionSourceId: `quiz-question:${QUESTION_ID}`,
+          aggregateSourceIds: [mentionSourceId],
+          kind: 'scorable',
+          facts: [
+            {
+              kind: 'confidence-misconception',
+              reason: '2 of 20 confident answers remain an early mention.',
+              sourceId: mentionSourceId,
+              evidenceRole: 'mention',
+            },
+          ],
+        },
+        {
+          questionSourceId: `quiz-question:${clarificationQuestionId}`,
+          aggregateSourceIds: [clarificationSourceId],
+          kind: 'scorable',
+          facts: [
+            {
+              kind: 'confidence-misconception',
+              reason: '6 of 20 confident answers are the prioritized clarification.',
+              sourceId: clarificationSourceId,
+              evidenceRole: 'clarification',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = buildCompassContext({ released, feedback: noFeedback() });
+    const compass = result.compass;
+    if (compass.state !== 'available') {
+      throw new Error('compass unavailable');
+    }
+    const primary = compass.signals.find(
+      (signal) => signal.sourceId === compass.primarySignalSourceId,
+    );
+
+    expect(primary?.evidence[0]?.sourceId).toBe(clarificationSourceId);
+    expect(primary?.reason).toContain('prioritized clarification');
   });
 
   it('keeps PENDING as moderation state and uses shared quiz-before-feedback priority', () => {
