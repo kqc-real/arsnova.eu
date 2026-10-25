@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ServerStatusHistoryChartRenderer } from './server-status-help-dialog-chart';
+import type { SpecAccess } from '../../testing/spec-access';
 
 const basePalette = {
   grid: 'rgb(120, 120, 120)',
@@ -100,7 +101,7 @@ describe('ServerStatusHistoryChartRenderer', () => {
         color,
         backgroundColor,
         fontFamily: 'Roboto, sans-serif',
-      } as CSSStyleDeclaration;
+      } as unknown as CSSStyleDeclaration;
     });
 
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => {
@@ -115,14 +116,17 @@ describe('ServerStatusHistoryChartRenderer', () => {
       } as unknown as CanvasRenderingContext2D;
     });
 
-    const renderer = new ServerStatusHistoryChartRenderer() as ServerStatusHistoryChartRenderer & {
-      readChartPalette: (canvas: HTMLCanvasElement) => {
-        text: string;
-        mutedText: string;
-        fill: string;
-        fontFamily: string;
-      };
-    };
+    const renderer = new ServerStatusHistoryChartRenderer() as unknown as SpecAccess<
+      ServerStatusHistoryChartRenderer,
+      {
+        readChartPalette: (canvas: HTMLCanvasElement) => {
+          text: string;
+          mutedText: string;
+          fill: string;
+          fontFamily: string;
+        };
+      }
+    >;
 
     const palette = renderer.readChartPalette(canvas);
 
@@ -133,22 +137,25 @@ describe('ServerStatusHistoryChartRenderer', () => {
   });
 
   it('formats y-axis ticks with the active locale', () => {
-    const renderer = new ServerStatusHistoryChartRenderer() as ServerStatusHistoryChartRenderer & {
-      buildOptions: (
-        points: Array<{ date: string; count: number; updatedAt: string | null }>,
-        locale: string,
-        palette: typeof basePalette,
-        labels: typeof baseLabels,
-      ) => {
-        scales?: {
-          y?: {
-            ticks?: {
-              callback?: (value: number | string) => string;
+    const renderer = new ServerStatusHistoryChartRenderer() as unknown as SpecAccess<
+      ServerStatusHistoryChartRenderer,
+      {
+        buildOptions: (
+          points: Array<{ date: string; count: number; updatedAt: string | null }>,
+          locale: string,
+          palette: typeof basePalette,
+          labels: typeof baseLabels,
+        ) => {
+          scales?: {
+            y?: {
+              ticks?: {
+                callback?: (value: number | string) => string;
+              };
             };
           };
         };
-      };
-    };
+      }
+    >;
 
     const options = renderer.buildOptions([], 'de-DE', basePalette, baseLabels);
 
@@ -156,36 +163,39 @@ describe('ServerStatusHistoryChartRenderer', () => {
   });
 
   it('exposes axis titles and a legend for the join-record series', () => {
-    const renderer = new ServerStatusHistoryChartRenderer() as ServerStatusHistoryChartRenderer & {
-      buildOptions: (
-        points: Array<{ date: string; count: number; updatedAt: string | null }>,
-        locale: string,
-        palette: typeof basePalette,
-        labels: typeof baseLabels,
-      ) => {
-        plugins?: {
-          legend?: {
-            display?: boolean;
-            labels?: { font?: { size?: number } };
+    const renderer = new ServerStatusHistoryChartRenderer() as unknown as SpecAccess<
+      ServerStatusHistoryChartRenderer,
+      {
+        buildOptions: (
+          points: Array<{ date: string; count: number; updatedAt: string | null }>,
+          locale: string,
+          palette: typeof basePalette,
+          labels: typeof baseLabels,
+        ) => {
+          plugins?: {
+            legend?: {
+              display?: boolean;
+              labels?: { font?: { size?: number } };
+            };
+          };
+          scales?: {
+            x?: {
+              title?: { display?: boolean; text?: string };
+              ticks?: { font?: { size?: number } };
+            };
+            y?: {
+              title?: { display?: boolean; text?: string };
+              ticks?: { font?: { size?: number } };
+            };
           };
         };
-        scales?: {
-          x?: {
-            title?: { display?: boolean; text?: string };
-            ticks?: { font?: { size?: number } };
-          };
-          y?: {
-            title?: { display?: boolean; text?: string };
-            ticks?: { font?: { size?: number } };
-          };
-        };
-      };
-      buildDataset: (
-        values: (number | null)[],
-        palette: typeof basePalette,
-        label: string,
-      ) => { label?: string; fill?: boolean; borderWidth?: number };
-    };
+        buildDataset: (
+          values: (number | null)[],
+          palette: typeof basePalette,
+          label: string,
+        ) => { label?: string; fill?: boolean; borderWidth?: number };
+      }
+    >;
 
     const options = renderer.buildOptions([], 'de-DE', basePalette, baseLabels);
     const dataset = renderer.buildDataset([1, 2], basePalette, baseLabels.dataset);
@@ -205,22 +215,25 @@ describe('ServerStatusHistoryChartRenderer', () => {
   });
 
   it('shows the exact UTC time in the tooltip when a timestamp is available', () => {
-    const renderer = new ServerStatusHistoryChartRenderer() as ServerStatusHistoryChartRenderer & {
-      buildOptions: (
-        points: Array<{ date: string; count: number; updatedAt: string | null }>,
-        locale: string,
-        palette: typeof basePalette,
-        labels: typeof baseLabels,
-      ) => {
-        plugins?: {
-          tooltip?: {
-            callbacks?: {
-              afterLabel?: (tooltipItem: { dataIndex: number }) => string | string[] | undefined;
+    const renderer = new ServerStatusHistoryChartRenderer() as unknown as SpecAccess<
+      ServerStatusHistoryChartRenderer,
+      {
+        buildOptions: (
+          points: Array<{ date: string; count: number; updatedAt: string | null }>,
+          locale: string,
+          palette: typeof basePalette,
+          labels: typeof baseLabels,
+        ) => {
+          plugins?: {
+            tooltip?: {
+              callbacks?: {
+                afterLabel?: (tooltipItem: { dataIndex: number }) => string | string[] | undefined;
+              };
             };
           };
         };
-      };
-    };
+      }
+    >;
 
     const options = renderer.buildOptions(
       [{ date: '2026-05-04', count: 1400, updatedAt: '2026-05-04T15:30:45.000Z' }],

@@ -1,7 +1,10 @@
 import { LOCALE_ID, PLATFORM_ID, TransferState } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DomSanitizer } from '@angular/platform-browser';
+import { RedirectCommand } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { firstValueFrom, isObservable } from 'rxjs';
+import type { NewsArchiveInitialModel } from './news-archive-initial';
 import { newsArchivePageResolver, newsArchiveTransferStateKey } from './news-archive-page.resolver';
 
 const listArchiveQuery = vi.fn();
@@ -20,10 +23,15 @@ const sanitizer = {
   bypassSecurityTrustHtml: (html: string) => html,
 };
 
-async function runResolver() {
-  return Promise.resolve(
-    TestBed.runInInjectionContext(() => newsArchivePageResolver({} as never, {} as never)),
+async function runResolver(): Promise<NewsArchiveInitialModel> {
+  const resolved = await TestBed.runInInjectionContext(() =>
+    newsArchivePageResolver({} as never, {} as never),
   );
+  const value = isObservable(resolved) ? await firstValueFrom(resolved) : resolved;
+  if (value instanceof RedirectCommand) {
+    throw new Error('Unerwartete Weiterleitung');
+  }
+  return value;
 }
 
 describe('newsArchivePageResolver hydration', () => {

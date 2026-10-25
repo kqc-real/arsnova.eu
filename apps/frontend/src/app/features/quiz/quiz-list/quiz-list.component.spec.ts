@@ -17,6 +17,7 @@ import {
 } from '../../../core/host-recovery-access';
 import { clearHostToken, setHostToken } from '../../../core/host-session-token';
 import { HostScenarioService, type HostScenario } from '../../../core/host-scenario.service';
+import type { SpecAccess } from '../../../testing/spec-access';
 
 const {
   getActiveQuizIdsQueryMock,
@@ -442,9 +443,12 @@ describe('QuizListComponent', () => {
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     await (
-      fixture.componentInstance as QuizListComponent & {
-        handleSyncImportNoticeIfRequested: () => Promise<void>;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        QuizListComponent,
+        {
+          handleSyncImportNoticeIfRequested: () => Promise<void>;
+        }
+      >
     ).handleSyncImportNoticeIfRequested();
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
@@ -1383,9 +1387,12 @@ describe('QuizListComponent', () => {
 
   it('scrollt beim Öffnen der KI-Import-Karte zum Panel', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
-    const component = fixture.componentInstance as QuizListComponent & {
-      scrollAiImportPanelIntoViewAfterRender: () => void;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      QuizListComponent,
+      {
+        scrollAiImportPanelIntoViewAfterRender: () => void;
+      }
+    >;
     const scrollSpy = vi
       .spyOn(component, 'scrollAiImportPanelIntoViewAfterRender')
       .mockImplementation(() => {});
@@ -1407,19 +1414,22 @@ describe('QuizListComponent', () => {
 
   it('richtet die KI-Import-Karte im App-Scrollcontainer aus', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
-    const component = fixture.componentInstance as QuizListComponent & {
-      scrollAiImportPanelIntoView: () => boolean;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      QuizListComponent,
+      {
+        scrollAiImportPanelIntoView: () => boolean;
+      }
+    >;
     const scrollRoot = document.createElement('main');
     scrollRoot.className = 'app-main';
     scrollRoot.style.paddingTop = '64px';
     scrollRoot.scrollTop = 240;
     scrollRoot.getBoundingClientRect = () =>
       ({ top: 0, bottom: 600, left: 0, right: 360, width: 360, height: 600 }) as DOMRect;
-    const scrollTo = vi.fn((options: ScrollToOptions) => {
-      scrollRoot.scrollTop = Number(options.top ?? 0);
+    const scrollTo = vi.fn((options?: ScrollToOptions) => {
+      scrollRoot.scrollTop = Number(options?.top ?? 0);
     });
-    scrollRoot.scrollTo = scrollTo;
+    scrollRoot.scrollTo = scrollTo as typeof scrollRoot.scrollTo;
     document.body.appendChild(scrollRoot);
     scrollRoot.appendChild(fixture.nativeElement);
 
@@ -1541,7 +1551,7 @@ Viel Erfolg beim Import.`);
       value: [file],
     });
 
-    await component.onImportFileSelected({ target: input } as Event);
+    await component.onImportFileSelected({ target: input } as unknown as Event);
     fixture.detectChanges();
     await flushAsyncEffects();
     fixture.detectChanges();
@@ -1627,7 +1637,7 @@ Viel Erfolg beim Import.`);
       value: [file],
     });
 
-    await component.onImportFileSelected({ target: input } as Event);
+    await component.onImportFileSelected({ target: input } as unknown as Event);
     fixture.detectChanges();
     await flushAsyncEffects();
     fixture.detectChanges();
@@ -1655,7 +1665,7 @@ Viel Erfolg beim Import.`);
       value: [file],
     });
 
-    await component.onImportFileSelected({ target: input } as Event);
+    await component.onImportFileSelected({ target: input } as unknown as Event);
 
     expect(textMock).not.toHaveBeenCalled();
     expect(mockStore.importQuiz).not.toHaveBeenCalled();
@@ -1734,13 +1744,16 @@ Viel Erfolg beim Import.`);
 
     const fixture = TestBed.createComponent(QuizListComponent);
     const openSpy = vi
-      .spyOn(fixture.componentInstance, 'openLiveStartDialog' as keyof QuizListComponent)
+      .spyOn(fixture.componentInstance, 'openLiveStartDialog')
       .mockResolvedValue(undefined);
 
     await (
-      fixture.componentInstance as QuizListComponent & {
-        activateLiveStartShortcutIfRequested: () => Promise<void>;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        QuizListComponent,
+        {
+          activateLiveStartShortcutIfRequested: () => Promise<void>;
+        }
+      >
     ).activateLiveStartShortcutIfRequested();
 
     expect(openSpy).toHaveBeenCalledWith('bb0cd69b-a0d2-4373-b83e-c1abb0a8b58a', 'Netzwerke', 3);

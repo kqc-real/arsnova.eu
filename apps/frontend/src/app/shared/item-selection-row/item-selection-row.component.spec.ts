@@ -204,7 +204,7 @@ describe('ItemSelectionRowComponent', () => {
       .componentInstance as MatSelect;
     const openSpy = vi.spyOn(select, 'open').mockImplementation(() => undefined);
 
-    (fixture.nativeElement as HTMLElement).querySelector('mat-form-field')?.click();
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('mat-form-field')?.click();
 
     expect(openSpy).toHaveBeenCalledTimes(1);
   });
@@ -222,7 +222,7 @@ describe('ItemSelectionRowComponent', () => {
       .componentInstance as MatSelect;
     const openSpy = vi.spyOn(select, 'open').mockImplementation(() => undefined);
 
-    (fixture.nativeElement as HTMLElement).querySelector('mat-select')?.click();
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('mat-select')?.click();
 
     expect(openSpy).toHaveBeenCalledTimes(1);
   });

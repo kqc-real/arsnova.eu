@@ -36,7 +36,7 @@ wsTransportCloseMock.mockImplementation(() => {
   if (!pauseReconnect) queueMicrotask(completeMockReconnect);
 });
 
-const createWSClientMock = vi.fn(() => ({
+const createWSClientMock = vi.fn((_options?: unknown) => ({
   close: wsClientCloseMock,
   get connection() {
     return { id: mockConnectionId, state: mockTransportState, ws: mockTransport };
@@ -194,7 +194,7 @@ describe('trpc.client host transport', () => {
       );
     });
 
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () =>
         Promise<Record<string, string> | undefined> | Record<string, string> | undefined;
     };
@@ -215,7 +215,7 @@ describe('trpc.client host transport', () => {
       );
     });
 
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () => Record<string, string> | null;
     };
 
@@ -230,7 +230,7 @@ describe('trpc.client host transport', () => {
       globalThis.window.localStorage.setItem('arsnova-participant-ABC123', 'ungueltig');
     });
 
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () => Record<string, string> | null;
     };
 
@@ -254,7 +254,7 @@ describe('trpc.client host transport', () => {
         subscribe(observer: unknown): { unsubscribe(): void };
       };
     };
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () => Record<string, string> | null;
     };
 
@@ -303,7 +303,7 @@ describe('trpc.client host transport', () => {
         subscribe(observer: unknown): { unsubscribe(): void };
       };
     };
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () => Record<string, string> | null;
     };
     expect(splitOptions.condition({ type: 'subscription' })).toBe(true);
@@ -344,7 +344,7 @@ describe('trpc.client host transport', () => {
         subscribe(observer: unknown): { unsubscribe(): void };
       };
     };
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () => Record<string, string> | null;
     };
     const activeObserver = {
@@ -394,7 +394,7 @@ describe('trpc.client host transport', () => {
     });
     const { refreshTrpcWsBinding, setHostToken } =
       await loadClientModule('/de/session/abc123/host');
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () => Record<string, string> | null;
     };
 
@@ -456,7 +456,7 @@ describe('trpc.client host transport', () => {
 
     await loadClientModule('/en/feedback/abc123');
 
-    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as {
+    const wsOptions = createWSClientMock.mock.calls[0]?.[0] as unknown as {
       connectionParams: () =>
         Promise<Record<string, string> | undefined> | Record<string, string> | undefined;
     };

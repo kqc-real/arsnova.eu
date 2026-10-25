@@ -13,13 +13,24 @@ vi.mock('./trpc.client', () => ({
 }));
 
 const exportData = {
+  questionProgressAvailable: false,
+  totalQuestionCount: 0,
+  conductedQuestionCount: 0,
+  skippedQuestionCount: 0,
   sessionId: 'sess-1',
   sessionCode: 'ABC123',
   quizName: 'Demo',
   finishedAt: '2026-03-24T12:30:00.000Z',
   participantCount: 1,
   teamMode: false,
-  questions: [{ participantCount: 1 }],
+  questions: [
+    {
+      questionOrder: 0,
+      questionTextShort: '',
+      type: 'MULTIPLE_CHOICE' as const,
+      participantCount: 1,
+    },
+  ],
   teamLeaderboard: [],
   bonusTokens: [],
 };
@@ -27,18 +38,23 @@ const exportData = {
 const pdf = {
   contentBase64: btoa('%PDF-1.4'),
   fileName: 'arsnova-results-Demo-ABC123.pdf',
-  mimeType: 'application/pdf',
+  mimeType: 'application/pdf' as const,
 };
 
 describe('SessionResultsExportService', () => {
-  let createObjectURL: ReturnType<typeof vi.fn>;
-  let revokeObjectURL: ReturnType<typeof vi.fn>;
+  let createObjectURL = vi.fn<(obj: Blob | MediaSource) => void>();
+  let revokeObjectURL = vi.fn<(url: string) => void>();
 
   beforeEach(() => {
-    createObjectURL = vi.fn(() => 'blob:pdf');
-    revokeObjectURL = vi.fn();
-    vi.spyOn(URL, 'createObjectURL').mockImplementation(createObjectURL);
-    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(revokeObjectURL);
+    createObjectURL = vi.fn<(obj: Blob | MediaSource) => void>();
+    revokeObjectURL = vi.fn<(url: string) => void>();
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((obj: Blob | MediaSource) => {
+      createObjectURL(obj);
+      return 'blob:pdf';
+    });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation((url: string) => {
+      revokeObjectURL(url);
+    });
     vi.mocked(trpc.session.getExportData.query).mockResolvedValue(exportData);
     vi.mocked(trpc.session.getSessionExportPdf.query).mockResolvedValue(pdf);
     TestBed.configureTestingModule({

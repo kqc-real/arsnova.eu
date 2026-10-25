@@ -48,7 +48,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
   };
 
   const matDialogMock = {
-    open: vi.fn(() => ({
+    open: vi.fn((_component?: unknown, _config?: { data?: { saveLabel?: string } }) => ({
       afterClosed: () => of<boolean | 'save'>(true),
     })),
   };
@@ -535,7 +535,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: QUESTION_ID,
         text: 'Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -602,7 +602,9 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
     await expect(component.canDeactivate()).resolves.toBe(true);
 
-    expect(matDialogMock.open.mock.calls[0]?.[1]?.data.saveLabel).toBe('Alle Änderungen speichern');
+    expect(matDialogMock.open.mock.calls[0]?.[1]?.data?.saveLabel).toBe(
+      'Alle Änderungen speichern',
+    );
     expect(mockStore.updateQuizMetadata).toHaveBeenCalledWith(QUIZ_ID, {
       name: 'Gespeicherter Titel',
       description: 'Beschreibung',
@@ -675,7 +677,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(mockStore.addQuestion).toHaveBeenCalledWith(QUIZ_ID, {
       text: 'Was ist korrekt?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
       confidenceEnabled: true,
@@ -1079,7 +1081,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(mockStore.addQuestion).toHaveBeenCalledWith(QUIZ_ID, {
       text: 'Was nimmst du heute mit?',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
       answers: [],
@@ -1105,7 +1107,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(mockStore.addQuestion).toHaveBeenCalledWith(QUIZ_ID, {
       text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
       confidenceEnabled: true,
@@ -1282,7 +1284,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(mockStore.addQuestion).toHaveBeenCalledWith(QUIZ_ID, {
       text: 'Wie war das Tempo?',
       type: 'SURVEY',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
       shuffleAnswerOptions: true,
@@ -1379,7 +1381,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: QUESTION_ID,
         text: 'Was ist die Kreiszahl Pi?',
         type: 'FREETEXT',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -1427,7 +1429,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: QUESTION_ID,
         text: 'Was ist die Kreiszahl Pi?',
         type: 'FREETEXT',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -1644,7 +1646,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: QUESTION_ID,
         text: 'Nenne den passenden Fachbegriff.',
         type: 'SHORT_TEXT',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -1712,7 +1714,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: SECOND_QUESTION_ID,
         text: 'Zweite Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 1,
         enabled: true,
         timer: null,
@@ -1843,7 +1845,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(mockStore.addQuestion).toHaveBeenCalledWith(QUIZ_ID, {
       text: 'Ungültige SC Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
       confidenceEnabled: true,
@@ -2121,7 +2123,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: QUESTION_ID,
         text: 'Erste Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -2139,7 +2141,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: SECOND_QUESTION_ID,
         text: 'Zweite Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 1,
         enabled: true,
         timer: null,
@@ -2308,7 +2310,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         id: QUESTION_ID,
         text: 'Formel: $a^2+b^2=c^2$',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -2424,7 +2426,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       validate({
         text: 'Sortiere',
         type: 'ORDERING',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         timer: null,
         answers: [],
         orderingItems: [
@@ -2438,7 +2440,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       validate({
         text: 'Kategorisiere',
         type: 'CATEGORIZATION',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         timer: null,
         answers: [],
         categories: [

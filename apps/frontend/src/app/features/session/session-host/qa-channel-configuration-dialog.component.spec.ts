@@ -30,7 +30,7 @@ const session = {
   serverTime: '2026-09-15T07:00:00.000Z',
   serverNow: '2026-09-15T07:00:00.000Z',
   expiresAt: '2026-09-16T06:00:00.000Z',
-  qaClosesAt: null,
+  qaClosesAt: null as string | null,
   timeZone: 'Europe/Berlin',
   sessionLifecycleRevision: 2,
   quizName: 'Seminar',
@@ -48,9 +48,10 @@ const session = {
     qa: {
       enabled: false,
       open: false,
-      closesAt: null,
-      state: 'UNCONFIGURED' as const,
-      title: null,
+      closesAt: null as string | null,
+      state: 'UNCONFIGURED' as
+        'DISABLED' | 'UNCONFIGURED' | 'OPEN' | 'MANUALLY_CLOSED' | 'DEADLINE_EXPIRED',
+      title: null as string | null,
       moderationMode: true,
     },
     quickFeedback: { enabled: false, open: false },
@@ -178,6 +179,8 @@ describe('QaChannelConfigurationDialogComponent', () => {
       serverNow: matchingSessionPreview.serverNow,
     });
     const { fixture, component } = configureTestBed(false, {
+      setupStep: 0,
+      setupStepCount: 0,
       omitParticipationProfile: true,
     });
     fixture.detectChanges();

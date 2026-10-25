@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FeedbackHostComponent } from './feedback-host.component';
 import type { QuickFeedbackResult } from '@arsnova/shared-types';
+import type { SpecAccess } from '../../testing/spec-access';
 
 const { clearFeedbackHostTokenMock, setFeedbackHostTokenMock } = vi.hoisted(() => ({
   clearFeedbackHostTokenMock: vi.fn(),
@@ -15,7 +16,7 @@ const { clearHostTokenMock } = vi.hoisted(() => ({
 }));
 
 const { onHostResultsSubscribeMock } = vi.hoisted(() => {
-  const impl = vi.fn(() => ({ unsubscribe: vi.fn() }));
+  const impl = vi.fn((_input: never, _opts: never) => ({ unsubscribe: vi.fn() }));
   return {
     onHostResultsSubscribeMock: new Proxy(impl, {
       get(target, prop, receiver) {
@@ -133,7 +134,11 @@ describe('FeedbackHostComponent', () => {
     for (const chip of comp.presetChips) {
       expect(formats.textContent).toContain(chip.label);
     }
-    let finish!: (value: { feedbackId: string; sessionCode: string }) => void;
+    let finish!: (value: {
+      feedbackId: string;
+      sessionCode: string;
+      hostToken: string | null;
+    }) => void;
     vi.mocked(trpc.quickFeedback.create.mutate).mockImplementationOnce(
       () =>
         new Promise((resolve) => {
@@ -153,7 +158,7 @@ describe('FeedbackHostComponent', () => {
     expect(trpc.quickFeedback.create.mutate).toHaveBeenCalledTimes(1);
     expect(document.activeElement).toBe(button);
     expect(button.getAttribute('aria-disabled')).toBe('true');
-    finish({ feedbackId: 'qf:ABC123', sessionCode: 'ABC123' });
+    finish({ feedbackId: 'qf:ABC123', sessionCode: 'ABC123', hostToken: null });
     await first;
     fixture.detectChanges();
     expect(comp.tempoViewMode()).toBe('trend');
@@ -686,10 +691,13 @@ describe('FeedbackHostComponent', () => {
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentRef.setInput('embeddedInSession', true);
     fixture.componentRef.setInput('sessionCode', 'ABC123');
-    const comp = fixture.componentInstance as FeedbackHostComponent & {
-      loadInitialResult(): Promise<void>;
-      subscription: { unsubscribe(): void } | null;
-    };
+    const comp = fixture.componentInstance as unknown as SpecAccess<
+      FeedbackHostComponent,
+      {
+        loadInitialResult(): Promise<void>;
+        subscription: { unsubscribe(): void } | null;
+      }
+    >;
     comp.subscription = null;
     await comp.loadInitialResult();
 
@@ -720,10 +728,13 @@ describe('FeedbackHostComponent', () => {
 
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentRef.setInput('embeddedInSession', true);
-    const comp = fixture.componentInstance as FeedbackHostComponent & {
-      consumeRequestedFeedbackType(): Promise<void>;
-      hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed';
-    };
+    const comp = fixture.componentInstance as unknown as SpecAccess<
+      FeedbackHostComponent,
+      {
+        consumeRequestedFeedbackType(): Promise<void>;
+        hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed';
+      }
+    >;
     comp.result.set({
       type: 'MOOD',
       locked: false,
@@ -794,11 +805,14 @@ describe('FeedbackHostComponent', () => {
 
     const fixture = TestBed.createComponent(FeedbackHostComponent);
     fixture.componentRef.setInput('embeddedInSession', true);
-    const comp = fixture.componentInstance as FeedbackHostComponent & {
-      subscription: { unsubscribe(): void } | null;
-      startPolling(): void;
-      pollTimer: ReturnType<typeof setInterval> | null;
-    };
+    const comp = fixture.componentInstance as unknown as SpecAccess<
+      FeedbackHostComponent,
+      {
+        subscription: { unsubscribe(): void } | null;
+        startPolling(): void;
+        pollTimer: ReturnType<typeof setInterval> | null;
+      }
+    >;
     comp.subscription = { unsubscribe: vi.fn() };
     comp.startPolling();
 
@@ -1194,7 +1208,7 @@ describe('FeedbackHostComponent', () => {
     ).toBe('🙂');
 
     const detailsButton = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
         '.feedback-host__tempo-view-button',
       ),
     ).find((button) => button.textContent?.includes('Details'));
@@ -1233,7 +1247,7 @@ describe('FeedbackHostComponent', () => {
     });
     fixture.detectChanges();
 
-    const detailHelp = fixture.nativeElement.querySelector<HTMLButtonElement>(
+    const detailHelp = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
       '.feedback-host__tempo-details-help .feedback-host__tempo-help-button',
     );
     expect(detailHelp?.getAttribute('aria-label')).toBe('Tempo-Barometer erklären');
@@ -1248,7 +1262,7 @@ describe('FeedbackHostComponent', () => {
       (fixture.nativeElement.querySelector('.feedback-host') as HTMLElement).hasAttribute('inert'),
     ).toBe(true);
 
-    fixture.nativeElement
+    (fixture.nativeElement as HTMLElement)
       .querySelector<HTMLButtonElement>('.feedback-host__tempo-help-actions button')
       ?.click();
     fixture.detectChanges();
@@ -1259,7 +1273,7 @@ describe('FeedbackHostComponent', () => {
     comp.tempoViewMode.set('trend');
     fixture.detectChanges();
 
-    const trendHelp = fixture.nativeElement.querySelector<HTMLButtonElement>(
+    const trendHelp = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
       '.feedback-host__tempo-trend-heading .feedback-host__tempo-help-button',
     );
     expect(trendHelp?.getAttribute('aria-label')).toBe('Tempo-Barometer erklären');

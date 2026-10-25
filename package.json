@@ -25,7 +25,7 @@
     "build:libs": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report",
     "build": "npm run build:libs && npm run build -w @arsnova/backend && npm run build -w @arsnova/frontend",
     "build:landing": "npm run build -w @arsnova/landing",
-    "typecheck": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report && npm run typecheck -w @arsnova/backend && npm run typecheck -w @arsnova/frontend",
+    "typecheck": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report && npm run typecheck -w @arsnova/shared-types && npm run typecheck -w @arsnova/session-export-report && npm run typecheck -w @arsnova/backend && npm run typecheck -w @arsnova/frontend",
     "test": "npm run test:open-weight-llm:all && npm run test -w @arsnova/shared-types && npm run test -w @arsnova/session-export-report && npm run test -w @arsnova/backend && npm run test -w @arsnova/frontend",
     "test:spacy-sidecar": "python3 -m unittest discover -s docker/spacy/tests -p 'test_*.py'",
     "test:spacy-compose": "node --test scripts/ci/spacy-compose-smoke.test.mjs",
