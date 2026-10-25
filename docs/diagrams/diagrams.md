@@ -13,7 +13,7 @@ Alle Diagramme sind in Mermaid geschrieben und werden von GitHub nativ gerendert
 
 ## 1. Backend-Architektur (Komponenten)
 
-Express · tRPC v11 · Prisma 7.4.x · Redis · WebSocket · Yjs (Epic 0 umgesetzt; health.footerBundle, health.stats, ping, Rate-Limit, y-websocket)
+Express · tRPC v11 · Prisma 7.9.1 · Redis · WebSocket · Yjs (Epic 0 umgesetzt; health.footerBundle, health.stats, ping, Rate-Limit, y-websocket)
 
 ### 1.1 Entry, Router und Module
 
@@ -793,11 +793,11 @@ sequenceDiagram
     BE->>PG: Status = FINISHED
     BE->>BE: Status-/Question-/Participant-Caches invalidieren
     BE-->>V: session.onStatusChanged FINISHED
-    V->>V: Quiz und Blitzlicht beenden; Countdown und Quiz-Subscriptions stoppen
+    V->>V: Quiz und Blitzlicht beenden, Countdown und Quiz-Subscriptions stoppen
     alt Q&A-Kanal noch OPEN und qaClosesAt in der Zukunft
         V->>V: Q&A-Forum bleibt beschreibbar bis min(qaClosesAt, expiresAt)
     else Q&A geschlossen oder abgelaufen
-        V->>V: Q&A-Sub stoppen; FINISHED gilt kanaluebergreifend
+        V->>V: Q&A-Sub stoppen, FINISHED gilt kanaluebergreifend
     end
     opt Bonus-Code oder Session-Feedback offen
         V->>V: Abschluss-Gate mit CTA Zur Startseite anzeigen
@@ -917,7 +917,7 @@ sequenceDiagram
 
     Note over S,BE: Phase 6 - Session-Ende
     BE->>FE: onStatusChanged FINISHED
-    FE->>FE: Quiz und Blitzlicht verlassen; Countdown und Quiz-Polling stoppen
+    FE->>FE: Quiz und Blitzlicht verlassen, Countdown und Quiz-Polling stoppen
     alt Q&A-Kanal noch OPEN und qaClosesAt in der Zukunft
         FE->>S: Q&A-Forum bleibt bis zum Q&A-Schluss
     else Q&A geschlossen oder abgelaufen

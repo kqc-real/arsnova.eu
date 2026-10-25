@@ -30,7 +30,7 @@ Wir setzen auf einen modernen, stark typisierten TypeScript-Stack (Full-Stack), 
 - **Frontend:** Angular **22.2.x** mit **Signals** (Zustandsverwaltung), **Standalone Components** und **Angular Material 3** (tokenbasiert, im Angular-Frontend ohne Tailwind).
 - **Backend:** Node.js API mit **tRPC v11** (für typsichere Aufrufe und WebSocket-Subscriptions).
 - **Schemas:** **Zod v4** in `@arsnova/shared-types` und Backend-Routern; DTOs werden ueber `.input()` / `.output()` an tRPC-Prozeduren gebunden.
-- **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM 7.4.x**.
+- **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM 7.9.1**.
 - **Echtzeit-Broker (Flüchtig):** **Redis** (Rate-Limiting, Blitzlicht-/Session-Code-Zustand, Tempo-Buckets, Sliding-Windows). Live-Updates in Sessions laufen über **tRPC-WebSocket-Subscriptions**; Status- und Teilnehmerpfade sind inzwischen bevorzugt signalgetrieben mit seltenem Resync, einzelne Live-Pfade nutzen weiterhin gezieltes Polling/Fallbacks. Es gibt keinen zentralen Redis-Pub/Sub-Pfad für jedes Frage-Event.
 - **Offline & Sync Engine:** **Yjs** (CRDTs für die Local-First Speicherung im Browser).
 

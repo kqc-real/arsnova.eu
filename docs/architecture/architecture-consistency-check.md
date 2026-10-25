@@ -64,14 +64,14 @@ ADR-0003 korrigieren: _„Das Frontend importiert den **Router-Typ (`AppRouter`)
 
 **Historischer Befund (2026-02-21), heute erledigt.**
 
-**Root `package.json` (aktueller Stand 2026-05-31):**
+**Root `package.json` (Snapshot 2026-05-31):**
 
 ```json
 "@prisma/client": "^7.4.2",
 "prisma": "^7.4.2"
 ```
 
-**Backend `apps/backend/package.json` (aktueller Stand 2026-05-31):**
+**Backend `apps/backend/package.json` (Snapshot 2026-05-31):**
 
 ```json
 "@prisma/adapter-pg": "^7.4.1",
@@ -79,18 +79,20 @@ ADR-0003 korrigieren: _„Das Frontend importiert den **Router-Typ (`AppRouter`)
 ```
 
 **Bewertung:**
-Der fruehere Widerspruch (Root Prisma 7.x, Backend Prisma 6.x) ist behoben. Root und Backend deklarieren Prisma 7.4.x; der Backend-Zugriff laeuft mit `@prisma/adapter-pg` passend zur Prisma-7-Linie.
+Der fruehere Widerspruch (Root Prisma 7.x, Backend Prisma 6.x) ist behoben. Am 2026-05-31 deklarierten Root und Backend Prisma 7.4.x; der Backend-Zugriff laeuft mit `@prisma/adapter-pg` passend zur Prisma-7-Linie.
 
 **Empfehlung:**
 Bei Prisma-Upgrades Root, Backend, `package-lock.json`, `prisma/schema.prisma`, Migrationen und Produktionsdoku gemeinsam pruefen.
 
-**Erledigt (2026-02-21, erneut abgeglichen 2026-05-31):** Backend-Version auf Prisma 7 angehoben; aktueller Stand ist 7.4.x.
+**Erledigt (2026-02-21, erneut abgeglichen 2026-05-31):** Backend-Version auf Prisma 7 angehoben; der damalige Stand war 7.4.x.
+
+**Nachzug (2026-10-25):** Root und Backend pinnen `@prisma/client`, `prisma` und `@prisma/adapter-pg` auf `7.9.1`. Dieselbe Fassung steht in `package-lock.json` und in der aktuellen Prosa.
 
 ---
 
 ## 4. Angular-Version in der Dokumentation
 
-| Dokument                     | Angabe                                  |
+| Dokument                     | Angabe am 2026-03-16                    |
 | ---------------------------- | --------------------------------------- |
 | `AGENTS.md`                  | Angular Standalone, Signals, Material 3 |
 | Handbook                     | Angular 21.2.x                          |
@@ -100,12 +102,14 @@ Bei Prisma-Upgrades Root, Backend, `package-lock.json`, `prisma/schema.prisma`, 
 | `apps/frontend/package.json` | `"@angular/core": "^21.2.0"`            |
 
 **Bewertung:**
-Der damalige Widerspruch ist behoben. Die Referenzdokumente nennen inzwischen den aktuellen Projektstand mit Angular 21.2 oder beschreiben bewusst nur die verbindlichen Angular-Patterns ohne alte Versionszahl.
+Der damalige Widerspruch ist behoben. Am 2026-03-16 nannten die Referenzdokumente Angular 21.2 oder nur die verbindlichen Angular-Patterns ohne alte Versionszahl.
 
 **Empfehlung:**
 Dokumentation bei Framework-Upgrades weiterhin zentral nachziehen.
 
-**Aktualisiert (2026-03-16):** `handbook.md`, `architecture-overview.md`, `diagrams.md` und weitere Referenzen auf Angular 21 bzw. den aktuellen Stand gebracht.
+**Aktualisiert (2026-03-16):** `handbook.md`, `architecture-overview.md`, `diagrams.md` und weitere Referenzen auf Angular 21 bzw. den damaligen Stand gebracht.
+
+**Nachzug (2026-10-25):** Frontend und Lockstand liegen bei Angular `22.2.3`. README, `architecture-overview.md` und `diagrams.md` nennen `22.2.x`.
 
 ---
 
@@ -286,21 +290,21 @@ Die Architekturregel meint das Angular-Frontend (`apps/frontend`), nicht die sep
 
 ## Zusammenfassung
 
-| Nr. | Thema                                  | Art                        | Handlungsbedarf                                         |
-| --- | -------------------------------------- | -------------------------- | ------------------------------------------------------- |
-| 1   | README „niemals" vs. Session-Kopie     | Inhaltlicher Widerspruch   | ✅ README präzisiert                                    |
-| 2   | ADR-0003 Import-Pfad                   | Falscher Pfad              | ✅ ADR-0003 korrigiert                                  |
-| 3   | Prisma-Client-Version Root vs. Backend | Versionskonflikt           | ✅ Backend auf `^7.4.0` angehoben                       |
-| 4   | Angular-Version in Docs                | Damalige Uneinheitlichkeit | ✅ spaeter auf aktuellen Stand (Angular 21) nachgezogen |
-| 5   | `docker-compose`-Syntax                | Kleines Delta              | ✅ README auf v2-Syntax aktualisiert                    |
-| 6   | `isPublic` ohne Story                  | Verwaistes Feld            | ✅ Feld aus Prisma-Schema entfernt                      |
-| 7   | `PAUSED`-Status undokumentiert         | Fehlende Doku              | ✅ In Diagrammen ergänzt                                |
-| 8   | Prisma nicht genutzt                   | Ueberholter Delta-Punkt    | ✅ Heute produktiv genutzt                              |
-| 9   | Leere Routes, kein `wsLink`            | Ueberholter Delta-Punkt    | ✅ Heute umgesetzt                                      |
-| 10  | Health-Router ohne Output-Schema       | DoD-Verstoß                | ✅ `.output()` ergänzt                                  |
-| 11  | Zod-v4-Doku als Zukunftsplan           | Dokumentations-Drift       | ✅ Aktualisiert                                         |
-| 12  | ADR-0024 Proposed trotz Umsetzung      | Status-Drift               | ✅ Auf Accepted gesetzt                                 |
-| 13  | ADR-0029 Tempo noch nicht im Code      | Zielbild vs. Ist-Stand     | ✅ Abgrenzung dokumentiert                              |
-| 14  | ADR-0005 Tailwind-Scope                | Unklare Formulierung       | ✅ Auf Angular-Frontend praezisiert                     |
+| Nr. | Thema                                  | Art                        | Handlungsbedarf                                                 |
+| --- | -------------------------------------- | -------------------------- | --------------------------------------------------------------- |
+| 1   | README „niemals" vs. Session-Kopie     | Inhaltlicher Widerspruch   | ✅ README präzisiert                                            |
+| 2   | ADR-0003 Import-Pfad                   | Falscher Pfad              | ✅ ADR-0003 korrigiert                                          |
+| 3   | Prisma-Client-Version Root vs. Backend | Versionskonflikt           | ✅ Backend auf Prisma 7 angehoben; Stand 2026-10-25 ist `7.9.1` |
+| 4   | Angular-Version in Docs                | Damalige Uneinheitlichkeit | ✅ nachgezogen; Stand 2026-10-25 ist Angular `22.2.3`           |
+| 5   | `docker-compose`-Syntax                | Kleines Delta              | ✅ README auf v2-Syntax aktualisiert                            |
+| 6   | `isPublic` ohne Story                  | Verwaistes Feld            | ✅ Feld aus Prisma-Schema entfernt                              |
+| 7   | `PAUSED`-Status undokumentiert         | Fehlende Doku              | ✅ In Diagrammen ergänzt                                        |
+| 8   | Prisma nicht genutzt                   | Ueberholter Delta-Punkt    | ✅ Heute produktiv genutzt                                      |
+| 9   | Leere Routes, kein `wsLink`            | Ueberholter Delta-Punkt    | ✅ Heute umgesetzt                                              |
+| 10  | Health-Router ohne Output-Schema       | DoD-Verstoß                | ✅ `.output()` ergänzt                                          |
+| 11  | Zod-v4-Doku als Zukunftsplan           | Dokumentations-Drift       | ✅ Aktualisiert                                                 |
+| 12  | ADR-0024 Proposed trotz Umsetzung      | Status-Drift               | ✅ Auf Accepted gesetzt                                         |
+| 13  | ADR-0029 Tempo noch nicht im Code      | Zielbild vs. Ist-Stand     | ✅ Abgrenzung dokumentiert                                      |
+| 14  | ADR-0005 Tailwind-Scope                | Unklare Formulierung       | ✅ Auf Angular-Frontend praezisiert                             |
 
 **Gesamtbewertung:** Die frueheren technischen Widersprueche sind behoben. Der aktuelle Abgleich fand vor allem Dokumentations-Drift: Status von ADR-0024, Zod-v4-Migrationsstand, Tempo-Ist-Stand und Tailwind-Scope. Diese Punkte sind in den Architekturdateien aktualisiert.

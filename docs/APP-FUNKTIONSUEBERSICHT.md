@@ -1020,7 +1020,7 @@ Die technische Architektur ist selbst Teil des Funktionsumfangs, weil viele Feat
 
 - Express
 - tRPC v11 für HTTP und WebSocket
-- PostgreSQL via Prisma 7.4.x
+- PostgreSQL via Prisma 7.9.1
 - Redis für Rate-Limits, Host-/Admin-Token-TTLs und kurzlebige Live-Hilfsdaten
 - Yjs-WebSocket-Server für Sammlungssync
 
