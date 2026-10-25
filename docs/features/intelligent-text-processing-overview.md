@@ -52,15 +52,15 @@ flowchart TB
     LLM["llama-server (b10524)<br/>Qwen3-4B-Instruct-2507-Q4_K_M<br/>--parallel 1 · --ctx-size 8192 · GBNF-JSON"]
   end
 
-  PART -->|Live-Hotpath (blockiert nie)| APP
-  HOST -->|Steuerung & On-Demand-Analyse| APP
-  PRES -->|Liest nur fertige Host-Projektion| APP
+  PART -->|"Live-Hotpath, blockiert nie"| APP
+  HOST -->|"Steuerung und On-Demand-Analyse"| APP
+  PRES -->|"Liest nur fertige Host-Projektion"| APP
   APP --> PG
   APP --> REDIS
-  APP -.->|Asynchron nach qa.submit| QANLP
-  APP -.->|Hintergrund-Pre-Warming & On-Demand Embeddings| ENC
-  APP -.->|Lemmatisierung (LEXICAL + LEMMA)| SPACY
-  APP -->|Privates HTTP (10.0.0.2:8080 + Bearer-Token)<br/>1 gemeinsamer Slot für 3 Aufträge| LLM
+  APP -.->|"Asynchron nach qa.submit"| QANLP
+  APP -.->|"Hintergrund-Pre-Warming und On-Demand Embeddings"| ENC
+  APP -.->|"Lemmatisierung LEXICAL plus LEMMA"| SPACY
+  APP -->|"Privates HTTP 10.0.0.2:8080 plus Bearer-Token<br/>1 gemeinsamer Slot für 3 Aufträge"| LLM
 ```
 
 **Wichtigste Sicherheits- und Isolationsgarantien:**

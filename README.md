@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-0f766e.svg?style=flat-square)](./LICENSE)
 [![Tech Stack: Angular](https://img.shields.io/badge/Frontend-Angular%2022.2-DD0031.svg?style=flat-square&logo=angular)](https://angular.dev/)
 [![Tech Stack: tRPC](https://img.shields.io/badge/API-tRPC%20v11-2596be.svg?style=flat-square&logo=trpc)](https://trpc.io/)
-[![Tech Stack: Prisma](https://img.shields.io/badge/ORM-Prisma%207.4-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
+[![Tech Stack: Prisma](https://img.shields.io/badge/ORM-Prisma%207.9-2D3748.svg?style=flat-square&logo=prisma)](https://www.prisma.io/)
 [![Docs: Architecture](https://img.shields.io/badge/Docs-Architecture%20%26%20ADRs-007A8A.svg?style=flat-square)](./docs/architecture/)
 [![Status](https://img.shields.io/badge/status-Better%20Stack-2ea44f.svg?style=flat-square)](https://arsnova.betteruptime.com/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/kqc-real/arsnova.eu)
@@ -65,7 +65,7 @@ Wichtig: arsnova.eu ersetzt keine organisationsweite IAM-, LMS-, Prüfungs- oder
 | Frontend           | Angular 22.2.x, Standalone Components, Signals, Angular Material 3          |
 | API                | Node.js, Express, tRPC v11, HTTP und WebSocket-Subscriptions                |
 | Schemas / DTOs     | Zod v4 in `@arsnova/shared-types`, gemeinsam genutzt von Backend/Frontend   |
-| Persistenz         | PostgreSQL 16 via Prisma ORM 7.4.x                                          |
+| Persistenz         | PostgreSQL 16 via Prisma ORM 7.9.1                                          |
 | Kurzzeitdaten      | Redis 7 für Rate-Limits, Token-TTLs, Presence-/Live-Hilfsdaten, Blitzlicht  |
 | Local-first Sync   | Yjs / y-websocket für Quiz-Sammlungen                                       |
 | Deployment         | Docker Compose, Nginx Reverse Proxy, Let's Encrypt, GitHub Actions optional |

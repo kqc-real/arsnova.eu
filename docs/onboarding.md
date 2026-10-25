@@ -546,7 +546,7 @@ Für Qualität und Tests sind diese Einstiege besonders relevant:
 - **Rate-Limiting:** Redis Sliding-Window für Session-Code, Vote-Submit, Session-Erstellung und weitere Live-Aktionen; tRPC-Error `TOO_MANY_REQUESTS` mit Retry-After.
 - **Service Layer:** SessionCode-, Scoring-/Effective-Vote-, Bonus-, Cleanup-, Plattformstatistik- und Admin-Logik sind integriert.
 - **DTO Layer:** Data-Stripping für `isCorrect` ist entlang des Session-Status umgesetzt.
-- **Prisma ORM 7.4.x:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
+- **Prisma ORM 7.9.1:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
 
 ### C. Infrastruktur
 
@@ -642,7 +642,7 @@ Wenn du bewusst auf einen historischen Zwischenstand zurückspringen willst, pr�
 | **Monorepo**             | Ein einzelnes Git-Repository, das mehrere Pakete enthält (hier: Backend, Frontend, shared-types). Verwaltet über npm Workspaces.                                                                          |
 | **tRPC v11**             | TypeScript Remote Procedure Call – Framework für typsichere API-Kommunikation ohne REST-Boilerplate. Frontend und Backend teilen sich die Typen direkt.                                                   |
 | **Zod v4**               | TypeScript-Validierungsbibliothek. Definiert Schemas, die sowohl zur Laufzeit (Eingabevalidierung) als auch zur Compile-Zeit (Typen) genutzt werden.                                                      |
-| **Prisma 7.4.x**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                                                  |
+| **Prisma 7.9.1**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                                                  |
 | **DTO**                  | Data Transfer Object – ein gefiltertes Datenobjekt, das nur die Felder enthält, die der Empfänger sehen darf. Zentral für die Sicherheit (kein `isCorrect` für Teilnehmende).                             |
 | **CRDT**                 | Conflict-free Replicated Data Type – Datenstruktur, die parallele Änderungen auf mehreren Geräten automatisch und ohne Konflikte zusammenführt. Verwendet über die Bibliothek Yjs.                        |
 | **Yjs**                  | JavaScript-Bibliothek für CRDTs. Speichert Daten in IndexedDB (Browser-Datenbank) und synchronisiert Änderungen als kleine Deltas über WebSockets.                                                        |
