@@ -172,7 +172,7 @@ PostgreSQL (5432) und Redis (6379) haben keine Host-Ports.
 Sie sind nur im internen Compose-Netz „app“ erreichbar.
 ```
 
-**Warum nicht einfach drei App-Server?** Live-Signale hängen heute an `EventEmitter` **in einem Prozess**. WebSockets brauchen eine feste Instanz (Affinität). Limits gelten pro Prozess. Ein gemeinsamer Nachrichtenbus fehlt. Das ist eine **offene Lücke**, kein vorhandener Dienst.
+**Warum nicht einfach drei App-Server?** Live-Signale hängen heute an `EventEmitter` **in einem Prozess**. WebSockets brauchen eine feste Instanz (Affinität). Vote- und Session-Code-Limits liegen bereits in Redis und sind damit zwischen Prozessen geteilt. Prozesslokal bleiben zum Beispiel PDF- und Yjs-Budgets sowie laufende Soft-Cap-Verzögerungen. Ein gemeinsamer Nachrichtenbus für Session-Events fehlt. Das ist die **Scale-out-Lücke**, kein fehlendes Rate-Limit.
 
 ### TB03 – Deployment, Härtung, Zustand
 
@@ -194,18 +194,18 @@ PostgreSQL und Redis haben diese drei Schalter **nicht**. PDF-Worker, spaCy und 
 
 ### TB04 – Serverless, ja oder nein?
 
-**Serverless / Function as a Service (FaaS)** heißt: der Anbieter startet Code pro Anfrage und skaliert oft bis auf null. **Backend as a Service (BaaS)** liefert fertige Bausteine (Login, Datenbank).
+**Serverless** ist ein Betriebsmodell: der Anbieter stellt Laufzeit und Skalierung bereit, du lieferst den Code. **Function as a Service (FaaS)** ist eine Unterart davon, oft pro kurzer Anfrage und bis auf null. **Backend as a Service (BaaS)** liefert fertige Bausteine (Login, Datenbank). WebSocket ist ein **Protokoll**, kein Betriebsmodell.
 
-Die nächste Tabelle ist eine **Eignungsübung**, nicht der Ist-Betrieb. Der PDF-Export ist heute ein **dauerhaft laufender** Container. WebSockets laufen **im App-Prozess**.
+Die nächste Tabelle ist eine **Eignungsübung**, nicht der Ist-Betrieb. Der PDF-Export ist heute ein **dauerhaft laufender** Container. WebSockets laufen **im App-Prozess**. Eine Verlagerung auf Serverless ist nicht implementiert und nicht verifiziert; sie braucht eine plattformspezifische Prüfung (Timeouts, Reconnect, geteilter Zustand). Ein einfaches FaaS-Request-Modell passt zu langlebigen Verbindungen schlecht. Manche Serverless-Plattformen, zum Beispiel Cloud Run, unterstützen WebSockets trotzdem.
 
-| Frage                   | PDF-Worker                                 | WebSocket und Yjs                     |
-| ----------------------- | ------------------------------------------ | ------------------------------------- |
-| Wie startet die Arbeit? | Aufruf über Unix-Socket                    | offene Verbindung über Minuten        |
-| Stört ein Kaltstart?    | eher nein, Nutzer wartet auf die Datei     | ja, die Live-Session bricht           |
-| Wie lange läuft es?     | Sekunden bis eine Minute (Timeout 60 s)    | die ganze Veranstaltung               |
-| Passt FaaS?             | als Gedanke diskutierbar, **nicht gebaut** | passt nicht zum reinen Request-Modell |
+| Frage                   | PDF-Worker                                 | WebSocket und Yjs                            |
+| ----------------------- | ------------------------------------------ | -------------------------------------------- |
+| Wie startet die Arbeit? | Aufruf über Unix-Socket                    | offene Verbindung über Minuten               |
+| Stört ein Kaltstart?    | eher nein, Nutzer wartet auf die Datei     | ja, die Live-Session bricht                  |
+| Wie lange läuft es?     | Sekunden bis eine Minute (Timeout 60 s)    | die ganze Veranstaltung                      |
+| Passt einfaches FaaS?   | als Gedanke diskutierbar, **nicht gebaut** | passt nicht zum reinen kurzen Request-Modell |
 
-**Für dich:** „PDF könnte FaaS sein“ ist erlaubt, wenn du sagst, dass es heute keiner ist. „WebSocket ist Serverless“ ist falsch.
+**Für dich:** „PDF könnte FaaS sein“ ist erlaubt, wenn du sagst, dass es heute keiner ist. „WebSocket kann deshalb kein Serverless sein“ ist zu grob. Richtig ist: arsnova betreibt die Relays im eigenen Prozess; eine Serverless-Variante wäre eine neue, ungetestete Betriebsentscheidung.
 
 ### TB05 – GCP, AWS, Azure
 
@@ -304,7 +304,7 @@ Zwei **ungemessene** Zielbilder:
 | 100 Sessions × 50 Personen | viele Räume, viel Zustand                     | nein     |
 | 1 Session × 5.000 Personen | ein Hotspot, viele gleichzeitige Verbindungen | nein     |
 
-Ein Absturz von Node oder Redis bei 5.000 Clients steht **nicht** im Repository. Was belegt ist: Signale sind prozesslokal, WebSockets brauchen Affinität, Limits sind nicht instanzübergreifend.
+Ein Absturz von Node oder Redis bei 5.000 Clients steht **nicht** im Repository. Was belegt ist: Session-Signale sind prozesslokal, WebSockets brauchen Affinität, Vote- und Session-Code-Limits liegen in Redis. Für Scale-out bleiben EventEmitter sowie lokale PDF- und Yjs-Budgets die offenen Punkte.
 
 ### TB09 – Sicherheit, SRE, Resilienz
 
@@ -364,7 +364,7 @@ Der Q&A-Klassifikator läuft **in** der App, nicht im Socket. Ein LLM auf demsel
 
 ### TB12 – Probeverteidigung
 
-Die Note im Referat verteilt sich laut [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../../CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) auf **30 % Schrift**, **30 % Vortrag**, **40 % Gespräch**. Das ist die Prüfungsordnung, kein eigenes Verteidigungsprotokoll dieses Textes.
+Die Note im Referat verteilt sich laut [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../CLOUD-COMPUTING-REFERAT-PRUEFUNG.md) auf **30 % Schrift**, **30 % Vortrag**, **40 % Gespräch**. Das ist die Prüfungsordnung, kein eigenes Verteidigungsprotokoll dieses Textes.
 
 **Frage:** Was passiert, wenn 5.000 Personen gleichzeitig abstimmen?
 
