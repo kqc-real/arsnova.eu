@@ -12,71 +12,71 @@ Dieses Dokument ist eine **Arbeitskopie für Informatik-Bachelorstudierende** im
 
 Lies diese Begriffe, bevor du die Tabellen nutzt. Im Text steht die Langform beim ersten Auftreten, danach die Kurzform.
 
-| Begriff                                                           | Bedeutung in diesem Dossier                                                                                       |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **arsnova.eu**                                                    | Die Fallstudie: ein Audience-Response-System (Live-Abstimmung im Hörsaal).                                        |
-| **Repository / Repo**                                             | Das Git-Projekt mit Quellcode und Dokumentation.                                                                  |
-| **Commit**                                                        | Ein fester Stand im Git-Verlauf, erkennbar an einem Hash wie `4d81982de255`.                                      |
-| **Checkout / Prüfstand**                                          | Der Commit, gegen den Aussagen geprüft wurden.                                                                    |
-| **Themenblock (TB01–TB12)**                                       | Die zwölf Inhaltsblöcke des Moduls.                                                                               |
-| **Unterrichtseinheit (UE)**                                       | 45 Minuten Lehre. Das Modul hat 36 UE in acht Vorlesungswochen.                                                   |
-| **Credit Point (CP)**                                             | Leistungspunkt. Das Modul hat 5 CP (150 Stunden, davon 123 Stunden Selbststudium).                                |
-| **Infrastructure as a Service (IaaS)**                            | Du mietest eine virtuelle Maschine und betreibst Betriebssystem, Container und Anwendung selbst.                  |
-| **Platform as a Service (PaaS)**                                  | Der Anbieter übernimmt Betriebssystem und oft die Laufzeit. Du lieferst die Anwendung.                            |
-| **Software as a Service (SaaS)**                                  | Fertige Anwendung im Browser. Du betreibst keinen Server.                                                         |
-| **Infrastructure as Code (IaC)**                                  | Infrastruktur steht in versionierten Textdateien statt nur in Klick-Dialogen.                                     |
-| **Shared Responsibility**                                         | Die geteilte Verantwortung zwischen Cloud-Anbieter und Betreiber.                                                 |
-| **Single-Host**                                                   | Alles läuft auf **einem** Server. Fällt er aus, fällt der Dienst aus.                                             |
-| **vHost / virtuelle Maschine (VM)**                               | Ein gemieteter Rechner beim Anbieter. **vCPU** ist eine zugeteilte Prozessorkerneinheit.                          |
-| **Host (Betrieb)**                                                | Der physische oder virtuelle Server, auf dem Container laufen.                                                    |
-| **Host (arsnova)**                                                | Die Lehrperson, die eine Live-Session steuert.                                                                    |
-| **Container / Docker**                                            | Isolierter Prozess mit eigenem Dateisystem. Leichter als eine volle VM.                                           |
-| **Docker Compose**                                                | Datei, die mehrere Container und ihr Netz beschreibt. `docker-compose.prod.yml` ist die Produktionssolltopologie. |
-| **Kubernetes (K8s)**                                              | Orchestrierung vieler Container über mehrere Rechner. Hier **nicht** implementiert.                               |
-| **Sidecar**                                                       | Ein Extra-Container neben der Hauptanwendung, zum Beispiel für Sprachverarbeitung.                                |
-| **Unix-Socket**                                                   | Datei im Dateisystem, über die zwei Prozesse auf **demselben** Rechner sprechen. Kein Netzwerkport nach außen.    |
-| **Reverse Proxy**                                                 | Nimmt Anfragen von außen entgegen und reicht sie intern weiter. Hier: **Nginx** auf dem Host.                     |
-| **TLS**                                                           | Transport Layer Security, die Verschlüsselung hinter `https://`.                                                  |
-| **Loopback / `127.0.0.1`**                                        | Nur auf demselben Rechner erreichbar, nicht aus dem Internet.                                                     |
-| **PostgreSQL**                                                    | Relationale Datenbank für dauerhafte Daten (Sessions, Stimmen, Fragen).                                           |
-| **Redis**                                                         | Sehr schneller Speicher im Arbeitsspeicher, hier für Limits und kurzlebige Live-Daten.                            |
-| **Prisma**                                                        | Object-Relational Mapping (ORM): TypeScript-Zugriff auf PostgreSQL. Lockstand `7.9.1`.                            |
-| **Node.js**                                                       | JavaScript-Laufzeit auf dem Server. Vorgabe in `.nvmrc`: `24.18.0`.                                               |
-| **Express**                                                       | HTTP-Serverbibliothek im Backend. Lockstand `5.3.0`.                                                              |
-| **tRPC**                                                          | Typisierte Programmierschnittstelle (API) zwischen Frontend und Backend.                                          |
-| **Angular**                                                       | Frontend-Framework. Lockstand `@angular/core` `22.2.3`.                                                           |
-| **Zod**                                                           | Bibliothek für Laufzeit- und Typprüfung von Daten. Lockstand `4.6.6`.                                             |
-| **Yjs**                                                           | Bibliothek für Local-First-Sync (Quizsammlung im Browser). Lockstand `13.6.31`.                                   |
-| **IndexedDB**                                                     | Datenbank im Browser. Die Quizbibliothek lebt dort, nicht im Server-Backup.                                       |
-| **WebSocket**                                                     | Offene Verbindung für Live-Updates statt vieler einzelner HTTP-Aufrufe.                                           |
-| **ONNX**                                                          | Austauschformat für maschinelle Lernmodelle. Der Encoder nutzt ONNX Runtime auf der CPU.                          |
-| **LLM**                                                           | Large Language Model, hier ein privates Sprachmodell über `llama.cpp`.                                            |
-| **spaCy**                                                         | Lokales Sprachverarbeitungswerkzeug (Lemmatisierung für Wortwolken).                                              |
-| **Kill-Switch / Feature-Flag**                                    | Umgebungsvariable, die eine Funktion an- oder ausschaltet. Defaults sind `false`.                                 |
-| **Circuit Breaker**                                               | Schutzschalter: nach wiederholten Fehlern wird ein Dienst eine Zeit lang nicht mehr aufgerufen.                   |
-| **Fallback**                                                      | Ersatzweg, wenn der teure oder unsichere Weg ausfällt.                                                            |
-| **Restic**                                                        | Backup-Programm. Verschlüsselt Daten **vor** der Übertragung.                                                     |
-| **SFTP**                                                          | Dateiübertragung über SSH. Hier der Weg zur Hetzner Storage Box.                                                  |
-| **Recovery Point Objective (RPO)**                                | Wie viel Datenverlust (in Zeit) ist höchstens akzeptabel?                                                         |
-| **Recovery Time Objective (RTO)**                                 | Wie schnell soll der Dienst nach einem Ausfall wieder laufen?                                                     |
-| **Service Level Indicator (SLI)**                                 | Was du misst, zum Beispiel Fehlerquote oder Latenz.                                                               |
-| **Service Level Objective (SLO)**                                 | Das Ziel zu diesem Messwert, zum Beispiel p95 unter 1.000 ms.                                                     |
-| **Perzentil (p50, p95, p99)**                                     | p95 heißt: 95 Prozent der Messwerte liegen darunter oder genau darauf. Der Rest ist der langsame Schwanz.         |
-| **Latenz**                                                        | Wartezeit bis zur Antwort.                                                                                        |
-| **Rate-Limit**                                                    | Obergrenze, wie oft eine Aktion in einem Zeitfenster erlaubt ist.                                                 |
-| **Shared NAT**                                                    | Viele Endgeräte teilen sich eine öffentliche IP, typisch im Campus-WLAN.                                          |
-| **Identity and Access Management (IAM)**                          | Wer darf was? Tokens, Rollen, Prüfung auf dem Server.                                                             |
-| **Site Reliability Engineering (SRE)**                            | Betrieb mit messbaren Zielen statt nur Bauchgefühl.                                                               |
-| **Financial Operations (FinOps)**                                 | Technikentscheidungen zusammen mit Kosten.                                                                        |
-| **Total Cost of Ownership (TCO)**                                 | Gesamtkosten, nicht nur die monatliche VM.                                                                        |
-| **6R**                                                            | Migrationsoptionen: Rehost, Replatform, Repurchase, Refactor, Retire, Retain.                                     |
-| **Architecture Decision Record (ADR)**                            | Kurze, nachvollziehbare Architekturentscheidung. ADR-0040 **existiert nicht**.                                    |
-| **Google Cloud Platform (GCP), Amazon Web Services (AWS), Azure** | Die drei großen Hyperscaler. Sie sind hier ein Lehrvergleich, keine gewählte Plattform.                           |
-| **Hetzner**                                                       | IaaS-Anbieter in den Betriebsdokumenten (Cloud- oder Root-Server).                                                |
-| **CAX31 / CPX32**                                                 | Hetzner-Tarife mit 8 vCPU und 16 GB RAM. Nicht 32 GB.                                                             |
-| **NotebookLM**                                                    | KI-Werkzeug, das aus Quellen einen Text erzeugt. Dieser Text war der Ausgangspunkt und enthielt Fehler.           |
-| **Agent / agentisch**                                             | Ein KI-System, das Schritte plant. Es ersetzt keine Prüfung gegen das Repository.                                 |
-| **Evidenz**                                                       | Beleg. Ohne Datei, Test oder Messung ist eine Aussage ein Zielbild.                                               |
+| Begriff                                                           | Bedeutung in diesem Dossier                                                                                        |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **arsnova.eu**                                                    | Die Fallstudie: ein Audience-Response-System (Live-Abstimmung im Hörsaal).                                         |
+| **Repository / Repo**                                             | Das Git-Projekt mit Quellcode und Dokumentation.                                                                   |
+| **Commit**                                                        | Ein fester Stand im Git-Verlauf, erkennbar an einem Hash wie `4d81982de255`.                                       |
+| **Checkout / Prüfstand**                                          | Der Commit, gegen den Aussagen geprüft wurden.                                                                     |
+| **Themenblock (TB01–TB12)**                                       | Die zwölf Inhaltsblöcke des Moduls.                                                                                |
+| **Unterrichtseinheit (UE)**                                       | 45 Minuten Lehre. Das Modul hat 36 UE in acht Vorlesungswochen.                                                    |
+| **Credit Point (CP)**                                             | Leistungspunkt. Das Modul hat 5 CP (150 Stunden, davon 123 Stunden Selbststudium).                                 |
+| **Infrastructure as a Service (IaaS)**                            | Du mietest eine virtuelle Maschine und betreibst Betriebssystem, Container und Anwendung selbst.                   |
+| **Platform as a Service (PaaS)**                                  | Der Anbieter übernimmt Betriebssystem und oft die Laufzeit. Du lieferst die Anwendung.                             |
+| **Software as a Service (SaaS)**                                  | Fertige Anwendung im Browser. Du betreibst keinen Server.                                                          |
+| **Infrastructure as Code (IaC)**                                  | Infrastruktur steht in versionierten Textdateien statt nur in Klick-Dialogen.                                      |
+| **Shared Responsibility**                                         | Die geteilte Verantwortung zwischen Cloud-Anbieter und Betreiber.                                                  |
+| **Single-Host**                                                   | Alles läuft auf **einem** Server. Fällt er aus, fällt der Dienst aus.                                              |
+| **vHost / virtuelle Maschine (VM)**                               | Ein gemieteter Rechner beim Anbieter. **vCPU** ist eine zugeteilte Prozessorkerneinheit.                           |
+| **Host (Betrieb)**                                                | Der physische oder virtuelle Server, auf dem Container laufen.                                                     |
+| **Host (arsnova)**                                                | Die Lehrperson, die eine Live-Session steuert.                                                                     |
+| **Container / Docker**                                            | Isolierter Prozess mit eigenem Dateisystem. Leichter als eine volle VM.                                            |
+| **Docker Compose**                                                | Datei, die mehrere Container und ihr Netz beschreibt. `docker-compose.prod.yml` ist die Produktionssolltopologie.  |
+| **Kubernetes (K8s)**                                              | Orchestrierung vieler Container über mehrere Rechner. Hier **nicht** implementiert.                                |
+| **Sidecar**                                                       | Ein Extra-Container neben der Hauptanwendung, zum Beispiel für Sprachverarbeitung.                                 |
+| **Unix-Socket**                                                   | Datei im Dateisystem, über die zwei Prozesse auf **demselben** Rechner sprechen. Kein Netzwerkport nach außen.     |
+| **Reverse Proxy**                                                 | Nimmt Anfragen von außen entgegen und reicht sie intern weiter. Hier: **Nginx** auf dem Host.                      |
+| **TLS**                                                           | Transport Layer Security, die Verschlüsselung hinter `https://`.                                                   |
+| **Loopback / `127.0.0.1`**                                        | Nur auf demselben Rechner erreichbar, nicht aus dem Internet.                                                      |
+| **PostgreSQL**                                                    | Relationale Datenbank für dauerhafte Daten (Sessions, Stimmen, Fragen).                                            |
+| **Redis**                                                         | Sehr schneller Speicher im Arbeitsspeicher, hier für Limits und kurzlebige Live-Daten.                             |
+| **Prisma**                                                        | Object-Relational Mapping (ORM): TypeScript-Zugriff auf PostgreSQL. Lockstand `7.9.1`.                             |
+| **Node.js**                                                       | JavaScript-Laufzeit auf dem Server. Vorgabe in `.nvmrc`: `24.18.0`.                                                |
+| **Express**                                                       | HTTP-Serverbibliothek. Workspace-Lockstand Backend/Frontend `5.2.1`; Root-Knoten `5.3.0` ist nicht der App-Import. |
+| **tRPC**                                                          | Typisierte Programmierschnittstelle (API) zwischen Frontend und Backend.                                           |
+| **Angular**                                                       | Frontend-Framework. Lockstand `@angular/core` `22.2.3`.                                                            |
+| **Zod**                                                           | Bibliothek für Laufzeit- und Typprüfung von Daten. Lockstand `4.6.6`.                                              |
+| **Yjs**                                                           | Bibliothek für Local-First-Sync (Quizsammlung im Browser). Lockstand `13.6.31`.                                    |
+| **IndexedDB**                                                     | Datenbank im Browser. Die Quizbibliothek lebt dort, nicht im Server-Backup.                                        |
+| **WebSocket**                                                     | Offene Verbindung für Live-Updates statt vieler einzelner HTTP-Aufrufe.                                            |
+| **ONNX**                                                          | Austauschformat für maschinelle Lernmodelle. Der Encoder nutzt ONNX Runtime auf der CPU.                           |
+| **LLM**                                                           | Large Language Model, hier ein privates Sprachmodell über `llama.cpp`.                                             |
+| **spaCy**                                                         | Lokales Sprachverarbeitungswerkzeug (Lemmatisierung für Wortwolken).                                               |
+| **Kill-Switch / Feature-Flag**                                    | Umgebungsvariable, die eine Funktion an- oder ausschaltet. Defaults sind `false`.                                  |
+| **Circuit Breaker**                                               | Schutzschalter: nach wiederholten Fehlern wird ein Dienst eine Zeit lang nicht mehr aufgerufen.                    |
+| **Fallback**                                                      | Ersatzweg, wenn der teure oder unsichere Weg ausfällt.                                                             |
+| **Restic**                                                        | Backup-Programm. Verschlüsselt Daten **vor** der Übertragung.                                                      |
+| **SFTP**                                                          | Dateiübertragung über SSH. Hier der Weg zur Hetzner Storage Box.                                                   |
+| **Recovery Point Objective (RPO)**                                | Wie viel Datenverlust (in Zeit) ist höchstens akzeptabel?                                                          |
+| **Recovery Time Objective (RTO)**                                 | Wie schnell soll der Dienst nach einem Ausfall wieder laufen?                                                      |
+| **Service Level Indicator (SLI)**                                 | Was du misst, zum Beispiel Fehlerquote oder Latenz.                                                                |
+| **Service Level Objective (SLO)**                                 | Das Ziel zu diesem Messwert, zum Beispiel p95 unter 1.000 ms.                                                      |
+| **Perzentil (p50, p95, p99)**                                     | p95 heißt: 95 Prozent der Messwerte liegen darunter oder genau darauf. Der Rest ist der langsame Schwanz.          |
+| **Latenz**                                                        | Wartezeit bis zur Antwort.                                                                                         |
+| **Rate-Limit**                                                    | Obergrenze, wie oft eine Aktion in einem Zeitfenster erlaubt ist.                                                  |
+| **Shared NAT**                                                    | Viele Endgeräte teilen sich eine öffentliche IP, typisch im Campus-WLAN.                                           |
+| **Identity and Access Management (IAM)**                          | Wer darf was? Tokens, Rollen, Prüfung auf dem Server.                                                              |
+| **Site Reliability Engineering (SRE)**                            | Betrieb mit messbaren Zielen statt nur Bauchgefühl.                                                                |
+| **Financial Operations (FinOps)**                                 | Technikentscheidungen zusammen mit Kosten.                                                                         |
+| **Total Cost of Ownership (TCO)**                                 | Gesamtkosten, nicht nur die monatliche VM.                                                                         |
+| **6R**                                                            | Migrationsoptionen: Rehost, Replatform, Repurchase, Refactor, Retire, Retain.                                      |
+| **Architecture Decision Record (ADR)**                            | Kurze, nachvollziehbare Architekturentscheidung. ADR-0040 **existiert nicht**.                                     |
+| **Google Cloud Platform (GCP), Amazon Web Services (AWS), Azure** | Die drei großen Hyperscaler. Sie sind hier ein Lehrvergleich, keine gewählte Plattform.                            |
+| **Hetzner**                                                       | IaaS-Anbieter in den Betriebsdokumenten (Cloud- oder Root-Server).                                                 |
+| **CAX31 / CPX32**                                                 | Hetzner-Tarife mit 8 vCPU und 16 GB RAM. Nicht 32 GB.                                                              |
+| **NotebookLM**                                                    | KI-Werkzeug, das aus Quellen einen Text erzeugt. Dieser Text war der Ausgangspunkt und enthielt Fehler.            |
+| **Agent / agentisch**                                             | Ein KI-System, das Schritte plant. Es ersetzt keine Prüfung gegen das Repository.                                  |
+| **Evidenz**                                                       | Beleg. Ohne Datei, Test oder Messung ist eine Aussage ein Zielbild.                                                |
 
 ## 1. Wozu dieses Dossier?
 
@@ -115,15 +115,15 @@ Bevor du eine Zahl oder eine Architekturbehauptung aufschreibst, ordne sie einer
 
 Die konkreten Versionen stehen in `.nvmrc`, `package.json` und `package-lock.json`. Die Lockdatei gewinnt, wenn Prosa und Lock sich unterscheiden.
 
-| Quelle                                                                                                                                     | Was sie belegt                                                                |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `.nvmrc`                                                                                                                                   | Node.js `24.18.0`                                                             |
-| Root-`package.json`                                                                                                                        | Erlaubte Engine: `>=22.22.3 <23` oder `>=24.15.0 <25`                         |
-| `package-lock.json`                                                                                                                        | Prisma `7.9.1`, Express `5.3.0`, Angular `22.2.3`, Zod `4.6.6`, Yjs `13.6.31` |
-| [docker-compose.prod.yml](../../../docker-compose.prod.yml)                                                                                | Solltopologie der Container                                                   |
-| [SECURITY-HARDENING-PLAN.md](../../SECURITY-HARDENING-PLAN.md) und [BACKUP-RESTORE-RUNBOOK.md](../../operations/BACKUP-RESTORE-RUNBOOK.md) | Härtung und Backup, Stand 26.07.2026                                          |
-| [LOCAL-BASELINE-FREIGABE-2026-07-12.md](../../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)                                        | lokaler 500er-Nachweis                                                        |
-| [LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md](../../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md)                          | historischer Produktions-Join                                                 |
+| Quelle                                                                                                                                     | Was sie belegt                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `.nvmrc`                                                                                                                                   | Node.js `24.18.0`                                                                                             |
+| Root-`package.json`                                                                                                                        | Erlaubte Engine: `>=22.22.3 <23` oder `>=24.15.0 <25`                                                         |
+| `package-lock.json`                                                                                                                        | Prisma `7.9.1`, Express Workspace `5.2.1` (Root-Knoten `5.3.0`), Angular `22.2.3`, Zod `4.6.6`, Yjs `13.6.31` |
+| [docker-compose.prod.yml](../../../docker-compose.prod.yml)                                                                                | Solltopologie der Container                                                                                   |
+| [SECURITY-HARDENING-PLAN.md](../../SECURITY-HARDENING-PLAN.md) und [BACKUP-RESTORE-RUNBOOK.md](../../operations/BACKUP-RESTORE-RUNBOOK.md) | Härtung und Backup, Stand 26.07.2026                                                                          |
+| [LOCAL-BASELINE-FREIGABE-2026-07-12.md](../../implementation/LOCAL-BASELINE-FREIGABE-2026-07-12.md)                                        | lokaler 500er-Nachweis                                                                                        |
+| [LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md](../../implementation/LASTTEST-500-PRODUKTION-6LTFZF-2026-05-09.md)                          | historischer Produktions-Join                                                                                 |
 
 **Drei Agentenrollen** (Architect, Auditor, Labor) mit Token- und Eurobudgets sind **Regeln für diese Arbeitskopie**. Sie sind im Produkt nicht eingebaut. Wenn du sie nutzt, bleibt die Regel: kein Schreiben in Produktion, keine Secrets, Abbruch bei unmaskierten personenbezogenen Daten.
 
@@ -386,7 +386,7 @@ Alle Zahlen in diesem Dossier gelten für Commit `4d81982de255`, die zitierten B
 
 NotebookLM hat aus Quellen einen flüssigen Text gebaut. Gegen das Repository war unter anderem falsch:
 
-1. **Versionen:** Angular 21, Prisma 7.9.0, Express 5.2.1, Zod 4.4.3, alter Node-Bereich. Richtig: Angular 22.2.3, Prisma 7.9.1, Express 5.3.0, Zod 4.6.6, Engine `>=22.22.3 <23 || >=24.15.0 <25`. Yjs 13.6.31 stimmte.
+1. **Versionen:** Angular 21, Prisma 7.9.0, Zod 4.4.3, alter Node-Bereich. Richtig: Angular 22.2.3, Prisma 7.9.1, Zod 4.6.6, Engine `>=22.22.3 <23 || >=24.15.0 <25`. Express `5.2.1` ist der Workspace-Lockstand von Backend und Frontend; `5.3.0` ist nur der Root-Knoten und nicht der App-Import. Yjs 13.6.31 stimmte.
 2. **Host:** 8 vCPU / 32 GB und 35 €. Richtig: 8 vCPU / 16 GB und S0 28,25 € netto.
 3. **ADR-0040** existiert nicht. Es gibt ADR-0035 bis ADR-0037.
 4. **Erfundene Latenzen** für 100×50 und 1×5.000 sowie ein behaupteter Absturz bei 5.000 Clients.

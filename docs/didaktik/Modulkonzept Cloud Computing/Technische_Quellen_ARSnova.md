@@ -126,7 +126,7 @@ Ein grüner Test belegt das geprüfte Szenario, nicht Fehlerfreiheit. Ein vorhan
 
 **Status:** implementiert
 
-**Belegt:** der eingecheckte Lockstand löst unter anderem Angular Core `22.2.3`, tRPC Server `11.18.0`, Prisma Client und CLI `7.9.1`, Zod `4.6.6`, Yjs `13.6.31`, `y-indexeddb` `9.0.12`, `y-websocket` `3.0.0`, `ioredis` `5.11.1`, `pg` `8.22.0`, `ws` `8.21.1` und Express `5.3.0` auf. Backend und Frontend deklarieren Express als `^5.2.1`; ein eigener Express-4-Knoten liegt im Lockstand nicht mehr vor.
+**Belegt:** der eingecheckte Lockstand löst unter anderem Angular Core `22.2.3`, tRPC Server `11.18.0`, Prisma Client und CLI `7.9.1`, Zod `4.6.6`, Yjs `13.6.31`, `y-indexeddb` `9.0.12`, `y-websocket` `3.0.0`, `ioredis` `5.11.1`, `pg` `8.22.0` und `ws` `8.21.1` auf. Backend und Frontend deklarieren Express als `^5.2.1` und binden nach `npm ci` die Workspace-Knoten `apps/backend/node_modules/express` und `apps/frontend/node_modules/express` auf `5.2.1`. Der Root-Knoten `node_modules/express` liegt bei `5.3.0` und ist nicht der App-Import. Ein Express-4-Knoten liegt im Lockstand nicht mehr vor.
 
 **Belegt nicht:** dass ein vorhandener `node_modules`-Ordner, ein Container oder die Produktionsinstanz genau diesem Lockstand entspricht. Dafür sind `npm ci`, Image-Digest und Deploymentnachweis zusätzlich nötig.
 
