@@ -107,6 +107,9 @@ describe('JoinComponent', () => {
       available: true,
     });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({
+      participantNumber: 0,
+      participantNickname: '',
+      timerAccommodation: 'DEFAULT',
       ...mockSession,
       participantId: participantIds.current,
       rejoinToken: participantIds.current,
@@ -217,7 +220,7 @@ describe('JoinComponent', () => {
       timeZone: 'Europe/Berlin',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: false, open: false },
+        qa: { title: null, moderationMode: false, enabled: false, open: false },
         quickFeedback: { enabled: true, open: true },
       },
     });
@@ -900,6 +903,9 @@ describe('JoinComponent', () => {
       ],
     });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({
+      participantNumber: 0,
+      participantNickname: '',
+      timerAccommodation: 'DEFAULT',
       ...mockSession,
       participantId: participantIds.current,
       rejoinToken: participantIds.current,

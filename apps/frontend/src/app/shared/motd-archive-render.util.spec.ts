@@ -10,6 +10,7 @@ const mockSanitizer = {
 describe('buildMotdArchiveItemDisplay', () => {
   it('nutzt ATX-Überschrift als Titel und rendert nur Rumpf (ohne Titel-Wiederholung)', () => {
     const it: MotdArchiveItemDTO = {
+      contentVersion: 1,
       id: 'a',
       markdown: '# Hallo\n\nText.',
       startsAt: '2026-01-01T00:00:00.000Z',
@@ -23,6 +24,7 @@ describe('buildMotdArchiveItemDisplay', () => {
 
   it('wiederholt ATX-Titel im Markdown-Rumpf wenn repeatTitleInMarkdownBody', () => {
     const it: MotdArchiveItemDTO = {
+      contentVersion: 1,
       id: 'a2',
       markdown: '# Hallo\n\nText.',
       startsAt: '2026-01-01T00:00:00.000Z',
@@ -38,6 +40,7 @@ describe('buildMotdArchiveItemDisplay', () => {
 
   it('nutzt Fallback ohne führende Überschrift', () => {
     const it: MotdArchiveItemDTO = {
+      contentVersion: 1,
       id: 'b',
       markdown: 'Nur Fliesstext.',
       startsAt: '2026-01-01T00:00:00.000Z',
@@ -51,6 +54,7 @@ describe('buildMotdArchiveItemDisplay', () => {
 
   it('rendert das führende Feature-Emoji im wiederholten Titel dekorativ', () => {
     const it: MotdArchiveItemDTO = {
+      contentVersion: 1,
       id: 'feature',
       markdown: '# 🧩 Neu: Zuordnen. Sortieren. Kategorisieren.\n\nText.',
       startsAt: '2026-08-09T00:00:00.000Z',

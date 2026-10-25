@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerStatusHelpDialogComponent } from './server-status-help-dialog.component';
+import type { SpecAccess } from '../../testing/spec-access';
 
 const openWeightLlmProbeQuery = vi.fn();
 
@@ -467,9 +468,12 @@ describe('ServerStatusHelpDialogComponent', () => {
     });
 
     const fixture = TestBed.createComponent(ServerStatusHelpDialogComponent);
-    const component = fixture.componentInstance as ServerStatusHelpDialogComponent & {
-      syncChart: (stats: unknown, canvas: HTMLCanvasElement) => Promise<void>;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      ServerStatusHelpDialogComponent,
+      {
+        syncChart: (stats: unknown, canvas: HTMLCanvasElement) => Promise<void>;
+      }
+    >;
     const syncChartSpy = vi.spyOn(component, 'syncChart').mockResolvedValue();
 
     fixture.detectChanges();

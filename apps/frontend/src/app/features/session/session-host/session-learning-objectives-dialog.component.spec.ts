@@ -90,8 +90,8 @@ function confirmedObjective(text = 'Servertext') {
 describe('SessionLearningObjectivesDialogComponent', () => {
   const dialogRef = { close: vi.fn(), disableClose: false };
   const hasQuizMock = vi.fn(() => true);
-  const modeMock = vi.fn<'quiz' | 'qa'>(() => 'quiz');
-  const focusedQuestionIdMock = vi.fn<string | null>(() => null);
+  const modeMock = vi.fn<() => 'quiz' | 'qa'>(() => 'quiz');
+  const focusedQuestionIdMock = vi.fn<() => string | null>(() => null);
   const data: SessionLearningObjectivesDialogData = {
     code: 'ABC123',
     hasQuiz: hasQuizMock,
@@ -314,6 +314,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
       snapshot({
         availableQuizTasks: [
           {
+            kind: 'quiz-question',
             questionId: 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3',
             order: 0,
             text: '### **Ableitung** mit [Quelle](https://example.org)',
@@ -353,7 +354,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
   it('zeigt in einer beendeten Session keine überflüssige Nur-Lesen-Erklärung', async () => {
     getLearningObjectivesMock.mockResolvedValue(
       snapshot({
-        access: { state: 'read-only' },
+        access: { reason: 'session-finished', state: 'read-only' },
         objectives: [confirmedObjective('Lineare Modelle anwenden.')],
       }),
     );

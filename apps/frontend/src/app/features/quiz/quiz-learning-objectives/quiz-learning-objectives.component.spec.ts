@@ -43,7 +43,7 @@ describe('QuizLearningObjectivesComponent', () => {
     const question = store.addQuestion(quiz.id, {
       text: 'Was ist Vererbung?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Ein OOP-Konzept', isCorrect: true },
         { text: 'Ein Netzwerkprotokoll', isCorrect: false },
@@ -239,7 +239,7 @@ describe('QuizLearningObjectivesComponent', () => {
     const question = store.addQuestion(quiz.id, {
       text: '### **Vererbung** mit [Quelle](https://example.org)\n\n![Skizze](https://example.org/a.png)',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },
@@ -302,7 +302,7 @@ describe('QuizLearningObjectivesComponent', () => {
     const question = store.addQuestion(quiz.id, {
       text: 'Was ist Vererbung?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Ein OOP-Konzept', isCorrect: true },
         { text: 'Ein Protokoll', isCorrect: false },
@@ -325,7 +325,7 @@ describe('QuizLearningObjectivesComponent', () => {
               kind: 'model-derived',
               modelId: 'local-model',
               modelVersion: '1',
-              derivationVersion: 'learning-objectives-v1',
+              derivationVersion: 'learning-objectives-v1' as const,
               derivedFromSourceQuestionIds: [question.id],
               sourceDigest: 'c'.repeat(64),
             },
@@ -387,7 +387,7 @@ describe('QuizLearningObjectivesComponent', () => {
     const question = store.addQuestion(quiz.id, {
       text: 'Was ist eine Regression?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Ein Modell', isCorrect: true },
         { text: 'Ein Diagramm', isCorrect: false },
@@ -447,7 +447,7 @@ describe('QuizLearningObjectivesComponent', () => {
             kind: 'model-derived',
             modelId: 'local-model',
             modelVersion: '1',
-            derivationVersion: 'learning-objectives-v1',
+            derivationVersion: 'learning-objectives-v1' as const,
             derivedFromSourceQuestionIds: [question.id],
             sourceDigest: 'c'.repeat(64),
           },
@@ -571,7 +571,7 @@ describe('QuizLearningObjectivesComponent', () => {
                 kind: 'model-derived',
                 modelId: 'local-model',
                 modelVersion: '1',
-                derivationVersion: 'learning-objectives-v1',
+                derivationVersion: 'learning-objectives-v1' as const,
                 derivedFromSourceQuestionIds: [question.id],
                 sourceDigest: 'f'.repeat(64),
               },
@@ -625,11 +625,11 @@ describe('QuizLearningObjectivesComponent', () => {
       ],
     });
     let resolveRun!: (value: Record<string, unknown>) => void;
-    let receivedSignal: AbortSignal | null = null;
+    const received = { signal: null as AbortSignal | null };
     runDerivationMock.mockImplementation(
       (_input: unknown, signal: AbortSignal) =>
         new Promise<Record<string, unknown>>((resolve) => {
-          receivedSignal = signal;
+          received.signal = signal;
           resolveRun = resolve;
         }),
     );
@@ -649,7 +649,7 @@ describe('QuizLearningObjectivesComponent', () => {
       fixture.nativeElement.querySelector('#learning-objective-derive-cancel') as HTMLButtonElement
     ).click();
     fixture.detectChanges();
-    expect(receivedSignal?.aborted).toBe(true);
+    expect(received.signal?.aborted).toBe(true);
     expect(fixture.componentInstance.derivationStatus()).toBe('aborted');
 
     const input = runDerivationMock.mock.calls[0]?.[0] as {
@@ -738,7 +738,7 @@ describe('QuizLearningObjectivesComponent', () => {
             kind: 'model-derived',
             modelId: 'local-model',
             modelVersion: '1',
-            derivationVersion: 'learning-objectives-v1',
+            derivationVersion: 'learning-objectives-v1' as const,
             derivedFromSourceQuestionIds: [question.id],
             sourceDigest: 'd'.repeat(64),
           },
@@ -962,7 +962,7 @@ describe('QuizLearningObjectivesComponent', () => {
     const second = store.addQuestion(quiz.id, {
       text: 'Was ist eine Varianz?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Ein Streuungsmaß', isCorrect: true },
         { text: 'Ein Mittelwert', isCorrect: false },
@@ -1133,7 +1133,7 @@ function derivedDraft(id: string, questionId: string, text: string) {
       kind: 'model-derived' as const,
       modelId: 'local-model',
       modelVersion: '1',
-      derivationVersion: 'learning-objectives-v1',
+      derivationVersion: 'learning-objectives-v1' as const,
       derivedFromSourceQuestionIds: [questionId],
       sourceDigest: 'c'.repeat(64),
     },

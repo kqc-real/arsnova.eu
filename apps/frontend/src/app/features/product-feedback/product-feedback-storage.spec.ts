@@ -27,8 +27,12 @@ describe('product-feedback-storage', () => {
       surveyKey: 'POST_SESSION_EASE_PARTICIPANT_V1' as const,
       surveyVersion: 1,
       role: 'PARTICIPANT' as const,
-      primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as const,
-      areas: ['JOIN', 'VOTE', 'TECH'] as const,
+      primaryQuestionKey: 'productFeedback.ease.participant.primary',
+      primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as Array<
+        'EASY' | 'MINOR_FRICTION' | 'HARD'
+      >,
+      areaPromptKind: 'hurdle' as const,
+      areas: ['JOIN', 'ANSWER', 'TECH'] as Array<'JOIN' | 'ANSWER' | 'TECH'>,
     };
     expect(peekClaimedProductFeedbackInvite('abc123', 'PARTICIPANT')).toBeNull();
     storeClaimedProductFeedbackInvite('abc123', 'PARTICIPANT', {

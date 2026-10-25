@@ -41,7 +41,7 @@ const {
   getReactionsQueryMock: vi.fn(),
   getQaWordCloudProjectionQueryMock: vi.fn(),
   getFreetextWordCloudProjectionQueryMock: vi.fn(),
-  subscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
+  subscribeMock: vi.fn((_input: never, _opts: never) => ({ unsubscribe: vi.fn() })),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
@@ -1218,7 +1218,7 @@ describe('SessionPresentComponent', () => {
     expect(statusCall).toBeDefined();
     const callsBeforeError = subscribeMock.mock.calls.length;
 
-    statusCall?.[1].onError();
+    (statusCall?.[1] as unknown as { onError?: () => void } | undefined)?.onError?.();
     await fixture.componentInstance['refreshSessionMeta']();
 
     expect(subscribeMock).toHaveBeenCalledTimes(callsBeforeError + 1);
@@ -1252,6 +1252,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1294,7 +1295,7 @@ describe('SessionPresentComponent', () => {
       totalQuestions: 3,
       text: 'Was hilft beim Lernen?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       showQuestionTypeIndicators: true,
       currentRound: 2,
       timer: 30,
@@ -1356,7 +1357,7 @@ describe('SessionPresentComponent', () => {
       totalQuestions: 3,
       text: 'Diese Frage bleibt pausiert.',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       showQuestionTypeIndicators: true,
       timer: 30,
       answers: [],
@@ -1441,6 +1442,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1451,6 +1453,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1510,6 +1513,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1526,6 +1530,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:05:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1605,6 +1610,7 @@ describe('SessionPresentComponent', () => {
 
     fixture.componentInstance.presenterQaOrderedQuestions.set([
       {
+        passagesRedacted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Jetzt ist die Frage freigegeben.',
         upvoteCount: 1,
@@ -1648,6 +1654,7 @@ describe('SessionPresentComponent', () => {
     await fixture.whenStable();
     fixture.componentInstance.presenterQaOrderedQuestions.set([
       {
+        passagesRedacted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Diese alte Frage darf geschlossen nicht sichtbar sein.',
         upvoteCount: 2,
@@ -1718,6 +1725,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1728,6 +1736,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1794,6 +1803,7 @@ describe('SessionPresentComponent', () => {
         createdAt: `2026-03-13T12:0${index}:00.000Z`,
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       })),
     );
@@ -1866,6 +1876,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1878,6 +1889,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1890,6 +1902,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1950,6 +1963,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1962,6 +1976,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1974,6 +1989,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2031,6 +2047,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -2041,6 +2058,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2098,6 +2116,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2150,6 +2169,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2197,6 +2217,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2281,6 +2302,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2360,6 +2382,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2423,6 +2446,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -2434,6 +2458,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2497,6 +2522,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2544,6 +2570,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2816,6 +2843,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -3317,7 +3345,9 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const icons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.session-present__lobby-nick-icon',
+      ),
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🐉', '🐸']);
@@ -3401,7 +3431,9 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.showLobbyProjection()).toBe(true);
     const icons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.session-present__lobby-nick-icon',
+      ),
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🐉', '🐸']);

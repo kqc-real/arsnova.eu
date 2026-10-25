@@ -603,7 +603,9 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('Rechts');
     expect(
       Array.from(
-        fixture.nativeElement.querySelectorAll('.session-projection-quiz__option-chip'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.session-projection-quiz__option-chip',
+        ),
       ).every((option) => option.hasAttribute('data-projection-unit')),
     ).toBe(true);
   });
@@ -662,7 +664,9 @@ describe('SessionProjectionQuizComponent', () => {
     ).toContain('Unsortierte Reihenfolge');
     expect(
       Array.from(
-        fixture.nativeElement.querySelectorAll('.session-projection-quiz__option-chip'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.session-projection-quiz__option-chip',
+        ),
       ).every((option) => option.hasAttribute('data-projection-unit')),
     ).toBe(true);
 
@@ -698,7 +702,9 @@ describe('SessionProjectionQuizComponent', () => {
     );
     expect(
       Array.from(
-        fixture.nativeElement.querySelectorAll('.session-projection-quiz__option-chip'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.session-projection-quiz__option-chip',
+        ),
       ).every((option) => option.hasAttribute('data-projection-unit')),
     ).toBe(true);
     const boardStyles = readFileSync(
@@ -722,7 +728,7 @@ describe('SessionProjectionQuizComponent', () => {
       choiceQuestion({
         order: 4,
         totalQuestions: 5,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
       }),
     );
     fixture.componentRef.setInput('status', 'ACTIVE');

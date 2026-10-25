@@ -75,7 +75,7 @@ describe('QuizPreviewComponent', () => {
         id: 'f8be4e5d-2c03-4f9b-8d63-b9668212f3ea',
         text: 'Wie zufrieden bist du?',
         type: 'RATING',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         enabled: true,
         timer: null,
@@ -180,7 +180,7 @@ describe('QuizPreviewComponent', () => {
     open: vi.fn(),
   };
   const matDialogMock = {
-    open: vi.fn(() => ({
+    open: vi.fn((_component?: unknown, _config?: { data?: { saveLabel?: string } }) => ({
       afterClosed: () => of<boolean | 'save'>(true),
     })),
   };
@@ -432,7 +432,7 @@ describe('QuizPreviewComponent', () => {
           id: 'ordering-q',
           text: 'Ordne',
           type: 'ORDERING',
-          difficulty: 'MEDIUM',
+          difficulty: 'MEDIUM' as const,
           order: 0,
           enabled: true,
           timer: null,
@@ -462,7 +462,7 @@ describe('QuizPreviewComponent', () => {
           id: 'matching-q',
           text: 'Ordne zu',
           type: 'MATCHING',
-          difficulty: 'MEDIUM',
+          difficulty: 'MEDIUM' as const,
           order: 0,
           enabled: true,
           timer: null,
@@ -488,7 +488,7 @@ describe('QuizPreviewComponent', () => {
           id: 'categorization-q',
           text: 'Kategorisiere',
           type: 'CATEGORIZATION',
-          difficulty: 'MEDIUM',
+          difficulty: 'MEDIUM' as const,
           order: 0,
           enabled: true,
           timer: null,
@@ -520,7 +520,7 @@ describe('QuizPreviewComponent', () => {
           id: 'numeric-q',
           text: 'Schätze',
           type: 'NUMERIC_ESTIMATE',
-          difficulty: 'MEDIUM',
+          difficulty: 'MEDIUM' as const,
           order: 0,
           enabled: true,
           timer: null,
@@ -572,7 +572,7 @@ describe('QuizPreviewComponent', () => {
       id: 'special-question',
       text: 'Spezialfrage',
       type: 'ORDERING',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       enabled: true,
       timer: null,
@@ -921,7 +921,9 @@ describe('QuizPreviewComponent', () => {
 
     await expect(component.canDeactivate()).resolves.toBe(true);
 
-    expect(matDialogMock.open.mock.calls[0]?.[1]?.data.saveLabel).toBe('Alle Änderungen speichern');
+    expect(matDialogMock.open.mock.calls[0]?.[1]?.data?.saveLabel).toBe(
+      'Alle Änderungen speichern',
+    );
     expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(QUIZ_ID, { defaultTimer: 60 });
     expect(mockStore.updateQuestion).toHaveBeenCalledWith(
       QUIZ_ID,

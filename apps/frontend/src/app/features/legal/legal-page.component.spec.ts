@@ -154,7 +154,7 @@ describe('LegalPageComponent', () => {
   });
 
   it('rendert Listen und Fettungen aus dem Privacy-Markdown korrekt', async () => {
-    const route = TestBed.inject(ActivatedRoute) as {
+    const route = TestBed.inject(ActivatedRoute) as unknown as {
       snapshot: { data: { slug: string } };
     };
     route.snapshot.data.slug = 'privacy';
@@ -195,7 +195,7 @@ describe('LegalPageComponent', () => {
   });
 
   it('lädt Accessibility-Markdown und zeigt den Seiten-Titel Barrierefreiheit', async () => {
-    const route = TestBed.inject(ActivatedRoute) as {
+    const route = TestBed.inject(ActivatedRoute) as unknown as {
       snapshot: { data: { slug: string } };
     };
     route.snapshot.data.slug = 'accessibility';

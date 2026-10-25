@@ -10,6 +10,7 @@ import { MotdHeaderStateService } from './core/motd-header-state.service';
 import { ThemePresetService } from './core/theme-preset.service';
 import { markContentPageFocusReturn } from './shared/content-page-nav';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
+import type { SpecAccess } from './testing/spec-access';
 
 const { footerBundleQueryMock, healthStatsQueryMock, swVersionUpdatesSubscribeMock } = vi.hoisted(
   () => ({
@@ -386,9 +387,12 @@ describe('AppComponent', () => {
     content.append(heading);
 
     (
-      fixture.componentInstance as AppComponent & {
-        focusPrimaryContent: () => void;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        AppComponent,
+        {
+          focusPrimaryContent: () => void;
+        }
+      >
     ).focusPrimaryContent();
 
     expect(document.activeElement).toBe(heading);
@@ -417,7 +421,10 @@ describe('AppComponent', () => {
     component.isContentOverlayRoute.set(false);
 
     const restored = (
-      component as AppComponent & { restoreContentPageFocusReturn: () => boolean }
+      component as unknown as SpecAccess<
+        AppComponent,
+        { restoreContentPageFocusReturn: () => boolean }
+      >
     ).restoreContentPageFocusReturn();
 
     expect(restored).toBe(true);
@@ -433,7 +440,9 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    (component as AppComponent & { updateRouteFlags: () => void }).updateRouteFlags();
+    (
+      component as unknown as SpecAccess<AppComponent, { updateRouteFlags: () => void }>
+    ).updateRouteFlags();
     fixture.detectChanges();
 
     expect(component.isContentOverlayRoute()).toBe(true);
@@ -466,7 +475,9 @@ describe('AppComponent', () => {
     firstFooterLink.focus();
     expect(document.activeElement).toBe(firstFooterLink);
 
-    (component as AppComponent & { blurFooterIfFocused: () => void }).blurFooterIfFocused();
+    (
+      component as unknown as SpecAccess<AppComponent, { blurFooterIfFocused: () => void }>
+    ).blurFooterIfFocused();
 
     expect(document.activeElement === firstFooterLink).toBe(false);
 
@@ -949,7 +960,11 @@ describe('AppComponent', () => {
 
     component.footerHealthCheckDone.set(true);
     component.apiStatus.set('ok');
-    component.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'limited',
+      loadStatus: 'busy',
+    });
     fixture.detectChanges();
 
     const banner = (fixture.nativeElement as HTMLElement).querySelector(
@@ -1031,7 +1046,10 @@ describe('AppComponent', () => {
     component.isContentOverlayRoute.set(false);
 
     const restored = (
-      component as AppComponent & { restoreContentPageFocusReturn: () => boolean }
+      component as unknown as SpecAccess<
+        AppComponent,
+        { restoreContentPageFocusReturn: () => boolean }
+      >
     ).restoreContentPageFocusReturn();
 
     expect(restored).toBe(true);
@@ -1187,7 +1205,11 @@ describe('AppComponent', () => {
 
     component.footerHealthCheckDone.set(true);
     component.apiStatus.set('ok');
-    component.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'critical',
+      loadStatus: 'overloaded',
+    });
     fixture.detectChanges();
 
     const bannerLink = (fixture.nativeElement as HTMLElement).querySelector(
@@ -1303,7 +1325,11 @@ describe('AppComponent', () => {
     expect(component.footerStatusDotCssColor()).toBe('var(--app-status-healthy)');
     expect(statusIcon?.textContent?.trim()).toBe('circle');
 
-    component.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'limited',
+      loadStatus: 'busy',
+    });
     fixture.detectChanges();
     expect(component.footerStatusColor()).toBe('yellow');
     expect(component.footerStatusDotCssColor()).toBe('var(--app-status-busy)');
@@ -1317,7 +1343,11 @@ describe('AppComponent', () => {
         ?.style.color,
     ).toBe('var(--app-status-busy)');
 
-    component.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'critical',
+      loadStatus: 'overloaded',
+    });
     fixture.detectChanges();
     expect(component.footerStatusColor()).toBe('red');
     expect(
@@ -1357,16 +1387,19 @@ describe('AppComponent', () => {
     });
 
     const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance as AppComponent & {
-      loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      AppComponent,
+      {
+        loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
+      }
+    >;
 
     await component.loadFooterStats({ forceFresh: true });
 
     const stats = component.footerStats();
     expect(stats).not.toBeNull();
     expect(stats?.dailyHighscores).toHaveLength(100);
-    expect(stats?.dailyHighscores.some((entry) => entry.count > 0)).toBe(true);
+    expect(stats?.dailyHighscores.some((entry) => (entry.count ?? 0) > 0)).toBe(true);
     expect(stats?.dailyHighscoresStatistics.max).toBeGreaterThan(0);
     expect(stats?.dailyHighscoresStatistics.median).toBeGreaterThan(0);
     expect(stats?.dailyHighscoresStatistics.iqr).toBeGreaterThan(0);
@@ -1515,15 +1548,18 @@ describe('AppComponent', () => {
     });
 
     const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance as AppComponent & {
-      loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      AppComponent,
+      {
+        loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
+      }
+    >;
 
     await component.loadFooterStats({ forceFresh: true });
 
     const stats = component.footerStats();
     expect(stats).not.toBeNull();
-    expect(stats?.dailyHighscores.some((entry) => entry.count > 0)).toBe(true);
+    expect(stats?.dailyHighscores.some((entry) => (entry.count ?? 0) > 0)).toBe(true);
     expect(stats?.dailyHighscoresStatistics).toEqual({
       sampleSize: 1,
       median: 15,

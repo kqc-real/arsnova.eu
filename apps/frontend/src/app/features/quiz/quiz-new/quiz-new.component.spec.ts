@@ -100,7 +100,6 @@ describe('QuizNewComponent', () => {
         nicknameTheme: 'KINDERGARTEN',
         bonusTokenCount: null,
         readingPhaseEnabled: false,
-        timerScaleByDifficulty: true,
         preset: 'PLAYFUL',
       }),
     });

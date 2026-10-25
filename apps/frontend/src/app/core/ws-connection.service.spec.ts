@@ -47,7 +47,7 @@ describe('WsConnectionService manual reconnect', () => {
   });
 
   it('verhindert doppelte Versuche und setzt einen fehlgeschlagenen Versuch frei', async () => {
-    let rejectReconnect: ((error: Error) => void) | null = null;
+    let rejectReconnect: ((error: Error) => void) | undefined;
     const reconnect = vi.fn(
       () =>
         new Promise<void>((_resolve, reject) => {

@@ -39,7 +39,7 @@ describe('presenter-window.util', () => {
         fullscreenElement: null,
       },
     };
-    const open = vi.fn(() => opened);
+    const open = vi.fn((_url?: string, _target?: string, _features?: string) => opened);
     const win = {
       open,
       navigator: { maxTouchPoints: 0 },

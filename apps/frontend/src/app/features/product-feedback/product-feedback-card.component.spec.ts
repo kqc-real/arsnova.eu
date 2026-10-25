@@ -33,8 +33,12 @@ const hostSurvey = {
   surveyKey: 'POST_SESSION_EASE_HOST_V1' as const,
   surveyVersion: 1,
   role: 'HOST' as const,
-  primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as const,
-  areas: ['PREPARE_QUIZ', 'LIVE_CONTROL', 'TECH'] as const,
+  primaryQuestionKey: 'productFeedback.ease.host.primary',
+  primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as Array<'EASY' | 'MINOR_FRICTION' | 'HARD'>,
+  areaPromptKind: 'hurdle' as const,
+  areas: ['PREPARE_QUIZ', 'LIVE_CONTROL', 'TECH'] as Array<
+    'PREPARE_QUIZ' | 'LIVE_CONTROL' | 'TECH'
+  >,
 };
 
 describe('ProductFeedbackCard', () => {
@@ -140,6 +144,8 @@ describe('ProductFeedbackCard', () => {
         ...hostSurvey,
         surveyKey: 'POST_SESSION_EASE_PARTICIPANT_V1',
         role: 'PARTICIPANT',
+        primaryQuestionKey: 'productFeedback.ease.participant.primary',
+        areas: ['JOIN', 'ANSWER', 'TECH'] as Array<'JOIN' | 'ANSWER' | 'TECH'>,
       },
     });
     getSurveyMock.mockResolvedValue({
