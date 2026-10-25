@@ -12,6 +12,7 @@ import {
   calculateModerationQaBestScoreV1,
   calculateModerationQaControversyScoreV1,
   MODERATION_PROMPT_DEFINITION_SET_V1,
+  type ModerationPromptDefinitionSetV1,
   MODERATION_QA_RANKING_SCORE_TOLERANCE,
   ModerationAnalysisContextV1Schema,
   ModerationCompassSectionSchema,
@@ -242,8 +243,10 @@ describe('moderation prompt definition set v1', () => {
   });
 
   it('rejects duplicate or missing definition keys', () => {
-    const invalid = structuredClone(MODERATION_PROMPT_DEFINITION_SET_V1);
-    invalid.definitions[1].key = invalid.definitions[0].key;
+    const invalid = structuredClone(
+      MODERATION_PROMPT_DEFINITION_SET_V1,
+    ) as ModerationPromptDefinitionSetV1;
+    invalid.definitions[1]!.key = invalid.definitions[0]!.key;
     expect(ModerationPromptDefinitionSetV1Schema.safeParse(invalid).success).toBe(false);
   });
 });

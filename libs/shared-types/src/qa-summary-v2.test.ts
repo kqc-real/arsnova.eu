@@ -138,11 +138,11 @@ describe('Q&A summary V2 contracts', () => {
     ).toBe(false);
 
     const foreign = {
-      status: 'ready',
+      status: 'ready' as const,
       statements: [{ text: 'Nicht belegt.', sourceIds: ['qa-question:foreign'] }],
       suggestedNextSteps: [],
       limitations: [],
-    } as const;
+    };
     expect(hasOnlyAllowedQaSummaryV2References(request, foreign)).toBe(false);
   });
 
@@ -270,16 +270,16 @@ describe('Q&A summary V2 contracts', () => {
   it('keeps OpenWeight V1/V2 versions matched and reference-bound', () => {
     const request = requestV2();
     const output = {
-      schemaVersion: 2,
-      taskType: 'qa_summary',
+      schemaVersion: 2 as const,
+      taskType: 'qa_summary' as const,
       outputContract: QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION,
       output: {
-        status: 'ready',
+        status: 'ready' as const,
         statements: [{ text: 'Belegt.', sourceIds: [SOURCE_ID] }],
         suggestedNextSteps: [],
         limitations: [],
       },
-    } as const;
+    };
     expect(OpenWeightLlmRequestSchema.safeParse(request).success).toBe(true);
     expect(OpenWeightLlmSummaryOutputV2Schema.safeParse(output).success).toBe(true);
     expect(

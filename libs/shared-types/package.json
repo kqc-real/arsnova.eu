@@ -9,7 +9,7 @@
     "build": "tsc && node scripts/fix-esm-imports.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
     "marked": "^18.0.14",

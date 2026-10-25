@@ -372,7 +372,7 @@ describe('öffentliche Contract-Schemas', () => {
             ...question,
           },
         ],
-      } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+      } as unknown as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
 
     const matching = {
       type: 'MATCHING',

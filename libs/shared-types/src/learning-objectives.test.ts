@@ -768,7 +768,7 @@ describe('session learning-objective host contract', () => {
         {
           action: 'upsert',
           objectiveId: OBJECTIVE_A_ID,
-          expectedRevision: null,
+          expectedRevision: null as number | null,
           text: 'Manuelles Ziel',
           scope: { kind: 'session' },
           confirmationState: 'draft',
