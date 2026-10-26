@@ -49,13 +49,37 @@ export class HostScenarioService {
   );
   private readonly sessionScenarios = new Map<string, HostScenario>();
   private readonly quickFeedbackRequests = new Map<string, boolean>();
+  /** Eine ausdrückliche Wahl in diesem Lauf darf der Startseiten-Reset nicht verwerfen. */
+  private explicitSelection = false;
 
   readonly preference = this.selectedScenario.asReadonly();
 
   selectScenario(scenario: HostScenario): void {
     if (!isHostScenario(scenario)) return;
+    this.explicitSelection = true;
     this.selectedScenario.set(scenario);
     this.writeStorage('localStorage', PREFERENCE_KEY, scenarioEntry(scenario));
+  }
+
+  /**
+   * Startseiten-Auswahl nur für den laufenden Aufruf. Schreibt nichts nach
+   * localStorage und entfernt eine früher gespeicherte Präferenz.
+   */
+  stageScenario(scenario: HostScenario): void {
+    if (!isHostScenario(scenario)) return;
+    this.explicitSelection = true;
+    this.selectedScenario.set(scenario);
+    this.writeStorage('localStorage', PREFERENCE_KEY, null);
+  }
+
+  /**
+   * Reload der Startseite beginnt ohne gespeicherte Aufgabenwahl.
+   * Eine schon in diesem Lauf getroffene Wahl bleibt erhalten.
+   */
+  discardDurablePreference(): void {
+    if (this.explicitSelection) return;
+    this.selectedScenario.set(null);
+    this.writeStorage('localStorage', PREFERENCE_KEY, null);
   }
 
   scenarioForAction(): HostScenario {

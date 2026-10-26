@@ -6,6 +6,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { QuizPreviewComponent } from './quiz-preview.component';
 import { QuizStoreService, type QuizDocument, type QuizQuestion } from '../data/quiz-store.service';
 
@@ -1026,13 +1027,17 @@ describe('QuizPreviewComponent', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
     component.enterInlineEditMode();
     component.onQuestionDraftChanged('Neue Frage');
+    fixture.detectChanges();
 
     expect(localeGuard.hasUnsavedChanges()).toBe(true);
+    expect(suppression.active()).toBe(true);
 
     fixture.destroy();
     expect(localeGuard.hasUnsavedChanges()).toBe(false);
+    expect(suppression.active()).toBe(false);
   });
 
   it('verhindert Live-Start bei offenen Inline-Aenderungen wenn Dialog abgelehnt wird', async () => {

@@ -31,6 +31,7 @@ import {
   setConfirmedParticipantTeam,
 } from '../../../core/participant-team-confirmation';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { recordServerTimeIso, resetServerClockSkew } from '../session-server-clock';
 
 registerLocaleData(localeDe);
@@ -10472,6 +10473,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       navigation.applyPreferredChannelIfChanged('quickFeedback');
       fixture.detectChanges();
       expect(c.hasUnsentQuizAnswer()).toBe(true);
+      expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(
+        kind === 'Auswahl' ||
+          kind === 'Text' ||
+          kind === 'Zahl' ||
+          kind === 'Rating' ||
+          kind === 'Confidence',
+      );
       expect(c.activeChannel()).toBe('quiz');
       c.voteSent.set(true);
       c.voteSending.set(true);
