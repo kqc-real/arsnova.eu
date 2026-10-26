@@ -510,6 +510,31 @@
   }
 }
 
+@media (max-width: 349px) {
+  .home-scenario__option-body {
+    box-sizing: border-box;
+    padding-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2 + 2.25rem - 0.85rem);
+  }
+
+  .home-scenario__option-label {
+    position: static;
+    inset: auto;
+    display: flex;
+    flex-flow: row wrap;
+    width: 100%;
+    white-space: normal;
+  }
+
+  .home-scenario__option-copy--stack,
+  .home-scenario__option-copy--row,
+  .home-scenario__option-term,
+  .home-scenario__option-action {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
 .home-host-stack {
   --home-host-action-min-height: 4.75rem;
   display: grid;

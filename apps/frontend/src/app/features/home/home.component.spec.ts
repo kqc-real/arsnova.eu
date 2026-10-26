@@ -2819,6 +2819,9 @@ describe('HomeComponent', () => {
     );
     expect(scss).not.toContain('home-scenario__option-mark');
     expect(scss).toMatch(
+      /@media \(max-width: 349px\)[\s\S]*?\.home-scenario__option-label\s*\{[^}]*white-space:\s*normal/,
+    );
+    expect(scss).toMatch(
       /\.home-host-stack\[hidden\],\s*\.home-host-stack > \.home-card\[hidden\]\s*\{[^}]*display:\s*none !important/,
     );
     expect(scss).toMatch(
