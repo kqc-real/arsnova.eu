@@ -2578,6 +2578,7 @@ export class QuizEditComponent implements OnDestroy {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.scheduleLivePreview();
+    this.syncUpdateBannerSuppression();
 
     requestAnimationFrame(() => {
       const el = this.questionFormElement?.nativeElement;
@@ -2595,6 +2596,7 @@ export class QuizEditComponent implements OnDestroy {
     this.lastSyncedQuestionJson = null;
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
+    this.syncUpdateBannerSuppression();
   }
 
   cancelAllChanges(): void {
@@ -2613,6 +2615,7 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsSubmitError.set(null);
     this.metadataSaved.set(false);
     this.settingsSaved.set(false);
+    this.syncUpdateBannerSuppression();
   }
 
   setQuestionEnabledFlag(questionId: string, enabled: boolean): void {

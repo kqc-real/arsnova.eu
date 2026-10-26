@@ -2265,6 +2265,25 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.settingsSubmitError()).toBeNull();
   });
 
+  it('gibt den Update-Banner frei, nachdem eine bearbeitete Frage verworfen wurde', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
+
+    component.editQuestion(QUESTION_ID);
+    expect(component.hasPendingChanges()).toBe(false);
+    expect(suppression.active()).toBe(false);
+
+    component.form.controls.text.setValue('Geändert');
+    expect(suppression.active()).toBe(true);
+
+    component.cancelAllChanges();
+
+    expect(component.hasPendingChanges()).toBe(false);
+    expect(suppression.active()).toBe(false);
+  });
+
   it('aktiviert den globalen Save-CTA bei Aenderungen an der Beschreibung', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
