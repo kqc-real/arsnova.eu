@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.test.json"
   },
   "dependencies": {
-    "marked": "^18.0.14",
-    "zod": "^4.0.0"
+    "marked": "^18.1.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.10",

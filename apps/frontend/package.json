@@ -71,20 +71,20 @@
     "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
     "@js-temporal/polyfill": "^0.5.1",
-    "@trpc/client": "^11.0.0",
-    "@trpc/server": "^11.0.0",
-    "chart.js": "^4.5.1",
+    "@trpc/client": "^11.19.0",
+    "@trpc/server": "^11.19.0",
+    "chart.js": "^4.6.1",
     "dompurify": "^3.4.17",
     "express": "^5.2.1",
-    "highlight.js": "^11.11.1",
+    "highlight.js": "^11.12.0",
     "katex": "^0.19.0",
-    "marked": "^18.0.7",
+    "marked": "^18.1.1",
     "material-symbols": "^0.48.1",
     "rxjs": "~7.8.0",
     "stopword": "^3.1.5",
     "tslib": "^2.7.0",
     "y-indexeddb": "^9.0.12",
-    "y-websocket": "^3.0.0",
+    "y-websocket": "^3.1.0",
     "yjs": "^13.6.30"
   },
   "devDependencies": {
@@ -103,11 +103,11 @@
     "autoprefixer": "^10.5.4",
     "d3-cloud": "^1.2.9",
     "jsdom": "^26.1.0",
-    "playwright": "^1.62.0",
+    "playwright": "^1.64.1",
     "postcss": "^8.5.28",
     "sharp-ico": "^0.1.5",
     "typescript": "~6.0.2",
     "vitest": "^4.0.18",
-    "ws": "^8.21.1"
+    "ws": "^8.22.0"
   }
 }
