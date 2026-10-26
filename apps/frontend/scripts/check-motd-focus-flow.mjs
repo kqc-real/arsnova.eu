@@ -139,6 +139,14 @@ async function assertNextTabContinuesHeroFlow(page) {
     await isActiveLocator(scenarioOptions.first()),
     `Enter auf der Quiz-Auswahl verschiebt den Fokus: ${await activeElementLabel(page)}`,
   );
+  // Alle drei Aufgaben bleiben eigene Tabstopps, auch nach der Auswahl.
+  for (let index = 1; index < 3; index += 1) {
+    await page.keyboard.press(forwardKey);
+    assert(
+      await isActiveLocator(scenarioOptions.nth(index)),
+      `${forwardKey} verlässt die Aufgabenauswahl zu früh bei Button ${index + 1}: ${await activeElementLabel(page)}`,
+    );
+  }
   await page.keyboard.press(forwardKey);
   if (await isActiveLocator(quizCreate)) {
     for (const [locator, label] of [

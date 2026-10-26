@@ -602,6 +602,10 @@
 .home-code-segments__input {
   position: absolute;
   inset: 0;
+  scroll-margin-top: calc(
+    6.5rem + var(--app-offline-banner-height, 0px) + var(--app-service-status-banner-height, 0px) +
+      var(--app-service-status-banner-gap, 0px)
+  );
   z-index: 0;
   width: 100%;
   height: 100%;
