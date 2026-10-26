@@ -152,9 +152,8 @@ async function assertNextTabContinuesHeroFlow(page) {
         `${forwardKey} überspringt die Host-Aktion „${label}“: ${await activeElementLabel(page)}`,
       );
     }
-    assert.equal(
-      await qaCreate.filter({ visible: true }).count(),
-      0,
+    assert(
+      (await qaCreate.filter({ visible: true }).count()) === 0,
       'Die Q&A-Karte bleibt bei Quiz-Auswahl ausgeblendet',
     );
     return;
@@ -165,9 +164,8 @@ async function assertNextTabContinuesHeroFlow(page) {
     BROWSER_NAME === 'webkit' && forwardKey === 'Tab' && (await isActiveLocator(syncToggle)),
     `${forwardKey} setzt den Hero-Flow nach der Aufgabenauswahl weder vollständig noch Safari-reduziert fort: ${await activeElementLabel(page)}`,
   );
-  assert.equal(
-    await page.locator('#home-host-qa').filter({ visible: true }).count(),
-    0,
+  assert(
+    (await page.locator('#home-host-qa').filter({ visible: true }).count()) === 0,
     'Die Q&A-Karte bleibt bei Quiz-Auswahl ausgeblendet',
   );
 }
