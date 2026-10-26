@@ -53,7 +53,9 @@ import {
   quizParticipantNameMode,
   type QuizParticipantNameMode,
 } from '../quiz-name-mode';
+import { Subscription } from 'rxjs';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { localizeCommands } from '../../../core/locale-router';
 import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util';
@@ -97,6 +99,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   private readonly localeGuard = inject(LocaleSwitchGuardService);
   private readonly dialog = inject(MatDialog);
   private readonly localeDirtyGetter = (): boolean => this.hasUnsavedChanges();
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly updateBannerSuppressionEvents = new Subscription();
   private confirmDiscardInFlight: Promise<boolean> | null = null;
   /** Snapshot nach initialem Preset; erkennt auch programmatische setValue/patchValue-Änderungen. */
   private initialFormSnapshot = '';
@@ -229,9 +233,15 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     this.syncTeamNamesValidation();
     this.captureInitialFormSnapshot();
     this.localeGuard.register(this.localeDirtyGetter);
+    this.updateBannerSuppressionEvents.add(
+      this.form.events.subscribe(() => this.syncUpdateBannerSuppression()),
+    );
+    this.syncUpdateBannerSuppression();
   }
 
   ngOnDestroy(): void {
+    this.updateBannerSuppressionEvents.unsubscribe();
+    this.updateBannerSuppression.set('quiz-new', false);
     this.localeGuard.unregister(this.localeDirtyGetter);
   }
 
@@ -394,6 +404,11 @@ export class QuizNewComponent implements OnInit, OnDestroy {
 
   private captureInitialFormSnapshot(): void {
     this.initialFormSnapshot = this.serializeFormState();
+    this.syncUpdateBannerSuppression();
+  }
+
+  private syncUpdateBannerSuppression(): void {
+    this.updateBannerSuppression.set('quiz-new', this.hasUnsavedChanges());
   }
 
   private serializeFormState(): string {

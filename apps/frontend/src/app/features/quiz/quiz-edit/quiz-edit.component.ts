@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import {
   confidenceDefaultLabelHigh,
   confidenceDefaultLabelLow,
@@ -42,7 +43,7 @@ import {
 } from '@angular/cdk/drag-drop';
 import { CdkTextareaAutosize } from '@angular/cdk/text-field';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
@@ -409,6 +410,8 @@ export class QuizEditComponent implements OnDestroy {
   private readonly markdownCache = new Map<string, SafeHtml>();
   private readonly answerMarkdownCache = new Map<string, SafeHtml>();
   private readonly localeDirtyGetter = (): boolean => this.hasPendingChanges();
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly updateBannerSuppressionEvents = new Subscription();
   private confirmDiscardInFlight: Promise<boolean> | null = null;
   /**
    * Letzter mit dem Store abgeglichener Formularstand. Während Preview nur syncen,
@@ -796,6 +799,16 @@ export class QuizEditComponent implements OnDestroy {
     }
     this.scheduleLivePreview();
     this.localeGuard.register(this.localeDirtyGetter);
+    this.updateBannerSuppressionEvents.add(
+      this.form.events.subscribe(() => this.syncUpdateBannerSuppression()),
+    );
+    this.updateBannerSuppressionEvents.add(
+      this.metadataForm.events.subscribe(() => this.syncUpdateBannerSuppression()),
+    );
+    this.updateBannerSuppressionEvents.add(
+      this.settingsForm.events.subscribe(() => this.syncUpdateBannerSuppression()),
+    );
+    this.syncUpdateBannerSuppression();
     effect(() => {
       const quizDoc = this.quiz();
       const previewActive = this.previewRouteActive();
@@ -805,6 +818,8 @@ export class QuizEditComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.updateBannerSuppressionEvents.unsubscribe();
+    this.updateBannerSuppression.set('quiz-edit', false);
     this.localeGuard.unregister(this.localeDirtyGetter);
     if (this.previewTimer) {
       clearTimeout(this.previewTimer);
@@ -2411,6 +2426,7 @@ export class QuizEditComponent implements OnDestroy {
     }
 
     const savedAll = saved && !this.hasPendingChanges();
+    this.syncUpdateBannerSuppression();
     if (savedAll && shouldShowSaveConfirmation) {
       this.showSaveConfirmation();
     }
@@ -2562,6 +2578,7 @@ export class QuizEditComponent implements OnDestroy {
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.scheduleLivePreview();
+    this.syncUpdateBannerSuppression();
 
     requestAnimationFrame(() => {
       const el = this.questionFormElement?.nativeElement;
@@ -2579,6 +2596,7 @@ export class QuizEditComponent implements OnDestroy {
     this.lastSyncedQuestionJson = null;
     this.resetQuestionForm('SINGLE_CHOICE');
     this.submitted.set(false);
+    this.syncUpdateBannerSuppression();
   }
 
   cancelAllChanges(): void {
@@ -2597,6 +2615,7 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsSubmitError.set(null);
     this.metadataSaved.set(false);
     this.settingsSaved.set(false);
+    this.syncUpdateBannerSuppression();
   }
 
   setQuestionEnabledFlag(questionId: string, enabled: boolean): void {
@@ -3105,6 +3124,11 @@ export class QuizEditComponent implements OnDestroy {
       motifImageUrl: quiz.motifImageUrl,
       motifImageCredit: quiz.motifImageCredit,
     });
+    this.syncUpdateBannerSuppression();
+  }
+
+  private syncUpdateBannerSuppression(): void {
+    this.updateBannerSuppression.set('quiz-edit', this.hasPendingChanges());
   }
 
   private rememberSyncedSettingsBaseline(settings: QuizSettings): void {

@@ -12,6 +12,7 @@ import { peekConfirmedParticipantTeam } from '../../core/participant-team-confir
 import { NICKNAME_LISTS } from './nickname-themes';
 import { resetAnonymousClientIdForTests } from '../../core/anonymous-client-id';
 import { storeParticipantCapability } from '../../core/participant-session-access';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 const ANONYMOUS_CLIENT_ID = '33333333-3333-4333-8333-333333333333';
 
@@ -577,6 +578,23 @@ describe('JoinComponent', () => {
 
     expect(comp.selectedNickname()).toBe('Roter Drache');
     expect(comp.kindergartenEmojiForSelected()).toBe('🐉');
+  });
+
+  it('blendet den Update-Banner aus, solange ein vorgegebener Nickname gewählt ist', () => {
+    const { fixture, comp } = createWithCode('ABC123');
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(false);
+
+    comp.selectedNickname.set('Roter Drache');
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(true);
+
+    comp.selectedNickname.set('   ');
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(false);
+
+    fixture.destroy();
   });
 
   it('behaelt im Kita-Reserve-Pool das passende Tier-Emoji', async () => {

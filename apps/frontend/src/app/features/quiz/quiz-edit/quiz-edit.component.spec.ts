@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { QuizEditComponent } from './quiz-edit.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
 
@@ -225,6 +226,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
     expect(component.settingsForm.dirty).toBe(false);
     expect(component.hasPendingChanges()).toBe(true);
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(true);
 
     component.saveAll();
 
@@ -2261,6 +2263,25 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.submitError()).toBeNull();
     expect(component.metadataSubmitError()).toBeNull();
     expect(component.settingsSubmitError()).toBeNull();
+  });
+
+  it('gibt den Update-Banner frei, nachdem eine bearbeitete Frage verworfen wurde', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
+
+    component.editQuestion(QUESTION_ID);
+    expect(component.hasPendingChanges()).toBe(false);
+    expect(suppression.active()).toBe(false);
+
+    component.form.controls.text.setValue('Geändert');
+    expect(suppression.active()).toBe(true);
+
+    component.cancelAllChanges();
+
+    expect(component.hasPendingChanges()).toBe(false);
+    expect(suppression.active()).toBe(false);
   });
 
   it('aktiviert den globalen Save-CTA bei Aenderungen an der Beschreibung', () => {

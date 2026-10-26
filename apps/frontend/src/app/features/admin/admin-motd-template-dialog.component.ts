@@ -14,6 +14,10 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MOTD_MARKDOWN_MAX_LENGTH } from '@arsnova/shared-types';
 import { trpc } from '../../core/trpc.client';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../core/update-banner-suppression.service';
 import { localizeKnownServerError } from '../../core/localize-known-server-message';
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import {
@@ -62,6 +66,20 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
   readonly tplMdFr = signal('');
   readonly tplMdEs = signal('');
   readonly tplMdIt = signal('');
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly templateBaseline = signal<string | null>(null);
+  private readonly templateDraftBanner = bindUpdateBannerSuppression(
+    this.updateBannerSuppression,
+    'admin-motd-template-draft',
+    () =>
+      this.saving() ||
+      (this.templateBaseline() !== null && this.serializeTemplate() !== this.templateBaseline()),
+  );
+
+  constructor() {
+    void this.templateDraftBanner;
+    this.captureTemplateBaseline();
+  }
   readonly tplNameMaxLength = 200;
   readonly tplDescriptionMaxLength = 2000;
   readonly motdMarkdownMaxLength = MOTD_MARKDOWN_MAX_LENGTH;
@@ -123,6 +141,7 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
       this.tplMdFr.set(t.markdownFr);
       this.tplMdEs.set(t.markdownEs);
       this.tplMdIt.set(t.markdownIt);
+      this.captureTemplateBaseline();
     } catch (e) {
       this.error.set(
         this.msg(e, $localize`:@@admin.motd.errorTplLoad:Vorlage konnte nicht geladen werden.`),
@@ -134,6 +153,22 @@ export class AdminMotdTemplateDialogComponent implements OnInit {
 
   cancel(): void {
     this.dialogRef.close(false);
+  }
+
+  private captureTemplateBaseline(): void {
+    this.templateBaseline.set(this.serializeTemplate());
+  }
+
+  private serializeTemplate(): string {
+    return [
+      this.tplName(),
+      this.tplDescription(),
+      this.tplMdDe(),
+      this.tplMdEn(),
+      this.tplMdFr(),
+      this.tplMdEs(),
+      this.tplMdIt(),
+    ].join('\u0000');
   }
 
   async save(): Promise<void> {
