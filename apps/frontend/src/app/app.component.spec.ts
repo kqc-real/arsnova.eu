@@ -1054,8 +1054,19 @@ describe('AppComponent', () => {
       expect.stringContaining('Datenschutz'),
       expect.stringContaining('Barrierefreiheit'),
       expect.stringContaining('Betrieb & Nutzung'),
+      expect.stringContaining('arsnova.eu verbessern'),
     ]);
-    expect(items).toHaveLength(4);
+    expect(items).toHaveLength(5);
+    const divider = document.querySelector('.app-footer__more-divider');
+    expect(divider?.getAttribute('role')).toBe('separator');
+    expect(divider?.nextElementSibling).toBe(items[4]);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '.app-footer__utility, button.app-footer__feedback-action',
+      ),
+    ).toBeNull();
+    expect(items[0]?.querySelector('mat-icon')?.textContent?.trim()).not.toBe('insights');
+    expect(items[4]?.querySelector('mat-icon')?.textContent?.trim()).toBe('insights');
     expect((items[0] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/imprint');
     expect((items[1] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/privacy');
     expect((items[2] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/accessibility');

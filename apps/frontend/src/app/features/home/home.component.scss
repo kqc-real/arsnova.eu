@@ -452,7 +452,10 @@
   min-height: 2.25rem;
 }
 
-.home-scenario__option-icon {
+/* Material setzt .mat-mdc-outlined-button .mat-icon auf position: relative.
+   Die zusätzliche Klasse gewinnt unabhängig von der Stylesheet-Reihenfolge,
+   sonst rutscht das Icon nach der Rückkehr aus dem Quiz nach oben. */
+.home-scenario__option.mat-mdc-outlined-button .home-scenario__option-icon {
   position: absolute;
   inset-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2);
   top: 50%;

@@ -2198,7 +2198,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     const bottomAction = fixture.nativeElement.querySelector('.quiz-edit__bottom-actions');
     const backLink = bottomAction?.querySelector('a[routerLink=".."]') as HTMLAnchorElement | null;
     const previewButton = bottomAction?.querySelector(
-      'button[aria-label="Änderungen speichern und Vorschau öffnen"]',
+      'button[aria-label="Vorschau"]',
     ) as HTMLButtonElement | null;
     const saveButton = bottomAction?.querySelector(
       '.quiz-edit__bottom-actions-save',
@@ -2217,19 +2217,21 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     );
     const backLinks = fixture.nativeElement.querySelectorAll('a[routerLink=".."]');
     const previewButtons = fixture.nativeElement.querySelectorAll(
-      'button[aria-label="Änderungen speichern und Vorschau öffnen"]',
+      '.quiz-edit__bottom-actions button[aria-label="Vorschau"]',
     );
 
     expect(bottomAction).not.toBeNull();
     expect(backLink?.textContent).toContain('Zurück');
-    expect(previewButton?.textContent).toContain('Speichern & Vorschau');
+    expect(previewButton?.textContent).toContain('Vorschau');
+    expect(previewButton?.textContent).not.toContain('Speichern');
     expect(cancelButton?.textContent).toContain('Verwerfen');
     expect(addAnotherButton?.textContent).toContain('Weitere Frage');
     expect(saveButton?.textContent).toContain('Änderungen speichern');
     expect(cancelButton?.getAttribute('aria-label')).toBe('Verwerfen');
     expect(saveButton?.getAttribute('aria-label')).toBe('Änderungen speichern');
     expect(backLinks).toHaveLength(1);
-    expect(previewButtons).toHaveLength(2);
+    expect(previewButtons).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.quiz-edit__meta-actions')).toBeNull();
     expect(metadataSubmit).toBeNull();
     expect(settingsSubmit).toBeNull();
   });

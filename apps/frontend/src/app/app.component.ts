@@ -808,12 +808,18 @@ export class AppComponent implements OnInit, OnDestroy {
     void this.checkApiConnection();
   }
 
-  async openProductFeedback(event: Event): Promise<void> {
-    const target = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  /** Produktfeedback aus dem Mehr-Menü: Menü schließen, Dialog öffnen, Fokus zu „Mehr“. */
+  openProductFeedbackFromMore(): void {
+    this.footerMoreTrigger?.closeMenu();
+    const more = this.footerMoreButton?.nativeElement ?? null;
+    void this.openProductFeedback(more);
+  }
+
+  async openProductFeedback(focusReturn: HTMLElement | null = null): Promise<void> {
     const { ProductFeedbackLauncherService } =
       await import('./features/product-feedback/product-feedback-launcher.service');
     if (this.destroyed) return;
-    await this.injector.get(ProductFeedbackLauncherService).open({}, target);
+    await this.injector.get(ProductFeedbackLauncherService).open({}, focusReturn);
   }
 
   private async flushProductFeedbackOutbox(): Promise<void> {

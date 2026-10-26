@@ -161,17 +161,6 @@
       [attr.inert]="isContentOverlayRoute() ? '' : null"
     >
       <div class="app-footer__inner">
-        <div class="app-footer__utility">
-          <button
-            matButton
-            type="button"
-            class="app-footer__feedback-action"
-            (click)="openProductFeedback($event)"
-          >
-            <mat-icon aria-hidden="true">insights</mat-icon>
-            <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
-          </button>
-        </div>
         <div class="app-footer__row">
           <div
             class="app-footer__links"
@@ -315,6 +304,11 @@
             <span i18n="@@app.footer.serverHelpLabel">Betrieb &amp; Nutzung</span>
           </button>
         }
+        <div class="app-footer__more-divider" role="separator"></div>
+        <button mat-menu-item type="button" (click)="openProductFeedbackFromMore()">
+          <mat-icon aria-hidden="true">insights</mat-icon>
+          <span i18n="@@productFeedback.inApp.action">arsnova.eu verbessern</span>
+        </button>
       </mat-menu>
     </footer>
   }
