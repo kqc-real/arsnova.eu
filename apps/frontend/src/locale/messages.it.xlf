@@ -9520,24 +9520,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="homeScenario.classroom" datatype="html">
-        <source> Meinen Kurs begleiten</source>
-        <target>Gestire il mio corso</target>
+        <source>Quiz erstellen &amp; verwalten</source>
+        <target>Creare e gestire un quiz</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">203,205</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeScenario.event" datatype="html">
-        <source> Eine Veranstaltung moderieren</source>
-        <target>Moderare un evento</target>
+        <source>Q&amp;A-Forum erstellen &amp; verwalten</source>
+        <target>Creare e gestire un forum Q&amp;A</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">213,215</context>
         </context-group>
       </trans-unit>
       <trans-unit id="homeScenario.quick" datatype="html">
-        <source> Schnell ein Format einsetzen</source>
-        <target>Avviare subito un formato</target>
+        <source>Blitzlicht auswählen</source>
+        <target>Scegliere un sondaggio rapido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.html</context>
           <context context-type="linenumber">223,225</context>

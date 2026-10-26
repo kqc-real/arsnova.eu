@@ -168,8 +168,11 @@ async function withHome(page, sample, label, run) {
       await page.locator('.home-motd-sheet').waitFor({ state: 'hidden' });
     }
     await page.locator('.home-scenario').waitFor();
-    assert.equal(await page.locator('.home-host-stack > .home-card').count(), 3);
-    assert.equal(await page.locator('.home-feedback-chip').count(), CHIPS.length);
+    assert.equal(
+      await page.locator('.home-host-stack > .home-card').filter({ visible: true }).count(),
+      0,
+    );
+    assert.equal(await page.locator('.home-feedback-chip').filter({ visible: true }).count(), 0);
     assert.equal(await page.locator('.home-scenario__option[aria-pressed="true"]').count(), 0);
     await run({ requests, sessions });
     for (const start of feedbackStarts) {
@@ -230,6 +233,9 @@ async function quickStarts(browser) {
           await snapshot(page, `${name}-home`, true);
           await page.locator('.home-scenario').scrollIntoViewIfNeeded();
           await snapshot(page, `${name}-home-task`);
+        }
+        await page.locator('#home-host-tab-feedback').click();
+        if (index === 0) {
           await page.locator('.home-feedback-chip').last().scrollIntoViewIfNeeded();
           await snapshot(page, `${name}-home-cards`);
         }
@@ -274,21 +280,21 @@ async function chooseEvent(page) {
 
     await eventChoice.focus();
     await eventChoice.press('Enter');
-    await expectFocus(page, '#home-host-qa .home-card__scenario-focus-target');
+    await expectFocus(page, '#home-host-tab-qa');
     await expectCardBelowToolbar(page, '#home-host-qa');
     await page.keyboard.press('Tab');
     await expectFocus(page, '[data-testid="home-live-qa-create"]');
 
     await quickChoice.focus();
     await quickChoice.press('Space');
-    await expectFocus(page, '#host-quick-feedback .home-card__scenario-focus-target');
+    await expectFocus(page, '#home-host-tab-feedback');
     await expectCardBelowToolbar(page, '#host-quick-feedback');
     await page.keyboard.press('Tab');
     await expectFocus(page, '#host-quick-feedback .home-feedback-chip');
 
     await eventChoice.focus();
     await eventChoice.press('Enter');
-    await expectFocus(page, '#home-host-qa .home-card__scenario-focus-target');
+    await expectFocus(page, '#home-host-tab-qa');
     await expectCardBelowToolbar(page, '#home-host-qa');
   } else {
     await eventChoice.click();
@@ -561,7 +567,7 @@ async function eventStarts(browser) {
       assert.equal((await hostApi.session.getInfo.query({ code })).preferredChannel, 'qa');
       await neutral.close();
       await page.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded' });
-      await page.locator('.home-scenario__option').first().click();
+      await page.locator('#home-host-tab-qa').click();
       await page.locator(`[data-testid="home-host-recovery"][data-session-code="${code}"]`).click();
       await page.getByTestId('qa-tools-toggle').waitFor();
       await dismissJoin(page);
@@ -664,6 +670,7 @@ async function classroom(browser) {
       await assertScenario(page, first.code, 'CLASSROOM');
       assert.equal(await page.locator('mat-dialog-container').count(), 0);
       await page.goto(`${BASE_URL}/de/`, { waitUntil: 'domcontentloaded' });
+      await page.locator('#home-host-tab-quiz').click();
       await page.getByTestId('home-live-last-quiz').click();
       const resumed = await currentSession(page, sessions);
       assert.equal(resumed.code, first.code, 'Last own quiz resumes the existing lobby');

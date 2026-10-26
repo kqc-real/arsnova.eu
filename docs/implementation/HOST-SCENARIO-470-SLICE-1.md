@@ -1,5 +1,7 @@
 # Host-Aufgabenwahl — #470, Slice 1
 
+**Aktueller Stand der Startseite:** Die drei Host-Karten sind nicht mehr gleichzeitig sichtbar. Die Buttons heißen »Quiz erstellen & verwalten«, »Q&A-Forum erstellen & verwalten« und »Blitzlicht auswählen«, blenden jeweils nur ihre Karte ein und speichern die Auswahl nicht. Der übrige Text beschreibt den historischen Slice-1-Stand.
+
 Quelle und Umfang: [Issue #470](https://github.com/kqc-real/arsnova.eu/issues/470), ausschließlich **Slice 1 — reines UI-Zustandsmodell und Startseite**. Die Live-Navigation und die Reduktion der Host-Arbeitsflächen aus Slice 2–4 sind nicht Bestandteil dieses Slices. Übersetzungen, nahe Regressionstests und Dokumentation begleiten bereits die hier geänderte Oberfläche; dies bedeutet keine Abnahme von Slice 5 oder des gesamten Issues.
 
 ## Sichtbares Verhalten
