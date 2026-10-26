@@ -39,6 +39,10 @@ import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-fr
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { QuizStoreService, type QuizQuestion } from '../data/quiz-store.service';
 import { LearningObjectiveDerivationClient } from './learning-objective-derivation.client';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../../core/update-banner-suppression.service';
 
 type DerivationUiStatus = 'idle' | 'pending' | LearningObjectiveDerivationResult['status'];
 
@@ -223,6 +227,8 @@ export class QuizLearningObjectivesComponent {
   readonly derivationLimitations = signal<readonly string[]>([]);
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
   readonly confirmAllInProgress = signal(false);
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly objectiveFormBaseline = signal<string | null>(null);
   readonly confirmableGeneratedObjectives = computed(() => {
     const knownQuestionIds = this.questionIds();
     const editingId = this.editingId();
@@ -254,10 +260,33 @@ export class QuizLearningObjectivesComponent {
   private readonly textArea = viewChild<ElementRef<HTMLTextAreaElement>>('objectiveText');
 
   constructor() {
+    bindUpdateBannerSuppression(this.updateBannerSuppression, 'learning-objective-draft', () =>
+      this.learningObjectiveDraftBlocksUpdateBanner(),
+    );
     this.destroyRef.onDestroy(() => {
       this.derivationSequence += 1;
       this.derivationAbortController?.abort();
       this.derivationAbortController = null;
+    });
+  }
+
+  private learningObjectiveDraftBlocksUpdateBanner(): boolean {
+    if (this.derivationIsPending() || this.confirmAllInProgress()) return true;
+    const baseline = this.objectiveFormBaseline();
+    if (!this.formOpen() || baseline === null) return false;
+    return this.serializeObjectiveForm() !== baseline;
+  }
+
+  private captureObjectiveFormBaseline(): void {
+    this.objectiveFormBaseline.set(this.serializeObjectiveForm());
+  }
+
+  private serializeObjectiveForm(): string {
+    return JSON.stringify({
+      text: this.text().trim(),
+      scopeKind: this.scopeKind(),
+      questionIds: [...this.selectedQuestionIds()].sort(),
+      confirmation: this.confirmationState(),
     });
   }
 
@@ -447,6 +476,7 @@ export class QuizLearningObjectivesComponent {
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.formOpen.set(true);
+    this.captureObjectiveFormBaseline();
     this.focusTextArea();
   }
 
@@ -465,6 +495,7 @@ export class QuizLearningObjectivesComponent {
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.formOpen.set(true);
+    this.captureObjectiveFormBaseline();
     this.focusTextArea();
   }
 

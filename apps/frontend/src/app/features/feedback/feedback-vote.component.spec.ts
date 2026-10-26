@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackVoteComponent } from './feedback-vote.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 const {
   getInfoQueryMock,
@@ -1204,6 +1205,7 @@ describe('FeedbackVoteComponent', () => {
     await fixture.whenStable();
     fixture.componentInstance.submitting.set(true);
     fixture.detectChanges();
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(true);
     expect(events).toHaveBeenLastCalledWith({
       voted: false,
       submitting: true,
@@ -1212,6 +1214,7 @@ describe('FeedbackVoteComponent', () => {
     fixture.componentInstance.voted.set(true);
     fixture.componentInstance.submitting.set(false);
     fixture.detectChanges();
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(false);
     expect(events).toHaveBeenLastCalledWith({
       voted: true,
       submitting: false,

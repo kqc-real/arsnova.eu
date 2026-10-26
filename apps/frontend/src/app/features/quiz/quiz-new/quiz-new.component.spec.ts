@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { QuizNewComponent } from './quiz-new.component';
 import { QuizStoreService } from '../data/quiz-store.service';
 
@@ -358,6 +359,7 @@ describe('QuizNewComponent', () => {
     component.descriptionControl.setValue('Programmatische Beschreibung');
     expect(component.form.dirty).toBe(false);
     expect(component.hasUnsavedChanges()).toBe(true);
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(true);
 
     await expect(component.canDeactivate()).resolves.toBe(true);
     expect(matDialogMock.open).toHaveBeenCalled();

@@ -58,6 +58,11 @@ import { firstValueFrom } from 'rxjs';
 import type { Unsubscribable } from '@trpc/server/observable';
 import { clearFeedbackHostToken } from '../../../core/feedback-host-token';
 import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+  qaTitleDraftBlocksUpdateBanner,
+} from '../../../core/update-banner-suppression.service';
+import {
   clearHostToken,
   getHostSessionRole,
   hasHostToken,
@@ -924,6 +929,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly ngZone = inject(NgZone);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   readonly sound = inject(SoundService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
@@ -2056,6 +2062,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const draft = this.qaTitleDraft().trim();
     return draft === server || this.qaTitleSaving();
   });
+  private readonly qaTitleUpdateBanner = bindUpdateBannerSuppression(
+    this.updateBannerSuppression,
+    'host-qa-title',
+    () =>
+      qaTitleDraftBlocksUpdateBanner({
+        editing: this.qaTitleEditing(),
+        saving: this.qaTitleSaving(),
+        draft: this.qaTitleDraft(),
+        serverTitle: this.session()?.channels?.qa?.title ?? '',
+      }),
+  );
   readonly qaSortMode = signal<QaQuestionSortMode>('BEST');
   readonly qaShowPinnedOnly = signal(false);
   readonly qaShowPendingOnly = signal(false);
@@ -5328,6 +5345,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    void this.qaTitleUpdateBanner;
     if (this.code.length !== 6) return;
     this.syncPairedHostManualReconnectRegistration();
     if (this.isPairedHostClient()) {

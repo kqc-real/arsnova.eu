@@ -25,6 +25,10 @@ import {
   ProductFeedbackLauncherService,
   type ProductFeedbackLaunchContext,
 } from './product-feedback-launcher.service';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../core/update-banner-suppression.service';
 
 type Step = 'kind' | 'area' | 'saved' | 'detail' | 'done' | 'error';
 type ResolvedLaunchContext = Required<
@@ -55,6 +59,17 @@ export class ProductFeedbackInAppDialogComponent {
   readonly followUpCapability = signal<string | null>(null);
   readonly message = signal('');
   readonly impact = signal<ProductFeedbackImpact | null>(null);
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly productFeedbackDraftBanner = bindUpdateBannerSuppression(
+    this.updateBannerSuppression,
+    'product-feedback-draft',
+    () =>
+      this.busy() ||
+      this.message().trim().length > 0 ||
+      this.kind() !== null ||
+      this.area() !== null ||
+      this.impact() !== null,
+  );
   readonly outbox = signal<ProductFeedbackOutboxItem[]>(loadProductFeedbackOutbox());
   readonly messageMax = PRODUCT_FEEDBACK_IN_APP_MESSAGE_MAX;
   readonly actionLabel = $localize`:@@productFeedback.inApp.action:arsnova.eu verbessern`;
@@ -71,6 +86,7 @@ export class ProductFeedbackInAppDialogComponent {
   readonly impacts: readonly ProductFeedbackImpact[] = ['CONTINUED', 'RETRIED', 'BLOCKED'];
 
   constructor() {
+    void this.productFeedbackDraftBanner;
     this.focusStep();
   }
 

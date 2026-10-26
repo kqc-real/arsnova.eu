@@ -39,6 +39,10 @@ import {
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { trpc } from '../../../core/trpc.client';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../../core/update-banner-suppression.service';
 
 export interface SessionLearningObjectiveTaskOption {
   reference: SessionLearningObjectiveResolvedTaskReference;
@@ -118,6 +122,8 @@ export class SessionLearningObjectivesDialogComponent {
   readonly derivationMessage = signal<string | null>(null);
   readonly derivationLimitations = signal<readonly string[]>([]);
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly objectiveFormBaseline = signal<string | null>(null);
   readonly derivationCanRetry = computed(() =>
     [
       'busy',
@@ -238,12 +244,37 @@ export class SessionLearningObjectivesDialogComponent {
   private readonly textArea = viewChild<ElementRef<HTMLTextAreaElement>>('objectiveText');
 
   constructor() {
+    bindUpdateBannerSuppression(
+      this.updateBannerSuppression,
+      'session-learning-objective-draft',
+      () => this.learningObjectiveDraftBlocksUpdateBanner(),
+    );
     this.destroyRef.onDestroy(() => {
       this.derivationSequence += 1;
       this.derivationAbortController?.abort();
       this.derivationAbortController = null;
     });
     void this.loadSnapshot(false);
+  }
+
+  private learningObjectiveDraftBlocksUpdateBanner(): boolean {
+    if (this.pending() || this.derivationIsPending()) return true;
+    const baseline = this.objectiveFormBaseline();
+    if (!this.formOpen() || baseline === null) return false;
+    return this.serializeObjectiveForm() !== baseline;
+  }
+
+  private captureObjectiveFormBaseline(): void {
+    this.objectiveFormBaseline.set(this.serializeObjectiveForm());
+  }
+
+  private serializeObjectiveForm(): string {
+    return JSON.stringify({
+      text: this.text().trim(),
+      scopeKind: this.scopeKind(),
+      taskKeys: [...this.selectedTaskKeys()].sort(),
+      confirmation: this.confirmationState(),
+    });
   }
 
   close(): void {
@@ -376,6 +407,7 @@ export class SessionLearningObjectivesDialogComponent {
     this.pendingDeleteId.set(null);
     this.clearMessages();
     this.formOpen.set(true);
+    this.captureObjectiveFormBaseline();
     this.focusTextArea();
   }
 
@@ -414,6 +446,7 @@ export class SessionLearningObjectivesDialogComponent {
     this.pendingDeleteId.set(null);
     this.clearMessages();
     this.formOpen.set(true);
+    this.captureObjectiveFormBaseline();
     this.focusTextArea();
   }
 

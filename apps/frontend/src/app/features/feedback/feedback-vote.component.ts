@@ -23,6 +23,10 @@ import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../core/session-
 import { feedbackOptions, feedbackTitle, isTempoFeedbackType } from './feedback.config';
 import type { QuickFeedbackResult, QuickFeedbackType } from '@arsnova/shared-types';
 import { ProductFeedbackLauncherService } from '../product-feedback/product-feedback-launcher.service';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../core/update-banner-suppression.service';
 
 const VOTER_ID_KEY = 'qf-voter-id';
 const TEMPO_DEFAULT_VALUE = 'FOLLOWING';
@@ -158,8 +162,15 @@ export class FeedbackVoteComponent implements OnInit, OnDestroy {
   readonly hoveredStar = signal(0);
   readonly submitting = signal(false);
   readonly selectedTempoValue = signal<string | null>(null);
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly feedbackSubmitBanner = bindUpdateBannerSuppression(
+    this.updateBannerSuppression,
+    'feedback-submit',
+    () => this.submitting(),
+  );
 
   constructor() {
+    void this.feedbackSubmitBanner;
     effect(() => {
       if (this.embeddedInSession())
         this.activityChange.emit({

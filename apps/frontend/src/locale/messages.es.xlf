@@ -27,8 +27,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.updateBanner.text" datatype="html">
-        <source>Aktualisieren für den neuesten Stand.</source>
-        <target>Actualización para lo último.</target>
+        <source>Das Update ist sicher und ohne Datenverlust.</source>
+        <target>La actualización es segura y no provoca pérdida de datos.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">28</context>
