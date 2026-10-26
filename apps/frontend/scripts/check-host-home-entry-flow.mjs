@@ -173,7 +173,7 @@ async function withHome(page, sample, label, run) {
       0,
     );
     assert.equal(await page.locator('.home-feedback-chip').filter({ visible: true }).count(), 0);
-    assert.equal(await page.locator('.home-scenario__option[aria-selected="true"]').count(), 0);
+    assert.equal(await page.locator('.home-scenario__option[aria-pressed="true"]').count(), 0);
     await run({ requests, sessions });
     for (const start of feedbackStarts) {
       assert(sessions.has(start.sessionCode), 'Feedback must belong to the UI-created session');
@@ -318,7 +318,7 @@ async function chooseEvent(page) {
     await page.waitForFunction(() => document.documentElement.classList.contains('preset-playful'));
     await page.evaluate(() => document.fonts.ready);
     assert.equal(
-      await page.locator('.home-scenario__option').nth(1).getAttribute('aria-selected'),
+      await page.locator('.home-scenario__option').nth(1).getAttribute('aria-pressed'),
       'true',
     );
     const after = await geometry();

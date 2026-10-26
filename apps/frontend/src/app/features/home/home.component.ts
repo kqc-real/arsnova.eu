@@ -130,7 +130,6 @@ const HOST_PANEL_TAB_IDS: Record<HostScenario, string> = {
   EVENT: 'home-host-tab-qa',
   QUICK: 'home-host-tab-feedback',
 };
-const HOST_PANEL_ORDER: readonly HostScenario[] = ['CLASSROOM', 'EVENT', 'QUICK'];
 
 function resolveSessionServerNow(
   session: Pick<SessionInfoDTO, 'serverTime' | 'serverNow'>,
@@ -371,11 +370,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return active ? HOST_PANEL_TAB_IDS[active] : null;
   }
 
-  hostPanelTabIndex(scenario: HostScenario): number {
-    const active = this.activeHostPanel();
-    return active === null || active === scenario ? 0 : -1;
-  }
-
   selectHostPanel(scenario: HostScenario): void {
     if (this.activeHostPanel() === scenario) {
       return;
@@ -388,44 +382,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeHostPanel.set(scenario);
     this.hostScenario.stageScenario(scenario);
     this.revealHostPanel(scenario);
-  }
-
-  onHostPanelKeydown(event: KeyboardEvent): void {
-    const current = this.hostPanelFromKeyTarget(event.target);
-    if (!current) {
-      return;
-    }
-    const index = HOST_PANEL_ORDER.indexOf(current);
-    let nextIndex: number | null = null;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      nextIndex = (index + 1) % HOST_PANEL_ORDER.length;
-    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      nextIndex = (index - 1 + HOST_PANEL_ORDER.length) % HOST_PANEL_ORDER.length;
-    } else if (event.key === 'Home') {
-      nextIndex = 0;
-    } else if (event.key === 'End') {
-      nextIndex = HOST_PANEL_ORDER.length - 1;
-    }
-    if (nextIndex === null) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    const next = HOST_PANEL_ORDER[nextIndex];
-    this.selectHostPanel(next);
-    this.focusHostPanelTab(next);
-  }
-
-  private hostPanelFromKeyTarget(target: EventTarget | null): HostScenario | null {
-    if (!(target instanceof HTMLElement)) {
-      return null;
-    }
-    const tab = target.closest<HTMLElement>('[role="tab"]');
-    const id = tab?.id;
-    if (!id) {
-      return null;
-    }
-    return HOST_PANEL_ORDER.find((scenario) => HOST_PANEL_TAB_IDS[scenario] === id) ?? null;
   }
 
   private hostPanelFadeToken = 0;
@@ -446,6 +402,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private revealHostPanel(scenario: HostScenario): void {
     this.hostPanelFadeToken += 1;
+    this.hostPanelScrollToken += 1;
     const token = this.hostPanelFadeToken;
     this.clearHostPanelFadeTimer();
     const animate = this.hostPanelMotion() === 'smooth' && this.visibleHostPanel() !== null;
@@ -498,13 +455,22 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Die eingeblendete Karte rückt in den sichtbaren Bereich von `#main-content`.
-   * Die Auswahlbuttons bleiben kleben; der Fokus bleibt auf dem Tab.
+   * Die Auswahlbuttons bleiben kleben; der Fokus bleibt auf dem gedrückten Button.
    */
   private scheduleHostPanelReveal(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    afterNextRender(() => this.scrollHostPanelIntoView(), { injector: this.injector });
+    const token = this.hostPanelScrollToken;
+    afterNextRender(
+      () => {
+        if (token !== this.hostPanelScrollToken || this.destroyRef.destroyed) {
+          return;
+        }
+        this.scrollHostPanelIntoView();
+      },
+      { injector: this.injector },
+    );
   }
 
   private scrollHostPanelIntoView(): void {
@@ -668,14 +634,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       done?.();
     };
     this.scheduleAnimationFrame(() => step(performance.now()));
-  }
-
-  /** Pfeiltasten bleiben auf dem Tab. Die eingeblendete Karte übernimmt den Fokus nicht. */
-  private focusHostPanelTab(scenario: HostScenario): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    this.document.getElementById(HOST_PANEL_TAB_IDS[scenario])?.focus({ preventScroll: true });
   }
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */

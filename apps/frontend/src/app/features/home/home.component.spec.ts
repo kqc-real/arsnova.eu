@@ -335,7 +335,7 @@ describe('HomeComponent', () => {
       expect(chooser.querySelector('#home-scenario-title')).toBeNull();
       expect(chooser.getAttribute('aria-labelledby')).toBe('home-host-title');
       expect(chooser.nextElementSibling?.id).toBe('home-host-panel');
-      expect(panel.getAttribute('role')).toBe('tabpanel');
+      expect(panel.getAttribute('role')).toBeNull();
       expect(panel.hidden).toBe(true);
       expect(panel.hasAttribute('inert')).toBe(true);
       expect(cards).toHaveLength(3);
@@ -343,10 +343,8 @@ describe('HomeComponent', () => {
       expect(choices.map((button) => button.textContent?.replace(/\s+/g, ' ').trim())).toEqual(
         labels,
       );
-      expect(choices.every((button) => button.getAttribute('role') === 'tab')).toBe(true);
-      expect(choices.every((button) => button.getAttribute('aria-selected') === 'false')).toBe(
-        true,
-      );
+      expect(choices.every((button) => button.getAttribute('role') === null)).toBe(true);
+      expect(choices.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
       expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
       expect(localStorage.getItem('arsnova-host-scenario:v1')).toBeNull();
       expect(fixture.componentInstance.hostScenario.preference()).toBeNull();
@@ -359,7 +357,7 @@ describe('HomeComponent', () => {
         const target = root.querySelector<HTMLElement>(`#${targetIds[index]}`);
         expect(panel.hidden).toBe(false);
         expect(panel.getAttribute('aria-labelledby')).toBe(choice.id);
-        expect(choice.getAttribute('aria-selected')).toBe('true');
+        expect(choice.getAttribute('aria-pressed')).toBe('true');
         expect(choice.querySelector('.home-scenario__option-mark')?.textContent?.trim()).toBe(
           'check',
         );
@@ -367,14 +365,14 @@ describe('HomeComponent', () => {
         expect(target?.hidden).toBe(false);
         expect(target?.hasAttribute('inert')).toBe(false);
         expect(cards.filter((card) => !card.hidden)).toEqual([target]);
-        expect(choices.filter((button) => button.tabIndex === 0)).toEqual([choice]);
+        expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
         for (const card of cards.filter((entry) => entry !== target)) {
           expect(card.hidden).toBe(true);
           expect(card.hasAttribute('inert')).toBe(true);
         }
         choice.click();
         fixture.detectChanges();
-        expect(choice.getAttribute('aria-selected')).toBe('true');
+        expect(choice.getAttribute('aria-pressed')).toBe('true');
         expect(target?.hidden).toBe(false);
         expect(localStorage.getItem('arsnova-host-scenario:v1')).toBeNull();
       }
@@ -382,7 +380,7 @@ describe('HomeComponent', () => {
       expect(matDialogMock.open).not.toHaveBeenCalled();
     });
 
-    it('wechselt die Karte per Pfeiltaste, ohne den Fokus in die Karte zu setzen', async () => {
+    it('wählt per Pfeiltaste keine andere Aufgabe und lässt alle Buttons tabbar', async () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();
       const root = fixture.nativeElement as HTMLElement;
@@ -392,14 +390,13 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const qa = root.querySelector<HTMLButtonElement>('#home-host-tab-qa');
-      expect(document.activeElement).toBe(qa);
-      expect(qa?.getAttribute('aria-selected')).toBe('true');
-      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(false);
-      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(true);
-      expect(document.activeElement).not.toBe(
-        root.querySelector('#home-host-qa .home-card__scenario-focus-target'),
+      const choices = Array.from(
+        root.querySelectorAll<HTMLButtonElement>('.home-scenario__option'),
       );
+      expect(document.activeElement).toBe(quiz);
+      expect(choices.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
+      expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
+      expect(root.querySelector<HTMLElement>('#home-host-panel')?.hidden).toBe(true);
     });
 
     it('behält bei Pointer-Auswahl den Fokus auf dem Auswahlbutton', async () => {
@@ -515,6 +512,66 @@ describe('HomeComponent', () => {
       expect(
         root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
       ).toBe(false);
+    });
+
+    it('stoppt die laufende Höhenanimation, sobald eine andere Karte gewählt wird', () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query === '(prefers-reduced-motion: no-preference)',
+          media: query,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+          addListener: () => undefined,
+          removeListener: () => undefined,
+          dispatchEvent: () => false,
+        })),
+      );
+      const main = document.createElement('div');
+      main.id = 'main-content';
+      let scrollTop = 0;
+      Object.defineProperty(main, 'scrollTop', {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value: number) => {
+          scrollTop = value;
+        },
+      });
+      Object.defineProperty(main, 'clientHeight', { configurable: true, get: () => 600 });
+      document.body.appendChild(main);
+      vi.spyOn(main, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 400, 600));
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      const panel = root.querySelector<HTMLElement>('#home-host-panel');
+      const tabs = root.querySelector('.home-scenario') as HTMLElement;
+      const quizCard = root.querySelector('#home-host-quiz') as HTMLElement;
+      vi.spyOn(tabs, 'getBoundingClientRect').mockReturnValue(new DOMRect(16, 80, 360, 80));
+      vi.spyOn(quizCard, 'getBoundingClientRect').mockReturnValue(new DOMRect(16, 200, 360, 900));
+      vi.spyOn(quizCard, 'offsetHeight', 'get').mockReturnValue(900);
+
+      root.querySelector<HTMLButtonElement>('#home-host-tab-quiz')?.click();
+      fixture.detectChanges();
+      for (let frame = 0; frame < 30 && panel?.style.height === '0px'; frame += 1) {
+        vi.advanceTimersByTime(16);
+      }
+      expect(panel?.style.height).not.toBe('0px');
+      expect(panel?.style.height.endsWith('px')).toBe(true);
+      const scrollWhileOpening = scrollTop;
+
+      root.querySelector<HTMLButtonElement>('#home-host-tab-qa')?.click();
+      fixture.detectChanges();
+      const heightAtSwitch = panel?.style.height;
+      const scrollAtSwitch = scrollTop;
+      vi.advanceTimersByTime(400);
+
+      expect(panel?.style.height).toBe(heightAtSwitch);
+      expect(scrollTop).toBe(scrollAtSwitch);
+      expect(scrollTop).toBe(scrollWhileOpening);
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(false);
+      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(true);
+      main.remove();
     });
 
     it('bietet im Kurs eigene Quizaktionen und Kursfragen an, ohne Demo als letztes Quiz', () => {
@@ -2746,7 +2803,7 @@ describe('HomeComponent', () => {
       /\.home-feedback-chip--yes-no:focus-visible \.home-feedback-chip__body\s*\{[^}]*width:\s*fit-content[^}]*outline:\s*2px solid var\(--mat-sys-primary\)/,
     );
     expect(scss).toMatch(
-      /\.home-scenario__option\s*\{[^}]*background:\s*transparent[^}]*&\[aria-selected='true'\]\s*\{[^}]*background:\s*transparent[^}]*box-shadow:\s*inset 0 0 0 2px var\(--mat-sys-primary\)/,
+      /\.home-scenario__option\s*\{[^}]*background:\s*transparent[^}]*&\[aria-pressed='true'\]\s*\{[^}]*background:\s*transparent[^}]*box-shadow:\s*inset 0 0 0 2px var\(--mat-sys-primary\)/,
     );
     expect(scss).toMatch(
       /@media \(prefers-reduced-motion:\s*no-preference\)\s*\{[^}]*\.home-host-stack\s*\{[^}]*opacity 520ms cubic-bezier\(0\.4,\s*0,\s*0\.2,\s*1\)/,

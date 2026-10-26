@@ -191,23 +191,15 @@
         aria-labelledby="home-host-title"
         [attr.inert]="syncLinkVisible() ? '' : null"
       >
-        <div
-          class="home-scenario__options"
-          role="tablist"
-          aria-orientation="horizontal"
-          aria-labelledby="home-host-title"
-        >
+        <div class="home-scenario__options" role="group" aria-labelledby="home-host-title">
           <button
             type="button"
             matButton="outlined"
-            role="tab"
             id="home-host-tab-quiz"
             class="home-scenario__option"
-            [attr.aria-selected]="activeHostPanel() === 'CLASSROOM'"
-            [attr.tabindex]="hostPanelTabIndex('CLASSROOM')"
+            [attr.aria-pressed]="activeHostPanel() === 'CLASSROOM'"
             aria-controls="home-host-panel"
             (click)="selectHostPanel('CLASSROOM')"
-            (keydown)="onHostPanelKeydown($event)"
           >
             @if (activeHostPanel() === 'CLASSROOM') {
               <mat-icon class="home-scenario__option-mark" aria-hidden="true">check</mat-icon>
@@ -219,14 +211,11 @@
           <button
             type="button"
             matButton="outlined"
-            role="tab"
             id="home-host-tab-qa"
             class="home-scenario__option"
-            [attr.aria-selected]="activeHostPanel() === 'EVENT'"
-            [attr.tabindex]="hostPanelTabIndex('EVENT')"
+            [attr.aria-pressed]="activeHostPanel() === 'EVENT'"
             aria-controls="home-host-panel"
             (click)="selectHostPanel('EVENT')"
-            (keydown)="onHostPanelKeydown($event)"
           >
             @if (activeHostPanel() === 'EVENT') {
               <mat-icon class="home-scenario__option-mark" aria-hidden="true">check</mat-icon>
@@ -238,14 +227,11 @@
           <button
             type="button"
             matButton="outlined"
-            role="tab"
             id="home-host-tab-feedback"
             class="home-scenario__option"
-            [attr.aria-selected]="activeHostPanel() === 'QUICK'"
-            [attr.tabindex]="hostPanelTabIndex('QUICK')"
+            [attr.aria-pressed]="activeHostPanel() === 'QUICK'"
             aria-controls="home-host-panel"
             (click)="selectHostPanel('QUICK')"
-            (keydown)="onHostPanelKeydown($event)"
           >
             @if (activeHostPanel() === 'QUICK') {
               <mat-icon class="home-scenario__option-mark" aria-hidden="true">check</mat-icon>
@@ -260,7 +246,6 @@
       <div
         id="home-host-panel"
         class="home-host-stack"
-        role="tabpanel"
         [attr.aria-labelledby]="activeHostPanelTabId()"
         [hidden]="visibleHostPanel() === null"
         [attr.inert]="visibleHostPanel() === null ? '' : null"
