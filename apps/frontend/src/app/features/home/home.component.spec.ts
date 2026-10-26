@@ -494,24 +494,24 @@ describe('HomeComponent', () => {
       const root = fixture.nativeElement as HTMLElement;
       root.querySelector<HTMLButtonElement>('#home-host-tab-quiz')?.click();
       fixture.detectChanges();
-      expect(root.querySelector('#home-host-quiz')?.hidden).toBe(false);
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(false);
       expect(
         root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
       ).toBe(false);
 
       root.querySelector<HTMLButtonElement>('#home-host-tab-qa')?.click();
       fixture.detectChanges();
-      expect(root.querySelector('#home-host-quiz')?.hidden).toBe(false);
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(false);
       expect(root.querySelector('#home-host-quiz')?.hasAttribute('inert')).toBe(true);
-      expect(root.querySelector('#home-host-qa')?.hidden).toBe(true);
+      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(true);
       expect(
         root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
       ).toBe(true);
 
       vi.advanceTimersByTime(520);
       fixture.detectChanges();
-      expect(root.querySelector('#home-host-quiz')?.hidden).toBe(true);
-      expect(root.querySelector('#home-host-qa')?.hidden).toBe(false);
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(true);
+      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(false);
       expect(
         root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
       ).toBe(false);
