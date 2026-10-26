@@ -125,11 +125,12 @@ type HostSessionCta = {
 const HOST_SESSION_CTA_LIMIT = 8;
 const HOST_SESSION_INFO_FETCH_LIMIT = 32;
 const HOST_SESSION_DIRECT_LIMIT = 2;
-const HOST_SCENARIO_CARD_IDS: Record<HostScenario, string> = {
-  CLASSROOM: 'home-host-quiz',
-  EVENT: 'home-host-qa',
-  QUICK: 'host-quick-feedback',
+const HOST_PANEL_TAB_IDS: Record<HostScenario, string> = {
+  CLASSROOM: 'home-host-tab-quiz',
+  EVENT: 'home-host-tab-qa',
+  QUICK: 'home-host-tab-feedback',
 };
+const HOST_PANEL_ORDER: readonly HostScenario[] = ['CLASSROOM', 'EVENT', 'QUICK'];
 
 function resolveSessionServerNow(
   session: Pick<SessionInfoDTO, 'serverTime' | 'serverNow'>,
@@ -262,6 +263,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly themePreset = inject(ThemePresetService);
   readonly hostScenario = inject(HostScenarioService);
+  /** Gewählte Aufgabe. Bewusst nicht aus localStorage wiederhergestellt. */
+  readonly activeHostPanel = signal<HostScenario | null>(null);
+  /** Gerade gezeichnete Karte. Beim sanften Wechsel hinkt sie der Auswahl kurz hinterher. */
+  readonly visibleHostPanel = signal<HostScenario | null>(null);
+  readonly hostPanelPhase = signal<'idle' | 'leave'>('idle');
+  /** Karteninterne Varianten folgen der sichtbaren Karte, sonst der Auswahl oder Präferenz. */
+  readonly hostPanelChoice = computed(
+    () => this.visibleHostPanel() ?? this.activeHostPanel() ?? this.hostScenario.preference(),
+  );
   private readonly quizStore = inject(QuizStoreService);
   readonly librarySharingMode = this.quizStore.librarySharingMode;
   readonly syncOriginDeviceLabel = this.quizStore.originDeviceLabel;
@@ -352,35 +362,314 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly codeSlots = [0, 1, 2, 3, 4, 5];
   readonly quickFeedbackPresetChips = QUICK_FEEDBACK_HOME_CHIPS;
 
-  selectHostScenario(scenario: HostScenario, event?: MouseEvent): void {
-    this.hostScenario.selectScenario(scenario);
+  hostPanelTabId(scenario: HostScenario): string {
+    return HOST_PANEL_TAB_IDS[scenario];
+  }
+
+  activeHostPanelTabId(): string | null {
+    const active = this.activeHostPanel();
+    return active ? HOST_PANEL_TAB_IDS[active] : null;
+  }
+
+  hostPanelTabIndex(scenario: HostScenario): number {
+    const active = this.activeHostPanel();
+    return active === null || active === scenario ? 0 : -1;
+  }
+
+  selectHostPanel(scenario: HostScenario): void {
+    if (this.activeHostPanel() === scenario) {
+      return;
+    }
+    if (scenario !== 'CLASSROOM' && this.syncLinkVisible()) {
+      this.syncLinkVisible.set(false);
+      this.syncLinkError.set(null);
+      this.syncLinkValue.set('');
+    }
+    this.activeHostPanel.set(scenario);
+    this.hostScenario.stageScenario(scenario);
+    this.revealHostPanel(scenario);
+  }
+
+  onHostPanelKeydown(event: KeyboardEvent): void {
+    const current = this.hostPanelFromKeyTarget(event.target);
+    if (!current) {
+      return;
+    }
+    const index = HOST_PANEL_ORDER.indexOf(current);
+    let nextIndex: number | null = null;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (index + 1) % HOST_PANEL_ORDER.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (index - 1 + HOST_PANEL_ORDER.length) % HOST_PANEL_ORDER.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = HOST_PANEL_ORDER.length - 1;
+    }
+    if (nextIndex === null) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    const next = HOST_PANEL_ORDER[nextIndex];
+    this.selectHostPanel(next);
+    this.focusHostPanelTab(next);
+  }
+
+  private hostPanelFromKeyTarget(target: EventTarget | null): HostScenario | null {
+    if (!(target instanceof HTMLElement)) {
+      return null;
+    }
+    const tab = target.closest<HTMLElement>('[role="tab"]');
+    const id = tab?.id;
+    if (!id) {
+      return null;
+    }
+    return HOST_PANEL_ORDER.find((scenario) => HOST_PANEL_TAB_IDS[scenario] === id) ?? null;
+  }
+
+  private hostPanelFadeToken = 0;
+  private hostPanelFadeTimer: ReturnType<typeof setTimeout> | null = null;
+  private hostPanelScrollToken = 0;
+  private readonly hostPanelFadeMs = 520;
+
+  private hostPanelMotion(): 'smooth' | 'auto' {
+    if (!isPlatformBrowser(this.platformId) || typeof matchMedia !== 'function') {
+      return 'auto';
+    }
+    return matchMedia('(prefers-reduced-motion: no-preference)').matches ? 'smooth' : 'auto';
+  }
+
+  /**
+   * Erst ausblenden, dann die neue Karte einblenden.
+   * Ohne Bewegungsvorliebe tauscht der Wechsel sofort.
+   */
+  private revealHostPanel(scenario: HostScenario): void {
+    this.hostPanelFadeToken += 1;
+    const token = this.hostPanelFadeToken;
+    this.clearHostPanelFadeTimer();
+    const animate = this.hostPanelMotion() === 'smooth' && this.visibleHostPanel() !== null;
+    if (!animate) {
+      this.pinHostPanelHeight(0);
+      this.visibleHostPanel.set(scenario);
+      this.hostPanelPhase.set('idle');
+      this.scheduleHostPanelReveal();
+      return;
+    }
+    this.pinHostPanelHeight();
+    this.hostPanelPhase.set('leave');
+    this.hostPanelFadeTimer = setTimeout(() => {
+      if (this.hostPanelFadeTimer !== null) {
+        this.timeoutIds.delete(this.hostPanelFadeTimer);
+        this.hostPanelFadeTimer = null;
+      }
+      if (token !== this.hostPanelFadeToken || this.destroyRef.destroyed) {
+        return;
+      }
+      this.visibleHostPanel.set(scenario);
+      this.hostPanelPhase.set('idle');
+      this.scheduleHostPanelReveal();
+    }, this.hostPanelFadeMs);
+    this.timeoutIds.add(this.hostPanelFadeTimer);
+  }
+
+  private clearHostPanelFadeTimer(): void {
+    if (this.hostPanelFadeTimer === null) {
+      return;
+    }
+    clearTimeout(this.hostPanelFadeTimer);
+    this.timeoutIds.delete(this.hostPanelFadeTimer);
+    this.hostPanelFadeTimer = null;
+  }
+
+  /** Friert die Kartenhöhe ein, damit der spätere Übergang einen Startwert hat. */
+  private pinHostPanelHeight(height?: number): void {
+    if (this.hostPanelMotion() !== 'smooth' || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    const panel = this.document.getElementById('home-host-panel');
+    if (!panel) {
+      return;
+    }
+    const locked = height ?? panel.getBoundingClientRect().height;
+    panel.style.overflow = 'hidden';
+    panel.style.height = `${locked}px`;
+  }
+
+  /**
+   * Die eingeblendete Karte rückt in den sichtbaren Bereich von `#main-content`.
+   * Die Auswahlbuttons bleiben kleben; der Fokus bleibt auf dem Tab.
+   */
+  private scheduleHostPanelReveal(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    const moveFocusToCard = event?.detail === 0;
+    afterNextRender(() => this.scrollHostPanelIntoView(), { injector: this.injector });
+  }
 
-    afterNextRender(
-      () => {
-        if (this.destroyRef.destroyed) {
-          return;
-        }
-        const target = this.document.getElementById(HOST_SCENARIO_CARD_IDS[scenario]);
-        const reduceMotion =
-          this.document.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ===
-          true;
-        target?.scrollIntoView({
-          behavior: reduceMotion ? 'auto' : 'smooth',
-          block: 'start',
-          inline: 'nearest',
-        });
-        if (moveFocusToCard) {
-          target
-            ?.querySelector<HTMLElement>('.home-card__scenario-focus-target')
-            ?.focus({ preventScroll: true });
-        }
-      },
-      { injector: this.injector },
-    );
+  private scrollHostPanelIntoView(): void {
+    if (this.destroyRef.destroyed) {
+      return;
+    }
+    const root = this.document.getElementById('main-content');
+    const panel = this.document.getElementById('home-host-panel');
+    const tabs = this.document.querySelector('.home-scenario');
+    if (!root || !panel || !(tabs instanceof HTMLElement) || panel.hidden) {
+      return;
+    }
+    if (root.clientHeight <= 0) {
+      return;
+    }
+    const card = panel.querySelector<HTMLElement>('.home-card:not([hidden])');
+    const rootRect = root.getBoundingClientRect();
+    const tabsRect = tabs.getBoundingClientRect();
+    const cardRect = card?.getBoundingClientRect();
+    if (!cardRect || tabsRect.height <= 0 || cardRect.height <= 0) {
+      return;
+    }
+    const rootStyle = getComputedStyle(root);
+    const paddingTop = Number.parseFloat(rootStyle.paddingTop) || 0;
+    const stickyTop = Number.parseFloat(getComputedStyle(tabs).top) || 0;
+    const stuckTabsTop = rootRect.top + paddingTop + stickyTop;
+    const limitTop = stuckTabsTop + tabsRect.height;
+    const limitBottom = rootRect.bottom - 8;
+    const cardHeight = card ? this.hostCardContentHeight(card, panel) : cardRect.height;
+    const fits = cardHeight <= limitBottom - limitTop;
+    let delta = 0;
+    if (fits) {
+      if (cardRect.bottom > limitBottom) {
+        delta = cardRect.bottom - limitBottom;
+      } else if (cardRect.top < limitTop) {
+        delta = cardRect.top - limitTop;
+      }
+    } else if (Math.abs(cardRect.top - limitTop) > 1) {
+      delta = cardRect.top - limitTop;
+    }
+    const fromHeight = panel.getBoundingClientRect().height;
+    const toHeight = cardHeight;
+    const needsHeightChange = Math.abs(toHeight - fromHeight) > 1;
+    if (Math.abs(delta) <= 1 && !needsHeightChange) {
+      panel.style.height = '';
+      panel.style.overflow = '';
+      return;
+    }
+    const target = Math.max(0, root.scrollTop + delta);
+    if (this.hostPanelMotion() !== 'smooth') {
+      panel.style.height = '';
+      panel.style.overflow = '';
+      if (Math.abs(delta) > 1) {
+        root.scrollTo({ top: target, behavior: 'auto' });
+      }
+      return;
+    }
+    this.glideHostPanelLayout(panel, fromHeight, toHeight, root, target);
+  }
+
+  /** Inhaltshöhe, ohne die von der vorigen Karte festgehaltene Fläche. */
+  private hostCardContentHeight(card: HTMLElement, panel: HTMLElement): number {
+    const pinnedHeight = panel.style.height;
+    const pinnedAlign = card.style.alignSelf;
+    card.style.alignSelf = 'start';
+    panel.style.height = 'auto';
+    const height = card.offsetHeight;
+    panel.style.height = pinnedHeight;
+    card.style.alignSelf = pinnedAlign;
+    return height;
+  }
+
+  /**
+   * Wird die Karte kürzer, gleitet die Code-Karte zuerst zurück. Erst danach
+   * schrumpft die Höhe. Gleichzeitiges Kürzen klemmt auf dem Smartphone den
+   * Scroll und lässt die Code-Karte springen.
+   */
+  private glideHostPanelLayout(
+    panel: HTMLElement,
+    fromHeight: number,
+    toHeight: number,
+    root: HTMLElement,
+    scrollTarget: number,
+  ): void {
+    this.hostPanelScrollToken += 1;
+    const token = this.hostPanelScrollToken;
+    const fromScroll = root.scrollTop;
+    const shrinking = toHeight + 1 < fromHeight;
+    const codeCardReturns = scrollTarget + 1 < fromScroll;
+    panel.style.overflow = 'hidden';
+    panel.style.height = `${fromHeight}px`;
+    const release = () => {
+      if (token !== this.hostPanelScrollToken || this.destroyRef.destroyed) {
+        return;
+      }
+      const settled = root.scrollTop;
+      panel.style.height = '';
+      panel.style.overflow = '';
+      root.scrollTop = settled;
+    };
+    const glideHeight = () => {
+      this.glideHostPanelValue(
+        token,
+        fromHeight,
+        toHeight,
+        (height) => {
+          panel.style.height = `${height}px`;
+        },
+        release,
+      );
+    };
+    if (shrinking && codeCardReturns) {
+      this.glideHostPanelValue(
+        token,
+        fromScroll,
+        scrollTarget,
+        (scroll) => {
+          root.scrollTop = scroll;
+        },
+        glideHeight,
+      );
+      return;
+    }
+    this.glideHostPanelValue(token, fromScroll, scrollTarget, (scroll) => {
+      root.scrollTop = scroll;
+    });
+    glideHeight();
+  }
+
+  private glideHostPanelValue(
+    token: number,
+    from: number,
+    to: number,
+    apply: (value: number) => void,
+    done?: () => void,
+  ): void {
+    if (Math.abs(to - from) <= 1) {
+      apply(to);
+      done?.();
+      return;
+    }
+    const started = performance.now();
+    const duration = Math.min(1100, Math.max(this.hostPanelFadeMs, Math.abs(to - from) * 1.8));
+    const step = (now: number) => {
+      if (token !== this.hostPanelScrollToken || this.destroyRef.destroyed) {
+        return;
+      }
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = progress * progress * (3 - 2 * progress);
+      apply(from + (to - from) * eased);
+      if (progress < 1) {
+        this.scheduleAnimationFrame(() => step(performance.now()));
+        return;
+      }
+      done?.();
+    };
+    this.scheduleAnimationFrame(() => step(performance.now()));
+  }
+
+  /** Pfeiltasten bleiben auf dem Tab. Die eingeblendete Karte übernimmt den Fokus nicht. */
+  private focusHostPanelTab(scenario: HostScenario): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.document.getElementById(HOST_PANEL_TAB_IDS[scenario])?.focus({ preventScroll: true });
   }
 
   /** Leertaste schon in keydown verarbeitet → keyup nicht erneut auslösen (vermeidet Doppel-Submit, nutzt keyup für virtuelle Tastatur). */
@@ -489,6 +778,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      this.hostScenario.discardDurablePreference();
       if (this.redirectPendingJoinFromQuery()) {
         return;
       }
@@ -1165,7 +1455,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     quickFeedbackAfterQa = false,
   ): Promise<void> {
     if (this.hostSessionStarting()) return;
-    const scenario = this.hostScenario.scenarioForAction();
+    const scenario = this.activeHostPanel() ?? this.hostScenario.scenarioForAction();
 
     this.joinError.set(null);
     this.joinErrorSessionFinished.set(false);

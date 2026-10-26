@@ -48,6 +48,7 @@
   width: 100%;
   min-width: 0;
   margin-inline: auto;
+  overflow-anchor: none;
 }
 
 .home-main > * {
@@ -379,35 +380,85 @@
   text-wrap: balance;
 }
 
+.home-host-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(100%, 40rem);
+  min-width: 0;
+  margin-inline: auto;
+  overflow-anchor: none;
+}
+
 .home-scenario {
+  position: sticky;
+  top: var(--app-offline-banner-height, 0px);
+  z-index: 5;
   min-width: 0;
   margin: 0;
-  margin-block-end: 0.75rem;
-  padding: 0;
+  padding: 0 0 0.75rem;
   border: 0;
+  background: transparent;
+  overflow-anchor: none;
 }
 
 .home-scenario__options {
   display: flex;
   flex-wrap: wrap;
+  align-items: stretch;
   justify-content: center;
   gap: 0.75rem;
 }
 
 .home-scenario__option {
+  position: relative;
+  display: inline-flex;
   flex: 1 1 12rem;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   min-height: 2.75rem;
   height: auto;
-  padding: 0.65rem 0.75rem;
+  padding: 0.65rem 2.85rem;
+  background: transparent;
+  --mat-button-outlined-container-color: transparent;
+  --mdc-outlined-button-container-color: transparent;
   white-space: normal;
   overflow-wrap: anywhere;
-  line-height: 1.4;
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
 
-  &[aria-pressed='true'] {
-    border-color: var(--mat-sys-primary);
-    background: var(--mat-sys-surface-container-high);
-    font-weight: 700;
+  &[aria-selected='true'] {
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--mat-sys-primary);
+  }
+}
+
+.home-scenario__option-label {
+  min-width: 0;
+}
+
+.home-scenario__option-mark {
+  position: absolute;
+  inset-inline-start: 1.25rem;
+  top: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.25rem;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 599px) {
+  .home-scenario__options {
+    flex-direction: column;
+  }
+
+  .home-scenario__option {
+    flex-basis: auto;
+    width: 100%;
   }
 }
 
@@ -417,6 +468,26 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   min-width: 0;
+  overflow-anchor: none;
+}
+
+.home-host-stack[hidden],
+.home-host-stack > .home-card[hidden] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-host-stack {
+    transition: opacity 520ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  .home-host-stack--leave {
+    opacity: 0;
+  }
 }
 
 /* Teilnahme: ein semantisches Eingabefeld, visuell als sechs Segmente. */
@@ -757,6 +828,8 @@
 }
 
 .home-host-stack > .home-card {
+  align-self: start;
+  height: auto;
   scroll-margin-top: calc(
     6.5rem + var(--app-offline-banner-height, 0px) + var(--app-service-status-banner-height, 0px) +
       var(--app-service-status-banner-gap, 0px)
@@ -781,14 +854,6 @@
   }
 }
 
-.home-host-stack > .home-card--scenario-selected {
-  outline: 3px solid var(--mat-sys-primary);
-  outline-offset: 3px;
-  box-shadow:
-    var(--mat-sys-level3),
-    0 0 0 0.5rem color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
-}
-
 .home-card__scenario-focus-target {
   display: inline-block;
   width: fit-content;
@@ -799,12 +864,6 @@
   outline: 3px solid var(--mat-sys-primary);
   outline-offset: 0.25rem;
   border-radius: var(--mat-sys-corner-extra-small);
-}
-
-.home-card--scenario-selected .home-card__icon-wrap {
-  border-color: var(--mat-sys-primary);
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
 }
 
 .home-qa-session-ghost {
@@ -1398,16 +1457,8 @@
   white-space: pre-line;
 }
 
-/* Erst auf breiten Desktops: gemeinsame App-Bar-Achse und drei natürliche Kartenhöhen. */
+/* Erst auf breiten Desktops: gemeinsame App-Bar-Achse; die Host-Karte bleibt unter der Auswahl. */
 @media (min-width: 1200px) {
-  .home-scenario {
-    margin-block-end: 1.25rem;
-  }
-
-  .home-scenario__option {
-    flex-basis: 9rem;
-  }
-
   :host.route-home .l-page:first-child {
     max-width: var(--app-toolbar-max-width);
     margin-top: 0;
@@ -1419,14 +1470,6 @@
     --home-host-card-bleed: 1.5rem;
     --home-host-card-pad: calc(1rem + (var(--home-host-card-bleed) / 2));
     gap: 1.25rem;
-  }
-
-  .home-host-stack {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 5rem;
-    width: min(72rem, calc(100vw - 4rem));
-    margin-inline: calc((100% - min(72rem, calc(100vw - 4rem))) / 2);
   }
 
   .home-hero-band {
@@ -1775,26 +1818,28 @@
       animation: home-hero-band-spotlight-drift 14s ease-in-out infinite;
     }
 
-    .home-card {
-      transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease;
-    }
+    @media (hover: hover) and (pointer: fine) {
+      .home-card {
+        transition:
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+      }
 
-    .home-card--stage-main#participant-entry:hover {
-      transform: translateY(-4px) scale(1.008);
-      box-shadow:
-        var(--mat-sys-level3),
-        0 12px 36px -8px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent),
-        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-    }
+      .home-card--stage-main#participant-entry:hover {
+        transform: translateY(-4px) scale(1.008);
+        box-shadow:
+          var(--mat-sys-level3),
+          0 12px 36px -8px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent),
+          inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+      }
 
-    .home-card.home-card--stage-side:hover {
-      transform: translateY(-3px) scale(1.005);
-      box-shadow:
-        var(--mat-sys-level3),
-        0 10px 30px -8px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent),
-        inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+      .home-card.home-card--stage-side:hover {
+        transform: translateY(-3px) scale(1.005);
+        box-shadow:
+          var(--mat-sys-level3),
+          0 10px 30px -8px color-mix(in srgb, var(--mat-sys-primary) 30%, transparent),
+          inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+      }
     }
   }
 
