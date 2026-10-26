@@ -389,6 +389,65 @@ describe('HomeComponent', () => {
       expect(matDialogMock.open).not.toHaveBeenCalled();
     });
 
+    it('übersetzt jede Aufgabenwahl als vollständige Beschriftung', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const homeDir = dirname(fileURLToPath(import.meta.url));
+      const template = readFileSync(join(homeDir, 'home.component.html'), 'utf8');
+      const ids = [
+        'homeScenario.classroomLabel',
+        'homeScenario.eventLabel',
+        'homeScenario.eventLabelStacked',
+        'homeScenario.quickLabel',
+      ];
+
+      for (const id of ids) {
+        expect(
+          template.match(new RegExp(`i18n="@@${id.replaceAll('.', '\\.')}"`, 'g')),
+        ).toHaveLength(1);
+      }
+      expect(template).not.toContain('homeScenario.classroomTerm');
+      expect(template).not.toContain('homeScenario.classroomAction');
+
+      const expected = {
+        'messages.en.xlf': [
+          'Create and manage a quiz',
+          'Create and manage Q&amp;A',
+          'Create and manage a Q&amp;A forum',
+          'Choose a pulse check',
+        ],
+        'messages.fr.xlf': [
+          'Créer et gérer un quiz',
+          'Créer et gérer un Q&amp;A',
+          'Créer et gérer un forum Q&amp;A',
+          'Choisir un feedback express',
+        ],
+        'messages.es.xlf': [
+          'Crear y gestionar un quiz',
+          'Crear y gestionar un Q&amp;A',
+          'Crear y gestionar un foro de Q&amp;A',
+          'Elegir un sondeo rápido',
+        ],
+        'messages.it.xlf': [
+          'Creare e gestire un quiz',
+          'Creare e gestire un Q&amp;A',
+          'Creare e gestire un forum Q&amp;A',
+          'Scegliere un sondaggio rapido',
+        ],
+      };
+
+      for (const [fileName, targets] of Object.entries(expected)) {
+        const catalog = readFileSync(join(homeDir, '../../../locale', fileName), 'utf8');
+        ids.forEach((id, index) => {
+          const start = catalog.indexOf(`<trans-unit id="${id}"`);
+          expect(start, `${fileName} ${id}`).toBeGreaterThanOrEqual(0);
+          const unit = catalog.slice(start, catalog.indexOf('</trans-unit>', start));
+          expect(unit).toContain(`<target>${targets[index]}</target>`);
+        });
+      }
+    });
+
     it('wählt per Pfeiltaste keine andere Aufgabe und lässt alle Buttons tabbar', async () => {
       const fixture = createHomeFixture();
       fixture.detectChanges();

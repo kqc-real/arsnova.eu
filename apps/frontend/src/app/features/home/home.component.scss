@@ -494,8 +494,7 @@
   display: none;
 }
 
-.home-scenario__option-term,
-.home-scenario__option-action {
+.home-scenario__option-copy {
   hyphens: none;
   -webkit-hyphens: none;
   overflow-wrap: normal;
@@ -525,10 +524,7 @@
     white-space: normal;
   }
 
-  .home-scenario__option-copy--stack,
-  .home-scenario__option-copy--row,
-  .home-scenario__option-term,
-  .home-scenario__option-action {
+  .home-scenario__option-copy {
     max-width: 100%;
     white-space: normal;
     text-align: center;

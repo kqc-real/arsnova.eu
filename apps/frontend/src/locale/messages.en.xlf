@@ -9524,33 +9524,21 @@
           <context context-type="linenumber">185,187</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.classroomTerm" datatype="html">
-        <source>Quiz</source>
-        <target>Quiz</target>
+      <trans-unit id="homeScenario.classroomLabel" datatype="html">
+        <source>Quiz erstellen &amp; verwalten</source>
+        <target>Create and manage a quiz</target>
       </trans-unit>
-      <trans-unit id="homeScenario.classroomAction" datatype="html">
-        <source>erstellen &amp; verwalten</source>
-        <target>Create and manage</target>
+      <trans-unit id="homeScenario.eventLabel" datatype="html">
+        <source>Q&amp;A erstellen &amp; verwalten</source>
+        <target>Create and manage Q&amp;A</target>
       </trans-unit>
-      <trans-unit id="homeScenario.eventTerm" datatype="html">
-        <source>Q&amp;A</source>
-        <target>Q&amp;A</target>
+      <trans-unit id="homeScenario.eventLabelStacked" datatype="html">
+        <source>Q&amp;A-Forum erstellen &amp; verwalten</source>
+        <target>Create and manage a Q&amp;A forum</target>
       </trans-unit>
-      <trans-unit id="homeScenario.eventAction" datatype="html">
-        <source>erstellen &amp; verwalten</source>
-        <target>Create and manage</target>
-      </trans-unit>
-      <trans-unit id="homeScenario.eventTermStacked" datatype="html">
-        <source>Q&amp;A-Forum</source>
-        <target>Q&amp;A forum</target>
-      </trans-unit>
-      <trans-unit id="homeScenario.quickTerm" datatype="html">
-        <source>Blitzlicht</source>
-        <target>Pulse Check</target>
-      </trans-unit>
-      <trans-unit id="homeScenario.quickAction" datatype="html">
-        <source>auswählen</source>
-        <target>Choose</target>
+      <trans-unit id="homeScenario.quickLabel" datatype="html">
+        <source>Blitzlicht auswählen</source>
+        <target>Choose a pulse check</target>
       </trans-unit>
       <trans-unit id="homeQuizCard.eyebrow" datatype="html">
         <source>Fragen ans Publikum</source>
