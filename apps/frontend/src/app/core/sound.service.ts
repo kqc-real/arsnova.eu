@@ -8,6 +8,10 @@ const SOUND_PATHS: Record<SoundKey, string> = {
   countdownEnd: 'assets/sound/countdownEnd/Song1.mp3',
 };
 
+/** Kurzer stiller Clip, damit die erste Nutzeraktion das Media-Element freigibt. */
+const MUSIC_UNLOCK_SRC =
+  'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
 const MUSIC_PATHS: Record<string, string> = {
   LOBBY_0: 'assets/sound/lobby/Song0.mp3',
   LOBBY_1: 'assets/sound/lobby/Song1.mp3',
@@ -33,12 +37,22 @@ export class SoundService {
   /** Alle aktiven Sound-Effekt-Nodes (damit sie gestoppt werden können). */
   private readonly activeSfxNodes = new Set<AudioBufferSourceNode>();
 
-  /** Story 5.3: Hintergrundmusik (Stopp-Logik bleibt für setMusicVolume/stopMusic) */
+  /**
+   * Hintergrundmusik läuft über ein Media-Element, nicht über AudioBufferSourceNode.
+   * Auf Chrome für Android beendet die Web-Audio-Schleife lange Tracks nach wenigen
+   * Sekunden. Der Host prüft die Musik alle paar Sekunden nach und würde den Puffer
+   * dann wieder bei 0 starten.
+   */
+  private musicEl: HTMLAudioElement | null = null;
+  private musicElementPath: string | null = null;
+  private musicSource: MediaElementAudioSourceNode | null = null;
   private musicGain: GainNode | null = null;
+  private musicElementPrimed = false;
   private musicGeneration = 0;
+  private musicPlaybackOwner = 0;
+  private musicFadeFrame: number | null = null;
   private currentMusicTrack: string | null = null;
   private pendingMusicTrack: string | null = null;
-  private readonly activeMusicNodes = new Set<AudioBufferSourceNode>();
   readonly musicPlaying = signal(false);
   readonly musicVolume = signal(80);
 
@@ -56,8 +70,7 @@ export class SoundService {
     }
   }
   private previewRunId = 0;
-  private previewSource: AudioBufferSourceNode | null = null;
-  private previewGain: GainNode | null = null;
+  private previewTimer: ReturnType<typeof setTimeout> | null = null;
 
   private getContext(): AudioContext | null {
     if (globalThis.window === undefined) return null;
@@ -85,14 +98,25 @@ export class SoundService {
   }
 
   unlock(): void {
-    if (this.unlocked) return;
-    void this.tryUnlockContext();
+    if (!this.outputEnabled()) {
+      if (!this.unlocked) {
+        void this.tryUnlockContext();
+      }
+      return;
+    }
+    // play() muss in der Nutzeraktion selbst starten. Ein await davor verlässt die Geste.
+    this.attachMusicGain();
+    this.primeMusicElementInGesture();
+    if (!this.unlocked) {
+      void this.tryUnlockContext();
+    }
   }
 
   private async tryUnlockContext(): Promise<void> {
     const ctx = await this.ensureContextRunning();
     if (ctx) {
       this.unlocked = true;
+      this.attachMusicGain();
     }
   }
 
@@ -193,15 +217,42 @@ export class SoundService {
   /** Startet (oder hält) loopende Hintergrundmusik für den gewünschten Track. */
   async playMusic(track: string): Promise<void> {
     if (!this.outputEnabled()) return;
-    const ctx = await this.ensureContextRunning();
-    if (!ctx) return;
     const path = MUSIC_PATHS[track];
     if (!path) {
       this.stopMusic();
       return;
     }
-    if (this.musicPlaying() && this.currentMusicTrack === track && this.activeMusicNodes.size > 0) {
-      return;
+    const el = this.ensureMusicElement();
+    if (!el) return;
+
+    if (this.currentMusicTrack === track && this.musicElementPath === path) {
+      if (!el.paused && !el.ended) {
+        return;
+      }
+      // Chrome auf Android pausiert oder beendet das Element, lässt currentTime aber stehen.
+      // play() bei ended springt sonst an den Anfang, auch mitten im Track.
+      if (el.currentTime > 0) {
+        const position = el.currentTime;
+        if (el.ended) {
+          try {
+            el.currentTime = position;
+          } catch {
+            /* Metadaten noch nicht da */
+          }
+        }
+        const owner = this.claimMusicPlayback();
+        try {
+          await el.play();
+        } catch {
+          return;
+        }
+        if (owner !== this.musicPlaybackOwner) {
+          this.pauseMusicElementIfAbandoned(el);
+          return;
+        }
+        this.musicPlaying.set(true);
+        return;
+      }
     }
     if (this.pendingMusicTrack === track) {
       return;
@@ -209,121 +260,121 @@ export class SoundService {
 
     this.stopMusic();
     const generation = this.musicGeneration;
+    const owner = this.claimMusicPlayback();
     this.pendingMusicTrack = track;
-
-    let buffer = this.buffers.get(path);
-    if (!buffer) {
-      try {
-        const response = await fetch(path);
-        const arrayBuffer = await response.arrayBuffer();
-        buffer = await ctx.decodeAudioData(arrayBuffer);
-        this.buffers.set(path, buffer);
-      } catch {
-        if (generation === this.musicGeneration) {
-          this.pendingMusicTrack = null;
-        }
-        return;
-      }
-    }
-    if (generation !== this.musicGeneration || !buffer) {
+    this.attachMusicGain();
+    this.prepareMusicElement(el, path, true);
+    try {
+      await el.play();
+    } catch {
       if (generation === this.musicGeneration) {
         this.pendingMusicTrack = null;
+      } else {
+        this.pauseMusicElementIfAbandoned(el);
       }
       return;
     }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    const gain = ctx.createGain();
-    gain.gain.value = this.musicVolume() / 100;
-    source.connect(gain);
-    gain.connect(ctx.destination);
-    source.start(0);
-
-    this.musicGain = gain;
+    if (owner !== this.musicPlaybackOwner) {
+      this.pauseMusicElementIfAbandoned(el);
+      return;
+    }
     this.currentMusicTrack = track;
-    this.activeMusicNodes.add(source);
     this.musicPlaying.set(true);
     this.pendingMusicTrack = null;
-    source.onended = () => this.activeMusicNodes.delete(source);
   }
 
   stopMusic(): void {
     this.musicGeneration++;
-    if (this.musicGain && this.ctx) {
+    this.musicPlaybackOwner++;
+    this.cancelMusicFade();
+    const el = this.musicEl;
+    if (el) {
+      el.onended = null;
+      el.pause();
       try {
-        this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+        el.currentTime = 0;
       } catch {
-        /* noop */
+        /* Metadaten noch nicht da */
       }
     }
-    for (const node of this.activeMusicNodes) {
-      try {
-        node.stop();
-        node.disconnect();
-      } catch {
-        /* already stopped */
-      }
-    }
-    this.activeMusicNodes.clear();
-    if (this.musicGain) {
-      try {
-        this.musicGain.disconnect();
-      } catch {
-        /* noop */
-      }
-    }
-    this.musicGain = null;
     this.currentMusicTrack = null;
     this.pendingMusicTrack = null;
     this.musicPlaying.set(false);
   }
 
-  /**
-   * Blendet laufende Hintergrundmusik über `durationSeconds` auf 0 aus.
-   * Stoppt die Nodes nicht selbst – der Host setzt danach die SFX-Phase / stopMusic.
-   */
-  fadeOutMusic(durationSeconds: number): void {
-    const ctx = this.ctx;
-    const gainNode = this.musicGain;
-    if (!ctx || !gainNode || !this.musicPlaying()) {
+  /** Ein veraltetes play() darf nur pausieren, wenn niemand das Element übernommen hat. */
+  private pauseMusicElementIfAbandoned(el: HTMLAudioElement): void {
+    if (this.musicEl !== el) return;
+    if (
+      this.currentMusicTrack !== null ||
+      this.pendingMusicTrack !== null ||
+      this.musicPreviewing()
+    ) {
       return;
     }
-    const now = ctx.currentTime;
-    const current = gainNode.gain.value;
-    const duration = Math.max(0.05, durationSeconds);
-    try {
-      gainNode.gain.cancelScheduledValues(now);
-      gainNode.gain.setValueAtTime(current, now);
-      gainNode.gain.linearRampToValueAtTime(0, now + duration);
-    } catch {
-      gainNode.gain.value = 0;
+    el.pause();
+  }
+
+  private claimMusicPlayback(): number {
+    this.musicPlaybackOwner += 1;
+    return this.musicPlaybackOwner;
+  }
+
+  /**
+   * Blendet laufende Hintergrundmusik über `durationSeconds` auf 0 aus.
+   * Stoppt das Element nicht – der Host setzt danach die SFX-Phase oder stopMusic.
+   */
+  fadeOutMusic(durationSeconds: number): void {
+    const el = this.musicEl;
+    if (!el || !this.musicPlaying() || el.paused) {
+      return;
     }
+    this.cancelMusicFade();
+    const duration = Math.max(0.05, durationSeconds);
+    const gain = this.musicGain;
+    const ctx = this.ctx;
+    if (gain && ctx) {
+      const now = ctx.currentTime;
+      const current = gain.gain.value;
+      try {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(current, now);
+        gain.gain.linearRampToValueAtTime(0, now + duration);
+      } catch {
+        gain.gain.value = 0;
+      }
+      return;
+    }
+    const startVolume = el.volume;
+    const durationMs = duration * 1000;
+    const startedAt = globalThis.performance?.now() ?? Date.now();
+    const step = (now: number): void => {
+      if (this.musicEl !== el || this.musicGain) {
+        return;
+      }
+      const progress = Math.min(1, (now - startedAt) / durationMs);
+      el.volume = startVolume * (1 - progress);
+      if (progress < 1) {
+        this.musicFadeFrame = globalThis.requestAnimationFrame(step);
+      } else {
+        this.musicFadeFrame = null;
+      }
+    };
+    this.musicFadeFrame = globalThis.requestAnimationFrame(step);
   }
 
   /** Bricht eine laufende Musik-Vorschau ab (ohne Callback). */
   stopPreview(): void {
     this.previewRunId++;
-    if (this.previewSource) {
-      try {
-        this.previewSource.stop();
-        this.previewSource.disconnect();
-      } catch {
-        /* already stopped */
-      }
-      this.previewSource = null;
-    }
-    if (this.previewGain) {
-      try {
-        this.previewGain.disconnect();
-      } catch {
-        /* noop */
-      }
-      this.previewGain = null;
-    }
+    this.musicPlaybackOwner++;
+    this.clearPreviewTimer();
+    const wasPreviewing = this.musicPreviewing();
     this.musicPreviewing.set(false);
     this.musicPreviewTrackId.set(null);
+    if (wasPreviewing && this.musicEl) {
+      this.musicEl.onended = null;
+      this.musicEl.pause();
+    }
   }
 
   /**
@@ -349,78 +400,55 @@ export class SoundService {
     runId: number,
     onEnd?: () => void,
   ): Promise<void> {
-    const finish = () => {
+    const finish = (): void => {
       if (runId !== this.previewRunId) return;
-      this.previewSource = null;
-      if (this.previewGain) {
-        try {
-          this.previewGain.disconnect();
-        } catch {
-          /* noop */
-        }
-        this.previewGain = null;
+      this.previewRunId++;
+      this.clearPreviewTimer();
+      if (this.musicEl) {
+        this.musicEl.onended = null;
       }
       this.musicPreviewing.set(false);
       this.musicPreviewTrackId.set(null);
       onEnd?.();
     };
 
-    const ctx = await this.ensureContextRunning();
-    if (!ctx || runId !== this.previewRunId) {
+    const path = MUSIC_PATHS[track];
+    const el = this.ensureMusicElement();
+    if (!path || !el || runId !== this.previewRunId) {
       finish();
       return;
     }
 
-    const path = MUSIC_PATHS[track];
-    if (!path) {
-      this.musicPreviewing.set(false);
-      this.musicPreviewTrackId.set(null);
-      onEnd?.();
+    const sliceMs = Math.max(0, maxSeconds) * 1000;
+    if (sliceMs <= 0) {
+      finish();
       return;
     }
 
-    let buffer = this.buffers.get(path);
-    if (!buffer) {
-      try {
-        const response = await fetch(path);
-        const arrayBuffer = await response.arrayBuffer();
-        buffer = await ctx.decodeAudioData(arrayBuffer);
-        this.buffers.set(path, buffer);
-      } catch {
-        finish();
+    this.attachMusicGain();
+    this.prepareMusicElement(el, path, false);
+    el.onended = () => finish();
+    const owner = this.claimMusicPlayback();
+    try {
+      await el.play();
+    } catch {
+      if (runId !== this.previewRunId) {
+        this.pauseMusicElementIfAbandoned(el);
         return;
       }
-    }
-
-    if (!buffer || runId !== this.previewRunId) {
       finish();
       return;
     }
-
-    const slice = Math.min(buffer.duration, maxSeconds);
-    if (slice <= 0) {
-      finish();
+    if (runId !== this.previewRunId || owner !== this.musicPlaybackOwner) {
+      this.pauseMusicElementIfAbandoned(el);
       return;
     }
 
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = false;
-    const gain = ctx.createGain();
-    gain.gain.value = this.musicVolume() / 100;
-    source.connect(gain);
-    gain.connect(ctx.destination);
-
-    this.previewSource = source;
-    this.previewGain = gain;
-
-    source.onended = () => finish();
-
-    try {
-      source.start(0, 0, slice);
-    } catch {
+    this.previewTimer = setTimeout(() => {
+      if (runId !== this.previewRunId) return;
+      el.pause();
       finish();
-    }
+    }, sliceMs);
   }
 
   /** Stoppt ALLES – Sound-Effekte, Vorschau und Musik. */
@@ -433,8 +461,119 @@ export class SoundService {
   setMusicVolume(percent: number): void {
     const clamped = Math.max(0, Math.min(100, percent));
     this.musicVolume.set(clamped);
+    this.cancelMusicFade();
+    this.applyMusicVolume();
+  }
+
+  private ensureMusicElement(): HTMLAudioElement | null {
+    if (globalThis.window === undefined) return null;
+    if (!this.musicEl) {
+      try {
+        this.musicEl = new Audio();
+      } catch {
+        return null;
+      }
+      this.musicEl.preload = 'auto';
+      this.musicEl.setAttribute('playsinline', 'true');
+    }
+    return this.musicEl;
+  }
+
+  /** Neuer Start. Laufende Wiedergabe desselben Tracks geht nicht hier durch. */
+  private prepareMusicElement(el: HTMLAudioElement, path: string, loop: boolean): void {
+    this.cancelMusicFade();
+    el.loop = loop;
+    el.onended = null;
+    if (this.musicElementPath !== path) {
+      el.src = path;
+      this.musicElementPath = path;
+    }
+    this.applyMusicVolume();
+    try {
+      el.currentTime = 0;
+    } catch {
+      /* Metadaten noch nicht da */
+    }
+  }
+
+  /**
+   * iOS Safari ignoriert `HTMLMediaElement.volume`. Die Lautstärke und das
+   * Ausblenden laufen deshalb über einen Gain-Knoten am Media-Element.
+   */
+  private attachMusicGain(): void {
+    if (this.musicGain || this.musicSource) return;
+    const el = this.ensureMusicElement();
+    const ctx = this.getContext();
+    if (!el || !ctx || typeof ctx.createMediaElementSource !== 'function') return;
+    try {
+      const source = ctx.createMediaElementSource(el);
+      const gain = ctx.createGain();
+      gain.gain.value = this.musicVolume() / 100;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      this.musicSource = source;
+      this.musicGain = gain;
+      el.volume = 1;
+    } catch {
+      this.musicSource = null;
+      this.musicGain = null;
+    }
+  }
+
+  private applyMusicVolume(): void {
+    const level = this.musicVolume() / 100;
     if (this.musicGain) {
-      this.musicGain.gain.value = clamped / 100;
+      this.musicGain.gain.value = level;
+      if (this.musicEl) {
+        this.musicEl.volume = 1;
+      }
+      return;
+    }
+    if (this.musicEl) {
+      this.musicEl.volume = level;
+    }
+  }
+
+  private primeMusicElementInGesture(): void {
+    if (this.musicElementPrimed) return;
+    const el = this.ensureMusicElement();
+    if (!el) return;
+    if (!el.src) {
+      el.src = MUSIC_UNLOCK_SRC;
+    }
+    try {
+      void el
+        .play()
+        .then(() => {
+          this.musicElementPrimed = true;
+          if (!this.currentMusicTrack && !this.pendingMusicTrack && !this.musicPreviewing()) {
+            el.pause();
+          }
+        })
+        .catch(() => undefined);
+    } catch {
+      /* Autoplay */
+    }
+  }
+
+  private cancelMusicFade(): void {
+    if (this.musicFadeFrame !== null) {
+      globalThis.cancelAnimationFrame(this.musicFadeFrame);
+      this.musicFadeFrame = null;
+    }
+    if (this.musicGain && this.ctx) {
+      try {
+        this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      } catch {
+        /* noop */
+      }
+    }
+  }
+
+  private clearPreviewTimer(): void {
+    if (this.previewTimer !== null) {
+      clearTimeout(this.previewTimer);
+      this.previewTimer = null;
     }
   }
 }

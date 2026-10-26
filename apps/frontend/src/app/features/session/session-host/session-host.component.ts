@@ -6140,6 +6140,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private unlockListener = (): void => {
     this.sound.unlock();
+    this.syncMusic();
     this.document.removeEventListener('click', this.unlockListener);
     this.document.removeEventListener('keydown', this.unlockListener);
   };

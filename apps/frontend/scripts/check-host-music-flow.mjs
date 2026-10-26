@@ -5,7 +5,7 @@
  * Verifiziert:
  * - Ein frueher, blockierter Audio-Resume-Versuch auf der Host-Seite blockiert den ersten echten Klick nicht dauerhaft.
  * - Das Musik-Menue bleibt nach blockierten Autoplay-Versuchen bedienbar.
- * - Die Track-Vorschau im Musik-Menue entsperrt Audio per echter User-Geste und startet erfolgreich.
+ * - Die Track-Vorschau im Musik-Menue entsperrt Audio per echter User-Geste und startet das Media-Element.
  *
  * Run:
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc npm run smoke:host-music -w @arsnova/frontend
@@ -120,6 +120,7 @@ async function clickViaDom(locator) {
 async function readAudioStats(page) {
   return page.evaluate(() => ({
     resumeCalls: globalThis.__arsnovaAudioResumeCalls ?? 0,
+    playCalls: globalThis.__arsnovaAudioPlayCalls ?? 0,
     startCalls: globalThis.__arsnovaAudioStartCalls ?? 0,
     state: globalThis.__arsnovaAudioLastState ?? 'missing',
   }));
@@ -152,6 +153,7 @@ async function main() {
         globalThis.sessionStorage.setItem(`${prefix}${sessionCode}`, token);
         globalThis.localStorage.setItem('home-preset', 'spielerisch');
         globalThis.__arsnovaAudioResumeCalls = 0;
+        globalThis.__arsnovaAudioPlayCalls = 0;
         globalThis.__arsnovaAudioStartCalls = 0;
         globalThis.__arsnovaAudioLastState = 'suspended';
         globalThis.__arsnovaAudioAllowResume = false;
@@ -268,6 +270,20 @@ async function main() {
 
         globalThis.AudioContext = FakeAudioContext;
         globalThis.webkitAudioContext = FakeAudioContext;
+
+        HTMLAudioElement.prototype.play = function play() {
+          globalThis.__arsnovaAudioPlayCalls += 1;
+          if (!globalThis.__arsnovaAudioAllowResume) {
+            return Promise.reject(new DOMException('autoplay blocked', 'NotAllowedError'));
+          }
+          globalThis.__arsnovaAudioStartCalls += 1;
+          try {
+            this.paused = false;
+          } catch {
+            /* paused ist im Browser oft readonly */
+          }
+          return Promise.resolve();
+        };
       },
       {
         sessionCode: code,
@@ -289,18 +305,15 @@ async function main() {
       timeout: 10_000,
     });
     const initialAudio = await readAudioStats(hostPage);
-    const initialBlocked =
-      initialAudio.resumeCalls >= 1 &&
-      initialAudio.startCalls === 0 &&
-      initialAudio.state === 'suspended';
+    const initialBlocked = initialAudio.playCalls >= 1 && initialAudio.startCalls === 0;
     logStep(
       initialBlocked,
-      'Initiale Host-Resumes bleiben vor echtem Musik-Klick blockiert',
-      `resume=${initialAudio.resumeCalls}, starts=${initialAudio.startCalls}, state=${initialAudio.state}`,
+      'Initiale Musik startet vor echtem Klick nicht',
+      `plays=${initialAudio.playCalls}, starts=${initialAudio.startCalls}, state=${initialAudio.state}`,
     );
     if (!initialBlocked) {
       failures.push(
-        `Vor dem ersten Musik-Klick sollte Audio noch blockiert sein: resume=${initialAudio.resumeCalls}, starts=${initialAudio.startCalls}, state=${initialAudio.state}.`,
+        `Vor dem ersten Musik-Klick sollte die Wiedergabe blockiert sein: plays=${initialAudio.playCalls}, starts=${initialAudio.startCalls}, state=${initialAudio.state}.`,
       );
     }
 
