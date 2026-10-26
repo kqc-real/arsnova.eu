@@ -2773,6 +2773,12 @@ html.preset-playful
 /* class auf <mat-menu> landet als Panel-Klasse (panelClass-Alias). */
 .app-footer__more-menu.mat-mdc-menu-panel,
 .app-footer__more-menu-panel.mat-mdc-menu-panel {
+  .app-footer__more-divider {
+    height: 1px;
+    margin-block: 0.25rem;
+    background: var(--mat-sys-outline-variant);
+  }
+
   .mat-mdc-menu-item .mat-icon {
     display: inline-flex !important;
     align-items: center;

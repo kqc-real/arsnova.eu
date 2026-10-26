@@ -741,7 +741,7 @@ Unterstützt werden:
 Strikte Trennung von Session-Feedback und Blitzlicht: Bewertung von **Bedienbarkeit und Nutzen von arsnova.eu**, nur für Plattform-Admins sichtbar.
 
 - **Post-Session (12.1):** rollenspezifische Zwei-Klick-Mikroumfrage nach genutzten Sessions (Host-Sheet / Vote-Ende); optionale kurze Ergänzung; Stichprobe und Einmal-Tokens. Auf Mobilgeräten verkleinert die virtuelle Tastatur den App-Viewport, damit Texteingabe und Sheet-Aktionen sichtbar und scrollbar bleiben.
-- **In-App (12.2):** jederzeit **„arsnova.eu verbessern“** (Footer-Utility, Hilfe, immersive Hostansicht, eigenständiges Blitzlicht); Icon `insights`; Offline-Outbox; Admin-Triage inkl. optionalem GitHub-Entwurf ohne Originalfreitext.
+- **In-App (12.2):** jederzeit **„arsnova.eu verbessern“** (letzter Eintrag im Footer-Menü »Mehr«, durch einen Trenner abgesetzt, Hilfe, immersive Hostansicht, eigenständiges Blitzlicht); Icon `insights`; Offline-Outbox; Admin-Triage inkl. optionalem GitHub-Entwurf ohne Originalfreitext.
 - **LLM-Export (12.3):** Admin-Markdown mit Auswertungsprompt für ein externes Modell; kein serverseitiger LLM-Aufruf; Freitext nur als Opt-in.
 - **Massenlöschung (12.4):** Admin-Dialog löscht Rückmeldungen und den Einladungszähler bis einschließlich eines Datums oder vollständig; Sicherheitsphrase; kein Undo.
 - Presenteransicht ohne CTA. Fachdoku: [features/product-feedback.md](features/product-feedback.md).

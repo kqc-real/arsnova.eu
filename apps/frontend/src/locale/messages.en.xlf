@@ -12003,8 +12003,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.previewOpenAria" datatype="html">
-        <source>Änderungen speichern und Vorschau öffnen</source>
-        <target>Save changes and open preview</target>
+        <source>Vorschau</source>
+        <target>Preview</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">165</context>
@@ -12015,8 +12015,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.previewSaveAndOpen" datatype="html">
-        <source>Speichern &amp; Vorschau</source>
-        <target>Save &amp; preview</target>
+        <source>Vorschau</source>
+        <target>Preview</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">168</context>

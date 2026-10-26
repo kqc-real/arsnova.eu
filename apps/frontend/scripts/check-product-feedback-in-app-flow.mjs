@@ -203,11 +203,18 @@ function dialog(page) {
 }
 
 async function openImprove(page, { viaFooter = false } = {}) {
-  const trigger = viaFooter
-    ? page.locator('button.app-footer__feedback-action')
-    : improveButton(page);
-  await trigger.first().waitFor({ state: 'visible', timeout: 20_000 });
-  await trigger.first().click();
+  if (viaFooter) {
+    const more = page.locator('button[data-footer-focus="footer-more"]');
+    await more.waitFor({ state: 'visible', timeout: 20_000 });
+    await more.click();
+    const item = page.getByRole('menuitem', { name: IMPROVE_NAME });
+    await item.waitFor({ state: 'visible', timeout: 10_000 });
+    await item.click();
+  } else {
+    const trigger = improveButton(page);
+    await trigger.first().waitFor({ state: 'visible', timeout: 20_000 });
+    await trigger.first().click();
+  }
   await dialog(page).waitFor({ state: 'visible', timeout: 15_000 });
   const icon = dialog(page).locator('.product-feedback-in-app-dialog__brand-icon');
   ensure(

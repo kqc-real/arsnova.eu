@@ -158,13 +158,6 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.quiz-edit__meta-actions {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-}
-
 .quiz-edit__bottom-actions {
   position: fixed;
   left: 50%;
@@ -1657,12 +1650,6 @@
 
   .quiz-edit-form__grid-field--full {
     grid-column: 1 / -1;
-  }
-}
-
-@media (min-width: 700px) {
-  .quiz-edit__meta-actions {
-    justify-content: flex-end;
   }
 }
 

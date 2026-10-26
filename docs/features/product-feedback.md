@@ -64,8 +64,8 @@ holen beim Retry eine frische Challenge und behalten ihren Idempotency-Key.
 Vorgemerkte Einträge sind im Dialog einsehbar und löschbar; der globale Retry
 läuft bei App-Start und beim `online`-Ereignis.
 
-Der globale Footer behält genau drei primäre Navigationsziele; „arsnova.eu
-verbessern“ steht in einer getrennten Utility-Zeile. Hilfe, immersive
+Der globale Footer behält genau drei primäre Navigationsziele. »arsnova.eu
+verbessern« ist der letzte Eintrag im Menü »Mehr« und durch einen Trenner abgesetzt. Hilfe, immersive
 Hostansicht und eigenständige Blitzlichtansichten bieten gleichwertige,
 beschriftete Einstiege. Die Presenteransicht bleibt frei davon. Kontextuelle
 Host-/Vote-Angebote öffnen nie automatisch, ersetzen keinen Retry und
