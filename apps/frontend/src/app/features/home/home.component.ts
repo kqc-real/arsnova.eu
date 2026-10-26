@@ -527,23 +527,24 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!cardRect || tabsRect.height <= 0 || cardRect.height <= 0) {
       return;
     }
+    const limitBottom = rootRect.bottom - 8;
     const rootStyle = getComputedStyle(root);
     const paddingTop = Number.parseFloat(rootStyle.paddingTop) || 0;
     const stickyTop = Number.parseFloat(getComputedStyle(tabs).top) || 0;
-    const stuckTabsTop = rootRect.top + paddingTop + stickyTop;
-    const limitTop = stuckTabsTop + tabsRect.height;
-    const limitBottom = rootRect.bottom - 8;
-    const cardHeight = card ? this.hostCardContentHeight(card, panel) : cardRect.height;
-    const fits = cardHeight <= limitBottom - limitTop;
+    const parkedTop = rootRect.top + paddingTop + stickyTop + tabsRect.height;
+    const measuredHeight = card ? this.hostCardContentHeight(card, panel) : 0;
+    const cardHeight = measuredHeight > 0 ? measuredHeight : cardRect.height;
+    const contentTop = cardRect.top;
+    const contentBottom = cardRect.top + cardHeight;
+    const fullyVisible = contentTop >= rootRect.top - 1 && contentBottom <= limitBottom + 1;
     let delta = 0;
-    if (fits) {
-      if (cardRect.bottom > limitBottom) {
-        delta = cardRect.bottom - limitBottom;
-      } else if (cardRect.top < limitTop) {
-        delta = cardRect.top - limitTop;
+    if (!fullyVisible && contentBottom > limitBottom) {
+      delta = contentBottom - limitBottom;
+      if (contentTop - delta < parkedTop) {
+        delta = Math.max(0, contentTop - parkedTop);
       }
-    } else if (Math.abs(cardRect.top - limitTop) > 1) {
-      delta = cardRect.top - limitTop;
+    } else if (!fullyVisible && contentTop < rootRect.top) {
+      delta = contentTop - parkedTop;
     }
     const fromHeight = panel.getBoundingClientRect().height;
     const toHeight = cardHeight;
@@ -578,9 +579,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Wird die Karte kürzer, gleitet die Code-Karte zuerst zurück. Erst danach
-   * schrumpft die Höhe. Gleichzeitiges Kürzen klemmt auf dem Smartphone den
-   * Scroll und lässt die Code-Karte springen.
+   * Scrollt nur, wenn die Karte sonst nicht vollständig sichtbar ist. Passt sie
+   * schon, bleibt die Scrollposition und damit die Auswahl unverändert.
+   * Wird die Karte kürzer und die Seite muss nach oben, gleitet zuerst der
+   * Scroll und erst danach die Höhe, damit nichts springt.
    */
   private glideHostPanelLayout(
     panel: HTMLElement,
@@ -593,7 +595,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const token = this.hostPanelScrollToken;
     const fromScroll = root.scrollTop;
     const shrinking = toHeight + 1 < fromHeight;
-    const codeCardReturns = scrollTarget + 1 < fromScroll;
+    const scrollingUp = scrollTarget + 1 < fromScroll;
     panel.style.overflow = 'hidden';
     panel.style.height = `${fromHeight}px`;
     const release = () => {
@@ -616,7 +618,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
         release,
       );
     };
-    if (shrinking && codeCardReturns) {
+    if (Math.abs(scrollTarget - fromScroll) <= 1) {
+      glideHeight();
+      return;
+    }
+    if (shrinking && scrollingUp) {
       this.glideHostPanelValue(
         token,
         fromScroll,
