@@ -8419,26 +8419,26 @@
           <context context-type="linenumber">185,187</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.classroom" datatype="html">
-        <source>Quiz erstellen &amp; verwalten</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">203,205</context>
-        </context-group>
+      <trans-unit id="homeScenario.classroomTerm" datatype="html">
+        <source>Quiz</source>
       </trans-unit>
-      <trans-unit id="homeScenario.event" datatype="html">
-        <source>Q&amp;A-Forum erstellen &amp; verwalten</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">213,215</context>
-        </context-group>
+      <trans-unit id="homeScenario.classroomAction" datatype="html">
+        <source>erstellen &amp; verwalten</source>
       </trans-unit>
-      <trans-unit id="homeScenario.quick" datatype="html">
-        <source>Blitzlicht auswählen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">223,225</context>
-        </context-group>
+      <trans-unit id="homeScenario.eventTerm" datatype="html">
+        <source>Q&amp;A</source>
+      </trans-unit>
+      <trans-unit id="homeScenario.eventAction" datatype="html">
+        <source>erstellen &amp; verwalten</source>
+      </trans-unit>
+      <trans-unit id="homeScenario.eventTermStacked" datatype="html">
+        <source>Q&amp;A-Forum</source>
+      </trans-unit>
+      <trans-unit id="homeScenario.quickTerm" datatype="html">
+        <source>Blitzlicht</source>
+      </trans-unit>
+      <trans-unit id="homeScenario.quickAction" datatype="html">
+        <source>auswählen</source>
       </trans-unit>
       <trans-unit id="homeQuizCard.eyebrow" datatype="html">
         <source>Fragen ans Publikum</source>

@@ -9519,29 +9519,33 @@
           <context context-type="linenumber">185,187</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.classroom" datatype="html">
-        <source>Quiz erstellen &amp; verwalten</source>
-        <target>Crear y gestionar un quiz</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">203,205</context>
-        </context-group>
+      <trans-unit id="homeScenario.classroomTerm" datatype="html">
+        <source>Quiz</source>
+        <target>Quiz</target>
       </trans-unit>
-      <trans-unit id="homeScenario.event" datatype="html">
-        <source>Q&amp;A-Forum erstellen &amp; verwalten</source>
-        <target>Crear y gestionar un foro de Q&amp;A</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">213,215</context>
-        </context-group>
+      <trans-unit id="homeScenario.classroomAction" datatype="html">
+        <source>erstellen &amp; verwalten</source>
+        <target>Crear y gestionar</target>
       </trans-unit>
-      <trans-unit id="homeScenario.quick" datatype="html">
-        <source>Blitzlicht auswählen</source>
-        <target>Elegir un sondeo rápido</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">223,225</context>
-        </context-group>
+      <trans-unit id="homeScenario.eventTerm" datatype="html">
+        <source>Q&amp;A</source>
+        <target>Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeScenario.eventAction" datatype="html">
+        <source>erstellen &amp; verwalten</source>
+        <target>Crear y gestionar</target>
+      </trans-unit>
+      <trans-unit id="homeScenario.eventTermStacked" datatype="html">
+        <source>Q&amp;A-Forum</source>
+        <target>Foro de Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeScenario.quickTerm" datatype="html">
+        <source>Blitzlicht</source>
+        <target>Sondeo rápido</target>
+      </trans-unit>
+      <trans-unit id="homeScenario.quickAction" datatype="html">
+        <source>auswählen</source>
+        <target>Elegir</target>
       </trans-unit>
       <trans-unit id="homeQuizCard.eyebrow" datatype="html">
         <source>Fragen ans Publikum</source>

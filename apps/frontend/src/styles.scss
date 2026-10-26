@@ -2834,3 +2834,14 @@ html.preset-playful
   line-height: 1.4;
   white-space: normal;
 }
+
+// Material setzt das Button-Label auf position: relative. Die Startseiten-Aufgabenwahl
+// richtet das Kanal-Icon absolut am Button aus; das Label darf dafuer kein eigener
+// Containing-Block sein und muss die volle Breite fuellen, damit der Text in der
+// Flaeche neben dem Icon zentriert ist.
+.home-scenario__option.mat-mdc-outlined-button > .mdc-button__label {
+  position: static;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}

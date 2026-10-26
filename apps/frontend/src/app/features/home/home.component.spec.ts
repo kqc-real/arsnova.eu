@@ -340,9 +340,19 @@ describe('HomeComponent', () => {
       expect(panel.hasAttribute('inert')).toBe(true);
       expect(cards).toHaveLength(3);
       expect(choices).toHaveLength(3);
-      expect(choices.map((button) => button.textContent?.replace(/\s+/g, ' ').trim())).toEqual(
-        labels,
-      );
+      expect(
+        choices.map((button) => {
+          const label =
+            button.querySelector('.home-scenario__option-copy--stack') ??
+            button.querySelector('.home-scenario__option-label');
+          return label?.textContent?.replace(/\s+/g, ' ').trim();
+        }),
+      ).toEqual(labels);
+      expect(
+        choices.map((button) =>
+          button.querySelector('.home-scenario__option-icon')?.textContent?.trim(),
+        ),
+      ).toEqual(['quiz', 'chat_bubble', 'bolt']);
       expect(choices.every((button) => button.getAttribute('role') === null)).toBe(true);
       expect(choices.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
       expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
@@ -358,9 +368,8 @@ describe('HomeComponent', () => {
         expect(panel.hidden).toBe(false);
         expect(panel.getAttribute('aria-labelledby')).toBe(choice.id);
         expect(choice.getAttribute('aria-pressed')).toBe('true');
-        expect(choice.querySelector('.home-scenario__option-mark')?.textContent?.trim()).toBe(
-          'check',
-        );
+        expect(choice.querySelector('.home-scenario__option-mark')).toBeNull();
+        expect(choice.querySelector('.home-scenario__option-icon')).not.toBeNull();
         expect(document.activeElement).toBe(choice);
         expect(target?.hidden).toBe(false);
         expect(target?.hasAttribute('inert')).toBe(false);
@@ -2808,9 +2817,7 @@ describe('HomeComponent', () => {
     expect(scss).toMatch(
       /@media \(prefers-reduced-motion:\s*no-preference\)\s*\{[^}]*\.home-host-stack\s*\{[^}]*opacity 520ms cubic-bezier\(0\.4,\s*0,\s*0\.2,\s*1\)/,
     );
-    expect(scss).toMatch(
-      /\.home-scenario__option-mark\s*\{[^}]*position:\s*absolute[^}]*inset-inline-start:\s*1\.25rem[^}]*transform:\s*translateY\(-50%\)/,
-    );
+    expect(scss).not.toContain('home-scenario__option-mark');
     expect(scss).toMatch(
       /\.home-host-stack\[hidden\],\s*\.home-host-stack > \.home-card\[hidden\]\s*\{[^}]*display:\s*none !important/,
     );

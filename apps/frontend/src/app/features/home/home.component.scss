@@ -404,7 +404,7 @@
 
 .home-scenario__options {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: stretch;
   justify-content: center;
   gap: 0.75rem;
@@ -413,21 +413,30 @@
 .home-scenario__option {
   position: relative;
   display: inline-flex;
-  flex: 1 1 12rem;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  min-height: 2.75rem;
+  min-height: 4rem;
   height: auto;
-  padding: 0.65rem 2.85rem;
+  padding: 0.7rem 0.85rem;
   background: transparent;
   --mat-button-outlined-container-color: transparent;
   --mdc-outlined-button-container-color: transparent;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.35;
+  hyphens: none;
+  -webkit-hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+  line-height: 1.3;
   text-align: center;
-  text-wrap: balance;
+  font-size: 1rem;
+  font-weight: 400;
+  --mat-button-outlined-label-text-size: 1rem;
+  --mdc-outlined-button-label-text-size: 1rem;
+  --mat-button-outlined-label-text-weight: 400;
 
   &[aria-pressed='true'] {
     background: transparent;
@@ -435,27 +444,66 @@
   }
 }
 
-.home-scenario__option-label {
+.home-scenario__option-body {
+  display: flex;
+  align-items: center;
+  width: 100%;
   min-width: 0;
+  min-height: 2.25rem;
 }
 
-.home-scenario__option-mark {
+.home-scenario__option-icon {
   position: absolute;
-  inset-inline-start: 1.25rem;
+  inset-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2);
   top: 50%;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
   margin: 0;
-  overflow: hidden;
-  font-size: 1.25rem;
+  font-size: 2.25rem;
   transform: translateY(-50%);
+  font-weight: 400;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.home-scenario__option-label {
+  position: absolute;
+  inset-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2 + 2.25rem);
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 0.25em;
+  min-width: 0;
+  hyphens: none;
+  -webkit-hyphens: none;
+  white-space: nowrap;
+  line-height: 1.25;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.home-scenario__option-copy--row {
+  display: none;
+}
+
+.home-scenario__option-term,
+.home-scenario__option-action {
+  hyphens: none;
+  -webkit-hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
 }
 
 @media (max-width: 599px) {
-  .home-scenario__options {
-    flex-direction: column;
-  }
-
   .home-scenario__option {
     flex-basis: auto;
     width: 100%;
@@ -1474,6 +1522,37 @@
     --home-host-card-bleed: 1.5rem;
     --home-host-card-pad: calc(1rem + (var(--home-host-card-bleed) / 2));
     gap: 1.25rem;
+  }
+
+  .home-host-chooser {
+    width: 100%;
+  }
+
+  .home-scenario__options {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+
+  .home-scenario__option {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    font-size: 0.875rem;
+    --mat-button-outlined-label-text-size: 0.875rem;
+    --mdc-outlined-button-label-text-size: 0.875rem;
+  }
+
+  .home-scenario__option-label {
+    font-size: 0.875rem;
+  }
+
+  .home-scenario__option-copy--stack {
+    display: none;
+  }
+
+  .home-scenario__option-copy--row {
+    display: inline;
   }
 
   .home-hero-band {
