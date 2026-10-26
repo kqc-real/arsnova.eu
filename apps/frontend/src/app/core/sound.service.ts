@@ -49,6 +49,7 @@ export class SoundService {
   private musicGain: GainNode | null = null;
   private musicElementPrimed = false;
   private musicGeneration = 0;
+  private musicPlaybackOwner = 0;
   private musicFadeFrame: number | null = null;
   private currentMusicTrack: string | null = null;
   private pendingMusicTrack: string | null = null;
@@ -239,13 +240,14 @@ export class SoundService {
             /* Metadaten noch nicht da */
           }
         }
-        const generation = this.musicGeneration;
+        const owner = this.claimMusicPlayback();
         try {
           await el.play();
         } catch {
           return;
         }
-        if (generation !== this.musicGeneration) {
+        if (owner !== this.musicPlaybackOwner) {
+          this.pauseMusicElementIfAbandoned(el);
           return;
         }
         this.musicPlaying.set(true);
@@ -258,6 +260,7 @@ export class SoundService {
 
     this.stopMusic();
     const generation = this.musicGeneration;
+    const owner = this.claimMusicPlayback();
     this.pendingMusicTrack = track;
     this.attachMusicGain();
     this.prepareMusicElement(el, path, true);
@@ -266,10 +269,13 @@ export class SoundService {
     } catch {
       if (generation === this.musicGeneration) {
         this.pendingMusicTrack = null;
+      } else {
+        this.pauseMusicElementIfAbandoned(el);
       }
       return;
     }
-    if (generation !== this.musicGeneration) {
+    if (owner !== this.musicPlaybackOwner) {
+      this.pauseMusicElementIfAbandoned(el);
       return;
     }
     this.currentMusicTrack = track;
@@ -279,6 +285,7 @@ export class SoundService {
 
   stopMusic(): void {
     this.musicGeneration++;
+    this.musicPlaybackOwner++;
     this.cancelMusicFade();
     const el = this.musicEl;
     if (el) {
@@ -293,6 +300,24 @@ export class SoundService {
     this.currentMusicTrack = null;
     this.pendingMusicTrack = null;
     this.musicPlaying.set(false);
+  }
+
+  /** Ein veraltetes play() darf nur pausieren, wenn niemand das Element übernommen hat. */
+  private pauseMusicElementIfAbandoned(el: HTMLAudioElement): void {
+    if (this.musicEl !== el) return;
+    if (
+      this.currentMusicTrack !== null ||
+      this.pendingMusicTrack !== null ||
+      this.musicPreviewing()
+    ) {
+      return;
+    }
+    el.pause();
+  }
+
+  private claimMusicPlayback(): number {
+    this.musicPlaybackOwner += 1;
+    return this.musicPlaybackOwner;
   }
 
   /**
@@ -341,6 +366,7 @@ export class SoundService {
   /** Bricht eine laufende Musik-Vorschau ab (ohne Callback). */
   stopPreview(): void {
     this.previewRunId++;
+    this.musicPlaybackOwner++;
     this.clearPreviewTimer();
     const wasPreviewing = this.musicPreviewing();
     this.musicPreviewing.set(false);
@@ -402,13 +428,19 @@ export class SoundService {
     this.attachMusicGain();
     this.prepareMusicElement(el, path, false);
     el.onended = () => finish();
+    const owner = this.claimMusicPlayback();
     try {
       await el.play();
     } catch {
+      if (runId !== this.previewRunId) {
+        this.pauseMusicElementIfAbandoned(el);
+        return;
+      }
       finish();
       return;
     }
-    if (runId !== this.previewRunId) {
+    if (runId !== this.previewRunId || owner !== this.musicPlaybackOwner) {
+      this.pauseMusicElementIfAbandoned(el);
       return;
     }
 

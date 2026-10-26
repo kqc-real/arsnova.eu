@@ -177,6 +177,7 @@ describe('SoundService', () => {
     await pending;
 
     expect(service.musicPlaying()).toBe(false);
+    expect(el.paused).toBe(true);
   });
 
   it('pausiert einen neueren Track nicht, wenn ein älteres play() endet', async () => {
