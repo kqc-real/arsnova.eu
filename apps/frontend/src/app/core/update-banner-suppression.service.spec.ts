@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   UpdateBannerSuppressionService,
   participantDraftBlocksUpdateBanner,
+  qaTitleDraftBlocksUpdateBanner,
 } from './update-banner-suppression.service';
 
 describe('UpdateBannerSuppressionService', () => {
@@ -62,5 +63,42 @@ describe('participantDraftBlocksUpdateBanner', () => {
         qaDraft: 'noch offen',
       }),
     ).toBe(true);
+  });
+});
+
+describe('qaTitleDraftBlocksUpdateBanner', () => {
+  it('blockt nur einen abweichenden Entwurf oder einen laufenden Speichervorgang', () => {
+    expect(
+      qaTitleDraftBlocksUpdateBanner({
+        editing: true,
+        saving: false,
+        draft: 'Neu',
+        serverTitle: 'Alt',
+      }),
+    ).toBe(true);
+    expect(
+      qaTitleDraftBlocksUpdateBanner({
+        editing: false,
+        saving: true,
+        draft: 'Alt',
+        serverTitle: 'Alt',
+      }),
+    ).toBe(true);
+    expect(
+      qaTitleDraftBlocksUpdateBanner({
+        editing: true,
+        saving: false,
+        draft: '  Alt ',
+        serverTitle: 'Alt',
+      }),
+    ).toBe(false);
+    expect(
+      qaTitleDraftBlocksUpdateBanner({
+        editing: false,
+        saving: false,
+        draft: 'Neu',
+        serverTitle: 'Alt',
+      }),
+    ).toBe(false);
   });
 });

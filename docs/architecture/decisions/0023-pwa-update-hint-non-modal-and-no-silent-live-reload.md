@@ -190,7 +190,7 @@ Stand 2026-10-26:
 
 - Der Bannertext lautet „Das Update ist sicher und ohne Datenverlust.“ Der Satz gilt, weil der Banner fehlt, solange ein Reload Eingaben verwerfen würde.
 - Sichtbarkeit: `updateAvailable && !blocksUpdateNotice() && !updateBannerSuppression.active()`.
-- Unterdrückt wird bei ungespeicherten Änderungen in Quiz bearbeiten, Quiz neu und der Vorschau, sowie bei einer noch nicht gesendeten Auswahl, einem Freitext, einer Zahl, einer Bewertung, einer Konfidenz oder einer angefangenen Q&A-Frage.
+- Unterdrückt wird bei ungespeicherten Änderungen in Quiz bearbeiten, Quiz neu und der Vorschau, bei einer noch nicht gesendeten Auswahl, einem Freitext, einer Zahl, einer Bewertung, einer Konfidenz oder einer angefangenen Q&A-Frage, bei einem laufenden Blitzlicht-Klick, bei einem vom Server abweichenden Q&A-Titel, bei Nickname oder Team in der Lobby, bei ungespeicherten Lernziel- und Auftragsformularen, bei angefangenem Produktfeedback, bei Link- und Bild-Dialogen im Markdown-Editor und bei ungespeicherten MOTD- oder Vorlagen-Texten in der Verwaltung.
 - Entwürfe für Reihenfolge, Zuordnung und Kategorisierung bleiben im `localStorage` und blenden den Banner nicht aus. Host- und Presenter-Ansichten bleiben mit Banner, weil die Session auf dem Server liegt.
 - Nach Speichern, Absenden oder Verwerfen erscheint der Banner wieder. `updateAvailable` bleibt gesetzt.
 

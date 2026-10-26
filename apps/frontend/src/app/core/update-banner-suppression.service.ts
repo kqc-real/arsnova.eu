@@ -1,8 +1,30 @@
-import { Injectable, computed, signal } from '@angular/core';
+import {
+  DestroyRef,
+  type EffectRef,
+  Injectable,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 
 /** Gründe, aus denen ein Reload beim PWA-Update Eingaben verwerfen würde. */
 export type UpdateBannerSuppressionReason =
-  'quiz-edit' | 'quiz-new' | 'quiz-preview' | 'participant-draft';
+  | 'quiz-edit'
+  | 'quiz-new'
+  | 'quiz-preview'
+  | 'participant-draft'
+  | 'feedback-submit'
+  | 'product-feedback-draft'
+  | 'learning-objective-draft'
+  | 'session-learning-objective-draft'
+  | 'markdown-link-draft'
+  | 'markdown-image-draft'
+  | 'admin-motd-draft'
+  | 'admin-motd-template-draft'
+  | 'host-qa-title'
+  | 'join-draft';
 
 /**
  * Auswahl, Freitext, Zahl, Bewertung und Konfidenz sowie eine angefangene
@@ -27,6 +49,38 @@ export function participantDraftBlocksUpdateBanner(state: {
     state.ratingValue !== null ||
     state.confidenceValue !== null
   );
+}
+
+/** Laufender Titel-Speichervorgang oder vom Server abweichender Entwurf. */
+export function qaTitleDraftBlocksUpdateBanner(state: {
+  editing: boolean;
+  saving: boolean;
+  draft: string;
+  serverTitle: string;
+}): boolean {
+  if (state.saving) return true;
+  if (!state.editing) return false;
+  return state.draft.trim() !== state.serverTitle.trim();
+}
+
+/**
+ * Hält einen Unterdrückungsgrund an `blocked`. Beim Zerstören der aufrufenden
+ * Komponente wird der Grund entfernt, auch wenn das letzte Signal noch wahr war.
+ */
+export function bindUpdateBannerSuppression(
+  service: UpdateBannerSuppressionService,
+  reason: UpdateBannerSuppressionReason,
+  blocked: () => boolean,
+): EffectRef {
+  const ref = effect(() => {
+    const active = blocked();
+    untracked(() => service.set(reason, active));
+  });
+  inject(DestroyRef).onDestroy(() => {
+    ref.destroy();
+    service.set(reason, false);
+  });
+  return ref;
 }
 
 @Injectable({ providedIn: 'root' })
