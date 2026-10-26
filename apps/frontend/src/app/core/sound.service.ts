@@ -33,12 +33,18 @@ export class SoundService {
   /** Alle aktiven Sound-Effekt-Nodes (damit sie gestoppt werden können). */
   private readonly activeSfxNodes = new Set<AudioBufferSourceNode>();
 
-  /** Story 5.3: Hintergrundmusik (Stopp-Logik bleibt für setMusicVolume/stopMusic) */
-  private musicGain: GainNode | null = null;
+  /**
+   * Hintergrundmusik läuft über ein Media-Element, nicht über AudioBufferSourceNode.
+   * Auf Chrome für Android beendet die Web-Audio-Schleife lange Tracks nach wenigen
+   * Sekunden. Der Host prüft die Musik alle paar Sekunden nach und würde den Puffer
+   * dann wieder bei 0 starten.
+   */
+  private musicEl: HTMLAudioElement | null = null;
+  private musicElementPath: string | null = null;
   private musicGeneration = 0;
+  private musicFadeFrame: number | null = null;
   private currentMusicTrack: string | null = null;
   private pendingMusicTrack: string | null = null;
-  private readonly activeMusicNodes = new Set<AudioBufferSourceNode>();
   readonly musicPlaying = signal(false);
   readonly musicVolume = signal(80);
 
@@ -56,8 +62,7 @@ export class SoundService {
     }
   }
   private previewRunId = 0;
-  private previewSource: AudioBufferSourceNode | null = null;
-  private previewGain: GainNode | null = null;
+  private previewTimer: ReturnType<typeof setTimeout> | null = null;
 
   private getContext(): AudioContext | null {
     if (globalThis.window === undefined) return null;
@@ -193,15 +198,37 @@ export class SoundService {
   /** Startet (oder hält) loopende Hintergrundmusik für den gewünschten Track. */
   async playMusic(track: string): Promise<void> {
     if (!this.outputEnabled()) return;
-    const ctx = await this.ensureContextRunning();
-    if (!ctx) return;
     const path = MUSIC_PATHS[track];
     if (!path) {
       this.stopMusic();
       return;
     }
-    if (this.musicPlaying() && this.currentMusicTrack === track && this.activeMusicNodes.size > 0) {
-      return;
+    const el = this.ensureMusicElement();
+    if (!el) return;
+
+    if (this.currentMusicTrack === track && this.musicElementPath === path) {
+      if (!el.paused && !el.ended) {
+        return;
+      }
+      // Chrome auf Android pausiert oder beendet das Element, lässt currentTime aber stehen.
+      // play() bei ended springt sonst an den Anfang, auch mitten im Track.
+      if (el.currentTime > 0) {
+        const position = el.currentTime;
+        if (el.ended) {
+          try {
+            el.currentTime = position;
+          } catch {
+            /* Metadaten noch nicht da */
+          }
+        }
+        try {
+          await el.play();
+          this.musicPlaying.set(true);
+        } catch {
+          /* Autoplay oder Unterbrechung */
+        }
+        return;
+      }
     }
     if (this.pendingMusicTrack === track) {
       return;
@@ -210,71 +237,37 @@ export class SoundService {
     this.stopMusic();
     const generation = this.musicGeneration;
     this.pendingMusicTrack = track;
-
-    let buffer = this.buffers.get(path);
-    if (!buffer) {
-      try {
-        const response = await fetch(path);
-        const arrayBuffer = await response.arrayBuffer();
-        buffer = await ctx.decodeAudioData(arrayBuffer);
-        this.buffers.set(path, buffer);
-      } catch {
-        if (generation === this.musicGeneration) {
-          this.pendingMusicTrack = null;
-        }
-        return;
-      }
-    }
-    if (generation !== this.musicGeneration || !buffer) {
+    this.prepareMusicElement(el, path, true);
+    try {
+      await el.play();
+    } catch {
       if (generation === this.musicGeneration) {
         this.pendingMusicTrack = null;
       }
       return;
     }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    const gain = ctx.createGain();
-    gain.gain.value = this.musicVolume() / 100;
-    source.connect(gain);
-    gain.connect(ctx.destination);
-    source.start(0);
-
-    this.musicGain = gain;
+    if (generation !== this.musicGeneration) {
+      el.pause();
+      return;
+    }
     this.currentMusicTrack = track;
-    this.activeMusicNodes.add(source);
     this.musicPlaying.set(true);
     this.pendingMusicTrack = null;
-    source.onended = () => this.activeMusicNodes.delete(source);
   }
 
   stopMusic(): void {
     this.musicGeneration++;
-    if (this.musicGain && this.ctx) {
+    this.cancelMusicFade();
+    const el = this.musicEl;
+    if (el) {
+      el.onended = null;
+      el.pause();
       try {
-        this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+        el.currentTime = 0;
       } catch {
-        /* noop */
+        /* Metadaten noch nicht da */
       }
     }
-    for (const node of this.activeMusicNodes) {
-      try {
-        node.stop();
-        node.disconnect();
-      } catch {
-        /* already stopped */
-      }
-    }
-    this.activeMusicNodes.clear();
-    if (this.musicGain) {
-      try {
-        this.musicGain.disconnect();
-      } catch {
-        /* noop */
-      }
-    }
-    this.musicGain = null;
     this.currentMusicTrack = null;
     this.pendingMusicTrack = null;
     this.musicPlaying.set(false);
@@ -282,48 +275,43 @@ export class SoundService {
 
   /**
    * Blendet laufende Hintergrundmusik über `durationSeconds` auf 0 aus.
-   * Stoppt die Nodes nicht selbst – der Host setzt danach die SFX-Phase / stopMusic.
+   * Stoppt das Element nicht – der Host setzt danach die SFX-Phase oder stopMusic.
    */
   fadeOutMusic(durationSeconds: number): void {
-    const ctx = this.ctx;
-    const gainNode = this.musicGain;
-    if (!ctx || !gainNode || !this.musicPlaying()) {
+    const el = this.musicEl;
+    if (!el || !this.musicPlaying() || el.paused) {
       return;
     }
-    const now = ctx.currentTime;
-    const current = gainNode.gain.value;
-    const duration = Math.max(0.05, durationSeconds);
-    try {
-      gainNode.gain.cancelScheduledValues(now);
-      gainNode.gain.setValueAtTime(current, now);
-      gainNode.gain.linearRampToValueAtTime(0, now + duration);
-    } catch {
-      gainNode.gain.value = 0;
-    }
+    this.cancelMusicFade();
+    const startVolume = el.volume;
+    const durationMs = Math.max(0.05, durationSeconds) * 1000;
+    const startedAt = globalThis.performance?.now() ?? Date.now();
+    const step = (now: number): void => {
+      if (this.musicEl !== el) {
+        return;
+      }
+      const progress = Math.min(1, (now - startedAt) / durationMs);
+      el.volume = startVolume * (1 - progress);
+      if (progress < 1) {
+        this.musicFadeFrame = globalThis.requestAnimationFrame(step);
+      } else {
+        this.musicFadeFrame = null;
+      }
+    };
+    this.musicFadeFrame = globalThis.requestAnimationFrame(step);
   }
 
   /** Bricht eine laufende Musik-Vorschau ab (ohne Callback). */
   stopPreview(): void {
     this.previewRunId++;
-    if (this.previewSource) {
-      try {
-        this.previewSource.stop();
-        this.previewSource.disconnect();
-      } catch {
-        /* already stopped */
-      }
-      this.previewSource = null;
-    }
-    if (this.previewGain) {
-      try {
-        this.previewGain.disconnect();
-      } catch {
-        /* noop */
-      }
-      this.previewGain = null;
-    }
+    this.clearPreviewTimer();
+    const wasPreviewing = this.musicPreviewing();
     this.musicPreviewing.set(false);
     this.musicPreviewTrackId.set(null);
+    if (wasPreviewing && this.musicEl) {
+      this.musicEl.onended = null;
+      this.musicEl.pause();
+    }
   }
 
   /**
@@ -349,78 +337,49 @@ export class SoundService {
     runId: number,
     onEnd?: () => void,
   ): Promise<void> {
-    const finish = () => {
+    const finish = (): void => {
       if (runId !== this.previewRunId) return;
-      this.previewSource = null;
-      if (this.previewGain) {
-        try {
-          this.previewGain.disconnect();
-        } catch {
-          /* noop */
-        }
-        this.previewGain = null;
+      this.previewRunId++;
+      this.clearPreviewTimer();
+      if (this.musicEl) {
+        this.musicEl.onended = null;
       }
       this.musicPreviewing.set(false);
       this.musicPreviewTrackId.set(null);
       onEnd?.();
     };
 
-    const ctx = await this.ensureContextRunning();
-    if (!ctx || runId !== this.previewRunId) {
-      finish();
-      return;
-    }
-
     const path = MUSIC_PATHS[track];
-    if (!path) {
-      this.musicPreviewing.set(false);
-      this.musicPreviewTrackId.set(null);
-      onEnd?.();
-      return;
-    }
-
-    let buffer = this.buffers.get(path);
-    if (!buffer) {
-      try {
-        const response = await fetch(path);
-        const arrayBuffer = await response.arrayBuffer();
-        buffer = await ctx.decodeAudioData(arrayBuffer);
-        this.buffers.set(path, buffer);
-      } catch {
-        finish();
-        return;
-      }
-    }
-
-    if (!buffer || runId !== this.previewRunId) {
+    const el = this.ensureMusicElement();
+    if (!path || !el || runId !== this.previewRunId) {
       finish();
       return;
     }
 
-    const slice = Math.min(buffer.duration, maxSeconds);
-    if (slice <= 0) {
+    const sliceMs = Math.max(0, maxSeconds) * 1000;
+    if (sliceMs <= 0) {
       finish();
       return;
     }
 
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = false;
-    const gain = ctx.createGain();
-    gain.gain.value = this.musicVolume() / 100;
-    source.connect(gain);
-    gain.connect(ctx.destination);
-
-    this.previewSource = source;
-    this.previewGain = gain;
-
-    source.onended = () => finish();
-
+    this.prepareMusicElement(el, path, false);
+    el.onended = () => finish();
     try {
-      source.start(0, 0, slice);
+      await el.play();
     } catch {
       finish();
+      return;
     }
+    if (runId !== this.previewRunId) {
+      el.pause();
+      return;
+    }
+
+    this.previewTimer = setTimeout(() => {
+      if (runId !== this.previewRunId) return;
+      el.pause();
+      finish();
+    }, sliceMs);
   }
 
   /** Stoppt ALLES – Sound-Effekte, Vorschau und Musik. */
@@ -433,8 +392,54 @@ export class SoundService {
   setMusicVolume(percent: number): void {
     const clamped = Math.max(0, Math.min(100, percent));
     this.musicVolume.set(clamped);
-    if (this.musicGain) {
-      this.musicGain.gain.value = clamped / 100;
+    this.cancelMusicFade();
+    if (this.musicEl) {
+      this.musicEl.volume = clamped / 100;
+    }
+  }
+
+  private ensureMusicElement(): HTMLAudioElement | null {
+    if (globalThis.window === undefined) return null;
+    if (!this.musicEl) {
+      try {
+        this.musicEl = new Audio();
+      } catch {
+        return null;
+      }
+      this.musicEl.preload = 'auto';
+      this.musicEl.setAttribute('playsinline', 'true');
+    }
+    return this.musicEl;
+  }
+
+  /** Neuer Start. Laufende Wiedergabe desselben Tracks geht nicht hier durch. */
+  private prepareMusicElement(el: HTMLAudioElement, path: string, loop: boolean): void {
+    this.cancelMusicFade();
+    el.loop = loop;
+    el.volume = this.musicVolume() / 100;
+    el.onended = null;
+    if (this.musicElementPath !== path) {
+      el.src = path;
+      this.musicElementPath = path;
+    }
+    try {
+      el.currentTime = 0;
+    } catch {
+      /* Metadaten noch nicht da */
+    }
+  }
+
+  private cancelMusicFade(): void {
+    if (this.musicFadeFrame !== null) {
+      globalThis.cancelAnimationFrame(this.musicFadeFrame);
+      this.musicFadeFrame = null;
+    }
+  }
+
+  private clearPreviewTimer(): void {
+    if (this.previewTimer !== null) {
+      clearTimeout(this.previewTimer);
+      this.previewTimer = null;
     }
   }
 }
