@@ -8,6 +8,10 @@ const SOUND_PATHS: Record<SoundKey, string> = {
   countdownEnd: 'assets/sound/countdownEnd/Song1.mp3',
 };
 
+/** Kurzer stiller Clip, damit die erste Nutzeraktion das Media-Element freigibt. */
+const MUSIC_UNLOCK_SRC =
+  'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
 const MUSIC_PATHS: Record<string, string> = {
   LOBBY_0: 'assets/sound/lobby/Song0.mp3',
   LOBBY_1: 'assets/sound/lobby/Song1.mp3',
@@ -41,6 +45,9 @@ export class SoundService {
    */
   private musicEl: HTMLAudioElement | null = null;
   private musicElementPath: string | null = null;
+  private musicSource: MediaElementAudioSourceNode | null = null;
+  private musicGain: GainNode | null = null;
+  private musicElementPrimed = false;
   private musicGeneration = 0;
   private musicFadeFrame: number | null = null;
   private currentMusicTrack: string | null = null;
@@ -90,14 +97,25 @@ export class SoundService {
   }
 
   unlock(): void {
-    if (this.unlocked) return;
-    void this.tryUnlockContext();
+    if (!this.outputEnabled()) {
+      if (!this.unlocked) {
+        void this.tryUnlockContext();
+      }
+      return;
+    }
+    // play() muss in der Nutzeraktion selbst starten. Ein await davor verlässt die Geste.
+    this.attachMusicGain();
+    this.primeMusicElementInGesture();
+    if (!this.unlocked) {
+      void this.tryUnlockContext();
+    }
   }
 
   private async tryUnlockContext(): Promise<void> {
     const ctx = await this.ensureContextRunning();
     if (ctx) {
       this.unlocked = true;
+      this.attachMusicGain();
     }
   }
 
@@ -221,12 +239,16 @@ export class SoundService {
             /* Metadaten noch nicht da */
           }
         }
+        const generation = this.musicGeneration;
         try {
           await el.play();
-          this.musicPlaying.set(true);
         } catch {
-          /* Autoplay oder Unterbrechung */
+          return;
         }
+        if (generation !== this.musicGeneration) {
+          return;
+        }
+        this.musicPlaying.set(true);
         return;
       }
     }
@@ -237,6 +259,7 @@ export class SoundService {
     this.stopMusic();
     const generation = this.musicGeneration;
     this.pendingMusicTrack = track;
+    this.attachMusicGain();
     this.prepareMusicElement(el, path, true);
     try {
       await el.play();
@@ -247,7 +270,6 @@ export class SoundService {
       return;
     }
     if (generation !== this.musicGeneration) {
-      el.pause();
       return;
     }
     this.currentMusicTrack = track;
@@ -283,11 +305,26 @@ export class SoundService {
       return;
     }
     this.cancelMusicFade();
+    const duration = Math.max(0.05, durationSeconds);
+    const gain = this.musicGain;
+    const ctx = this.ctx;
+    if (gain && ctx) {
+      const now = ctx.currentTime;
+      const current = gain.gain.value;
+      try {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(current, now);
+        gain.gain.linearRampToValueAtTime(0, now + duration);
+      } catch {
+        gain.gain.value = 0;
+      }
+      return;
+    }
     const startVolume = el.volume;
-    const durationMs = Math.max(0.05, durationSeconds) * 1000;
+    const durationMs = duration * 1000;
     const startedAt = globalThis.performance?.now() ?? Date.now();
     const step = (now: number): void => {
-      if (this.musicEl !== el) {
+      if (this.musicEl !== el || this.musicGain) {
         return;
       }
       const progress = Math.min(1, (now - startedAt) / durationMs);
@@ -362,6 +399,7 @@ export class SoundService {
       return;
     }
 
+    this.attachMusicGain();
     this.prepareMusicElement(el, path, false);
     el.onended = () => finish();
     try {
@@ -371,7 +409,6 @@ export class SoundService {
       return;
     }
     if (runId !== this.previewRunId) {
-      el.pause();
       return;
     }
 
@@ -393,9 +430,7 @@ export class SoundService {
     const clamped = Math.max(0, Math.min(100, percent));
     this.musicVolume.set(clamped);
     this.cancelMusicFade();
-    if (this.musicEl) {
-      this.musicEl.volume = clamped / 100;
-    }
+    this.applyMusicVolume();
   }
 
   private ensureMusicElement(): HTMLAudioElement | null {
@@ -416,12 +451,12 @@ export class SoundService {
   private prepareMusicElement(el: HTMLAudioElement, path: string, loop: boolean): void {
     this.cancelMusicFade();
     el.loop = loop;
-    el.volume = this.musicVolume() / 100;
     el.onended = null;
     if (this.musicElementPath !== path) {
       el.src = path;
       this.musicElementPath = path;
     }
+    this.applyMusicVolume();
     try {
       el.currentTime = 0;
     } catch {
@@ -429,10 +464,77 @@ export class SoundService {
     }
   }
 
+  /**
+   * iOS Safari ignoriert `HTMLMediaElement.volume`. Die Lautstärke und das
+   * Ausblenden laufen deshalb über einen Gain-Knoten am Media-Element.
+   */
+  private attachMusicGain(): void {
+    if (this.musicGain || this.musicSource) return;
+    const el = this.ensureMusicElement();
+    const ctx = this.getContext();
+    if (!el || !ctx || typeof ctx.createMediaElementSource !== 'function') return;
+    try {
+      const source = ctx.createMediaElementSource(el);
+      const gain = ctx.createGain();
+      gain.gain.value = this.musicVolume() / 100;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      this.musicSource = source;
+      this.musicGain = gain;
+      el.volume = 1;
+    } catch {
+      this.musicSource = null;
+      this.musicGain = null;
+    }
+  }
+
+  private applyMusicVolume(): void {
+    const level = this.musicVolume() / 100;
+    if (this.musicGain) {
+      this.musicGain.gain.value = level;
+      if (this.musicEl) {
+        this.musicEl.volume = 1;
+      }
+      return;
+    }
+    if (this.musicEl) {
+      this.musicEl.volume = level;
+    }
+  }
+
+  private primeMusicElementInGesture(): void {
+    if (this.musicElementPrimed) return;
+    const el = this.ensureMusicElement();
+    if (!el) return;
+    if (!el.src) {
+      el.src = MUSIC_UNLOCK_SRC;
+    }
+    try {
+      void el
+        .play()
+        .then(() => {
+          this.musicElementPrimed = true;
+          if (!this.currentMusicTrack && !this.pendingMusicTrack && !this.musicPreviewing()) {
+            el.pause();
+          }
+        })
+        .catch(() => undefined);
+    } catch {
+      /* Autoplay */
+    }
+  }
+
   private cancelMusicFade(): void {
     if (this.musicFadeFrame !== null) {
       globalThis.cancelAnimationFrame(this.musicFadeFrame);
       this.musicFadeFrame = null;
+    }
+    if (this.musicGain && this.ctx) {
+      try {
+        this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      } catch {
+        /* noop */
+      }
     }
   }
 
