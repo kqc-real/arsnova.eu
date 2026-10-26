@@ -9524,29 +9524,21 @@
           <context context-type="linenumber">185,187</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.classroom" datatype="html">
+      <trans-unit id="homeScenario.classroomLabel" datatype="html">
         <source>Quiz erstellen &amp; verwalten</source>
         <target>Create and manage a quiz</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">203,205</context>
-        </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.event" datatype="html">
+      <trans-unit id="homeScenario.eventLabel" datatype="html">
+        <source>Q&amp;A erstellen &amp; verwalten</source>
+        <target>Create and manage Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeScenario.eventLabelStacked" datatype="html">
         <source>Q&amp;A-Forum erstellen &amp; verwalten</source>
         <target>Create and manage a Q&amp;A forum</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">213,215</context>
-        </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.quick" datatype="html">
+      <trans-unit id="homeScenario.quickLabel" datatype="html">
         <source>Blitzlicht auswählen</source>
-        <target>Choose a Pulse Check</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">223,225</context>
-        </context-group>
+        <target>Choose a pulse check</target>
       </trans-unit>
       <trans-unit id="homeQuizCard.eyebrow" datatype="html">
         <source>Fragen ans Publikum</source>

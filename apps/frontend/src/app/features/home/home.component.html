@@ -201,12 +201,12 @@
             aria-controls="home-host-panel"
             (click)="selectHostPanel('CLASSROOM')"
           >
-            @if (activeHostPanel() === 'CLASSROOM') {
-              <mat-icon class="home-scenario__option-mark" aria-hidden="true">check</mat-icon>
-            }
-            <span class="home-scenario__option-label" i18n="@@homeScenario.classroom"
-              >Quiz erstellen &amp; verwalten</span
-            >
+            <span class="home-scenario__option-body">
+              <mat-icon class="home-scenario__option-icon" aria-hidden="true">quiz</mat-icon>
+              <span class="home-scenario__option-label" i18n="@@homeScenario.classroomLabel"
+                >Quiz erstellen &amp; verwalten</span
+              >
+            </span>
           </button>
           <button
             type="button"
@@ -217,12 +217,21 @@
             aria-controls="home-host-panel"
             (click)="selectHostPanel('EVENT')"
           >
-            @if (activeHostPanel() === 'EVENT') {
-              <mat-icon class="home-scenario__option-mark" aria-hidden="true">check</mat-icon>
-            }
-            <span class="home-scenario__option-label" i18n="@@homeScenario.event"
-              >Q&amp;A-Forum erstellen &amp; verwalten</span
-            >
+            <span class="home-scenario__option-body">
+              <mat-icon class="home-scenario__option-icon" aria-hidden="true">chat_bubble</mat-icon>
+              <span class="home-scenario__option-label">
+                <span
+                  class="home-scenario__option-copy home-scenario__option-copy--stack"
+                  i18n="@@homeScenario.eventLabelStacked"
+                  >Q&amp;A-Forum erstellen &amp; verwalten</span
+                >
+                <span
+                  class="home-scenario__option-copy home-scenario__option-copy--row"
+                  i18n="@@homeScenario.eventLabel"
+                  >Q&amp;A erstellen &amp; verwalten</span
+                >
+              </span>
+            </span>
           </button>
           <button
             type="button"
@@ -233,12 +242,12 @@
             aria-controls="home-host-panel"
             (click)="selectHostPanel('QUICK')"
           >
-            @if (activeHostPanel() === 'QUICK') {
-              <mat-icon class="home-scenario__option-mark" aria-hidden="true">check</mat-icon>
-            }
-            <span class="home-scenario__option-label" i18n="@@homeScenario.quick"
-              >Blitzlicht auswählen</span
-            >
+            <span class="home-scenario__option-body">
+              <mat-icon class="home-scenario__option-icon" aria-hidden="true">bolt</mat-icon>
+              <span class="home-scenario__option-label" i18n="@@homeScenario.quickLabel"
+                >Blitzlicht auswählen</span
+              >
+            </span>
           </button>
         </div>
       </section>

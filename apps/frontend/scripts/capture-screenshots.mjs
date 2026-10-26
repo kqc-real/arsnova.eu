@@ -33,7 +33,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const iconsDir = join(__dirname, '..', 'src', 'assets', 'icons');
 const distBrowser = join(__dirname, '..', 'dist', 'browser');
 const DEMO_QUIZ_JSON = join(__dirname, '../src/assets/demo/quiz-demo-betriebsversammlung.de.json');
-const DEMO_QUIZ_HISTORY_SCOPE_ID = 'de600000-0000-4000-a000-000000000001';
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const JOIN_CONCURRENCY = 8;
 const WRITE_CONCURRENCY = 12;
@@ -57,11 +56,53 @@ const SCREENSHOT_CHROME_CSS = `
   .app-footer, footer.app-footer { display: none !important; }
   .cdk-overlay-container .mat-mdc-snack-bar-container { display: none !important; }
   .vote-live-banner { display: none !important; }
-  .vote-countdown-floating, .vote-timer-a11y, .vote-score-preview { display: none !important; }
+  .vote-countdown-floating, .vote-timer-a11y, .vote-timer-a11y__scoring, .vote-score-preview { display: none !important; }
+  .session-host__exit-anchor { display: none !important; }
+  .session-vote__qa-deadline { display: none !important; }
+  *:focus,
+  *:focus-visible,
+  *:focus-within,
+  .app-content-focus-target:focus,
+  .app-content-focus-target:focus-visible,
+  .app-content-focus-target:focus-within {
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+  .participant-task-status[data-screenshot-blank='true'] {
+    display: none !important;
+  }
+`;
+const SCREENSHOT_HOST_RESULTS_CSS = `
+  .session-host__interim-leaderboard,
+  .session-host__quiz-tools { display: none !important; }
+`;
+const SCREENSHOT_CLOUD_CSS = `
+  .word-cloud__meta,
+  .word-cloud__analysis-toolbar,
+  .word-cloud__reading-hint,
+  .word-cloud__eyebrow { display: none !important; }
+  .word-cloud__word--positioned { transition: none !important; }
+`;
+const SCREENSHOT_PRESENT_CSS = `
+  app-session-projection-quiz { zoom: 0.86; }
+  .projection-pages__indicator { display: none !important; }
+`;
+const SCREENSHOT_FEEDBACK_CSS = `
+  .session-present--feedback .session-present__feedback-card { zoom: 1.45; }
+`;
+const SCREENSHOT_NARROW_QUIZ_CSS = `
+  .vote-player-badge { display: none !important; }
+`;
+const SCREENSHOT_LEADERBOARD_CSS = `
+  .session-projection-quiz__leaderboard-page { zoom: 1.28; }
+  .projection-pages__indicator,
+  .session-present__board-page { display: none !important; }
 `;
 const SCREENSHOT_LIVE_CHROME_CSS = `
   ${SCREENSHOT_CHROME_CSS}
   .top-toolbar { display: none !important; }
+  .session-present__fullscreen-gate { display: none !important; }
 `;
 
 function sleep(ms) {
@@ -130,7 +171,7 @@ async function loadDemoQuizUploadPayload() {
   const raw = JSON.parse(await readFile(DEMO_QUIZ_JSON, 'utf8'));
   const quiz = raw.quiz;
   return {
-    historyScopeId: DEMO_QUIZ_HISTORY_SCOPE_ID,
+    historyScopeId: crypto.randomUUID(),
     name: quiz.name,
     description: quiz.description,
     motifImageUrl: quiz.motifImageUrl ?? null,
@@ -215,7 +256,7 @@ async function joinParticipants(publicTrpc, code, count) {
 }
 
 async function submitVotes(participants, question) {
-  const settled = await mapLimit(participants, WRITE_CONCURRENCY, async (participant, index) => {
+  const submitOne = async (participant, index) => {
     const base = {
       sessionId: participant.id,
       participantId: participant.participantId,
@@ -246,7 +287,34 @@ async function submitVotes(participants, question) {
       ...base,
       answerIds: [selected.id],
     });
-  });
+  };
+
+  if (question.type !== 'FREETEXT') {
+    const leadIndexes = participants
+      .map((_, index) => index)
+      .filter((index) => homeOfficeChoiceIndex(index, 4) === 0)
+      .slice(0, 5);
+    for (const [order, index] of leadIndexes.entries()) {
+      if (order > 0) await sleep(4_000);
+      await submitOne(participants[index], index);
+    }
+    const lead = new Set(leadIndexes);
+    const rest = participants
+      .map((participant, index) => ({ participant, index }))
+      .filter((job) => !lead.has(job.index));
+    const settled = await mapLimit(rest, WRITE_CONCURRENCY, (job) =>
+      submitOne(job.participant, job.index),
+    );
+    throwIfRejected(
+      settled.map((value) => ({ status: 'fulfilled', value })),
+      'Stimmen',
+    );
+    return;
+  }
+
+  const settled = await mapLimit(participants, WRITE_CONCURRENCY, (participant, index) =>
+    submitOne(participant, index),
+  );
   throwIfRejected(
     settled.map((value) => ({ status: 'fulfilled', value })),
     'Stimmen',
@@ -329,72 +397,238 @@ async function releaseAllQaQuestions(hostTrpc, code, sessionId) {
   return visible;
 }
 
-function sanitizeCloudEntries(entries) {
-  return (entries ?? [])
-    .filter(
-      (entry) =>
-        entry?.key && entry?.label && Array.isArray(entry.members) && entry.members.length > 0,
-    )
+async function pinBestQaQuestion(hostTrpc, code, sessionId) {
+  const questions = await listAllHostQaQuestions(hostTrpc, sessionId);
+  const visible = questions.filter(
+    (question) => question.status === 'ACTIVE' || question.status === 'PINNED',
+  );
+  const best = visible.sort(
+    (left, right) =>
+      (right.upvoteCount ?? 0) - (left.upvoteCount ?? 0) ||
+      String(left.text).localeCompare(String(right.text), 'de'),
+  )[0];
+  if (!best || best.status === 'PINNED') return best ?? null;
+  await hostTrpc.qa.moderate.mutate({
+    sessionCode: code,
+    questionId: best.id,
+    action: 'PIN',
+  });
+  console.log(`Q&A angepinnt: ${best.upvoteCount ?? 0} Stimmen`);
+  return best;
+}
+
+async function showPresenterLeaderboard(hostTrpc, code) {
+  for (let attempt = 0; attempt < 24; attempt += 1) {
+    const current = await hostTrpc.session.setPresenterSurface.mutate({
+      code,
+      surface: 'default',
+    });
+    const page = current.presenterPage;
+    if (page?.context && page.count >= 2) {
+      if (page.index < page.count - 1) {
+        await hostTrpc.session.setPresenterSurface.mutate({
+          code,
+          page: { context: page.context, index: page.count - 1, count: page.count },
+        });
+      }
+      return true;
+    }
+    await sleep(500);
+  }
+  return false;
+}
+
+const POSTER_CLOUD_STOPWORDS = new Set([
+  'und',
+  'für',
+  'der',
+  'die',
+  'das',
+  'im',
+  'am',
+  'nach',
+  'mit',
+  'statt',
+  'von',
+  'auf',
+  'an',
+  'zu',
+  'zur',
+  'zum',
+  'eine',
+  'ein',
+  'bei',
+  'aus',
+  'vor',
+  'dem',
+  'den',
+  'des',
+  'oder',
+  'als',
+  'auch',
+  'nur',
+  'weniger',
+  'echte',
+  'klare',
+  'bessere',
+  'gute',
+  'warme',
+  'kürzere',
+  'fairer',
+  'bezahlte',
+  'verlässliche',
+  'transparente',
+  'höhenverstellbare',
+  'nachvollziehbare',
+  'mehr',
+  'alle',
+  'wahl',
+  'mail',
+  'bahn',
+  'begrenzen',
+  'behalten',
+  'befristete',
+  'ernst',
+  'einbinden',
+  'feste',
+]);
+
+function posterCloudEntries(responses) {
+  const counts = new Map();
+  for (const response of responses) {
+    for (const raw of String(response).split(/[\s-]+/u)) {
+      const word = raw.replace(/[^\p{L}]/gu, '');
+      if ([...word].length < 4 || [...word].length > 16) continue;
+      const key = word.toLocaleLowerCase('de');
+      if (POSTER_CLOUD_STOPWORDS.has(key)) continue;
+      const existing = counts.get(key);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        counts.set(key, { label: word, count: 1 });
+      }
+    }
+  }
+  return [...counts.values()]
+    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, 'de'))
+    .slice(0, 40)
     .map((entry) => ({
-      key: entry.key,
+      key: entry.label.toLocaleLowerCase('de'),
       label: entry.label,
       count: entry.count,
-      basisLabel: entry.basisLabel ?? null,
-      members: entry.members.slice(0, 1).map((member) => ({
-        sourceId: member.sourceId,
-        text: String(member.text).slice(0, 128),
-        weight: member.weight,
-      })),
-      variants: entry.variants?.length ? entry.variants : [entry.label],
-      confidence: entry.confidence ?? null,
+      labelOrigin: 'extractive',
     }));
 }
 
-function selectSmoothedUnigrams(entries) {
-  return sanitizeCloudEntries(entries)
-    .filter((entry) => !entry.key.includes(' ') && !/\s/u.test(entry.label))
-    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, 'de'))
-    .slice(0, 80);
+async function waitForPosterCloud(page) {
+  await page.locator('.word-cloud__word--positioned').first().waitFor({
+    state: 'visible',
+    timeout: 30_000,
+  });
+  await page.waitForFunction(
+    () => {
+      const stage = document.querySelector('.word-cloud__visual');
+      const words = [...document.querySelectorAll('.word-cloud__word--positioned')];
+      if (!stage || words.length < 16) return false;
+      if (stage.classList.contains('word-cloud__visual--pending')) return false;
+      const labels = words.map((word) => (word.textContent ?? '').trim());
+      return labels.includes('Homeoffice') && labels.every((label) => !label.includes(' '));
+    },
+    { timeout: 30_000 },
+  );
 }
 
-async function projectQaWordCloudBestWords(hostTrpc, code, visibleQuestionCount) {
-  const lemma = await hostTrpc.wordCloud.analyzeQa.mutate({
-    sessionCode: code,
-    mode: 'LEXICAL',
-    locale: 'de',
-    metric: 'BEST',
-    normalization: 'LEMMA',
-    filter: 'ALL_ELIGIBLE',
-    maxNgramLength: 1,
-    maxEntries: 80,
+async function composePosterCloud(page) {
+  await page.evaluate(() => {
+    const stage = document.querySelector('.session-present--word-cloud .word-cloud__visual');
+    if (!(stage instanceof HTMLElement)) return;
+    const frame = stage.closest('.word-cloud__visual-frame');
+    const top = stage.getBoundingClientRect().top;
+    const height = Math.max(640, Math.round(window.innerHeight - top - 36));
+    for (const element of [stage, frame]) {
+      if (!(element instanceof HTMLElement)) continue;
+      element.style.setProperty('height', `${height}px`, 'important');
+      element.style.setProperty('min-height', `${height}px`, 'important');
+    }
+    const stageBox = stage.getBoundingClientRect();
+    const nodes = [...stage.querySelectorAll('.word-cloud__word--positioned')];
+    const items = nodes.flatMap((node) => {
+      if (!(node instanceof HTMLElement)) return [];
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8) return [];
+      return [
+        {
+          node,
+          x: rect.left - stageBox.left + rect.width / 2,
+          y: rect.top - stageBox.top + rect.height / 2,
+          w: rect.width,
+          h: rect.height,
+          fontSize: Number.parseFloat(node.style.fontSize) || rect.height,
+        },
+      ];
+    });
+    if (items.length < 8) return;
+    const gap = 28;
+    for (let iteration = 0; iteration < 160; iteration += 1) {
+      let moved = false;
+      for (let i = 0; i < items.length; i += 1) {
+        for (let j = i + 1; j < items.length; j += 1) {
+          const left = items[i];
+          const right = items[j];
+          const overlapX = (left.w + right.w) / 2 + gap - Math.abs(left.x - right.x);
+          const overlapY = (left.h + right.h) / 2 + gap - Math.abs(left.y - right.y);
+          if (overlapX <= 0 || overlapY <= 0) continue;
+          if (overlapX < overlapY) {
+            const direction = left.x <= right.x ? -1 : 1;
+            const push = overlapX / 2;
+            left.x += direction * push;
+            right.x -= direction * push;
+          } else {
+            const direction = left.y <= right.y ? -1 : 1;
+            const push = overlapY / 2;
+            left.y += direction * push;
+            right.y -= direction * push;
+          }
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
+    let minX = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+    for (const item of items) {
+      minX = Math.min(minX, item.x - item.w / 2);
+      maxX = Math.max(maxX, item.x + item.w / 2);
+      minY = Math.min(minY, item.y - item.h / 2);
+      maxY = Math.max(maxY, item.y + item.h / 2);
+    }
+    const packedWidth = Math.max(1, maxX - minX);
+    const packedHeight = Math.max(1, maxY - minY);
+    const marginX = stageBox.width * 0.035;
+    const marginY = stageBox.height * 0.04;
+    const fitX = (stageBox.width - marginX * 2) / packedWidth;
+    const fitY = (stageBox.height - marginY * 2) / packedHeight;
+    const scale = Math.min(fitX, fitY) * 0.92;
+    const spreadX = Math.min(1.5, fitX / scale);
+    const spreadY = Math.min(1.15, fitY / scale);
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    for (const item of items) {
+      const x = stageBox.width / 2 + (item.x - centerX) * scale * spreadX;
+      const y = stageBox.height / 2 + (item.y - centerY) * scale * spreadY;
+      item.node.style.setProperty('left', `${x}px`, 'important');
+      item.node.style.setProperty('top', `${y}px`, 'important');
+      item.node.style.setProperty(
+        'font-size',
+        `${Math.max(18, item.fontSize * scale)}px`,
+        'important',
+      );
+      item.node.style.setProperty('transition', 'none', 'important');
+      item.node.style.setProperty('z-index', String(Math.round(item.fontSize)), 'important');
+    }
   });
-  const smoothingActive = lemma.normalizationApplied === 'LEMMA' && lemma.fallbackUsed !== true;
-  const analysisEntries = selectSmoothedUnigrams(lemma.entries);
-  if (analysisEntries.length === 0) {
-    throw new Error('Q&A-Wortwolke lieferte keine Wörter für den Screenshot.');
-  }
-  const eligible = Math.max(visibleQuestionCount, lemma.entries?.length ?? 0);
-  await hostTrpc.session.setPreferredLiveChannel.mutate({ code, channel: 'qa' });
-  await hostTrpc.session.setQaWordCloudProjection.mutate({
-    code,
-    projection: {
-      mode: 'LEXICAL',
-      metric: 'BEST',
-      locale: 'de',
-      analysisEntries,
-      analyzedQuestionCount: eligible,
-      eligibleQuestionCount: eligible,
-      modelVersion:
-        lemma.modelVersion && String(lemma.modelVersion).length > 0 ? lemma.modelVersion : null,
-      smoothingActive,
-    },
-  });
-  await hostTrpc.session.setPresenterSurface.mutate({ code, surface: 'qaWordCloud' });
-  console.log(
-    `Q&A-Wortwolke: ${analysisEntries.length} Wörter aus ${eligible} sichtbaren Fragen, Best, ${
-      smoothingActive ? 'Glättung an' : 'ohne Sidecar-Glättung'
-    }`,
-  );
 }
 
 async function submitMoodVotes(participants, code) {
@@ -452,11 +686,28 @@ async function waitForHome(page) {
   await page.waitForTimeout(800);
 }
 
-async function captureViewport(page, filename, { hideAppToolbar = false } = {}) {
+async function captureViewport(
+  page,
+  filename,
+  { hideAppToolbar = false, extraCss = '', beforeShot = null } = {},
+) {
   await applyScreenshotTheme(page);
   await hideEnvironmentChrome(page, { hideAppToolbar });
-  await page.evaluate(() => window.scrollTo(0, 0));
+  if (extraCss) {
+    await page.addStyleTag({ content: extraCss });
+  }
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    document.querySelector('main.app-main')?.scrollTo(0, 0);
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active !== document.body) active.blur();
+    for (const status of document.querySelectorAll('.participant-task-status')) {
+      const blank = !(status.textContent ?? '').trim();
+      status.toggleAttribute('data-screenshot-blank', blank);
+    }
+  });
   await page.waitForTimeout(400);
+  if (beforeShot) await beforeShot();
   await page.screenshot({
     path: join(iconsDir, filename),
     fullPage: false,
@@ -516,16 +767,27 @@ async function gotoSession(page, path, { hostToken, code, participant } = {}) {
 async function clickChannelTab(page, index) {
   const labels = page.locator('.session-channel-tabs .session-channel-tabs__label');
   await labels.nth(index).waitFor({ state: 'visible', timeout: 15_000 });
-  await labels.nth(index).evaluate((element) => {
-    const clickable = element.closest('button, [role="radio"], [role="button"]');
-    if (clickable instanceof HTMLElement) {
-      clickable.click();
-      return;
+  const clickLabel = () =>
+    labels.nth(index).evaluate((element) => {
+      const clickable = element.closest('button, [role="radio"], [role="button"]');
+      if (clickable instanceof HTMLElement) {
+        clickable.click();
+        return;
+      }
+      if (element instanceof HTMLElement) {
+        element.click();
+      }
+    });
+  try {
+    await clickLabel();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes('Execution context was destroyed')) {
+      throw error;
     }
-    if (element instanceof HTMLElement) {
-      element.click();
-    }
-  });
+    await labels.nth(index).waitFor({ state: 'visible', timeout: 15_000 });
+    await clickLabel();
+  }
   await page.waitForTimeout(700);
 }
 
@@ -612,45 +874,21 @@ async function captureLiveViews(browser, publicTrpc) {
   await waitForChannelTabs(hostPage, 3);
   await submitQaForum(participants);
   const visibleQuestionCount = await releaseAllQaQuestions(hostTrpc, code, sessionId);
+  console.log(`Q&A sichtbar: ${visibleQuestionCount}`);
+  await pinBestQaQuestion(hostTrpc, code, sessionId);
   await clickChannelTab(hostPage, 1);
-  await presentPage
-    .locator(
-      '.projection-pages__page .session-present__qa-stage, .projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
-    )
-    .first()
-    .waitFor({ state: 'visible', timeout: 20_000 })
-    .catch(async () => {
-      await hostPage.locator('.session-qa-list, .session-qa-card').first().waitFor({
-        state: 'visible',
-        timeout: 10_000,
-      });
-    });
-  const qaPresentVisible = await presentPage
-    .locator(
-      '.projection-pages__page .session-present__qa-stage, .projection-pages__page .session-present__qa-card, .projection-pages__page .session-present__qa-list-card',
-    )
-    .first()
-    .isVisible()
-    .catch(() => false);
-  await (qaPresentVisible ? presentPage : hostPage).waitForTimeout(800);
-  await captureViewport(qaPresentVisible ? presentPage : hostPage, 'screenshot-wide-qa.png', {
-    hideAppToolbar: true,
-  });
-
-  await projectQaWordCloudBestWords(hostTrpc, code, visibleQuestionCount);
   await presentPage.reload({ waitUntil: 'domcontentloaded' });
   await presentPage
-    .locator('.session-present__word-cloud-card .word-cloud__word, .word-cloud__word')
+    .locator('.session-present__qa-card .session-present__qa-text')
     .first()
-    .waitFor({ state: 'visible', timeout: 30_000 });
+    .waitFor({ state: 'visible', timeout: 20_000 });
   await presentPage
-    .getByText('Beste Fragen', { exact: false })
+    .locator('.session-present__qa-list-item')
     .first()
-    .waitFor({ state: 'visible', timeout: 10_000 })
+    .waitFor({ state: 'visible', timeout: 15_000 })
     .catch(() => {});
-  await presentPage.waitForTimeout(2000);
-  await captureViewport(presentPage, 'screenshot-wide-cloud.png', { hideAppToolbar: true });
-  await hostTrpc.session.setPresenterSurface.mutate({ code, surface: 'default' });
+  await presentPage.waitForTimeout(800);
+  await captureViewport(presentPage, 'screenshot-wide-qa.png', { hideAppToolbar: true });
 
   const voteQaPage = await openPreparedPage(browser, NARROW);
   await gotoSession(voteQaPage, `/session/${code}/vote`, { code, participant: camera });
@@ -681,7 +919,7 @@ async function captureLiveViews(browser, publicTrpc) {
   await captureViewport(
     feedbackPresentVisible ? presentPage : hostPage,
     'screenshot-wide-feedback.png',
-    { hideAppToolbar: true },
+    { hideAppToolbar: true, extraCss: SCREENSHOT_FEEDBACK_CSS },
   );
 
   const voteFeedbackPage = await openPreparedPage(browser, NARROW);
@@ -713,6 +951,66 @@ async function captureLiveViews(browser, publicTrpc) {
 
   await submitVotes(participants, freetext);
   await hostTrpc.session.revealResults.mutate({ code });
+  const liveFreetext = await hostTrpc.session.getLiveFreetext.query({ code });
+  const posterEntries = posterCloudEntries(liveFreetext.responses ?? []);
+  if (posterEntries.length < 16 || !liveFreetext.questionId) {
+    throw new Error(
+      `Freitext-Wortwolke hat ${posterEntries.length} Begriffe (Frage ${liveFreetext.questionId ?? 'ohne Id'}).`,
+    );
+  }
+  console.log(
+    `Freitext-Wortwolke: ${posterEntries.length} Begriffe, häufigster „${posterEntries[0]?.label}“ (${posterEntries[0]?.count})`,
+  );
+  // Die offene Host-Ansicht schreibt ihre eigene Phrasenwolke nach. Erst pausieren,
+  // dann Fläche setzen: ein Kanalwechsel würde die Projektion sonst wieder löschen.
+  const hostUrl = hostPage.url();
+  await hostPage.goto('about:blank');
+  await sleep(800);
+  await hostTrpc.session.setPreferredLiveChannel.mutate({ code, channel: 'quiz' });
+  await hostTrpc.session.setPresenterSurface.mutate({ code, surface: 'freetextWordCloud' });
+  const posterProjection = {
+    mode: 'LEXICAL',
+    locale: 'de',
+    questionId: liveFreetext.questionId,
+    smoothingActive: false,
+    entries: posterEntries,
+  };
+  await hostTrpc.session.setFreetextWordCloudProjection.mutate({
+    code,
+    projection: posterProjection,
+  });
+  await sleep(500);
+  await hostTrpc.session.setFreetextWordCloudProjection.mutate({
+    code,
+    projection: posterProjection,
+  });
+  const storedProjection = await hostTrpc.session.getFreetextWordCloudProjection.query({ code });
+  const storedLabels = storedProjection.projection?.entries.map((entry) => entry.label) ?? [];
+  if (storedLabels.length < 16 || storedLabels.some((label) => label.includes(' '))) {
+    throw new Error(
+      `Freitext-Projektion nicht übernommen (${storedLabels.slice(0, 8).join(', ') || 'leer'}).`,
+    );
+  }
+  await presentPage.addInitScript(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .session-present--word-cloud .word-cloud__visual-frame,
+      .session-present--word-cloud .word-cloud__visual {
+        min-height: 820px !important;
+        height: 820px !important;
+      }
+    `;
+    document.documentElement.append(style);
+  });
+  await presentPage.reload({ waitUntil: 'domcontentloaded' });
+  await waitForPosterCloud(presentPage);
+  await captureViewport(presentPage, 'screenshot-wide-cloud.png', {
+    hideAppToolbar: true,
+    extraCss: SCREENSHOT_CLOUD_CSS,
+    beforeShot: () => composePosterCloud(presentPage),
+  });
+  await hostTrpc.session.setPresenterSurface.mutate({ code, surface: 'default' });
+  await hostPage.goto(hostUrl, { waitUntil: 'domcontentloaded' });
 
   const quizQuestion = await skipUntilType(hostTrpc, publicTrpc, code, 'SINGLE_CHOICE');
   const voteQuizPage = await openPreparedPage(browser, NARROW);
@@ -728,7 +1026,9 @@ async function captureLiveViews(browser, publicTrpc) {
     timeout: 15_000,
   });
   await voteQuizPage.waitForTimeout(600);
-  await captureViewport(voteQuizPage, 'screenshot-narrow-quiz.png');
+  await captureViewport(voteQuizPage, 'screenshot-narrow-quiz.png', {
+    extraCss: SCREENSHOT_NARROW_QUIZ_CSS,
+  });
   await voteQuizPage.close();
 
   await submitVotes(participants, quizQuestion);
@@ -739,23 +1039,11 @@ async function captureLiveViews(browser, publicTrpc) {
   await hostPage
     .locator('.session-host__results-card')
     .waitFor({ state: 'visible', timeout: 20_000 });
-  await hostPage
-    .locator('.session-host__interim-leaderboard')
-    .first()
-    .waitFor({ state: 'visible', timeout: 8_000 })
-    .catch(() => {});
   await hostPage.waitForTimeout(800);
-  await captureViewport(hostPage, 'screenshot-wide-quiz.png', { hideAppToolbar: true });
-  const hostBoard = hostPage
-    .locator(
-      '.session-host__interim-leaderboard, .session-host__leaderboard-card, .session-host__leaderboard-winner',
-    )
-    .first();
-  if (await hostBoard.isVisible().catch(() => false)) {
-    await hostBoard.scrollIntoViewIfNeeded().catch(() => {});
-    await hostPage.waitForTimeout(400);
-    await captureViewport(hostPage, 'screenshot-wide-leaderboard.png', { hideAppToolbar: true });
-  }
+  await captureViewport(hostPage, 'screenshot-wide-quiz.png', {
+    hideAppToolbar: true,
+    extraCss: SCREENSHOT_HOST_RESULTS_CSS,
+  });
 
   await presentPage.reload({ waitUntil: 'domcontentloaded' });
   await presentPage
@@ -764,8 +1052,25 @@ async function captureLiveViews(browser, publicTrpc) {
     .waitFor({ state: 'visible', timeout: 20_000 })
     .catch(() => {});
   await presentPage.waitForTimeout(800);
-  await captureViewport(presentPage, 'screenshot-wide-present.png', { hideAppToolbar: true });
+  await captureViewport(presentPage, 'screenshot-wide-present.png', {
+    hideAppToolbar: true,
+    extraCss: SCREENSHOT_PRESENT_CSS,
+  });
 
+  const leaderboardReady = await showPresenterLeaderboard(hostTrpc, code);
+  if (!leaderboardReady) {
+    throw new Error('Beamer-Rangliste wurde nicht als eigene Seite gemeldet.');
+  }
+  await presentPage
+    .locator('[data-testid="presenter-results-leaderboard"]')
+    .waitFor({ state: 'visible', timeout: 20_000 });
+  await presentPage.waitForTimeout(600);
+  await captureViewport(presentPage, 'screenshot-wide-leaderboard.png', {
+    hideAppToolbar: true,
+    extraCss: SCREENSHOT_LEADERBOARD_CSS,
+  });
+
+  await hostTrpc.session.end.mutate({ code }).catch(() => {});
   await hostPage.close();
   await presentPage.close();
 }

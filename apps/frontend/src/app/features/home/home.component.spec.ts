@@ -340,9 +340,19 @@ describe('HomeComponent', () => {
       expect(panel.hasAttribute('inert')).toBe(true);
       expect(cards).toHaveLength(3);
       expect(choices).toHaveLength(3);
-      expect(choices.map((button) => button.textContent?.replace(/\s+/g, ' ').trim())).toEqual(
-        labels,
-      );
+      expect(
+        choices.map((button) => {
+          const label =
+            button.querySelector('.home-scenario__option-copy--stack') ??
+            button.querySelector('.home-scenario__option-label');
+          return label?.textContent?.replace(/\s+/g, ' ').trim();
+        }),
+      ).toEqual(labels);
+      expect(
+        choices.map((button) =>
+          button.querySelector('.home-scenario__option-icon')?.textContent?.trim(),
+        ),
+      ).toEqual(['quiz', 'chat_bubble', 'bolt']);
       expect(choices.every((button) => button.getAttribute('role') === null)).toBe(true);
       expect(choices.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
       expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
@@ -358,9 +368,8 @@ describe('HomeComponent', () => {
         expect(panel.hidden).toBe(false);
         expect(panel.getAttribute('aria-labelledby')).toBe(choice.id);
         expect(choice.getAttribute('aria-pressed')).toBe('true');
-        expect(choice.querySelector('.home-scenario__option-mark')?.textContent?.trim()).toBe(
-          'check',
-        );
+        expect(choice.querySelector('.home-scenario__option-mark')).toBeNull();
+        expect(choice.querySelector('.home-scenario__option-icon')).not.toBeNull();
         expect(document.activeElement).toBe(choice);
         expect(target?.hidden).toBe(false);
         expect(target?.hasAttribute('inert')).toBe(false);
@@ -378,6 +387,65 @@ describe('HomeComponent', () => {
       }
       expect(fixture.componentInstance.hostScenario.preference()).toBe('QUICK');
       expect(matDialogMock.open).not.toHaveBeenCalled();
+    });
+
+    it('übersetzt jede Aufgabenwahl als vollständige Beschriftung', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const homeDir = dirname(fileURLToPath(import.meta.url));
+      const template = readFileSync(join(homeDir, 'home.component.html'), 'utf8');
+      const ids = [
+        'homeScenario.classroomLabel',
+        'homeScenario.eventLabel',
+        'homeScenario.eventLabelStacked',
+        'homeScenario.quickLabel',
+      ];
+
+      for (const id of ids) {
+        expect(
+          template.match(new RegExp(`i18n="@@${id.replaceAll('.', '\\.')}"`, 'g')),
+        ).toHaveLength(1);
+      }
+      expect(template).not.toContain('homeScenario.classroomTerm');
+      expect(template).not.toContain('homeScenario.classroomAction');
+
+      const expected = {
+        'messages.en.xlf': [
+          'Create and manage a quiz',
+          'Create and manage Q&amp;A',
+          'Create and manage a Q&amp;A forum',
+          'Choose a pulse check',
+        ],
+        'messages.fr.xlf': [
+          'Créer et gérer un quiz',
+          'Créer et gérer un Q&amp;A',
+          'Créer et gérer un forum Q&amp;A',
+          'Choisir un feedback express',
+        ],
+        'messages.es.xlf': [
+          'Crear y gestionar un quiz',
+          'Crear y gestionar un Q&amp;A',
+          'Crear y gestionar un foro de Q&amp;A',
+          'Elegir un sondeo rápido',
+        ],
+        'messages.it.xlf': [
+          'Creare e gestire un quiz',
+          'Creare e gestire un Q&amp;A',
+          'Creare e gestire un forum Q&amp;A',
+          'Scegliere un sondaggio rapido',
+        ],
+      };
+
+      for (const [fileName, targets] of Object.entries(expected)) {
+        const catalog = readFileSync(join(homeDir, '../../../locale', fileName), 'utf8');
+        ids.forEach((id, index) => {
+          const start = catalog.indexOf(`<trans-unit id="${id}"`);
+          expect(start, `${fileName} ${id}`).toBeGreaterThanOrEqual(0);
+          const unit = catalog.slice(start, catalog.indexOf('</trans-unit>', start));
+          expect(unit).toContain(`<target>${targets[index]}</target>`);
+        });
+      }
     });
 
     it('wählt per Pfeiltaste keine andere Aufgabe und lässt alle Buttons tabbar', async () => {
@@ -2808,8 +2876,9 @@ describe('HomeComponent', () => {
     expect(scss).toMatch(
       /@media \(prefers-reduced-motion:\s*no-preference\)\s*\{[^}]*\.home-host-stack\s*\{[^}]*opacity 520ms cubic-bezier\(0\.4,\s*0,\s*0\.2,\s*1\)/,
     );
+    expect(scss).not.toContain('home-scenario__option-mark');
     expect(scss).toMatch(
-      /\.home-scenario__option-mark\s*\{[^}]*position:\s*absolute[^}]*inset-inline-start:\s*1\.25rem[^}]*transform:\s*translateY\(-50%\)/,
+      /@media \(max-width: 349px\)[\s\S]*?\.home-scenario__option-label\s*\{[^}]*white-space:\s*normal/,
     );
     expect(scss).toMatch(
       /\.home-host-stack\[hidden\],\s*\.home-host-stack > \.home-card\[hidden\]\s*\{[^}]*display:\s*none !important/,
