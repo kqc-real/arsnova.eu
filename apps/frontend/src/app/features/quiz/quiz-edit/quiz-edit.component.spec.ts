@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { QuizEditComponent } from './quiz-edit.component';
 import { QuizStoreService, type QuizDocument } from '../data/quiz-store.service';
 
@@ -225,6 +226,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
     expect(component.settingsForm.dirty).toBe(false);
     expect(component.hasPendingChanges()).toBe(true);
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(true);
 
     component.saveAll();
 

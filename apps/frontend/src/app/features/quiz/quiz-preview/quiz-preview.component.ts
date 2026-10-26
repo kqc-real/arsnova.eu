@@ -66,6 +66,7 @@ import {
   type SupportedQuestionType,
 } from '../data/quiz-store.service';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { localizeCommands } from '../../../core/locale-router';
 import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
@@ -156,6 +157,8 @@ export class QuizPreviewComponent implements OnDestroy {
   private animationTimer: ReturnType<typeof setTimeout> | null = null;
   private touchStartX: number | null = null;
   private readonly localeDirtyGetter = (): boolean => this.inlineEditHasChanges();
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private releaseUpdateBannerSuppression = false;
   private confirmDiscardInFlight: Promise<boolean> | null = null;
 
   readonly id = this.route.parent?.snapshot.paramMap.get('id') ?? '';
@@ -338,6 +341,11 @@ export class QuizPreviewComponent implements OnDestroy {
     }
     this.localeGuard.register(this.localeDirtyGetter);
     effect(() => {
+      const blocks = this.inlineEditHasChanges();
+      if (this.releaseUpdateBannerSuppression) return;
+      this.updateBannerSuppression.set('quiz-preview', blocks);
+    });
+    effect(() => {
       const total = this.questions().length;
       const index = this.currentIndex();
       if (total === 0) {
@@ -351,6 +359,8 @@ export class QuizPreviewComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.releaseUpdateBannerSuppression = true;
+    this.updateBannerSuppression.set('quiz-preview', false);
     this.localeGuard.unregister(this.localeDirtyGetter);
     if (this.animationTimer) {
       clearTimeout(this.animationTimer);
