@@ -1120,10 +1120,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       await this.refreshQaWordCloudProjection();
       return;
     }
+    await this.refreshLiveFreetext();
+    // Erst nach dem Freitext-Stand: die Bühne und die Fragen-Id gibt es vorher nicht,
+    // und ein früher Abruf würde die lokale Phrasenwolke stehen lassen.
     if (this.showPresenterFreetextResultsStage()) {
       await this.refreshFreetextWordCloudProjection();
     }
-    await this.refreshLiveFreetext();
     await this.refreshQaQuestions();
     await this.refreshQuickFeedbackResult();
     await this.refreshHostQuestion();
