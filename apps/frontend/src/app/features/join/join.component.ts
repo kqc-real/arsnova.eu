@@ -129,7 +129,10 @@ export class JoinComponent implements OnInit, OnDestroy {
   private readonly joinDraftBanner = bindUpdateBannerSuppression(
     this.updateBannerSuppression,
     'join-draft',
-    () => this.customNickname().trim().length > 0 || this.selectedTeamId().trim().length > 0,
+    () =>
+      this.selectedNickname().trim().length > 0 ||
+      this.customNickname().trim().length > 0 ||
+      this.selectedTeamId().trim().length > 0,
   );
   /** Entspricht dem Shared-Zod-Maximum (`nickname.max(30)`). */
   readonly nicknameMaxLength = PARTICIPANT_NICKNAME_MAX_LENGTH;
