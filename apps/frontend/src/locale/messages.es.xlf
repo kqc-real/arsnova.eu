@@ -35193,6 +35193,14 @@
           <context context-type="linenumber">122</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionLearningObjectives.overviewQuestion" datatype="html">
+        <source>Frage <x id="number" equiv-text="numbers[0]"/></source>
+        <target>Pregunta <x id="number" equiv-text="numbers[0]"/></target>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.overviewQuestions" datatype="html">
+        <source>Fragen <x id="list" equiv-text="list"/></source>
+        <target>Preguntas <x id="list" equiv-text="list"/></target>
+      </trans-unit>
       <trans-unit id="sessionLearningObjectives.referenceLimit" datatype="html">
         <source>Höchstens <x id="maxReferences" equiv-text="this.maxReferences"/> Aufgaben können einem Lernziel zugeordnet werden.</source>
         <target>Se puede asignar un máximo de <x id="maxReferences" equiv-text="this.maxReferences"/> tareas a un objetivo de aprendizaje.</target>

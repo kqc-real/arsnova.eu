@@ -39,7 +39,12 @@ import {
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { trpc } from '../../../core/trpc.client';
-import { learningObjectiveAppliesToQuestion } from './session-learning-objective-match';
+import {
+  learningObjectiveAppliesToQuestion,
+  learningObjectiveQuestionNumbers,
+  quizQuestionNumberById,
+  sortLearningObjectivesByQuestionNumber,
+} from './session-learning-objective-match';
 import {
   UpdateBannerSuppressionService,
   bindUpdateBannerSuppression,
@@ -166,9 +171,14 @@ export class SessionLearningObjectivesDialogComponent {
     if (this.isQaMode()) return this.objectives().length > 0;
     return this.confirmedObjectives().length > 0;
   });
+  readonly isOverview = computed(() => !this.isQaMode() && !this.isQuestionFocused());
+  private readonly questionNumberById = computed(() =>
+    quizQuestionNumberById(this.snapshot()?.availableQuizTasks ?? []),
+  );
   readonly visibleObjectives = computed(() => {
-    if (!this.isQaMode()) return this.confirmedObjectives();
-    return this.objectives();
+    const list = this.isQaMode() ? this.objectives() : this.confirmedObjectives();
+    if (!this.isOverview()) return list;
+    return sortLearningObjectivesByQuestionNumber(list, this.snapshot()?.availableQuizTasks ?? []);
   });
   /** Ableitung und Entwürfe bleiben im Quiz-Editor. */
   readonly hasEligibleQuizTasksForDerivation = computed(() => false);
@@ -750,6 +760,23 @@ export class SessionLearningObjectivesDialogComponent {
       return $localize`:@@sessionLearningObjectives.scopeQuiz:Gesamtes Quiz`;
     }
     return $localize`:@@sessionLearningObjectives.scopeTasks:${objective.scope.taskReferences.length}:count: Frage(n)`;
+  }
+
+  overviewQuestionLabel(objective: SessionLearningObjectiveDTO): string | null {
+    if (!this.isOverview()) return null;
+    if (objective.scope.kind === 'quiz-wide' || objective.scope.kind === 'session') {
+      return this.scopeLabel(objective);
+    }
+    const numbers = learningObjectiveQuestionNumbers(objective, this.questionNumberById());
+    if (numbers.length === 0) return null;
+    if (numbers.length === 1) {
+      return $localize`:@@sessionLearningObjectives.overviewQuestion:Frage ${numbers[0]}:number:`;
+    }
+    const list = new Intl.ListFormat(this.locale, {
+      style: 'long',
+      type: 'conjunction',
+    }).format(numbers.map(String));
+    return $localize`:@@sessionLearningObjectives.overviewQuestions:Fragen ${list}:list:`;
   }
 
   hasUnresolvedReferences(objective: SessionLearningObjectiveDTO): boolean {
