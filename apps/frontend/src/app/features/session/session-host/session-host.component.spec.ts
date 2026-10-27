@@ -26796,10 +26796,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         text: 'Was ist 2+2?',
         type: 'SINGLE_CHOICE',
         difficulty: 'MEDIUM',
+        showQuestionTypeIndicators: true,
         answers: [],
         totalVotes: 0,
         currentRound: 1,
-      } as HostCurrentQuestionDTO);
+      } as unknown as HostCurrentQuestionDTO);
       fixture.detectChanges();
       expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
         'Lernziel',
