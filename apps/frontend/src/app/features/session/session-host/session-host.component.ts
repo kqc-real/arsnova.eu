@@ -2856,25 +2856,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.moderationCompassTriggerFocused() ||
       this.moderationCompassButtonNaturallyVisible(),
   );
-  private readonly releaseHiddenCompassTriggerFocus = effect(() => {
-    const dialogOpen = this.moderationCompassDialogOpen();
-    const focused = this.moderationCompassTriggerFocused();
-    const natural = this.moderationCompassButtonNaturallyVisible();
-    if (natural || dialogOpen || !focused) return;
-    untracked(() => {
-      queueMicrotask(() => {
-        if (this.destroyRef.destroyed) return;
-        if (
-          this.moderationCompassButtonNaturallyVisible() ||
-          this.moderationCompassDialogOpen() ||
-          !this.moderationCompassTriggerFocused()
-        ) {
-          return;
-        }
-        this.moveFocusOffModerationCompassTrigger();
-      });
-    });
-  });
   readonly showHostModerationStack = computed(
     () =>
       this.moderationCompassReturn() !== null ||
@@ -4173,6 +4154,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    effect(() => {
+      const dialogOpen = this.moderationCompassDialogOpen();
+      const focused = this.moderationCompassTriggerFocused();
+      const natural = this.moderationCompassButtonNaturallyVisible();
+      if (natural || dialogOpen || !focused) return;
+      untracked(() => {
+        queueMicrotask(() => {
+          if (this.destroyRef.destroyed) return;
+          if (
+            this.moderationCompassButtonNaturallyVisible() ||
+            this.moderationCompassDialogOpen() ||
+            !this.moderationCompassTriggerFocused()
+          ) {
+            return;
+          }
+          this.moveFocusOffModerationCompassTrigger();
+        });
+      });
+    });
     effect(() => {
       const questions = this.qaQuestions();
       const filtered = this.qaListCriteriaActive();
