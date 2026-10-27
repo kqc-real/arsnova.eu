@@ -192,6 +192,7 @@ export class QuizLearningObjectivesComponent {
   private derivationAbortController: AbortController | null = null;
   private derivationSequence = 0;
   private derivationProgressPollSequence = 0;
+  private derivationProgressAppliedPollSequence = 0;
   private derivationProgressTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly quizId = input.required<string>();
@@ -909,6 +910,7 @@ export class QuizLearningObjectivesComponent {
   }): void {
     this.stopDerivationProgressPolling();
     this.derivationProgressPollSequence = 0;
+    this.derivationProgressAppliedPollSequence = 0;
     const sequence = this.derivationSequence;
     const poll = (): void => {
       const pollSequence = ++this.derivationProgressPollSequence;
@@ -916,7 +918,7 @@ export class QuizLearningObjectivesComponent {
         .progress(input)
         .then((snapshot) => {
           if (
-            pollSequence !== this.derivationProgressPollSequence ||
+            pollSequence <= this.derivationProgressAppliedPollSequence ||
             sequence !== this.derivationSequence ||
             !this.derivationIsPending() ||
             !snapshot.found ||
@@ -924,6 +926,7 @@ export class QuizLearningObjectivesComponent {
           ) {
             return;
           }
+          this.derivationProgressAppliedPollSequence = pollSequence;
           this.derivationProgress.set(snapshot.progress);
           this.derivationMessage.set(this.derivationPendingMessage());
         })

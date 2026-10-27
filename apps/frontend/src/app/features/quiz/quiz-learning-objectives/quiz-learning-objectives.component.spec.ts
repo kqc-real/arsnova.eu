@@ -845,6 +845,85 @@ describe('QuizLearningObjectivesComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt Fortschritt auch wenn jeder Poll länger als das Intervall dauert', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Langsame Polls' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const pending: Array<(value: Record<string, unknown>) => void> = [];
+    runDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>(() => {
+          /* pending until destroy */
+        }),
+    );
+    progressDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>((resolve) => {
+          pending.push(resolve);
+        }),
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(pending.length).toBe(1));
+    await new Promise((resolve) =>
+      setTimeout(resolve, LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 50),
+    );
+    await vi.waitFor(() => expect(pending.length).toBe(2));
+
+    pending[0]!({
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 1,
+        totalGroups: 4,
+        elapsedMs: 45_000,
+        promptTokens: 200,
+        completionTokens: 40,
+        queuedObjectives: 2,
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 1 von 4 Fragegruppen.',
+    );
+
+    pending[1]!({
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 2,
+        totalGroups: 4,
+        elapsedMs: 90_000,
+        promptTokens: 400,
+        completionTokens: 80,
+        queuedObjectives: 3,
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 2 von 4 Fragegruppen.',
+    );
+    fixture.destroy();
+  });
+
   it('zeigt bei fehlender lokaler Text-KI deren Status statt 0 fertiger Fragegruppen', async () => {
     const store = TestBed.inject(QuizStoreService);
     const quiz = store.createQuiz({ name: 'Ohne Text-KI' });
