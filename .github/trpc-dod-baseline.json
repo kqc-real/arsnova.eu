@@ -454,7 +454,12 @@
     },
     "quiz.deriveLearningObjectives": {
       "kind": "mutation",
-      "fingerprint": "sha256:f105ce4d2ecd57e31bd021dad15281ad26a040172369e48bfd9cc816e2432ff3",
+      "fingerprint": "sha256:b831eb45bf2ea2a57d2262391ca7cf1d6ad6106d4cf6be2ba232e50f53a17711",
+      "missing": []
+    },
+    "quiz.getLearningObjectiveDerivationProgress": {
+      "kind": "query",
+      "fingerprint": "sha256:9c2524a32aad13a4032e52bb46bc07978b9b073e685e2db071cd58eaadf00ab8",
       "missing": []
     },
     "quiz.prepareLearningObjectiveDerivation": {

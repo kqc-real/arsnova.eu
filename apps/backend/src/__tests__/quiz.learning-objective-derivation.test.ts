@@ -237,32 +237,62 @@ describe('quiz learning-objective derivation capability boundary', () => {
     });
   });
 
-  it('returns matching derivation progress and hides foreign bindings', async () => {
-    progressMocks.read.mockResolvedValue({
-      completedGroups: 2,
-      totalGroups: 4,
-      elapsedMs: 30_000,
-      promptTokens: 400,
-      completionTokens: 80,
-      queuedObjectives: 5,
-    });
-
-    await expect(
-      createCaller().getLearningObjectiveDerivationProgress(correlation),
-    ).resolves.toEqual({
-      ...correlation,
-      found: true,
-      progress: {
+  trpcDodIt(
+    {
+      procedure: 'quiz.getLearningObjectiveDerivationProgress',
+      case: 'happy',
+      mode: 'direct',
+      title: 'returns matching derivation progress for the bound operation',
+    },
+    async () => {
+      progressMocks.read.mockResolvedValue({
         completedGroups: 2,
         totalGroups: 4,
         elapsedMs: 30_000,
         promptTokens: 400,
         completionTokens: 80,
         queuedObjectives: 5,
-      },
-    });
+      });
 
+      await expect(
+        createCaller().getLearningObjectiveDerivationProgress(correlation),
+      ).resolves.toEqual({
+        ...correlation,
+        found: true,
+        progress: {
+          completedGroups: 2,
+          totalGroups: 4,
+          elapsedMs: 30_000,
+          promptTokens: 400,
+          completionTokens: 80,
+          queuedObjectives: 5,
+        },
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'quiz.getLearningObjectiveDerivationProgress',
+      case: 'error',
+      mode: 'direct',
+      contract: 'VALIDATION',
+      title: 'rejects derivation progress without a bound operation key',
+    },
+    async () => {
+      await expect(
+        createCaller().getLearningObjectiveDerivationProgress({
+          ...correlation,
+          operationId: 'not-a-uuid',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(progressMocks.read).not.toHaveBeenCalled();
+    },
+  );
+
+  it('hides derivation progress for a foreign or missing binding', async () => {
     progressMocks.read.mockResolvedValue(null);
+
     await expect(
       createCaller().getLearningObjectiveDerivationProgress(correlation),
     ).resolves.toEqual({
