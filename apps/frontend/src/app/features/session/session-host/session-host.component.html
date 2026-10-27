@@ -628,7 +628,9 @@
                 [class.session-host__moderation-control--has-signals]="
                   moderationCompassHasSignals()
                 "
-                (click)="openModerationCompassDialog()"
+                (click)="openModerationCompassFromTrigger()"
+                (focus)="onModerationCompassTriggerFocus()"
+                (blur)="onModerationCompassTriggerBlur()"
                 aria-haspopup="dialog"
                 [attr.aria-label]="moderationCompassButtonAria()"
               >

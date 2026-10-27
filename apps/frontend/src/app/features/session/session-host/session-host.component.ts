@@ -2840,12 +2840,41 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     () => this.activeChannel() !== 'quickFeedback' || this.channels().quiz || this.channels().qa,
   );
   /** Die Quiz-Gesamtauswertung zeigt den Kompass nicht. */
-  readonly showModerationCompassButton = computed(
-    () =>
+  private moderationCompassButtonNaturallyVisible(): boolean {
+    return (
       this.showModerationCompass() &&
       this.moderationCompassHasSignals() &&
-      !(this.activeChannel() === 'quiz' && this.effectiveStatus() === 'FINISHED'),
+      !(this.activeChannel() === 'quiz' && this.effectiveStatus() === 'FINISHED')
+    );
+  }
+  /** Dialog oder Tastaturfokus: der Trigger bleibt, bis der Fokus woanders liegt. */
+  private readonly moderationCompassDialogOpen = signal(false);
+  private readonly moderationCompassTriggerFocused = signal(false);
+  readonly showModerationCompassButton = computed(
+    () =>
+      this.moderationCompassDialogOpen() ||
+      this.moderationCompassTriggerFocused() ||
+      this.moderationCompassButtonNaturallyVisible(),
   );
+  private readonly releaseHiddenCompassTriggerFocus = effect(() => {
+    const dialogOpen = this.moderationCompassDialogOpen();
+    const focused = this.moderationCompassTriggerFocused();
+    const natural = this.moderationCompassButtonNaturallyVisible();
+    if (natural || dialogOpen || !focused) return;
+    untracked(() => {
+      queueMicrotask(() => {
+        if (this.destroyRef.destroyed) return;
+        if (
+          this.moderationCompassButtonNaturallyVisible() ||
+          this.moderationCompassDialogOpen() ||
+          !this.moderationCompassTriggerFocused()
+        ) {
+          return;
+        }
+        this.moveFocusOffModerationCompassTrigger();
+      });
+    });
+  });
   readonly showHostModerationStack = computed(
     () =>
       this.moderationCompassReturn() !== null ||
@@ -2864,6 +2893,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return $localize`:@@sessionHost.moderationButtonAriaWithSignals:Moderationskompass öffnen, Hinweise vorhanden`;
   });
+  openModerationCompassFromTrigger(): void {
+    if (!this.moderationCompassButtonNaturallyVisible()) return;
+    void this.openModerationCompassDialog();
+  }
+
   readonly openModerationCompassDialog = async (): Promise<void> => {
     this.moderationCompassReturn.set(null);
     this.clearQaCompassFocus();
@@ -2878,6 +2912,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshQaSummaryRuntime();
     const { ModerationCompassDialogComponent } =
       await import('./moderation-compass-dialog.component');
+    this.moderationCompassDialogOpen.set(true);
     const dialogRef = this.dialog.open(ModerationCompassDialogComponent, {
       data: {
         cards: () => this.moderationCompassCards(),
@@ -2917,11 +2952,60 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(() => {
       this.qaSummaryPreviewRequestGeneration += 1;
       this.stopQaSummaryPolling();
+      if (!this.moderationCompassButtonNaturallyVisible()) {
+        this.moveFocusOffModerationCompassTrigger();
+      }
+      this.moderationCompassDialogOpen.set(false);
     });
   };
 
+  onModerationCompassTriggerFocus(): void {
+    this.moderationCompassTriggerFocused.set(true);
+  }
+
+  onModerationCompassTriggerBlur(): void {
+    this.moderationCompassTriggerFocused.set(false);
+  }
+
+  private moveFocusOffModerationCompassTrigger(): void {
+    const button = this.moderationCompassButtonRef?.nativeElement ?? null;
+    const fallback = this.findHostFocusFallback(button);
+    if (!fallback) return;
+    try {
+      fallback.focus({ preventScroll: true });
+    } catch {
+      fallback.focus();
+    }
+  }
+
+  private findHostFocusFallback(excluded: HTMLElement | null): HTMLElement | null {
+    const scope = this.document.querySelector('.session-host') ?? this.document.body;
+    const candidates = scope.querySelectorAll<HTMLElement>(
+      [
+        '[data-testid="host-learning-objectives"]',
+        '.session-channel-tabs button',
+        '[data-testid="host-more-actions"]',
+        '.session-host__live-actions button',
+      ].join(', '),
+    );
+    const connected = [...candidates].filter(
+      (candidate) =>
+        candidate !== excluded &&
+        !candidate.closest('[data-testid="host-moderation-compass"]') &&
+        candidate.isConnected &&
+        !candidate.hasAttribute('disabled'),
+    );
+    return (
+      connected.find((candidate) => this.isElementVisibleForFocus(candidate)) ??
+      connected[0] ??
+      null
+    );
+  }
+
   readonly sessionLearningObjectives = signal<readonly SessionLearningObjectiveDTO[]>([]);
   private learningObjectivesRequest = 0;
+  /** Letzter Abruf ist fehlgeschlagen; Polling und Reconnect holen ihn nach. */
+  private learningObjectivesRetryPending = false;
   /** Lobby und Warten auf die erste Frage: alle bestätigten Ziele, noch ohne Fragenfilter. */
   readonly showAllConfirmedLearningObjectives = computed(() => {
     if (this.activeChannel() !== 'quiz') return false;
@@ -2954,6 +3038,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async refreshSessionLearningObjectives(): Promise<void> {
     if (!this.channels().quiz || this.code.length !== 6) {
+      this.learningObjectivesRequest += 1;
+      this.learningObjectivesRetryPending = false;
       this.sessionLearningObjectives.set([]);
       return;
     }
@@ -2963,10 +3049,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         code: this.code.toUpperCase(),
       });
       if (request !== this.learningObjectivesRequest) return;
+      this.learningObjectivesRetryPending = false;
       this.sessionLearningObjectives.set(snapshot.objectives);
     } catch {
       if (request !== this.learningObjectivesRequest) return;
-      this.sessionLearningObjectives.set([]);
+      this.learningObjectivesRetryPending = true;
     }
   }
 
@@ -6143,6 +6230,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (this.shouldPollEmojiReactions()) {
       tasks.push(this.refreshEmojiReactions(options));
+    }
+    if (this.learningObjectivesRetryPending) {
+      tasks.push(this.refreshSessionLearningObjectives());
     }
     if (tasks.length > 0) {
       await Promise.all(tasks);

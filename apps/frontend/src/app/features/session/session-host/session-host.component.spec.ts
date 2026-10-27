@@ -26837,6 +26837,65 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
+    it('holt Lernziele nach einem fehlgeschlagenen Abruf über den Hilfs-Poll nach', async () => {
+      const confirmed = hostLearningObjective('Das Quiz verstehen.', 'confirmed', 'quiz-wide', 'a');
+      getLearningObjectivesQueryMock.mockReset();
+      getLearningObjectivesQueryMock.mockRejectedValueOnce(new Error('offline'));
+      getLearningObjectivesQueryMock.mockResolvedValue({
+        schemaVersion: 1,
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        learningContextRevision: 1,
+        configured: true,
+        access: { state: 'writable' },
+        availableQuizTasks: [],
+        availableQaTasks: [],
+        availableQaTasksTruncated: false,
+        objectives: [confirmed],
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).toBeNull();
+      expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(1);
+
+      await (
+        fixture.componentInstance as unknown as SpecAccess<
+          SessionHostComponent,
+          { refreshAuxiliaryHostData: () => Promise<void> }
+        >
+      ).refreshAuxiliaryHostData();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(2);
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).not.toBeNull();
+
+      getLearningObjectivesQueryMock.mockRejectedValueOnce(new Error('offline again'));
+      await (
+        fixture.componentInstance as unknown as SpecAccess<
+          SessionHostComponent,
+          { refreshSessionLearningObjectives: () => Promise<void> }
+        >
+      ).refreshSessionLearningObjectives();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement
+          .querySelector('[data-testid="host-learning-objectives"]')
+          ?.textContent?.trim(),
+      ).toContain('Lernziele');
+      fixture.destroy();
+    });
+
     it('blendet den Kompass in der Quiz-Gesamtauswertung aus und zeigt ihn in einem anderen Kanal', async () => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
@@ -26973,6 +27032,65 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(button?.getAttribute('aria-label')).toBe(
         'Moderationskompass öffnen, Hinweise vorhanden',
       );
+      fixture.destroy();
+    });
+
+    it('hält den Kompass-Fokus, wenn die letzte Empfehlung wegfällt', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const closed = new Subject<void>();
+      dialogOpenMock.mockReturnValue({ afterClosed: () => closed.asObservable() });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.qaQuestions.set([pendingCompassQuestion()]);
+      fixture.detectChanges();
+
+      const compass = (): HTMLButtonElement | null =>
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]');
+      compass()?.focus();
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(compass());
+
+      component.qaQuestions.set([]);
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(compass()).toBeNull();
+      expect(document.activeElement).toBeInstanceOf(HTMLElement);
+      expect((document.activeElement as HTMLElement).isConnected).toBe(true);
+      expect(
+        (document.activeElement as HTMLElement).closest('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+
+      component.qaQuestions.set([pendingCompassQuestion()]);
+      fixture.detectChanges();
+      await component.openModerationCompassDialog();
+      component.qaQuestions.set([]);
+      fixture.detectChanges();
+      expect(compass()).not.toBeNull();
+
+      closed.next();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(compass()).toBeNull();
+      expect((document.activeElement as HTMLElement).isConnected).toBe(true);
+      expect(
+        (document.activeElement as HTMLElement).closest('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
       fixture.destroy();
     });
 
