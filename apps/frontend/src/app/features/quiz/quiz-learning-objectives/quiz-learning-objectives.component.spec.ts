@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuizStoreService } from '../data/quiz-store.service';
 import { getDemoQuizPayload } from '../data/demo-quiz-payload';
 import { LearningObjectiveDerivationClient } from './learning-objective-derivation.client';
+import { LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS } from './learning-objective-derivation-progress';
 import {
   QuizLearningObjectivesComponent,
   mapQuestionForLearningObjectiveDerivation,
@@ -763,6 +764,84 @@ describe('QuizLearningObjectivesComponent', () => {
       'learning-objective-derivation-groups-progress-label',
     );
     expect(fixture.componentInstance.derivationProgressPercent()).toBe(33);
+    fixture.destroy();
+  });
+
+  it('übernimmt keinen älteren Fortschritt nach einem neueren Poll', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Poll-Reihenfolge' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const pending: Array<(value: Record<string, unknown>) => void> = [];
+    runDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>(() => {
+          /* pending until destroy */
+        }),
+    );
+    progressDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>((resolve) => {
+          pending.push(resolve);
+        }),
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(pending.length).toBe(1));
+    await new Promise((resolve) =>
+      setTimeout(resolve, LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 50),
+    );
+    await vi.waitFor(() => expect(pending.length).toBe(2));
+
+    const newer = {
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 2,
+        totalGroups: 4,
+        elapsedMs: 80_000,
+        promptTokens: 400,
+        completionTokens: 80,
+        queuedObjectives: 3,
+      },
+    };
+    const older = {
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 0,
+        totalGroups: 4,
+        elapsedMs: 80,
+        promptTokens: 0,
+        completionTokens: 0,
+        queuedObjectives: 0,
+      },
+    };
+    pending[1]!(newer);
+    await fixture.whenStable();
+    pending[0]!(older);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 2 von 4 Fragegruppen.',
+    );
+    expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
+      '3 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+    );
     fixture.destroy();
   });
 

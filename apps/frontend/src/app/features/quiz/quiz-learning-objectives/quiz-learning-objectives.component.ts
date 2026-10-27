@@ -191,6 +191,7 @@ export class QuizLearningObjectivesComponent {
   private readonly objectiveMarkdownCache = new Map<string, SafeHtml>();
   private derivationAbortController: AbortController | null = null;
   private derivationSequence = 0;
+  private derivationProgressPollSequence = 0;
   private derivationProgressTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly quizId = input.required<string>();
@@ -907,12 +908,15 @@ export class QuizLearningObjectivesComponent {
     expectedBundleRevision: number;
   }): void {
     this.stopDerivationProgressPolling();
+    this.derivationProgressPollSequence = 0;
     const sequence = this.derivationSequence;
     const poll = (): void => {
+      const pollSequence = ++this.derivationProgressPollSequence;
       void this.derivationClient
         .progress(input)
         .then((snapshot) => {
           if (
+            pollSequence !== this.derivationProgressPollSequence ||
             sequence !== this.derivationSequence ||
             !this.derivationIsPending() ||
             !snapshot.found ||
