@@ -226,6 +226,15 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     focusedQuestionIdMock.mockReturnValue(null);
     getLearningObjectivesMock.mockResolvedValue(
       snapshot({
+        availableQuizTasks: [
+          {
+            kind: 'quiz-question',
+            questionId: 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3',
+            order: 0,
+            text: 'Frage A',
+            eligibleForDerivation: true,
+          },
+        ],
         objectives: [
           confirmedObjective('Bestätigtes Quizziel.'),
           existingObjective('Noch ein Entwurf.'),
@@ -254,13 +263,84 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     const fixture = await createComponent();
     expect(
       fixture.componentInstance.visibleObjectives().map((objective) => objective.text),
-    ).toEqual(['Bestätigtes Quizziel.', 'Bestätigtes Frageziel.']);
+    ).toEqual(['Bestätigtes Frageziel.', 'Bestätigtes Quizziel.']);
+    expect(fixture.nativeElement.textContent).toContain('Frage 1');
+    expect(fixture.nativeElement.textContent).toContain('Ganze Session');
     expect(fixture.nativeElement.textContent).toContain('Bestätigtes Quizziel.');
     expect(fixture.nativeElement.textContent).toContain('Bestätigtes Frageziel.');
     expect(fixture.nativeElement.textContent).not.toContain('Noch ein Entwurf.');
     expect(fixture.nativeElement.textContent).not.toContain('Forumsauftrag.');
     expect(fixture.nativeElement.textContent).toContain('Lernziele');
     expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
+  });
+
+  it('ordnet die Übersicht Fragennummern zu und sortiert danach', async () => {
+    const quizQuestionA = 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3';
+    const quizQuestionB = 'fb4a99f8-8d86-41ef-960c-130f6d9a48e4';
+    const quizQuestionC = '0c4a99f8-8d86-41ef-960c-130f6d9a48e5';
+    focusedQuestionIdMock.mockReturnValue(null);
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        availableQuizTasks: [
+          {
+            kind: 'quiz-question',
+            questionId: quizQuestionA,
+            order: 0,
+            text: 'Frage A',
+            eligibleForDerivation: true,
+          },
+          {
+            kind: 'quiz-question',
+            questionId: quizQuestionB,
+            order: 1,
+            text: 'Frage B',
+            eligibleForDerivation: true,
+          },
+          {
+            kind: 'quiz-question',
+            questionId: quizQuestionC,
+            order: 2,
+            text: 'Frage C',
+            eligibleForDerivation: true,
+          },
+        ],
+        objectives: [
+          {
+            ...confirmedObjective('Ziel zu Frage 3'),
+            id: '11111111-1111-4111-8111-111111111111',
+            scope: {
+              kind: 'question-set',
+              taskReferences: [{ kind: 'quiz-question', questionId: quizQuestionC }],
+            },
+          },
+          {
+            ...confirmedObjective('Quizweites Ziel'),
+            id: '22222222-2222-4222-8222-222222222222',
+            scope: { kind: 'quiz-wide' },
+          },
+          {
+            ...confirmedObjective('Ziel zu Fragen 1 und 2'),
+            id: '33333333-3333-4333-8333-333333333333',
+            scope: {
+              kind: 'question-set',
+              taskReferences: [
+                { kind: 'quiz-question', questionId: quizQuestionB },
+                { kind: 'quiz-question', questionId: quizQuestionA },
+              ],
+            },
+          },
+        ],
+      }),
+    );
+
+    const fixture = await createComponent();
+    expect(
+      fixture.componentInstance.visibleObjectives().map((objective) => objective.text),
+    ).toEqual(['Quizweites Ziel', 'Ziel zu Fragen 1 und 2', 'Ziel zu Frage 3']);
+    expect(fixture.nativeElement.textContent).toContain('Gesamtes Quiz');
+    expect(fixture.nativeElement.textContent).toContain('Fragen 1 und 2');
+    expect(fixture.nativeElement.textContent).toContain('Frage 3');
+    expect(fixture.nativeElement.textContent).not.toContain('Lernziel zur Frage');
   });
 
   it('stellt nach Abbruch den Fokus auf die erneut sichtbare Hinzufügen-Aktion', async () => {
