@@ -34882,12 +34882,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningObjectivesAria" datatype="html">
-        <source>Lernziele für diese Session öffnen</source>
-        <target>Abrir los objetivos de aprendizaje de esta sesión</target>
+        <source>Lernziel zur aktuellen Frage anzeigen</source>
+        <target>Mostrar el objetivo de aprendizaje de la pregunta actual</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">650</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectivesOverviewAria" datatype="html">
+        <source>Bestätigte Lernziele anzeigen</source>
+        <target>Mostrar los objetivos de aprendizaje confirmados</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectivesOverviewButton" datatype="html">
+        <source>Lernziele</source>
+        <target>Objetivos de aprendizaje</target>
       </trans-unit>
       <trans-unit id="sessionHost.learningObjectivesButton" datatype="html">
         <source>Lernziel</source>
@@ -35958,8 +35966,8 @@
         <target>Todavía no se ha definido ninguna tarea para este foro de preguntas y respuestas.</target>
       </trans-unit>
       <trans-unit id="sessionLearningObjectives.questionEmpty" datatype="html">
-        <source>Für diese Frage ist noch kein Lernziel hinterlegt.</source>
-        <target>Todavía no se ha definido ningún objetivo de aprendizaje para esta pregunta.</target>
+        <source>Für diese Frage ist noch kein bestätigtes Lernziel hinterlegt.</source>
+        <target>Todavía no hay un objetivo de aprendizaje confirmado para esta pregunta.</target>
       </trans-unit>
       <trans-unit id="sessionQaAssignments.deleteQuestion" datatype="html">
         <source>Diesen Auftrag wirklich löschen?</source>

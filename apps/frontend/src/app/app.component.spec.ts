@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -519,6 +519,47 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance.presetSnackbarLabel()).toBe(
       'Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.',
     );
+
+    fixture.destroy();
+  });
+
+  it('zeigt die Preset-Snackbar auf dem Vote-Pfad nicht', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const router = TestBed.inject(Router);
+    const themePreset = TestBed.inject(ThemePresetService);
+    const url = vi.spyOn(router, 'url', 'get');
+    themePreset.setPreset('serious', { silent: true });
+
+    for (const voteUrl of [
+      '/session/ABC123/vote',
+      '/en/session/ABC123/vote?tab=qa',
+      '/session/ABC123/vote?tab=quickFeedback',
+    ]) {
+      url.mockReturnValue(voteUrl);
+      themePreset.setPreset(themePreset.preset() === 'spielerisch' ? 'serious' : 'spielerisch');
+      fixture.detectChanges();
+      expect(fixture.componentInstance.presetSnackbarVisible()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.app-preset-snackbar')).toBeNull();
+      fixture.componentInstance.openPresetCustomize();
+      expect(fixture.componentInstance.presetToastVisible()).toBe(false);
+    }
+
+    url.mockReturnValue('/session/ABC123/host');
+    themePreset.setPreset(themePreset.preset() === 'spielerisch' ? 'serious' : 'spielerisch');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presetSnackbarVisible()).toBe(true);
+
+    url.mockReturnValue('/de/session/ABC123/vote');
+    (
+      fixture.componentInstance as unknown as SpecAccess<
+        AppComponent,
+        { updateRouteFlags: () => void }
+      >
+    ).updateRouteFlags();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presetSnackbarVisible()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.app-preset-snackbar')).toBeNull();
 
     fixture.destroy();
   });

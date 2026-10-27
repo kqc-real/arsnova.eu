@@ -188,6 +188,7 @@ import {
   TeamAssignment,
   SessionResultsPdfProfile,
   SessionStatus,
+  SessionLearningObjectiveDTO,
   SessionStatusUpdate,
   TeamDTO,
   TeamLeaderboardEntryDTO,
@@ -198,6 +199,10 @@ import {
   WordCloudAnalysisVariant,
   WordCloudNormalizationFallbackReason,
 } from '@arsnova/shared-types';
+import {
+  confirmedLearningObjectiveAppliesToQuestion,
+  isConfirmedDisplayedLearningObjective,
+} from './session-learning-objective-match';
 import {
   isDisplayableThemeWordCloudEntry,
   isWordCloudUnigramEntryKey,
@@ -218,7 +223,7 @@ import {
   type WordCloudTermDocument,
 } from '../session-present/word-cloud-term.service';
 import {
-  buildModerationCompassCards,
+  buildModerationCompassView,
   collectModerationQuizFacts,
   moderationQuizFactEvidenceRole,
   collectQaNlpCategorySources,
@@ -2777,8 +2782,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       throw error;
     }
   };
-  readonly moderationCompassCards = computed(() =>
-    buildModerationCompassCards({
+  readonly moderationCompassView = computed(() =>
+    buildModerationCompassView({
       qaQuestions: this.moderationCompassInventoryQuestions().map((question) => ({
         id: question.id,
         text: question.text,
@@ -2816,6 +2821,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       quizInsightKind: this.moderationCompassQuizInsightKind(),
     }),
   );
+  readonly moderationCompassCards = computed(() => this.moderationCompassView().cards);
 
   private withCurrentFreetextQuestionTarget(
     terms: readonly ModerationCompassTerm[],
@@ -2826,7 +2832,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return terms.map((term) => ({ ...term, questionId: question.questionId }));
   }
-  readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
+  readonly moderationCompassHasSignals = computed(
+    () => this.moderationCompassView().actionRecommendation !== null,
+  );
   /** Im reinen Blitzlicht wiederholt der Kompass nur die sichtbare Rückmeldung. */
   readonly showModerationCompass = computed(
     () => this.activeChannel() !== 'quickFeedback' || this.channels().quiz || this.channels().qa,
@@ -2835,10 +2843,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showModerationCompassButton = computed(
     () =>
       this.showModerationCompass() &&
+      this.moderationCompassHasSignals() &&
       !(this.activeChannel() === 'quiz' && this.effectiveStatus() === 'FINISHED'),
   );
   readonly showHostModerationStack = computed(
-    () => this.moderationCompassReturn() !== null || this.showModerationCompass(),
+    () =>
+      this.moderationCompassReturn() !== null ||
+      this.showModerationCompassButton() ||
+      this.showLearningObjectivesControl(),
   );
   readonly moderationCompassReturn = signal<{
     readonly channel: SessionChannelTab;
@@ -2908,10 +2920,54 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   };
 
+  readonly sessionLearningObjectives = signal<readonly SessionLearningObjectiveDTO[]>([]);
+  private learningObjectivesRequest = 0;
+  /** Lobby und Warten auf die erste Frage: alle bestätigten Ziele, noch ohne Fragenfilter. */
+  readonly showAllConfirmedLearningObjectives = computed(() => {
+    if (this.activeChannel() !== 'quiz') return false;
+    if (this.displayedCurrentQuestionForHost() !== null) return false;
+    return this.effectiveStatus() === 'LOBBY' || this.isQuizAwaitingFirstQuestion();
+  });
+  readonly showLearningObjectivesControl = computed(() => {
+    if (this.activeChannel() === 'quickFeedback') return false;
+    if (this.activeChannel() === 'qa') return true;
+    if (this.activeChannel() !== 'quiz') return false;
+    if (this.showAllConfirmedLearningObjectives()) {
+      return this.sessionLearningObjectives().some(isConfirmedDisplayedLearningObjective);
+    }
+    const questionId = this.displayedCurrentQuestionForHost()?.questionId;
+    if (!questionId) return false;
+    return this.sessionLearningObjectives().some((objective) =>
+      confirmedLearningObjectiveAppliesToQuestion(objective, questionId),
+    );
+  });
+
   learningObjectivesControlAriaLabel(): string {
-    return this.activeChannel() === 'qa'
-      ? $localize`:@@sessionHost.qaAssignmentAria:Auftrag für das Q&A-Forum öffnen`
-      : $localize`:@@sessionHost.learningObjectivesAria:Lernziele für diese Session öffnen`;
+    if (this.activeChannel() === 'qa') {
+      return $localize`:@@sessionHost.qaAssignmentAria:Auftrag für das Q&A-Forum öffnen`;
+    }
+    if (this.showAllConfirmedLearningObjectives()) {
+      return $localize`:@@sessionHost.learningObjectivesOverviewAria:Bestätigte Lernziele anzeigen`;
+    }
+    return $localize`:@@sessionHost.learningObjectivesAria:Lernziel zur aktuellen Frage anzeigen`;
+  }
+
+  private async refreshSessionLearningObjectives(): Promise<void> {
+    if (!this.channels().quiz || this.code.length !== 6) {
+      this.sessionLearningObjectives.set([]);
+      return;
+    }
+    const request = ++this.learningObjectivesRequest;
+    try {
+      const snapshot = await trpc.session.getLearningObjectives.query({
+        code: this.code.toUpperCase(),
+      });
+      if (request !== this.learningObjectivesRequest) return;
+      this.sessionLearningObjectives.set(snapshot.objectives);
+    } catch {
+      if (request !== this.learningObjectivesRequest) return;
+      this.sessionLearningObjectives.set([]);
+    }
   }
 
   readonly openLearningObjectivesDialog = async (): Promise<void> => {
@@ -5393,6 +5449,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.generateQrCode();
     await this.refreshLiveFreetext();
     await this.refreshCurrentQuestionForHost();
+    await this.refreshSessionLearningObjectives();
     await this.refreshHostVoteProgress();
     this.syncMusic();
     this.startHostPolling();
@@ -11658,6 +11715,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.refreshParticipantsPayload(),
       this.refreshLobbyTeams(),
       this.refreshCurrentQuestionForHost(),
+      this.refreshSessionLearningObjectives(),
       this.refreshQuickFeedbackResult(),
       this.refreshQaQuestionsForChannelActivation(),
     ]);

@@ -9,9 +9,11 @@ import { By } from '@angular/platform-browser';
 import { NEVER, Subject, of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
+  HostCurrentQuestionDTO,
   QaQuestionDTO,
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
+  SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
   flushComponentAfterStable,
@@ -33,6 +35,52 @@ import { SessionResultsExportService } from '../../../core/session-results-expor
 import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
 import type { SpecAccess } from '../../../testing/spec-access';
+
+function pendingCompassQuestion(): QaQuestionDTO {
+  return {
+    id: '11111111-1111-4111-8111-111111111111',
+    text: 'Kommt Kapitel 4 in der Klausur vor?',
+    status: 'PENDING',
+    upvoteCount: 1,
+    createdAt: '2026-03-13T12:00:00.000Z',
+    myVote: null,
+    isOwn: false,
+    passagesRedacted: false,
+    hasUpvoted: false,
+  } as QaQuestionDTO;
+}
+
+function hostLearningObjective(
+  text: string,
+  state: 'draft' | 'confirmed',
+  scope: 'quiz-wide' | 'question-set',
+  idSuffix = '0',
+  questionId = '11111111-1111-4111-8111-111111111111',
+): SessionLearningObjectiveDTO {
+  const id = `${idSuffix.padEnd(8, '0').slice(0, 8)}-1111-4111-8111-111111111111`;
+  return {
+    id,
+    revision: 1,
+    text,
+    scope:
+      scope === 'quiz-wide'
+        ? { kind: 'quiz-wide' }
+        : { kind: 'question-set', taskReferences: [{ kind: 'quiz-question', questionId }] },
+    origin: { kind: 'manual' },
+    confirmation:
+      state === 'confirmed'
+        ? {
+            state: 'confirmed',
+            confirmedAt: '2026-10-04T10:00:00.000Z',
+            confirmedRevision: 1,
+          }
+        : { state: 'draft' },
+    projection: 'quiz-projected',
+    purpose: 'learning-objective',
+    createdAt: '2026-10-04T10:00:00.000Z',
+    updatedAt: '2026-10-04T10:00:00.000Z',
+  };
+}
 
 function exitAnchorButtonLabel(button: Element): string {
   return (button.textContent ?? '')
@@ -6487,7 +6535,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await vi.waitUntil(() => attachQuizToSessionMutateMock.mock.calls.length === 2);
     await fixture.whenStable();
 
-    expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(2);
+    expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(3);
     expect(attachQuizToSessionMutateMock).toHaveBeenNthCalledWith(1, {
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
@@ -26607,27 +26655,21 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   describe('Moderationskompass', () => {
-    it('zeigt den Button Moderation neben der Live-Leiste', async () => {
+    it('blendet den Kompass ohne Handlungsempfehlung aus', async () => {
       const fixture = setup();
       fixture.detectChanges();
       await fixture.whenStable();
       await flushComponentAfterStable(fixture, 50);
       fixture.detectChanges();
 
-      const button = fixture.nativeElement.querySelector(
-        '[data-testid="host-moderation-compass"]',
-      ) as HTMLButtonElement | null;
-      expect(button).not.toBeNull();
-      expect(button?.textContent).toContain('Kompass');
-      expect(button?.querySelector('.moderation-compass-icon')).not.toBeNull();
-      expect(button?.classList.contains('session-host__moderation-control--has-signals')).toBe(
-        false,
-      );
-      expect(button?.getAttribute('aria-label')).toBe('Moderationskompass öffnen');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+      expect(fixture.componentInstance.moderationCompassView().actionRecommendation).toBeNull();
       fixture.destroy();
     });
 
-    it('bleibt in Quiz, Q&A und Blitzlicht sichtbar', async () => {
+    it('bleibt ohne Analyse in Quiz, Q&A und Blitzlicht aus', async () => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'ACTIVE',
@@ -26649,7 +26691,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         fixture.detectChanges();
         expect(
           fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
-        ).not.toBeNull();
+        ).toBeNull();
       }
       fixture.destroy();
     });
@@ -26671,13 +26713,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await flushComponentAfterStable(fixture, 50);
       const component = fixture.componentInstance;
 
-      for (const channel of ['quiz', 'qa'] as const) {
-        component.activeChannel.set(channel);
-        fixture.detectChanges();
-        expect(
-          fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
-        ).not.toBeNull();
-      }
+      component.activeChannel.set('quiz');
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).toBeNull();
+
+      component.activeChannel.set('qa');
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).not.toBeNull();
 
       component.activeChannel.set('quickFeedback');
       fixture.detectChanges();
@@ -26686,7 +26732,107 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       ).toBeNull();
       expect(
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
-      ).not.toBeNull();
+      ).toBeNull();
+      fixture.destroy();
+    });
+
+    it('zeigt vor der ersten Frage alle bestätigten Lernziele und danach nur das Ziel der Frage', async () => {
+      const currentQuestionId = '11111111-1111-4111-8111-111111111111';
+      const otherQuestionId = '22222222-2222-4222-8222-222222222222';
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.activeChannel.set('quiz');
+      const learningObjectiveButton = () =>
+        fixture.nativeElement.querySelector(
+          '[data-testid="host-learning-objectives"]',
+        ) as HTMLButtonElement | null;
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective('Noch ein Entwurf.', 'draft', 'quiz-wide'),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()).toBeNull();
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective('Noch ein Entwurf.', 'draft', 'quiz-wide'),
+        hostLearningObjective('Das gesamte Quiz verstehen.', 'confirmed', 'quiz-wide', 'a'),
+        hostLearningObjective(
+          'Nur die andere Frage.',
+          'confirmed',
+          'question-set',
+          'b',
+          otherQuestionId,
+        ),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
+        'Lernziele',
+      );
+      expect(learningObjectiveButton()?.getAttribute('aria-label')).toBe(
+        'Bestätigte Lernziele anzeigen',
+      );
+
+      component.session.set({
+        ...component.session()!,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+      });
+      component.currentQuestionForHost.set({
+        questionId: currentQuestionId,
+        order: 0,
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        answers: [],
+        totalVotes: 0,
+        currentRound: 1,
+      } as HostCurrentQuestionDTO);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
+        'Lernziel',
+      );
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective(
+          'Nur die andere Frage.',
+          'confirmed',
+          'question-set',
+          'b',
+          otherQuestionId,
+        ),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()).toBeNull();
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective(
+          'Die aktuelle Frage verstehen.',
+          'confirmed',
+          'question-set',
+          'c',
+          currentQuestionId,
+        ),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
+        'Lernziel',
+      );
+      expect(learningObjectiveButton()?.getAttribute('aria-label')).toBe(
+        'Lernziel zur aktuellen Frage anzeigen',
+      );
       fixture.destroy();
     });
 
@@ -26713,6 +26859,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
       ).toBeNull();
 
+      component.qaQuestions.set([pendingCompassQuestion()]);
       component.activeChannel.set('qa');
       fixture.detectChanges();
 
@@ -26761,6 +26908,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
             }
           : current,
       );
+      component.qaQuestions.set([pendingCompassQuestion()]);
       fixture.detectChanges();
 
       expect(
@@ -28235,7 +28383,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
-      ).not.toBeNull();
+      ).toBeNull();
       expect(fixture.componentInstance.moderationCompassCards()).toEqual([]);
       fixture.destroy();
     });

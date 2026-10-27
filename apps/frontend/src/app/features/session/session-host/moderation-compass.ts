@@ -737,9 +737,21 @@ function registeredSourceIds(
   return sources.map((source, index) => registerRuleSource(registry, `${prefix}:${index}`, source));
 }
 
+export type ModerationCompassView = {
+  readonly cards: readonly ModerationCompassCard[];
+  /** Nächster Schritt aus der stärksten Karte. Ohne ihn bleibt der Kompass zu. */
+  readonly actionRecommendation: ModerationCompassNextStepReason | null;
+};
+
 export function buildModerationCompassCards(
   snapshot: ModerationCompassSnapshot,
 ): ModerationCompassCard[] {
+  return [...buildModerationCompassView(snapshot).cards];
+}
+
+export function buildModerationCompassView(
+  snapshot: ModerationCompassSnapshot,
+): ModerationCompassView {
   const registry = new Map<string, ModerationCompassSource>();
   const topicSourceIds = selectModerationCompassTopicSourceIds({
     classified: topicRuleSources(snapshot.nlpTopicSources ?? [], 'topic:nlp', registry),
@@ -808,28 +820,31 @@ export function buildModerationCompassCards(
         : null,
     feedback,
   });
-  return plan.cards.map((card) => {
-    const mapped: ModerationCompassCard = {
-      kind: card.kind,
-      tone: card.tone,
-      sources: card.sourceIds.flatMap((sourceId) => {
-        const source = registry.get(sourceId);
-        return source ? [source] : [];
-      }),
-      ...(card.nextStepReason ? { nextStepReason: card.nextStepReason } : {}),
-    };
-    if (card.kind === 'tempo') {
-      return {
-        ...mapped,
-        title: snapshot.tempo?.title,
-        ...(snapshot.tempo?.tempoStatus ? { tempoStatus: snapshot.tempo.tempoStatus } : {}),
+  return {
+    actionRecommendation: plan.recommendation?.reason ?? null,
+    cards: plan.cards.map((card) => {
+      const mapped: ModerationCompassCard = {
+        kind: card.kind,
+        tone: card.tone,
+        sources: card.sourceIds.flatMap((sourceId) => {
+          const source = registry.get(sourceId);
+          return source ? [source] : [];
+        }),
+        ...(card.nextStepReason ? { nextStepReason: card.nextStepReason } : {}),
       };
-    }
-    if (card.kind === 'topics' && snapshot.topicWeightLabel) {
-      return { ...mapped, hint: snapshot.topicWeightLabel };
-    }
-    return mapped;
-  });
+      if (card.kind === 'tempo') {
+        return {
+          ...mapped,
+          title: snapshot.tempo?.title,
+          ...(snapshot.tempo?.tempoStatus ? { tempoStatus: snapshot.tempo.tempoStatus } : {}),
+        };
+      }
+      if (card.kind === 'topics' && snapshot.topicWeightLabel) {
+        return { ...mapped, hint: snapshot.topicWeightLabel };
+      }
+      return mapped;
+    }),
+  };
 }
 
 export function collectQaNlpCategorySources(
