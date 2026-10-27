@@ -180,14 +180,14 @@
       </section>
     }
 
-    @if (objectives().length === 0 && !formOpen()) {
+    @if (visibleObjectives().length === 0 && !formOpen()) {
       @if (isQaMode()) {
         <p class="session-objectives__empty" i18n="@@sessionQaAssignments.empty">
           Für dieses Q&amp;A-Forum ist noch kein Auftrag hinterlegt.
         </p>
       } @else if (isQuestionFocused()) {
         <p class="session-objectives__empty" i18n="@@sessionLearningObjectives.questionEmpty">
-          Für diese Frage ist noch kein Lernziel hinterlegt.
+          Für diese Frage ist noch kein bestätigtes Lernziel hinterlegt.
         </p>
       } @else {
         <p class="session-objectives__empty" i18n="@@sessionLearningObjectives.empty">
@@ -249,7 +249,7 @@
             }
           </div>
 
-          @if (!isReadOnly()) {
+          @if (!isReadOnly() && isQaMode()) {
             @if (isAudiencePresentation()) {
               <button
                 mat-icon-button
@@ -544,7 +544,7 @@
           </button>
         </div>
       </form>
-    } @else if (!isReadOnly() && !isAudiencePresentation()) {
+    } @else if (isQaMode() && !isReadOnly() && !isAudiencePresentation()) {
       <button
         mat-stroked-button
         type="button"

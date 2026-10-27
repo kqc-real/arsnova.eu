@@ -39,6 +39,7 @@ import {
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { trpc } from '../../../core/trpc.client';
+import { learningObjectiveAppliesToQuestion } from './session-learning-objective-match';
 import {
   UpdateBannerSuppressionService,
   bindUpdateBannerSuppression,
@@ -151,12 +152,8 @@ export class SessionLearningObjectivesDialogComponent {
     const learningObjectives = all.filter((objective) => !isQaForumAssignmentObjective(objective));
     const focusedId = this.focusedQuestionId();
     if (focusedId) {
-      return learningObjectives.filter(
-        (objective) =>
-          objective.scope.kind === 'question-set' &&
-          objective.scope.taskReferences.some(
-            (ref) => ref.kind === 'quiz-question' && ref.questionId === focusedId,
-          ),
+      return learningObjectives.filter((objective) =>
+        learningObjectiveAppliesToQuestion(objective, focusedId),
       );
     }
     return learningObjectives;
@@ -170,24 +167,11 @@ export class SessionLearningObjectivesDialogComponent {
     return this.confirmedObjectives().length > 0;
   });
   readonly visibleObjectives = computed(() => {
-    if (this.isAudiencePresentation() && !this.isQaMode()) {
-      return this.confirmedObjectives();
-    }
+    if (!this.isQaMode()) return this.confirmedObjectives();
     return this.objectives();
   });
-  readonly hasEligibleQuizTasksForDerivation = computed(() => {
-    if (this.isQaMode() || this.isReadOnly() || this.objectives().length > 0) return false;
-    const tasks = this.snapshot()?.availableQuizTasks ?? [];
-    const focusedId = this.focusedQuestionId();
-    if (focusedId) {
-      if (this.data.focusedQuestionEligibleForDerivation) {
-        return this.data.focusedQuestionEligibleForDerivation();
-      }
-      const match = tasks.find((task) => task.questionId === focusedId);
-      return match ? match.eligibleForDerivation !== false : false;
-    }
-    return tasks.some((task) => task.eligibleForDerivation !== false);
-  });
+  /** Ableitung und Entwürfe bleiben im Quiz-Editor. */
+  readonly hasEligibleQuizTasksForDerivation = computed(() => false);
 
   readonly taskOptions = computed(() => {
     const byKey = new Map<string, SessionLearningObjectiveTaskOption>();
@@ -286,7 +270,13 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   async deriveLearningObjectives(): Promise<void> {
-    if (this.derivationIsPending() || this.pending() || this.isReadOnly() || this.isQaMode()) {
+    if (
+      !this.isQaMode() ||
+      this.derivationIsPending() ||
+      this.pending() ||
+      this.isReadOnly() ||
+      this.isQaMode()
+    ) {
       return;
     }
     const snapshot = this.snapshot();
@@ -380,7 +370,7 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   beginAdd(): void {
-    if (this.isReadOnly()) return;
+    if (this.isReadOnly() || !this.isQaMode()) return;
     const focusedId = this.focusedQuestionId();
     this.editingId.set(null);
     this.expectedRevision.set(null);
@@ -412,7 +402,7 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   beginEdit(objective: SessionLearningObjectiveDTO): void {
-    if (this.isReadOnly()) return;
+    if (this.isReadOnly() || !this.isQaMode()) return;
     this.editingId.set(objective.id);
     this.expectedRevision.set(objective.revision);
     this.text.set(objective.text);
@@ -538,6 +528,7 @@ export class SessionLearningObjectivesDialogComponent {
 
   async save(): Promise<void> {
     if (
+      !this.isQaMode() ||
       !this.formOpen() ||
       this.pending() ||
       this.derivationIsPending() ||
@@ -645,7 +636,7 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   requestDelete(objectiveId: string): void {
-    if (this.isReadOnly()) return;
+    if (this.isReadOnly() || !this.isQaMode()) return;
     this.pendingDeleteId.set(objectiveId);
     this.statusMessage.set(
       $localize`:@@sessionLearningObjectives.deletePrompt:Löschen bestätigen oder abbrechen.`,
@@ -661,7 +652,15 @@ export class SessionLearningObjectivesDialogComponent {
 
   async confirmDelete(objective: SessionLearningObjectiveDTO): Promise<void> {
     const snapshot = this.snapshot();
-    if (!snapshot || this.pending() || this.derivationIsPending() || this.isReadOnly()) return;
+    if (
+      !this.isQaMode() ||
+      !snapshot ||
+      this.pending() ||
+      this.derivationIsPending() ||
+      this.isReadOnly()
+    ) {
+      return;
+    }
     this.setPending(true);
     this.clearMessages();
     try {

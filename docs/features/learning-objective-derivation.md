@@ -13,7 +13,7 @@
 
 Die Ableitung startet ausschließlich nach der ausdrücklichen Aktion einer Lehrperson in der Lernzieloberfläche der Quizvorbereitung. Weder Join, Vote, Submit, WebSocket-Ereignisse, Quizwechsel, Live-Kurzfassung noch das Öffnen des Moderationskompasses starten diesen Auftrag. Ist `OPEN_WEIGHT_LLM_ENABLED=false`, bleiben manuelle Lernziele vollständig nutzbar; es gibt keinen SaaS-Fallback.
 
-Die Oberfläche erklärt den Unterschied zwischen manuellen Lernzielen und automatisch formulierten Vorschlägen. Jeder Modellvorschlag kommt als `draft` zurück und benötigt eine Hostprüfung. Er wird nie automatisch bestätigt, als Lernerfolg interpretiert oder in Teilnehmerpayloads aufgenommen. Die publikumsfreundliche Live-Quiz-Darstellung zeigt ausschließlich bestätigte Lernziele; Entwürfe bleiben in der Host-Bearbeitung. Q&A-Forumsaufträge sind davon unabhängig: Sie entstehen nur manuell, ohne KI-Herleitung.
+Die Oberfläche erklärt den Unterschied zwischen manuellen Lernzielen und automatisch formulierten Vorschlägen. Jeder Modellvorschlag kommt als `draft` zurück und benötigt eine Hostprüfung. Er wird nie automatisch bestätigt, als Lernerfolg interpretiert oder in Teilnehmerpayloads aufgenommen. Anlegen, Bearbeiten und die Ableitung bleiben im Quiz-Editor. In der laufenden Session zeigt der Host nur bestätigte Lernziele: vor der ersten Quizfrage alle bestätigten Ziele, ab der ersten Frage nur die Ziele der aktuellen Frage. Entwürfe erscheinen dort nicht. Ein fehlgeschlagener Abruf leert eine schon geladene Liste nicht; der nächste Hilfs-Poll und der Reconnect holen die Ziele nach. Q&A-Forumsaufträge sind davon unabhängig: Sie entstehen nur manuell, ohne KI-Herleitung.
 
 ## Autorisierung und Ablauf
 

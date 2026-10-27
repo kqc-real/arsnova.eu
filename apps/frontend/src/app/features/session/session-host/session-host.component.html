@@ -628,7 +628,9 @@
                 [class.session-host__moderation-control--has-signals]="
                   moderationCompassHasSignals()
                 "
-                (click)="openModerationCompassDialog()"
+                (click)="openModerationCompassFromTrigger()"
+                (focus)="onModerationCompassTriggerFocus()"
+                (blur)="onModerationCompassTriggerBlur()"
                 aria-haspopup="dialog"
                 [attr.aria-label]="moderationCompassButtonAria()"
               >
@@ -640,7 +642,7 @@
                 >
               </button>
             }
-            @if (activeChannel() !== 'quickFeedback') {
+            @if (showLearningObjectivesControl()) {
               <button
                 type="button"
                 class="session-host__moderation-control session-host__learning-objectives-control"
@@ -657,6 +659,12 @@
                     class="session-host__moderation-control-label"
                     i18n="@@sessionHost.qaAssignmentButton"
                     >Auftrag</span
+                  >
+                } @else if (showAllConfirmedLearningObjectives()) {
+                  <span
+                    class="session-host__moderation-control-label"
+                    i18n="@@sessionHost.learningObjectivesOverviewButton"
+                    >Lernziele</span
                   >
                 } @else {
                   <span

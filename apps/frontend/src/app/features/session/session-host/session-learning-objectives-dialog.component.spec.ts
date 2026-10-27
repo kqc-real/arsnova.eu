@@ -129,73 +129,34 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     return fixture;
   }
 
-  it('speichert ein Q&A-bezogenes manuelles Ziel mit globaler und Zeilen-CAS', async () => {
-    const saved = snapshot({
-      learningContextRevision: 3,
-      objectives: [existingObjective('Zusammenhang erklären')],
-    });
-    saveLearningObjectivesMock.mockResolvedValue(saved);
+  it('legt im Live-Quiz kein Lernziel an', async () => {
     const fixture = await createComponent();
     const component = fixture.componentInstance;
     component.beginAdd();
     component.setText('Zusammenhang erklären');
-    component.setScopeKind('question-set');
-    component.toggleTask({ kind: 'qa-question', questionId: QA_QUESTION_ID }, true);
-    component.setConfirmationState('confirmed');
-
     await component.save();
 
-    expect(saveLearningObjectivesMock).toHaveBeenCalledWith({
-      code: 'ABC123',
-      expectedLearningContextRevision: 2,
-      mutations: [
-        expect.objectContaining({
-          action: 'upsert',
-          expectedRevision: null,
-          text: 'Zusammenhang erklären',
-          scope: {
-            kind: 'question-set',
-            taskReferences: [{ kind: 'qa-question', questionId: QA_QUESTION_ID }],
-          },
-          confirmationState: 'confirmed',
-          purpose: 'learning-objective',
-        }),
-      ],
-    });
-    expect(component.snapshot()).toEqual(saved);
-    expect(dialogRef.disableClose).toBe(false);
+    expect(component.formOpen()).toBe(false);
+    expect(saveLearningObjectivesMock).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-derive')).toBeNull();
   });
 
-  it('legt in einer reinen Q&A-Session ein manuelles Ziel ohne erfundenen Quizbereich an', async () => {
+  it('legt ohne Quizkanal kein Lernziel im Live-Dialog an', async () => {
     hasQuizMock.mockReturnValue(false);
-    saveLearningObjectivesMock.mockResolvedValue(
-      snapshot({ learningContextRevision: 3, objectives: [existingObjective('Q&A-Ziel')] }),
-    );
     const fixture = await createComponent();
     const component = fixture.componentInstance;
     component.beginAdd();
     component.setText('Q&A-Ziel');
-    component.setConfirmationState('confirmed');
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).not.toContain('Gesamtes Quiz');
     await component.save();
 
-    expect(saveLearningObjectivesMock).toHaveBeenCalledWith({
-      code: 'ABC123',
-      expectedLearningContextRevision: 2,
-      mutations: [
-        expect.objectContaining({
-          action: 'upsert',
-          scope: { kind: 'session' },
-          confirmationState: 'confirmed',
-          purpose: 'learning-objective',
-        }),
-      ],
-    });
+    expect(component.formOpen()).toBe(false);
+    expect(saveLearningObjectivesMock).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).not.toContain('Gesamtes Quiz');
   });
 
   it('lädt bei CONFLICT die autoritative Fassung und verhindert einen blinden zweiten Save', async () => {
+    modeMock.mockReturnValue('qa');
     const initial = snapshot({ objectives: [existingObjective('Erster Stand')] });
     const latest = snapshot({
       learningContextRevision: 4,
@@ -218,6 +179,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
   });
 
   it('sperrt weitere Schreibversuche, wenn der autoritative Refetch nach CONFLICT fehlschlägt', async () => {
+    modeMock.mockReturnValue('qa');
     const initial = snapshot({ objectives: [existingObjective()] });
     getLearningObjectivesMock
       .mockResolvedValueOnce(initial)
@@ -237,6 +199,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
   });
 
   it('verhindert Escape-/Backdrop-Schließen während einer laufenden Mutation', async () => {
+    modeMock.mockReturnValue('qa');
     let resolveSave!: (value: SessionLearningObjectivesSnapshot) => void;
     saveLearningObjectivesMock.mockImplementation(
       () =>
@@ -259,25 +222,49 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(dialogRef.disableClose).toBe(false);
   });
 
-  it('fokussiert bei leerer Aufgabenauswahl eine sichtbare Q&A-Auswahl', async () => {
-    const fixture = await createComponent();
-    const component = fixture.componentInstance;
-    component.beginAdd();
-    component.setText('Ziel');
-    component.setScopeKind('question-set');
-    fixture.detectChanges();
-
-    await component.save();
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const taskOption = document.getElementById(
-      `session-learning-objective-task-qa-question:${QA_QUESTION_ID}`,
+  it('zeigt vor einer Frage alle bestätigten Lernziele und keine Entwürfe', async () => {
+    focusedQuestionIdMock.mockReturnValue(null);
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        objectives: [
+          confirmedObjective('Bestätigtes Quizziel.'),
+          existingObjective('Noch ein Entwurf.'),
+          {
+            ...confirmedObjective('Bestätigtes Frageziel.'),
+            id: '22222222-2222-4222-8222-222222222222',
+            scope: {
+              kind: 'question-set',
+              taskReferences: [
+                {
+                  kind: 'quiz-question',
+                  questionId: 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3',
+                },
+              ],
+            },
+          },
+          {
+            ...confirmedObjective('Forumsauftrag.'),
+            id: '33333333-3333-4333-8333-333333333333',
+            purpose: 'forum-assignment',
+          },
+        ],
+      }),
     );
-    expect(taskOption?.contains(document.activeElement)).toBe(true);
+
+    const fixture = await createComponent();
+    expect(
+      fixture.componentInstance.visibleObjectives().map((objective) => objective.text),
+    ).toEqual(['Bestätigtes Quizziel.', 'Bestätigtes Frageziel.']);
+    expect(fixture.nativeElement.textContent).toContain('Bestätigtes Quizziel.');
+    expect(fixture.nativeElement.textContent).toContain('Bestätigtes Frageziel.');
+    expect(fixture.nativeElement.textContent).not.toContain('Noch ein Entwurf.');
+    expect(fixture.nativeElement.textContent).not.toContain('Forumsauftrag.');
+    expect(fixture.nativeElement.textContent).toContain('Lernziele');
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
   });
 
   it('stellt nach Abbruch den Fokus auf die erneut sichtbare Hinzufügen-Aktion', async () => {
+    modeMock.mockReturnValue('qa');
     const fixture = await createComponent();
     const component = fixture.componentInstance;
     component.beginAdd();
@@ -310,28 +297,12 @@ describe('SessionLearningObjectivesDialogComponent', () => {
   });
 
   it('rendert Markdown in auswählbaren Live-Aufgaben ohne verschachtelte Interaktionen', async () => {
-    getLearningObjectivesMock.mockResolvedValue(
-      snapshot({
-        availableQuizTasks: [
-          {
-            kind: 'quiz-question',
-            questionId: 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3',
-            order: 0,
-            text: '### **Ableitung** mit [Quelle](https://example.org)',
-          },
-        ],
-      }),
-    );
     const fixture = await createComponent();
-    fixture.componentInstance.beginAdd();
-    fixture.componentInstance.setScopeKind('question-set');
-    fixture.detectChanges();
-
-    const preview = Array.from(
-      fixture.nativeElement.querySelectorAll(
-        '.session-objectives__task-text',
-      ) as NodeListOf<HTMLElement>,
-    ).find((element) => element.textContent?.includes('Frage 1'))!;
+    const rendered = fixture.componentInstance.renderTaskMarkdown(
+      'Frage 1: ### **Ableitung** mit [Quelle](https://example.org)',
+    ) as { changingThisBreaksApplicationSecurity?: string };
+    const preview = document.createElement('div');
+    preview.innerHTML = rendered.changingThisBreaksApplicationSecurity ?? '';
     expect(preview.querySelector('strong')?.textContent).toBe('Ableitung');
     expect(preview.textContent).toContain('Frage 1');
     expect(preview.textContent).not.toContain('###');
@@ -341,7 +312,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
   it('schreibt das Anfangswort eines Lernziels groß', async () => {
     getLearningObjectivesMock.mockResolvedValue(
       snapshot({
-        objectives: [existingObjective('lineare Modelle anwenden')],
+        objectives: [confirmedObjective('lineare Modelle anwenden')],
       }),
     );
     const fixture = await createComponent();
@@ -369,10 +340,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
   });
 
-  it('erklärt automatische Vorschläge nur, wenn die KI-Herleitung verfügbar ist', async () => {
-    const fixture = await createComponent();
-    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
-
+  it('erklärt automatische Vorschläge im Live-Quiz nicht', async () => {
     getLearningObjectivesMock.mockResolvedValue(
       snapshot({
         availableQuizTasks: [
@@ -386,13 +354,9 @@ describe('SessionLearningObjectivesDialogComponent', () => {
         ],
       }),
     );
-    const withDerivation = await createComponent();
-    const intro = withDerivation.nativeElement.querySelector(
-      '.session-objectives__origin-intro',
-    ) as HTMLElement;
-    expect(intro.textContent).toContain('Du kannst Lernziele selbst schreiben');
-    expect(intro.textContent).toContain('automatisch aus deinen Fragen vorschlagen lassen');
-    expect(intro.textContent).toContain('prüfst und bestätigst');
+    const fixture = await createComponent();
+    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-derive')).toBeNull();
   });
 
   it('blendet den Hinweis auf automatische Vorschläge aus, wenn zur Frage keine Herleitung möglich ist', async () => {
@@ -420,16 +384,13 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
   });
 
-  it('erklärt Entwurf und Bestätigt direkt an den Statusoptionen', async () => {
+  it('bietet im Live-Quiz keine Entwurfs- oder Bestätigungsauswahl an', async () => {
     const fixture = await createComponent();
     fixture.componentInstance.beginAdd();
     fixture.detectChanges();
 
-    const statusGroup = fixture.nativeElement.querySelector(
-      '[aria-label="Status des Lernziels"]',
-    ) as HTMLElement;
-    expect(statusGroup.textContent).toContain('Noch in Abstimmung');
-    expect(statusGroup.textContent).toContain('zur Prüfung markiert');
+    expect(fixture.nativeElement.querySelector('[aria-label="Status des Lernziels"]')).toBeNull();
+    expect(fixture.componentInstance.formOpen()).toBe(false);
   });
 
   it('zeigt bei vorhandenem Lernziel die publikumsfreundliche Darstellung ohne KI-Herleitung mit dezentem Bearbeiten-Icon', async () => {
@@ -481,7 +442,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.session-objectives__audience-edit-btn'),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Lernziel zur Frage');
     expect(fixture.nativeElement.textContent).not.toContain(
@@ -536,7 +497,7 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
   });
 
-  it('öffnet bei nur einem Entwurf die Host-Bearbeitung statt der Publikumskarte', async () => {
+  it('zeigt einen Entwurf im Live-Quiz nicht und bietet kein Anlegen an', async () => {
     const quizQuestionA = 'eb4a99f8-8d86-41ef-960c-130f6d9a48e3';
     focusedQuestionIdMock.mockReturnValue(quizQuestionA);
     getLearningObjectivesMock.mockResolvedValue(
@@ -563,15 +524,13 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     );
 
     const fixture = await createComponent();
-    expect(fixture.componentInstance.isAudiencePresentation()).toBe(false);
-    expect(fixture.componentInstance.visibleObjectives().map((o) => o.text)).toEqual([
-      'Ungeprüfter Entwurf zur Frage A',
-    ]);
-    expect(
-      fixture.nativeElement.querySelector('.session-objectives__audience-edit-btn'),
-    ).toBeNull();
-    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.session-objectives__origin-intro')).toBeNull();
+    expect(fixture.componentInstance.visibleObjectives()).toEqual([]);
+    expect(fixture.nativeElement.textContent).not.toContain('Ungeprüfter Entwurf zur Frage A');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Für diese Frage ist noch kein bestätigtes Lernziel hinterlegt.',
+    );
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-derive')).toBeNull();
   });
 
   it('bietet die KI-Herleitung an, wenn noch kein Lernziel vorliegt, aber geeignete Quiz-Fragen existieren', async () => {
@@ -594,10 +553,11 @@ describe('SessionLearningObjectivesDialogComponent', () => {
 
     const fixture = await createComponent();
     expect(fixture.componentInstance.objectives()).toEqual([]);
-    expect(
-      fixture.nativeElement.querySelector('#session-learning-objective-derive'),
-    ).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-derive')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#session-learning-objective-add')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Für diese Frage ist noch kein bestätigtes Lernziel hinterlegt.',
+    );
   });
 
   it('zeigt im Q&A-Modus nur Forum-Aufträge ohne den Begriff Lernziel und ohne KI-Herleitung', async () => {

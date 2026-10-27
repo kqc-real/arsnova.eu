@@ -1115,10 +1115,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   onPresetChanged(): void {
-    if (
-      (this.router.url.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/').startsWith('/feedback/')
-    )
-      return;
+    if (this.hidesPresetSettingsChrome()) return;
     this.focusService.blurInput();
     const isPlayful = this.themePreset.preset() === 'spielerisch';
     const firstTime =
@@ -1147,6 +1144,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   openPresetCustomize(): void {
+    if (this.hidesPresetSettingsChrome()) return;
     this.focusService.blurInput();
     this.dismissPresetSnackbar(false);
     this.presetToastVisible.set(true);
@@ -1219,6 +1217,9 @@ export class AppComponent implements OnInit, OnDestroy {
       isContentOverlayPath(fromRouter) || isContentOverlayPath(fromWindow),
     );
     this.isHomeRoute.set((fromRouter || fromWindow || '/') === '/');
+    if (this.matchesVoteRoute(fromRouter) || this.matchesVoteRoute(fromWindow)) {
+      this.dismissPresetSettingsChrome();
+    }
     if (!this.isContentOverlayRoute()) {
       rememberNonOverlayPath(fromRouter || fromWindow);
     }
@@ -1275,6 +1276,36 @@ export class AppComponent implements OnInit, OnDestroy {
   private matchesPresentRoute(pathname: string): boolean {
     const normalized = pathname.replace(/^\/(?:de|en|fr|it|es)(?=\/|$)/, '') || '/';
     return /^\/session\/[^/]+\/present\/?$/.test(normalized);
+  }
+
+  /** Quiz, Q&A und Blitzlicht: `/session/:code/vote`. */
+  private matchesVoteRoute(pathname: string): boolean {
+    const normalized =
+      AppComponent.withoutLocalePath(AppComponent.stripQueryAndHash(pathname)) || '/';
+    return /^\/session\/[^/]+\/vote\/?$/.test(normalized);
+  }
+
+  /**
+   * Teilnahme sieht nur die Farbwahl des lokalen Presets.
+   * Die Preset-Einstellungen (Snackbar »Anpassen«) bestimmt der Host.
+   */
+  private hidesPresetSettingsChrome(): boolean {
+    const paths = [this.router.url];
+    if (typeof window !== 'undefined') paths.push(window.location.pathname);
+    return paths.some((path) => {
+      const normalized =
+        AppComponent.withoutLocalePath(AppComponent.stripQueryAndHash(path)) || '/';
+      return normalized.startsWith('/feedback/') || this.matchesVoteRoute(normalized);
+    });
+  }
+
+  private dismissPresetSettingsChrome(): void {
+    if (this.presetSnackbarVisible()) {
+      this.dismissPresetSnackbar(false);
+    }
+    if (this.presetToastVisible()) {
+      this.closePresetToast();
+    }
   }
 
   private matchesFooterStatusPollingSuppressedRoute(pathname: string): boolean {

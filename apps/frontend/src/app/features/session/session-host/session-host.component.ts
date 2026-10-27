@@ -188,6 +188,7 @@ import {
   TeamAssignment,
   SessionResultsPdfProfile,
   SessionStatus,
+  SessionLearningObjectiveDTO,
   SessionStatusUpdate,
   TeamDTO,
   TeamLeaderboardEntryDTO,
@@ -198,6 +199,10 @@ import {
   WordCloudAnalysisVariant,
   WordCloudNormalizationFallbackReason,
 } from '@arsnova/shared-types';
+import {
+  confirmedLearningObjectiveAppliesToQuestion,
+  isConfirmedDisplayedLearningObjective,
+} from './session-learning-objective-match';
 import {
   isDisplayableThemeWordCloudEntry,
   isWordCloudUnigramEntryKey,
@@ -218,7 +223,7 @@ import {
   type WordCloudTermDocument,
 } from '../session-present/word-cloud-term.service';
 import {
-  buildModerationCompassCards,
+  buildModerationCompassView,
   collectModerationQuizFacts,
   moderationQuizFactEvidenceRole,
   collectQaNlpCategorySources,
@@ -2777,8 +2782,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       throw error;
     }
   };
-  readonly moderationCompassCards = computed(() =>
-    buildModerationCompassCards({
+  readonly moderationCompassView = computed(() =>
+    buildModerationCompassView({
       qaQuestions: this.moderationCompassInventoryQuestions().map((question) => ({
         id: question.id,
         text: question.text,
@@ -2816,6 +2821,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       quizInsightKind: this.moderationCompassQuizInsightKind(),
     }),
   );
+  readonly moderationCompassCards = computed(() => this.moderationCompassView().cards);
 
   private withCurrentFreetextQuestionTarget(
     terms: readonly ModerationCompassTerm[],
@@ -2826,19 +2832,35 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return terms.map((term) => ({ ...term, questionId: question.questionId }));
   }
-  readonly moderationCompassHasSignals = computed(() => this.moderationCompassCards().length > 0);
+  readonly moderationCompassHasSignals = computed(
+    () => this.moderationCompassView().actionRecommendation !== null,
+  );
   /** Im reinen Blitzlicht wiederholt der Kompass nur die sichtbare Rückmeldung. */
   readonly showModerationCompass = computed(
     () => this.activeChannel() !== 'quickFeedback' || this.channels().quiz || this.channels().qa,
   );
   /** Die Quiz-Gesamtauswertung zeigt den Kompass nicht. */
+  private moderationCompassButtonNaturallyVisible(): boolean {
+    return (
+      this.showModerationCompass() &&
+      this.moderationCompassHasSignals() &&
+      !(this.activeChannel() === 'quiz' && this.effectiveStatus() === 'FINISHED')
+    );
+  }
+  /** Dialog oder Tastaturfokus: der Trigger bleibt, bis der Fokus woanders liegt. */
+  private readonly moderationCompassDialogOpen = signal(false);
+  private readonly moderationCompassTriggerFocused = signal(false);
   readonly showModerationCompassButton = computed(
     () =>
-      this.showModerationCompass() &&
-      !(this.activeChannel() === 'quiz' && this.effectiveStatus() === 'FINISHED'),
+      this.moderationCompassDialogOpen() ||
+      this.moderationCompassTriggerFocused() ||
+      this.moderationCompassButtonNaturallyVisible(),
   );
   readonly showHostModerationStack = computed(
-    () => this.moderationCompassReturn() !== null || this.showModerationCompass(),
+    () =>
+      this.moderationCompassReturn() !== null ||
+      this.showModerationCompassButton() ||
+      this.showLearningObjectivesControl(),
   );
   readonly moderationCompassReturn = signal<{
     readonly channel: SessionChannelTab;
@@ -2852,6 +2874,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return $localize`:@@sessionHost.moderationButtonAriaWithSignals:Moderationskompass öffnen, Hinweise vorhanden`;
   });
+  openModerationCompassFromTrigger(): void {
+    if (!this.moderationCompassButtonNaturallyVisible()) return;
+    void this.openModerationCompassDialog();
+  }
+
   readonly openModerationCompassDialog = async (): Promise<void> => {
     this.moderationCompassReturn.set(null);
     this.clearQaCompassFocus();
@@ -2866,6 +2893,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshQaSummaryRuntime();
     const { ModerationCompassDialogComponent } =
       await import('./moderation-compass-dialog.component');
+    this.moderationCompassDialogOpen.set(true);
     const dialogRef = this.dialog.open(ModerationCompassDialogComponent, {
       data: {
         cards: () => this.moderationCompassCards(),
@@ -2905,13 +2933,109 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(() => {
       this.qaSummaryPreviewRequestGeneration += 1;
       this.stopQaSummaryPolling();
+      if (!this.moderationCompassButtonNaturallyVisible()) {
+        this.moveFocusOffModerationCompassTrigger();
+      }
+      this.moderationCompassDialogOpen.set(false);
     });
   };
 
+  onModerationCompassTriggerFocus(): void {
+    this.moderationCompassTriggerFocused.set(true);
+  }
+
+  onModerationCompassTriggerBlur(): void {
+    this.moderationCompassTriggerFocused.set(false);
+  }
+
+  private moveFocusOffModerationCompassTrigger(): void {
+    const button = this.moderationCompassButtonRef?.nativeElement ?? null;
+    const fallback = this.findHostFocusFallback(button);
+    if (!fallback) return;
+    try {
+      fallback.focus({ preventScroll: true });
+    } catch {
+      fallback.focus();
+    }
+  }
+
+  private findHostFocusFallback(excluded: HTMLElement | null): HTMLElement | null {
+    const scope = this.document.querySelector('.session-host') ?? this.document.body;
+    const candidates = scope.querySelectorAll<HTMLElement>(
+      [
+        '[data-testid="host-learning-objectives"]',
+        '.session-channel-tabs button',
+        '[data-testid="host-more-actions"]',
+        '.session-host__live-actions button',
+      ].join(', '),
+    );
+    const connected = [...candidates].filter(
+      (candidate) =>
+        candidate !== excluded &&
+        !candidate.closest('[data-testid="host-moderation-compass"]') &&
+        candidate.isConnected &&
+        !candidate.hasAttribute('disabled'),
+    );
+    return (
+      connected.find((candidate) => this.isElementVisibleForFocus(candidate)) ??
+      connected[0] ??
+      null
+    );
+  }
+
+  readonly sessionLearningObjectives = signal<readonly SessionLearningObjectiveDTO[]>([]);
+  private learningObjectivesRequest = 0;
+  /** Letzter Abruf ist fehlgeschlagen; Polling und Reconnect holen ihn nach. */
+  private learningObjectivesRetryPending = false;
+  /** Lobby und Warten auf die erste Frage: alle bestätigten Ziele, noch ohne Fragenfilter. */
+  readonly showAllConfirmedLearningObjectives = computed(() => {
+    if (this.activeChannel() !== 'quiz') return false;
+    if (this.displayedCurrentQuestionForHost() !== null) return false;
+    return this.effectiveStatus() === 'LOBBY' || this.isQuizAwaitingFirstQuestion();
+  });
+  readonly showLearningObjectivesControl = computed(() => {
+    if (this.activeChannel() === 'quickFeedback') return false;
+    if (this.activeChannel() === 'qa') return true;
+    if (this.activeChannel() !== 'quiz') return false;
+    if (this.showAllConfirmedLearningObjectives()) {
+      return this.sessionLearningObjectives().some(isConfirmedDisplayedLearningObjective);
+    }
+    const questionId = this.displayedCurrentQuestionForHost()?.questionId;
+    if (!questionId) return false;
+    return this.sessionLearningObjectives().some((objective) =>
+      confirmedLearningObjectiveAppliesToQuestion(objective, questionId),
+    );
+  });
+
   learningObjectivesControlAriaLabel(): string {
-    return this.activeChannel() === 'qa'
-      ? $localize`:@@sessionHost.qaAssignmentAria:Auftrag für das Q&A-Forum öffnen`
-      : $localize`:@@sessionHost.learningObjectivesAria:Lernziele für diese Session öffnen`;
+    if (this.activeChannel() === 'qa') {
+      return $localize`:@@sessionHost.qaAssignmentAria:Auftrag für das Q&A-Forum öffnen`;
+    }
+    if (this.showAllConfirmedLearningObjectives()) {
+      return $localize`:@@sessionHost.learningObjectivesOverviewAria:Bestätigte Lernziele anzeigen`;
+    }
+    return $localize`:@@sessionHost.learningObjectivesAria:Lernziel zur aktuellen Frage anzeigen`;
+  }
+
+  private async refreshSessionLearningObjectives(): Promise<void> {
+    if (!this.channels().quiz || this.code.length !== 6) {
+      this.learningObjectivesRequest += 1;
+      this.learningObjectivesRetryPending = false;
+      this.sessionLearningObjectives.set([]);
+      return;
+    }
+    const request = ++this.learningObjectivesRequest;
+    try {
+      const snapshot = await trpc.session.getLearningObjectives.query({
+        code: this.code.toUpperCase(),
+      });
+      if (request !== this.learningObjectivesRequest) return;
+      this.learningObjectivesRetryPending = false;
+      this.sessionLearningObjectives.set(snapshot.objectives);
+    } catch {
+      if (request !== this.learningObjectivesRequest) return;
+      this.learningObjectivesRetryPending = true;
+    }
   }
 
   readonly openLearningObjectivesDialog = async (): Promise<void> => {
@@ -4030,6 +4154,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    effect(() => {
+      const dialogOpen = this.moderationCompassDialogOpen();
+      const focused = this.moderationCompassTriggerFocused();
+      const natural = this.moderationCompassButtonNaturallyVisible();
+      if (natural || dialogOpen || !focused) return;
+      untracked(() => {
+        queueMicrotask(() => {
+          if (this.destroyRef.destroyed) return;
+          if (
+            this.moderationCompassButtonNaturallyVisible() ||
+            this.moderationCompassDialogOpen() ||
+            !this.moderationCompassTriggerFocused()
+          ) {
+            return;
+          }
+          this.moveFocusOffModerationCompassTrigger();
+        });
+      });
+    });
     effect(() => {
       const questions = this.qaQuestions();
       const filtered = this.qaListCriteriaActive();
@@ -5393,6 +5536,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.generateQrCode();
     await this.refreshLiveFreetext();
     await this.refreshCurrentQuestionForHost();
+    await this.refreshSessionLearningObjectives();
     await this.refreshHostVoteProgress();
     this.syncMusic();
     this.startHostPolling();
@@ -6086,6 +6230,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     if (this.shouldPollEmojiReactions()) {
       tasks.push(this.refreshEmojiReactions(options));
+    }
+    if (this.learningObjectivesRetryPending) {
+      tasks.push(this.refreshSessionLearningObjectives());
     }
     if (tasks.length > 0) {
       await Promise.all(tasks);
@@ -11658,6 +11805,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.refreshParticipantsPayload(),
       this.refreshLobbyTeams(),
       this.refreshCurrentQuestionForHost(),
+      this.refreshSessionLearningObjectives(),
       this.refreshQuickFeedbackResult(),
       this.refreshQaQuestionsForChannelActivation(),
     ]);
