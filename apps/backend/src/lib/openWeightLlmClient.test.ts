@@ -19,6 +19,7 @@ import {
 } from '@arsnova/shared-types';
 import {
   OPEN_WEIGHT_LLM_LEARNING_OBJECTIVES_SYSTEM_PROMPT_VERSION,
+  inspectOpenWeightLlmAvailability,
   resetOpenWeightLlmClientForTests,
   runOpenWeightLlm,
   runOpenWeightLlmLearningObjectives,
@@ -733,6 +734,28 @@ describe('openWeightLlmClient', () => {
       expect(result.status).toBe(config.enabled ? 'misconfigured' : 'disabled');
       expect(request).not.toHaveBeenCalled();
     }
+  });
+
+  it('prüft die lokale Runtime kurz, bevor Lernziel-Batches geplant werden', async () => {
+    const request = vi.fn(async () => {
+      throw new Error('connect ECONNREFUSED');
+    });
+    resetOpenWeightLlmClientForTests({
+      config: () => ({ ...defaultConfig, enabled: false }),
+      request,
+    });
+    await expect(inspectOpenWeightLlmAvailability()).resolves.toBe('disabled');
+    expect(request).not.toHaveBeenCalled();
+
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+    await expect(inspectOpenWeightLlmAvailability({ timeoutMs: 500 })).resolves.toBe('unavailable');
+    expect(request).toHaveBeenCalledTimes(1);
+
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: vi.fn(async () => ({ status: 200, body: '[]' })),
+    });
+    await expect(inspectOpenWeightLlmAvailability()).resolves.toBe('ready');
   });
 
   it.each(ORDERED_DISTINCT_TASK_PAIRS)(

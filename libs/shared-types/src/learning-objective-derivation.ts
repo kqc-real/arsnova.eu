@@ -162,10 +162,37 @@ const LearningObjectiveDerivationBusyResultSchema =
     retry: z.literal('manual'),
   }).strict();
 
+export const LearningObjectiveDerivationProgressSchema = z
+  .object({
+    completedGroups: z.number().int().min(0).max(QUIZ_UPLOAD_MAX_QUESTIONS),
+    totalGroups: z.number().int().min(0).max(QUIZ_UPLOAD_MAX_QUESTIONS),
+    elapsedMs: z.number().int().min(0),
+    promptTokens: z.number().int().min(0),
+    completionTokens: z.number().int().min(0),
+    queuedObjectives: z.number().int().min(0).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
+  })
+  .strict();
+export type LearningObjectiveDerivationProgress = z.infer<
+  typeof LearningObjectiveDerivationProgressSchema
+>;
+
+export const GetLearningObjectiveDerivationProgressInputSchema =
+  LearningObjectiveDerivationCorrelationSchema;
+export type GetLearningObjectiveDerivationProgressInput = z.infer<
+  typeof GetLearningObjectiveDerivationProgressInputSchema
+>;
+
+export const GetLearningObjectiveDerivationProgressOutputSchema =
+  LearningObjectiveDerivationCorrelationSchema.extend({
+    found: z.boolean(),
+    progress: LearningObjectiveDerivationProgressSchema.nullable(),
+  }).strict();
+export type GetLearningObjectiveDerivationProgressOutput = z.infer<
+  typeof GetLearningObjectiveDerivationProgressOutputSchema
+>;
+
 const DERIVATION_SIMPLE_FAILURE_STATUSES = [
   'disabled',
-  'aborted',
-  'timeout',
   'unavailable',
   'invalid_response',
   'misconfigured',
@@ -178,6 +205,12 @@ const LearningObjectiveDerivationSimpleFailureResultSchema =
     status: z.enum(DERIVATION_SIMPLE_FAILURE_STATUSES),
   }).strict();
 
+const LearningObjectiveDerivationInterruptedResultSchema =
+  LearningObjectiveDerivationCorrelationSchema.extend({
+    status: z.enum(['aborted', 'timeout']),
+    progress: LearningObjectiveDerivationProgressSchema,
+  }).strict();
+
 const LearningObjectiveDerivationInputTooLargeResultSchema =
   LearningObjectiveDerivationCorrelationSchema.extend({
     status: z.literal('input_too_large'),
@@ -188,6 +221,7 @@ const LearningObjectiveDerivationInputTooLargeResultSchema =
 export const LearningObjectiveDerivationResultSchema = z.discriminatedUnion('status', [
   LearningObjectiveDerivationCompletedResultSchema,
   LearningObjectiveDerivationBusyResultSchema,
+  LearningObjectiveDerivationInterruptedResultSchema,
   LearningObjectiveDerivationSimpleFailureResultSchema,
   LearningObjectiveDerivationInputTooLargeResultSchema,
 ]);

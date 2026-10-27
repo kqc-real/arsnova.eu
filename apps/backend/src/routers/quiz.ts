@@ -10,6 +10,9 @@ import {
   SHORT_TEXT_DEFAULT_EVALUATION_KIND,
   QuizUploadInputSchema,
   QuizUploadOutputSchema,
+  GetLearningObjectiveDerivationProgressInputSchema,
+  GetLearningObjectiveDerivationProgressOutputSchema,
+  LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
   LearningObjectiveDerivationResultSchema,
   PrepareLearningObjectiveDerivationInputSchema,
   PrepareLearningObjectiveDerivationOutputSchema,
@@ -46,6 +49,10 @@ import {
   reserveLearningObjectiveDerivationCapability,
 } from '../lib/learningObjectiveDerivationCapability';
 import { deriveLearningObjectiveDrafts } from '../lib/learningObjectiveDerivation';
+import {
+  readLearningObjectiveDerivationProgress,
+  writeLearningObjectiveDerivationProgress,
+} from '../lib/learningObjectiveDerivationProgress';
 
 function buildQuizUploadPayloadFromStoredQuiz(quiz: {
   historyScopeId: string | null;
@@ -268,13 +275,36 @@ export const quizRouter = router({
 
       const { capability, ...derivationInput } = input;
       try {
-        return await deriveLearningObjectiveDrafts(derivationInput, { signal });
+        return await deriveLearningObjectiveDrafts(derivationInput, {
+          signal,
+          onProgress: async (progress) => {
+            await writeLearningObjectiveDerivationProgress({
+              schemaVersion: LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
+              operationId: derivationInput.operationId,
+              quizId: derivationInput.quizId,
+              expectedBundleRevision: derivationInput.expectedBundleRevision,
+              progress,
+            });
+          },
+        });
       } finally {
         // Reserve already consumed the bearer atomically. A transient Redis
         // cleanup failure must not replace a valid runtime result (or its
         // original error); the tombstone reservation expires on its own.
         await finalizeLearningObjectiveDerivationCapability(capability).catch(() => undefined);
       }
+    }),
+
+  getLearningObjectiveDerivationProgress: publicProcedure
+    .input(GetLearningObjectiveDerivationProgressInputSchema)
+    .output(GetLearningObjectiveDerivationProgressOutputSchema)
+    .query(async ({ input }) => {
+      const progress = await readLearningObjectiveDerivationProgress(input).catch(() => null);
+      return {
+        ...input,
+        found: progress !== null,
+        progress,
+      };
     }),
 
   /**

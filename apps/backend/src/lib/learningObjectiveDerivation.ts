@@ -7,6 +7,7 @@ import {
   LEARNING_OBJECTIVE_DERIVATION_VERSION,
   LEARNING_OBJECTIVE_MAX_OBJECTIVES,
   LearningObjectiveDerivationInputSchema,
+  LearningObjectiveDerivationProgressSchema,
   LearningObjectiveDerivationResultSchema,
   normalizeLearningObjectiveText,
   OpenWeightLlmLearningObjectivesOutputSchema,
@@ -18,12 +19,16 @@ import {
   resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
   type LearningObjectiveDerivationInput,
+  type LearningObjectiveDerivationProgress,
   type LearningObjectiveDerivationQuestion,
   type LearningObjectiveDerivationResult,
   type OpenWeightLlmLearningObjectivesRequest,
 } from '@arsnova/shared-types';
 import {
+  inspectOpenWeightLlmAvailability,
+  OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS,
   runOpenWeightLlmLearningObjectives,
+  type OpenWeightLlmAvailabilityStatus,
   type OpenWeightLlmTelemetry,
 } from './openWeightLlmClient';
 import { OPEN_WEIGHT_LLM_MODEL_ID, OPEN_WEIGHT_LLM_MODEL_VERSION } from './openWeightLlmConfig';
@@ -71,6 +76,10 @@ type DerivationHooks = {
   readonly modelVersion?: string;
   readonly signal?: AbortSignal;
   readonly overallTimeoutMs?: number;
+  readonly onProgress?: (progress: LearningObjectiveDerivationProgress) => void | Promise<void>;
+  readonly preflight?: (options: {
+    readonly signal?: AbortSignal;
+  }) => Promise<OpenWeightLlmAvailabilityStatus>;
 };
 
 type CanonicalQuestion = OpenWeightLlmLearningObjectivesRequest['questions'][number];
@@ -354,6 +363,21 @@ function interruptedStatus(
   return callerSignal?.aborted ? 'aborted' : deadlineSignal.aborted ? 'timeout' : 'aborted';
 }
 
+export function emptyLearningObjectiveDerivationProgress(): LearningObjectiveDerivationProgress {
+  return LearningObjectiveDerivationProgressSchema.parse({
+    completedGroups: 0,
+    totalGroups: 0,
+    elapsedMs: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    queuedObjectives: 0,
+  });
+}
+
+function tokenCount(value: number | null | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.trunc(value) : 0;
+}
+
 /**
  * Executes deterministic batches sequentially. Any batch failure discards all
  * preceding model output so callers can only apply one atomic completed result.
@@ -373,8 +397,41 @@ export async function deriveLearningObjectiveDrafts(
   }
   const input = parsedInput.data;
   const resultCorrelation = correlation(input);
+  const startedAtMs = (hooks.now ?? (() => new Date()))().getTime();
+  let totalGroups = 0;
+  let promptTokens = 0;
+  let completionTokens = 0;
+  let queuedObjectives = 0;
+  const snapshot = (completedGroups: number): LearningObjectiveDerivationProgress =>
+    LearningObjectiveDerivationProgressSchema.parse({
+      completedGroups,
+      totalGroups,
+      elapsedMs: Math.max(0, (hooks.now ?? (() => new Date()))().getTime() - startedAtMs),
+      promptTokens,
+      completionTokens,
+      queuedObjectives,
+    });
+  const publish = async (progress: LearningObjectiveDerivationProgress): Promise<void> => {
+    try {
+      await hooks.onProgress?.(progress);
+    } catch {
+      // Fortschritt ist Hilfsinformation; ein Schreibfehler darf den Lauf nicht beenden.
+    }
+  };
+  const interrupted = async (
+    status: 'aborted' | 'timeout',
+    completedGroups = 0,
+  ): Promise<LearningObjectiveDerivationResult> => {
+    const progress = snapshot(completedGroups);
+    await publish(progress);
+    return LearningObjectiveDerivationResultSchema.parse({
+      ...resultCorrelation,
+      status,
+      progress,
+    });
+  };
   if (hooks.signal?.aborted) {
-    return { ...resultCorrelation, status: 'aborted' };
+    return interrupted('aborted');
   }
 
   const eligibleQuestions = input.questions
@@ -404,11 +461,31 @@ export async function deriveLearningObjectiveDrafts(
     Math.max(1, hooks.overallTimeoutMs ?? LEARNING_OBJECTIVE_DERIVATION_OVERALL_TIMEOUT_MS),
   );
   const runSignal = hooks.signal ? AbortSignal.any([hooks.signal, deadlineSignal]) : deadlineSignal;
+  const preflight =
+    hooks.preflight ??
+    (hooks.run
+      ? async () => 'ready' as const
+      : async (options: { readonly signal?: AbortSignal }) =>
+          inspectOpenWeightLlmAvailability({
+            signal: options.signal,
+            timeoutMs: OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS,
+          }));
+  const availability = await preflight({ signal: runSignal });
+  if (runSignal.aborted) {
+    return interrupted(interruptedStatus(hooks.signal, deadlineSignal));
+  }
+  if (availability !== 'ready') {
+    return availability === 'busy'
+      ? { ...resultCorrelation, status: 'busy', retry: 'manual' }
+      : { ...resultCorrelation, status: availability };
+  }
   const completed: Array<{
     readonly request: OpenWeightLlmLearningObjectivesRequest;
     readonly output: ReturnType<typeof OpenWeightLlmLearningObjectivesOutputSchema.parse>;
     readonly telemetry: OpenWeightLlmTelemetry;
   }> = [];
+  totalGroups = plan.requests.length;
+  await publish(snapshot(0));
 
   for (const [batchIndex, request] of plan.requests.entries()) {
     const batch = batchIndex + 1;
@@ -419,10 +496,7 @@ export async function deriveLearningObjectiveDrafts(
         batchCount,
         status: interruptedStatus(hooks.signal, deadlineSignal),
       });
-      return {
-        ...resultCorrelation,
-        status: interruptedStatus(hooks.signal, deadlineSignal),
-      };
+      return interrupted(interruptedStatus(hooks.signal, deadlineSignal), completed.length);
     }
     const batchResult = await run(request, { signal: runSignal });
     if (runSignal.aborted) {
@@ -431,10 +505,7 @@ export async function deriveLearningObjectiveDrafts(
         batchCount,
         status: interruptedStatus(hooks.signal, deadlineSignal),
       });
-      return {
-        ...resultCorrelation,
-        status: interruptedStatus(hooks.signal, deadlineSignal),
-      };
+      return interrupted(interruptedStatus(hooks.signal, deadlineSignal), completed.length);
     }
     if (batchResult.status !== 'completed') {
       logger.warn('learning_objectives:batch_failed', {
@@ -442,6 +513,9 @@ export async function deriveLearningObjectiveDrafts(
         batchCount,
         status: batchResult.status,
       });
+      if (batchResult.status === 'aborted' || batchResult.status === 'timeout') {
+        return interrupted(batchResult.status, completed.length);
+      }
       return batchResult.status === 'busy'
         ? { ...resultCorrelation, status: 'busy', retry: 'manual' }
         : { ...resultCorrelation, status: batchResult.status };
@@ -480,16 +554,21 @@ export async function deriveLearningObjectiveDrafts(
       completionTokens: batchResult.telemetry.completionTokens,
     });
     completed.push({ request, output: output.data, telemetry: batchResult.telemetry });
+    promptTokens += tokenCount(batchResult.telemetry.promptTokens);
+    completionTokens += tokenCount(batchResult.telemetry.completionTokens);
+    queuedObjectives = Math.min(
+      LEARNING_OBJECTIVE_MAX_OBJECTIVES,
+      input.maximumDrafts,
+      completed.reduce((sum, item) => sum + item.output.objectives.length, 0),
+    );
+    await publish(snapshot(completed.length));
   }
 
   if (runSignal.aborted) {
     logger.warn('learning_objectives:derivation_failed', {
       status: interruptedStatus(hooks.signal, deadlineSignal),
     });
-    return {
-      ...resultCorrelation,
-      status: interruptedStatus(hooks.signal, deadlineSignal),
-    };
+    return interrupted(interruptedStatus(hooks.signal, deadlineSignal), completed.length);
   }
 
   const canonicalById = new Map(eligibleQuestions.map((question) => [question.id, question]));

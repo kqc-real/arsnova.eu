@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QuizStoreService } from '../data/quiz-store.service';
 import { getDemoQuizPayload } from '../data/demo-quiz-payload';
 import { LearningObjectiveDerivationClient } from './learning-objective-derivation.client';
+import { LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS } from './learning-objective-derivation-progress';
 import {
   QuizLearningObjectivesComponent,
   mapQuestionForLearningObjectiveDerivation,
@@ -11,15 +12,22 @@ import {
 
 const prepareDerivationMock = vi.fn();
 const runDerivationMock = vi.fn();
+const progressDerivationMock = vi.fn();
 
 describe('QuizLearningObjectivesComponent', () => {
   beforeEach(() => {
     prepareDerivationMock.mockReset();
     runDerivationMock.mockReset();
+    progressDerivationMock.mockReset();
     prepareDerivationMock.mockImplementation(async (input) => ({
       ...input,
       capability: 'a'.repeat(43),
       expiresAt: '2026-10-05T12:05:00.000Z',
+    }));
+    progressDerivationMock.mockImplementation(async (input) => ({
+      ...input,
+      found: false,
+      progress: null,
     }));
     localStorage.clear();
     TestBed.configureTestingModule({
@@ -31,6 +39,7 @@ describe('QuizLearningObjectivesComponent', () => {
           useValue: {
             prepare: prepareDerivationMock,
             derive: runDerivationMock,
+            progress: progressDerivationMock,
           },
         },
       ],
@@ -673,7 +682,412 @@ describe('QuizLearningObjectivesComponent', () => {
 
     expect(store.getLearningObjectiveBundle(quiz.id).objectives).toEqual([]);
     expect(fixture.componentInstance.derivationStatus()).toBe('aborted');
+    expect(fixture.componentInstance.derivationMessage()).toBe(
+      'Die Erstellung wurde abgebrochen. Deine Lernziele bleiben unverändert.',
+    );
     expect(document.activeElement?.id).toBe('learning-objective-derive');
+  });
+
+  it('zeigt den Fortschritt über fertige Fragegruppen statt eines technischen Fortschritts', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Fragegruppen' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    runDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>(() => {
+          /* pending until destroy */
+        }),
+    );
+    progressDerivationMock.mockImplementation(async (input) => ({
+      ...input,
+      found: true,
+      progress: {
+        completedGroups: 1,
+        totalGroups: 3,
+        elapsedMs: 45_000,
+        promptTokens: 800,
+        completionTokens: 160,
+        queuedObjectives: 2,
+      },
+    }));
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.derivationGroupScaleLabel()).toContain(
+        '1 von 3 Fragegruppen',
+      ),
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationMessage()).toBe(
+      'Die Lernziele werden nacheinander aus Fragegruppen formuliert.',
+    );
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 1 von 3 Fragegruppen.',
+    );
+    expect(fixture.componentInstance.derivationRemainingEstimate()).toBe('Noch etwa 2 Minuten.');
+    expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
+      '2 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Noch etwa 2 Minuten.');
+    expect(fixture.nativeElement.textContent).toContain(
+      '2 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+    );
+    const liveSpinner = fixture.nativeElement.querySelector('mat-progress-spinner');
+    const progressBar = fixture.nativeElement.querySelector('mat-progress-bar');
+    const scaleTicks = [
+      ...fixture.nativeElement.querySelectorAll('.learning-objectives__derivation-progress-tick'),
+    ].map((tick: HTMLElement) => tick.textContent?.trim());
+    expect(liveSpinner?.getAttribute('mode')).toBe('indeterminate');
+    expect(progressBar?.getAttribute('mode')).toBe('determinate');
+    expect(fixture.nativeElement.textContent).toContain('Die Abfrage läuft.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Schließe den Editor nicht, solange die Erstellung läuft.',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Fertig sind 1 von 3 Fragegruppen.');
+    expect(scaleTicks).toEqual(['0', '1', '2', '3']);
+    expect(progressBar?.getAttribute('aria-labelledby')).toBe(
+      'learning-objective-derivation-groups-progress-label',
+    );
+    expect(fixture.componentInstance.derivationProgressPercent()).toBe(33);
+    fixture.destroy();
+  });
+
+  it('übernimmt keinen älteren Fortschritt nach einem neueren Poll', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Poll-Reihenfolge' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const pending: Array<(value: Record<string, unknown>) => void> = [];
+    runDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>(() => {
+          /* pending until destroy */
+        }),
+    );
+    progressDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>((resolve) => {
+          pending.push(resolve);
+        }),
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(pending.length).toBe(1));
+    await new Promise((resolve) =>
+      setTimeout(resolve, LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 50),
+    );
+    await vi.waitFor(() => expect(pending.length).toBe(2));
+
+    const newer = {
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 2,
+        totalGroups: 4,
+        elapsedMs: 80_000,
+        promptTokens: 400,
+        completionTokens: 80,
+        queuedObjectives: 3,
+      },
+    };
+    const older = {
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 0,
+        totalGroups: 4,
+        elapsedMs: 80,
+        promptTokens: 0,
+        completionTokens: 0,
+        queuedObjectives: 0,
+      },
+    };
+    pending[1]!(newer);
+    await fixture.whenStable();
+    pending[0]!(older);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 2 von 4 Fragegruppen.',
+    );
+    expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
+      '3 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt Fortschritt auch wenn jeder Poll länger als das Intervall dauert', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Langsame Polls' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const pending: Array<(value: Record<string, unknown>) => void> = [];
+    runDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>(() => {
+          /* pending until destroy */
+        }),
+    );
+    progressDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>((resolve) => {
+          pending.push(resolve);
+        }),
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(pending.length).toBe(1));
+    await new Promise((resolve) =>
+      setTimeout(resolve, LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 50),
+    );
+    await vi.waitFor(() => expect(pending.length).toBe(2));
+
+    pending[0]!({
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 1,
+        totalGroups: 4,
+        elapsedMs: 45_000,
+        promptTokens: 200,
+        completionTokens: 40,
+        queuedObjectives: 2,
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 1 von 4 Fragegruppen.',
+    );
+
+    pending[1]!({
+      schemaVersion: 1,
+      found: true,
+      progress: {
+        completedGroups: 2,
+        totalGroups: 4,
+        elapsedMs: 90_000,
+        promptTokens: 400,
+        completionTokens: 80,
+        queuedObjectives: 3,
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+      'Fertig sind 2 von 4 Fragegruppen.',
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt bei fehlender lokaler Text-KI deren Status statt 0 fertiger Fragegruppen', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Ohne Text-KI' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    progressDerivationMock.mockImplementation(async (input) => ({
+      ...input,
+      found: true,
+      progress: {
+        completedGroups: 0,
+        totalGroups: 4,
+        elapsedMs: 80,
+        promptTokens: 0,
+        completionTokens: 0,
+        queuedObjectives: 0,
+      },
+    }));
+    runDerivationMock.mockImplementation(
+      async (input: { operationId: string; quizId: string; expectedBundleRevision: number }) => ({
+        schemaVersion: 1,
+        operationId: input.operationId,
+        quizId: input.quizId,
+        expectedBundleRevision: input.expectedBundleRevision,
+        status: 'unavailable',
+      }),
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.derivationStatus()).toBe('unavailable'),
+    );
+
+    const message = fixture.componentInstance.derivationMessage() ?? '';
+    expect(message).toContain('Die lokale Text-KI ist gerade nicht erreichbar.');
+    expect(message).not.toContain('0 von 4');
+    expect(message).not.toMatch(/Token|Batch/i);
+  });
+
+  it('zählt Fragegruppen erst, nachdem mindestens eine fertig ist', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Noch keine Gruppe' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    runDerivationMock.mockImplementation(
+      () =>
+        new Promise<Record<string, unknown>>(() => {
+          /* pending until destroy */
+        }),
+    );
+    progressDerivationMock.mockImplementation(async (input) => ({
+      ...input,
+      found: true,
+      progress: {
+        completedGroups: 0,
+        totalGroups: 4,
+        elapsedMs: 80,
+        promptTokens: 0,
+        completionTokens: 0,
+        queuedObjectives: 0,
+      },
+    }));
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(progressDerivationMock).toHaveBeenCalled());
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.derivationMessage()).toBe(
+      'Die Lernziele werden nacheinander aus Fragegruppen formuliert.',
+    );
+    expect(fixture.componentInstance.derivationMessage()).not.toContain('0 von 4');
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.derivationGroupScaleLabel()).toBe(
+        'Fertig sind 0 von 4 Fragegruppen.',
+      ),
+    );
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('mat-progress-spinner')?.getAttribute('mode')).toBe(
+      'indeterminate',
+    );
+    expect(fixture.nativeElement.querySelector('mat-progress-bar')?.getAttribute('mode')).toBe(
+      'determinate',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Die Abfrage läuft.');
+    expect(fixture.nativeElement.textContent).toContain('Fertig sind 0 von 4 Fragegruppen.');
+    expect(
+      [
+        ...fixture.nativeElement.querySelectorAll('.learning-objectives__derivation-progress-tick'),
+      ].map((tick: HTMLElement) => tick.textContent?.trim()),
+    ).toEqual(['0', '1', '2', '3', '4']);
+    fixture.destroy();
+  });
+
+  it('erklärt Abbruch und Timeout mit fertigen Gruppen, Dauer und Texteinheiten', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Abbruchhinweis' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    runDerivationMock.mockImplementation(
+      async (input: { operationId: string; quizId: string; expectedBundleRevision: number }) => ({
+        schemaVersion: 1,
+        operationId: input.operationId,
+        quizId: input.quizId,
+        expectedBundleRevision: input.expectedBundleRevision,
+        status: 'timeout',
+        progress: {
+          completedGroups: 2,
+          totalGroups: 5,
+          elapsedMs: 125_000,
+          promptTokens: 800,
+          completionTokens: 240,
+          queuedObjectives: 4,
+        },
+      }),
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
+
+    const message = fixture.componentInstance.derivationMessage() ?? '';
+    expect(message).toContain('Die Zeit für die gesamte Erstellung ist abgelaufen.');
+    expect(message).toContain('Fertig waren 2 von 5 Fragegruppen.');
+    expect(message).toContain('2 Minuten und 5 Sekunden');
+    expect(message).toContain('800 gelesene und 240 formulierte Texteinheiten');
+    expect(message).toContain('Deine Lernziele bleiben unverändert.');
+    expect(message).not.toMatch(/Token|Batch/i);
   });
 
   it('verwirft ein spätes Ergebnis, wenn sich die referenzierte Aufgabenlösung geändert hat', async () => {

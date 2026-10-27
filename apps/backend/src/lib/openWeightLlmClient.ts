@@ -93,6 +93,11 @@ export type OpenWeightLlmFailureResult =
 
 export type OpenWeightLlmRunResult = OpenWeightLlmCompletedResult | OpenWeightLlmFailureResult;
 
+export type OpenWeightLlmAvailabilityStatus =
+  'ready' | 'disabled' | 'misconfigured' | 'circuit_open' | 'unavailable' | 'busy';
+
+export const OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS = 2_500;
+
 export type OpenWeightLlmLiveResult<TOutput extends OpenWeightLlmOutput> =
   | {
       readonly status: 'completed';
@@ -571,6 +576,50 @@ export async function runOpenWeightLlm(
     recordCircuitFailure(hooks.now());
   }
   return result;
+}
+
+export async function inspectOpenWeightLlmAvailability(
+  options: { readonly signal?: AbortSignal; readonly timeoutMs?: number } = {},
+): Promise<OpenWeightLlmAvailabilityStatus> {
+  let config: OpenWeightLlmConfig;
+  try {
+    config = hooks.config();
+  } catch {
+    return 'misconfigured';
+  }
+  if (!config.enabled) return 'disabled';
+  if (!config.transport || !config.token) return 'misconfigured';
+  if (options.signal?.aborted) return 'unavailable';
+  if (isCircuitOpen(hooks.now())) return 'circuit_open';
+  if (inFlight) return 'ready';
+
+  const timeoutMs = Math.min(
+    5_000,
+    Math.max(500, options.timeoutMs ?? OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS),
+  );
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
+  try {
+    const resolvedAddress = await resolvePrivateTarget(config.transport, signal);
+    const slot = await hooks.request({
+      transport: config.transport,
+      resolvedAddress,
+      method: 'GET',
+      path: '/slots?fail_on_no_slot=1',
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${config.token}`,
+      },
+      body: null,
+      signal,
+    });
+    if (slot.status === 503) return 'busy';
+    if (slot.status === 401 || slot.status === 403 || slot.status === 501) return 'misconfigured';
+    if (slot.status !== 200) return 'unavailable';
+    return 'ready';
+  } catch {
+    return 'unavailable';
+  }
 }
 
 export async function runOpenWeightLlmTopicLabel(

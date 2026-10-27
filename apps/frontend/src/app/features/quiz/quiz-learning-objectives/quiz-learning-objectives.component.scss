@@ -177,6 +177,71 @@
   color: var(--mat-sys-on-error-container);
 }
 
+.learning-objectives__derivation-progress-stack {
+  display: grid;
+  gap: 0.65rem;
+  margin-block-start: 0.65rem;
+}
+
+.learning-objectives__derivation-live {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  min-height: 1.25rem;
+}
+
+.learning-objectives__derivation-live-spinner {
+  flex: 0 0 auto;
+}
+
+.learning-objectives__derivation-progress {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.learning-objectives__derivation-progress-label {
+  color: inherit;
+  font: var(--mat-sys-label-medium);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.learning-objectives__derivation-progress-bar {
+  --mat-progress-bar-active-indicator-color: var(--mat-sys-primary);
+  --mat-progress-bar-track-color: var(--mat-sys-outline-variant);
+  display: block;
+  width: 100%;
+}
+
+.learning-objectives__derivation-progress-scale {
+  min-height: 1.4em;
+  overflow: visible;
+  position: relative;
+}
+
+.learning-objectives__derivation-progress-tick {
+  color: inherit;
+  font: var(--mat-sys-label-medium);
+  font-variant-numeric: tabular-nums;
+  inset-inline-start: var(--tick-percent);
+  line-height: 1.4;
+  position: absolute;
+  top: 0;
+  translate: -50% 0;
+}
+
+.learning-objectives__derivation-progress-tick--current {
+  color: var(--mat-sys-primary);
+  font-weight: 700;
+}
+
+.learning-objectives__derivation-keep-open {
+  color: inherit;
+  font: var(--mat-sys-label-medium);
+  line-height: 1.4;
+  margin: 0;
+}
+
 .learning-objectives__derivation-status ul {
   margin-block: 0.5rem 0;
   overflow-wrap: anywhere;
