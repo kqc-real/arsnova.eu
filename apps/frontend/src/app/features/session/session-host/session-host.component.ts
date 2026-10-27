@@ -2987,7 +2987,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private learningObjectivesRequest = 0;
   /** Letzter Abruf ist fehlgeschlagen; Polling und Reconnect holen ihn nach. */
   private learningObjectivesRetryPending = false;
-  /** Lobby und Warten auf die erste Frage: alle bestätigten Ziele, noch ohne Fragenfilter. */
+  /** Lobby und Warten auf die erste Frage: alle bestätigten Ziele, nach Fragennummer geordnet. */
   readonly showAllConfirmedLearningObjectives = computed(() => {
     if (this.activeChannel() !== 'quiz') return false;
     if (this.displayedCurrentQuestionForHost() !== null) return false;

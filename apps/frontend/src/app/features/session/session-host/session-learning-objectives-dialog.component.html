@@ -204,9 +204,21 @@
         <article
           class="session-objectives__item"
           [class.session-objectives__item--audience]="isAudiencePresentation()"
-          [attr.aria-labelledby]="'session-objective-' + objective.id"
+          [attr.aria-labelledby]="
+            overviewQuestionLabel(objective)
+              ? 'session-objective-q-' + objective.id + ' session-objective-' + objective.id
+              : 'session-objective-' + objective.id
+          "
         >
           <div>
+            @if (overviewQuestionLabel(objective); as questionLabel) {
+              <p
+                class="session-objectives__question-label"
+                [id]="'session-objective-q-' + objective.id"
+              >
+                {{ questionLabel }}
+              </p>
+            }
             <div
               class="session-objectives__text markdown-body"
               [class.session-objectives__text--audience]="isAudiencePresentation()"
