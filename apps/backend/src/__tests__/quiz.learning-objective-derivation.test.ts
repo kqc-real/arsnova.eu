@@ -1,19 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
-const { rateLimitMocks, capabilityMocks, deriveLearningObjectiveDraftsMock } = vi.hoisted(() => ({
-  rateLimitMocks: {
-    prepare: vi.fn(),
-    uploadAttempt: vi.fn(),
-    uploadStorage: vi.fn(),
-  },
-  capabilityMocks: {
-    issue: vi.fn(),
-    reserve: vi.fn(),
-    finalize: vi.fn(),
-  },
-  deriveLearningObjectiveDraftsMock: vi.fn(),
-}));
+const { rateLimitMocks, capabilityMocks, deriveLearningObjectiveDraftsMock, progressMocks } =
+  vi.hoisted(() => ({
+    rateLimitMocks: {
+      prepare: vi.fn(),
+      uploadAttempt: vi.fn(),
+      uploadStorage: vi.fn(),
+    },
+    capabilityMocks: {
+      issue: vi.fn(),
+      reserve: vi.fn(),
+      finalize: vi.fn(),
+    },
+    deriveLearningObjectiveDraftsMock: vi.fn(),
+    progressMocks: {
+      write: vi.fn(),
+      read: vi.fn(),
+    },
+  }));
 
 vi.mock('../db', () => ({ prisma: {} }));
 vi.mock('@prisma/client', () => ({ Prisma: { DbNull: Symbol('DbNull') } }));
@@ -29,6 +34,10 @@ vi.mock('../lib/learningObjectiveDerivationCapability', () => ({
 }));
 vi.mock('../lib/learningObjectiveDerivation', () => ({
   deriveLearningObjectiveDrafts: deriveLearningObjectiveDraftsMock,
+}));
+vi.mock('../lib/learningObjectiveDerivationProgress', () => ({
+  writeLearningObjectiveDerivationProgress: progressMocks.write,
+  readLearningObjectiveDerivationProgress: progressMocks.read,
 }));
 
 import { quizRouter } from '../routers/quiz';
@@ -87,6 +96,8 @@ describe('quiz learning-objective derivation capability boundary', () => {
       status: 'busy',
       retry: 'manual',
     });
+    progressMocks.write.mockResolvedValue(undefined);
+    progressMocks.read.mockResolvedValue(null);
   });
 
   trpcDodIt(
@@ -167,7 +178,10 @@ describe('quiz learning-objective derivation capability boundary', () => {
           maximumDrafts: runInput.maximumDrafts,
           questions: runInput.questions,
         },
-        { signal: controller.signal },
+        expect.objectContaining({
+          signal: controller.signal,
+          onProgress: expect.any(Function),
+        }),
       );
       expect(deriveLearningObjectiveDraftsMock.mock.calls[0]?.[0]).not.toHaveProperty('capability');
       expect(result).toEqual({ ...correlation, status: 'busy', retry: 'manual' });
@@ -193,5 +207,68 @@ describe('quiz learning-objective derivation capability boundary', () => {
       retry: 'manual',
     });
     expect(capabilityMocks.finalize).toHaveBeenCalledWith(CAPABILITY);
+  });
+
+  it('stores derivation group progress for the bound operation', async () => {
+    deriveLearningObjectiveDraftsMock.mockImplementation(async (_input, hooks) => {
+      await hooks.onProgress({
+        completedGroups: 1,
+        totalGroups: 3,
+        elapsedMs: 12_000,
+        promptTokens: 240,
+        completionTokens: 48,
+        queuedObjectives: 2,
+      });
+      return { ...correlation, status: 'busy', retry: 'manual' };
+    });
+
+    await createCaller().deriveLearningObjectives(runInput);
+
+    expect(progressMocks.write).toHaveBeenCalledWith({
+      ...correlation,
+      progress: {
+        completedGroups: 1,
+        totalGroups: 3,
+        elapsedMs: 12_000,
+        promptTokens: 240,
+        completionTokens: 48,
+        queuedObjectives: 2,
+      },
+    });
+  });
+
+  it('returns matching derivation progress and hides foreign bindings', async () => {
+    progressMocks.read.mockResolvedValue({
+      completedGroups: 2,
+      totalGroups: 4,
+      elapsedMs: 30_000,
+      promptTokens: 400,
+      completionTokens: 80,
+      queuedObjectives: 5,
+    });
+
+    await expect(
+      createCaller().getLearningObjectiveDerivationProgress(correlation),
+    ).resolves.toEqual({
+      ...correlation,
+      found: true,
+      progress: {
+        completedGroups: 2,
+        totalGroups: 4,
+        elapsedMs: 30_000,
+        promptTokens: 400,
+        completionTokens: 80,
+        queuedObjectives: 5,
+      },
+    });
+
+    progressMocks.read.mockResolvedValue(null);
+    await expect(
+      createCaller().getLearningObjectiveDerivationProgress(correlation),
+    ).resolves.toEqual({
+      ...correlation,
+      found: false,
+      progress: null,
+    });
   });
 });

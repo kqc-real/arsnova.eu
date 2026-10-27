@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
   LEARNING_OBJECTIVE_DERIVATION_VERSION,
+  GetLearningObjectiveDerivationProgressOutputSchema,
   LearningObjectiveDerivationInputSchema,
   LearningObjectiveDerivationResultSchema,
   LearningObjectiveDerivedDraftSchema,
@@ -158,5 +159,49 @@ describe('learning-objective derivation contracts', () => {
         confidence: 1,
       }).success,
     ).toBe(false);
+    expect(
+      LearningObjectiveDerivationResultSchema.safeParse({
+        ...correlation,
+        status: 'aborted',
+      }).success,
+    ).toBe(false);
+    expect(
+      LearningObjectiveDerivationResultSchema.parse({
+        ...correlation,
+        status: 'timeout',
+        progress: {
+          completedGroups: 1,
+          totalGroups: 4,
+          elapsedMs: 90_000,
+          promptTokens: 800,
+          completionTokens: 160,
+          queuedObjectives: 3,
+        },
+      }),
+    ).toMatchObject({
+      status: 'timeout',
+      progress: { completedGroups: 1, totalGroups: 4, queuedObjectives: 3 },
+    });
+    expect(
+      GetLearningObjectiveDerivationProgressOutputSchema.parse({
+        ...correlation,
+        found: true,
+        progress: {
+          completedGroups: 1,
+          totalGroups: 4,
+          elapsedMs: 90_000,
+          promptTokens: 800,
+          completionTokens: 160,
+          queuedObjectives: 3,
+        },
+      }),
+    ).toMatchObject({ found: true, progress: { completedGroups: 1, queuedObjectives: 3 } });
+    expect(
+      GetLearningObjectiveDerivationProgressOutputSchema.parse({
+        ...correlation,
+        found: false,
+        progress: null,
+      }),
+    ).toMatchObject({ found: false, progress: null });
   });
 });

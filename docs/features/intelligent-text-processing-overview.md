@@ -150,7 +150,7 @@ Unabhängig von der Wortwolke kann jede eingereichte Q&A-Frage im Hintergrund au
 Gute Moderation im Hörsaal hängt davon ab, _was_ die Studierenden in der aktuellen Sitzung eigentlich lernen sollen. arsnova.eu unterstützt deshalb explizite, prüfbare **Lernziele** (sowohl für ein gesamtes Quiz als auch für einzelne Quiz-Abschnitte oder reine Q&A-Sessions):
 
 1. **Vorbereitungsauftrag (`quiz.deriveLearningObjectives`):**
-   - Im Quiz-Editor kann die Lehrkraft bewusst **»Lernziele vorschlagen«** auslösen.
+   - Im Quiz-Editor kann die Lehrkraft bewusst **»Lernziele vorschlagen«** auslösen. Die Oberfläche zeigt währenddessen einen kleinen Kreisindikator für die lebende Abfrage, einen bestimmten Balken mit Skala der fertigen Fragegruppen und nach der ersten Gruppe eine grobe Restdauer. Einen vorzeitigen Abbruch erklärt sie mit Grund, Dauer und bisherigem Textumfang.
    - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v3`) übergeben.
    - Das Modell formuliert kurze, rollenneutrale Infinitivphrasen (z. B. _»Lineare Regressionsmodelle auf Stichprobendaten anwenden.«_) mit großgeschriebenem Anfangswort und muss jedes Lernziel mit mindestens einer exakten `questionId` aus dem Request belegen. Kleingeschriebene Modellausgaben werden nachträglich großgeschrieben und ohne Punkt um einen schließenden Punkt ergänzt.
 2. **Menschliche Bestätigung & Lebenszyklus ([ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md)):**

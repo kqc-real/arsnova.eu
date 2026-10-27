@@ -35583,6 +35583,90 @@
         <source>Vorschläge werden ausschließlich aus den Quizaufgaben formuliert.</source>
         <target>Suggestions are generated exclusively from the quiz tasks.</target>
       </trans-unit>
+      <trans-unit id="learningObjectives.derivationPendingGroupsIntro" datatype="html">
+        <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert.</source>
+        <target>Learning objectives are being written one question group after another.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPendingGroups" datatype="html">
+        <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert. Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
+        <target>Learning objectives are being written one question group after another. <x id="completed" equiv-text="completed"/> of <x id="total" equiv-text="total"/> question groups are ready.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationLiveProgress" datatype="html">
+        <source>Die Abfrage läuft.</source>
+        <target>The request is still running.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationGroupsProgress" datatype="html">
+        <source>Fragegruppen</source>
+        <target>Question groups</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationGroupsScale" datatype="html">
+        <source>Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
+        <target><x id="completed" equiv-text="completed"/> of <x id="total" equiv-text="total"/> question groups are ready.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRemainingUnderMinute" datatype="html">
+        <source>Noch weniger als eine Minute.</source>
+        <target>Less than a minute left.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRemainingMinute" datatype="html">
+        <source>Noch etwa 1 Minute.</source>
+        <target>About 1 minute left.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRemainingMinutes" datatype="html">
+        <source>Noch etwa <x id="minutes" equiv-text="minutes"/> Minuten.</source>
+        <target>About <x id="minutes" equiv-text="minutes"/> minutes left.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationKeepEditorOpen" datatype="html">
+        <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst wird sie abgebrochen.</source>
+        <target>Keep the editor open until creation finishes. Closing it cancels the process.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationQueuedObjective" datatype="html">
+        <source>1 Lernziel ist schon formuliert, aber noch nicht in der Liste.</source>
+        <target>1 learning objective is already written, but not yet in the list.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationQueuedObjectives" datatype="html">
+        <source><x id="count" equiv-text="count"/> Lernziele sind schon formuliert, aber noch nicht in der Liste.</source>
+        <target><x id="count" equiv-text="count"/> learning objectives are already written, but not yet in the list.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
+        <source>Die Erstellung wurde abgebrochen.</source>
+        <target>Creation was cancelled.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationTimeoutWhy" datatype="html">
+        <source>Die Zeit für die gesamte Erstellung ist abgelaufen.</source>
+        <target>The time allowed for the complete generation has run out.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationUnchanged" datatype="html">
+        <source>Deine Lernziele bleiben unverändert.</source>
+        <target>Your learning objectives remain unchanged.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInterruptedGroups" datatype="html">
+        <source>Fertig waren <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
+        <target><x id="completed" equiv-text="completed"/> of <x id="total" equiv-text="total"/> question groups were ready.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInterruptedDuration" datatype="html">
+        <source>Dauer: <x id="duration" equiv-text="duration"/>.</source>
+        <target>Duration: <x id="duration" equiv-text="duration"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInterruptedVolume" datatype="html">
+        <source>Bisheriger Umfang: <x id="read" equiv-text="read"/> gelesene und <x id="written" equiv-text="written"/> formulierte Texteinheiten.</source>
+        <target>Progress so far: <x id="read" equiv-text="read"/> units of text read and <x id="written" equiv-text="written"/> units of text written.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationSeconds" datatype="html">
+        <source><x id="seconds" equiv-text="seconds"/> Sekunden</source>
+        <target><x id="seconds" equiv-text="seconds"/> seconds</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationMinute" datatype="html">
+        <source>1 Minute</source>
+        <target>1 minute</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationMinutes" datatype="html">
+        <source><x id="minutes" equiv-text="minutes"/> Minuten</source>
+        <target><x id="minutes" equiv-text="minutes"/> minutes</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationMinutesSeconds" datatype="html">
+        <source><x id="minutes" equiv-text="minutes"/> Minuten und <x id="seconds" equiv-text="seconds"/> Sekunden</source>
+        <target><x id="minutes" equiv-text="minutes"/> minutes and <x id="seconds" equiv-text="seconds"/> seconds</target>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationRetry" datatype="html">
         <source>Nochmal versuchen</source>
         <target>Try again</target>
