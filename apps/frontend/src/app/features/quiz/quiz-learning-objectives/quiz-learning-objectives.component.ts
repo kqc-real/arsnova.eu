@@ -29,6 +29,7 @@ import {
   RunLearningObjectiveDerivationInputSchema,
   isNumericToleranceMode,
   normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   questionSupportsConfidence,
   resolveNumericEstimateToleranceMode,
   type LearningObjectiveDerivationQuestion,
@@ -483,7 +484,7 @@ export class QuizLearningObjectivesComponent {
   beginEdit(objective: QuizLearningObjectiveV1): void {
     this.editingId.set(objective.id);
     this.editingExpectedRevision.set(objective.revision);
-    this.text.set(objective.text);
+    this.text.set(stripLearningObjectiveQuestionIdCitations(objective.text));
     this.scopeKind.set(objective.scope.kind);
     this.selectedQuestionIds.set(
       new Set(objective.scope.kind === 'question-set' ? objective.scope.sourceQuestionIds : []),
@@ -514,7 +515,7 @@ export class QuizLearningObjectivesComponent {
         this.quizStore.saveQuizLearningObjective(
           this.quizId(),
           {
-            text: objective.text,
+            text: stripLearningObjectiveQuestionIdCitations(objective.text),
             scope: objective.scope,
             confirmationState: 'confirmed',
           },
@@ -657,7 +658,7 @@ export class QuizLearningObjectivesComponent {
   }
 
   save(): void {
-    const text = this.text().trim();
+    const text = stripLearningObjectiveQuestionIdCitations(this.text()).trim();
     if (!text) {
       this.errorMessage.set($localize`:@@learningObjectives.textRequired:Formuliere ein Lernziel.`);
       this.focusTextArea();

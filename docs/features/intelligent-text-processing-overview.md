@@ -151,8 +151,8 @@ Gute Moderation im Hörsaal hängt davon ab, _was_ die Studierenden in der aktue
 
 1. **Vorbereitungsauftrag (`quiz.deriveLearningObjectives`):**
    - Im Quiz-Editor kann die Lehrkraft bewusst **»Lernziele vorschlagen«** auslösen.
-   - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v3`) übergeben.
-   - Das Modell formuliert kurze, rollenneutrale Infinitivphrasen (z. B. _»Lineare Regressionsmodelle auf Stichprobendaten anwenden.«_) mit großgeschriebenem Anfangswort und muss jedes Lernziel mit mindestens einer exakten `questionId` aus dem Request belegen. Kleingeschriebene Modellausgaben werden nachträglich großgeschrieben und ohne Punkt um einen schließenden Punkt ergänzt.
+   - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v4`) übergeben.
+   - Das Modell formuliert kurze, rollenneutrale Infinitivphrasen (z. B. _»Lineare Regressionsmodelle auf Stichprobendaten anwenden.«_) mit großgeschriebenem Anfangswort und muss jedes Lernziel mit mindestens einer exakten `questionId` aus dem Request belegen. Diese ID steht nur im Feld `questionIds`. Kleingeschriebene Modellausgaben werden nachträglich großgeschrieben, Frage-IDs im Satz entfernt und fehlende Schlusspunkte ergänzt.
 2. **Menschliche Bestätigung & Lebenszyklus ([ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md)):**
    - Alle vom Modell gelieferten Ziele starten als **Entwürfe (`derived`, unbestätigt)**.
    - Die Lehrkraft kann sie bearbeiten, bestätigen (`confirmed`), verwerfen oder manuell eigene Ziele (`manual`) anlegen.

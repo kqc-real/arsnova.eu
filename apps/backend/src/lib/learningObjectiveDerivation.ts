@@ -500,6 +500,7 @@ export async function deriveLearningObjectiveDrafts(
         const sourceQuestions = sourceQuestionIds.map((id) => canonicalById.get(id));
         if (sourceQuestions.some((question) => question === undefined)) return null;
         const text = normalizeLearningObjectiveText(objective.text, input.locale);
+        if (!text) return null;
         return {
           text,
           sourceQuestionIds,

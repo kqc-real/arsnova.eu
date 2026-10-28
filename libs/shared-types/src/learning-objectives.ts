@@ -45,14 +45,43 @@ const LearningObjectiveTextSchema = z
 
 const FIRST_LEARNING_OBJECTIVE_LETTER = /\p{L}/u;
 const LEARNING_OBJECTIVE_SENTENCE_END = /[.!?…]$/u;
+const LEARNING_OBJECTIVE_QUESTION_UUID =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/giu;
+const LEARNING_OBJECTIVE_QUESTION_ID_LABEL =
+  /(?:according to|per|for|see|siehe|vgl\.?|gemäß|laut|anhand(?: der)?|bezogen auf(?: die)?|für|zur|zum|selon|d['’]après|según|secondo(?: l['’])?)?\s*(?:the\s+|der\s+|die\s+|des\s+|la\s+|l['’]|el\s+|della\s+|de\s+la\s+|de\s+)?(?:(?:questions?|fragen?|aufgaben?|preguntas?|domandas?)[\s_-]*(?:ids?|identifiers?|identifiants?|identificador(?:es)?|identificator(?:e|i))|(?:ids?|identifiers?|identifiants?|identificador(?:es)?|identificator(?:e|i))\s+(?:de\s+(?:la\s+)?|della\s+)?(?:questions?|fragen?|aufgaben?|preguntas?|domandas?))\b/giu;
+
+/**
+ * Question IDs belong in the structured reference, not in the sentence people
+ * read. The model sometimes copies them into the objective text anyway.
+ * Text without a UUID is returned unchanged.
+ */
+export function stripLearningObjectiveQuestionIdCitations(value: string): string {
+  if (!LEARNING_OBJECTIVE_QUESTION_UUID.test(value)) return value;
+  LEARNING_OBJECTIVE_QUESTION_UUID.lastIndex = 0;
+  const withoutIds = value.replace(LEARNING_OBJECTIVE_QUESTION_UUID, ' ');
+  LEARNING_OBJECTIVE_QUESTION_UUID.lastIndex = 0;
+  const cleaned = withoutIds
+    .replace(LEARNING_OBJECTIVE_QUESTION_ID_LABEL, ' ')
+    .replace(/\(\s*\)/gu, ' ')
+    .replace(/\[\s*\]/gu, ' ')
+    .replace(/\s+([,.;:!?])/gu, '$1')
+    .replace(/\s+/gu, ' ')
+    .trim()
+    .replace(/^[,.;:!?)\]]+/u, '')
+    .replace(/[,:;[(]+$/u, '')
+    .trim();
+  if (!/\p{L}|\p{N}/u.test(cleaned)) return '';
+  return cleaned;
+}
 
 /**
  * Infinitive learning-objective phrases are displayed as sentences. Model
- * output is normalized after inference: first letter capitalized, a closing
- * period added when missing. This does not change the prompt payload.
+ * output is normalized after inference: question-id citations removed, first
+ * letter capitalized, a closing period added when missing. This does not
+ * change the prompt payload.
  */
 export function normalizeLearningObjectiveText(value: string, locale?: string): string {
-  const normalized = value.trim().replace(/\s+/gu, ' ');
+  const normalized = stripLearningObjectiveQuestionIdCitations(value.trim().replace(/\s+/gu, ' '));
   if (!normalized) return normalized;
   return ensureLearningObjectivePeriod(capitalizeLearningObjectiveStart(normalized, locale));
 }

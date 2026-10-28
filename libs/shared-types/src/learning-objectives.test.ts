@@ -13,6 +13,7 @@ import {
   SessionLearningObjectivesSnapshotSchema,
   findUnresolvedQuizLearningObjectiveReferences,
   normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   type QuizLearningObjectiveBundleV1,
 } from './learning-objectives.js';
 import {
@@ -172,6 +173,52 @@ describe('quiz learning-objective sidecar contract', () => {
     expect(
       normalizeLearningObjectiveText('x'.repeat(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH), 'de'),
     ).toHaveLength(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH);
+  });
+
+  it('entfernt Frage-IDs aus dem sichtbaren Lernzieltext', () => {
+    const questionId = '8661c0ca-d575-4267-9499-fd0bfcf63521';
+    expect(
+      normalizeLearningObjectiveText(
+        `Determine the proper order of firewall, load balancer, and certificate configuration for secure web access according to question id ${questionId}.`,
+        'en',
+      ),
+    ).toBe(
+      'Determine the proper order of firewall, load balancer, and certificate configuration for secure web access.',
+    );
+    expect(
+      normalizeLearningObjectiveText(
+        `Order the steps of a secure web access setup according to question id ${questionId}.`,
+        'en',
+      ),
+    ).toBe('Order the steps of a secure web access setup.');
+    expect(
+      normalizeLearningObjectiveText(
+        `Die Mindestanzahl an Instanzen berechnen gemäß Frage-ID ${questionId}.`,
+        'de',
+      ),
+    ).toBe('Die Mindestanzahl an Instanzen berechnen.');
+    expect(
+      normalizeLearningObjectiveText(
+        `Ordonner les étapes selon l'identifiant de question ${questionId}.`,
+        'fr',
+      ),
+    ).toBe('Ordonner les étapes.');
+    expect(
+      normalizeLearningObjectiveText(
+        `Calcular el mínimo según el id de pregunta ${questionId}`,
+        'es',
+      ),
+    ).toBe('Calcular el mínimo.');
+    expect(
+      normalizeLearningObjectiveText(
+        `Ordinare i passaggi secondo l'identificatore della domanda ${questionId}`,
+        'it',
+      ),
+    ).toBe('Ordinare i passaggi.');
+    expect(stripLearningObjectiveQuestionIdCitations('Die Frage präzise formulieren.')).toBe(
+      'Die Frage präzise formulieren.',
+    );
+    expect(normalizeLearningObjectiveText(questionId, 'en')).toBe('');
   });
 
   it('enforces objective, reference, and compact-text limits', () => {

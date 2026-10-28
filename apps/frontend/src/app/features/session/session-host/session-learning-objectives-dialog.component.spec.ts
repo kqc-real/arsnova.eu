@@ -309,6 +309,26 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(preview.querySelector('a, img, button')).toBeNull();
   });
 
+  it('zeigt keine Frage-ID im Lernzieltext', async () => {
+    const questionId = '8661c0ca-d575-4267-9499-fd0bfcf63521';
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        objectives: [
+          confirmedObjective(
+            `Order the steps of a secure web access setup according to question id ${questionId}.`,
+          ),
+        ],
+      }),
+    );
+    const fixture = await createComponent();
+    const rendered = fixture.nativeElement.querySelector(
+      '.session-objectives__text.markdown-body',
+    ) as HTMLElement;
+    expect(rendered.textContent).toContain('Order the steps of a secure web access setup.');
+    expect(fixture.nativeElement.textContent).not.toContain(questionId);
+    expect(fixture.nativeElement.textContent).not.toContain('question id');
+  });
+
   it('schreibt das Anfangswort eines Lernziels groß', async () => {
     getLearningObjectivesMock.mockResolvedValue(
       snapshot({
