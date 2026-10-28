@@ -68,7 +68,7 @@
               <li>
                 @if (alternative.objective; as objective) {
                   <span class="learning-objectives__conflict-text">{{
-                    displayObjectiveText(objective.text)
+                    displayObjectiveText(objective)
                   }}</span>
                   <span class="learning-objectives__conflict-meta">
                     {{ statusLabel(objective) }} · {{ scopeLabel(objective) }} ·
@@ -163,6 +163,78 @@
               aria-atomic="true"
             >
               <p>{{ derivationMessage() }}</p>
+              @if (derivationIsPending()) {
+                <div class="learning-objectives__derivation-progress-stack">
+                  <div class="learning-objectives__derivation-live">
+                    <mat-progress-spinner
+                      class="learning-objectives__derivation-live-spinner"
+                      diameter="18"
+                      strokeWidth="2"
+                      mode="indeterminate"
+                      aria-labelledby="learning-objective-derivation-live-progress-label"
+                    />
+                    <p
+                      id="learning-objective-derivation-live-progress-label"
+                      class="learning-objectives__derivation-progress-label"
+                      i18n="@@learningObjectives.derivationLiveProgress"
+                    >
+                      Die Abfrage läuft.
+                    </p>
+                  </div>
+                  <div class="learning-objectives__derivation-progress">
+                    <mat-progress-bar
+                      class="learning-objectives__derivation-progress-bar"
+                      mode="determinate"
+                      [value]="derivationProgressPercent()"
+                      [attr.aria-labelledby]="
+                        derivationGroupScaleLabel()
+                          ? 'learning-objective-derivation-groups-progress-label'
+                          : 'learning-objective-derivation-live-progress-label'
+                      "
+                      [attr.aria-valuetext]="derivationGroupScaleLabel()"
+                    />
+                    @if (derivationGroupScaleTicks().length > 0) {
+                      <div
+                        class="learning-objectives__derivation-progress-scale"
+                        aria-hidden="true"
+                      >
+                        @for (tick of derivationGroupScaleTicks(); track tick.value) {
+                          <span
+                            class="learning-objectives__derivation-progress-tick"
+                            [class.learning-objectives__derivation-progress-tick--current]="
+                              tick.current
+                            "
+                            [style.--tick-percent]="tick.percent + '%'"
+                          >
+                            {{ tick.label }}
+                          </span>
+                        }
+                      </div>
+                    }
+                    @if (derivationGroupScaleLabel(); as scaleLabel) {
+                      <p
+                        id="learning-objective-derivation-groups-progress-label"
+                        class="learning-objectives__derivation-progress-label"
+                      >
+                        {{ scaleLabel }}
+                        @if (derivationRemainingEstimate(); as remaining) {
+                          {{ remaining }}
+                        }
+                      </p>
+                    }
+                    @if (derivationQueuedObjectivesLabel(); as queued) {
+                      <p class="learning-objectives__derivation-progress-label">{{ queued }}</p>
+                    }
+                  </div>
+                  <p
+                    class="learning-objectives__derivation-keep-open"
+                    i18n="@@learningObjectives.derivationKeepEditorOpen"
+                  >
+                    Schließe den Editor nicht, solange die Erstellung läuft. Sonst wird sie
+                    abgebrochen.
+                  </p>
+                </div>
+              }
               @if (derivationLimitations().length > 0) {
                 <p i18n="@@learningObjectives.derivationLimitations">Hinweise:</p>
                 <ul>
@@ -192,7 +264,7 @@
               <div
                 class="learning-objectives__text markdown-body"
                 [id]="'objective-' + objective.id"
-                [innerHTML]="renderObjectiveMarkdown(objective.text)"
+                [innerHTML]="renderObjectiveMarkdown(objective)"
               ></div>
               <div class="learning-objectives__meta">
                 <span

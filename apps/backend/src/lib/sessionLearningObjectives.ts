@@ -10,6 +10,7 @@ import {
   DeriveSessionLearningObjectivesResultSchema,
   LearningObjectiveDerivationQuestionSchema,
   SessionLearningObjectivesSnapshotSchema,
+  stripLearningObjectiveQuestionIdCitations,
   isNumericToleranceMode,
   questionSupportsConfidence,
   resolveNumericEstimateToleranceMode,
@@ -237,6 +238,16 @@ function referenceKey(reference: {
   return `${reference.kind}:${reference.sourceKind ?? ''}:${reference.questionId ?? reference.sourceReferenceId ?? ''}`;
 }
 
+function modelDerivedObjectiveText(row: SessionObjectiveRow): string {
+  if (row.origin !== 'MODEL' || row.purpose === 'FORUM_ASSIGNMENT') return row.text;
+  const questionIds = row.references.flatMap((reference) =>
+    [reference.sourceReferenceId, reference.quizQuestionId, reference.qaQuestionId].filter(
+      (id): id is string => typeof id === 'string' && id.length > 0,
+    ),
+  );
+  return stripLearningObjectiveQuestionIdCitations(row.text, questionIds) || row.text;
+}
+
 function objectiveFromRow(row: SessionObjectiveRow): SessionLearningObjectiveDTO {
   const taskReferences = row.references
     .filter((reference) => reference.kind === 'TASK')
@@ -301,7 +312,7 @@ function objectiveFromRow(row: SessionObjectiveRow): SessionLearningObjectiveDTO
   return {
     id: row.objectiveId,
     revision: row.revision,
-    text: row.text,
+    text: modelDerivedObjectiveText(row),
     scope,
     origin,
     confirmation: confirmationFromRow(row),

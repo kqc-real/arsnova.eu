@@ -19,9 +19,12 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import {
+  LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
   LEARNING_OBJECTIVE_MAX_OBJECTIVES,
   LEARNING_OBJECTIVE_MAX_REFERENCES,
   LEARNING_OBJECTIVE_TEXT_MAX_LENGTH,
@@ -32,14 +35,24 @@ import {
   stripLearningObjectiveQuestionIdCitations,
   questionSupportsConfidence,
   resolveNumericEstimateToleranceMode,
+  type LearningObjectiveDerivationProgress,
   type LearningObjectiveDerivationQuestion,
   type LearningObjectiveDerivationResult,
   type QuizLearningObjectiveV1,
 } from '@arsnova/shared-types';
+import { formatLocaleCount } from '../../../core/locale-number.util';
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { QuizStoreService, type QuizQuestion } from '../data/quiz-store.service';
 import { LearningObjectiveDerivationClient } from './learning-objective-derivation.client';
+import {
+  LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS,
+  derivationGroupScaleTicks as buildDerivationGroupScaleTicks,
+  derivationProgressPercent,
+  estimateRemainingDerivationMinutes,
+  estimateRemainingDerivationMs,
+  splitDerivationDuration,
+} from './learning-objective-derivation-progress';
 import {
   UpdateBannerSuppressionService,
   bindUpdateBannerSuppression,
@@ -161,6 +174,8 @@ export function mapQuestionForLearningObjectiveDerivation(
     MatIconModule,
     MatInputModule,
     MatRadioModule,
+    MatProgressBar,
+    MatProgressSpinner,
   ],
   templateUrl: './quiz-learning-objectives.component.html',
   styleUrl: './quiz-learning-objectives.component.scss',
@@ -177,6 +192,9 @@ export class QuizLearningObjectivesComponent {
   private readonly objectiveMarkdownCache = new Map<string, SafeHtml>();
   private derivationAbortController: AbortController | null = null;
   private derivationSequence = 0;
+  private derivationProgressPollSequence = 0;
+  private derivationProgressAppliedPollSequence = 0;
+  private derivationProgressTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly quizId = input.required<string>();
   readonly questions = input.required<readonly QuizQuestion[]>();
@@ -226,6 +244,45 @@ export class QuizLearningObjectivesComponent {
   readonly derivationStatus = signal<DerivationUiStatus>('idle');
   readonly derivationMessage = signal<string | null>(null);
   readonly derivationLimitations = signal<readonly string[]>([]);
+  readonly derivationProgress = signal<LearningObjectiveDerivationProgress | null>(null);
+  readonly derivationProgressPercent = computed(() =>
+    derivationProgressPercent(this.derivationProgress()),
+  );
+  readonly derivationGroupScaleTicks = computed(() =>
+    buildDerivationGroupScaleTicks(this.derivationProgress()).map((tick) => ({
+      ...tick,
+      label: formatLocaleCount(tick.value, this.locale),
+    })),
+  );
+  readonly derivationGroupScaleLabel = computed(() => {
+    const progress = this.derivationProgress();
+    if (!progress || progress.totalGroups <= 0) return null;
+    const completed = formatLocaleCount(progress.completedGroups, this.locale);
+    const total = formatLocaleCount(progress.totalGroups, this.locale);
+    return $localize`:@@learningObjectives.derivationGroupsScale:Fertig sind ${completed}:completed: von ${total}:total: Fragegruppen.`;
+  });
+  readonly derivationRemainingEstimate = computed(() => {
+    const minutes = estimateRemainingDerivationMinutes(
+      estimateRemainingDerivationMs(this.derivationProgress()),
+    );
+    if (minutes === null) return null;
+    if (minutes === 0) {
+      return $localize`:@@learningObjectives.derivationRemainingUnderMinute:Noch weniger als eine Minute.`;
+    }
+    if (minutes === 1) {
+      return $localize`:@@learningObjectives.derivationRemainingMinute:Noch etwa 1 Minute.`;
+    }
+    const count = formatLocaleCount(minutes, this.locale);
+    return $localize`:@@learningObjectives.derivationRemainingMinutes:Noch etwa ${count}:minutes: Minuten.`;
+  });
+  readonly derivationQueuedObjectivesLabel = computed(() => {
+    const count = this.derivationProgress()?.queuedObjectives ?? 0;
+    if (count <= 0) return null;
+    const formatted = formatLocaleCount(count, this.locale);
+    return count === 1
+      ? $localize`:@@learningObjectives.derivationQueuedObjective:1 Lernziel ist schon formuliert, aber noch nicht in der Liste.`
+      : $localize`:@@learningObjectives.derivationQueuedObjectives:${formatted}:count: Lernziele sind schon formuliert, aber noch nicht in der Liste.`;
+  });
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
   readonly confirmAllInProgress = signal(false);
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
@@ -266,6 +323,7 @@ export class QuizLearningObjectivesComponent {
     );
     this.destroyRef.onDestroy(() => {
       this.derivationSequence += 1;
+      this.stopDerivationProgressPolling();
       this.derivationAbortController?.abort();
       this.derivationAbortController = null;
     });
@@ -333,11 +391,16 @@ export class QuizLearningObjectivesComponent {
     const controller = new AbortController();
     this.derivationAbortController = controller;
     this.derivationStatus.set('pending');
-    this.derivationMessage.set(
-      $localize`:@@learningObjectives.derivationPending:Vorschläge werden ausschließlich aus den Quizaufgaben formuliert.`,
-    );
+    this.derivationProgress.set(null);
+    this.derivationMessage.set(this.derivationPendingMessage());
     this.derivationLimitations.set([]);
     this.focusElement('learning-objective-derive-cancel');
+    this.startDerivationProgressPolling({
+      schemaVersion: LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
+      operationId,
+      quizId: this.quizId(),
+      expectedBundleRevision,
+    });
 
     try {
       const prepared = await this.derivationClient.prepare({
@@ -461,7 +524,7 @@ export class QuizLearningObjectivesComponent {
     this.derivationAbortController?.abort();
     this.finishDerivation(
       'aborted',
-      $localize`:@@learningObjectives.derivationAborted:Die automatische Erstellung wurde abgebrochen. Deine Lernziele bleiben unverändert.`,
+      this.derivationInterruptedMessage('aborted', this.derivationProgress()),
     );
   }
 
@@ -484,7 +547,7 @@ export class QuizLearningObjectivesComponent {
   beginEdit(objective: QuizLearningObjectiveV1): void {
     this.editingId.set(objective.id);
     this.editingExpectedRevision.set(objective.revision);
-    this.text.set(stripLearningObjectiveQuestionIdCitations(objective.text));
+    this.text.set(this.preparedObjectiveText(objective));
     this.scopeKind.set(objective.scope.kind);
     this.selectedQuestionIds.set(
       new Set(objective.scope.kind === 'question-set' ? objective.scope.sourceQuestionIds : []),
@@ -515,7 +578,7 @@ export class QuizLearningObjectivesComponent {
         this.quizStore.saveQuizLearningObjective(
           this.quizId(),
           {
-            text: stripLearningObjectiveQuestionIdCitations(objective.text),
+            text: this.preparedObjectiveText(objective),
             scope: objective.scope,
             confirmationState: 'confirmed',
           },
@@ -628,12 +691,27 @@ export class QuizLearningObjectivesComponent {
     return rendered;
   }
 
-  displayObjectiveText(value: string): string {
-    return normalizeLearningObjectiveText(value, this.locale);
+  private citedQuestionIds(objective: QuizLearningObjectiveV1): readonly string[] {
+    if (objective.origin.kind !== 'model-derived') return [];
+    return [
+      ...objective.origin.derivedFromSourceQuestionIds,
+      ...(objective.scope.kind === 'question-set' ? objective.scope.sourceQuestionIds : []),
+    ];
   }
 
-  renderObjectiveMarkdown(value: string): SafeHtml {
-    const normalized = normalizeLearningObjectiveText(value, this.locale);
+  private preparedObjectiveText(objective: QuizLearningObjectiveV1): string {
+    return stripLearningObjectiveQuestionIdCitations(
+      objective.text,
+      this.citedQuestionIds(objective),
+    );
+  }
+
+  displayObjectiveText(objective: QuizLearningObjectiveV1): string {
+    return normalizeLearningObjectiveText(this.preparedObjectiveText(objective), this.locale);
+  }
+
+  renderObjectiveMarkdown(objective: QuizLearningObjectiveV1): SafeHtml {
+    const normalized = this.displayObjectiveText(objective);
     const cached = this.objectiveMarkdownCache.get(normalized);
     if (cached) return cached;
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
@@ -658,7 +736,14 @@ export class QuizLearningObjectivesComponent {
   }
 
   save(): void {
-    const text = stripLearningObjectiveQuestionIdCitations(this.text()).trim();
+    const editingIdForText = this.editingId();
+    const existingForText = editingIdForText
+      ? this.allObjectives().find((objective) => objective.id === editingIdForText)
+      : undefined;
+    const text = stripLearningObjectiveQuestionIdCitations(
+      this.text(),
+      existingForText ? this.citedQuestionIds(existingForText) : [],
+    ).trim();
     if (!text) {
       this.errorMessage.set($localize`:@@learningObjectives.textRequired:Formuliere ein Lernziel.`);
       this.focusTextArea();
@@ -822,7 +907,7 @@ export class QuizLearningObjectivesComponent {
   }
 
   conflictChoiceAriaLabel(objective: QuizLearningObjectiveV1): string {
-    return $localize`:@@learningObjectives.useConflictVersionAria:Fassung übernehmen: ${this.displayObjectiveText(objective.text)}:text:; ${this.statusLabel(objective)}:status:; ${this.scopeLabel(objective)}:scope:; ${this.originLabel(objective)}:origin:`;
+    return $localize`:@@learningObjectives.useConflictVersionAria:Fassung übernehmen: ${this.displayObjectiveText(objective)}:text:; ${this.statusLabel(objective)}:status:; ${this.scopeLabel(objective)}:scope:; ${this.originLabel(objective)}:origin:`;
   }
 
   reviewReason(objective: QuizLearningObjectiveV1): string | null {
@@ -840,11 +925,56 @@ export class QuizLearningObjectivesComponent {
     );
   }
 
+  private startDerivationProgressPolling(input: {
+    schemaVersion: typeof LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION;
+    operationId: string;
+    quizId: string;
+    expectedBundleRevision: number;
+  }): void {
+    this.stopDerivationProgressPolling();
+    this.derivationProgressPollSequence = 0;
+    this.derivationProgressAppliedPollSequence = 0;
+    const sequence = this.derivationSequence;
+    const poll = (): void => {
+      const pollSequence = ++this.derivationProgressPollSequence;
+      void this.derivationClient
+        .progress(input)
+        .then((snapshot) => {
+          if (
+            pollSequence <= this.derivationProgressAppliedPollSequence ||
+            sequence !== this.derivationSequence ||
+            !this.derivationIsPending() ||
+            !snapshot.found ||
+            !snapshot.progress
+          ) {
+            return;
+          }
+          this.derivationProgressAppliedPollSequence = pollSequence;
+          this.derivationProgress.set(snapshot.progress);
+          this.derivationMessage.set(this.derivationPendingMessage());
+        })
+        .catch(() => undefined);
+    };
+    poll();
+    this.derivationProgressTimer = setInterval(
+      poll,
+      LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS,
+    );
+  }
+
+  private stopDerivationProgressPolling(): void {
+    if (this.derivationProgressTimer) {
+      clearInterval(this.derivationProgressTimer);
+      this.derivationProgressTimer = null;
+    }
+  }
+
   private finishDerivation(
     status: Exclude<DerivationUiStatus, 'idle' | 'pending'>,
     message: string,
     preferredFocusId?: string,
   ): void {
+    this.stopDerivationProgressPolling();
     this.derivationAbortController = null;
     this.derivationStatus.set(status);
     this.derivationMessage.set(message);
@@ -865,9 +995,9 @@ export class QuizLearningObjectivesComponent {
       case 'disabled':
         return $localize`:@@learningObjectives.derivationDisabled:Automatische Vorschläge sind auf diesem System nicht aktiviert. Du kannst Lernziele weiterhin manuell formulieren.`;
       case 'aborted':
-        return $localize`:@@learningObjectives.derivationAborted:Die automatische Erstellung wurde abgebrochen. Deine Lernziele bleiben unverändert.`;
+        return this.derivationInterruptedMessage('aborted', result.progress);
       case 'timeout':
-        return $localize`:@@learningObjectives.derivationTimeout:Die automatische Erstellung hat zu lange gedauert. Deine Lernziele bleiben unverändert.`;
+        return this.derivationInterruptedMessage('timeout', result.progress);
       case 'unavailable':
         return $localize`:@@learningObjectives.derivationUnavailable:Die lokale Text-KI ist gerade nicht erreichbar. Du kannst Lernziele manuell eintragen oder es später erneut versuchen.`;
       case 'invalid_response':
@@ -883,6 +1013,61 @@ export class QuizLearningObjectivesComponent {
       case 'completed':
         return $localize`:@@learningObjectives.derivationCompletedEmpty:Die Herleitung ist abgeschlossen. Es wurden keine neuen Vorschläge hinzugefügt.`;
     }
+  }
+
+  private derivationPendingMessage(): string {
+    return $localize`:@@learningObjectives.derivationPendingGroupsIntro:Die Lernziele werden nacheinander aus Fragegruppen formuliert.`;
+  }
+
+  private derivationInterruptedMessage(
+    reason: 'aborted' | 'timeout',
+    progress: LearningObjectiveDerivationProgress | null,
+  ): string {
+    const why =
+      reason === 'timeout'
+        ? $localize`:@@learningObjectives.derivationTimeoutWhy:Die Zeit für die gesamte Erstellung ist abgelaufen.`
+        : $localize`:@@learningObjectives.derivationAbortedWhy:Die Erstellung wurde abgebrochen.`;
+    const unchanged = $localize`:@@learningObjectives.derivationUnchanged:Deine Lernziele bleiben unverändert.`;
+    if (!progress || (progress.totalGroups <= 0 && progress.elapsedMs <= 0)) {
+      return `${why} ${unchanged}`;
+    }
+    const parts = [why];
+    if (progress.totalGroups > 0) {
+      const completed = formatLocaleCount(progress.completedGroups, this.locale);
+      const total = formatLocaleCount(progress.totalGroups, this.locale);
+      parts.push(
+        $localize`:@@learningObjectives.derivationInterruptedGroups:Fertig waren ${completed}:completed: von ${total}:total: Fragegruppen.`,
+      );
+    }
+    if (progress.elapsedMs >= 1000) {
+      parts.push(
+        $localize`:@@learningObjectives.derivationInterruptedDuration:Dauer: ${this.formatDerivationDuration(progress.elapsedMs)}:duration:.`,
+      );
+    }
+    if (progress.promptTokens > 0 || progress.completionTokens > 0) {
+      const read = formatLocaleCount(progress.promptTokens, this.locale);
+      const written = formatLocaleCount(progress.completionTokens, this.locale);
+      parts.push(
+        $localize`:@@learningObjectives.derivationInterruptedVolume:Bisheriger Umfang: ${read}:read: gelesene und ${written}:written: formulierte Texteinheiten.`,
+      );
+    }
+    parts.push(unchanged);
+    return parts.join(' ');
+  }
+
+  private formatDerivationDuration(elapsedMs: number): string {
+    const { minutes, seconds } = splitDerivationDuration(elapsedMs);
+    const minuteLabel = formatLocaleCount(minutes, this.locale);
+    const secondLabel = formatLocaleCount(seconds, this.locale);
+    if (minutes === 0) {
+      return $localize`:@@learningObjectives.derivationDurationSeconds:${secondLabel}:seconds: Sekunden`;
+    }
+    if (seconds === 0) {
+      return minutes === 1
+        ? $localize`:@@learningObjectives.derivationDurationMinute:1 Minute`
+        : $localize`:@@learningObjectives.derivationDurationMinutes:${minuteLabel}:minutes: Minuten`;
+    }
+    return $localize`:@@learningObjectives.derivationDurationMinutesSeconds:${minuteLabel}:minutes: Minuten und ${secondLabel}:seconds: Sekunden`;
   }
 
   private focusTextArea(): void {

@@ -374,6 +374,28 @@ describe('learningObjectiveDerivation', () => {
     });
   });
 
+  it('returns the runtime status before publishing question-group progress', async () => {
+    const run = vi.fn();
+    const onProgress = vi.fn();
+    const unavailable = await deriveLearningObjectiveDrafts(
+      input([choiceQuestion(QUESTION_IDS[0])]),
+      {
+        run,
+        onProgress,
+        preflight: async () => 'unavailable',
+      },
+    );
+    expect(unavailable).toMatchObject({ status: 'unavailable' });
+    const disabled = await deriveLearningObjectiveDrafts(input([choiceQuestion(QUESTION_IDS[0])]), {
+      run,
+      onProgress,
+      preflight: async () => 'disabled',
+    });
+    expect(disabled).toMatchObject({ status: 'disabled' });
+    expect(run).not.toHaveBeenCalled();
+    expect(onProgress).not.toHaveBeenCalled();
+  });
+
   it('stops between batches when the host cancels and exposes no partial draft', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
       choiceQuestion(id, index, '🧪'.repeat(170)),
@@ -383,13 +405,39 @@ describe('learningObjectiveDerivation', () => {
       controller.abort();
       return successfulBatch(request);
     });
+    const published: Array<{
+      completedGroups: number;
+      totalGroups: number;
+      promptTokens: number;
+      completionTokens: number;
+    }> = [];
     const result = await deriveLearningObjectiveDrafts(input(questions), {
       run,
       signal: controller.signal,
+      onProgress: (progress) => {
+        published.push(progress);
+      },
     });
-    expect(result).toMatchObject({ status: 'aborted' });
+    expect(result).toMatchObject({
+      status: 'aborted',
+      progress: {
+        completedGroups: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+      },
+    });
+    expect(result.status === 'aborted' && result.progress.totalGroups).toBeGreaterThan(1);
     expect(run).toHaveBeenCalledTimes(1);
     expect(result).not.toHaveProperty('drafts');
+    expect(published[0]).toMatchObject({
+      completedGroups: 0,
+      totalGroups: result.status === 'aborted' ? result.progress.totalGroups : 0,
+    });
+    expect(published.at(-1)).toMatchObject({
+      completedGroups: 0,
+      promptTokens: 0,
+      completionTokens: 0,
+    });
   });
 
   it('bounds the complete multi-batch lifecycle and releases the active run after deadline', async () => {
@@ -426,7 +474,15 @@ describe('learningObjectiveDerivation', () => {
       run,
       overallTimeoutMs: 15,
     });
-    expect(timedOut).toMatchObject({ status: 'timeout' });
+    expect(timedOut).toMatchObject({
+      status: 'timeout',
+      progress: {
+        completedGroups: 1,
+        promptTokens: 120,
+        completionTokens: 24,
+        queuedObjectives: 1,
+      },
+    });
     expect(run).toHaveBeenCalledTimes(2);
     expect(active).toBe(false);
 
@@ -519,7 +575,7 @@ describe('learningObjectiveDerivation', () => {
         taskType: 'learning_objectives' as const,
         objectives: [
           {
-            text: `Determine the proper order of firewall, load balancer, and certificate configuration for secure web access according to question id ${request.questions[0]!.id}.`,
+            text: `Determine the proper order of firewall, load balancer, and certificate configuration for secure web access according to question id ${request.questions[0]!.id}. Aufbau der UUID 123e4567-e89b-12d3-a456-426614174000 erklären.`,
             questionIds: [request.questions[0]!.id],
           },
           {
@@ -539,7 +595,7 @@ describe('learningObjectiveDerivation', () => {
       status: 'completed',
       drafts: [
         {
-          text: 'Determine the proper order of firewall, load balancer, and certificate configuration for secure web access.',
+          text: 'Determine the proper order of firewall, load balancer, and certificate configuration for secure web access. Aufbau der UUID 123e4567-e89b-12d3-a456-426614174000 erklären.',
           scope: { kind: 'question-set', sourceQuestionIds: [questionId] },
         },
       ],
