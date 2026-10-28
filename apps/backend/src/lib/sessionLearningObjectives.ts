@@ -239,7 +239,7 @@ function referenceKey(reference: {
 }
 
 function modelDerivedObjectiveText(row: SessionObjectiveRow): string {
-  if (row.origin !== 'MODEL' || row.purpose === 'FORUM_ASSIGNMENT') return row.text;
+  if (row.origin !== 'MODEL_DERIVED' || row.purpose === 'FORUM_ASSIGNMENT') return row.text;
   const questionIds = row.references.flatMap((reference) =>
     [reference.sourceReferenceId, reference.quizQuestionId, reference.qaQuestionId].filter(
       (id): id is string => typeof id === 'string' && id.length > 0,
