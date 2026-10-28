@@ -46,7 +46,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
+import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import {
@@ -360,7 +360,6 @@ type QuizMetadataComparable = {
     MatButton,
     MatIconButton,
     MatCard,
-    MatCardActions,
     MatCardContent,
     MatCheckbox,
     MatRadioButton,

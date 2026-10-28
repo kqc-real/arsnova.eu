@@ -68,7 +68,7 @@
               <li>
                 @if (alternative.objective; as objective) {
                   <span class="learning-objectives__conflict-text">{{
-                    displayObjectiveText(objective.text)
+                    displayObjectiveText(objective)
                   }}</span>
                   <span class="learning-objectives__conflict-meta">
                     {{ statusLabel(objective) }} · {{ scopeLabel(objective) }} ·
@@ -264,7 +264,7 @@
               <div
                 class="learning-objectives__text markdown-body"
                 [id]="'objective-' + objective.id"
-                [innerHTML]="renderObjectiveMarkdown(objective.text)"
+                [innerHTML]="renderObjectiveMarkdown(objective)"
               ></div>
               <div class="learning-objectives__meta">
                 <span

@@ -566,6 +566,43 @@ describe('learningObjectiveDerivation', () => {
     }
   });
 
+  it('drops question ids from model-authored objective text before storing a draft', async () => {
+    const questionId = QUESTION_IDS[0];
+    const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+        taskType: 'learning_objectives' as const,
+        objectives: [
+          {
+            text: `Determine the proper order of firewall, load balancer, and certificate configuration for secure web access according to question id ${request.questions[0]!.id}. Aufbau der UUID 123e4567-e89b-12d3-a456-426614174000 erklären.`,
+            questionIds: [request.questions[0]!.id],
+          },
+          {
+            text: request.questions[0]!.id,
+            questionIds: [request.questions[0]!.id],
+          },
+        ],
+        limitations: [],
+      },
+      telemetry,
+    }));
+    const result = await deriveLearningObjectiveDrafts(input([choiceQuestion(questionId)]), {
+      run,
+      now: () => new Date('2026-10-05T12:00:00.000Z'),
+    });
+    expect(result).toMatchObject({
+      status: 'completed',
+      drafts: [
+        {
+          text: 'Determine the proper order of firewall, load balancer, and certificate configuration for secure web access. Aufbau der UUID 123e4567-e89b-12d3-a456-426614174000 erklären.',
+          scope: { kind: 'question-set', sourceQuestionIds: [questionId] },
+        },
+      ],
+    });
+    expect(JSON.stringify(result)).not.toContain('according to question id');
+  });
+
   it('capitalizes lowercase model-authored infinitive phrases in the requested locale', async () => {
     const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
       status: 'completed' as const,

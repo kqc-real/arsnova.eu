@@ -10,6 +10,7 @@ import {
   LearningObjectiveDerivationProgressSchema,
   LearningObjectiveDerivationResultSchema,
   normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   OpenWeightLlmLearningObjectivesOutputSchema,
   OpenWeightLlmLearningObjectivesRequestSchema,
   OPEN_WEIGHT_LLM_SCHEMA_VERSION,
@@ -578,7 +579,11 @@ export async function deriveLearningObjectiveDrafts(
         const sourceQuestionIds = [...objective.questionIds].sort(compareCodeUnits);
         const sourceQuestions = sourceQuestionIds.map((id) => canonicalById.get(id));
         if (sourceQuestions.some((question) => question === undefined)) return null;
-        const text = normalizeLearningObjectiveText(objective.text, input.locale);
+        const text = normalizeLearningObjectiveText(
+          stripLearningObjectiveQuestionIdCitations(objective.text, objective.questionIds),
+          input.locale,
+        );
+        if (!text) return null;
         return {
           text,
           sourceQuestionIds,

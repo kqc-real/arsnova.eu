@@ -45,11 +45,58 @@ const LearningObjectiveTextSchema = z
 
 const FIRST_LEARNING_OBJECTIVE_LETTER = /\p{L}/u;
 const LEARNING_OBJECTIVE_SENTENCE_END = /[.!?…]$/u;
+const LEARNING_OBJECTIVE_QUESTION_ID_LABEL =
+  /(?:according to|per|for|see|siehe|vgl\.?|gemäß|laut|anhand(?: der)?|bezogen auf(?: die)?|für|zur|zum|selon|d['’]après|según|secondo(?: l['’])?)?\s*(?:the\s+|der\s+|die\s+|des\s+|la\s+|l['’]|el\s+|della\s+|de\s+la\s+|de\s+)?(?:(?:questions?|fragen?|aufgaben?|preguntas?|domandas?)[\s_-]*(?:ids?|identifiers?|identifiants?|identificador(?:es)?|identificator(?:e|i))|(?:ids?|identifiers?|identifiants?|identificador(?:es)?|identificator(?:e|i))\s+(?:de\s+(?:la\s+)?|della\s+)?(?:questions?|fragen?|aufgaben?|preguntas?|domandas?))\b/giu;
+
+const LEARNING_OBJECTIVE_QUESTION_UUID_EXACT =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+
+/**
+ * Removes only the supplied question IDs from a model-authored sentence.
+ * Other UUIDs and texts without one of those IDs stay unchanged. An empty
+ * result means the sentence was only that citation.
+ */
+export function stripLearningObjectiveQuestionIdCitations(
+  value: string,
+  questionIds: readonly string[],
+): string {
+  const ids = [
+    ...new Set(
+      questionIds
+        .filter((id) => LEARNING_OBJECTIVE_QUESTION_UUID_EXACT.test(id))
+        .map((id) => id.toLowerCase()),
+    ),
+  ];
+  if (ids.length === 0) return value;
+  const citedIds = new RegExp(ids.map(escapeRegExp).join('|'), 'giu');
+  if (!citedIds.test(value)) return value;
+  citedIds.lastIndex = 0;
+  LEARNING_OBJECTIVE_QUESTION_ID_LABEL.lastIndex = 0;
+  const cleaned = value
+    .replace(citedIds, ' ')
+    .replace(LEARNING_OBJECTIVE_QUESTION_ID_LABEL, ' ')
+    .replace(/\(\s*\)/gu, ' ')
+    .replace(/\[\s*\]/gu, ' ')
+    .replace(/\s+([,.;:!?])/gu, '$1')
+    .replace(/\s+/gu, ' ')
+    .trim()
+    .replace(/^[,.;:!?)\]]+/u, '')
+    .replace(/[,:;[(]+$/u, '')
+    .trim();
+  if (!/\p{L}|\p{N}/u.test(cleaned)) return '';
+  return cleaned;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
 
 /**
  * Infinitive learning-objective phrases are displayed as sentences. Model
  * output is normalized after inference: first letter capitalized, a closing
- * period added when missing. This does not change the prompt payload.
+ * period added when missing. Question-id citations are removed separately and
+ * only for the objective's own structured IDs. This does not change the prompt
+ * payload.
  */
 export function normalizeLearningObjectiveText(value: string, locale?: string): string {
   const normalized = value.trim().replace(/\s+/gu, ' ');

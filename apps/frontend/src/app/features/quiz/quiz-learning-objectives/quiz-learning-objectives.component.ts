@@ -32,6 +32,7 @@ import {
   RunLearningObjectiveDerivationInputSchema,
   isNumericToleranceMode,
   normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   questionSupportsConfidence,
   resolveNumericEstimateToleranceMode,
   type LearningObjectiveDerivationProgress,
@@ -546,7 +547,7 @@ export class QuizLearningObjectivesComponent {
   beginEdit(objective: QuizLearningObjectiveV1): void {
     this.editingId.set(objective.id);
     this.editingExpectedRevision.set(objective.revision);
-    this.text.set(objective.text);
+    this.text.set(this.preparedObjectiveText(objective));
     this.scopeKind.set(objective.scope.kind);
     this.selectedQuestionIds.set(
       new Set(objective.scope.kind === 'question-set' ? objective.scope.sourceQuestionIds : []),
@@ -577,7 +578,7 @@ export class QuizLearningObjectivesComponent {
         this.quizStore.saveQuizLearningObjective(
           this.quizId(),
           {
-            text: objective.text,
+            text: this.preparedObjectiveText(objective),
             scope: objective.scope,
             confirmationState: 'confirmed',
           },
@@ -690,12 +691,27 @@ export class QuizLearningObjectivesComponent {
     return rendered;
   }
 
-  displayObjectiveText(value: string): string {
-    return normalizeLearningObjectiveText(value, this.locale);
+  private citedQuestionIds(objective: QuizLearningObjectiveV1): readonly string[] {
+    if (objective.origin.kind !== 'model-derived') return [];
+    return [
+      ...objective.origin.derivedFromSourceQuestionIds,
+      ...(objective.scope.kind === 'question-set' ? objective.scope.sourceQuestionIds : []),
+    ];
   }
 
-  renderObjectiveMarkdown(value: string): SafeHtml {
-    const normalized = normalizeLearningObjectiveText(value, this.locale);
+  private preparedObjectiveText(objective: QuizLearningObjectiveV1): string {
+    return stripLearningObjectiveQuestionIdCitations(
+      objective.text,
+      this.citedQuestionIds(objective),
+    );
+  }
+
+  displayObjectiveText(objective: QuizLearningObjectiveV1): string {
+    return normalizeLearningObjectiveText(this.preparedObjectiveText(objective), this.locale);
+  }
+
+  renderObjectiveMarkdown(objective: QuizLearningObjectiveV1): SafeHtml {
+    const normalized = this.displayObjectiveText(objective);
     const cached = this.objectiveMarkdownCache.get(normalized);
     if (cached) return cached;
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
@@ -720,7 +736,14 @@ export class QuizLearningObjectivesComponent {
   }
 
   save(): void {
-    const text = this.text().trim();
+    const editingIdForText = this.editingId();
+    const existingForText = editingIdForText
+      ? this.allObjectives().find((objective) => objective.id === editingIdForText)
+      : undefined;
+    const text = stripLearningObjectiveQuestionIdCitations(
+      this.text(),
+      existingForText ? this.citedQuestionIds(existingForText) : [],
+    ).trim();
     if (!text) {
       this.errorMessage.set($localize`:@@learningObjectives.textRequired:Formuliere ein Lernziel.`);
       this.focusTextArea();
@@ -884,7 +907,7 @@ export class QuizLearningObjectivesComponent {
   }
 
   conflictChoiceAriaLabel(objective: QuizLearningObjectiveV1): string {
-    return $localize`:@@learningObjectives.useConflictVersionAria:Fassung übernehmen: ${this.displayObjectiveText(objective.text)}:text:; ${this.statusLabel(objective)}:status:; ${this.scopeLabel(objective)}:scope:; ${this.originLabel(objective)}:origin:`;
+    return $localize`:@@learningObjectives.useConflictVersionAria:Fassung übernehmen: ${this.displayObjectiveText(objective)}:text:; ${this.statusLabel(objective)}:status:; ${this.scopeLabel(objective)}:scope:; ${this.originLabel(objective)}:origin:`;
   }
 
   reviewReason(objective: QuizLearningObjectiveV1): string | null {

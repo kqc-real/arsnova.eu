@@ -223,7 +223,7 @@
               class="session-objectives__text markdown-body"
               [class.session-objectives__text--audience]="isAudiencePresentation()"
               [id]="'session-objective-' + objective.id"
-              [innerHTML]="renderObjectiveMarkdown(objective.text)"
+              [innerHTML]="renderObjectiveMarkdown(objective)"
             ></div>
             @if (!isAudiencePresentation() && !isQaMode()) {
               <div class="session-objectives__meta">

@@ -13,6 +13,7 @@ import {
   SessionLearningObjectivesSnapshotSchema,
   findUnresolvedQuizLearningObjectiveReferences,
   normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   type QuizLearningObjectiveBundleV1,
 } from './learning-objectives.js';
 import {
@@ -172,6 +173,71 @@ describe('quiz learning-objective sidecar contract', () => {
     expect(
       normalizeLearningObjectiveText('x'.repeat(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH), 'de'),
     ).toHaveLength(LEARNING_OBJECTIVE_TEXT_MAX_LENGTH);
+  });
+
+  it('entfernt nur die referenzierten Frage-IDs aus einem Lernzielsatz', () => {
+    const questionId = '8661c0ca-d575-4267-9499-fd0bfcf63521';
+    const unrelatedId = '123e4567-e89b-12d3-a456-426614174000';
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Determine the proper order of firewall, load balancer, and certificate configuration for secure web access according to question id ${questionId}.`,
+        [questionId],
+      ),
+    ).toBe(
+      'Determine the proper order of firewall, load balancer, and certificate configuration for secure web access.',
+    );
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Order the steps of a secure web access setup according to question id ${questionId}.`,
+        [questionId],
+      ),
+    ).toBe('Order the steps of a secure web access setup.');
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Die Mindestanzahl an Instanzen berechnen gemäß Frage-ID ${questionId}.`,
+        [questionId],
+      ),
+    ).toBe('Die Mindestanzahl an Instanzen berechnen.');
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Ordonner les étapes selon l'identifiant de question ${questionId}.`,
+        [questionId],
+      ),
+    ).toBe('Ordonner les étapes.');
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Calcular el mínimo según el id de pregunta ${questionId}`,
+        [questionId],
+      ),
+    ).toBe('Calcular el mínimo');
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Ordinare i passaggi secondo l'identificatore della domanda ${questionId}`,
+        [questionId],
+      ),
+    ).toBe('Ordinare i passaggi');
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Aufbau und Validierung der UUID ${unrelatedId} erklären according to question id ${questionId}.`,
+        [questionId],
+      ),
+    ).toBe(`Aufbau und Validierung der UUID ${unrelatedId} erklären.`);
+    expect(
+      stripLearningObjectiveQuestionIdCitations(
+        `Aufbau und Validierung der UUID ${unrelatedId} erklären.`,
+        [questionId],
+      ),
+    ).toBe(`Aufbau und Validierung der UUID ${unrelatedId} erklären.`);
+    expect(
+      stripLearningObjectiveQuestionIdCitations('Die Frage präzise formulieren.', [questionId]),
+    ).toBe('Die Frage präzise formulieren.');
+    expect(stripLearningObjectiveQuestionIdCitations(questionId, [questionId])).toBe('');
+    expect(
+      normalizeLearningObjectiveText(
+        `Aufbau und Validierung der UUID ${unrelatedId} erklären.`,
+        'de',
+      ),
+    ).toBe(`Aufbau und Validierung der UUID ${unrelatedId} erklären.`);
   });
 
   it('enforces objective, reference, and compact-text limits', () => {

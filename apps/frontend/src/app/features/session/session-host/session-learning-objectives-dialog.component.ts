@@ -31,6 +31,7 @@ import {
   LEARNING_OBJECTIVE_MAX_REFERENCES,
   LEARNING_OBJECTIVE_TEXT_MAX_LENGTH,
   normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   type DeriveSessionLearningObjectivesResult,
   type SessionLearningObjectiveDTO,
   type SessionLearningObjectiveResolvedTaskReference,
@@ -520,8 +521,28 @@ export class SessionLearningObjectivesDialogComponent {
     return rendered;
   }
 
-  renderObjectiveMarkdown(value: string): SafeHtml {
-    const normalized = normalizeLearningObjectiveText(value, this.locale);
+  private citedQuestionIds(objective: SessionLearningObjectiveDTO): readonly string[] {
+    if (objective.purpose === 'forum-assignment' || objective.origin.kind !== 'model-derived') {
+      return [];
+    }
+    const ids = objective.origin.derivedFrom.map((reference) =>
+      reference.kind === 'unresolved-task' ? reference.sourceReferenceId : reference.questionId,
+    );
+    if (objective.scope.kind === 'question-set') {
+      ids.push(
+        ...objective.scope.taskReferences.map((reference) =>
+          reference.kind === 'unresolved-task' ? reference.sourceReferenceId : reference.questionId,
+        ),
+      );
+    }
+    return ids;
+  }
+
+  renderObjectiveMarkdown(objective: SessionLearningObjectiveDTO): SafeHtml {
+    const normalized = normalizeLearningObjectiveText(
+      stripLearningObjectiveQuestionIdCitations(objective.text, this.citedQuestionIds(objective)),
+      this.locale,
+    );
     const cached = this.objectiveMarkdownCache.get(normalized);
     if (cached) return cached;
     const rendered = this.sanitizer.bypassSecurityTrustHtml(

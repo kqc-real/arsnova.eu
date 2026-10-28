@@ -389,6 +389,45 @@ describe('SessionLearningObjectivesDialogComponent', () => {
     expect(preview.querySelector('a, img, button')).toBeNull();
   });
 
+  it('zeigt keine referenzierte Frage-ID im Lernzieltext und behält andere UUIDs', async () => {
+    const questionId = '8661c0ca-d575-4267-9499-fd0bfcf63521';
+    const unrelatedId = '123e4567-e89b-12d3-a456-426614174000';
+    getLearningObjectivesMock.mockResolvedValue(
+      snapshot({
+        objectives: [
+          {
+            ...confirmedObjective(
+              `Order the steps of a secure web access setup according to question id ${questionId}. Aufbau der UUID ${unrelatedId} erklären.`,
+            ),
+            scope: {
+              kind: 'question-set',
+              taskReferences: [{ kind: 'quiz-question', questionId }],
+            },
+            origin: {
+              kind: 'model-derived',
+              modelId: 'fixture-model',
+              modelVersion: 'fixture',
+              derivationVersion: 'learning-objectives-v1',
+              derivedFrom: [{ kind: 'quiz-question', questionId }],
+            },
+            projection: 'quiz-projected',
+          },
+          {
+            ...confirmedObjective(`Manuelles Ziel mit UUID ${unrelatedId}.`),
+            id: '11111111-1111-4111-8111-111111111111',
+          },
+        ],
+      }),
+    );
+    const fixture = await createComponent();
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Order the steps of a secure web access setup.');
+    expect(text).toContain(`Manuelles Ziel mit UUID ${unrelatedId}.`);
+    expect(text).toContain(unrelatedId);
+    expect(text).not.toContain(questionId);
+    expect(text).not.toContain('question id');
+  });
+
   it('schreibt das Anfangswort eines Lernziels groß', async () => {
     getLearningObjectivesMock.mockResolvedValue(
       snapshot({
