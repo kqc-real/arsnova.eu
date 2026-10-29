@@ -344,7 +344,7 @@ Erwartete letzte Zeile:
 gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
 ```
 
-Geladen wird nur die Text-GGUF. Keinen Multimodal-Projektor danebenlegen oder an `llama-server` übergeben. Eine schon vorhandene `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` bleibt liegen: der Rollback-Checkout in [Abschnitt 14.4](#144-rückkehr-zum-alten-checkout) prüft sie beim Start. Entfernen erst nach bestandener Abnahme, siehe [Anhang D.7](#d7-qwen3-gguf-erst-nach-abnahme-entfernen).
+Geladen wird nur die Text-GGUF. Keinen Multimodal-Projektor danebenlegen oder an `llama-server` übergeben. Eine schon vorhandene `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` bleibt liegen: der Rollback-Checkout in [Abschnitt 14.4](#144-rückkehr-zum-alten-checkout) prüft sie beim Start. Entfernen erst nach bestandener Abnahme, siehe [Anhang D.9](#d9-llm-host-qwen3-gguf-erst-nach-abnahme-entfernen).
 
 Bei Größen- oder Hashfehler die Datei **nicht** verwenden. Die `.part`-Datei
 beziehungsweise die fehlerhafte `.gguf` entfernen und erneut herunterladen.
@@ -940,16 +940,23 @@ npm run llm:prod -- config >/dev/null
 
 Jetzt bei Bedarf in `"$NEW_DIR/.env.llm"` ausschließlich die freigegebene neue
 Digest-Image-Referenz eintragen und gegebenenfalls das neue, separat verifizierte
-Modell bereitstellen. Danach `npm run llm:prod -- config` erneut ausführen. Der
-Produktionswrapper prüft Image-Digest, private Bind-Adresse, Credential,
-Modellpfad sowie GGUF-Größe und -Hash vor dem Start.
+Modell bereitstellen. `npm run llm:prod -- config` rendert danach nur die
+Compose-Datei. Image-Digest, private Bind-Adresse, Credential, Modellpfad sowie
+GGUF-Größe und -Hash prüft `scripts/open-weight-llm/prod-compose.mjs` erst bei
+`create`, `restart`, `run`, `start` und `up`
+(`scripts/open-weight-llm/prod-compose-policy.mjs`). Vor dem `down` in
+Abschnitt 14.3 den Preflight aus [Anhang D.4](#d4-llm-host-preflight-vor-dem-abschalten) ausführen, inklusive `docker pull` des Digest-Images.
 
 ### 14.3 Alten Container entfernen und Checkout wechseln
 
 `stop` allein genügt hier nicht: Der feste Containername muss vor dem Wechsel aus
 dem alten Compose-Projekt entfernt werden. Der folgende Block verwendet deshalb
 `down`, behält den alten Checkout als direkten Rollback und stellt anschließend
-den neuen Checkout unter dem unveränderten kanonischen Pfad bereit:
+den neuen Checkout unter dem unveränderten kanonischen Pfad bereit. Für die
+Gemma-Umstellung diesen Block nicht direkt ausführen. Zuerst
+[Anhang D.0](#d0-app-host-consumer-ausschalten) bis
+[D.4](#d4-llm-host-preflight-vor-dem-abschalten): der Preflight muss grün sein,
+bevor die alte Runtime endet. `config` ersetzt diese Prüfung nicht.
 
 ```bash
 set -euo pipefail
@@ -1219,12 +1226,53 @@ sudo systemctl status llama-server.service --no-pager
 ## Anhang D: Gemma-Umstellung, Copy-and-Paste für das Review
 
 Dieser Anhang bündelt die Befehle der Umstellung von Qwen3-4B auf Gemma 3 4B QAT.
-Platzhalter vor dem Ausführen ersetzen. `<NEUER-40-STELLIGER-COMMIT>` ist der
-freigegebene Stand mit diesem Pin. Der Alias `gemma-3-4b-it-qat-q4_0` steckt im
-Backend und nicht in einer Env-Variable. App-Image und LLM-Host müssen denselben
-Stand fahren. `--ctx-size` bleibt 8192.
+Jeder Block ist eine eigene Shell: Platzhalter in diesem Block ersetzen, auch wenn
+derselbe Wert schon in einem früheren Block stand. Die Überschrift nennt den Host.
+`<NEUER-40-STELLIGER-COMMIT>` ist der freigegebene Stand mit diesem Pin und zugleich
+`DEPLOY_SHA` auf dem App-Host. Der Alias `gemma-3-4b-it-qat-q4_0` steckt im Backend
+und nicht in einer Env-Variable. App-Image und LLM-Host müssen denselben Stand
+fahren. `--ctx-size` bleibt 8192. Den Consumer erst in D.8 wieder einschalten, nach
+grünem LLM-Smoke-Test und nachgewiesenem neuen App-Image.
 
-### D.1 Dedizierter LLM-Host: Checkout und Modellverzeichnis
+### D.0 App-Host: Consumer ausschalten
+
+Zuerst hier, danach erst auf dem LLM-Host. Solange die alte App eingeschaltet ist,
+fragt sie während des Runtime-Wechsels weiter an und spricht danach noch den
+Qwen-Alias.
+
+```bash
+set -euo pipefail
+cd /home/deploy/arsnova.eu
+test -f .env.production
+
+if grep -q '^OPEN_WEIGHT_LLM_ENABLED=' .env.production; then
+  sed -i 's/^OPEN_WEIGHT_LLM_ENABLED=.*/OPEN_WEIGHT_LLM_ENABLED=false/' .env.production
+else
+  printf '\nOPEN_WEIGHT_LLM_ENABLED=false\n' >>.env.production
+fi
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
+
+./scripts/prod-compose.sh up -d --force-recreate --no-deps app
+
+STATUS='missing'
+for attempt in $(seq 1 24); do
+  STATUS="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' arsnova-v3-app 2>/dev/null || true)"
+  printf '%s Versuch %02d/24: %s\n' "$(date --iso-8601=seconds)" "$attempt" "$STATUS"
+  if [ "$STATUS" = 'healthy' ]; then
+    break
+  fi
+  sleep 10
+done
+if [ "$STATUS" != 'healthy' ]; then
+  echo 'App nach 24 Versuchen nicht healthy. LLM-Host nicht anfassen.' >&2
+  ./scripts/prod-compose.sh logs --tail=200 app || true
+  exit 1
+fi
+curl --fail --silent --show-error --max-time 10 http://127.0.0.1:3000/trpc/health.check >/dev/null
+echo 'App-Host: Consumer aus, Health ok. Weiter mit D.1 auf dem LLM-Host.'
+```
+
+### D.1 LLM-Host: Checkout und Modellverzeichnis
 
 ```bash
 set -euo pipefail
@@ -1247,14 +1295,17 @@ install -m 0600 "$ACTIVE_DIR/.env.llm" .env.llm
 sudo install -d -m 0755 -o "$USER" -g "$USER" /srv/arsnova/models/open-weight-llm
 ```
 
-### D.2 Download und SHA-256
+### D.2 LLM-Host: Download und SHA-256
 
 Die vorhandene Qwen3-Datei nicht löschen. Sie bleibt der Rollback-Pfad, bis
-[D.7](#d7-qwen3-gguf-erst-nach-abnahme-entfernen) nach der Abnahme ausdrücklich
-bestätigt wird.
+[D.9](#d9-llm-host-qwen3-gguf-erst-nach-abnahme-entfernen) nach der Abnahme
+ausdrücklich bestätigt wird.
 
 ```bash
 set -euo pipefail
+NEW_REF='<NEUER-40-STELLIGER-COMMIT>'
+case "$NEW_REF" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#NEW_REF}" -eq 40
 cd "/opt/arsnova-llm/release-${NEW_REF}"
 
 curl --fail --location --retry 3 --retry-delay 5 \
@@ -1276,23 +1327,37 @@ Erwartete letzte Zeile:
 gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
 ```
 
-### D.3 `.env.llm`
+### D.3 LLM-Host: `.env.llm`
 
-Bestehendes Secret behalten. Nur erzeugen, wenn noch keines mit mindestens
-32 Zeichen steht.
+Bestehendes Secret behalten und nicht ausgeben. Nur erzeugen, wenn noch keines mit
+gültigem Zeichensatz und 32 bis 512 Zeichen steht. Einen neuen Wert sofort im
+Passwortmanager speichern, nicht in Chat, Ticket oder einem weiteren Befehl.
 
 ```bash
 set -euo pipefail
+NEW_REF='<NEUER-40-STELLIGER-COMMIT>'
+case "$NEW_REF" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#NEW_REF}" -eq 40
 cd "/opt/arsnova-llm/release-${NEW_REF}"
+
 export LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
 export LLM_IMAGE_REF='<REGISTRY>/<IMAGE>@sha256:<64-HEX>'
+case "$LLM_PRIVATE_IP$LLM_IMAGE_REF" in *'<'*|*'>'*) echo 'Platzhalter noch nicht ersetzt.' >&2; exit 1 ;; esac
+printf '%s\n' "$LLM_IMAGE_REF" | grep -Eq '^.+@sha256:[a-f0-9]{64}$' \
+  || { echo 'LLM_IMAGE_REF ist kein Digest.' >&2; exit 1; }
 
 if [[ -f .env.llm ]] && grep -q '^OPEN_WEIGHT_LLM_TOKEN=.\+' .env.llm; then
   LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.llm)"
 else
   LLM_TOKEN="$(openssl rand -hex 32)"
+  printf '\nNeuen Token jetzt im Passwortmanager speichern:\n%s\n\n' "$LLM_TOKEN"
 fi
-test "${#LLM_TOKEN}" -ge 32
+case "$LLM_TOKEN" in *[!A-Za-z0-9._~-]*) echo 'Token-Zeichensatz ungültig.' >&2; unset LLM_TOKEN; exit 1 ;; esac
+if [ "${#LLM_TOKEN}" -lt 32 ] || [ "${#LLM_TOKEN}" -gt 512 ]; then
+  echo 'Token-Länge ungültig.' >&2
+  unset LLM_TOKEN
+  exit 1
+fi
 
 install -m 0600 /dev/null .env.llm
 {
@@ -1307,12 +1372,94 @@ unset LLM_TOKEN
 grep -E '^(OPEN_WEIGHT_LLM_IMAGE|OPEN_WEIGHT_LLM_MODEL_DIR|OPEN_WEIGHT_LLM_BIND_ADDRESS|OPEN_WEIGHT_LLM_THREADS)=' .env.llm
 ```
 
-### D.4 Checkout wechseln und Runtime starten
+### D.4 LLM-Host: Preflight vor dem Abschalten
 
-`stop` allein lässt den festen Containernamen im alten Compose-Projekt. Der
-Block fährt die alte Runtime herunter, behält ihren Checkout als Rollback und
-legt `release-${NEW_REF}` auf `/opt/arsnova-llm/repository`. Erst danach prüft
-`config` die Gemma-GGUF.
+`npm run llm:prod -- config` prüft die Gemma-GGUF nicht. Dieselben Bedingungen wie
+ein späteres `up` laufen hier im neuen Checkout, solange die alte Runtime noch
+läuft: keine Platzhalter, privater Bind, Token und Digest im Wrapper-Format,
+GGUF-Prüfung, `docker pull` des exakten Digests, danach nur das Rendern der
+Compose-Datei. Eine öffentliche Registry braucht keinen Login. Bei einer privaten
+Registry zuerst den Login aus [Abschnitt 8.1](#81-digest-image-bereitstellen).
+Erst die Zeile `Preflight grün.` erlaubt D.5.
+
+```bash
+set -euo pipefail
+NEW_REF='<NEUER-40-STELLIGER-COMMIT>'
+case "$NEW_REF" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#NEW_REF}" -eq 40
+NEW_DIR="/opt/arsnova-llm/release-${NEW_REF}"
+cd "$NEW_DIR"
+test -f .env.llm
+
+node --input-type=module <<'EOF'
+import { readFileSync } from 'node:fs';
+import { BlockList, isIP } from 'node:net';
+
+const env = {};
+for (const line of readFileSync('.env.llm', 'utf8').split('\n')) {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) continue;
+  const eq = trimmed.indexOf('=');
+  if (eq < 1) continue;
+  env[trimmed.slice(0, eq)] = trimmed.slice(eq + 1);
+}
+const image = (env.OPEN_WEIGHT_LLM_IMAGE ?? '').trim();
+const bind = (env.OPEN_WEIGHT_LLM_BIND_ADDRESS ?? '').trim();
+const token = env.OPEN_WEIGHT_LLM_TOKEN ?? '';
+const modelDir = (env.OPEN_WEIGHT_LLM_MODEL_DIR ?? '').trim();
+for (const value of [image, bind, token, modelDir]) {
+  if (value.includes('<') || value.includes('>')) {
+    console.error('Platzhalter in .env.llm.');
+    process.exit(1);
+  }
+}
+if (!/@sha256:[a-f0-9]{64}$/.test(image)) {
+  console.error('OPEN_WEIGHT_LLM_IMAGE ist kein Digest.');
+  process.exit(1);
+}
+const privateAddresses = new BlockList();
+privateAddresses.addSubnet('10.0.0.0', 8, 'ipv4');
+privateAddresses.addSubnet('172.16.0.0', 12, 'ipv4');
+privateAddresses.addSubnet('192.168.0.0', 16, 'ipv4');
+privateAddresses.addSubnet('fc00::', 7, 'ipv6');
+const family = isIP(bind);
+const isPrivate =
+  family === 4
+    ? privateAddresses.check(bind, 'ipv4')
+    : family === 6 && privateAddresses.check(bind, 'ipv6');
+if (!isPrivate) {
+  console.error('OPEN_WEIGHT_LLM_BIND_ADDRESS ist keine private IP.');
+  process.exit(1);
+}
+if (token.length < 32 || token.length > 512 || !/^[A-Za-z0-9._~-]+$/.test(token)) {
+  console.error('OPEN_WEIGHT_LLM_TOKEN liegt außerhalb des Wrapper-Formats.');
+  process.exit(1);
+}
+if (!modelDir.startsWith('/')) {
+  console.error('OPEN_WEIGHT_LLM_MODEL_DIR ist nicht absolut.');
+  process.exit(1);
+}
+console.log(`Preflight-Werte gültig. Image: ${image}`);
+EOF
+
+node scripts/open-weight-llm/verify-model.mjs \
+  docker/open-weight-llm/model-manifest.json \
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
+
+IMAGE="$(sed -n 's/^OPEN_WEIGHT_LLM_IMAGE=//p' .env.llm)"
+test "$(printf '%s\n' "$IMAGE" | grep -c .)" -eq 1
+docker pull "$IMAGE"
+npm run llm:prod -- config >/dev/null
+echo 'Preflight grün. Die alte Runtime läuft noch. Weiter mit D.5.'
+```
+
+### D.5 LLM-Host: Checkout wechseln und Runtime starten
+
+Nur nach `Preflight grün.` `stop` allein lässt den festen Containernamen im alten
+Compose-Projekt. Der Block fährt die alte Runtime herunter, behält ihren Checkout
+als Rollback und legt `release-${NEW_REF}` auf `/opt/arsnova-llm/repository`. Der
+Start geht nur über `npm run llm:prod`: ein bloßes `docker compose up` prüft
+Digest, Bind, Token und GGUF nicht.
 
 ```bash
 set -euo pipefail
@@ -1338,25 +1485,50 @@ mv repository "rollback-${OLD_REF}"
 mv "release-${NEW_REF}" repository
 
 cd /opt/arsnova-llm/repository
-npm run llm:prod -- config >/dev/null
 npm run llm:prod -- up -d --force-recreate
 npm run llm:prod -- ps
+echo 'Container gestartet, noch nicht unbedingt healthy. Weiter mit D.6.'
 ```
 
-Alternativ statt `npm run llm:prod -- up -d --force-recreate`, erst nach dem
-`mv` und mit Profil `llm`:
+### D.6 LLM-Host: auf healthy warten
+
+`up -d` kehrt zurück, während die Modellinitialisierung noch läuft. Erst `healthy`
+erlaubt den Smoke-Test. Nach 24 Versuchen im Abstand von 10 Sekunden bricht der
+Block ab und zeigt die Logs.
 
 ```bash
+set -euo pipefail
 cd /opt/arsnova-llm/repository
-docker compose -f docker-compose.llm.yml --env-file .env.llm --profile llm up -d --force-recreate
+STATUS='missing'
+for attempt in $(seq 1 24); do
+  STATUS="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' arsnova-open-weight-llm 2>/dev/null || true)"
+  printf '%s Versuch %02d/24: %s\n' "$(date --iso-8601=seconds)" "$attempt" "$STATUS"
+  if [ "$STATUS" = 'healthy' ]; then
+    break
+  fi
+  sleep 10
+done
+if [ "$STATUS" != 'healthy' ]; then
+  echo 'Runtime nach 24 Versuchen nicht healthy.' >&2
+  docker inspect --format 'Status={{.State.Status}} Health={{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}} Neustarts={{.RestartCount}}' \
+    arsnova-open-weight-llm || true
+  npm run llm:prod -- logs --tail=200 open-weight-llm || true
+  exit 1
+fi
+echo 'Runtime ist healthy. Weiter mit D.7.'
 ```
 
-### D.5 Smoke-Test auf dem LLM-Host
+### D.7 LLM-Host: Smoke-Test
 
 ```bash
 (
   set -euo pipefail
   cd /opt/arsnova-llm/repository
+  STATUS="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' arsnova-open-weight-llm 2>/dev/null || true)"
+  if [ "$STATUS" != 'healthy' ]; then
+    echo 'Smoke-Test abgebrochen: zuerst D.6, bis die Runtime healthy ist.' >&2
+    exit 1
+  fi
   LLM_PRIVATE_IP="$(sed -n 's/^OPEN_WEIGHT_LLM_BIND_ADDRESS=//p' .env.llm)"
   LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.llm)"
 
@@ -1377,16 +1549,99 @@ docker compose -f docker-compose.llm.yml --env-file .env.llm --profile llm up -d
 
 `/health` verlangt auf diesem Build keinen API-Key. Dieses JSON-Schema prüft nur
 den Server. Die App-Lernzielableitung validiert weiterhin ihr Ein-Locale-Schema.
+Den Consumer noch nicht einschalten.
 
-### D.6 App-Host: Env, Recreate, Konnektivität, Logs
+### D.8 App-Host: neues Image nachweisen, dann erst aktivieren
 
-Zuerst das App-Image aus demselben Commit deployen. `<DASSELBE-SECRET>` ist der
-Wert von `OPEN_WEIGHT_LLM_TOKEN` auf dem LLM-Host.
+`./scripts/prod-compose.sh up` deployt kein neues Image. Es verwendet den Digest
+aus `.env.arsnova-image`. Der folgende Deploy ist der kanonische Ablauf aus der
+Deploy-Dokumentation: `DEPLOY_SHA`, `DEPLOY_IMAGE`, die vier Git-Prüfungen von
+`scripts/deploy/checkout-deploy-sha.sh` und danach `scripts/deploy.sh`. Die
+Prüfungen stehen inline, weil der bisher installierte Checkout den Helfer noch
+nicht enthalten muss. `DEPLOY_SHA` ist derselbe Commit wie `NEW_REF`. Der
+Kill-Switch bleibt `false`, bis der Digest-Nachweis gelungen ist.
+
+Token nicht in den Befehl schreiben. Auf dem LLM-Host liegt er in `.env.llm` mit
+Modus `0600`. Steht er noch nicht im Passwortmanager, ihn dort einmalig aus einem
+lokalen Terminal übernehmen (`sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.llm`),
+die Anzeige nicht kopieren und die Shell danach schließen. Nicht per Chat, Ticket,
+`scp` oder Shell-History auf den App-Host bringen. Auf dem App-Host den
+Passwortmanager-Eintrag verdeckt eintippen.
+
+```bash
+set -euo pipefail
+cd /home/deploy/arsnova.eu
+export DEPLOY_DIR=/home/deploy/arsnova.eu
+export DEPLOY_BRANCH=main
+export DEPLOY_SHA='<NEUER-40-STELLIGER-COMMIT>'
+export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-HEX>'
+case "$DEPLOY_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#DEPLOY_SHA}" -eq 40
+printf '%s\n' "$DEPLOY_IMAGE" | grep -Eq '^ghcr\.io/kqc-real/arsnova\.eu@sha256:[a-f0-9]{64}$'
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
+
+if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
+  git fetch origin "$DEPLOY_SHA"
+fi
+if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
+  echo "Ziel-Commit $DEPLOY_SHA konnte nicht gefunden werden." >&2
+  exit 1
+fi
+git checkout --detach --force "$DEPLOY_SHA"
+test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+./scripts/deploy.sh
+```
+
+Nachweis, bevor irgendetwas eingeschaltet wird. Erwartete Zeile:
+`Laufende App entspricht freigegebenem Digest und Commit.`
+
+```bash
+set -euo pipefail
+cd /home/deploy/arsnova.eu
+DEPLOY_SHA='<NEUER-40-STELLIGER-COMMIT>'
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-HEX>'
+case "$DEPLOY_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#DEPLOY_SHA}" -eq 40
+printf '%s\n' "$DEPLOY_IMAGE" | grep -Eq '^ghcr\.io/kqc-real/arsnova\.eu@sha256:[a-f0-9]{64}$'
+
+test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+test "$(sed -n 's/^SHA=//p' .deploy-state/current.state)" = "$DEPLOY_SHA"
+test "$(sed -n 's/^IMAGE=//p' .deploy-state/current.state)" = "$DEPLOY_IMAGE"
+grep -Fqx "ARSNOVA_IMAGE=${DEPLOY_IMAGE}" .env.arsnova-image
+
+LOCAL_ID="$(docker image inspect --format '{{.Id}}' "$DEPLOY_IMAGE")"
+REPO_DIGESTS="$(docker image inspect --format '{{json .RepoDigests}}' "$DEPLOY_IMAGE")"
+printf '%s' "$REPO_DIGESTS" | grep -Fq "$DEPLOY_IMAGE"
+test "$(docker inspect --format '{{.Image}}' arsnova-v3-app)" = "$LOCAL_ID"
+test "$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' arsnova-v3-app)" = 'healthy'
+echo 'Laufende App entspricht freigegebenem Digest und Commit.'
+```
+
+Erst jetzt URL, Timeouts und Token setzen und den Consumer einschalten. Das Secret
+kommt verdeckt aus dem Passwortmanager.
 
 ```bash
 set -euo pipefail
 cd /home/deploy/arsnova.eu
 test -f .env.production
+DEPLOY_SHA='<NEUER-40-STELLIGER-COMMIT>'
+DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-HEX>'
+LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
+case "$DEPLOY_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#DEPLOY_SHA}" -eq 40
+printf '%s\n' "$DEPLOY_IMAGE" | grep -Eq '^ghcr\.io/kqc-real/arsnova\.eu@sha256:[a-f0-9]{64}$'
+case "$LLM_PRIVATE_IP" in *'<'*|*'>'*) echo 'Platzhalter in der LLM-IP.' >&2; exit 1 ;; esac
+test "$(sed -n 's/^SHA=//p' .deploy-state/current.state)" = "$DEPLOY_SHA"
+test "$(docker inspect --format '{{.Image}}' arsnova-v3-app)" = "$(docker image inspect --format '{{.Id}}' "$DEPLOY_IMAGE")"
+
+read -r -s -p 'OPEN_WEIGHT_LLM_TOKEN aus dem Passwortmanager: ' LLM_TOKEN
+echo
+case "$LLM_TOKEN" in *[!A-Za-z0-9._~-]*) echo 'Token-Zeichensatz ungültig.' >&2; unset LLM_TOKEN; exit 1 ;; esac
+if [ "${#LLM_TOKEN}" -lt 32 ] || [ "${#LLM_TOKEN}" -gt 512 ]; then
+  echo 'Token-Länge ungültig.' >&2
+  unset LLM_TOKEN
+  exit 1
+fi
 
 upsert() {
   local key="$1" value="$2"
@@ -1397,27 +1652,46 @@ upsert() {
   fi
 }
 
-upsert OPEN_WEIGHT_LLM_ENABLED true
-upsert OPEN_WEIGHT_LLM_URL 'http://<PRIVATE-IP-DES-LLM-HOSTS>:8080'
+upsert OPEN_WEIGHT_LLM_URL "http://${LLM_PRIVATE_IP}:8080"
 upsert OPEN_WEIGHT_LLM_SOCKET_PATH ''
-upsert OPEN_WEIGHT_LLM_TOKEN '<DASSELBE-SECRET-WIE-AUF-DEM-LLM-HOST>'
+upsert OPEN_WEIGHT_LLM_TOKEN "$LLM_TOKEN"
 upsert OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS 30000
 upsert OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS 90000
 upsert OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS 300000
+upsert OPEN_WEIGHT_LLM_ENABLED true
+unset LLM_TOKEN
+chmod 0600 .env.production
 
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=true$' .env.production)" -eq 1
+test "$(grep -c '^OPEN_WEIGHT_LLM_TOKEN=' .env.production)" -eq 1
 grep -E '^(OPEN_WEIGHT_LLM_ENABLED|OPEN_WEIGHT_LLM_URL|OPEN_WEIGHT_LLM_SOCKET_PATH|OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS|OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS|OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS)=' .env.production
 
 ./scripts/prod-compose.sh up -d --force-recreate --no-deps app
-./scripts/prod-compose.sh ps app
+STATUS='missing'
+for attempt in $(seq 1 24); do
+  STATUS="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' arsnova-v3-app 2>/dev/null || true)"
+  printf '%s Versuch %02d/24: %s\n' "$(date --iso-8601=seconds)" "$attempt" "$STATUS"
+  if [ "$STATUS" = 'healthy' ]; then
+    break
+  fi
+  sleep 10
+done
+if [ "$STATUS" != 'healthy' ]; then
+  echo 'App nach dem Einschalten nicht healthy.' >&2
+  ./scripts/prod-compose.sh logs --tail=200 app || true
+  exit 1
+fi
 ```
 
-Konnektivität vom App-Host:
+Konnektivität vom App-Host. Der Token wird aus der Datei gelesen und nicht
+ausgegeben.
 
 ```bash
 (
   set -euo pipefail
   cd /home/deploy/arsnova.eu
   LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
+  case "$LLM_PRIVATE_IP" in *'<'*|*'>'*) echo 'Platzhalter in der LLM-IP.' >&2; exit 1 ;; esac
   LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.production)"
 
   curl --fail --silent --show-error --max-time 5 \
@@ -1441,7 +1715,7 @@ cd /home/deploy/arsnova.eu
 ./scripts/prod-compose.sh logs -f --tail=200 app
 ```
 
-### D.7 Qwen3-GGUF erst nach Abnahme entfernen
+### D.9 LLM-Host: Qwen3-GGUF erst nach Abnahme entfernen
 
 Diesen Block erst ausführen, wenn der LLM-Smoke-Test, der App-Smoke-Test und
 eine ausdrückliche Abnahme erfolgt sind. Vorher bleibt
