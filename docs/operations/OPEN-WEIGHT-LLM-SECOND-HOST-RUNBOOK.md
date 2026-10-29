@@ -64,15 +64,17 @@ gelten wieder die Grenzen aus `docker-compose.llm.yml`. Nach jedem Runtime-Deplo
 deshalb mit `docker inspect` prüfen, dass `HostConfig.Memory` 8589934592 Byte
 und `HostConfig.MemorySwap` 10737418240 Byte beträgt.
 
-Vor dem Beginn müssen diese fünf Werte bekannt sein:
+Vor dem Merge müssen die beiden privaten IPs und `LLM_IMAGE_REF` bekannt sein.
+Git-Commit und `DEPLOY_IMAGE` entstehen erst durch den automatischen Deploy des
+Merge-Commits auf `main`. Die PR-Branch-Commit-ID ist nicht dieser Wert.
 
 | Name                          | Beispiel                               | Woher kommt der Wert?                                                                            |
 | ----------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | private IP des App-Hosts      | `10.0.0.10`                            | Hosting-/Netz-Konfiguration des bestehenden arsnova.eu-Servers                                   |
 | private IP des Inferenz-Hosts | `10.0.0.20`                            | Hosting-/Netz-Konfiguration der zweiten Box; nur RFC1918-IPv4                                    |
-| arsnova.eu Git-Commit         | vollständige 40-stellige Commit-ID     | freigegebener Produktionsstand; zugleich `NEW_REF` und `DEPLOY_SHA`                              |
+| arsnova.eu Git-Commit         | vollständige 40-stellige Commit-ID     | `github.sha` des grünen main-Laufs nach dem Merge; zugleich `NEW_REF` und `DEPLOY_SHA`           |
 | `LLM_IMAGE_REF`               | `ghcr.io/ggml-org/llama.cpp@sha256:…`  | Digest des llama.cpp-Server-Images aus `runtimeImage` im Modellmanifest; Release-Verantwortliche |
-| `DEPLOY_IMAGE`                | `ghcr.io/kqc-real/arsnova.eu@sha256:…` | Digest des arsnova.eu-App-Images zu diesem Commit; Release-Verantwortliche, nicht das LLM-Image  |
+| `DEPLOY_IMAGE`                | `ghcr.io/kqc-real/arsnova.eu@sha256:…` | `DEPLOY_IMAGE=` aus `Deploy to Server` dieses main-Laufs; nicht `LLM_IMAGE_REF`                  |
 
 `LLM_IMAGE_REF` und `DEPLOY_IMAGE` sind nicht austauschbar. `LLM_IMAGE_REF` ist
 das llama.cpp-Server-Image, aktuell
@@ -985,10 +987,9 @@ Abschnitt 14.3 den Preflight aus [Anhang D.4](#d4-llm-host-preflight-vor-dem-abs
 dem alten Compose-Projekt entfernt werden. Der folgende Block verwendet deshalb
 `down`, behält den alten Checkout als direkten Rollback und stellt anschließend
 den neuen Checkout unter dem unveränderten kanonischen Pfad bereit. Für die
-Gemma-Umstellung diesen Block nicht direkt ausführen. Zuerst
-[Anhang D.0](#d0-app-host-consumer-ausschalten) bis
-[D.4](#d4-llm-host-preflight-vor-dem-abschalten): der Preflight muss grün sein,
-bevor die alte Runtime endet. `config` ersetzt diese Prüfung nicht.
+Gemma-Umstellung diesen Block nicht direkt ausführen. D.0 liegt vor dem Merge,
+danach der automatische App-Deploy, danach D.1 bis D.4. Der Preflight muss grün
+sein, bevor die alte Runtime endet. `config` ersetzt diese Prüfung nicht.
 
 ```bash
 set -euo pipefail
@@ -1258,20 +1259,31 @@ sudo systemctl status llama-server.service --no-pager
 ## Anhang D: Gemma-Umstellung, Copy-and-Paste für das Review
 
 Dieser Anhang bündelt die Befehle der Umstellung von Qwen3-4B auf Gemma 3 4B QAT.
+Ein Merge nach `main` ist kein passiver Dokumentationsschritt: `.github/workflows/ci.yml`
+baut das App-Image, publiziert es und der Job `Deploy to Server` führt
+`scripts/deploy.sh` aus, wenn die Repository-Variable `DEPLOY_ENABLED` wahr ist.
+Die Schritte auf dem LLM-Host laufen dabei nicht. Die Reihenfolge ist deshalb:
+
+1. D.0 auf dem App-Host, vor dem Merge. Nachweis: `OPEN_WEIGHT_LLM_ENABLED=false` und App healthy.
+2. PR mergen. Warten, bis für diesen main-Push `Deploy to Server` und `Post-Deploy Smoke Check` grün sind. Ist der Deploy übersprungen oder rot, hier stoppen.
+3. Auf dem App-Host den Merge-Commit und den publizierten App-Digest ablesen. Das ist `NEW_REF` und `DEPLOY_IMAGE`.
+4. D.1 bis D.7 auf dem LLM-Host mit dieser Commit-ID.
+5. D.8 weist den schon deployten App-Stand nur nach und schaltet den Consumer danach ein. `deploy.sh` nicht ein zweites Mal starten.
+
 Jeder Block ist eine eigene Shell: Platzhalter in diesem Block ersetzen, auch wenn
 derselbe Wert schon in einem früheren Block stand. Die Überschrift nennt den Host.
-`<NEUER-40-STELLIGER-COMMIT>` ist der freigegebene Stand mit diesem Pin und zugleich
-`DEPLOY_SHA` auf dem App-Host. Der Alias `gemma-3-4b-it-qat-q4_0` steckt im Backend
-und nicht in einer Env-Variable. App-Image und LLM-Host müssen denselben Stand
-fahren. `--ctx-size` bleibt 8192. Den Consumer erst in D.8 wieder einschalten, nachdem der LLM-Smoke-Test grün ist,
-das neue App-Image nachgewiesen ist und `/health` sowie `/slots` vom App-Host
-bei noch ausgeschaltetem Kill-Switch geantwortet haben.
+`<NEUER-40-STELLIGER-COMMIT>` ist der main-Commit aus Schritt 3, nicht die
+PR-Branch. Der Alias `gemma-3-4b-it-qat-q4_0` steckt im Backend und nicht in einer
+Env-Variable. App-Image und LLM-Host müssen denselben Stand fahren. `--ctx-size`
+bleibt 8192. Den Consumer erst in D.8 wieder einschalten, nachdem der LLM-Smoke-Test
+grün ist, das neue App-Image nachgewiesen ist und `/health` sowie `/slots` vom
+App-Host bei noch ausgeschaltetem Kill-Switch geantwortet haben.
 
 ### D.0 App-Host: Consumer ausschalten
 
-Zuerst hier, danach erst auf dem LLM-Host. Solange die alte App eingeschaltet ist,
-fragt sie während des Runtime-Wechsels weiter an und spricht danach noch den
-Qwen-Alias.
+Diesen Block vor dem Merge ausführen. Der anschließende Push auf `main` deployt
+das neue App-Image mit dem fest eingebauten Gemma-Alias, während der LLM-Host
+noch Qwen ausliefert. Solange der Consumer an ist, schlagen diese Anfragen fehl.
 
 ```bash
 set -euo pipefail
@@ -1302,10 +1314,39 @@ if [ "$STATUS" != 'healthy' ]; then
   exit 1
 fi
 curl --fail --silent --show-error --max-time 10 http://127.0.0.1:3000/trpc/health.check >/dev/null
-echo 'App-Host: Consumer aus, Health ok. Weiter mit D.1 auf dem LLM-Host.'
+echo 'App-Host: Consumer aus, Health ok. Jetzt die PR mergen, nicht D.1 starten.'
+```
+
+### Nach dem Merge auf dem App-Host: Commit und App-Digest ablesen
+
+Erst wenn im GitHub-Actions-Lauf dieses main-Pushs `Deploy to Server` und
+`Post-Deploy Smoke Check` grün sind. `EXPECTED_MAIN_SHA` ist `github.sha` dieses
+Laufs. Im Schritt `Validate deploy configuration` steht `DEPLOY_IMAGE=`; im
+Schritt `Push scanned image to GHCR` steht dieselbe Referenz als
+`Registry-Referenz (kanonisch):`. Stimmen Server und diese Zeile nicht überein,
+D.1 nicht starten. Den automatischen Deploy für diesen Merge nicht abschalten.
+
+```bash
+set -euo pipefail
+cd /home/deploy/arsnova.eu
+EXPECTED_MAIN_SHA='<MAIN-COMMIT-DES-GRUENEN-DEPLOYS>'
+case "$EXPECTED_MAIN_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#EXPECTED_MAIN_SHA}" -eq 40
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
+test "$(git rev-parse HEAD)" = "$EXPECTED_MAIN_SHA"
+test "$(sed -n 's/^SHA=//p' .deploy-state/current.state)" = "$EXPECTED_MAIN_SHA"
+DEPLOY_IMAGE="$(sed -n 's/^IMAGE=//p' .deploy-state/current.state)"
+printf '%s\n' "$DEPLOY_IMAGE" | grep -Eq '^ghcr\.io/kqc-real/arsnova\.eu@sha256:[a-f0-9]{64}$'
+grep -Fqx "ARSNOVA_IMAGE=${DEPLOY_IMAGE}" .env.arsnova-image
+test "$(docker inspect --format '{{.Image}}' arsnova-v3-app)" = "$(docker image inspect --format '{{.Id}}' "$DEPLOY_IMAGE")"
+test "$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' arsnova-v3-app)" = 'healthy'
+printf 'NEW_REF=%s\nDEPLOY_IMAGE=%s\n' "$EXPECTED_MAIN_SHA" "$DEPLOY_IMAGE"
+echo 'Diese Werte in D.1 bis D.8 einsetzen. Kill-Switch bleibt false. Weiter mit D.1 auf dem LLM-Host.'
 ```
 
 ### D.1 LLM-Host: Checkout und Modellverzeichnis
+
+`NEW_REF` ist die eben ausgegebene Commit-ID des main-Deploys.
 
 ```bash
 set -euo pipefail
@@ -1585,18 +1626,14 @@ echo 'Runtime ist healthy. Weiter mit D.7.'
 den Server. Die App-Lernzielableitung validiert weiterhin ihr Ein-Locale-Schema.
 Den Consumer noch nicht einschalten.
 
-### D.8 App-Host: neues Image nachweisen, dann erst aktivieren
+### D.8 App-Host: schon deploytes Image nachweisen, dann erst aktivieren
 
-`./scripts/prod-compose.sh up` deployt kein neues Image. Es verwendet den Digest
-aus `.env.arsnova-image`. Der folgende Deploy ist der kanonische Ablauf aus der
-Deploy-Dokumentation: `DEPLOY_SHA`, `DEPLOY_IMAGE`, die vier Git-Prüfungen von
-`scripts/deploy/checkout-deploy-sha.sh` und danach `scripts/deploy.sh`. Die
-Prüfungen stehen inline, weil der bisher installierte Checkout den Helfer noch
-nicht enthalten muss. `DEPLOY_SHA` ist derselbe Commit wie `NEW_REF`.
-`DEPLOY_IMAGE` ist das arsnova.eu-App-Image aus dem Werteblatt. Es ist nicht
-`LLM_IMAGE_REF` und nicht das llama.cpp-Server-Image. Der Kill-Switch bleibt
-`false`, bis der Digest-Nachweis gelungen ist und der App-Host `/health` sowie
-`/slots` auf der RFC1918-Adresse erreicht hat.
+Der Merge hat das App-Image bereits deployt. `scripts/deploy.sh` hier nicht erneut
+ausführen. `DEPLOY_SHA` ist dieselbe Commit-ID wie `NEW_REF`. `DEPLOY_IMAGE` ist
+das arsnova.eu-App-Image aus dem grünen `Deploy to Server`, nicht `LLM_IMAGE_REF`
+und nicht das llama.cpp-Server-Image. Der Kill-Switch bleibt `false`, bis der
+Digest-Nachweis gelungen ist und der App-Host `/health` sowie `/slots` auf der
+RFC1918-Adresse erreicht hat.
 
 Token nicht in den Befehl schreiben. Auf dem LLM-Host liegt er in `.env.llm` mit
 Modus `0600`. Steht er noch nicht im Passwortmanager, ihn dort einmalig aus einem
@@ -1605,36 +1642,13 @@ die Anzeige nicht kopieren und die Shell danach schließen. Nicht per Chat, Tick
 `scp` oder Shell-History auf den App-Host bringen. Auf dem App-Host den
 Passwortmanager-Eintrag verdeckt eintippen.
 
-```bash
-set -euo pipefail
-cd /home/deploy/arsnova.eu
-export DEPLOY_DIR=/home/deploy/arsnova.eu
-export DEPLOY_BRANCH=main
-export DEPLOY_SHA='<NEUER-40-STELLIGER-COMMIT>'
-export DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-HEX>'
-case "$DEPLOY_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
-test "${#DEPLOY_SHA}" -eq 40
-printf '%s\n' "$DEPLOY_IMAGE" | grep -Eq '^ghcr\.io/kqc-real/arsnova\.eu@sha256:[a-f0-9]{64}$'
-test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
-
-if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
-  git fetch origin "$DEPLOY_SHA"
-fi
-if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
-  echo "Ziel-Commit $DEPLOY_SHA konnte nicht gefunden werden." >&2
-  exit 1
-fi
-git checkout --detach --force "$DEPLOY_SHA"
-test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
-./scripts/deploy.sh
-```
-
 Nachweis, bevor irgendetwas eingeschaltet wird. Erwartete Zeile:
 `Laufende App entspricht freigegebenem Digest und Commit.`
 
 ```bash
 set -euo pipefail
 cd /home/deploy/arsnova.eu
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
 DEPLOY_SHA='<NEUER-40-STELLIGER-COMMIT>'
 DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-HEX>'
 case "$DEPLOY_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
