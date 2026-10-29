@@ -389,6 +389,9 @@ function buildChatCompletionBody(
           { role: 'system', content: systemInstructionFor(request.taskType) },
           { role: 'user', content: JSON.stringify(request) },
         ];
+  // Gemma 3 Instruct has no thinking channel, so the Qwen3 fields
+  // reasoning_effort, enable_thinking and /no_think are not sent.
+  // cache_prompt reuses the stable system prefix with server --cache-reuse.
   return JSON.stringify({
     model: config.model,
     messages,
@@ -403,10 +406,9 @@ function buildChatCompletionBody(
       request.taskType === 'topic_label' && request.schemaVersion === 2
         ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
         : config.maxOutputTokens[request.taskType],
-    temperature: 0,
+    temperature: 0.2,
     stream: false,
-    reasoning_effort: 'none',
-    chat_template_kwargs: { enable_thinking: false },
+    cache_prompt: true,
   });
 }
 

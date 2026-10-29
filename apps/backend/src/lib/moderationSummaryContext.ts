@@ -49,7 +49,7 @@ export const QA_SUMMARY_TECHNICAL_DEFINITION_TEXT =
   'Use moderation-prompt-definitions-v1: votes, scores and frequency are not learning, quality or people; PENDING is release status; derived, manual and confirmed objectives differ; omitted data is unknown.';
 
 export const QA_SUMMARY_MODERATION_PACKING_PROFILE = {
-  modelProfile: 'qwen3-4b-instruct-2507-q4_k_m:ctx-8192:summary-v2',
+  modelProfile: 'gemma-3-4b-it-qat-q4_0:ctx-8192:summary-v2',
   contextWindowTokens: 8_192,
   instructionText: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   definitionText: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,

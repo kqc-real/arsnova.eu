@@ -4940,7 +4940,7 @@ export const OpenWeightLlmRuntimeProbeSchema = z.object({
   /** fresh = aus Cache; live = gerade gemessen; skipped = Runtime aus. */
   cache: z.enum(['fresh', 'live', 'skipped']),
   /**
-   * Konfigurierter Modellalias der App (z. B. qwen3-4b-…); null wenn Runtime aus.
+   * Konfigurierter Modellalias der App (z. B. gemma-3-4b-it-qat-q4_0); null wenn Runtime aus.
    * Öffentlich, ohne Digest/Token.
    */
   modelAlias: z.string().trim().min(1).max(120).nullable(),

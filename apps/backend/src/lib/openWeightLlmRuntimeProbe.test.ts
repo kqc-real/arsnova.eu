@@ -52,7 +52,7 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
       telemetry: {
         taskType: 'topic_label' as const,
         elapsedMs: 12,
-        model: 'qwen3-4b-instruct-2507-q4_k_m',
+        model: 'gemma-3-4b-it-qat-q4_0',
         promptTokens: null,
         completionTokens: null,
       },
@@ -83,7 +83,7 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
         telemetry: {
           taskType: 'qa_summary' as const,
           elapsedMs: 20,
-          model: 'qwen3-4b-instruct-2507-q4_k_m',
+          model: 'gemma-3-4b-it-qat-q4_0',
           promptTokens: null,
           completionTokens: null,
         },
@@ -105,7 +105,7 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
       telemetry: {
         taskType: 'learning_objectives' as const,
         elapsedMs: 30,
-        model: 'qwen3-4b-instruct-2507-q4_k_m',
+        model: 'gemma-3-4b-it-qat-q4_0',
         promptTokens: null,
         completionTokens: null,
       },
@@ -119,8 +119,8 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
     });
     expect(first.overall).toBe('ok');
     expect(first.cache).toBe('live');
-    expect(first.modelAlias).toBe('qwen3-4b-instruct-2507-q4_k_m');
-    expect(first.modelReported).toBe('qwen3-4b-instruct-2507-q4_k_m');
+    expect(first.modelAlias).toBe('gemma-3-4b-it-qat-q4_0');
+    expect(first.modelReported).toBe('gemma-3-4b-it-qat-q4_0');
     expect(first.tasks.topic_label.status).toBe('ok');
     expect(first.tasks.qa_summary.status).toBe('ok');
     expect(first.tasks.learning_objectives.status).toBe('ok');
@@ -149,7 +149,7 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
       telemetry: {
         taskType: 'topic_label' as const,
         elapsedMs: 1,
-        model: 'qwen3-4b-instruct-2507-q4_k_m',
+        model: 'gemma-3-4b-it-qat-q4_0',
         promptTokens: null,
         completionTokens: null,
       },
@@ -393,7 +393,7 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
         telemetry: {
           taskType: 'qa_summary' as const,
           elapsedMs: 1,
-          model: 'qwen3-4b-instruct-2507-q4_k_m',
+          model: 'gemma-3-4b-it-qat-q4_0',
           promptTokens: null,
           completionTokens: null,
         },
@@ -660,7 +660,7 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
         telemetry: {
           taskType: 'qa_summary' as const,
           elapsedMs: 1,
-          model: 'qwen3-4b-instruct-2507-q4_k_m',
+          model: 'gemma-3-4b-it-qat-q4_0',
           promptTokens: null,
           completionTokens: null,
         },

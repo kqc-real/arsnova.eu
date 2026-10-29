@@ -651,10 +651,10 @@ describe('learningObjectiveDerivation', () => {
 
   it('discards model-authored boilerplate and creates deterministic draft IDs and digests', async () => {
     expect(OPEN_WEIGHT_LLM_MODEL_ID).toBe(
-      'unsloth/Qwen3-4B-Instruct-2507-GGUF@sha256:3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597',
+      'unsloth/gemma-3-4b-it-qat-GGUF@sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2',
     );
     expect(OPEN_WEIGHT_LLM_MODEL_VERSION).toBe(
-      'revision:a06e946bb6b655725eafa393f4a9745d460374c9|quant:Q4_K_M|llama:server-b10524',
+      'revision:0f80a8ebec6d07600bc3790a042a075527692b49|quant:Q4_0|llama:server-b10524',
     );
     const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
       status: 'completed' as const,

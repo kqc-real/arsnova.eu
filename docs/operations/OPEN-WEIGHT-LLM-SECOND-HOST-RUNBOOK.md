@@ -2,7 +2,7 @@
 
 # Betriebshandbuch: private CPU-Inferenz auf einem zweiten Linux-Host
 
-Stand: 2026-10-12
+Stand: 2026-10-29
 
 Dieses Runbook installiert und betreibt die private Open-Weight-LLM-Runtime von
 arsnova.eu auf einer **zweiten Linux-Box**. Es ist für Betreiber:innen geschrieben,
@@ -22,7 +22,7 @@ Browser der Lehrenden
 arsnova.eu / App-Host  ── privates Netz, TCP 8080 ──>  CPU-Inferenz-Host
                                                                |
                                                                +-- llama.cpp
-                                                               +-- Qwen3-4B GGUF
+                                                               +-- Gemma 3 4B QAT GGUF
 ```
 
 - Der Inferenz-Host ist **nicht öffentlich** auf Port 8080 erreichbar.
@@ -325,24 +325,28 @@ sudo install -d -m 0755 -o "$USER" -g "$USER" \
   /srv/arsnova/models/open-weight-llm
 
 curl --fail --location --retry 3 --retry-delay 5 \
-  --output /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf.part \
-  https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  --output /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf.part \
+  https://huggingface.co/unsloth/gemma-3-4b-it-qat-GGUF/resolve/0f80a8ebec6d07600bc3790a042a075527692b49/gemma-3-4b-it-qat-Q4_0.gguf
 
 mv \
-  /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf.part \
-  /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
-chmod 0444 /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf.part \
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
+chmod 0444 /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
 
 node scripts/open-weight-llm/verify-model.mjs \
   docker/open-weight-llm/model-manifest.json \
-  /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
+
+rm -f /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
 ```
 
-Erwartete letzte Zeile:
+Erwartete letzte Zeile vor dem Aufräumen:
 
 ```text
-Qwen3-4B-Instruct-2507-Q4_K_M.gguf: verified 2497281120 bytes, sha256:3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597
+gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
 ```
+
+Geladen wird nur die Text-GGUF. Keinen Multimodal-Projektor danebenlegen oder an `llama-server` übergeben. `rm` entfernt das abgelöste Qwen3-Artefakt erst nach erfolgreicher Prüfung.
 
 Bei Größen- oder Hashfehler die Datei **nicht** verwenden. Die `.part`-Datei
 beziehungsweise die fehlerhafte `.gguf` entfernen und erneut herunterladen.
@@ -544,7 +548,7 @@ Dieser Test enthält absichtlich keine Produktions- oder Personendaten:
     --request POST \
     --header "Authorization: Bearer $LLM_TOKEN" \
     --header 'Content-Type: application/json' \
-    --data '{"model":"qwen3-4b-instruct-2507-q4_k_m","messages":[{"role":"system","content":"Antworte nur mit dem Wort bereit."},{"role":"user","content":"Kurzer technischer Bereitschaftstest."}],"temperature":0,"max_tokens":8,"stream":false,"reasoning_effort":"none","chat_template_kwargs":{"enable_thinking":false}}' \
+    --data '{"model":"gemma-3-4b-it-qat-q4_0","messages":[{"role":"system","content":"Antworte nur mit dem Wort bereit."},{"role":"user","content":"Kurzer technischer Bereitschaftstest."}],"temperature":0.2,"max_tokens":8,"stream":false,"cache_prompt":true}' \
     "http://${LLM_PRIVATE_IP}:8080/v1/chat/completions")"
   ANSWER="$(jq -er \
     '.choices[0].message.content | select(type == "string" and length > 0)' \
@@ -558,6 +562,35 @@ Antwortfeld bestätigt den Modellpfad. HTTP-Fehler, Timeout, leere Ausgabe,
 ungültiges JSON oder ein fehlendes Antwortfeld brechen den Block mit Fehler ab.
 Der genaue Wortlaut ist für diesen Infrastrukturtest nicht die fachliche
 Qualitätsabnahme.
+
+### 10.4 Health und fünfsprachiges JSON-Schema
+
+`/health` verlangt auf diesem llama.cpp-Build keinen API-Key. Die Completion
+prüft Bearer, Alias und ein Objekt mit `de`, `en`, `fr`, `it` und `es`.
+Das ist ein Laufzeittest des Servers. Der Produktvertrag der Lernzielableitung
+sendet weiterhin eine Locale pro Batch.
+
+```bash
+(
+  set -euo pipefail
+  cd /opt/arsnova-llm/repository
+  LLM_PRIVATE_IP="$(sed -n 's/^OPEN_WEIGHT_LLM_BIND_ADDRESS=//p' .env.llm)"
+  LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.llm)"
+
+  curl --fail --silent --show-error --max-time 5 \
+    "http://${LLM_PRIVATE_IP}:8080/health"
+  echo
+
+  curl --fail --silent --show-error --max-time 90 \
+    --request POST \
+    --header "Authorization: Bearer ${LLM_TOKEN}" \
+    --header 'Content-Type: application/json' \
+    --data '{"model":"gemma-3-4b-it-qat-q4_0","messages":[{"role":"system","content":"Return only JSON matching the schema. Write one short observable learning objective per locale."},{"role":"user","content":"Question: What is the slope of y = 2x + 1? Correct answer: 2. Distractors: 1, 3, 4."}],"response_format":{"type":"json_object","schema":{"type":"object","properties":{"de":{"type":"string","minLength":1},"en":{"type":"string","minLength":1},"fr":{"type":"string","minLength":1},"it":{"type":"string","minLength":1},"es":{"type":"string","minLength":1}},"required":["de","en","fr","it","es"],"additionalProperties":false}},"max_tokens":768,"temperature":0.2,"stream":false,"cache_prompt":true}' \
+    "http://${LLM_PRIVATE_IP}:8080/v1/chat/completions" \
+    | jq -e '.choices[0].finish_reason == "stop" and (.choices[0].message.content | fromjson | has("de") and has("en") and has("fr") and has("it") and has("es"))'
+  echo 'Fünfsprachiges Schema: stop und alle fünf Locale-Felder vorhanden.'
+)
+```
 
 ## 11. Verbindung vom App-Host prüfen
 
@@ -782,8 +815,8 @@ Ursache: unvollständiger oder falscher Modell-Download. Runtime nicht starten.
 
 ```bash
 mv \
-  /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
-  "/srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf.defekt-$(date +%Y%m%d-%H%M%S)"
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf \
+  "/srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf.defekt-$(date +%Y%m%d-%H%M%S)"
 ```
 
 Danach Abschnitt 7 wiederholen. Die umbenannte defekte Datei erst nach
@@ -1141,3 +1174,240 @@ nicht.
 - [Docker Engine auf Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 - [Docker Engine auf Debian](https://docs.docker.com/engine/install/debian/)
 - [NodeSource-DEB-Distributionen](https://github.com/nodesource/distributions)
+- [Anhang D: Gemma-Umstellung, Copy-and-Paste](#anhang-d-gemma-umstellung-copy-and-paste-für-das-review)
+
+## Anhang C: Nativer llama-server statt Compose
+
+Der kanonische Betrieb bleibt `npm run llm:prod`. Dieser Anhang ist nur der
+alternative Debian-Dienst, wenn auf dem dedizierten Host kein Docker läuft.
+Die Binärdatei muss llama.cpp `server-b10524` sein und unter
+`/usr/local/bin/llama-server` liegen. Dieselben Hartflags wie
+`docker/open-weight-llm/entrypoint.sh` verwenden. Keinen Multimodal-Projektor
+laden.
+
+```bash
+sudo useradd --system --home /srv/arsnova --shell /usr/sbin/nologin arsnova-llm
+sudo install -d -m 0755 -o arsnova-llm -g arsnova-llm /srv/arsnova/models/open-weight-llm
+sudo tee /etc/systemd/system/llama-server.service >/dev/null <<'EOF'
+[Unit]
+Description=arsnova open-weight llama-server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=arsnova-llm
+Group=arsnova-llm
+EnvironmentFile=/opt/arsnova-llm/repository/.env.llm
+ExecStart=/usr/local/bin/llama-server --model /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf --alias gemma-3-4b-it-qat-q4_0 --parallel 1 --ctx-size 8192 --batch-size 2048 --ubatch-size 512 --n-predict 768 --threads 8 --threads-batch 8 --flash-attn on --cache-reuse 256 --no-webui --slots --api-key ${OPEN_WEIGHT_LLM_TOKEN} --reasoning off --n-gpu-layers 0 --slot-prompt-similarity 0 --jinja --offline --host ${OPEN_WEIGHT_LLM_BIND_ADDRESS} --port 8080
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadOnlyPaths=/srv/arsnova/models/open-weight-llm
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable --now llama-server.service
+sudo systemctl status llama-server.service --no-pager
+```
+
+## Anhang D: Gemma-Umstellung, Copy-and-Paste für das Review
+
+Dieser Anhang bündelt die Befehle der Umstellung von Qwen3-4B auf Gemma 3 4B QAT.
+Platzhalter vor dem Ausführen ersetzen. `<NEUER-40-STELLIGER-COMMIT>` ist der
+freigegebene Stand mit diesem Pin. Der Alias `gemma-3-4b-it-qat-q4_0` steckt im
+Backend und nicht in einer Env-Variable. App-Image und LLM-Host müssen denselben
+Stand fahren. `--ctx-size` bleibt 8192.
+
+### D.1 Dedizierter LLM-Host: Checkout und Modellverzeichnis
+
+```bash
+set -euo pipefail
+NEW_REF='<NEUER-40-STELLIGER-COMMIT>'
+case "$NEW_REF" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#NEW_REF}" -eq 40
+
+ACTIVE_DIR='/opt/arsnova-llm/repository'
+NEW_DIR="/opt/arsnova-llm/release-${NEW_REF}"
+test -d "$ACTIVE_DIR/.git"
+test ! -e "$NEW_DIR"
+
+git clone https://github.com/kqc-real/arsnova.eu.git "$NEW_DIR"
+git -C "$NEW_DIR" checkout --detach "$NEW_REF"
+test "$(git -C "$NEW_DIR" rev-parse HEAD)" = "$NEW_REF"
+cd "$NEW_DIR"
+npm ci --omit=dev --ignore-scripts
+install -m 0600 "$ACTIVE_DIR/.env.llm" .env.llm
+
+sudo install -d -m 0755 -o "$USER" -g "$USER" /srv/arsnova/models/open-weight-llm
+```
+
+### D.2 Download, SHA-256 und Entfernen der Qwen3-Datei
+
+```bash
+set -euo pipefail
+cd "/opt/arsnova-llm/release-${NEW_REF}"
+
+curl --fail --location --retry 3 --retry-delay 5 \
+  --output /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf.part \
+  https://huggingface.co/unsloth/gemma-3-4b-it-qat-GGUF/resolve/0f80a8ebec6d07600bc3790a042a075527692b49/gemma-3-4b-it-qat-Q4_0.gguf
+
+mv /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf.part \
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
+chmod 0444 /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
+
+node scripts/open-weight-llm/verify-model.mjs \
+  docker/open-weight-llm/model-manifest.json \
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
+
+rm -f /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+```
+
+Erwartete Prüfer-Zeile vor `rm`:
+
+```text
+gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
+```
+
+### D.3 `.env.llm`
+
+Bestehendes Secret behalten. Nur erzeugen, wenn noch keines mit mindestens
+32 Zeichen steht.
+
+```bash
+set -euo pipefail
+cd "/opt/arsnova-llm/release-${NEW_REF}"
+export LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
+export LLM_IMAGE_REF='<REGISTRY>/<IMAGE>@sha256:<64-HEX>'
+
+if [[ -f .env.llm ]] && grep -q '^OPEN_WEIGHT_LLM_TOKEN=.\+' .env.llm; then
+  LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.llm)"
+else
+  LLM_TOKEN="$(openssl rand -hex 32)"
+fi
+test "${#LLM_TOKEN}" -ge 32
+
+install -m 0600 /dev/null .env.llm
+{
+  printf 'OPEN_WEIGHT_LLM_IMAGE=%s\n' "$LLM_IMAGE_REF"
+  printf 'OPEN_WEIGHT_LLM_MODEL_DIR=%s\n' '/srv/arsnova/models/open-weight-llm'
+  printf 'OPEN_WEIGHT_LLM_BIND_ADDRESS=%s\n' "$LLM_PRIVATE_IP"
+  printf 'OPEN_WEIGHT_LLM_THREADS=%s\n' '8'
+  printf 'OPEN_WEIGHT_LLM_TOKEN=%s\n' "$LLM_TOKEN"
+} >.env.llm
+chmod 0600 .env.llm
+unset LLM_TOKEN
+grep -E '^(OPEN_WEIGHT_LLM_IMAGE|OPEN_WEIGHT_LLM_MODEL_DIR|OPEN_WEIGHT_LLM_BIND_ADDRESS|OPEN_WEIGHT_LLM_THREADS)=' .env.llm
+```
+
+Den Checkout danach wie in Abschnitt 14 auf `/opt/arsnova-llm/repository` legen.
+
+### D.4 Docker-Compose-Neustart
+
+```bash
+set -euo pipefail
+cd /opt/arsnova-llm/repository
+npm run llm:prod -- config >/dev/null
+npm run llm:prod -- up -d --force-recreate
+npm run llm:prod -- ps
+```
+
+Derselbe Aufruf ohne Wrapper. Das Profil `llm` ist erforderlich:
+
+```bash
+docker compose -f docker-compose.llm.yml --env-file .env.llm --profile llm up -d --force-recreate
+```
+
+### D.5 Smoke-Test auf dem LLM-Host
+
+```bash
+(
+  set -euo pipefail
+  cd /opt/arsnova-llm/repository
+  LLM_PRIVATE_IP="$(sed -n 's/^OPEN_WEIGHT_LLM_BIND_ADDRESS=//p' .env.llm)"
+  LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.llm)"
+
+  curl --fail --silent --show-error --max-time 5 \
+    "http://${LLM_PRIVATE_IP}:8080/health"
+  echo
+
+  curl --fail --silent --show-error --max-time 90 \
+    --request POST \
+    --header "Authorization: Bearer ${LLM_TOKEN}" \
+    --header 'Content-Type: application/json' \
+    --data '{"model":"gemma-3-4b-it-qat-q4_0","messages":[{"role":"system","content":"Return only JSON matching the schema. Write one short observable learning objective per locale."},{"role":"user","content":"Question: What is the slope of y = 2x + 1? Correct answer: 2. Distractors: 1, 3, 4."}],"response_format":{"type":"json_object","schema":{"type":"object","properties":{"de":{"type":"string","minLength":1},"en":{"type":"string","minLength":1},"fr":{"type":"string","minLength":1},"it":{"type":"string","minLength":1},"es":{"type":"string","minLength":1}},"required":["de","en","fr","it","es"],"additionalProperties":false}},"max_tokens":768,"temperature":0.2,"stream":false,"cache_prompt":true}' \
+    "http://${LLM_PRIVATE_IP}:8080/v1/chat/completions" \
+    | jq -e '.choices[0].finish_reason == "stop" and (.choices[0].message.content | fromjson | has("de") and has("en") and has("fr") and has("it") and has("es"))'
+  echo 'Fünfsprachiges Schema: stop und de, en, fr, it, es vorhanden.'
+)
+```
+
+`/health` verlangt auf diesem Build keinen API-Key. Dieses JSON-Schema prüft nur
+den Server. Die App-Lernzielableitung validiert weiterhin ihr Ein-Locale-Schema.
+
+### D.6 App-Host: Env, Recreate, Konnektivität, Logs
+
+Zuerst das App-Image aus demselben Commit deployen. `<DASSELBE-SECRET>` ist der
+Wert von `OPEN_WEIGHT_LLM_TOKEN` auf dem LLM-Host.
+
+```bash
+set -euo pipefail
+cd /home/deploy/arsnova.eu
+test -f .env.production
+
+upsert() {
+  local key="$1" value="$2"
+  if grep -q "^${key}=" .env.production; then
+    sed -i "s|^${key}=.*|${key}=${value}|" .env.production
+  else
+    printf '%s=%s\n' "$key" "$value" >>.env.production
+  fi
+}
+
+upsert OPEN_WEIGHT_LLM_ENABLED true
+upsert OPEN_WEIGHT_LLM_URL 'http://<PRIVATE-IP-DES-LLM-HOSTS>:8080'
+upsert OPEN_WEIGHT_LLM_SOCKET_PATH ''
+upsert OPEN_WEIGHT_LLM_TOKEN '<DASSELBE-SECRET-WIE-AUF-DEM-LLM-HOST>'
+upsert OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS 30000
+upsert OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS 90000
+upsert OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS 300000
+
+grep -E '^(OPEN_WEIGHT_LLM_ENABLED|OPEN_WEIGHT_LLM_URL|OPEN_WEIGHT_LLM_SOCKET_PATH|OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS|OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS|OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS)=' .env.production
+
+./scripts/prod-compose.sh up -d --force-recreate --no-deps app
+./scripts/prod-compose.sh ps app
+```
+
+Konnektivität vom App-Host:
+
+```bash
+(
+  set -euo pipefail
+  cd /home/deploy/arsnova.eu
+  LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
+  LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.production)"
+
+  curl --fail --silent --show-error --max-time 5 \
+    "http://${LLM_PRIVATE_IP}:8080/health"
+  echo
+
+  curl --fail --silent --show-error --max-time 5 \
+    --header "Authorization: Bearer ${LLM_TOKEN}" \
+    "http://${LLM_PRIVATE_IP}:8080/slots?fail_on_no_slot=1"
+  echo
+)
+```
+
+Lernzielableitung im Quiz-Editor auslösen und parallel die App-Logs lesen.
+Erfolg: `learning_objectives:batch_completed` und
+`learning_objectives:derivation_completed`. Fehler:
+`learning_objectives:batch_failed`.
+
+```bash
+cd /home/deploy/arsnova.eu
+./scripts/prod-compose.sh logs -f --tail=200 app
+```

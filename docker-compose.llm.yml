@@ -29,6 +29,10 @@ services:
       - .env.llm
     environment:
       OPEN_WEIGHT_LLM_TRANSPORT: http
+      # 8 Kerne für Generation und Batch/Prefill. Kontext, Batch und
+      # Prompt-Cache stehen als Hartflags im Entry-Point:
+      # --ctx-size 8192 --parallel 1 --batch-size 2048 --ubatch-size 512
+      # --flash-attn on --cache-reuse 256 --jinja --no-webui
       OPEN_WEIGHT_LLM_THREADS: '8'
     healthcheck:
       test: ['CMD', '/opt/arsnova/healthcheck.sh']
