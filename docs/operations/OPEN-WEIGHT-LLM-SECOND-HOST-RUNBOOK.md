@@ -336,17 +336,15 @@ chmod 0444 /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
 node scripts/open-weight-llm/verify-model.mjs \
   docker/open-weight-llm/model-manifest.json \
   /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
-
-rm -f /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
 ```
 
-Erwartete letzte Zeile vor dem Aufräumen:
+Erwartete letzte Zeile:
 
 ```text
 gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
 ```
 
-Geladen wird nur die Text-GGUF. Keinen Multimodal-Projektor danebenlegen oder an `llama-server` übergeben. `rm` entfernt das abgelöste Qwen3-Artefakt erst nach erfolgreicher Prüfung.
+Geladen wird nur die Text-GGUF. Keinen Multimodal-Projektor danebenlegen oder an `llama-server` übergeben. Eine schon vorhandene `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` bleibt liegen: der Rollback-Checkout in [Abschnitt 14.4](#144-rückkehr-zum-alten-checkout) prüft sie beim Start. Entfernen erst nach bestandener Abnahme, siehe [Anhang D.7](#d7-qwen3-gguf-erst-nach-abnahme-entfernen).
 
 Bei Größen- oder Hashfehler die Datei **nicht** verwenden. Die `.part`-Datei
 beziehungsweise die fehlerhafte `.gguf` entfernen und erneut herunterladen.
@@ -984,7 +982,10 @@ zeitlich begrenzter App-Test wieder aktiviert werden.
 
 Falls der neue Stand nicht abgenommen wird, auf dem App-Host den Kill-Switch auf
 `false` belassen. Auf dem Inferenz-Host die beim Wechsel ausgegebene alte
-Commit-ID einsetzen:
+Commit-ID einsetzen. Die vorherige GGUF muss noch unter
+`/srv/arsnova/models/open-weight-llm/` liegen, weil das alte Manifest sie vor
+dem Start per Größe und SHA-256 prüft. Ohne diese Datei ist der Rollback kein
+Start, sondern ein mehrgigabytegroßer Notfall-Download.
 
 ```bash
 set -euo pipefail
@@ -1246,7 +1247,11 @@ install -m 0600 "$ACTIVE_DIR/.env.llm" .env.llm
 sudo install -d -m 0755 -o "$USER" -g "$USER" /srv/arsnova/models/open-weight-llm
 ```
 
-### D.2 Download, SHA-256 und Entfernen der Qwen3-Datei
+### D.2 Download und SHA-256
+
+Die vorhandene Qwen3-Datei nicht löschen. Sie bleibt der Rollback-Pfad, bis
+[D.7](#d7-qwen3-gguf-erst-nach-abnahme-entfernen) nach der Abnahme ausdrücklich
+bestätigt wird.
 
 ```bash
 set -euo pipefail
@@ -1263,11 +1268,9 @@ chmod 0444 /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
 node scripts/open-weight-llm/verify-model.mjs \
   docker/open-weight-llm/model-manifest.json \
   /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
-
-rm -f /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
 ```
 
-Erwartete Prüfer-Zeile vor `rm`:
+Erwartete letzte Zeile:
 
 ```text
 gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
@@ -1304,21 +1307,47 @@ unset LLM_TOKEN
 grep -E '^(OPEN_WEIGHT_LLM_IMAGE|OPEN_WEIGHT_LLM_MODEL_DIR|OPEN_WEIGHT_LLM_BIND_ADDRESS|OPEN_WEIGHT_LLM_THREADS)=' .env.llm
 ```
 
-Den Checkout danach wie in Abschnitt 14 auf `/opt/arsnova-llm/repository` legen.
+### D.4 Checkout wechseln und Runtime starten
 
-### D.4 Docker-Compose-Neustart
+`stop` allein lässt den festen Containernamen im alten Compose-Projekt. Der
+Block fährt die alte Runtime herunter, behält ihren Checkout als Rollback und
+legt `release-${NEW_REF}` auf `/opt/arsnova-llm/repository`. Erst danach prüft
+`config` die Gemma-GGUF.
 
 ```bash
 set -euo pipefail
+NEW_REF='<NEUER-40-STELLIGER-COMMIT>'
+case "$NEW_REF" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
+test "${#NEW_REF}" -eq 40
+
+ACTIVE_DIR='/opt/arsnova-llm/repository'
+NEW_DIR="/opt/arsnova-llm/release-${NEW_REF}"
+OLD_REF="$(git -C "$ACTIVE_DIR" rev-parse HEAD)"
+ROLLBACK_DIR="/opt/arsnova-llm/rollback-${OLD_REF}"
+
+test -d "$NEW_DIR/.git"
+test "$(git -C "$NEW_DIR" rev-parse HEAD)" = "$NEW_REF"
+test -f "$NEW_DIR/.env.llm"
+test ! -e "$ROLLBACK_DIR"
+printf 'Rollback-Commit für eine mögliche Rückkehr: %s\n' "$OLD_REF"
+
+cd "$ACTIVE_DIR"
+npm run llm:prod -- down
+cd /opt/arsnova-llm
+mv repository "rollback-${OLD_REF}"
+mv "release-${NEW_REF}" repository
+
 cd /opt/arsnova-llm/repository
 npm run llm:prod -- config >/dev/null
 npm run llm:prod -- up -d --force-recreate
 npm run llm:prod -- ps
 ```
 
-Derselbe Aufruf ohne Wrapper. Das Profil `llm` ist erforderlich:
+Alternativ statt `npm run llm:prod -- up -d --force-recreate`, erst nach dem
+`mv` und mit Profil `llm`:
 
 ```bash
+cd /opt/arsnova-llm/repository
 docker compose -f docker-compose.llm.yml --env-file .env.llm --profile llm up -d --force-recreate
 ```
 
@@ -1410,4 +1439,28 @@ Erfolg: `learning_objectives:batch_completed` und
 ```bash
 cd /home/deploy/arsnova.eu
 ./scripts/prod-compose.sh logs -f --tail=200 app
+```
+
+### D.7 Qwen3-GGUF erst nach Abnahme entfernen
+
+Diesen Block erst ausführen, wenn der LLM-Smoke-Test, der App-Smoke-Test und
+eine ausdrückliche Abnahme erfolgt sind. Vorher bleibt
+`Qwen3-4B-Instruct-2507-Q4_K_M.gguf` liegen, damit [Abschnitt 14.4](#144-rückkehr-zum-alten-checkout)
+den alten Checkout ohne neuen Download starten kann.
+
+```bash
+set -euo pipefail
+QWEN_GGUF=/srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+if [ ! -f "$QWEN_GGUF" ]; then
+  echo 'Keine Qwen3-Datei vorhanden.'
+  exit 0
+fi
+ls -l "$QWEN_GGUF"
+read -r -p 'Qwen3-GGUF nach bestandener Abnahme löschen? Zum Bestätigen LOESCHEN eingeben: ' CONFIRM
+if [ "$CONFIRM" = 'LOESCHEN' ]; then
+  rm -- "$QWEN_GGUF"
+  echo 'Qwen3-GGUF gelöscht.'
+else
+  echo 'Nicht gelöscht.'
+fi
 ```
