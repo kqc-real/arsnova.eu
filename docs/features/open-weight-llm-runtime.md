@@ -2,7 +2,7 @@
 
 # Private Open-Weight-LLM-Runtime (Story 8.9d / Runtime R)
 
-**Stand:** 2026-10-17
+**Stand:** 2026-10-29
 
 **Status:** Runtime, App-Verträge und Betriebswrapper implementiert; `topic_label` (Einzel- und Multi-Cluster-Batching), `qa_summary` V2 (`qa-summary-model-output-v3`) und `learning_objectives` sind als getrennte Consumer verdrahtet und auf dem privaten 8-vCPU-Produktionshost (`arsnova-privat`) real vermessen
 
@@ -18,7 +18,7 @@ Runtime R stellt eine gemeinsame, private CPU-Runtime für drei getrennte techni
 
 Die versionierten Zod-Verträge liegen in `libs/shared-types/src/open-weight-llm.ts`. Der Backend-Client übersetzt ausschließlich diese Verträge nach llama.cpp Chat Completions, prüft die strukturierte Antwort erneut und verwirft unbekannte Quellen- oder Aufgabenreferenzen. #456 Slice 5 verdrahtet den bewusst ausgelösten Vorbereitungsauftrag aus [Modellgestützte Lernzielableitung](learning-objective-derivation.md); Slice 7 verdrahtet `qa_summary` V2 mit dem versionierten [Moderations-Prompt-Kontext](moderation-prompt-context.md), einem hostgeschützten Vorschaupfad und dem extraktiven Backend-Fallback. Der Labelpfad ist für Host-Q&A und Host-Freitext angeschlossen und bleibt produktiv aus: [WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md](../implementation/WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md). Alle drei Aufträge behalten eigene Aktivierungs-, Schema-, Timeout- und Fallbackgrenzen.
 
-`topic_label` (Einzelauftrag V1 und Multi-Cluster-Sammelauftrag V2), `learning_objectives` und der Legacy-Summaryauftrag sind zusätzlich auf 2.500 UTF-8-Bytes für die vollständig serialisierte User-Nachricht begrenzt. Größere Mengen unbenannter Cluster (`packBatchRequests`) bzw. größere Lernzielmengen werden deterministisch in einen oder mehrere sequenzielle, größenbegrenzte Aufträge (≤ 2.500 UTF-8-Bytes) geteilt. Summary V2 besitzt bewusst nicht diese historische Gesamtgrenze, sondern den bereits gepackten `ModerationPromptContextV1` mit seinem eigenen Kontext-, Instruktions-, Definitions-, Antwort- und Sicherheitsbudget. Sein festes Profil reserviert bei 8.192 insgesamt 640 für die Antwort und 128 als Sicherheitsmarge (unter dem praxisnahen 8k-Arbeitsfenster von Qwen3-4B Q4; nativ 32k, nie Modelldefault).
+`topic_label` (Einzelauftrag V1 und Multi-Cluster-Sammelauftrag V2), `learning_objectives` und der Legacy-Summaryauftrag sind zusätzlich auf 2.500 UTF-8-Bytes für die vollständig serialisierte User-Nachricht begrenzt. Größere Mengen unbenannter Cluster (`packBatchRequests`) bzw. größere Lernzielmengen werden deterministisch in einen oder mehrere sequenzielle, größenbegrenzte Aufträge (≤ 2.500 UTF-8-Bytes) geteilt. Summary V2 besitzt bewusst nicht diese historische Gesamtgrenze, sondern den bereits gepackten `ModerationPromptContextV1` mit seinem eigenen Kontext-, Instruktions-, Definitions-, Antwort- und Sicherheitsbudget. Sein festes Profil reserviert bei 8.192 insgesamt 640 für die Antwort und 128 als Sicherheitsmarge (Arbeitsfenster von Gemma 3 4B QAT Q4_0; nativ 131.072, nie Modelldefault).
 
 Der Summary-V2-Referenzkontext passt im 8.192-Profil mit Q&A-Belegen und sichtbaren Kürzungen; bei zu großen Basismetadaten degradiert der Packer kontrolliert auf Q&A-Textbaseline bzw. Force-Fit-Mindestbelege. Das verhindert unausführbare Großaufträge, belegt aber nicht die Prefill-/RSS-Abnahme auf dem vorgesehenen CPU-Host. Es gibt keinen stillen Ausbau auf Modelldefault (32k/128k), keine GPU- und keine SaaS-Ausweicharchitektur.
 
@@ -28,23 +28,25 @@ Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokal
 
 ## Gepinnte Artefakte
 
-| Artefakt          | Pin                                                                                       |
-| ----------------- | ----------------------------------------------------------------------------------------- |
-| llama.cpp Runtime | `server-b10524@sha256:57e505f69c3a55fa5dd9c15fced47cff7a899f5b5b504ea93d75b2f401b87830`   |
-| Modell            | `unsloth/Qwen3-4B-Instruct-2507-GGUF` Revision `a06e946bb6b655725eafa393f4a9745d460374c9` |
-| Datei             | `Qwen3-4B-Instruct-2507-Q4_K_M.gguf`, 2.497.281.120 Byte                                  |
-| GGUF SHA-256      | `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`                        |
+| Artefakt          | Pin                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| llama.cpp Runtime | `server-b10524@sha256:57e505f69c3a55fa5dd9c15fced47cff7a899f5b5b504ea93d75b2f401b87830` |
+| Modell            | `unsloth/gemma-3-4b-it-qat-GGUF` Revision `0f80a8ebec6d07600bc3790a042a075527692b49`    |
+| Datei             | `gemma-3-4b-it-qat-Q4_0.gguf`, 2.370.065.536 Byte                                       |
+| GGUF SHA-256      | `6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2`                      |
 
 Die kanonische Quelle ist `docker/open-weight-llm/model-manifest.json`. Das GGUF wird nicht in das Image kopiert und nie beim Containerstart aus dem Netz geladen. Betreiber:innen beziehen es einmalig über die dort festgehaltene, revisionsgebundene URL und prüfen es vor jedem Start:
 
 ```bash
 curl --fail --location \
-  --output /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
-  https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  --output /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf \
+  https://huggingface.co/unsloth/gemma-3-4b-it-qat-GGUF/resolve/0f80a8ebec6d07600bc3790a042a075527692b49/gemma-3-4b-it-qat-Q4_0.gguf
 node scripts/open-weight-llm/verify-model.mjs \
   docker/open-weight-llm/model-manifest.json \
-  /srv/arsnova/models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  /srv/arsnova/models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf
 ```
+
+Gemma 3 4B Instruct QAT ersetzt Qwen3-4B-Instruct-2507. Der Tokenizer hat 262.144 Einträge und deckt `de`, `en`, `fr`, `it` und `es` ohne Thinking-Kanal ab. Q4_0 ist hier Quantization-Aware Training, nicht eine nachträgliche K-Quantisierung. Geladen wird nur die Text-GGUF. Der Multimodal-Projektor bleibt außen vor und spart dadurch RAM und Startzeit in der Größenordnung von etwa 600 MB. Der Alias ist `gemma-3-4b-it-qat-q4_0`. Ein Fenster von 4.096 Tokens reicht für den Summary-V2-Referenzkontext nicht: Themen, Kompass und mehrere Q&A-Quellen fallen dann aus dem Packer. `--ctx-size` bleibt deshalb 8192, auch auf dem dedizierten 8-Kern-/16-GB-Host. Der Container bleibt bei 8 GiB RAM.
 
 ## Topologien
 
@@ -92,7 +94,7 @@ URL und Socket sind gegenseitig exklusiv. Das Flag bleibt bis zur gesonderten Co
 **Studierende / Fork ohne Inferenz-SSH:** `npm run dev` braucht kein Modell. Die verständliche
 Anleitung zum lokalen Docker-Labor (Modell laden, `npm run docker:up:llm:http` neben dem
 Dev-Server, `.env`) steht in
-[docs/onboarding.md](../onboarding.md#optional-lokale-text-ki-qwen3-4b).
+[docs/onboarding.md](../onboarding.md#optional-lokale-text-ki-gemma-3-4b).
 Die folgenden Befehle sind der technische Vertrag dazu.
 
 ```bash
@@ -132,7 +134,8 @@ Das Profil `llm-http` ist ausschließlich ein lokaler Laborpfad. Der Produktions
 - vor jedem Modellaufruf `GET /slots?fail_on_no_slot=1`;
 - maximal ein POST nach erfolgreicher Slot-Sonde, keine App-interne Modellqueue;
 - belegter Slot: Label und Summary liefern sofort ihren fachlichen Fallback, Lernzielableitung `{ status: "busy", retry: "manual" }`;
-- Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung, brechen danach den HTTP-Aufruf ab und lösen das globale Inflight in `finally`; verspätete DNS-Ergebnisse starten keinen Request. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches;
+- Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung, brechen danach den HTTP-Aufruf ab und lösen das globale Inflight in `finally`; verspätete DNS-Ergebnisse starten keinen Request. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches. 300 Sekunden liegen über den etwa 25–35 Sekunden, die eine fünfsprachige Antwort von rund 400–600 Ausgabetokens auf 8 CPU-Kernen braucht. Der Produktvertrag sendet weiterhin eine Locale pro Batch; das Serverbudget deckt zusätzlich eine simultane Antwort in `de`, `en`, `fr`, `it` und `es`;
+- jeder Chat-Completion-Aufruf sendet `cache_prompt: true` und `temperature: 0.2`. Qwen3-Felder `reasoning_effort`, `chat_template_kwargs.enable_thinking` und `/no_think` entfallen, weil Gemma 3 Instruct keine Denk-Tokens erzeugt;
 - Circuit Breaker öffnet nach drei Timeout-/Verfügbarkeits-/Antwortfehlern für 30 Sekunden;
 - URL-Hostnamen werden aufgelöst und auf ausschließlich Loopback/RFC1918/ULA geprüft; die Anfrage wird an die geprüfte IP gepinnt;
 - Telemetrie enthält nur Auftragstyp, Modellalias, Laufzeit und Tokenzahlen, keine Prompttexte.
@@ -144,16 +147,21 @@ llama.cpp b10524 dokumentiert mehrere strukturierte `response_format`-Varianten.
 Der Entry-Point erzwingt unter anderem:
 
 ```text
---parallel 1 --ctx-size 8192 --n-predict 768
+--parallel 1 --ctx-size 8192 --batch-size 2048 --ubatch-size 512 --n-predict 768
+--threads N --threads-batch N --flash-attn on --cache-reuse 256
 --no-webui --slots --api-key … --reasoning off
 --n-gpu-layers 0 --slot-prompt-similarity 0 --jinja --offline
 ```
+
+`N` ist `OPEN_WEIGHT_LLM_THREADS`: 8 auf dem dedizierten Host, 4 im Same-Host-Labor. `--reasoning off` bleibt als neutrale Serversperre. Es gibt kein Thinking-Budget im Request. `--cache-reuse 256` hält den gemeinsamen Systemprompt im KV-Cache, sobald der Client `cache_prompt` setzt. Ein Multimodal-Projektor wird nicht übergeben.
 
 Containergrenzen: 4 CPU im Same-Host-Labor (`docker-compose.yml`, `docker-compose.prod.yml`) bzw. 8 CPU auf dem zweiten Produktionshost (`docker-compose.llm.yml`), 128 PIDs, read-only Root-Dateisystem, alle Linux-Capabilities entfernt und `no-new-privileges`. Die Same-Host-Laborprofile bleiben auf 5 GiB RAM begrenzt. Der separate Produktionshost nutzt 8 GiB RAM und 10 GiB als Gesamtgrenze für RAM plus Swap; die höhere Grenze ist für den vollständigen Lernzielauftrag vorgesehen. Der Server bindet nie automatisch an eine Wildcard.
 
 Der `/health`-Endpunkt des gepinnten llama.cpp-Builds erzwingt selbst keinen API-Key. Der Container-Healthcheck sendet den Bearer-Header zwar mit, aber die Readiness-Antwort ist keine Authentisierungsgrenze. Deshalb bleiben privates Netz beziehungsweise `network_mode: none` und die Host-Firewall verbindlich. Die auftragsrelevanten Endpunkte `/slots` und `/v1/chat/completions` erzwingen das exakte Runtime-Credential.
 
-## Vollständig protokollierte lokale Modellprüfung vom 2026-10-05
+## Historische Modellprüfung vom 2026-10-05 (Qwen3-4B, abgelöst)
+
+Die folgenden HTTP-Körper stammen vom vorherigen Pin `Qwen3-4B-Instruct-2507-Q4_K_M`. Sie sind kein Nachweis für Gemma 3 4B QAT. Der aktuelle Translator steht in [`scripts/open-weight-llm/fixtures/topic-label-reproduction-request.json`](../../scripts/open-weight-llm/fixtures/topic-label-reproduction-request.json): Alias `gemma-3-4b-it-qat-q4_0`, `temperature` 0.2, `cache_prompt` true, ohne Thinking-Felder.
 
 Messgrenze: Apple M2 Pro, 12 Kerne, 16 GB RAM; Docker-Linux `arm64`; Containerlimit 4 CPU / 5 GiB; CPU-only; Unix-Socket; verifiziertes GGUF mit SHA-256 `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`. Die beiden Reproduktionsläufe liefen auf Runtime-Image-ID `sha256:b53c8233a91413e428b406f70056c28a7d90d5ff41d3726919156a211bd063a5`. Nach der abschließenden Socket-Gruppenfreigabe wurde derselbe vollständige Aufruf zusätzlich auf der finalen Runtime-Image-ID `sha256:1ea83a0b3831bb7b575f131615a453b63b7f7c0c3b5feedcdfc612760abee633` wiederholt. Die Prüfung ist ein Runtime- und Vertragsnachweis, keine Produktions- oder Qualitätsabnahme der drei Consumer.
 
@@ -195,7 +203,7 @@ Ausgabeschema, vollständig; nur die nicht semantische JSON-Whitespace-Formatier
 }
 ```
 
-Weitere Wire-Parameter: Modellalias `qwen3-4b-instruct-2507-q4_k_m`, `response_format.type=json_object`, `max_tokens=96`, `temperature=0`, `stream=false`, `reasoning_effort=none` und `chat_template_kwargs.enable_thinking=false`. Beide Läufe sendeten dieselbe Fixture bytegleich. Der zweite Aufruf erfolgte unmittelbar nach dem ersten gegen denselben Prozess. IDs und `created`-Zeitstempel werden vom Server pro Aufruf erzeugt und sind erwartungsgemäß nicht wiederholbar.
+Weitere Wire-Parameter dieser historischen Läufe: Modellalias `qwen3-4b-instruct-2507-q4_k_m`, `response_format.type=json_object`, `max_tokens=96`, `temperature=0`, `stream=false`, `reasoning_effort=none` und `chat_template_kwargs.enable_thinking=false`. Beide Läufe sendeten die damalige Qwen3-Anfrage bytegleich. Die Datei im Repository folgt seit der Gemma-Umstellung dem aktuellen Translator. Der zweite Aufruf erfolgte unmittelbar nach dem ersten gegen denselben Prozess. IDs und `created`-Zeitstempel werden vom Server pro Aufruf erzeugt und sind erwartungsgemäß nicht wiederholbar.
 
 ### Lauf 1: erster Abschlussaufruf nach Readiness
 

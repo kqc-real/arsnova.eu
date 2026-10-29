@@ -25,7 +25,7 @@ Welche **weiteren** Dokumente für deine Veranstaltung Pflicht sind, sagt dir di
 
 **Zum Veranstaltungsstart:** Die Lehrperson ergänzt den Einstieg durch eine **Greenfield-Demo** zu **Story 1.7a**. Das hilft beim Überblick über Repo, Werkzeuge und Arbeitsweise, ersetzt aber **nicht** das praktische Setup.
 
-**Wenn du nur den ersten lauffähigen Stand brauchst:** `cp .env.example .env` → `npm ci` → `npm run setup:dev` → `npm run dev` → Browser auf **`http://localhost:4200`**. Das ist für Einsteiger der einfachste Start. Die lokale Text-KI ist **kein** Pflichtschritt; ohne Modell, Download oder SSH-Schlüssel läuft die App trotzdem. **Gefüllte Session** (Freitext + Q&A, ~500 Einträge): auf macOS `npm run spacy:macos-dev`, sonst die Seeds in [`docs/onboarding.md`](../onboarding.md#volle-lokale-session-mit-hoher-befüllung). **Optionale Text-KI** (Qwen3-4B in Docker): [`docs/onboarding.md`](../onboarding.md#optional-lokale-text-ki-qwen3-4b).
+**Wenn du nur den ersten lauffähigen Stand brauchst:** `cp .env.example .env` → `npm ci` → `npm run setup:dev` → `npm run dev` → Browser auf **`http://localhost:4200`**. Das ist für Einsteiger der einfachste Start. Die lokale Text-KI ist **kein** Pflichtschritt; ohne Modell, Download oder SSH-Schlüssel läuft die App trotzdem. **Gefüllte Session** (Freitext + Q&A, ~500 Einträge): auf macOS `npm run spacy:macos-dev`, sonst die Seeds in [`docs/onboarding.md`](../onboarding.md#volle-lokale-session-mit-hoher-befüllung). **Optionale Text-KI** (Gemma 3 4B in Docker): [`docs/onboarding.md`](../onboarding.md#optional-lokale-text-ki-gemma-3-4b).
 
 **Wenn du Windows nutzt:** Für dieses Repo bitte direkt **WSL2 mit Ubuntu** verwenden. Klone das Repo in WSL (z. B. `~/projects/arsnova.eu`) und führe die Befehle dort aus. **Nicht** PowerShell, **nicht** Git Bash und möglichst **nicht** unter `/mnt/c/...` arbeiten.
 
@@ -56,7 +56,7 @@ Welche **weiteren** Dokumente für deine Veranstaltung Pflicht sind, sagt dir di
 ### Docker (nur Grundlagen)
 
 - **Was:** Läuft **PostgreSQL** und **Redis** lokal in Containern, ohne sie „von Hand“ zu installieren. Optional startest du darüber auch spaCy oder die lokale Text-KI.
-- **Im Projekt:** `docker compose up -d postgres redis` (siehe `onboarding.md`). Die Text-KI ist **kein** Pflichtstart; wer lokal mit Qwen3-4B experimentieren will, folgt [onboarding.md § Text-KI](../onboarding.md#optional-lokale-text-ki-qwen3-4b).
+- **Im Projekt:** `docker compose up -d postgres redis` (siehe `onboarding.md`). Die Text-KI ist **kein** Pflichtstart; wer lokal mit Gemma 3 4B experimentieren will, folgt [onboarding.md § Text-KI](../onboarding.md#optional-lokale-text-ki-gemma-3-4b).
 - **Einstieg:** Du musst Docker nicht programmieren — nur installieren und den Befehl aus der Anleitung ausführen. [Docker — Get Started](https://docs.docker.com/get-started/) (Englisch).
 
 ### Windows + WSL2 (für dieses Repo der Standardweg)

@@ -459,3 +459,7 @@ Prefill-/RSS-Detailabnahme an der 8.192-Obergrenze und die fachliche Qualitätsa
 [Issue #456 – Slice-8-Abnahme](../../implementation/ISSUE-456-SLICE-8-ABNAHME.md) dokumentiert.
 
 Der finale Moderationsprompt bleibt Folgearbeit; der Lernzielauftrag gehört zu #456.
+
+### Nachtrag 2026-10-29: Gemma 3 4B Instruct QAT
+
+Das gepinnte GGUF ist `unsloth/gemma-3-4b-it-qat-GGUF` Revision `0f80a8ebec6d07600bc3790a042a075527692b49`, Datei `gemma-3-4b-it-qat-Q4_0.gguf`, SHA-256 `6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2`. Die Runtime bleibt llama.cpp `server-b10524`, CPU-only, ein Slot. Der Tokenizer mit 262.144 Einträgen trägt `de`, `en`, `fr`, `it` und `es`. Q4_0 ist Quantization-Aware Training. Es gibt keinen Thinking-Kanal und keinen Multimodal-Projektor. `--ctx-size` bleibt 8192, weil 4096 den Summary-V2-Referenzkontext nicht mehr mit Themen, Kompass und mehreren Q&A-Quellen packt. Das native Fenster von 131.072 Tokens wird nicht geladen. Die Qwen3-Messungen vom Oktober 2026 bleiben historische Nachweise, keine Gemma-Qualitätsabnahme.

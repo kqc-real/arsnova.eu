@@ -777,7 +777,7 @@ ADR 0035 entscheidet sich für einen direkten `llama-server` aus llama.cpp statt
 
 ### 14.1 Modellprofil und strukturierte Ausgabe
 
-Als Ausgangsprofil ist Qwen3-4B-Instruct-2507 in GGUF-Quantisierung Q4_K_M vorgesehen. Das ist ein zu messender Ausgangspunkt, kein allgemeiner Qualitäts- oder Latenznachweis. Quantisierung reduziert Speicherbedarf, kann aber die Ausgabequalität beeinflussen.
+Als Ausgangsprofil ist Gemma 3 4B Instruct QAT in GGUF-Quantisierung Q4_0 vorgesehen. Das ist ein zu messender Ausgangspunkt, kein allgemeiner Qualitäts- oder Latenznachweis. Quantization-Aware Training reduziert Speicherbedarf, kann aber die Ausgabequalität beeinflussen.
 
 Jede Auftragsart verwendet einen eigenen engen Ausgabevertrag:
 

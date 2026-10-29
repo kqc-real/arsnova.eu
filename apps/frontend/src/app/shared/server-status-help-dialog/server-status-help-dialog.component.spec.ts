@@ -838,8 +838,8 @@ describe('ServerStatusHelpDialogComponent', () => {
       overall: 'ok',
       checkedAt: '2026-10-14T03:05:00.000Z',
       cache: 'live',
-      modelAlias: 'qwen3-4b-instruct-2507-q4_k_m',
-      modelReported: 'qwen3-4b-instruct-2507-q4_k_m',
+      modelAlias: 'gemma-3-4b-it-qat-q4_0',
+      modelReported: 'gemma-3-4b-it-qat-q4_0',
       tasks: {
         topic_label: { status: 'ok', elapsedMs: 10, reason: null },
         qa_summary: { status: 'ok', elapsedMs: 20, reason: null },
