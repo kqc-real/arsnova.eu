@@ -64,17 +64,23 @@ gelten wieder die Grenzen aus `docker-compose.llm.yml`. Nach jedem Runtime-Deplo
 deshalb mit `docker inspect` prüfen, dass `HostConfig.Memory` 8589934592 Byte
 und `HostConfig.MemorySwap` 10737418240 Byte beträgt.
 
-Vor dem Beginn müssen diese vier Werte bekannt sein:
+Vor dem Beginn müssen diese fünf Werte bekannt sein:
 
-| Name                          | Beispiel                                            | Woher kommt der Wert?                                          |
-| ----------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
-| private IP des App-Hosts      | `10.0.0.10`                                         | Hosting-/Netz-Konfiguration des bestehenden arsnova.eu-Servers |
-| private IP des Inferenz-Hosts | `10.0.0.20`                                         | Hosting-/Netz-Konfiguration der zweiten Box                    |
-| arsnova.eu Git-Commit         | vollständige 40-stellige Commit-ID                  | freigegebener Produktionsstand                                 |
-| Runtime-Image                 | `registry.example/arsnova-open-weight-llm@sha256:…` | von Release-Verantwortlichen bereitgestelltes Digest-Image     |
+| Name                          | Beispiel                               | Woher kommt der Wert?                                                                            |
+| ----------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| private IP des App-Hosts      | `10.0.0.10`                            | Hosting-/Netz-Konfiguration des bestehenden arsnova.eu-Servers                                   |
+| private IP des Inferenz-Hosts | `10.0.0.20`                            | Hosting-/Netz-Konfiguration der zweiten Box; nur RFC1918-IPv4                                    |
+| arsnova.eu Git-Commit         | vollständige 40-stellige Commit-ID     | freigegebener Produktionsstand; zugleich `NEW_REF` und `DEPLOY_SHA`                              |
+| `LLM_IMAGE_REF`               | `ghcr.io/ggml-org/llama.cpp@sha256:…`  | Digest des llama.cpp-Server-Images aus `runtimeImage` im Modellmanifest; Release-Verantwortliche |
+| `DEPLOY_IMAGE`                | `ghcr.io/kqc-real/arsnova.eu@sha256:…` | Digest des arsnova.eu-App-Images zu diesem Commit; Release-Verantwortliche, nicht das LLM-Image  |
 
-Das Runtime-Image darf **kein bloßer Tag** wie `:latest` sein. Fehlt das
-Digest-Image noch, siehe [Anhang A](#anhang-a-runtime-image-einmalig-bauen-und-publizieren).
+`LLM_IMAGE_REF` und `DEPLOY_IMAGE` sind nicht austauschbar. `LLM_IMAGE_REF` ist
+das llama.cpp-Server-Image, aktuell
+`ghcr.io/ggml-org/llama.cpp:server-b10524@sha256:57e505f69c3a55fa5dd9c15fced47cff7a899f5b5b504ea93d75b2f401b87830`.
+`DEPLOY_IMAGE` beginnt mit `ghcr.io/kqc-real/arsnova.eu@sha256:` und enthält den
+64-stelligen Digest des App-Images. Keines von beiden darf ein bloßer Tag wie
+`:latest` sein. Fehlt das LLM-Digest-Image noch, siehe
+[Anhang A](#anhang-a-runtime-image-einmalig-bauen-und-publizieren).
 
 ### 2.2 Was nicht in dieses Runbook gehört
 
@@ -619,8 +625,34 @@ Endpunkt testen:
 (
   set -euo pipefail
   LLM_PRIVATE_IP='<PRIVATE-IP-DES-INFERENZ-HOSTS>'
+  if ! [[ "$LLM_PRIVATE_IP" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]; then
+    echo 'LLM-Adresse ist kein IPv4-Literal. Kein Request gesendet.' >&2
+    exit 1
+  fi
+  o1="${BASH_REMATCH[1]}"
+  o2="${BASH_REMATCH[2]}"
+  o3="${BASH_REMATCH[3]}"
+  o4="${BASH_REMATCH[4]}"
+  for octet in "$o1" "$o2" "$o3" "$o4"; do
+    case "$octet" in
+      ''|*[!0-9]*|0[0-9]*) echo 'LLM-Adresse ist kein IPv4-Literal. Kein Request gesendet.' >&2; exit 1 ;;
+    esac
+    if [ "$octet" -gt 255 ]; then
+      echo 'LLM-Adresse ist kein IPv4-Literal. Kein Request gesendet.' >&2
+      exit 1
+    fi
+  done
+  rfc1918=0
+  if [ "$o1" -eq 10 ]; then rfc1918=1; fi
+  if [ "$o1" -eq 172 ] && [ "$o2" -ge 16 ] && [ "$o2" -le 31 ]; then rfc1918=1; fi
+  if [ "$o1" -eq 192 ] && [ "$o2" -eq 168 ]; then rfc1918=1; fi
+  if [ "$rfc1918" -ne 1 ]; then
+    echo 'LLM-Adresse ist kein RFC1918-IPv4-Literal. Kein Request gesendet.' >&2
+    exit 1
+  fi
   read -r -s -p 'OPEN_WEIGHT_LLM_TOKEN aus dem Passwortmanager: ' LLM_TOKEN
   echo
+  trap 'unset LLM_TOKEN' EXIT
   curl --fail --silent --show-error --max-time 5 \
     --header "Authorization: Bearer $LLM_TOKEN" \
     "http://${LLM_PRIVATE_IP}:8080/slots?fail_on_no_slot=1" \
@@ -1231,8 +1263,9 @@ derselbe Wert schon in einem früheren Block stand. Die Überschrift nennt den H
 `<NEUER-40-STELLIGER-COMMIT>` ist der freigegebene Stand mit diesem Pin und zugleich
 `DEPLOY_SHA` auf dem App-Host. Der Alias `gemma-3-4b-it-qat-q4_0` steckt im Backend
 und nicht in einer Env-Variable. App-Image und LLM-Host müssen denselben Stand
-fahren. `--ctx-size` bleibt 8192. Den Consumer erst in D.8 wieder einschalten, nach
-grünem LLM-Smoke-Test und nachgewiesenem neuen App-Image.
+fahren. `--ctx-size` bleibt 8192. Den Consumer erst in D.8 wieder einschalten, nachdem der LLM-Smoke-Test grün ist,
+das neue App-Image nachgewiesen ist und `/health` sowie `/slots` vom App-Host
+bei noch ausgeschaltetem Kill-Switch geantwortet haben.
 
 ### D.0 App-Host: Consumer ausschalten
 
@@ -1332,6 +1365,7 @@ gemma-3-4b-it-qat-Q4_0.gguf: verified 2370065536 bytes, sha256:6a9baaf400db52a68
 Bestehendes Secret behalten und nicht ausgeben. Nur erzeugen, wenn noch keines mit
 gültigem Zeichensatz und 32 bis 512 Zeichen steht. Einen neuen Wert sofort im
 Passwortmanager speichern, nicht in Chat, Ticket oder einem weiteren Befehl.
+`LLM_IMAGE_REF` ist der llama.cpp-Digest aus dem Werteblatt, nicht `DEPLOY_IMAGE`.
 
 ```bash
 set -euo pipefail
@@ -1558,8 +1592,11 @@ aus `.env.arsnova-image`. Der folgende Deploy ist der kanonische Ablauf aus der
 Deploy-Dokumentation: `DEPLOY_SHA`, `DEPLOY_IMAGE`, die vier Git-Prüfungen von
 `scripts/deploy/checkout-deploy-sha.sh` und danach `scripts/deploy.sh`. Die
 Prüfungen stehen inline, weil der bisher installierte Checkout den Helfer noch
-nicht enthalten muss. `DEPLOY_SHA` ist derselbe Commit wie `NEW_REF`. Der
-Kill-Switch bleibt `false`, bis der Digest-Nachweis gelungen ist.
+nicht enthalten muss. `DEPLOY_SHA` ist derselbe Commit wie `NEW_REF`.
+`DEPLOY_IMAGE` ist das arsnova.eu-App-Image aus dem Werteblatt. Es ist nicht
+`LLM_IMAGE_REF` und nicht das llama.cpp-Server-Image. Der Kill-Switch bleibt
+`false`, bis der Digest-Nachweis gelungen ist und der App-Host `/health` sowie
+`/slots` auf der RFC1918-Adresse erreicht hat.
 
 Token nicht in den Befehl schreiben. Auf dem LLM-Host liegt er in `.env.llm` mit
 Modus `0600`. Steht er noch nicht im Passwortmanager, ihn dort einmalig aus einem
@@ -1617,31 +1654,73 @@ test "$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{e
 echo 'Laufende App entspricht freigegebenem Digest und Commit.'
 ```
 
-Erst jetzt URL, Timeouts und Token setzen und den Consumer einschalten. Das Secret
-kommt verdeckt aus dem Passwortmanager.
+Zuerst die Adresse als RFC1918-IPv4 prüfen und `/health` sowie `/slots` mit dem
+verdeckt gelesenen Token testen. `OPEN_WEIGHT_LLM_ENABLED` bleibt dabei `false`.
+Erst wenn beide Antworten gelingen, schreibt der Block `true` und erstellt die
+App neu. Schlägt die Prüfung fehl, endet der Block vorher; `false` bleibt stehen.
+Das Secret kommt verdeckt aus dem Passwortmanager.
 
 ```bash
 set -euo pipefail
 cd /home/deploy/arsnova.eu
 test -f .env.production
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
 DEPLOY_SHA='<NEUER-40-STELLIGER-COMMIT>'
 DEPLOY_IMAGE='ghcr.io/kqc-real/arsnova.eu@sha256:<64-HEX>'
 LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
 case "$DEPLOY_SHA" in *[!0-9a-f]*|'') echo 'Ungültige Commit-ID.' >&2; exit 1 ;; esac
 test "${#DEPLOY_SHA}" -eq 40
 printf '%s\n' "$DEPLOY_IMAGE" | grep -Eq '^ghcr\.io/kqc-real/arsnova\.eu@sha256:[a-f0-9]{64}$'
-case "$LLM_PRIVATE_IP" in *'<'*|*'>'*) echo 'Platzhalter in der LLM-IP.' >&2; exit 1 ;; esac
 test "$(sed -n 's/^SHA=//p' .deploy-state/current.state)" = "$DEPLOY_SHA"
 test "$(docker inspect --format '{{.Image}}' arsnova-v3-app)" = "$(docker image inspect --format '{{.Id}}' "$DEPLOY_IMAGE")"
 
-read -r -s -p 'OPEN_WEIGHT_LLM_TOKEN aus dem Passwortmanager: ' LLM_TOKEN
-echo
-case "$LLM_TOKEN" in *[!A-Za-z0-9._~-]*) echo 'Token-Zeichensatz ungültig.' >&2; unset LLM_TOKEN; exit 1 ;; esac
-if [ "${#LLM_TOKEN}" -lt 32 ] || [ "${#LLM_TOKEN}" -gt 512 ]; then
-  echo 'Token-Länge ungültig.' >&2
-  unset LLM_TOKEN
+if ! [[ "$LLM_PRIVATE_IP" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]; then
+  echo 'LLM-Adresse ist kein IPv4-Literal. Kein Request gesendet, Kill-Switch bleibt false.' >&2
   exit 1
 fi
+o1="${BASH_REMATCH[1]}"
+o2="${BASH_REMATCH[2]}"
+o3="${BASH_REMATCH[3]}"
+o4="${BASH_REMATCH[4]}"
+for octet in "$o1" "$o2" "$o3" "$o4"; do
+  case "$octet" in
+    ''|*[!0-9]*|0[0-9]*)
+      echo 'LLM-Adresse ist kein IPv4-Literal. Kein Request gesendet, Kill-Switch bleibt false.' >&2
+      exit 1
+      ;;
+  esac
+  if [ "$octet" -gt 255 ]; then
+    echo 'LLM-Adresse ist kein IPv4-Literal. Kein Request gesendet, Kill-Switch bleibt false.' >&2
+    exit 1
+  fi
+done
+rfc1918=0
+if [ "$o1" -eq 10 ]; then rfc1918=1; fi
+if [ "$o1" -eq 172 ] && [ "$o2" -ge 16 ] && [ "$o2" -le 31 ]; then rfc1918=1; fi
+if [ "$o1" -eq 192 ] && [ "$o2" -eq 168 ]; then rfc1918=1; fi
+if [ "$rfc1918" -ne 1 ]; then
+  echo 'LLM-Adresse ist kein RFC1918-IPv4-Literal. Kein Request gesendet, Kill-Switch bleibt false.' >&2
+  exit 1
+fi
+
+read -r -s -p 'OPEN_WEIGHT_LLM_TOKEN aus dem Passwortmanager: ' LLM_TOKEN
+echo
+trap 'unset LLM_TOKEN' EXIT
+case "$LLM_TOKEN" in *[!A-Za-z0-9._~-]*) echo 'Token-Zeichensatz ungültig. Kill-Switch bleibt false.' >&2; exit 1 ;; esac
+if [ "${#LLM_TOKEN}" -lt 32 ] || [ "${#LLM_TOKEN}" -gt 512 ]; then
+  echo 'Token-Länge ungültig. Kill-Switch bleibt false.' >&2
+  exit 1
+fi
+
+curl --fail --silent --show-error --max-time 5 \
+  "http://${LLM_PRIVATE_IP}:8080/health"
+echo
+curl --fail --silent --show-error --max-time 5 \
+  --header "Authorization: Bearer ${LLM_TOKEN}" \
+  "http://${LLM_PRIVATE_IP}:8080/slots?fail_on_no_slot=1"
+echo
+test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=false$' .env.production)" -eq 1
+echo 'App-Host erreicht /health und /slots. Kill-Switch ist noch false.'
 
 upsert() {
   local key="$1" value="$2"
@@ -1659,7 +1738,6 @@ upsert OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS 30000
 upsert OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS 90000
 upsert OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_MS 300000
 upsert OPEN_WEIGHT_LLM_ENABLED true
-unset LLM_TOKEN
 chmod 0600 .env.production
 
 test "$(grep -c '^OPEN_WEIGHT_LLM_ENABLED=true$' .env.production)" -eq 1
@@ -1681,28 +1759,6 @@ if [ "$STATUS" != 'healthy' ]; then
   ./scripts/prod-compose.sh logs --tail=200 app || true
   exit 1
 fi
-```
-
-Konnektivität vom App-Host. Der Token wird aus der Datei gelesen und nicht
-ausgegeben.
-
-```bash
-(
-  set -euo pipefail
-  cd /home/deploy/arsnova.eu
-  LLM_PRIVATE_IP='<PRIVATE-IP-DES-LLM-HOSTS>'
-  case "$LLM_PRIVATE_IP" in *'<'*|*'>'*) echo 'Platzhalter in der LLM-IP.' >&2; exit 1 ;; esac
-  LLM_TOKEN="$(sed -n 's/^OPEN_WEIGHT_LLM_TOKEN=//p' .env.production)"
-
-  curl --fail --silent --show-error --max-time 5 \
-    "http://${LLM_PRIVATE_IP}:8080/health"
-  echo
-
-  curl --fail --silent --show-error --max-time 5 \
-    --header "Authorization: Bearer ${LLM_TOKEN}" \
-    "http://${LLM_PRIVATE_IP}:8080/slots?fail_on_no_slot=1"
-  echo
-)
 ```
 
 Lernzielableitung im Quiz-Editor auslösen und parallel die App-Logs lesen.
