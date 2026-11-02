@@ -1,4 +1,7 @@
-import type { SessionLearningObjectiveDTO } from '@arsnova/shared-types';
+import {
+  isConfidenceDebriefRecommended,
+  type SessionLearningObjectiveDTO,
+} from '@arsnova/shared-types';
 
 export type QuizQuestionNumberTask = {
   questionId: string;
@@ -98,4 +101,96 @@ export function confirmedLearningObjectiveAppliesToQuestion(
     objective.confirmation.state === 'confirmed' &&
     learningObjectiveAppliesToQuestion(objective, questionId)
   );
+}
+
+/** Bestätigtes Ziel, dessen Bereich genau eine Quizfrage ist. */
+export function confirmedSingleQuestionLearningObjectives(
+  objectives: readonly SessionLearningObjectiveDTO[],
+  questionId: string,
+): SessionLearningObjectiveDTO[] {
+  return objectives
+    .filter((objective) => objectiveRefersOnlyToQuizQuestion(objective, questionId))
+    .sort((left, right) => left.id.localeCompare(right.id));
+}
+
+export type LearningObjectiveMisconceptionQuestion = {
+  readonly questionId: string;
+  readonly questionOrder: number;
+  readonly responseCount: number;
+  readonly incorrectHigh: number;
+  readonly topWrongOption?: string | null;
+};
+
+export type LearningObjectiveMisconceptionLink = {
+  readonly objectiveId: string;
+  readonly objectiveText: string;
+  readonly questionId: string;
+  readonly questionNumber: number;
+  readonly incorrectHigh: number;
+  readonly responseCount: number;
+  readonly topWrongOption: string | null;
+};
+
+/**
+ * Verbindet ein bestätigtes Ein-Fragen-Ziel mit der Nachbesprechungsschwelle
+ * für falsche Antworten bei hoher Selbsteinschätzung.
+ */
+export function learningObjectiveMisconceptionLinks(input: {
+  readonly objectives: readonly SessionLearningObjectiveDTO[];
+  readonly questions: readonly LearningObjectiveMisconceptionQuestion[];
+}): LearningObjectiveMisconceptionLink[] {
+  const links: LearningObjectiveMisconceptionLink[] = [];
+  for (const question of input.questions) {
+    if (!questionMeetsConfidenceDebrief(question)) continue;
+    const option = question.topWrongOption?.trim().replace(/\s+/g, ' ') ?? '';
+    for (const objective of confirmedSingleQuestionLearningObjectives(
+      input.objectives,
+      question.questionId,
+    )) {
+      const objectiveText = objective.text.trim().replace(/\s+/g, ' ');
+      if (objectiveText.length === 0) continue;
+      links.push({
+        objectiveId: objective.id,
+        objectiveText,
+        questionId: question.questionId,
+        questionNumber: question.questionOrder + 1,
+        incorrectHigh: question.incorrectHigh,
+        responseCount: question.responseCount,
+        topWrongOption: option.length > 0 ? option : null,
+      });
+    }
+  }
+  return links;
+}
+
+function objectiveRefersOnlyToQuizQuestion(
+  objective: SessionLearningObjectiveDTO,
+  questionId: string,
+): boolean {
+  if (objective.purpose === 'forum-assignment') return false;
+  if (objective.confirmation.state !== 'confirmed') return false;
+  if (objective.scope.kind !== 'question-set') return false;
+  const [reference, ...rest] = objective.scope.taskReferences;
+  return (
+    rest.length === 0 && reference?.kind === 'quiz-question' && reference.questionId === questionId
+  );
+}
+
+function questionMeetsConfidenceDebrief(question: LearningObjectiveMisconceptionQuestion): boolean {
+  if (question.responseCount <= 0 || question.incorrectHigh <= 0) return false;
+  return isConfidenceDebriefRecommended({
+    responseCount: question.responseCount,
+    result: {
+      distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+      crossTab: {
+        correctHigh: 0,
+        correctMid: 0,
+        correctLow: 0,
+        incorrectHigh: question.incorrectHigh,
+        incorrectMid: 0,
+        incorrectLow: 0,
+      },
+      highConfidenceWrongCount: question.incorrectHigh,
+    },
+  });
 }

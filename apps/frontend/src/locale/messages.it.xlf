@@ -24051,6 +24051,22 @@
         <source>Selbstsicher falsch – mögliches Fehlkonzept</source>
         <target>Risposta errata data con elevata sicurezza – possibile concezione errata</target>
       </trans-unit>
+      <trans-unit id="sessionHost.quotedLabel" datatype="html">
+        <source>»<x id="text" equiv-text="plain"/>«</source>
+        <target>«<x id="text" equiv-text="plain"/>»</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectiveMisconceptionHeading" datatype="html">
+        <source>Lernziel zu Frage <x id="questionNumber" equiv-text="questionNumber"/></source>
+        <target>Obiettivo di apprendimento per la domanda <x id="questionNumber" equiv-text="questionNumber"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectiveMisconceptionMeasure" datatype="html">
+        <source><x id="incorrectHigh" equiv-text="incorrectHigh"/> von <x id="responseCount" equiv-text="responseCount"/> falsch bei hoher Selbsteinschätzung (<x id="percent" equiv-text="percent"/> %)</source>
+        <target><x id="incorrectHigh" equiv-text="incorrectHigh"/> su <x id="responseCount" equiv-text="responseCount"/> sbagliate con alta sicurezza nella risposta (<x id="percent" equiv-text="percent"/> %)</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectiveMisconceptionOption" datatype="html">
+        <source>Häufigste falsche Option: <x id="option" equiv-text="quoted"/></source>
+        <target>Risposta sbagliata più frequente: <x id="option" equiv-text="quoted"/></target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
         <target>Altra risposta più frequente: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></target>

@@ -1210,6 +1210,40 @@
                                     >
                                   </span>
                                 </div>
+                                @for (
+                                  link of finishedConfidenceObjectiveLinks(question);
+                                  track link.objectiveId
+                                ) {
+                                  <p class="session-host__finished-confidence-objective">
+                                    <span
+                                      class="session-host__finished-confidence-objective-kicker"
+                                    >
+                                      {{
+                                        learningObjectiveMisconceptionHeading(link.questionNumber)
+                                      }}
+                                    </span>
+                                    <span class="session-host__finished-confidence-objective-text">
+                                      {{ quoteLabel(link.objectiveText) }}
+                                    </span>
+                                    <span
+                                      class="session-host__finished-confidence-objective-detail"
+                                    >
+                                      {{
+                                        learningObjectiveMisconceptionMeasure(
+                                          link.incorrectHigh,
+                                          link.responseCount
+                                        )
+                                      }}
+                                    </span>
+                                    @if (link.topWrongOption; as option) {
+                                      <span
+                                        class="session-host__finished-confidence-objective-detail"
+                                      >
+                                        {{ learningObjectiveMisconceptionOption(option) }}
+                                      </span>
+                                    }
+                                  </p>
+                                }
                                 @if (finishedConfidenceTopWrongOption(question); as option) {
                                   <p class="session-host__finished-confidence-signal">
                                     <span i18n="@@sessionHost.finishedConfidenceTopSignal"

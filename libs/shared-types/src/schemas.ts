@@ -3780,6 +3780,7 @@ export const ConfidenceResultDTOSchema = z.object({
 export type ConfidenceResultDTO = z.infer<typeof ConfidenceResultDTOSchema>;
 
 export const ConfidenceQuestionSummaryDTOSchema = z.object({
+  questionId: z.uuid(),
   questionOrder: z.number().int().min(0),
   questionTextShort: z.string(),
   questionType: QuestionTypeEnum,

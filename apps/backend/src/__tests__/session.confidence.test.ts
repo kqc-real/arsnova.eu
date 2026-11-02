@@ -665,6 +665,7 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
         includedQuestionCount: 1,
         priorityQuestionCount: 1,
         highConfidenceWrongCount: 4,
+        questions: [{ questionId: QUESTION_ID }],
       });
       expect(hostAuthMocks.isHostSessionTokenValidMock).not.toHaveBeenCalled();
     },

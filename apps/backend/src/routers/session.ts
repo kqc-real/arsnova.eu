@@ -2092,6 +2092,7 @@ function buildConfidenceSummaryForSession(
       });
       return [
         {
+          questionId: question.id,
           questionOrder: question.order,
           questionTextShort: question.text,
           questionType: question.type as ConfidenceEligibleQuestionType,

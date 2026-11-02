@@ -174,18 +174,21 @@ describe('confidence helpers (Story 1.2i)', () => {
     const result = buildSessionConfidenceSummary({
       questions: [
         {
+          questionId: '11111111-1111-4111-8111-111111111111',
           questionOrder: 0,
           questionTextShort: 'Sicher',
           questionType: 'SINGLE_CHOICE',
           result: secure,
         },
         {
+          questionId: '22222222-2222-4222-8222-222222222222',
           questionOrder: 1,
           questionTextShort: 'Riskant',
           questionType: 'MULTIPLE_CHOICE',
           result: risky,
         },
         {
+          questionId: '33333333-3333-4333-8333-333333333333',
           questionOrder: 2,
           questionTextShort: 'Zu klein',
           questionType: 'SHORT_TEXT',
@@ -238,18 +241,21 @@ describe('confidence helpers (Story 1.2i)', () => {
     const summary = buildSessionConfidenceSummary({
       questions: [
         {
+          questionId: '11111111-1111-4111-8111-111111111111',
           questionOrder: 0,
           questionTextShort: 'Sicher falsch',
           questionType: 'SINGLE_CHOICE',
           result: withRisk,
         },
         {
+          questionId: '22222222-2222-4222-8222-222222222222',
           questionOrder: 1,
           questionTextShort: 'Ohne Fehlkonzept',
           questionType: 'SINGLE_CHOICE',
           result: withoutRisk,
         },
         {
+          questionId: '33333333-3333-4333-8333-333333333333',
           questionOrder: 2,
           questionTextShort: 'Auch sicher falsch',
           questionType: 'MULTIPLE_CHOICE',
@@ -276,6 +282,7 @@ describe('confidence helpers (Story 1.2i)', () => {
     const summary = buildSessionConfidenceSummary({
       questions: [
         {
+          questionId: '11111111-1111-4111-8111-111111111111',
           questionOrder: 0,
           questionTextShort: 'Einzelfall',
           questionType: 'SINGLE_CHOICE',
@@ -301,6 +308,7 @@ describe('confidence helpers (Story 1.2i)', () => {
       buildSessionConfidenceSummary({
         questions: [
           {
+            questionId: '11111111-1111-4111-8111-111111111111',
             questionOrder: 0,
             questionTextShort: 'Kleine Gruppe',
             questionType: 'SINGLE_CHOICE',

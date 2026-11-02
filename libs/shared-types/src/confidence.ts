@@ -95,6 +95,7 @@ export interface ConfidenceResult {
 }
 
 export interface ConfidenceQuestionSummary {
+  questionId: string;
   questionOrder: number;
   questionTextShort: string;
   questionType: ConfidenceEligibleQuestionType;
@@ -118,6 +119,7 @@ export interface SessionConfidenceSummary {
 
 export interface BuildSessionConfidenceSummaryInput {
   questions: Array<{
+    questionId: string;
     questionOrder: number;
     questionTextShort: string;
     questionType: ConfidenceEligibleQuestionType;
@@ -329,6 +331,7 @@ export function buildSessionConfidenceSummary(
     }
     addConfidenceResult(aggregate, question.result);
     questions.push({
+      questionId: question.questionId,
       questionOrder: question.questionOrder,
       questionTextShort: question.questionTextShort,
       questionType: question.questionType,
