@@ -58,6 +58,8 @@ Der Kompass liest den ungefilterten Host-Bestand. Suche, Autor- und Statusfilter
 
 Die optionale 8.9c-Kurzfassung ist kein Signalkarten-Typ. Sie erscheint nur bei Kill-Switch, konfiguriertem privatem Endpunkt und mindestens drei sichtbaren Q&A-Beiträgen; siehe [qa-summary.md](qa-summary.md).
 
+Ist das Ergebnis einer Frage freigegeben und nennt ein **bestätigtes** Lernziel genau diese eine Frage, zeigt die Klärungskarte das Ziel, sobald falsche Antworten mit hoher Selbsteinschätzung die Nachbesprechungsschwelle erreichen: mindestens zwei und mindestens 10 % der Antworten mit Selbsteinschätzung. Die Karte nennt den Zieltext, den Anteil und die häufigste falsche Option. Block- und Inlineformeln in Zieltext und Option bleiben als Quelltext lesbar. Quizweite Ziele, Ziele über mehrere Fragen, Entwürfe und prüfbedürftige Ziele bleiben dort ungenannt. Der Satz behauptet nicht, das Lernziel sei verfehlt.
+
 Fachregeln: `libs/shared-types/src/moderation-compass-rules.ts`. Frontend-Präsentationsadapter: `apps/frontend/src/app/features/session/session-host/moderation-compass.ts`.
 
 ## Grenzen

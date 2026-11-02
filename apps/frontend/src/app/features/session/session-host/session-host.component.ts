@@ -129,6 +129,7 @@ import {
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
   resolveNumericTolerance,
+  confidenceResultResponseCount,
   selectConfidencePriorityQuestions,
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
@@ -202,6 +203,8 @@ import {
 import {
   confirmedLearningObjectiveAppliesToQuestion,
   isConfirmedDisplayedLearningObjective,
+  learningObjectiveMisconceptionLinks,
+  type LearningObjectiveMisconceptionLink,
 } from './session-learning-objective-match';
 import {
   isDisplayableThemeWordCloudEntry,
@@ -269,7 +272,10 @@ import {
   buildQaQuestionsCsvFilename,
   buildSessionResultsCsvFilename,
 } from '../../../core/export-filename.util';
-import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
+import {
+  markdownToReadableText,
+  stripMarkdownToPlainText,
+} from '../../../core/markdown-plain-text.util';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import {
   SessionResultsExportService,
@@ -3843,15 +3849,53 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private localizeCurrentQuestionQuizSources(
     question: HostCurrentQuestionDTO,
   ): ModerationCompassSource[] {
-    return collectModerationQuizFacts(question)
+    const objectiveSources = this.learningObjectiveCompassSources(question);
+    const factSources = collectModerationQuizFacts(question)
+      .filter((fact) => objectiveSources.length === 0 || fact.type !== 'confidence-misconception')
       .flatMap((fact) => {
         const source = this.localizeModerationQuizFact(fact, question);
         if (!source) {
           return [];
         }
         return [{ ...source, evidenceRole: moderationQuizFactEvidenceRole(fact, question) }];
-      })
-      .slice(0, 3);
+      });
+    return [...objectiveSources, ...factSources].slice(0, 3);
+  }
+
+  private learningObjectiveCompassSources(
+    question: HostCurrentQuestionDTO,
+  ): ModerationCompassSource[] {
+    const result = question.confidenceResult;
+    if (!result) return [];
+    const links = learningObjectiveMisconceptionLinks({
+      objectives: this.sessionLearningObjectives(),
+      questions: [
+        {
+          questionId: question.questionId,
+          questionOrder: question.order,
+          responseCount: confidenceResultResponseCount(result),
+          incorrectHigh: result.crossTab.incorrectHigh,
+          topWrongOption: result.highConfidenceWrongOptions?.[0]?.text ?? null,
+        },
+      ],
+    });
+    return links.map((link) => {
+      const measure = this.learningObjectiveMisconceptionMeasure(
+        link.incorrectHigh,
+        link.responseCount,
+      );
+      const option = link.topWrongOption
+        ? this.learningObjectiveMisconceptionOption(link.topWrongOption)
+        : '';
+      return {
+        kind: 'quiz-result',
+        label: this.learningObjectiveMisconceptionHeading(link.questionNumber),
+        evidence: this.quoteLabel(link.objectiveText),
+        context: option.length > 0 ? `${measure}. ${option}` : measure,
+        evidenceRole: 'clarification',
+        target: { channel: 'quiz', questionId: question.questionId },
+      };
+    });
   }
 
   private localizeModerationQuizFact(
@@ -5035,6 +5079,42 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     summary: SessionConfidenceSummaryDTO,
   ): ConfidenceQuestionSummaryDTO[] {
     return selectConfidencePriorityQuestions(summary.questions, 3);
+  }
+
+  finishedConfidenceObjectiveLinks(
+    question: ConfidenceQuestionSummaryDTO,
+  ): LearningObjectiveMisconceptionLink[] {
+    return learningObjectiveMisconceptionLinks({
+      objectives: this.sessionLearningObjectives(),
+      questions: [
+        {
+          questionId: question.questionId,
+          questionOrder: question.questionOrder,
+          responseCount: question.responseCount,
+          incorrectHigh: question.result.crossTab.incorrectHigh,
+          topWrongOption: question.result.highConfidenceWrongOptions?.[0]?.text ?? null,
+        },
+      ],
+    });
+  }
+
+  quoteLabel(text: string): string {
+    const plain = markdownToReadableText(text).trim().replace(/\s+/g, ' ');
+    return $localize`:@@sessionHost.quotedLabel:»${plain}:text:«`;
+  }
+
+  learningObjectiveMisconceptionHeading(questionNumber: number): string {
+    return $localize`:@@sessionHost.learningObjectiveMisconceptionHeading:Lernziel zu Frage ${questionNumber}:questionNumber:`;
+  }
+
+  learningObjectiveMisconceptionMeasure(incorrectHigh: number, responseCount: number): string {
+    const percent = this.finishedConfidencePercent(incorrectHigh, responseCount);
+    return $localize`:@@sessionHost.learningObjectiveMisconceptionMeasure:${incorrectHigh}:incorrectHigh: von ${responseCount}:responseCount: falsch bei hoher Selbsteinschätzung (${percent}:percent: %)`;
+  }
+
+  learningObjectiveMisconceptionOption(option: string): string {
+    const quoted = this.quoteLabel(option);
+    return $localize`:@@sessionHost.learningObjectiveMisconceptionOption:Häufigste falsche Option: ${quoted}:option:`;
   }
 
   finishedConfidenceIncorrectCount(question: ConfidenceQuestionSummaryDTO): number {

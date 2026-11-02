@@ -92,6 +92,7 @@ const sampleExport: SessionExportDTO = {
     highConfidenceWrongCount: 7,
     questions: [
       {
+        questionId: '11111111-1111-4111-8111-111111111111',
         questionOrder: 7,
         questionTextShort: 'PI-Frage zur Französischen Revolution',
         questionType: 'SINGLE_CHOICE',
@@ -110,6 +111,7 @@ const sampleExport: SessionExportDTO = {
         },
       },
       {
+        questionId: '22222222-2222-4222-8222-222222222222',
         questionOrder: 0,
         questionTextShort: 'Was ist 2+2?',
         questionType: 'SINGLE_CHOICE',
@@ -186,6 +188,7 @@ describe('buildSessionResultsReportHtml', () => {
           questions: [
             ...sampleExport.confidenceSummary!.questions,
             {
+              questionId: '33333333-3333-4333-8333-333333333333',
               questionOrder: 3,
               questionTextShort: 'Ohne Fehlkonzept-Hinweis',
               questionType: 'SINGLE_CHOICE',

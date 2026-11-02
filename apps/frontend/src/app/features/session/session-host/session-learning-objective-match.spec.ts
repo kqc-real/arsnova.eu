@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SessionLearningObjectiveDTO } from '@arsnova/shared-types';
 import {
+  learningObjectiveMisconceptionLinks,
   learningObjectiveQuestionNumbers,
   quizQuestionNumberById,
   sortLearningObjectivesByQuestionNumber,
@@ -108,5 +109,79 @@ describe('session-learning-objective-match question numbers', () => {
         (item) => item.text,
       ),
     ).toEqual(['Fragen 1 und 3', 'Nur Frage 2']);
+  });
+});
+
+describe('learningObjectiveMisconceptionLinks', () => {
+  const single = questionSet('11111111-1111-4111-8111-111111111111', 'Nur diese Frage erklären.', [
+    QUESTION_A,
+  ]);
+  const secondSingle = questionSet(
+    '22222222-2222-4222-8222-222222222222',
+    'Dieselbe Frage noch einmal fassen.',
+    [QUESTION_A],
+  );
+  const misconception = {
+    questionId: QUESTION_A,
+    questionOrder: 2,
+    responseCount: 12,
+    incorrectHigh: 4,
+    topWrongOption: 'nur die Steigung',
+  };
+
+  it('nennt bestätigte Ziele, die genau die Frage mit Fehlkonzept betreffen', () => {
+    expect(
+      learningObjectiveMisconceptionLinks({
+        objectives: [
+          secondSingle,
+          single,
+          objective({
+            id: '33333333-3333-4333-8333-333333333333',
+            text: 'Quizweit',
+            scope: { kind: 'quiz-wide' },
+          }),
+          questionSet('44444444-4444-4444-8444-444444444444', 'Zwei Fragen', [
+            QUESTION_A,
+            QUESTION_B,
+          ]),
+          questionSet('55555555-5555-4555-8555-555555555555', 'Andere Frage', [QUESTION_B]),
+          {
+            ...single,
+            id: '66666666-6666-4666-8666-666666666666',
+            text: 'Noch Entwurf',
+            confirmation: { state: 'draft' },
+          },
+        ],
+        questions: [misconception],
+      }),
+    ).toEqual([
+      {
+        objectiveId: single.id,
+        objectiveText: 'Nur diese Frage erklären.',
+        questionId: QUESTION_A,
+        questionNumber: 3,
+        incorrectHigh: 4,
+        responseCount: 12,
+        topWrongOption: 'nur die Steigung',
+      },
+      {
+        objectiveId: secondSingle.id,
+        objectiveText: 'Dieselbe Frage noch einmal fassen.',
+        questionId: QUESTION_A,
+        questionNumber: 3,
+        incorrectHigh: 4,
+        responseCount: 12,
+        topWrongOption: 'nur die Steigung',
+      },
+    ]);
+  });
+
+  it('bleibt unter der Nachbesprechungsschwelle ohne Zielbezug', () => {
+    expect(
+      learningObjectiveMisconceptionLinks({
+        objectives: [single],
+        questions: [{ ...misconception, incorrectHigh: 1, responseCount: 12 }],
+      }),
+    ).toEqual([]);
   });
 });

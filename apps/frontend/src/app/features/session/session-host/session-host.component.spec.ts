@@ -23873,6 +23873,108 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('nennt in der Gesamtauswertung nur das bestätigte Lernziel dieser einen Frage', async () => {
+    const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.statusUpdate.set({
+      status: 'FINISHED',
+      currentQuestion: null,
+    });
+    fixture.componentInstance.sessionLearningObjectives.set([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        revision: 1,
+        text: 'Die Formel $$x^2$$ erläutern.',
+        scope: {
+          kind: 'question-set',
+          taskReferences: [{ kind: 'quiz-question', questionId }],
+        },
+        origin: { kind: 'manual' },
+        confirmation: {
+          state: 'confirmed',
+          confirmedAt: '2026-10-27T10:00:00.000Z',
+          confirmedRevision: 1,
+        },
+        projection: 'quiz-projected',
+        purpose: 'learning-objective',
+        createdAt: '2026-10-27T10:00:00.000Z',
+        updatedAt: '2026-10-27T10:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        revision: 1,
+        text: 'Das ganze Quiz verstehen.',
+        scope: { kind: 'quiz-wide' },
+        origin: { kind: 'manual' },
+        confirmation: {
+          state: 'confirmed',
+          confirmedAt: '2026-10-27T10:00:00.000Z',
+          confirmedRevision: 1,
+        },
+        projection: 'quiz-projected',
+        purpose: 'learning-objective',
+        createdAt: '2026-10-27T10:00:00.000Z',
+        updatedAt: '2026-10-27T10:00:00.000Z',
+      },
+    ]);
+    fixture.componentInstance.finishedConfidenceSummary.set({
+      responseCount: 5,
+      includedQuestionCount: 1,
+      suppressedQuestionCount: 0,
+      priorityQuestionCount: 1,
+      distribution: { '1': 0, '2': 0, '3': 0, '4': 2, '5': 3 },
+      crossTab: {
+        correctHigh: 3,
+        correctMid: 0,
+        correctLow: 0,
+        incorrectHigh: 2,
+        incorrectMid: 0,
+        incorrectLow: 0,
+      },
+      highConfidenceWrongCount: 2,
+      questions: [
+        {
+          questionId,
+          questionOrder: 0,
+          questionTextShort: 'Welche Aussage stimmt?',
+          questionType: 'SINGLE_CHOICE',
+          responseCount: 5,
+          result: {
+            distribution: { '1': 0, '2': 0, '3': 0, '4': 2, '5': 3 },
+            crossTab: {
+              correctHigh: 3,
+              correctMid: 0,
+              correctLow: 0,
+              incorrectHigh: 2,
+              incorrectMid: 0,
+              incorrectLow: 0,
+            },
+            highConfidenceWrongCount: 2,
+            highConfidenceWrongOptions: [
+              {
+                answerId: 'aaaaaaaa-1111-4111-8111-111111111111',
+                text: '$$x^3$$',
+                count: 2,
+              },
+            ],
+          },
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Lernziel zu Frage 1');
+    expect(text).toContain('»Die Formel x^2 erläutern.«');
+    expect(text).toContain('2 von 5 falsch bei hoher Selbsteinschätzung (40 %)');
+    expect(text).toContain('Häufigste falsche Option:');
+    expect(text).toContain('»x^3«');
+    expect(text).not.toContain('Das ganze Quiz verstehen.');
+    fixture.destroy();
+  });
+
   it('zeigt die didaktische Confidence-Zusammenfassung im Abschluss', async () => {
     const fixture = setup();
     fixture.detectChanges();
@@ -23898,6 +24000,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       highConfidenceWrongCount: 2,
       questions: [
         {
+          questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
           questionOrder: 0,
           questionTextShort:
             '### Welche Aussage stimmt?\n\n> **Unterrichtsidee:** Nutze die Nachbesprechung.',
@@ -27437,6 +27540,117 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           (source) => source.target?.questionId === 'bbbbbbbb-2222-4222-8222-222222222222',
         ),
       ).toBe(true);
+      fixture.destroy();
+    });
+
+    it('nennt im Kompass das bestätigte Lernziel der Frage mit Fehlkonzept', async () => {
+      const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.sessionLearningObjectives.set([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          revision: 1,
+          text: 'Die Formel $$x^2$$ erläutern.',
+          scope: {
+            kind: 'question-set',
+            taskReferences: [{ kind: 'quiz-question', questionId }],
+          },
+          origin: { kind: 'manual' },
+          confirmation: {
+            state: 'confirmed',
+            confirmedAt: '2026-10-27T10:00:00.000Z',
+            confirmedRevision: 1,
+          },
+          projection: 'quiz-projected',
+          purpose: 'learning-objective',
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          revision: 1,
+          text: 'Zwei Fragen vergleichen.',
+          scope: {
+            kind: 'question-set',
+            taskReferences: [
+              { kind: 'quiz-question', questionId },
+              {
+                kind: 'quiz-question',
+                questionId: 'cccccccc-3333-4333-8333-333333333333',
+              },
+            ],
+          },
+          origin: { kind: 'manual' },
+          confirmation: {
+            state: 'confirmed',
+            confirmedAt: '2026-10-27T10:00:00.000Z',
+            confirmedRevision: 1,
+          },
+          projection: 'quiz-projected',
+          purpose: 'learning-objective',
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+      ]);
+      component.currentQuestionForHost.set({
+        showQuestionTypeIndicators: true,
+        questionId,
+        order: 0,
+        totalQuestions: 1,
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM' as const,
+        answers: [
+          { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
+          { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+        ],
+        voteDistribution: [],
+        totalVotes: 5,
+        correctVoterCount: 3,
+        incorrectVoterCount: 2,
+        confidenceEnabled: true,
+        confidenceResult: {
+          distribution: { '1': 0, '2': 0, '3': 0, '4': 2, '5': 3 },
+          crossTab: {
+            correctHigh: 3,
+            correctMid: 0,
+            correctLow: 0,
+            incorrectHigh: 2,
+            incorrectMid: 0,
+            incorrectLow: 0,
+          },
+          highConfidenceWrongCount: 2,
+          highConfidenceWrongOptions: [
+            { answerId: 'aaaaaaaa-1111-4111-8111-111111111111', text: '$$x^3$$', count: 2 },
+          ],
+        },
+      });
+      component.session.update((session) =>
+        session ? { ...session, status: 'RESULTS', currentQuestion: 0 } : session,
+      );
+      fixture.detectChanges();
+
+      const clarification = component
+        .moderationCompassCards()
+        .find((card) => card.kind === 'clarification');
+      expect(clarification?.sources).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Lernziel zu Frage 1',
+            evidence: '»Die Formel x^2 erläutern.«',
+            context:
+              '2 von 5 falsch bei hoher Selbsteinschätzung (40 %). Häufigste falsche Option: »x^3«',
+            target: { channel: 'quiz', questionId },
+          }),
+        ]),
+      );
+      expect(
+        clarification?.sources.some((source) => source.evidence?.includes('Zwei Fragen')),
+      ).toBe(false);
       fixture.destroy();
     });
 
