@@ -27117,6 +27117,10 @@
           <context context-type="linenumber">477</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.qaSortError" datatype="html">
+        <source>Sortierung konnte nicht gewechselt werden. Bitte erneut versuchen.</source>
+        <target>Impossible de changer le tri. Veuillez réessayer.</target>
+      </trans-unit>
       <trans-unit id="sessionPresent.qaSortCriteria" datatype="html">
         <source>Sortierung: <x id="sort" equiv-text="this.qaSortModeLabel()"/></source>
         <target>Tri : <x id="sort" equiv-text="this.qaSortModeLabel()"/></target>

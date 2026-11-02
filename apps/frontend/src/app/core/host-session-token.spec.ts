@@ -28,6 +28,16 @@ describe('host-session-token', () => {
     expect(hasHostToken('abc123')).toBe(true);
   });
 
+  it('übernimmt einen Token, den ein anderes Fenster in sessionStorage geschrieben hat', () => {
+    setHostToken('ABC123', 'old-token-abcdefghijklmnopqrstuvwxyz');
+    window.sessionStorage.setItem(
+      'arsnova-host-token:ABC123',
+      'new-token-abcdefghijklmnopqrstuvwxyz',
+    );
+
+    expect(getHostToken('ABC123')).toBe('new-token-abcdefghijklmnopqrstuvwxyz');
+  });
+
   it('entfernt gespeicherte Tokens wieder', () => {
     setHostToken('ABC123', 'token-123');
     clearHostToken('ABC123');

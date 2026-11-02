@@ -781,9 +781,24 @@
 
     @if (showQaProjection() || showQaWordCloud()) {
       @if (showQaProjection()) {
-        <section class="session-present__qa-stage">
-          <header class="session-present__qa-criteria" aria-live="polite">
-            <span class="session-present__qa-criteria-label">{{ qaSortCriteriaLabel() }}</span>
+        <section #qaStage class="session-present__qa-stage">
+          <header class="session-present__qa-criteria">
+            <mat-radio-group
+              class="session-present__qa-sort"
+              data-testid="presenter-qa-sort"
+              [value]="presenterQaSortMode()"
+              (change)="setPresenterQaSortMode($event.value)"
+              i18n-aria-label="@@sessionQa.sortAria"
+              aria-label="Q&A-Sortierung"
+              [disabled]="qaSortPending() || qaNavPending()"
+            >
+              @for (mode of presenterQaSortModes; track mode) {
+                <mat-radio-button [value]="mode">{{ qaSortModeLabel(mode) }}</mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (qaSortError()) {
+              <p class="session-present__qa-sort-error" role="alert">{{ qaSortError() }}</p>
+            }
           </header>
           @if (showPinnedQaQuestion() && pinnedQaQuestion(); as pinnedQuestion) {
             <mat-card appearance="outlined" class="session-present__qa-card">
@@ -1023,6 +1038,44 @@
             </mat-card>
           }
         </section>
+        <footer class="session-present__qa-footer">
+          <nav
+            class="session-present__qa-nav"
+            data-testid="presenter-qa-navigator"
+            i18n-aria-label="@@sessionHost.projectionQaQuestions"
+            aria-label="Projektionsfragen"
+            [attr.aria-busy]="qaNavPending() || qaSortPending()"
+          >
+            <button
+              matButton="outlined"
+              type="button"
+              data-testid="presenter-qa-previous"
+              [disabledInteractive]="true"
+              [disabled]="qaNavPending() || qaSortPending() || qaQueuePageIndex() === 0"
+              (click)="changeQaProjectionPage(-1)"
+            >
+              <span i18n="@@sessionHost.projectionQaPrevious">Vorherige Frage</span>
+            </button>
+            <span class="session-present__qa-nav-index" aria-live="polite"
+              >{{ qaQueuePageIndex() + 1 }} / {{ qaQueuePageCount() }}</span
+            >
+            <button
+              matButton="outlined"
+              type="button"
+              data-testid="presenter-qa-next"
+              [disabledInteractive]="true"
+              [disabled]="
+                qaNavPending() || qaSortPending() || qaQueuePageIndex() >= qaQueuePageCount() - 1
+              "
+              (click)="changeQaProjectionPage(1)"
+            >
+              <span i18n="@@sessionHost.projectionQaNext">Nächste Frage</span>
+            </button>
+            @if (qaNavError()) {
+              <p class="session-present__qa-nav-error" role="alert">{{ qaNavError() }}</p>
+            }
+          </nav>
+        </footer>
       }
       @if (showQaWordCloud()) {
         <section class="session-present__qa-stage">

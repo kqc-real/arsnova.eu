@@ -108,6 +108,7 @@ import {
   isPresenterViewOffered,
   openPresenterViewWindow,
   PRESENTER_VIEW_OFFERED_MEDIA,
+  pushCurrentHostTokenToPresenter,
 } from '../session-present/presenter-window.util';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
@@ -1179,6 +1180,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
   private lastQaWordCloudProjectionKey: string | null = null;
   private lastQaPresenterStageViewKey: string | null = null;
+  /** Ob der letzte Publish dieser Ansicht die Presenter-Sortierung übernommen hat. */
+  private lastQaPresenterStageViewTookOver = false;
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
@@ -5395,6 +5398,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       .then((issued) => {
         setHostToken(this.code, issued.hostToken);
         refreshTrpcWsBinding();
+        this.pushPresenterHostToken();
       })
       .catch(() => {
         // Der bestehende Token bleibt bis zu seinem eigenen Ablauf nutzbar; Reconnects bleiben fail-closed.
@@ -5405,8 +5409,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.hostAccessRefreshInFlight;
   }
 
+  private pushPresenterHostToken(allowLookup = false): void {
+    const presenter = pushCurrentHostTokenToPresenter(
+      this.document.defaultView,
+      this.code,
+      this.presenterWindowHandle,
+      allowLookup,
+    );
+    if (presenter) {
+      this.presenterWindowHandle = presenter;
+      this.syncPresenterWindowOpenState();
+    }
+  }
+
   private startHostAccessRefresh(): void {
     if (this.hostAccessRefreshTimer || this.isPairedHostClient()) return;
+    this.pushPresenterHostToken(true);
     void this.refreshDurableHostAccess();
     this.hostAccessRefreshTimer = setInterval(
       () => void this.refreshDurableHostAccess(),
@@ -7011,7 +7029,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     // Such-/Pin-/Autor-Kontext vor dem Hero-Sync an die Presenter-Bühne publizieren.
-    await this.publishQaPresenterSortMode(this.qaSortMode());
+    // takeover: eine am Presenter gewählte Sortierung weicht der Host-Filteränderung.
+    await this.publishQaPresenterSortMode(this.qaSortMode(), { takeover: true });
     const first = this.qaNavigableStageQuestions()[0] ?? null;
     this.qaListNavQuestionId.set(first?.id ?? null);
     if (first) {
@@ -11461,7 +11480,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     this.qaSortMode.set(mode);
-    this.publishQaPresenterSortMode(mode);
+    this.publishQaPresenterSortMode(mode, { takeover: true });
     this.ensureQaSubscription();
 
     // Wenn die Q&A-Wortwolke im Themenmodus geöffnet ist, sofort den Backend-Reweight-Aufruf
@@ -12450,7 +12469,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private publishQaPresenterSortMode(
     sortMode: QaQuestionSortMode,
-    options?: { readonly force?: boolean; readonly skipStageRefresh?: boolean },
+    options?: {
+      readonly force?: boolean;
+      readonly skipStageRefresh?: boolean;
+      readonly takeover?: boolean;
+    },
   ): Promise<void> {
     if (!this.code) {
       return Promise.resolve();
@@ -12459,10 +12482,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const pinnedOnly = this.qaShowPinnedOnly();
     const authorNickname = this.qaSelectedAuthorNickname();
     const stageViewKey = this.buildQaPresenterStageViewKey(sortMode);
-    if (!options?.force && stageViewKey === this.lastQaPresenterStageViewKey) {
+    const takeover = options?.takeover === true;
+    const sameView = stageViewKey === this.lastQaPresenterStageViewKey;
+    // Das Abo publiziert dieselbe Ansicht ohne takeover. Diese Buchung darf die
+    // anschließende ausdrückliche Übernahme nicht als Duplikat verschlucken.
+    if (!options?.force && sameView && (!takeover || this.lastQaPresenterStageViewTookOver)) {
       return Promise.resolve();
     }
     this.lastQaPresenterStageViewKey = stageViewKey;
+    this.lastQaPresenterStageViewTookOver = takeover;
     return this.enqueuePresenterProjectionSync(async () => {
       try {
         await trpc.qa.setPresenterSortMode.mutate({
@@ -12471,6 +12499,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           search,
           pinnedOnly,
           ...(authorNickname ? { authorNickname } : {}),
+          ...(options?.takeover ? { takeover: true } : {}),
         });
         this.publishedQaPresenterStageViewKey = stageViewKey;
         // Refresh nicht in der Sync-Queue awaiten: sonst blockiert z. B. endPresentationView,
@@ -12480,6 +12509,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
       } catch {
         this.lastQaPresenterStageViewKey = null;
+        this.lastQaPresenterStageViewTookOver = false;
       }
     });
   }
@@ -13254,11 +13284,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ]);
       this.qaPresenterStageViewKey = requestedViewKey;
       this.qaPresenterStageSortMode = Array.isArray(snapshot) ? null : (snapshot.sortMode ?? null);
+      // Presenter-Sortierung übernehmen, bevor der Stale-Check einen Sync verwirft.
+      // Der Key steht vorher, damit das Abo dieselbe Ansicht nicht sofort zurückschreibt.
+      if (
+        !Array.isArray(snapshot) &&
+        snapshot.sortMode &&
+        snapshot.sortModeSource === 'presenter' &&
+        snapshot.sortMode !== this.qaSortMode()
+      ) {
+        const adopted = snapshot.sortMode;
+        const key = this.buildQaPresenterStageViewKey(adopted);
+        this.lastQaPresenterStageViewKey = key;
+        this.lastQaPresenterStageViewTookOver = false;
+        this.publishedQaPresenterStageViewKey = key;
+        this.qaSortMode.set(adopted);
+      }
       const pendingSyncId = this.pendingPresenterStageSyncQuestionId;
       if (pendingSyncId && !this.isQaPresenterStageStale()) {
         void this.syncPresenterToStageQuestionId(pendingSyncId);
       }
-      // Self-Heal: Backend-Restart leert die ephemeral Map → Presenter fällt auf Default.
+      // Self-Heal: Backend-Restart leert die ephemeral Map → Presenter fällt auf Default
+      // (kein sortModeSource). Eine Presenter-Sortierung bleibt oben unangetastet.
       // skipStageRefresh: sonst publish→refresh→publish-Endlosschleife, solange der
       // Snapshot noch den alten Modus liefert (ephemeral Map / Stub in Specs).
       if (

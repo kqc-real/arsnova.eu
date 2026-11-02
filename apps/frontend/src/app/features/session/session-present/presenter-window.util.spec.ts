@@ -4,6 +4,7 @@ import {
   isPresenterViewOffered,
   openPresenterViewWindow,
   PRESENTER_VIEW_OFFERED_MEDIA,
+  pushCurrentHostTokenToPresenter,
   presenterViewPath,
   presenterViewWindowName,
   presenterWindowOpenFeatures,
@@ -232,6 +233,23 @@ describe('presenter-window.util', () => {
         matchMedia: () => ({ matches: false }),
       } as unknown as Window),
     ).toBe(false);
+  });
+
+  it('schreibt einen erneuerten Host-Token in das offene Presenter-Fenster', () => {
+    setHostToken('ABC123', 'fresh-host-token-abcdefghijklmnopqrstuvwxyz');
+    const storage = { setItem: vi.fn() };
+    const known = {
+      closed: false,
+      sessionStorage: storage,
+    } as unknown as Window;
+
+    const result = pushCurrentHostTokenToPresenter(window, 'abc123', known);
+
+    expect(result).toBe(known);
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'arsnova-host-token:ABC123',
+      'fresh-host-token-abcdefghijklmnopqrstuvwxyz',
+    );
   });
 
   it('nutzt einen session-spezifischen Fensternamen', () => {
