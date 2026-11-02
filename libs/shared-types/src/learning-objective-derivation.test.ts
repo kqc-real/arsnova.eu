@@ -176,6 +176,8 @@ describe('learning-objective derivation contracts', () => {
           promptTokens: 800,
           completionTokens: 160,
           queuedObjectives: 3,
+          drafts: [],
+          coveredSourceQuestionIds: [],
         },
       }),
     ).toMatchObject({
@@ -193,6 +195,8 @@ describe('learning-objective derivation contracts', () => {
           promptTokens: 800,
           completionTokens: 160,
           queuedObjectives: 3,
+          drafts: [],
+          coveredSourceQuestionIds: [],
         },
       }),
     ).toMatchObject({ found: true, progress: { completedGroups: 1, queuedObjectives: 3 } });

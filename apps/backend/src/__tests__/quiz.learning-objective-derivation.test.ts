@@ -218,6 +218,8 @@ describe('quiz learning-objective derivation capability boundary', () => {
         promptTokens: 240,
         completionTokens: 48,
         queuedObjectives: 2,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       });
       return { ...correlation, status: 'busy', retry: 'manual' };
     });
@@ -233,6 +235,8 @@ describe('quiz learning-objective derivation capability boundary', () => {
         promptTokens: 240,
         completionTokens: 48,
         queuedObjectives: 2,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       },
     });
   });
@@ -252,6 +256,8 @@ describe('quiz learning-objective derivation capability boundary', () => {
         promptTokens: 400,
         completionTokens: 80,
         queuedObjectives: 5,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       });
 
       await expect(
@@ -266,6 +272,8 @@ describe('quiz learning-objective derivation capability boundary', () => {
           promptTokens: 400,
           completionTokens: 80,
           queuedObjectives: 5,
+          drafts: [],
+          coveredSourceQuestionIds: [],
         },
       });
     },

@@ -20,6 +20,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 10,
         completionTokens: 2,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toBe(25);
     expect(
@@ -30,6 +32,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 10,
         completionTokens: 2,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toBe(100);
   });
@@ -45,6 +49,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 10,
         completionTokens: 2,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toEqual([
       { value: 0, percent: 0, current: false },
@@ -61,6 +67,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 10,
         completionTokens: 2,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toEqual([
       { value: 0, percent: 0, current: false },
@@ -79,6 +87,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 0,
         completionTokens: 0,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toBeNull();
     expect(
@@ -89,6 +99,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 10,
         completionTokens: 2,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toBeNull();
     expect(
@@ -99,6 +111,8 @@ describe('learning-objective derivation progress helpers', () => {
         promptTokens: 10,
         completionTokens: 2,
         queuedObjectives: 0,
+        drafts: [],
+        coveredSourceQuestionIds: [],
       }),
     ).toBe(90_000);
     expect(estimateRemainingDerivationMinutes(20_000)).toBe(0);

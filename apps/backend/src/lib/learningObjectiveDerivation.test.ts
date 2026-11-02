@@ -311,7 +311,7 @@ describe('learningObjectiveDerivation', () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it('discards partial output and stops after busy without an automatic retry', async () => {
+  it('keeps finished drafts when a later batch is busy and does not retry automatically', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
       choiceQuestion(id, index, '🧪'.repeat(170)),
     );
@@ -325,6 +325,13 @@ describe('learningObjectiveDerivation', () => {
     expect(result).toMatchObject({ status: 'busy', retry: 'manual' });
     expect(run).toHaveBeenCalledTimes(2);
     expect(result).not.toHaveProperty('drafts');
+    if (result.status !== 'busy') throw new Error('busy result expected');
+    const finishedRequest = run.mock.calls[0]?.[0] as OpenWeightLlmLearningObjectivesRequest;
+    expect(result.progress?.drafts).toHaveLength(1);
+    expect(result.progress?.coveredSourceQuestionIds).toEqual(
+      finishedRequest.questions.map((question) => question.id),
+    );
+    expect(result.progress?.queuedObjectives).toBe(1);
   });
 
   it('reports deterministic capacity capping and an empty completed model result explicitly', async () => {
@@ -396,7 +403,7 @@ describe('learningObjectiveDerivation', () => {
     expect(onProgress).not.toHaveBeenCalled();
   });
 
-  it('stops between batches when the host cancels and exposes no partial draft', async () => {
+  it('stops between batches when the host cancels and keeps only finished drafts', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
       choiceQuestion(id, index, '🧪'.repeat(170)),
     );
@@ -429,6 +436,10 @@ describe('learningObjectiveDerivation', () => {
     expect(result.status === 'aborted' && result.progress.totalGroups).toBeGreaterThan(1);
     expect(run).toHaveBeenCalledTimes(1);
     expect(result).not.toHaveProperty('drafts');
+    if (result.status === 'aborted') {
+      expect(result.progress.drafts).toEqual([]);
+      expect(result.progress.coveredSourceQuestionIds).toEqual([]);
+    }
     expect(published[0]).toMatchObject({
       completedGroups: 0,
       totalGroups: result.status === 'aborted' ? result.progress.totalGroups : 0,
@@ -483,6 +494,13 @@ describe('learningObjectiveDerivation', () => {
         queuedObjectives: 1,
       },
     });
+    if (timedOut.status !== 'timeout') throw new Error('timeout result expected');
+    const finishedRequest = run.mock.calls[0]?.[0] as OpenWeightLlmLearningObjectivesRequest;
+    expect(timedOut.progress.drafts).toHaveLength(1);
+    expect(timedOut.progress.drafts[0]?.text.length).toBeGreaterThan(0);
+    expect(timedOut.progress.coveredSourceQuestionIds).toEqual(
+      finishedRequest.questions.map((question) => question.id),
+    );
     expect(run).toHaveBeenCalledTimes(2);
     expect(active).toBe(false);
 
@@ -545,6 +563,9 @@ describe('learningObjectiveDerivation', () => {
         },
       });
       expect(result).toMatchObject({ status: 'invalid_response' });
+      if (result.status !== 'invalid_response') throw new Error('invalid response expected');
+      expect(result.progress?.drafts).toHaveLength(1);
+      expect(result.progress?.coveredSourceQuestionIds.length).toBeGreaterThan(0);
       expect(info).toHaveBeenCalledWith('learning_objectives:batch_completed', {
         batch: 1,
         batchCount: expect.any(Number),

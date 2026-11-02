@@ -148,6 +148,37 @@ export const LearningObjectiveDerivedDraftSchema = z
   });
 export type LearningObjectiveDerivedDraft = z.infer<typeof LearningObjectiveDerivedDraftSchema>;
 
+export const LearningObjectiveDerivationProgressSchema = z
+  .object({
+    completedGroups: z.number().int().min(0).max(QUIZ_UPLOAD_MAX_QUESTIONS),
+    totalGroups: z.number().int().min(0).max(QUIZ_UPLOAD_MAX_QUESTIONS),
+    elapsedMs: z.number().int().min(0),
+    promptTokens: z.number().int().min(0),
+    completionTokens: z.number().int().min(0),
+    queuedObjectives: z.number().int().min(0).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
+    /** Drafts from finished batches, stable for the whole operation. */
+    drafts: z.array(LearningObjectiveDerivedDraftSchema).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
+    /** Every source question in a finished batch, including batches without a draft. */
+    coveredSourceQuestionIds: z.array(QuizSourceQuestionIdSchema).max(QUIZ_UPLOAD_MAX_QUESTIONS),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    const seen = new Set<string>();
+    value.coveredSourceQuestionIds.forEach((sourceQuestionId, index) => {
+      if (seen.has(sourceQuestionId)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['coveredSourceQuestionIds', index],
+          message: 'Abgedeckte Quellfragen einer Lernzielableitung müssen eindeutig sein.',
+        });
+      }
+      seen.add(sourceQuestionId);
+    });
+  });
+export type LearningObjectiveDerivationProgress = z.infer<
+  typeof LearningObjectiveDerivationProgressSchema
+>;
+
 const LearningObjectiveDerivationCompletedResultSchema =
   LearningObjectiveDerivationCorrelationSchema.extend({
     status: z.literal('completed'),
@@ -160,21 +191,8 @@ const LearningObjectiveDerivationBusyResultSchema =
   LearningObjectiveDerivationCorrelationSchema.extend({
     status: z.literal('busy'),
     retry: z.literal('manual'),
+    progress: LearningObjectiveDerivationProgressSchema.optional(),
   }).strict();
-
-export const LearningObjectiveDerivationProgressSchema = z
-  .object({
-    completedGroups: z.number().int().min(0).max(QUIZ_UPLOAD_MAX_QUESTIONS),
-    totalGroups: z.number().int().min(0).max(QUIZ_UPLOAD_MAX_QUESTIONS),
-    elapsedMs: z.number().int().min(0),
-    promptTokens: z.number().int().min(0),
-    completionTokens: z.number().int().min(0),
-    queuedObjectives: z.number().int().min(0).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
-  })
-  .strict();
-export type LearningObjectiveDerivationProgress = z.infer<
-  typeof LearningObjectiveDerivationProgressSchema
->;
 
 export const GetLearningObjectiveDerivationProgressInputSchema =
   LearningObjectiveDerivationCorrelationSchema;
@@ -203,6 +221,7 @@ const DERIVATION_SIMPLE_FAILURE_STATUSES = [
 const LearningObjectiveDerivationSimpleFailureResultSchema =
   LearningObjectiveDerivationCorrelationSchema.extend({
     status: z.enum(DERIVATION_SIMPLE_FAILURE_STATUSES),
+    progress: LearningObjectiveDerivationProgressSchema.optional(),
   }).strict();
 
 const LearningObjectiveDerivationInterruptedResultSchema =

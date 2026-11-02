@@ -38,6 +38,7 @@ import {
   type LearningObjectiveDerivationProgress,
   type LearningObjectiveDerivationQuestion,
   type LearningObjectiveDerivationResult,
+  type LearningObjectiveDerivedDraft,
   type QuizLearningObjectiveV1,
 } from '@arsnova/shared-types';
 import { formatLocaleCount } from '../../../core/locale-number.util';
@@ -195,6 +196,21 @@ export class QuizLearningObjectivesComponent {
   private derivationProgressPollSequence = 0;
   private derivationProgressAppliedPollSequence = 0;
   private derivationProgressTimer: ReturnType<typeof setInterval> | null = null;
+  private derivationAcceptedDraftIds = new Set<string>();
+  private derivationRunCoveredSourceQuestionIds = new Set<string>();
+  private derivationResumeCoveredSourceQuestionIds = new Set<string>();
+  private derivationAcceptedBundleRevision: number | null = null;
+  private derivationApplyBlockedMessage: string | null = null;
+  private derivationOmittedForCapacity = 0;
+  private derivationSourceSnapshots = new Map<string, string>();
+  private derivationOperationId: string | null = null;
+  private derivationSentQuestionIds: readonly string[] = [];
+  private derivationProgressQuery: {
+    schemaVersion: typeof LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION;
+    operationId: string;
+    quizId: string;
+    expectedBundleRevision: number;
+  } | null = null;
 
   readonly quizId = input.required<string>();
   readonly questions = input.required<readonly QuizQuestion[]>();
@@ -280,11 +296,17 @@ export class QuizLearningObjectivesComponent {
     if (count <= 0) return null;
     const formatted = formatLocaleCount(count, this.locale);
     return count === 1
-      ? $localize`:@@learningObjectives.derivationQueuedObjective:1 Lernziel ist schon formuliert, aber noch nicht in der Liste.`
-      : $localize`:@@learningObjectives.derivationQueuedObjectives:${formatted}:count: Lernziele sind schon formuliert, aber noch nicht in der Liste.`;
+      ? $localize`:@@learningObjectives.derivationQueuedObjective:1 Lernziel steht schon als Entwurf in der Liste.`
+      : $localize`:@@learningObjectives.derivationQueuedObjectives:${formatted}:count: Lernziele stehen schon als Entwürfe in der Liste.`;
   });
+  readonly derivationResumeCoveredCount = signal(0);
+  readonly derivationCanResume = computed(
+    () => this.derivationCanRetry() && this.derivationResumeCoveredCount() > 0,
+  );
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
   readonly confirmAllInProgress = signal(false);
+  readonly deleteAllDraftsPending = signal(false);
+  readonly deleteAllInProgress = signal(false);
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   private readonly objectiveFormBaseline = signal<string | null>(null);
   readonly confirmableGeneratedObjectives = computed(() => {
@@ -303,6 +325,12 @@ export class QuizLearningObjectivesComponent {
       );
     });
   });
+  readonly deletableDraftObjectives = computed(() =>
+    this.objectives().filter(
+      (objective) =>
+        objective.confirmation.state === 'draft' && !this.hasSyncConflict(objective.id),
+    ),
+  );
   readonly derivationCanRetry = computed(() =>
     [
       'busy',
@@ -352,6 +380,20 @@ export class QuizLearningObjectivesComponent {
   async deriveLearningObjectives(): Promise<void> {
     if (this.derivationIsPending()) return;
 
+    const resuming = this.derivationCanRetry();
+    const resumeCovered = resuming
+      ? new Set(this.derivationResumeCoveredSourceQuestionIds)
+      : new Set<string>();
+    if (!resuming) {
+      this.derivationResumeCoveredSourceQuestionIds = new Set();
+      this.derivationResumeCoveredCount.set(0);
+    }
+    this.derivationAcceptedDraftIds = new Set();
+    this.derivationRunCoveredSourceQuestionIds = new Set();
+    this.derivationApplyBlockedMessage = null;
+    this.derivationOmittedForCapacity = 0;
+    this.derivationAcceptedBundleRevision = this.bundle().revision;
+
     const operationId = globalThis.crypto.randomUUID();
     const expectedBundleRevision = this.bundle().revision;
     const maximumDrafts = this.maxObjectives - this.allObjectives().length;
@@ -368,7 +410,8 @@ export class QuizLearningObjectivesComponent {
       questions = [...this.questions()]
         .filter((question) => !focusedId || question.id === focusedId)
         .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id))
-        .map(mapQuestionForLearningObjectiveDerivation);
+        .map(mapQuestionForLearningObjectiveDerivation)
+        .filter((question) => !resumeCovered.has(question.sourceQuestionId));
     } catch {
       this.finishDerivation(
         'invalid_response',
@@ -378,15 +421,19 @@ export class QuizLearningObjectivesComponent {
     }
     if (questions.length === 0) {
       this.finishDerivation(
-        'no_eligible_questions',
-        $localize`:@@learningObjectives.derivationNoEligible:Es gibt noch keine geeignete aktive Frage mit Lösung.`,
+        resumeCovered.size > 0 ? 'completed' : 'no_eligible_questions',
+        resumeCovered.size > 0
+          ? $localize`:@@learningObjectives.derivationResumeComplete:Für die übrigen Fragen liegen schon Entwürfe vor.`
+          : $localize`:@@learningObjectives.derivationNoEligible:Es gibt noch keine geeignete aktive Frage mit Lösung.`,
       );
       return;
     }
 
-    const sourceSnapshots = new Map(
+    this.derivationSourceSnapshots = new Map(
       questions.map((question) => [question.sourceQuestionId, JSON.stringify(question)]),
     );
+    this.derivationOperationId = operationId;
+    this.derivationSentQuestionIds = questions.map((question) => question.sourceQuestionId);
     const sequence = ++this.derivationSequence;
     const controller = new AbortController();
     this.derivationAbortController = controller;
@@ -424,7 +471,24 @@ export class QuizLearningObjectivesComponent {
         }),
         controller.signal,
       );
-      if (!this.isCurrentDerivation(sequence, controller)) return;
+      if (!this.isCurrentDerivation(sequence, controller)) {
+        if (this.derivationSequence === sequence + 1 && this.derivationStatus() === 'aborted') {
+          this.retainArrivedDerivation(result);
+          const retainedDrafts =
+            result.status === 'completed'
+              ? result.drafts.length
+              : (this.resultProgress(result)?.drafts.length ?? 0);
+          if (retainedDrafts > 0) {
+            this.derivationMessage.set(
+              this.derivationInterruptedMessage(
+                'aborted',
+                this.resultProgress(result) ?? this.derivationProgress(),
+              ),
+            );
+          }
+        }
+        return;
+      }
       if (
         result.operationId !== operationId ||
         result.quizId !== this.quizId() ||
@@ -436,85 +500,46 @@ export class QuizLearningObjectivesComponent {
         );
         return;
       }
+      this.retainArrivedDerivation(result);
+      if (this.derivationApplyBlockedMessage) {
+        this.finishDerivation(
+          result.status === 'completed' ? 'unavailable' : result.status,
+          this.derivationApplyBlockedMessage,
+        );
+        return;
+      }
       if (result.status !== 'completed') {
         this.finishDerivation(result.status, this.derivationStatusMessage(result));
         return;
       }
-      if (this.bundle().revision !== expectedBundleRevision) {
-        this.finishDerivation(
-          'unavailable',
-          $localize`:@@learningObjectives.derivationBundleConflict:Die Lernziele wurden während der automatischen Herleitung geändert. Deine Änderungen bleiben erhalten. Starte die Herleitung erneut.`,
-        );
-        return;
-      }
 
-      const remainingCapacity = Math.max(0, this.maxObjectives - this.allObjectives().length);
-      const draftsToApply = result.drafts.slice(0, remainingCapacity);
-      const omittedForCapacity = result.drafts.length - draftsToApply.length;
-
-      let currentSourceSnapshots: Map<string, string>;
-      try {
-        currentSourceSnapshots = new Map(
-          [...this.questions()]
-            .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id))
-            .map(mapQuestionForLearningObjectiveDerivation)
-            .map((question) => [question.sourceQuestionId, JSON.stringify(question)]),
-        );
-      } catch {
-        currentSourceSnapshots = new Map();
-      }
-      const referencedQuestionIds = new Set(
-        draftsToApply.flatMap((draft) => draft.origin.derivedFromSourceQuestionIds),
+      const applied = result.drafts.filter((draft) =>
+        this.derivationAcceptedDraftIds.has(draft.id),
       );
-      const sourceChanged = [...referencedQuestionIds].some(
-        (questionId) => sourceSnapshots.get(questionId) !== currentSourceSnapshots.get(questionId),
-      );
-      if (sourceChanged) {
-        this.finishDerivation(
-          'unavailable',
-          $localize`:@@learningObjectives.derivationSourceChanged:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Deine Lernziele bleiben unverändert. Starte die Herleitung erneut.`,
-        );
-        return;
-      }
-
-      try {
-        const applied = this.quizStore.applyDerivedLearningObjectiveDrafts(
-          this.quizId(),
-          expectedBundleRevision,
-          operationId,
-          draftsToApply,
-        );
-        this.derivationLimitations.set([
-          ...result.limitations,
-          ...(omittedForCapacity > 0
-            ? [
-                $localize`:@@learningObjectives.derivationCapacityLimitation:Nicht übernommene Vorschläge: ${omittedForCapacity}:count:. Der Platz für bestehende Lernziele blieb reserviert.`,
-              ]
-            : []),
-        ]);
-        this.finishDerivation(
-          'completed',
-          applied.length === 0
-            ? $localize`:@@learningObjectives.derivationCompletedEmpty:Die Herleitung ist abgeschlossen. Es wurden keine neuen Vorschläge hinzugefügt.`
-            : applied.length === 1
-              ? $localize`:@@learningObjectives.derivationCompletedSingle:Ein Lernzielvorschlag wurde als Entwurf hinzugefügt. Prüfe ihn vor dem Bestätigen.`
-              : $localize`:@@learningObjectives.derivationCompleted:${applied.length}:count: Lernzielvorschläge wurden als Entwürfe hinzugefügt. Prüfe sie vor dem Bestätigen.`,
-          applied[0] ? `learning-objective-edit-${applied[0].id}` : undefined,
-        );
-      } catch (error) {
-        this.finishDerivation(
-          'unavailable',
-          error instanceof Error
-            ? error.message
-            : $localize`:@@learningObjectives.derivationApplyFailed:Die Vorschläge konnten nicht gespeichert werden. Deine bisherigen Lernziele bleiben erhalten.`,
-        );
-      }
-    } catch {
-      if (sequence !== this.derivationSequence || controller.signal.aborted) return;
+      this.derivationLimitations.set([
+        ...result.limitations,
+        ...(this.derivationOmittedForCapacity > 0
+          ? [
+              $localize`:@@learningObjectives.derivationCapacityLimitation:Nicht übernommene Vorschläge: ${this.derivationOmittedForCapacity}:count:. Der Platz für bestehende Lernziele blieb reserviert.`,
+            ]
+          : []),
+      ]);
       this.finishDerivation(
-        'unavailable',
-        $localize`:@@learningObjectives.derivationUnavailable:Die lokale Text-KI ist gerade nicht erreichbar. Du kannst Lernziele manuell eintragen oder es später erneut versuchen.`,
+        'completed',
+        applied.length === 0
+          ? $localize`:@@learningObjectives.derivationCompletedEmpty:Die Herleitung ist abgeschlossen. Es wurden keine neuen Vorschläge hinzugefügt.`
+          : applied.length === 1
+            ? $localize`:@@learningObjectives.derivationCompletedSingle:Ein Lernzielvorschlag wurde als Entwurf hinzugefügt. Prüfe ihn vor dem Bestätigen.`
+            : $localize`:@@learningObjectives.derivationCompleted:${applied.length}:count: Lernzielvorschläge wurden als Entwürfe hinzugefügt. Prüfe sie vor dem Bestätigen.`,
+        applied[0] ? `learning-objective-edit-${applied[0].id}` : undefined,
       );
+    } catch {
+      await this.retainInterruptedProgress(sequence);
+      // Abbruch und ein neuer Auftrag können während des Wiederherstellungsabrufs starten.
+      if (!this.isCurrentDerivation(sequence, controller)) return;
+      const retention = this.derivationRetentionSentence(this.derivationProgress());
+      const unavailable = $localize`:@@learningObjectives.derivationUnavailable:Die lokale Text-KI ist gerade nicht erreichbar. Du kannst Lernziele manuell eintragen oder es später erneut versuchen.`;
+      this.finishDerivation('unavailable', retention ? `${unavailable} ${retention}` : unavailable);
     }
   }
 
@@ -537,6 +562,7 @@ export class QuizLearningObjectivesComponent {
     this.selectedQuestionIds.set(focusedId ? new Set([focusedId]) : new Set());
     this.confirmationState.set('confirmed');
     this.pendingDeleteId.set(null);
+    this.deleteAllDraftsPending.set(false);
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.formOpen.set(true);
@@ -556,6 +582,7 @@ export class QuizLearningObjectivesComponent {
       objective.confirmation.state === 'confirmed' ? 'confirmed' : 'draft',
     );
     this.pendingDeleteId.set(null);
+    this.deleteAllDraftsPending.set(false);
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.formOpen.set(true);
@@ -564,7 +591,14 @@ export class QuizLearningObjectivesComponent {
   }
 
   confirmAllGeneratedObjectives(): void {
-    if (this.derivationIsPending() || this.confirmAllInProgress()) return;
+    if (
+      this.derivationIsPending() ||
+      this.confirmAllInProgress() ||
+      this.deleteAllDraftsPending() ||
+      this.deleteAllInProgress()
+    ) {
+      return;
+    }
     const targets = this.confirmableGeneratedObjectives();
     if (targets.length === 0) return;
 
@@ -825,6 +859,7 @@ export class QuizLearningObjectivesComponent {
   }
 
   requestDelete(objective: QuizLearningObjectiveV1): void {
+    this.deleteAllDraftsPending.set(false);
     this.pendingDeleteId.set(objective.id);
     this.statusMessage.set(
       $localize`:@@learningObjectives.deletePrompt:Löschen bestätigen oder abbrechen.`,
@@ -856,6 +891,95 @@ export class QuizLearningObjectivesComponent {
       );
       this.focusElement(`learning-objective-edit-${objective.id}`);
     }
+  }
+
+  requestDeleteAllDrafts(): void {
+    if (
+      this.derivationIsPending() ||
+      this.confirmAllInProgress() ||
+      this.deleteAllInProgress() ||
+      this.deletableDraftObjectives().length === 0
+    ) {
+      return;
+    }
+    this.pendingDeleteId.set(null);
+    this.deleteAllDraftsPending.set(true);
+    this.errorMessage.set(null);
+    this.statusMessage.set(
+      $localize`:@@learningObjectives.deleteAllDraftsPrompt:Löschen aller Entwürfe bestätigen oder abbrechen.`,
+    );
+    this.focusElement('learning-objective-delete-all-drafts-confirm');
+  }
+
+  cancelDeleteAllDrafts(): void {
+    this.deleteAllDraftsPending.set(false);
+    this.statusMessage.set(null);
+    this.focusElement('learning-objective-delete-all-drafts');
+  }
+
+  confirmDeleteAllDrafts(): void {
+    if (this.derivationIsPending() || this.confirmAllInProgress() || this.deleteAllInProgress()) {
+      return;
+    }
+    const targets = this.deletableDraftObjectives();
+    this.deleteAllInProgress.set(true);
+    this.errorMessage.set(null);
+    let deleted = 0;
+    const removed: QuizLearningObjectiveV1[] = [];
+    let failureMessage: string | null = null;
+    try {
+      for (const objective of targets) {
+        const current = this.quizStore
+          .getLearningObjectiveBundle(this.quizId())
+          .objectives.find((entry) => entry.id === objective.id);
+        if (
+          !current ||
+          current.confirmation.state !== 'draft' ||
+          this.hasSyncConflict(current.id)
+        ) {
+          continue;
+        }
+        this.quizStore.deleteQuizLearningObjective(this.quizId(), current.id, current.revision);
+        deleted += 1;
+        removed.push(current);
+      }
+    } catch (error) {
+      failureMessage =
+        error instanceof Error
+          ? error.message
+          : $localize`:@@learningObjectives.deleteAllDraftsFailed:Die Entwürfe konnten nicht gelöscht werden.`;
+    } finally {
+      this.deleteAllInProgress.set(false);
+      this.deleteAllDraftsPending.set(false);
+      this.pendingDeleteId.set(null);
+    }
+
+    if (deleted === 0) {
+      const message =
+        failureMessage ??
+        $localize`:@@learningObjectives.deleteAllDraftsFailed:Die Entwürfe konnten nicht gelöscht werden.`;
+      this.errorMessage.set(message);
+      this.statusMessage.set(message);
+      this.focusElement('learning-objective-delete-all-drafts');
+      return;
+    }
+
+    this.releaseResumeCoverageForDeletedDrafts(removed);
+    const draftsRemain = this.objectives().some(
+      (objective) => objective.confirmation.state === 'draft',
+    );
+    const formatted = formatLocaleCount(deleted, this.locale);
+    this.statusMessage.set(
+      draftsRemain
+        ? deleted === 1
+          ? $localize`:@@learningObjectives.deleteAllDraftsPartialOne:Ein Entwurf wurde gelöscht. Die übrigen bleiben erhalten.`
+          : $localize`:@@learningObjectives.deleteAllDraftsPartialMany:${formatted}:count: Entwürfe wurden gelöscht. Die übrigen bleiben erhalten.`
+        : deleted === 1
+          ? $localize`:@@learningObjectives.deleteAllDraftsDoneOne:Ein Entwurf wurde gelöscht.`
+          : $localize`:@@learningObjectives.deleteAllDraftsDoneMany:${formatted}:count: Entwürfe wurden gelöscht.`,
+    );
+    this.errorMessage.set(failureMessage);
+    this.focusAfterDeleteAllDrafts();
   }
 
   resolveSyncConflict(objectiveId: string, operationId: string): void {
@@ -932,6 +1056,7 @@ export class QuizLearningObjectivesComponent {
     expectedBundleRevision: number;
   }): void {
     this.stopDerivationProgressPolling();
+    this.derivationProgressQuery = input;
     this.derivationProgressPollSequence = 0;
     this.derivationProgressAppliedPollSequence = 0;
     const sequence = this.derivationSequence;
@@ -951,6 +1076,11 @@ export class QuizLearningObjectivesComponent {
           }
           this.derivationProgressAppliedPollSequence = pollSequence;
           this.derivationProgress.set(snapshot.progress);
+          this.applyPublishedDerivationDrafts(
+            snapshot.progress.drafts ?? [],
+            snapshot.progress.coveredSourceQuestionIds ?? [],
+            input.operationId,
+          );
           this.derivationMessage.set(this.derivationPendingMessage());
         })
         .catch(() => undefined);
@@ -991,7 +1121,11 @@ export class QuizLearningObjectivesComponent {
   private derivationStatusMessage(result: LearningObjectiveDerivationResult): string {
     switch (result.status) {
       case 'busy':
-        return $localize`:@@learningObjectives.derivationBusy:Die lokale Text-KI ist gerade ausgelastet. Deine Lernziele bleiben unverändert. Bitte versuche es gleich noch einmal.`;
+        return this.derivationFailureMessage(
+          result.progress,
+          $localize`:@@learningObjectives.derivationBusyReason:Die lokale Text-KI ist gerade ausgelastet.`,
+          $localize`:@@learningObjectives.derivationBusy:Die lokale Text-KI ist gerade ausgelastet. Deine Lernziele bleiben unverändert. Bitte versuche es gleich noch einmal.`,
+        );
       case 'disabled':
         return $localize`:@@learningObjectives.derivationDisabled:Automatische Vorschläge sind auf diesem System nicht aktiviert. Du kannst Lernziele weiterhin manuell formulieren.`;
       case 'aborted':
@@ -999,13 +1133,25 @@ export class QuizLearningObjectivesComponent {
       case 'timeout':
         return this.derivationInterruptedMessage('timeout', result.progress);
       case 'unavailable':
-        return $localize`:@@learningObjectives.derivationUnavailable:Die lokale Text-KI ist gerade nicht erreichbar. Du kannst Lernziele manuell eintragen oder es später erneut versuchen.`;
+        return this.derivationFailureMessage(
+          result.progress,
+          $localize`:@@learningObjectives.derivationUnavailableReason:Die lokale Text-KI ist gerade nicht erreichbar.`,
+          $localize`:@@learningObjectives.derivationUnavailable:Die lokale Text-KI ist gerade nicht erreichbar. Du kannst Lernziele manuell eintragen oder es später erneut versuchen.`,
+        );
       case 'invalid_response':
-        return $localize`:@@learningObjectives.derivationInvalidResponse:Die Antwort konnte nicht sicher zugeordnet werden. Deine Lernziele bleiben unverändert.`;
+        return this.derivationFailureMessage(
+          result.progress,
+          $localize`:@@learningObjectives.derivationInvalidResponseReason:Die Antwort konnte nicht sicher zugeordnet werden.`,
+          $localize`:@@learningObjectives.derivationInvalidResponse:Die Antwort konnte nicht sicher zugeordnet werden. Deine Lernziele bleiben unverändert.`,
+        );
       case 'misconfigured':
         return $localize`:@@learningObjectives.derivationMisconfigured:Automatische Vorschläge sind auf diesem System noch nicht vollständig eingerichtet. Du kannst Lernziele weiterhin manuell formulieren.`;
       case 'circuit_open':
-        return $localize`:@@learningObjectives.derivationCircuitOpen:Die automatische Erstellung steht kurzzeitig nicht zur Verfügung. Bitte versuche es in einem Moment noch einmal.`;
+        return this.derivationFailureMessage(
+          result.progress,
+          $localize`:@@learningObjectives.derivationCircuitOpenReason:Die automatische Erstellung steht kurzzeitig nicht zur Verfügung.`,
+          $localize`:@@learningObjectives.derivationCircuitOpen:Die automatische Erstellung steht kurzzeitig nicht zur Verfügung. Bitte versuche es in einem Moment noch einmal.`,
+        );
       case 'no_eligible_questions':
         return $localize`:@@learningObjectives.derivationNoEligible:Es gibt noch keine geeignete aktive Frage mit Lösung.`;
       case 'input_too_large':
@@ -1028,8 +1174,9 @@ export class QuizLearningObjectivesComponent {
         ? $localize`:@@learningObjectives.derivationTimeoutWhy:Die Zeit für die gesamte Erstellung ist abgelaufen.`
         : $localize`:@@learningObjectives.derivationAbortedWhy:Die Erstellung wurde abgebrochen.`;
     const unchanged = $localize`:@@learningObjectives.derivationUnchanged:Deine Lernziele bleiben unverändert.`;
-    if (!progress || (progress.totalGroups <= 0 && progress.elapsedMs <= 0)) {
-      return `${why} ${unchanged}`;
+    const retention = this.derivationRetentionSentence(progress);
+    if (!progress || (progress.totalGroups <= 0 && progress.elapsedMs <= 0 && !retention)) {
+      return `${why} ${retention ?? unchanged}`;
     }
     const parts = [why];
     if (progress.totalGroups > 0) {
@@ -1051,8 +1198,187 @@ export class QuizLearningObjectivesComponent {
         $localize`:@@learningObjectives.derivationInterruptedVolume:Bisheriger Umfang: ${read}:read: gelesene und ${written}:written: formulierte Texteinheiten.`,
       );
     }
-    parts.push(unchanged);
+    parts.push(retention ?? unchanged);
     return parts.join(' ');
+  }
+
+  private derivationFailureMessage(
+    progress: LearningObjectiveDerivationProgress | null | undefined,
+    reason: string,
+    unchangedMessage: string,
+  ): string {
+    const retention = this.derivationRetentionSentence(progress);
+    return retention ? `${reason} ${retention}` : unchangedMessage;
+  }
+
+  private derivationRetentionSentence(
+    progress: LearningObjectiveDerivationProgress | null | undefined,
+  ): string | null {
+    if (!progress) return null;
+    if ((progress.drafts?.length ?? 0) > 0) {
+      return $localize`:@@learningObjectives.derivationRetained:Die schon formulierten Lernziele stehen als Entwürfe in der Liste. Ein erneuter Versuch setzt bei den übrigen Fragen fort.`;
+    }
+    if ((progress.coveredSourceQuestionIds?.length ?? 0) > 0) {
+      return $localize`:@@learningObjectives.derivationRetainedGroups:Die fertigen Fragegruppen bleiben abgeschlossen. Ein erneuter Versuch setzt bei den übrigen Fragen fort.`;
+    }
+    return null;
+  }
+
+  private resultProgress(
+    result: LearningObjectiveDerivationResult,
+  ): LearningObjectiveDerivationProgress | null {
+    switch (result.status) {
+      case 'completed':
+      case 'input_too_large':
+        return null;
+      case 'aborted':
+      case 'timeout':
+        return result.progress;
+      default:
+        return result.progress ?? null;
+    }
+  }
+
+  private retainArrivedDerivation(result: LearningObjectiveDerivationResult): void {
+    const operationId = this.derivationOperationId;
+    if (!operationId) return;
+    if (result.status === 'completed') {
+      this.applyPublishedDerivationDrafts(
+        result.drafts,
+        this.derivationSentQuestionIds,
+        operationId,
+      );
+      return;
+    }
+    const progress = this.resultProgress(result);
+    if (!progress) return;
+    this.derivationProgress.set(progress);
+    this.applyPublishedDerivationDrafts(
+      progress.drafts ?? [],
+      progress.coveredSourceQuestionIds ?? [],
+      operationId,
+    );
+  }
+
+  private async retainInterruptedProgress(sequence: number): Promise<void> {
+    const stillThisRun =
+      sequence === this.derivationSequence ||
+      (this.derivationSequence === sequence + 1 && this.derivationStatus() === 'aborted');
+    if (!stillThisRun) return;
+    const query = this.derivationProgressQuery;
+    const operationId = this.derivationOperationId;
+    if (!query || !operationId) return;
+    try {
+      const snapshot = await this.derivationClient.progress(query);
+      if (!snapshot.found || !snapshot.progress) return;
+      if (sequence !== this.derivationSequence && this.derivationStatus() !== 'aborted') return;
+      this.derivationProgress.set(snapshot.progress);
+      this.applyPublishedDerivationDrafts(
+        snapshot.progress.drafts ?? [],
+        snapshot.progress.coveredSourceQuestionIds ?? [],
+        operationId,
+      );
+      if (this.derivationStatus() === 'aborted') {
+        this.derivationMessage.set(
+          this.derivationInterruptedMessage('aborted', this.derivationProgress()),
+        );
+      }
+    } catch {
+      // Der letzte Fortschritt ist Hilfsinformation.
+    }
+  }
+
+  private currentDerivationSourceSnapshots(): Map<string, string> {
+    try {
+      return new Map(
+        [...this.questions()]
+          .sort((left, right) => left.order - right.order || left.id.localeCompare(right.id))
+          .map(mapQuestionForLearningObjectiveDerivation)
+          .map((question) => [question.sourceQuestionId, JSON.stringify(question)]),
+      );
+    } catch {
+      return new Map();
+    }
+  }
+
+  private applyPublishedDerivationDrafts(
+    drafts: readonly LearningObjectiveDerivedDraft[],
+    coveredSourceQuestionIds: readonly string[],
+    operationId: string,
+  ): void {
+    if (this.derivationApplyBlockedMessage) return;
+    const unseenDrafts = drafts.filter((draft) => !this.derivationAcceptedDraftIds.has(draft.id));
+    const newCovered = coveredSourceQuestionIds.filter(
+      (questionId) => !this.derivationRunCoveredSourceQuestionIds.has(questionId),
+    );
+    if (unseenDrafts.length === 0 && newCovered.length === 0) return;
+
+    const referenced = new Set<string>([
+      ...newCovered,
+      ...unseenDrafts.flatMap((draft) => draft.origin.derivedFromSourceQuestionIds),
+    ]);
+    const currentSourceSnapshots = this.currentDerivationSourceSnapshots();
+    const sourceChanged = [...referenced].some(
+      (questionId) =>
+        this.derivationSourceSnapshots.get(questionId) !== currentSourceSnapshots.get(questionId),
+    );
+    if (sourceChanged) {
+      this.derivationApplyBlockedMessage =
+        this.derivationAcceptedDraftIds.size > 0 ||
+        this.derivationResumeCoveredSourceQuestionIds.size > 0
+          ? $localize`:@@learningObjectives.derivationSourceChangedPartial:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Schon übernommene Entwürfe bleiben in der Liste.`
+          : $localize`:@@learningObjectives.derivationSourceChanged:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Deine Lernziele bleiben unverändert. Starte die Herleitung erneut.`;
+      return;
+    }
+
+    const bundle = this.bundle();
+    if (
+      this.derivationAcceptedBundleRevision !== null &&
+      bundle.revision !== this.derivationAcceptedBundleRevision
+    ) {
+      this.derivationApplyBlockedMessage = $localize`:@@learningObjectives.derivationBundleConflict:Die Lernziele wurden während der automatischen Herleitung geändert. Deine Änderungen bleiben erhalten. Starte die Herleitung erneut.`;
+      return;
+    }
+
+    const omittedQuestions = new Set<string>();
+    if (unseenDrafts.length > 0) {
+      const room = Math.max(0, this.maxObjectives - bundle.objectives.length);
+      if (room <= 0) {
+        this.derivationApplyBlockedMessage = $localize`:@@learningObjectives.derivationCapacity:Für weitere Vorschläge ist kein Platz. Lösche zuerst nicht mehr benötigte Lernziele.`;
+        return;
+      }
+      const draftsToStore = unseenDrafts.slice(0, room);
+      const omitted = unseenDrafts.slice(room);
+      this.derivationOmittedForCapacity += omitted.length;
+      for (const draft of omitted) {
+        for (const questionId of draft.origin.derivedFromSourceQuestionIds) {
+          omittedQuestions.add(questionId);
+        }
+      }
+      try {
+        this.quizStore.applyDerivedLearningObjectiveDrafts(
+          this.quizId(),
+          bundle.revision,
+          operationId,
+          draftsToStore,
+        );
+      } catch (error) {
+        this.derivationApplyBlockedMessage =
+          error instanceof Error
+            ? error.message
+            : $localize`:@@learningObjectives.derivationApplyFailed:Die Vorschläge konnten nicht gespeichert werden. Deine bisherigen Lernziele bleiben erhalten.`;
+        return;
+      }
+      for (const draft of draftsToStore) this.derivationAcceptedDraftIds.add(draft.id);
+      this.derivationAcceptedBundleRevision = this.bundle().revision;
+    }
+
+    for (const questionId of newCovered) {
+      if (omittedQuestions.has(questionId)) continue;
+      this.derivationRunCoveredSourceQuestionIds.add(questionId);
+      this.derivationResumeCoveredSourceQuestionIds.add(questionId);
+    }
+    this.derivationResumeCoveredCount.set(this.derivationResumeCoveredSourceQuestionIds.size);
   }
 
   private formatDerivationDuration(elapsedMs: number): string {
@@ -1090,6 +1416,46 @@ export class QuizLearningObjectivesComponent {
     const firstObjective = this.objectives()[0];
     if (firstObjective) {
       this.focusElement(`learning-objective-edit-${firstObjective.id}`);
+    }
+  }
+
+  private focusAfterDeleteAllDrafts(): void {
+    if (this.formOpen()) return;
+    if (this.deletableDraftObjectives().length > 0) {
+      this.focusElement('learning-objective-delete-all-drafts');
+      return;
+    }
+    const addButton = globalThis.document?.getElementById('learning-objective-add');
+    if (addButton instanceof HTMLButtonElement && !addButton.disabled) {
+      this.focusElement('learning-objective-add');
+      return;
+    }
+    const firstObjective = this.objectives()[0];
+    if (firstObjective) {
+      this.focusElement(`learning-objective-edit-${firstObjective.id}`);
+    }
+  }
+
+  private releaseResumeCoverageForDeletedDrafts(deleted: readonly QuizLearningObjectiveV1[]): void {
+    if (this.derivationResumeCoveredSourceQuestionIds.size === 0) return;
+    const stillReferenced = new Set<string>();
+    for (const objective of this.allObjectives()) {
+      if (objective.origin.kind !== 'model-derived') continue;
+      for (const questionId of objective.origin.derivedFromSourceQuestionIds) {
+        stillReferenced.add(questionId);
+      }
+    }
+    let changed = false;
+    for (const objective of deleted) {
+      if (objective.origin.kind !== 'model-derived') continue;
+      for (const questionId of objective.origin.derivedFromSourceQuestionIds) {
+        if (stillReferenced.has(questionId)) continue;
+        this.derivationRunCoveredSourceQuestionIds.delete(questionId);
+        if (this.derivationResumeCoveredSourceQuestionIds.delete(questionId)) changed = true;
+      }
+    }
+    if (changed) {
+      this.derivationResumeCoveredCount.set(this.derivationResumeCoveredSourceQuestionIds.size);
     }
   }
 
