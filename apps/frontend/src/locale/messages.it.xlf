@@ -35582,16 +35582,16 @@
         <target>Ancora circa <x id="minutes" equiv-text="minutes"/> minuti.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationKeepEditorOpen" datatype="html">
-        <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst wird sie abgebrochen.</source>
-        <target>Non chiudere l’editor finché la creazione non è conclusa. Altrimenti viene interrotta.</target>
+        <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der Liste.</source>
+        <target>Non chiudere l’editor finché la creazione non è conclusa. Altrimenti le domande restanti non vengono più formulate. Le bozze già inserite restano nell’elenco.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationQueuedObjective" datatype="html">
-        <source>1 Lernziel ist schon formuliert, aber noch nicht in der Liste.</source>
-        <target>1 obiettivo di apprendimento è già formulato, ma non è ancora nell’elenco.</target>
+        <source>1 Lernziel steht schon als Entwurf in der Liste.</source>
+        <target>1 obiettivo di apprendimento è già una bozza nell’elenco.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationQueuedObjectives" datatype="html">
-        <source><x id="count" equiv-text="count"/> Lernziele sind schon formuliert, aber noch nicht in der Liste.</source>
-        <target><x id="count" equiv-text="count"/> obiettivi di apprendimento sono già formulati, ma non sono ancora nell’elenco.</target>
+        <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
+        <target><x id="count" equiv-text="count"/> obiettivi di apprendimento sono già bozze nell’elenco.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
         <source>Die Erstellung wurde abgebrochen.</source>
@@ -35632,6 +35632,42 @@
       <trans-unit id="learningObjectives.derivationDurationMinutesSeconds" datatype="html">
         <source><x id="minutes" equiv-text="minutes"/> Minuten und <x id="seconds" equiv-text="seconds"/> Sekunden</source>
         <target><x id="minutes" equiv-text="minutes"/> minuti e <x id="seconds" equiv-text="seconds"/> secondi</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationSourceChangedPartial" datatype="html">
+        <source>Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Schon übernommene Entwürfe bleiben in der Liste.</source>
+        <target>Almeno una domanda utilizzata è stata modificata o disattivata durante la generazione automatica. Le bozze già inserite restano nell’elenco.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationResume" datatype="html">
+        <source>Bei den übrigen Fragen fortsetzen</source>
+        <target>Continua con le domande rimanenti</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
+        <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
+        <target>Per le domande rimanenti esistono già delle bozze.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRetained" datatype="html">
+        <source>Die schon formulierten Lernziele stehen als Entwürfe in der Liste. Ein erneuter Versuch setzt bei den übrigen Fragen fort.</source>
+        <target>Gli obiettivi già formulati sono bozze nell’elenco. Un nuovo tentativo riprende dalle domande rimanenti.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRetainedGroups" datatype="html">
+        <source>Die fertigen Fragegruppen bleiben abgeschlossen. Ein erneuter Versuch setzt bei den übrigen Fragen fort.</source>
+        <target>I gruppi di domande conclusi restano chiusi. Un nuovo tentativo riprende dalle domande rimanenti.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationBusyReason" datatype="html">
+        <source>Die lokale Text-KI ist gerade ausgelastet.</source>
+        <target>L’IA testuale locale è occupata in questo momento.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationUnavailableReason" datatype="html">
+        <source>Die lokale Text-KI ist gerade nicht erreichbar.</source>
+        <target>L’IA testuale locale non è raggiungibile in questo momento.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInvalidResponseReason" datatype="html">
+        <source>Die Antwort konnte nicht sicher zugeordnet werden.</source>
+        <target>La risposta non è stata associata in modo sicuro.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationCircuitOpenReason" datatype="html">
+        <source>Die automatische Erstellung steht kurzzeitig nicht zur Verfügung.</source>
+        <target>La creazione automatica è momentaneamente non disponibile.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationRetry" datatype="html">
         <source>Nochmal versuchen</source>

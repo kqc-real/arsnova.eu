@@ -741,11 +741,11 @@ describe('QuizLearningObjectivesComponent', () => {
     );
     expect(fixture.componentInstance.derivationRemainingEstimate()).toBe('Noch etwa 2 Minuten.');
     expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
-      '2 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+      '2 Lernziele stehen schon als Entwürfe in der Liste.',
     );
     expect(fixture.nativeElement.textContent).toContain('Noch etwa 2 Minuten.');
     expect(fixture.nativeElement.textContent).toContain(
-      '2 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+      '2 Lernziele stehen schon als Entwürfe in der Liste.',
     );
     const liveSpinner = fixture.nativeElement.querySelector('mat-progress-spinner');
     const progressBar = fixture.nativeElement.querySelector('mat-progress-bar');
@@ -840,7 +840,7 @@ describe('QuizLearningObjectivesComponent', () => {
       'Fertig sind 2 von 4 Fragegruppen.',
     );
     expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
-      '3 Lernziele sind schon formuliert, aber noch nicht in der Liste.',
+      '3 Lernziele stehen schon als Entwürfe in der Liste.',
     );
     fixture.destroy();
   });
@@ -1088,6 +1088,110 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(message).toContain('800 gelesene und 240 formulierte Texteinheiten');
     expect(message).toContain('Deine Lernziele bleiben unverändert.');
     expect(message).not.toMatch(/Token|Batch/i);
+  });
+
+  it('übernimmt fertige Entwürfe vor dem Zeitlimit und setzt beim nächsten Versuch bei den übrigen Fragen fort', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Fortsetzen' });
+    const first = store.addQuestion(quiz.id, {
+      text: 'Erste Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const second = store.addQuestion(quiz.id, {
+      text: 'Zweite Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'C', isCorrect: true },
+        { text: 'D', isCorrect: false },
+      ],
+    });
+    const draft = derivedDraft(
+      '50000000-0000-4000-8000-000000000041',
+      first.id,
+      'Die erste Frage erklären.',
+    );
+    let calls = 0;
+    runDerivationMock.mockImplementation(
+      async (input: {
+        operationId: string;
+        quizId: string;
+        expectedBundleRevision: number;
+        questions: Array<{ sourceQuestionId: string }>;
+      }) => {
+        calls += 1;
+        if (calls === 1) {
+          return {
+            schemaVersion: 1,
+            operationId: input.operationId,
+            quizId: input.quizId,
+            expectedBundleRevision: input.expectedBundleRevision,
+            status: 'timeout',
+            progress: {
+              completedGroups: 1,
+              totalGroups: 2,
+              elapsedMs: 125_000,
+              promptTokens: 800,
+              completionTokens: 240,
+              queuedObjectives: 1,
+              drafts: [draft],
+              coveredSourceQuestionIds: [first.id],
+            },
+          };
+        }
+        expect(input.questions.map((question) => question.sourceQuestionId)).toEqual([second.id]);
+        return {
+          schemaVersion: 1,
+          operationId: input.operationId,
+          quizId: input.quizId,
+          expectedBundleRevision: input.expectedBundleRevision,
+          status: 'completed',
+          drafts: [
+            derivedDraft(
+              '50000000-0000-4000-8000-000000000042',
+              second.id,
+              'Die zweite Frage erklären.',
+            ),
+          ],
+          limitations: [],
+          batchCount: 1,
+        };
+      },
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [first, second]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
+    fixture.detectChanges();
+
+    expect(
+      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
+    ).toEqual(['Die erste Frage erklären.']);
+    expect(fixture.componentInstance.derivationMessage()).toContain(
+      'Die schon formulierten Lernziele stehen als Entwürfe in der Liste.',
+    );
+    const resume = fixture.nativeElement.querySelector(
+      '#learning-objective-derive',
+    ) as HTMLButtonElement;
+    expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
+    resume.click();
+    await vi.waitFor(() =>
+      expect(store.getLearningObjectiveBundle(quiz.id).objectives).toHaveLength(2),
+    );
+    expect(runDerivationMock).toHaveBeenCalledTimes(2);
+    expect(
+      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
+    ).toEqual(['Die erste Frage erklären.', 'Die zweite Frage erklären.']);
   });
 
   it('verwirft ein spätes Ergebnis, wenn sich die referenzierte Aufgabenlösung geändert hat', async () => {

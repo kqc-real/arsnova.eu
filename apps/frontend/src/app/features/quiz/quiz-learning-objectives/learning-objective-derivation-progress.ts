@@ -10,6 +10,8 @@ export function emptyLearningObjectiveDerivationProgress(): LearningObjectiveDer
     promptTokens: 0,
     completionTokens: 0,
     queuedObjectives: 0,
+    drafts: [],
+    coveredSourceQuestionIds: [],
   };
 }
 

@@ -52,6 +52,8 @@ const progress = {
   promptTokens: 240,
   completionTokens: 48,
   queuedObjectives: 2,
+  drafts: [],
+  coveredSourceQuestionIds: [],
 };
 
 describe('learning-objective derivation progress store', () => {

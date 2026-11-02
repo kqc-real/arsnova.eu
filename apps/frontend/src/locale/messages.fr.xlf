@@ -35582,16 +35582,16 @@
         <target>Encore environ <x id="minutes" equiv-text="minutes"/> minutes.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationKeepEditorOpen" datatype="html">
-        <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst wird sie abgebrochen.</source>
-        <target>Ne ferme pas l’éditeur tant que la création n’est pas terminée. Sinon, elle est interrompue.</target>
+        <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der Liste.</source>
+        <target>Ne ferme pas l’éditeur tant que la création n’est pas terminée. Sinon, les questions restantes ne sont plus formulées. Les brouillons déjà ajoutés restent dans la liste.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationQueuedObjective" datatype="html">
-        <source>1 Lernziel ist schon formuliert, aber noch nicht in der Liste.</source>
-        <target>1 objectif d’apprentissage est déjà formulé, mais pas encore dans la liste.</target>
+        <source>1 Lernziel steht schon als Entwurf in der Liste.</source>
+        <target>1 objectif d’apprentissage figure déjà comme brouillon dans la liste.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationQueuedObjectives" datatype="html">
-        <source><x id="count" equiv-text="count"/> Lernziele sind schon formuliert, aber noch nicht in der Liste.</source>
-        <target><x id="count" equiv-text="count"/> objectifs d’apprentissage sont déjà formulés, mais pas encore dans la liste.</target>
+        <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
+        <target><x id="count" equiv-text="count"/> objectifs d’apprentissage figurent déjà comme brouillons dans la liste.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
         <source>Die Erstellung wurde abgebrochen.</source>
@@ -35632,6 +35632,42 @@
       <trans-unit id="learningObjectives.derivationDurationMinutesSeconds" datatype="html">
         <source><x id="minutes" equiv-text="minutes"/> Minuten und <x id="seconds" equiv-text="seconds"/> Sekunden</source>
         <target><x id="minutes" equiv-text="minutes"/> minutes et <x id="seconds" equiv-text="seconds"/> secondes</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationSourceChangedPartial" datatype="html">
+        <source>Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Schon übernommene Entwürfe bleiben in der Liste.</source>
+        <target>Au moins une question utilisée a été modifiée ou désactivée pendant la génération automatique. Les brouillons déjà ajoutés restent dans la liste.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationResume" datatype="html">
+        <source>Bei den übrigen Fragen fortsetzen</source>
+        <target>Continuer avec les questions restantes</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
+        <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
+        <target>Des brouillons existent déjà pour les questions restantes.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRetained" datatype="html">
+        <source>Die schon formulierten Lernziele stehen als Entwürfe in der Liste. Ein erneuter Versuch setzt bei den übrigen Fragen fort.</source>
+        <target>Les objectifs déjà formulés figurent comme brouillons dans la liste. Un nouvel essai reprend aux questions restantes.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRetainedGroups" datatype="html">
+        <source>Die fertigen Fragegruppen bleiben abgeschlossen. Ein erneuter Versuch setzt bei den übrigen Fragen fort.</source>
+        <target>Les groupes de questions terminés restent conclus. Un nouvel essai reprend aux questions restantes.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationBusyReason" datatype="html">
+        <source>Die lokale Text-KI ist gerade ausgelastet.</source>
+        <target>Le modèle de texte local est occupé pour le moment.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationUnavailableReason" datatype="html">
+        <source>Die lokale Text-KI ist gerade nicht erreichbar.</source>
+        <target>Le modèle de texte local n’est pas disponible pour le moment.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInvalidResponseReason" datatype="html">
+        <source>Die Antwort konnte nicht sicher zugeordnet werden.</source>
+        <target>La réponse n’a pas pu être associée de façon sûre.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationCircuitOpenReason" datatype="html">
+        <source>Die automatische Erstellung steht kurzzeitig nicht zur Verfügung.</source>
+        <target>La création automatique est momentanément indisponible.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationRetry" datatype="html">
         <source>Nochmal versuchen</source>

@@ -126,7 +126,11 @@
               (click)="deriveLearningObjectives()"
             >
               <mat-icon aria-hidden="true">auto_awesome</mat-icon>
-              @if (derivationCanRetry()) {
+              @if (derivationCanResume()) {
+                <span i18n="@@learningObjectives.derivationResume"
+                  >Bei den übrigen Fragen fortsetzen</span
+                >
+              } @else if (derivationCanRetry()) {
                 <span i18n="@@learningObjectives.derivationRetry">Nochmal versuchen</span>
               } @else if (derivationStatus() === 'completed') {
                 <span i18n="@@learningObjectives.derivationAgain"
@@ -230,8 +234,9 @@
                     class="learning-objectives__derivation-keep-open"
                     i18n="@@learningObjectives.derivationKeepEditorOpen"
                   >
-                    Schließe den Editor nicht, solange die Erstellung läuft. Sonst wird sie
-                    abgebrochen.
+                    Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die
+                    Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der
+                    Liste.
                   </p>
                 </div>
               }
