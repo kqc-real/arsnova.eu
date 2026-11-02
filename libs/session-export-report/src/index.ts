@@ -27,6 +27,7 @@ export {
 } from './markdown-export-images.util.js';
 export {
   extractExportQuestionText,
+  markdownToReadableText,
   stripHostOnlyQuestionNotes,
   stripMarkdownToPlainText,
 } from './markdown-plain-text.util.js';

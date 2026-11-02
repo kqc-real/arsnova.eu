@@ -19,6 +19,7 @@ export {
 export { inlineExportImagesInHtml, assetRelativePathFromSrc } from './markdown-export-images.util';
 export {
   extractExportQuestionText,
+  markdownToReadableText,
   stripHostOnlyQuestionNotes,
   stripMarkdownToPlainText,
 } from './markdown-plain-text.util';

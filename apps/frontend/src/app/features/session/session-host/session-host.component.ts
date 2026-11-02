@@ -272,7 +272,10 @@ import {
   buildQaQuestionsCsvFilename,
   buildSessionResultsCsvFilename,
 } from '../../../core/export-filename.util';
-import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
+import {
+  markdownToReadableText,
+  stripMarkdownToPlainText,
+} from '../../../core/markdown-plain-text.util';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
 import {
   SessionResultsExportService,
@@ -5096,7 +5099,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   quoteLabel(text: string): string {
-    const plain = stripMarkdownToPlainText(text).trim().replace(/\s+/g, ' ');
+    const plain = markdownToReadableText(text).trim().replace(/\s+/g, ' ');
     return $localize`:@@sessionHost.quotedLabel:»${plain}:text:«`;
   }
 

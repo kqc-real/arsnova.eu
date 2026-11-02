@@ -15,6 +15,32 @@ export function stripHostOnlyQuestionNotes(value: string): string {
     .trim();
 }
 
+const MATH_BLOCK = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)/g;
+
+function mathSourceText(match: string): string {
+  let inner = match;
+  if (inner.startsWith('$$')) inner = inner.slice(2, -2);
+  else if (inner.startsWith('\\[') || inner.startsWith('\\(')) inner = inner.slice(2, -2);
+  return inner.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Markdown als Fließtext. Blockformeln (`$$`, `\[…\]`, `\(…\)`) bleiben als Quelltext,
+ * damit unterschiedliche Formeln nicht zu leerem Text zusammenfallen.
+ */
+export function markdownToReadableText(value: string): string {
+  const formulas: string[] = [];
+  const marked = value.replace(MATH_BLOCK, (match) => {
+    const slot = formulas.length;
+    formulas.push(mathSourceText(match));
+    return ` \uE000${slot}\uE001 `;
+  });
+  return stripMarkdownToPlainText(marked).replace(
+    /\uE000(\d+)\uE001/g,
+    (_, index: string) => formulas[Number(index)] ?? '',
+  );
+}
+
 /** Markdown/KaTeX in lesbaren Fließtext umwandeln. */
 export function stripMarkdownToPlainText(value: string): string {
   return replaceEmojiShortcodes(

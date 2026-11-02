@@ -23886,7 +23886,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       {
         id: '11111111-1111-4111-8111-111111111111',
         revision: 1,
-        text: 'Nur diese Frage erklären.',
+        text: 'Die Formel $$x^2$$ erläutern.',
         scope: {
           kind: 'question-set',
           taskReferences: [{ kind: 'quiz-question', questionId }],
@@ -23955,7 +23955,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
             highConfidenceWrongOptions: [
               {
                 answerId: 'aaaaaaaa-1111-4111-8111-111111111111',
-                text: 'nur die Steigung',
+                text: '$$x^3$$',
                 count: 2,
               },
             ],
@@ -23967,10 +23967,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Lernziel zu Frage 1');
-    expect(text).toContain('»Nur diese Frage erklären.«');
+    expect(text).toContain('»Die Formel x^2 erläutern.«');
     expect(text).toContain('2 von 5 falsch bei hoher Selbsteinschätzung (40 %)');
     expect(text).toContain('Häufigste falsche Option:');
-    expect(text).toContain('»nur die Steigung«');
+    expect(text).toContain('»x^3«');
     expect(text).not.toContain('Das ganze Quiz verstehen.');
     fixture.destroy();
   });
@@ -27554,7 +27554,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         {
           id: '11111111-1111-4111-8111-111111111111',
           revision: 1,
-          text: 'Nur diese Frage erklären.',
+          text: 'Die Formel $$x^2$$ erläutern.',
           scope: {
             kind: 'question-set',
             taskReferences: [{ kind: 'quiz-question', questionId }],
@@ -27625,7 +27625,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           },
           highConfidenceWrongCount: 2,
           highConfidenceWrongOptions: [
-            { answerId: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', count: 2 },
+            { answerId: 'aaaaaaaa-1111-4111-8111-111111111111', text: '$$x^3$$', count: 2 },
           ],
         },
       });
@@ -27641,9 +27641,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         expect.arrayContaining([
           expect.objectContaining({
             label: 'Lernziel zu Frage 1',
-            evidence: '»Nur diese Frage erklären.«',
+            evidence: '»Die Formel x^2 erläutern.«',
             context:
-              '2 von 5 falsch bei hoher Selbsteinschätzung (40 %). Häufigste falsche Option: »5«',
+              '2 von 5 falsch bei hoher Selbsteinschätzung (40 %). Häufigste falsche Option: »x^3«',
             target: { channel: 'quiz', questionId },
           }),
         ]),

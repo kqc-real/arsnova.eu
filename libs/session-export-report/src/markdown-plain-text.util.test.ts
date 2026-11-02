@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   extractExportQuestionText,
+  markdownToReadableText,
   stripHostOnlyQuestionNotes,
   stripMarkdownToPlainText,
 } from './markdown-plain-text.util';
@@ -69,7 +70,31 @@ describe('stripHostOnlyQuestionNotes', () => {
   });
 });
 
+describe('markdownToReadableText', () => {
+  it('behält eine reine Blockformel', () => {
+    expect(markdownToReadableText('$$x^2$$')).toBe('x^2');
+    expect(markdownToReadableText('$$x^3$$')).toBe('x^3');
+  });
+
+  it('behält eine Formel im umgebenden Lernzieltext', () => {
+    expect(markdownToReadableText('Die Formel $$x^2$$ erläutern.')).toBe(
+      'Die Formel x^2 erläutern.',
+    );
+  });
+
+  it('behält Formelquelltext mit Unterstrichen und anderen Blockbegrenzern', () => {
+    expect(markdownToReadableText('$$a_{b_c}$$')).toBe('a_{b_c}');
+    expect(markdownToReadableText('\\[x^2\\]')).toBe('x^2');
+    expect(markdownToReadableText('\\(x^2\\)')).toBe('x^2');
+  });
+});
+
 describe('stripMarkdownToPlainText', () => {
+  it('entfernt Blockformeln', () => {
+    expect(stripMarkdownToPlainText('$$x^2$$')).toBe('');
+    expect(stripMarkdownToPlainText('Die Formel $$x^2$$ erläutern.')).toBe('Die Formel erläutern.');
+  });
+
   it('wandelt einfaches Markdown um', () => {
     expect(stripMarkdownToPlainText('**Fett** und *kursiv*')).toBe('Fett und kursiv');
   });
