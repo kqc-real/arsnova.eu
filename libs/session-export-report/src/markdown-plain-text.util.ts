@@ -19,30 +19,40 @@ const MATH_DELIMITERS = [
   { open: '$$', close: '$$' },
   { open: '\\[', close: '\\]' },
   { open: '\\(', close: '\\)' },
+  { open: '$', close: '$' },
 ] as const;
 
 function mathSourceText(match: string): string {
   let inner = match;
   if (inner.startsWith('$$')) inner = inner.slice(2, -2);
   else if (inner.startsWith('\\[') || inner.startsWith('\\(')) inner = inner.slice(2, -2);
+  else if (inner.startsWith('$')) inner = inner.slice(1, -1);
   return inner.replace(/\s+/g, ' ').trim();
 }
 
+function findMathCloser(value: string, marker: string, from: number): number {
+  if (marker !== '$') return value.indexOf(marker, from);
+  for (let index = from; index < value.length; index += 1) {
+    if (value[index] === '$' && value[index - 1] !== '\\') return index;
+  }
+  return -1;
+}
+
 function takeMathBlock(value: string, start: number): { match: string; next: number } | null {
+  if (value[start] === '$' && value[start - 1] === '\\') return null;
   const slice = value.slice(start);
   const delimiter = MATH_DELIMITERS.find((entry) => slice.startsWith(entry.open));
   if (!delimiter) return null;
-  const end = value.indexOf(delimiter.close, start + delimiter.open.length);
+  const end = findMathCloser(value, delimiter.close, start + delimiter.open.length);
   if (end === -1) return null;
-  return {
-    match: value.slice(start, end + delimiter.close.length),
-    next: end + delimiter.close.length,
-  };
+  const match = value.slice(start, end + delimiter.close.length);
+  if (mathSourceText(match).length === 0) return null;
+  return { match, next: end + delimiter.close.length };
 }
 
 /**
- * Markdown als Fließtext. Blockformeln (`$$`, `\[…\]`, `\(…\)`) bleiben als Quelltext,
- * damit unterschiedliche Formeln nicht zu leerem Text zusammenfallen.
+ * Markdown als Fließtext. Formeln (`$$`, `$…$`, `\[…\]`, `\(…\)`) bleiben als Quelltext,
+ * damit Markdown Unterstriche und Malzeichen in Formeln nicht entfernt.
  */
 export function markdownToReadableText(value: string): string {
   const formulas: string[] = [];

@@ -53,7 +53,7 @@ Frage-Aggregate zusammen:
 - **Fehlkonzept-Risiko:** falsch + hohe Antwortsicherheit
 - **Fragiles Wissen:** richtig + niedrige Antwortsicherheit
 - Priorisierte Fragen für die Nachbesprechung, zuerst nach dem Anteil „falsch + hohe Antwortsicherheit“
-- Bei einer priorisierten Frage zusätzlich das bestätigte Lernziel, wenn es ausschließlich diese Frage nennt: Zieltext, Anteil falsch bei hoher Selbsteinschätzung und häufigste falsche Option. Formeln in Zieltext und Option bleiben als Quelltext lesbar. Dieselbe Zeile steht im Moderationskompass, sobald das Ergebnis dieser Frage freigegeben ist.
+- Bei einer priorisierten Frage zusätzlich das bestätigte Lernziel, wenn es ausschließlich diese Frage nennt: Zieltext, Anteil falsch bei hoher Selbsteinschätzung und häufigste falsche Option. Block- und Inlineformeln in Zieltext und Option bleiben als Quelltext lesbar. Dieselbe Zeile steht im Moderationskompass, sobald das Ergebnis dieser Frage freigegeben ist.
 - Runde 2 ersetzt bei Peer Instruction Runde 1; sonst wird Runde 1 verwendet
 
 Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden in der Abschlussauswertung und
