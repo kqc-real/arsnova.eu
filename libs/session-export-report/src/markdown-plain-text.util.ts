@@ -15,7 +15,11 @@ export function stripHostOnlyQuestionNotes(value: string): string {
     .trim();
 }
 
-const MATH_BLOCK = /\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)/g;
+const MATH_DELIMITERS = [
+  { open: '$$', close: '$$' },
+  { open: '\\[', close: '\\]' },
+  { open: '\\(', close: '\\)' },
+] as const;
 
 function mathSourceText(match: string): string {
   let inner = match;
@@ -24,20 +28,40 @@ function mathSourceText(match: string): string {
   return inner.replace(/\s+/g, ' ').trim();
 }
 
+function takeMathBlock(value: string, start: number): { match: string; next: number } | null {
+  const slice = value.slice(start);
+  const delimiter = MATH_DELIMITERS.find((entry) => slice.startsWith(entry.open));
+  if (!delimiter) return null;
+  const end = value.indexOf(delimiter.close, start + delimiter.open.length);
+  if (end === -1) return null;
+  return {
+    match: value.slice(start, end + delimiter.close.length),
+    next: end + delimiter.close.length,
+  };
+}
+
 /**
  * Markdown als Fließtext. Blockformeln (`$$`, `\[…\]`, `\(…\)`) bleiben als Quelltext,
  * damit unterschiedliche Formeln nicht zu leerem Text zusammenfallen.
  */
 export function markdownToReadableText(value: string): string {
   const formulas: string[] = [];
-  const marked = value.replace(MATH_BLOCK, (match) => {
+  let marked = '';
+  for (let index = 0; index < value.length;) {
+    const block = takeMathBlock(value, index);
+    if (!block) {
+      marked += value[index];
+      index += 1;
+      continue;
+    }
     const slot = formulas.length;
-    formulas.push(mathSourceText(match));
-    return ` \uE000${slot}\uE001 `;
-  });
+    formulas.push(mathSourceText(block.match));
+    marked += ` \uE000${slot}\uE001 `;
+    index = block.next;
+  }
   return stripMarkdownToPlainText(marked).replace(
     /\uE000(\d+)\uE001/g,
-    (_, index: string) => formulas[Number(index)] ?? '',
+    (_, slot: string) => formulas[Number(slot)] ?? '',
   );
 }
 
