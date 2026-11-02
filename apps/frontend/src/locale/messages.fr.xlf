@@ -34403,7 +34403,7 @@
       </trans-unit>
       <trans-unit id="learningObjectives.originIntro" datatype="html">
         <source> Du kannst Lernziele selbst schreiben oder automatisch aus deinen Fragen vorschlagen lassen. Automatische Vorschläge werden als Entwurf angelegt, bis du sie prüfst und bestätigst.</source>
-        <target>Tu peux rédiger toi-même les objectifs d’apprentissage ou les faire suggérer automatiquement à partir de tes questions. Les suggestions automatiques sont enregistrées comme brouillons jusqu’à ce que tu les vérifies et les confirmes.</target>
+        <target>Tu peux écrire les objectifs toi-même ou les générer à partir de tes questions. Ils restent brouillons jusqu’à confirmation.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
           <context context-type="linenumber">20,25</context>
@@ -34471,7 +34471,7 @@
       </trans-unit>
       <trans-unit id="learningObjectives.modelDerived" datatype="html">
         <source>KI-Vorschlag</source>
-        <target>Suggestion IA</target>
+        <target>Brouillon IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
           <context context-type="linenumber">108</context>
@@ -34483,23 +34483,59 @@
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGenerated" datatype="html">
         <source>Alle Vorschläge bestätigen</source>
-        <target>Confirmer toutes les propositions</target>
+        <target>Confirmer les brouillons</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDrafts" datatype="html">
+        <source>Alle Entwürfe löschen</source>
+        <target>Supprimer les brouillons</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsGroup" datatype="html">
+        <source>Löschen aller Entwürfe bestätigen</source>
+        <target>Confirmer la suppression</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsQuestion" datatype="html">
+        <source>Alle Entwürfe wirklich löschen?</source>
+        <target>Supprimer les brouillons ?</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsPrompt" datatype="html">
+        <source>Löschen aller Entwürfe bestätigen oder abbrechen.</source>
+        <target>Confirmez ou annulez.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsDoneOne" datatype="html">
+        <source>Ein Entwurf wurde gelöscht.</source>
+        <target>Brouillon supprimé.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsDoneMany" datatype="html">
+        <source><x id="count" equiv-text="formatted"/> Entwürfe wurden gelöscht.</source>
+        <target><x id="count" equiv-text="formatted"/> brouillons supprimés.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsPartialOne" datatype="html">
+        <source>Ein Entwurf wurde gelöscht. Die übrigen bleiben erhalten.</source>
+        <target>Brouillon supprimé. Les autres restent.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsPartialMany" datatype="html">
+        <source><x id="count" equiv-text="formatted"/> Entwürfe wurden gelöscht. Die übrigen bleiben erhalten.</source>
+        <target><x id="count" equiv-text="formatted"/> brouillons supprimés. Les autres restent.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsFailed" datatype="html">
+        <source>Die Entwürfe konnten nicht gelöscht werden.</source>
+        <target>Suppression impossible.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedDone" datatype="html">
         <source>Alle KI-Vorschläge wurden bestätigt.</source>
-        <target>Toutes les propositions de l’IA ont été confirmées.</target>
+        <target>Brouillons IA confirmés.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedPartialOne" datatype="html">
         <source>Ein KI-Vorschlag wurde bestätigt. Die übrigen bleiben offen.</source>
-        <target>Une proposition de l’IA a été confirmée. Les autres restent ouvertes.</target>
+        <target>Un brouillon IA confirmé. Les autres restent ouverts.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedPartialMany" datatype="html">
         <source><x id="count" equiv-text="confirmed"/> KI-Vorschläge wurden bestätigt. Die übrigen bleiben offen.</source>
-        <target><x id="count" equiv-text="confirmed"/> propositions de l’IA ont été confirmées. Les autres restent ouvertes.</target>
+        <target><x id="count" equiv-text="confirmed"/> brouillons IA confirmés. Les autres restent ouverts.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedFailed" datatype="html">
         <source>Die Vorschläge konnten nicht bestätigt werden.</source>
-        <target>Les propositions n’ont pas pu être confirmées.</target>
+        <target>Confirmation impossible.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.deleteConfirmGroup" datatype="html">
         <source>Löschen bestätigen</source>
@@ -34671,7 +34707,7 @@
       </trans-unit>
       <trans-unit id="learningObjectives.draftHint" datatype="html">
         <source>Noch in Abstimmung. KI-Vorschläge starten immer als Entwurf.</source>
-        <target>En cours de rédaction. Les suggestions IA commencent toujours comme brouillons.</target>
+        <target>Encore ouvert. Le texte IA commence toujours comme brouillon.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
           <context context-type="linenumber">300</context>
@@ -35495,15 +35531,15 @@
       </trans-unit>
       <trans-unit id="learningObjectives.derivationCompleted" datatype="html">
         <source><x id="count" equiv-text="applied.length"/> Lernzielvorschläge wurden als Entwürfe hinzugefügt. Prüfe sie vor dem Bestätigen.</source>
-        <target><x id="count" equiv-text="applied.length"/> propositions d’objectifs d’apprentissage ont été ajoutées comme brouillons. Vérifie-les avant de les confirmer.</target>
+        <target><x id="count" equiv-text="applied.length"/> brouillons ajoutés. Vérifie-les avant de confirmer.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationCompletedSingle" datatype="html">
         <source>Ein Lernzielvorschlag wurde als Entwurf hinzugefügt. Prüfe ihn vor dem Bestätigen.</source>
-        <target>Une proposition d’objectif d’apprentissage a été ajoutée comme brouillon. Vérifie-la avant de la confirmer.</target>
+        <target>Un brouillon ajouté. Vérifie-le avant de confirmer.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationCompletedEmpty" datatype="html">
         <source>Die Herleitung ist abgeschlossen. Es wurden keine neuen Vorschläge hinzugefügt.</source>
-        <target>La génération est terminée. Aucune nouvelle suggestion n’a été ajoutée.</target>
+        <target>Génération terminée. Aucun nouveau brouillon.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationDisabled" datatype="html">
         <source>Automatische Vorschläge sind auf diesem System nicht aktiviert. Du kannst Lernziele weiterhin manuell formulieren.</source>

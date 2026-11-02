@@ -305,6 +305,8 @@ export class QuizLearningObjectivesComponent {
   );
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
   readonly confirmAllInProgress = signal(false);
+  readonly deleteAllDraftsPending = signal(false);
+  readonly deleteAllInProgress = signal(false);
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   private readonly objectiveFormBaseline = signal<string | null>(null);
   readonly confirmableGeneratedObjectives = computed(() => {
@@ -323,6 +325,12 @@ export class QuizLearningObjectivesComponent {
       );
     });
   });
+  readonly deletableDraftObjectives = computed(() =>
+    this.objectives().filter(
+      (objective) =>
+        objective.confirmation.state === 'draft' && !this.hasSyncConflict(objective.id),
+    ),
+  );
   readonly derivationCanRetry = computed(() =>
     [
       'busy',
@@ -526,11 +534,9 @@ export class QuizLearningObjectivesComponent {
         applied[0] ? `learning-objective-edit-${applied[0].id}` : undefined,
       );
     } catch {
-      if (sequence !== this.derivationSequence || controller.signal.aborted) {
-        await this.retainInterruptedProgress(sequence);
-        return;
-      }
       await this.retainInterruptedProgress(sequence);
+      // Abbruch und ein neuer Auftrag können während des Wiederherstellungsabrufs starten.
+      if (!this.isCurrentDerivation(sequence, controller)) return;
       const retention = this.derivationRetentionSentence(this.derivationProgress());
       const unavailable = $localize`:@@learningObjectives.derivationUnavailable:Die lokale Text-KI ist gerade nicht erreichbar. Du kannst Lernziele manuell eintragen oder es später erneut versuchen.`;
       this.finishDerivation('unavailable', retention ? `${unavailable} ${retention}` : unavailable);
@@ -556,6 +562,7 @@ export class QuizLearningObjectivesComponent {
     this.selectedQuestionIds.set(focusedId ? new Set([focusedId]) : new Set());
     this.confirmationState.set('confirmed');
     this.pendingDeleteId.set(null);
+    this.deleteAllDraftsPending.set(false);
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.formOpen.set(true);
@@ -575,6 +582,7 @@ export class QuizLearningObjectivesComponent {
       objective.confirmation.state === 'confirmed' ? 'confirmed' : 'draft',
     );
     this.pendingDeleteId.set(null);
+    this.deleteAllDraftsPending.set(false);
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.formOpen.set(true);
@@ -583,7 +591,14 @@ export class QuizLearningObjectivesComponent {
   }
 
   confirmAllGeneratedObjectives(): void {
-    if (this.derivationIsPending() || this.confirmAllInProgress()) return;
+    if (
+      this.derivationIsPending() ||
+      this.confirmAllInProgress() ||
+      this.deleteAllDraftsPending() ||
+      this.deleteAllInProgress()
+    ) {
+      return;
+    }
     const targets = this.confirmableGeneratedObjectives();
     if (targets.length === 0) return;
 
@@ -844,6 +859,7 @@ export class QuizLearningObjectivesComponent {
   }
 
   requestDelete(objective: QuizLearningObjectiveV1): void {
+    this.deleteAllDraftsPending.set(false);
     this.pendingDeleteId.set(objective.id);
     this.statusMessage.set(
       $localize`:@@learningObjectives.deletePrompt:Löschen bestätigen oder abbrechen.`,
@@ -875,6 +891,95 @@ export class QuizLearningObjectivesComponent {
       );
       this.focusElement(`learning-objective-edit-${objective.id}`);
     }
+  }
+
+  requestDeleteAllDrafts(): void {
+    if (
+      this.derivationIsPending() ||
+      this.confirmAllInProgress() ||
+      this.deleteAllInProgress() ||
+      this.deletableDraftObjectives().length === 0
+    ) {
+      return;
+    }
+    this.pendingDeleteId.set(null);
+    this.deleteAllDraftsPending.set(true);
+    this.errorMessage.set(null);
+    this.statusMessage.set(
+      $localize`:@@learningObjectives.deleteAllDraftsPrompt:Löschen aller Entwürfe bestätigen oder abbrechen.`,
+    );
+    this.focusElement('learning-objective-delete-all-drafts-confirm');
+  }
+
+  cancelDeleteAllDrafts(): void {
+    this.deleteAllDraftsPending.set(false);
+    this.statusMessage.set(null);
+    this.focusElement('learning-objective-delete-all-drafts');
+  }
+
+  confirmDeleteAllDrafts(): void {
+    if (this.derivationIsPending() || this.confirmAllInProgress() || this.deleteAllInProgress()) {
+      return;
+    }
+    const targets = this.deletableDraftObjectives();
+    this.deleteAllInProgress.set(true);
+    this.errorMessage.set(null);
+    let deleted = 0;
+    const removed: QuizLearningObjectiveV1[] = [];
+    let failureMessage: string | null = null;
+    try {
+      for (const objective of targets) {
+        const current = this.quizStore
+          .getLearningObjectiveBundle(this.quizId())
+          .objectives.find((entry) => entry.id === objective.id);
+        if (
+          !current ||
+          current.confirmation.state !== 'draft' ||
+          this.hasSyncConflict(current.id)
+        ) {
+          continue;
+        }
+        this.quizStore.deleteQuizLearningObjective(this.quizId(), current.id, current.revision);
+        deleted += 1;
+        removed.push(current);
+      }
+    } catch (error) {
+      failureMessage =
+        error instanceof Error
+          ? error.message
+          : $localize`:@@learningObjectives.deleteAllDraftsFailed:Die Entwürfe konnten nicht gelöscht werden.`;
+    } finally {
+      this.deleteAllInProgress.set(false);
+      this.deleteAllDraftsPending.set(false);
+      this.pendingDeleteId.set(null);
+    }
+
+    if (deleted === 0) {
+      const message =
+        failureMessage ??
+        $localize`:@@learningObjectives.deleteAllDraftsFailed:Die Entwürfe konnten nicht gelöscht werden.`;
+      this.errorMessage.set(message);
+      this.statusMessage.set(message);
+      this.focusElement('learning-objective-delete-all-drafts');
+      return;
+    }
+
+    this.releaseResumeCoverageForDeletedDrafts(removed);
+    const draftsRemain = this.objectives().some(
+      (objective) => objective.confirmation.state === 'draft',
+    );
+    const formatted = formatLocaleCount(deleted, this.locale);
+    this.statusMessage.set(
+      draftsRemain
+        ? deleted === 1
+          ? $localize`:@@learningObjectives.deleteAllDraftsPartialOne:Ein Entwurf wurde gelöscht. Die übrigen bleiben erhalten.`
+          : $localize`:@@learningObjectives.deleteAllDraftsPartialMany:${formatted}:count: Entwürfe wurden gelöscht. Die übrigen bleiben erhalten.`
+        : deleted === 1
+          ? $localize`:@@learningObjectives.deleteAllDraftsDoneOne:Ein Entwurf wurde gelöscht.`
+          : $localize`:@@learningObjectives.deleteAllDraftsDoneMany:${formatted}:count: Entwürfe wurden gelöscht.`,
+    );
+    this.errorMessage.set(failureMessage);
+    this.focusAfterDeleteAllDrafts();
   }
 
   resolveSyncConflict(objectiveId: string, operationId: string): void {
@@ -1311,6 +1416,46 @@ export class QuizLearningObjectivesComponent {
     const firstObjective = this.objectives()[0];
     if (firstObjective) {
       this.focusElement(`learning-objective-edit-${firstObjective.id}`);
+    }
+  }
+
+  private focusAfterDeleteAllDrafts(): void {
+    if (this.formOpen()) return;
+    if (this.deletableDraftObjectives().length > 0) {
+      this.focusElement('learning-objective-delete-all-drafts');
+      return;
+    }
+    const addButton = globalThis.document?.getElementById('learning-objective-add');
+    if (addButton instanceof HTMLButtonElement && !addButton.disabled) {
+      this.focusElement('learning-objective-add');
+      return;
+    }
+    const firstObjective = this.objectives()[0];
+    if (firstObjective) {
+      this.focusElement(`learning-objective-edit-${firstObjective.id}`);
+    }
+  }
+
+  private releaseResumeCoverageForDeletedDrafts(deleted: readonly QuizLearningObjectiveV1[]): void {
+    if (this.derivationResumeCoveredSourceQuestionIds.size === 0) return;
+    const stillReferenced = new Set<string>();
+    for (const objective of this.allObjectives()) {
+      if (objective.origin.kind !== 'model-derived') continue;
+      for (const questionId of objective.origin.derivedFromSourceQuestionIds) {
+        stillReferenced.add(questionId);
+      }
+    }
+    let changed = false;
+    for (const objective of deleted) {
+      if (objective.origin.kind !== 'model-derived') continue;
+      for (const questionId of objective.origin.derivedFromSourceQuestionIds) {
+        if (stillReferenced.has(questionId)) continue;
+        this.derivationRunCoveredSourceQuestionIds.delete(questionId);
+        if (this.derivationResumeCoveredSourceQuestionIds.delete(questionId)) changed = true;
+      }
+    }
+    if (changed) {
+      this.derivationResumeCoveredCount.set(this.derivationResumeCoveredSourceQuestionIds.size);
     }
   }
 

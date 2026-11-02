@@ -531,15 +531,65 @@
               mat-button
               type="button"
               id="learning-objective-confirm-all"
-              [disabled]="derivationIsPending() || confirmAllInProgress()"
+              [disabled]="
+                derivationIsPending() ||
+                confirmAllInProgress() ||
+                deleteAllDraftsPending() ||
+                deleteAllInProgress()
+              "
               [attr.aria-describedby]="
                 errorMessage() ? 'learning-objective-confirm-all-error' : null
               "
               (click)="confirmAllGeneratedObjectives()"
-              i18n="@@learningObjectives.confirmAllGenerated"
             >
-              Alle Vorschläge bestätigen
+              <mat-icon aria-hidden="true">done_all</mat-icon>
+              <span i18n="@@learningObjectives.confirmAllGenerated"
+                >Alle Vorschläge bestätigen</span
+              >
             </button>
+          }
+          @if (deletableDraftObjectives().length > 0) {
+            @if (deleteAllDraftsPending()) {
+              <div
+                class="learning-objectives__delete-confirm"
+                role="group"
+                i18n-aria-label="@@learningObjectives.deleteAllDraftsGroup"
+                aria-label="Löschen aller Entwürfe bestätigen"
+              >
+                <span i18n="@@learningObjectives.deleteAllDraftsQuestion"
+                  >Alle Entwürfe wirklich löschen?</span
+                >
+                <button
+                  mat-flat-button
+                  type="button"
+                  id="learning-objective-delete-all-drafts-confirm"
+                  [disabled]="deleteAllInProgress() || derivationIsPending()"
+                  (click)="confirmDeleteAllDrafts()"
+                  i18n="@@learningObjectives.deleteConfirm"
+                >
+                  Löschen
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  (click)="cancelDeleteAllDrafts()"
+                  i18n="@@common.cancel"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            } @else {
+              <button
+                mat-button
+                type="button"
+                id="learning-objective-delete-all-drafts"
+                [disabled]="derivationIsPending() || confirmAllInProgress()"
+                (click)="requestDeleteAllDrafts()"
+              >
+                <mat-icon aria-hidden="true">delete</mat-icon>
+                <span i18n="@@learningObjectives.deleteAllDrafts">Alle Entwürfe löschen</span>
+              </button>
+            }
           }
           <button
             mat-stroked-button

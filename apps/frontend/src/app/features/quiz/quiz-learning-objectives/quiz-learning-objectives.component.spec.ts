@@ -1512,6 +1512,7 @@ describe('QuizLearningObjectivesComponent', () => {
     const confirmAll = footer.querySelector('#learning-objective-confirm-all') as HTMLButtonElement;
     const add = footer.querySelector('#learning-objective-add') as HTMLButtonElement;
     expect(confirmAll.textContent).toContain('Alle Vorschläge bestätigen');
+    expect(confirmAll.querySelector('mat-icon')?.textContent?.trim()).toBe('done_all');
     expect(confirmAll.classList.contains('mat-mdc-unelevated-button')).toBe(false);
     expect(confirmAll.classList.contains('mat-mdc-outlined-button')).toBe(false);
     expect(confirmAll.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
@@ -1638,6 +1639,402 @@ describe('QuizLearningObjectivesComponent', () => {
       'draft',
     );
     saveSpy.mockRestore();
+  });
+
+  it('löscht alle sichtbaren Entwürfe erst nach Bestätigung und lässt bestätigte Ziele stehen', () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Entwürfe löschen' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Was ist ein Mittelwert?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'Ein Lagemaß', isCorrect: true },
+        { text: 'Ein Diagramm', isCorrect: false },
+      ],
+    });
+    store.applyDerivedLearningObjectiveDrafts(
+      quiz.id,
+      store.getLearningObjectiveBundle(quiz.id).revision,
+      '50000000-0000-4000-8000-0000000000dd',
+      [derivedDraft('50000000-0000-4000-8000-000000000051', question.id, 'Mittelwerte erklären')],
+    );
+    store.saveQuizLearningObjective(quiz.id, {
+      text: 'Manueller Entwurf',
+      scope: { kind: 'quiz-wide' },
+      confirmationState: 'draft',
+    });
+    store.saveQuizLearningObjective(quiz.id, {
+      text: 'Bereits bestätigt',
+      scope: { kind: 'quiz-wide' },
+      confirmationState: 'confirmed',
+    });
+
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    const deleteAll = fixture.nativeElement.querySelector(
+      '#learning-objective-delete-all-drafts',
+    ) as HTMLButtonElement;
+    expect(deleteAll.textContent).toContain('Alle Entwürfe löschen');
+    expect(deleteAll.classList.contains('mat-mdc-unelevated-button')).toBe(false);
+    expect(deleteAll.classList.contains('mat-mdc-outlined-button')).toBe(false);
+
+    deleteAll.click();
+    fixture.detectChanges();
+    expect(store.getLearningObjectiveBundle(quiz.id).objectives).toHaveLength(3);
+    expect(fixture.nativeElement.textContent).toContain('Alle Entwürfe wirklich löschen?');
+    expect(fixture.componentInstance.statusMessage()).toContain(
+      'Löschen aller Entwürfe bestätigen oder abbrechen.',
+    );
+
+    const cancel = [...fixture.nativeElement.querySelectorAll('button')].find((button) =>
+      (button as HTMLButtonElement).textContent?.includes('Abbrechen'),
+    ) as HTMLButtonElement;
+    cancel.click();
+    fixture.detectChanges();
+    expect(store.getLearningObjectiveBundle(quiz.id).objectives).toHaveLength(3);
+    expect(
+      fixture.nativeElement.querySelector('#learning-objective-delete-all-drafts'),
+    ).not.toBeNull();
+
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts-confirm',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    const remaining = store.getLearningObjectiveBundle(quiz.id).objectives;
+    expect(remaining.map((objective) => objective.text)).toEqual(['Bereits bestätigt']);
+    expect(fixture.nativeElement.querySelector('#learning-objective-delete-all-drafts')).toBeNull();
+    expect(fixture.componentInstance.statusMessage()).toContain('2 Entwürfe wurden gelöscht.');
+  });
+
+  it('löscht in der Fragenansicht nur die Entwürfe dieser Frage', () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Entwürfe einer Frage' });
+    const first = store.addQuestion(quiz.id, {
+      text: 'Erste Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const second = store.addQuestion(quiz.id, {
+      text: 'Zweite Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'C', isCorrect: true },
+        { text: 'D', isCorrect: false },
+      ],
+    });
+    store.applyDerivedLearningObjectiveDrafts(
+      quiz.id,
+      store.getLearningObjectiveBundle(quiz.id).revision,
+      '50000000-0000-4000-8000-0000000000ee',
+      [
+        derivedDraft('50000000-0000-4000-8000-000000000061', first.id, 'Erste Frage erklären'),
+        derivedDraft('50000000-0000-4000-8000-000000000062', second.id, 'Zweite Frage erklären'),
+      ],
+    );
+
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [first, second]);
+    fixture.componentRef.setInput('focusedQuestionId', first.id);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts-confirm',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    expect(
+      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
+    ).toEqual(['Zweite Frage erklären']);
+  });
+
+  it('behält übrige Entwürfe, wenn das Löschen mittendrin fehlschlägt', () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Löschen unterbrochen' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Was ist ein Median?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'Ein Lagemaß', isCorrect: true },
+        { text: 'Ein Diagramm', isCorrect: false },
+      ],
+    });
+    store.applyDerivedLearningObjectiveDrafts(
+      quiz.id,
+      store.getLearningObjectiveBundle(quiz.id).revision,
+      '50000000-0000-4000-8000-0000000000ff',
+      [
+        derivedDraft('50000000-0000-4000-8000-000000000071', question.id, 'Erster Entwurf'),
+        derivedDraft('50000000-0000-4000-8000-000000000072', question.id, 'Zweiter Entwurf'),
+      ],
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    const original = store.deleteQuizLearningObjective.bind(store);
+    let calls = 0;
+    const deleteSpy = vi
+      .spyOn(store, 'deleteQuizLearningObjective')
+      .mockImplementation((quizId, objectiveId, expectedRevision) => {
+        calls += 1;
+        if (calls === 2) throw new Error('Das Lernziel wurde inzwischen geändert.');
+        original(quizId, objectiveId, expectedRevision);
+      });
+
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts-confirm',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    expect(
+      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
+    ).toEqual(['Zweiter Entwurf']);
+    expect(fixture.nativeElement.textContent).toContain('Das Lernziel wurde inzwischen geändert.');
+    expect(fixture.componentInstance.statusMessage()).toContain(
+      'Ein Entwurf wurde gelöscht. Die übrigen bleiben erhalten.',
+    );
+    expect(
+      fixture.nativeElement.querySelector('#learning-objective-delete-all-drafts'),
+    ).not.toBeNull();
+    deleteSpy.mockRestore();
+  });
+
+  it('gibt gelöschte Entwürfe für einen vollständigen neuen Versuch frei', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Nach dem Löschen neu' });
+    const first = store.addQuestion(quiz.id, {
+      text: 'Erste Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    const second = store.addQuestion(quiz.id, {
+      text: 'Zweite Frage?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'C', isCorrect: true },
+        { text: 'D', isCorrect: false },
+      ],
+    });
+    let calls = 0;
+    runDerivationMock.mockImplementation(
+      async (input: {
+        operationId: string;
+        quizId: string;
+        expectedBundleRevision: number;
+        questions: Array<{ sourceQuestionId: string }>;
+      }) => {
+        calls += 1;
+        if (calls === 1) {
+          return {
+            schemaVersion: 1,
+            operationId: input.operationId,
+            quizId: input.quizId,
+            expectedBundleRevision: input.expectedBundleRevision,
+            status: 'timeout',
+            progress: {
+              completedGroups: 1,
+              totalGroups: 2,
+              elapsedMs: 125_000,
+              promptTokens: 800,
+              completionTokens: 240,
+              queuedObjectives: 1,
+              drafts: [
+                derivedDraft(
+                  '50000000-0000-4000-8000-000000000081',
+                  first.id,
+                  'Die erste Frage erklären.',
+                ),
+              ],
+              coveredSourceQuestionIds: [first.id],
+            },
+          };
+        }
+        expect(input.questions.map((question) => question.sourceQuestionId)).toEqual([
+          first.id,
+          second.id,
+        ]);
+        return {
+          schemaVersion: 1,
+          operationId: input.operationId,
+          quizId: input.quizId,
+          expectedBundleRevision: input.expectedBundleRevision,
+          status: 'completed',
+          drafts: [],
+          limitations: [],
+          batchCount: 1,
+        };
+      },
+    );
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [first, second]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement)
+        .textContent,
+    ).toContain('Bei den übrigen Fragen fortsetzen');
+
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector(
+        '#learning-objective-delete-all-drafts-confirm',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    const retry = fixture.nativeElement.querySelector(
+      '#learning-objective-derive',
+    ) as HTMLButtonElement;
+    expect(retry.textContent).toContain('Nochmal versuchen');
+    retry.click();
+    await vi.waitFor(() => expect(runDerivationMock).toHaveBeenCalledTimes(2));
+  });
+
+  it('übernimmt das Ergebnis eines neuen Auftrags, wenn der Wiederherstellungsabruf des alten später endet', async () => {
+    const store = TestBed.inject(QuizStoreService);
+    const quiz = store.createQuiz({ name: 'Verspätete Wiederherstellung' });
+    const question = store.addQuestion(quiz.id, {
+      text: 'Welche Aussage stimmt?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+    let runs = 0;
+    let rejectRunA!: (reason?: unknown) => void;
+    let resolveRunB!: () => void;
+    let resolveRecovery!: () => void;
+    let holdNextProgress = false;
+    runDerivationMock.mockImplementation(
+      (input: { operationId: string; quizId: string; expectedBundleRevision: number }) => {
+        runs += 1;
+        if (runs === 1) {
+          return new Promise((_, reject) => {
+            rejectRunA = reject;
+          });
+        }
+        return new Promise((resolve) => {
+          resolveRunB = () =>
+            resolve({
+              schemaVersion: 1,
+              operationId: input.operationId,
+              quizId: input.quizId,
+              expectedBundleRevision: input.expectedBundleRevision,
+              status: 'completed',
+              drafts: [
+                derivedDraft(
+                  '50000000-0000-4000-8000-000000000091',
+                  question.id,
+                  'Den neuen Auftrag behalten.',
+                ),
+              ],
+              limitations: [],
+              batchCount: 1,
+            });
+        });
+      },
+    );
+    progressDerivationMock.mockImplementation((input) => {
+      if (!holdNextProgress) {
+        return Promise.resolve({ ...input, found: false, progress: null });
+      }
+      holdNextProgress = false;
+      return new Promise((resolve) => {
+        resolveRecovery = () => resolve({ ...input, found: false, progress: null });
+      });
+    });
+    const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
+    fixture.componentRef.setInput('quizId', quiz.id);
+    fixture.componentRef.setInput('questions', [question]);
+    fixture.detectChanges();
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(runs).toBe(1));
+    await vi.waitFor(() => expect(progressDerivationMock).toHaveBeenCalled());
+
+    holdNextProgress = true;
+    rejectRunA(new Error('network'));
+    await vi.waitFor(() => expect(resolveRecovery).toEqual(expect.any(Function)));
+    expect(fixture.componentInstance.derivationStatus()).toBe('pending');
+
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive-cancel') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(runs).toBe(2));
+    expect(fixture.componentInstance.derivationStatus()).toBe('pending');
+
+    resolveRecovery();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.derivationStatus()).toBe('pending');
+
+    resolveRunB();
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('completed'));
+    expect(
+      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
+    ).toEqual(['Den neuen Auftrag behalten.']);
+    fixture.destroy();
   });
 });
 
