@@ -31,8 +31,9 @@ damit die terminale Präsentationsseite.
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
 Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerten
-vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz- und
-Q&A-Seiten wechseln ausschließlich durch den Host; die Rangliste wechselt wie
+vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten wechseln
+ausschließlich durch den Host. Q&A-Fragen wechseln über denselben Host-Navigator
+oder den Presenter-Footer; die Rangliste wechselt wie
 bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf Sekunden pro
 Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde bleiben
 unabhängig von der Seite.
@@ -70,10 +71,16 @@ Tastaturfokus nicht verloren geht.
 
 - Crowd-Lobby: Gesamtzahl und bei höchstens acht Teams Teamzahlen ersetzen
   Nicknames; QR und Code erhalten Vorrang.
-- Q&A: oben die aktuelle Host-Sortierung (»Sortierung: …«), darunter die angeheftete
-  Frage dominant (vertikal mittig, hörsaaltaugliche Typografie ≥36 px bei 1080p),
-  darunter höchstens zwei Queue-Fragen untereinander (≥30 px); Gesamtsumme nur im
-  Queue-Badge (»… Fragen«), ohne Seitenindikator und Restzahl auf der Bühne;
+- Q&A: oben die Bühnen-Sortierung als Auswahl (Kontroverse, Beste Fragen,
+  Stimmensaldo, Zeit), darunter die aktuelle
+  Frage dominant (hörsaaltaugliche Typografie ≥36 px bei 1080p), darunter alle
+  weiteren freigegebenen Fragen untereinander (≥30 px). Die Bühne scrollt, wenn
+  Hero und Warteschlange nicht gemeinsam in die Fläche passen. Die Gesamtsumme
+  der Warteschlange bleibt im Queue-Badge (»… Fragen«). Der Fragen-Navigator
+  (»Vorherige Frage« / »n / m« / »Nächste Frage«) sitzt unten im Presenter-Footer,
+  damit er beim ersten Präsentieren an der Bühne erreichbar ist; der Host behält
+  dieselbe Steuerung. Keine Restzahl »weitere« und keine Seitenzeile »Seite n / m«
+  auf der Bühne selbst;
   Hero und Queue zeigen Erstellungszeit (relativ) sowie die passende Sortier-Metrik:
   bei BEST Zustimmung (%), bei CONTROVERSIAL geteilte Reaktionen (%) – nie beides;
   `qa.presentProjection` liefert die Scores dafür immer mit (ohne Moderator-NLP),
@@ -93,8 +100,13 @@ Tastaturfokus nicht verloren geht.
   der geladenen Host-Liste und synchronisiert den Presenter nicht;
   Host publiziert den Sortiermodus beim Q&A-Abonnement und vor dem Öffnen der
   Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
-  weicht `presentProjection.sortMode` vom Host ab (z. B. nach Backend-Restart),
-  publiziert der Host den Modus erneut (`force`);
+  der Presenter schaltet dieselbe Sortierung über `source: 'presenter'` um, setzt den
+  Fragen-Navigator auf Position 1 und scrollt die Bühne nach oben; Suche, Pin- und
+  Autorfilter der Bühne bleiben stehen; solange diese Quelle gilt, übernimmt
+  der Host den Modus und schreibt ihn nicht zurück;
+  fehlt `sortModeSource` und weicht `presentProjection.sortMode` vom Host ab
+  (Backend-Restart, leere Map), publiziert der Host den Modus erneut (`force`);
+  eine ausdrückliche Host-Sortierung oder ein Host-Filterwechsel setzt `takeover`;
   Teilnehmer-Forum färbt denselben Navigator-Hero (via `presenterPage`) ein;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
   die Host-Liste rotiert ab dem Navigator-Cursor (Position 1 = Hero, 2 = nächster

@@ -854,6 +854,7 @@ describe('qa router (Epic 8)', () => {
       search: 'eins',
       pinnedOnly: false,
       authorNickname: null,
+      source: 'host',
     });
 
     rawQueryResults.rankedQuestions.push([
@@ -932,6 +933,7 @@ describe('qa router (Epic 8)', () => {
         search: '',
         pinnedOnly: false,
         authorNickname: null,
+        source: 'host',
       });
 
       prismaMock.participant.count.mockResolvedValue(12);

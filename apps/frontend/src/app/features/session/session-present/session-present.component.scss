@@ -1029,68 +1029,65 @@ app-session-projection-quiz,
 }
 
 .session-present__qa-stage {
-  /* Landscape-Hörsaal: Kriterienleiste, Hero mittig/groß, Queue darunter untereinander.
+  /* Kriterienleiste, prominente Frage, danach alle weiteren freigegebenen Beiträge.
+   * Die Fläche scrollt, sobald Hero und Warteschlange nicht gemeinsam passen.
    * Typo zielt auf letzte Reihe (1080p: Hero ≥36px, Queue ≥30px laut PRESENTER-473). */
   --present-qa-vote-breakdown-w: clamp(14rem, 28vmin, 20rem);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 2.35fr) minmax(0, 1.15fr);
-  grid-template-areas:
-    'criteria'
-    'pinned'
-    'queue';
+  display: flex;
+  flex-direction: column;
   gap: clamp(0.75rem, 1.8vmin, 1.35rem);
   width: min(100%, 110rem);
-  height: 100%;
+  height: auto;
   min-height: 0;
   margin-inline: auto;
   padding-inline: clamp(0.35rem, 1.2vw, 1rem);
-}
-
-.session-present__qa-stage:not(:has(.session-present__qa-card)) {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas:
-    'criteria'
-    'queue';
-}
-
-.session-present__qa-stage:not(:has(.session-present__qa-list-card)) {
-  grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas:
-    'criteria'
-    'pinned';
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .session-present__qa-stage:has(.session-present__word-cloud-card) {
+  display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: 'cloud';
+  height: 100%;
+  overflow: hidden;
 }
 
 .session-present__qa-criteria {
-  grid-area: criteria;
+  flex: 0 0 auto;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 0.35rem;
+  width: 100%;
   min-height: 0;
 }
 
-.session-present__qa-criteria-label {
-  display: inline-flex;
-  align-items: center;
+.session-present__qa-sort {
+  --mat-radio-label-text-size: clamp(1.15rem, 2.2vmin, 1.7rem);
+  --mat-radio-label-text-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  max-width: 100%;
-  padding: 0.45rem 1.15rem;
-  border-radius: var(--mat-sys-corner-full);
+  align-items: center;
+  gap: 0.15rem 1.15rem;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--mat-sys-corner-extra-large);
   background: color-mix(in srgb, var(--mat-sys-tertiary-container) 72%, var(--mat-sys-surface));
   color: var(--mat-sys-on-tertiary-container);
   border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary) 28%, transparent);
-  font-size: clamp(1.25rem, 2.4vmin, 1.85rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.25;
-  text-wrap: balance;
+}
+
+.session-present__qa-sort-error {
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
   text-align: center;
 }
 
@@ -1099,23 +1096,23 @@ app-session-projection-quiz,
   width: 100%;
   max-width: none;
   min-width: 0;
-  min-height: 0;
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .session-present__qa-stage > .session-present__qa-card {
-  grid-area: pinned;
+  flex: 1 0 auto;
 }
 
 .session-present__qa-stage > .session-present__qa-list-card {
-  grid-area: queue;
+  flex: 0 0 auto;
 }
 
 .session-present__qa-stage > .session-present__qa-card mat-card-content {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: auto;
   align-content: center;
   justify-items: stretch;
   gap: clamp(1.1rem, 2.8vh, 2rem);
@@ -1125,7 +1122,7 @@ app-session-projection-quiz,
 
 .session-present__qa-stage > .session-present__qa-list-card mat-card-content {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: auto;
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
@@ -1145,8 +1142,52 @@ app-session-projection-quiz,
 }
 
 .session-present__qa-stage .session-present__qa-list {
-  max-height: 100%;
-  overflow: hidden;
+  max-height: none;
+  overflow: visible;
+}
+
+.session-present__qa-footer {
+  flex: 0 0 auto;
+  width: min(100%, 110rem);
+  margin-inline: auto;
+}
+
+.session-present__qa-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-extra-large);
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level2);
+}
+
+.session-present__qa-nav button {
+  min-height: 2.75rem;
+  max-width: 100%;
+}
+
+.session-present__qa-nav-index {
+  min-width: 4.5rem;
+  text-align: center;
+  font-size: clamp(1.25rem, 2.4vmin, 1.75rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+.session-present__qa-nav-error {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+  text-align: center;
 }
 
 .session-present--feedback .session-present__feedback-card {
@@ -1893,7 +1934,7 @@ app-session-projection-quiz,
   }
 
   .session-present__qa-stage {
-    grid-template-rows: auto minmax(0, 2.1fr) minmax(0, 1.1fr);
+    gap: 0.5rem;
   }
 
   .session-present__qa-list-item {

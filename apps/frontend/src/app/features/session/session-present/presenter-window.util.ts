@@ -95,6 +95,63 @@ export function presenterWindowOpenFeatures(win: Window): string {
   );
 }
 
+/**
+ * Schreibt den aktuellen Host-Token in ein offenes Presenter-Fenster.
+ * `knownWindow` vermeidet `window.open`, damit ein Token-Refresh den Beamer nicht fokussiert.
+ * Ohne Handle wird das benannte Fenster gesucht; ein dabei erzeugtes leeres Fenster wird geschlossen.
+ */
+export function pushCurrentHostTokenToPresenter(
+  opener: Window | null | undefined,
+  sessionCode: string,
+  knownWindow?: Window | null,
+  allowLookup = false,
+): Window | null {
+  const known = knownWindow && !knownWindow.closed ? knownWindow : null;
+  if (known) {
+    try {
+      copyHostTokenToOpenedSessionStorage(known.sessionStorage, sessionCode);
+    } catch {
+      // Restricted sessionStorage: der nächste Presenter-Start kopiert erneut.
+    }
+    return known;
+  }
+  if (!allowLookup || !opener) {
+    return null;
+  }
+  let opened: Window | null;
+  try {
+    opened = opener.open('', presenterViewWindowName(sessionCode));
+  } catch {
+    return null;
+  }
+  if (!opened || opened.closed || opened === opener) {
+    return null;
+  }
+  let pathname: string;
+  try {
+    pathname = opened.location.pathname;
+  } catch {
+    // Zugriff während der Navigation nicht schließen.
+    return null;
+  }
+  if (!pathname.includes(`/session/${normalizeHostSessionCode(sessionCode)}/present`)) {
+    if (opened.location.href === 'about:blank') {
+      try {
+        opened.close();
+      } catch {
+        // Ignore.
+      }
+    }
+    return null;
+  }
+  try {
+    copyHostTokenToOpenedSessionStorage(opened.sessionStorage, sessionCode);
+  } catch {
+    // Restricted sessionStorage.
+  }
+  return opened;
+}
+
 function copyHostTokenToOpenedSessionStorage(storage: Storage, sessionCode: string): boolean {
   const token = getHostToken(sessionCode);
   if (!token) {

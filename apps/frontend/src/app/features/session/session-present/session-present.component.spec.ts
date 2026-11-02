@@ -18,6 +18,7 @@ const {
   getTeamsQueryMock,
   getParticipantNicknamesQueryMock,
   qaListQueryMock,
+  setPresenterSortModeMutateMock,
   quickFeedbackResultsQueryMock,
   getCurrentQuestionForHostQueryMock,
   getHostVoteProgressQueryMock,
@@ -35,6 +36,7 @@ const {
   getTeamsQueryMock: vi.fn(),
   getParticipantNicknamesQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
+  setPresenterSortModeMutateMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
@@ -101,6 +103,9 @@ vi.mock('../../../core/trpc.client', () => ({
       presentProjection: {
         query: qaListQueryMock,
       },
+      setPresenterSortMode: {
+        mutate: setPresenterSortModeMutateMock,
+      },
     },
     quickFeedback: {
       results: {
@@ -134,6 +139,7 @@ describe('SessionPresentComponent', () => {
 
   beforeEach(() => {
     setPresenterSurfaceMutateMock.mockReset();
+    setPresenterSortModeMutateMock.mockReset();
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -1765,11 +1771,9 @@ describe('SessionPresentComponent', () => {
       'utf8',
     );
     expect(scss).toMatch(
-      /\.session-present__qa-stage\s*\{[^}]*grid-template-areas:\s*'criteria'\s*'pinned'\s*'queue'/s,
+      /\.session-present__qa-stage\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*overflow-y:\s*auto/s,
     );
-    expect(scss).toMatch(
-      /\.session-present__qa-stage\s*\{[^}]*grid-template-rows:\s*auto\s*minmax\(0,\s*2\.35fr\)\s*minmax\(0,\s*1\.15fr\)/s,
-    );
+    expect(scss).toMatch(/\.session-present__qa-footer\s*\{[^}]*flex:\s*0\s*0\s*auto/s);
     expect(scss).toMatch(
       /\.session-present__qa-stage\s*>\s*\.session-present__qa-card,\s*\.session-present__qa-stage\s*>\s*\.session-present__qa-list-card\s*\{[^}]*width:\s*100%/s,
     );
@@ -1792,7 +1796,7 @@ describe('SessionPresentComponent', () => {
     expect(scss).not.toMatch(/grid-template-areas:\s*'pinned queue'/);
   });
 
-  it('rückt den Hero per Host-Navigator vor und zeigt höchstens zwei wartende Fragen', () => {
+  it('rückt den Hero vor und zeigt alle folgenden freigegebenen Fragen', () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.componentInstance.presenterQaOrderedQuestions.set(
       Array.from({ length: 6 }, (_, index) => ({
@@ -1825,10 +1829,13 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.qaQueuePageCount()).toBe(6);
     expect(fixture.componentInstance.pinnedQaQuestion()?.text).toBe('Publikumsfrage 1');
-    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(2);
+    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(5);
     expect(fixture.componentInstance.visibleQaQueueQuestions().map((q) => q.text)).toEqual([
       'Publikumsfrage 2',
       'Publikumsfrage 3',
+      'Publikumsfrage 4',
+      'Publikumsfrage 5',
+      'Publikumsfrage 6',
     ]);
     expect(fixture.componentInstance.qaQueueCountLabel()).toBe('5 Fragen');
 
@@ -1844,6 +1851,8 @@ describe('SessionPresentComponent', () => {
     expect(fixture.componentInstance.visibleQaQueueQuestions().map((q) => q.text)).toEqual([
       'Publikumsfrage 3',
       'Publikumsfrage 4',
+      'Publikumsfrage 5',
+      'Publikumsfrage 6',
     ]);
     expect(fixture.componentInstance.qaQueueCountLabel()).toBe('4 Fragen');
     fixture.destroy();
@@ -1915,7 +1924,20 @@ describe('SessionPresentComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('2 Fragen');
-    expect(text).toContain('Sortierung: Beste Fragen');
+    const sortGroup = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-sort"]',
+    ) as HTMLElement | null;
+    const sortText = sortGroup?.textContent ?? '';
+    const controversyAt = sortText.indexOf('Kontroverse');
+    const bestAt = sortText.indexOf('Beste Fragen');
+    const netAt = sortText.indexOf('Stimmensaldo');
+    const timeAt = sortText.indexOf('Zeit');
+    expect(controversyAt).toBeGreaterThanOrEqual(0);
+    expect(bestAt).toBeGreaterThan(controversyAt);
+    expect(netAt).toBeGreaterThan(bestAt);
+    expect(timeAt).toBeGreaterThan(netAt);
+    expect(sortGroup?.querySelector('input:checked')?.getAttribute('value')).toBe('BEST');
+    expect(text).not.toContain('Sortierung:');
     expect(text).toContain('Als Nächstes…');
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__qa-vote-stat--up').length,
@@ -1929,8 +1951,182 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toMatch(/Fragen\s+\d+[–-]\d+\s+von/);
     expect(text).not.toMatch(/Seite\s+\d+\s*\/\s*\d+/);
     expect(fixture.nativeElement.querySelector('.session-present__qa-page')).toBeNull();
+    const navigator = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-navigator"]',
+    ) as HTMLElement | null;
+    expect(navigator?.textContent).toContain('Vorherige Frage');
+    expect(navigator?.textContent).toContain('Nächste Frage');
+    expect(navigator?.textContent).toMatch(/1\s*\/\s*3/);
     expect(fixture.nativeElement.querySelector('.session-present__qa-more')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__qa-criteria')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('schaltet die Presenter-Sortierung auf Zeit und lädt die Bühne neu', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 1, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const bestFirst = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Beste zuerst',
+      upvoteCount: 4,
+      positiveVoteCount: 4,
+      negativeVoteCount: 0,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      passagesRedacted: false,
+      hasUpvoted: false,
+    };
+    const newest = {
+      ...bestFirst,
+      id: '22222222-2222-4222-8222-222222222222',
+      text: 'Neueste zuerst',
+      createdAt: '2026-03-13T12:05:00.000Z',
+    };
+    qaListQueryMock.mockResolvedValue([bestFirst, newest]);
+    setPresenterSortModeMutateMock.mockResolvedValue({
+      sortMode: 'TIME',
+      search: '',
+      pinnedOnly: false,
+      authorNickname: null,
+      source: 'presenter',
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { context?: string; index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: input.page?.context ?? 'qa-page',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 2,
+        },
+      }),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    qaListQueryMock.mockResolvedValue([newest, bestFirst]);
+    const timeButton = [
+      ...fixture.nativeElement.querySelectorAll(
+        '[data-testid="presenter-qa-sort"] mat-radio-button',
+      ),
+    ].find((button) => (button.textContent ?? '').includes('Zeit')) as HTMLElement | undefined;
+    expect(timeButton?.textContent).toContain('Zeit');
+    (timeButton?.querySelector('input') as HTMLInputElement | null)?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(setPresenterSortModeMutateMock).toHaveBeenCalledWith(
+        {
+          code: 'ABC123',
+          sortMode: 'TIME',
+          source: 'presenter',
+        },
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+        {
+          code: 'ABC123',
+          page: { context: 'qa-page', index: 0, count: 2 },
+        },
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(
+        fixture.nativeElement.querySelector('.session-present__qa-card')?.textContent,
+      ).toContain('Neueste zuerst');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="presenter-qa-navigator"]')?.textContent,
+      ).toMatch(/1\s*\/\s*2/);
+    });
+    expect(fixture.componentInstance.qaSortError()).toBe('');
+    expect(fixture.componentInstance.qaNavError()).toBe('');
+    fixture.destroy();
+  });
+
+  it('behält die neue Sortierung, wenn der Navigator nicht auf 1 zurückgesetzt werden kann', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 1, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Beste zuerst',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Neueste zuerst',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:05:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+    setPresenterSortModeMutateMock.mockResolvedValue({
+      sortMode: 'TIME',
+      search: '',
+      pinnedOnly: false,
+      authorNickname: null,
+      source: 'presenter',
+    });
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    await fixture.componentInstance.setPresenterQaSortMode('TIME');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.presenterQaSortMode()).toBe('TIME');
+    expect(fixture.componentInstance.qaSortError()).toBe('');
+    expect(fixture.componentInstance.qaNavError()).toContain(
+      'Fragen konnten nicht gewechselt werden',
+    );
+    expect(fixture.componentInstance.session()?.presenterPage?.index).toBe(1);
     fixture.destroy();
   });
 
@@ -2084,7 +2280,137 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('Als Nächstes…');
     expect(text).not.toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-qa-navigator"]'),
+    ).toBeNull();
     expectNoHostControls(fixture.nativeElement as HTMLElement);
+    fixture.destroy();
+  });
+
+  it('schaltet den Presenter-Footer auf die nächste freigegebene Frage', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue(
+      Array.from({ length: 3 }, (_, index) => ({
+        id: `00000000-0000-4000-8000-00000000000${index}`,
+        text: `Publikumsfrage ${index + 1}`,
+        upvoteCount: 3 - index,
+        status: 'ACTIVE',
+        createdAt: `2026-03-13T12:0${index}:00.000Z`,
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      })),
+    );
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { context?: string; index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: input.page?.context ?? 'qa-page',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 1,
+        },
+      }),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const previous = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-previous"]',
+    ) as HTMLButtonElement | null;
+    const next = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-next"]',
+    ) as HTMLButtonElement | null;
+    expect(previous?.getAttribute('aria-disabled')).toBe('true');
+    expect(next?.getAttribute('aria-disabled')).not.toBe('true');
+    expect(fixture.nativeElement.querySelectorAll('.session-present__qa-list-item')).toHaveLength(
+      2,
+    );
+    expect(fixture.nativeElement.textContent).toContain('Publikumsfrage 3');
+
+    next?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        page: { context: 'qa-page', index: 1, count: 3 },
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fixture.componentInstance.pinnedQaQuestion()?.text).toBe('Publikumsfrage 2');
+    expect(fixture.componentInstance.qaNavError()).toBe('');
+    fixture.destroy();
+  });
+
+  it('meldet einen fehlgeschlagenen Fragenwechsel und behält die aktuelle Frage', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    component.presenterQaOrderedQuestions.set([
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        text: 'Erste Frage',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '00000000-0000-4000-8000-000000000002',
+        text: 'Zweite Frage',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+    component.session.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    } as never);
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    await component.changeQaProjectionPage(1);
+
+    expect(component.qaNavPending()).toBe(false);
+    expect(component.qaNavError()).toContain('Fragen konnten nicht gewechselt werden');
+    expect(component.pinnedQaQuestion()?.text).toBe('Erste Frage');
     fixture.destroy();
   });
 

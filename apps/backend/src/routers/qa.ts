@@ -52,7 +52,11 @@ import {
   invalidateQaSummaryForSession,
   requestQaSummary,
 } from '../lib/qaSummaryQueue';
-import { resolveQaPresenterStageView, setQaPresenterStageView } from '../lib/qaPresenterSortMode';
+import {
+  hasQaPresenterStageView,
+  resolveQaPresenterStageView,
+  setQaPresenterStageView,
+} from '../lib/qaPresenterSortMode';
 import {
   isQaControversialLabel,
   isQaControversyInsufficientVotes,
@@ -187,6 +191,7 @@ function buildQaQuestionsSnapshot(
     | 'sessionRemaining'
     | 'quota'
     | 'sortMode'
+    | 'sortModeSource'
     | 'forumAssignments'
   > = {},
 ) {
@@ -1520,12 +1525,17 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      const stageView = setQaPresenterStageView(session.id, {
-        sortMode: input.sortMode,
-        search: input.search,
-        pinnedOnly: input.pinnedOnly,
-        authorNickname: input.authorNickname ?? null,
-      });
+      const stageView = setQaPresenterStageView(
+        session.id,
+        {
+          sortMode: input.sortMode,
+          search: input.search,
+          pinnedOnly: input.pinnedOnly,
+          authorNickname: input.authorNickname ?? null,
+          source: input.source,
+        },
+        { takeover: input.takeover === true },
+      );
       return stageView;
     }),
 
@@ -1573,6 +1583,7 @@ export const qaRouter = router({
             : 'ACTIVE';
       const stageView = resolveQaPresenterStageView(session.id);
       const sortMode: QaQuestionSortMode = stageView.sortMode;
+      const sortModeSource = hasQaPresenterStageView(session.id) ? stageView.source : undefined;
       const participantCountForControversy = await prisma.participant.count({
         where: { sessionId: session.id },
       });
@@ -1602,6 +1613,7 @@ export const qaRouter = router({
         nextCursor: null,
         totalCount: page.totalCount,
         sortMode,
+        ...(sortModeSource ? { sortModeSource } : {}),
       });
     }),
 

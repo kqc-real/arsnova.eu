@@ -5,6 +5,7 @@ import {
   DestroyRef,
   ElementRef,
   Injector,
+  viewChild,
   LOCALE_ID,
   OnDestroy,
   OnInit,
@@ -19,6 +20,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
+import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { WordCloudComponent } from './word-cloud.component';
@@ -168,6 +170,8 @@ type LobbyFoyerMotionProfile = {
     DecimalPipe,
     CdkTrapFocus,
     MatButton,
+    MatRadioButton,
+    MatRadioGroup,
     MatCard,
     MatCardContent,
     MatIcon,
@@ -239,10 +243,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
   /**
    * Presenter-Bühne: sortierte ACTIVE+PINNED-Liste (`qa.presentProjection`).
-   * `presenterPage.index` wählt die Hero-Frage; die nächsten bis zu 2 folgen in der Queue.
+   * `presenterPage.index` wählt die prominente Frage; alle folgenden Beiträge
+   * stehen darunter und die Bühne scrollt.
    */
   readonly presenterQaOrderedQuestions = signal<QaQuestionDTO[]>([]);
+  readonly presenterQaSortModes = ['CONTROVERSIAL', 'BEST', 'TOP', 'TIME'] as const;
   readonly presenterQaSortMode = signal<QaQuestionSortMode>('BEST');
+  readonly qaSortPending = signal(false);
+  readonly qaSortError = signal('');
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
   readonly freetextResponses = signal<string[]>([]);
   readonly freetextQuestionId = signal<string | null>(null);
@@ -444,8 +452,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly showQaQueue = computed(
     () => this.showQaProjection() && this.visibleQaQueueQuestions().length > 0,
   );
-  /** Bis zu zwei wartende Fragen unter dem Hero. */
-  private static readonly QA_QUEUE_VISIBLE = 2;
+  /** Footer-Navigator: gleicher Bühnenindex wie der Host, direkt an der Projektion. */
+  readonly qaNavPending = signal(false);
+  readonly qaNavError = signal('');
+  private readonly qaStage = viewChild<ElementRef<HTMLElement>>('qaStage');
   /** Eine Navigationsposition pro Bühnenfrage (Hero rückt vor). */
   readonly qaQueuePageCount = computed(() => {
     const total = this.presenterQaOrderedQuestions().length;
@@ -460,14 +470,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly pinnedQaQuestion = computed(
     () => this.presenterQaOrderedQuestions()[this.qaQueuePageIndex()] ?? null,
   );
-  /** Wartende Fragen nach dem Hero (für Badge-Gesamtzahl). */
+  /** Alle freigegebenen Fragen nach dem Hero; die Bühne scrollt darüber. */
   readonly presenterQaQuestions = computed(() =>
     this.presenterQaOrderedQuestions().slice(this.qaQueuePageIndex() + 1),
   );
-  readonly visibleQaQueueQuestions = computed(() =>
-    this.presenterQaQuestions().slice(0, SessionPresentComponent.QA_QUEUE_VISIBLE),
-  );
-  /** Verbleibende Warteschlange; Seitenwechsel steuert der Host-Navigator. */
+  readonly visibleQaQueueQuestions = computed(() => this.presenterQaQuestions());
+  /** Verbleibende Warteschlange; der Footer-Navigator und der Host rücken den Hero vor. */
   qaQueueCountLabel(): string {
     const count = this.presenterQaQuestions().length;
     return count === 1
@@ -492,8 +500,146 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionQa.sortTime:Zeit`;
     }
   }
-  qaSortCriteriaLabel(): string {
-    return $localize`:@@sessionPresent.qaSortCriteria:Sortierung: ${this.qaSortModeLabel()}:sort:`;
+  async setPresenterQaSortMode(mode: string): Promise<void> {
+    if (
+      (mode !== 'CONTROVERSIAL' && mode !== 'BEST' && mode !== 'TOP' && mode !== 'TIME') ||
+      this.qaSortPending() ||
+      mode === this.presenterQaSortMode() ||
+      !this.session()
+    ) {
+      return;
+    }
+    const previous = this.presenterQaSortMode();
+    this.presenterQaSortMode.set(mode);
+    this.qaSortPending.set(true);
+    this.qaSortError.set('');
+    try {
+      await trpc.qa.setPresenterSortMode.mutate(
+        {
+          code: this.sessionCode,
+          sortMode: mode,
+          source: 'presenter',
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      await this.refreshQaQuestions();
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      await this.resetQaProjectionToFirst();
+    } catch {
+      if (!this.destroyRef.destroyed) {
+        this.presenterQaSortMode.set(previous);
+        this.qaSortError.set(
+          $localize`:@@sessionPresent.qaSortError:Sortierung konnte nicht gewechselt werden. Bitte erneut versuchen.`,
+        );
+      }
+    } finally {
+      if (!this.destroyRef.destroyed) {
+        this.qaSortPending.set(false);
+      }
+    }
+  }
+
+  /**
+   * Neue Sortierung zeigt eine andere erste Frage. Navigator und Bühne starten wieder bei 1.
+   * Schlägt nur der Index fehl, bleibt die bereits übernommene Sortierung stehen.
+   */
+  private async resetQaProjectionToFirst(): Promise<void> {
+    const stage = this.qaStage()?.nativeElement;
+    if (stage) {
+      delete stage.dataset['qaNavIndex'];
+      stage.scrollTop = 0;
+    }
+    const page = this.session()?.presenterPage;
+    if (!page || this.qaQueuePageIndex() === 0) {
+      return;
+    }
+    const count = Math.max(page.count, this.qaQueuePageCount());
+    this.qaNavPending.set(true);
+    this.qaNavError.set('');
+    try {
+      const result = await trpc.session.setPresenterSurface.mutate(
+        {
+          code: this.sessionCode,
+          page: { context: page.context, index: 0, count },
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      // Ein schon laufender Meta-Abruf darf den alten Index nicht wieder einsetzen.
+      this.presentSessionMetaRefreshEpoch += 1;
+      this.session.update((session) =>
+        session?.presenterPage?.context === page.context
+          ? { ...session, presenterPage: result.presenterPage }
+          : session,
+      );
+    } catch {
+      if (!this.destroyRef.destroyed) {
+        this.qaNavError.set(
+          $localize`:@@sessionHost.projectionQaPageError:Fragen konnten nicht gewechselt werden. Bitte erneut versuchen.`,
+        );
+      }
+    } finally {
+      if (!this.destroyRef.destroyed) {
+        this.qaNavPending.set(false);
+      }
+    }
+  }
+
+  /**
+   * Dieselbe Bühnenposition wie der Host-Navigator, aus dem Presenter-Footer.
+   * Index und Anzahl gehen zusammen raus, damit eine noch alte Seitenzahl den Schritt nicht abschneidet.
+   */
+  async changeQaProjectionPage(delta: -1 | 1): Promise<void> {
+    const page = this.session()?.presenterPage;
+    if (!page || this.qaNavPending() || this.qaSortPending() || !this.showQaProjection()) {
+      return;
+    }
+    const count = this.qaQueuePageCount();
+    const index = this.qaQueuePageIndex();
+    const nextIndex = index + delta;
+    if (nextIndex < 0 || nextIndex >= count) {
+      return;
+    }
+    this.qaNavPending.set(true);
+    this.qaNavError.set('');
+    try {
+      const result = await trpc.session.setPresenterSurface.mutate(
+        {
+          code: this.sessionCode,
+          page: {
+            context: page.context,
+            index: nextIndex,
+            count: Math.max(page.count, count, nextIndex + 1),
+          },
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (this.destroyRef.destroyed) {
+        return;
+      }
+      this.session.update((session) =>
+        session?.presenterPage?.context === page.context
+          ? { ...session, presenterPage: result.presenterPage }
+          : session,
+      );
+    } catch {
+      if (!this.destroyRef.destroyed) {
+        this.qaNavError.set(
+          $localize`:@@sessionHost.projectionQaPageError:Fragen konnten nicht gewechselt werden. Bitte erneut versuchen.`,
+        );
+      }
+    } finally {
+      if (!this.destroyRef.destroyed) {
+        this.qaNavPending.set(false);
+      }
+    }
   }
   qaPositiveVoteCount(question: QaQuestionDTO): number {
     return question.positiveVoteCount ?? 0;
@@ -942,6 +1088,23 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         const count = this.qaQueuePageCount();
         untracked(() => {
           void this.reportProjectionPages(count);
+        });
+      },
+      { injector: this.injector },
+    );
+    effect(
+      () => {
+        const index = this.qaQueuePageIndex();
+        const stage = this.qaStage()?.nativeElement;
+        if (!stage) {
+          return;
+        }
+        untracked(() => {
+          if (stage.dataset['qaNavIndex'] === String(index)) {
+            return;
+          }
+          stage.dataset['qaNavIndex'] = String(index);
+          stage.scrollTop = 0;
         });
       },
       { injector: this.injector },
@@ -1642,7 +1805,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.presenterQaOrderedQuestions.set([]);
         return;
       }
-      if (snapshot.sortMode) {
+      if (snapshot.sortMode && !this.qaSortPending()) {
         this.presenterQaSortMode.set(snapshot.sortMode);
       }
       const visibleQuestions = snapshot.questions.filter(

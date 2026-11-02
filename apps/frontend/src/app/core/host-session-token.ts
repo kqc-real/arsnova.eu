@@ -41,8 +41,21 @@ function loadHostTokensFromSessionStorage(): void {
 }
 
 export function getHostToken(sessionCode: string): string | null {
+  const normalizedSessionCode = normalizeHostSessionCode(sessionCode);
+  if (isBrowser()) {
+    // Der Host schreibt erneuerte Tokens direkt in das sessionStorage des
+    // Presenter-Fensters. Der Speicher gilt, nicht der einmal gelesene Cache.
+    const stored = globalThis.window.sessionStorage
+      .getItem(getHostTokenStorageKey(normalizedSessionCode))
+      ?.trim();
+    if (stored) {
+      hostTokens.set(normalizedSessionCode, stored);
+      hostTokensLoaded = true;
+      return stored;
+    }
+  }
   loadHostTokensFromSessionStorage();
-  return hostTokens.get(normalizeHostSessionCode(sessionCode)) ?? null;
+  return hostTokens.get(normalizedSessionCode) ?? null;
 }
 
 export function hasHostToken(sessionCode: string): boolean {
