@@ -1180,6 +1180,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
   private lastQaWordCloudProjectionKey: string | null = null;
   private lastQaPresenterStageViewKey: string | null = null;
+  /** Ob der letzte Publish dieser Ansicht die Presenter-Sortierung übernommen hat. */
+  private lastQaPresenterStageViewTookOver = false;
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
   private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
@@ -12480,10 +12482,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const pinnedOnly = this.qaShowPinnedOnly();
     const authorNickname = this.qaSelectedAuthorNickname();
     const stageViewKey = this.buildQaPresenterStageViewKey(sortMode);
-    if (!options?.force && stageViewKey === this.lastQaPresenterStageViewKey) {
+    const takeover = options?.takeover === true;
+    const sameView = stageViewKey === this.lastQaPresenterStageViewKey;
+    // Das Abo publiziert dieselbe Ansicht ohne takeover. Diese Buchung darf die
+    // anschließende ausdrückliche Übernahme nicht als Duplikat verschlucken.
+    if (!options?.force && sameView && (!takeover || this.lastQaPresenterStageViewTookOver)) {
       return Promise.resolve();
     }
     this.lastQaPresenterStageViewKey = stageViewKey;
+    this.lastQaPresenterStageViewTookOver = takeover;
     return this.enqueuePresenterProjectionSync(async () => {
       try {
         await trpc.qa.setPresenterSortMode.mutate({
@@ -12502,6 +12509,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
       } catch {
         this.lastQaPresenterStageViewKey = null;
+        this.lastQaPresenterStageViewTookOver = false;
       }
     });
   }
@@ -13287,6 +13295,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         const adopted = snapshot.sortMode;
         const key = this.buildQaPresenterStageViewKey(adopted);
         this.lastQaPresenterStageViewKey = key;
+        this.lastQaPresenterStageViewTookOver = false;
         this.publishedQaPresenterStageViewKey = key;
         this.qaSortMode.set(adopted);
       }

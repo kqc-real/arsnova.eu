@@ -2063,6 +2063,94 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('lässt die Sortierung stehen, solange der Fragenwechsel noch läuft', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Erste Frage',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Zweite Frage',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let releaseNavigation: (() => void) | undefined;
+    const navigationSettled = new Promise<void>((resolve) => {
+      releaseNavigation = resolve;
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { context?: string; index?: number; count?: number } }) => {
+        await navigationSettled;
+        return {
+          presenterSurface: 'default',
+          presenterPage: {
+            context: input.page?.context ?? 'qa-page',
+            index: input.page?.index ?? 0,
+            count: input.page?.count ?? 2,
+          },
+        };
+      },
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const navigation = fixture.componentInstance.changeQaProjectionPage(1);
+    fixture.detectChanges();
+    const sortGroup = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-sort"]',
+    ) as HTMLElement | null;
+    expect(fixture.componentInstance.qaNavPending()).toBe(true);
+    expect(
+      [...(sortGroup?.querySelectorAll('input') ?? [])].every(
+        (input) => (input as HTMLInputElement).disabled,
+      ),
+    ).toBe(true);
+
+    await fixture.componentInstance.setPresenterQaSortMode('TIME');
+    expect(setPresenterSortModeMutateMock).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.presenterQaSortMode()).toBe('BEST');
+
+    releaseNavigation?.();
+    await navigation;
+    fixture.detectChanges();
+    expect(fixture.componentInstance.session()?.presenterPage?.index).toBe(1);
+    expect(fixture.componentInstance.presenterQaSortMode()).toBe('BEST');
+    fixture.destroy();
+  });
+
   it('behält die neue Sortierung, wenn der Navigator nicht auf 1 zurückgesetzt werden kann', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

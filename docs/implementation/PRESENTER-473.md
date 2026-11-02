@@ -107,6 +107,8 @@ Tastaturfokus nicht verloren geht.
   fehlt `sortModeSource` und weicht `presentProjection.sortMode` vom Host ab
   (Backend-Restart, leere Map), publiziert der Host den Modus erneut (`force`);
   eine ausdrückliche Host-Sortierung oder ein Host-Filterwechsel setzt `takeover`;
+  ein vorheriger Abo-Publish derselben Ansicht ohne `takeover` unterdrückt diese
+  Übernahme nicht;
   Teilnehmer-Forum färbt denselben Navigator-Hero (via `presenterPage`) ein;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
   die Host-Liste rotiert ab dem Navigator-Cursor (Position 1 = Hero, 2 = nächster

@@ -790,7 +790,7 @@
               (change)="setPresenterQaSortMode($event.value)"
               i18n-aria-label="@@sessionQa.sortAria"
               aria-label="Q&A-Sortierung"
-              [disabled]="qaSortPending()"
+              [disabled]="qaSortPending() || qaNavPending()"
             >
               @for (mode of presenterQaSortModes; track mode) {
                 <mat-radio-button [value]="mode">{{ qaSortModeLabel(mode) }}</mat-radio-button>

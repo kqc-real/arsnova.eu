@@ -11563,6 +11563,51 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     return fixture;
   }
 
+  it('übernimmt den Pinfilter, obwohl das Abo die Presenter-Sortierung schon publiziert hat', async () => {
+    let stage: {
+      sortMode: string;
+      search: string;
+      pinnedOnly: boolean;
+      authorNickname: string | null;
+      source: 'host' | 'presenter';
+    } = {
+      sortMode: 'BEST',
+      search: '',
+      pinnedOnly: false,
+      authorNickname: null,
+      source: 'presenter',
+    };
+    setQaPresenterSortModeMutateMock.mockImplementation(
+      async (input: {
+        sortMode: string;
+        search?: string;
+        pinnedOnly?: boolean;
+        authorNickname?: string | null;
+        takeover?: boolean;
+      }) => {
+        if (stage.source !== 'presenter' || input.takeover === true) {
+          stage = {
+            sortMode: input.sortMode,
+            search: input.search ?? '',
+            pinnedOnly: input.pinnedOnly ?? false,
+            authorNickname: input.authorNickname ?? null,
+            source: 'host',
+          };
+        }
+        return { ...stage };
+      },
+    );
+
+    const fixture = await setupQaWorkspace(false);
+    await fixture.componentInstance.setQaPinnedFilter(true);
+
+    expect(stage).toMatchObject({ pinnedOnly: true, source: 'host' });
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pinnedOnly: true, search: '', takeover: true }),
+    );
+    fixture.destroy();
+  });
+
   it('zeigt leere Q&A mit offenem Status und geschlossenen, benannten Werkzeugen', async () => {
     const fixture = await setupQaWorkspace(false);
     const host = fixture.nativeElement as HTMLElement;

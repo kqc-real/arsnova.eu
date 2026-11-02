@@ -504,6 +504,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (
       (mode !== 'CONTROVERSIAL' && mode !== 'BEST' && mode !== 'TOP' && mode !== 'TIME') ||
       this.qaSortPending() ||
+      this.qaNavPending() ||
       mode === this.presenterQaSortMode() ||
       !this.session()
     ) {
