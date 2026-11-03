@@ -234,7 +234,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.stopBoardPageTimer();
       return;
     }
-    if (this.sessionDeadline.isExpired()) {
+    if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
       this.closePresentAtDeadline();
     }
     this.startPolling();
@@ -251,6 +251,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
   private readonly personalBoardPageIndex = signal(0);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  private readonly teamBoardPageIndex = signal(0);
+  /** Handblättern hält den automatischen Wechsel an, bis er wieder gestartet wird. */
+  readonly boardPagePaused = signal(false);
   /**
    * Presenter-Bühne: sortierte ACTIVE+PINNED-Liste (`qa.presentProjection`).
    * `presenterPage.index` wählt die prominente Frage; alle folgenden Beiträge
@@ -1488,6 +1491,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly personalBoardColumnCount = computed(() =>
     SessionPresentComponent.columnCountForParticipantTotal(this.personalLeaderboard().length),
   );
+  readonly boardPageControlsLabel = $localize`:@@sessionPresent.leaderboardPageControls:Leaderboard-Seiten`;
 
   static columnCountForParticipantTotal(count: number): number {
     return count <= 5 ? 1 : 2;
@@ -1498,6 +1502,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   static pageSizeForParticipantTotal(count: number): number {
     return this.columnCountForParticipantTotal(count) * this.BOARD_PAGE_ROWS;
+  }
+
+  static pageCountForTotal(count: number): number {
+    const size = this.pageSizeForParticipantTotal(count);
+    return Math.max(1, Math.ceil(count / size));
   }
 
   static pageSlice<T>(entries: T[], pageIndex: number): T[] {
@@ -1513,23 +1522,54 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly visiblePersonalLeaderboard = computed(() =>
     SessionPresentComponent.pageSlice(this.personalLeaderboard(), this.personalBoardPageIndex()),
   );
-  readonly personalBoardPageCount = computed(() => {
-    const total = this.personalLeaderboard().length;
-    const size = SessionPresentComponent.pageSizeForParticipantTotal(total);
-    return Math.max(1, Math.ceil(total / size));
-  });
-  readonly personalBoardPageLabel = computed(() => {
-    const total = this.personalLeaderboard().length;
+  readonly visibleTeamLeaderboard = computed(() =>
+    SessionPresentComponent.pageSlice(this.teamLeaderboard(), this.teamBoardPageIndex()),
+  );
+  readonly personalBoardPageCount = computed(() =>
+    SessionPresentComponent.pageCountForTotal(this.personalLeaderboard().length),
+  );
+  readonly teamBoardPageCount = computed(() =>
+    SessionPresentComponent.pageCountForTotal(this.teamLeaderboard().length),
+  );
+  readonly personalBoardPageLabel = computed(() =>
+    this.boardRangeLabel(this.personalLeaderboard().length, this.personalBoardPageIndex()),
+  );
+  readonly teamBoardPageLabel = computed(() =>
+    this.boardRangeLabel(this.teamLeaderboard().length, this.teamBoardPageIndex()),
+  );
+  readonly showPersonalBoardPause = computed(() => this.personalBoardPageCount() > 1);
+  readonly showTeamBoardPause = computed(
+    () => this.personalBoardPageCount() <= 1 && this.teamBoardPageCount() > 1,
+  );
+
+  stepBoardPage(board: 'personal' | 'team', delta: number): void {
+    this.boardPagePaused.set(true);
+    this.stopBoardPageTimer();
+    const index = board === 'personal' ? this.personalBoardPageIndex : this.teamBoardPageIndex;
+    const pages = board === 'personal' ? this.personalBoardPageCount() : this.teamBoardPageCount();
+    if (pages <= 1) {
+      index.set(0);
+      return;
+    }
+    index.update((current) => (current + delta + pages) % pages);
+  }
+
+  toggleBoardPagePause(): void {
+    this.boardPagePaused.update((paused) => !paused);
+    this.syncBoardPageTimer();
+  }
+
+  private boardRangeLabel(total: number, pageIndex: number): string | null {
     const size = SessionPresentComponent.pageSizeForParticipantTotal(total);
     if (total <= size) {
       return null;
     }
-    const pages = Math.max(1, Math.ceil(total / size));
-    const page = ((this.personalBoardPageIndex() % pages) + pages) % pages;
+    const pages = SessionPresentComponent.pageCountForTotal(total);
+    const page = ((pageIndex % pages) + pages) % pages;
     const start = page * size + 1;
     const end = Math.min(total, (page + 1) * size);
     return $localize`:@@sessionPresent.leaderboardPage:${start}:start:–${end}:end: von ${total}:total:`;
-  });
+  }
   readonly quickFeedbackEntries = computed(() => {
     const data = this.quickFeedbackResult();
     if (!data) {
@@ -1742,7 +1782,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined' && document.hidden) {
       return;
     }
-    if (this.presentDeadlineClosed || this.sessionDeadline.isExpired()) {
+    if (this.presentDeadlineClosed || this.sessionDeadline.isAbsoluteDeadlineReached()) {
       this.closePresentAtDeadline();
       return;
     }
@@ -2074,12 +2114,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     snapshot = enrichDeadlineSnapshot(snapshot, this.session() ?? undefined);
     if (!this.sessionDeadline.applySnapshot(snapshot)) {
-      if (this.sessionDeadline.isExpired()) {
+      if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
         this.closePresentAtDeadline();
       }
       return false;
     }
-    if (this.sessionDeadline.isExpired()) {
+    // Quiz-FINISHED latched die Teilnahme, solange kein Q&A offen ist.
+    // Die Abschlussprojektion bleibt bis zur globalen expiresAt stehen.
+    if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
       this.closePresentAtDeadline();
       return false;
     }
@@ -2098,7 +2140,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.sessionDeadlineTimer = setTimeout(
       () => {
         this.sessionDeadlineTimer = null;
-        if (this.sessionDeadline.isExpired()) {
+        if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
           this.closePresentAtDeadline();
           return;
         }
@@ -2183,23 +2225,46 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private syncBoardPageTimer(): void {
     // Späte Antworten nach ngOnDestroy dürfen kein Intervall mehr anlegen, das niemand stoppt.
     if (this.destroyRef.destroyed) return;
-    if (!this.showFinishProjection() || this.personalBoardPageCount() <= 1) {
+    const personalPages = this.personalBoardPageCount();
+    const teamPages = this.teamBoardPageCount();
+    if (!this.showFinishProjection()) {
       this.stopBoardPageTimer();
+      this.boardPagePaused.set(false);
       this.personalBoardPageIndex.set(0);
+      this.teamBoardPageIndex.set(0);
+      return;
+    }
+    if (personalPages <= 1) this.personalBoardPageIndex.set(0);
+    if (teamPages <= 1) this.teamBoardPageIndex.set(0);
+    if (this.boardPagePaused() || (personalPages <= 1 && teamPages <= 1)) {
+      this.stopBoardPageTimer();
       return;
     }
     if (this.boardPageTimer !== null) {
       return;
     }
     this.boardPageTimer = setInterval(() => {
-      const pages = this.personalBoardPageCount();
-      if (pages <= 1) {
+      if (this.destroyRef.destroyed || !this.showFinishProjection() || this.boardPagePaused()) {
         this.stopBoardPageTimer();
-        this.personalBoardPageIndex.set(0);
         return;
       }
-      this.personalBoardPageIndex.update((index) => (index + 1) % pages);
+      this.advanceBoardPage(this.personalBoardPageIndex, this.personalBoardPageCount());
+      this.advanceBoardPage(this.teamBoardPageIndex, this.teamBoardPageCount());
+      if (this.personalBoardPageCount() <= 1 && this.teamBoardPageCount() <= 1) {
+        this.stopBoardPageTimer();
+      }
     }, SessionPresentComponent.BOARD_PAGE_MS);
+  }
+
+  private advanceBoardPage(
+    index: { set: (value: number) => void; update: (update: (current: number) => number) => void },
+    pages: number,
+  ): void {
+    if (pages <= 1) {
+      index.set(0);
+      return;
+    }
+    index.update((current) => (current + 1) % pages);
   }
 
   private stopBoardPageTimer(): void {
@@ -2260,7 +2325,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         sessionId,
       });
       if (Array.isArray(snapshot)) {
-        if (this.presentDeadlineClosed || this.sessionDeadline.isExpired()) {
+        if (this.presentDeadlineClosed || this.sessionDeadline.isAbsoluteDeadlineReached()) {
           return;
         }
         const visibleQuestions = snapshot.filter(
@@ -2281,7 +2346,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       ) {
         return;
       }
-      if (terminal || this.sessionDeadline.isExpired()) {
+      if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
         this.closePresentAtDeadline();
         return;
       }

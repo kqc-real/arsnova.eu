@@ -159,7 +159,9 @@
   } @else if (showFinishProjection()) {
     <div
       class="session-present__finish"
-      [class.session-present__finish--paged]="personalBoardPageCount() > 1"
+      [class.session-present__finish--paged]="
+        personalBoardPageCount() > 1 || teamBoardPageCount() > 1
+      "
       [class.session-present__finish--empty]="!hasFinishResults()"
       [attr.data-testid]="!hasFinishResults() ? 'presenter-finish-idle' : null"
       [attr.aria-labelledby]="!hasFinishResults() ? 'session-present-finish-title' : null"
@@ -334,8 +336,48 @@
                   >Bei Punktgleichheit entscheidet die schnellere Antwortzeit.</span
                 >
               </p>
-              @if (personalBoardPageLabel(); as pageLabel) {
-                <p class="session-present__board-page" aria-live="polite">{{ pageLabel }}</p>
+              @if (personalBoardPageCount() > 1) {
+                <div
+                  class="session-present__board-page-controls"
+                  role="group"
+                  data-testid="presenter-personal-board-pages"
+                  [attr.aria-label]="boardPageControlsLabel"
+                >
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    data-testid="presenter-personal-board-previous"
+                    (click)="stepBoardPage('personal', -1)"
+                  >
+                    <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+                  </button>
+                  <p class="session-present__board-page" aria-live="polite">
+                    {{ personalBoardPageLabel() }}
+                  </p>
+                  @if (showPersonalBoardPause()) {
+                    <button
+                      matButton="outlined"
+                      type="button"
+                      data-testid="presenter-board-page-pause"
+                      [attr.aria-pressed]="boardPagePaused()"
+                      (click)="toggleBoardPagePause()"
+                    >
+                      @if (boardPagePaused()) {
+                        <span i18n="@@sessionPresent.leaderboardPageResume">Automatisch</span>
+                      } @else {
+                        <span i18n="@@sessionPresent.leaderboardPagePause">Anhalten</span>
+                      }
+                    </button>
+                  }
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    data-testid="presenter-personal-board-next"
+                    (click)="stepBoardPage('personal', 1)"
+                  >
+                    <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+                  </button>
+                </div>
               }
               <ol
                 class="session-present__board-list"
@@ -428,8 +470,54 @@
               >
                 Team-Leaderboard
               </h2>
-              <ol class="session-present__team-board-list">
-                @for (entry of teamLeaderboard(); track entry.rank + ':' + entry.teamName) {
+              @if (teamBoardPageCount() > 1) {
+                <div
+                  class="session-present__board-page-controls"
+                  role="group"
+                  data-testid="presenter-team-board-pages"
+                  [attr.aria-label]="boardPageControlsLabel"
+                >
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    data-testid="presenter-team-board-previous"
+                    (click)="stepBoardPage('team', -1)"
+                  >
+                    <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+                  </button>
+                  <p class="session-present__board-page" aria-live="polite">
+                    {{ teamBoardPageLabel() }}
+                  </p>
+                  @if (showTeamBoardPause()) {
+                    <button
+                      matButton="outlined"
+                      type="button"
+                      data-testid="presenter-board-page-pause"
+                      [attr.aria-pressed]="boardPagePaused()"
+                      (click)="toggleBoardPagePause()"
+                    >
+                      @if (boardPagePaused()) {
+                        <span i18n="@@sessionPresent.leaderboardPageResume">Automatisch</span>
+                      } @else {
+                        <span i18n="@@sessionPresent.leaderboardPagePause">Anhalten</span>
+                      }
+                    </button>
+                  }
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    data-testid="presenter-team-board-next"
+                    (click)="stepBoardPage('team', 1)"
+                  >
+                    <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+                  </button>
+                </div>
+              }
+              <ol
+                class="session-present__team-board-list"
+                [class.session-present__team-board-list--overflow]="teamBoardOverflows()"
+              >
+                @for (entry of visibleTeamLeaderboard(); track entry.rank + ':' + entry.teamName) {
                   <li
                     class="session-present__team-board-item"
                     [class.session-present__team-board-item--winner]="

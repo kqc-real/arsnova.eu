@@ -24125,6 +24125,18 @@
           <context context-type="linenumber">880</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardTopSlice" datatype="html">
+        <source>Top <x id="limit" equiv-text="limit"/> von <x id="total" equiv-text="total"/></source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPageControls" datatype="html">
+        <source>Leaderboard-Seiten</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPagePause" datatype="html">
+        <source>Anhalten</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPageResume" datatype="html">
+        <source>Automatisch</source>
+      </trans-unit>
       <trans-unit id="sessionPresent.lobbyAudienceCountOne" datatype="html">
         <source><x id="count" equiv-text="formatted"/> Person</source>
         <context-group purpose="location">

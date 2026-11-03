@@ -41,9 +41,13 @@ dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
 Die Seitensteuerung erscheint, sobald mehr als eine Seite gemessen wurde,
 und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Die Seitenangabe
 steht in dieser Steuerung. Q&A-Fragen
-wechseln über denselben Host-Navigator oder den Presenter-Footer; die Rangliste
-wechselt wie bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf
-Sekunden pro Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde
+wechseln über denselben Host-Navigator oder den Presenter-Footer. Das
+Zwischenleaderboard zeigt die ersten fünf Personen und Teams und nennt die
+Kappung, zum Beispiel »Top 5 von 20«. Das Abschluss-Leaderboard für Personen und
+Teams wechselt automatisch mit höchstens acht Einträgen und zwölf Sekunden pro
+Seite. **Anhalten** legt die Seite fest, **Vorherige Seite** und **Nächste
+Seite** blättern von Hand, **Automatisch** setzt den Wechsel fort. Voting,
+Timer, Ergebnisfreigabe und effektive Wertungsrunde
 bleiben unabhängig von der Seite.
 
 In der Quiz-Statuszeile stehen der Lesefortschritt (»x von y bereit«) und

@@ -146,6 +146,15 @@ describe('session.end', () => {
       platformStatisticMocks.incrementCompletedSessionsTotal.mock.invocationCallOrder[0]!,
     );
     expect(prismaMock.bonusToken.createMany).not.toHaveBeenCalled();
+    expect(redisMock.set).toHaveBeenCalledWith(
+      'session:finishProjection:v2:sess-1',
+      'leaderboard',
+      'EX',
+      24 * 60 * 60,
+    );
+    expect(redisMock.set.mock.invocationCallOrder[0]).toBeLessThan(
+      prismaMock.session.update.mock.invocationCallOrder[0]!,
+    );
     expect(prismaMock.session.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({

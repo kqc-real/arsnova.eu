@@ -3911,24 +3911,37 @@ async function resolveFinishProjection(
   if (cached) {
     return cached;
   }
+  let raw: string | null = null;
   try {
-    const raw = await getRedis().get(finishProjectionRedisKey(sessionId));
-    if (raw === 'idle' || raw === 'leaderboard') {
-      finishProjectionBySessionId.set(sessionId, raw);
-      return raw;
-    }
+    raw = await getRedis().get(finishProjectionRedisKey(sessionId));
   } catch {
     // Redis optional – Default unten.
+  }
+  // Ein Abschluss kann die Speicher-Markierung setzen, während Redis noch antwortet.
+  const markedDuringRead = finishProjectionBySessionId.get(sessionId);
+  if (markedDuringRead) {
+    return markedDuringRead;
+  }
+  if (raw === 'idle' || raw === 'leaderboard') {
+    finishProjectionBySessionId.set(sessionId, raw);
+    return raw;
   }
   // Tote/ältere FINISHED-Sessions ohne Markierung: Exit-Branding statt Leaderboard.
   return 'idle';
 }
 
-function markFinishProjectionLeaderboard(sessionId: string): void {
+async function markFinishProjectionLeaderboard(sessionId: string): Promise<void> {
   finishProjectionBySessionId.set(sessionId, 'leaderboard');
-  void getRedis()
-    .set(finishProjectionRedisKey(sessionId), 'leaderboard', 'EX', FINISH_PROJECTION_TTL_SECONDS)
-    .catch(() => undefined);
+  try {
+    await getRedis().set(
+      finishProjectionRedisKey(sessionId),
+      'leaderboard',
+      'EX',
+      FINISH_PROJECTION_TTL_SECONDS,
+    );
+  } catch {
+    // Die Prozess-Markierung bleibt maßgeblich, bis Redis wieder schreibt.
+  }
 }
 
 async function markFinishProjectionIdle(sessionId: string): Promise<void> {
@@ -8474,6 +8487,8 @@ const sessionCoreRouter = router({
             : progress;
 
         if (nextIdx === null) {
+          // Vor dem Commit, damit ein paralleler Statusabruf nicht die Endseite sieht.
+          await markFinishProjectionLeaderboard(session.id);
           await tx.session.update({
             where: { id: session.id },
             data: {
@@ -8558,7 +8573,6 @@ const sessionCoreRouter = router({
         await clearReadingReady(outcome.sessionId, outcome.currentQuestionIdToClear);
       }
       if (outcome.finished) {
-        markFinishProjectionLeaderboard(outcome.sessionId);
         await incrementCompletedSessionsTotal();
         await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
       } else {
@@ -8942,6 +8956,7 @@ const sessionCoreRouter = router({
         );
 
         if (nextIndex === null) {
+          await markFinishProjectionLeaderboard(session.id);
           await tx.session.update({
             where: { id: session.id },
             data: {
@@ -9039,7 +9054,6 @@ const sessionCoreRouter = router({
       }
       if (outcome.transitioned) {
         if (outcome.finished) {
-          markFinishProjectionLeaderboard(outcome.sessionId);
           await incrementCompletedSessionsTotal();
           await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
         } else {
@@ -10630,6 +10644,7 @@ const sessionCoreRouter = router({
         }
 
         const now = new Date();
+        await markFinishProjectionLeaderboard(session.id);
         const lifecycle = await tx.session.update({
           where: { id: session.id },
           data: {
@@ -10673,7 +10688,6 @@ const sessionCoreRouter = router({
         }
       }
       if (outcome.transitioned) {
-        markFinishProjectionLeaderboard(identity.id);
         await incrementCompletedSessionsTotal();
         void recordSessionTransitionActivity();
         await issueProductFeedbackInvitesAfterFinishAwait(identity.id);

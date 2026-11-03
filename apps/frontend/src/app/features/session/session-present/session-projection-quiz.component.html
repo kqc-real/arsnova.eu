@@ -777,23 +777,94 @@
       </header>
       <div
         class="session-projection-quiz__leaderboard-grid"
-        [class.session-projection-quiz__leaderboard-grid--teams]="teamLeaderboard().length > 0"
+        [class.session-projection-quiz__leaderboard-grid--teams]="
+          leaderboard().length > 0 && teamLeaderboard().length > 0
+        "
       >
         @if (leaderboard().length > 0) {
           <mat-card appearance="outlined" class="session-projection-quiz__leaderboard-card">
             <mat-card-content>
+              @if (leaderboard().length > leaderboardPreviewLimit) {
+                <p
+                  class="session-projection-quiz__leaderboard-slice"
+                  data-testid="presenter-leaderboard-slice"
+                >
+                  {{ leaderboardTopSliceLabel(leaderboard().length) }}
+                </p>
+              }
               <ol class="session-projection-quiz__leaderboard-list">
-                @for (entry of leaderboard().slice(0, 5); track entry.rank + ':' + entry.nickname) {
-                  <li>
-                    <strong class="session-projection-quiz__leaderboard-rank">{{
-                      entry.rank
-                    }}</strong>
-                    <span class="session-projection-quiz__leaderboard-name">{{
-                      entry.nickname
-                    }}</span>
-                    <span class="session-projection-quiz__leaderboard-score">{{
-                      formatCount(entry.totalScore)
-                    }}</span>
+                @for (
+                  entry of leaderboard().slice(0, leaderboardPreviewLimit);
+                  track entry.rank + ':' + entry.nickname
+                ) {
+                  <li
+                    class="session-projection-quiz__leaderboard-item"
+                    [class.session-projection-quiz__leaderboard-item--lead]="entry.rank === 1"
+                  >
+                    <div class="session-projection-quiz__leaderboard-row">
+                      <strong class="session-projection-quiz__leaderboard-rank">
+                        @if (entry.rank === 1) {
+                          <span
+                            class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
+                            aria-hidden="true"
+                            >🥇</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else if (entry.rank === 2) {
+                          <span
+                            class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--silver"
+                            aria-hidden="true"
+                            >🥈</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else if (entry.rank === 3) {
+                          <span
+                            class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--bronze"
+                            aria-hidden="true"
+                            >🥉</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else {
+                          {{ entry.rank }}
+                        }
+                      </strong>
+                      @if (leaderboardNicknameEmoji(entry.nickname); as emoji) {
+                        <span
+                          class="session-projection-quiz__leaderboard-emoji"
+                          aria-hidden="true"
+                          >{{ emoji }}</span
+                        >
+                      }
+                      <span class="session-projection-quiz__leaderboard-name">{{
+                        entry.nickname
+                      }}</span>
+                      @if (entry.teamName) {
+                        <span
+                          class="session-projection-quiz__leaderboard-team"
+                          [attr.aria-label]="teamNameLabel(entry.teamName)"
+                        >
+                          @if (teamNameEmoji(entry.teamName); as teamEmoji) {
+                            <span aria-hidden="true">{{ teamEmoji }}</span>
+                          } @else {
+                            <span
+                              class="session-projection-quiz__leaderboard-dot"
+                              [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                              aria-hidden="true"
+                            ></span>
+                          }
+                        </span>
+                      }
+                      <span class="session-projection-quiz__leaderboard-score">{{
+                        formatCount(entry.totalScore)
+                      }}</span>
+                    </div>
+                    <div class="session-projection-quiz__leaderboard-track" aria-hidden="true">
+                      <div
+                        class="session-projection-quiz__leaderboard-fill"
+                        [style.width]="personalScoreBarWidth(entry.totalScore)"
+                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                      ></div>
+                    </div>
                   </li>
                 }
               </ol>
@@ -804,21 +875,77 @@
           <mat-card appearance="outlined" class="session-projection-quiz__leaderboard-card">
             <mat-card-content>
               <h2 i18n="@@sessionPresent.teamLeaderboardTitle">Team-Leaderboard</h2>
+              @if (teamLeaderboard().length > leaderboardPreviewLimit) {
+                <p
+                  class="session-projection-quiz__leaderboard-slice"
+                  data-testid="presenter-team-leaderboard-slice"
+                >
+                  {{ leaderboardTopSliceLabel(teamLeaderboard().length) }}
+                </p>
+              }
               <ol class="session-projection-quiz__leaderboard-list">
                 @for (
-                  entry of teamLeaderboard().slice(0, 5);
+                  entry of teamLeaderboard().slice(0, leaderboardPreviewLimit);
                   track entry.rank + ':' + entry.teamName
                 ) {
-                  <li>
-                    <strong class="session-projection-quiz__leaderboard-rank">{{
-                      entry.rank
-                    }}</strong>
-                    <span class="session-projection-quiz__leaderboard-name">{{
-                      entry.teamName
-                    }}</span>
-                    <span class="session-projection-quiz__leaderboard-score">{{
-                      formatCount(entry.totalScore)
-                    }}</span>
+                  <li
+                    class="session-projection-quiz__leaderboard-item"
+                    [class.session-projection-quiz__leaderboard-item--lead]="entry.rank === 1"
+                  >
+                    <div class="session-projection-quiz__leaderboard-row">
+                      <strong class="session-projection-quiz__leaderboard-rank">
+                        @if (entry.rank === 1) {
+                          <span
+                            class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
+                            aria-hidden="true"
+                            >🥇</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else if (entry.rank === 2) {
+                          <span
+                            class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--silver"
+                            aria-hidden="true"
+                            >🥈</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else if (entry.rank === 3) {
+                          <span
+                            class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--bronze"
+                            aria-hidden="true"
+                            >🥉</span
+                          >
+                          <span class="sr-only">{{ entry.rank }}</span>
+                        } @else {
+                          {{ entry.rank }}
+                        }
+                      </strong>
+                      @if (teamNameEmoji(entry.teamName); as teamEmoji) {
+                        <span
+                          class="session-projection-quiz__leaderboard-emoji"
+                          aria-hidden="true"
+                          >{{ teamEmoji }}</span
+                        >
+                      } @else {
+                        <span
+                          class="session-projection-quiz__leaderboard-dot"
+                          [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                          aria-hidden="true"
+                        ></span>
+                      }
+                      <span class="session-projection-quiz__leaderboard-name">{{
+                        teamNameLabel(entry.teamName)
+                      }}</span>
+                      <span class="session-projection-quiz__leaderboard-score">{{
+                        formatCount(entry.totalScore)
+                      }}</span>
+                    </div>
+                    <div class="session-projection-quiz__leaderboard-track" aria-hidden="true">
+                      <div
+                        class="session-projection-quiz__leaderboard-fill"
+                        [style.width]="teamScoreBarWidth(entry.totalScore)"
+                        [style.background]="entry.teamColor || 'var(--mat-sys-primary)'"
+                      ></div>
+                    </div>
                   </li>
                 }
               </ol>
