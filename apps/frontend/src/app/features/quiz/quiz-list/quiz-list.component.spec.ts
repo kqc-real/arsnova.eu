@@ -1239,9 +1239,13 @@ describe('QuizListComponent', () => {
     fixture.detectChanges();
     await flushAsyncEffects();
     fixture.detectChanges();
-    const pdfButton = Array.from(fixture.nativeElement.querySelectorAll('button')).find(
-      (button: HTMLButtonElement) => button.textContent?.includes('Nachbesprechungsplan'),
-    ) as HTMLButtonElement;
+    const host = fixture.nativeElement as HTMLElement;
+    const pdfButton = [...host.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('Nachbesprechungsplan'),
+    );
+    if (!pdfButton) {
+      throw new Error('Nachbesprechungsplan-Button fehlt');
+    }
     const service = TestBed.inject(SessionResultsExportService);
     const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
     vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
