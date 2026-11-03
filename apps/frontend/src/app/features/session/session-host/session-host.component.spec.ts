@@ -5530,7 +5530,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await fixture.componentInstance.ngOnInit();
       expect(enableQuickFeedbackChannelMutateMock).not.toHaveBeenCalled();
       expect(scenario.hasQuickFeedbackAfterQa('ABC123')).toBe(true);
-      fixture.componentInstance.hostSteeringCallout()?.retry();
+      fixture.componentInstance.hostSteeringCallout()?.retry?.();
       await vi.waitFor(() => expect(scenario.hasQuickFeedbackAfterQa('ABC123')).toBe(false));
       expect(startQaMutateMock).toHaveBeenCalledTimes(2);
       expect(enableQuickFeedbackChannelMutateMock).toHaveBeenCalledOnce();
@@ -6544,7 +6544,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.hostSteeringCallout()).not.toBeNull();
 
-    fixture.componentInstance.hostSteeringCallout()?.retry();
+    fixture.componentInstance.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => attachQuizToSessionMutateMock.mock.calls.length === 2);
     await fixture.whenStable();
 
@@ -10576,7 +10576,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     expect(component.hostSteeringCallout()).not.toBeNull();
 
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 2);
 
     const [, repeatedConfig] = dialogOpenMock.mock.calls[1] as [
@@ -10641,7 +10641,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     rejectReload = false;
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => component.hostSteeringCallout() === null);
 
     expect(component.qaQuestions()).toEqual(pendingSnapshot.questions);
@@ -11364,7 +11364,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     rejectUnfilteredReload = false;
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
 
     expect(component.qaQuestions()[0]?.text).toBe('Sichtbare Frage');
@@ -27869,7 +27869,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         currentQuestion: 0,
         currentRound: 1,
       });
-      component.hostSteeringCallout()?.retry();
+      component.hostSteeringCallout()?.retry?.();
       await vi.waitFor(() => expect(showQuestionResultMutateMock).toHaveBeenCalledTimes(2));
       fixture.destroy();
     });
