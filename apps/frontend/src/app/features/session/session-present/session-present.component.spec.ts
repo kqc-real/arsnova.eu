@@ -5073,8 +5073,10 @@ describe('SessionPresentComponent', () => {
         'code' in input &&
         !('anonymousClientId' in input),
     );
-    const statusHandler = statusCall?.[1] as { onData: (data: unknown) => void };
-    const questionHandler = questionCall?.[1] as { onData: (data: unknown) => void };
+    expect(statusCall?.[1]).toBeTypeOf('object');
+    expect(questionCall?.[1]).toBeTypeOf('object');
+    const statusHandler = statusCall?.[1] as unknown as { onData: (data: unknown) => void };
+    const questionHandler = questionCall?.[1] as unknown as { onData: (data: unknown) => void };
 
     statusHandler.onData({
       status: 'ACTIVE',
