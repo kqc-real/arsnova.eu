@@ -2213,6 +2213,24 @@ app-session-projection-quiz,
   text-align: center;
 }
 
+.session-present__board-page-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.45rem;
+
+  .session-present__board-page {
+    margin: 0;
+    min-width: 7.5rem;
+  }
+
+  button {
+    min-height: 2.75rem;
+  }
+}
+
 .session-present__board-list {
   --board-cols-used: var(--board-cols, 1);
   list-style: none;

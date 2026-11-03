@@ -797,6 +797,95 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt bei 0 Punkten das Team-Leaderboard statt der Endseite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Apfel',
+        teamColor: '#c62828',
+        totalScore: 0,
+        memberCount: 1,
+        averageScore: 0,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Apfel');
+    expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
+    fixture.destroy();
+  });
+
+  it('behält das Gesamtleaderboard nach Quiz-FINISHED, solange expiresAt in der Zukunft liegt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      expiresAt: '2026-03-25T12:00:00.000Z',
+      sessionLifecycleRevision: 4,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Red dragon 1',
+        totalScore: 2000,
+        correctCount: 2,
+        totalQuestions: 2,
+        totalResponseTimeMs: 1000,
+        teamName: 'Team A',
+        teamColor: '#c62828',
+      },
+    ]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Team A',
+        teamColor: '#c62828',
+        totalScore: 2000,
+        memberCount: 1,
+        averageScore: 2000,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Red dragon 1');
+    expect(fixture.nativeElement.textContent).toContain('Team A');
+    expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
+    fixture.destroy();
+  });
+
   it('lädt den Zwischenstand für die letzte Presenter-Seite der Ergebnisphase', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1171,6 +1260,179 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.querySelector('.session-present__board-page')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__finish--paged')).not.toBeNull();
     fixture.destroy();
+  });
+
+  it('hält die Gesamtrangliste an und blättert Personen und Teams von Hand', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Großes Quiz',
+      title: null,
+      participantCount: 20,
+      teamMode: true,
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 20 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Spieler ${index + 1}`,
+        totalScore: 200 - index,
+        correctCount: 10,
+        totalQuestions: 10,
+        totalResponseTimeMs: 1000 + index * 20,
+      })),
+    );
+    getTeamLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        rank: index + 1,
+        teamName: `Team ${index + 1}`,
+        teamColor: '#1565c0',
+        totalScore: 120 - index,
+        memberCount: 2,
+        averageScore: 60,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const visibleNames = (selector: string): string[] =>
+      [...fixture.nativeElement.querySelectorAll(selector)].map((node) =>
+        (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      );
+
+    expect(fixture.nativeElement.querySelectorAll('.session-present__board-item').length).toBe(8);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__team-board-item').length).toBe(
+      8,
+    );
+    expect(fixture.nativeElement.textContent).toContain('1–8 von 20');
+    expect(fixture.nativeElement.textContent).toContain('1–8 von 12');
+    expect(visibleNames('.session-present__board-name')).toEqual(
+      Array.from({ length: 8 }, (_, index) => `Spieler ${index + 1}`),
+    );
+    expect(visibleNames('.session-present__team-board-name')).toEqual(
+      Array.from({ length: 8 }, (_, index) => `Team ${index + 1}`),
+    );
+
+    const personalNext = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-personal-board-next"]',
+    ) as HTMLButtonElement;
+    personalNext.click();
+    fixture.detectChanges();
+
+    const pause = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-board-page-pause"]',
+    ) as HTMLButtonElement;
+    expect(pause.getAttribute('aria-pressed')).toBe('true');
+    expect(pause.textContent).toContain('Automatisch');
+    expect(fixture.componentInstance.boardPagePaused()).toBe(true);
+    expect(visibleNames('.session-present__board-name')).toEqual(
+      Array.from({ length: 8 }, (_, index) => `Spieler ${index + 9}`),
+    );
+    expect(fixture.nativeElement.textContent).toContain('9–16 von 20');
+    expect(visibleNames('.session-present__team-board-name')[0]).toBe('Team 1');
+
+    const teamNext = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-team-board-next"]',
+    ) as HTMLButtonElement;
+    teamNext.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.session-present__team-board-item').length).toBe(
+      4,
+    );
+    expect(visibleNames('.session-present__team-board-name')).toEqual([
+      'Team 9',
+      'Team 10',
+      'Team 11',
+      'Team 12',
+    ]);
+    expect(fixture.nativeElement.textContent).toContain('9–12 von 12');
+
+    pause.click();
+    fixture.detectChanges();
+    expect(pause.getAttribute('aria-pressed')).toBe('false');
+    expect(pause.textContent).toContain('Anhalten');
+    expect(fixture.componentInstance.boardPagePaused()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('blättert die Gesamtrangliste nach zwölf Sekunden von selbst weiter', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Großes Quiz',
+      title: null,
+      participantCount: 20,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 20 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Spieler ${index + 1}`,
+        totalScore: 200 - index,
+        correctCount: 10,
+        totalQuestions: 10,
+        totalResponseTimeMs: 1000 + index * 20,
+      })),
+    );
+    getTeamLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        rank: index + 1,
+        teamName: `Team ${index + 1}`,
+        teamColor: '#1565c0',
+        totalScore: 120 - index,
+        memberCount: 2,
+        averageScore: 60,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    try {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      fixture.detectChanges();
+
+      const visibleNames = (selector: string): string[] =>
+        [...fixture.nativeElement.querySelectorAll(selector)].map((node) =>
+          (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
+        );
+
+      expect(visibleNames('.session-present__board-name')).toEqual(
+        Array.from({ length: 8 }, (_, index) => `Spieler ${index + 1}`),
+      );
+      expect(fixture.nativeElement.textContent).toContain('1–8 von 20');
+
+      await vi.advanceTimersByTimeAsync(12_000);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.boardPagePaused()).toBe(false);
+      expect(visibleNames('.session-present__board-name')).toEqual(
+        Array.from({ length: 8 }, (_, index) => `Spieler ${index + 9}`),
+      );
+      expect(fixture.nativeElement.textContent).toContain('9–16 von 20');
+      expect(visibleNames('.session-present__team-board-name')).toEqual([
+        'Team 9',
+        'Team 10',
+        'Team 11',
+        'Team 12',
+      ]);
+      expect(fixture.nativeElement.textContent).toContain('9–12 von 12');
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+    }
   });
 
   it('zeigt im Fehlerzustand einen direkten Link zur Startseite', async () => {

@@ -105,19 +105,41 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.projection-source--many-units[\s\S]*?\.session-projection-quiz__answers\s*\{[^}]*gap:\s*clamp\(0\.75rem, 1\.6vh, 1\.25rem\)/s,
     );
+    expect(styles).toMatch(/app-projection-pages:not\(\[hidden\]\)\s*\{[^}]*display:\s*grid/s);
   });
 
-  it('reserviert den unteren Reaktionsbereich auf Inhalts- und Scoreboard-Seiten', () => {
+  it('legt Teilnehmerreaktionen unter die Projektion statt über die Steuerung', () => {
     const styles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
       'utf8',
     );
 
     expect(styles).toMatch(
-      /app-projection-pages\.projection-pages--with-reactions\s*\{[^}]*padding-bottom:\s*var\(--pq-reactions-reserve\)/s,
+      /\.session-projection-quiz__emoji-reactions\s*\{[^}]*position:\s*static/s,
     );
     expect(styles).toMatch(
-      /\.session-projection-quiz__leaderboard-page--with-reactions\s*\{[^}]*padding-block-end:\s*calc\([^}]*--pq-reactions-reserve/s,
+      /app-session-projection-quiz:has\(\.session-projection-quiz__emoji-reactions\)\s+app-projection-pages:not\(\[hidden\]\)[\s\S]*?height:\s*auto/,
+    );
+    expect(styles).not.toMatch(/inset-block-end:\s*0\.2rem/);
+    expect(styles).not.toMatch(/--pq-reactions-reserve/);
+  });
+
+  it('hält die fünf Zwischenränge auf einer kurzen Projektion in der Bühne', () => {
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.session-projection-quiz__leaderboard-page\s*\{[^}]*overflow:\s*hidden/s,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__leaderboard-item\s*\{[^}]*min-height:\s*0/s);
+    expect(styles).toMatch(/@media \(max-height:\s*820px\)\s*\{/);
+    expect(styles).toMatch(
+      /@media \(max-height:\s*820px\)[\s\S]*\.session-projection-quiz__leaderboard-item\s*\{[^}]*padding:\s*0\.28rem 0\.65rem/s,
+    );
+    expect(styles).toMatch(
+      /@media \(max-height:\s*820px\)[\s\S]*\.session-projection-quiz__leaderboard-medal--gold[\s\S]*font-size:\s*1\.25rem/,
     );
   });
 
@@ -513,6 +535,12 @@ describe('SessionProjectionQuizComponent', () => {
     expect(leaderboard?.textContent).toContain('120');
     expect(leaderboard?.textContent).toContain('Team Blau');
     expect(
+      leaderboard?.querySelectorAll('.session-projection-quiz__leaderboard-medal--gold').length,
+    ).toBe(2);
+    expect(leaderboard?.querySelectorAll('.session-projection-quiz__leaderboard-fill').length).toBe(
+      2,
+    );
+    expect(
       fixture.nativeElement.querySelectorAll('[data-testid="presenter-results-leaderboard"]'),
     ).toHaveLength(1);
     const reactions = fixture.nativeElement.querySelector(
@@ -525,6 +553,69 @@ describe('SessionProjectionQuizComponent', () => {
     ).toBe(true);
     expect(fixture.componentInstance.contentPageIndex()).toBe(2);
     expect(emittedCounts).toContain(4);
+
+    const pages = fixture.nativeElement.querySelector('app-projection-pages') as HTMLElement;
+    expect(pages.hidden).toBe(true);
+    expect(getComputedStyle(pages).display).toBe('none');
+    expect(pages.textContent).toContain('Was ist 2 + 2?');
+    expect(
+      leaderboard?.querySelector('.session-projection-quiz__leaderboard-grid--teams'),
+    ).not.toBeNull();
+
+    fixture.componentRef.setInput('leaderboard', []);
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__leaderboard-grid--teams'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]')
+        ?.textContent,
+    ).toContain('Team Blau');
+    expect(fixture.nativeElement.querySelector('app-projection-pages')?.hidden).toBe(true);
+  });
+
+  it('zeigt im Zwischenleaderboard nur die Top 5 und nennt die Kappung', () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.componentRef.setInput('pageContext', 'results-question-1');
+    fixture.componentRef.setInput(
+      'leaderboard',
+      Array.from({ length: 7 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Person ${index + 1}`,
+        totalScore: 70 - index,
+        correctCount: 1,
+        totalQuestions: 1,
+        totalResponseTimeMs: 1000 + index,
+      })),
+    );
+    fixture.componentRef.setInput(
+      'teamLeaderboard',
+      Array.from({ length: 6 }, (_, index) => ({
+        rank: index + 1,
+        teamName: `Team ${index + 1}`,
+        teamColor: '#1565c0',
+        totalScore: 60 - index,
+        memberCount: 2,
+        averageScore: 30,
+      })),
+    );
+    fixture.componentInstance.onContentPageCount(1);
+    fixture.componentRef.setInput('pageIndex', 1);
+    fixture.detectChanges();
+
+    const leaderboard = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-results-leaderboard"]',
+    ) as HTMLElement | null;
+    expect(leaderboard?.querySelectorAll('.session-projection-quiz__leaderboard-item').length).toBe(
+      10,
+    );
+    expect(leaderboard?.textContent).toContain('Top 5 von 7');
+    expect(leaderboard?.textContent).toContain('Top 5 von 6');
+    expect(leaderboard?.textContent).toContain('Person 5');
+    expect(leaderboard?.textContent).not.toContain('Person 6');
+    expect(leaderboard?.textContent).toContain('Team 5');
+    expect(leaderboard?.textContent).not.toContain('Team 6');
   });
 
   it.each(['SURVEY', 'RATING'] as const)(

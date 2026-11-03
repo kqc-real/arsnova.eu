@@ -1,6 +1,4 @@
 app-projection-pages {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
   position: relative;
   width: 100%;
   height: 100%;
@@ -9,6 +7,11 @@ app-projection-pages {
   --projection-title: clamp(2rem, 3.34vh, 3rem);
   --projection-copy: clamp(1.75rem, 2.78vh, 2.5rem);
   --projection-label: clamp(1.5rem, 2.41vh, 2rem);
+}
+
+app-projection-pages:not([hidden]) {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 .projection-pages__source {
   display: none;
