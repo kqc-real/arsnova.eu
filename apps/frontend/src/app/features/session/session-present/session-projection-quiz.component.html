@@ -70,6 +70,34 @@
                 >
               </span>
             }
+            @if (readingProgressLabel(); as readingProgress) {
+              <span
+                class="session-projection-quiz__progress"
+                role="status"
+                data-testid="presenter-reading-progress"
+              >
+                <mat-icon aria-hidden="true">menu_book</mat-icon>
+                {{ readingProgress }}
+              </span>
+            }
+            @if (allSessionReady()) {
+              <span
+                class="session-projection-quiz__pill session-projection-quiz__pill--complete"
+                role="status"
+                data-testid="presenter-all-ready"
+                i18n="@@sessionPresent.allReady"
+                >Alle sind bereit</span
+              >
+            }
+            @if (allHaveVoted()) {
+              <span
+                class="session-projection-quiz__pill session-projection-quiz__pill--complete"
+                role="status"
+                data-testid="presenter-all-voted"
+                i18n="@@sessionPresent.allVoted"
+                >Alle haben abgestimmt</span
+              >
+            }
             @if (countdownSeconds() !== null && isActive()) {
               <span
                 class="session-projection-quiz__countdown"

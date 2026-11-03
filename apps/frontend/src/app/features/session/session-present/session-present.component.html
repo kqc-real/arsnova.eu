@@ -17,6 +17,24 @@
     showQuizPauseProjection()
   "
 >
+  <ng-template #presenterHostReturn>
+    <div class="session-present__host-return">
+      <button
+        matButton="text"
+        type="button"
+        data-testid="presenter-return-to-host"
+        (click)="returnToHost()"
+        i18n-aria-label="@@sessionPresent.returnToHostAria"
+        aria-label="Zur Host-Ansicht zurückkehren"
+      >
+        <span i18n="@@sessionPresent.returnToHost">Zurück zum Host</span>
+      </button>
+      @if (returnToHostError()) {
+        <p class="session-present__host-return-error" role="alert">{{ returnToHostError() }}</p>
+      }
+    </div>
+  </ng-template>
+
   @if (showFullscreenAction()) {
     <div
       class="session-present__fullscreen-gate"
@@ -27,6 +45,7 @@
       cdkTrapFocus
       [cdkTrapFocusAutoCapture]="true"
     >
+      <ng-container [ngTemplateOutlet]="presenterHostReturn" />
       <button
         matButton="filled"
         type="button"
@@ -50,6 +69,8 @@
         </span>
       </button>
     </div>
+  } @else {
+    <ng-container [ngTemplateOutlet]="presenterHostReturn" />
   }
 
   <ng-template #presenterJoinCard>
@@ -466,6 +487,20 @@
         <div class="session-present__standby-copy">
           <h1 class="session-present__standby-title">{{ quizPausedTitle }}</h1>
           <p class="session-present__standby-message">{{ quizPausedMessage }}</p>
+          <button
+            matButton="filled"
+            type="button"
+            data-testid="presenter-quiz-resume"
+            [disabled]="quizControlPending()"
+            [disabledInteractive]="true"
+            [attr.aria-busy]="quizControlPending()"
+            (click)="resumePresenterQuiz()"
+          >
+            <span i18n="@@sessionHost.resumeQuiz">Quiz fortsetzen</span>
+          </button>
+          @if (quizControlError()) {
+            <p class="session-present__quiz-error" role="alert">{{ quizControlError() }}</p>
+          }
         </div>
         <ng-container [ngTemplateOutlet]="presenterJoinCard" />
       </section>
@@ -769,7 +804,8 @@
         [question]="hostQuestion()"
         [status]="session()?.status ?? null"
         [voteProgress]="hostVoteProgress()"
-        [participantCount]="session()?.participantCount ?? 0"
+        [participantCount]="presentedParticipantCount()"
+        [readingReady]="presentedReadingReady()"
         [countdownSeconds]="countdownSeconds()"
         [motifImageUrl]="session()?.quizMotifImageUrl ?? null"
         [motifImageCredit]="session()?.quizMotifImageCredit ?? null"
@@ -1260,6 +1296,183 @@
           }
         </mat-card-content>
       </mat-card>
+    }
+
+    @if (showQuizControlFooter()) {
+      <footer
+        class="session-present__quiz-footer"
+        data-testid="presenter-quiz-controls"
+        [attr.aria-busy]="quizControlPending()"
+      >
+        @if (showQuizPageNav() && session()?.presenterPage; as page) {
+          <nav
+            class="session-present__quiz-nav"
+            data-testid="presenter-quiz-pages"
+            i18n-aria-label="@@sessionHost.projectionPages"
+            aria-label="Projektionsseiten"
+          >
+            <button
+              matButton="outlined"
+              type="button"
+              data-testid="presenter-quiz-previous-page"
+              [disabledInteractive]="true"
+              [disabled]="quizControlPending() || page.index <= 0"
+              (click)="changeQuizProjectionPage(-1)"
+            >
+              <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+            </button>
+            <span class="session-present__quiz-nav-index" aria-live="polite"
+              >{{ page.index + 1 }} / {{ page.count }}</span
+            >
+            <button
+              matButton="outlined"
+              type="button"
+              data-testid="presenter-quiz-next-page"
+              [disabledInteractive]="true"
+              [disabled]="quizControlPending() || page.index >= page.count - 1"
+              (click)="changeQuizProjectionPage(1)"
+            >
+              <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+            </button>
+          </nav>
+        }
+        <div class="session-present__quiz-actions">
+          @if (session()?.status === 'QUESTION_OPEN' || session()?.status === 'ACTIVE') {
+            <button
+              matButton="tonal"
+              type="button"
+              data-testid="presenter-quiz-pause"
+              [disabled]="quizControlPending()"
+              [disabledInteractive]="true"
+              (click)="pausePresenterQuiz()"
+            >
+              <span i18n="@@sessionHost.pauseQuiz">Quiz pausieren</span>
+            </button>
+          }
+          @if (session()?.status === 'QUESTION_OPEN') {
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-reveal-answers"
+              [disabled]="quizControlPending()"
+              [disabledInteractive]="true"
+              (click)="revealPresenterAnswers()"
+              i18n-aria-label="@@sessionHost.revealAnswerOptionsAria"
+              aria-label="Antwortoptionen freigeben"
+            >
+              <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
+            </button>
+          }
+          @if (session()?.status === 'ACTIVE' && quizOfferDiscussion()) {
+            <button
+              matButton="tonal"
+              type="button"
+              data-testid="presenter-quiz-reveal-results"
+              [disabled]="quizControlPending() || quizTimerBlocksReveal()"
+              [disabledInteractive]="true"
+              (click)="revealPresenterResults()"
+            >
+              <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
+            </button>
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-discussion"
+              [disabled]="quizControlPending() || quizTimerBlocksReveal()"
+              [disabledInteractive]="true"
+              (click)="startPresenterDiscussion()"
+              i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
+              aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+            >
+              <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
+            </button>
+          } @else if (session()?.status === 'ACTIVE') {
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-reveal-results"
+              [disabled]="quizControlPending() || quizTimerBlocksReveal()"
+              [disabledInteractive]="true"
+              (click)="revealPresenterResults()"
+            >
+              <span i18n="@@sessionHost.revealResultsAnchor">Ergebnis zeigen</span>
+            </button>
+          }
+          @if (session()?.status === 'DISCUSSION') {
+            @if (quizCanOpenFollowingQuestion()) {
+              <button
+                matButton="tonal"
+                type="button"
+                data-testid="presenter-quiz-skip-discussion"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="advancePresenterQuiz()"
+                i18n-aria-label="@@sessionHost.skipDiscussionNextQuestionAria"
+                aria-label="Zur nächsten Frage ohne zweite Abstimmung"
+              >
+                <span i18n="@@sessionHost.skipDiscussionNextQuestion"
+                  >Zur nächsten Frage ohne zweite Abstimmung</span
+                >
+              </button>
+            } @else {
+              <button
+                matButton="tonal"
+                type="button"
+                data-testid="presenter-quiz-skip-discussion"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="advancePresenterQuiz()"
+                i18n-aria-label="@@sessionHost.skipDiscussionFinishEvaluationAria"
+                aria-label="Zur Gesamtauswertung ohne zweite Abstimmung"
+              >
+                <span i18n="@@sessionHost.skipDiscussionFinishEvaluation"
+                  >Zur Gesamtauswertung ohne zweite Abstimmung</span
+                >
+              </button>
+            }
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-second-round"
+              [disabled]="quizControlPending()"
+              [disabledInteractive]="true"
+              (click)="startPresenterSecondRound()"
+            >
+              <span i18n="@@sessionPresent.secondRound">Zweite Abstimmung</span>
+            </button>
+          }
+          @if (session()?.status === 'RESULTS' && quizCanOpenFollowingQuestion()) {
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-next-question"
+              [disabled]="quizControlPending()"
+              [disabledInteractive]="true"
+              (click)="advancePresenterQuiz()"
+              i18n="@@sessionHost.nextQuestionAnchor"
+            >
+              Nächste Frage
+            </button>
+          }
+          @if (session()?.status === 'RESULTS' && !quizCanOpenFollowingQuestion()) {
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-finish"
+              [disabled]="quizControlPending()"
+              [disabledInteractive]="true"
+              (click)="advancePresenterQuiz()"
+              i18n-aria-label="@@sessionHost.finishEvaluationAnchorAria"
+              aria-label="Zur Gesamtauswertung"
+            >
+              <span i18n="@@sessionHost.finishEvaluationAnchor">Zur Gesamtauswertung</span>
+            </button>
+          }
+        </div>
+        @if (quizControlError()) {
+          <p class="session-present__quiz-error" role="alert">{{ quizControlError() }}</p>
+        }
+      </footer>
     }
   }
 </section>

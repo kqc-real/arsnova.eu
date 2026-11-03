@@ -11,6 +11,13 @@ import { NICKNAME_LISTS } from '../../join/nickname-themes';
 const {
   liveQueryMock,
   setPresenterSurfaceMutateMock,
+  revealAnswersMutateMock,
+  revealResultsMutateMock,
+  startDiscussionMutateMock,
+  startSecondRoundMutateMock,
+  nextQuestionMutateMock,
+  pauseQuizMutateMock,
+  resumeQuizMutateMock,
   getInfoQueryMock,
   getLeaderboardQueryMock,
   getTeamLeaderboardQueryMock,
@@ -29,6 +36,13 @@ const {
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
+  revealAnswersMutateMock: vi.fn(),
+  revealResultsMutateMock: vi.fn(),
+  startDiscussionMutateMock: vi.fn(),
+  startSecondRoundMutateMock: vi.fn(),
+  nextQuestionMutateMock: vi.fn(),
+  pauseQuizMutateMock: vi.fn(),
+  resumeQuizMutateMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
@@ -50,6 +64,13 @@ vi.mock('../../../core/trpc.client', () => ({
   trpc: {
     session: {
       setPresenterSurface: { mutate: setPresenterSurfaceMutateMock },
+      revealAnswers: { mutate: revealAnswersMutateMock },
+      revealResults: { mutate: revealResultsMutateMock },
+      startDiscussion: { mutate: startDiscussionMutateMock },
+      startSecondRound: { mutate: startSecondRoundMutateMock },
+      nextQuestion: { mutate: nextQuestionMutateMock },
+      pauseQuiz: { mutate: pauseQuizMutateMock },
+      resumeQuiz: { mutate: resumeQuizMutateMock },
       getInfo: {
         query: getInfoQueryMock,
       },
@@ -4529,6 +4550,107 @@ describe('SessionPresentComponent', () => {
     expect(ts).not.toContain('HostPairingDialog');
     expect(ts).not.toContain('createHostPairingInvite');
     expect(ts).not.toContain('approveHostPairing');
+  });
+
+  it('steuert Peer Instruction aus dem Presenter und sperrt persönliche Zeitfenster', async () => {
+    const question = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      text: 'Was ist 2 + 2?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: true,
+      peerInstructionSuggestion: { suggested: true },
+      answers: [],
+    };
+    const progress = {
+      questionId: question.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      blockingTimerAccommodationCount: 1,
+      peerInstructionSuggestion: { suggested: true },
+    };
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      enableTimerAccommodation: true,
+      presenterPage: { context: 'quiz:0:ACTIVE', index: 0, count: 2 },
+    });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 3,
+      connectedCount: 3,
+      revision: 1,
+      recentArrivals: [],
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(question);
+    getHostVoteProgressQueryMock.mockResolvedValue(progress);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('[data-testid="presenter-return-to-host"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="presenter-quiz-pages"]')?.textContent).toContain(
+      'Vorherige Seite',
+    );
+    expect(root.textContent).toContain('Diskussionsphase');
+    expect(root.textContent).toContain('Ergebnis zeigen');
+    expect(root.textContent).not.toContain('Trotzdem freigeben');
+    expect(root.textContent).not.toContain('Frage auslassen');
+
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
+    await fixture.whenStable();
+    expect(startDiscussionMutateMock).not.toHaveBeenCalled();
+
+    component.hostVoteProgress.set({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      blockingTimerAccommodationCount: 0,
+      peerInstructionSuggestion: { suggested: true },
+    } as never);
+    startDiscussionMutateMock.mockResolvedValue({
+      status: 'DISCUSSION',
+      currentQuestion: 0,
+    });
+    fixture.detectChanges();
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
+    await fixture.whenStable();
+
+    expect(startDiscussionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(component.session()?.status).toBe('DISCUSSION');
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Zweite Abstimmung');
+    expect(root.textContent).toContain('Zur nächsten Frage ohne zweite Abstimmung');
+
+    nextQuestionMutateMock.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+    });
+    root
+      .querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-skip-discussion"]')
+      ?.click();
+    await fixture.whenStable();
+    expect(nextQuestionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123', skipCurrentResultQuestion: true },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    fixture.destroy();
   });
 
   it('hält Present-Display-Gewicht ohne font-weight 800', () => {

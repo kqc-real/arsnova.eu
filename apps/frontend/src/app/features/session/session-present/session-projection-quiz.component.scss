@@ -521,6 +521,10 @@ mat-icon.session-projection-quiz__reading-icon {
   text-transform: none;
 }
 
+.session-projection-quiz__pill--complete {
+  background: color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface));
+}
+
 .session-projection-quiz__pill-icon {
   flex-shrink: 0;
   font-size: 1.05em;
