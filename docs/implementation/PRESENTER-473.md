@@ -34,8 +34,10 @@ Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerte
 vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
 Quizphase wechselt die Lehrkraft im Presenter-Footer, einschließlich
 **Erste Frage starten** in der Lobby; der Host behält dieselben Aktionen. Eine
-neue Frage oder Runde erscheint erst, wenn ihr Snapshot zur Session passt. Bis
-dahin steht »Die Frage wird geladen«, nach einem Fehlschlag »Erneut laden«.
+neue Frage oder Runde erscheint erst, wenn ihr Snapshot zur Session passt, auch
+wenn der Host die Runde oder die Frage wechselt. Bis dahin steht »Die Frage
+wird geladen«, nach einem Fehlschlag »Erneut laden«. Der Fokus wandert von
+dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
 Die Seitensteuerung erscheint, sobald mehr als eine Seite gemessen wurde,
 und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Q&A-Fragen
 wechseln über denselben Host-Navigator oder den Presenter-Footer; die Rangliste

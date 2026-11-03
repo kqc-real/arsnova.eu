@@ -4749,6 +4749,9 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
     expect(root.textContent).toContain('Frage eins');
     expect(root.textContent).toContain('1 von 2 bereit');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
 
     revealAnswersMutateMock.mockResolvedValue({
       status: 'ACTIVE',
@@ -4844,6 +4847,9 @@ describe('SessionPresentComponent', () => {
     expect(component.presentedQuizQuestion()?.currentRound).toBe(2);
     expect(root.textContent).toContain('Frage eins');
     expect(root.textContent).toContain('2. Runde');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-results"]'),
+    );
     revealResultsMutateMock.mockResolvedValue({
       status: 'RESULTS',
       currentQuestion: 0,
@@ -4890,11 +4896,16 @@ describe('SessionPresentComponent', () => {
     expect(document.activeElement).toBe(
       root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
     );
+    const returnToHost = root.querySelector<HTMLElement>(
+      '[data-testid="presenter-return-to-host"]',
+    );
+    returnToHost?.focus();
 
     releaseQuestion(questionTwo);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(root.textContent).toContain('Frage zwei');
+    expect(document.activeElement).toBe(returnToHost);
 
     pauseQuizMutateMock.mockResolvedValue({
       status: 'PAUSED',
@@ -5001,11 +5012,127 @@ describe('SessionPresentComponent', () => {
       currentRound: 1,
       answers: [],
     });
-    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-question-retry"]')?.click();
+    const retry = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-question-retry"]',
+    );
+    retry?.focus();
+    retry?.click();
     await fixture.whenStable();
     fixture.detectChanges();
     expect(root.textContent).toContain('Frage eins');
-    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).not.toBeNull();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
+    fixture.destroy();
+  });
+
+  it('übernimmt Frage und Runde aus dem Live-Status des Hosts', async () => {
+    const roundOne = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      text: 'Frage eins',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: true,
+      answers: [],
+    };
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'DISCUSSION',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      preferredChannel: 'quiz',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(roundOne);
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+    getInfoQueryMock.mockImplementation(async () => component.session());
+    getCurrentQuestionForHostQueryMock.mockImplementation(() => new Promise(() => undefined));
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Frage eins');
+    expect(component.session()?.currentRound).toBe(1);
+
+    const statusCall = subscribeMock.mock.calls.find(
+      ([input]) => typeof input === 'object' && input !== null && 'anonymousClientId' in input,
+    );
+    const questionCall = subscribeMock.mock.calls.find(
+      ([input]) =>
+        typeof input === 'object' &&
+        input !== null &&
+        'code' in input &&
+        !('anonymousClientId' in input),
+    );
+    const statusHandler = statusCall?.[1] as { onData: (data: unknown) => void };
+    const questionHandler = questionCall?.[1] as { onData: (data: unknown) => void };
+
+    statusHandler.onData({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+      serverTime: MOCK_SERVER_TIME,
+    });
+    fixture.detectChanges();
+    expect(component.session()?.status).toBe('ACTIVE');
+    expect(component.session()?.currentRound).toBe(2);
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).toContain('Die Frage wird geladen');
+
+    questionHandler.onData({ ...roundOne, currentRound: 2 });
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()?.order).toBe(0);
+    expect(component.presentedQuizQuestion()?.currentRound).toBe(2);
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.textContent).toContain('2. Runde');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-results"]')).not.toBeNull();
+
+    const questionTwo = {
+      ...roundOne,
+      questionId: '22222222-2222-4222-8222-222222222222',
+      order: 1,
+      text: 'Frage zwei',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: false,
+    };
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(questionTwo);
+    statusHandler.onData({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+      serverTime: MOCK_SERVER_TIME,
+    });
+    fixture.detectChanges();
+    expect(component.session()?.currentQuestion).toBe(1);
+    expect(component.session()?.currentRound).toBe(1);
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).not.toContain('Frage zwei');
+    expect(root.textContent).toContain('Die Frage wird geladen');
+
+    const pending = root.querySelector<HTMLElement>(
+      '[data-testid="presenter-quiz-question-pending"]',
+    );
+    pending?.focus();
+    await component.retryPresenterQuestion();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()?.order).toBe(1);
+    expect(component.presentedQuizQuestion()?.currentRound).toBe(1);
+    expect(root.textContent).toContain('Frage zwei');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
     fixture.destroy();
   });
 

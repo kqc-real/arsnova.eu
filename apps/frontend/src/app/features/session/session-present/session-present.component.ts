@@ -805,7 +805,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!this.quizQuestionAwaitingSnapshot()) {
       return;
     }
+    const gate = this.focusedQuestionGate();
     this.quizQuestionLoadFailed.set(false);
+    this.moveFocusFromQuestionGate(gate);
     await this.refreshHostQuestion();
   }
 
@@ -901,6 +903,49 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Lade- oder Retry-Ansicht, solange sie selbst den Tastaturfokus hat. */
+  private focusedQuestionGate(): HTMLElement | null {
+    const active = this.document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return null;
+    }
+    if (!this.hostElement.nativeElement.contains(active)) {
+      return null;
+    }
+    return active.matches(
+      '[data-testid="presenter-quiz-question-pending"], [data-testid="presenter-quiz-question-retry"]',
+    )
+      ? active
+      : null;
+  }
+
+  /**
+   * Nach dem Auflösen der Ladeanzeige folgt der Fokus dem neuen Phasenknopf.
+   * Ein inzwischen anders gesetzter Fokus bleibt liegen.
+   */
+  private moveFocusFromQuestionGate(gate: HTMLElement | null): void {
+    if (!gate) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed || gate.isConnected) {
+          return;
+        }
+        const active = this.document.activeElement;
+        if (
+          active instanceof HTMLElement &&
+          active.isConnected &&
+          this.hostElement.nativeElement.contains(active)
+        ) {
+          return;
+        }
+        this.quizPhaseFocusTarget()?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
   private quizPhaseFocusTarget(): HTMLElement | null {
     const root = this.hostElement.nativeElement;
     const selectors = this.showFullscreenAction()
@@ -959,6 +1004,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           }
         : current,
     );
+    this.dropStalePresenterQuestion();
+    this.syncCountdownFromStatus(update.timer, update.activeAt);
+    this.resetPresentScrollForPhase(update.status);
+  }
+
+  /** Snapshot verwerfen, der nicht mehr zur Frage oder Runde der Session passt. */
+  private dropStalePresenterQuestion(): void {
     const session = this.session();
     const shownQuestion = this.hostQuestion();
     if (
@@ -974,8 +1026,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.quizQuestionLoadFailed.set(false);
       this.stopCountdown();
     }
-    this.syncCountdownFromStatus(update.timer, update.activeAt);
-    this.resetPresentScrollForPhase(update.status);
   }
 
   qaPositiveVoteCount(question: QaQuestionDTO): number {
@@ -1970,6 +2020,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       this.session.set(session);
+      this.dropStalePresenterQuestion();
+      this.moveFocusFromQuestionGate(this.focusedQuestionGate());
       this.ensurePresenterSubscriptions();
       if (session.status === 'FINISHED') {
         if (session.finishProjection === 'idle') {
@@ -2347,8 +2399,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         session?.currentRound,
       );
       if (matches) {
+        const gate = this.focusedQuestionGate();
         this.hostQuestion.set(question);
         this.quizQuestionLoadFailed.set(false);
+        this.moveFocusFromQuestionGate(gate);
       } else if (question === null && this.quizQuestionAwaitingSnapshot()) {
         this.quizQuestionLoadFailed.set(true);
       }
@@ -2429,7 +2483,18 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           onData: (data) => {
             if (!this.presentDeadlineClosed) {
               this.presentHostQuestionRefreshEpoch += 1;
+              const session = this.session();
+              const matches = presenterQuestionMatchesSession(
+                data,
+                session?.currentQuestion,
+                session?.currentRound,
+              );
+              const gate = matches ? this.focusedQuestionGate() : null;
               this.hostQuestion.set(data);
+              if (matches) {
+                this.quizQuestionLoadFailed.set(false);
+                this.moveFocusFromQuestionGate(gate);
+              }
             }
           },
           onError: () => {
@@ -2473,6 +2538,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   ...current,
                   status: data.status as SessionInfoDTO['status'],
                   currentQuestion: data.currentQuestion,
+                  currentRound: data.currentRound ?? current.currentRound,
                   pausedFromStatus: data.pausedFromStatus ?? null,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
                   presenterSurface: data.presenterSurface ?? current.presenterSurface,
@@ -2484,6 +2550,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                 }
               : current,
           );
+          this.dropStalePresenterQuestion();
+          this.moveFocusFromQuestionGate(this.focusedQuestionGate());
           this.syncCountdownFromStatus(data.timer, data.activeAt);
           this.resetPresentScrollForPhase(data.status);
           if (data.status === 'FINISHED') {
