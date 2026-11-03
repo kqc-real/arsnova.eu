@@ -77,7 +77,10 @@ export class SessionResultsExportService {
     options?: SessionResultsPdfExportOptions,
   ): Promise<SessionResultsPdfExportResult> {
     const profile = options?.profile ?? 'visual';
-    const viewPlaceholder = this.openViewPlaceholderIfNeeded(options?.disposition);
+    const callerOwnsPlaceholder = options?.viewPlaceholder !== undefined;
+    const viewPlaceholder = callerOwnsPlaceholder
+      ? (options.viewPlaceholder ?? null)
+      : this.openViewPlaceholderIfNeeded(options?.disposition);
     try {
       const exportData = await trpc.session.getLastSessionExportDataForQuiz.query({
         quizId,
@@ -96,7 +99,9 @@ export class SessionResultsExportService {
         return await this.deliverPrintFallback(exportData, profile, viewPlaceholder);
       }
     } catch (error) {
-      this.closeViewPlaceholder(viewPlaceholder);
+      if (!callerOwnsPlaceholder) {
+        this.closeViewPlaceholder(viewPlaceholder);
+      }
       throw error;
     }
   }

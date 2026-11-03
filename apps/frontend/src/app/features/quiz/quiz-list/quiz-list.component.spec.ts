@@ -9,6 +9,7 @@ import {
   QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
 } from '@arsnova/shared-types';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import { QuizListComponent } from './quiz-list.component';
 import { DEMO_QUIZ_ID, QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
 import {
@@ -1208,6 +1209,98 @@ describe('QuizListComponent', () => {
 
     expect(bonusButton?.disabled).toBe(false);
     expect(pdfButton?.disabled).toBe(false);
+  });
+
+  it('reserviert den Druck-Tab vor dem PDF-Job und schließt ihn nur beim endgültigen Fehler', async () => {
+    const quiz = {
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    };
+    quizzesSignal.set([quiz]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: quiz.lastServerQuizId,
+        hasBonusTokens: true,
+        hasLastSessionAnalysis: true,
+      },
+    ]);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance.quizHistoryAvailability.set(
+      new Map([[quiz.id, { hasBonusTokens: true, hasLastSessionAnalysis: true }]]),
+    );
+    fixture.detectChanges();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const pdfButton = [...host.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('Nachbesprechungsplan'),
+    );
+    if (!pdfButton) {
+      throw new Error('Nachbesprechungsplan-Button fehlt');
+    }
+    const service = TestBed.inject(SessionResultsExportService);
+    const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
+    vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
+    const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
+    let releaseExport!: (result: 'print-fallback') => void;
+    const exportPdf = vi.spyOn(service, 'exportPdfFromQuizHistory').mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseExport = resolve;
+        }),
+    );
+
+    pdfButton.focus();
+    const pending = fixture.componentInstance.exportLastSessionPdf(quiz, 'visual');
+    fixture.detectChanges();
+
+    expect(service.openViewPlaceholder).toHaveBeenCalledOnce();
+    expect(exportPdf).not.toHaveBeenCalled();
+    expect(pdfButton.disabled).toBe(true);
+    expect(pdfButton.isConnected).toBe(true);
+    expect(document.activeElement).toBe(pdfButton);
+
+    await vi.waitUntil(() => exportPdf.mock.calls.length === 1);
+    expect(exportPdf).toHaveBeenCalledWith(
+      quiz.lastServerQuizId,
+      quiz.lastServerQuizAccessProof,
+      expect.objectContaining({ profile: 'visual', viewPlaceholder: placeholder }),
+    );
+    releaseExport('print-fallback');
+    await pending;
+    fixture.detectChanges();
+
+    expect(closePlaceholder).not.toHaveBeenCalled();
+    expect(pdfButton.disabled).toBe(false);
+    expect(pdfButton.isConnected).toBe(true);
+    expect(document.activeElement).toBe(pdfButton);
+    expect(snackBarOpenMock).toHaveBeenCalledWith(
+      'Ergebnis-PDF zum Speichern geöffnet.',
+      '',
+      expect.objectContaining({ duration: 5000 }),
+    );
+
+    exportPdf.mockRejectedValueOnce(new Error('pdf worker down'));
+    await fixture.componentInstance.exportLastSessionPdf(quiz, 'visual');
+    fixture.detectChanges();
+
+    expect(closePlaceholder).toHaveBeenCalledWith(placeholder);
+    expect(pdfButton.disabled).toBe(false);
+    expect(pdfButton.isConnected).toBe(true);
+    expect(snackBarOpenMock).toHaveBeenCalledWith(
+      'Ergebnis-PDF konnte nicht erstellt werden.',
+      '',
+      expect.objectContaining({ duration: 7000 }),
+    );
+    fixture.destroy();
   });
 
   it('behält die Nachbesprechung, wenn die Verfügbarkeitsabfrage später scheitert', async () => {
