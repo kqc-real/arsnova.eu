@@ -65,6 +65,24 @@ describe('presenter-quiz-controls.util', () => {
         4,
       ),
     ).toBe(false);
+    expect(
+      presenterOfferDiscussion(
+        'ACTIVE',
+        question,
+        { ...progress, totalVotes: 1, peerInstructionSuggestion: undefined },
+        3,
+        0,
+      ),
+    ).toBe(false);
+    expect(
+      presenterOfferDiscussion(
+        'ACTIVE',
+        question,
+        { ...progress, questionId: '22222222-2222-4222-8222-222222222222', totalVotes: 1 },
+        3,
+        0,
+      ),
+    ).toBe(true);
   });
 
   it('sperrt die Freigabe, solange persönliche Fenster laufen', () => {

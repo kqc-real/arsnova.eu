@@ -98,7 +98,7 @@ export function presenterOfferDiscussion(
     return false;
   }
   const suggestion = presenterVoteProgressMatches(question, progress)
-    ? (progress.peerInstructionSuggestion ?? question.peerInstructionSuggestion ?? null)
+    ? (progress.peerInstructionSuggestion ?? null)
     : (question.peerInstructionSuggestion ?? null);
   if (suggestion?.suggested !== true) {
     return false;

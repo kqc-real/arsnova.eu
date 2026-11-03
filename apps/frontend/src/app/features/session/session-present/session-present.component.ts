@@ -685,7 +685,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
     });
   }
 
@@ -699,7 +699,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
     });
   }
 
@@ -713,7 +713,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
     });
   }
 
@@ -724,7 +724,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
     });
   }
 
@@ -741,11 +741,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
       if (result.status === 'FINISHED') {
         this.finishBoardsResolved.set(false);
-        await this.loadPresenterLeaderboards().finally(() => {
-          this.finishBoardsResolved.set(true);
+        void this.loadPresenterLeaderboards().finally(() => {
+          if (!this.destroyRef.destroyed) {
+            this.finishBoardsResolved.set(true);
+          }
         });
       }
     });
@@ -758,7 +760,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
     });
   }
 
@@ -769,7 +771,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         { signal: AbortSignal.timeout(10000) },
       );
       this.adoptPresenterStatus(result);
-      await this.refreshHostQuestion();
+      void this.refreshHostQuestion();
     });
   }
 
@@ -810,10 +812,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.quizControlPending() || this.destroyRef.destroyed) {
       return;
     }
+    const trigger = this.quizActionTrigger();
     this.quizControlPending.set(true);
     this.quizControlError.set('');
+    let succeeded = false;
     try {
       await task();
+      succeeded = true;
     } catch {
       if (!this.destroyRef.destroyed) {
         this.quizControlError.set(
@@ -826,6 +831,68 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.quizControlPending.set(false);
       }
     }
+    if (this.destroyRef.destroyed) {
+      return;
+    }
+    if (succeeded) {
+      this.scheduleQuizControlFocus(trigger);
+      return;
+    }
+    if (trigger?.isConnected) {
+      trigger.focus({ preventScroll: true });
+    }
+  }
+
+  private quizActionTrigger(): HTMLElement | null {
+    const active = this.document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return null;
+    }
+    return this.hostElement.nativeElement.contains(active) ? active : null;
+  }
+
+  /** Nach dem Phasenwechsel liegt der Fokus auf dem neuen Primärknopf, nicht auf dem entfernten. */
+  private scheduleQuizControlFocus(trigger: HTMLElement | null): void {
+    if (!trigger) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed || trigger.isConnected) {
+          return;
+        }
+        this.quizPhaseFocusTarget()?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private quizPhaseFocusTarget(): HTMLElement | null {
+    const root = this.hostElement.nativeElement;
+    const selectors = this.showFullscreenAction()
+      ? ['[data-testid="presenter-return-to-host"]', '[data-testid="presenter-fullscreen-enter"]']
+      : [
+          '[data-testid="presenter-quiz-resume"]',
+          '[data-testid="presenter-quiz-reveal-answers"]',
+          '[data-testid="presenter-quiz-discussion"]',
+          '[data-testid="presenter-quiz-second-round"]',
+          '[data-testid="presenter-quiz-reveal-results"]',
+          '[data-testid="presenter-quiz-next-question"]',
+          '[data-testid="presenter-quiz-finish"]',
+          '[data-testid="presenter-return-to-host"]',
+          '[data-testid="presenter-surface"]',
+        ];
+    for (const selector of selectors) {
+      const element = root.querySelector(selector);
+      if (!(element instanceof HTMLElement)) {
+        continue;
+      }
+      if (element.hasAttribute('disabled') || element.getAttribute('aria-disabled') === 'true') {
+        continue;
+      }
+      return element;
+    }
+    return null;
   }
 
   private adoptPresenterStatus(update: SessionStatusUpdate): void {
@@ -2182,9 +2249,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     const refreshEpoch = ++this.presentHostQuestionRefreshEpoch;
     try {
-      const question = await trpc.session.getCurrentQuestionForHost.query({
-        code: this.code.toUpperCase(),
-      });
+      const question = await trpc.session.getCurrentQuestionForHost.query(
+        { code: this.code.toUpperCase() },
+        { signal: AbortSignal.timeout(10000) },
+      );
       if (this.presentDeadlineClosed || refreshEpoch !== this.presentHostQuestionRefreshEpoch) {
         return;
       }

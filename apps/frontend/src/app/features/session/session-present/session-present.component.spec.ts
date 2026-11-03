@@ -4625,8 +4625,12 @@ describe('SessionPresentComponent', () => {
       status: 'DISCUSSION',
       currentQuestion: 0,
     });
+    getCurrentQuestionForHostQueryMock.mockReturnValue(new Promise(() => undefined));
     fixture.detectChanges();
-    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
+    const discussion =
+      root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]') ?? null;
+    discussion?.focus();
+    discussion?.click();
     await fixture.whenStable();
 
     expect(startDiscussionMutateMock).toHaveBeenCalledWith(
@@ -4634,7 +4638,11 @@ describe('SessionPresentComponent', () => {
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
     expect(component.session()?.status).toBe('DISCUSSION');
+    expect(component.quizControlPending()).toBe(false);
     fixture.detectChanges();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-second-round"]'),
+    );
     expect(root.textContent).toContain('Zweite Abstimmung');
     expect(root.textContent).toContain('Zur nächsten Frage ohne zweite Abstimmung');
 
