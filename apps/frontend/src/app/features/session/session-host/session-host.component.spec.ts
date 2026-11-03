@@ -25959,21 +25959,54 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await fixture.whenStable();
       storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
       issueHostAccessTokenMutateMock.mockClear();
+      const service = TestBed.inject(SessionResultsExportService);
+      const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
+      const order: string[] = [];
+      vi.spyOn(service, 'openViewPlaceholder').mockImplementation(() => {
+        order.push('open');
+        return placeholder;
+      });
+      const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
+      issueHostAccessTokenMutateMock.mockImplementation(async () => {
+        order.push('renew');
+        return {
+          hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+          hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+        };
+      });
       const unauthorized = { data: { code: 'UNAUTHORIZED' } };
       const exportPlan = vi
-        .spyOn(TestBed.inject(SessionResultsExportService), 'exportPdfFromSessionCode')
-        .mockRejectedValueOnce(unauthorized)
-        .mockResolvedValueOnce('pdf-view');
+        .spyOn(service, 'exportPdfFromSessionCode')
+        .mockImplementationOnce(() => {
+          order.push('export');
+          return Promise.reject(unauthorized);
+        })
+        .mockImplementationOnce(() => {
+          order.push('export');
+          return Promise.resolve('pdf-view');
+        });
 
       await fixture.componentInstance.exportSessionResultsPdf('visual', 'view');
       fixture.detectChanges();
 
+      expect(order).toEqual(['open', 'renew', 'export', 'renew', 'export']);
       expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
       expect(issueHostAccessTokenMutateMock).toHaveBeenCalledWith({
         code: 'ABC123',
         browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
       });
       expect(exportPlan).toHaveBeenCalledTimes(2);
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        1,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        2,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(closePlaceholder).not.toHaveBeenCalled();
       expect(fixture.componentInstance.exportStatus()).toBe('Nachbesprechungsplan geöffnet.');
       expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
       clearHostBrowserCapability('ABC123');

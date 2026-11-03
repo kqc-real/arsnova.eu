@@ -15320,6 +15320,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     if (!this.code || this.exportExporting()) return;
     const code = this.code;
+    // Vor jedem Await: sonst blockiert der Browser den Ansehen-Tab nach der Token-Erneuerung.
+    const viewPlaceholder =
+      disposition === 'view' ? this.sessionResultsExport.openViewPlaceholder() : undefined;
     this.exportStatus.set(null);
     this.exportExporting.set(true);
     try {
@@ -15327,6 +15330,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.sessionResultsExport.exportPdfFromSessionCode(code, {
           profile,
           disposition,
+          viewPlaceholder,
           onLargeReportHint: (questionCount) => {
             this.exportStatus.set(
               $localize`:@@sessionHost.exportPdfGeneratingLarge:PDF wird erstellt (${questionCount} Fragen)…`,
@@ -15343,6 +15347,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
       this.dismissHostSteeringCallout();
     } catch (error) {
+      if (viewPlaceholder) {
+        this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
+      }
       this.handleHostResultsExportError(
         error,
         () => void this.exportSessionResultsPdf(profile, disposition),

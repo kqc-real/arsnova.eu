@@ -120,6 +120,45 @@ describe('SessionResultsExportService', () => {
     expect(revokeObjectURL).not.toHaveBeenCalled();
   });
 
+  it('navigiert einen mitgegebenen Ansehen-Tab und öffnet keinen zweiten', async () => {
+    const opened = {
+      opener: {} as Window,
+      closed: false,
+      document: { title: '' },
+      location: { assign: vi.fn() },
+      close: vi.fn(),
+    };
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromSessionCode('ABC123', {
+        profile: 'visual',
+        disposition: 'view',
+        viewPlaceholder: opened as unknown as Window,
+      }),
+    ).resolves.toBe('pdf-view');
+    expect(open).not.toHaveBeenCalled();
+    expect(opened.location.assign).toHaveBeenCalledWith('blob:pdf');
+    expect(opened.close).not.toHaveBeenCalled();
+  });
+
+  it('lässt einen mitgegebenen Ansehen-Tab offen, wenn der Abruf scheitert', async () => {
+    const opened = { closed: false, close: vi.fn() };
+    vi.mocked(trpc.session.getExportData.query).mockRejectedValueOnce(new Error('UNAUTHORIZED'));
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromSessionCode('ABC123', {
+        disposition: 'view',
+        viewPlaceholder: opened as unknown as Window,
+      }),
+    ).rejects.toThrow('UNAUTHORIZED');
+    expect(open).not.toHaveBeenCalled();
+    expect(opened.close).not.toHaveBeenCalled();
+  });
+
   it('fällt auf den Download zurück, wenn das Ansehen-Popup blockiert ist', async () => {
     vi.spyOn(window, 'open').mockReturnValue(null);
     const click = vi

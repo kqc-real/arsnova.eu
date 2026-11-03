@@ -16,6 +16,13 @@ export interface SessionResultsPdfExportOptions {
   profile?: SessionResultsPdfProfile;
   disposition?: SessionResultsPdfDisposition;
   onLargeReportHint?: (questionCount: number) => void;
+  /**
+   * Ansehen-Tab, den der Aufrufer noch in der User-Geste geöffnet hat.
+   * `undefined`: der Service öffnet selbst. `null`: das Popup war blockiert.
+   * Ein übergebenes Fenster bleibt bei einem Fehler offen, damit ein Retry
+   * denselben Tab nutzen kann.
+   */
+  viewPlaceholder?: Window | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,19 +30,43 @@ export class SessionResultsExportService {
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID) as string;
 
+  /**
+   * Ansehen-Tab noch in der User-Geste öffnen, bevor ein Token erneuert wird.
+   * Nach einem Await blockieren Safari und andere Popup-Policies das Fenster.
+   */
+  openViewPlaceholder(): Window | null {
+    return this.openViewPlaceholderIfNeeded('view');
+  }
+
+  closeViewPlaceholder(placeholder: Window | null): void {
+    if (!placeholder || placeholder.closed) {
+      return;
+    }
+    try {
+      placeholder.close();
+    } catch {
+      // Fenster bereits weg oder Close gesperrt.
+    }
+  }
+
   async exportPdfFromSessionCode(
     code: string,
     options?: SessionResultsPdfExportOptions,
   ): Promise<SessionResultsPdfExportResult> {
+    const callerOwnsPlaceholder = options?.viewPlaceholder !== undefined;
     // Synchron im Klick-Kontext öffnen: nach den tRPC-Awaits blockieren Safari/Popup-Policies.
-    const viewPlaceholder = this.openViewPlaceholderIfNeeded(options?.disposition);
+    const viewPlaceholder = callerOwnsPlaceholder
+      ? (options.viewPlaceholder ?? null)
+      : this.openViewPlaceholderIfNeeded(options?.disposition);
     try {
       const exportData = await trpc.session.getExportData.query({
         code: code.toUpperCase(),
       });
       return await this.exportPdfFromExportData(exportData, options, viewPlaceholder);
     } catch (error) {
-      this.closeViewPlaceholder(viewPlaceholder);
+      if (!callerOwnsPlaceholder) {
+        this.closeViewPlaceholder(viewPlaceholder);
+      }
       throw error;
     }
   }
@@ -170,17 +201,6 @@ export class SessionResultsExportService {
     }
     opened.opener = null;
     return opened;
-  }
-
-  private closeViewPlaceholder(placeholder: Window | null): void {
-    if (!placeholder || placeholder.closed) {
-      return;
-    }
-    try {
-      placeholder.close();
-    } catch {
-      // Fenster bereits weg oder Close gesperrt.
-    }
   }
 
   private openBase64Export(
