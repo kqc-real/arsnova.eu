@@ -169,6 +169,37 @@ describe('session.end', () => {
     );
   });
 
+  it('beendet die Session, wenn Redis die Abschlussmarkierung nicht beantwortet', async () => {
+    vi.useFakeTimers();
+    try {
+      redisMock.set.mockImplementation(() => new Promise(() => undefined));
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        quizId: 'quiz-1',
+        quiz: {
+          name: 'Quiz',
+          bonusTokenCount: 3,
+          questions: [{ type: 'SINGLE_CHOICE' }, { type: 'SINGLE_CHOICE' }],
+        },
+        participants: [{ id: 'p1', nickname: 'Ada' }],
+        bonusTokens: [],
+      });
+
+      const pending = caller.end({ code: 'ABC123' });
+      await vi.advanceTimersByTimeAsync(500);
+      await expect(pending).resolves.toMatchObject({ status: 'FINISHED' });
+      expect(prismaMock.session.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ status: 'FINISHED' }),
+        }),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('beendet die Session auch wenn Pairing-Invalidierung fehlschlägt', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: 'sess-1',

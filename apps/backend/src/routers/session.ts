@@ -3895,6 +3895,27 @@ function resolvePresenterSurface(
 }
 
 const FINISH_PROJECTION_TTL_SECONDS = 24 * 60 * 60;
+/** Kurz genug, dass eine offene Abschluss-Transaktion bei stillem Redis noch committet. */
+const FINISH_PROJECTION_REDIS_WRITE_MS = 500;
+
+function withDeadline<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('FINISH_PROJECTION_REDIS_TIMEOUT'));
+    }, timeoutMs);
+    timer.unref?.();
+    operation.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
 
 function finishProjectionRedisKey(sessionId: string): string {
   return `session:finishProjection:v2:${sessionId}`;
@@ -3933,11 +3954,14 @@ async function resolveFinishProjection(
 async function markFinishProjectionLeaderboard(sessionId: string): Promise<void> {
   finishProjectionBySessionId.set(sessionId, 'leaderboard');
   try {
-    await getRedis().set(
-      finishProjectionRedisKey(sessionId),
-      'leaderboard',
-      'EX',
-      FINISH_PROJECTION_TTL_SECONDS,
+    await withDeadline(
+      getRedis().set(
+        finishProjectionRedisKey(sessionId),
+        'leaderboard',
+        'EX',
+        FINISH_PROJECTION_TTL_SECONDS,
+      ),
+      FINISH_PROJECTION_REDIS_WRITE_MS,
     );
   } catch {
     // Die Prozess-Markierung bleibt maßgeblich, bis Redis wieder schreibt.
