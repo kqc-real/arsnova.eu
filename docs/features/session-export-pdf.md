@@ -55,7 +55,7 @@ Nach mindestens einem beendeten Live-Durchlauf:
 - **Nachbesprechung** — kompakter Dialog mit Lernstand, Prioritäten und Teilnehmer-Feedback
 - **Ergebnisbericht (PDF)** — derselbe Bericht wie in der Host-Ansicht, aus der Session-Historie
 
-Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachweis über `accessProof`); Session-ID und Session-Code werden in der Sammlung nicht angezeigt. Scheitert nur das Server-PDF, öffnet die Sammlung den Browser-Druck aus den bereits geladenen Exportdaten und fällt nicht auf den host-only-Endpunkt `getSessionExportPdf` zurück. Eine fehlgeschlagene Verfügbarkeitsabfrage lässt den letzten erfolgreichen Stand der Karte stehen.
+Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachweis über `accessProof`); Session-ID und Session-Code werden in der Sammlung nicht angezeigt. Der Druck-Tab entsteht im Menüklick, bevor Zugangsnachweis und PDF-Job abgewartet werden. Scheitert nur das Server-PDF, auch nach dem Zeitlimit des Workers, schreibt die Sammlung den Browser-Druck in diesen Tab und fällt nicht auf den host-only-Endpunkt `getSessionExportPdf` zurück. Eine fehlgeschlagene Verfügbarkeitsabfrage lässt den letzten erfolgreichen Stand der Karte stehen.
 
 ## Berichtsstruktur
 

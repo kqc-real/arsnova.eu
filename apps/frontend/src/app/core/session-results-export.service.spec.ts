@@ -264,4 +264,37 @@ describe('SessionResultsExportService', () => {
     expect(hostPdf).not.toHaveBeenCalled();
     expect(printWindow.print).toHaveBeenCalledOnce();
   });
+
+  it('druckt den Sammlungsbericht in den bereits reservierten Tab, wenn der Worker scheitert', async () => {
+    vi.mocked(trpc.session.getLastSessionExportPdfForQuiz.query).mockRejectedValueOnce(
+      new Error('pdf worker down'),
+    );
+    const printWindow = {
+      opener: null,
+      closed: false,
+      document: {
+        readyState: 'complete',
+        title: '',
+        open: vi.fn(),
+        write: vi.fn(),
+        close: vi.fn(),
+      },
+      focus: vi.fn(),
+      print: vi.fn(),
+      close: vi.fn(),
+    };
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromQuizHistory('11111111-1111-4111-8111-111111111111', 'access-proof', {
+        profile: 'visual',
+        viewPlaceholder: printWindow as unknown as Window,
+      }),
+    ).resolves.toBe('print-fallback');
+    expect(open).not.toHaveBeenCalled();
+    expect(printWindow.document.write).toHaveBeenCalled();
+    expect(printWindow.print).toHaveBeenCalledOnce();
+    expect(printWindow.close).not.toHaveBeenCalled();
+  });
 });
