@@ -4604,6 +4604,10 @@ describe('SessionPresentComponent', () => {
     expect(root.querySelector('[data-testid="presenter-quiz-pages"]')?.textContent).toContain(
       'Vorherige Seite',
     );
+    expect(root.querySelector('[data-testid="presenter-quiz-pages"]')?.textContent).toContain(
+      '1 / 2',
+    );
+    expect(root.querySelector('.projection-pages__indicator')).toBeNull();
     expect(root.textContent).toContain('Diskussionsphase');
     expect(root.textContent).toContain('Ergebnis zeigen');
     expect(root.textContent).not.toContain('Trotzdem freigeben');

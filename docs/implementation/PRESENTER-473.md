@@ -39,7 +39,8 @@ wenn der Host die Runde oder die Frage wechselt. Bis dahin steht »Die Frage
 wird geladen«, nach einem Fehlschlag »Erneut laden«. Der Fokus wandert von
 dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
 Die Seitensteuerung erscheint, sobald mehr als eine Seite gemessen wurde,
-und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Q&A-Fragen
+und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Die Seitenangabe
+steht in dieser Steuerung. Q&A-Fragen
 wechseln über denselben Host-Navigator oder den Presenter-Footer; die Rangliste
 wechselt wie bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf
 Sekunden pro Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde
