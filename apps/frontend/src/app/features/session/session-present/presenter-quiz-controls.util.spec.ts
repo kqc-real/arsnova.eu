@@ -56,7 +56,11 @@ describe('presenter-quiz-controls.util', () => {
       presenterOfferDiscussion(
         'ACTIVE',
         question,
-        { ...progress, totalVotes: 1, peerInstructionSuggestion: { suggested: false } },
+        {
+          ...progress,
+          totalVotes: 1,
+          peerInstructionSuggestion: { suggested: false, reason: 'CORRECTNESS_WINDOW' },
+        },
         3,
         4,
       ),
