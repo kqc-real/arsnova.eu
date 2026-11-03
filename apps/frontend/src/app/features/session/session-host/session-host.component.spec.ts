@@ -25961,46 +25961,53 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       issueHostAccessTokenMutateMock.mockClear();
       const service = TestBed.inject(SessionResultsExportService);
       const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
-      const order: string[] = [];
-      vi.spyOn(service, 'openViewPlaceholder').mockImplementation(() => {
-        order.push('open');
-        return placeholder;
-      });
+      vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
       const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
-      issueHostAccessTokenMutateMock.mockImplementation(async () => {
-        order.push('renew');
-        return {
-          hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
-          hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
-        };
-      });
+      const issued = {
+        hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+        hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+      };
+      const releaseRenewal: Array<(value: typeof issued) => void> = [];
+      issueHostAccessTokenMutateMock.mockImplementation(
+        () =>
+          new Promise<typeof issued>((resolve) => {
+            releaseRenewal.push(resolve);
+          }),
+      );
       const unauthorized = { data: { code: 'UNAUTHORIZED' } };
       const exportPlan = vi
         .spyOn(service, 'exportPdfFromSessionCode')
-        .mockImplementationOnce(() => {
-          order.push('export');
-          return Promise.reject(unauthorized);
-        })
-        .mockImplementationOnce(() => {
-          order.push('export');
-          return Promise.resolve('pdf-view');
-        });
+        .mockRejectedValueOnce(unauthorized)
+        .mockResolvedValueOnce('pdf-view');
 
-      await fixture.componentInstance.exportSessionResultsPdf('visual', 'view');
+      const pending = fixture.componentInstance.exportSessionResultsPdf('visual', 'view');
+      await Promise.resolve();
+
+      expect(service.openViewPlaceholder).toHaveBeenCalledOnce();
+      expect(releaseRenewal).toHaveLength(1);
+      expect(exportPlan).not.toHaveBeenCalled();
+      expect(closePlaceholder).not.toHaveBeenCalled();
+
+      releaseRenewal[0]?.(issued);
+      await vi.waitUntil(() => releaseRenewal.length === 2);
+      expect(exportPlan).toHaveBeenCalledTimes(1);
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        1,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(closePlaceholder).not.toHaveBeenCalled();
+
+      releaseRenewal[1]?.(issued);
+      await pending;
       fixture.detectChanges();
 
-      expect(order).toEqual(['open', 'renew', 'export', 'renew', 'export']);
       expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
       expect(issueHostAccessTokenMutateMock).toHaveBeenCalledWith({
         code: 'ABC123',
         browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
       });
       expect(exportPlan).toHaveBeenCalledTimes(2);
-      expect(exportPlan).toHaveBeenNthCalledWith(
-        1,
-        'ABC123',
-        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
-      );
       expect(exportPlan).toHaveBeenNthCalledWith(
         2,
         'ABC123',
@@ -26055,6 +26062,89 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(fixture.componentInstance.hostSteeringCallout()?.retry).toBeUndefined();
       expect(calloutEl(fixture)?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
       expect(calloutEl(fixture)?.textContent ?? '').toContain('Nachbesprechungsplan ansehen');
+      fixture.destroy();
+    });
+
+    it('führt Pending, Erfolg und Fehler des Nachbesprechungsplans im DOM', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.statusUpdate.set({
+        status: 'FINISHED',
+        currentQuestion: null,
+      });
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      const host = fixture.nativeElement as HTMLElement;
+      const planButton = host.querySelector<HTMLButtonElement>('.session-host__export-pdf-btn');
+      expect(planButton).not.toBeNull();
+      const service = TestBed.inject(SessionResultsExportService);
+      vi.spyOn(service, 'openViewPlaceholder').mockReturnValue({
+        closed: false,
+        close: vi.fn(),
+      } as unknown as Window);
+      let resolveExport!: (result: 'pdf-view') => void;
+      const exportPlan = vi.spyOn(service, 'exportPdfFromSessionCode').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveExport = resolve;
+          }),
+      );
+
+      planButton!.focus();
+      planButton!.click();
+      fixture.detectChanges();
+
+      expect(planButton!.getAttribute('aria-busy')).toBe('true');
+      expect(planButton!.getAttribute('aria-disabled')).toBe('true');
+      expect(document.activeElement).toBe(planButton);
+      expect(host.querySelector('.session-host__export-progress')?.textContent).toContain(
+        'Wird exportiert…',
+      );
+      expect(host.querySelector('#host-steering-callout')).toBeNull();
+
+      resolveExport('pdf-view');
+      await vi.waitUntil(() => !fixture.componentInstance.exportExporting(), {
+        timeout: 1000,
+        interval: 10,
+      });
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(planButton);
+      expect(planButton!.getAttribute('aria-disabled')).not.toBe('true');
+      expect(planButton!.getAttribute('aria-busy')).not.toBe('true');
+      expect(host.querySelector('.session-host__export-progress')).toBeNull();
+      expect(host.textContent).toContain('Nachbesprechungsplan geöffnet.');
+      expect(host.querySelector('#host-steering-callout')).toBeNull();
+
+      exportPlan.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+      planButton!.focus();
+      planButton!.click();
+      fixture.detectChanges();
+      expect(planButton!.getAttribute('aria-busy')).toBe('true');
+      expect(document.activeElement).toBe(planButton);
+
+      await vi.waitUntil(() => fixture.componentInstance.hostSteeringCallout() !== null, {
+        timeout: 1000,
+        interval: 10,
+      });
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+
+      const callout = host.querySelector<HTMLElement>('#host-steering-callout');
+      expect(callout?.getAttribute('role')).toBe('alert');
+      expect(callout?.textContent).toContain('Host-Zugang abgelaufen');
+      expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+      const dismiss = Array.from(callout?.querySelectorAll('button') ?? []).find((button) =>
+        button.textContent?.includes('Okay'),
+      );
+      expect(dismiss?.isConnected).toBe(true);
+      expect(callout?.getAttribute('tabindex')).toBe('-1');
+      expect(callout?.isConnected).toBe(true);
+      expect(document.activeElement).toBe(callout);
+      expect(planButton!.isConnected).toBe(true);
+      expect(planButton!.getAttribute('aria-busy')).not.toBe('true');
+      expect(planButton!.disabled).toBe(false);
       fixture.destroy();
     });
 

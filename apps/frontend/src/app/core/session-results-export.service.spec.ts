@@ -159,6 +159,40 @@ describe('SessionResultsExportService', () => {
     expect(opened.close).not.toHaveBeenCalled();
   });
 
+  it('druckt in den reservierten Ansehen-Tab, wenn das Server-PDF scheitert', async () => {
+    vi.mocked(trpc.session.getSessionExportPdf.query).mockRejectedValueOnce(
+      new Error('pdf worker down'),
+    );
+    const printWindow = {
+      opener: {},
+      closed: false,
+      document: {
+        readyState: 'complete',
+        title: '',
+        open: vi.fn(),
+        write: vi.fn(),
+        close: vi.fn(),
+      },
+      focus: vi.fn(),
+      print: vi.fn(),
+      close: vi.fn(),
+    };
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromSessionCode('ABC123', {
+        profile: 'visual',
+        disposition: 'view',
+        viewPlaceholder: printWindow as unknown as Window,
+      }),
+    ).resolves.toBe('print-fallback');
+    expect(open).not.toHaveBeenCalled();
+    expect(printWindow.document.write).toHaveBeenCalled();
+    expect(printWindow.print).toHaveBeenCalledOnce();
+    expect(printWindow.close).not.toHaveBeenCalled();
+  });
+
   it('fällt auf den Download zurück, wenn das Ansehen-Popup blockiert ist', async () => {
     vi.spyOn(window, 'open').mockReturnValue(null);
     const click = vi

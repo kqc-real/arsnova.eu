@@ -128,13 +128,12 @@ export class SessionResultsExportService {
     profile: SessionResultsPdfProfile,
     viewPlaceholder: Window | null,
   ): Promise<SessionResultsPdfExportResult> {
-    // Print-Fallback öffnet ein eigenes Fenster — Placeholder wieder schließen.
-    this.closeViewPlaceholder(viewPlaceholder);
     const html = await this.buildPrintableReportHtml(exportData, profile);
     const labels = getSessionResultsReportLabels();
     const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
-    const opened = printSessionResultsReport(html, documentTitle);
+    const opened = printSessionResultsReport(html, documentTitle, viewPlaceholder);
     if (!opened) {
+      this.closeViewPlaceholder(viewPlaceholder);
       throw new Error('print window blocked');
     }
     return 'print-fallback';
