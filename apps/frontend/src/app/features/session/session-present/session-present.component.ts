@@ -30,6 +30,7 @@ import { HostDisplayModeService } from '../../../core/host-display-mode.service'
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
+  tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
@@ -57,6 +58,8 @@ import type {
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
+  ReadingReadyStatusDTO,
+  SessionStatusUpdate,
   QaQuestionDTO,
   QaQuestionSortMode,
   QaQuestionsListDTO,
@@ -85,6 +88,13 @@ import {
 } from '../../../core/locale-from-path';
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
 import { presenterQuestionHeading } from './session-projection-quiz.util';
+import { returnToHostWindow } from './presenter-window.util';
+import {
+  presenterCanOpenFollowingQuestion,
+  presenterOfferDiscussion,
+  presenterQuestionMatchesSession,
+  presenterTimerBlocksReveal,
+} from './presenter-quiz-controls.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
@@ -257,6 +267,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly currentQuestionLabel = signal<string | null>(null);
   readonly hostQuestion = signal<HostCurrentQuestionDTO | null>(null);
   readonly hostVoteProgress = signal<HostVoteProgressDTO | null>(null);
+  /** Frischer Hörsaalstand für Bereitschaft und »alle haben abgestimmt«. */
+  readonly quizAudience = signal<{
+    participantCount: number;
+    readingReady: ReadingReadyStatusDTO | null;
+  } | null>(null);
+  readonly quizControlPending = signal(false);
+  readonly quizControlError = signal('');
+  /** Der letzte Fragenabruf ist fehlgeschlagen, solange der passende Snapshot fehlt. */
+  readonly quizQuestionLoadFailed = signal(false);
+  readonly returnToHostError = signal('');
+  private readonly quizPageNavHeldContext = signal<string | null>(null);
   readonly emojiReactions = signal<PresenterEmojiReactions | null>(null);
   readonly emojiOrder = EMOJI_REACTIONS;
   private emojiReactionScope: string | null = null;
@@ -642,6 +663,371 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+  returnToHost(): void {
+    const view = this.document.defaultView;
+    if (!view) {
+      return;
+    }
+    this.returnToHostError.set('');
+    const outcome = returnToHostWindow(view, this.sessionCode, {
+      fullscreen: getDocumentFullscreenElement(this.document) !== null,
+      exitFullscreen: () => tryExitDocumentFullscreen(this.document),
+    });
+    if (outcome === 'blocked' && !this.destroyRef.destroyed) {
+      this.returnToHostError.set(
+        $localize`:@@sessionPresent.returnToHostBlocked:Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.`,
+      );
+    }
+  }
+
+  async startPresenterQuiz(): Promise<void> {
+    if (this.session()?.status !== 'LOBBY' || this.session()?.type === 'Q_AND_A') {
+      return;
+    }
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.nextQuestion.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async revealPresenterAnswers(): Promise<void> {
+    if (!this.presentedQuizQuestion()) {
+      return;
+    }
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.revealAnswers.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async revealPresenterResults(): Promise<void> {
+    if (!this.presentedQuizQuestion() || this.quizTimerBlocksReveal()) {
+      return;
+    }
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.revealResults.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async startPresenterDiscussion(): Promise<void> {
+    if (!this.presentedQuizQuestion() || this.quizTimerBlocksReveal()) {
+      return;
+    }
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.startDiscussion.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async startPresenterSecondRound(): Promise<void> {
+    if (!this.presentedQuizQuestion()) {
+      return;
+    }
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.startSecondRound.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async advancePresenterQuiz(): Promise<void> {
+    if (!this.presentedQuizQuestion()) {
+      return;
+    }
+    const status = this.session()?.status;
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.nextQuestion.mutate(
+        {
+          code: this.sessionCode,
+          ...(status === 'RESULTS' || status === 'DISCUSSION'
+            ? { skipCurrentResultQuestion: true }
+            : {}),
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+      if (result.status === 'FINISHED') {
+        this.finishBoardsResolved.set(false);
+        void this.loadPresenterLeaderboards().finally(() => {
+          if (!this.destroyRef.destroyed) {
+            this.finishBoardsResolved.set(true);
+          }
+        });
+      }
+    });
+  }
+
+  async pausePresenterQuiz(): Promise<void> {
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.pauseQuiz.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async resumePresenterQuiz(): Promise<void> {
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.resumeQuiz.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
+  async retryPresenterQuestion(): Promise<void> {
+    if (!this.quizQuestionAwaitingSnapshot()) {
+      return;
+    }
+    const gate = this.focusedQuestionGate();
+    this.quizQuestionLoadFailed.set(false);
+    this.moveFocusFromQuestionGate(gate);
+    await this.refreshHostQuestion();
+  }
+
+  async changeQuizProjectionPage(delta: -1 | 1): Promise<void> {
+    const page = this.session()?.presenterPage;
+    if (!page || this.quizControlPending() || !this.showQuizControlFooter()) {
+      return;
+    }
+    const count = Math.max(1, page.count);
+    const index = Math.max(0, Math.min(count - 1, page.index));
+    const nextIndex = index + delta;
+    if (nextIndex < 0 || nextIndex >= count) {
+      return;
+    }
+    await this.runQuizAction(
+      async () => {
+        const result = await trpc.session.setPresenterSurface.mutate(
+          {
+            code: this.sessionCode,
+            page: { context: page.context, index: nextIndex, count },
+          },
+          { signal: AbortSignal.timeout(10000) },
+        );
+        if (this.destroyRef.destroyed) {
+          return;
+        }
+        this.session.update((session) =>
+          session?.presenterPage?.context === page.context
+            ? { ...session, presenterPage: result.presenterPage }
+            : session,
+        );
+      },
+      $localize`:@@sessionHost.projectionPageError:Seite konnte nicht gewechselt werden. Bitte erneut versuchen.`,
+    );
+  }
+
+  private async runQuizAction(task: () => Promise<void>, errorMessage?: string): Promise<void> {
+    if (this.quizControlPending() || this.destroyRef.destroyed) {
+      return;
+    }
+    const trigger = this.quizActionTrigger();
+    this.quizControlPending.set(true);
+    this.quizControlError.set('');
+    let succeeded = false;
+    try {
+      await task();
+      succeeded = true;
+    } catch {
+      if (!this.destroyRef.destroyed) {
+        this.quizControlError.set(
+          errorMessage ??
+            $localize`:@@sessionPresent.quizControlError:Die Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.`,
+        );
+      }
+    } finally {
+      if (!this.destroyRef.destroyed) {
+        this.quizControlPending.set(false);
+      }
+    }
+    if (this.destroyRef.destroyed) {
+      return;
+    }
+    if (succeeded) {
+      this.scheduleQuizControlFocus(trigger);
+      return;
+    }
+    if (trigger?.isConnected) {
+      trigger.focus({ preventScroll: true });
+    }
+  }
+
+  private quizActionTrigger(): HTMLElement | null {
+    const active = this.document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return null;
+    }
+    return this.hostElement.nativeElement.contains(active) ? active : null;
+  }
+
+  /** Nach dem Phasenwechsel liegt der Fokus auf dem neuen Primärknopf, nicht auf dem entfernten. */
+  private scheduleQuizControlFocus(trigger: HTMLElement | null): void {
+    if (!trigger) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed || trigger.isConnected) {
+          return;
+        }
+        this.quizPhaseFocusTarget()?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** Lade- oder Retry-Ansicht, solange sie selbst den Tastaturfokus hat. */
+  private focusedQuestionGate(): HTMLElement | null {
+    const active = this.document.activeElement;
+    if (!(active instanceof HTMLElement)) {
+      return null;
+    }
+    if (!this.hostElement.nativeElement.contains(active)) {
+      return null;
+    }
+    return active.matches(
+      '[data-testid="presenter-quiz-question-pending"], [data-testid="presenter-quiz-question-retry"]',
+    )
+      ? active
+      : null;
+  }
+
+  /**
+   * Nach dem Auflösen der Ladeanzeige folgt der Fokus dem neuen Phasenknopf.
+   * Ein inzwischen anders gesetzter Fokus bleibt liegen.
+   */
+  private moveFocusFromQuestionGate(gate: HTMLElement | null): void {
+    if (!gate) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed || gate.isConnected) {
+          return;
+        }
+        const active = this.document.activeElement;
+        if (
+          active instanceof HTMLElement &&
+          active.isConnected &&
+          this.hostElement.nativeElement.contains(active)
+        ) {
+          return;
+        }
+        this.quizPhaseFocusTarget()?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private quizPhaseFocusTarget(): HTMLElement | null {
+    const root = this.hostElement.nativeElement;
+    const selectors = this.showFullscreenAction()
+      ? ['[data-testid="presenter-return-to-host"]', '[data-testid="presenter-fullscreen-enter"]']
+      : [
+          '[data-testid="presenter-quiz-question-retry"]',
+          '[data-testid="presenter-quiz-question-pending"]',
+          '[data-testid="presenter-quiz-resume"]',
+          '[data-testid="presenter-quiz-reveal-answers"]',
+          '[data-testid="presenter-quiz-discussion"]',
+          '[data-testid="presenter-quiz-second-round"]',
+          '[data-testid="presenter-quiz-reveal-results"]',
+          '[data-testid="presenter-quiz-next-question"]',
+          '[data-testid="presenter-quiz-finish"]',
+          '[data-testid="presenter-return-to-host"]',
+          '[data-testid="presenter-surface"]',
+        ];
+    for (const selector of selectors) {
+      const element = root.querySelector(selector);
+      if (!(element instanceof HTMLElement)) {
+        continue;
+      }
+      if (element.hasAttribute('disabled') || element.getAttribute('aria-disabled') === 'true') {
+        continue;
+      }
+      return element;
+    }
+    return null;
+  }
+
+  private adoptPresenterStatus(update: SessionStatusUpdate): void {
+    if (update.serverTime) {
+      recordServerTimeSample(update.serverTime, Date.now());
+    }
+    if (update.serverNow) {
+      recordServerTimeSample(update.serverNow, Date.now());
+    }
+    this.presentSessionMetaRefreshEpoch += 1;
+    this.session.update((current) =>
+      current
+        ? {
+            ...current,
+            status: update.status,
+            currentQuestion: update.currentQuestion,
+            currentRound: update.currentRound ?? current.currentRound,
+            pausedFromStatus: update.pausedFromStatus ?? current.pausedFromStatus,
+            preferredChannel: update.preferredChannel ?? current.preferredChannel,
+            presenterSurface: update.presenterSurface ?? current.presenterSurface,
+            presenterPage: update.presenterPage ?? current.presenterPage,
+            enableTimerAccommodation:
+              update.enableTimerAccommodation ?? current.enableTimerAccommodation,
+            finishProjection:
+              update.status === 'FINISHED'
+                ? (update.finishProjection ?? current.finishProjection ?? 'leaderboard')
+                : current.finishProjection,
+          }
+        : current,
+    );
+    this.dropStalePresenterQuestion();
+    this.syncCountdownFromStatus(update.timer, update.activeAt);
+    this.resetPresentScrollForPhase(update.status);
+  }
+
+  /** Snapshot verwerfen, der nicht mehr zur Frage oder Runde der Session passt. */
+  private dropStalePresenterQuestion(): void {
+    const session = this.session();
+    const shownQuestion = this.hostQuestion();
+    if (
+      shownQuestion &&
+      !presenterQuestionMatchesSession(
+        shownQuestion,
+        session?.currentQuestion,
+        session?.currentRound,
+      )
+    ) {
+      this.hostQuestion.set(null);
+      this.hostVoteProgress.set(null);
+      this.quizQuestionLoadFailed.set(false);
+      this.stopCountdown();
+    }
+  }
+
   qaPositiveVoteCount(question: QaQuestionDTO): number {
     return question.positiveVoteCount ?? 0;
   }
@@ -899,10 +1285,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return !this.showQaProjection() && !this.showQaWordCloud() && !this.showQuickFeedbackCard();
   });
   readonly showPresenterFreetextResultsStage = computed(() => {
-    if (!this.showPresenterFreetextStage()) {
+    if (!this.showPresenterFreetextStage() || this.quizQuestionAwaitingSnapshot()) {
       return false;
     }
-    if (!this.hostQuestion()) {
+    if (!this.presentedQuizQuestion()) {
       return true;
     }
     return (
@@ -990,8 +1376,96 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     ) {
       return false;
     }
-    return this.hostQuestion() !== null;
+    return this.presentedQuizQuestion() !== null;
   });
+  readonly presentedQuizQuestion = computed(() => {
+    const question = this.hostQuestion();
+    const session = this.session();
+    return presenterQuestionMatchesSession(
+      question,
+      session?.currentQuestion,
+      session?.currentRound,
+    )
+      ? question
+      : null;
+  });
+  readonly quizQuestionAwaitingSnapshot = computed(() => {
+    const session = this.session();
+    if (
+      !session ||
+      session.type === 'Q_AND_A' ||
+      this.showPresentationEndedProjection() ||
+      this.showFinishProjection() ||
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection() ||
+      this.showQaProjection() ||
+      this.showQaWordCloud() ||
+      this.showQuickFeedbackCard() ||
+      this.presenterStandbyChannel() !== null
+    ) {
+      return false;
+    }
+    if (typeof session.currentQuestion !== 'number') {
+      return false;
+    }
+    return this.presentedQuizQuestion() === null;
+  });
+  readonly presentedParticipantCount = computed(
+    () => this.quizAudience()?.participantCount ?? this.session()?.participantCount ?? 0,
+  );
+  readonly presentedReadingReady = computed(() =>
+    this.session()?.status === 'QUESTION_OPEN' ? (this.quizAudience()?.readingReady ?? null) : null,
+  );
+  /** Phasensteuerung, solange die Quizfrage die Projektion ist, auch in der Freitext-Wolke. */
+  readonly showQuizControlFooter = computed(() => {
+    if (
+      this.showPresentationEndedProjection() ||
+      this.showFinishProjection() ||
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection() ||
+      this.showQaProjection() ||
+      this.showQaWordCloud() ||
+      this.showQuickFeedbackCard() ||
+      this.presenterStandbyChannel() !== null
+    ) {
+      return false;
+    }
+    const session = this.session();
+    if (!session || session.type === 'Q_AND_A') {
+      return false;
+    }
+    return this.presentedQuizQuestion() !== null;
+  });
+  readonly showQuizPageNav = computed(() => {
+    if (!this.showQuizControlFooter()) {
+      return false;
+    }
+    const page = this.session()?.presenterPage;
+    if (!page) {
+      return false;
+    }
+    return page.count > 1 || this.quizPageNavHeldContext() === page.context;
+  });
+  readonly quizTimerBlocksReveal = computed(() =>
+    presenterTimerBlocksReveal(
+      this.session()?.status ?? null,
+      this.presentedQuizQuestion(),
+      this.hostVoteProgress(),
+      this.session()?.enableTimerAccommodation !== false,
+    ),
+  );
+  readonly quizOfferDiscussion = computed(() =>
+    presenterOfferDiscussion(
+      this.session()?.status ?? null,
+      this.presentedQuizQuestion(),
+      this.hostVoteProgress(),
+      this.presentedParticipantCount(),
+      this.countdownSeconds(),
+    ),
+  );
+  readonly quizCanOpenFollowingQuestion = computed(() =>
+    presenterCanOpenFollowingQuestion(this.presentedQuizQuestion()),
+  );
   readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
   readonly winningTeam = computed(() => this.teamLeaderboard()[0] ?? null);
   readonly teamLeaderboardMaxScore = computed(() =>
@@ -1081,6 +1555,16 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
 
   async ngOnInit(): Promise<void> {
+    effect(
+      () => {
+        const page = this.session()?.presenterPage;
+        if (!page || page.count <= 1 || !this.showQuizControlFooter()) {
+          return;
+        }
+        this.quizPageNavHeldContext.set(page.context);
+      },
+      { injector: this.injector },
+    );
     effect(
       () => {
         if (!this.showQaProjection()) {
@@ -1295,6 +1779,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     await this.refreshHostQuestion();
     await this.refreshEmojiReactions();
     await this.refreshHostVoteProgress();
+    await this.refreshQuizAudience();
     await this.refreshLobbyAudience();
   }
 
@@ -1535,6 +2020,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       this.session.set(session);
+      this.dropStalePresenterQuestion();
+      this.moveFocusFromQuestionGate(this.focusedQuestionGate());
       this.ensurePresenterSubscriptions();
       if (session.status === 'FINISHED') {
         if (session.finishProjection === 'idle') {
@@ -1898,20 +2385,36 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     const refreshEpoch = ++this.presentHostQuestionRefreshEpoch;
     try {
-      const question = await trpc.session.getCurrentQuestionForHost.query({
-        code: this.code.toUpperCase(),
-      });
+      const question = await trpc.session.getCurrentQuestionForHost.query(
+        { code: this.code.toUpperCase() },
+        { signal: AbortSignal.timeout(10000) },
+      );
       if (this.presentDeadlineClosed || refreshEpoch !== this.presentHostQuestionRefreshEpoch) {
         return;
       }
-      this.hostQuestion.set(question);
-      if (this.session()?.status === 'ACTIVE') {
+      const session = this.session();
+      const matches = presenterQuestionMatchesSession(
+        question,
+        session?.currentQuestion,
+        session?.currentRound,
+      );
+      if (matches) {
+        const gate = this.focusedQuestionGate();
+        this.hostQuestion.set(question);
+        this.quizQuestionLoadFailed.set(false);
+        this.moveFocusFromQuestionGate(gate);
+      } else if (question === null && this.quizQuestionAwaitingSnapshot()) {
+        this.quizQuestionLoadFailed.set(true);
+      }
+      if (session?.status === 'ACTIVE' && matches) {
         this.startCountdown(question?.timer ?? null);
-      } else {
+      } else if (!matches) {
         this.stopCountdown();
       }
     } catch {
-      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
+      if (!this.destroyRef.destroyed && this.quizQuestionAwaitingSnapshot()) {
+        this.quizQuestionLoadFailed.set(true);
+      }
     }
   }
 
@@ -1980,7 +2483,18 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           onData: (data) => {
             if (!this.presentDeadlineClosed) {
               this.presentHostQuestionRefreshEpoch += 1;
+              const session = this.session();
+              const matches = presenterQuestionMatchesSession(
+                data,
+                session?.currentQuestion,
+                session?.currentRound,
+              );
+              const gate = matches ? this.focusedQuestionGate() : null;
               this.hostQuestion.set(data);
+              if (matches) {
+                this.quizQuestionLoadFailed.set(false);
+                this.moveFocusFromQuestionGate(gate);
+              }
             }
           },
           onError: () => {
@@ -2024,6 +2538,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                   ...current,
                   status: data.status as SessionInfoDTO['status'],
                   currentQuestion: data.currentQuestion,
+                  currentRound: data.currentRound ?? current.currentRound,
                   pausedFromStatus: data.pausedFromStatus ?? null,
                   preferredChannel: data.preferredChannel ?? current.preferredChannel,
                   presenterSurface: data.presenterSurface ?? current.presenterSurface,
@@ -2035,6 +2550,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
                 }
               : current,
           );
+          this.dropStalePresenterQuestion();
+          this.moveFocusFromQuestionGate(this.focusedQuestionGate());
           this.syncCountdownFromStatus(data.timer, data.activeAt);
           this.resetPresentScrollForPhase(data.status);
           if (data.status === 'FINISHED') {
@@ -2198,6 +2715,32 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.countdownDeadlineMs = null;
     this.countdownKey = null;
     this.countdownSeconds.set(null);
+  }
+
+  private async refreshQuizAudience(): Promise<void> {
+    const status = this.session()?.status;
+    if (
+      this.presentDeadlineClosed ||
+      (status !== 'QUESTION_OPEN' && status !== 'ACTIVE') ||
+      this.session()?.type === 'Q_AND_A'
+    ) {
+      this.quizAudience.set(null);
+      return;
+    }
+    try {
+      const payload = await trpc.session.getParticipantSummary.query({
+        code: this.code.toUpperCase(),
+      });
+      if (this.presentDeadlineClosed || this.destroyRef.destroyed) {
+        return;
+      }
+      this.quizAudience.set({
+        participantCount: payload.participantCount,
+        readingReady: payload.readingReady ?? null,
+      });
+    } catch {
+      // Letzten Stand behalten; der Session-Zähler bleibt der Fallback.
+    }
   }
 
   private async refreshLobbyAudience(): Promise<void> {

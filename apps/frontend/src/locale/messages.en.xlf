@@ -36283,6 +36283,54 @@
         <source>Dein Auftrag in diesem Forum</source>
         <target>Your task in this forum</target>
       </trans-unit>
+      <trans-unit id="sessionPresent.allReady" datatype="html">
+        <source>Alle sind bereit</source>
+        <target>Everyone is ready</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.allVoted" datatype="html">
+        <source>Alle haben abgestimmt</source>
+        <target>All have voted</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPhaseVotingClosed" datatype="html">
+        <source>Abstimmung beendet</source>
+        <target>Voting has ended</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHost" datatype="html">
+        <source>Zurück zum Host</source>
+        <target>Back to the host</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHostAria" datatype="html">
+        <source>Zur Host-Ansicht zurückkehren</source>
+        <target>Return to the host view</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHostBlocked" datatype="html">
+        <source>Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
+        <target>The host window could not be opened. Allow pop-up windows for this site and try again.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizControlError" datatype="html">
+        <source>Die Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.</source>
+        <target>The action could not be completed. Please try again.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.secondRound" datatype="html">
+        <source>Zweite Abstimmung</source>
+        <target>Second vote</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizQuestionLoading" datatype="html">
+        <source>Die Frage wird geladen.</source>
+        <target>The question is loading.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizQuestionLoadFailed" datatype="html">
+        <source>Die Frage konnte nicht geladen werden. Bitte erneut versuchen.</source>
+        <target>The question could not be loaded. Please try again.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizQuestionRetry" datatype="html">
+        <source>Erneut laden</source>
+        <target>Load again</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.timerAccommodationBlocks" datatype="html">
+        <source>Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu schließen.</source>
+        <target>Personal time is still running. Wait, or return to the host to close it.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

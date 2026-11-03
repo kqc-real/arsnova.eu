@@ -1,6 +1,6 @@
 app-projection-pages {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   position: relative;
   width: 100%;
   height: 100%;
@@ -25,12 +25,6 @@ app-projection-pages {
 }
 .projection-pages__status {
   min-height: 3.5rem;
-}
-.projection-pages__indicator {
-  margin: 0;
-  text-align: center;
-  font-size: 1.25rem;
-  line-height: 1.5;
 }
 .projection-pages__source [data-projection-status] {
   display: none;

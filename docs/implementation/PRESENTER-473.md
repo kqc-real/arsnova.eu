@@ -31,12 +31,38 @@ damit die terminale Präsentationsseite.
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
 Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerten
-vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten wechseln
-ausschließlich durch den Host. Q&A-Fragen wechseln über denselben Host-Navigator
-oder den Presenter-Footer; die Rangliste wechselt wie
-bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf Sekunden pro
-Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde bleiben
-unabhängig von der Seite.
+vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
+Quizphase wechselt die Lehrkraft im Presenter-Footer, einschließlich
+**Erste Frage starten** in der Lobby; der Host behält dieselben Aktionen. Eine
+neue Frage oder Runde erscheint erst, wenn ihr Snapshot zur Session passt, auch
+wenn der Host die Runde oder die Frage wechselt. Bis dahin steht »Die Frage
+wird geladen«, nach einem Fehlschlag »Erneut laden«. Der Fokus wandert von
+dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
+Die Seitensteuerung erscheint, sobald mehr als eine Seite gemessen wurde,
+und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Die Seitenangabe
+steht in dieser Steuerung. Q&A-Fragen
+wechseln über denselben Host-Navigator oder den Presenter-Footer; die Rangliste
+wechselt wie bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf
+Sekunden pro Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde
+bleiben unabhängig von der Seite.
+
+In der Quiz-Statuszeile stehen der Lesefortschritt (»x von y bereit«) und
+**Alle sind bereit**, sobald alle Teilnehmenden der Session bereit sind. Während
+der Abstimmung bleiben Prozent und »n / m«. **Alle haben abgestimmt** erscheint
+bei voller Stimmenzahl. **Abstimmung beendet** ersetzt die Phasenbezeichnung,
+sobald alle abgestimmt haben oder der Countdown abgelaufen ist und die Freigabe
+noch aussteht. Persönliche Zeitfenster, deren Anzahl und **Trotzdem freigeben**
+bleiben auf dem Host. Die betroffenen Presenter-Knöpfe sind dann deaktiviert
+und der Presenter sagt, dass die Fenster noch laufen und der Host sie schließt.
+
+Der Footer zeigt je Phase genau die nächste Aktion: **Antwortoptionen
+freigeben**, **Ergebnis zeigen**, bei Peer-Instruction-Empfehlung zusätzlich
+**Diskussionsphase**, in der Diskussion **Zweite Abstimmung** und den
+ausdrücklich beschrifteten Weg ohne zweite Abstimmung, danach **Nächste Frage**
+oder **Zur Gesamtauswertung**. **Quiz pausieren** steht daneben in Lese- und
+Abstimmungsphase, **Quiz fortsetzen** auf der Pause-Fläche. **Zurück zum Host**
+bleibt in der Ecke jeder Presenter-Fläche, schließt die Projektion nicht und
+verlässt das Vollbild nur auf einem einzelnen Bildschirm.
 
 In den letzten fünf Sekunden liegt die Fingeranzeige als nicht interaktive
 Viewport-Ebene über der Presenter-Fläche. Sie gehört weder zur Statuszeile noch

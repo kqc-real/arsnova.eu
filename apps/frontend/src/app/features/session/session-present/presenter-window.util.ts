@@ -50,6 +50,136 @@ export function presenterViewWindowName(sessionCode: string): string {
   return `arsnova-presenter-${normalizeHostSessionCode(sessionCode)}`;
 }
 
+/** Stabiler Name des Host-Tabs, damit der Presenter ihn nach einem Reload wiederfindet. */
+export function hostViewWindowName(sessionCode: string): string {
+  return `arsnova-host-${normalizeHostSessionCode(sessionCode)}`;
+}
+
+export function hostViewUrl(sessionCode: string): string {
+  return resolveLocalizedAppUrl(`/session/${normalizeHostSessionCode(sessionCode)}/host`);
+}
+
+export function presenterDisplayIsExtended(win: Window): boolean {
+  try {
+    return (win.screen as (Screen & { isExtended?: boolean }) | null)?.isExtended === true;
+  } catch {
+    return false;
+  }
+}
+
+export type ReturnToHostOutcome = 'focused' | 'opened' | 'blocked';
+
+/**
+ * Holt das Host-Fenster nach vorn, ohne die Projektion zu schließen.
+ * Auf einem einzelnen Bildschirm endet das Vollbild, damit der Host sichtbar wird.
+ * Bei erweitertem Desktop bleibt das Beamer-Vollbild stehen.
+ */
+export function returnToHostWindow(
+  presenter: Window,
+  sessionCode: string,
+  options: { fullscreen: boolean; exitFullscreen: () => void },
+): ReturnToHostOutcome {
+  if (options.fullscreen && !presenterDisplayIsExtended(presenter)) {
+    options.exitFullscreen();
+  }
+  const name = hostViewWindowName(sessionCode);
+  const hostUrl = hostViewUrl(sessionCode);
+  const opener = presenter.opener;
+  if (opener && opener !== presenter && !opener.closed) {
+    try {
+      opener.name = name;
+    } catch {
+      // Der Name kann gesperrt sein; Fokus über den Opener bleibt möglich.
+    }
+    try {
+      const activated = presenter.open(hostFocusUrl(opener, hostUrl), name) ?? opener;
+      activated.focus();
+      return 'focused';
+    } catch {
+      try {
+        opener.focus();
+        return 'focused';
+      } catch {
+        // Benanntes Fenster als nächster Weg.
+      }
+    }
+  }
+
+  let existing: Window | null;
+  try {
+    existing = presenter.open('', name);
+  } catch {
+    existing = null;
+  }
+  if (
+    existing &&
+    !existing.closed &&
+    existing !== presenter &&
+    isHostLocation(existing, sessionCode)
+  ) {
+    try {
+      const activated = presenter.open(hostFocusUrl(existing, hostUrl), name) ?? existing;
+      activated.focus();
+      return 'focused';
+    } catch {
+      return 'focused';
+    }
+  }
+  if (existing && existing !== presenter && isBlankWindow(existing)) {
+    try {
+      existing.close();
+    } catch {
+      // Leeres Suchfenster bleibt sonst als about:blank liegen.
+    }
+  }
+
+  let opened: Window | null;
+  try {
+    opened = presenter.open(hostUrl, name);
+  } catch {
+    opened = null;
+  }
+  if (!opened || opened.closed || opened === presenter) {
+    return 'blocked';
+  }
+  try {
+    opened.focus();
+  } catch {
+    // Fokus ist optional, das Fenster ist bereits geöffnet.
+  }
+  return 'opened';
+}
+
+function hostFocusUrl(target: Window, hostUrl: string): string {
+  const firstFragment = '#arsnova-host-focus-a';
+  let fragment = firstFragment;
+  try {
+    if (target.location.hash === firstFragment) {
+      fragment = '#arsnova-host-focus-b';
+    }
+  } catch {
+    // Same-Origin-Zugriff kann durch Browserrichtlinien gesperrt sein.
+  }
+  return `${hostUrl}${fragment}`;
+}
+
+function isHostLocation(win: Window, sessionCode: string): boolean {
+  try {
+    const code = normalizeHostSessionCode(sessionCode);
+    return win.location.pathname.includes(`/session/${code}/host`);
+  } catch {
+    return false;
+  }
+}
+
+function isBlankWindow(win: Window): boolean {
+  try {
+    return win.location.href === 'about:blank' || win.location.pathname === 'blank';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Tablets (iPadOS, Chrome/Android) klonen sessionStorage bei `window.open` nicht
  * und ignorieren benannte Fenster oft.
@@ -208,6 +338,11 @@ export async function openPresenterViewWindow(
 ): Promise<Window | null> {
   if (!win) {
     return null;
+  }
+  try {
+    win.name = hostViewWindowName(sessionCode);
+  } catch {
+    // Ohne Namen findet der Presenter den Host nach einem Reload nicht wieder.
   }
 
   const touch = shouldOpenPresenterInUnnamedTab(win);

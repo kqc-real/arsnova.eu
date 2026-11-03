@@ -8,7 +8,6 @@ import {
   inject,
   input,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
 import { paginateProjection, prepareProjectionSource } from './projection-pages.util';
@@ -23,13 +22,6 @@ import { paginateProjection, prepareProjectionSource } from './projection-pages.
       <div #page class="projection-pages__page"></div>
     </div>
     <div #status class="projection-pages__status"></div>
-    <p
-      class="projection-pages__indicator"
-      aria-live="polite"
-      i18n="@@sessionPresent.projectionPage"
-    >
-      Seite {{ visibleIndex() + 1 }} / {{ count() }}
-    </p>
   `,
   styleUrl: './projection-pages.component.scss',
 })
@@ -37,8 +29,6 @@ export class ProjectionPagesComponent implements AfterViewInit {
   readonly pageIndex = input(0);
   readonly pageContext = input('');
   readonly pageCount = output<number>();
-  readonly count = signal(1);
-  readonly visibleIndex = signal(0);
   private readonly source = viewChild.required<ElementRef<HTMLElement>>('source');
   private readonly viewport = viewChild.required<ElementRef<HTMLElement>>('viewport');
   private readonly page = viewChild.required<ElementRef<HTMLElement>>('page');
@@ -150,7 +140,6 @@ export class ProjectionPagesComponent implements AfterViewInit {
         content.scrollWidth <= viewport.clientWidth
       );
     });
-    this.count.set(this.pages.length);
     this.showPage();
     // A provisional short layout must not clamp the saved page while media/fonts reload.
     const resourcesPending =
@@ -166,7 +155,6 @@ export class ProjectionPagesComponent implements AfterViewInit {
   private showPage(): void {
     if (!this.pages.length) return;
     const index = Math.max(0, Math.min(this.pages.length - 1, this.pageIndex()));
-    this.visibleIndex.set(index);
     this.page().nativeElement.replaceChildren(this.pages[index]!.cloneNode(true));
   }
 }

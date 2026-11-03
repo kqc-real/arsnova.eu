@@ -136,6 +136,70 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).not.toContain('Vier');
   });
 
+  it('zeigt den Lesefortschritt und Alle sind bereit nur für die ganze Session', () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'QUESTION_OPEN');
+    fixture.componentRef.setInput('participantCount', 4);
+    fixture.componentRef.setInput('readingReady', {
+      readyCount: 2,
+      connectedCount: 3,
+      allConnectedReady: false,
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('2 von 4 bereit');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
+
+    fixture.componentRef.setInput('readingReady', {
+      readyCount: 3,
+      connectedCount: 3,
+      allConnectedReady: true,
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
+
+    fixture.componentRef.setInput('readingReady', {
+      readyCount: 4,
+      connectedCount: 4,
+      allConnectedReady: true,
+    });
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')?.textContent,
+    ).toContain('Alle sind bereit');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-reading-progress"]'),
+    ).toBeNull();
+  });
+
+  it('wechselt die Phase auf Abstimmung beendet und markiert volle Abstimmung', () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.componentRef.setInput('participantCount', 3);
+    fixture.componentRef.setInput('countdownSeconds', 0);
+    fixture.componentRef.setInput('voteProgress', {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 2,
+    });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Abstimmung beendet');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-voted"]')).toBeNull();
+
+    fixture.componentRef.setInput('voteProgress', {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+    });
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-all-voted"]')?.textContent,
+    ).toContain('Alle haben abgestimmt');
+  });
+
   it('blendet optionale Impulse in der Lesephase aus', () => {
     fixture.componentRef.setInput(
       'question',

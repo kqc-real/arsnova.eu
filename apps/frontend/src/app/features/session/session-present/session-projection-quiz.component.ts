@@ -21,6 +21,7 @@ import type {
   LeaderboardEntryDTO,
   NumericRoundComparisonDTO,
   NumericStatsDTO,
+  ReadingReadyStatusDTO,
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
@@ -53,6 +54,11 @@ import {
   ratingScaleValues,
   stableSeededShuffle,
 } from './session-projection-quiz.util';
+import {
+  presenterAllHaveVoted,
+  presenterAllSessionReady,
+  presenterVotingClosed,
+} from './presenter-quiz-controls.util';
 
 type PresenterEmojiReactions = {
   reactions: Record<string, number>;
@@ -99,6 +105,7 @@ export class SessionProjectionQuizComponent {
   readonly status = input<SessionInfoDTO['status'] | null>(null);
   readonly voteProgress = input<HostVoteProgressDTO | null>(null);
   readonly participantCount = input(0);
+  readonly readingReady = input<ReadingReadyStatusDTO | null>(null);
   readonly countdownSeconds = input<number | null>(null);
   readonly emojiReactions = input<PresenterEmojiReactions | null>(null);
   readonly leaderboard = input<LeaderboardEntryDTO[]>([]);
@@ -193,6 +200,37 @@ export class SessionProjectionQuizComponent {
       return 0;
     }
     return Math.max(0, Math.min(100, Math.round((this.liveVoteCount() / participants) * 100)));
+  });
+  readonly allHaveVoted = computed(() =>
+    presenterAllHaveVoted(
+      this.status(),
+      this.question(),
+      this.voteProgress(),
+      this.participantCount(),
+    ),
+  );
+  readonly votingClosed = computed(() =>
+    presenterVotingClosed(
+      this.status(),
+      this.question(),
+      this.voteProgress(),
+      this.participantCount(),
+      this.countdownSeconds(),
+    ),
+  );
+  readonly allSessionReady = computed(() =>
+    presenterAllSessionReady(this.status(), this.readingReady(), this.participantCount()),
+  );
+  readonly readingProgressLabel = computed(() => {
+    if (!this.isReadingPhase() || this.allSessionReady()) {
+      return null;
+    }
+    const ready = this.readingReady();
+    const total = this.participantCount();
+    if (!ready || total <= 0) {
+      return null;
+    }
+    return $localize`:@@sessionHost.readingReadyProgressAll:${ready.readyCount}:readyCount: von ${total}:connectedCount: bereit`;
   });
 
   readonly showChoiceAnswers = computed(() => {
@@ -520,6 +558,9 @@ export class SessionProjectionQuizComponent {
       return $localize`:@@sessionPresent.quizPhaseReading:Lesephase`;
     }
     if (status === 'ACTIVE') {
+      if (this.votingClosed()) {
+        return $localize`:@@sessionPresent.quizPhaseVotingClosed:Abstimmung beendet`;
+      }
       return $localize`:@@sessionPresent.quizPhaseVoting:Abstimmung`;
     }
     if (status === 'DISCUSSION') {
