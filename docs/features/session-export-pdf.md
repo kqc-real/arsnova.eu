@@ -44,6 +44,7 @@ rekonstruiert.
 - **Primär:** **Nachbesprechungsplan ansehen** — öffnet das Server-PDF via `getSessionExportPdf` (Profil `visual`) in einem neuen Tab
 - **Unter Exportieren:** Standard-PDF (mit Diagrammen), barrierearmes PDF/UA und Rohdaten-CSV — jeweils als Download
 - Blockiertes Ansehen-Popup fällt auf denselben Download zurück
+- Vor dem Abruf erneuert die Ansicht den Host-Zugang. Ist das nicht möglich und der Zugang abgelaufen, weist der Hinweis auf die Quizsammlung.
 
 Fallback, falls das Server-PDF scheitert: Browser-Druckdialog über dasselbe HTML (`printSessionResultsReport`) — ohne eigene Vorschau-UI.
 
@@ -54,7 +55,7 @@ Nach mindestens einem beendeten Live-Durchlauf:
 - **Nachbesprechung** — kompakter Dialog mit Lernstand, Prioritäten und Teilnehmer-Feedback
 - **Ergebnisbericht (PDF)** — derselbe Bericht wie in der Host-Ansicht, aus der Session-Historie
 
-Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachweis über `accessProof`); Session-ID und Session-Code werden in der Sammlung nicht angezeigt.
+Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachweis über `accessProof`); Session-ID und Session-Code werden in der Sammlung nicht angezeigt. Scheitert nur das Server-PDF, öffnet die Sammlung den Browser-Druck aus den bereits geladenen Exportdaten und fällt nicht auf den host-only-Endpunkt `getSessionExportPdf` zurück. Eine fehlgeschlagene Verfügbarkeitsabfrage lässt den letzten erfolgreichen Stand der Karte stehen.
 
 ## Berichtsstruktur
 

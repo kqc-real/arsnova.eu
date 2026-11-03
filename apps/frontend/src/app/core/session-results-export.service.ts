@@ -61,7 +61,8 @@ export class SessionResultsExportService {
         });
         return this.deliverPdf(pdf, options?.disposition ?? 'download', viewPlaceholder);
       } catch {
-        return await this.exportPdfFromExportData(exportData, options, viewPlaceholder);
+        // Sammlung hat kein Host-Token. Liegen die Daten schon vor, bleibt nur der Browser-Druck.
+        return await this.deliverPrintFallback(exportData, profile, viewPlaceholder);
       }
     } catch (error) {
       this.closeViewPlaceholder(viewPlaceholder);
@@ -87,17 +88,25 @@ export class SessionResultsExportService {
       });
       return this.deliverPdf(pdf, options?.disposition ?? 'download', viewPlaceholder);
     } catch {
-      // Print-Fallback öffnet ein eigenes Fenster — Placeholder wieder schließen.
-      this.closeViewPlaceholder(viewPlaceholder);
-      const html = await this.buildPrintableReportHtml(exportData, profile);
-      const labels = getSessionResultsReportLabels();
-      const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
-      const opened = printSessionResultsReport(html, documentTitle);
-      if (!opened) {
-        throw new Error('print window blocked');
-      }
-      return 'print-fallback';
+      return await this.deliverPrintFallback(exportData, profile, viewPlaceholder);
     }
+  }
+
+  private async deliverPrintFallback(
+    exportData: SessionExportDTO,
+    profile: SessionResultsPdfProfile,
+    viewPlaceholder: Window | null,
+  ): Promise<SessionResultsPdfExportResult> {
+    // Print-Fallback öffnet ein eigenes Fenster — Placeholder wieder schließen.
+    this.closeViewPlaceholder(viewPlaceholder);
+    const html = await this.buildPrintableReportHtml(exportData, profile);
+    const labels = getSessionResultsReportLabels();
+    const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
+    const opened = printSessionResultsReport(html, documentTitle);
+    if (!opened) {
+      throw new Error('print window blocked');
+    }
+    return 'print-fallback';
   }
 
   private async buildPrintableReportHtml(

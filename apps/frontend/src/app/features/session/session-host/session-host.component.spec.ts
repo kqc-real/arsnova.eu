@@ -23,7 +23,11 @@ import { SessionHostComponent } from './session-host.component';
 import { SessionExpirationDialogComponent } from './session-expiration-dialog.component';
 import { HostRecoveryCardDialogComponent } from '../host-recovery/host-recovery-card-dialog.component';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
-import { persistInitialHostRecovery } from '../../../core/host-recovery-access';
+import {
+  clearHostBrowserCapability,
+  persistInitialHostRecovery,
+  storeHostBrowserCapability,
+} from '../../../core/host-recovery-access';
 import { ConfirmLeaveDialogComponent } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
@@ -224,6 +228,7 @@ const {
   closeQuickFeedbackChannelMutateMock,
   reopenQuickFeedbackChannelMutateMock,
   endMutateMock,
+  issueHostAccessTokenMutateMock,
   dismissFinishProjectionMutateMock,
   quickFeedbackHostResultsQueryMock,
   quickFeedbackOnHostResultsSubscribeMock,
@@ -294,6 +299,7 @@ const {
   closeQuickFeedbackChannelMutateMock: vi.fn(),
   reopenQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
+  issueHostAccessTokenMutateMock: vi.fn(),
   dismissFinishProjectionMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackOnHostResultsSubscribeMock: vi.fn((_input: never, _opts: never) => ({
@@ -371,6 +377,7 @@ vi.mock('../../../core/trpc.client', () => ({
       closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
       reopenQuickFeedbackChannel: { mutate: reopenQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
+      issueHostAccessToken: { mutate: issueHostAccessTokenMutateMock },
       dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       listPairedHosts: { query: listPairedHostsQueryMock },
@@ -419,6 +426,7 @@ vi.mock('../../../core/host-session-token', () => ({
   getHostSessionRole: () => null,
   hasHostToken: () => true,
   normalizeHostSessionCode: (code: string) => code.trim().toUpperCase(),
+  setHostToken: vi.fn(),
 }));
 
 const defaultSession = {
@@ -933,6 +941,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     qaToggleModerationMutateMock.mockResolvedValue({ enabled: true });
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(true) });
+    issueHostAccessTokenMutateMock.mockResolvedValue({
+      hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+      hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+    });
+    clearHostBrowserCapability('ABC123');
     getExportDataQueryMock.mockResolvedValue({
       sessionId: defaultSession.id,
       sessionCode: 'ABC123',
@@ -25937,6 +25950,78 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.detectChanges();
 
       expect(fixture.componentInstance.hostSteeringCallout()?.title).toContain(exportCalloutTitle);
+      fixture.destroy();
+    });
+
+    it('erneuert den Host-Zugang und wiederholt den PDF-Export nach UNAUTHORIZED', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      const unauthorized = { data: { code: 'UNAUTHORIZED' } };
+      const exportPlan = vi
+        .spyOn(TestBed.inject(SessionResultsExportService), 'exportPdfFromSessionCode')
+        .mockRejectedValueOnce(unauthorized)
+        .mockResolvedValueOnce('pdf-view');
+
+      await fixture.componentInstance.exportSessionResultsPdf('visual', 'view');
+      fixture.detectChanges();
+
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      });
+      expect(exportPlan).toHaveBeenCalledTimes(2);
+      expect(fixture.componentInstance.exportStatus()).toBe('Nachbesprechungsplan geöffnet.');
+      expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+      clearHostBrowserCapability('ABC123');
+      fixture.destroy();
+    });
+
+    it('wiederholt den CSV-Export einmal, nachdem der Host-Zugang erneuert wurde', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      getExportDataQueryMock.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(getExportDataQueryMock).toHaveBeenCalledTimes(2);
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
+      expect(click).toHaveBeenCalled();
+      expect(fixture.componentInstance.exportStatus()).toBe('Ergebnis-CSV exportiert.');
+      expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+      click.mockRestore();
+      clearHostBrowserCapability('ABC123');
+      fixture.destroy();
+    });
+
+    it('zeigt ohne erneuerbaren Host-Zugang keinen Retry-Callout', async () => {
+      getExportDataQueryMock.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      issueHostAccessTokenMutateMock.mockClear();
+      fixture.componentInstance.isPairedHostClient.set(true);
+
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(getExportDataQueryMock).toHaveBeenCalledTimes(1);
+      expect(issueHostAccessTokenMutateMock).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.hostSteeringCallout()?.title).toBe('Host-Zugang abgelaufen');
+      expect(fixture.componentInstance.hostSteeringCallout()?.retry).toBeUndefined();
+      expect(calloutEl(fixture)?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+      expect(calloutEl(fixture)?.textContent ?? '').toContain('Nachbesprechungsplan ansehen');
       fixture.destroy();
     });
 
