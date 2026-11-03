@@ -1142,7 +1142,8 @@ export class QuizListComponent implements OnInit {
       if (requestId !== this.quizHistoryAvailabilityRequestId) {
         return;
       }
-      this.quizHistoryAvailability.set(new Map());
+      // Ein fehlgeschlagener Abruf lässt die letzte erfolgreiche Verfügbarkeit stehen.
+      // Sonst verschwindet »Nachbesprechungsplan ansehen« auf Karten mit beendeter Session.
     }
   }
 

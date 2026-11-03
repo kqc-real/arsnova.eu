@@ -23,7 +23,11 @@ import { SessionHostComponent } from './session-host.component';
 import { SessionExpirationDialogComponent } from './session-expiration-dialog.component';
 import { HostRecoveryCardDialogComponent } from '../host-recovery/host-recovery-card-dialog.component';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
-import { persistInitialHostRecovery } from '../../../core/host-recovery-access';
+import {
+  clearHostBrowserCapability,
+  persistInitialHostRecovery,
+  storeHostBrowserCapability,
+} from '../../../core/host-recovery-access';
 import { ConfirmLeaveDialogComponent } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
@@ -224,6 +228,7 @@ const {
   closeQuickFeedbackChannelMutateMock,
   reopenQuickFeedbackChannelMutateMock,
   endMutateMock,
+  issueHostAccessTokenMutateMock,
   dismissFinishProjectionMutateMock,
   quickFeedbackHostResultsQueryMock,
   quickFeedbackOnHostResultsSubscribeMock,
@@ -294,6 +299,7 @@ const {
   closeQuickFeedbackChannelMutateMock: vi.fn(),
   reopenQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
+  issueHostAccessTokenMutateMock: vi.fn(),
   dismissFinishProjectionMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
   quickFeedbackOnHostResultsSubscribeMock: vi.fn((_input: never, _opts: never) => ({
@@ -371,6 +377,7 @@ vi.mock('../../../core/trpc.client', () => ({
       closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
       reopenQuickFeedbackChannel: { mutate: reopenQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
+      issueHostAccessToken: { mutate: issueHostAccessTokenMutateMock },
       dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       listPairedHosts: { query: listPairedHostsQueryMock },
@@ -419,6 +426,7 @@ vi.mock('../../../core/host-session-token', () => ({
   getHostSessionRole: () => null,
   hasHostToken: () => true,
   normalizeHostSessionCode: (code: string) => code.trim().toUpperCase(),
+  setHostToken: vi.fn(),
 }));
 
 const defaultSession = {
@@ -933,6 +941,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     qaToggleModerationMutateMock.mockResolvedValue({ enabled: true });
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(true) });
+    issueHostAccessTokenMutateMock.mockResolvedValue({
+      hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+      hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+    });
+    clearHostBrowserCapability('ABC123');
     getExportDataQueryMock.mockResolvedValue({
       sessionId: defaultSession.id,
       sessionCode: 'ABC123',
@@ -5517,7 +5530,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await fixture.componentInstance.ngOnInit();
       expect(enableQuickFeedbackChannelMutateMock).not.toHaveBeenCalled();
       expect(scenario.hasQuickFeedbackAfterQa('ABC123')).toBe(true);
-      fixture.componentInstance.hostSteeringCallout()?.retry();
+      fixture.componentInstance.hostSteeringCallout()?.retry?.();
       await vi.waitFor(() => expect(scenario.hasQuickFeedbackAfterQa('ABC123')).toBe(false));
       expect(startQaMutateMock).toHaveBeenCalledTimes(2);
       expect(enableQuickFeedbackChannelMutateMock).toHaveBeenCalledOnce();
@@ -6531,7 +6544,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.hostSteeringCallout()).not.toBeNull();
 
-    fixture.componentInstance.hostSteeringCallout()?.retry();
+    fixture.componentInstance.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => attachQuizToSessionMutateMock.mock.calls.length === 2);
     await fixture.whenStable();
 
@@ -10563,7 +10576,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     expect(component.hostSteeringCallout()).not.toBeNull();
 
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 2);
 
     const [, repeatedConfig] = dialogOpenMock.mock.calls[1] as [
@@ -10628,7 +10641,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     rejectReload = false;
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => component.hostSteeringCallout() === null);
 
     expect(component.qaQuestions()).toEqual(pendingSnapshot.questions);
@@ -11351,7 +11364,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     rejectUnfilteredReload = false;
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
 
     expect(component.qaQuestions()[0]?.text).toBe('Sichtbare Frage');
@@ -25940,6 +25953,201 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
+    it('erneuert den Host-Zugang und wiederholt den PDF-Export nach UNAUTHORIZED', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      const service = TestBed.inject(SessionResultsExportService);
+      const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
+      vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
+      const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
+      const issued = {
+        hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+        hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+      };
+      const releaseRenewal: Array<(value: typeof issued) => void> = [];
+      issueHostAccessTokenMutateMock.mockImplementation(
+        () =>
+          new Promise<typeof issued>((resolve) => {
+            releaseRenewal.push(resolve);
+          }),
+      );
+      const unauthorized = { data: { code: 'UNAUTHORIZED' } };
+      const exportPlan = vi
+        .spyOn(service, 'exportPdfFromSessionCode')
+        .mockRejectedValueOnce(unauthorized)
+        .mockResolvedValueOnce('pdf-view');
+
+      const pending = fixture.componentInstance.exportSessionResultsPdf('visual', 'view');
+      await Promise.resolve();
+
+      expect(service.openViewPlaceholder).toHaveBeenCalledOnce();
+      expect(releaseRenewal).toHaveLength(1);
+      expect(exportPlan).not.toHaveBeenCalled();
+      expect(closePlaceholder).not.toHaveBeenCalled();
+
+      releaseRenewal[0]?.(issued);
+      await vi.waitUntil(() => releaseRenewal.length === 2);
+      expect(exportPlan).toHaveBeenCalledTimes(1);
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        1,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(closePlaceholder).not.toHaveBeenCalled();
+
+      releaseRenewal[1]?.(issued);
+      await pending;
+      fixture.detectChanges();
+
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      });
+      expect(exportPlan).toHaveBeenCalledTimes(2);
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        2,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(closePlaceholder).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.exportStatus()).toBe('Nachbesprechungsplan geöffnet.');
+      expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+      clearHostBrowserCapability('ABC123');
+      fixture.destroy();
+    });
+
+    it('wiederholt den CSV-Export einmal, nachdem der Host-Zugang erneuert wurde', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      getExportDataQueryMock.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(getExportDataQueryMock).toHaveBeenCalledTimes(2);
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
+      expect(click).toHaveBeenCalled();
+      expect(fixture.componentInstance.exportStatus()).toBe('Ergebnis-CSV exportiert.');
+      expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+      click.mockRestore();
+      clearHostBrowserCapability('ABC123');
+      fixture.destroy();
+    });
+
+    it('zeigt ohne erneuerbaren Host-Zugang keinen Retry-Callout', async () => {
+      getExportDataQueryMock.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      issueHostAccessTokenMutateMock.mockClear();
+      fixture.componentInstance.isPairedHostClient.set(true);
+
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(getExportDataQueryMock).toHaveBeenCalledTimes(1);
+      expect(issueHostAccessTokenMutateMock).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.hostSteeringCallout()?.title).toBe('Host-Zugang abgelaufen');
+      expect(fixture.componentInstance.hostSteeringCallout()?.retry).toBeUndefined();
+      expect(calloutEl(fixture)?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+      expect(calloutEl(fixture)?.textContent ?? '').toContain('Nachbesprechungsplan ansehen');
+      fixture.destroy();
+    });
+
+    it('führt Pending, Erfolg und Fehler des Nachbesprechungsplans im DOM', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.statusUpdate.set({
+        status: 'FINISHED',
+        currentQuestion: null,
+      });
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      const host = fixture.nativeElement as HTMLElement;
+      const planButton = host.querySelector<HTMLButtonElement>('.session-host__export-pdf-btn');
+      expect(planButton).not.toBeNull();
+      const service = TestBed.inject(SessionResultsExportService);
+      vi.spyOn(service, 'openViewPlaceholder').mockReturnValue({
+        closed: false,
+        close: vi.fn(),
+      } as unknown as Window);
+      let resolveExport!: (result: 'pdf-view') => void;
+      const exportPlan = vi.spyOn(service, 'exportPdfFromSessionCode').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveExport = resolve;
+          }),
+      );
+
+      planButton!.focus();
+      planButton!.click();
+      fixture.detectChanges();
+
+      expect(planButton!.getAttribute('aria-busy')).toBe('true');
+      expect(planButton!.getAttribute('aria-disabled')).toBe('true');
+      expect(document.activeElement).toBe(planButton);
+      expect(host.querySelector('.session-host__export-progress')?.textContent).toContain(
+        'Wird exportiert…',
+      );
+      expect(host.querySelector('#host-steering-callout')).toBeNull();
+
+      resolveExport('pdf-view');
+      await vi.waitUntil(() => !fixture.componentInstance.exportExporting(), {
+        timeout: 1000,
+        interval: 10,
+      });
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(planButton);
+      expect(planButton!.getAttribute('aria-disabled')).not.toBe('true');
+      expect(planButton!.getAttribute('aria-busy')).not.toBe('true');
+      expect(host.querySelector('.session-host__export-progress')).toBeNull();
+      expect(host.textContent).toContain('Nachbesprechungsplan geöffnet.');
+      expect(host.querySelector('#host-steering-callout')).toBeNull();
+
+      exportPlan.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+      planButton!.focus();
+      planButton!.click();
+      fixture.detectChanges();
+      expect(planButton!.getAttribute('aria-busy')).toBe('true');
+      expect(document.activeElement).toBe(planButton);
+
+      await vi.waitUntil(() => fixture.componentInstance.hostSteeringCallout() !== null, {
+        timeout: 1000,
+        interval: 10,
+      });
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+
+      const callout = host.querySelector<HTMLElement>('#host-steering-callout');
+      expect(callout?.getAttribute('role')).toBe('alert');
+      expect(callout?.textContent).toContain('Host-Zugang abgelaufen');
+      expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+      const dismiss = Array.from(callout?.querySelectorAll('button') ?? []).find((button) =>
+        button.textContent?.includes('Okay'),
+      );
+      expect(dismiss?.isConnected).toBe(true);
+      expect(callout?.getAttribute('tabindex')).toBe('-1');
+      expect(callout?.isConnected).toBe(true);
+      expect(document.activeElement).toBe(callout);
+      expect(planButton!.isConnected).toBe(true);
+      expect(planButton!.getAttribute('aria-busy')).not.toBe('true');
+      expect(planButton!.disabled).toBe(false);
+      fixture.destroy();
+    });
+
     it('exportiert alle Q&A-Fragen als CSV mit den in der Host-UI sichtbaren Attributen', async () => {
       let exportedCsv = '';
       const createObjectURLMock = vi.fn(() => 'blob:test-export');
@@ -27784,7 +27992,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         currentQuestion: 0,
         currentRound: 1,
       });
-      component.hostSteeringCallout()?.retry();
+      component.hostSteeringCallout()?.retry?.();
       await vi.waitFor(() => expect(showQuestionResultMutateMock).toHaveBeenCalledTimes(2));
       fixture.destroy();
     });

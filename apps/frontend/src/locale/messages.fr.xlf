@@ -24549,6 +24549,22 @@
           <context context-type="linenumber">6909</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportAccessTitle" datatype="html">
+        <source>Host-Zugang abgelaufen</source>
+        <target>Accès hôte expiré</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">7680</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportAccessBody" datatype="html">
+        <source>PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.</source>
+        <target>Le PDF et le CSV exigent ici un accès hôte valide. Tu trouves le plan de débriefing dans la collection via « Voir le plan de débriefing ».</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">7681</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportConflictTitle" datatype="html">
         <source>Fragenwand hat sich geändert</source>
         <target>Le mur de questions a changé</target>

@@ -141,22 +141,24 @@
           <p class="session-host__steering-callout-text">{{ steer.body }}</p>
         </div>
         <div class="session-host__steering-callout-actions">
-          <button
-            mat-flat-button
-            color="warn"
-            type="button"
-            data-testid="host-steering-retry"
-            [attr.aria-disabled]="
-              qaQuickFeedbackPending() || channelNavigationBusy() ? 'true' : null
-            "
-            (click)="steer.retry()"
-          >
-            @if (steer.retryLabel) {
-              {{ steer.retryLabel }}
-            } @else {
-              <span i18n="@@sessionHost.steeringCalloutRetry">Nochmal probieren</span>
-            }
-          </button>
+          @if (steer.retry; as retry) {
+            <button
+              mat-flat-button
+              color="warn"
+              type="button"
+              data-testid="host-steering-retry"
+              [attr.aria-disabled]="
+                qaQuickFeedbackPending() || channelNavigationBusy() ? 'true' : null
+              "
+              (click)="retry()"
+            >
+              @if (steer.retryLabel) {
+                {{ steer.retryLabel }}
+              } @else {
+                <span i18n="@@sessionHost.steeringCalloutRetry">Nochmal probieren</span>
+              }
+            </button>
+          }
           <a
             mat-stroked-button
             [attr.href]="hostSteeringCalloutReloadHref()"

@@ -39,4 +39,16 @@ describe('session-results-report-print.util', () => {
     expect(printWindow.document.write).toHaveBeenCalled();
     expect(printWindow.print).toHaveBeenCalled();
   });
+
+  it('schreibt in ein bereits reserviertes Fenster und öffnet kein zweites', () => {
+    const printWindow = mockWritableWindow();
+    const openSpy = vi.spyOn(window, 'open');
+
+    expect(
+      printSessionResultsReport('<html><body><p>PDF</p></body></html>', 'Titel', printWindow),
+    ).toBe(true);
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(printWindow.document.write).toHaveBeenCalled();
+    expect(printWindow.print).toHaveBeenCalled();
+  });
 });

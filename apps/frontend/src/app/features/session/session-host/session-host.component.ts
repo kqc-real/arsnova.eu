@@ -654,7 +654,7 @@ const ALL_MUSIC_TRACK_VALUES = new Set(ALL_MUSIC_TRACKS.map((t) => t.value));
 type HostSteeringCalloutState = {
   title: string;
   body: string;
-  retry: () => void;
+  retry?: () => void;
   retryLabel?: string;
   errorRequestId: string;
   suggestedArea: ProductFeedbackInAppArea;
@@ -7627,6 +7627,64 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       retry,
       errorRequestId: 'host.qa:failed',
       suggestedArea: 'QA',
+    });
+    this.scrollHostSteeringCalloutIntoView();
+  }
+
+  private canRenewHostAccess(): boolean {
+    return !this.isPairedHostClient() && getHostBrowserCapability(this.code) !== null;
+  }
+
+  private isTrpcUnauthorizedError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+    if ('data' in error && error.data && typeof error.data === 'object' && 'code' in error.data) {
+      return error.data.code === 'UNAUTHORIZED';
+    }
+    if ('code' in error && error.code === 'UNAUTHORIZED') {
+      return true;
+    }
+    return error instanceof Error && error.message.startsWith('UNAUTHORIZED');
+  }
+
+  /**
+   * Ergebnis-Export bleibt an den 15-Minuten-Host-Token gebunden.
+   * Vor dem Abruf und genau einmal nach UNAUTHORIZED erneuern, wenn das Gerät
+   * die Browser-Capability noch hat. Gekoppelte Hosts erneuern nicht.
+   */
+  private async withRenewedHostAccess<T>(run: () => Promise<T>): Promise<T> {
+    const renewal = this.refreshDurableHostAccess();
+    // Ohne Capability ist die Erneuerung ein leeres Promise. Darauf zu warten
+    // würde den Export um einen Tick verzögern, obwohl sich der Zugang nicht ändert.
+    if (this.hostAccessRefreshInFlight) {
+      await renewal;
+    }
+    try {
+      return await run();
+    } catch (error) {
+      if (!this.isTrpcUnauthorizedError(error) || !this.canRenewHostAccess()) {
+        throw error;
+      }
+      await this.refreshDurableHostAccess();
+      return await run();
+    }
+  }
+
+  private handleHostResultsExportError(error: unknown, retry: () => void): void {
+    if (this.isTrpcUnauthorizedError(error) && !this.canRenewHostAccess()) {
+      this.openHostSteeringCalloutForExpiredHostAccess();
+      return;
+    }
+    this.openHostSteeringCalloutForExportFailure(retry);
+  }
+
+  private openHostSteeringCalloutForExpiredHostAccess(): void {
+    this.hostSteeringCallout.set({
+      title: $localize`:@@sessionHost.steeringCalloutExportAccessTitle:Host-Zugang abgelaufen`,
+      body: $localize`:@@sessionHost.steeringCalloutExportAccessBody:PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.`,
+      errorRequestId: 'host.export:access-expired',
+      suggestedArea: 'PDF_OR_EXPORT',
     });
     this.scrollHostSteeringCalloutIntoView();
   }
@@ -15113,10 +15171,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async exportSessionResultsCsv(): Promise<void> {
     if (!this.code || this.exportExporting()) return;
+    const code = this.code;
     this.exportStatus.set(null);
     this.exportExporting.set(true);
     try {
-      const data = await trpc.session.getExportData.query({ code: this.code.toUpperCase() });
+      const data = await this.withRenewedHostAccess(() =>
+        trpc.session.getExportData.query({ code: code.toUpperCase() }),
+      );
       const rows: string[] = [
         $localize`:@@sessionHost.exportQuestionsHeader:Frage Nr.;Fragentext;Typ;Teilnehmende;Aggregationsrunde;Ø Punkte;Selbsteinschätzung n;Gefestigt;Fehlkonzept-Hinweis;Fragil;Erkannte Wissenslücke;Unentschieden;Häufigste selbstsicher falsche Antwort;Details`,
       ];
@@ -15228,8 +15289,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.downloadCsvExport(rows, buildSessionResultsCsvFilename(data.quizName, data.sessionCode));
       this.exportStatus.set($localize`:@@sessionHost.exportCsvDone:Ergebnis-CSV exportiert.`);
       this.dismissHostSteeringCallout();
-    } catch {
-      this.openHostSteeringCalloutForExportFailure(() => void this.exportSessionResultsCsv());
+    } catch (error) {
+      this.handleHostResultsExportError(error, () => void this.exportSessionResultsCsv());
     } finally {
       this.exportExporting.set(false);
     }
@@ -15258,18 +15319,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     disposition: SessionResultsPdfDisposition = 'download',
   ): Promise<void> {
     if (!this.code || this.exportExporting()) return;
+    const code = this.code;
+    // Vor jedem Await: sonst blockiert der Browser den Ansehen-Tab nach der Token-Erneuerung.
+    const viewPlaceholder =
+      disposition === 'view' ? this.sessionResultsExport.openViewPlaceholder() : undefined;
     this.exportStatus.set(null);
     this.exportExporting.set(true);
     try {
-      const result = await this.sessionResultsExport.exportPdfFromSessionCode(this.code, {
-        profile,
-        disposition,
-        onLargeReportHint: (questionCount) => {
-          this.exportStatus.set(
-            $localize`:@@sessionHost.exportPdfGeneratingLarge:PDF wird erstellt (${questionCount} Fragen)…`,
-          );
-        },
-      });
+      const result = await this.withRenewedHostAccess(() =>
+        this.sessionResultsExport.exportPdfFromSessionCode(code, {
+          profile,
+          disposition,
+          viewPlaceholder,
+          onLargeReportHint: (questionCount) => {
+            this.exportStatus.set(
+              $localize`:@@sessionHost.exportPdfGeneratingLarge:PDF wird erstellt (${questionCount} Fragen)…`,
+            );
+          },
+        }),
+      );
       this.exportStatus.set(
         result === 'pdf-view'
           ? $localize`:@@sessionHost.exportPdfViewDone:Nachbesprechungsplan geöffnet.`
@@ -15278,8 +15346,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             : $localize`:@@sessionHost.exportPdfPrintDone:Ergebnis-PDF zum Speichern geöffnet.`,
       );
       this.dismissHostSteeringCallout();
-    } catch {
-      this.openHostSteeringCalloutForExportFailure(
+    } catch (error) {
+      if (viewPlaceholder) {
+        this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
+      }
+      this.handleHostResultsExportError(
+        error,
         () => void this.exportSessionResultsPdf(profile, disposition),
       );
     } finally {

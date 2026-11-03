@@ -1210,6 +1210,64 @@ describe('QuizListComponent', () => {
     expect(pdfButton?.disabled).toBe(false);
   });
 
+  it('behält die Nachbesprechung, wenn die Verfügbarkeitsabfrage später scheitert', async () => {
+    const quiz = {
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    };
+    quizzesSignal.set([quiz]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        hasBonusTokens: true,
+        hasLastSessionAnalysis: true,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+
+    expect(
+      fixture.componentInstance
+        .quizHistoryAvailability()
+        .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
+    ).toEqual({
+      hasBonusTokens: true,
+      hasLastSessionAnalysis: true,
+    });
+
+    getQuizCollectionHistoryAvailabilityQueryMock.mockRejectedValueOnce(new Error('network'));
+    quizzesSignal.set([{ ...quiz, updatedAt: '2026-03-08T12:00:00.000Z' }]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+
+    expect(
+      fixture.componentInstance
+        .quizHistoryAvailability()
+        .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
+    ).toEqual({
+      hasBonusTokens: true,
+      hasLastSessionAnalysis: true,
+    });
+    const pdfButton = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-list-item__actions button'),
+    ).find((button) => (button as HTMLButtonElement).textContent?.includes('Nachbesprechungsplan'));
+    expect((pdfButton as HTMLButtonElement | undefined)?.disabled).toBe(false);
+  });
+
   it('migriert Legacy-Scopes und gibt bei fehlgeschlagenem Bind keinen Legacy-Proof weiter', async () => {
     quizzesSignal.set([
       {

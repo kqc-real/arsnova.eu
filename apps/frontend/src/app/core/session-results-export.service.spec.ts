@@ -8,6 +8,8 @@ vi.mock('./trpc.client', () => ({
     session: {
       getExportData: { query: vi.fn() },
       getSessionExportPdf: { query: vi.fn() },
+      getLastSessionExportDataForQuiz: { query: vi.fn() },
+      getLastSessionExportPdfForQuiz: { query: vi.fn() },
     },
   },
 }));
@@ -57,6 +59,8 @@ describe('SessionResultsExportService', () => {
     });
     vi.mocked(trpc.session.getExportData.query).mockResolvedValue(exportData);
     vi.mocked(trpc.session.getSessionExportPdf.query).mockResolvedValue(pdf);
+    vi.mocked(trpc.session.getLastSessionExportDataForQuiz.query).mockResolvedValue(exportData);
+    vi.mocked(trpc.session.getLastSessionExportPdfForQuiz.query).mockResolvedValue(pdf);
     TestBed.configureTestingModule({
       providers: [SessionResultsExportService],
     });
@@ -116,6 +120,79 @@ describe('SessionResultsExportService', () => {
     expect(revokeObjectURL).not.toHaveBeenCalled();
   });
 
+  it('navigiert einen mitgegebenen Ansehen-Tab und öffnet keinen zweiten', async () => {
+    const opened = {
+      opener: {} as Window,
+      closed: false,
+      document: { title: '' },
+      location: { assign: vi.fn() },
+      close: vi.fn(),
+    };
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromSessionCode('ABC123', {
+        profile: 'visual',
+        disposition: 'view',
+        viewPlaceholder: opened as unknown as Window,
+      }),
+    ).resolves.toBe('pdf-view');
+    expect(open).not.toHaveBeenCalled();
+    expect(opened.location.assign).toHaveBeenCalledWith('blob:pdf');
+    expect(opened.close).not.toHaveBeenCalled();
+  });
+
+  it('lässt einen mitgegebenen Ansehen-Tab offen, wenn der Abruf scheitert', async () => {
+    const opened = { closed: false, close: vi.fn() };
+    vi.mocked(trpc.session.getExportData.query).mockRejectedValueOnce(new Error('UNAUTHORIZED'));
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromSessionCode('ABC123', {
+        disposition: 'view',
+        viewPlaceholder: opened as unknown as Window,
+      }),
+    ).rejects.toThrow('UNAUTHORIZED');
+    expect(open).not.toHaveBeenCalled();
+    expect(opened.close).not.toHaveBeenCalled();
+  });
+
+  it('druckt in den reservierten Ansehen-Tab, wenn das Server-PDF scheitert', async () => {
+    vi.mocked(trpc.session.getSessionExportPdf.query).mockRejectedValueOnce(
+      new Error('pdf worker down'),
+    );
+    const printWindow = {
+      opener: {},
+      closed: false,
+      document: {
+        readyState: 'complete',
+        title: '',
+        open: vi.fn(),
+        write: vi.fn(),
+        close: vi.fn(),
+      },
+      focus: vi.fn(),
+      print: vi.fn(),
+      close: vi.fn(),
+    };
+    const open = vi.spyOn(window, 'open');
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromSessionCode('ABC123', {
+        profile: 'visual',
+        disposition: 'view',
+        viewPlaceholder: printWindow as unknown as Window,
+      }),
+    ).resolves.toBe('print-fallback');
+    expect(open).not.toHaveBeenCalled();
+    expect(printWindow.document.write).toHaveBeenCalled();
+    expect(printWindow.print).toHaveBeenCalledOnce();
+    expect(printWindow.close).not.toHaveBeenCalled();
+  });
+
   it('fällt auf den Download zurück, wenn das Ansehen-Popup blockiert ist', async () => {
     vi.spyOn(window, 'open').mockReturnValue(null);
     const click = vi
@@ -152,5 +229,39 @@ describe('SessionResultsExportService', () => {
     ).resolves.toBe('pdf-download');
     expect(opened.close).toHaveBeenCalledOnce();
     expect(click).toHaveBeenCalledOnce();
+  });
+
+  it('druckt den Sammlungsbericht ohne Host-Token, wenn nur das Server-PDF scheitert', async () => {
+    const hostPdf = vi.mocked(trpc.session.getSessionExportPdf.query);
+    hostPdf.mockClear();
+    vi.mocked(trpc.session.getLastSessionExportPdfForQuiz.query).mockRejectedValueOnce(
+      new Error('pdf worker down'),
+    );
+    const printWindow = {
+      opener: {},
+      document: {
+        readyState: 'complete',
+        title: '',
+        open: vi.fn(),
+        write: vi.fn(),
+        close: vi.fn(),
+      },
+      focus: vi.fn(),
+      print: vi.fn(),
+    };
+    vi.spyOn(window, 'open').mockReturnValue(printWindow as unknown as Window);
+    const service = TestBed.inject(SessionResultsExportService);
+
+    await expect(
+      service.exportPdfFromQuizHistory('11111111-1111-4111-8111-111111111111', 'access-proof', {
+        profile: 'visual',
+      }),
+    ).resolves.toBe('print-fallback');
+    expect(trpc.session.getLastSessionExportDataForQuiz.query).toHaveBeenCalledWith({
+      quizId: '11111111-1111-4111-8111-111111111111',
+      accessProof: 'access-proof',
+    });
+    expect(hostPdf).not.toHaveBeenCalled();
+    expect(printWindow.print).toHaveBeenCalledOnce();
   });
 });
