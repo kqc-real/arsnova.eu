@@ -92,6 +92,7 @@ import { returnToHostWindow } from './presenter-window.util';
 import {
   presenterCanOpenFollowingQuestion,
   presenterOfferDiscussion,
+  presenterQuestionMatchesSession,
   presenterTimerBlocksReveal,
 } from './presenter-quiz-controls.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
@@ -273,6 +274,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   } | null>(null);
   readonly quizControlPending = signal(false);
   readonly quizControlError = signal('');
+  /** Der letzte Fragenabruf ist fehlgeschlagen, solange der passende Snapshot fehlt. */
+  readonly quizQuestionLoadFailed = signal(false);
   readonly returnToHostError = signal('');
   private readonly quizPageNavHeldContext = signal<string | null>(null);
   readonly emojiReactions = signal<PresenterEmojiReactions | null>(null);
@@ -678,7 +681,24 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
   }
 
+  async startPresenterQuiz(): Promise<void> {
+    if (this.session()?.status !== 'LOBBY' || this.session()?.type === 'Q_AND_A') {
+      return;
+    }
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.nextQuestion.mutate(
+        { code: this.sessionCode },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+    });
+  }
+
   async revealPresenterAnswers(): Promise<void> {
+    if (!this.presentedQuizQuestion()) {
+      return;
+    }
     await this.runQuizAction(async () => {
       const result = await trpc.session.revealAnswers.mutate(
         { code: this.sessionCode },
@@ -690,7 +710,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async revealPresenterResults(): Promise<void> {
-    if (this.quizTimerBlocksReveal()) {
+    if (!this.presentedQuizQuestion() || this.quizTimerBlocksReveal()) {
       return;
     }
     await this.runQuizAction(async () => {
@@ -704,7 +724,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async startPresenterDiscussion(): Promise<void> {
-    if (this.quizTimerBlocksReveal()) {
+    if (!this.presentedQuizQuestion() || this.quizTimerBlocksReveal()) {
       return;
     }
     await this.runQuizAction(async () => {
@@ -718,6 +738,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async startPresenterSecondRound(): Promise<void> {
+    if (!this.presentedQuizQuestion()) {
+      return;
+    }
     await this.runQuizAction(async () => {
       const result = await trpc.session.startSecondRound.mutate(
         { code: this.sessionCode },
@@ -729,6 +752,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async advancePresenterQuiz(): Promise<void> {
+    if (!this.presentedQuizQuestion()) {
+      return;
+    }
     const status = this.session()?.status;
     await this.runQuizAction(async () => {
       const result = await trpc.session.nextQuestion.mutate(
@@ -773,6 +799,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.adoptPresenterStatus(result);
       void this.refreshHostQuestion();
     });
+  }
+
+  async retryPresenterQuestion(): Promise<void> {
+    if (!this.quizQuestionAwaitingSnapshot()) {
+      return;
+    }
+    this.quizQuestionLoadFailed.set(false);
+    await this.refreshHostQuestion();
   }
 
   async changeQuizProjectionPage(delta: -1 | 1): Promise<void> {
@@ -872,6 +906,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const selectors = this.showFullscreenAction()
       ? ['[data-testid="presenter-return-to-host"]', '[data-testid="presenter-fullscreen-enter"]']
       : [
+          '[data-testid="presenter-quiz-question-retry"]',
+          '[data-testid="presenter-quiz-question-pending"]',
           '[data-testid="presenter-quiz-resume"]',
           '[data-testid="presenter-quiz-reveal-answers"]',
           '[data-testid="presenter-quiz-discussion"]',
@@ -909,6 +945,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
             ...current,
             status: update.status,
             currentQuestion: update.currentQuestion,
+            currentRound: update.currentRound ?? current.currentRound,
             pausedFromStatus: update.pausedFromStatus ?? current.pausedFromStatus,
             preferredChannel: update.preferredChannel ?? current.preferredChannel,
             presenterSurface: update.presenterSurface ?? current.presenterSurface,
@@ -922,6 +959,21 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           }
         : current,
     );
+    const session = this.session();
+    const shownQuestion = this.hostQuestion();
+    if (
+      shownQuestion &&
+      !presenterQuestionMatchesSession(
+        shownQuestion,
+        session?.currentQuestion,
+        session?.currentRound,
+      )
+    ) {
+      this.hostQuestion.set(null);
+      this.hostVoteProgress.set(null);
+      this.quizQuestionLoadFailed.set(false);
+      this.stopCountdown();
+    }
     this.syncCountdownFromStatus(update.timer, update.activeAt);
     this.resetPresentScrollForPhase(update.status);
   }
@@ -1183,10 +1235,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return !this.showQaProjection() && !this.showQaWordCloud() && !this.showQuickFeedbackCard();
   });
   readonly showPresenterFreetextResultsStage = computed(() => {
-    if (!this.showPresenterFreetextStage()) {
+    if (!this.showPresenterFreetextStage() || this.quizQuestionAwaitingSnapshot()) {
       return false;
     }
-    if (!this.hostQuestion()) {
+    if (!this.presentedQuizQuestion()) {
       return true;
     }
     return (
@@ -1274,7 +1326,39 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     ) {
       return false;
     }
-    return this.hostQuestion() !== null;
+    return this.presentedQuizQuestion() !== null;
+  });
+  readonly presentedQuizQuestion = computed(() => {
+    const question = this.hostQuestion();
+    const session = this.session();
+    return presenterQuestionMatchesSession(
+      question,
+      session?.currentQuestion,
+      session?.currentRound,
+    )
+      ? question
+      : null;
+  });
+  readonly quizQuestionAwaitingSnapshot = computed(() => {
+    const session = this.session();
+    if (
+      !session ||
+      session.type === 'Q_AND_A' ||
+      this.showPresentationEndedProjection() ||
+      this.showFinishProjection() ||
+      this.showQuizPauseProjection() ||
+      this.showLobbyProjection() ||
+      this.showQaProjection() ||
+      this.showQaWordCloud() ||
+      this.showQuickFeedbackCard() ||
+      this.presenterStandbyChannel() !== null
+    ) {
+      return false;
+    }
+    if (typeof session.currentQuestion !== 'number') {
+      return false;
+    }
+    return this.presentedQuizQuestion() === null;
   });
   readonly presentedParticipantCount = computed(
     () => this.quizAudience()?.participantCount ?? this.session()?.participantCount ?? 0,
@@ -1300,7 +1384,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (!session || session.type === 'Q_AND_A') {
       return false;
     }
-    return this.hostQuestion() !== null;
+    return this.presentedQuizQuestion() !== null;
   });
   readonly showQuizPageNav = computed(() => {
     if (!this.showQuizControlFooter()) {
@@ -1315,7 +1399,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly quizTimerBlocksReveal = computed(() =>
     presenterTimerBlocksReveal(
       this.session()?.status ?? null,
-      this.hostQuestion(),
+      this.presentedQuizQuestion(),
       this.hostVoteProgress(),
       this.session()?.enableTimerAccommodation !== false,
     ),
@@ -1323,14 +1407,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly quizOfferDiscussion = computed(() =>
     presenterOfferDiscussion(
       this.session()?.status ?? null,
-      this.hostQuestion(),
+      this.presentedQuizQuestion(),
       this.hostVoteProgress(),
       this.presentedParticipantCount(),
       this.countdownSeconds(),
     ),
   );
   readonly quizCanOpenFollowingQuestion = computed(() =>
-    presenterCanOpenFollowingQuestion(this.hostQuestion()),
+    presenterCanOpenFollowingQuestion(this.presentedQuizQuestion()),
   );
   readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
   readonly winningTeam = computed(() => this.teamLeaderboard()[0] ?? null);
@@ -2256,14 +2340,27 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       if (this.presentDeadlineClosed || refreshEpoch !== this.presentHostQuestionRefreshEpoch) {
         return;
       }
-      this.hostQuestion.set(question);
-      if (this.session()?.status === 'ACTIVE') {
+      const session = this.session();
+      const matches = presenterQuestionMatchesSession(
+        question,
+        session?.currentQuestion,
+        session?.currentRound,
+      );
+      if (matches) {
+        this.hostQuestion.set(question);
+        this.quizQuestionLoadFailed.set(false);
+      } else if (question === null && this.quizQuestionAwaitingSnapshot()) {
+        this.quizQuestionLoadFailed.set(true);
+      }
+      if (session?.status === 'ACTIVE' && matches) {
         this.startCountdown(question?.timer ?? null);
-      } else {
+      } else if (!matches) {
         this.stopCountdown();
       }
     } catch {
-      // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
+      if (!this.destroyRef.destroyed && this.quizQuestionAwaitingSnapshot()) {
+        this.quizQuestionLoadFailed.set(true);
+      }
     }
   }
 

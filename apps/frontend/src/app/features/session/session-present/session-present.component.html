@@ -551,6 +551,24 @@
 
             <ng-container [ngTemplateOutlet]="presenterJoinCard" />
           </div>
+          @if (session()?.type !== 'Q_AND_A') {
+            <div class="session-present__lobby-start">
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-start"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                [attr.aria-busy]="quizControlPending()"
+                (click)="startPresenterQuiz()"
+              >
+                <span i18n="@@7506202845535656842">Erste Frage starten</span>
+              </button>
+              @if (quizControlError()) {
+                <p class="session-present__quiz-error" role="alert">{{ quizControlError() }}</p>
+              }
+            </div>
+          }
 
           <section
             class="session-present__lobby-audience"
@@ -801,7 +819,7 @@
         [pageContext]="session()?.presenterPage?.context ?? ''"
         [pageIndex]="session()?.presenterPage?.index ?? 0"
         (pageCount)="reportProjectionPages($event)"
-        [question]="hostQuestion()"
+        [question]="presentedQuizQuestion()"
         [status]="session()?.status ?? null"
         [voteProgress]="hostVoteProgress()"
         [participantCount]="presentedParticipantCount()"
@@ -1269,6 +1287,36 @@
         [presentationMode]="true"
         [outputOnly]="true"
       />
+    } @else if (quizQuestionAwaitingSnapshot()) {
+      <section
+        class="session-present__quiz-pending"
+        data-testid="presenter-quiz-question-pending"
+        tabindex="-1"
+        aria-live="polite"
+      >
+        @if (quizQuestionLoadFailed()) {
+          <p
+            class="session-present__quiz-pending-text"
+            role="alert"
+            i18n="@@sessionPresent.quizQuestionLoadFailed"
+          >
+            Die Frage konnte nicht geladen werden. Bitte erneut versuchen.
+          </p>
+          <button
+            matButton="filled"
+            type="button"
+            data-testid="presenter-quiz-question-retry"
+            (click)="retryPresenterQuestion()"
+            i18n="@@sessionPresent.quizQuestionRetry"
+          >
+            Erneut laden
+          </button>
+        } @else {
+          <p class="session-present__quiz-pending-text" i18n="@@sessionPresent.quizQuestionLoading">
+            Die Frage wird geladen.
+          </p>
+        }
+      </section>
     } @else if (
       !showQuizProjection() &&
       !showQuizPauseProjection() &&
@@ -1337,6 +1385,16 @@
           </nav>
         }
         <div class="session-present__quiz-actions">
+          @if (quizTimerBlocksReveal()) {
+            <p
+              class="session-present__quiz-note"
+              data-testid="presenter-timer-accommodation"
+              i18n="@@sessionPresent.timerAccommodationBlocks"
+            >
+              Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu
+              schließen.
+            </p>
+          }
           @if (session()?.status === 'QUESTION_OPEN' || session()?.status === 'ACTIVE') {
             <button
               matButton="tonal"

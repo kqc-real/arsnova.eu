@@ -1236,6 +1236,44 @@ app-session-projection-quiz,
   text-align: center;
 }
 
+.session-present__lobby-start {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.session-present__lobby-start button,
+.session-present__lobby-start p {
+  pointer-events: auto;
+}
+
+.session-present__quiz-pending {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: min(100%, 40rem);
+  margin-inline: auto;
+  text-align: center;
+}
+
+.session-present__quiz-pending-text,
+.session-present__quiz-note {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+  text-align: center;
+}
+
 .session-present__quiz-footer {
   flex: 0 0 auto;
   display: flex;

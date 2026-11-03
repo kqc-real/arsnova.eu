@@ -4661,6 +4661,354 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('hält die neue Frage zurück, bis ihr Snapshot da ist, und führt das Quiz bis zur Auswertung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      preferredChannel: 'quiz',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+    const questionOne = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      text: 'Frage eins',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: true,
+      peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' },
+      answers: [],
+    };
+    const questionTwo = {
+      ...questionOne,
+      questionId: '22222222-2222-4222-8222-222222222222',
+      order: 1,
+      text: 'Frage zwei',
+      hasUnopenedFollowingQuestion: false,
+      peerInstructionSuggestion: undefined,
+    };
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+    getInfoQueryMock.mockImplementation(async () => component.session());
+
+    const root = fixture.nativeElement as HTMLElement;
+    const start = root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-start"]');
+    expect(start).not.toBeNull();
+    start?.focus();
+
+    let releaseQuestion: (value: unknown) => void = () => undefined;
+    getCurrentQuestionForHostQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseQuestion = resolve;
+        }),
+    );
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    start?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(nextQuestionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).toBeNull();
+    expect(root.textContent).toContain('Die Frage wird geladen');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+    expect(component.quizControlPending()).toBe(false);
+
+    releaseQuestion(questionOne);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    component.quizAudience.set({
+      participantCount: 2,
+      readingReady: {
+        connectedCount: 2,
+        readyCount: 1,
+        allConnectedReady: false,
+      },
+    });
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.textContent).toContain('1 von 2 bereit');
+
+    revealAnswersMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    const reveal = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-reveal-answers"]',
+    );
+    reveal?.focus();
+    reveal?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(revealAnswersMutateMock).toHaveBeenCalled();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-results"]'),
+    );
+
+    component.hostVoteProgress.set({
+      questionId: questionOne.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 2,
+      blockingTimerAccommodationCount: 1,
+      peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' },
+    } as never);
+    component.countdownSeconds.set(0);
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Persönliche Zeitfenster laufen noch');
+    startDiscussionMutateMock.mockClear();
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
+    await fixture.whenStable();
+    expect(startDiscussionMutateMock).not.toHaveBeenCalled();
+
+    component.hostVoteProgress.set({
+      questionId: questionOne.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 2,
+      blockingTimerAccommodationCount: 0,
+      peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' },
+    } as never);
+    startDiscussionMutateMock.mockResolvedValue({
+      status: 'DISCUSSION',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+    const discussion = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-discussion"]',
+    );
+    discussion?.focus();
+    discussion?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.session()?.status).toBe('DISCUSSION');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-second-round"]'),
+    );
+
+    getCurrentQuestionForHostQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseQuestion = resolve;
+        }),
+    );
+    startSecondRoundMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+    });
+    const secondRound = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-second-round"]',
+    );
+    secondRound?.focus();
+    secondRound?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(component.session()?.currentRound).toBe(2);
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).not.toContain('2. Runde');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-results"]')).toBeNull();
+    expect(root.textContent).toContain('Die Frage wird geladen');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+
+    releaseQuestion({ ...questionOne, currentRound: 2 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()?.order).toBe(0);
+    expect(component.presentedQuizQuestion()?.currentRound).toBe(2);
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.textContent).toContain('2. Runde');
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 2,
+    });
+    const revealRoundTwo = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-reveal-results"]',
+    );
+    revealRoundTwo?.focus();
+    revealRoundTwo?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-next-question"]'),
+    );
+
+    getCurrentQuestionForHostQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseQuestion = resolve;
+        }),
+    );
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    const nextQuestion = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-next-question"]',
+    );
+    nextQuestion?.focus();
+    nextQuestion?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(nextQuestionMutateMock).toHaveBeenLastCalledWith(
+      { code: 'ABC123', skipCurrentResultQuestion: true },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(component.session()?.currentQuestion).toBe(1);
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).not.toContain('Frage zwei');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).toBeNull();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+
+    releaseQuestion(questionTwo);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Frage zwei');
+
+    pauseQuizMutateMock.mockResolvedValue({
+      status: 'PAUSED',
+      currentQuestion: 1,
+      currentRound: 1,
+      pausedFromStatus: 'QUESTION_OPEN',
+    });
+    const pause = root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-pause"]');
+    pause?.focus();
+    pause?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Quiz fortsetzen');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-resume"]'),
+    );
+
+    resumeQuizMutateMock.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(questionTwo);
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-resume"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    revealAnswersMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-reveal-answers"]')?.click();
+    await fixture.whenStable();
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-reveal-results"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'FINISHED',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-finish"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.session()?.status).toBe('FINISHED');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-return-to-host"]'),
+    );
+    fixture.destroy();
+  });
+
+  it('bleibt nach einem fehlgeschlagenen Fragenabruf bedienbar', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      preferredChannel: 'quiz',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+    getCurrentQuestionForHostQueryMock.mockRejectedValue(new Error('offline'));
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+    getInfoQueryMock.mockImplementation(async () => component.session());
+
+    const root = fixture.nativeElement as HTMLElement;
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-start"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('Die Frage konnte nicht geladen werden');
+    expect(root.querySelector('[data-testid="presenter-quiz-question-retry"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).toBeNull();
+    expect(root.querySelector('[data-testid="presenter-return-to-host"]')).not.toBeNull();
+    expect(component.quizControlPending()).toBe(false);
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Frage eins',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      answers: [],
+    });
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-question-retry"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('hält Present-Display-Gewicht ohne font-weight 800', () => {
     const styles = readFileSync(
       resolve(

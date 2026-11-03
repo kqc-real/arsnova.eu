@@ -5,6 +5,7 @@ import {
   presenterAllSessionReady,
   presenterCanOpenFollowingQuestion,
   presenterOfferDiscussion,
+  presenterQuestionMatchesSession,
   presenterTimerBlocksReveal,
   presenterVotingClosed,
 } from './presenter-quiz-controls.util';
@@ -83,6 +84,14 @@ describe('presenter-quiz-controls.util', () => {
         0,
       ),
     ).toBe(true);
+  });
+
+  it('verwirft einen Snapshot einer anderen Frage oder Runde', () => {
+    expect(presenterQuestionMatchesSession(question, 0, 1)).toBe(true);
+    expect(presenterQuestionMatchesSession(question, 1, 1)).toBe(false);
+    expect(presenterQuestionMatchesSession(question, 0, 2)).toBe(false);
+    expect(presenterQuestionMatchesSession(question, undefined, undefined)).toBe(true);
+    expect(presenterQuestionMatchesSession(null, 0, 1)).toBe(false);
   });
 
   it('sperrt die Freigabe, solange persönliche Fenster laufen', () => {

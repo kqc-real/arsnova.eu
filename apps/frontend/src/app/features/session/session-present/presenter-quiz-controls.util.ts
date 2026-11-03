@@ -106,6 +106,27 @@ export function presenterOfferDiscussion(
   return presenterVotingClosed(status, question, progress, participantCount, countdownSeconds);
 }
 
+/**
+ * Der Beamer zeigt nur den Snapshot, der zur aktuellen Frage und Runde gehört.
+ * Ohne gesetzte Frage oder Runde bleibt der vorhandene Snapshot gültig.
+ */
+export function presenterQuestionMatchesSession(
+  question: HostCurrentQuestionDTO | null,
+  currentQuestion: number | null | undefined,
+  currentRound: number | null | undefined,
+): boolean {
+  if (!question) {
+    return false;
+  }
+  if (typeof currentQuestion === 'number' && question.order !== currentQuestion) {
+    return false;
+  }
+  if (typeof currentRound === 'number' && (question.currentRound ?? 1) !== currentRound) {
+    return false;
+  }
+  return true;
+}
+
 export function presenterCanOpenFollowingQuestion(
   question: HostCurrentQuestionDTO | null,
 ): boolean {
