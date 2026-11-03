@@ -43,7 +43,8 @@ und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Die Seitenangabe
 steht in dieser Steuerung. Q&A-Fragen
 wechseln über denselben Host-Navigator oder den Presenter-Footer. Das
 Zwischenleaderboard zeigt die ersten fünf Personen und Teams und nennt die
-Kappung, zum Beispiel »Top 5 von 20«. Das Abschluss-Leaderboard für Personen und
+Kappung, zum Beispiel »Top 5 von 20«. Auf einer kurzen Projektion schrumpfen
+diese Zeilen, damit alle fünf Plätze in der Bühnenhöhe bleiben. Das Abschluss-Leaderboard für Personen und
 Teams wechselt automatisch mit höchstens acht Einträgen und zwölf Sekunden pro
 Seite. **Anhalten** legt die Seite fest, **Vorherige Seite** und **Nächste
 Seite** blättern von Hand, **Automatisch** setzt den Wechsel fort. Voting,

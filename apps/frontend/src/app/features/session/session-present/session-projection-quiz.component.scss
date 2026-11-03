@@ -1589,14 +1589,16 @@ mat-icon.session-projection-quiz__rating-pole-icon {
   word-break: keep-all;
 }
 .session-projection-quiz__leaderboard-page {
-  display: grid;
+  display: flex;
   flex: 1 1 auto;
-  align-content: center;
+  flex-direction: column;
   align-self: stretch;
-  gap: clamp(1.25rem, 3.2vmin, 2.25rem);
+  justify-content: center;
+  gap: clamp(0.75rem, 2vh, 2.25rem);
   width: 100%;
   min-height: 0;
-  padding: clamp(1rem, 3vmin, 2.5rem);
+  overflow: hidden;
+  padding: clamp(0.65rem, 2vh, 2.5rem);
   box-sizing: border-box;
 }
 
@@ -1626,9 +1628,12 @@ mat-icon.session-projection-quiz__rating-pole-icon {
 
 .session-projection-quiz__leaderboard-grid {
   display: grid;
+  flex: 1 1 auto;
   grid-template-columns: minmax(0, 1fr);
-  gap: clamp(1rem, 2.2vmin, 1.75rem);
+  align-items: stretch;
+  gap: clamp(0.65rem, 1.6vh, 1.75rem);
   width: min(96rem, 100%);
+  min-height: 0;
   margin-inline: auto;
 }
 
@@ -1637,14 +1642,22 @@ mat-icon.session-projection-quiz__rating-pole-icon {
 }
 
 .session-projection-quiz__leaderboard-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   background: var(--mat-sys-surface-container);
   border-radius: var(--mat-sys-corner-extra-large);
 }
 
 .session-projection-quiz__leaderboard-card mat-card-content {
-  display: grid;
-  gap: clamp(0.9rem, 2vmin, 1.4rem);
-  padding: clamp(1.1rem, 2.6vmin, 1.85rem);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: clamp(0.45rem, 1.2vh, 1.4rem);
+  min-height: 0;
+  padding: clamp(0.7rem, 1.8vh, 1.85rem);
 }
 
 .session-projection-quiz__leaderboard-card h2 {
@@ -1662,8 +1675,12 @@ mat-icon.session-projection-quiz__rating-pole-icon {
 }
 
 .session-projection-quiz__leaderboard-list {
-  display: grid;
-  gap: clamp(0.75rem, 1.6vmin, 1.15rem);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(0.35rem, 0.9vh, 1.15rem);
+  min-height: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1671,11 +1688,14 @@ mat-icon.session-projection-quiz__rating-pole-icon {
 
 .session-projection-quiz__leaderboard-item {
   display: grid;
+  flex: 1 1 auto;
   align-content: center;
-  gap: clamp(0.7rem, 1.5vmin, 1.05rem);
+  gap: clamp(0.28rem, 0.7vh, 1.05rem);
   box-sizing: border-box;
-  min-height: clamp(5.5rem, 11vmin, 7.75rem);
-  padding: clamp(0.95rem, 1.8vmin, 1.35rem) clamp(1.05rem, 2vmin, 1.55rem);
+  min-height: 0;
+  max-height: 7.75rem;
+  padding: clamp(0.4rem, 1vh, 1.35rem) clamp(0.7rem, 1.4vw, 1.55rem);
+  overflow: hidden;
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-large);
   background: var(--mat-sys-surface-container-high);
@@ -1787,5 +1807,61 @@ mat-icon.session-projection-quiz__rating-pole-icon {
 @media (max-width: 720px) {
   .session-projection-quiz__leaderboard-grid--teams {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 720p-Projektion: fünf Plätze, Teamtitel und Reaktionen bleiben in der Bühnenhöhe. */
+@media (max-height: 820px) {
+  .session-projection-quiz__leaderboard-page {
+    gap: 0.45rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .session-projection-quiz__leaderboard-head mat-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1.75rem;
+  }
+
+  .session-projection-quiz__leaderboard-head h1 {
+    font: var(--mat-sys-headline-small);
+    font-weight: 700;
+  }
+
+  .session-projection-quiz__leaderboard-card h2,
+  .session-projection-quiz__leaderboard-slice {
+    font: var(--mat-sys-title-medium);
+    font-weight: 700;
+  }
+
+  .session-projection-quiz__leaderboard-card mat-card-content {
+    gap: 0.35rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .session-projection-quiz__leaderboard-list {
+    gap: 0.28rem;
+  }
+
+  .session-projection-quiz__leaderboard-item {
+    gap: 0.2rem;
+    padding: 0.28rem 0.65rem;
+  }
+
+  .session-projection-quiz__leaderboard-medal--gold,
+  .session-projection-quiz__leaderboard-medal--silver,
+  .session-projection-quiz__leaderboard-medal--bronze,
+  .session-projection-quiz__leaderboard-emoji {
+    font-size: 1.25rem;
+  }
+
+  .session-projection-quiz__leaderboard-rank,
+  .session-projection-quiz__leaderboard-name,
+  .session-projection-quiz__leaderboard-score {
+    font-size: 1.05rem;
+  }
+
+  .session-projection-quiz__leaderboard-track {
+    height: 0.35rem;
   }
 }

@@ -124,6 +124,25 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).not.toMatch(/--pq-reactions-reserve/);
   });
 
+  it('hält die fünf Zwischenränge auf einer kurzen Projektion in der Bühne', () => {
+    const styles = readFileSync(
+      resolve(__dirname, 'session-projection-quiz.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.session-projection-quiz__leaderboard-page\s*\{[^}]*overflow:\s*hidden/s,
+    );
+    expect(styles).toMatch(/\.session-projection-quiz__leaderboard-item\s*\{[^}]*min-height:\s*0/s);
+    expect(styles).toMatch(/@media \(max-height:\s*820px\)\s*\{/);
+    expect(styles).toMatch(
+      /@media \(max-height:\s*820px\)[\s\S]*\.session-projection-quiz__leaderboard-item\s*\{[^}]*padding:\s*0\.28rem 0\.65rem/s,
+    );
+    expect(styles).toMatch(
+      /@media \(max-height:\s*820px\)[\s\S]*\.session-projection-quiz__leaderboard-medal--gold[\s\S]*font-size:\s*1\.25rem/,
+    );
+  });
+
   it('zeigt in der Lesephase den Fragetext ohne Antwortoptionen', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');
