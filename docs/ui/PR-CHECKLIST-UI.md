@@ -2,7 +2,7 @@
 
 Diese Checkliste ist für alle PRs mit UI-Änderungen in `apps/frontend` verpflichtend.
 
-**Stand:** 2026-09-20 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 21.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
+**Stand:** 2026-10-22 — abgeglichen mit [STYLEGUIDE.md](STYLEGUIDE.md) (inkl. Style-Vertraege), [TOKENS.md](TOKENS.md), Angular 22.2, den aktuellen Frontend-Skripten und der i18n-Dokumentation.
 
 ## 1) Design-System-Konformität
 

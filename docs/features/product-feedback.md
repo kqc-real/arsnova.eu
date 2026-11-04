@@ -52,8 +52,8 @@ Schritte, rechte Spalte später/Meta; mobil einspaltig).
 
 **Icon:** Einstiege und Kacheln nutzen das MD3-Icon `insights` aus dem
 selbst gehosteten Subset. MOTD behält `campaign`; die Session-Bewertung (4.8)
-behält `feedback`. Neue Icon-Namen vorab gegen
-`apps/frontend/src/assets/fonts/material-icons.woff2` prüfen.
+nutzt `rate_review`. Neue Icon-Namen vorab gegen
+`apps/frontend/src/assets/fonts/material-symbols-outlined.woff2` (bzw. `apps/frontend/scripts/subset-material-symbols.py`) prüfen.
 
 Fehlerzustände: Pending („Wird gesendet …“), Erfolg, Outbox-Hinweis bei
 Netzwerk/Timeout und typisierte Ablehnungen für Ablauf, Einmaligkeit,
@@ -64,8 +64,8 @@ holen beim Retry eine frische Challenge und behalten ihren Idempotency-Key.
 Vorgemerkte Einträge sind im Dialog einsehbar und löschbar; der globale Retry
 läuft bei App-Start und beim `online`-Ereignis.
 
-Der globale Footer behält genau drei primäre Navigationsziele; „arsnova.eu
-verbessern“ steht in einer getrennten Utility-Zeile. Hilfe, immersive
+Der globale Footer behält genau drei primäre Navigationsziele. »arsnova.eu
+verbessern« ist der letzte Eintrag im Menü »Mehr« und durch einen Trenner abgesetzt. Hilfe, immersive
 Hostansicht und eigenständige Blitzlichtansichten bieten gleichwertige,
 beschriftete Einstiege. Die Presenteransicht bleibt frei davon. Kontextuelle
 Host-/Vote-Angebote öffnen nie automatisch, ersetzen keinen Retry und

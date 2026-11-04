@@ -29,6 +29,10 @@ const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const HOST_BROWSER_CAPABILITY_PREFIX = 'arsnova-host-browser-capability';
 const PARTICIPANT_NAME = 'Epic405TN';
 const QUESTION_TEXT = 'Können wir die Q&A-Frist noch einmal erklären?';
+/** Letzter Chromium-Smoke: Join-UI und Live-Count dürfen nach langen Vorläufen trödeln. */
+const JOIN_READY_TIMEOUT_MS = 60_000;
+const HOST_SEES_JOIN_TIMEOUT_MS = 60_000;
+const QA_SURFACE_TIMEOUT_MS = 45_000;
 const RANKED_QUESTIONS = {
   top: 'Bitte die Klausurtermine fuer den Sommer noch einmal nennen.',
   best: 'Bitte die Hausaufgabenfrist fuer den Sommer noch einmal nennen.',
@@ -269,7 +273,17 @@ async function prepareHostSurface(page, hostUrl) {
   });
 }
 
-async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
+async function chooseJoinIdentity(page, fallbackName, timeout = JOIN_READY_TIMEOUT_MS) {
+  const nickname = page.locator('#join-nickname-input');
+  const nicknameReady = await nickname.waitFor({ state: 'visible', timeout }).then(
+    () => true,
+    () => false,
+  );
+  if (nicknameReady) {
+    await nickname.fill(fallbackName);
+    return true;
+  }
+
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeout) {
     const textFields = page.locator(
@@ -288,7 +302,7 @@ async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
   return false;
 }
 
-async function clickJoinAction(page, timeout = 15_000) {
+async function clickJoinAction(page, timeout = JOIN_READY_TIMEOUT_MS) {
   const startedAt = Date.now();
   const submitButton = page.locator('.join-card__submit').first();
   while (Date.now() - startedAt < timeout) {
@@ -565,7 +579,7 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
   await cloud.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => undefined);
 }
 
-async function waitForParticipantCount(page, expected, timeout = 30_000) {
+async function waitForParticipantCount(page, expected, timeout = HOST_SEES_JOIN_TIMEOUT_MS) {
   const locator = page.locator('.session-host__live-participants-count').first();
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeout) {
@@ -622,12 +636,17 @@ async function main() {
       waitUntil: 'domcontentloaded',
       timeout: 30_000,
     });
-    await chooseJoinIdentity(participant, PARTICIPANT_NAME);
+    const identityReady = await chooseJoinIdentity(participant, PARTICIPANT_NAME);
+    logStep(identityReady, 'Teilnehmer setzt den Join-Namen');
+    if (!identityReady) {
+      failures.push('Join-Ansicht hat das Namensfeld nicht rechtzeitig gezeigt.');
+    }
     const joined = await clickJoinAction(participant);
     if (joined) {
-      await waitForPathSuffix(participant, `/session/${created.code}/vote`);
+      await waitForPathSuffix(participant, `/session/${created.code}/vote`, QA_SURFACE_TIMEOUT_MS);
       logStep(true, 'Teilnehmer tritt der Q&A-Session bei');
     } else {
+      logStep(false, 'Teilnehmer tritt der Q&A-Session bei');
       failures.push('Join-Ansicht bot keinen nutzbaren Beitritts-CTA.');
     }
 
@@ -640,85 +659,94 @@ async function main() {
     }
 
     const draft = participant.locator('#qa-draft');
-    await draft.waitFor({ state: 'visible', timeout: 15_000 });
-    await draft.fill(QUESTION_TEXT);
-    const submit = participant.locator('.session-qa-form__submit');
-    await submit.waitFor({ state: 'visible', timeout: 10_000 });
-    await submit.click();
-
-    const participantSawQuestion = await participant
-      .getByText(QUESTION_TEXT, { exact: false })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15_000 })
+    const draftVisible = await draft
+      .waitFor({ state: 'visible', timeout: QA_SURFACE_TIMEOUT_MS })
       .then(
         () => true,
         () => false,
       );
-    logStep(participantSawQuestion, 'Teilnehmer sieht die eigene Frage');
-    if (!participantSawQuestion) {
-      failures.push('Die gesendete Frage erschien nicht in der Teilnehmeransicht.');
-    }
+    if (!draftVisible) {
+      failures.push('Teilnehmer-Q&A-Entwurf (#qa-draft) wurde nach dem Join nicht sichtbar.');
+    } else {
+      await draft.fill(QUESTION_TEXT);
+      const submit = participant.locator('.session-qa-form__submit');
+      await submit.waitFor({ state: 'visible', timeout: QA_SURFACE_TIMEOUT_MS });
+      await submit.click();
 
-    const hostSawQuestion = await host
-      .getByText(QUESTION_TEXT, { exact: false })
-      .first()
-      .waitFor({ state: 'visible', timeout: 15_000 })
-      .then(
-        () => true,
-        () => false,
-      );
-    logStep(hostSawQuestion, 'Host sieht die Teilnehmerfrage');
-    if (!hostSawQuestion) {
-      failures.push(
-        `Die Frage erschien nicht in der Host-Ansicht. DOM: ${JSON.stringify(await hostPageDiagnostics(host))}`,
-      );
-    }
+      const participantSawQuestion = await participant
+        .getByText(QUESTION_TEXT, { exact: false })
+        .first()
+        .waitFor({ state: 'visible', timeout: QA_SURFACE_TIMEOUT_MS })
+        .then(
+          () => true,
+          () => false,
+        );
+      logStep(participantSawQuestion, 'Teilnehmer sieht die eigene Frage');
+      if (!participantSawQuestion) {
+        failures.push('Die gesendete Frage erschien nicht in der Teilnehmeransicht.');
+      }
 
-    const tools = participant.locator('.session-qa-tools');
-    if ((await tools.getAttribute('open')) !== null)
-      failures.push('Fragenwerkzeuge müssen zunächst eingeklappt sein.');
-    await participant.locator('#qa-tools-summary').press('Enter');
-    await participant.getByRole('searchbox').fill('zzznomatch472');
-    await participant.locator('.session-qa-empty--filtered').waitFor({ state: 'visible' });
-    await participant.locator('#qa-tools-summary').press('Enter');
-    // Suche bleibt ohne Statusleiste aktiv — der Leertreffer bleibt sichtbar.
-    const searchStillActive = await participant
-      .locator('.session-qa-empty--filtered')
-      .isVisible()
-      .catch(() => false);
-    if (!searchStillActive) failures.push('Aktive Suche bleibt nach Einklappen wirksam.');
-    await participant.locator('#qa-tools-summary').press('Enter');
-    const searchValue = await participant.getByRole('searchbox').inputValue();
-    if (!searchValue.includes('zzznomatch472'))
-      failures.push('Suchfeld behält den Wert nach Einklappen.');
-    await participant.getByRole('button', { name: 'Q&A-Suche leeren' }).click();
-    const resetFocus = await participant
-      .locator('#qa-tools-summary')
-      .evaluate((el) => document.activeElement === el);
-    if (!resetFocus) failures.push('Leeren der Suche verliert den Fokus.');
-    await participant.locator('.session-qa-card').first().waitFor({ state: 'visible' });
-    logStep(resetFocus, 'Suche: Tastatur, Einklappen, Persistenz und Clear-Fokus');
+      const hostSawQuestion = await host
+        .getByText(QUESTION_TEXT, { exact: false })
+        .first()
+        .waitFor({ state: 'visible', timeout: QA_SURFACE_TIMEOUT_MS })
+        .then(
+          () => true,
+          () => false,
+        );
+      logStep(hostSawQuestion, 'Host sieht die Teilnehmerfrage');
+      if (!hostSawQuestion) {
+        failures.push(
+          `Die Frage erschien nicht in der Host-Ansicht. DOM: ${JSON.stringify(await hostPageDiagnostics(host))}`,
+        );
+      }
 
-    await seedRankedQaBoardAndAssertHostViews(host, hostTrpc, created, failures);
+      const tools = participant.locator('.session-qa-tools');
+      if ((await tools.getAttribute('open')) !== null)
+        failures.push('Fragenwerkzeuge müssen zunächst eingeklappt sein.');
+      await participant.locator('#qa-tools-summary').press('Enter');
+      await participant.getByRole('searchbox').fill('zzznomatch472');
+      await participant.locator('.session-qa-empty--filtered').waitFor({ state: 'visible' });
+      await participant.locator('#qa-tools-summary').press('Enter');
+      // Suche bleibt ohne Statusleiste aktiv — der Leertreffer bleibt sichtbar.
+      const searchStillActive = await participant
+        .locator('.session-qa-empty--filtered')
+        .isVisible()
+        .catch(() => false);
+      if (!searchStillActive) failures.push('Aktive Suche bleibt nach Einklappen wirksam.');
+      await participant.locator('#qa-tools-summary').press('Enter');
+      const searchValue = await participant.getByRole('searchbox').inputValue();
+      if (!searchValue.includes('zzznomatch472'))
+        failures.push('Suchfeld behält den Wert nach Einklappen.');
+      await participant.getByRole('button', { name: 'Q&A-Suche leeren' }).click();
+      const resetFocus = await participant
+        .locator('#qa-tools-summary')
+        .evaluate((el) => document.activeElement === el);
+      if (!resetFocus) failures.push('Leeren der Suche verliert den Fokus.');
+      await participant.locator('.session-qa-card').first().waitFor({ state: 'visible' });
+      logStep(resetFocus, 'Suche: Tastatur, Einklappen, Persistenz und Clear-Fokus');
 
-    await hostTrpc.session.end.mutate({ code: created.code });
-    const closed = await participant
-      .waitForFunction(
-        () => {
-          const body = document.body?.innerText ?? '';
-          const draftGone = !document.querySelector('#qa-draft');
-          return draftGone || /geschlossen|abgelaufen|beendet|nicht mehr möglich/i.test(body);
-        },
-        undefined,
-        { timeout: 20_000 },
-      )
-      .then(
-        () => true,
-        () => false,
-      );
-    logStep(closed, 'Teilnehmer-Schreibpfad schließt nach Sessionende');
-    if (!closed) {
-      failures.push('Nach session.end blieb das Q&A-Formular für Teilnehmende offen.');
+      await seedRankedQaBoardAndAssertHostViews(host, hostTrpc, created, failures);
+
+      await hostTrpc.session.end.mutate({ code: created.code });
+      const closed = await participant
+        .waitForFunction(
+          () => {
+            const body = document.body?.innerText ?? '';
+            const draftGone = !document.querySelector('#qa-draft');
+            return draftGone || /geschlossen|abgelaufen|beendet|nicht mehr möglich/i.test(body);
+          },
+          undefined,
+          { timeout: 20_000 },
+        )
+        .then(
+          () => true,
+          () => false,
+        );
+      logStep(closed, 'Teilnehmer-Schreibpfad schließt nach Sessionende');
+      if (!closed) {
+        failures.push('Nach session.end blieb das Q&A-Formular für Teilnehmende offen.');
+      }
     }
 
     await participantContext.close();

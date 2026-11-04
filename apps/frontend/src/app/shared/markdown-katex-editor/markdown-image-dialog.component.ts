@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject } from '@angular/core';
+import { Component, DestroyRef, ViewEncapsulation, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 export interface MarkdownImageDialogResult {
   alt: string;
@@ -43,6 +44,23 @@ export class MarkdownImageDialogComponent {
       validators: [Validators.required, Validators.pattern(/^https:\/\/\S+$/i)],
     }),
   });
+
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    const sync = (): void => {
+      const alt = this.form.controls.alt.value.trim();
+      const url = this.form.controls.url.value.trim();
+      this.updateBannerSuppression.set('markdown-image-draft', alt.length > 0 || url.length > 0);
+    };
+    sync();
+    const subscription = this.form.events.subscribe(sync);
+    this.destroyRef.onDestroy(() => {
+      subscription.unsubscribe();
+      this.updateBannerSuppression.set('markdown-image-draft', false);
+    });
+  }
 
   cancel(): void {
     this.dialogRef.close();

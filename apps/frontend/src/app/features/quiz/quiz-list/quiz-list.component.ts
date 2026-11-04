@@ -983,13 +983,20 @@ export class QuizListComponent implements OnInit {
     if (!sid) return;
     if (this.sessionPdfExportQuizId()) return;
 
-    const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
-    if (!accessProof) return;
-
+    // Vor jedem Await: der PDF-Worker kann das Zeitlimit reißen, und ein späteres
+    // window.open blockieren Safari und andere Popup-Regeln.
+    const viewPlaceholder = this.sessionResultsExport.openViewPlaceholder();
     this.sessionPdfExportQuizId.set(quiz.id);
     try {
+      const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
+      if (!accessProof) {
+        this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
+        return;
+      }
+
       const result = await this.sessionResultsExport.exportPdfFromQuizHistory(sid, accessProof, {
         profile,
+        viewPlaceholder,
       });
       const message =
         result === 'pdf-download'
@@ -1001,6 +1008,7 @@ export class QuizListComponent implements OnInit {
         horizontalPosition: 'center',
       });
     } catch {
+      this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
       this.snackBar.open(
         $localize`:@@quizList.exportLastSessionPdfError:Ergebnis-PDF konnte nicht erstellt werden.`,
         '',
@@ -1142,7 +1150,8 @@ export class QuizListComponent implements OnInit {
       if (requestId !== this.quizHistoryAvailabilityRequestId) {
         return;
       }
-      this.quizHistoryAvailability.set(new Map());
+      // Ein fehlgeschlagener Abruf lässt die letzte erfolgreiche Verfügbarkeit stehen.
+      // Sonst verschwindet »Nachbesprechungsplan ansehen« auf Karten mit beendeter Session.
     }
   }
 

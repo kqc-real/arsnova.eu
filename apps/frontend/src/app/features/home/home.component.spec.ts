@@ -7,7 +7,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angul
 import { provideHttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { of, Subject } from 'rxjs';
+import { of, Subject, type Observable } from 'rxjs';
 import { HomeComponent } from './home.component';
 import { QUICK_FEEDBACK_HOME_CHIPS } from '../feedback/feedback.config';
 import { QuizStoreService } from '../quiz/data/quiz-store.service';
@@ -19,6 +19,7 @@ import {
   storeHostBrowserCapability,
   storeHostRecoveryCandidate,
 } from '../../core/host-recovery-access';
+import type { SessionInfoDTO } from '@arsnova/shared-types';
 
 const { setFeedbackHostTokenMock } = vi.hoisted(() => ({
   setFeedbackHostTokenMock: vi.fn(),
@@ -112,18 +113,55 @@ const activeFixtures: Array<ReturnType<typeof TestBed.createComponent<HomeCompon
 const matDialogMock = {
   open: vi.fn(
     (
-      _component: unknown,
+      _component?: unknown,
       config?: {
         data?: {
-          identityMode: 'PRESET_PSEUDONYM';
-          nicknameTheme: 'KINDERGARTEN' | 'HIGH_SCHOOL';
+          identityMode?: 'PRESET_PSEUDONYM';
+          nicknameTheme?: 'KINDERGARTEN' | 'HIGH_SCHOOL';
         };
       },
-    ) => ({
+    ): { afterClosed: () => Observable<unknown> } => ({
       afterClosed: () => of(config?.data),
     }),
   ),
 };
+
+function issuedHostAccess(hostToken: string, code = 'ABC123') {
+  return {
+    code,
+    hostToken,
+    hostTokenExpiresAt: '2099-01-01T00:00:00.000Z',
+    role: 'ORIGINAL_HOST' as const,
+  };
+}
+
+function finishedHostSession() {
+  return {
+    status: 'FINISHED' as const,
+    currentQuestion: null,
+    endedAt: '2026-10-05T12:00:00.000Z',
+    expiresAt: '2026-10-06T12:00:00.000Z',
+    sessionLifecycleRevision: 1,
+    serverNow: '2026-10-05T12:00:00.000Z',
+    postProcessingEndsAt: '2026-10-12T12:00:00.000Z',
+    purgeEligibleAt: '2026-10-12T12:00:00.000Z',
+  };
+}
+
+function createdHostSession(code: string, hostToken: string) {
+  return {
+    sessionId: '00000000-0000-4000-8000-000000000001',
+    code,
+    status: 'LOBBY' as const,
+    quizName: null,
+    hostToken,
+    hostBrowserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+    hostRecoveryCard: {
+      supportId: '00000000-0000-4000-8000-000000000001',
+      recoveryCode: '',
+    },
+  };
+}
 
 function createHomeFixture() {
   const fixture = TestBed.createComponent(HomeComponent);
@@ -168,7 +206,11 @@ function hostSessionGetInfo(
     timeZone: 'Europe/Berlin',
     channels: qaOpen
       ? {
+          quiz: { enabled: false },
+          quickFeedback: { enabled: false, open: false },
           qa: {
+            title: null,
+            moderationMode: false,
             enabled: true,
             open: true,
             state: 'OPEN' as const,
@@ -180,7 +222,7 @@ function hostSessionGetInfo(
 }
 
 function restoreDefaultSessionGetInfo(query: {
-  mockResolvedValue: (value: unknown) => unknown;
+  mockResolvedValue: (value: SessionInfoDTO) => unknown;
 }): void {
   query.mockResolvedValue({
     id: 'sess-1',
@@ -267,61 +309,162 @@ describe('HomeComponent', () => {
   });
 
   describe('Host-Szenario', () => {
-    it('hält alle Karten im DOM und führt Tastaturfokus und Scrollziel zur passenden Karte', async () => {
+    it('blendet anfangs keine Host-Karte ein und danach jeweils nur die gewählte', async () => {
+      localStorage.setItem(
+        'arsnova-host-scenario:v1',
+        JSON.stringify({ version: 1, scenario: 'EVENT' }),
+      );
       const fixture = createHomeFixture();
       fixture.detectChanges();
       const root = fixture.nativeElement as HTMLElement;
       const chooser = root.querySelector('section.home-scenario') as HTMLElement;
-      const cards = Array.from(root.querySelectorAll('.home-host-stack > mat-card'));
-      const choices = Array.from(chooser.querySelectorAll('button'));
+      const panel = root.querySelector('#home-host-panel') as HTMLElement;
+      const cards = Array.from(root.querySelectorAll<HTMLElement>('.home-host-stack > mat-card'));
+      const choices = Array.from(chooser.querySelectorAll<HTMLButtonElement>('button'));
       const targetIds = ['home-host-quiz', 'home-host-qa', 'host-quick-feedback'];
+      const labels = [
+        'Quiz erstellen & verwalten',
+        'Q&A-Forum erstellen & verwalten',
+        'Blitzlicht auswählen',
+      ];
 
       expect(root.querySelector('#home-host-title')?.textContent).toContain(
         'Was hast du heute vor?',
       );
+      expect(root.querySelector('#participant-entry')).not.toBeNull();
       expect(chooser.querySelector('#home-scenario-title')).toBeNull();
       expect(chooser.getAttribute('aria-labelledby')).toBe('home-host-title');
-      expect(chooser.nextElementSibling?.classList.contains('home-host-stack')).toBe(true);
+      expect(chooser.nextElementSibling?.id).toBe('home-host-panel');
+      expect(panel.getAttribute('role')).toBeNull();
+      expect(panel.hidden).toBe(true);
+      expect(panel.hasAttribute('inert')).toBe(true);
       expect(cards).toHaveLength(3);
       expect(choices).toHaveLength(3);
+      expect(
+        choices.map((button) => {
+          const label =
+            button.querySelector('.home-scenario__option-copy--stack') ??
+            button.querySelector('.home-scenario__option-label');
+          return label?.textContent?.replace(/\s+/g, ' ').trim();
+        }),
+      ).toEqual(labels);
+      expect(
+        choices.map((button) =>
+          button.querySelector('.home-scenario__option-icon')?.textContent?.trim(),
+        ),
+      ).toEqual(['quiz', 'chat_bubble', 'bolt']);
+      expect(choices.every((button) => button.getAttribute('role') === null)).toBe(true);
       expect(choices.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
+      expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
+      expect(localStorage.getItem('arsnova-host-scenario:v1')).toBeNull();
+      expect(fixture.componentInstance.hostScenario.preference()).toBeNull();
 
       for (const [index, choice] of choices.entries()) {
-        const scrollIntoView = vi.fn();
-        const target = root.querySelector<HTMLElement>(`#${targetIds[index]}`);
-        expect(target).not.toBeNull();
-        target!.scrollIntoView = scrollIntoView;
         choice.focus();
         choice.click();
         fixture.detectChanges();
         await fixture.whenStable();
-        const focusTarget = target!.querySelector<HTMLElement>('.home-card__scenario-focus-target');
-        expect(focusTarget?.tabIndex).toBe(-1);
-        expect(document.activeElement).toBe(focusTarget);
+        const target = root.querySelector<HTMLElement>(`#${targetIds[index]}`);
+        expect(panel.hidden).toBe(false);
+        expect(panel.getAttribute('aria-labelledby')).toBe(choice.id);
         expect(choice.getAttribute('aria-pressed')).toBe('true');
-        expect(
-          cards.filter((card) => card.classList.contains('home-card--scenario-selected')),
-        ).toEqual([target]);
-        expect(scrollIntoView).toHaveBeenCalledWith({
-          behavior: 'smooth',
-          block: 'start',
-          inline: 'nearest',
-        });
-        expect(
-          choices.filter((button) => button.getAttribute('aria-pressed') === 'true'),
-        ).toHaveLength(1);
-        expect(Array.from(root.querySelectorAll('.home-host-stack > mat-card'))).toEqual(cards);
-        for (const card of cards) {
-          expect(card.hasAttribute('inert')).toBe(false);
-          expect(card.hasAttribute('hidden')).toBe(false);
-          const action = card.querySelector<HTMLButtonElement | HTMLAnchorElement>(
-            'button, a[href]',
-          );
-          expect(action?.tabIndex).toBeGreaterThanOrEqual(0);
+        expect(choice.querySelector('.home-scenario__option-mark')).toBeNull();
+        expect(choice.querySelector('.home-scenario__option-icon')).not.toBeNull();
+        expect(document.activeElement).toBe(choice);
+        expect(target?.hidden).toBe(false);
+        expect(target?.hasAttribute('inert')).toBe(false);
+        expect(cards.filter((card) => !card.hidden)).toEqual([target]);
+        expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
+        for (const card of cards.filter((entry) => entry !== target)) {
+          expect(card.hidden).toBe(true);
+          expect(card.hasAttribute('inert')).toBe(true);
         }
+        choice.click();
+        fixture.detectChanges();
+        expect(choice.getAttribute('aria-pressed')).toBe('true');
+        expect(target?.hidden).toBe(false);
+        expect(localStorage.getItem('arsnova-host-scenario:v1')).toBeNull();
       }
-      expect(TestBed.inject(HostScenarioService).preference()).toBe('QUICK');
+      expect(fixture.componentInstance.hostScenario.preference()).toBe('QUICK');
       expect(matDialogMock.open).not.toHaveBeenCalled();
+    });
+
+    it('übersetzt jede Aufgabenwahl als vollständige Beschriftung', async () => {
+      const { readFileSync } = await import('node:fs');
+      const { fileURLToPath } = await import('node:url');
+      const { dirname, join } = await import('node:path');
+      const homeDir = dirname(fileURLToPath(import.meta.url));
+      const template = readFileSync(join(homeDir, 'home.component.html'), 'utf8');
+      const ids = [
+        'homeScenario.classroomLabel',
+        'homeScenario.eventLabel',
+        'homeScenario.eventLabelStacked',
+        'homeScenario.quickLabel',
+      ];
+
+      for (const id of ids) {
+        expect(
+          template.match(new RegExp(`i18n="@@${id.replaceAll('.', '\\.')}"`, 'g')),
+        ).toHaveLength(1);
+      }
+      expect(template).not.toContain('homeScenario.classroomTerm');
+      expect(template).not.toContain('homeScenario.classroomAction');
+
+      const expected = {
+        'messages.en.xlf': [
+          'Create and manage a quiz',
+          'Create and manage Q&amp;A',
+          'Create and manage a Q&amp;A forum',
+          'Choose a pulse check',
+        ],
+        'messages.fr.xlf': [
+          'Créer et gérer un quiz',
+          'Créer et gérer un Q&amp;A',
+          'Créer et gérer un forum Q&amp;A',
+          'Choisir un feedback express',
+        ],
+        'messages.es.xlf': [
+          'Crear y gestionar un quiz',
+          'Crear y gestionar un Q&amp;A',
+          'Crear y gestionar un foro de Q&amp;A',
+          'Elegir un sondeo rápido',
+        ],
+        'messages.it.xlf': [
+          'Creare e gestire un quiz',
+          'Creare e gestire un Q&amp;A',
+          'Creare e gestire un forum Q&amp;A',
+          'Scegliere un sondaggio rapido',
+        ],
+      };
+
+      for (const [fileName, targets] of Object.entries(expected)) {
+        const catalog = readFileSync(join(homeDir, '../../../locale', fileName), 'utf8');
+        ids.forEach((id, index) => {
+          const start = catalog.indexOf(`<trans-unit id="${id}"`);
+          expect(start, `${fileName} ${id}`).toBeGreaterThanOrEqual(0);
+          const unit = catalog.slice(start, catalog.indexOf('</trans-unit>', start));
+          expect(unit).toContain(`<target>${targets[index]}</target>`);
+        });
+      }
+    });
+
+    it('wählt per Pfeiltaste keine andere Aufgabe und lässt alle Buttons tabbar', async () => {
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      const quiz = root.querySelector<HTMLButtonElement>('#home-host-tab-quiz');
+      quiz?.focus();
+      quiz?.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const choices = Array.from(
+        root.querySelectorAll<HTMLButtonElement>('.home-scenario__option'),
+      );
+      expect(document.activeElement).toBe(quiz);
+      expect(choices.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true);
+      expect(choices.every((button) => button.tabIndex === 0)).toBe(true);
+      expect(root.querySelector<HTMLElement>('#home-host-panel')?.hidden).toBe(true);
     });
 
     it('behält bei Pointer-Auswahl den Fokus auf dem Auswahlbutton', async () => {
@@ -339,27 +482,164 @@ describe('HomeComponent', () => {
       await fixture.whenStable();
 
       expect(document.activeElement).toBe(choice);
-      expect(scrollIntoView).toHaveBeenCalledOnce();
-      expect(target?.classList.contains('home-card--scenario-selected')).toBe(true);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      expect(target?.hidden).toBe(false);
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(true);
+      expect(root.querySelector<HTMLElement>('#host-quick-feedback')?.hidden).toBe(true);
     });
 
-    it('scrollt bei reduzierter Bewegung ohne Animation zur ausgewählten Karte', async () => {
-      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }));
+    it('scrollt die Karte in den sichtbaren Bereich und lässt die Auswahlbuttons beim Wechsel stehen', async () => {
+      const main = document.createElement('div');
+      main.id = 'main-content';
+      main.style.paddingTop = '64px';
+      let scrollTop = 0;
+      const scrolled: number[] = [];
+      main.scrollTo = ((options?: ScrollToOptions) => {
+        scrollTop = options?.top ?? 0;
+        scrolled.push(scrollTop);
+      }) as typeof main.scrollTo;
+      Object.defineProperty(main, 'scrollTop', {
+        configurable: true,
+        get: () => scrollTop,
+      });
+      Object.defineProperty(main, 'clientHeight', { configurable: true, get: () => 600 });
+      document.body.appendChild(main);
+      vi.spyOn(main, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 400, 600));
+
       const fixture = createHomeFixture();
       fixture.detectChanges();
-      const target = fixture.nativeElement.querySelector('#host-quick-feedback') as HTMLElement;
-      const scrollIntoView = vi.fn();
-      target.scrollIntoView = scrollIntoView;
+      const root = fixture.nativeElement as HTMLElement;
+      const tabs = root.querySelector('.home-scenario') as HTMLElement;
+      const quizCard = root.querySelector('#home-host-quiz') as HTMLElement;
+      const qaCard = root.querySelector('#home-host-qa') as HTMLElement;
+      vi.spyOn(tabs, 'getBoundingClientRect').mockReturnValue(new DOMRect(16, 520, 360, 80));
+      vi.spyOn(quizCard, 'getBoundingClientRect').mockImplementation(
+        () => new DOMRect(16, 612, 360, quizCard.hidden ? 0 : 280),
+      );
+      vi.spyOn(qaCard, 'getBoundingClientRect').mockImplementation(
+        () => new DOMRect(16, 332, 360, qaCard.hidden ? 0 : 420),
+      );
 
-      fixture.componentInstance.selectHostScenario('QUICK');
+      root.querySelector<HTMLButtonElement>('#home-host-tab-quiz')?.click();
       fixture.detectChanges();
       await fixture.whenStable();
 
-      expect(scrollIntoView).toHaveBeenCalledWith({
-        behavior: 'auto',
-        block: 'start',
-        inline: 'nearest',
+      expect(scrolled).toEqual([300]);
+      const quizTop = tabs.getBoundingClientRect().top;
+
+      root.querySelector<HTMLButtonElement>('#home-host-tab-qa')?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(tabs.getBoundingClientRect().top).toBe(quizTop);
+      expect(scrolled.at(-1)).toBe(460);
+      const stableScroll = scrollTop;
+      root.querySelector<HTMLButtonElement>('#home-host-tab-qa')?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(scrollTop).toBe(stableScroll);
+      main.remove();
+    });
+
+    it('blendet beim Wechsel zuerst aus und zeigt erst danach die neue Karte', () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query === '(prefers-reduced-motion: no-preference)',
+          media: query,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+          addListener: () => undefined,
+          removeListener: () => undefined,
+          dispatchEvent: () => false,
+        })),
+      );
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      root.querySelector<HTMLButtonElement>('#home-host-tab-quiz')?.click();
+      fixture.detectChanges();
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(false);
+      expect(
+        root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
+      ).toBe(false);
+
+      root.querySelector<HTMLButtonElement>('#home-host-tab-qa')?.click();
+      fixture.detectChanges();
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(false);
+      expect(root.querySelector('#home-host-quiz')?.hasAttribute('inert')).toBe(true);
+      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(true);
+      expect(
+        root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
+      ).toBe(true);
+
+      vi.advanceTimersByTime(520);
+      fixture.detectChanges();
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(true);
+      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(false);
+      expect(
+        root.querySelector('#home-host-panel')?.classList.contains('home-host-stack--leave'),
+      ).toBe(false);
+    });
+
+    it('stoppt die laufende Höhenanimation, sobald eine andere Karte gewählt wird', () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query === '(prefers-reduced-motion: no-preference)',
+          media: query,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+          addListener: () => undefined,
+          removeListener: () => undefined,
+          dispatchEvent: () => false,
+        })),
+      );
+      const main = document.createElement('div');
+      main.id = 'main-content';
+      let scrollTop = 0;
+      Object.defineProperty(main, 'scrollTop', {
+        configurable: true,
+        get: () => scrollTop,
+        set: (value: number) => {
+          scrollTop = value;
+        },
       });
+      Object.defineProperty(main, 'clientHeight', { configurable: true, get: () => 600 });
+      document.body.appendChild(main);
+      vi.spyOn(main, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 400, 600));
+
+      const fixture = createHomeFixture();
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      const panel = root.querySelector<HTMLElement>('#home-host-panel');
+      const tabs = root.querySelector('.home-scenario') as HTMLElement;
+      const quizCard = root.querySelector('#home-host-quiz') as HTMLElement;
+      vi.spyOn(tabs, 'getBoundingClientRect').mockReturnValue(new DOMRect(16, 80, 360, 80));
+      vi.spyOn(quizCard, 'getBoundingClientRect').mockReturnValue(new DOMRect(16, 200, 360, 900));
+      vi.spyOn(quizCard, 'offsetHeight', 'get').mockReturnValue(900);
+
+      root.querySelector<HTMLButtonElement>('#home-host-tab-quiz')?.click();
+      fixture.detectChanges();
+      for (let frame = 0; frame < 30 && panel?.style.height === '0px'; frame += 1) {
+        vi.advanceTimersByTime(16);
+      }
+      expect(panel?.style.height).not.toBe('0px');
+      expect(panel?.style.height.endsWith('px')).toBe(true);
+      const scrollWhileOpening = scrollTop;
+
+      root.querySelector<HTMLButtonElement>('#home-host-tab-qa')?.click();
+      fixture.detectChanges();
+      const heightAtSwitch = panel?.style.height;
+      const scrollAtSwitch = scrollTop;
+      vi.advanceTimersByTime(400);
+
+      expect(panel?.style.height).toBe(heightAtSwitch);
+      expect(scrollTop).toBe(scrollAtSwitch);
+      expect(scrollTop).toBe(scrollWhileOpening);
+      expect(root.querySelector<HTMLElement>('#home-host-quiz')?.hidden).toBe(false);
+      expect(root.querySelector<HTMLElement>('#home-host-qa')?.hidden).toBe(true);
+      main.remove();
     });
 
     it('bietet im Kurs eigene Quizaktionen und Kursfragen an, ohne Demo als letztes Quiz', () => {
@@ -454,7 +734,7 @@ describe('HomeComponent', () => {
         return fixture.nativeElement.querySelector('[data-testid="home-host-recovery"]') !== null;
       });
 
-      expect(fixture.componentInstance.hostScenario.preference()).toBe('EVENT');
+      expect(fixture.componentInstance.hostScenario.preference()).toBeNull();
       const recovery = fixture.nativeElement.querySelector(
         '[data-testid="home-host-recovery"]',
       ) as HTMLAnchorElement;
@@ -501,7 +781,7 @@ describe('HomeComponent', () => {
         ...hostSessionGetInfo('TEST01', true),
         channels: {
           quiz: { enabled: false },
-          qa: { enabled: true, open: true, state: 'OPEN' },
+          qa: { title: null, moderationMode: false, enabled: true, open: true, state: 'OPEN' },
           quickFeedback: { enabled: false, open: false },
         },
       });
@@ -868,10 +1148,12 @@ describe('HomeComponent', () => {
 
       const hero = fixture.nativeElement.querySelector('h1.home-hero') as HTMLHeadingElement;
       const levelTwoTitles = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLHeadingElement>('h2'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLHeadingElement>('h2'),
       ).map((heading) => heading.textContent?.replace(/\s+/g, ' ').trim());
       const taskTitles = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLHeadingElement>('h3.home-card__title'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLHeadingElement>(
+          'h3.home-card__title',
+        ),
       ).map((heading) => heading.textContent?.replace(/\s+/g, ' ').trim());
 
       expect(hero).not.toBeNull();
@@ -883,7 +1165,7 @@ describe('HomeComponent', () => {
       expect(taskTitles).toEqual(['Quiz', 'Q&A', 'Blitzlicht']);
       expect(
         Array.from(
-          fixture.nativeElement.querySelectorAll<HTMLElement>(
+          (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
             '.home-host-stack .home-card__eyebrow',
           ),
         ).map((eyebrow) => eyebrow.textContent?.replace(/\s+/g, ' ').trim()),
@@ -891,11 +1173,11 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.home-card__eyebrow')).toHaveLength(4);
       expect(
         Array.from(
-          fixture.nativeElement.querySelectorAll<HTMLElement>(
+          (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
             '.home-card__icon-wrap .home-card__icon',
           ),
         ).map((icon) => icon.textContent?.trim()),
-      ).toEqual(['meeting_room', 'quiz', 'chat_bubble_outline', 'bolt']);
+      ).toEqual(['meeting_room', 'quiz', 'chat_bubble', 'bolt']);
       expect(fixture.nativeElement.querySelector('.home-card mat-card-subtitle')).toBeNull();
     });
 
@@ -924,7 +1206,7 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('.home-hero-serious-tagline')).toBeNull();
       expect(fixture.nativeElement.querySelector('.home-hero-usp--secondary')).toBeNull();
       const uspChips = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>('.home-hero-usp-chip'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('.home-hero-usp-chip'),
       ).map((chip) => chip.textContent?.replace(/\s+/g, ' ').trim());
       expect(uspChips).toEqual(
         expect.arrayContaining(['Kostenlos', 'Open Source', 'Ohne Anmeldung', 'Made in Europe']),
@@ -1048,7 +1330,7 @@ describe('HomeComponent', () => {
       expect(liveGrid?.querySelector('[data-testid="home-host-recovery"]')).toBeNull();
 
       const hostCtas = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row .home-choice-button',
         ),
       );
@@ -1059,7 +1341,9 @@ describe('HomeComponent', () => {
       ).toBeNull();
 
       const liveButtons = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>('.home-live-grid .home-choice-button'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.home-live-grid .home-choice-button',
+        ),
       );
       expect(liveButtons).toHaveLength(1);
       expect(liveButtons.every((button) => button.classList.contains('home-cta--secondary'))).toBe(
@@ -1089,12 +1373,14 @@ describe('HomeComponent', () => {
         qaPendingQuestionCount: 5,
         expiresAt: '2026-09-20T06:07:00.000Z',
         qaClosesAt: '2026-09-20T06:07:00.000Z',
-        qaEnabled: true,
-        qaOpen: true,
         postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
         timeZone: 'Europe/Berlin',
         channels: {
+          quiz: { enabled: false },
+          quickFeedback: { enabled: false, open: false },
           qa: {
+            title: null,
+            moderationMode: false,
             enabled: true,
             open: true,
             state: 'OPEN',
@@ -1109,7 +1395,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           Array.from(
-            fixture.nativeElement.querySelectorAll<HTMLElement>(
+            (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
               '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim().startsWith('Offen bis ')) === true,
@@ -1117,7 +1403,7 @@ describe('HomeComponent', () => {
       );
 
       const descriptions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
@@ -1171,8 +1457,8 @@ describe('HomeComponent', () => {
       seedHostCapability();
       vi.mocked(trpc.session.issueHostAccessToken.mutate).mockClear();
       vi.mocked(setHostTokenFromTrpc).mockClear();
-      let releaseIssue!: (value: { hostToken: string }) => void;
-      const pendingIssue = new Promise<{ hostToken: string }>((resolve) => {
+      let releaseIssue!: (value: ReturnType<typeof issuedHostAccess>) => void;
+      const pendingIssue = new Promise<ReturnType<typeof issuedHostAccess>>((resolve) => {
         releaseIssue = resolve;
       });
       vi.mocked(trpc.session.issueHostAccessToken.mutate).mockImplementationOnce(
@@ -1200,13 +1486,13 @@ describe('HomeComponent', () => {
       );
       expect(
         Array.from(
-          fixture.nativeElement.querySelectorAll<HTMLElement>(
+          (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
             '.home-host-session-cta-row__item .home-host-session-cta__fact',
           ),
         ).map((line) => line.textContent?.trim()),
       ).not.toContain('In Moderation: 1');
 
-      releaseIssue({ hostToken: 'issued-host-token' });
+      releaseIssue(issuedHostAccess('issued-host-token'));
       await fixture.whenStable();
       fixture.detectChanges();
       await vi.waitUntil(
@@ -1214,7 +1500,7 @@ describe('HomeComponent', () => {
           fixture.detectChanges();
           return (
             Array.from(
-              fixture.nativeElement.querySelectorAll<HTMLElement>(
+              (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
                 '.home-host-session-cta-row__item .home-host-session-cta__fact',
               ),
             ).some((line) => line.textContent?.trim() === 'In Moderation: 1') === true
@@ -1240,7 +1526,7 @@ describe('HomeComponent', () => {
       let issued = false;
       vi.mocked(trpc.session.issueHostAccessToken.mutate).mockImplementation(async () => {
         issued = true;
-        return { hostToken: 'fresh-host-token' };
+        return issuedHostAccess('fresh-host-token');
       });
       vi.mocked(trpc.session.getInfo.query).mockImplementation(async () =>
         hostSessionGetInfo('ABC123', true, {
@@ -1258,7 +1544,7 @@ describe('HomeComponent', () => {
           fixture.detectChanges();
           return (
             Array.from(
-              fixture.nativeElement.querySelectorAll<HTMLElement>(
+              (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
                 '.home-host-session-cta-row__item .home-host-session-cta__fact',
               ),
             ).some((line) => line.textContent?.trim() === 'In Moderation: 1') === true
@@ -1281,12 +1567,10 @@ describe('HomeComponent', () => {
       storeHostBrowserCapability('AAA111', 'older-browser-capability-abcdefghijklmnopqrstuvwxyz');
       storeHostBrowserCapability('BBB222', 'newer-browser-capability-abcdefghijklmnopqrstuvwxyz');
       const callOrder: string[] = [];
-      vi.mocked(trpc.session.issueHostAccessToken.mutate).mockImplementation(
-        async (input: { code: string }) => {
-          callOrder.push(`issue:${input.code}`);
-          return { hostToken: 'issued-host-token' };
-        },
-      );
+      vi.mocked(trpc.session.issueHostAccessToken.mutate).mockImplementation(async (input) => {
+        callOrder.push(`issue:${input.code}`);
+        return issuedHostAccess('issued-host-token', input.code);
+      });
       vi.mocked(trpc.session.getInfo.query).mockImplementation(async (input: { code: string }) => {
         callOrder.push(`info:${input.code}`);
         return hostSessionGetInfo(input.code, true, {
@@ -1332,12 +1616,14 @@ describe('HomeComponent', () => {
         qaPendingQuestionCount: 0,
         expiresAt: '2026-09-20T06:07:00.000Z',
         qaClosesAt: '2026-09-20T06:07:00.000Z',
-        qaEnabled: true,
-        qaOpen: true,
         postProcessingEndsAt: '2026-10-04T06:07:00.000Z',
         timeZone: 'Europe/Berlin',
         channels: {
+          quiz: { enabled: false },
+          quickFeedback: { enabled: false, open: false },
           qa: {
+            title: null,
+            moderationMode: false,
             enabled: true,
             open: true,
             state: 'OPEN',
@@ -1352,7 +1638,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           Array.from(
-            fixture.nativeElement.querySelectorAll<HTMLElement>(
+            (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
               '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === '5 Fragen') === true,
@@ -1360,7 +1646,7 @@ describe('HomeComponent', () => {
       );
 
       const descriptions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
@@ -1384,10 +1670,20 @@ describe('HomeComponent', () => {
         qaPendingQuestionCount: 1,
         expiresAt: '2026-09-18T12:22:30.000Z',
         qaClosesAt: '2026-09-18T12:22:30.000Z',
-        qaEnabled: true,
-        qaOpen: true,
         postProcessingEndsAt: '2026-10-01T12:25:00.000Z',
         timeZone: 'Europe/Berlin',
+        channels: {
+          quiz: { enabled: false },
+          quickFeedback: { enabled: false, open: false },
+          qa: {
+            title: null,
+            moderationMode: false,
+            enabled: true,
+            open: false,
+            state: 'DEADLINE_EXPIRED',
+            closesAt: '2026-09-18T12:22:30.000Z',
+          },
+        },
       });
       const fixture = createHomeFixture();
       fixture.detectChanges();
@@ -1396,7 +1692,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           Array.from(
-            fixture.nativeElement.querySelectorAll<HTMLElement>(
+            (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
               '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === 'Forum geschlossen') === true,
@@ -1404,7 +1700,7 @@ describe('HomeComponent', () => {
       );
 
       const descriptions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
@@ -1437,7 +1733,7 @@ describe('HomeComponent', () => {
       await vi.waitUntil(
         () =>
           Array.from(
-            fixture.nativeElement.querySelectorAll<HTMLElement>(
+            (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
               '.home-host-session-cta-row__item .home-host-session-cta__fact',
             ),
           ).some((line) => line.textContent?.trim() === 'In Moderation: 1') === true,
@@ -1445,7 +1741,7 @@ describe('HomeComponent', () => {
       );
 
       const descriptions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row__item .home-host-session-cta__fact',
         ),
       ).map((line) => line.textContent?.trim());
@@ -1536,7 +1832,7 @@ describe('HomeComponent', () => {
       );
 
       const recoveryActions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row [data-testid="home-host-recovery"]',
         ),
       );
@@ -1579,7 +1875,7 @@ describe('HomeComponent', () => {
       );
 
       const recoveryActions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row [data-testid="home-host-recovery"]',
         ),
       );
@@ -1622,12 +1918,14 @@ describe('HomeComponent', () => {
         { timeout: 1000, interval: 10 },
       );
 
-      const trigger = fixture.nativeElement.querySelector<HTMLButtonElement>(
+      const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
         '[data-testid="home-host-session-menu-trigger"]',
       )!;
       expect(
         Array.from(
-          fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery"]'),
+          (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+            '[data-testid="home-host-recovery"]',
+          ),
         ).map((action) => action.getAttribute('data-session-code')),
       ).toEqual(['MMM555', 'ZZZ999']);
       trigger.click();
@@ -1674,11 +1972,13 @@ describe('HomeComponent', () => {
         { timeout: 1000, interval: 10 },
       );
 
-      const trigger = fixture.nativeElement.querySelector<HTMLButtonElement>(
+      const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
         '[data-testid="home-host-session-menu-trigger"]',
       )!;
       const directCodes = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>('[data-testid="home-host-recovery"]'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '[data-testid="home-host-recovery"]',
+        ),
       ).map((action) => action.getAttribute('data-session-code'));
       trigger.click();
       fixture.detectChanges();
@@ -1727,7 +2027,7 @@ describe('HomeComponent', () => {
       );
 
       const recoveryActions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row [data-testid="home-host-recovery"]',
         ),
       );
@@ -1767,11 +2067,11 @@ describe('HomeComponent', () => {
         { timeout: 1000, interval: 10 },
       );
 
-      const trigger = fixture.nativeElement.querySelector<HTMLButtonElement>(
+      const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
         '[data-testid="home-host-session-menu-trigger"]',
       )!;
       const directCodes = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row [data-testid="home-host-recovery"]',
         ),
       ).map((action) => action.getAttribute('data-session-code'));
@@ -1830,7 +2130,7 @@ describe('HomeComponent', () => {
         { timeout: 1000, interval: 10 },
       );
 
-      const trigger = fixture.nativeElement.querySelector<HTMLButtonElement>(
+      const trigger = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
         '[data-testid="home-host-session-menu-trigger"]',
       )!;
       trigger.click();
@@ -1883,7 +2183,7 @@ describe('HomeComponent', () => {
       );
 
       const recoveryActions = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-host-session-cta-row [data-testid="home-host-recovery"]',
         ),
       );
@@ -1909,13 +2209,17 @@ describe('HomeComponent', () => {
         quizName: 'Live',
         title: null,
         participantCount: 3,
-        qaEnabled: false,
-        qaOpen: false,
         qaClosesAt: null,
         expiresAt: '2026-09-20T12:00:00.000Z',
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: false, open: false, state: 'DISABLED' as const },
+          qa: {
+            title: null,
+            moderationMode: false,
+            enabled: false,
+            open: false,
+            state: 'DISABLED' as const,
+          },
           quickFeedback: { enabled: false, open: false },
         },
       });
@@ -1953,7 +2257,7 @@ describe('HomeComponent', () => {
         '[data-testid="home-host-session-remove"][data-session-code="ABC123"]',
       ) as HTMLButtonElement;
       expect(remove.getAttribute('aria-label')).toBe('Q&A-Session ABC123 löschen');
-      expect(remove.querySelector('mat-icon')?.textContent?.trim()).toBe('delete_outline');
+      expect(remove.querySelector('mat-icon')?.textContent?.trim()).toBe('delete');
 
       const item = fixture.componentInstance.hostSessionCtas()[0];
       expect(item?.code).toBe('ABC123');
@@ -2005,8 +2309,8 @@ describe('HomeComponent', () => {
       vi.mocked(trpc.session.getInfo.query).mockImplementation((input: { code: string }) =>
         Promise.resolve(hostSessionGetInfo(input.code, true, { qaQuestionCount: 1 })),
       );
-      let releaseEnd!: (value: { status: 'FINISHED' }) => void;
-      const pendingEnd = new Promise<{ status: 'FINISHED' }>((resolve) => {
+      let releaseEnd!: (value: ReturnType<typeof finishedHostSession>) => void;
+      const pendingEnd = new Promise<ReturnType<typeof finishedHostSession>>((resolve) => {
         releaseEnd = resolve;
       });
       vi.mocked(trpc.session.end.mutate).mockImplementationOnce(() => pendingEnd);
@@ -2031,7 +2335,7 @@ describe('HomeComponent', () => {
         code: first.code === 'ABC123' ? 'XYZ789' : 'ABC123',
       });
       expect(trpc.session.end.mutate).toHaveBeenCalledTimes(1);
-      releaseEnd({ status: 'FINISHED' });
+      releaseEnd(finishedHostSession());
       await pendingRemove;
       expect(fixture.componentInstance.hostSessionCtaBusy()).toBe(false);
       restoreDefaultSessionGetInfo(vi.mocked(trpc.session.getInfo.query));
@@ -2175,7 +2479,7 @@ describe('HomeComponent', () => {
       );
     });
 
-    it('behält auf Mobile und Tablet die Lesespalte und nutzt breite Desktops dreispaltig', async () => {
+    it('behält auf Mobile und Tablet die Lesespalte und auf breiten Desktops eine Host-Karte', async () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
@@ -2191,7 +2495,12 @@ describe('HomeComponent', () => {
         /:host\.route-home \.l-page:first-child\s*\{[^}]*max-width:\s*40rem/,
       );
       expect(layout).toMatch(/\.home-main\s*\{[^}]*flex-direction:\s*column/);
-      expect(compactLayout).toMatch(/\.home-scenario\s*\{[^}]*margin-block-end:\s*0\.75rem/);
+      expect(compactLayout).toMatch(
+        /\.home-host-chooser\s*\{[^}]*gap:\s*0[^}]*width:\s*min\(100%,\s*40rem\)/,
+      );
+      expect(compactLayout).toMatch(
+        /\.home-scenario\s*\{[^}]*position:\s*sticky[^}]*padding:\s*0 0 0\.75rem/,
+      );
       expect(compactLayout).toMatch(
         /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
       );
@@ -2210,16 +2519,16 @@ describe('HomeComponent', () => {
       expect(desktopLayout).toMatch(
         /\.home-hero-band\s*\{[^}]*margin-block:\s*3rem calc\(4rem - 1\.25rem\)[^}]*padding:\s*0\.75rem 1rem 0\.9rem/,
       );
-      expect(desktopLayout).toMatch(/\.home-scenario\s*\{[^}]*margin-block-end:\s*1\.25rem/);
-      expect(desktopLayout).toMatch(
-        /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)[^}]*gap:\s*5rem/,
+      expect(desktopLayout).not.toMatch(
+        /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
+      );
+      expect(compactLayout).toMatch(
+        /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
       );
       expect(desktopLayout).toMatch(
         /\.home-main\s*\{[^}]*--home-host-card-bleed:\s*1\.5rem[^}]*--home-host-card-pad:\s*calc\(1rem \+ \(var\(--home-host-card-bleed\) \/ 2\)\)/,
       );
-      expect(desktopLayout).toMatch(
-        /\.home-host-stack\s*\{[^}]*width:\s*min\(72rem,\s*calc\(100vw - 4rem\)\)/,
-      );
+      expect(desktopLayout).not.toMatch(/width:\s*min\(72rem,\s*calc\(100vw - 4rem\)\)/);
       expect(desktopLayout).toMatch(
         /\.home-card--create \.home-card__header,[\s\S]*?padding-top:\s*var\(--home-host-card-pad\)[^}]*padding-inline:\s*var\(--home-host-card-pad\)/,
       );
@@ -2338,7 +2647,9 @@ describe('HomeComponent', () => {
       expect(liveGrid?.classList.contains('home-live-grid--with-recovery')).toBe(false);
 
       const liveButtons = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>('.home-live-grid .home-choice-button'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+          '.home-live-grid .home-choice-button',
+        ),
       );
       expect(liveButtons).toHaveLength(1);
       expect(liveButtons.every((button) => button.classList.contains('home-cta'))).toBe(true);
@@ -2362,7 +2673,7 @@ describe('HomeComponent', () => {
       expect(fixture.nativeElement.querySelector('.home-host-intro__description')).toBeNull();
 
       const quickFeedbackButtons = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-feedback-chip-grid .home-feedback-chip',
         ),
       );
@@ -2372,7 +2683,7 @@ describe('HomeComponent', () => {
         'Ja · Nein · Vielleicht',
         'Sterne',
       ]);
-      const compactMaybeLabel = fixture.nativeElement.querySelector<HTMLElement>(
+      const compactMaybeLabel = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
         '.home-feedback-chip__label--wide-compact',
       );
       expect(compactMaybeLabel?.textContent?.trim()).toBe('Ja · Nein · ?');
@@ -2383,7 +2694,7 @@ describe('HomeComponent', () => {
       expect(yesNoMaybeButton?.classList.contains('home-feedback-chip--yes-no')).toBe(true);
 
       const prepareButtons = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLElement>(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
           '.home-card--create .home-choice-button',
         ),
       );
@@ -2560,7 +2871,17 @@ describe('HomeComponent', () => {
       /\.home-feedback-chip--yes-no:focus-visible \.home-feedback-chip__body\s*\{[^}]*width:\s*fit-content[^}]*outline:\s*2px solid var\(--mat-sys-primary\)/,
     );
     expect(scss).toMatch(
-      /\.home-host-stack > \.home-card--scenario-selected\s*\{[^}]*outline:\s*3px solid var\(--mat-sys-primary\)/,
+      /\.home-scenario__option\s*\{[^}]*background:\s*transparent[^}]*&\[aria-pressed='true'\]\s*\{[^}]*background:\s*transparent[^}]*box-shadow:\s*inset 0 0 0 2px var\(--mat-sys-primary\)/,
+    );
+    expect(scss).toMatch(
+      /@media \(prefers-reduced-motion:\s*no-preference\)\s*\{[^}]*\.home-host-stack\s*\{[^}]*opacity 520ms cubic-bezier\(0\.4,\s*0,\s*0\.2,\s*1\)/,
+    );
+    expect(scss).not.toContain('home-scenario__option-mark');
+    expect(scss).toMatch(
+      /@media \(max-width: 349px\)[\s\S]*?\.home-scenario__option-label\s*\{[^}]*white-space:\s*normal/,
+    );
+    expect(scss).toMatch(
+      /\.home-host-stack\[hidden\],\s*\.home-host-stack > \.home-card\[hidden\]\s*\{[^}]*display:\s*none !important/,
     );
     expect(scss).toMatch(
       /\.home-card__scenario-focus-target\s*\{[^}]*display:\s*inline-block[^}]*width:\s*fit-content[^}]*max-width:\s*100%/,
@@ -2868,7 +3189,11 @@ describe('HomeComponent', () => {
       async ({ type, label }) => {
         const { trpc } = await import('../../core/trpc.client');
         vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-          id: 'sess-chip',
+          sessionId: '00000000-0000-4000-8000-000000000001',
+          status: 'LOBBY',
+          quizName: null,
+          hostBrowserCapability: '',
+          hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
           code: 'CHP123',
           hostToken: 'chip-host-token',
         });
@@ -2900,7 +3225,11 @@ describe('HomeComponent', () => {
     it('startet Tempo über den Startseiten-Chip als sitzungsgebundenes Blitzlicht', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-tempo',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'TMP123',
         hostToken: 'tempo-host-token',
       });
@@ -2934,7 +3263,11 @@ describe('HomeComponent', () => {
     it('legt über Quiz eine leere Host-Session an und öffnet die Auswahl', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-quiz-new',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QZ0001',
         hostToken: 'quiz-new-token',
       });
@@ -2967,7 +3300,13 @@ describe('HomeComponent', () => {
         participantCount: 0,
         channels: {
           quiz: { enabled: false },
-          qa: { enabled: true, open: true, state: 'OPEN' as const },
+          qa: {
+            title: null,
+            moderationMode: false,
+            enabled: true,
+            open: true,
+            state: 'OPEN' as const,
+          },
           quickFeedback: { enabled: false, open: false },
         },
       });
@@ -2988,7 +3327,11 @@ describe('HomeComponent', () => {
     it('legt über Q&A immer eine neue Host-Session an, auch mit vorhandenem Host-Token', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qa-forced',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QA9999',
         hostToken: 'qa-forced-token',
       });
@@ -3030,7 +3373,11 @@ describe('HomeComponent', () => {
     it('legt bei beendeter Session trotz offenem Q&A ein neues Blitzlicht an', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qf-finished-qa',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QF0003',
         hostToken: 'qf-finished-qa-token',
       });
@@ -3043,12 +3390,16 @@ describe('HomeComponent', () => {
         quizName: 'Live',
         title: null,
         participantCount: 2,
-        qaEnabled: true,
-        qaOpen: true,
         qaClosesAt: '2026-09-20T12:00:00.000Z',
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: true, open: true, state: 'OPEN' as const },
+          qa: {
+            title: null,
+            moderationMode: false,
+            enabled: true,
+            open: true,
+            state: 'OPEN' as const,
+          },
           quickFeedback: { enabled: true, open: false },
         },
       });
@@ -3069,7 +3420,11 @@ describe('HomeComponent', () => {
     it('legt ein neues Blitzlicht an, wenn die letzte Host-Session ohne Q&A beendet ist', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qf-new',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QF0002',
         hostToken: 'qf-new-token',
       });
@@ -3082,12 +3437,16 @@ describe('HomeComponent', () => {
         quizName: 'Live',
         title: null,
         participantCount: 2,
-        qaEnabled: false,
-        qaOpen: false,
         qaClosesAt: null,
         channels: {
           quiz: { enabled: true },
-          qa: { enabled: false, open: false, state: 'DISABLED' as const },
+          qa: {
+            title: null,
+            moderationMode: false,
+            enabled: false,
+            open: false,
+            state: 'DISABLED' as const,
+          },
           quickFeedback: { enabled: false, open: false },
         },
       });
@@ -3113,7 +3472,11 @@ describe('HomeComponent', () => {
     it('startet eine neue Host-Session wenn nur ein Teilnehmer-Code ohne Host-Token bekannt ist', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qa-new',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QA0001',
         hostToken: 'qa-new-token',
       });
@@ -3132,7 +3495,11 @@ describe('HomeComponent', () => {
     it('startet ohne vorhandenen Code eine neue Q&A-Host-Session', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qa',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QA1234',
         hostToken: 'qa-host-token',
       });
@@ -3168,7 +3535,7 @@ describe('HomeComponent', () => {
 
     it('sperrt die Live-Aktionen während eine Host-Session angelegt wird', async () => {
       const { trpc } = await import('../../core/trpc.client');
-      let resolveCreate!: (value: { id: string; code: string; hostToken: string }) => void;
+      let resolveCreate!: (value: ReturnType<typeof createdHostSession>) => void;
       vi.mocked(trpc.session.create.mutate).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -3185,7 +3552,7 @@ describe('HomeComponent', () => {
       await comp.openHeroHostTab('quickFeedback');
       expect(trpc.session.create.mutate).toHaveBeenCalledTimes(1);
 
-      resolveCreate({ id: 'sess-pending', code: 'QAWAIT', hostToken: 'pending-token' });
+      resolveCreate(createdHostSession('QAWAIT', 'pending-token'));
       await firstStart;
 
       expect(comp.hostSessionStarting()).toBeNull();
@@ -3212,7 +3579,11 @@ describe('HomeComponent', () => {
     it('startet im seriösen Preset eine neue Q&A-Host-Session mit Oberstufen-Pseudonymen', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qa',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QA5678',
         hostToken: 'qa-host-token-2',
       });
@@ -3244,7 +3615,11 @@ describe('HomeComponent', () => {
     it('übernimmt den gewählten Anonymmodus in den direkten Q&A-Start', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-anonymous',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QAANON',
         hostToken: 'qa-anonymous-token',
       });
@@ -3254,7 +3629,7 @@ describe('HomeComponent', () => {
             identityMode: 'ANONYMOUS',
             nicknameTheme: 'MIDDLE_SCHOOL',
           }),
-      } as ReturnType<(typeof matDialogMock)['open']>);
+      } as unknown as ReturnType<(typeof matDialogMock)['open']>);
       const comp = createHomeComponent();
       vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
@@ -3273,7 +3648,11 @@ describe('HomeComponent', () => {
     it('übernimmt selbst gewählte Nicknames in den direkten Q&A-Start', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-custom',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QACSTM',
         hostToken: 'qa-custom-token',
       });
@@ -3283,7 +3662,7 @@ describe('HomeComponent', () => {
             identityMode: 'CUSTOM_NICKNAME',
             nicknameTheme: 'HIGH_SCHOOL',
           }),
-      } as ReturnType<(typeof matDialogMock)['open']>);
+      } as unknown as ReturnType<(typeof matDialogMock)['open']>);
       const comp = createHomeComponent();
       vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
 
@@ -3318,7 +3697,11 @@ describe('HomeComponent', () => {
     it('startet ohne vorhandenen Code eine neue Blitzlicht-Host-Session', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qf',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QF1234',
         hostToken: 'qf-host-token',
       });
@@ -3354,7 +3737,11 @@ describe('HomeComponent', () => {
     it('startet im seriösen Preset eine neue Blitzlicht-Host-Session mit Oberstufen-Pseudonymen', async () => {
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qf',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QF5678',
         hostToken: 'qf-host-token-2',
       });
@@ -3388,7 +3775,11 @@ describe('HomeComponent', () => {
       setRouteQueryParams({ host: 'qa', homescreen: '1' });
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qa-shortcut',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QA9999',
         hostToken: 'qa-shortcut-token',
       });
@@ -3418,7 +3809,11 @@ describe('HomeComponent', () => {
       setRouteQueryParams({ host: 'qa', homescreen: '1' });
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qa-shortcut-part',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QA8888',
         hostToken: 'qa-shortcut-part-token',
       });
@@ -3445,7 +3840,11 @@ describe('HomeComponent', () => {
       setRouteQueryParams({ host: 'quickFeedback', homescreen: '1' });
       const { trpc } = await import('../../core/trpc.client');
       vi.mocked(trpc.session.create.mutate).mockResolvedValueOnce({
-        id: 'sess-qf-shortcut',
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        status: 'LOBBY',
+        quizName: null,
+        hostBrowserCapability: '',
+        hostRecoveryCard: { supportId: '00000000-0000-4000-8000-000000000001', recoveryCode: '' },
         code: 'QF9999',
         hostToken: 'qf-shortcut-token',
       });
@@ -4121,7 +4520,9 @@ describe('HomeComponent', () => {
       fixture.detectChanges();
 
       const ackButton = Array.from(
-        fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.home-motd-sheet button'),
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+          '.home-motd-sheet button',
+        ),
       ).find((button) => button.textContent?.includes('Alles klar'));
       expect(ackButton).toBeDefined();
 
@@ -4241,7 +4642,7 @@ describe('HomeComponent', () => {
 
     it('schließt das MOTD-Overlay sofort, auch wenn recordInteraction noch hängt', async () => {
       const { trpc } = await import('../../core/trpc.client');
-      let resolveRecord!: (value: { ok: boolean }) => void;
+      let resolveRecord!: (value: { ok: true }) => void;
       vi.mocked(trpc.motd.recordInteraction.mutate).mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -4332,7 +4733,7 @@ describe('HomeComponent', () => {
         fixture.nativeElement
           .querySelector('.home-card--create .info-landing-link__lead-icon')
           ?.textContent?.trim(),
-      ).toBe('help_outline');
+      ).toBe('help');
       expect(header?.querySelector('.home-card__icon')?.textContent?.trim()).toBe('quiz');
       expect(fixture.nativeElement.querySelector('.home-card__tertiary-link')).toBeNull();
 

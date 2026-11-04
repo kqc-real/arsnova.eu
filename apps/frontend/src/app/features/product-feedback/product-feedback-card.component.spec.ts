@@ -2,7 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resolveProductFeedbackAreaPromptKind } from '@arsnova/shared-types';
-import { ProductFeedbackCardComponent } from './product-feedback-card.component';
+import {
+  PRODUCT_FEEDBACK_DONE_AUTO_DISMISS_MS,
+  ProductFeedbackCardComponent,
+} from './product-feedback-card.component';
 import {
   storeClaimedProductFeedbackInvite,
   storeProductFeedbackParticipantClaimToken,
@@ -30,8 +33,12 @@ const hostSurvey = {
   surveyKey: 'POST_SESSION_EASE_HOST_V1' as const,
   surveyVersion: 1,
   role: 'HOST' as const,
-  primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as const,
-  areas: ['PREPARE_QUIZ', 'LIVE_CONTROL', 'TECH'] as const,
+  primaryQuestionKey: 'productFeedback.ease.host.primary',
+  primaryAnswers: ['EASY', 'MINOR_FRICTION', 'HARD'] as Array<'EASY' | 'MINOR_FRICTION' | 'HARD'>,
+  areaPromptKind: 'hurdle' as const,
+  areas: ['PREPARE_QUIZ', 'LIVE_CONTROL', 'TECH'] as Array<
+    'PREPARE_QUIZ' | 'LIVE_CONTROL' | 'TECH'
+  >,
 };
 
 describe('ProductFeedbackCard', () => {
@@ -137,6 +144,8 @@ describe('ProductFeedbackCard', () => {
         ...hostSurvey,
         surveyKey: 'POST_SESSION_EASE_PARTICIPANT_V1',
         role: 'PARTICIPANT',
+        primaryQuestionKey: 'productFeedback.ease.participant.primary',
+        areas: ['JOIN', 'ANSWER', 'TECH'] as Array<'JOIN' | 'ANSWER' | 'TECH'>,
       },
     });
     getSurveyMock.mockResolvedValue({
@@ -221,5 +230,63 @@ describe('ProductFeedbackCard', () => {
     close.click();
     fixture.detectChanges();
     expect(document.activeElement).toBe(origin);
+  });
+
+  it('hält den Dankeschön-Hinweis nach Freitext-Ergänzung ausreichend lange sichtbar und erlaubt direktes Schließen', async () => {
+    vi.useFakeTimers();
+    try {
+      const fixture = TestBed.createComponent(ProductFeedbackCardComponent);
+      const dismissedSpy = vi.fn();
+      fixture.componentInstance.dismissed.subscribe(dismissedSpy);
+      fixture.componentRef.setInput('sessionCode', 'ABC123');
+      fixture.componentRef.setInput('feedbackRole', 'HOST');
+      fixture.detectChanges();
+      await vi.waitFor(() => expect(fixture.componentInstance.step()).toBe('primary'));
+      fixture.detectChanges();
+
+      (
+        [...fixture.nativeElement.querySelectorAll('button')].find((button) =>
+          button.textContent.includes('Leicht'),
+        ) as HTMLButtonElement
+      ).click();
+      fixture.detectChanges();
+      (
+        [...fixture.nativeElement.querySelectorAll('button')].find((button) =>
+          button.textContent.includes('Quiz vorbereiten'),
+        ) as HTMLButtonElement
+      ).click();
+      await vi.waitFor(() => expect(fixture.componentInstance.step()).toBe('thanks'));
+      fixture.detectChanges();
+
+      (
+        [...fixture.nativeElement.querySelectorAll('button')].find((button) =>
+          button.textContent.includes('Ergänzung hinzufügen'),
+        ) as HTMLButtonElement
+      ).click();
+      fixture.detectChanges();
+
+      fixture.componentInstance.onMessageInput('Sehr hilfreiche Funktion!');
+      fixture.detectChanges();
+      await fixture.componentInstance.submitMessage();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.step()).toBe('done');
+      expect(fixture.nativeElement.textContent).toContain('Vielen Dank!');
+      expect(fixture.nativeElement.textContent).toContain('Deine Ergänzung ist angekommen.');
+
+      // Nach 700 ms (bisheriger zu kurzer Wert) muss der Hinweis noch sichtbar sein.
+      await vi.advanceTimersByTimeAsync(1_000);
+      fixture.detectChanges();
+      expect(dismissedSpy).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.step()).toBe('done');
+
+      // Nach Ablauf von PRODUCT_FEEDBACK_DONE_AUTO_DISMISS_MS (3.500 ms) schließt die Karte sauber.
+      await vi.advanceTimersByTimeAsync(PRODUCT_FEEDBACK_DONE_AUTO_DISMISS_MS);
+      fixture.detectChanges();
+      expect(dismissedSpy).toHaveBeenCalledOnce();
+      expect(fixture.componentInstance.step()).toBe('hidden');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

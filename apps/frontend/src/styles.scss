@@ -20,18 +20,19 @@ html:not(.light):not(.dark) {
 }
 
 // ---------------------------------------------------------------------------
-// 0) Material Icons selbst gehostet (kein Google-Request, kein Tracking)
+// 0) Material Symbols (MD3) selbst gehostet (kein Google-Request, kein Tracking)
 // ---------------------------------------------------------------------------
 @font-face {
-  font-family: 'Material Icons';
+  font-family: 'Material Symbols Outlined';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('assets/fonts/material-icons.woff2') format('woff2');
+  src: url('assets/fonts/material-symbols-outlined.woff2') format('woff2');
 }
 
+.material-symbols-outlined,
 .material-icons {
-  font-family: 'Material Icons';
+  font-family: 'Material Symbols Outlined';
   font-weight: normal;
   font-style: normal;
   font-size: 24px;
@@ -45,7 +46,8 @@ html:not(.light):not(.dark) {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: 'liga';
+  font-feature-settings: 'liga', 'rlig', 'rclt';
+  font-variation-settings: 'FILL' 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -281,10 +283,14 @@ html.preset-playful {
 
   .mat-mdc-form-field .mat-mdc-input-element::placeholder,
   .mat-mdc-form-field textarea.mat-mdc-input-element::placeholder,
-  input::placeholder,
-  textarea::placeholder {
+  input:not(.mat-mdc-input-element)::placeholder,
+  textarea:not(.mat-mdc-input-element)::placeholder {
     color: var(--mat-sys-on-surface-variant);
     -webkit-text-fill-color: var(--mat-sys-on-surface-variant);
+  }
+
+  input:not(.mat-mdc-input-element)::placeholder,
+  textarea:not(.mat-mdc-input-element)::placeholder {
     opacity: 1;
   }
 
@@ -2767,6 +2773,12 @@ html.preset-playful
 /* class auf <mat-menu> landet als Panel-Klasse (panelClass-Alias). */
 .app-footer__more-menu.mat-mdc-menu-panel,
 .app-footer__more-menu-panel.mat-mdc-menu-panel {
+  .app-footer__more-divider {
+    height: 1px;
+    margin-block: 0.25rem;
+    background: var(--mat-sys-outline-variant);
+  }
+
   .mat-mdc-menu-item .mat-icon {
     display: inline-flex !important;
     align-items: center;
@@ -2827,4 +2839,15 @@ html.preset-playful
   padding: 0.5rem;
   line-height: 1.4;
   white-space: normal;
+}
+
+// Material setzt das Button-Label auf position: relative. Die Startseiten-Aufgabenwahl
+// richtet das Kanal-Icon absolut am Button aus; das Label darf dafuer kein eigener
+// Containing-Block sein und muss die volle Breite fuellen, damit der Text in der
+// Flaeche neben dem Icon zentriert ist.
+.home-scenario__option.mat-mdc-outlined-button > .mdc-button__label {
+  position: static;
+  display: flex;
+  align-items: center;
+  width: 100%;
 }

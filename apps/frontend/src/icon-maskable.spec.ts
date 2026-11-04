@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 const srcRoot = dirname(fileURLToPath(import.meta.url));
 const repoRootPkg = join(srcRoot, '../../../package.json');
 const require = createRequire(repoRootPkg);
-const sharp = require('sharp') as typeof import('sharp');
+const sharp = require('sharp') as (input: string) => import('sharp').Sharp;
 const iconsDir = join(srcRoot, 'assets/icons');
 
 const { starPixelsOutsideSafeZone } = await import(

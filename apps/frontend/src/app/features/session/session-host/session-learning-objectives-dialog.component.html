@@ -55,21 +55,6 @@
       </button>
     </div>
   } @else {
-    @if (isReadOnly()) {
-      <div class="session-objectives__callout" role="status">
-        <mat-icon aria-hidden="true">lock</mat-icon>
-        @if (isQaMode()) {
-          <p i18n="@@sessionQaAssignments.readOnly">
-            Diese beendete Session ist nur noch lesbar. Aufträge können nicht mehr geändert werden.
-          </p>
-        } @else {
-          <p i18n="@@sessionLearningObjectives.readOnly">
-            Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.
-          </p>
-        }
-      </div>
-    }
-
     @if (conflictMessage(); as conflict) {
       <div
         id="session-learning-objectives-conflict"
@@ -104,11 +89,13 @@
           Sobald ein Auftrag vorhanden ist, sehen Teilnehmende im Forum den Button »Auftrag«.
         </p>
       } @else {
-        <p class="session-objectives__origin-intro" i18n="@@learningObjectives.originIntro">
-          Du kannst Lernziele selbst schreiben oder automatisch aus deinen Fragen vorschlagen
-          lassen. Automatische Vorschläge werden als Entwurf angelegt, bis du sie prüfst und
-          bestätigst.
-        </p>
+        @if (hasEligibleQuizTasksForDerivation()) {
+          <p class="session-objectives__origin-intro" i18n="@@learningObjectives.originIntro">
+            Du kannst Lernziele selbst schreiben oder automatisch aus deinen Fragen vorschlagen
+            lassen. Automatische Vorschläge werden als Entwurf angelegt, bis du sie prüfst und
+            bestätigst.
+          </p>
+        }
       }
     }
 
@@ -193,14 +180,14 @@
       </section>
     }
 
-    @if (objectives().length === 0 && !formOpen()) {
+    @if (visibleObjectives().length === 0 && !formOpen()) {
       @if (isQaMode()) {
         <p class="session-objectives__empty" i18n="@@sessionQaAssignments.empty">
           Für dieses Q&amp;A-Forum ist noch kein Auftrag hinterlegt.
         </p>
       } @else if (isQuestionFocused()) {
         <p class="session-objectives__empty" i18n="@@sessionLearningObjectives.questionEmpty">
-          Für diese Frage ist noch kein Lernziel hinterlegt.
+          Für diese Frage ist noch kein bestätigtes Lernziel hinterlegt.
         </p>
       } @else {
         <p class="session-objectives__empty" i18n="@@sessionLearningObjectives.empty">
@@ -217,14 +204,26 @@
         <article
           class="session-objectives__item"
           [class.session-objectives__item--audience]="isAudiencePresentation()"
-          [attr.aria-labelledby]="'session-objective-' + objective.id"
+          [attr.aria-labelledby]="
+            overviewQuestionLabel(objective)
+              ? 'session-objective-q-' + objective.id + ' session-objective-' + objective.id
+              : 'session-objective-' + objective.id
+          "
         >
           <div>
+            @if (overviewQuestionLabel(objective); as questionLabel) {
+              <p
+                class="session-objectives__question-label"
+                [id]="'session-objective-q-' + objective.id"
+              >
+                {{ questionLabel }}
+              </p>
+            }
             <div
               class="session-objectives__text markdown-body"
               [class.session-objectives__text--audience]="isAudiencePresentation()"
               [id]="'session-objective-' + objective.id"
-              [innerHTML]="renderObjectiveMarkdown(objective.text)"
+              [innerHTML]="renderObjectiveMarkdown(objective)"
             ></div>
             @if (!isAudiencePresentation() && !isQaMode()) {
               <div class="session-objectives__meta">
@@ -262,7 +261,7 @@
             }
           </div>
 
-          @if (!isReadOnly()) {
+          @if (!isReadOnly() && isQaMode()) {
             @if (isAudiencePresentation()) {
               <button
                 mat-icon-button
@@ -557,7 +556,7 @@
           </button>
         </div>
       </form>
-    } @else if (!isReadOnly() && !isAudiencePresentation()) {
+    } @else if (isQaMode() && !isReadOnly() && !isAudiencePresentation()) {
       <button
         mat-stroked-button
         type="button"

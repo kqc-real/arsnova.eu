@@ -1,7 +1,7 @@
 # Frontend Module
 
 - Path: `apps/frontend/`; package: `@arsnova/frontend`.
-- Stack: Angular 21.2, Standalone Components, Signals, Angular Material/CDK 21.2, SCSS, Angular SSR, service worker/PWA, Angular localize, tRPC client v11, Yjs/y-websocket.
+- Stack: Angular 22.2, Standalone Components, Signals, Angular Material/CDK 22.2, SCSS, Angular SSR, service worker/PWA, Angular localize, tRPC client v11, Yjs/y-websocket.
 - App layout under `src/app/`:
   - `core/`: app-wide singletons/utilities (`trpc.client`, websocket URL/state helpers, locale routing, host/feedback tokens, theme/preset/sound/MOTD helpers).
   - `shared/`: reusable UI/helpers (top toolbar, server-status widget/help, Markdown+KaTeX editor, dialogs, preset toast, answer badges, countdown assets).

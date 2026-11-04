@@ -16,7 +16,31 @@ import test from 'node:test';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const auditScript = join(repoRoot, 'scripts/audit-trpc-dod.mjs');
+const defaultBaselinePath = join(repoRoot, '.github/trpc-dod-baseline.json');
 const helperImport = '../test-utils/trpc-dod-evidence';
+
+export function summarizeBaselineInventory(baselinePath = defaultBaselinePath) {
+  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  const procedures = Object.values(baseline.procedures ?? {});
+  const counts = { query: 0, mutation: 0, subscription: 0 };
+  let complete = 0;
+  for (const procedure of procedures) {
+    if (Object.hasOwn(counts, procedure.kind)) {
+      counts[procedure.kind] += 1;
+    }
+    if (procedure.kind !== 'subscription' && (procedure.missing?.length ?? 0) === 0) {
+      complete += 1;
+    }
+  }
+  return {
+    total: procedures.length,
+    query: counts.query,
+    mutation: counts.mutation,
+    subscription: counts.subscription,
+    queriesMutations: counts.query + counts.mutation,
+    complete,
+  };
+}
 
 function addFormalEvidence(procedure, ...dimensions) {
   for (const dimension of dimensions) {
@@ -685,6 +709,35 @@ test('compareMissingDebt detects improve, worsen, and happy/error swap', async (
   assert.deepEqual(swap.worsened, ['r.a']);
 });
 
+test('baseline inventory counts come from the committed procedure map', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'trpc-dod-baseline-counts-'));
+  try {
+    const baselinePath = join(dir, 'baseline.json');
+    writeFileSync(
+      baselinePath,
+      JSON.stringify({
+        version: 1,
+        procedures: {
+          'demo.list': { kind: 'query', missing: [] },
+          'demo.create': { kind: 'mutation', missing: [] },
+          'demo.patch': { kind: 'mutation', missing: ['error'] },
+          'demo.onChange': { kind: 'subscription', missing: [] },
+        },
+      }),
+    );
+    assert.deepEqual(summarizeBaselineInventory(baselinePath), {
+      total: 4,
+      query: 1,
+      mutation: 2,
+      subscription: 1,
+      queriesMutations: 3,
+      complete: 2,
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('fail-on-incomplete exits non-zero for poc incomplete echo', () => {
   const run = spawnSync(process.execPath, [auditScript, '--poc', '--fail-on-incomplete'], {
     encoding: 'utf8',
@@ -699,7 +752,8 @@ test('real mode accepts the Slice-2D full-coverage flag on a complete baseline',
     cwd: repoRoot,
   });
   assert.equal(run.status, 0, run.stderr || run.stdout);
-  assert.match(run.stdout, /Complete: 185/);
+  const inventory = summarizeBaselineInventory();
+  assert.match(run.stdout, new RegExp(`Complete: ${inventory.complete}\\b`));
   assert.match(run.stdout, /Incomplete: 0/);
   assert.match(run.stdout, /Untested: 0/);
 });
@@ -745,10 +799,20 @@ export const appRouter = router({
 test('real router tree inventory follows mounted and nested routers exactly', async () => {
   const { inventariseRouterTree } = await loadAudit();
   const procedures = inventariseRouterTree(join(repoRoot, 'apps/backend/src/routers/index.ts'));
-  assert.equal(procedures.length, 193);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'query').length, 75);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'mutation').length, 110);
-  assert.equal(procedures.filter((procedure) => procedure.kind === 'subscription').length, 8);
+  const inventory = summarizeBaselineInventory();
+  assert.equal(procedures.length, inventory.total);
+  assert.equal(
+    procedures.filter((procedure) => procedure.kind === 'query').length,
+    inventory.query,
+  );
+  assert.equal(
+    procedures.filter((procedure) => procedure.kind === 'mutation').length,
+    inventory.mutation,
+  );
+  assert.equal(
+    procedures.filter((procedure) => procedure.kind === 'subscription').length,
+    inventory.subscription,
+  );
   assert.ok(procedures.some((procedure) => procedure.id === 'health.usage'));
   assert.ok(procedures.some((procedure) => procedure.id === 'health.openWeightLlmProbe'));
   assert.ok(procedures.some((procedure) => procedure.id === 'admin.motd.motdCreate'));
@@ -1455,8 +1519,9 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     }
     assert.equal(readFileSync(outputs[0], 'utf8'), readFileSync(outputs[1], 'utf8'));
     const report = JSON.parse(readFileSync(outputs[0], 'utf8'));
-    assert.equal(report.summary.queriesMutations, 185);
-    assert.equal(report.summary.complete, 185);
+    const inventory = summarizeBaselineInventory();
+    assert.equal(report.summary.queriesMutations, inventory.queriesMutations);
+    assert.equal(report.summary.complete, inventory.complete);
     assert.equal(report.summary.untested, 0);
     assert.equal(report.summary.legacyProcedures, 0);
     assert.equal(report.summary.legacyMissingDimensions, 0);
@@ -1468,7 +1533,7 @@ test('real gate report is deterministic and complete coverage has no legacy debt
     const queriesMutations = report.procedures.filter(
       (procedure) => procedure.kind !== 'subscription',
     );
-    assert.equal(queriesMutations.length, 185);
+    assert.equal(queriesMutations.length, inventory.queriesMutations);
     assert.ok(
       queriesMutations.every(
         (procedure) =>

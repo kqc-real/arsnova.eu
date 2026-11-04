@@ -1,15 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { SwUpdate } from '@angular/service-worker';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
+import { UpdateBannerSuppressionService } from './core/update-banner-suppression.service';
 import { ThemePresetService } from './core/theme-preset.service';
 import { markContentPageFocusReturn } from './shared/content-page-nav';
 import { TopToolbarComponent } from './shared/top-toolbar/top-toolbar.component';
+import type { SpecAccess } from './testing/spec-access';
 
 const { footerBundleQueryMock, healthStatsQueryMock, swVersionUpdatesSubscribeMock } = vi.hoisted(
   () => ({
@@ -386,9 +388,12 @@ describe('AppComponent', () => {
     content.append(heading);
 
     (
-      fixture.componentInstance as AppComponent & {
-        focusPrimaryContent: () => void;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        AppComponent,
+        {
+          focusPrimaryContent: () => void;
+        }
+      >
     ).focusPrimaryContent();
 
     expect(document.activeElement).toBe(heading);
@@ -417,7 +422,10 @@ describe('AppComponent', () => {
     component.isContentOverlayRoute.set(false);
 
     const restored = (
-      component as AppComponent & { restoreContentPageFocusReturn: () => boolean }
+      component as unknown as SpecAccess<
+        AppComponent,
+        { restoreContentPageFocusReturn: () => boolean }
+      >
     ).restoreContentPageFocusReturn();
 
     expect(restored).toBe(true);
@@ -433,7 +441,9 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
-    (component as AppComponent & { updateRouteFlags: () => void }).updateRouteFlags();
+    (
+      component as unknown as SpecAccess<AppComponent, { updateRouteFlags: () => void }>
+    ).updateRouteFlags();
     fixture.detectChanges();
 
     expect(component.isContentOverlayRoute()).toBe(true);
@@ -466,7 +476,9 @@ describe('AppComponent', () => {
     firstFooterLink.focus();
     expect(document.activeElement).toBe(firstFooterLink);
 
-    (component as AppComponent & { blurFooterIfFocused: () => void }).blurFooterIfFocused();
+    (
+      component as unknown as SpecAccess<AppComponent, { blurFooterIfFocused: () => void }>
+    ).blurFooterIfFocused();
 
     expect(document.activeElement === firstFooterLink).toBe(false);
 
@@ -507,6 +519,47 @@ describe('AppComponent', () => {
     expect(fixture.componentInstance.presetSnackbarLabel()).toBe(
       'Seriös gewählt – ruhig, klar und auf Inhalte fokussiert.',
     );
+
+    fixture.destroy();
+  });
+
+  it('zeigt die Preset-Snackbar auf dem Vote-Pfad nicht', () => {
+    configureAppTestBed();
+    const fixture = TestBed.createComponent(AppComponent);
+    const router = TestBed.inject(Router);
+    const themePreset = TestBed.inject(ThemePresetService);
+    const url = vi.spyOn(router, 'url', 'get');
+    themePreset.setPreset('serious', { silent: true });
+
+    for (const voteUrl of [
+      '/session/ABC123/vote',
+      '/en/session/ABC123/vote?tab=qa',
+      '/session/ABC123/vote?tab=quickFeedback',
+    ]) {
+      url.mockReturnValue(voteUrl);
+      themePreset.setPreset(themePreset.preset() === 'spielerisch' ? 'serious' : 'spielerisch');
+      fixture.detectChanges();
+      expect(fixture.componentInstance.presetSnackbarVisible()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.app-preset-snackbar')).toBeNull();
+      fixture.componentInstance.openPresetCustomize();
+      expect(fixture.componentInstance.presetToastVisible()).toBe(false);
+    }
+
+    url.mockReturnValue('/session/ABC123/host');
+    themePreset.setPreset(themePreset.preset() === 'spielerisch' ? 'serious' : 'spielerisch');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presetSnackbarVisible()).toBe(true);
+
+    url.mockReturnValue('/de/session/ABC123/vote');
+    (
+      fixture.componentInstance as unknown as SpecAccess<
+        AppComponent,
+        { updateRouteFlags: () => void }
+      >
+    ).updateRouteFlags();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presetSnackbarVisible()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.app-preset-snackbar')).toBeNull();
 
     fixture.destroy();
   });
@@ -666,7 +719,7 @@ describe('AppComponent', () => {
 
     expect(banner).toBeTruthy();
     expect(banner?.textContent).toContain('Neue Version bereit');
-    expect(banner?.textContent).toContain('Aktualisieren für den neuesten Stand.');
+    expect(banner?.textContent).toContain('Das Update ist sicher und ohne Datenverlust.');
     expect(action?.textContent).toContain('Jetzt aktualisieren');
     expect(fixture.nativeElement.querySelector('.app-update-banner__inner')).toBeTruthy();
 
@@ -706,6 +759,40 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeNull();
 
     motdHeader.setOverlayOpen(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeTruthy();
+
+    fixture.destroy();
+  });
+
+  it('haelt den Update-Banner zurueck, solange ein Reload Eingaben verwerfen wuerde', () => {
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: createDialogMock() },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: true,
+            versionUpdates: { subscribe: swVersionUpdatesSubscribeMock },
+            checkForUpdate: vi.fn().mockResolvedValue(false),
+            activateUpdate: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(AppComponent);
+    const component = fixture.componentInstance;
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
+
+    component.updateAvailable.set(true);
+    suppression.set('quiz-edit', true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeNull();
+
+    suppression.set('quiz-edit', false);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeTruthy();
 
@@ -949,7 +1036,11 @@ describe('AppComponent', () => {
 
     component.footerHealthCheckDone.set(true);
     component.apiStatus.set('ok');
-    component.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'limited',
+      loadStatus: 'busy',
+    });
     fixture.detectChanges();
 
     const banner = (fixture.nativeElement as HTMLElement).querySelector(
@@ -1004,8 +1095,19 @@ describe('AppComponent', () => {
       expect.stringContaining('Datenschutz'),
       expect.stringContaining('Barrierefreiheit'),
       expect.stringContaining('Betrieb & Nutzung'),
+      expect.stringContaining('arsnova.eu verbessern'),
     ]);
-    expect(items).toHaveLength(4);
+    expect(items).toHaveLength(5);
+    const divider = document.querySelector('.app-footer__more-divider');
+    expect(divider?.getAttribute('role')).toBe('separator');
+    expect(divider?.nextElementSibling).toBe(items[4]);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '.app-footer__utility, button.app-footer__feedback-action',
+      ),
+    ).toBeNull();
+    expect(items[0]?.querySelector('mat-icon')?.textContent?.trim()).not.toBe('insights');
+    expect(items[4]?.querySelector('mat-icon')?.textContent?.trim()).toBe('insights');
     expect((items[0] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/imprint');
     expect((items[1] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/privacy');
     expect((items[2] as HTMLAnchorElement).getAttribute('href')).toContain('/legal/accessibility');
@@ -1031,7 +1133,10 @@ describe('AppComponent', () => {
     component.isContentOverlayRoute.set(false);
 
     const restored = (
-      component as AppComponent & { restoreContentPageFocusReturn: () => boolean }
+      component as unknown as SpecAccess<
+        AppComponent,
+        { restoreContentPageFocusReturn: () => boolean }
+      >
     ).restoreContentPageFocusReturn();
 
     expect(restored).toBe(true);
@@ -1187,7 +1292,11 @@ describe('AppComponent', () => {
 
     component.footerHealthCheckDone.set(true);
     component.apiStatus.set('ok');
-    component.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'critical',
+      loadStatus: 'overloaded',
+    });
     fixture.detectChanges();
 
     const bannerLink = (fixture.nativeElement as HTMLElement).querySelector(
@@ -1301,9 +1410,13 @@ describe('AppComponent', () => {
     expect(statusIcon?.classList.contains('app-footer__status-dot--healthy')).toBe(true);
     expect(statusIcon?.style.color).toBe('var(--app-status-healthy)');
     expect(component.footerStatusDotCssColor()).toBe('var(--app-status-healthy)');
-    expect(statusIcon?.textContent?.trim()).toBe('lens');
+    expect(statusIcon?.textContent?.trim()).toBe('circle');
 
-    component.footerStatus.set({ serviceStatus: 'limited', loadStatus: 'busy' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'limited',
+      loadStatus: 'busy',
+    });
     fixture.detectChanges();
     expect(component.footerStatusColor()).toBe('yellow');
     expect(component.footerStatusDotCssColor()).toBe('var(--app-status-busy)');
@@ -1317,7 +1430,11 @@ describe('AppComponent', () => {
         ?.style.color,
     ).toBe('var(--app-status-busy)');
 
-    component.footerStatus.set({ serviceStatus: 'critical', loadStatus: 'overloaded' });
+    component.footerStatus.set({
+      measurementAvailable: true,
+      serviceStatus: 'critical',
+      loadStatus: 'overloaded',
+    });
     fixture.detectChanges();
     expect(component.footerStatusColor()).toBe('red');
     expect(
@@ -1357,16 +1474,19 @@ describe('AppComponent', () => {
     });
 
     const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance as AppComponent & {
-      loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      AppComponent,
+      {
+        loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
+      }
+    >;
 
     await component.loadFooterStats({ forceFresh: true });
 
     const stats = component.footerStats();
     expect(stats).not.toBeNull();
     expect(stats?.dailyHighscores).toHaveLength(100);
-    expect(stats?.dailyHighscores.some((entry) => entry.count > 0)).toBe(true);
+    expect(stats?.dailyHighscores.some((entry) => (entry.count ?? 0) > 0)).toBe(true);
     expect(stats?.dailyHighscoresStatistics.max).toBeGreaterThan(0);
     expect(stats?.dailyHighscoresStatistics.median).toBeGreaterThan(0);
     expect(stats?.dailyHighscoresStatistics.iqr).toBeGreaterThan(0);
@@ -1515,15 +1635,18 @@ describe('AppComponent', () => {
     });
 
     const fixture = TestBed.createComponent(AppComponent);
-    const component = fixture.componentInstance as AppComponent & {
-      loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      AppComponent,
+      {
+        loadFooterStats: (options?: { forceFresh?: boolean }) => Promise<void>;
+      }
+    >;
 
     await component.loadFooterStats({ forceFresh: true });
 
     const stats = component.footerStats();
     expect(stats).not.toBeNull();
-    expect(stats?.dailyHighscores.some((entry) => entry.count > 0)).toBe(true);
+    expect(stats?.dailyHighscores.some((entry) => (entry.count ?? 0) > 0)).toBe(true);
     expect(stats?.dailyHighscoresStatistics).toEqual({
       sampleSize: 1,
       median: 15,

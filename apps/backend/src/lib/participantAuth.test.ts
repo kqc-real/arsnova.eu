@@ -10,7 +10,11 @@ const { prismaMock } = vi.hoisted(() => ({
 
 vi.mock('../db', () => ({ prisma: prismaMock }));
 
-import { assertParticipantCapability, extractParticipantCapability } from './participantAuth';
+import {
+  assertParticipantCapability,
+  extractParticipantCapability,
+  resetParticipantCapabilityCacheForTests,
+} from './participantAuth';
 import { hashCapability } from './capabilityCrypto';
 
 const SESSION_ID = '11111111-1111-4111-8111-111111111111';
@@ -20,6 +24,7 @@ const CAPABILITY = 'participant-capability-abcdefghijklmnopqrstuvwxyz';
 describe('participantAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetParticipantCapabilityCacheForTests();
   });
 
   it('liest die Capability aus HTTP und WebSocket, niemals aus der Participant-ID', () => {

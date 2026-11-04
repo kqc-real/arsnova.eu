@@ -1159,6 +1159,7 @@ test('CI Trivy image scan sets TRIVY_PLATFORM=linux/arm64', () => {
   const yaml = readFileSync(ciWorkflow, 'utf8');
   const trivy = yaml.split('name: Trivy Image Scan')[1]?.split(/^ {2}[a-z]/m)[0];
   assert.ok(trivy, 'Trivy Image Scan job missing');
+  assert.match(trivy, /runs-on:\s*ubuntu-24\.04\b/);
   assert.match(trivy, /TRIVY_PLATFORM:\s*linux\/arm64/);
 });
 

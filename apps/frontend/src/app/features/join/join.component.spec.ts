@@ -12,6 +12,7 @@ import { peekConfirmedParticipantTeam } from '../../core/participant-team-confir
 import { NICKNAME_LISTS } from './nickname-themes';
 import { resetAnonymousClientIdForTests } from '../../core/anonymous-client-id';
 import { storeParticipantCapability } from '../../core/participant-session-access';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 const ANONYMOUS_CLIENT_ID = '33333333-3333-4333-8333-333333333333';
 
@@ -107,6 +108,9 @@ describe('JoinComponent', () => {
       available: true,
     });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({
+      participantNumber: 0,
+      participantNickname: '',
+      timerAccommodation: 'DEFAULT',
       ...mockSession,
       participantId: participantIds.current,
       rejoinToken: participantIds.current,
@@ -217,7 +221,7 @@ describe('JoinComponent', () => {
       timeZone: 'Europe/Berlin',
       channels: {
         quiz: { enabled: true },
-        qa: { enabled: false, open: false },
+        qa: { title: null, moderationMode: false, enabled: false, open: false },
         quickFeedback: { enabled: true, open: true },
       },
     });
@@ -576,6 +580,23 @@ describe('JoinComponent', () => {
     expect(comp.kindergartenEmojiForSelected()).toBe('🐉');
   });
 
+  it('blendet den Update-Banner aus, solange ein vorgegebener Nickname gewählt ist', () => {
+    const { fixture, comp } = createWithCode('ABC123');
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(false);
+
+    comp.selectedNickname.set('Roter Drache');
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(true);
+
+    comp.selectedNickname.set('   ');
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(false);
+
+    fixture.destroy();
+  });
+
   it('behaelt im Kita-Reserve-Pool das passende Tier-Emoji', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
@@ -900,6 +921,9 @@ describe('JoinComponent', () => {
       ],
     });
     vi.mocked(trpc.session.join.mutate).mockResolvedValue({
+      participantNumber: 0,
+      participantNickname: '',
+      timerAccommodation: 'DEFAULT',
       ...mockSession,
       participantId: participantIds.current,
       rejoinToken: participantIds.current,

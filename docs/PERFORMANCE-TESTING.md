@@ -324,6 +324,10 @@ Das ist ein zusätzlicher lokaler Dauerlastnachweis, kein PR-/Deploy-Gate und
 keine S6.5-Formalabnahme. Skript und Reportlogik werden mit PR #165
 bereitgestellt.
 
+### Hotpath-Audit und Timing-Gegenüberstellung 2026-10-22
+
+Der [Hotpath-Audit- und Timing-Nachlauf vom 2026-10-22](implementation/HOTPATH-AUDIT-UND-TIMING-2026-10-22.md) dokumentiert die Bündelung verbleibender uncached DB-Reads vor `currentQuestionCache` (`studentQuestionSessionCache`, `getParticipantTimerAccommodationCached`), in `getPersonalScorecard`/`getPersonalResult` (`personalScorecardSessionCache`, `personalResultSessionCache`), in `fetchHostVoteProgress` (`hostVoteProgressSessionCache`), im `vote.submit`-Capability-Pfad (`participantCapabilityCache` inkl. Join-Prewarming) und im Q&A-Realtime-/Listen-Pfad (`loadQaSubscriptionSessionSnapshot`, `loadQaParticipantCount`, `loadQaOwnQuestionQuota`) sowie die Gegenüberstellung aller 13 ausgeführten Smoke- und Lasttests mit den historischen Baselines (`ACTIVE` 600 TN `p95`: `788 ms` → **`650 ms`**, 2s-Karenz `p95`: `992 ms` → **`720 ms`**, Reject `p95`: `718 ms` → **`396 ms`**, 500 TN Host-Pairing Cap-Load `p95`: **`618 ms`** bei `0` Fehlern).
+
 ## Szenarien und Kommandos
 
 Für die Node-Szenarien muss das Backend laufen (`npm run dev:backend`).

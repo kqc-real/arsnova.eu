@@ -31,11 +31,43 @@ damit die terminale Präsentationsseite.
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
 Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerten
-vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz- und
-Q&A-Seiten wechseln ausschließlich durch den Host; die Rangliste wechselt wie
-bisher automatisch, jetzt mit höchstens acht Einträgen und zwölf Sekunden pro
-Seite. Voting, Timer, Ergebnisfreigabe und effektive Wertungsrunde bleiben
-unabhängig von der Seite.
+vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
+Quizphase wechselt die Lehrkraft im Presenter-Footer, einschließlich
+**Erste Frage starten** in der Lobby; der Host behält dieselben Aktionen. Eine
+neue Frage oder Runde erscheint erst, wenn ihr Snapshot zur Session passt, auch
+wenn der Host die Runde oder die Frage wechselt. Bis dahin steht »Die Frage
+wird geladen«, nach einem Fehlschlag »Erneut laden«. Der Fokus wandert von
+dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
+Die Seitensteuerung erscheint, sobald mehr als eine Seite gemessen wurde,
+und bleibt im DOM, wenn die Zahl wieder auf eine Seite fällt. Die Seitenangabe
+steht in dieser Steuerung. Q&A-Fragen
+wechseln über denselben Host-Navigator oder den Presenter-Footer. Das
+Zwischenleaderboard zeigt die ersten fünf Personen und Teams und nennt die
+Kappung, zum Beispiel »Top 5 von 20«. Auf einer kurzen Projektion schrumpfen
+diese Zeilen, damit alle fünf Plätze in der Bühnenhöhe bleiben. Das Abschluss-Leaderboard für Personen und
+Teams wechselt automatisch mit höchstens acht Einträgen und zwölf Sekunden pro
+Seite. **Anhalten** legt die Seite fest, **Vorherige Seite** und **Nächste
+Seite** blättern von Hand, **Automatisch** setzt den Wechsel fort. Voting,
+Timer, Ergebnisfreigabe und effektive Wertungsrunde
+bleiben unabhängig von der Seite.
+
+In der Quiz-Statuszeile stehen der Lesefortschritt (»x von y bereit«) und
+**Alle sind bereit**, sobald alle Teilnehmenden der Session bereit sind. Während
+der Abstimmung bleiben Prozent und »n / m«. **Alle haben abgestimmt** erscheint
+bei voller Stimmenzahl. **Abstimmung beendet** ersetzt die Phasenbezeichnung,
+sobald alle abgestimmt haben oder der Countdown abgelaufen ist und die Freigabe
+noch aussteht. Persönliche Zeitfenster, deren Anzahl und **Trotzdem freigeben**
+bleiben auf dem Host. Die betroffenen Presenter-Knöpfe sind dann deaktiviert
+und der Presenter sagt, dass die Fenster noch laufen und der Host sie schließt.
+
+Der Footer zeigt je Phase genau die nächste Aktion: **Antwortoptionen
+freigeben**, **Ergebnis zeigen**, bei Peer-Instruction-Empfehlung zusätzlich
+**Diskussionsphase**, in der Diskussion **Zweite Abstimmung** und den
+ausdrücklich beschrifteten Weg ohne zweite Abstimmung, danach **Nächste Frage**
+oder **Zur Gesamtauswertung**. **Quiz pausieren** steht daneben in Lese- und
+Abstimmungsphase, **Quiz fortsetzen** auf der Pause-Fläche. **Zurück zum Host**
+bleibt in der Ecke jeder Presenter-Fläche, schließt die Projektion nicht und
+verlässt das Vollbild nur auf einem einzelnen Bildschirm.
 
 In den letzten fünf Sekunden liegt die Fingeranzeige als nicht interaktive
 Viewport-Ebene über der Presenter-Fläche. Sie gehört weder zur Statuszeile noch
@@ -70,10 +102,16 @@ Tastaturfokus nicht verloren geht.
 
 - Crowd-Lobby: Gesamtzahl und bei höchstens acht Teams Teamzahlen ersetzen
   Nicknames; QR und Code erhalten Vorrang.
-- Q&A: oben die aktuelle Host-Sortierung (»Sortierung: …«), darunter die angeheftete
-  Frage dominant (vertikal mittig, hörsaaltaugliche Typografie ≥36 px bei 1080p),
-  darunter höchstens zwei Queue-Fragen untereinander (≥30 px); Gesamtsumme nur im
-  Queue-Badge (»… Fragen«), ohne Seitenindikator und Restzahl auf der Bühne;
+- Q&A: oben die Bühnen-Sortierung als Auswahl (Kontroverse, Beste Fragen,
+  Stimmensaldo, Zeit), darunter die aktuelle
+  Frage dominant (hörsaaltaugliche Typografie ≥36 px bei 1080p), darunter alle
+  weiteren freigegebenen Fragen untereinander (≥30 px). Die Bühne scrollt, wenn
+  Hero und Warteschlange nicht gemeinsam in die Fläche passen. Die Gesamtsumme
+  der Warteschlange bleibt im Queue-Badge (»… Fragen«). Der Fragen-Navigator
+  (»Vorherige Frage« / »n / m« / »Nächste Frage«) sitzt unten im Presenter-Footer,
+  damit er beim ersten Präsentieren an der Bühne erreichbar ist; der Host behält
+  dieselbe Steuerung. Keine Restzahl »weitere« und keine Seitenzeile »Seite n / m«
+  auf der Bühne selbst;
   Hero und Queue zeigen Erstellungszeit (relativ) sowie die passende Sortier-Metrik:
   bei BEST Zustimmung (%), bei CONTROVERSIAL geteilte Reaktionen (%) – nie beides;
   `qa.presentProjection` liefert die Scores dafür immer mit (ohne Moderator-NLP),
@@ -93,8 +131,15 @@ Tastaturfokus nicht verloren geht.
   der geladenen Host-Liste und synchronisiert den Presenter nicht;
   Host publiziert den Sortiermodus beim Q&A-Abonnement und vor dem Öffnen der
   Präsentation (`qa.setPresenterSortMode`), damit Forum und Bühne denselben Modus nutzen;
-  weicht `presentProjection.sortMode` vom Host ab (z. B. nach Backend-Restart),
-  publiziert der Host den Modus erneut (`force`);
+  der Presenter schaltet dieselbe Sortierung über `source: 'presenter'` um, setzt den
+  Fragen-Navigator auf Position 1 und scrollt die Bühne nach oben; Suche, Pin- und
+  Autorfilter der Bühne bleiben stehen; solange diese Quelle gilt, übernimmt
+  der Host den Modus und schreibt ihn nicht zurück;
+  fehlt `sortModeSource` und weicht `presentProjection.sortMode` vom Host ab
+  (Backend-Restart, leere Map), publiziert der Host den Modus erneut (`force`);
+  eine ausdrückliche Host-Sortierung oder ein Host-Filterwechsel setzt `takeover`;
+  ein vorheriger Abo-Publish derselben Ansicht ohne `takeover` unterdrückt diese
+  Übernahme nicht;
   Teilnehmer-Forum färbt denselben Navigator-Hero (via `presenterPage`) ein;
   `PINNED` steht in der Presenter-Bühnenreihenfolge zuerst (Host vor `PENDING`/`ACTIVE`);
   die Host-Liste rotiert ab dem Navigator-Cursor (Position 1 = Hero, 2 = nächster
@@ -111,6 +156,9 @@ Tastaturfokus nicht verloren geht.
 - Wortwolken: höchstens 24 Ausgangsbegriffe, mindestens 30 px nach Layout und
   eine sichtbare Restzahl. Tatsächliche Textflächen werden auf Überschneidung
   geprüft; nicht passend darstellbare Begriffe gehen in die Restzahl ein.
+  Die Freitext-Bühne zeigt dieselbe Werkzeugleiste wie der Host: »Wörter«,
+  »Wörter & Phrasen«, »Thema«, Einfrieren, Wortformen glätten und Themen
+  aktualisieren. Eine Auswahl im Presenter bleibt in diesem Fenster gültig.
 - Schätzfragen: beschriftete horizontale Verteilungsbalken, Stimmenzahl und
   bestehende Kennzahlen; längere Ergebnisse werden ebenfalls aufgeteilt.
 - Blitzlicht: neutrale Fläche vor Freigabe, beschriftete Balken danach;

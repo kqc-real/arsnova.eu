@@ -102,6 +102,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   /** Nach `ngOnDestroy` dürfen späte Antworten weder Polling noch Subscription starten. */
   private destroyed = false;
+  private hostResultEpoch = 0;
   private hostResultLoad: 'unknown' | 'ready' | 'missing' | 'failed' = 'unknown';
   /** Startseiten-Vorlage wurde angewendet oder fachlich verworfen; Polling darf sie nicht erneut versuchen. */
   private requestedFeedbackTypeHandled = false;
@@ -520,11 +521,12 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const requestEpoch = ++this.hostResultEpoch;
     let data: QuickFeedbackResult | undefined;
     try {
       data = await trpc.quickFeedback.hostResults.query({ sessionCode: code });
     } catch (error) {
-      if (this.destroyed) {
+      if (this.destroyed || requestEpoch !== this.hostResultEpoch) {
         return;
       }
       if (!this.isMissingFeedbackRound(error)) {
@@ -542,7 +544,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       this.markFeedbackRoundMissing(code);
       return;
     }
-    if (this.destroyed) {
+    if (this.destroyed || requestEpoch !== this.hostResultEpoch) {
       return;
     }
 
@@ -563,6 +565,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   private markFeedbackRoundMissing(code: string): void {
+    this.hostResultEpoch += 1;
     this.hostResultLoad = 'missing';
     this.prepareEmbeddedResultFocus(null);
     this.result.set(null);
@@ -585,6 +588,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       { sessionCode: code },
       {
         onData: (data) => {
+          this.hostResultEpoch += 1;
           this.applyHostResult(data);
           this.error.set(null);
         },

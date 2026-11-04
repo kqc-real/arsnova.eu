@@ -1,12 +1,12 @@
 {
   "name": "arsnova-eu",
-  "version": "0.1.0",
+  "version": "1.3.0",
   "private": true,
   "description": "Ein modernes, 100 % DSGVO-konformes Audience-Response-System",
   "license": "MIT",
   "author": "Klaus Quibeldey-Cirkel",
   "engines": {
-    "node": ">=22.22.1 <23 || >=24.0.0 <25"
+    "node": ">=22.22.3 <23 || >=24.15.0 <25"
   },
   "workspaces": [
     "libs/*",
@@ -25,7 +25,7 @@
     "build:libs": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report",
     "build": "npm run build:libs && npm run build -w @arsnova/backend && npm run build -w @arsnova/frontend",
     "build:landing": "npm run build -w @arsnova/landing",
-    "typecheck": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report && npm run typecheck -w @arsnova/backend && npm run typecheck -w @arsnova/frontend",
+    "typecheck": "npm run build -w @arsnova/shared-types && npm run build -w @arsnova/session-export-report && npm run typecheck -w @arsnova/shared-types && npm run typecheck -w @arsnova/session-export-report && npm run typecheck -w @arsnova/backend && npm run typecheck -w @arsnova/frontend",
     "test": "npm run test:open-weight-llm:all && npm run test -w @arsnova/shared-types && npm run test -w @arsnova/session-export-report && npm run test -w @arsnova/backend && npm run test -w @arsnova/frontend",
     "test:spacy-sidecar": "python3 -m unittest discover -s docker/spacy/tests -p 'test_*.py'",
     "test:spacy-compose": "node --test scripts/ci/spacy-compose-smoke.test.mjs",
@@ -50,12 +50,12 @@
     "format": "prettier --write \"**/*.{ts,js,json,html,css,scss,md}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,html,css,scss,md}\"",
     "format:check:changed": "node scripts/check-changed-format.mjs",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy --schema prisma/schema.prisma",
+    "prisma:generate": "PRISMA_HIDE_UPDATE_MESSAGE=true prisma generate",
+    "prisma:migrate": "PRISMA_HIDE_UPDATE_MESSAGE=true prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:migrate:test": "node --test scripts/migrate-dev-database.test.mjs",
     "engines:test": "node --test scripts/node-engines.test.mjs",
-    "prisma:push": "prisma db push",
-    "prisma:studio": "prisma studio",
+    "prisma:push": "PRISMA_HIDE_UPDATE_MESSAGE=true prisma db push",
+    "prisma:studio": "PRISMA_HIDE_UPDATE_MESSAGE=true prisma studio",
     "seed:dev-motd": "node scripts/seed-dev-motd.mjs",
     "seed:motd-making-of": "npx prisma db execute --file prisma/migrations/20260329140000_motd_making_of_ai/migration.sql && npx prisma db execute --file prisma/migrations/20260331100000_motd_making_of_align_start/migration.sql && npx prisma db execute --file prisma/migrations/20260331150000_motd_making_of_greeting_line/migration.sql && npx prisma db execute --file prisma/migrations/20260331160000_motd_making_of_herstellungskosten/migration.sql && npx prisma db execute --file prisma/migrations/20260331170000_motd_making_of_openhub_active/migration.sql",
     "seed:motd-archive-demo": "node scripts/seed-motd-archive-demo.mjs",
@@ -134,6 +134,8 @@
     "audit:trpc-dod": "node scripts/audit-trpc-dod.mjs --real",
     "audit:trpc-dod:poc": "node scripts/audit-trpc-dod.mjs --poc",
     "audit:trpc-dod:test": "node --test scripts/audit/trpc-dod.test.mjs",
+    "test:related": "node scripts/run-related-tests.mjs",
+    "test:related:test": "node --test scripts/run-related-tests.test.mjs",
     "start:prod": "node scripts/start-backend-prod.mjs",
     "verify:production-serving": "node scripts/verify-production-serving.mjs",
     "verify:csp-report-only": "node scripts/verify-csp-report-only.mjs",
@@ -141,25 +143,30 @@
     "prepare": "husky || true"
   },
   "devDependencies": {
-    "@angular/animations": "^21.2.19",
-    "@angular/build": "^21.2.19",
-    "@angular/common": "^21.2.19",
-    "@angular/compiler": "^21.2.19",
-    "@angular/compiler-cli": "^21.2.19",
-    "@angular/core": "^21.2.19",
-    "@angular/forms": "^21.2.19",
-    "@angular/localize": "^21.2.19",
-    "@angular/platform-browser": "^21.2.19",
-    "@angular/platform-browser-dynamic": "^21.2.19",
-    "@angular/platform-server": "^21.2.19",
-    "@angular/router": "^21.2.25",
-    "@angular/service-worker": "^21.2.19",
+    "@angular-devkit/build-angular": "^22.2.3",
+    "@angular/animations": "^22.2.3",
+    "@angular/build": "^22.2.3",
+    "@angular/cdk": "^22.2.3",
+    "@angular/cli": "^22.2.3",
+    "@angular/common": "^22.2.3",
+    "@angular/compiler": "^22.2.3",
+    "@angular/compiler-cli": "^22.2.3",
+    "@angular/core": "^22.2.3",
+    "@angular/forms": "^22.2.3",
+    "@angular/localize": "^22.2.3",
+    "@angular/material": "^22.2.3",
+    "@angular/platform-browser": "^22.2.3",
+    "@angular/platform-browser-dynamic": "^22.2.3",
+    "@angular/platform-server": "^22.2.3",
+    "@angular/router": "^22.2.3",
+    "@angular/service-worker": "^22.2.3",
+    "@angular/ssr": "^22.2.3",
     "@axe-core/playwright": "^4.12.1",
     "@emnapi/runtime": "1.11.2",
     "@eslint/js": "^10.0.1",
     "@types/qrcode": "^1.5.6",
     "ajv": "^8.18.0",
-    "angular-eslint": "^21.4.0",
+    "angular-eslint": "^22.6.0",
     "artillery": "^2.0.33",
     "concurrently": "^10.0.3",
     "cookie": "^2.0.1",
@@ -171,9 +178,9 @@
     "lint-staged": "^17.0.8",
     "prettier": "^3.2.0",
     "semver": "^7.7.4",
-    "typescript": "~5.9.0",
-    "typescript-eslint": "^8.56.0",
-    "undici": "^7.29.1",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.72.0",
+    "undici": "^7.30.1",
     "yaml": "^2.9.0"
   },
   "dependencies": {
@@ -182,31 +189,30 @@
     "qrcode-generator": "^2.0.4",
     "yjs": "13.6.31"
   },
-  "lint-staged": {
-    "*.{ts,js}": "eslint --no-warn-ignored --fix",
-    "apps/frontend/src/**/*.html": "eslint --no-warn-ignored --fix",
-    "*.{ts,js,mjs,cjs,json,html,css,scss,md}": "prettier --write"
-  },
   "overrides": {
     "@hono/node-server": "2.0.11",
     "compression": "^1.8.2",
+    "dompurify": "3.4.17",
     "deepmerge-ts": "^8.0.1",
-    "fast-uri": "^3.1.8",
+    "body-parser": "2.4.0",
+    "fast-uri": "^3.1.9",
     "find-my-way": "^9.7.0",
     "hono": "^4.12.5",
     "ip-address": "$ip-address",
     "js-yaml": "$js-yaml",
+    "katex": "0.19.0",
     "minimatch": "^10.2.1",
     "mysql2": "^3.22.0",
     "nanoid": "3.3.18",
-    "postcss": "8.5.23",
+    "postcss": "8.5.28",
     "proxy-addr": "^2.0.8",
     "qs": "^6.16.0",
     "sharp": "^0.35.4",
     "shell-quote": "^1.9.0",
     "socket.io-parser": "4.2.7",
+    "source-map-js": "^1.2.2",
     "tar": "^7.5.8",
-    "webpack-dev-server": "5.2.6",
+    "webpack-dev-server": "6.0.0",
     "yjs": "13.6.31",
     "artillery": {
       "js-yaml": "3.15.1"
@@ -218,10 +224,10 @@
       "js-yaml": "$js-yaml"
     },
     "node-gyp": {
-      "undici": "7.29.1"
+      "undici": "7.30.1"
     },
     "@angular/build": {
-      "undici": "7.29.1"
+      "undici": "7.30.1"
     }
   }
 }

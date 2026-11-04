@@ -159,14 +159,12 @@ async function closeHostJoinOverlay(host) {
 async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeout) {
-    const textFields = page.locator(
-      'input[type="text"], input:not([type]), input[matinput], textarea',
-    );
-    const count = await textFields.count();
-    for (let index = 0; index < count; index += 1) {
-      const field = textFields.nth(index);
-      if (await field.isVisible().catch(() => false)) {
-        await field.fill(fallbackName);
+    const nickname = page.locator('#join-nickname-input');
+    if (await nickname.isVisible().catch(() => false)) {
+      if ((await nickname.inputValue().catch(() => '')) !== fallbackName) {
+        await nickname.fill(fallbackName);
+      }
+      if ((await nickname.inputValue().catch(() => '')) === fallbackName) {
         return true;
       }
     }
@@ -174,6 +172,7 @@ async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
     const combobox = page.getByRole('combobox').first();
     if (await combobox.isVisible().catch(() => false)) {
       await combobox.click();
+      await page.waitForTimeout(300);
       const options = page.getByRole('option');
       for (let index = 0; index < (await options.count()); index += 1) {
         const option = options.nth(index);
@@ -181,12 +180,37 @@ async function chooseJoinIdentity(page, fallbackName, timeout = 15_000) {
         const disabled = await option.getAttribute('aria-disabled').catch(() => null);
         if (text && !text.includes('Bitte') && disabled !== 'true') {
           await option.click();
+          await page.waitForTimeout(300);
           return true;
         }
       }
       await page.keyboard.press('Escape').catch(() => undefined);
     }
     await page.waitForTimeout(250);
+  }
+  return false;
+}
+
+async function clickJoinAction(page, timeout = 15_000) {
+  const startedAt = Date.now();
+  const submitButton = page.locator('.join-card__submit').first();
+  while (Date.now() - startedAt < timeout) {
+    const visible = await submitButton.isVisible().catch(() => false);
+    const enabled = visible && (await submitButton.isEnabled().catch(() => false));
+    if (enabled) {
+      await submitButton.click();
+      return true;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  const directJoinButton = page.getByRole('button', { name: JOIN_RE }).first();
+  if (
+    (await directJoinButton.isVisible().catch(() => false)) &&
+    (await directJoinButton.isEnabled().catch(() => false))
+  ) {
+    await directJoinButton.click();
+    return true;
   }
   return false;
 }
@@ -200,13 +224,7 @@ async function joinParticipant(participant, code) {
     await chooseJoinIdentity(participant, 'VerlaufTester'),
     'Teilnehmendenidentität konnte nicht gewählt werden.',
   );
-
-  const joinButton = participant.locator('.join-card__submit').first();
-  if (await joinButton.isVisible().catch(() => false)) {
-    await joinButton.click();
-  } else {
-    await clickButton(participant, JOIN_RE);
-  }
+  ensure(await clickJoinAction(participant), 'Join-Button wurde nicht sichtbar und aktiv.');
   await waitForPathSuffix(participant, `/session/${code}/vote`);
   logStep('Teilnehmer tritt der Session bei');
 }

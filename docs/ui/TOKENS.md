@@ -1,6 +1,6 @@
 # Token-Konventionen (Angular Material 3)
 
-**Stand:** 2026-09-21 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 21.2.
+**Stand:** 2026-10-22 — abgeglichen mit `apps/frontend/src/styles.scss`, `apps/frontend/src/styles/playful-inner-chrome.scss`, `apps/frontend/src/app/shared/server-status-help-dialog/server-status-help-dialog.component.scss`, [STYLEGUIDE.md](STYLEGUIDE.md) und Angular Material 22.2.
 
 ## Ziel
 

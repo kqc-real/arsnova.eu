@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WordCloudComponent } from './word-cloud.component';
 import { getWordCloudLayoutHeight } from './word-cloud-layout';
+import type { SpecAccess } from '../../../testing/spec-access';
 
 describe('WordCloudComponent', () => {
   beforeEach(() => {
@@ -140,9 +141,12 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('focusedTermLabel', 'Entgelt');
     fixture.detectChanges();
 
-    const component = fixture.componentInstance as WordCloudComponent & {
-      stageWidth: { set(value: number): void };
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      WordCloudComponent,
+      {
+        stageWidth: { set(value: number): void };
+      }
+    >;
     component.stageWidth.set(960);
     fixture.detectChanges();
 
@@ -179,48 +183,12 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('focusedTermLabel', 'Entgelt');
     fixture.detectChanges();
 
-    const component = fixture.componentInstance as WordCloudComponent & {
-      stageWidth: { set(value: number): void };
-      createLayoutWords: (
-        entries: Array<{
-          word: string;
-          count: number;
-          sourceCount: number;
-          groupKey: string;
-          variants: string[];
-          basisLabel: string | null;
-          confidence: number | null;
-          size: number;
-          rank: number;
-        }>,
-      ) => Array<{
-        text: string;
-        size: number;
-        padding: number;
-        entry: { groupKey: string; size: number; word: string };
-      }>;
-      boostFocusedLayoutSize: (
-        words: Array<{
-          text: string;
-          size: number;
-          padding: number;
-          entry: { groupKey: string; size: number; word: string };
-        }>,
-        stageWidth: number,
-      ) => Array<{
-        text: string;
-        size: number;
-        padding: number;
-        entry: { groupKey: string; size: number; word: string };
-      }>;
-      ensureFocusedWordPlaced: (
-        positioned: Array<{ groupKey: string; word: string; size: number }>,
-        layoutWords: Array<{
-          text: string;
-          size: number;
-          padding: number;
-          rotate: number;
-          entry: {
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      WordCloudComponent,
+      {
+        stageWidth: { set(value: number): void };
+        createLayoutWords: (
+          entries: Array<{
             word: string;
             count: number;
             sourceCount: number;
@@ -230,12 +198,51 @@ describe('WordCloudComponent', () => {
             confidence: number | null;
             size: number;
             rank: number;
-          };
-        }>,
-        stageWidth: number,
-        stageHeight: number,
-      ) => Array<{ groupKey: string; word: string; size: number; x: number; y: number }>;
-    };
+          }>,
+        ) => Array<{
+          text: string;
+          size: number;
+          padding: number;
+          entry: { groupKey: string; size: number; word: string };
+        }>;
+        boostFocusedLayoutSize: (
+          words: Array<{
+            text: string;
+            size: number;
+            padding: number;
+            entry: { groupKey: string; size: number; word: string };
+          }>,
+          stageWidth: number,
+        ) => Array<{
+          text: string;
+          size: number;
+          padding: number;
+          entry: { groupKey: string; size: number; word: string };
+        }>;
+        ensureFocusedWordPlaced: (
+          positioned: Array<{ groupKey: string; word: string; size: number }>,
+          layoutWords: Array<{
+            text: string;
+            size: number;
+            padding: number;
+            rotate: number;
+            entry: {
+              word: string;
+              count: number;
+              sourceCount: number;
+              groupKey: string;
+              variants: string[];
+              basisLabel: string | null;
+              confidence: number | null;
+              size: number;
+              rank: number;
+            };
+          }>,
+          stageWidth: number,
+          stageHeight: number,
+        ) => Array<{ groupKey: string; word: string; size: number; x: number; y: number }>;
+      }
+    >;
     component.stageWidth.set(960);
     fixture.detectChanges();
 
@@ -437,7 +444,7 @@ describe('WordCloudComponent', () => {
     const klausur = fixture.componentInstance.words().find((entry) => entry.word === 'Klausur');
     expect(klausur?.sourceCount).toBe(80);
     expect(fixture.componentInstance.wordTooltipDisplay(klausur!)).toContain(
-      'In 80 Fragen gefunden',
+      'In 80 von 120 analysierten Fragen',
     );
   });
 
@@ -1523,7 +1530,12 @@ describe('WordCloudComponent', () => {
 
     const component = fixture.componentInstance;
     const downloadSpy = vi
-      .spyOn(component as never, 'downloadBlob')
+      .spyOn(
+        component as unknown as {
+          downloadBlob(body?: string, fileName?: string, mimeType?: string): void;
+        },
+        'downloadBlob',
+      )
       .mockImplementation(() => undefined);
 
     component.exportCsv();
@@ -1566,17 +1578,24 @@ describe('WordCloudComponent', () => {
         confidence: 0.92,
       },
     ]);
+    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern');
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
     const downloadSpy = vi
-      .spyOn(component as never, 'downloadBlob')
+      .spyOn(
+        component as unknown as {
+          downloadBlob(body?: string, fileName?: string, mimeType?: string): void;
+        },
+        'downloadBlob',
+      )
       .mockImplementation(() => undefined);
 
     component.exportCsv();
 
     const [csv] = downloadSpy.mock.calls[0] as [string, string, string];
-    expect(csv).toContain('label,count,variants,basis,members');
+    expect(csv).toContain('label,count,variants,basis,members,view');
+    expect(csv).toContain('Ersatzansicht mit Wörtern');
     expect(csv).toContain(
       '"Pruefungsstoff Kapitel 4",2,"Pruefungsstoff Kapitel 4","Kapitel 4","Kapitel 4 klausurrelevant? | Kapitel 4 pruefungsstoff?"',
     );
@@ -1619,7 +1638,12 @@ describe('WordCloudComponent', () => {
     expect(tooltip).toContain('Ist Kapitel 4 klausurrelevant?');
 
     const downloadSpy = vi
-      .spyOn(component as never, 'downloadBlob')
+      .spyOn(
+        component as unknown as {
+          downloadBlob(body?: string, fileName?: string, mimeType?: string): void;
+        },
+        'downloadBlob',
+      )
       .mockImplementation(() => undefined);
     component.exportCsv();
     const [csv] = downloadSpy.mock.calls[0] as [string, string, string];
@@ -1634,6 +1658,7 @@ describe('WordCloudComponent', () => {
       'Teamarbeit schafft Fokus',
       'Motivation hilft beim Lernen',
     ]);
+    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern und Phrasen');
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
@@ -1654,7 +1679,7 @@ describe('WordCloudComponent', () => {
       fill: vi.fn(),
       stroke: vi.fn(),
       fillText: vi.fn(),
-      measureText: vi.fn((text: string) => ({ width: text.length * 11 })),
+      measureText: vi.fn((text: string) => ({ width: text.length * 11 }) as TextMetrics),
       fillStyle: '',
       strokeStyle: '',
       lineWidth: 1,
@@ -1663,7 +1688,7 @@ describe('WordCloudComponent', () => {
       textBaseline: 'alphabetic',
     } satisfies Partial<CanvasRenderingContext2D>;
 
-    vi.spyOn(canvas, 'getContext').mockReturnValue(context as CanvasRenderingContext2D);
+    vi.spyOn(canvas, 'getContext').mockReturnValue(context as unknown as CanvasRenderingContext2D);
     vi.spyOn(canvas, 'toBlob').mockImplementation((callback: BlobCallback) => {
       callback(new Blob(['png'], { type: 'image/png' }));
     });
@@ -1681,7 +1706,7 @@ describe('WordCloudComponent', () => {
 
     await component.exportPng();
 
-    expect(context.fillText).toHaveBeenCalled();
+    expect(context.fillText).toHaveBeenCalledWith('Ersatzansicht mit Wörtern und Phrasen', 64, 64);
     expect(clickSpy).toHaveBeenCalled();
     expect(component.statusMessage()).toBe('PNG exportiert.');
     expect(fixture.nativeElement.textContent).toContain('PNG speichern');

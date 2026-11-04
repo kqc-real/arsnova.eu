@@ -95,7 +95,7 @@
       [attr.aria-pressed]="helpOpen()"
       [class.mk-editor__tool--active]="helpOpen()"
     >
-      <mat-icon aria-hidden="true">help_outline</mat-icon>
+      <mat-icon aria-hidden="true">help</mat-icon>
     </button>
 
     <mat-menu #overflow="matMenu" (closed)="onOverflowMenuClosed()">
@@ -133,7 +133,7 @@
   @if (helpOpen()) {
     <aside class="mk-editor__help" aria-live="polite">
       <div class="mk-editor__help-head">
-        <mat-icon aria-hidden="true">help_outline</mat-icon>
+        <mat-icon aria-hidden="true">help</mat-icon>
         <strong i18n="@@mdEditor.helpTitle">Markdown-Kurzhilfe</strong>
       </div>
       <div class="mk-editor__help-grid">

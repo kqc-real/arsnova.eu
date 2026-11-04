@@ -1,6 +1,6 @@
 # i18n in Angular (offizieller Weg) — Umsetzungshinweise für Story 6.2
 
-Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev) und auf dem **aktuellen Repo-Stand** von `arsnova.eu`. Der beschriebene Ansatz gilt allgemein ab **Angular 17+**; im Repo läuft derzeit **Angular 21.2.x**.
+Recherche basierend auf der **offiziellen Angular-Dokumentation** (angular.dev) und auf dem **aktuellen Repo-Stand** von `arsnova.eu`. Der beschriebene Ansatz gilt allgemein ab **Angular 17+**; im Repo läuft derzeit **Angular 22.2.x**.
 
 ---
 
@@ -298,8 +298,8 @@ Die Sprachwahl priorisiert bewusst den **Normalfall**: Die App folgt der Sprache
 4. **Lokale Präferenzspeicherung im Browser**
    Die Toolbar speichert die gewählte Sprache zusätzlich in `localStorage` (`home-language`). Der serverseitige Root-Redirect wertet diese Präferenz derzeit **nicht** aus; ein frischer Aufruf von `/` bleibt also browser- bzw. `Accept-Language`-basiert.
 
-5. **Static-Fallback (ohne Node-Backend)**  
-   Die `static-root-index.html` nutzt `navigator.languages` und fällt sonst auf `en` zurück.
+5. **Static-Fallback für sprachneutrale SPA-Routen**
+   Die `static-root-index.html` nutzt `navigator.languages` (Fallback `en`) und übernimmt sprachneutrale Pfade wie `/host-recovery` oder `/join` in die lokalisierte Ziel-URL (`/<locale>/host-recovery`, `/<locale>/join`).
 
 6. **Cache-Verhalten beim Root-Redirect**  
    Der Redirect setzt `Vary: Accept-Language` und `Cache-Control: private, no-cache`, damit Caches keine falsche Sprache global wiederverwenden.
@@ -354,7 +354,7 @@ Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf
 
 | Aspekt                       | Stand                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Extrahierte Messages**     | 2351 trans-units in `messages.xlf`; alle vier Zielkataloge bestehen `npm run check:i18n -w @arsnova/frontend` mit 2351/2351 Einheiten.                                                                                                                                                                                                                                                                                                      |
+| **Extrahierte Messages**     | 4083 trans-units in `messages.xlf` (Stand 2026-10-22; maßgeblich geprüft über `npm run check:i18n -w @arsnova/frontend`); alle vier Zielkataloge bestehen mit 4083/4083 Einheiten.                                                                                                                                                                                                                                                          |
 | **Englisch (en)**            | Vollständig: Alle trans-units in `messages.en.xlf` haben ein `<target>`; Build ohne „No translation found“.                                                                                                                                                                                                                                                                                                                                 |
 | **fr/it/es (Technikstatus)** | `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` sind vollständig gepflegt und in `angular.json` eingebunden; der lokalisierte Build erzeugt Ausgaben für alle fünf Sprachen.                                                                                                                                                                                                                                                        |
 | **Legal-Seiten**             | Impressum und Datenschutz liegen für `de`, `en`, `fr`, `es` und `it` in `src/assets/legal/`.                                                                                                                                                                                                                                                                                                                                                |
@@ -392,6 +392,6 @@ Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf
 
 ---
 
-_Stand: 2026-07-19. Repo-Abgleich mit Angular 21.2.x, fünf Locale-Dateien mit
-je 2351 trans-units und Dokumentation unter
+_Stand: 2026-10-22. Repo-Abgleich mit Angular 22.2.x, fünf Locale-Dateien mit
+je 4083 trans-units (maßgeblicher Abgleich per `npm run check:i18n -w @arsnova/frontend`) und Dokumentation unter
 https://angular.dev/guide/i18n._

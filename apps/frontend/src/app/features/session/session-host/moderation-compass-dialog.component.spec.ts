@@ -173,13 +173,21 @@ describe('ModerationCompassDialogComponent', () => {
       {
         kind: 'topics',
         nextStepReason: 'topics',
-        sources: [{ kind: 'qa-term', label: 'Median · Wie berechnet man den Median?' }],
+        sources: [
+          {
+            kind: 'qa-term',
+            label: 'Median',
+            evidence: 'Wie berechnet man den Median?',
+          },
+        ],
       },
     ]);
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Häufige Themen');
-    expect(text).toContain('Median · Wie berechnet man den Median?');
+    expect(text).toContain('Median');
+    expect(text).toContain('Wie berechnet man den Median?');
+    expect(text).not.toContain('Median · Wie berechnet man den Median?');
     expect(text).toContain('Als Nächstes');
     expect(text).toContain('Fass die häufigsten Themen kurz zusammen.');
     expect(
@@ -469,7 +477,7 @@ describe('ModerationCompassDialogComponent', () => {
     ) as HTMLDetailsElement;
     details.open = true;
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain(
+    expect(fixture.nativeElement.textContent).not.toContain(
       'Zuerst der Begriff aus der Wortwolke, danach ein Beispiel aus einer zugehörigen Frage.',
     );
   });

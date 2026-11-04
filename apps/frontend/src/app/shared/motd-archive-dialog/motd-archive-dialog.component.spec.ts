@@ -325,7 +325,7 @@ describe('MotdArchiveDialogComponent', () => {
     );
     expect(
       items[0]!.querySelector('.motd-archive__mark-unread mat-icon')?.textContent?.trim(),
-    ).toBe('undo');
+    ).toBe('mark_as_unread');
     expect(items[1]!.querySelector('.motd-archive__mark-read')).toBeTruthy();
 
     const unmarkBtn = items[0]!.querySelector<HTMLButtonElement>('.motd-archive__mark-unread');

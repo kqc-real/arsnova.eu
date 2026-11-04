@@ -31,6 +31,7 @@ import {
   setConfirmedParticipantTeam,
 } from '../../../core/participant-team-confirmation';
 import { ThemePresetService } from '../../../core/theme-preset.service';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { recordServerTimeIso, resetServerClockSkew } from '../session-server-clock';
 
 registerLocaleData(localeDe);
@@ -725,7 +726,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'timer-a11y-question',
       text: 'Frage mit Timer',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -824,6 +825,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.sessionSettings.set({ type: 'QUIZ', enableTimerAccommodation: true });
     component.timerAccommodation.set('DEFAULT');
     component.currentQuestion.set({
+      showQuestionTypeIndicators: true,
       id: 'freetext-timer-question',
       text: 'Was hilft dir beim Lernen?',
       type: 'FREETEXT',
@@ -883,7 +885,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'timer-a11y-question',
       text: 'Frage mit Timer',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -972,10 +974,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.sessionTimerSeconds.set(30);
     component.currentRound.set(1);
     component.currentQuestion.set({
+      showQuestionTypeIndicators: true,
       id: 'timer-a11y-question',
       text: 'Frage mit Timer',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1072,10 +1075,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.sessionTimerSeconds.set(60);
     component.scorePreviewElapsedSeconds.set(0);
     component.currentQuestion.set({
+      showQuestionTypeIndicators: true,
       id: 'score-preview-question',
       text: 'Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1162,10 +1166,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.voteClosed.set(false);
     component.sessionTimerSeconds.set(60);
     component.currentQuestion.set({
+      showQuestionTypeIndicators: true,
       id: 'score-preview-skew',
       text: 'Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1203,10 +1208,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.sessionTimerSeconds.set(60);
     component.selectedAnswerIds.set(new Set(['a1']));
     component.currentQuestion.set({
+      showQuestionTypeIndicators: true,
       id: 'score-preview-retry',
       text: 'Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1253,7 +1259,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: '11111111-1111-4111-8111-111111111111',
       text: 'Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1262,6 +1268,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       ],
       timer: null,
       currentRound: 1,
+      showQuestionTypeIndicators: true,
     });
 
     await component.submitVote();
@@ -1302,7 +1309,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'score-preview-restore',
       text: 'Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1333,10 +1340,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.sessionTimerSeconds.set(60);
     component.scorePreviewElapsedSeconds.set(0);
     component.currentQuestion.set({
+      showQuestionTypeIndicators: true,
       id: 'score-preview-restore',
       text: 'Frage',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -1393,7 +1401,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'aaaaaaaa-1111-4111-8111-111111111111',
       text: 'Lies zuerst die Frage.',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       participantReady: false,
     });
@@ -2227,7 +2235,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'q-short-text',
       text: 'Kurzantwort',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [{ id: 's1', text: '1.69 ms', isCorrect: true, voteCount: 1, votePercentage: 100 }],
@@ -2484,7 +2492,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
       text: 'Wie fandest du das?',
       type: 'SURVEY',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2539,7 +2547,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: questionId,
       text: 'Wie fandest du das?',
       type: 'SURVEY',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2578,7 +2586,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
       text: 'Wie fandest du das?',
       type: 'SURVEY',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2619,7 +2627,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'survey-direct-scorecard-guard',
       text: 'Wie fandest du das?',
       type: 'SURVEY',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -2656,7 +2664,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-question',
       text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -2709,7 +2717,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'confidence-sc-question',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2778,7 +2786,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'confidence-summary-question',
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2842,7 +2850,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-choice-timeout',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2913,7 +2921,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-choice-late-click',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -2976,7 +2984,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-choice-sent-a11y',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -3042,7 +3050,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-choice-submit-error-a11y',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -3162,7 +3170,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-choice-pointer-submit',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -3285,7 +3293,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'text-question',
       text: 'Was denkst du?',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -3294,6 +3302,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       currentRound: 1,
       totalVotes: 0,
       participantCount: 2,
+      showQuestionTypeIndicators: true,
     });
     fixture.detectChanges();
 
@@ -3349,7 +3358,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-choice-local-timeout',
       text: 'Welche Antwort ist richtig?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [
@@ -3409,7 +3418,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-question-counter',
       text: 'Nenne den Fachbegriff.',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -3464,7 +3473,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-question-native-maxlength',
       text: 'Nenne den Fachbegriff.',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -3514,7 +3523,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-results',
       text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [{ id: 's1', text: 'Paris', isCorrect: true, voteCount: 1, votePercentage: 100 }],
@@ -3568,7 +3577,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-results-missed',
       text: 'Wie lautet die Kreiszahl?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [{ id: 's1', text: '3,14', isCorrect: true, voteCount: 1, votePercentage: 100 }],
@@ -3627,7 +3636,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-results-partial',
       text: 'Welche Stadt ist die Hauptstadt von Frankreich?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [{ id: 's1', text: 'Paris', isCorrect: true, voteCount: 1, votePercentage: 100 }],
@@ -3683,7 +3692,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-numeric-invalid',
       text: 'Wie groß ist die Beschleunigung?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [{ id: 's1', text: '9.81', isCorrect: true, voteCount: 0, votePercentage: 0 }],
@@ -3737,7 +3746,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'numeric-estimate-integer',
       text: 'Wie viele Personen sind im Raum?',
       type: 'NUMERIC_ESTIMATE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -3814,7 +3823,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'numeric-estimate-decimal',
       text: 'Wie groß ist die Strecke?',
       type: 'NUMERIC_ESTIMATE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -3898,7 +3907,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'french-revolution',
       text: 'In welchem Jahr begann die Französische Revolution?',
       type: 'NUMERIC_ESTIMATE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -3986,7 +3995,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'single-round-estimate',
       text: 'In welchem Jahr begann die Französische Revolution?',
       type: 'NUMERIC_ESTIMATE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -4048,7 +4057,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'short-text-numeric-unit-results',
       text: 'Wie lang ist die Strecke?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [{ id: 's1', text: '2 m', isCorrect: true, voteCount: 1, votePercentage: 100 }],
@@ -4475,6 +4484,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       createdAt: '2026-09-19T07:00:00.000Z',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
       authorNickname: 'Grüner Frosch 2',
       authorTeamName: 'Team 🍐',
@@ -4884,6 +4894,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -4894,6 +4905,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -4904,6 +4916,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-03-13T12:02:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -4914,6 +4927,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-03-13T12:03:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -4973,6 +4987,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:02:00.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
           {
@@ -4983,6 +4998,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:02:10.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
           {
@@ -4993,6 +5009,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:02:20.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
           {
@@ -5003,6 +5020,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:02:30.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
         ],
@@ -5063,6 +5081,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:03:00.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
           {
@@ -5073,6 +5092,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:03:10.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
           {
@@ -5083,6 +5103,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:03:20.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
           {
@@ -5093,6 +5114,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
             createdAt: '2026-03-13T12:03:30.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
         ],
@@ -5189,6 +5211,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     component.qaListTotalCount.set(240);
     const prev: QaQuestionDTO[] = [
       {
+        passagesRedacted: false,
         id: 'q-a',
         text: 'Erste Seite',
         upvoteCount: 4,
@@ -5201,6 +5224,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ];
     const next: QaQuestionDTO[] = [
       {
+        passagesRedacted: false,
         id: 'q-b',
         text: 'Neue Sortierung',
         upvoteCount: 1,
@@ -5234,6 +5258,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(
       fixture.componentInstance.qaAuthorKindergartenBadgeLabel({
+        passagesRedacted: false,
         id: 'question-1',
         text: 'Wie viel Stoff ist klausurrelevant?',
         upvoteCount: 2,
@@ -5265,6 +5290,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
     component.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'question-1',
         text: 'Kommt Kapitel 4 in der Klausur vor?',
         upvoteCount: 2,
@@ -5305,6 +5331,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
     component.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'question-long-nick',
         text: 'Wann ist die Klausur?',
         upvoteCount: 1,
@@ -5358,6 +5385,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ]);
     component.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'question-1',
         text: 'ich hab eine Frage.',
         upvoteCount: 0,
@@ -5676,6 +5704,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     } as never);
     component.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'question-1',
         text: 'Wie viel Stoff ist klausurrelevant?',
         upvoteCount: 2,
@@ -5689,6 +5718,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         hasUpvoted: false,
       },
       {
+        passagesRedacted: false,
         id: 'question-2',
         text: 'Gibt es eine Musterlösung?',
         upvoteCount: 1,
@@ -5771,6 +5801,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     } as never);
     component.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'own-question',
         text: 'Meine Frage',
         upvoteCount: -2,
@@ -5835,7 +5866,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Welche Antwort stimmt?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'Rot' },
         { id: 'a2', text: 'Blau' },
@@ -7458,7 +7489,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Welche Antwort stimmt?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 3,
       answers: [
@@ -7514,7 +7545,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: '![Frage](https://example.com/question.png)',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 3,
       answers: [
@@ -7621,7 +7652,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -7666,7 +7697,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Frage 1?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -7726,7 +7757,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -7783,7 +7814,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -7832,7 +7863,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Frage 1?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -7866,7 +7897,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   });
 
   it('zieht bei Freigabe der Antwortoptionen (QUESTION_OPEN→ACTIVE) zurück in den Quiz-Kanal', async () => {
-    let statusListener: ((data: unknown) => void) | null = null;
+    let statusListener: ((data: unknown) => void) | undefined;
     statusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         statusListener = opts.onData;
@@ -7894,7 +7925,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       order: 1,
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -7928,7 +7959,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   });
 
   it('folgt einem geänderten bevorzugten Live-Kanal, ohne die Rückkehr ins Quiz zu blockieren', async () => {
-    let quickFeedbackListener: ((data: unknown) => void) | null = null;
+    let quickFeedbackListener: ((data: unknown) => void) | undefined;
 
     quickFeedbackOnResultsSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
@@ -8044,7 +8075,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
   it('entfernt in Peer-Instruction-Runde 2 den Countdown bei gleicher Frage', async () => {
     const nowIso = new Date().toISOString();
-    let statusListener: ((data: unknown) => void) | null = null;
+    let statusListener: ((data: unknown) => void) | undefined;
     statusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         statusListener = opts.onData;
@@ -8074,7 +8105,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         text: 'Welche Antwort stimmt?',
         type: 'SINGLE_CHOICE',
         timer: 60,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { id: 'a1', text: 'Rot' },
           { id: 'a2', text: 'Blau' },
@@ -8090,7 +8121,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         text: 'Welche Antwort stimmt?',
         type: 'SINGLE_CHOICE',
         timer: null,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { id: 'a1', text: 'Rot' },
           { id: 'a2', text: 'Blau' },
@@ -8139,7 +8170,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   it('zeigt die Quiz-Pause und erhält einen noch nicht gesendeten Antwortentwurf', async () => {
     const activeAt = '2026-08-25T12:00:00.000Z';
     const resumedActiveAt = '2026-08-25T12:00:30.000Z';
-    let statusListener: ((data: unknown) => void) | null = null;
+    let statusListener: ((data: unknown) => void) | undefined;
     statusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         statusListener = opts.onData;
@@ -8169,7 +8200,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Welche Antwort stimmt?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'Rot' },
         { id: 'a2', text: 'Blau' },
@@ -8226,7 +8257,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   });
 
   it('kündigt eine ausgelassene Frage visuell und über die höfliche Live-Region an', async () => {
-    let statusListener: ((data: unknown) => void) | null = null;
+    let statusListener: ((data: unknown) => void) | undefined;
     statusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         statusListener = opts.onData;
@@ -8282,8 +8313,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const statusUnsubscribe = vi.fn();
     const qaUnsubscribe = vi.fn();
     const quickFeedbackUnsubscribe = vi.fn();
-    let statusListener: ((data: unknown) => void) | null = null;
-    let qaListener: ((data: never[]) => void) | null = null;
+    let statusListener: ((data: unknown) => void) | undefined;
+    let qaListener: ((data: never[]) => void) | undefined;
 
     statusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
@@ -8333,6 +8364,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     fixture.componentInstance.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'stale-question',
         text: 'Darf nicht sichtbar bleiben',
         upvoteCount: 0,
@@ -8403,7 +8435,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         text: 'Welche Antwort stimmt?',
         type: 'SINGLE_CHOICE',
         timer: 60,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { id: 'a1', text: 'Rot' },
           { id: 'a2', text: 'Blau' },
@@ -8419,7 +8451,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         text: 'Welche Antwort stimmt?',
         type: 'SINGLE_CHOICE',
         timer: null,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { id: 'a1', text: 'Rot' },
           { id: 'a2', text: 'Blau' },
@@ -8494,7 +8526,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
       timer: 60,
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'a1', text: 'A' },
         { id: 'a2', text: 'B' },
@@ -8542,6 +8574,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -8554,6 +8587,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: true,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       quota: {
@@ -8627,6 +8661,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -8642,6 +8677,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -8682,6 +8718,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -8697,6 +8734,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:03:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -8712,6 +8750,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:04:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -8728,6 +8767,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -8810,6 +8850,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -8820,6 +8861,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -8830,6 +8872,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: true,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -8901,6 +8944,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -8947,6 +8991,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       createdAt: '2026-09-15T08:00:00.000Z',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     }));
     const firstSnapshot = {
@@ -8972,6 +9017,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-09-15T07:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -9053,6 +9099,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-09-15T08:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -9142,6 +9189,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
           createdAt: '2026-09-15T08:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -9202,6 +9250,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const c = fixture.componentInstance;
     const prev: QaQuestionDTO[] = [
       {
+        passagesRedacted: false,
         id: 'q-own',
         text: 'Meine Frage',
         upvoteCount: 1,
@@ -9253,6 +9302,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const c = fixture.componentInstance;
     const prev: QaQuestionDTO[] = [
       {
+        passagesRedacted: false,
         id: 'q-other',
         text: 'Fremde Frage',
         upvoteCount: 2,
@@ -9302,6 +9352,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const c = fixture.componentInstance;
     const pending: QaQuestionDTO = {
+      passagesRedacted: false,
       id: 'q-own',
       text: 'Meine Frage',
       upvoteCount: 0,
@@ -9351,6 +9402,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const c = fixture.componentInstance;
     const active: QaQuestionDTO = {
+      passagesRedacted: false,
       id: 'q-own',
       text: 'Meine Frage',
       upvoteCount: 2,
@@ -9384,7 +9436,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'categorization-incomplete-question',
       text: 'Sortiere ein',
       type: 'CATEGORIZATION',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -9470,7 +9522,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'structured-discussion-question',
         text: 'Diskutiert diese Frage',
         type,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         totalQuestions: 1,
         ...fields,
@@ -9576,7 +9628,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'structured-result-question',
         text: 'Strukturierte Ergebnisfrage',
         type,
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         totalQuestions: 1,
         answers: [],
@@ -9648,7 +9700,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'ordering-no-vote-result',
       text: 'Sortiere',
       type: 'ORDERING',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -9725,7 +9777,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'matching-structured-question',
       text: 'Ordne zu',
       type: 'MATCHING',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -9800,7 +9852,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       id: 'categorization-draft-question',
       text: 'Sortiere ein',
       type: 'CATEGORIZATION',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
@@ -9859,11 +9911,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const question = {
       id: 'ordering-draft-question',
       text: 'Sortiere',
-      type: 'ORDERING',
-      difficulty: 'MEDIUM',
+      type: 'ORDERING' as const,
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
+      timer: null,
+      showQuestionTypeIndicators: true,
       currentRound: 1,
       orderingItems: [
         { id: 'item-a', text: 'A' },
@@ -9907,19 +9961,21 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const round1Question = {
       id: questionId,
       text: 'Sortiere',
-      type: 'ORDERING',
-      difficulty: 'MEDIUM',
+      type: 'ORDERING' as const,
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
+      timer: null,
+      showQuestionTypeIndicators: true,
       currentRound: 1,
       orderingItems: [
         { id: 'item-a', text: 'A' },
         { id: 'item-b', text: 'B' },
         { id: 'item-c', text: 'C' },
       ],
-    } as never;
-    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    };
+    const round2Question = { ...round1Question, currentRound: 2 };
     const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
     const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
     const round1Draft = JSON.stringify({
@@ -9965,11 +10021,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const round1Question = {
       id: questionId,
       text: 'Ordne zu',
-      type: 'MATCHING',
-      difficulty: 'MEDIUM',
+      type: 'MATCHING' as const,
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
+      timer: null,
+      showQuestionTypeIndicators: true,
       currentRound: 1,
       matchingLeftOptions: [
         { id: 'left-a', text: 'A' },
@@ -9979,8 +10037,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         { id: 'right-1', text: '1' },
         { id: 'right-2', text: '2' },
       ],
-    } as never;
-    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    };
+    const round2Question = { ...round1Question, currentRound: 2 };
     const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
     const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
     const round1Draft = JSON.stringify({
@@ -10030,11 +10088,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const round1Question = {
       id: questionId,
       text: 'Kategorisiere',
-      type: 'CATEGORIZATION',
-      difficulty: 'MEDIUM',
+      type: 'CATEGORIZATION' as const,
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
+      timer: null,
+      showQuestionTypeIndicators: true,
       currentRound: 1,
       categories: [
         { id: 'cat-a', name: 'A' },
@@ -10044,8 +10104,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         { id: 'item-a', text: 'A' },
         { id: 'item-b', text: 'B' },
       ],
-    } as never;
-    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    };
+    const round2Question = { ...round1Question, currentRound: 2 };
     const round1Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-1`;
     const round2Key = `arsnova-vote-response-ABC123-${participantId}-${questionId}-2`;
     const round1Draft = JSON.stringify({
@@ -10094,19 +10154,21 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const round1Question = {
       id: 'ordering-round-retry',
       text: 'Sortiere',
-      type: 'ORDERING',
-      difficulty: 'MEDIUM',
+      type: 'ORDERING' as const,
+      difficulty: 'MEDIUM' as const,
       order: 0,
       totalQuestions: 1,
       answers: [],
+      timer: null,
+      showQuestionTypeIndicators: true,
       currentRound: 1,
       orderingItems: [
         { id: 'item-a', text: 'A' },
         { id: 'item-b', text: 'B' },
         { id: 'item-c', text: 'C' },
       ],
-    } as never;
-    const round2Question = { ...round1Question, currentRound: 2 } as never;
+    };
+    const round2Question = { ...round1Question, currentRound: 2 };
     component.status.set('ACTIVE');
     component.currentRound.set(2);
     component.currentQuestion.set(round1Question);
@@ -10148,7 +10210,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'matching-results-reload',
         text: 'Ordne zu',
         type: 'MATCHING',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         totalQuestions: 1,
         answers: [],
@@ -10176,7 +10238,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'ordering-results-reload',
         text: 'Sortiere',
         type: 'ORDERING',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         totalQuestions: 1,
         answers: [],
@@ -10197,7 +10259,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'categorization-results-reload',
         text: 'Kategorisiere',
         type: 'CATEGORIZATION',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         totalQuestions: 1,
         answers: [],
@@ -10240,7 +10302,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         id: 'previous-question',
         text: 'Vorherige Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         order: 0,
         totalQuestions: 1,
         answers: [],
@@ -10411,6 +10473,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       navigation.applyPreferredChannelIfChanged('quickFeedback');
       fixture.detectChanges();
       expect(c.hasUnsentQuizAnswer()).toBe(true);
+      expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(
+        kind === 'Auswahl' ||
+          kind === 'Text' ||
+          kind === 'Zahl' ||
+          kind === 'Rating' ||
+          kind === 'Confidence',
+      );
       expect(c.activeChannel()).toBe('quiz');
       c.voteSent.set(true);
       c.voteSending.set(true);

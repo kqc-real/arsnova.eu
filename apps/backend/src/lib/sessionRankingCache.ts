@@ -159,37 +159,41 @@ export async function loadSharedCompetitionVotes(options: {
     expiresAt: Number.POSITIVE_INFINITY,
     promise: Promise.resolve([]),
   };
-  entry.promise = prisma.vote
-    .findMany({
-      where: {
-        sessionId: options.sessionId,
-        round: { in: [1, 2] },
-        questionId: { in: [...options.questionIds] },
-      },
-      select: options.includeCorrectness
-        ? {
-            participantId: true,
-            questionId: true,
-            round: true,
-            score: true,
-            isCorrect: true,
-            responseTimeMs: true,
-            question: {
-              select: {
-                type: true,
-                answers: { select: { id: true, isCorrect: true } },
-              },
+  const where = {
+    sessionId: options.sessionId,
+    round: { in: [1, 2] },
+    questionId: { in: [...options.questionIds] },
+  };
+  const queryPromise: Promise<CompetitionVoteRow[]> = options.includeCorrectness
+    ? prisma.vote.findMany({
+        where,
+        select: {
+          participantId: true,
+          questionId: true,
+          round: true,
+          score: true,
+          isCorrect: true,
+          responseTimeMs: true,
+          question: {
+            select: {
+              type: true,
+              answers: { select: { id: true, isCorrect: true } },
             },
-            selectedAnswers: { select: { answerOptionId: true } },
-          }
-        : {
-            participantId: true,
-            questionId: true,
-            round: true,
-            score: true,
-            responseTimeMs: true,
           },
-    })
+          selectedAnswers: { select: { answerOptionId: true } },
+        },
+      })
+    : prisma.vote.findMany({
+        where,
+        select: {
+          participantId: true,
+          questionId: true,
+          round: true,
+          score: true,
+          responseTimeMs: true,
+        },
+      });
+  entry.promise = queryPromise
     .then((votes) => {
       if (rankingCache.get(cacheKey) !== entry) {
         return votes;

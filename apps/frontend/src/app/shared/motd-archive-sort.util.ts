@@ -81,7 +81,7 @@ export function isMotdArchiveItemForcedUnread(
 
 export function isMotdArchiveItemUnread(
   item: MotdArchiveItemDTO,
-  seen: MotdArchiveReadCursor | undefined,
+  seen: MotdArchiveReadCursor | null | undefined,
   readItems: ReadonlyArray<MotdArchiveReadItem>,
   unreadItems: ReadonlyArray<MotdArchiveReadItem> = [],
 ): boolean {
@@ -96,7 +96,7 @@ export function isMotdArchiveItemUnread(
 
 export function countMotdArchiveUnreadItems(
   items: MotdArchiveItemDTO[],
-  seen: MotdArchiveReadCursor | undefined,
+  seen: MotdArchiveReadCursor | null | undefined,
   readItems: ReadonlyArray<MotdArchiveReadItem>,
   unreadItems: ReadonlyArray<MotdArchiveReadItem> = [],
 ): number {

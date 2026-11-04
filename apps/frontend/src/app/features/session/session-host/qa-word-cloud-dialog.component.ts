@@ -12,7 +12,11 @@ import type {
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
-import type { WeightedWordSource } from '../session-present/word-cloud.util';
+import {
+  wordCloudExportViewLabel,
+  wordCloudTopicProgressLabel,
+  type WeightedWordSource,
+} from '../session-present/word-cloud.util';
 
 export type QaWordCloudSmoothingStatus = 'idle' | 'pending' | 'active' | 'stale';
 
@@ -34,6 +38,11 @@ export type QaWordCloudDialogData = {
   labelModelId?: () => string | null;
   labelModelVersion?: () => string | null;
   analysisVariant: () => WordCloudAnalysisVariant;
+  displayMode?: () => WordCloudAnalysisVariant;
+  analysisLanguage?: () => string;
+  languageLocked?: () => boolean;
+  setAnalysisLanguage?: (locale: string) => void | Promise<void>;
+  showThemeRefresh?: () => boolean;
   setAnalysisVariant: (variant: WordCloudAnalysisVariant) => void | Promise<void>;
   themeModeAvailable: () => boolean;
   themeFallbackHint: () => string | null;
@@ -88,6 +97,8 @@ export class QaWordCloudDialogComponent {
   readonly analysisModelVersion = computed(() => this.data.analysisModelVersion?.() ?? null);
   readonly labelModelId = computed(() => this.data.labelModelId?.() ?? null);
   readonly labelModelVersion = computed(() => this.data.labelModelVersion?.() ?? null);
+  readonly displayMode = computed(() => this.data.displayMode?.() ?? 'LEXICAL');
+  readonly eligibleQuestionCount = computed(() => this.data.eligibleQuestionCount());
   readonly analysisVariant = computed(() => this.data.analysisVariant());
   readonly themeModeAvailable = computed(() => this.data.themeModeAvailable());
   readonly themeFallbackHint = computed(() => this.data.themeFallbackHint());
@@ -118,7 +129,7 @@ export class QaWordCloudDialogComponent {
       case 'stale':
         return 'refresh';
       default:
-        return 'auto_fix_high';
+        return 'wand_stars';
     }
   });
   readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
@@ -126,7 +137,10 @@ export class QaWordCloudDialogComponent {
     () => this.analysisVariant() === 'LEXICAL' || this.analysisVariant() === 'THEME',
   );
   readonly showThemeRefresh = computed(
-    () => this.analysisVariant() === 'SEMANTIC' && this.smoothingStatus() === 'stale',
+    () =>
+      this.analysisVariant() === 'SEMANTIC' &&
+      (this.smoothingBusy() ||
+        (this.data.showThemeRefresh?.() ?? this.smoothingStatus() === 'stale')),
   );
   readonly hasPreparedThemes = computed(
     () => this.data.hasPreparedThemes?.() ?? (this.analysisEntries()?.length ?? 0) > 0,
@@ -144,7 +158,10 @@ export class QaWordCloudDialogComponent {
       this.hasPreparedThemes(),
   );
   readonly themeProgressLabel = $localize`:@@sessionQa.wordCloudSemanticPendingLabel:Themen werden vorbereitet.`;
-  readonly themeProgressFallback = $localize`:@@sessionQa.wordCloudSemanticPendingFallback:Es gelten Wörter und Phrasen.`;
+  readonly previousTopicsLabel = wordCloudTopicProgressLabel(true);
+  readonly exportViewLabel = computed(() =>
+    wordCloudExportViewLabel(this.analysisVariant(), this.displayMode()),
+  );
   readonly themeRefreshLabel = $localize`:@@sessionQa.wordCloudRefreshThemes:Themen aktualisieren`;
 
   selectedSourceIds(): readonly string[] {
@@ -159,7 +176,7 @@ export class QaWordCloudDialogComponent {
   }
 
   setSortMode(mode: QaQuestionSortMode): void {
-    if (mode === this.sortMode()) {
+    if (this.frozen() || mode === this.sortMode()) {
       return;
     }
 
@@ -167,7 +184,7 @@ export class QaWordCloudDialogComponent {
   }
 
   setAnalysisVariant(variant: WordCloudAnalysisVariant): void {
-    if (variant === this.analysisVariant()) {
+    if (this.frozen() || variant === this.analysisVariant()) {
       return;
     }
 
@@ -179,7 +196,7 @@ export class QaWordCloudDialogComponent {
   }
 
   toggleSmoothing(): void {
-    if (this.smoothingDisabled()) {
+    if (this.frozen() || this.smoothingDisabled()) {
       return;
     }
 

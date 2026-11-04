@@ -21,9 +21,12 @@
             break;
           }
         }
-        var joinPath = /^\/join\/?$/.test(location.pathname || '') ? 'join' : '';
+        var rawPath = String(location.pathname || '').replace(/^\/+|\/+$/g, '');
+        var firstSeg = rawPath.split('/')[0].toLowerCase();
+        var subPath =
+          supported.indexOf(firstSeg) !== -1 ? rawPath.split('/').slice(1).join('/') : rawPath;
         var tail = (location.search || '') + (location.hash || '');
-        location.replace('/' + chosen + '/' + joinPath + tail);
+        location.replace('/' + chosen + '/' + (subPath ? subPath + tail : tail));
       })();
     </script>
   </head>

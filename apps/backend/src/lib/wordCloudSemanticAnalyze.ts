@@ -583,7 +583,7 @@ async function runSemanticEncoderJob(
         encoderCalled: false,
       });
     }
-    const entries = semanticClustersToEntries(clusters, input.items);
+    const entries = semanticClustersToEntries(clusters, input.items, input);
     const uncertain = clusters.every((cluster) => cluster.confidence < 0.85);
     return buildSemanticAnalysisOutput({
       request: input,
@@ -653,7 +653,7 @@ async function runSemanticEncoderJob(
         encoderCalled: resolved.encoderCalled,
       });
     }
-    const entries = semanticClustersToEntries(clusters, input.items);
+    const entries = semanticClustersToEntries(clusters, input.items, input);
     const uncertain = clusters.every((cluster) => cluster.confidence < 0.85);
     return buildSemanticAnalysisOutput({
       request: input,

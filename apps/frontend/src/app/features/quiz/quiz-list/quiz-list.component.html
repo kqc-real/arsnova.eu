@@ -460,7 +460,7 @@
           i18n-aria-label="@@quizList.syncUnlinkAria"
           aria-label="Teilen beenden und wieder nur auf diesem Gerät arbeiten"
         >
-          <mat-icon>phonelink_off</mat-icon>
+          <mat-icon>devices_off</mat-icon>
           <span i18n="@@quizList.syncUnlinkCta">Teilen beenden</span>
         </button>
       }
@@ -522,7 +522,7 @@
               }
               @if (quiz.hasBonus) {
                 <span class="quiz-list-item__feature-chip quiz-list-item__feature-chip--bonus">
-                  <mat-icon aria-hidden="true">emoji_events</mat-icon>
+                  <mat-icon aria-hidden="true">trophy</mat-icon>
                   <span i18n="@@quizList.chipBonus">Bonus</span>
                 </span>
               }
@@ -569,7 +569,7 @@
                 [disabled]="!hasAvailableBonusCodes(quiz)"
                 (click)="openBonusCodesDialog(quiz)"
               >
-                <mat-icon>emoji_events</mat-icon>
+                <mat-icon>trophy</mat-icon>
                 <span i18n="@@quizList.bonusCodes">Bonus-Codes</span>
               </button>
             </span>

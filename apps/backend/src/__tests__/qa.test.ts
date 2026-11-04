@@ -396,6 +396,7 @@ describe('qa router (Epic 8)', () => {
     expect(second.questions[0]?.text).toBe('Geteilte Seite');
     expect(third.questions[0]?.text).toBe('Geteilte Seite');
     expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
     const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
     expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED')`);
     expect(sql).not.toContain(`question."status" = 'PENDING'`);
@@ -636,7 +637,13 @@ describe('qa router (Epic 8)', () => {
       controversyScore: 5 / 6,
       isControversial: true,
     });
-    expect(prismaMock.participant.count).toHaveBeenCalled();
+    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
+    await caller.list({
+      sessionId: SESSION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+      sort: 'CONTROVERSIAL',
+    });
+    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."controversyScore" DESC',
     );
@@ -847,6 +854,7 @@ describe('qa router (Epic 8)', () => {
       search: 'eins',
       pinnedOnly: false,
       authorNickname: null,
+      source: 'host',
     });
 
     rawQueryResults.rankedQuestions.push([
@@ -925,6 +933,7 @@ describe('qa router (Epic 8)', () => {
         search: '',
         pinnedOnly: false,
         authorNickname: null,
+        source: 'host',
       });
 
       prismaMock.participant.count.mockResolvedValue(12);
@@ -3380,6 +3389,47 @@ describe('qa router (Epic 8)', () => {
 
     await vi.advanceTimersByTimeAsync(15_000);
     expect(prismaMock.session.findUnique.mock.calls.length).toBe(readsAfterSubscribe);
+  });
+
+  it('bündelt den Session-Snapshot bei gleichzeitigem Aufwachen mehrerer Q&A-Subscriptions', async () => {
+    let session = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaRankingRevision: 7,
+      participantRevision: 0,
+    };
+    prismaMock.session.findUnique.mockImplementation(async () => session);
+
+    const streamA = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    });
+    const streamB = await caller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      participantId: OTHER_PARTICIPANT_ID,
+    });
+    const iteratorA = streamA[Symbol.asyncIterator]();
+    const iteratorB = streamB[Symbol.asyncIterator]();
+
+    await Promise.all([iteratorA.next(), iteratorB.next()]);
+    const nextA = iteratorA.next();
+    const nextB = iteratorB.next();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const readsBeforeSignal = prismaMock.session.findUnique.mock.calls.length;
+    session = { ...session, qaRankingRevision: 8 };
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+
+    await expect(Promise.all([nextA, nextB])).resolves.toEqual([
+      { value: expect.objectContaining({ rankingRevision: 8 }), done: false },
+      { value: expect.objectContaining({ rankingRevision: 8 }), done: false },
+    ]);
+    expect(prismaMock.session.findUnique.mock.calls.length - readsBeforeSignal).toBe(1);
+
+    await Promise.all([iteratorA.return?.(undefined), iteratorB.return?.(undefined)]);
   });
 
   it('ignoriert die Teilnehmerfrist für den Host-Wartetakt', async () => {

@@ -15,6 +15,66 @@ export function stripHostOnlyQuestionNotes(value: string): string {
     .trim();
 }
 
+const MATH_DELIMITERS = [
+  { open: '$$', close: '$$' },
+  { open: '\\[', close: '\\]' },
+  { open: '\\(', close: '\\)' },
+  { open: '$', close: '$' },
+] as const;
+
+function mathSourceText(match: string): string {
+  let inner = match;
+  if (inner.startsWith('$$')) inner = inner.slice(2, -2);
+  else if (inner.startsWith('\\[') || inner.startsWith('\\(')) inner = inner.slice(2, -2);
+  else if (inner.startsWith('$')) inner = inner.slice(1, -1);
+  return inner.replace(/\s+/g, ' ').trim();
+}
+
+function findMathCloser(value: string, marker: string, from: number): number {
+  if (marker !== '$') return value.indexOf(marker, from);
+  for (let index = from; index < value.length; index += 1) {
+    if (value[index] === '$' && value[index - 1] !== '\\') return index;
+  }
+  return -1;
+}
+
+function takeMathBlock(value: string, start: number): { match: string; next: number } | null {
+  if (value[start] === '$' && value[start - 1] === '\\') return null;
+  const slice = value.slice(start);
+  const delimiter = MATH_DELIMITERS.find((entry) => slice.startsWith(entry.open));
+  if (!delimiter) return null;
+  const end = findMathCloser(value, delimiter.close, start + delimiter.open.length);
+  if (end === -1) return null;
+  const match = value.slice(start, end + delimiter.close.length);
+  if (mathSourceText(match).length === 0) return null;
+  return { match, next: end + delimiter.close.length };
+}
+
+/**
+ * Markdown als Fließtext. Formeln (`$$`, `$…$`, `\[…\]`, `\(…\)`) bleiben als Quelltext,
+ * damit Markdown Unterstriche und Malzeichen in Formeln nicht entfernt.
+ */
+export function markdownToReadableText(value: string): string {
+  const formulas: string[] = [];
+  let marked = '';
+  for (let index = 0; index < value.length;) {
+    const block = takeMathBlock(value, index);
+    if (!block) {
+      marked += value[index];
+      index += 1;
+      continue;
+    }
+    const slot = formulas.length;
+    formulas.push(mathSourceText(block.match));
+    marked += ` \uE000${slot}\uE001 `;
+    index = block.next;
+  }
+  return stripMarkdownToPlainText(marked).replace(
+    /\uE000(\d+)\uE001/g,
+    (_, slot: string) => formulas[Number(slot)] ?? '',
+  );
+}
+
 /** Markdown/KaTeX in lesbaren Fließtext umwandeln. */
 export function stripMarkdownToPlainText(value: string): string {
   return replaceEmojiShortcodes(

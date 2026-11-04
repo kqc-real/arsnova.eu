@@ -38,6 +38,8 @@ import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.
 import {
   capWordCloudFontToStage,
   containWordCloudPillsInStage,
+  retainWordCloudPillPositions,
+  keepWordCloudSizesOnRelabel,
   estimateWordCloudFontFillScale,
   fitWordCloudPositionsToStage,
   getWordCloudChipPadding,
@@ -209,12 +211,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     $localize`:@@wordCloud.description:Häufig genannte Wörter erscheinen größer.`,
   );
   readonly tooltipMetricLabel = input<string | null>(null);
+  readonly exportViewLabel = input<string | null>(null);
   readonly analysisModelVersion = input<string | null>(null);
   readonly labelModelId = input<string | null>(null);
   readonly labelModelVersion = input<string | null>(null);
   readonly disableCloudLayout = input(false);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
+  /** Confidence-Auswahl auch in der Ausgabe-Ansicht, ohne Export oder Maximieren. */
+  readonly interactiveOutput = input(false);
   readonly showMaximizeAction = input(true);
   readonly maximizeActionHandler = input<(() => void | Promise<void>) | null>(null);
   readonly showExportActions = input(true);
@@ -225,6 +230,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly itemLabelPlural = input($localize`:@@wordCloud.itemPlural:Antworten`);
   /** Kanonische Quellenanzahl, wenn die sichtbaren Mitglieder gekürzt sind. */
   readonly itemCount = input<number | null>(null);
+  readonly eligibleItemCount = input<number | null>(null);
   readonly wordLabelSingular = input($localize`:@@wordCloud.wordSingular:Wort`);
   readonly wordLabelPlural = input($localize`:@@wordCloud.wordPlural:Wörter`);
   readonly showConfidenceFilter = input(true);
@@ -311,6 +317,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       : availableHeight;
   });
   private readonly renderedCloudStageWidth = signal(0);
+  private renderedLayoutScope: string | null = null;
   private readonly renderedCloudStageHeight = signal(0);
   private readonly layoutFontFamily = signal('system-ui');
   private readonly activeLayoutSignature = signal('');
@@ -466,7 +473,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly showConfidenceFilterToggle = computed(
     () =>
       this.showConfidenceFilter() &&
-      !this.outputOnly() &&
+      (!this.outputOnly() || this.interactiveOutput()) &&
       this.confidenceFilterOptions().length > 0,
   );
 
@@ -623,11 +630,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       .join('|'),
   );
 
-  /**
-   * Stabiler Seed für die d3-cloud-Spirale: hängt nur an der Menge der Begriffe
-   * (sortierte groupKeys), nicht an deren aktuellem Gewicht (`count`) oder Rang.
-   * Dadurch behalten Bubbles beim Umschalten der Sortieroption ihre Spiralbahn.
-   */
+  /** Der Seed pro Begriff bleibt bei reinen Gewichts- und Rangänderungen stabil. */
   private readonly layoutStableRandomSeedSignature = computed(() => {
     const width = Math.round(this.stageWidth());
     const height = Math.round(this.cloudStageHeightPx());
@@ -703,6 +706,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
 
     const details: AnalysisDetailChip[] = [];
+    const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
+    const metric = this.tooltipMetricLine();
+    if (sourceCount) details.push({ label: sourceCount, tone: 'neutral' });
+    if (metric) details.push({ label: metric, tone: 'neutral' });
     const basisDetail = this.analysisBasisDetail(entry);
     if (basisDetail) {
       details.push(basisDetail);
@@ -714,6 +721,24 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
 
     return details;
+  });
+
+  readonly qaCoverageLabel = computed(() => {
+    const eligible = this.eligibleItemCount();
+    if (this.analysisMode() !== 'qa' || eligible === null) return null;
+    const analyzed = this.formatCount(this.responseSummary().total);
+    const total = this.formatCount(eligible);
+    return $localize`:@@wordCloud.qaCoverage:${analyzed}:analyzed: von ${total}:eligible: Fragen analysiert`;
+  });
+
+  readonly selectedEvidenceCoverage = computed(() => {
+    const entry = this.selectedWordEntry();
+    if (!entry) return null;
+    const analysisEntry = this.analysisEntries()?.find(({ key }) => key === entry.groupKey);
+    if (!analysisEntry?.membersTruncated) return null;
+    const shown = this.formatCount(this.visibleResponses().length);
+    const total = this.formatCount(entry.sourceCount);
+    return $localize`:@@wordCloud.evidenceCoverage:${shown}:shown: von ${total}:total: Belegen sichtbar`;
   });
 
   private readonly responseSearchIndex = computed(() =>
@@ -1029,6 +1054,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   toggleWord(groupKey: string): void {
     this.selectedGroupKey.update((current) => (current === groupKey ? null : groupKey));
+    if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses();
   }
 
   private pinFocusedWord(words: CloudWord[], cap: number): CloudWord[] {
@@ -1391,12 +1417,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           ].join(','),
         ),
       ];
-      this.downloadBlob(
-        rows.join('\n'),
-        `wordcloud_${new Date().toISOString().slice(0, 10)}.csv`,
-        'text/csv;charset=utf-8',
-      );
-      this.statusMessage.set($localize`CSV exportiert.`);
+      this.downloadCsv(rows);
       return;
     }
 
@@ -1436,12 +1457,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           ].join(','),
         ),
       ];
-      this.downloadBlob(
-        rows.join('\n'),
-        `wordcloud_${new Date().toISOString().slice(0, 10)}.csv`,
-        'text/csv;charset=utf-8',
-      );
-      this.statusMessage.set($localize`CSV exportiert.`);
+      this.downloadCsv(rows);
       return;
     }
 
@@ -1455,8 +1471,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         ].join(','),
       ),
     ];
+    this.downloadCsv(rows);
+  }
+
+  private downloadCsv(rows: string[]): void {
+    const label = this.exportViewLabel();
+    const body = label
+      ? rows.map((row, index) => row + ',' + (index === 0 ? 'view' : this.escapeCsvField(label)))
+      : rows;
     this.downloadBlob(
-      rows.join('\n'),
+      body.join('\n'),
       `wordcloud_${new Date().toISOString().slice(0, 10)}.csv`,
       'text/csv;charset=utf-8',
     );
@@ -1495,6 +1519,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     );
 
     ctx.textBaseline = 'middle';
+    const label = this.exportViewLabel();
+    if (label) {
+      ctx.font = `600 32px ${palette.fontFamily}`;
+      ctx.fillStyle = palette.chipText;
+      ctx.fillText(label, WordCloudComponent.EXPORT_PADDING, WordCloudComponent.EXPORT_PADDING);
+    }
     for (const chip of layout.chips) {
       const isActive = this.selectedGroupKey() === chip.entry.groupKey;
       const fill = isActive ? palette.activeChipBackground : palette.chipBackground;
@@ -1962,9 +1992,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
         this.activeCloudLayout = null;
         this.layoutPending.set(false);
+        const visible = this.outputOnly() ? contained.filter((word) => word.size >= 30) : contained;
+        const scope = this.selectionScopeKey();
+        const previous =
+          this.presentationMode() && this.renderedLayoutScope === scope
+            ? this.positionedWords()
+            : [];
+        const pills = this.outputOnly() ? keepWordCloudSizesOnRelabel(visible, previous) : visible;
         this.positionedWords.set(
-          this.outputOnly() ? contained.filter((word) => word.size >= 30) : contained,
+          retainWordCloudPillPositions(pills, previous, stageWidth, stageHeight, this.outputOnly()),
         );
+        this.renderedLayoutScope = scope;
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
         this.activeLayoutSignature.set(contained.length > 0 ? signature : '');
@@ -2071,6 +2109,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private tooltipSourceCountLine(sourceCount: number): string | null {
     if (this.analysisMode() !== 'qa' || !Number.isFinite(sourceCount) || sourceCount <= 0) {
       return null;
+    }
+
+    const analyzed = this.itemCount();
+    if (analyzed !== null && analyzed >= sourceCount) {
+      const count = this.formatCount(sourceCount);
+      const total = this.formatCount(analyzed);
+      return $localize`:@@wordCloud.qaSourceCoverage:In ${count}:count: von ${total}:total: analysierten Fragen`;
     }
 
     return sourceCount === 1
@@ -2294,7 +2339,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const maxWidth = WordCloudComponent.EXPORT_WIDTH - WordCloudComponent.EXPORT_PADDING * 2;
     const chips: ExportChipLayout[] = [];
     let currentRow: Array<{ entry: CloudWord; width: number; height: number }> = [];
-    let y = WordCloudComponent.EXPORT_PADDING;
+    let y = WordCloudComponent.EXPORT_PADDING + (this.exportViewLabel() ? 48 : 0);
     let rowHeight = 0;
 
     const flushRow = () => {
@@ -2373,6 +2418,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       analysisMode: this.analysisMode(),
       disableCloudLayout: false,
       title: this.title(),
+      exportViewLabel: this.exportViewLabel(),
       eyebrow: this.eyebrow(),
       description: this.description(),
       emptyMessage: this.emptyMessage(),

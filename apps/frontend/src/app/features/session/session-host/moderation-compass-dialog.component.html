@@ -90,7 +90,7 @@
           }
           @if (visibleSources(card).length > 0) {
             <ul class="moderation-compass-card__sources">
-              @for (source of visibleSources(card); track source.kind + source.label) {
+              @for (source of visibleSources(card); track sourceTrackKey(source)) {
                 <li>
                   @if (source.target) {
                     <button
@@ -99,21 +99,15 @@
                       [attr.aria-label]="sourceJumpAria(source)"
                       (click)="activateSource(source, card)"
                     >
-                      <span class="moderation-compass-card__source-dest">{{
-                        sourceDestinationLabel(source)
-                      }}</span>
-                      <span class="moderation-compass-card__source-label">{{
-                        displaySourceLabel(source.label)
-                      }}</span>
+                      <ng-container
+                        *ngTemplateOutlet="compassSourceBody; context: { $implicit: source }"
+                      />
                     </button>
                   } @else {
                     <span class="moderation-compass-card__source-static">
-                      <span class="moderation-compass-card__source-dest">{{
-                        sourceDestinationLabel(source)
-                      }}</span>
-                      <span class="moderation-compass-card__source-label">{{
-                        displaySourceLabel(source.label)
-                      }}</span>
+                      <ng-container
+                        *ngTemplateOutlet="compassSourceBody; context: { $implicit: source }"
+                      />
                     </span>
                   }
                 </li>
@@ -125,11 +119,8 @@
               <summary class="moderation-compass-card__more-summary">
                 {{ moreSourcesLabel(card) }}
               </summary>
-              @if (moreSourcesHint(card); as hint) {
-                <p class="moderation-compass-card__more-hint">{{ hint }}</p>
-              }
               <ul class="moderation-compass-card__sources">
-                @for (source of extraSources(card); track source.kind + source.label) {
+                @for (source of extraSources(card); track sourceTrackKey(source)) {
                   <li>
                     @if (source.target) {
                       <button
@@ -138,21 +129,15 @@
                         [attr.aria-label]="sourceJumpAria(source)"
                         (click)="activateSource(source, card)"
                       >
-                        <span class="moderation-compass-card__source-dest">{{
-                          sourceDestinationLabel(source)
-                        }}</span>
-                        <span class="moderation-compass-card__source-label">{{
-                          displaySourceLabel(source.label)
-                        }}</span>
+                        <ng-container
+                          *ngTemplateOutlet="compassSourceBody; context: { $implicit: source }"
+                        />
                       </button>
                     } @else {
                       <span class="moderation-compass-card__source-static">
-                        <span class="moderation-compass-card__source-dest">{{
-                          sourceDestinationLabel(source)
-                        }}</span>
-                        <span class="moderation-compass-card__source-label">{{
-                          displaySourceLabel(source.label)
-                        }}</span>
+                        <ng-container
+                          *ngTemplateOutlet="compassSourceBody; context: { $implicit: source }"
+                        />
                       </span>
                     }
                   </li>
@@ -499,3 +484,22 @@
     </section>
   }
 </mat-dialog-content>
+
+<ng-template #compassSourceBody let-source>
+  <span class="moderation-compass-card__source-dest">{{ sourceDestinationLabel(source) }}</span>
+  <span class="moderation-compass-card__source-copy">
+    <span class="moderation-compass-card__source-label">{{
+      displaySourceLabel(source.label)
+    }}</span>
+    @if (source.evidence) {
+      <span class="moderation-compass-card__source-evidence">{{
+        displaySourceLabel(source.evidence)
+      }}</span>
+    }
+    @if (source.context) {
+      <span class="moderation-compass-card__source-context">{{
+        displaySourceLabel(source.context)
+      }}</span>
+    }
+  </span>
+</ng-template>

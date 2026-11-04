@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerStatusHelpDialogComponent } from './server-status-help-dialog.component';
+import type { SpecAccess } from '../../testing/spec-access';
 
 const openWeightLlmProbeQuery = vi.fn();
 
@@ -184,7 +185,19 @@ describe('ServerStatusHelpDialogComponent', () => {
                     qaQuestionsAccepted: 2,
                   },
                 ],
-                sizeDistribution: null,
+                sizeDistribution: {
+                  sampleSize: 464,
+                  median: 6,
+                  quartile1: 6,
+                  quartile3: 20,
+                  classes: [
+                    { id: 'XS' as const, label: '1–10', count: 333 },
+                    { id: 'S' as const, label: '11–30', count: 95 },
+                    { id: 'M' as const, label: '31–100', count: 22 },
+                    { id: 'L' as const, label: '101–300', count: 2 },
+                    { id: 'XL' as const, label: '301+', count: 12 },
+                  ],
+                },
                 qaQuestionsTotalLifetime: 0,
                 completedSessionsLifetime: 0,
               },
@@ -253,6 +266,15 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(usageText).toContain('Aktuelles Semester');
     expect(usageText).toContain('Zeitraum wählen');
     expect(usageText).toContain('Genutzte Sessions');
+    expect(usageText).toContain('Sessions nach Gruppengröße');
+    expect(usageText).toContain('Stichprobenumfang (n):');
+    expect(usageText).toContain('464 Sessions');
+    expect(usageText).toContain('Median (Klassenmitte):');
+    expect(usageText).toContain('≈ 6 Teilnahmen / Session');
+    expect(usageText).toContain('Quartilsbereich (Q1–Q3):');
+    expect(usageText).toContain('≈ 6–20 Teilnahmen / Session');
+    expect(usageText).toContain('XS (1–10 Teilnahmen)');
+    expect(usageText).toMatch(/71[.,]8 %/);
 
     const seriesDetails = (fixture.nativeElement as HTMLElement).querySelector(
       '.status-help-dialog__disclosure:not(.status-help-dialog__disclosure--legacy)',
@@ -274,6 +296,9 @@ describe('ServerStatusHelpDialogComponent', () => {
     const expandedText = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(expandedText).toContain('Höchste Join-Teilnahme einer Session');
     expect(expandedText).toContain('Join-Höchststände je Tag');
+    expect(expandedText).toContain('Quartilsabstand (IQR)');
+    expect(expandedText).toContain('50 Joins');
+    expect(expandedText).toContain('25 Joins');
     expect(expandedText).toContain('412');
     expect((fixture.nativeElement as HTMLElement).querySelector('canvas')).not.toBeNull();
   });
@@ -443,9 +468,12 @@ describe('ServerStatusHelpDialogComponent', () => {
     });
 
     const fixture = TestBed.createComponent(ServerStatusHelpDialogComponent);
-    const component = fixture.componentInstance as ServerStatusHelpDialogComponent & {
-      syncChart: (stats: unknown, canvas: HTMLCanvasElement) => Promise<void>;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      ServerStatusHelpDialogComponent,
+      {
+        syncChart: (stats: unknown, canvas: HTMLCanvasElement) => Promise<void>;
+      }
+    >;
     const syncChartSpy = vi.spyOn(component, 'syncChart').mockResolvedValue();
 
     fixture.detectChanges();

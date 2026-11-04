@@ -66,6 +66,7 @@ vi.mock('../lib/participantAuth', () => ({
 
 import {
   invalidateCurrentQuestionCachesForCode,
+  invalidateSessionCachesForCode,
   resetSessionReadCachesForTests,
   resetVoteAggregationCachesForTests,
   sessionRouter,
@@ -350,10 +351,25 @@ describe('session reading-ready flow', () => {
     expect(first).toMatchObject({ id: QUESTION_ID, totalVotes: 1 });
     expect(second).toMatchObject({ id: QUESTION_ID, totalVotes: 1 });
     expect(voteCountMock).toHaveBeenCalledTimes(1);
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
     const membershipLookups = prismaMock.participant.findFirst.mock.calls.filter(
       ([query]) => query?.select?.id === true,
     );
+    const timerAccommodationLookups = prismaMock.participant.findFirst.mock.calls.filter(
+      ([query]) => query?.select?.timerAccommodation === true,
+    );
     expect(membershipLookups).toHaveLength(1);
+    expect(timerAccommodationLookups).toHaveLength(1);
+
+    invalidateSessionCachesForCode('ABC123');
+    await caller.getCurrentQuestionForStudent({
+      code: 'ABC123',
+      participantId: PARTICIPANT_ID,
+    });
+    const timerLookupsAfterPurge = prismaMock.participant.findFirst.mock.calls.filter(
+      ([query]) => query?.select?.timerAccommodation === true,
+    );
+    expect(timerLookupsAfterPurge).toHaveLength(2);
   });
 
   it('liefert bei ACTIVE fuer SHORT_TEXT keine Musterloesungen an Teilnehmende', async () => {
@@ -382,6 +398,11 @@ describe('session reading-ready flow', () => {
             ratingLabelMax: null,
             shortTextMaxLength: 40,
             shortTextCaseSensitive: false,
+            shortTextEvaluationKind: 'numeric',
+            numericInputKind: 'decimal',
+            numericToleranceMode: 'absolute',
+            numericAbsoluteTolerance: 0.5,
+            numericRelativeTolerancePercent: 10,
             answers: [
               {
                 id: '55555555-5555-4555-8555-555555555555',
@@ -407,8 +428,13 @@ describe('session reading-ready flow', () => {
       type: 'SHORT_TEXT',
       shortTextMaxLength: 40,
       shortTextCaseSensitive: false,
+      shortTextEvaluationKind: 'numeric',
+      numericInputKind: 'decimal',
       totalVotes: 1,
     });
+    expect(result?.numericToleranceMode).toBeUndefined();
+    expect(result?.numericAbsoluteTolerance).toBeUndefined();
+    expect(result?.numericRelativeTolerancePercent).toBeUndefined();
     expect(result?.type).toBe('SHORT_TEXT');
     if (!result || result.type !== 'SHORT_TEXT') {
       throw new Error('Expected a SHORT_TEXT question result');

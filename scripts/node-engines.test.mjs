@@ -10,7 +10,7 @@ const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
 const npmrc = readFileSync(join(root, '.npmrc'), 'utf8');
 
-// Niedrigste unterstützte Version je Major, z. B. 22.22.1 und 24.0.0.
+// Niedrigste unterstützte Version je Major, z. B. 22.22.3 und 24.15.0.
 const minimumVersions = pkg.engines.node
   .split('||')
   .map((range) => semver.minVersion(range.trim()).version);

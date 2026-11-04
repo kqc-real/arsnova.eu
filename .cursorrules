@@ -5,7 +5,7 @@ Du arbeitest in einem npm-Workspaces-Monorepo für arsnova.eu.
 ## Projektstruktur
 
 - **Backend:** `apps/backend/` — Node.js, Express, tRPC v11, Prisma 7, Redis.
-- **Frontend:** `apps/frontend/` — Angular 21.2, Standalone Components, Signals, Angular Material 3; Struktur: `core/`, `shared/`, `features/`.
+- **Frontend:** `apps/frontend/` — Angular 22.2, Standalone Components, Signals, Angular Material 3; Struktur: `core/`, `shared/`, `features/`.
 - **Shared Types:** `libs/shared-types/` — Zod v4 Schemas und TypeScript-Typen; Import über `@arsnova/shared-types`.
 - **Landing:** `apps/landing/` — Astro 5, Tailwind 3.
 - **Prisma:** `prisma/schema.prisma` — PostgreSQL-Datenmodell.
@@ -13,7 +13,7 @@ Du arbeitest in einem npm-Workspaces-Monorepo für arsnova.eu.
 
 ## Stack-Fakten
 
-- **Runtime:** Node 24.18.0 LTS aus `.nvmrc`; Node 22.22.1+ bleibt als Kompatibilitätspfad unterstützt. CI prüft Node 22 und 24.
+- **Runtime:** Node 24.18.0 LTS aus `.nvmrc`; Node 22.22.3+ bleibt als Kompatibilitätspfad unterstützt. CI prüft Node 22 und 24.
 - **Package Manager:** npm mit Workspaces und `package-lock.json`.
 - **API:** tRPC über Shared Zod Contracts.
 - **Persistenz:** PostgreSQL für persistente Daten; Redis für Rate-Limits, Token-TTLs und Live-Hilfsdaten.

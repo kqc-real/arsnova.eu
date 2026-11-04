@@ -124,7 +124,7 @@ async function assertNextTabContinuesHeroFlow(page) {
 
   assert(
     await isActiveLocator(scenarioOptions.first()),
-    `${forwardKey} erreicht nicht „Meinen Kurs begleiten“: ${await activeElementLabel(page)}`,
+    `${forwardKey} erreicht nicht „Quiz erstellen & verwalten“: ${await activeElementLabel(page)}`,
   );
   for (let index = 1; index < 3; index += 1) {
     await page.keyboard.press(forwardKey);
@@ -133,13 +133,26 @@ async function assertNextTabContinuesHeroFlow(page) {
       `${forwardKey} überspringt Aufgabenauswahl ${index + 1}: ${await activeElementLabel(page)}`,
     );
   }
+  await scenarioOptions.first().focus();
+  await page.keyboard.press('Enter');
+  assert(
+    await isActiveLocator(scenarioOptions.first()),
+    `Enter auf der Quiz-Auswahl verschiebt den Fokus: ${await activeElementLabel(page)}`,
+  );
+  // Alle drei Aufgaben bleiben eigene Tabstopps, auch nach der Auswahl.
+  for (let index = 1; index < 3; index += 1) {
+    await page.keyboard.press(forwardKey);
+    assert(
+      await isActiveLocator(scenarioOptions.nth(index)),
+      `${forwardKey} verlässt die Aufgabenauswahl zu früh bei Button ${index + 1}: ${await activeElementLabel(page)}`,
+    );
+  }
   await page.keyboard.press(forwardKey);
   if (await isActiveLocator(quizCreate)) {
     for (const [locator, label] of [
       [quizLibrary, 'Quiz-Sammlung öffnen'],
       [syncToggle, 'Geteilte Sammlung nutzen'],
       [quizInfo, 'Einsatzmöglichkeiten'],
-      [qaCreate, 'Neue Q&A-Session'],
     ]) {
       await page.keyboard.press(forwardKey);
       assert(
@@ -147,6 +160,10 @@ async function assertNextTabContinuesHeroFlow(page) {
         `${forwardKey} überspringt die Host-Aktion „${label}“: ${await activeElementLabel(page)}`,
       );
     }
+    assert(
+      (await qaCreate.filter({ visible: true }).count()) === 0,
+      'Die Q&A-Karte bleibt bei Quiz-Auswahl ausgeblendet',
+    );
     return;
   }
 
@@ -155,10 +172,9 @@ async function assertNextTabContinuesHeroFlow(page) {
     BROWSER_NAME === 'webkit' && forwardKey === 'Tab' && (await isActiveLocator(syncToggle)),
     `${forwardKey} setzt den Hero-Flow nach der Aufgabenauswahl weder vollständig noch Safari-reduziert fort: ${await activeElementLabel(page)}`,
   );
-  await page.keyboard.press('Tab');
   assert(
-    await isActiveLocator(qaCreate),
-    `Safari-reduziertes Tab erreicht nach „Geteilte Sammlung nutzen“ nicht „Neue Q&A-Session“: ${await activeElementLabel(page)}`,
+    (await page.locator('#home-host-qa').filter({ visible: true }).count()) === 0,
+    'Die Q&A-Karte bleibt bei Quiz-Auswahl ausgeblendet',
   );
 }
 

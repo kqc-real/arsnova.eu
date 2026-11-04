@@ -2,7 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/out-tsc-spec",
+    "lib": ["ES2024", "DOM"],
     "types": ["vitest/globals"]
   },
-  "include": ["src/**/*.spec.ts", "src/test-setup.ts"]
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts", "src/test-setup.ts"]
 }

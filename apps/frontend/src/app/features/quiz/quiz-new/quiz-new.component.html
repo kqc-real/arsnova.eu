@@ -263,23 +263,30 @@
                     </div>
                   </div>
                 }
-                <div
+                <details
                   class="quiz-form__timer-accommodation"
                   data-testid="quiz-new-timer-accommodation-hint"
                 >
-                  <mat-checkbox
-                    formControlName="enableTimerAccommodation"
-                    i18n="@@quizForm.timerAccommodationTitle"
-                  >
-                    Persönliche Zeit
-                  </mat-checkbox>
-                  @if (form.controls.enableTimerAccommodation.value) {
-                    <p
-                      class="quiz-form__timer-accommodation-lead"
-                      i18n="@@quizForm.timerAccommodationLead"
+                  <summary class="quiz-form__timer-accommodation-summary">
+                    <span class="quiz-form__timer-accommodation-summary-copy">
+                      <span
+                        class="quiz-form__timer-accommodation-title"
+                        i18n="@@quizForm.timerAccommodationTitle"
+                      >
+                        Persönliche Zeit
+                      </span>
+                      <span
+                        class="quiz-form__timer-accommodation-lead"
+                        i18n="@@quizForm.timerAccommodationLead"
+                      >
+                        Faire Teilnahme ermöglichen
+                      </span>
+                    </span>
+                    <mat-icon class="quiz-form__timer-accommodation-chevron" aria-hidden="true"
+                      >expand_more</mat-icon
                     >
-                      Faire Teilnahme ermöglichen
-                    </p>
+                  </summary>
+                  <div class="quiz-form__timer-accommodation-body">
                     <p i18n="@@quizForm.timerAccommodationHint">
                       Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie,
                       Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung
@@ -294,8 +301,14 @@
                     <p i18n="@@quizForm.timerAccommodationControl">
                       Du entscheidest weiterhin, wann die Frage endet.
                     </p>
-                  }
-                </div>
+                    <mat-checkbox
+                      formControlName="enableTimerAccommodation"
+                      i18n="@@quizForm.timerAccommodationTitle"
+                    >
+                      Persönliche Zeit
+                    </mat-checkbox>
+                  </div>
+                </details>
               </fieldset>
 
               <fieldset class="quiz-form__fieldset">

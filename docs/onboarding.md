@@ -16,12 +16,12 @@ Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als 
 
 | Tool                    | Version                                                                           | Prüfbefehl               |
 | ----------------------- | --------------------------------------------------------------------------------- | ------------------------ |
-| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.22.1+ unterstützt | `node -v`                |
+| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.22.3+ unterstützt | `node -v`                |
 | npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                                         | `npm -v`                 |
 | Docker & Docker Compose | aktuell                                                                           | `docker compose version` |
 | Git                     | aktuell                                                                           | `git -v`                 |
 
-**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.22.1+ LTS** bleibt als Kompatibilitätspfad unterstützt (Untergrenze durch `lint-staged`). EOL- und ungerade Majors sind nicht unterstützt; `.npmrc` setzt `engine-strict=true`, daher bricht `npm ci` mit einer nicht passenden Node-Version sofort mit `EBADENGINE` ab. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
+**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.22.3+ LTS** bleibt als Kompatibilitätspfad unterstützt (Untergrenze durch Angular 22). EOL- und ungerade Majors sind nicht unterstützt; `.npmrc` setzt `engine-strict=true`, daher bricht `npm ci` mit einer nicht passenden Node-Version sofort mit `EBADENGINE` ab. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
 
 ### Windows? Bitte direkt WSL2 nutzen
 
@@ -166,7 +166,7 @@ npm run build:libs
 
 **Kurz:** Einmalig **`npm run setup:dev`** (startet Postgres + Redis, `prisma migrate deploy`, `prisma:generate`, **Build von `shared-types` und `session-export-report`** via `build:libs`, danach Playwright-Chromium der Projektversion) — deckt die Schritte 3–6 ab und installiert den Browser für den Pre-Commit-Hook, danach **`npm run dev`**. Auf macOS für eine volle Hörsaal-Session stattdessen **`npm run spacy:macos-dev`** ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
 
-**Vor dem ersten Commit / bei Pre-Commit-Hook:** Ist nach `npm ci` noch kein Prisma-Client da, **`npm run prisma:generate`** ausführen (sonst schlägt `tsc` fehl). Der Hook führt auch `npm test` aus; die PDF-Tests brauchen den Chromium-Build der Projekt-Playwright-Version. `setup:dev` installiert ihn über **`npm run playwright:install`**. Nicht `npx playwright install` aus dem Repo-Root nutzen: Das löst auf die ältere Playwright-CLI aus `artillery` auf und lädt den falschen Build. Auf einem frischen Ubuntu/WSL2 können zusätzlich Systembibliotheken für Chromium fehlen (`Host system is missing dependencies to run browsers.`); dann einmalig **`npm run playwright:install-deps`** ausführen (fragt nach `sudo`, nutzt `apt-get`, daher nur Debian/Ubuntu).
+**Vor dem ersten Commit / bei Git-Hooks:** Ist nach `npm ci` noch kein Prisma-Client da, **`npm run prisma:generate`** ausführen (sonst schlägt `tsc` beim Pre-Push fehl). Pre-commit prüft Format/Lint und die zu den gestagten Dateien gehörenden Tests sequenziell in `lint-staged --concurrent false`. Pre-push führt `npm run typecheck` aus. Die volle Suite (`npm test`) bleibt CI- und PR-Pflicht. Wenn Related-Tests PDF-Export treffen, brauchen sie den Chromium-Build der Projekt-Playwright-Version. `setup:dev` installiert ihn über **`npm run playwright:install`**. Nicht `npx playwright install` aus dem Repo-Root nutzen: Das löst auf die ältere Playwright-CLI aus `artillery` auf und lädt den falschen Build. Auf einem frischen Ubuntu/WSL2 können zusätzlich Systembibliotheken für Chromium fehlen (`Host system is missing dependencies to run browsers.`); dann einmalig **`npm run playwright:install-deps`** ausführen (fragt nach `sudo`, nutzt `apt-get`, daher nur Debian/Ubuntu).
 
 ### Entwicklungsserver starten
 
@@ -341,7 +341,7 @@ arsnova.eu/
 │   │           ├── health.ts # health.check, health.footerBundle, health.stats, health.ping
 │   │           ├── session.ts# session.create, getInfo, join, getExportData
 │   │           └── vote.ts   # vote.submit (mit Rate-Limit)
-│   └── frontend/             # Angular 21 Single-Page-App (Angular-Style: core/shared/features)
+│   └── frontend/             # Angular 22 Single-Page-App (Angular-Style: core/shared/features)
 │       └── src/app/
 │           ├── app.component.ts   # Root-Komponente
 │           ├── app.routes.ts     # Routing-Konfiguration
@@ -401,7 +401,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | Komponente                                                                                | Beschreibung                                                                                                                                                                        |
 | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Express + tRPC-Server                                                                     | Backend auf Port 3000 mit `health.check`, `health.footerBundle`, `health.stats`, `health.ping` (Subscription)                                                                       |
-| Angular 21.2.x Frontend                                                                   | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                                                                     |
+| Angular 22.2.x Frontend                                                                   | Standalone Components, Signals, Angular Material 3, tokenbasiertes Theming, Startseite mit Server-Status-Widget                                                                     |
 | tRPC-Client                                                                               | `httpBatchLink` (Queries/Mutations) + `wsLink` (Subscriptions)                                                                                                                      |
 | Redis-Anbindung                                                                           | `ioredis`-Client, Health-Check, Rate-Limiting, NAT-tauglicher Session-Code-Soft-Cap                                                                                                 |
 | tRPC WebSocket                                                                            | Separater WebSocket-Server (Port 3001) für Subscriptions                                                                                                                            |
@@ -518,7 +518,7 @@ graph TB
 
 > ✅ = im Projektstand 2026-09-10 umgesetzt
 
-### A. Frontend (Angular 21.2.x)
+### A. Frontend (Angular 22.2.x)
 
 Das Frontend nutzt modernste Angular-Features:
 
@@ -546,7 +546,7 @@ Für Qualität und Tests sind diese Einstiege besonders relevant:
 - **Rate-Limiting:** Redis Sliding-Window für Session-Code, Vote-Submit, Session-Erstellung und weitere Live-Aktionen; tRPC-Error `TOO_MANY_REQUESTS` mit Retry-After.
 - **Service Layer:** SessionCode-, Scoring-/Effective-Vote-, Bonus-, Cleanup-, Plattformstatistik- und Admin-Logik sind integriert.
 - **DTO Layer:** Data-Stripping für `isCorrect` ist entlang des Session-Status umgesetzt.
-- **Prisma ORM 7.4.x:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
+- **Prisma ORM 7.9.1:** Schema in `prisma/schema.prisma`; Migrations/Client per `prisma generate` und `prisma db push`.
 
 ### C. Infrastruktur
 
@@ -642,7 +642,7 @@ Wenn du bewusst auf einen historischen Zwischenstand zurückspringen willst, pr�
 | **Monorepo**             | Ein einzelnes Git-Repository, das mehrere Pakete enthält (hier: Backend, Frontend, shared-types). Verwaltet über npm Workspaces.                                                                          |
 | **tRPC v11**             | TypeScript Remote Procedure Call – Framework für typsichere API-Kommunikation ohne REST-Boilerplate. Frontend und Backend teilen sich die Typen direkt.                                                   |
 | **Zod v4**               | TypeScript-Validierungsbibliothek. Definiert Schemas, die sowohl zur Laufzeit (Eingabevalidierung) als auch zur Compile-Zeit (Typen) genutzt werden.                                                      |
-| **Prisma 7.4.x**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                                                  |
+| **Prisma 7.9.1**         | ORM (Object-Relational Mapping) für Node.js. Übersetzt TypeScript-Objekte in SQL-Queries. Das Schema in `schema.prisma` definiert die Datenbankstruktur.                                                  |
 | **DTO**                  | Data Transfer Object – ein gefiltertes Datenobjekt, das nur die Felder enthält, die der Empfänger sehen darf. Zentral für die Sicherheit (kein `isCorrect` für Teilnehmende).                             |
 | **CRDT**                 | Conflict-free Replicated Data Type – Datenstruktur, die parallele Änderungen auf mehreren Geräten automatisch und ohne Konflikte zusammenführt. Verwendet über die Bibliothek Yjs.                        |
 | **Yjs**                  | JavaScript-Bibliothek für CRDTs. Speichert Daten in IndexedDB (Browser-Datenbank) und synchronisiert Änderungen als kleine Deltas über WebSockets.                                                        |

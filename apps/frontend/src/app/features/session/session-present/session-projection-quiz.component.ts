@@ -21,6 +21,7 @@ import type {
   LeaderboardEntryDTO,
   NumericRoundComparisonDTO,
   NumericStatsDTO,
+  ReadingReadyStatusDTO,
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
@@ -29,7 +30,9 @@ import { CountdownFingersComponent } from '../../../shared/countdown-fingers/cou
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { extractEdgeEmoji, stripEdgeEmojiMarker } from '../../../shared/emoji-shortcode.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
+import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import {
@@ -53,6 +56,11 @@ import {
   ratingScaleValues,
   stableSeededShuffle,
 } from './session-projection-quiz.util';
+import {
+  presenterAllHaveVoted,
+  presenterAllSessionReady,
+  presenterVotingClosed,
+} from './presenter-quiz-controls.util';
 
 type PresenterEmojiReactions = {
   reactions: Record<string, number>;
@@ -99,6 +107,7 @@ export class SessionProjectionQuizComponent {
   readonly status = input<SessionInfoDTO['status'] | null>(null);
   readonly voteProgress = input<HostVoteProgressDTO | null>(null);
   readonly participantCount = input(0);
+  readonly readingReady = input<ReadingReadyStatusDTO | null>(null);
   readonly countdownSeconds = input<number | null>(null);
   readonly emojiReactions = input<PresenterEmojiReactions | null>(null);
   readonly leaderboard = input<LeaderboardEntryDTO[]>([]);
@@ -193,6 +202,37 @@ export class SessionProjectionQuizComponent {
       return 0;
     }
     return Math.max(0, Math.min(100, Math.round((this.liveVoteCount() / participants) * 100)));
+  });
+  readonly allHaveVoted = computed(() =>
+    presenterAllHaveVoted(
+      this.status(),
+      this.question(),
+      this.voteProgress(),
+      this.participantCount(),
+    ),
+  );
+  readonly votingClosed = computed(() =>
+    presenterVotingClosed(
+      this.status(),
+      this.question(),
+      this.voteProgress(),
+      this.participantCount(),
+      this.countdownSeconds(),
+    ),
+  );
+  readonly allSessionReady = computed(() =>
+    presenterAllSessionReady(this.status(), this.readingReady(), this.participantCount()),
+  );
+  readonly readingProgressLabel = computed(() => {
+    if (!this.isReadingPhase() || this.allSessionReady()) {
+      return null;
+    }
+    const ready = this.readingReady();
+    const total = this.participantCount();
+    if (!ready || total <= 0) {
+      return null;
+    }
+    return $localize`:@@sessionHost.readingReadyProgressAll:${ready.readyCount}:readyCount: von ${total}:connectedCount: bereit`;
   });
 
   readonly showChoiceAnswers = computed(() => {
@@ -520,6 +560,9 @@ export class SessionProjectionQuizComponent {
       return $localize`:@@sessionPresent.quizPhaseReading:Lesephase`;
     }
     if (status === 'ACTIVE') {
+      if (this.votingClosed()) {
+        return $localize`:@@sessionPresent.quizPhaseVotingClosed:Abstimmung beendet`;
+      }
       return $localize`:@@sessionPresent.quizPhaseVoting:Abstimmung`;
     }
     if (status === 'DISCUSSION') {
@@ -764,6 +807,49 @@ export class SessionProjectionQuizComponent {
 
   formatCount(value: number | null | undefined): string {
     return formatLocaleCount(value ?? 0, this.localeId);
+  }
+
+  leaderboardNicknameEmoji(nickname: string): string | null {
+    return findKindergartenNicknameEmoji(nickname);
+  }
+
+  teamNameEmoji(teamName: string | null | undefined): string | null {
+    return teamName ? extractEdgeEmoji(teamName) : null;
+  }
+
+  teamNameLabel(teamName: string): string {
+    const label = stripEdgeEmojiMarker(teamName).trim();
+    return label.length > 0 ? label : teamName;
+  }
+
+  /** Podium nach einer Frage. Der Rest steht im Abschluss-Leaderboard. */
+  readonly leaderboardPreviewLimit = 5;
+
+  leaderboardTopSliceLabel(total: number): string {
+    const limit = this.leaderboardPreviewLimit;
+    return $localize`:@@sessionPresent.leaderboardTopSlice:Top ${limit}:limit: von ${total}:total:`;
+  }
+
+  personalScoreBarWidth(totalScore: number): string {
+    return this.scoreBarWidth(
+      totalScore,
+      this.leaderboard().map((entry) => entry.totalScore),
+    );
+  }
+
+  teamScoreBarWidth(totalScore: number): string {
+    return this.scoreBarWidth(
+      totalScore,
+      this.teamLeaderboard().map((entry) => entry.totalScore),
+    );
+  }
+
+  private scoreBarWidth(totalScore: number, scores: number[]): string {
+    const max = scores.reduce((highest, score) => Math.max(highest, score), 0);
+    if (max <= 0 || totalScore <= 0) {
+      return '0%';
+    }
+    return `${Math.max(8, Math.round((totalScore / max) * 100))}%`;
   }
 
   formatNumericValue(value: number): string {

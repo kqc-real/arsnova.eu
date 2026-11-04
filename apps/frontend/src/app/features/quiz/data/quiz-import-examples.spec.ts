@@ -2,7 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { QuizExport } from '@arsnova/shared-types';
-import { DEMO_QUIZ_ID, QUIZ_STORAGE_KEY, QuizStoreService } from './quiz-store.service';
+import {
+  DEMO_QUIZ_ID,
+  QUIZ_STORAGE_KEY,
+  QuizStoreService,
+  type SupportedQuestionType,
+} from './quiz-store.service';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 
 import singleChoiceQuiz from '../../../../../../../docs/examples/quiz-import/quiz-single-choice-realistisch.json';
@@ -16,12 +21,9 @@ import compactFeedbackQuiz from '../../../../../../../docs/examples/quiz-import/
 import arsnovaClickMaximalExport from '../../../../../../../docs/examples/quiz-import/arsnova-click-maximal-export.json';
 import legacyWeek03Quiz from '../../../../../../../docs/didaktik/Modulkonzept Statistik/ARSnova/P0-03_ARSnova_Woche_03.json';
 
-type QuestionType =
-  'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'SURVEY' | 'FREETEXT' | 'RATING' | 'NUMERIC_ESTIMATE';
-
 interface FixtureExpectation {
   payload: QuizExport;
-  allowedTypes: QuestionType[];
+  allowedTypes: SupportedQuestionType[];
   expectedName: string;
 }
 
@@ -42,17 +44,17 @@ const fixtures: FixtureExpectation[] = [
     expectedName: 'Lehrveranstaltungsfeedback - Umfrage',
   },
   {
-    payload: freetextQuiz as QuizExport,
+    payload: freetextQuiz as unknown as QuizExport,
     allowedTypes: ['FREETEXT'],
     expectedName: 'Mathe-Brückenkurs - Freitext-Reflexion',
   },
   {
-    payload: ratingQuiz as QuizExport,
+    payload: ratingQuiz as unknown as QuizExport,
     allowedTypes: ['RATING'],
     expectedName: 'Laborpraktikum - Rating-Check',
   },
   {
-    payload: wordCloudQuiz as QuizExport,
+    payload: wordCloudQuiz as unknown as QuizExport,
     allowedTypes: ['FREETEXT'],
     expectedName: 'Digitalisierung - Word-Cloud Komplettbeispiel',
   },

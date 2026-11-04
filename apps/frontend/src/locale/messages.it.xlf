@@ -27,8 +27,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.updateBanner.text" datatype="html">
-        <source>Aktualisieren für den neuesten Stand.</source>
-        <target>Aggiornamento per l&apos;ultimo.</target>
+        <source>Das Update ist sicher und ohne Datenverlust.</source>
+        <target>L&apos;aggiornamento è sicuro e non comporta perdita di dati.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/app.component.html</context>
           <context context-type="linenumber">28</context>
@@ -9519,29 +9519,21 @@
           <context context-type="linenumber">185,187</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="homeScenario.classroom" datatype="html">
-        <source> Meinen Kurs begleiten</source>
-        <target>Gestire il mio corso</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">203,205</context>
-        </context-group>
+      <trans-unit id="homeScenario.classroomLabel" datatype="html">
+        <source>Quiz erstellen &amp; verwalten</source>
+        <target>Creare e gestire un quiz</target>
       </trans-unit>
-      <trans-unit id="homeScenario.event" datatype="html">
-        <source> Eine Veranstaltung moderieren</source>
-        <target>Moderare un evento</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">213,215</context>
-        </context-group>
+      <trans-unit id="homeScenario.eventLabel" datatype="html">
+        <source>Q&amp;A erstellen &amp; verwalten</source>
+        <target>Creare e gestire un Q&amp;A</target>
       </trans-unit>
-      <trans-unit id="homeScenario.quick" datatype="html">
-        <source> Schnell ein Format einsetzen</source>
-        <target>Avviare subito un formato</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/home/home.component.html</context>
-          <context context-type="linenumber">223,225</context>
-        </context-group>
+      <trans-unit id="homeScenario.eventLabelStacked" datatype="html">
+        <source>Q&amp;A-Forum erstellen &amp; verwalten</source>
+        <target>Creare e gestire un forum Q&amp;A</target>
+      </trans-unit>
+      <trans-unit id="homeScenario.quickLabel" datatype="html">
+        <source>Blitzlicht auswählen</source>
+        <target>Scegliere un sondaggio rapido</target>
       </trans-unit>
       <trans-unit id="homeQuizCard.eyebrow" datatype="html">
         <source>Fragen ans Publikum</source>
@@ -12000,8 +11992,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.previewOpenAria" datatype="html">
-        <source>Änderungen speichern und Vorschau öffnen</source>
-        <target>Salva le modifiche e apri l&apos;anteprima</target>
+        <source>Vorschau</source>
+        <target>Anteprima</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">165</context>
@@ -12012,8 +12004,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quiz.previewSaveAndOpen" datatype="html">
-        <source>Speichern &amp; Vorschau</source>
-        <target>Salva e apri l&apos;anteprima</target>
+        <source>Vorschau</source>
+        <target>Anteprima</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
           <context context-type="linenumber">168</context>
@@ -19279,6 +19271,26 @@
           <context context-type="linenumber">199</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="qaConfig.deadlineInPast" datatype="html">
+        <source>Der Zeitpunkt muss in der Zukunft liegen. Wähle ein späteres Datum oder eine spätere Uhrzeit.</source>
+        <target>Il momento deve essere nel futuro. Scegli una data o un orario successivi.</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.deadlineBeyondMax" datatype="html">
+        <source>Dieser Zeitpunkt liegt nach der maximalen Sessiondauer. Wähle ein früheres Datum.</source>
+        <target>Questo momento supera la durata massima della sessione. Scegli una data precedente.</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.sessionEnded" datatype="html">
+        <source>Die Session ist bereits beendet. Die Fragerunde lässt sich so nicht mehr öffnen.</source>
+        <target>La sessione è già terminata. Così non è possibile aprire il turno di domande.</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.previewUnavailable" datatype="html">
+        <source>Die Prüfung ist gerade nicht erreichbar. Prüfe die Verbindung und versuche es erneut.</source>
+        <target>Il controllo non è disponibile in questo momento. Verifica la connessione e riprova.</target>
+      </trans-unit>
+      <trans-unit id="qaConfig.retryPreview" datatype="html">
+        <source>Erneut prüfen</source>
+        <target>Controlla di nuovo</target>
+      </trans-unit>
       <trans-unit id="qaConfig.previewError" datatype="html">
         <source>Die Q&amp;A-Konfiguration konnte nicht geprüft werden. Bitte kontrolliere die Angaben und versuche es erneut.</source>
         <target>Non è stato possibile controllare le impostazioni di domande e risposte. Controlla i dati e riprova.</target>
@@ -23288,8 +23300,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingHint" datatype="html">
-        <source>Themen werden vorbereitet. Es gelten Wörter und Phrasen.</source>
-        <target>I temi sono in preparazione. Vengono mostrate parole e frasi.</target>
+        <source>Themen werden vorbereitet.</source>
+        <target>Preparazione dei temi in corso.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1443</context>
@@ -23304,8 +23316,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
-        <source>Neue Antworten seit letzter Themenanalyse</source>
-        <target>Nuove risposte dall&apos;ultima analisi dell&apos;argomento</target>
+        <source>Neue Fragen seit der letzten Themenanalyse</source>
+        <target>Nuove domande dopo l’ultima analisi dei temi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1447</context>
@@ -23336,8 +23348,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFailedHint" datatype="html">
-        <source>Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.</source>
-        <target>Analisi dei temi non riuscita. Vengono mostrate parole e frasi.</target>
+        <source>Themenanalyse fehlgeschlagen.</source>
+        <target>Analisi dei temi non riuscita.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1459</context>
@@ -23348,8 +23360,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFallbackHint" datatype="html">
-        <source>Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.</source>
-        <target>I temi non sono affidabili in questo momento. Vengono mostrate parole e frasi.</target>
+        <source>Themen sind gerade nicht belastbar.</source>
+        <target>Al momento i temi non sono abbastanza affidabili.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1462</context>
@@ -23360,8 +23372,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticDisabledHint" datatype="html">
-        <source>Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.</source>
-        <target>I temi non sono ancora disponibili. Vengono mostrate parole e frasi.</target>
+        <source>Themen sind noch nicht verfügbar.</source>
+        <target>I temi non sono disponibili.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1465</context>
@@ -23883,6 +23895,10 @@
           <context context-type="linenumber">2854</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationFreetextRepeatHeadline" datatype="html">
+        <source>Mehrfach genannt</source>
+        <target>Citato più volte</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationFreetextRepeat" datatype="html">
         <source>Mehrfach genannt: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></source>
         <target>Citato più volte: <x id="text" equiv-text="truncateCompassLabel(text, 64)"/></target>
@@ -23991,6 +24007,10 @@
           <context context-type="linenumber">3484</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizMatchHeadline" datatype="html">
+        <source>Häufige Verwechslung</source>
+        <target>Confusione frequente</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizMatch" datatype="html">
         <source>Häufige Verwechslung: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></source>
         <target>Confusione frequente: <x id="left" equiv-text="truncateCompassLabel(fact.left, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrong, 32)"/></target>
@@ -23998,6 +24018,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">3488</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizOrderHeadline" datatype="html">
+        <source>Häufig vertauscht</source>
+        <target>Spesso scambiati</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizOrder" datatype="html">
         <source>Häufig vertauscht: <x id="a" equiv-text="truncateCompassLabel(fact.a, 32)"/> und <x id="b" equiv-text="truncateCompassLabel(fact.b, 32)"/></source>
@@ -24007,6 +24031,10 @@
           <context context-type="linenumber">3492</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizCategoryHeadline" datatype="html">
+        <source>Häufig falsch einsortiert</source>
+        <target>Spesso classificato male</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizCategory" datatype="html">
         <source>Häufig falsch einsortiert: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></source>
         <target>Spesso classificato male: <x id="item" equiv-text="truncateCompassLabel(fact.item, 32)"/> → <x id="wrong" equiv-text="truncateCompassLabel(fact.wrongCategory, 32)"/></target>
@@ -24015,6 +24043,30 @@
           <context context-type="linenumber">3496</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizWrongOptionHeadline" datatype="html">
+        <source>Häufigste andere Antwort</source>
+        <target>Altra risposta più frequente</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizConfidenceMisconception" datatype="html">
+        <source>Selbstsicher falsch – mögliches Fehlkonzept</source>
+        <target>Risposta errata data con elevata sicurezza – possibile concezione errata</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.quotedLabel" datatype="html">
+        <source>»<x id="text" equiv-text="plain"/>«</source>
+        <target>«<x id="text" equiv-text="plain"/>»</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectiveMisconceptionHeading" datatype="html">
+        <source>Lernziel zu Frage <x id="questionNumber" equiv-text="questionNumber"/></source>
+        <target>Obiettivo di apprendimento per la domanda <x id="questionNumber" equiv-text="questionNumber"/></target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectiveMisconceptionMeasure" datatype="html">
+        <source><x id="incorrectHigh" equiv-text="incorrectHigh"/> von <x id="responseCount" equiv-text="responseCount"/> falsch bei hoher Selbsteinschätzung (<x id="percent" equiv-text="percent"/> %)</source>
+        <target><x id="incorrectHigh" equiv-text="incorrectHigh"/> su <x id="responseCount" equiv-text="responseCount"/> sbagliate con alta sicurezza nella risposta (<x id="percent" equiv-text="percent"/> %)</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectiveMisconceptionOption" datatype="html">
+        <source>Häufigste falsche Option: <x id="option" equiv-text="quoted"/></source>
+        <target>Risposta sbagliata più frequente: <x id="option" equiv-text="quoted"/></target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationQuizWrongOption" datatype="html">
         <source>Häufigste andere Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
         <target>Altra risposta più frequente: <x id="option" equiv-text="truncateCompassLabel(wrongOption.text, 64)"/></target>
@@ -24022,6 +24074,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">3500</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationQuizSurveyTopHeadline" datatype="html">
+        <source>Häufigste Antwort</source>
+        <target>Risposta più frequente</target>
       </trans-unit>
       <trans-unit id="sessionHost.moderationQuizSurveyTop" datatype="html">
         <source>Häufigste Antwort: <x id="option" equiv-text="truncateCompassLabel(fact.option, 64)"/></source>
@@ -24491,6 +24547,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6909</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportAccessTitle" datatype="html">
+        <source>Host-Zugang abgelaufen</source>
+        <target>Accesso host scaduto</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">7680</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.steeringCalloutExportAccessBody" datatype="html">
+        <source>PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.</source>
+        <target>PDF e CSV richiedono qui un accesso host valido. Il piano di debriefing è nella raccolta, alla voce «Vedi il piano di debriefing».</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">7681</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportConflictTitle" datatype="html">
@@ -27061,6 +27133,10 @@
           <context context-type="linenumber">477</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.qaSortError" datatype="html">
+        <source>Sortierung konnte nicht gewechselt werden. Bitte erneut versuchen.</source>
+        <target>Impossibile cambiare l’ordinamento. Riprova.</target>
+      </trans-unit>
       <trans-unit id="sessionPresent.qaSortCriteria" datatype="html">
         <source>Sortierung: <x id="sort" equiv-text="this.qaSortModeLabel()"/></source>
         <target>Ordinamento: <x id="sort" equiv-text="this.qaSortModeLabel()"/></target>
@@ -27116,6 +27192,22 @@
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">708</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardTopSlice" datatype="html">
+        <source>Top <x id="limit" equiv-text="limit"/> von <x id="total" equiv-text="total"/></source>
+        <target>Primi <x id="limit" equiv-text="limit"/> di <x id="total" equiv-text="total"/></target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPageControls" datatype="html">
+        <source>Leaderboard-Seiten</source>
+        <target>Pagine della classifica</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPagePause" datatype="html">
+        <source>Anhalten</source>
+        <target>Pausa</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.leaderboardPageResume" datatype="html">
+        <source>Automatisch</source>
+        <target>Automatico</target>
       </trans-unit>
       <trans-unit id="sessionPresent.leaderboardPage" datatype="html">
         <source><x id="start" equiv-text="start"/>–<x id="end" equiv-text="end"/> von <x id="total" equiv-text="total"/></source>
@@ -27250,8 +27342,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizRatingWaiting" datatype="html">
-        <source> Bewertungen kommen live an.</source>
-        <target>Le valutazioni arrivano in diretta.</target>
+        <source> Die Verteilung erscheint mit dem Ergebnis.</source>
+        <target>La distribuzione appare con il risultato.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
           <context context-type="linenumber">182,184</context>
@@ -32854,11 +32946,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricSampleSize" datatype="html">
-        <source>Stichprobengröße</source>
-        <target>Dimensione del campione</target>
+        <source>Stichprobenumfang (n)</source>
+        <target>Dimensione del campione (n)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">338</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusMetricSampleSizeHint" datatype="html">
+        <source> Überwachte API-Anfragen im Messfenster (60 s). </source>
+        <target>Richieste API monitorate nella finestra di misurazione (60 s).</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">517,518</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusErrorClasses" datatype="html">
@@ -33486,35 +33586,67 @@
         <target>Almeno una risposta al quiz e un’attività Q&amp;A</target>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricGroupSize" datatype="html">
-        <source>Reichweite nach Größe</source>
-        <target>Sessioni per dimensione</target>
+        <source>Sessions nach Gruppengröße</source>
+        <target>Sessioni per dimensione del gruppo</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1034</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.statusMetricGroupSizeHint" datatype="html">
+        <source> Klassierte Häufigkeitsverteilung der Sessions nach Zahl der Teilnahmen. Median und Quartile sind aus den Klassenmitten genähert (XS: 6, S: 20, M: 66, L: 200, XL: 301). </source>
+        <target>Distribuzione di frequenza in classi delle sessioni per numero di partecipazioni. Mediana e quartili sono approssimati dai valori centrali delle classi (XS: 6, S: 20, M: 66, L: 200, XL: 301).</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1298,1300</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.footer.statusUsageSizeSample" datatype="html">
-        <source>Stichprobe:</source>
-        <target>Campione:</target>
+        <source>Stichprobenumfang (n):</source>
+        <target>Dimensione del campione (n):</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1037</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.statusUsageSizeSessionsUnit" datatype="html">
+        <source>Sessions</source>
+        <target>sessioni</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1307,1309</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.footer.statusUsageSizeMedian" datatype="html">
-        <source>Median:</source>
-        <target>Mediana:</target>
+        <source> Median (Klassenmitte): </source>
+        <target>Mediana (valore centrale):</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1042</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="app.footer.statusUsageSizeParticipationsUnit" datatype="html">
+        <source>Teilnahmen / Session</source>
+        <target>partecipazioni / sessione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1318,1320</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="app.footer.statusUsageSizeQuartiles" datatype="html">
-        <source>Q1–Q3:</source>
-        <target>Q1–Q3:</target>
+        <source> Quartilsbereich (Q1–Q3): </source>
+        <target>Intervallo interquartile (Q1–Q3):</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1049</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="app.footer.statusUsageSizeClassRangeUnit" datatype="html">
+        <source>Teilnahmen</source>
+        <target>partecipazioni</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
+          <context context-type="linenumber">1345,1346</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusUsageSeriesDisclosure" datatype="html">
@@ -33670,24 +33802,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryMedianHint" datatype="html">
-        <source> Nur gemessene Tage im Fenster</source>
-        <target> Solo i giorni misurati nella finestra </target>
+        <source> Über <x id="INTERPOLATION" equiv-text="{{ statsFmt.sampleSize }}"/> gemessene Tage (n) im 100-Tage-Fenster </source>
+        <target>Su <x id="INTERPOLATION" equiv-text="{{ statsFmt.sampleSize }}"/> giorni misurati (n) nella finestra di 100 giorni</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1268,1270</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryIqr" datatype="html">
-        <source>IQR</source>
-        <target>IQR</target>
+        <source>Quartilsabstand (IQR)</source>
+        <target>Scarto interquartile (IQR)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1275</context>
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryIqrHint" datatype="html">
-        <source> Q3−Q1 der gemessenen Tage</source>
-        <target> Q3−Q1 dei giorni misurati </target>
+        <source> Q3−Q1 der täglichen Join-Höchststände </source>
+        <target>Q3−Q1 dei massimi giornalieri di accessi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1281,1283</context>
@@ -33702,8 +33834,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusDailyHistoryMaxHint" datatype="html">
-        <source> Höchster Join-Stand im Fenster</source>
-        <target> Maggior totale di accessi nella finestra </target>
+        <source> Höchster Tages-Join-Stand im 100-Tage-Fenster </source>
+        <target>Maggior totale giornaliero di accessi nella finestra di 100 giorni</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1294,1296</context>
@@ -34307,7 +34439,7 @@
       </trans-unit>
       <trans-unit id="learningObjectives.originIntro" datatype="html">
         <source> Du kannst Lernziele selbst schreiben oder automatisch aus deinen Fragen vorschlagen lassen. Automatische Vorschläge werden als Entwurf angelegt, bis du sie prüfst und bestätigst.</source>
-        <target>Puoi scrivere tu stesso gli obiettivi di apprendimento o farteli suggerire automaticamente a partire dalle tue domande. I suggerimenti automatici vengono salvati come bozza finché non li verifichi e confermi.</target>
+        <target>Puoi scrivere gli obiettivi tu stesso o generarli dalle domande. Restano bozze finché non li confermi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
           <context context-type="linenumber">20,25</context>
@@ -34375,7 +34507,7 @@
       </trans-unit>
       <trans-unit id="learningObjectives.modelDerived" datatype="html">
         <source>KI-Vorschlag</source>
-        <target>Suggerimento IA</target>
+        <target>Bozza IA</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
           <context context-type="linenumber">108</context>
@@ -34387,23 +34519,59 @@
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGenerated" datatype="html">
         <source>Alle Vorschläge bestätigen</source>
-        <target>Conferma tutti i suggerimenti</target>
+        <target>Conferma le bozze</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDrafts" datatype="html">
+        <source>Alle Entwürfe löschen</source>
+        <target>Elimina le bozze</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsGroup" datatype="html">
+        <source>Löschen aller Entwürfe bestätigen</source>
+        <target>Conferma eliminazione</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsQuestion" datatype="html">
+        <source>Alle Entwürfe wirklich löschen?</source>
+        <target>Eliminare le bozze?</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsPrompt" datatype="html">
+        <source>Löschen aller Entwürfe bestätigen oder abbrechen.</source>
+        <target>Conferma o annulla.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsDoneOne" datatype="html">
+        <source>Ein Entwurf wurde gelöscht.</source>
+        <target>Bozza eliminata.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsDoneMany" datatype="html">
+        <source><x id="count" equiv-text="formatted"/> Entwürfe wurden gelöscht.</source>
+        <target><x id="count" equiv-text="formatted"/> bozze eliminate.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsPartialOne" datatype="html">
+        <source>Ein Entwurf wurde gelöscht. Die übrigen bleiben erhalten.</source>
+        <target>Bozza eliminata. Le altre restano.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsPartialMany" datatype="html">
+        <source><x id="count" equiv-text="formatted"/> Entwürfe wurden gelöscht. Die übrigen bleiben erhalten.</source>
+        <target><x id="count" equiv-text="formatted"/> bozze eliminate. Le altre restano.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.deleteAllDraftsFailed" datatype="html">
+        <source>Die Entwürfe konnten nicht gelöscht werden.</source>
+        <target>Eliminazione non riuscita.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedDone" datatype="html">
         <source>Alle KI-Vorschläge wurden bestätigt.</source>
-        <target>Tutti i suggerimenti dell’IA sono stati confermati.</target>
+        <target>Bozze IA confermate.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedPartialOne" datatype="html">
         <source>Ein KI-Vorschlag wurde bestätigt. Die übrigen bleiben offen.</source>
-        <target>È stato confermato un suggerimento dell’IA. Gli altri restano aperti.</target>
+        <target>Una bozza IA confermata. Le altre restano aperte.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedPartialMany" datatype="html">
         <source><x id="count" equiv-text="confirmed"/> KI-Vorschläge wurden bestätigt. Die übrigen bleiben offen.</source>
-        <target>Sono stati confermati <x id="count" equiv-text="confirmed"/> suggerimenti dell’IA. Gli altri restano aperti.</target>
+        <target><x id="count" equiv-text="confirmed"/> bozze IA confermate. Le altre restano aperte.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.confirmAllGeneratedFailed" datatype="html">
         <source>Die Vorschläge konnten nicht bestätigt werden.</source>
-        <target>Non è stato possibile confermare i suggerimenti.</target>
+        <target>Conferma non riuscita.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.deleteConfirmGroup" datatype="html">
         <source>Löschen bestätigen</source>
@@ -34575,7 +34743,7 @@
       </trans-unit>
       <trans-unit id="learningObjectives.draftHint" datatype="html">
         <source>Noch in Abstimmung. KI-Vorschläge starten immer als Entwurf.</source>
-        <target>In lavorazione. I suggerimenti IA iniziano sempre come bozza.</target>
+        <target>Ancora aperto. Il testo IA inizia sempre come bozza.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
           <context context-type="linenumber">300</context>
@@ -34802,12 +34970,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningObjectivesAria" datatype="html">
-        <source>Lernziele für diese Session öffnen</source>
-        <target>Apri gli obiettivi di apprendimento di questa sessione</target>
+        <source>Lernziel zur aktuellen Frage anzeigen</source>
+        <target>Mostra l’obiettivo didattico della domanda attuale</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">650</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectivesOverviewAria" datatype="html">
+        <source>Bestätigte Lernziele anzeigen</source>
+        <target>Mostra gli obiettivi didattici confermati</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningObjectivesOverviewButton" datatype="html">
+        <source>Lernziele</source>
+        <target>Obiettivi didattici</target>
       </trans-unit>
       <trans-unit id="sessionHost.learningObjectivesButton" datatype="html">
         <source>Lernziel</source>
@@ -34855,14 +35031,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
           <context context-type="linenumber">34</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionLearningObjectives.readOnly" datatype="html">
-        <source> Diese beendete Session ist nur noch lesbar. Lernziele können nicht mehr geändert werden.</source>
-        <target>Questa sessione terminata è solo leggibile. Gli obiettivi di apprendimento non possono più essere modificati.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.html</context>
-          <context context-type="linenumber">41,43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionLearningObjectives.reloadCurrent" datatype="html">
@@ -35112,6 +35280,14 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-learning-objectives-dialog.component.ts</context>
           <context context-type="linenumber">122</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.overviewQuestion" datatype="html">
+        <source>Frage <x id="number" equiv-text="numbers[0]"/></source>
+        <target>Domanda <x id="number" equiv-text="numbers[0]"/></target>
+      </trans-unit>
+      <trans-unit id="sessionLearningObjectives.overviewQuestions" datatype="html">
+        <source>Fragen <x id="list" equiv-text="list"/></source>
+        <target>Domande <x id="list" equiv-text="list"/></target>
       </trans-unit>
       <trans-unit id="sessionLearningObjectives.referenceLimit" datatype="html">
         <source>Höchstens <x id="maxReferences" equiv-text="this.maxReferences"/> Aufgaben können einem Lernziel zugeordnet werden.</source>
@@ -35391,15 +35567,15 @@
       </trans-unit>
       <trans-unit id="learningObjectives.derivationCompleted" datatype="html">
         <source><x id="count" equiv-text="applied.length"/> Lernzielvorschläge wurden als Entwürfe hinzugefügt. Prüfe sie vor dem Bestätigen.</source>
-        <target><x id="count" equiv-text="applied.length"/> proposte di obiettivi di apprendimento sono state aggiunte come bozze. Verificale prima di confermarle.</target>
+        <target><x id="count" equiv-text="applied.length"/> bozze aggiunte. Verificale prima di confermare.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationCompletedSingle" datatype="html">
         <source>Ein Lernzielvorschlag wurde als Entwurf hinzugefügt. Prüfe ihn vor dem Bestätigen.</source>
-        <target>Una proposta di obiettivo di apprendimento è stata aggiunta come bozza. Verificala prima di confermarla.</target>
+        <target>Una bozza aggiunta. Verificala prima di confermare.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationCompletedEmpty" datatype="html">
         <source>Die Herleitung ist abgeschlossen. Es wurden keine neuen Vorschläge hinzugefügt.</source>
-        <target>La generazione è terminata. Non sono stati aggiunti nuovi suggerimenti.</target>
+        <target>Generazione terminata. Nessuna nuova bozza.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationDisabled" datatype="html">
         <source>Automatische Vorschläge sind auf diesem System nicht aktiviert. Du kannst Lernziele weiterhin manuell formulieren.</source>
@@ -35444,6 +35620,126 @@
       <trans-unit id="learningObjectives.derivationPending" datatype="html">
         <source>Vorschläge werden ausschließlich aus den Quizaufgaben formuliert.</source>
         <target>I suggerimenti vengono generati esclusivamente dalle attività del quiz.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPendingGroupsIntro" datatype="html">
+        <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert.</source>
+        <target>Gli obiettivi di apprendimento vengono formulati uno dopo l’altro a partire da gruppi di domande.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPendingGroups" datatype="html">
+        <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert. Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
+        <target>Gli obiettivi di apprendimento vengono formulati uno dopo l’altro a partire da gruppi di domande. Sono pronti <x id="completed" equiv-text="completed"/> gruppi di domande su <x id="total" equiv-text="total"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationLiveProgress" datatype="html">
+        <source>Die Abfrage läuft.</source>
+        <target>La richiesta è in corso.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationGroupsProgress" datatype="html">
+        <source>Fragegruppen</source>
+        <target>Gruppi di domande</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationGroupsScale" datatype="html">
+        <source>Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
+        <target>Sono pronti <x id="completed" equiv-text="completed"/> gruppi di domande su <x id="total" equiv-text="total"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRemainingUnderMinute" datatype="html">
+        <source>Noch weniger als eine Minute.</source>
+        <target>Meno di un minuto.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRemainingMinute" datatype="html">
+        <source>Noch etwa 1 Minute.</source>
+        <target>Ancora circa 1 minuto.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRemainingMinutes" datatype="html">
+        <source>Noch etwa <x id="minutes" equiv-text="minutes"/> Minuten.</source>
+        <target>Ancora circa <x id="minutes" equiv-text="minutes"/> minuti.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationKeepEditorOpen" datatype="html">
+        <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der Liste.</source>
+        <target>Non chiudere l’editor finché la creazione non è conclusa. Altrimenti le domande restanti non vengono più formulate. Le bozze già inserite restano nell’elenco.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationQueuedObjective" datatype="html">
+        <source>1 Lernziel steht schon als Entwurf in der Liste.</source>
+        <target>1 obiettivo di apprendimento è già una bozza nell’elenco.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationQueuedObjectives" datatype="html">
+        <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
+        <target><x id="count" equiv-text="count"/> obiettivi di apprendimento sono già bozze nell’elenco.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
+        <source>Die Erstellung wurde abgebrochen.</source>
+        <target>La creazione è stata interrotta.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationTimeoutWhy" datatype="html">
+        <source>Die Zeit für die gesamte Erstellung ist abgelaufen.</source>
+        <target>Il tempo per l’intera creazione è scaduto.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationUnchanged" datatype="html">
+        <source>Deine Lernziele bleiben unverändert.</source>
+        <target>I tuoi obiettivi di apprendimento restano invariati.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInterruptedGroups" datatype="html">
+        <source>Fertig waren <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
+        <target>Erano pronti <x id="completed" equiv-text="completed"/> gruppi di domande su <x id="total" equiv-text="total"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInterruptedDuration" datatype="html">
+        <source>Dauer: <x id="duration" equiv-text="duration"/>.</source>
+        <target>Durata: <x id="duration" equiv-text="duration"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInterruptedVolume" datatype="html">
+        <source>Bisheriger Umfang: <x id="read" equiv-text="read"/> gelesene und <x id="written" equiv-text="written"/> formulierte Texteinheiten.</source>
+        <target>Portata finora: <x id="read" equiv-text="read"/> unità di testo lette e <x id="written" equiv-text="written"/> unità di testo formulate.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationSeconds" datatype="html">
+        <source><x id="seconds" equiv-text="seconds"/> Sekunden</source>
+        <target><x id="seconds" equiv-text="seconds"/> secondi</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationMinute" datatype="html">
+        <source>1 Minute</source>
+        <target>1 minuto</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationMinutes" datatype="html">
+        <source><x id="minutes" equiv-text="minutes"/> Minuten</source>
+        <target><x id="minutes" equiv-text="minutes"/> minuti</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationDurationMinutesSeconds" datatype="html">
+        <source><x id="minutes" equiv-text="minutes"/> Minuten und <x id="seconds" equiv-text="seconds"/> Sekunden</source>
+        <target><x id="minutes" equiv-text="minutes"/> minuti e <x id="seconds" equiv-text="seconds"/> secondi</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationSourceChangedPartial" datatype="html">
+        <source>Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Schon übernommene Entwürfe bleiben in der Liste.</source>
+        <target>Almeno una domanda utilizzata è stata modificata o disattivata durante la generazione automatica. Le bozze già inserite restano nell’elenco.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationResume" datatype="html">
+        <source>Bei den übrigen Fragen fortsetzen</source>
+        <target>Continua con le domande rimanenti</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
+        <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
+        <target>Per le domande rimanenti esistono già delle bozze.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRetained" datatype="html">
+        <source>Die schon formulierten Lernziele stehen als Entwürfe in der Liste. Ein erneuter Versuch setzt bei den übrigen Fragen fort.</source>
+        <target>Gli obiettivi già formulati sono bozze nell’elenco. Un nuovo tentativo riprende dalle domande rimanenti.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationRetainedGroups" datatype="html">
+        <source>Die fertigen Fragegruppen bleiben abgeschlossen. Ein erneuter Versuch setzt bei den übrigen Fragen fort.</source>
+        <target>I gruppi di domande conclusi restano chiusi. Un nuovo tentativo riprende dalle domande rimanenti.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationBusyReason" datatype="html">
+        <source>Die lokale Text-KI ist gerade ausgelastet.</source>
+        <target>L’IA testuale locale è occupata in questo momento.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationUnavailableReason" datatype="html">
+        <source>Die lokale Text-KI ist gerade nicht erreichbar.</source>
+        <target>L’IA testuale locale non è raggiungibile in questo momento.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationInvalidResponseReason" datatype="html">
+        <source>Die Antwort konnte nicht sicher zugeordnet werden.</source>
+        <target>La risposta non è stata associata in modo sicuro.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationCircuitOpenReason" datatype="html">
+        <source>Die automatische Erstellung steht kurzzeitig nicht zur Verfügung.</source>
+        <target>La creazione automatica è momentaneamente non disponibile.</target>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationRetry" datatype="html">
         <source>Nochmal versuchen</source>
@@ -35877,10 +36173,6 @@
         <source>Auftrag konnte nicht geladen werden.</source>
         <target>Impossibile caricare la consegna.</target>
       </trans-unit>
-      <trans-unit id="sessionQaAssignments.readOnly" datatype="html">
-        <source>Diese beendete Session ist nur noch lesbar. Aufträge können nicht mehr geändert werden.</source>
-        <target>Questa sessione terminata è in sola lettura. Le consegne non possono più essere modificate.</target>
-      </trans-unit>
       <trans-unit id="sessionQaAssignments.intro" datatype="html">
         <source>Hier hinterlegst du einen klaren Arbeits- oder Diskussionsauftrag für das Q&amp;A-Forum. Sobald ein Auftrag vorhanden ist, sehen Teilnehmende im Forum den Button »Auftrag«.</source>
         <target>Definisci qui una consegna di lavoro o di discussione chiara per il forum D&amp;R. Non appena è presente una consegna, chi partecipa vede il pulsante «Consegna» nel forum.</target>
@@ -35890,8 +36182,8 @@
         <target>Non è ancora stata definita alcuna consegna per questo forum D&amp;R.</target>
       </trans-unit>
       <trans-unit id="sessionLearningObjectives.questionEmpty" datatype="html">
-        <source>Für diese Frage ist noch kein Lernziel hinterlegt.</source>
-        <target>Non è ancora stato definito alcun obiettivo didattico per questa domanda.</target>
+        <source>Für diese Frage ist noch kein bestätigtes Lernziel hinterlegt.</source>
+        <target>Non è ancora stato confermato alcun obiettivo didattico per questa domanda.</target>
       </trans-unit>
       <trans-unit id="sessionQaAssignments.deleteQuestion" datatype="html">
         <source>Diesen Auftrag wirklich löschen?</source>
@@ -35948,6 +36240,98 @@
       <trans-unit id="sessionVote.qaAssignmentHeading" datatype="html">
         <source>Dein Auftrag in diesem Forum</source>
         <target>La tua consegna in questo forum</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.allReady" datatype="html">
+        <source>Alle sind bereit</source>
+        <target>Tutti sono pronti</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.allVoted" datatype="html">
+        <source>Alle haben abgestimmt</source>
+        <target>Tutti hanno votato</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizPhaseVotingClosed" datatype="html">
+        <source>Abstimmung beendet</source>
+        <target>Votazione terminata</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHost" datatype="html">
+        <source>Zurück zum Host</source>
+        <target>Torna all’host</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHostAria" datatype="html">
+        <source>Zur Host-Ansicht zurückkehren</source>
+        <target>Torna alla vista host</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHostBlocked" datatype="html">
+        <source>Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
+        <target>Non è stato possibile aprire la finestra host. Consenti i pop-up per questo sito e riprova.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizControlError" datatype="html">
+        <source>Die Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.</source>
+        <target>Non è stato possibile eseguire l’azione. Riprova.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.secondRound" datatype="html">
+        <source>Zweite Abstimmung</source>
+        <target>Secondo voto</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizQuestionLoading" datatype="html">
+        <source>Die Frage wird geladen.</source>
+        <target>La domanda è in caricamento.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizQuestionLoadFailed" datatype="html">
+        <source>Die Frage konnte nicht geladen werden. Bitte erneut versuchen.</source>
+        <target>Non è stato possibile caricare la domanda. Riprova.</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.quizQuestionRetry" datatype="html">
+        <source>Erneut laden</source>
+        <target>Carica di nuovo</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.timerAccommodationBlocks" datatype="html">
+        <source>Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu schließen.</source>
+        <target>Ci sono ancora finestre di tempo personali. Attendi oppure torna all’host per chiuderle.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.analysisLanguage" datatype="html">
+        <source>Analysesprache</source>
+        <target>Lingua di analisi</target>
+      </trans-unit>
+      <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
+        <source>Neue Antworten seit der letzten Themenanalyse</source>
+        <target>Nuove risposte dopo l’ultima analisi dei temi</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.qaCoverage" datatype="html">
+        <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
+        <target><x id="analyzed"/> domande analizzate su <x id="eligible"/></target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
+        <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
+        <target><x id="shown"/> fonti visibili su <x id="total"/></target>
+      </trans-unit>
+      <trans-unit id="wordCloud.qaSourceCoverage" datatype="html">
+        <source>In <x id="count"/> von <x id="total"/> analysierten Fragen</source>
+        <target>In <x id="count"/> domande analizzate su <x id="total"/></target>
+      </trans-unit>
+      <trans-unit id="wordCloud.previousTopics" datatype="html">
+        <source>Die Themen werden aktualisiert. Der bisherige Stand bleibt sichtbar.</source>
+        <target>Aggiornamento dei temi in corso. I risultati precedenti restano visibili.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportTopics" datatype="html">
+        <source>Themen</source>
+        <target>Temi</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportFallbackPhrases" datatype="html">
+        <source>Ersatzansicht mit Wörtern und Phrasen</source>
+        <target>Vista alternativa con parole ed espressioni</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportFallbackWords" datatype="html">
+        <source>Ersatzansicht mit Wörtern</source>
+        <target>Vista alternativa con parole</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportPhrases" datatype="html">
+        <source>Wörter und Phrasen</source>
+        <target>Parole ed espressioni</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportWords" datatype="html">
+        <source>Wörter</source>
+        <target>Parole</target>
       </trans-unit>
     </body>
   </file>

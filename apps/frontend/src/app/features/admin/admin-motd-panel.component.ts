@@ -46,6 +46,10 @@ import { localizeKnownServerError } from '../../core/localize-known-server-messa
 import { resolveMotdAssetOrigin } from '../../core/motd-asset-origin';
 import { trpc } from '../../core/trpc.client';
 import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../core/update-banner-suppression.service';
+import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   renderMarkdownWithoutKatex,
 } from '../../shared/markdown-katex.util';
@@ -127,6 +131,21 @@ export class AdminMotdPanelComponent implements OnInit {
   readonly mdFr = signal('');
   readonly mdEs = signal('');
   readonly mdIt = signal('');
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly motdEditorBaseline = signal<string | null>(null);
+  private readonly motdDraftBanner = bindUpdateBannerSuppression(
+    this.updateBannerSuppression,
+    'admin-motd-draft',
+    () =>
+      this.saving() ||
+      (this.motdEditorBaseline() !== null &&
+        this.serializeMotdEditor() !== this.motdEditorBaseline()),
+  );
+
+  constructor() {
+    void this.motdDraftBanner;
+    this.captureMotdEditorBaseline();
+  }
 
   readonly previewHtml = signal<SafeHtml | null>(null);
 
@@ -194,6 +213,7 @@ export class AdminMotdPanelComponent implements OnInit {
     this.previewHtml.set(null);
     this.info.set(null);
     this.motdInteractionStats.set(null);
+    this.captureMotdEditorBaseline();
   }
 
   async editMotd(id: string): Promise<void> {
@@ -215,6 +235,7 @@ export class AdminMotdPanelComponent implements OnInit {
       this.mdIt.set(d.locales.it);
       this.motdInteractionStats.set(d.interaction);
       this.updatePreview();
+      this.captureMotdEditorBaseline();
     } catch (e) {
       this.error.set(
         this.msg(e, $localize`:@@admin.motd.errorGet:MOTD konnte nicht geladen werden.`),
@@ -341,6 +362,7 @@ export class AdminMotdPanelComponent implements OnInit {
         this.info.set($localize`:@@admin.motd.created:MOTD angelegt.`);
       }
       await this.reload();
+      this.captureMotdEditorBaseline();
     } catch (e) {
       this.error.set(this.msg(e, $localize`:@@admin.motd.errorSave:Speichern fehlgeschlagen.`));
     } finally {
@@ -382,6 +404,26 @@ export class AdminMotdPanelComponent implements OnInit {
   private syncMotdMarkdownSignalsFromDom(): void {
     this.syncMotdMarkdownFromDom();
     this.updatePreview();
+  }
+
+  private captureMotdEditorBaseline(): void {
+    this.motdEditorBaseline.set(this.serializeMotdEditor());
+  }
+
+  private serializeMotdEditor(): string {
+    return JSON.stringify({
+      status: this.status(),
+      priority: this.priority(),
+      start: this.startAt()?.getTime() ?? null,
+      end: this.endAt()?.getTime() ?? null,
+      archive: this.visibleInArchive(),
+      templateId: this.templateId(),
+      de: this.mdDe(),
+      en: this.mdEn(),
+      fr: this.mdFr(),
+      es: this.mdEs(),
+      it: this.mdIt(),
+    });
   }
 
   applyTemplate(): void {

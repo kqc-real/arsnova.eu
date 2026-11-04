@@ -574,12 +574,17 @@
     height: clamp(2.4rem, 8vw, 3.65rem);
     font-size: clamp(2.4rem, 8vw, 3.65rem);
     line-height: 1;
+    font-variation-settings: 'FILL' 0;
   }
 
   &:hover,
   &:focus-visible,
   &--active {
     color: var(--app-rating-star);
+
+    mat-icon {
+      font-variation-settings: 'FILL' 1;
+    }
   }
 
   &:focus-visible {

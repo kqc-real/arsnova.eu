@@ -19,6 +19,7 @@ const { prismaMock } = vi.hoisted(() => ({
 vi.mock('../db', () => ({ prisma: prismaMock }));
 
 import { qaRouter } from '../routers/qa';
+import { resetParticipantCapabilityCacheForTests } from '../lib/participantAuth';
 import { hashCapability } from '../lib/capabilityCrypto';
 
 const SESSION_ID = '11111111-1111-4111-8111-111111111111';
@@ -29,6 +30,7 @@ const CAPABILITY = 'participant-capability-abcdefghijklmnopqrstuvwxyz';
 describe('participant capability router boundary', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetParticipantCapabilityCacheForTests();
   });
 
   it('lehnt Q&A-Schreibzugriff mit sichtbarer Participant-ID, aber ohne Capability ab', async () => {

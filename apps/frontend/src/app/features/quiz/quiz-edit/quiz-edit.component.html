@@ -156,18 +156,6 @@
           </form>
         </mat-card-content>
       </mat-expansion-panel>
-      <mat-card-actions class="quiz-edit__meta-actions">
-        <button
-          mat-button
-          type="button"
-          (click)="openPreview()"
-          i18n-aria-label="@@quiz.previewOpenAria"
-          aria-label="Änderungen speichern und Vorschau öffnen"
-        >
-          <mat-icon>visibility</mat-icon>
-          <span i18n="@@quiz.previewSaveAndOpen">Speichern &amp; Vorschau</span>
-        </button>
-      </mat-card-actions>
     </mat-card>
 
     <div class="quiz-edit__settings-toggle">
@@ -312,23 +300,30 @@
                   </div>
                 </div>
               }
-              <div
+              <details
                 class="quiz-edit-form__timer-accommodation"
                 data-testid="quiz-edit-timer-accommodation-hint"
               >
-                <mat-checkbox
-                  formControlName="enableTimerAccommodation"
-                  i18n="@@quizForm.timerAccommodationTitle"
-                >
-                  Persönliche Zeit
-                </mat-checkbox>
-                @if (settingsForm.controls.enableTimerAccommodation.value) {
-                  <p
-                    class="quiz-edit-form__timer-accommodation-lead"
-                    i18n="@@quizForm.timerAccommodationLead"
+                <summary class="quiz-edit-form__timer-accommodation-summary">
+                  <span class="quiz-edit-form__timer-accommodation-summary-copy">
+                    <span
+                      class="quiz-edit-form__timer-accommodation-title"
+                      i18n="@@quizForm.timerAccommodationTitle"
+                    >
+                      Persönliche Zeit
+                    </span>
+                    <span
+                      class="quiz-edit-form__timer-accommodation-lead"
+                      i18n="@@quizForm.timerAccommodationLead"
+                    >
+                      Faire Teilnahme ermöglichen
+                    </span>
+                  </span>
+                  <mat-icon class="quiz-edit-form__timer-accommodation-chevron" aria-hidden="true"
+                    >expand_more</mat-icon
                   >
-                    Faire Teilnahme ermöglichen
-                  </p>
+                </summary>
+                <div class="quiz-edit-form__timer-accommodation-body">
                   <p i18n="@@quizForm.timerAccommodationHint">
                     Zusätzliche Antwortzeit gleicht Barrieren aus – etwa bei Legasthenie,
                     Dyskalkulie, Seh- oder motorischen Beeinträchtigungen sowie bei der Nutzung
@@ -343,8 +338,14 @@
                   <p i18n="@@quizForm.timerAccommodationControl">
                     Du entscheidest weiterhin, wann die Frage endet.
                   </p>
-                }
-              </div>
+                  <mat-checkbox
+                    formControlName="enableTimerAccommodation"
+                    i18n="@@quizForm.timerAccommodationTitle"
+                  >
+                    Persönliche Zeit
+                  </mat-checkbox>
+                </div>
+              </details>
             </fieldset>
 
             <fieldset class="quiz-edit-form__fieldset">
@@ -2330,11 +2331,11 @@
           type="button"
           (click)="openPreview()"
           i18n-aria-label="@@quiz.previewOpenAria"
-          aria-label="Änderungen speichern und Vorschau öffnen"
+          aria-label="Vorschau"
         >
           <mat-icon>visibility</mat-icon>
           <span class="quiz-edit__bottom-action-label" i18n="@@quiz.previewSaveAndOpen"
-            >Speichern &amp; Vorschau</span
+            >Vorschau</span
           >
         </button>
       </div>

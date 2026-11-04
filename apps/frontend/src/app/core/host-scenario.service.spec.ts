@@ -29,6 +29,31 @@ describe('HostScenarioService', () => {
     expect(service.getForSession('ABC123')).toBeNull();
   });
 
+  it('stages a scenario without restoring it after reload', () => {
+    const service = TestBed.inject(HostScenarioService);
+    service.selectScenario('EVENT');
+    service.stageScenario('CLASSROOM');
+
+    expect(service.preference()).toBe('CLASSROOM');
+    expect(service.scenarioForAction()).toBe('CLASSROOM');
+    expect(localStorage.getItem(PREFERENCE_KEY)).toBeNull();
+
+    TestBed.resetTestingModule();
+    expect(TestBed.inject(HostScenarioService).preference()).toBeNull();
+  });
+
+  it('drops a stored preference when the home selection is discarded', () => {
+    localStorage.setItem(PREFERENCE_KEY, JSON.stringify({ version: 1, scenario: 'EVENT' }));
+    const service = TestBed.inject(HostScenarioService);
+    expect(service.preference()).toBe('EVENT');
+
+    service.discardDurablePreference();
+
+    expect(service.preference()).toBeNull();
+    expect(service.scenarioForAction()).toBe('QUICK');
+    expect(localStorage.getItem(PREFERENCE_KEY)).toBeNull();
+  });
+
   it.each<HostScenario>(['CLASSROOM', 'EVENT', 'QUICK'])(
     'persists an explicit %s preference across reloads',
     (scenario) => {

@@ -214,7 +214,7 @@ docker compose version
 
 ### 4.3 Node.js 22 installieren
 
-Der arsnova.eu-Produktionswrapper verlangt Node.js `>=22.22.1 <23` oder Node.js 24 (`.npmrc` setzt `engine-strict=true`; mit älteren Versionen bricht `npm ci` mit `EBADENGINE` ab). Dieses Runbook verwendet Node.js 22 aus dem offiziellen NodeSource-DEB-Repo.
+Der arsnova.eu-Produktionswrapper verlangt Node.js `>=22.22.3 <23` oder Node.js `>=24.15.0 <25` (`.npmrc` setzt `engine-strict=true`; mit älteren Versionen bricht `npm ci` mit `EBADENGINE` ab). Dieses Runbook verwendet Node.js 22 aus dem offiziellen NodeSource-DEB-Repo.
 
 ```bash
 set -e
@@ -239,7 +239,7 @@ node --version
 npm --version
 ```
 
-Die Node-Ausgabe muss mit `v22.` beginnen und mindestens `v22.22.1` sein.
+Die Node-Ausgabe muss mit `v22.` beginnen und mindestens `v22.22.3` sein.
 
 ## 5. Firewall zuerst einrichten
 

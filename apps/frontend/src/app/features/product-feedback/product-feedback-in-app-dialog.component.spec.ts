@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProductFeedbackInAppDialogComponent } from './product-feedback-in-app-dialog.component';
 import { ProductFeedbackLauncherService } from './product-feedback-launcher.service';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 const { followUpMock } = vi.hoisted(() => ({
   followUpMock: vi.fn(),
@@ -175,5 +176,19 @@ describe('ProductFeedbackInAppDialogComponent', () => {
     await vi.waitFor(() => expect(followUpMock).toHaveBeenCalledTimes(2));
     expect(submitDraft).not.toHaveBeenCalled();
     expect(component.step()).toBe('done');
+  });
+
+  it('blendet den Update-Banner aus, solange eine Rückmeldung angefangen ist', () => {
+    const fixture = TestBed.createComponent(ProductFeedbackInAppDialogComponent);
+    const suppression = TestBed.inject(UpdateBannerSuppressionService);
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(false);
+
+    fixture.componentInstance.kind.set('PRAISE');
+    fixture.detectChanges();
+    expect(suppression.active()).toBe(true);
+
+    fixture.destroy();
+    expect(suppression.active()).toBe(false);
   });
 });

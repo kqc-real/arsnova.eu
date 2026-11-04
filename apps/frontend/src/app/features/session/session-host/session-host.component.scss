@@ -2900,7 +2900,7 @@
 }
 
 .session-qa-card__action-icon {
-  font-family: 'Material Icons';
+  font-family: 'Material Symbols Outlined';
   font-size: 1.125rem;
   width: 1.125rem;
   height: 1.125rem;
@@ -4274,6 +4274,38 @@
 
 .session-host__finished-confidence-question-metric--risk strong {
   color: var(--mat-sys-error);
+}
+
+.session-host__finished-confidence-objective {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.session-host__finished-confidence-objective-kicker {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  line-height: 1.4;
+}
+
+.session-host__finished-confidence-objective-text {
+  font-weight: 700;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+.session-host__finished-confidence-objective-detail {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
 }
 
 .session-host__finished-confidence-signal {
@@ -5810,13 +5842,35 @@ button.session-host__btn-discussion {
 }
 
 .session-host__extra-close-maximize {
+  --mat-icon-button-state-layer-size: 2.75rem;
+  --mat-icon-button-icon-size: 1.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
   position: absolute;
   top: max(0.65rem, env(safe-area-inset-top, 0px));
   right: max(0.65rem, env(safe-area-inset-right, 0px));
   z-index: 251;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
+  padding: 0;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   background: color-mix(in srgb, var(--mat-sys-surface) 74%, transparent);
   color: var(--mat-sys-on-surface);
+  line-height: 0;
+
+  .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    margin: 0;
+    font-size: var(--mat-icon-button-icon-size);
+    line-height: 1;
+    overflow: hidden;
+  }
 }
 
 .session-host__extra--maximized app-word-cloud {
@@ -5923,17 +5977,52 @@ button.session-host__btn-discussion {
   font-weight: 600;
 }
 
+.session-host__word-cloud-language {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.session-host__word-cloud-language select {
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-small);
+}
+
 .session-host__extra-action--icon {
+  --mat-icon-button-state-layer-size: 2.75rem;
+  --mat-icon-button-icon-size: 1.5rem;
+  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.7rem;
-  min-height: 2.7rem;
+  width: var(--mat-icon-button-state-layer-size);
+  height: var(--mat-icon-button-state-layer-size);
+  min-width: var(--mat-icon-button-state-layer-size);
+  min-height: var(--mat-icon-button-state-layer-size);
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-  border-radius: var(--mat-sys-corner-small, 0.5rem);
+  border-radius: var(--mat-sys-corner-full);
   background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
   color: inherit;
+  line-height: 0;
+
+  .mat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+    margin: 0;
+    font-size: var(--mat-icon-button-icon-size);
+    line-height: 1;
+    overflow: hidden;
+  }
 }
 
 .session-host__extra-action--smooth-active {

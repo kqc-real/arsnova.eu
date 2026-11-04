@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FeedbackVoteComponent } from './feedback-vote.component';
 import { ThemePresetService } from '../../core/theme-preset.service';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 const {
   getInfoQueryMock,
@@ -19,7 +20,9 @@ const {
   quickFeedbackResultsQueryMock: vi.fn(),
   quickFeedbackVoteMutateMock: vi.fn(),
   quickFeedbackLeaveTempoMutateMock: vi.fn(),
-  quickFeedbackOnResultsSubscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
+  quickFeedbackOnResultsSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: vi.fn(),
+  })),
 }));
 
 vi.mock('../../core/trpc.client', () => ({
@@ -317,7 +320,7 @@ describe('FeedbackVoteComponent', () => {
       distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       currentRound: 1,
     });
-    let resolveVote: (() => void) | null = null;
+    let resolveVote: (() => void) | undefined;
     quickFeedbackVoteMutateMock.mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
@@ -333,7 +336,9 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const starButtons = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.feedback-vote__star-btn'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.feedback-vote__star-btn',
+      ),
     );
     expect(starButtons).toHaveLength(5);
 
@@ -428,7 +433,9 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const buttons = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.feedback-vote__mood-btn'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.feedback-vote__mood-btn',
+      ),
     );
     const following = buttons.find((button) => button.textContent?.includes('Ich folge'));
     const faster = buttons.find((button) => button.textContent?.includes('Schneller'));
@@ -484,7 +491,7 @@ describe('FeedbackVoteComponent', () => {
   });
 
   it('entfernt Standalone-Tempo-Auswahlen beim Verlassen nach der Default-Registrierung', async () => {
-    let resolveDefaultRegistration: (() => void) | null = null;
+    let resolveDefaultRegistration: (() => void) | undefined;
     quickFeedbackVoteMutateMock.mockImplementationOnce(
       () =>
         new Promise<void>((resolve) => {
@@ -572,7 +579,9 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const buttons = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.feedback-vote__mood-btn'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.feedback-vote__mood-btn',
+      ),
     );
     const faster = buttons.find((button) => button.textContent?.includes('Schneller'));
     faster?.click();
@@ -600,7 +609,9 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const buttons = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.feedback-vote__mood-btn'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.feedback-vote__mood-btn',
+      ),
     );
     const following = buttons.find((button) => button.textContent?.includes('Ich folge'));
     const slower = buttons.find((button) => button.textContent?.includes('Langsamer'));
@@ -664,7 +675,9 @@ describe('FeedbackVoteComponent', () => {
     fixture.detectChanges();
 
     const buttons = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('.feedback-vote__mood-btn'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.feedback-vote__mood-btn',
+      ),
     );
     const following = buttons.find((button) => button.textContent?.includes('Ich folge'));
     const slower = buttons.find((button) => button.textContent?.includes('Langsamer'));
@@ -1192,6 +1205,7 @@ describe('FeedbackVoteComponent', () => {
     await fixture.whenStable();
     fixture.componentInstance.submitting.set(true);
     fixture.detectChanges();
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(true);
     expect(events).toHaveBeenLastCalledWith({
       voted: false,
       submitting: true,
@@ -1200,6 +1214,7 @@ describe('FeedbackVoteComponent', () => {
     fixture.componentInstance.voted.set(true);
     fixture.componentInstance.submitting.set(false);
     fixture.detectChanges();
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(false);
     expect(events).toHaveBeenLastCalledWith({
       voted: true,
       submitting: false,

@@ -7,9 +7,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const angularBuildPrivatePath = require.resolve('@angular/build/private', {
-  paths: [__dirname, path.join(__dirname, '..'), path.join(__dirname, '..', '..', '..')],
-});
+const inlineCriticalCssPath = require.resolve(
+  '@angular-devkit/build-angular/src/utils/inline-critical-css.js',
+  {
+    paths: [__dirname, path.join(__dirname, '..'), path.join(__dirname, '..', '..', '..')],
+  },
+);
 
 let zoneNodePath;
 try {
@@ -23,7 +26,7 @@ try {
 if (zoneNodePath) {
   await import(pathToFileURL(zoneNodePath).href);
 }
-const { InlineCriticalCssProcessor } = await import(pathToFileURL(angularBuildPrivatePath).href);
+const { InlineCriticalCssProcessor } = require(inlineCriticalCssPath);
 
 const browserRoot = path.join(__dirname, '..', 'dist', 'browser');
 const serverRoot = path.join(__dirname, '..', 'dist', 'server');
@@ -48,13 +51,7 @@ function isBootstrapFn(value) {
   return typeof value === 'function' && !('ɵmod' in value);
 }
 
-async function renderRoute({
-  document,
-  route,
-  outputPath,
-  serverBundlePath,
-  inlineCriticalCssProcessor,
-}) {
+async function renderRoute({ document, route, outputPath, serverBundlePath }) {
   const serverBundle = require(serverBundlePath);
   const {
     ɵSERVER_CONTEXT,
@@ -95,9 +92,12 @@ async function renderRoute({
     });
   }
 
-  const { content, errors, warnings } = await inlineCriticalCssProcessor.process(html, {
+  const inlineCriticalCssProcessor = new InlineCriticalCssProcessor({
+    deployUrl: '',
     outputPath,
+    minify: true,
   });
+  const { content, errors, warnings } = await inlineCriticalCssProcessor.process(html);
   if ((errors?.length ?? 0) > 0) {
     throw new Error(errors.join('\n'));
   }
@@ -109,11 +109,6 @@ async function renderRoute({
 }
 
 async function main() {
-  const inlineCriticalCssProcessor = new InlineCriticalCssProcessor({
-    deployUrl: '',
-    minify: true,
-  });
-
   for (const locale of LOCALES) {
     const outputPath = path.join(browserRoot, locale);
     const serverBundlePath = path.join(serverRoot, locale, 'main.js');
@@ -137,7 +132,6 @@ async function main() {
         route,
         outputPath,
         serverBundlePath,
-        inlineCriticalCssProcessor,
       });
 
       const routePath = stripLeadingSlash(route);

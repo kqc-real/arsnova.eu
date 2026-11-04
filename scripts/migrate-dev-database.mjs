@@ -38,7 +38,7 @@ function execPrisma(exec, args) {
     const output = exec(PRISMA_BIN, args, {
       cwd: REPO_ROOT,
       encoding: 'utf8',
-      env: process.env,
+      env: { ...process.env, PRISMA_HIDE_UPDATE_MESSAGE: 'true' },
     });
     if (typeof output === 'string' && output) process.stdout.write(output);
     return output;

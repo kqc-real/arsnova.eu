@@ -141,22 +141,24 @@
           <p class="session-host__steering-callout-text">{{ steer.body }}</p>
         </div>
         <div class="session-host__steering-callout-actions">
-          <button
-            mat-flat-button
-            color="warn"
-            type="button"
-            data-testid="host-steering-retry"
-            [attr.aria-disabled]="
-              qaQuickFeedbackPending() || channelNavigationBusy() ? 'true' : null
-            "
-            (click)="steer.retry()"
-          >
-            @if (steer.retryLabel) {
-              {{ steer.retryLabel }}
-            } @else {
-              <span i18n="@@sessionHost.steeringCalloutRetry">Nochmal probieren</span>
-            }
-          </button>
+          @if (steer.retry; as retry) {
+            <button
+              mat-flat-button
+              color="warn"
+              type="button"
+              data-testid="host-steering-retry"
+              [attr.aria-disabled]="
+                qaQuickFeedbackPending() || channelNavigationBusy() ? 'true' : null
+              "
+              (click)="retry()"
+            >
+              @if (steer.retryLabel) {
+                {{ steer.retryLabel }}
+              } @else {
+                <span i18n="@@sessionHost.steeringCalloutRetry">Nochmal probieren</span>
+              }
+            </button>
+          }
           <a
             mat-stroked-button
             [attr.href]="hostSteeringCalloutReloadHref()"
@@ -628,7 +630,9 @@
                 [class.session-host__moderation-control--has-signals]="
                   moderationCompassHasSignals()
                 "
-                (click)="openModerationCompassDialog()"
+                (click)="openModerationCompassFromTrigger()"
+                (focus)="onModerationCompassTriggerFocus()"
+                (blur)="onModerationCompassTriggerBlur()"
                 aria-haspopup="dialog"
                 [attr.aria-label]="moderationCompassButtonAria()"
               >
@@ -640,7 +644,7 @@
                 >
               </button>
             }
-            @if (activeChannel() !== 'quickFeedback') {
+            @if (showLearningObjectivesControl()) {
               <button
                 type="button"
                 class="session-host__moderation-control session-host__learning-objectives-control"
@@ -657,6 +661,12 @@
                     class="session-host__moderation-control-label"
                     i18n="@@sessionHost.qaAssignmentButton"
                     >Auftrag</span
+                  >
+                } @else if (showAllConfirmedLearningObjectives()) {
+                  <span
+                    class="session-host__moderation-control-label"
+                    i18n="@@sessionHost.learningObjectivesOverviewButton"
+                    >Lernziele</span
                   >
                 } @else {
                   <span
@@ -1202,6 +1212,40 @@
                                     >
                                   </span>
                                 </div>
+                                @for (
+                                  link of finishedConfidenceObjectiveLinks(question);
+                                  track link.objectiveId
+                                ) {
+                                  <p class="session-host__finished-confidence-objective">
+                                    <span
+                                      class="session-host__finished-confidence-objective-kicker"
+                                    >
+                                      {{
+                                        learningObjectiveMisconceptionHeading(link.questionNumber)
+                                      }}
+                                    </span>
+                                    <span class="session-host__finished-confidence-objective-text">
+                                      {{ quoteLabel(link.objectiveText) }}
+                                    </span>
+                                    <span
+                                      class="session-host__finished-confidence-objective-detail"
+                                    >
+                                      {{
+                                        learningObjectiveMisconceptionMeasure(
+                                          link.incorrectHigh,
+                                          link.responseCount
+                                        )
+                                      }}
+                                    </span>
+                                    @if (link.topWrongOption; as option) {
+                                      <span
+                                        class="session-host__finished-confidence-objective-detail"
+                                      >
+                                        {{ learningObjectiveMisconceptionOption(option) }}
+                                      </span>
+                                    }
+                                  </p>
+                                }
                                 @if (finishedConfidenceTopWrongOption(question); as option) {
                                   <p class="session-host__finished-confidence-signal">
                                     <span i18n="@@sessionHost.finishedConfidenceTopSignal"
@@ -1537,7 +1581,7 @@
                 @if (feedbackSummary(); as fb) {
                   <section class="session-host__feedback-card" aria-labelledby="feedback-heading">
                     <h2 class="session-host__feedback-summary-title" id="feedback-heading">
-                      <mat-icon aria-hidden="true">feedback</mat-icon>
+                      <mat-icon aria-hidden="true">rate_review</mat-icon>
                       <span i18n>Feedback der Teilnehmenden</span>
                     </h2>
                     <div class="session-host__feedback-hero">
@@ -3160,12 +3204,12 @@
                                       <div class="session-host__round-comparison-bar-track">
                                         <div
                                           class="session-host__round-comparison-bar-fill session-host__round-comparison-bar-fill--r2"
-                                          [style.width.%]="r2?.votePercentage ?? 0"
+                                          [style.width.%]="r2.votePercentage"
                                         ></div>
                                       </div>
                                       <span
                                         class="session-host__round-comparison-bar-pct session-host__round-comparison-bar-pct--r2"
-                                        >{{ r2?.votePercentage ?? 0 }}&nbsp;%</span
+                                        >{{ r2.votePercentage }}&nbsp;%</span
                                       >
                                     </div>
                                   </div>
@@ -3562,7 +3606,7 @@
               ) {
                 <div class="session-host__interim-leaderboard">
                   <p class="session-host__interim-title">
-                    <mat-icon>emoji_events</mat-icon>
+                    <mat-icon>trophy</mat-icon>
                     <span i18n>Top 5</span>
                   </p>
                   <ol class="session-host__interim-list" role="list">
@@ -3757,6 +3801,7 @@
                         class="session-host__extra-analysis-toggle"
                         name="freetext-word-cloud-host-mode"
                         [value]="freetextWordCloudMode()"
+                        [disabled]="wordCloudFrozen()"
                         (change)="setFreetextWordCloudMode($event.value)"
                         i18n-aria-label="@@sessionHost.wordCloudAnalysisAria"
                         aria-label="Wortwolken-Ansicht"
@@ -3780,24 +3825,52 @@
                           >Thema</mat-button-toggle
                         >
                       </mat-button-toggle-group>
-                      <button
-                        mat-button
-                        type="button"
-                        class="session-host__extra-action"
-                        [class.session-host__extra-action--icon]="freetextWordCloudMaximized()"
-                        [attr.aria-pressed]="wordCloudFrozen()"
-                        [attr.aria-label]="wordCloudFreezeLabel()"
-                        [matTooltip]="wordCloudFreezeLabel()"
-                        matTooltipTouchGestures="off"
-                        (click)="toggleWordCloudFreeze()"
-                      >
-                        <mat-icon aria-hidden="true">{{
-                          wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
-                        }}</mat-icon>
-                        @if (!freetextWordCloudMaximized()) {
+                      <label class="session-host__extra-action session-host__word-cloud-language">
+                        <span i18n="@@wordCloud.analysisLanguage">Analysesprache</span>
+                        <select
+                          [value]="wordCloudTermLocale()"
+                          [disabled]="wordCloudLocaleLocked()"
+                          (change)="setWordCloudLemmaLocale($any($event.target).value)"
+                        >
+                          <option value="de" lang="de">Deutsch</option>
+                          <option value="en" lang="en">English</option>
+                          <option value="fr" lang="fr">Français</option>
+                          <option value="es" lang="es">Español</option>
+                          <option value="it" lang="it">Italiano</option>
+                        </select>
+                      </label>
+                      @if (freetextWordCloudMaximized()) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          class="session-host__extra-action session-host__extra-action--icon"
+                          [attr.aria-pressed]="wordCloudFrozen()"
+                          [attr.aria-label]="wordCloudFreezeLabel()"
+                          [matTooltip]="wordCloudFreezeLabel()"
+                          matTooltipTouchGestures="off"
+                          (click)="toggleWordCloudFreeze()"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            wordCloudFrozen() ? 'play_arrow' : 'pause'
+                          }}</mat-icon>
+                        </button>
+                      } @else {
+                        <button
+                          mat-button
+                          type="button"
+                          class="session-host__extra-action"
+                          [attr.aria-pressed]="wordCloudFrozen()"
+                          [attr.aria-label]="wordCloudFreezeLabel()"
+                          [matTooltip]="wordCloudFreezeLabel()"
+                          matTooltipTouchGestures="off"
+                          (click)="toggleWordCloudFreeze()"
+                        >
+                          <mat-icon aria-hidden="true">{{
+                            wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
+                          }}</mat-icon>
                           <span>{{ wordCloudFreezeLabel() }}</span>
-                        }
-                      </button>
+                        </button>
+                      }
                       @if (freetextWordCloudShowSmoothing()) {
                         <div class="session-host__smooth-cluster">
                           <button
@@ -3807,7 +3880,11 @@
                             [class.session-host__extra-action--smooth-active]="
                               freetextWordCloudSmoothingPressed()
                             "
-                            [disabled]="freetextWordCloudSmoothingDisabled()"
+                            [attr.aria-disabled]="
+                              freetextWordCloudSmoothingDisabled() || wordCloudFrozen()
+                                ? true
+                                : null
+                            "
                             [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
                             [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
                             (click)="toggleFreetextWordCloudSmoothing()"
@@ -3825,6 +3902,9 @@
                           type="button"
                           class="session-host__extra-action session-host__extra-action--refresh"
                           data-testid="freetext-word-cloud-refresh-themes"
+                          [attr.aria-disabled]="
+                            freetextWordCloudThemeRefreshDisabled() ? true : null
+                          "
                           [attr.aria-busy]="
                             freetextWordCloudSemanticAnalysisPending() ? true : null
                           "
@@ -3847,7 +3927,8 @@
                         <div
                           class="session-host__word-cloud-status"
                           [class.session-host__word-cloud-status--cover]="
-                            freetextWordCloudSemanticAnalysisPending()
+                            freetextWordCloudSemanticAnalysisPending() &&
+                            freetextWordCloudDisplayMode() !== 'SEMANTIC'
                           "
                         >
                           @if (freetextWordCloudSemanticAnalysisPending()) {
@@ -3858,11 +3939,8 @@
                               aria-busy="true"
                               [attr.aria-label]="freetextWordCloudSemanticProgressAria()"
                             >
-                              <p
-                                class="session-host__word-cloud-progress-label"
-                                i18n="@@sessionQa.wordCloudSemanticPendingLabel"
-                              >
-                                Themen werden vorbereitet.
+                              <p class="session-host__word-cloud-progress-label">
+                                {{ freetextWordCloudSemanticHint() }}
                               </p>
                               @if (freetextWordCloudSemanticWaitHint(); as waitHint) {
                                 <p class="session-host__word-cloud-progress-wait">{{ waitHint }}</p>
@@ -3871,16 +3949,8 @@
                                 class="session-host__word-cloud-progress-bar"
                                 mode="indeterminate"
                               />
-                              <p
-                                class="session-host__word-cloud-progress-fallback"
-                                i18n="@@sessionQa.wordCloudSemanticPendingFallback"
-                              >
-                                Es gelten Wörter und Phrasen.
-                              </p>
                             </div>
-                          } @else if (
-                            freetextWordCloudSemanticHint() && !freetextWordCloudShowThemeRefresh()
-                          ) {
+                          } @else if (freetextWordCloudSemanticHint()) {
                             <p class="session-host__extra-note" role="status" aria-live="polite">
                               {{ freetextWordCloudSemanticHint() }}
                             </p>
@@ -3897,21 +3967,24 @@
                         [responses]="displayedFreetextResponses()"
                         [terms]="displayedFreetextVisibleTerms()"
                         [analysisEntries]="displayedFreetextAnalysisEntries()"
-                        [selectionScopeKey]="displayedCurrentQuestionForHost()?.questionId ?? null"
+                        [selectionScopeKey]="freetextWordCloudSelectionScope()"
                         [eyebrow]="freetextWordCloudEyebrow"
                         [description]="freetextWordCloudDescription()"
                         [wordLabelSingular]="freetextWordCloudWordLabelSingular()"
                         [wordLabelPlural]="freetextWordCloudWordLabelPlural()"
-                        [showConfidenceFilter]="freetextWordCloudMode() === 'SEMANTIC'"
+                        [showConfidenceFilter]="freetextWordCloudDisplayMode() === 'SEMANTIC'"
+                        [exportViewLabel]="freetextExportViewLabel()"
                         [weightingHint]="null"
                         [presentationMode]="freetextWordCloudMaximized()"
                         [showMaximizeAction]="!freetextWordCloudMaximized()"
-                        [showResponsesPanel]="!freetextWordCloudMaximized()"
+                        [showResponsesPanel]="true"
                         [maximizeActionHandler]="maximizeFreetextWordCloud"
                         [showReleaseNote]="false"
                         [focusedTermLabel]="moderationCompassFocusedTerm()"
                         [analysisModelVersion]="
-                          freetextWordCloudSemanticAnalysisResult()?.modelVersion ?? null
+                          freetextWordCloudDisplayMode() === 'SEMANTIC'
+                            ? (freetextWordCloudSemanticAnalysisResult()?.modelVersion ?? null)
+                            : null
                         "
                         [labelModelId]="
                           freetextWordCloudSemanticAnalysisResult()?.labelModelId ?? null
@@ -3988,7 +4061,7 @@
               >
                 <div class="session-channel-card__header session-channel-card__header--qa-title">
                   <span class="session-channel-card__header-lead-icon" aria-hidden="true">
-                    <mat-icon>chat_bubble_outline</mat-icon>
+                    <mat-icon>chat_bubble</mat-icon>
                   </span>
                   <div class="session-host__qa-title-block">
                     <p class="session-channel-card__eyebrow">{{ channelLabel('qa') }}</p>
@@ -4118,7 +4191,7 @@
                           [attr.aria-label]="qaTotalSummaryAria()"
                         >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >chat_bubble_outline</mat-icon
+                            >chat_bubble</mat-icon
                           >
                           <span>{{ formatCount(qaHostStatusStripTotalCount()) }}</span>
                         </span>
@@ -4174,7 +4247,7 @@
                           data-testid="qa-summary-pinned"
                         >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >push_pin</mat-icon
+                            >keep</mat-icon
                           >
                           <span>{{ qaHostStatusPinnedChipLabel() }}</span>
                         </span>
@@ -4202,7 +4275,7 @@
                           data-testid="qa-summary-deleted"
                         >
                           <mat-icon class="session-qa-summary__icon" aria-hidden="true"
-                            >delete_outline</mat-icon
+                            >delete</mat-icon
                           >
                           <span>{{ formatCount(qaDeletedCount()) }}</span>
                         </span>
@@ -4469,7 +4542,7 @@
                                 (keydown.space)="openQaSortHelp($event, 'CONTROVERSIAL')"
                                 (mousedown)="$event.stopPropagation()"
                               >
-                                <mat-icon aria-hidden="true">help_outline</mat-icon>
+                                <mat-icon aria-hidden="true">help</mat-icon>
                               </span>
                             </span>
                           </mat-button-toggle>
@@ -4488,7 +4561,7 @@
                                 (keydown.space)="openQaSortHelp($event, 'BEST')"
                                 (mousedown)="$event.stopPropagation()"
                               >
-                                <mat-icon aria-hidden="true">help_outline</mat-icon>
+                                <mat-icon aria-hidden="true">help</mat-icon>
                               </span>
                             </span>
                           </mat-button-toggle>
@@ -4514,7 +4587,7 @@
                             <mat-icon aria-hidden="true">visibility</mat-icon>
                             <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
                           } @else {
-                            <mat-icon aria-hidden="true">push_pin</mat-icon>
+                            <mat-icon aria-hidden="true">keep</mat-icon>
                             <span i18n="@@sessionQa.filterPinnedLabel">Nur hervorgehobene</span>
                           }
                         </button>
@@ -4634,7 +4707,7 @@
                             data-testid="qa-mobile-sort-help-best"
                             (click)="openQaSortHelp($event, 'BEST')"
                           >
-                            <mat-icon aria-hidden="true">help_outline</mat-icon>
+                            <mat-icon aria-hidden="true">help</mat-icon>
                             <span i18n="@@sessionQa.sortHelpBestMenu">Hilfe: Beste Fragen</span>
                           </button>
                           <button
@@ -4643,7 +4716,7 @@
                             data-testid="qa-mobile-sort-help-controversial"
                             (click)="openQaSortHelp($event, 'CONTROVERSIAL')"
                           >
-                            <mat-icon aria-hidden="true">help_outline</mat-icon>
+                            <mat-icon aria-hidden="true">help</mat-icon>
                             <span i18n="@@sessionQa.sortHelpControversialMenu"
                               >Hilfe: Kontroverse</span
                             >
@@ -4658,7 +4731,7 @@
                             (click)="setQaPinnedFilter(!qaShowPinnedOnly())"
                           >
                             <mat-icon aria-hidden="true">{{
-                              qaShowPinnedOnly() ? 'visibility' : 'push_pin'
+                              qaShowPinnedOnly() ? 'visibility' : 'keep'
                             }}</mat-icon>
                             @if (qaShowPinnedOnly()) {
                               <span i18n="@@sessionQa.filterShowAllLabel">Alle anzeigen</span>
@@ -4936,7 +5009,7 @@
                 ) {
                   <div class="session-qa-empty">
                     <mat-icon class="session-qa-empty__icon" aria-hidden="true"
-                      >chat_bubble_outline</mat-icon
+                      >chat_bubble</mat-icon
                     >
                     <p class="session-qa-empty__text" i18n="@@sessionTabs.qaHostPlaceholder">
                       Noch keine Fragen.
@@ -5318,9 +5391,7 @@
                     </div>
                   } @else if (qaFilteredQuestions().length === 0 && qaShowPinnedOnly()) {
                     <div class="session-qa-empty session-qa-empty--filtered" role="status">
-                      <mat-icon class="session-qa-empty__icon" aria-hidden="true"
-                        >push_pin</mat-icon
-                      >
+                      <mat-icon class="session-qa-empty__icon" aria-hidden="true">keep</mat-icon>
                       <p class="session-qa-empty__text" i18n="@@sessionQa.filterEmptyHint">
                         Nur hervorgehobene aktiv – noch keine hervorgehobenen Fragen.
                       </p>

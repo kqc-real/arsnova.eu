@@ -223,7 +223,10 @@ import {
 } from '../lib/quizHistoryLegacyProofPolicy';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
 import { prepareParticipantJoin } from '../lib/participantJoin';
-import { assertParticipantCapability } from '../lib/participantAuth';
+import {
+  assertParticipantCapability,
+  invalidateParticipantCapabilitiesForSession,
+} from '../lib/participantAuth';
 import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import {
@@ -355,9 +358,13 @@ const STATUS_SNAPSHOT_CACHE_TTL_MS = 400;
 const PARTICIPANTS_SNAPSHOT_CACHE_TTL_MS = 400;
 const QA_EXPORT_MAX_QUESTIONS = 500;
 const CURRENT_QUESTION_CACHE_TTL_MS = 500;
+const HOST_VOTE_PROGRESS_SESSION_CACHE_TTL_MS = 2_000;
 const PARTICIPANT_MEMBERSHIP_CACHE_TTL_MS = 30_000;
 const VOTE_COUNT_CACHE_TTL_MS = 15 * 60_000;
 const VOTE_SUMMARY_CACHE_TTL_MS = 15 * 60_000;
+/** Burst aus dem Hörsaal darf auf einen freien Pool-Slot warten statt hart zu scheitern. */
+export const JOIN_TRANSACTION_MAX_WAIT_MS = 10_000;
+export const JOIN_TRANSACTION_TIMEOUT_MS = 15_000;
 const CURRENT_QUESTION_EVENT_WAIT_MS = 10_000;
 const VOTE_PROGRESS_SIGNAL_DEBOUNCE_MS = 150;
 const STATUS_EVENT_WAIT_ACTIVE_MS = 10_000;
@@ -416,6 +423,8 @@ type VoteSummary = {
   numericValues: number[]; // Story 1.2d: Numerische Schätzwerte (NUMERIC_ESTIMATE)
 };
 
+type CachedTimerAccommodation = ReturnType<typeof normalizeTimerAccommodation>;
+
 const sessionInfoCache = new Map<
   string,
   CacheEntry<Omit<z.infer<typeof SessionInfoDTOSchema>, 'serverTime'>>
@@ -427,7 +436,12 @@ const participantsSnapshotCache = new Map<
 >();
 const participantNicknameCache = new Map<string, CacheEntry<ParticipantNicknamesPayload>>();
 const currentQuestionCache = new Map<string, CacheEntry<unknown>>();
+const studentQuestionSessionCache = new Map<string, CacheEntry<unknown>>();
+const hostVoteProgressSessionCache = new Map<string, CacheEntry<unknown>>();
+const personalScorecardSessionCache = new Map<string, CacheEntry<unknown>>();
+const personalResultSessionCache = new Map<string, CacheEntry<unknown>>();
 const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
+const participantTimerAccommodationCache = new Map<string, CacheEntry<CachedTimerAccommodation>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
 const presenterSurfaceBySessionId = new Map<
@@ -480,7 +494,12 @@ const participantsSnapshotInFlight = new Map<
 >();
 const participantNicknameInFlight = new Map<string, Promise<ParticipantNicknamesPayload>>();
 const currentQuestionInFlight = new Map<string, Promise<unknown>>();
+const studentQuestionSessionInFlight = new Map<string, Promise<unknown>>();
+const hostVoteProgressSessionInFlight = new Map<string, Promise<unknown>>();
+const personalScorecardSessionInFlight = new Map<string, Promise<unknown>>();
+const personalResultSessionInFlight = new Map<string, Promise<unknown>>();
 const participantMembershipInFlight = new Map<string, Promise<boolean>>();
+const participantTimerAccommodationInFlight = new Map<string, Promise<CachedTimerAccommodation>>();
 const voteCountInFlight = new Map<string, Promise<number>>();
 const voteSummaryInFlight = new Map<string, Promise<VoteSummary>>();
 const sessionStatusEvents = new EventEmitter();
@@ -558,8 +577,13 @@ function clearSessionReadCaches(code?: string): void {
     statusSnapshotCache.clear();
     participantsSnapshotCache.clear();
     currentQuestionCache.clear();
+    studentQuestionSessionCache.clear();
+    hostVoteProgressSessionCache.clear();
+    personalScorecardSessionCache.clear();
+    personalResultSessionCache.clear();
     participantNicknameCache.clear();
     participantMembershipCache.clear();
+    participantTimerAccommodationCache.clear();
     voteCountCache.clear();
     voteSummaryCache.clear();
     invalidateSessionRankingCache();
@@ -568,7 +592,12 @@ function clearSessionReadCaches(code?: string): void {
     participantsSnapshotInFlight.clear();
     participantNicknameInFlight.clear();
     currentQuestionInFlight.clear();
+    studentQuestionSessionInFlight.clear();
+    hostVoteProgressSessionInFlight.clear();
+    personalScorecardSessionInFlight.clear();
+    personalResultSessionInFlight.clear();
     participantMembershipInFlight.clear();
+    participantTimerAccommodationInFlight.clear();
     voteCountInFlight.clear();
     voteSummaryInFlight.clear();
     for (const timer of sessionVoteProgressTimers.values()) {
@@ -581,13 +610,10 @@ function clearSessionReadCaches(code?: string): void {
   statusSnapshotCache.delete(code);
   participantsSnapshotCache.delete(code);
   clearCurrentQuestionCache(code);
+  clearHostVoteProgressSessionCache(code);
   clearParticipantNicknameCache(code);
+  clearParticipantMembershipCache(code);
   clearVoteCaches(code);
-  for (const key of participantMembershipCache.keys()) {
-    if (key.startsWith(`${code}:`)) {
-      participantMembershipCache.delete(key);
-    }
-  }
   sessionInfoInFlight.delete(code);
   statusSnapshotInFlight.delete(code);
   participantsSnapshotInFlight.delete(code);
@@ -595,11 +621,6 @@ function clearSessionReadCaches(code?: string): void {
   if (voteProgressTimer) {
     clearTimeout(voteProgressTimer);
     sessionVoteProgressTimers.delete(code);
-  }
-  for (const key of participantMembershipInFlight.keys()) {
-    if (key.startsWith(`${code}:`)) {
-      participantMembershipInFlight.delete(key);
-    }
   }
 }
 
@@ -640,6 +661,12 @@ function clearParticipantsSnapshotCache(code: string): void {
 function clearCurrentQuestionCache(code: string): void {
   currentQuestionCache.delete(code);
   currentQuestionInFlight.delete(code);
+  studentQuestionSessionCache.delete(code);
+  studentQuestionSessionInFlight.delete(code);
+  personalScorecardSessionCache.delete(code);
+  personalScorecardSessionInFlight.delete(code);
+  personalResultSessionCache.delete(code);
+  personalResultSessionInFlight.delete(code);
   for (const key of currentQuestionCache.keys()) {
     if (key.startsWith(`${code}:`)) {
       currentQuestionCache.delete(key);
@@ -650,6 +677,11 @@ function clearCurrentQuestionCache(code: string): void {
       currentQuestionInFlight.delete(key);
     }
   }
+}
+
+function clearHostVoteProgressSessionCache(code: string): void {
+  hostVoteProgressSessionCache.delete(code);
+  hostVoteProgressSessionInFlight.delete(code);
 }
 
 function clearVoteCaches(code: string): void {
@@ -694,6 +726,16 @@ function clearParticipantMembershipCache(code: string): void {
   for (const key of participantMembershipInFlight.keys()) {
     if (key.startsWith(`${code}:`)) {
       participantMembershipInFlight.delete(key);
+    }
+  }
+  for (const key of participantTimerAccommodationCache.keys()) {
+    if (key.startsWith(`${code}:`)) {
+      participantTimerAccommodationCache.delete(key);
+    }
+  }
+  for (const key of participantTimerAccommodationInFlight.keys()) {
+    if (key.startsWith(`${code}:`)) {
+      participantTimerAccommodationInFlight.delete(key);
     }
   }
 }
@@ -1048,6 +1090,7 @@ export async function purgeSessionRuntimeArtifacts(params: {
 }): Promise<void> {
   const code = params.sessionCode.toUpperCase();
   clearSessionReadCaches(code);
+  invalidateParticipantCapabilitiesForSession(params.sessionId);
   presenterSurfaceBySessionId.delete(params.sessionId);
   presenterPageBySessionId.delete(params.sessionId);
   presenterPageIdentityBySessionId.delete(params.sessionId);
@@ -1084,6 +1127,7 @@ export function invalidateSessionStatusCachesForCode(code: string): void {
   clearStatusSnapshotCache(normalizedCode);
   clearParticipantsSnapshotCache(normalizedCode);
   clearCurrentQuestionCache(normalizedCode);
+  clearHostVoteProgressSessionCache(normalizedCode);
   emitSessionStatusSignal(normalizedCode);
   emitSessionParticipantSignal(normalizedCode);
   emitSessionCurrentQuestionSignal(normalizedCode);
@@ -1096,12 +1140,14 @@ export function invalidateJoinCachesForCode(code: string): void {
   clearParticipantsSnapshotCache(normalizedCode);
   clearParticipantNicknameCache(normalizedCode);
   clearParticipantMembershipCache(normalizedCode);
+  clearCurrentQuestionCache(normalizedCode);
   emitSessionParticipantSignal(normalizedCode);
 }
 
 export function invalidateCurrentQuestionCachesForCode(code: string): void {
   const normalizedCode = code.toUpperCase();
   clearCurrentQuestionCache(normalizedCode);
+  clearHostVoteProgressSessionCache(normalizedCode);
   emitSessionCurrentQuestionSignal(normalizedCode);
 }
 
@@ -1116,6 +1162,16 @@ export function resetVoteAggregationCachesForTests(): void {
   voteSummaryCache.clear();
   voteCountInFlight.clear();
   voteSummaryInFlight.clear();
+  currentQuestionCache.clear();
+  currentQuestionInFlight.clear();
+  studentQuestionSessionCache.clear();
+  studentQuestionSessionInFlight.clear();
+  hostVoteProgressSessionCache.clear();
+  hostVoteProgressSessionInFlight.clear();
+  personalScorecardSessionCache.clear();
+  personalScorecardSessionInFlight.clear();
+  personalResultSessionCache.clear();
+  personalResultSessionInFlight.clear();
 }
 
 function voteCacheKey(code: string, questionId: string, round: number): string {
@@ -1201,6 +1257,7 @@ function resolveShortTextQuestionConfig(config?: ShortTextQuestionConfig) {
 function getShortTextDtoFields(
   questionType: string,
   config?: ShortTextQuestionConfig,
+  options?: { includeNumericTolerances?: boolean },
 ): {
   shortTextEvaluationKind?: ShortTextEvaluationKind;
   shortTextMaxLength: number | null;
@@ -1239,6 +1296,7 @@ function getShortTextDtoFields(
   }
 
   const resolved = resolveShortTextQuestionConfig(config);
+  const includeNumericTolerances = options?.includeNumericTolerances !== false;
   return {
     shortTextEvaluationKind: resolved.shortTextEvaluationKind,
     shortTextMaxLength: resolveShortTextMaxLength(resolved.shortTextMaxLength),
@@ -1249,9 +1307,13 @@ function getShortTextDtoFields(
     shortTextTrimWhitespace: resolved.shortTextTrimWhitespace,
     shortTextNormalizeWhitespace: resolved.shortTextNormalizeWhitespace,
     numericInputKind: resolved.numericInputKind,
-    numericToleranceMode: resolved.numericToleranceMode,
-    numericAbsoluteTolerance: resolved.numericAbsoluteTolerance,
-    numericRelativeTolerancePercent: resolved.numericRelativeTolerancePercent,
+    numericToleranceMode: includeNumericTolerances ? resolved.numericToleranceMode : undefined,
+    numericAbsoluteTolerance: includeNumericTolerances
+      ? resolved.numericAbsoluteTolerance
+      : undefined,
+    numericRelativeTolerancePercent: includeNumericTolerances
+      ? resolved.numericRelativeTolerancePercent
+      : undefined,
     numericUnitFamily: resolved.numericUnitFamily,
     numericRequireUnit: resolved.numericRequireUnit,
     numericAcceptEquivalentUnits: resolved.numericAcceptEquivalentUnits,
@@ -1614,6 +1676,27 @@ async function getParticipantBelongsToSessionCached(
         select: { id: true },
       });
       return !!participant;
+    },
+  );
+}
+
+async function getParticipantTimerAccommodationCached(
+  code: string,
+  sessionId: string,
+  participantId: string,
+): Promise<CachedTimerAccommodation> {
+  const key = participantMembershipCacheKey(code, participantId);
+  return getOrComputeCached(
+    participantTimerAccommodationCache,
+    participantTimerAccommodationInFlight,
+    key,
+    PARTICIPANT_MEMBERSHIP_CACHE_TTL_MS,
+    async () => {
+      const participant = await prisma.participant.findFirst({
+        where: { id: participantId, sessionId },
+        select: { timerAccommodation: true },
+      });
+      return normalizeTimerAccommodation(participant?.timerAccommodation);
     },
   );
 }
@@ -2009,6 +2092,7 @@ function buildConfidenceSummaryForSession(
       });
       return [
         {
+          questionId: question.id,
           questionOrder: question.order,
           questionTextShort: question.text,
           questionType: question.type as ConfidenceEligibleQuestionType,
@@ -3811,6 +3895,27 @@ function resolvePresenterSurface(
 }
 
 const FINISH_PROJECTION_TTL_SECONDS = 24 * 60 * 60;
+/** Kurz genug, dass eine offene Abschluss-Transaktion bei stillem Redis noch committet. */
+const FINISH_PROJECTION_REDIS_WRITE_MS = 500;
+
+function withDeadline<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('FINISH_PROJECTION_REDIS_TIMEOUT'));
+    }, timeoutMs);
+    timer.unref?.();
+    operation.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
 
 function finishProjectionRedisKey(sessionId: string): string {
   return `session:finishProjection:v2:${sessionId}`;
@@ -3827,24 +3932,40 @@ async function resolveFinishProjection(
   if (cached) {
     return cached;
   }
+  let raw: string | null = null;
   try {
-    const raw = await getRedis().get(finishProjectionRedisKey(sessionId));
-    if (raw === 'idle' || raw === 'leaderboard') {
-      finishProjectionBySessionId.set(sessionId, raw);
-      return raw;
-    }
+    raw = await getRedis().get(finishProjectionRedisKey(sessionId));
   } catch {
     // Redis optional – Default unten.
+  }
+  // Ein Abschluss kann die Speicher-Markierung setzen, während Redis noch antwortet.
+  const markedDuringRead = finishProjectionBySessionId.get(sessionId);
+  if (markedDuringRead) {
+    return markedDuringRead;
+  }
+  if (raw === 'idle' || raw === 'leaderboard') {
+    finishProjectionBySessionId.set(sessionId, raw);
+    return raw;
   }
   // Tote/ältere FINISHED-Sessions ohne Markierung: Exit-Branding statt Leaderboard.
   return 'idle';
 }
 
-function markFinishProjectionLeaderboard(sessionId: string): void {
+async function markFinishProjectionLeaderboard(sessionId: string): Promise<void> {
   finishProjectionBySessionId.set(sessionId, 'leaderboard');
-  void getRedis()
-    .set(finishProjectionRedisKey(sessionId), 'leaderboard', 'EX', FINISH_PROJECTION_TTL_SECONDS)
-    .catch(() => undefined);
+  try {
+    await withDeadline(
+      getRedis().set(
+        finishProjectionRedisKey(sessionId),
+        'leaderboard',
+        'EX',
+        FINISH_PROJECTION_TTL_SECONDS,
+      ),
+      FINISH_PROJECTION_REDIS_WRITE_MS,
+    );
+  } catch {
+    // Die Prozess-Markierung bleibt maßgeblich, bis Redis wieder schreibt.
+  }
 }
 
 async function markFinishProjectionIdle(sessionId: string): Promise<void> {
@@ -5069,53 +5190,93 @@ async function assertPersonalTimerGate(
 
 async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO | null> {
   const normalizedCode = code.toUpperCase();
-  const session = await prisma.session.findUnique({
-    where: { code: normalizedCode },
-    select: {
-      id: true,
-      code: true,
-      status: true,
-      currentQuestion: true,
-      currentRound: true,
-      activeQuestionStartedAt: true,
-      quiz: {
-        select: {
-          defaultTimer: true,
-          timerScaleByDifficulty: true,
-          enableTimerAccommodation: true,
-          questions: {
-            orderBy: { order: 'asc' },
-            select: {
-              id: true,
-              order: true,
-              type: true,
-              timer: true,
-              difficulty: true,
-              shortTextEvaluationKind: true,
-              shortTextMaxLength: true,
-              shortTextCaseSensitive: true,
-              shortTextEvaluationMode: true,
-              shortTextToleranceLevel: true,
-              shortTextAllowPartialCredit: true,
-              shortTextTrimWhitespace: true,
-              shortTextNormalizeWhitespace: true,
-              numericInputKind: true,
-              numericToleranceMode: true,
-              numericAbsoluteTolerance: true,
-              numericRelativeTolerancePercent: true,
-              numericUnitFamily: true,
-              numericRequireUnit: true,
-              numericAcceptEquivalentUnits: true,
-              answers: {
-                orderBy: answerOptionOrderBy,
-                select: { id: true, text: true, isCorrect: true },
+  const loadHostVoteProgressSession = () =>
+    prisma.session.findUnique({
+      where: { code: normalizedCode },
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        currentQuestion: true,
+        currentRound: true,
+        activeQuestionStartedAt: true,
+        quiz: {
+          select: {
+            defaultTimer: true,
+            timerScaleByDifficulty: true,
+            enableTimerAccommodation: true,
+            questions: {
+              orderBy: { order: 'asc' },
+              select: {
+                id: true,
+                order: true,
+                type: true,
+                timer: true,
+                difficulty: true,
+                shortTextEvaluationKind: true,
+                shortTextMaxLength: true,
+                shortTextCaseSensitive: true,
+                shortTextEvaluationMode: true,
+                shortTextToleranceLevel: true,
+                shortTextAllowPartialCredit: true,
+                shortTextTrimWhitespace: true,
+                shortTextNormalizeWhitespace: true,
+                numericInputKind: true,
+                numericToleranceMode: true,
+                numericAbsoluteTolerance: true,
+                numericRelativeTolerancePercent: true,
+                numericUnitFamily: true,
+                numericRequireUnit: true,
+                numericAcceptEquivalentUnits: true,
+                answers: {
+                  orderBy: answerOptionOrderBy,
+                  select: { id: true, text: true, isCorrect: true },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    });
+  type HostVoteProgressSession = Awaited<ReturnType<typeof loadHostVoteProgressSession>>;
+  const cachedSession = getCachedValue(
+    hostVoteProgressSessionCache as Map<string, CacheEntry<NonNullable<HostVoteProgressSession>>>,
+    normalizedCode,
+  );
+  let session: HostVoteProgressSession;
+  if (cachedSession !== null) {
+    session = cachedSession;
+  } else {
+    const existingInFlight = hostVoteProgressSessionInFlight.get(normalizedCode) as
+      Promise<HostVoteProgressSession> | undefined;
+    if (existingInFlight) {
+      session = await existingInFlight;
+    } else {
+      const inFlightPromise = loadHostVoteProgressSession()
+        .then((loaded) => {
+          if (
+            hostVoteProgressSessionInFlight.get(normalizedCode) === inFlightPromise &&
+            loaded &&
+            loaded.status === 'ACTIVE'
+          ) {
+            setCachedValue(
+              hostVoteProgressSessionCache,
+              normalizedCode,
+              loaded,
+              HOST_VOTE_PROGRESS_SESSION_CACHE_TTL_MS,
+            );
+          }
+          return loaded;
+        })
+        .finally(() => {
+          if (hostVoteProgressSessionInFlight.get(normalizedCode) === inFlightPromise) {
+            hostVoteProgressSessionInFlight.delete(normalizedCode);
+          }
+        });
+      hostVoteProgressSessionInFlight.set(normalizedCode, inFlightPromise);
+      session = await inFlightPromise;
+    }
+  }
 
   if (!session?.quiz || session.status !== 'ACTIVE') {
     return null;
@@ -7509,6 +7670,7 @@ const sessionCoreRouter = router({
       });
       void touchParticipantPresence(participant.sessionId, participant.id);
       // Persönliche Felder liegen außerhalb des gemeinsamen ACTIVE-Caches.
+      clearParticipantMembershipCache(code);
       clearCurrentQuestionCache(code);
 
       return { timerAccommodation: effectiveAccommodation };
@@ -8349,6 +8511,8 @@ const sessionCoreRouter = router({
             : progress;
 
         if (nextIdx === null) {
+          // Vor dem Commit, damit ein paralleler Statusabruf nicht die Endseite sieht.
+          await markFinishProjectionLeaderboard(session.id);
           await tx.session.update({
             where: { id: session.id },
             data: {
@@ -8433,7 +8597,6 @@ const sessionCoreRouter = router({
         await clearReadingReady(outcome.sessionId, outcome.currentQuestionIdToClear);
       }
       if (outcome.finished) {
-        markFinishProjectionLeaderboard(outcome.sessionId);
         await incrementCompletedSessionsTotal();
         await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
       } else {
@@ -8817,6 +8980,7 @@ const sessionCoreRouter = router({
         );
 
         if (nextIndex === null) {
+          await markFinishProjectionLeaderboard(session.id);
           await tx.session.update({
             where: { id: session.id },
             data: {
@@ -8914,7 +9078,6 @@ const sessionCoreRouter = router({
       }
       if (outcome.transitioned) {
         if (outcome.finished) {
-          markFinishProjectionLeaderboard(outcome.sessionId);
           await incrementCompletedSessionsTotal();
           await issueProductFeedbackInvitesAfterFinishAwait(outcome.sessionId);
         } else {
@@ -9345,30 +9508,72 @@ const sessionCoreRouter = router({
     .input(GetCurrentQuestionForStudentInputSchema)
     .query(async ({ input, ctx }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
-        where: { code },
-        include: {
-          quiz: {
-            select: {
-              questions: {
-                orderBy: { order: 'asc' },
-                include: {
-                  answers: {
-                    orderBy: answerOptionOrderBy,
-                    select: { id: true, text: true, isCorrect: true },
+      const loadStudentQuestionSession = () =>
+        prisma.session.findUnique({
+          where: { code },
+          include: {
+            quiz: {
+              select: {
+                questions: {
+                  orderBy: { order: 'asc' },
+                  include: {
+                    answers: {
+                      orderBy: answerOptionOrderBy,
+                      select: { id: true, text: true, isCorrect: true },
+                    },
                   },
                 },
+                defaultTimer: true,
+                timerScaleByDifficulty: true,
+                enableTimerAccommodation: true,
+                showQuestionTypeIndicators: true,
+                preset: true,
               },
-              defaultTimer: true,
-              timerScaleByDifficulty: true,
-              enableTimerAccommodation: true,
-              showQuestionTypeIndicators: true,
-              preset: true,
             },
+            _count: { select: { participants: true } },
           },
-          _count: { select: { participants: true } },
-        },
-      });
+        });
+      type StudentQuestionSession = Awaited<ReturnType<typeof loadStudentQuestionSession>>;
+      const cachedSession = getCachedValue(
+        studentQuestionSessionCache as Map<string, CacheEntry<NonNullable<StudentQuestionSession>>>,
+        code,
+      );
+      let session: StudentQuestionSession;
+      if (cachedSession !== null) {
+        session = cachedSession;
+      } else {
+        const existingInFlight = studentQuestionSessionInFlight.get(code) as
+          Promise<StudentQuestionSession> | undefined;
+        if (existingInFlight) {
+          session = await existingInFlight;
+        } else {
+          const inFlightPromise = loadStudentQuestionSession()
+            .then((loaded) => {
+              if (
+                studentQuestionSessionInFlight.get(code) === inFlightPromise &&
+                loaded &&
+                (loaded.status === 'QUESTION_OPEN' ||
+                  loaded.status === 'ACTIVE' ||
+                  loaded.status === 'RESULTS')
+              ) {
+                setCachedValue(
+                  studentQuestionSessionCache,
+                  code,
+                  loaded,
+                  CURRENT_QUESTION_CACHE_TTL_MS,
+                );
+              }
+              return loaded;
+            })
+            .finally(() => {
+              if (studentQuestionSessionInFlight.get(code) === inFlightPromise) {
+                studentQuestionSessionInFlight.delete(code);
+              }
+            });
+          studentQuestionSessionInFlight.set(code, inFlightPromise);
+          session = await inFlightPromise;
+        }
+      }
       if (!session) {
         return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
@@ -9476,7 +9681,7 @@ const sessionCoreRouter = router({
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
-          ...getShortTextDtoFields(question.type, question),
+          ...getShortTextDtoFields(question.type, question, { includeNumericTolerances: false }),
           ...getConfidenceDtoFields(question),
           numericInputType: question.numericInputType ?? undefined,
           numericDecimalPlaces: question.numericDecimalPlaces ?? null,
@@ -9499,7 +9704,7 @@ const sessionCoreRouter = router({
           ratingMax: question.ratingMax ?? null,
           ratingLabelMin: question.ratingLabelMin ?? null,
           ratingLabelMax: question.ratingLabelMax ?? null,
-          ...getShortTextDtoFields(question.type, question),
+          ...getShortTextDtoFields(question.type, question, { includeNumericTolerances: false }),
           ...getConfidenceDtoFields(question),
           numericInputType: question.numericInputType ?? undefined,
           numericDecimalPlaces: question.numericDecimalPlaces ?? null,
@@ -9554,7 +9759,9 @@ const sessionCoreRouter = router({
               ratingMax: question.ratingMax ?? null,
               ratingLabelMin: question.ratingLabelMin ?? null,
               ratingLabelMax: question.ratingLabelMax ?? null,
-              ...getShortTextDtoFields(question.type, question),
+              ...getShortTextDtoFields(question.type, question, {
+                includeNumericTolerances: false,
+              }),
               ...getConfidenceDtoFields(question),
               numericInputType: question.numericInputType ?? undefined,
               numericDecimalPlaces: question.numericDecimalPlaces ?? null,
@@ -9626,12 +9833,8 @@ const sessionCoreRouter = router({
           return personalizedDto;
         }
 
-        const participant = await prisma.participant.findFirst({
-          where: { id: participantId, sessionId: session.id },
-          select: { timerAccommodation: true },
-        });
         const timerAccommodation = isTimerAccommodationEnabled(quiz.enableTimerAccommodation)
-          ? normalizeTimerAccommodation(participant?.timerAccommodation)
+          ? await getParticipantTimerAccommodationCached(code, session.id, participantId)
           : 'DEFAULT';
         const sessionTimer = personalizedDto.sessionTimer ?? personalizedDto.timer;
         return QuestionStudentDTOSchema.parse({
@@ -9649,19 +9852,33 @@ const sessionCoreRouter = router({
           `${code}:results:${session.currentQuestion}:${session.currentRound}`,
           CURRENT_QUESTION_CACHE_TTL_MS,
           async () => {
-            const voteSummary = await getVoteSummaryCached(
-              code,
-              session.id,
-              question.id,
-              session.currentRound,
-              question.type as QuestionType,
-              question.type === 'SHORT_TEXT'
-                ? {
-                    answers: authoredAnswers,
-                    ...resolveShortTextQuestionConfig(question),
-                  }
-                : undefined,
-            );
+            const isStructuredType =
+              question.type === 'MATCHING' ||
+              question.type === 'ORDERING' ||
+              question.type === 'CATEGORIZATION';
+            const voteSummary = isStructuredType
+              ? {
+                  totalVotes: 0,
+                  answerVoteCounts: {} as Record<string, number>,
+                  freeTextResponses: [] as string[],
+                  incorrectFreeTextResponses: [] as string[],
+                  correctVoteCount: 0,
+                  incorrectVoteCount: 0,
+                  numericValues: [] as number[],
+                }
+              : await getVoteSummaryCached(
+                  code,
+                  session.id,
+                  question.id,
+                  session.currentRound,
+                  question.type as QuestionType,
+                  question.type === 'SHORT_TEXT'
+                    ? {
+                        answers: authoredAnswers,
+                        ...resolveShortTextQuestionConfig(question),
+                      }
+                    : undefined,
+                );
             const estimateToleranceMode =
               question.type === 'NUMERIC_ESTIMATE'
                 ? resolveNumericEstimateToleranceMode(question.numericToleranceMode)
@@ -9692,10 +9909,6 @@ const sessionCoreRouter = router({
                 ? buildNumericHistogram(voteSummary.numericValues, numericBand)
                 : undefined;
 
-            const isStructuredType =
-              question.type === 'MATCHING' ||
-              question.type === 'ORDERING' ||
-              question.type === 'CATEGORIZATION';
             const structuredVotes = isStructuredType
               ? await prisma.vote.findMany({
                   where: {
@@ -10118,20 +10331,25 @@ const sessionCoreRouter = router({
       }
 
       await awaitJoinAdmissionSlot(session.id);
-      const preparedJoin = await prisma.$transaction((tx) =>
-        prepareParticipantJoin({
-          tx,
-          sessionId: session.id,
-          requestedNickname: trimmedNickname,
-          assignedTeamId: selectedTeamId,
-          autoTeamIds,
-          requireAssignedTeamForNew,
-          profile: onboardingProfile,
-          rejoinCapability: input.rejoinToken,
-          anonymousClientId: input.anonymousClientId,
-          joinIdempotencyKey: input.joinIdempotencyKey,
-          productFeedbackClaimToken: input.productFeedbackClaimToken,
-        }),
+      const preparedJoin = await prisma.$transaction(
+        (tx) =>
+          prepareParticipantJoin({
+            tx,
+            sessionId: session.id,
+            requestedNickname: trimmedNickname,
+            assignedTeamId: selectedTeamId,
+            autoTeamIds,
+            requireAssignedTeamForNew,
+            profile: onboardingProfile,
+            rejoinCapability: input.rejoinToken,
+            anonymousClientId: input.anonymousClientId,
+            joinIdempotencyKey: input.joinIdempotencyKey,
+            productFeedbackClaimToken: input.productFeedbackClaimToken,
+          }),
+        {
+          maxWait: JOIN_TRANSACTION_MAX_WAIT_MS,
+          timeout: JOIN_TRANSACTION_TIMEOUT_MS,
+        },
       );
       const participantId = preparedJoin.participantId;
       let assignedTeamId = preparedJoin.teamId ?? undefined;
@@ -10450,6 +10668,7 @@ const sessionCoreRouter = router({
         }
 
         const now = new Date();
+        await markFinishProjectionLeaderboard(session.id);
         const lifecycle = await tx.session.update({
           where: { id: session.id },
           data: {
@@ -10493,7 +10712,6 @@ const sessionCoreRouter = router({
         }
       }
       if (outcome.transitioned) {
-        markFinishProjectionLeaderboard(identity.id);
         await incrementCompletedSessionsTotal();
         void recordSessionTransitionActivity();
         await issueProductFeedbackInvitesAfterFinishAwait(identity.id);
@@ -10816,22 +11034,65 @@ const sessionCoreRouter = router({
     )
     .output(PersonalScorecardDTOSchema)
     .query(async ({ input, ctx }) => {
-      const session = await prisma.session.findUnique({
-        where: { code: input.code.toUpperCase() },
-        include: {
-          quiz: {
-            include: {
-              questions: {
-                orderBy: { order: 'asc' },
-                include: { answers: { select: { id: true, isCorrect: true } } },
+      const code = input.code.toUpperCase();
+      const loadScorecardSession = () =>
+        prisma.session.findUnique({
+          where: { code },
+          include: {
+            quiz: {
+              include: {
+                questions: {
+                  orderBy: { order: 'asc' },
+                  include: { answers: { select: { id: true, isCorrect: true } } },
+                },
               },
             },
+            participants: { select: { id: true } },
           },
-          participants: { select: { id: true } },
-        },
-      });
+        });
+      type ScorecardSession = Awaited<ReturnType<typeof loadScorecardSession>>;
+      const cachedSession = getCachedValue(
+        personalScorecardSessionCache as Map<string, CacheEntry<NonNullable<ScorecardSession>>>,
+        code,
+      );
+      let session: ScorecardSession;
+      if (cachedSession !== null) {
+        session = cachedSession;
+      } else {
+        const existingInFlight = personalScorecardSessionInFlight.get(code) as
+          Promise<ScorecardSession> | undefined;
+        if (existingInFlight) {
+          session = await existingInFlight;
+        } else {
+          const inFlightPromise = loadScorecardSession()
+            .then((loaded) => {
+              if (
+                personalScorecardSessionInFlight.get(code) === inFlightPromise &&
+                loaded &&
+                (loaded.status === 'RESULTS' ||
+                  loaded.status === 'FINISHED' ||
+                  loaded.status === 'DISCUSSION')
+              ) {
+                setCachedValue(
+                  personalScorecardSessionCache,
+                  code,
+                  loaded,
+                  CURRENT_QUESTION_CACHE_TTL_MS,
+                );
+              }
+              return loaded;
+            })
+            .finally(() => {
+              if (personalScorecardSessionInFlight.get(code) === inFlightPromise) {
+                personalScorecardSessionInFlight.delete(code);
+              }
+            });
+          personalScorecardSessionInFlight.set(code, inFlightPromise);
+          session = await inFlightPromise;
+        }
+      }
       if (!session) {
-        return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
+        return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
       await assertParticipantCapability({
         ctx,
@@ -11010,24 +11271,65 @@ const sessionCoreRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const session = await prisma.session.findUnique({
-        where: { code: input.code.toUpperCase() },
-        select: {
-          id: true,
-          status: true,
-          participantRevision: true,
-          questionProgress: true,
-          questionProgressComplete: true,
-          quiz: {
-            select: {
-              questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+      const code = input.code.toUpperCase();
+      const loadPersonalResultSession = () =>
+        prisma.session.findUnique({
+          where: { code },
+          select: {
+            id: true,
+            status: true,
+            participantRevision: true,
+            questionProgress: true,
+            questionProgressComplete: true,
+            quiz: {
+              select: {
+                questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+              },
             },
+            participants: { select: { id: true } },
           },
-          participants: { select: { id: true } },
-        },
-      });
+        });
+      type PersonalResultSession = Awaited<ReturnType<typeof loadPersonalResultSession>>;
+      const cachedSession = getCachedValue(
+        personalResultSessionCache as Map<string, CacheEntry<NonNullable<PersonalResultSession>>>,
+        code,
+      );
+      let session: PersonalResultSession;
+      if (cachedSession !== null) {
+        session = cachedSession;
+      } else {
+        const existingInFlight = personalResultSessionInFlight.get(code) as
+          Promise<PersonalResultSession> | undefined;
+        if (existingInFlight) {
+          session = await existingInFlight;
+        } else {
+          const inFlightPromise = loadPersonalResultSession()
+            .then((loaded) => {
+              if (
+                personalResultSessionInFlight.get(code) === inFlightPromise &&
+                loaded &&
+                loaded.status === 'FINISHED'
+              ) {
+                setCachedValue(
+                  personalResultSessionCache,
+                  code,
+                  loaded,
+                  CURRENT_QUESTION_CACHE_TTL_MS,
+                );
+              }
+              return loaded;
+            })
+            .finally(() => {
+              if (personalResultSessionInFlight.get(code) === inFlightPromise) {
+                personalResultSessionInFlight.delete(code);
+              }
+            });
+          personalResultSessionInFlight.set(code, inFlightPromise);
+          session = await inFlightPromise;
+        }
+      }
       if (!session) {
-        return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'pollReconnect');
+        return rejectInvalidSessionCode(undefined, code, 'pollReconnect');
       }
       await assertParticipantCapability({
         ctx,

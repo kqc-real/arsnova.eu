@@ -570,7 +570,15 @@ describe('TopToolbarComponent', () => {
       /outlined-input-text-placeholder-color:\s*var\(--mat-sys-on-surface-variant\)/,
     );
     expect(playful).toMatch(/filled-container-color:\s*var\(--mat-sys-surface-container-high\)/);
-    expect(playful).toMatch(/input::placeholder[\s\S]*--mat-sys-on-surface-variant/);
+    expect(playful).toMatch(
+      /\.mat-mdc-form-field\s+\.mat-mdc-input-element::placeholder[^{]*\{[^}]*--mat-sys-on-surface-variant/,
+    );
+    expect(playful).not.toMatch(
+      /\.mat-mdc-form-field\s+\.mat-mdc-input-element::placeholder[^{]*\{[^}]*opacity:\s*1/,
+    );
+    expect(playful).toMatch(
+      /input:not\(\.mat-mdc-input-element\)::placeholder[^{]*\{[^}]*opacity:\s*1/,
+    );
     expect(playful).toMatch(/--app-playful-field-fill:/);
     expect(playful).toMatch(/input\[type='datetime-local'\][\s\S]*?appearance:\s*auto/);
     expect(playful).toMatch(/-webkit-appearance:\s*auto/);

@@ -1299,7 +1299,7 @@ export function normalizeTimerAccommodation(value: unknown): TimerAccommodation 
   return 'DEFAULT';
 }
 
-/** Host-Schalter im Quiz; fehlend oder nicht `false` bleibt an (Default). */
+/** Host-Schalter im Quiz. Neue Quizzes speichern `false`; fehlender Legacy-Wert bleibt an. */
 export function isTimerAccommodationEnabled(value: boolean | null | undefined): boolean {
   return value !== false;
 }
@@ -1386,7 +1386,7 @@ export const CreateQuizInputSchema = z.object({
   allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
   timerScaleByDifficulty: z.boolean().optional().default(true),
-  enableTimerAccommodation: z.boolean().optional().default(true),
+  enableTimerAccommodation: z.boolean().optional().default(false),
   enableSoundEffects: z.boolean().optional().default(true),
   enableRewardEffects: z.boolean().optional().default(true),
   enableMotivationMessages: z.boolean().optional().default(true),
@@ -3780,6 +3780,7 @@ export const ConfidenceResultDTOSchema = z.object({
 export type ConfidenceResultDTO = z.infer<typeof ConfidenceResultDTOSchema>;
 
 export const ConfidenceQuestionSummaryDTOSchema = z.object({
+  questionId: z.uuid(),
   questionOrder: z.number().int().min(0),
   questionTextShort: z.string(),
   questionType: QuestionTypeEnum,
@@ -4413,6 +4414,19 @@ export type WordCloudNormalizationFallbackReason = z.infer<
 export const WordCloudAnalysisLocaleEnum = z.enum(WORD_CLOUD_LEMMA_LOCALES);
 export type WordCloudAnalysisLocale = z.infer<typeof WordCloudAnalysisLocaleEnum>;
 
+/** Lokale Wortextraktion unterstützt zusätzlich Italienisch. */
+export const WordCloudDisplayLocaleEnum = WordCloudAnalysisLocaleEnum.or(z.literal('it'));
+
+/**
+ * Darstellungsmetadaten. Bei älteren Snapshots und Projektionen können sie fehlen.
+ * mode bleibt die angeforderte bzw. in der Toolbar gewählte Variante.
+ */
+const WordCloudProjectionDisplaySchema = z.object({
+  effectiveMode: WordCloudAnalysisVariantEnum.optional(),
+  analysisStatus: WordCloudClusterStatusEnum.optional(),
+  analysisLanguage: WordCloudDisplayLocaleEnum.optional(),
+});
+
 /** Gewichtungsbasis für Q&A-Word-Cloud-Analysen. */
 export const WordCloudWeightMetricEnum = QaQuestionSortModeEnum;
 export type WordCloudWeightMetric = z.infer<typeof WordCloudWeightMetricEnum>;
@@ -4484,6 +4498,7 @@ export type WordCloudAnalysisEntryDTO = z.infer<typeof WordCloudAnalysisEntryDTO
 /** Output: Erklärbares Ergebnis einer Word-Cloud-Analyse. */
 export const WordCloudAnalysisResultDTOSchema = z.object({
   mode: WordCloudAnalysisVariantEnum,
+  effectiveMode: WordCloudAnalysisVariantEnum.optional(),
   locale: WordCloudAnalysisLocaleEnum,
   metric: WordCloudWeightMetricEnum,
   generatedAt: z.string(), // ISO-8601
@@ -4508,6 +4523,27 @@ export type WordCloudAnalysisResultDTO = z.infer<typeof WordCloudAnalysisResultD
 /** Output: Antwort auf einen zukünftigen `wordCloud.analyze`-Pfad. */
 export const AnalyzeWordCloudOutputSchema = WordCloudAnalysisResultDTOSchema;
 export type AnalyzeWordCloudOutput = z.infer<typeof AnalyzeWordCloudOutputSchema>;
+
+/** Lexical keys represent individual words or space-separated n-grams. */
+export function getWordCloudLexicalDisplayMode(
+  entries: readonly { key: string }[],
+): 'LEXICAL' | 'THEME' {
+  return entries.some(({ key }) => key.includes(' ')) ? 'THEME' : 'LEXICAL';
+}
+
+export function getWordCloudResultDisplayMode(
+  result: Pick<AnalyzeWordCloudOutput, 'mode' | 'status' | 'fallbackUsed' | 'entries'>,
+): WordCloudAnalysisVariant {
+  if (
+    result.mode === 'SEMANTIC' &&
+    !result.fallbackUsed &&
+    (result.status === 'ready' || result.status === 'uncertain') &&
+    result.entries.length > 0
+  ) {
+    return 'SEMANTIC';
+  }
+  return getWordCloudLexicalDisplayMode(result.entries);
+}
 
 export const QaWordCloudFilterEnum = z.enum(['ALL_ELIGIBLE', 'PINNED_ONLY']);
 export type QaWordCloudFilter = z.infer<typeof QaWordCloudFilterEnum>;
@@ -4568,7 +4604,7 @@ export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.exten
 export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
 
 /** Host-Q&A-Wortwolke, die der Presenter 1:1 projiziert (Variante, Metrik, Glättung, Analyse). */
-export const QaWordCloudPresenterProjectionDTOSchema = z.object({
+export const QaWordCloudPresenterProjectionDTOSchema = WordCloudProjectionDisplaySchema.extend({
   mode: WordCloudAnalysisVariantEnum,
   metric: WordCloudWeightMetricEnum,
   locale: WordCloudAnalysisLocaleEnum.nullable(),
@@ -4604,15 +4640,14 @@ export const FreetextWordCloudStageEntrySchema = z
   .strict();
 export type FreetextWordCloudStageEntry = z.infer<typeof FreetextWordCloudStageEntrySchema>;
 
-export const FreetextWordCloudPresenterProjectionDTOSchema = z
-  .object({
+export const FreetextWordCloudPresenterProjectionDTOSchema =
+  WordCloudProjectionDisplaySchema.extend({
     mode: WordCloudAnalysisVariantEnum,
     locale: WordCloudAnalysisLocaleEnum.nullable(),
     questionId: z.uuid(),
     smoothingActive: z.boolean(),
     entries: z.array(FreetextWordCloudStageEntrySchema).max(80),
-  })
-  .strict();
+  }).strict();
 export type FreetextWordCloudPresenterProjectionDTO = z.infer<
   typeof FreetextWordCloudPresenterProjectionDTOSchema
 >;
@@ -6576,10 +6611,15 @@ export const QaQuestionsListDTOSchema = z.object({
   sessionRemaining: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION).optional(),
   quota: QaQuestionQuotaDTOSchema.optional(),
   /**
-   * Presenter-Projektion: aktuelle Host-Sortierung der Warteschlange
+   * Presenter-Projektion: aktuelle Bühnen-Sortierung der Warteschlange
    * (`qa.setPresenterSortMode` → `qa.presentProjection`).
    */
   sortMode: QaQuestionSortModeEnum.optional(),
+  /**
+   * Wer die Bühnen-Sortierung zuletzt gesetzt hat. Fehlt der Wert, ist die
+   * Sortierung nur der implizite Default (z. B. nach einem Backend-Neustart).
+   */
+  sortModeSource: z.enum(['host', 'presenter']).optional(),
   /**
    * Von der Moderation für das Q&A-Forum hinterlegte Aufträge (nur `session`- oder
    * `qa-question`-bezogene manuelle Einträge, keine Quiz-Lernziele).
@@ -6638,17 +6678,24 @@ export const GetQaPresentProjectionInputSchema = z.object({
 });
 export type GetQaPresentProjectionInput = z.infer<typeof GetQaPresentProjectionInputSchema>;
 
+export const QaPresenterSortSourceSchema = z.enum(['host', 'presenter']);
+export type QaPresenterSortSource = z.infer<typeof QaPresenterSortSourceSchema>;
+
 /**
- * Host publiziert die aktuelle Q&A-Sortierung an die Presenter-Projektion
- * (ephemer, session-code-gebunden; analog zur Wortwolken-Projektion).
- * Optional: präsentierbarer Such-/Pin-/Autor-Filter, damit Host-Navigator und
- * Beamer dieselbe Bühnenliste teilen.
+ * Host oder Presenter publiziert die aktuelle Q&A-Sortierung an die
+ * Presenter-Projektion (ephemer, session-code-gebunden; analog zur
+ * Wortwolken-Projektion). Optional: präsentierbarer Such-/Pin-/Autor-Filter,
+ * damit Host-Navigator und Beamer dieselbe Bühnenliste teilen.
+ * `source: 'presenter'` ändert nur die Sortierung und behält den Filter.
+ * Ein Host-Schreiben überschreibt eine Presenter-Sortierung nur mit `takeover`.
  */
 export const SetQaPresenterSortModeInputSchema = GetSessionInfoInputSchema.extend({
   sortMode: QaQuestionSortModeEnum,
   search: z.string().trim().max(100).optional().default(''),
   pinnedOnly: z.boolean().optional().default(false),
   authorNickname: z.string().trim().min(1).max(30).optional(),
+  source: QaPresenterSortSourceSchema.optional(),
+  takeover: z.boolean().optional(),
 });
 export type SetQaPresenterSortModeInput = z.infer<typeof SetQaPresenterSortModeInputSchema>;
 
@@ -6657,6 +6704,7 @@ export const SetQaPresenterSortModeOutputSchema = z.object({
   search: z.string(),
   pinnedOnly: z.boolean(),
   authorNickname: z.string().nullable(),
+  source: QaPresenterSortSourceSchema.optional(),
 });
 export type SetQaPresenterSortModeOutput = z.infer<typeof SetQaPresenterSortModeOutputSchema>;
 

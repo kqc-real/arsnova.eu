@@ -225,7 +225,7 @@ sequenceDiagram
         U->>Home: Sync-Link oder Sync-ID eingeben
         Home->>Store: activateSyncRoom(docId, { markShared: true, secureAsOrigin: false })
         Store->>Store: librarySharingMode = shared
-        Store->>Store: kein Origin-Claim; Token aus #s= (Legacy-Link: ?s=)
+        Store->>Store: kein Origin-Claim, Token aus Hash-Fragment s oder Legacy-Query s
     end
 ```
 

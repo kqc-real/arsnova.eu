@@ -57,14 +57,14 @@ Wenn der Server **nicht** aus **`dist/browser`** bedient wird, liefert die SPA b
 
 ## Umgesetzte Optimierungen
 
-| Maßnahme                            | Zweck                                                                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **System-Schriften**                | Keine Google-Fonts-Requests; dadurch kein externer Font-Fetch und kein Google-Verbindungsaufbau.             |
-| **Selbst gehostete Material Icons** | `material-icons.woff2` liegt unter `assets/fonts/`; Icons laden vom eigenen Server mit `font-display: swap`. |
-| **Keine Font-Preconnects**          | Keine `preconnect`-Einträge zu Google-Font-Domains mehr notwendig.                                           |
-| **Lazy Loading**                    | Alle Routen (Home, Quiz, Session, Legal) laden ihre Komponenten per `loadComponent()` (Code-Splitting).      |
-| **Bundle-Budgets**                  | `angular.json`: initial max. 1.70 MB (Warning), 1.86 MB (Error).                                             |
-| **Service Worker**                  | PWA/ngsw für Production – Caching bei wiederholten Besuchen.                                                 |
+| Maßnahme                              | Zweck                                                                                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **System-Schriften**                  | Keine Google-Fonts-Requests; dadurch kein externer Font-Fetch und kein Google-Verbindungsaufbau.                        |
+| **Selbst gehostete Material Symbols** | `material-symbols-outlined.woff2` liegt unter `assets/fonts/`; Icons laden vom eigenen Server mit `font-display: swap`. |
+| **Keine Font-Preconnects**            | Keine `preconnect`-Einträge zu Google-Font-Domains mehr notwendig.                                                      |
+| **Lazy Loading**                      | Alle Routen (Home, Quiz, Session, Legal) laden ihre Komponenten per `loadComponent()` (Code-Splitting).                 |
+| **Bundle-Budgets**                    | `angular.json`: initial max. 2.25 MB (Warning), 2.45 MB (Error).                                                        |
+| **Service Worker**                    | PWA/ngsw für Production – Caching bei wiederholten Besuchen.                                                            |
 
 ## DoD-Checks: 320px & Accessibility
 

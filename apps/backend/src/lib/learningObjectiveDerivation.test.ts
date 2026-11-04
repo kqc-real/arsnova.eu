@@ -311,7 +311,7 @@ describe('learningObjectiveDerivation', () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it('discards partial output and stops after busy without an automatic retry', async () => {
+  it('keeps finished drafts when a later batch is busy and does not retry automatically', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
       choiceQuestion(id, index, '🧪'.repeat(170)),
     );
@@ -325,6 +325,13 @@ describe('learningObjectiveDerivation', () => {
     expect(result).toMatchObject({ status: 'busy', retry: 'manual' });
     expect(run).toHaveBeenCalledTimes(2);
     expect(result).not.toHaveProperty('drafts');
+    if (result.status !== 'busy') throw new Error('busy result expected');
+    const finishedRequest = run.mock.calls[0]?.[0] as OpenWeightLlmLearningObjectivesRequest;
+    expect(result.progress?.drafts).toHaveLength(1);
+    expect(result.progress?.coveredSourceQuestionIds).toEqual(
+      finishedRequest.questions.map((question) => question.id),
+    );
+    expect(result.progress?.queuedObjectives).toBe(1);
   });
 
   it('reports deterministic capacity capping and an empty completed model result explicitly', async () => {
@@ -374,7 +381,29 @@ describe('learningObjectiveDerivation', () => {
     });
   });
 
-  it('stops between batches when the host cancels and exposes no partial draft', async () => {
+  it('returns the runtime status before publishing question-group progress', async () => {
+    const run = vi.fn();
+    const onProgress = vi.fn();
+    const unavailable = await deriveLearningObjectiveDrafts(
+      input([choiceQuestion(QUESTION_IDS[0])]),
+      {
+        run,
+        onProgress,
+        preflight: async () => 'unavailable',
+      },
+    );
+    expect(unavailable).toMatchObject({ status: 'unavailable' });
+    const disabled = await deriveLearningObjectiveDrafts(input([choiceQuestion(QUESTION_IDS[0])]), {
+      run,
+      onProgress,
+      preflight: async () => 'disabled',
+    });
+    expect(disabled).toMatchObject({ status: 'disabled' });
+    expect(run).not.toHaveBeenCalled();
+    expect(onProgress).not.toHaveBeenCalled();
+  });
+
+  it('stops between batches when the host cancels and keeps only finished drafts', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
       choiceQuestion(id, index, '🧪'.repeat(170)),
     );
@@ -383,13 +412,43 @@ describe('learningObjectiveDerivation', () => {
       controller.abort();
       return successfulBatch(request);
     });
+    const published: Array<{
+      completedGroups: number;
+      totalGroups: number;
+      promptTokens: number;
+      completionTokens: number;
+    }> = [];
     const result = await deriveLearningObjectiveDrafts(input(questions), {
       run,
       signal: controller.signal,
+      onProgress: (progress) => {
+        published.push(progress);
+      },
     });
-    expect(result).toMatchObject({ status: 'aborted' });
+    expect(result).toMatchObject({
+      status: 'aborted',
+      progress: {
+        completedGroups: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+      },
+    });
+    expect(result.status === 'aborted' && result.progress.totalGroups).toBeGreaterThan(1);
     expect(run).toHaveBeenCalledTimes(1);
     expect(result).not.toHaveProperty('drafts');
+    if (result.status === 'aborted') {
+      expect(result.progress.drafts).toEqual([]);
+      expect(result.progress.coveredSourceQuestionIds).toEqual([]);
+    }
+    expect(published[0]).toMatchObject({
+      completedGroups: 0,
+      totalGroups: result.status === 'aborted' ? result.progress.totalGroups : 0,
+    });
+    expect(published.at(-1)).toMatchObject({
+      completedGroups: 0,
+      promptTokens: 0,
+      completionTokens: 0,
+    });
   });
 
   it('bounds the complete multi-batch lifecycle and releases the active run after deadline', async () => {
@@ -426,7 +485,22 @@ describe('learningObjectiveDerivation', () => {
       run,
       overallTimeoutMs: 15,
     });
-    expect(timedOut).toMatchObject({ status: 'timeout' });
+    expect(timedOut).toMatchObject({
+      status: 'timeout',
+      progress: {
+        completedGroups: 1,
+        promptTokens: 120,
+        completionTokens: 24,
+        queuedObjectives: 1,
+      },
+    });
+    if (timedOut.status !== 'timeout') throw new Error('timeout result expected');
+    const finishedRequest = run.mock.calls[0]?.[0] as OpenWeightLlmLearningObjectivesRequest;
+    expect(timedOut.progress.drafts).toHaveLength(1);
+    expect(timedOut.progress.drafts[0]?.text.length).toBeGreaterThan(0);
+    expect(timedOut.progress.coveredSourceQuestionIds).toEqual(
+      finishedRequest.questions.map((question) => question.id),
+    );
     expect(run).toHaveBeenCalledTimes(2);
     expect(active).toBe(false);
 
@@ -489,6 +563,9 @@ describe('learningObjectiveDerivation', () => {
         },
       });
       expect(result).toMatchObject({ status: 'invalid_response' });
+      if (result.status !== 'invalid_response') throw new Error('invalid response expected');
+      expect(result.progress?.drafts).toHaveLength(1);
+      expect(result.progress?.coveredSourceQuestionIds.length).toBeGreaterThan(0);
       expect(info).toHaveBeenCalledWith('learning_objectives:batch_completed', {
         batch: 1,
         batchCount: expect.any(Number),
@@ -508,6 +585,89 @@ describe('learningObjectiveDerivation', () => {
       info.mockRestore();
       warn.mockRestore();
     }
+  });
+
+  it('drops question ids from model-authored objective text before storing a draft', async () => {
+    const questionId = QUESTION_IDS[0];
+    const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+        taskType: 'learning_objectives' as const,
+        objectives: [
+          {
+            text: `Determine the proper order of firewall, load balancer, and certificate configuration for secure web access according to question id ${request.questions[0]!.id}. Aufbau der UUID 123e4567-e89b-12d3-a456-426614174000 erklären.`,
+            questionIds: [request.questions[0]!.id],
+          },
+          {
+            text: request.questions[0]!.id,
+            questionIds: [request.questions[0]!.id],
+          },
+        ],
+        limitations: [],
+      },
+      telemetry,
+    }));
+    const result = await deriveLearningObjectiveDrafts(input([choiceQuestion(questionId)]), {
+      run,
+      now: () => new Date('2026-10-05T12:00:00.000Z'),
+    });
+    expect(result).toMatchObject({
+      status: 'completed',
+      drafts: [
+        {
+          text: 'Determine the proper order of firewall, load balancer, and certificate configuration for secure web access. Aufbau der UUID 123e4567-e89b-12d3-a456-426614174000 erklären.',
+          scope: { kind: 'question-set', sourceQuestionIds: [questionId] },
+        },
+      ],
+    });
+    expect(JSON.stringify(result)).not.toContain('according to question id');
+  });
+
+  it('capitalizes lowercase model-authored infinitive phrases in the requested locale', async () => {
+    const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+        taskType: 'learning_objectives' as const,
+        objectives: [
+          { text: '  lineare   Modelle anwenden  ', questionIds: [request.questions[0]!.id] },
+          { text: 'überprüfen, ob die Annahme gilt', questionIds: [request.questions[0]!.id] },
+        ],
+        limitations: [],
+      },
+      telemetry,
+    }));
+    const german = await deriveLearningObjectiveDrafts(input([choiceQuestion(QUESTION_IDS[0])]), {
+      run,
+      now: () => new Date('2026-10-05T12:00:00.000Z'),
+    });
+    expect(german).toMatchObject({
+      status: 'completed',
+      drafts: [{ text: 'Lineare Modelle anwenden.' }, { text: 'Überprüfen, ob die Annahme gilt.' }],
+    });
+
+    const frenchInput = { ...input([choiceQuestion(QUESTION_IDS[0])]), locale: 'fr' as const };
+    const frenchRun = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+        taskType: 'learning_objectives' as const,
+        objectives: [
+          { text: 'établir un modèle linéaire', questionIds: [request.questions[0]!.id] },
+        ],
+        limitations: [],
+      },
+      telemetry,
+    }));
+    const french = await deriveLearningObjectiveDrafts(frenchInput, {
+      run: frenchRun,
+      now: () => new Date('2026-10-05T12:00:00.000Z'),
+    });
+    expect(french).toMatchObject({
+      status: 'completed',
+      drafts: [{ text: 'Établir un modèle linéaire.' }],
+    });
   });
 
   it('discards model-authored boilerplate and creates deterministic draft IDs and digests', async () => {
@@ -552,7 +712,7 @@ describe('learningObjectiveDerivation', () => {
       limitations: [],
       drafts: [
         {
-          text: 'Ableiten können',
+          text: 'Ableiten können.',
           origin: {
             modelId: OPEN_WEIGHT_LLM_MODEL_ID,
             modelVersion: OPEN_WEIGHT_LLM_MODEL_VERSION,

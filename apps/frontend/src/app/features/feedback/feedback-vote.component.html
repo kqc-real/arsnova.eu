@@ -84,7 +84,7 @@
     <mat-card appearance="outlined" class="feedback-vote__card" role="alert">
       <mat-card-content class="feedback-vote__done">
         <mat-icon class="feedback-vote__status-icon feedback-vote__status-icon--error"
-          >error_outline</mat-icon
+          >error</mat-icon
         >
         <p class="feedback-vote__done-text">{{ err }}</p>
         @if (!embeddedInSession()) {
@@ -205,9 +205,7 @@
               [disabled]="submitting()"
               [attr.aria-label]="starRatingAriaLabel(star)"
             >
-              <mat-icon aria-hidden="true">{{
-                star <= hoveredStar() ? 'star' : 'star_border'
-              }}</mat-icon>
+              <mat-icon aria-hidden="true">star</mat-icon>
             </button>
           }
         </div>
@@ -279,7 +277,7 @@
         @if (isTempoFeedback() && showAskQuestionButton()) {
           <button type="button" class="feedback-vote__ask-question" (click)="askQuestion.emit()">
             <mat-icon class="feedback-vote__ask-question-icon" aria-hidden="true"
-              >chat_bubble_outline</mat-icon
+              >chat_bubble</mat-icon
             >
             <span i18n="@@feedback.voteAskQuestion">Ich habe eine Frage</span>
           </button>

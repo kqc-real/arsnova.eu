@@ -13,7 +13,7 @@
 - **Moderationshilfe:** **8.9a** regelbasiert im Host; **8.9b** asynchron, Host-only, `QA_NLP_ENABLED` default aus; **8.9c** Slices 1–3 (Vertrag, Host-Button, privater Adapter, Loopback-Helfer), Kill-Switch default aus, echtes Modell erst mit Slice 4 nach 1.14c Stufe 1. Kanonisch: [moderation-compass.md](../features/moderation-compass.md), [qa-nlp-moderation.md](../features/qa-nlp-moderation.md), [qa-summary.md](../features/qa-summary.md). Diagramm: [diagrams.md §1.3](../diagrams/diagrams.md).
 - **Plattformstatistik:** Rekord **max. Teilnehmende je Session** (`PlatformStatistic`) plus 30-Tage-Verlauf der Session-Tagesrekorde (`DailyStatistic`, `dailyHighscores`) in `health.stats` und im Server-Status-Hilfedialog.
 - **Quiz-Bewertung:** `SINGLE_CHOICE`, `MULTIPLE_CHOICE` und `SHORT_TEXT` sind bewertbare Fragetypen; Leaderboards, Teamwertung, Bonus-Codes und Scorecards nutzen die gemeinsame Effective-Vote-Regel aus ADR-0028.
-- **Offene Zielbilder:** Story **2.10** plant separat widerrufbare Paired Hosts für eigene Zweitgeräte und persönlich vertrauenswürdige Tutor:innen oder Moderator:innen; eine eingeschränkte Moderatorrolle ist nicht vorgesehen. Tempo ist als vordefiniertes Blitzlicht-Template im aktuellen `quickFeedback`-Code umgesetzt.
+- **Offene Zielbilder:** Story **2.10** plant separat widerrufbare Paired Hosts für eigene Zweitgeräte und persönlich vertrauenswürdige Tutor:innen oder Moderator:innen; eine eingeschränkte Moderatorrolle ist nicht vorgesehen. Tempo ist als vordefiniertes Blitzlicht-Template im aktuellen `quickFeedback`-Code umgesetzt. [ADR-0037](./decisions/0037-optional-instance-create-gate.md) (Proposed, [#575](https://github.com/kqc-real/arsnova.eu/issues/575)) skizziert einen optionalen Instanzmodus, der Public Creates hinter einem Freigabecode sperrt, ohne Local-First oder die offene Referenzinstanz als Default aufzugeben.
 
 ## 1. Einleitung & Philosophie
 
@@ -27,10 +27,10 @@ Das Hauptziel dieses Systems ist es, ein hochperformantes Audience-Response-Syst
 
 Wir setzen auf einen modernen, stark typisierten TypeScript-Stack (Full-Stack), der auf Typsicherheit, Entwicklererfahrung (DX) und Echtzeit-Performance optimiert ist.
 
-- **Frontend:** Angular **21.2.x** mit **Signals** (Zustandsverwaltung), **Standalone Components** und **Angular Material 3** (tokenbasiert, im Angular-Frontend ohne Tailwind).
+- **Frontend:** Angular **22.2.x** mit **Signals** (Zustandsverwaltung), **Standalone Components** und **Angular Material 3** (tokenbasiert, im Angular-Frontend ohne Tailwind).
 - **Backend:** Node.js API mit **tRPC v11** (für typsichere Aufrufe und WebSocket-Subscriptions).
 - **Schemas:** **Zod v4** in `@arsnova/shared-types` und Backend-Routern; DTOs werden ueber `.input()` / `.output()` an tRPC-Prozeduren gebunden.
-- **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM 7.4.x**.
+- **Datenbank (Persistenz):** **PostgreSQL** angebunden über **Prisma ORM 7.9.1**.
 - **Echtzeit-Broker (Flüchtig):** **Redis** (Rate-Limiting, Blitzlicht-/Session-Code-Zustand, Tempo-Buckets, Sliding-Windows). Live-Updates in Sessions laufen über **tRPC-WebSocket-Subscriptions**; Status- und Teilnehmerpfade sind inzwischen bevorzugt signalgetrieben mit seltenem Resync, einzelne Live-Pfade nutzen weiterhin gezieltes Polling/Fallbacks. Es gibt keinen zentralen Redis-Pub/Sub-Pfad für jedes Frage-Event.
 - **Offline & Sync Engine:** **Yjs** (CRDTs für die Local-First Speicherung im Browser).
 

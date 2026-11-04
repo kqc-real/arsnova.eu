@@ -1,12 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setHostToken } from '../../../core/host-session-token';
 import {
+  hostViewWindowName,
   isPresenterViewOffered,
   openPresenterViewWindow,
   PRESENTER_VIEW_OFFERED_MEDIA,
+  pushCurrentHostTokenToPresenter,
   presenterViewPath,
   presenterViewWindowName,
   presenterWindowOpenFeatures,
+  returnToHostWindow,
   shouldOpenPresenterInUnnamedTab,
 } from './presenter-window.util';
 
@@ -39,7 +42,7 @@ describe('presenter-window.util', () => {
         fullscreenElement: null,
       },
     };
-    const open = vi.fn(() => opened);
+    const open = vi.fn((_url?: string, _target?: string, _features?: string) => opened);
     const win = {
       open,
       navigator: { maxTouchPoints: 0 },
@@ -234,6 +237,23 @@ describe('presenter-window.util', () => {
     ).toBe(false);
   });
 
+  it('schreibt einen erneuerten Host-Token in das offene Presenter-Fenster', () => {
+    setHostToken('ABC123', 'fresh-host-token-abcdefghijklmnopqrstuvwxyz');
+    const storage = { setItem: vi.fn() };
+    const known = {
+      closed: false,
+      sessionStorage: storage,
+    } as unknown as Window;
+
+    const result = pushCurrentHostTokenToPresenter(window, 'abc123', known);
+
+    expect(result).toBe(known);
+    expect(storage.setItem).toHaveBeenCalledWith(
+      'arsnova-host-token:ABC123',
+      'fresh-host-token-abcdefghijklmnopqrstuvwxyz',
+    );
+  });
+
   it('nutzt einen session-spezifischen Fensternamen', () => {
     expect(presenterViewWindowName('abc123')).toBe('arsnova-presenter-ABC123');
     expect(presenterViewWindowName('abc123')).not.toBe(presenterViewWindowName('xyz789'));
@@ -279,5 +299,104 @@ describe('presenter-window.util', () => {
     } as unknown as Window;
 
     expect(isPresenterViewOffered(win)).toBe(false);
+  });
+
+  it('benennt das Host-Fenster, bevor der Presenter öffnet', async () => {
+    const opened = {
+      closed: false,
+      location: { pathname: 'blank', replace: vi.fn() },
+      sessionStorage: window.sessionStorage,
+      focus: vi.fn(),
+      document: { documentElement: {}, fullscreenEnabled: true, fullscreenElement: null },
+    };
+    const win = {
+      name: '',
+      open: vi.fn(() => opened),
+      navigator: { maxTouchPoints: 0 },
+      matchMedia: () => ({ matches: false }),
+      screen: { availWidth: 1280, availHeight: 720, availLeft: 0, availTop: 0 },
+      innerWidth: 1280,
+      innerHeight: 720,
+    } as unknown as Window;
+
+    await openPresenterViewWindow(win, 'abc123', persistMock());
+
+    expect(win.name).toBe(hostViewWindowName('abc123'));
+  });
+
+  it('fokussiert den Host auf einem erweiterten Desktop ohne das Vollbild zu verlassen', () => {
+    const exitFullscreen = vi.fn();
+    const opener = {
+      closed: false,
+      name: '',
+      location: { pathname: '/de/session/ABC123/host', hash: '' },
+      focus: vi.fn(),
+    };
+    const presenter = {
+      opener,
+      screen: { isExtended: true },
+      open: vi.fn(() => opener),
+    } as unknown as Window;
+
+    expect(returnToHostWindow(presenter, 'ABC123', { fullscreen: true, exitFullscreen })).toBe(
+      'focused',
+    );
+    expect(exitFullscreen).not.toHaveBeenCalled();
+    expect(opener.focus).toHaveBeenCalled();
+  });
+
+  it('verlässt das Vollbild auf einem einzelnen Bildschirm und fokussiert den Host', () => {
+    const exitFullscreen = vi.fn();
+    const opener = {
+      closed: false,
+      name: '',
+      location: { pathname: '/de/session/ABC123/host', hash: '' },
+      focus: vi.fn(),
+    };
+    const presenter = {
+      opener,
+      screen: { isExtended: false },
+      open: vi.fn(() => opener),
+    } as unknown as Window;
+
+    expect(returnToHostWindow(presenter, 'ABC123', { fullscreen: true, exitFullscreen })).toBe(
+      'focused',
+    );
+    expect(exitFullscreen).toHaveBeenCalledOnce();
+  });
+
+  it('öffnet den Host in einem eigenen Fenster, wenn kein Host-Tab mehr erreichbar ist', () => {
+    const exitFullscreen = vi.fn();
+    const blank = {
+      closed: false,
+      location: { href: 'about:blank', pathname: 'blank' },
+      close: vi.fn(),
+    };
+    const opened = { closed: false, focus: vi.fn() };
+    const open = vi.fn().mockReturnValueOnce(blank).mockReturnValueOnce(opened);
+    const presenter = {
+      opener: null,
+      screen: { isExtended: false },
+      open,
+    } as unknown as Window;
+
+    expect(returnToHostWindow(presenter, 'ABC123', { fullscreen: false, exitFullscreen })).toBe(
+      'opened',
+    );
+    expect(blank.close).toHaveBeenCalled();
+    expect(opened.focus).toHaveBeenCalled();
+    expect(exitFullscreen).not.toHaveBeenCalled();
+  });
+
+  it('meldet ein blockiertes Host-Fenster', () => {
+    const presenter = {
+      opener: null,
+      screen: { isExtended: false },
+      open: vi.fn(() => null),
+    } as unknown as Window;
+
+    expect(
+      returnToHostWindow(presenter, 'ABC123', { fullscreen: false, exitFullscreen: vi.fn() }),
+    ).toBe('blocked');
   });
 });

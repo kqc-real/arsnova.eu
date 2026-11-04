@@ -1,4 +1,4 @@
-import type { QaQuestionSortMode } from '@arsnova/shared-types';
+import type { QaPresenterSortSource, QaQuestionSortMode } from '@arsnova/shared-types';
 
 /** Ephemerer Host→Presenter-Bühnenkontext, gebunden an die unveränderliche Session-ID. */
 export type QaPresenterStageView = {
@@ -6,6 +6,7 @@ export type QaPresenterStageView = {
   search: string;
   pinnedOnly: boolean;
   authorNickname: string | null;
+  source: QaPresenterSortSource;
 };
 
 const qaPresenterStageViewBySessionId = new Map<string, QaPresenterStageView>();
@@ -18,10 +19,15 @@ const QA_PRESENTER_STAGE_VIEW_DEFAULT: QaPresenterStageView = {
   search: '',
   pinnedOnly: false,
   authorNickname: null,
+  source: 'host',
 };
 
 export function setQaPresenterSortMode(sessionId: string, sortMode: QaQuestionSortMode): void {
   setQaPresenterStageView(sessionId, { sortMode });
+}
+
+export function hasQaPresenterStageView(sessionId: string): boolean {
+  return qaPresenterStageViewBySessionId.has(sessionId);
 }
 
 export function setQaPresenterStageView(
@@ -31,13 +37,28 @@ export function setQaPresenterStageView(
     search?: string;
     pinnedOnly?: boolean;
     authorNickname?: string | null;
+    source?: QaPresenterSortSource;
   },
+  options?: { takeover?: boolean },
 ): QaPresenterStageView {
+  const stored = qaPresenterStageViewBySessionId.get(sessionId);
+  const source = view.source ?? 'host';
+  // Automatische Host-Republishes (Reconnect, Abo, Restart-Heal) lassen eine
+  // am Presenter gewählte Sortierung stehen. Nur takeover ersetzt sie.
+  if (stored?.source === 'presenter' && source === 'host' && options?.takeover !== true) {
+    return stored;
+  }
+  const keepFilters = source === 'presenter' && stored !== undefined;
   const normalized: QaPresenterStageView = {
     sortMode: view.sortMode,
-    search: (view.search ?? '').trim(),
-    pinnedOnly: view.pinnedOnly === true,
-    authorNickname: view.authorNickname?.trim() ? view.authorNickname.trim() : null,
+    search: keepFilters ? stored.search : (view.search ?? '').trim(),
+    pinnedOnly: keepFilters ? stored.pinnedOnly : view.pinnedOnly === true,
+    authorNickname: keepFilters
+      ? stored.authorNickname
+      : view.authorNickname?.trim()
+        ? view.authorNickname.trim()
+        : null,
+    source,
   };
   qaPresenterStageViewBySessionId.set(sessionId, normalized);
   return normalized;

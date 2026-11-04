@@ -289,17 +289,17 @@
     },
     "qa.deleteOwn": {
       "kind": "mutation",
-      "fingerprint": "sha256:3df2ae3e828844468ec5b81f3602ce023436dad35eedf8b876e81c90e8f6be05",
+      "fingerprint": "sha256:7b531e4f3f8040561e3cf75d10d7a608880d7d425468d443dca3c087d7f51359",
       "missing": []
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:13fb1c79607d8c4c00ca6b8d20b026d073ba5515750dc82ef679517709153064",
+      "fingerprint": "sha256:7182e52029eab9153f76f84be240ad8dde4872dbfc90f4e40f07d8d5737b3cde",
       "missing": []
     },
     "qa.moderate": {
       "kind": "mutation",
-      "fingerprint": "sha256:379b1cec15a8bcca899176627db7985e3e0838b47b8383305e7e9dbfc0bb6ee9",
+      "fingerprint": "sha256:4be439e14234a08756a73b887db81afa8da0ce95eff774fa8923838594f6d4d2",
       "missing": []
     },
     "qa.nlpRuntime": {
@@ -309,7 +309,7 @@
     },
     "qa.onQuestionsUpdated": {
       "kind": "subscription",
-      "fingerprint": "sha256:12f03f9a622ef9836ee312317e3b7aa012b6d9aaf244248c66506d3d0d2d6236",
+      "fingerprint": "sha256:0f36496337c1e599ce0ca79b0ccc8fd1fc2018f0a381ee6f79bb65391dba7cc3",
       "missing": []
     },
     "qa.pendingReleaseSnapshot": {
@@ -319,7 +319,7 @@
     },
     "qa.presentProjection": {
       "kind": "query",
-      "fingerprint": "sha256:7d5e976db66d20f8fc3f9dcf2e41f045c234daec83d67abd552607a058f3447a",
+      "fingerprint": "sha256:c379cfb665f2e56d64d5f8454c2297bc0c53ffcc21bf0cf06fb81f487643a107",
       "missing": []
     },
     "qa.redactPassages": {
@@ -329,7 +329,7 @@
     },
     "qa.releasePending": {
       "kind": "mutation",
-      "fingerprint": "sha256:cf36a801ed7de3470e3cf8725492bb557e2cfae1b74bcf23660cefcbc3613183",
+      "fingerprint": "sha256:a81d10809b21c7b387b463163c7ecfa3d6b561725ed479637673fd9deac576c8",
       "missing": []
     },
     "qa.requestSummary": {
@@ -339,12 +339,12 @@
     },
     "qa.setPresenterSortMode": {
       "kind": "mutation",
-      "fingerprint": "sha256:732e4f1aac7dd26be15c5f2a5d470f12f9253a984f039b631752a8d3fe3dcd54",
+      "fingerprint": "sha256:a769039541a750b0139e913bddd8ce1680745934b0b148a6424e9407d408d398",
       "missing": []
     },
     "qa.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:8df389d12678287c5257152742810709c014b0fa721eeafd48e6acd680c636d3",
+      "fingerprint": "sha256:12e440b20a0f9f63a20a597d68ce819be7aa84ea1c24fb8c60d5462982aa633a",
       "missing": []
     },
     "qa.summaryContextPreview": {
@@ -454,7 +454,12 @@
     },
     "quiz.deriveLearningObjectives": {
       "kind": "mutation",
-      "fingerprint": "sha256:f105ce4d2ecd57e31bd021dad15281ad26a040172369e48bfd9cc816e2432ff3",
+      "fingerprint": "sha256:b831eb45bf2ea2a57d2262391ca7cf1d6ad6106d4cf6be2ba232e50f53a17711",
+      "missing": []
+    },
+    "quiz.getLearningObjectiveDerivationProgress": {
+      "kind": "query",
+      "fingerprint": "sha256:9c2524a32aad13a4032e52bb46bc07978b9b073e685e2db071cd58eaadf00ab8",
       "missing": []
     },
     "quiz.prepareLearningObjectiveDerivation": {
@@ -464,7 +469,7 @@
     },
     "quiz.upload": {
       "kind": "mutation",
-      "fingerprint": "sha256:26814d1d0894b534d397d367b908cfe368611921cd1b65ca334e655dce127485",
+      "fingerprint": "sha256:61e8fab688a430e46edd015d7d39b654a5e93176b0c1cb3751bc21fb314d953b",
       "missing": []
     },
     "quizSync.createShare": {
@@ -574,7 +579,7 @@
     },
     "session.end": {
       "kind": "mutation",
-      "fingerprint": "sha256:f77cae56e381a12f98a2b0af28283160e8db792292e63cd4d0b908ab003ee804",
+      "fingerprint": "sha256:0bf1e077497710c97c1bbe7979f568b63ba6afa0ba5fbe9dae2dd1777280fdb8",
       "missing": []
     },
     "session.getActiveQuizIds": {
@@ -599,7 +604,7 @@
     },
     "session.getCurrentQuestionForStudent": {
       "kind": "query",
-      "fingerprint": "sha256:b18fd56f1b8f4b4c71fda8f940d88e717570d6653fd9159d96063567cce9641a",
+      "fingerprint": "sha256:6bc60b79f04c838f959ab25ac7aca999440da0f1a167d67f5e0fc47e74243beb",
       "missing": []
     },
     "session.getExportData": {
@@ -704,12 +709,12 @@
     },
     "session.getPersonalResult": {
       "kind": "query",
-      "fingerprint": "sha256:8076604746b366151e0c1ed704f1141b05369d73e8850c1cd5d27de56349d52c",
+      "fingerprint": "sha256:712ddac80c0a8ee648001919a1fbc4b9b0563abcb500bf50a2078005dd9e6e53",
       "missing": []
     },
     "session.getPersonalScorecard": {
       "kind": "query",
-      "fingerprint": "sha256:7b0fca84537dc26713ee151c52955dc4c00bc6c255e4401f3a60053a21adffa1",
+      "fingerprint": "sha256:ee8cd0e1720b1c87feb115813f051734940330070025ef33cf1cd69be9f2817e",
       "missing": []
     },
     "session.getQaWordCloudProjection": {
@@ -764,7 +769,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:d4039d29d5bc8c4c239d5dafa352a8d9448ed0681928e45a235ac1f46db9ae89",
+      "fingerprint": "sha256:e5f3be8da4280e4a516c15fa71a6a195ffe94b305c1d3d2a6df8f7ee2c7cc582",
       "missing": []
     },
     "session.listPairedHosts": {
@@ -779,7 +784,7 @@
     },
     "session.nextQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:b5efa4c5254d2b7445f920e86225fc5f051aa48d2be4c23fd7448d566fcdd8d8",
+      "fingerprint": "sha256:eb8fb8b2af5b8b6258905dcc6f604a7cae100d290c463c08a1315d777700b175",
       "missing": []
     },
     "session.onCurrentQuestionForHostChanged": {
@@ -909,7 +914,7 @@
     },
     "session.setTimerAccommodation": {
       "kind": "mutation",
-      "fingerprint": "sha256:8bb0ba8e2956a30cbedc9137427e473389a1adae146ae957cf0af14b21a729dd",
+      "fingerprint": "sha256:6755019597856c58f1e3aec04a82006db7cf40c94a83ef993ab9a15480fdd362",
       "missing": []
     },
     "session.showQuestionResult": {
@@ -919,7 +924,7 @@
     },
     "session.skipQuestion": {
       "kind": "mutation",
-      "fingerprint": "sha256:08dd54c15adb9da378c7a1e7d8682e7479022370ed5e5febead4e513406739f4",
+      "fingerprint": "sha256:37d59acc9128cecc0c30375edd654658b8b079b2d7f064122ec33cd3180f09dc",
       "missing": []
     },
     "session.startDiscussion": {
@@ -964,7 +969,7 @@
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:638fad76a8113b032b51d9a7ec9a4c73bf73386414d35089c687c08cbe4373e1",
+      "fingerprint": "sha256:2d5a05bd02fa533152cbc7ab7a284a5be14bbc39726ed99f71a6dada3913985f",
       "missing": []
     }
   }

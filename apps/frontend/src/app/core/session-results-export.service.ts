@@ -16,6 +16,13 @@ export interface SessionResultsPdfExportOptions {
   profile?: SessionResultsPdfProfile;
   disposition?: SessionResultsPdfDisposition;
   onLargeReportHint?: (questionCount: number) => void;
+  /**
+   * Ansehen-Tab, den der Aufrufer noch in der User-Geste geöffnet hat.
+   * `undefined`: der Service öffnet selbst. `null`: das Popup war blockiert.
+   * Ein übergebenes Fenster bleibt bei einem Fehler offen, damit ein Retry
+   * denselben Tab nutzen kann.
+   */
+  viewPlaceholder?: Window | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,19 +30,43 @@ export class SessionResultsExportService {
   private readonly document = inject(DOCUMENT);
   private readonly localeId = inject(LOCALE_ID) as string;
 
+  /**
+   * Ansehen-Tab noch in der User-Geste öffnen, bevor ein Token erneuert wird.
+   * Nach einem Await blockieren Safari und andere Popup-Policies das Fenster.
+   */
+  openViewPlaceholder(): Window | null {
+    return this.openViewPlaceholderIfNeeded('view');
+  }
+
+  closeViewPlaceholder(placeholder: Window | null): void {
+    if (!placeholder || placeholder.closed) {
+      return;
+    }
+    try {
+      placeholder.close();
+    } catch {
+      // Fenster bereits weg oder Close gesperrt.
+    }
+  }
+
   async exportPdfFromSessionCode(
     code: string,
     options?: SessionResultsPdfExportOptions,
   ): Promise<SessionResultsPdfExportResult> {
+    const callerOwnsPlaceholder = options?.viewPlaceholder !== undefined;
     // Synchron im Klick-Kontext öffnen: nach den tRPC-Awaits blockieren Safari/Popup-Policies.
-    const viewPlaceholder = this.openViewPlaceholderIfNeeded(options?.disposition);
+    const viewPlaceholder = callerOwnsPlaceholder
+      ? (options.viewPlaceholder ?? null)
+      : this.openViewPlaceholderIfNeeded(options?.disposition);
     try {
       const exportData = await trpc.session.getExportData.query({
         code: code.toUpperCase(),
       });
       return await this.exportPdfFromExportData(exportData, options, viewPlaceholder);
     } catch (error) {
-      this.closeViewPlaceholder(viewPlaceholder);
+      if (!callerOwnsPlaceholder) {
+        this.closeViewPlaceholder(viewPlaceholder);
+      }
       throw error;
     }
   }
@@ -46,7 +77,10 @@ export class SessionResultsExportService {
     options?: SessionResultsPdfExportOptions,
   ): Promise<SessionResultsPdfExportResult> {
     const profile = options?.profile ?? 'visual';
-    const viewPlaceholder = this.openViewPlaceholderIfNeeded(options?.disposition);
+    const callerOwnsPlaceholder = options?.viewPlaceholder !== undefined;
+    const viewPlaceholder = callerOwnsPlaceholder
+      ? (options.viewPlaceholder ?? null)
+      : this.openViewPlaceholderIfNeeded(options?.disposition);
     try {
       const exportData = await trpc.session.getLastSessionExportDataForQuiz.query({
         quizId,
@@ -61,10 +95,13 @@ export class SessionResultsExportService {
         });
         return this.deliverPdf(pdf, options?.disposition ?? 'download', viewPlaceholder);
       } catch {
-        return await this.exportPdfFromExportData(exportData, options, viewPlaceholder);
+        // Sammlung hat kein Host-Token. Liegen die Daten schon vor, bleibt nur der Browser-Druck.
+        return await this.deliverPrintFallback(exportData, profile, viewPlaceholder);
       }
     } catch (error) {
-      this.closeViewPlaceholder(viewPlaceholder);
+      if (!callerOwnsPlaceholder) {
+        this.closeViewPlaceholder(viewPlaceholder);
+      }
       throw error;
     }
   }
@@ -87,17 +124,24 @@ export class SessionResultsExportService {
       });
       return this.deliverPdf(pdf, options?.disposition ?? 'download', viewPlaceholder);
     } catch {
-      // Print-Fallback öffnet ein eigenes Fenster — Placeholder wieder schließen.
-      this.closeViewPlaceholder(viewPlaceholder);
-      const html = await this.buildPrintableReportHtml(exportData, profile);
-      const labels = getSessionResultsReportLabels();
-      const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
-      const opened = printSessionResultsReport(html, documentTitle);
-      if (!opened) {
-        throw new Error('print window blocked');
-      }
-      return 'print-fallback';
+      return await this.deliverPrintFallback(exportData, profile, viewPlaceholder);
     }
+  }
+
+  private async deliverPrintFallback(
+    exportData: SessionExportDTO,
+    profile: SessionResultsPdfProfile,
+    viewPlaceholder: Window | null,
+  ): Promise<SessionResultsPdfExportResult> {
+    const html = await this.buildPrintableReportHtml(exportData, profile);
+    const labels = getSessionResultsReportLabels();
+    const documentTitle = `${labels.documentTitle} — ${exportData.quizName}`;
+    const opened = printSessionResultsReport(html, documentTitle, viewPlaceholder);
+    if (!opened) {
+      this.closeViewPlaceholder(viewPlaceholder);
+      throw new Error('print window blocked');
+    }
+    return 'print-fallback';
   }
 
   private async buildPrintableReportHtml(
@@ -161,17 +205,6 @@ export class SessionResultsExportService {
     }
     opened.opener = null;
     return opened;
-  }
-
-  private closeViewPlaceholder(placeholder: Window | null): void {
-    if (!placeholder || placeholder.closed) {
-      return;
-    }
-    try {
-      placeholder.close();
-    } catch {
-      // Fenster bereits weg oder Close gesperrt.
-    }
   }
 
   private openBase64Export(

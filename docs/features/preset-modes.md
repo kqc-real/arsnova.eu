@@ -28,7 +28,7 @@ Seit 2026-06-06 gibt es keine serverseitige Runtime-Synchronisation mehr, bei de
 - Host, Join, Present und Vote verwenden ihr jeweils lokales Preset für Copy, Motion, Musik- bzw. Effekt-Gates und visuelle Akzente.
 - Das Quiz-Preset bleibt relevant für die beim Live-Start gespeicherte Quiz-/Session-Konfiguration, z. B. `readingPhaseEnabled`, `enableRewardEffects`, `enableSoundEffects`, Team- und Nickname-Optionen.
 
-Damit behalten Teilnehmende die Kontrolle darüber, ob für sie **Seriös**/**Spielerisch** und **Light**/**Dark**/**System** am besten passt.
+Damit behalten Teilnehmende die Kontrolle darüber, ob für sie **Seriös**/**Spielerisch** und **Light**/**Dark**/**System** am besten passt. Auf `/session/:code/vote` (Quiz, Q&A-Forum, Blitzlicht) und unter `/feedback/` erscheint beim lokalen Preset-Wechsel keine Snackbar und kein »Anpassen«. Die Sitzungseinstellungen des Presets legt der Host fest; Teilnehmende behalten nur die Farbwahl des gewählten Presets.
 
 ## Die zwei Presets
 

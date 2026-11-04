@@ -52,15 +52,15 @@ flowchart TB
     LLM["llama-server (b10524)<br/>Qwen3-4B-Instruct-2507-Q4_K_M<br/>--parallel 1 · --ctx-size 8192 · GBNF-JSON"]
   end
 
-  PART -->|Live-Hotpath (blockiert nie)| APP
-  HOST -->|Steuerung & On-Demand-Analyse| APP
-  PRES -->|Liest nur fertige Host-Projektion| APP
+  PART -->|"Live-Hotpath, blockiert nie"| APP
+  HOST -->|"Steuerung und On-Demand-Analyse"| APP
+  PRES -->|"Liest nur fertige Host-Projektion"| APP
   APP --> PG
   APP --> REDIS
-  APP -.->|Asynchron nach qa.submit| QANLP
-  APP -.->|Hintergrund-Pre-Warming & On-Demand Embeddings| ENC
-  APP -.->|Lemmatisierung (LEXICAL + LEMMA)| SPACY
-  APP -->|Privates HTTP (10.0.0.2:8080 + Bearer-Token)<br/>1 gemeinsamer Slot für 3 Aufträge| LLM
+  APP -.->|"Asynchron nach qa.submit"| QANLP
+  APP -.->|"Hintergrund-Pre-Warming und On-Demand Embeddings"| ENC
+  APP -.->|"Lemmatisierung LEXICAL plus LEMMA"| SPACY
+  APP -->|"Privates HTTP 10.0.0.2:8080 plus Bearer-Token<br/>1 gemeinsamer Slot für 3 Aufträge"| LLM
 ```
 
 **Wichtigste Sicherheits- und Isolationsgarantien:**
@@ -150,9 +150,9 @@ Unabhängig von der Wortwolke kann jede eingereichte Q&A-Frage im Hintergrund au
 Gute Moderation im Hörsaal hängt davon ab, _was_ die Studierenden in der aktuellen Sitzung eigentlich lernen sollen. arsnova.eu unterstützt deshalb explizite, prüfbare **Lernziele** (sowohl für ein gesamtes Quiz als auch für einzelne Quiz-Abschnitte oder reine Q&A-Sessions):
 
 1. **Vorbereitungsauftrag (`quiz.deriveLearningObjectives`):**
-   - Im Quiz-Editor kann die Lehrkraft bewusst **»Lernziele vorschlagen«** auslösen.
-   - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v2`) übergeben.
-   - Das Modell formuliert kurze, rollenneutrale Infinitivphrasen (z. B. _»Lineare Regressionsmodelle auf Stichprobendaten anwenden«_) und muss jedes Lernziel mit mindestens einer exakten `questionId` aus dem Request belegen.
+   - Im Quiz-Editor kann die Lehrkraft bewusst **»Lernziele vorschlagen«** auslösen. Die Oberfläche zeigt währenddessen einen kleinen Kreisindikator für die lebende Abfrage, einen bestimmten Balken mit Skala der fertigen Fragegruppen und nach der ersten Gruppe eine grobe Restdauer. Einen vorzeitigen Abbruch erklärt sie mit Grund, Dauer und bisherigem Textumfang.
+   - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v4`) übergeben.
+   - Das Modell formuliert kurze, rollenneutrale Infinitivphrasen (z. B. _»Lineare Regressionsmodelle auf Stichprobendaten anwenden.«_) mit großgeschriebenem Anfangswort und muss jedes Lernziel mit mindestens einer exakten `questionId` aus dem Request belegen. Diese ID steht nur im Feld `questionIds`. Kleingeschriebene Modellausgaben werden nachträglich großgeschrieben. Steht eine dieser IDs zusätzlich im Satz eines Modellvorschlags, wird nur sie entfernt; andere Kennungen bleiben stehen. Fehlende Schlusspunkte werden ergänzt.
 2. **Menschliche Bestätigung & Lebenszyklus ([ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md)):**
    - Alle vom Modell gelieferten Ziele starten als **Entwürfe (`derived`, unbestätigt)**.
    - Die Lehrkraft kann sie bearbeiten, bestätigen (`confirmed`), verwerfen oder manuell eigene Ziele (`manual`) anlegen.
@@ -174,7 +174,7 @@ Ohne jedes KI-Modell wertet `buildModerationCompassCards` (`moderation-compass.t
 - **Tempo- & Blitzlicht-Signale:** Wenn z. B. im Tempo-Blitzlicht ein relevanter Anteil _»Zu schnell«_ oder _»Ich komme nicht mehr mit«_ meldet.
 - **Reibung / Kontroverse im Q&A:** Fragen mit hohem Kontroversitäts-Score (viele Up- _und_ Downvotes gleichzeitig).
 - **Klärungsbedarf / Top-Anliegen:** Stark unterstützte, noch unbeantwortete oder angeheftete Fragen (`Best-Score` / Wilson-Score) sowie erkannte Kategorien aus 8.9b (`content`, `organization`, `technical`).
-- **Quiz-Ergebnisindikatoren (erst nach Ergebnisfreigabe `RESULTS`):** Niedrige Trefferquote, starke Antwortstreuung oder der didaktisch besonders wichtige Indikator **»Selbstsicher falsch«** (Teilnehmende wählten eine falsche Antwort mit hoher Selbsteinschätzung 4–5).
+- **Quiz-Ergebnisindikatoren (erst nach Ergebnisfreigabe `RESULTS`):** Niedrige Trefferquote, starke Antwortstreuung und, wenn die Selbsteinschätzung an war, **selbstsicher falsch** als mögliches Fehlkonzept. Eine wiederkehrende falsche Option ab 30 % der Antworten mit Selbsteinschätzung wird Klärung und kann den nächsten Schritt bestimmen. Darunter oder ohne benennbare Option bleibt es eine Erwähnung.
 
 Jede Karte verweist direkt auf ihre konkreten Quellen (Sprung zur Q&A-Frage, zur Wortwolke oder zur Quiz-Auswertung).
 

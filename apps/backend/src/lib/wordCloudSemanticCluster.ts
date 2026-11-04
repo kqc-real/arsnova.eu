@@ -1,10 +1,14 @@
+import { createHash, createHmac, randomBytes } from 'node:crypto';
 import {
   WORD_CLOUD_SEMANTIC_COSINE_THRESHOLD,
   WORD_CLOUD_SEMANTIC_MAX_TOPICS,
   WORD_CLOUD_SEMANTIC_MIN_CLUSTER_SIZE,
   type AnalyzeWordCloudOutput,
   type WordCloudAnalysisSourceItem,
+  type AnalyzeWordCloudInput,
 } from '@arsnova/shared-types';
+
+const freetextIdentityKey = randomBytes(32);
 
 export interface WordCloudEmbedding {
   readonly id: string;
@@ -246,9 +250,10 @@ export function rankSemanticClusters(
 export function semanticClustersToEntries(
   clusters: readonly WordCloudSemanticCluster[],
   items: readonly WordCloudAnalysisSourceItem[],
+  context?: Pick<AnalyzeWordCloudInput, 'channel' | 'sessionCode'>,
 ): AnalyzeWordCloudOutput['entries'] {
   const itemsById = new Map(items.map((item) => [item.id, item]));
-  return clusters.flatMap((cluster, index) => {
+  return clusters.flatMap((cluster) => {
     const members = cluster.memberIds
       .map((id) => itemsById.get(id))
       .filter((item): item is WordCloudAnalysisSourceItem => Boolean(item))
@@ -261,9 +266,18 @@ export function semanticClustersToEntries(
       return [];
     }
     const count = members.reduce((sum, member) => sum + member.weight, 0);
+    // Freitext-Indizes können sich verschieben. Die Bühnenkennung bleibt
+    // innerhalb des Prozesses stabil, ohne einen prüfbaren Text-Hash offenzulegen.
+    const freetext = context?.channel === 'FREETEXT';
+    const identities = members.map((member) => (freetext ? member.text : member.sourceId)).sort();
+    const digest = freetext
+      ? createHmac('sha256', freetextIdentityKey)
+          .update(JSON.stringify([context.sessionCode, identities]))
+          .digest('hex')
+      : createHash('sha256').update(JSON.stringify(identities)).digest('hex');
     return [
       {
-        key: `semantic-${index}-${members[0]!.sourceId}`,
+        key: `semantic-${digest}`,
         label: cluster.label,
         count,
         basisLabel: cluster.label,

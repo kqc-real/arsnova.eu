@@ -64,8 +64,17 @@ describe('migrate-dev-database', () => {
     assert.doesNotMatch(pkg.scripts['setup:dev'], /prisma:push/);
     assert.equal(
       pkg.scripts['prisma:migrate'],
-      'prisma migrate deploy --schema prisma/schema.prisma',
+      'PRISMA_HIDE_UPDATE_MESSAGE=true prisma migrate deploy --schema prisma/schema.prisma',
     );
+  });
+
+  it('unterdrückt die Prisma-Update-Box bei migrate deploy', () => {
+    let capturedEnv;
+    runMigrateDeploy((_bin, _args, options) => {
+      capturedEnv = options?.env;
+      return '';
+    });
+    assert.equal(capturedEnv?.PRISMA_HIDE_UPDATE_MESSAGE, 'true');
   });
 
   it('baut in setup:dev und build:prod alle Workspace-Bibliotheken (#532)', () => {

@@ -30,6 +30,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
 import {
+  participantDraftBlocksUpdateBanner,
+  UpdateBannerSuppressionService,
+} from '../../../core/update-banner-suppression.service';
+import {
   resolveConfidenceLabelHigh,
   resolveConfidenceLabelLow,
 } from '../../../shared/confidence-default-labels';
@@ -1145,7 +1149,23 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   private previousPausedForAutoScroll = false;
   private previousQaOpenForAutoScroll: boolean | null = null;
 
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private releaseUpdateBannerSuppression = false;
+
   constructor() {
+    effect(() => {
+      const blocks = participantDraftBlocksUpdateBanner({
+        voteSent: this.voteSent(),
+        selectedAnswerCount: this.selectedAnswerIds().size,
+        freeText: this.freeTextValue(),
+        numericInput: this.numericInputValue(),
+        ratingValue: this.ratingValue(),
+        confidenceValue: this.confidenceValue(),
+        qaDraft: this.qaDraft(),
+      });
+      if (this.releaseUpdateBannerSuppression) return;
+      this.updateBannerSuppression.set('participant-draft', blocks);
+    });
     effect(() => {
       this.ensureActiveChannel();
     });
@@ -3336,7 +3356,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (!this.personalResultLoaded()) {
       return 'hourglass_top';
     }
-    return this.finishedHeroIsCelebration() ? 'emoji_events' : 'task_alt';
+    return this.finishedHeroIsCelebration() ? 'trophy' : 'task_alt';
   }
 
   /** Sichtbarer Team-Rang (#n) oder Gedankenstrich, solange die Wertung noch ohne Punkte ist. */
@@ -4581,6 +4601,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.releaseUpdateBannerSuppression = true;
+    this.updateBannerSuppression.set('participant-draft', false);
     this.markParticipantOffline();
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);

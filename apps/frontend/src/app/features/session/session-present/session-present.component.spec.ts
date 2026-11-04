@@ -11,6 +11,13 @@ import { NICKNAME_LISTS } from '../../join/nickname-themes';
 const {
   liveQueryMock,
   setPresenterSurfaceMutateMock,
+  revealAnswersMutateMock,
+  revealResultsMutateMock,
+  startDiscussionMutateMock,
+  startSecondRoundMutateMock,
+  nextQuestionMutateMock,
+  pauseQuizMutateMock,
+  resumeQuizMutateMock,
   getInfoQueryMock,
   getLeaderboardQueryMock,
   getTeamLeaderboardQueryMock,
@@ -18,16 +25,26 @@ const {
   getTeamsQueryMock,
   getParticipantNicknamesQueryMock,
   qaListQueryMock,
+  setPresenterSortModeMutateMock,
   quickFeedbackResultsQueryMock,
   getCurrentQuestionForHostQueryMock,
   getHostVoteProgressQueryMock,
   getReactionsQueryMock,
   getQaWordCloudProjectionQueryMock,
   getFreetextWordCloudProjectionQueryMock,
+  setFreetextWordCloudProjectionMutateMock,
+  analyzeWordCloudMutateMock,
   subscribeMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
+  revealAnswersMutateMock: vi.fn(),
+  revealResultsMutateMock: vi.fn(),
+  startDiscussionMutateMock: vi.fn(),
+  startSecondRoundMutateMock: vi.fn(),
+  nextQuestionMutateMock: vi.fn(),
+  pauseQuizMutateMock: vi.fn(),
+  resumeQuizMutateMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
   getTeamLeaderboardQueryMock: vi.fn(),
@@ -35,19 +52,29 @@ const {
   getTeamsQueryMock: vi.fn(),
   getParticipantNicknamesQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
+  setPresenterSortModeMutateMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getReactionsQueryMock: vi.fn(),
   getQaWordCloudProjectionQueryMock: vi.fn(),
   getFreetextWordCloudProjectionQueryMock: vi.fn(),
-  subscribeMock: vi.fn(() => ({ unsubscribe: vi.fn() })),
+  setFreetextWordCloudProjectionMutateMock: vi.fn(),
+  analyzeWordCloudMutateMock: vi.fn(),
+  subscribeMock: vi.fn((_input: never, _opts: never) => ({ unsubscribe: vi.fn() })),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
   trpc: {
     session: {
       setPresenterSurface: { mutate: setPresenterSurfaceMutateMock },
+      revealAnswers: { mutate: revealAnswersMutateMock },
+      revealResults: { mutate: revealResultsMutateMock },
+      startDiscussion: { mutate: startDiscussionMutateMock },
+      startSecondRound: { mutate: startSecondRoundMutateMock },
+      nextQuestion: { mutate: nextQuestionMutateMock },
+      pauseQuiz: { mutate: pauseQuizMutateMock },
+      resumeQuiz: { mutate: resumeQuizMutateMock },
       getInfo: {
         query: getInfoQueryMock,
       },
@@ -87,6 +114,9 @@ vi.mock('../../../core/trpc.client', () => ({
       getFreetextWordCloudProjection: {
         query: getFreetextWordCloudProjectionQueryMock,
       },
+      setFreetextWordCloudProjection: {
+        mutate: setFreetextWordCloudProjectionMutateMock,
+      },
       onCurrentQuestionForHostChanged: {
         subscribe: subscribeMock,
       },
@@ -97,9 +127,17 @@ vi.mock('../../../core/trpc.client', () => ({
         subscribe: subscribeMock,
       },
     },
+    wordCloud: {
+      analyze: {
+        mutate: analyzeWordCloudMutateMock,
+      },
+    },
     qa: {
       presentProjection: {
         query: qaListQueryMock,
+      },
+      setPresenterSortMode: {
+        mutate: setPresenterSortModeMutateMock,
       },
     },
     quickFeedback: {
@@ -111,6 +149,17 @@ vi.mock('../../../core/trpc.client', () => ({
 }));
 
 const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+
+function wordCloudEntry(label: string, key: string, confidence: number | null = null) {
+  return {
+    key,
+    label,
+    count: 1,
+    members: [{ sourceId: 'response-0', text: label, weight: 1 }],
+    variants: [label],
+    confidence,
+  };
+}
 
 function expectNoHostControls(root: HTMLElement): void {
   const forbiddenSelectors = [
@@ -134,6 +183,7 @@ describe('SessionPresentComponent', () => {
 
   beforeEach(() => {
     setPresenterSurfaceMutateMock.mockReset();
+    setPresenterSortModeMutateMock.mockReset();
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -171,6 +221,24 @@ describe('SessionPresentComponent', () => {
     getReactionsQueryMock.mockResolvedValue({ reactions: {}, total: 0 });
     getQaWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
     getFreetextWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
+    setFreetextWordCloudProjectionMutateMock.mockReset();
+    setFreetextWordCloudProjectionMutateMock.mockResolvedValue({ ok: true });
+    analyzeWordCloudMutateMock.mockReset();
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      mode: 'SEMANTIC',
+      status: 'ready',
+      fallbackUsed: false,
+      entries: [
+        {
+          key: 'struktur',
+          label: 'Struktur',
+          count: 2,
+          members: [{ sourceId: 'response-0', text: 'Klare Struktur', weight: 1 }],
+          variants: ['Struktur'],
+          confidence: 0.9,
+        },
+      ],
+    });
     subscribeMock.mockClear();
     subscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
 
@@ -501,7 +569,13 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
-    expect(text).toContain('Häufige Wörter aus den Antworten.');
+    expect(text).toContain('Häufige Wörter und kurze Wortgruppen.');
+    expect(text).toContain('Wörter & Phrasen');
+    expect(text).toContain('Wortwolke einfrieren');
+    expect(text).toContain('Wortformen glätten');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-freetext-word-cloud-words"]'),
+    ).toBeTruthy();
     expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(
       fixture.nativeElement.querySelector('.word-cloud__meta .word-cloud__reading-hint'),
@@ -510,6 +584,646 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
     expect(text).not.toContain('Maximieren');
+    fixture.destroy();
+  });
+
+  it('schaltet die Freitext-Wortwolke über die Presenter-Werkzeugleiste um', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const words = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-words"] button',
+    ) as HTMLButtonElement;
+    const phrases = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+    ) as HTMLButtonElement;
+    const semantic = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-semantic"] button',
+    ) as HTMLButtonElement;
+    const freeze = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-freeze"]',
+    ) as HTMLButtonElement;
+    const smooth = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    ) as HTMLButtonElement;
+    expect(words.disabled).toBe(false);
+    expect(phrases.disabled).toBe(false);
+    expect(semantic.disabled).toBe(false);
+    expect(freeze.disabled).toBe(false);
+    expect(smooth.disabled).toBe(false);
+
+    words.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
+    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    expect(setFreetextWordCloudProjectionMutateMock).toHaveBeenCalled();
+
+    freeze.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudFrozen()).toBe(true);
+    expect(freeze.getAttribute('aria-pressed')).toBe('true');
+
+    semantic.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(analyzeWordCloudMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'SEMANTIC', channel: 'FREETEXT' }),
+    );
+    expect(fixture.nativeElement.textContent).toContain('Struktur');
+    expect(fixture.nativeElement.querySelector('.word-cloud__analysis-toolbar')).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('hält Glättung, Modus, Einfrieren und den Antwortstand auseinander', async () => {
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+
+    let releaseAnalysis: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseAnalysis = resolve;
+        }),
+    );
+
+    const smooth = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    ) as HTMLButtonElement;
+    smooth.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(true);
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-words"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    expect(smooth.disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('Analyse läuft');
+
+    releaseAnalysis({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('verspätet', 'verspatet')],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('verspätet');
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [
+        wordCloudEntry('klare Struktur', 'klare struktur'),
+        wordCloudEntry('Struktur', 'struktur'),
+      ],
+    });
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    smooth.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(
+      fixture.componentInstance.presenterFreetextLemmaDisplayEntries()?.map((entry) => entry.key),
+    ).toEqual(expect.arrayContaining(['klare struktur', 'struktur']));
+    expect(fixture.componentInstance.presenterFreetextLemmaDisplayEntries()).toHaveLength(2);
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-words"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(
+      fixture.componentInstance.presenterFreetextLemmaDisplayEntries()?.map((entry) => entry.key),
+    ).toEqual(['struktur']);
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('Wort', 'wort')],
+    });
+    smooth.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextLemmaDisplayEntries()).toBeNull();
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      normalizationApplied: 'NONE',
+      normalizationFallbackReason: 'NLP_DISABLED',
+      entries: [wordCloudEntry('Fallback', 'fallback')],
+    });
+    smooth.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('idle');
+    expect(fixture.nativeElement.textContent).toContain('Wort-Glättung nicht verfügbar');
+    expect(fixture.nativeElement.textContent).not.toContain('Wort-Glättung ist an');
+    const publishedFallback = setFreetextWordCloudProjectionMutateMock.mock.calls.at(-1)?.[0] as {
+      projection: { smoothingActive: boolean };
+    };
+    expect(publishedFallback.projection.smoothingActive).toBe(false);
+
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'alt', label: 'AlteProjektion', count: 2 }],
+    });
+    fixture.componentInstance.presenterFreetextWordCloudModeOverride.set(null);
+    fixture.componentInstance.presenterFreetextLemmaPreferred.set(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
+    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-freeze"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'neu', label: 'NeueProjektion', count: 2 }],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
+    expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
+    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    expect(fixture.nativeElement.textContent).not.toContain('NeueProjektion');
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Häufige Wörter und kurze Wortgruppen.',
+    );
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-freeze"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set([
+      'Nach 10 Minuten Pause',
+      'Bitte 10 Minuten einplanen',
+    ]);
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    });
+    fixture.componentInstance.presenterFreetextWordCloudModeOverride.set(null);
+    fixture.detectChanges();
+    expect(
+      fixture.componentInstance.freetextWordCloudTerms()?.some((term) => term.key === '10 minuten'),
+    ).toBe(false);
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-freeze"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
+    expect(
+      fixture.componentInstance.freetextWordCloudTerms()?.some((term) => term.key === '10 minuten'),
+    ).toBe(false);
+
+    fixture.componentInstance.presenterFreetextWordCloudFrozen.set(false);
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+    let releaseSemantic: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseSemantic = resolve;
+        }),
+    );
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-semantic"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set(['Alt', 'Neu']);
+    fixture.detectChanges();
+    releaseSemantic({
+      entries: [wordCloudEntry('Alt', 'alt', 0.4)],
+    });
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextSemanticPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    const semanticItems = analyzeWordCloudMutateMock.mock.calls.at(-1)?.[0] as {
+      items: Array<{ text: string }>;
+      mode: string;
+    };
+    expect(semanticItems.mode).toBe('SEMANTIC');
+    expect(semanticItems.items.map((item) => item.text)).toEqual(['Alt']);
+    expect(fixture.componentInstance.presenterFreetextShowThemeRefresh()).toBe(true);
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+    let releaseLemma: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseLemma = resolve;
+        }),
+    );
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-smooth"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set(['Alt', 'Neu']);
+    fixture.detectChanges();
+    releaseLemma({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('Alt', 'alt')],
+    });
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    const lemmaItems = analyzeWordCloudMutateMock.mock.calls.at(-1)?.[0] as {
+      items: Array<{ text: string }>;
+      normalization: string;
+    };
+    expect(lemmaItems.normalization).toBe('LEMMA');
+    expect(lemmaItems.items.map((item) => item.text)).toEqual(['Alt']);
+    expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('stale');
+
+    fixture.destroy();
+  });
+
+  it('behält eine geglättete Host-Phrasenwolke bei Pending und Encoder-Fallback', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const component = fixture.componentInstance;
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    component.freetextQuestionId.set(questionId);
+    component.freetextResponses.set(['Die Stichprobe wird größer.', 'Größere Stichproben helfen.']);
+    component.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      effectiveMode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: true,
+      entries: [{ key: 'grosse stichprobe', label: 'Große Stichprobe', count: 2 }],
+    });
+    let complete: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        }),
+    );
+
+    component.setPresenterFreetextWordCloudMode('SEMANTIC');
+    expect(component.presenterFreetextSemanticPending()).toBe(true);
+    expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Große Stichprobe');
+    complete({
+      mode: 'SEMANTIC',
+      status: 'fallback',
+      fallbackUsed: true,
+      entries: [wordCloudEntry('Stichproben', 'stichproben')],
+    });
+    await vi.waitFor(() => expect(component.presenterFreetextSemanticPending()).toBe(false));
+    expect(component.presenterFreetextDisplayMode()).toBe('THEME');
+    expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Große Stichprobe');
+    expect(setFreetextWordCloudProjectionMutateMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        projection: expect.objectContaining({ effectiveMode: 'THEME', smoothingActive: true }),
+      }),
+    );
+    fixture.destroy();
+  });
+
+  it('verwirft das eigene Analyseergebnis bei einem Sprachwechsel während des Einfrierens', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const component = fixture.componentInstance;
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    component.freetextQuestionId.set(questionId);
+    component.freetextResponses.set(['Die Stichprobe wird größer.', 'Größere Stichproben helfen.']);
+    const projection = {
+      mode: 'SEMANTIC',
+      effectiveMode: 'SEMANTIC',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    } as const;
+    component.freetextWordCloudProjection.set({ ...projection, entries: [] });
+    analyzeWordCloudMutateMock.mockResolvedValueOnce({
+      mode: 'SEMANTIC',
+      status: 'ready',
+      fallbackUsed: false,
+      entries: [wordCloudEntry('Stichprobengröße', 'sample-size', 0.92)],
+    });
+    component.setPresenterFreetextWordCloudMode('SEMANTIC');
+    await vi.waitFor(() => expect(component.presenterFreetextSemanticPending()).toBe(false));
+    component.togglePresenterFreetextWordCloudFreeze();
+    component.freetextWordCloudProjection.set({ ...projection, locale: 'en', entries: [] });
+    expect(component.presenterFreetextTermLocale()).toBe('de');
+    expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Stichprobengröße');
+
+    component.togglePresenterFreetextWordCloudFreeze();
+    expect(component.presenterFreetextTermLocale()).toBe('en');
+    expect(component.freetextStageAnalysisEntries()).toBeNull();
+    expect(component.presenterFreetextDisplayMode()).not.toBe('SEMANTIC');
+    fixture.destroy();
+  });
+
+  it('hält eingefrorene Glättung und den Fokus der Themen-Aktualisierung', async () => {
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    fixture.componentInstance.freetextResponses.set(['Wort']);
+    fixture.componentInstance.presenterFreetextWordCloudModeOverride.set(null);
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'wort', label: 'Wort', count: 1 }],
+    });
+    fixture.detectChanges();
+    root
+      .querySelector<HTMLButtonElement>('[data-testid="presenter-freetext-word-cloud-freeze"]')
+      ?.click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: true,
+      entries: [{ key: 'glatt', label: 'Glatt', count: 1 }],
+    });
+    fixture.detectChanges();
+    const unsmoothed = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(unsmoothed?.getAttribute('aria-pressed')).toBe('false');
+    expect(root.textContent).toContain('Wort');
+    expect(root.textContent).not.toContain('Glatt');
+    unsmoothed?.click();
+    fixture.detectChanges();
+    expect(analyzeWordCloudMutateMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ normalization: 'LEMMA' }),
+    );
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.destroy();
+
+    const smoothedFixture = TestBed.createComponent(SessionPresentComponent);
+    smoothedFixture.detectChanges();
+    await smoothedFixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    smoothedFixture.detectChanges();
+    const smoothedRoot = smoothedFixture.nativeElement as HTMLElement;
+    smoothedFixture.componentInstance.freetextResponses.set(['Glatt']);
+    smoothedFixture.componentInstance.presenterFreetextWordCloudModeOverride.set(null);
+    smoothedFixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: true,
+      entries: [{ key: 'glatt', label: 'Glatt', count: 1 }],
+    });
+    smoothedFixture.detectChanges();
+    smoothedRoot
+      .querySelector<HTMLButtonElement>('[data-testid="presenter-freetext-word-cloud-freeze"]')
+      ?.click();
+    smoothedFixture.detectChanges();
+    smoothedFixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'wort', label: 'Wort', count: 1 }],
+    });
+    smoothedFixture.detectChanges();
+    const smoothed = smoothedRoot.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(smoothed?.getAttribute('aria-pressed')).toBe('true');
+    expect(smoothedRoot.textContent).toContain('Glatt');
+    const analyzeCallsAtOff = analyzeWordCloudMutateMock.mock.calls.length;
+    smoothed?.click();
+    await smoothedFixture.whenStable();
+    smoothedFixture.detectChanges();
+    expect(analyzeWordCloudMutateMock.mock.calls.length).toBe(analyzeCallsAtOff);
+    const published = setFreetextWordCloudProjectionMutateMock.mock.calls.at(-1)?.[0] as {
+      projection: { smoothingActive: boolean };
+    };
+    expect(published.projection.smoothingActive).toBe(false);
+    smoothedFixture.destroy();
+
+    const focusFixture = TestBed.createComponent(SessionPresentComponent);
+    focusFixture.detectChanges();
+    await focusFixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    focusFixture.detectChanges();
+    const focusRoot = focusFixture.nativeElement as HTMLElement;
+    focusFixture.componentInstance.freetextResponses.set(['Alt']);
+    focusFixture.detectChanges();
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      entries: [wordCloudEntry('Alt', 'alt', 0.4)],
+    });
+    focusRoot
+      .querySelector<HTMLButtonElement>(
+        '[data-testid="presenter-freetext-word-cloud-semantic"] button',
+      )
+      ?.click();
+    await focusFixture.whenStable();
+    focusFixture.detectChanges();
+    focusFixture.componentInstance.freetextResponses.set(['Alt', 'Neu']);
+    focusFixture.detectChanges();
+    const refresh = focusRoot.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-refresh"]',
+    );
+    expect(refresh).not.toBeNull();
+    refresh?.focus();
+    let rejectRefresh: (reason?: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectRefresh = reject;
+        }),
+    );
+    refresh?.click();
+    focusFixture.detectChanges();
+    const pendingRefresh = focusRoot.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-refresh"]',
+    );
+    expect(pendingRefresh?.isConnected).toBe(true);
+    expect(pendingRefresh?.getAttribute('aria-busy')).toBe('true');
+    expect(document.activeElement).toBe(pendingRefresh);
+
+    rejectRefresh(new Error('Analyse fehlgeschlagen'));
+    await vi.waitFor(() => {
+      expect(focusFixture.componentInstance.presenterFreetextSemanticPending()).toBe(false);
+    });
+    focusFixture.detectChanges();
+    await focusFixture.whenStable();
+    focusFixture.detectChanges();
+    const failedRefresh = focusRoot.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-refresh"]',
+    );
+    expect(failedRefresh?.isConnected).toBe(true);
+    expect(document.activeElement).toBe(failedRefresh);
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      entries: [wordCloudEntry('Alt', 'alt', 0.4)],
+    });
+    failedRefresh?.click();
+    await vi.waitFor(() => {
+      expect(focusFixture.componentInstance.presenterFreetextSemanticPending()).toBe(false);
+    });
+    focusFixture.detectChanges();
+    await focusFixture.whenStable();
+    focusFixture.detectChanges();
+    const successfulRefresh = focusRoot.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-refresh"]',
+    );
+    expect(successfulRefresh).not.toBeNull();
+    expect(document.activeElement).toBe(successfulRefresh);
+    focusFixture.destroy();
+  });
+
+  it('behält den Fokus auf der Wort-Glättung während der Analyse', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+
+    const focusSmooth = () => {
+      const button = root.querySelector<HTMLButtonElement>(
+        '[data-testid="presenter-freetext-word-cloud-smooth"]',
+      );
+      button?.focus();
+      return button;
+    };
+
+    let rejectSmoothing: (reason?: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectSmoothing = reject;
+        }),
+    );
+    focusSmooth()?.click();
+    fixture.detectChanges();
+    const pending = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(pending?.disabled).toBe(false);
+    expect(pending?.getAttribute('aria-disabled')).toBe('true');
+    expect(pending?.getAttribute('aria-busy')).toBe('true');
+    expect(document.activeElement).toBe(pending);
+    pending?.click();
+    expect(analyzeWordCloudMutateMock).toHaveBeenCalledTimes(1);
+
+    rejectSmoothing(new Error('Analyse fehlgeschlagen'));
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const failed = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(failed?.getAttribute('aria-busy')).toBeNull();
+    expect(document.activeElement).toBe(failed);
+
+    let releaseSmoothing: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseSmoothing = resolve;
+        }),
+    );
+    focusSmooth()?.click();
+    fixture.detectChanges();
+    const pendingAgain = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(pendingAgain?.disabled).toBe(false);
+    expect(document.activeElement).toBe(pendingAgain);
+    releaseSmoothing({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('Alt', 'alt')],
+    });
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-freetext-word-cloud-smooth"]'),
+    );
+    expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('active');
+
     fixture.destroy();
   });
 
@@ -551,14 +1265,46 @@ describe('SessionPresentComponent', () => {
     fixture.componentInstance.freetextQuestionId.set(questionId);
     fixture.componentInstance.freetextWordCloudProjection.set({
       mode: 'SEMANTIC',
+      effectiveMode: 'SEMANTIC',
+      analysisLanguage: 'de',
       locale: 'de',
       questionId,
       smoothingActive: false,
-      entries: [{ key: 'erschoepfung', label: 'Erschöpfung', count: 2, labelOrigin: 'model' }],
+      entries: [{ key: 'sample-size', label: 'Stichprobengröße', count: 2, labelOrigin: 'model' }],
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Erschöpfung');
+    expect(fixture.nativeElement.textContent).toContain('Stichprobengröße');
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('SEMANTIC');
     expect(fixture.componentInstance.freetextWordCloudTerms()).toBeNull();
+
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'SEMANTIC',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'semantic-0-response-0', label: 'Stichprobengröße', count: 2 }],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('SEMANTIC');
+
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'SEMANTIC',
+      effectiveMode: 'LEXICAL',
+      analysisStatus: 'fallback',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'stichprobe', label: 'Stichprobe', count: 2 }],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('LEXICAL');
+    expect(fixture.nativeElement.textContent).toContain('Themen sind gerade nicht belastbar.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__analysis-toolbar')).toBeNull();
+
+    fixture.componentInstance.freetextWordCloudProjection.update((projection) =>
+      projection ? { ...projection, effectiveMode: undefined, analysisStatus: undefined } : null,
+    );
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('LEXICAL');
 
     fixture.componentInstance.freetextWordCloudProjection.set({
       mode: 'SEMANTIC',
@@ -767,6 +1513,95 @@ describe('SessionPresentComponent', () => {
     expect(finish?.textContent).not.toContain('Zur Startseite');
     const teamTracks = fixture.nativeElement.querySelectorAll('.session-present__team-board-track');
     expect(teamTracks.length).toBe(2);
+    fixture.destroy();
+  });
+
+  it('zeigt bei 0 Punkten das Team-Leaderboard statt der Endseite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Apfel',
+        teamColor: '#c62828',
+        totalScore: 0,
+        memberCount: 1,
+        averageScore: 0,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Apfel');
+    expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
+    fixture.destroy();
+  });
+
+  it('behält das Gesamtleaderboard nach Quiz-FINISHED, solange expiresAt in der Zukunft liegt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      serverNow: MOCK_SERVER_TIME,
+      expiresAt: '2026-03-25T12:00:00.000Z',
+      sessionLifecycleRevision: 4,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 1,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        nickname: 'Red dragon 1',
+        totalScore: 2000,
+        correctCount: 2,
+        totalQuestions: 2,
+        totalResponseTimeMs: 1000,
+        teamName: 'Team A',
+        teamColor: '#c62828',
+      },
+    ]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([
+      {
+        rank: 1,
+        teamName: 'Team A',
+        teamColor: '#c62828',
+        totalScore: 2000,
+        memberCount: 1,
+        averageScore: 2000,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Red dragon 1');
+    expect(fixture.nativeElement.textContent).toContain('Team A');
+    expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
     fixture.destroy();
   });
 
@@ -1146,6 +1981,179 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('hält die Gesamtrangliste an und blättert Personen und Teams von Hand', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Großes Quiz',
+      title: null,
+      participantCount: 20,
+      teamMode: true,
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 20 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Spieler ${index + 1}`,
+        totalScore: 200 - index,
+        correctCount: 10,
+        totalQuestions: 10,
+        totalResponseTimeMs: 1000 + index * 20,
+      })),
+    );
+    getTeamLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        rank: index + 1,
+        teamName: `Team ${index + 1}`,
+        teamColor: '#1565c0',
+        totalScore: 120 - index,
+        memberCount: 2,
+        averageScore: 60,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const visibleNames = (selector: string): string[] =>
+      [...fixture.nativeElement.querySelectorAll(selector)].map((node) =>
+        (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
+      );
+
+    expect(fixture.nativeElement.querySelectorAll('.session-present__board-item').length).toBe(8);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__team-board-item').length).toBe(
+      8,
+    );
+    expect(fixture.nativeElement.textContent).toContain('1–8 von 20');
+    expect(fixture.nativeElement.textContent).toContain('1–8 von 12');
+    expect(visibleNames('.session-present__board-name')).toEqual(
+      Array.from({ length: 8 }, (_, index) => `Spieler ${index + 1}`),
+    );
+    expect(visibleNames('.session-present__team-board-name')).toEqual(
+      Array.from({ length: 8 }, (_, index) => `Team ${index + 1}`),
+    );
+
+    const personalNext = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-personal-board-next"]',
+    ) as HTMLButtonElement;
+    personalNext.click();
+    fixture.detectChanges();
+
+    const pause = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-board-page-pause"]',
+    ) as HTMLButtonElement;
+    expect(pause.getAttribute('aria-pressed')).toBe('true');
+    expect(pause.textContent).toContain('Automatisch');
+    expect(fixture.componentInstance.boardPagePaused()).toBe(true);
+    expect(visibleNames('.session-present__board-name')).toEqual(
+      Array.from({ length: 8 }, (_, index) => `Spieler ${index + 9}`),
+    );
+    expect(fixture.nativeElement.textContent).toContain('9–16 von 20');
+    expect(visibleNames('.session-present__team-board-name')[0]).toBe('Team 1');
+
+    const teamNext = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-team-board-next"]',
+    ) as HTMLButtonElement;
+    teamNext.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.session-present__team-board-item').length).toBe(
+      4,
+    );
+    expect(visibleNames('.session-present__team-board-name')).toEqual([
+      'Team 9',
+      'Team 10',
+      'Team 11',
+      'Team 12',
+    ]);
+    expect(fixture.nativeElement.textContent).toContain('9–12 von 12');
+
+    pause.click();
+    fixture.detectChanges();
+    expect(pause.getAttribute('aria-pressed')).toBe('false');
+    expect(pause.textContent).toContain('Anhalten');
+    expect(fixture.componentInstance.boardPagePaused()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('blättert die Gesamtrangliste nach zwölf Sekunden von selbst weiter', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Großes Quiz',
+      title: null,
+      participantCount: 20,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 20 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Spieler ${index + 1}`,
+        totalScore: 200 - index,
+        correctCount: 10,
+        totalQuestions: 10,
+        totalResponseTimeMs: 1000 + index * 20,
+      })),
+    );
+    getTeamLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 12 }, (_, index) => ({
+        rank: index + 1,
+        teamName: `Team ${index + 1}`,
+        teamColor: '#1565c0',
+        totalScore: 120 - index,
+        memberCount: 2,
+        averageScore: 60,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    try {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      fixture.detectChanges();
+
+      const visibleNames = (selector: string): string[] =>
+        [...fixture.nativeElement.querySelectorAll(selector)].map((node) =>
+          (node.textContent ?? '').replace(/\s+/g, ' ').trim(),
+        );
+
+      expect(visibleNames('.session-present__board-name')).toEqual(
+        Array.from({ length: 8 }, (_, index) => `Spieler ${index + 1}`),
+      );
+      expect(fixture.nativeElement.textContent).toContain('1–8 von 20');
+
+      await vi.advanceTimersByTimeAsync(12_000);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.boardPagePaused()).toBe(false);
+      expect(visibleNames('.session-present__board-name')).toEqual(
+        Array.from({ length: 8 }, (_, index) => `Spieler ${index + 9}`),
+      );
+      expect(fixture.nativeElement.textContent).toContain('9–16 von 20');
+      expect(visibleNames('.session-present__team-board-name')).toEqual([
+        'Team 9',
+        'Team 10',
+        'Team 11',
+        'Team 12',
+      ]);
+      expect(fixture.nativeElement.textContent).toContain('9–12 von 12');
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+    }
+  });
+
   it('zeigt im Fehlerzustand einen direkten Link zur Startseite', async () => {
     getInfoQueryMock.mockRejectedValue(new Error('Session nicht gefunden.'));
 
@@ -1218,7 +2226,7 @@ describe('SessionPresentComponent', () => {
     expect(statusCall).toBeDefined();
     const callsBeforeError = subscribeMock.mock.calls.length;
 
-    statusCall?.[1].onError();
+    (statusCall?.[1] as unknown as { onError?: () => void } | undefined)?.onError?.();
     await fixture.componentInstance['refreshSessionMeta']();
 
     expect(subscribeMock).toHaveBeenCalledTimes(callsBeforeError + 1);
@@ -1252,6 +2260,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1294,7 +2303,7 @@ describe('SessionPresentComponent', () => {
       totalQuestions: 3,
       text: 'Was hilft beim Lernen?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       showQuestionTypeIndicators: true,
       currentRound: 2,
       timer: 30,
@@ -1356,7 +2365,7 @@ describe('SessionPresentComponent', () => {
       totalQuestions: 3,
       text: 'Diese Frage bleibt pausiert.',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       showQuestionTypeIndicators: true,
       timer: 30,
       answers: [],
@@ -1441,6 +2450,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1451,6 +2461,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1510,6 +2521,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1526,6 +2538,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:05:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1605,6 +2618,7 @@ describe('SessionPresentComponent', () => {
 
     fixture.componentInstance.presenterQaOrderedQuestions.set([
       {
+        passagesRedacted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Jetzt ist die Frage freigegeben.',
         upvoteCount: 1,
@@ -1648,6 +2662,7 @@ describe('SessionPresentComponent', () => {
     await fixture.whenStable();
     fixture.componentInstance.presenterQaOrderedQuestions.set([
       {
+        passagesRedacted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Diese alte Frage darf geschlossen nicht sichtbar sein.',
         upvoteCount: 2,
@@ -1718,6 +2733,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1728,6 +2744,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1756,11 +2773,9 @@ describe('SessionPresentComponent', () => {
       'utf8',
     );
     expect(scss).toMatch(
-      /\.session-present__qa-stage\s*\{[^}]*grid-template-areas:\s*'criteria'\s*'pinned'\s*'queue'/s,
+      /\.session-present__qa-stage\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*overflow-y:\s*auto/s,
     );
-    expect(scss).toMatch(
-      /\.session-present__qa-stage\s*\{[^}]*grid-template-rows:\s*auto\s*minmax\(0,\s*2\.35fr\)\s*minmax\(0,\s*1\.15fr\)/s,
-    );
+    expect(scss).toMatch(/\.session-present__qa-footer\s*\{[^}]*flex:\s*0\s*0\s*auto/s);
     expect(scss).toMatch(
       /\.session-present__qa-stage\s*>\s*\.session-present__qa-card,\s*\.session-present__qa-stage\s*>\s*\.session-present__qa-list-card\s*\{[^}]*width:\s*100%/s,
     );
@@ -1783,7 +2798,7 @@ describe('SessionPresentComponent', () => {
     expect(scss).not.toMatch(/grid-template-areas:\s*'pinned queue'/);
   });
 
-  it('rückt den Hero per Host-Navigator vor und zeigt höchstens zwei wartende Fragen', () => {
+  it('rückt den Hero vor und zeigt alle folgenden freigegebenen Fragen', () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.componentInstance.presenterQaOrderedQuestions.set(
       Array.from({ length: 6 }, (_, index) => ({
@@ -1794,6 +2809,7 @@ describe('SessionPresentComponent', () => {
         createdAt: `2026-03-13T12:0${index}:00.000Z`,
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       })),
     );
@@ -1815,10 +2831,13 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.qaQueuePageCount()).toBe(6);
     expect(fixture.componentInstance.pinnedQaQuestion()?.text).toBe('Publikumsfrage 1');
-    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(2);
+    expect(fixture.componentInstance.visibleQaQueueQuestions()).toHaveLength(5);
     expect(fixture.componentInstance.visibleQaQueueQuestions().map((q) => q.text)).toEqual([
       'Publikumsfrage 2',
       'Publikumsfrage 3',
+      'Publikumsfrage 4',
+      'Publikumsfrage 5',
+      'Publikumsfrage 6',
     ]);
     expect(fixture.componentInstance.qaQueueCountLabel()).toBe('5 Fragen');
 
@@ -1834,6 +2853,8 @@ describe('SessionPresentComponent', () => {
     expect(fixture.componentInstance.visibleQaQueueQuestions().map((q) => q.text)).toEqual([
       'Publikumsfrage 3',
       'Publikumsfrage 4',
+      'Publikumsfrage 5',
+      'Publikumsfrage 6',
     ]);
     expect(fixture.componentInstance.qaQueueCountLabel()).toBe('4 Fragen');
     fixture.destroy();
@@ -1866,6 +2887,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1878,6 +2900,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1890,6 +2913,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -1902,7 +2926,20 @@ describe('SessionPresentComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('2 Fragen');
-    expect(text).toContain('Sortierung: Beste Fragen');
+    const sortGroup = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-sort"]',
+    ) as HTMLElement | null;
+    const sortText = sortGroup?.textContent ?? '';
+    const controversyAt = sortText.indexOf('Kontroverse');
+    const bestAt = sortText.indexOf('Beste Fragen');
+    const netAt = sortText.indexOf('Stimmensaldo');
+    const timeAt = sortText.indexOf('Zeit');
+    expect(controversyAt).toBeGreaterThanOrEqual(0);
+    expect(bestAt).toBeGreaterThan(controversyAt);
+    expect(netAt).toBeGreaterThan(bestAt);
+    expect(timeAt).toBeGreaterThan(netAt);
+    expect(sortGroup?.querySelector('input:checked')?.getAttribute('value')).toBe('BEST');
+    expect(text).not.toContain('Sortierung:');
     expect(text).toContain('Als Nächstes…');
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__qa-vote-stat--up').length,
@@ -1916,8 +2953,270 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toMatch(/Fragen\s+\d+[–-]\d+\s+von/);
     expect(text).not.toMatch(/Seite\s+\d+\s*\/\s*\d+/);
     expect(fixture.nativeElement.querySelector('.session-present__qa-page')).toBeNull();
+    const navigator = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-navigator"]',
+    ) as HTMLElement | null;
+    expect(navigator?.textContent).toContain('Vorherige Frage');
+    expect(navigator?.textContent).toContain('Nächste Frage');
+    expect(navigator?.textContent).toMatch(/1\s*\/\s*3/);
     expect(fixture.nativeElement.querySelector('.session-present__qa-more')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__qa-criteria')).not.toBeNull();
+    fixture.destroy();
+  });
+
+  it('schaltet die Presenter-Sortierung auf Zeit und lädt die Bühne neu', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 1, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    const bestFirst = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Beste zuerst',
+      upvoteCount: 4,
+      positiveVoteCount: 4,
+      negativeVoteCount: 0,
+      status: 'ACTIVE' as const,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      passagesRedacted: false,
+      hasUpvoted: false,
+    };
+    const newest = {
+      ...bestFirst,
+      id: '22222222-2222-4222-8222-222222222222',
+      text: 'Neueste zuerst',
+      createdAt: '2026-03-13T12:05:00.000Z',
+    };
+    qaListQueryMock.mockResolvedValue([bestFirst, newest]);
+    setPresenterSortModeMutateMock.mockResolvedValue({
+      sortMode: 'TIME',
+      search: '',
+      pinnedOnly: false,
+      authorNickname: null,
+      source: 'presenter',
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { context?: string; index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: input.page?.context ?? 'qa-page',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 2,
+        },
+      }),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    qaListQueryMock.mockResolvedValue([newest, bestFirst]);
+    const timeButton = [
+      ...fixture.nativeElement.querySelectorAll(
+        '[data-testid="presenter-qa-sort"] mat-radio-button',
+      ),
+    ].find((button) => (button.textContent ?? '').includes('Zeit')) as HTMLElement | undefined;
+    expect(timeButton?.textContent).toContain('Zeit');
+    (timeButton?.querySelector('input') as HTMLInputElement | null)?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(setPresenterSortModeMutateMock).toHaveBeenCalledWith(
+        {
+          code: 'ABC123',
+          sortMode: 'TIME',
+          source: 'presenter',
+        },
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+        {
+          code: 'ABC123',
+          page: { context: 'qa-page', index: 0, count: 2 },
+        },
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+      expect(
+        fixture.nativeElement.querySelector('.session-present__qa-card')?.textContent,
+      ).toContain('Neueste zuerst');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="presenter-qa-navigator"]')?.textContent,
+      ).toMatch(/1\s*\/\s*2/);
+    });
+    expect(fixture.componentInstance.qaSortError()).toBe('');
+    expect(fixture.componentInstance.qaNavError()).toBe('');
+    fixture.destroy();
+  });
+
+  it('lässt die Sortierung stehen, solange der Fragenwechsel noch läuft', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Erste Frage',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Zweite Frage',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+    let releaseNavigation: (() => void) | undefined;
+    const navigationSettled = new Promise<void>((resolve) => {
+      releaseNavigation = resolve;
+    });
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { context?: string; index?: number; count?: number } }) => {
+        await navigationSettled;
+        return {
+          presenterSurface: 'default',
+          presenterPage: {
+            context: input.page?.context ?? 'qa-page',
+            index: input.page?.index ?? 0,
+            count: input.page?.count ?? 2,
+          },
+        };
+      },
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const navigation = fixture.componentInstance.changeQaProjectionPage(1);
+    fixture.detectChanges();
+    const sortGroup = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-sort"]',
+    ) as HTMLElement | null;
+    expect(fixture.componentInstance.qaNavPending()).toBe(true);
+    expect(
+      [...(sortGroup?.querySelectorAll('input') ?? [])].every(
+        (input) => (input as HTMLInputElement).disabled,
+      ),
+    ).toBe(true);
+
+    await fixture.componentInstance.setPresenterQaSortMode('TIME');
+    expect(setPresenterSortModeMutateMock).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.presenterQaSortMode()).toBe('BEST');
+
+    releaseNavigation?.();
+    await navigation;
+    fixture.detectChanges();
+    expect(fixture.componentInstance.session()?.presenterPage?.index).toBe(1);
+    expect(fixture.componentInstance.presenterQaSortMode()).toBe('BEST');
+    fixture.destroy();
+  });
+
+  it('behält die neue Sortierung, wenn der Navigator nicht auf 1 zurückgesetzt werden kann', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 1, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Beste zuerst',
+        upvoteCount: 4,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Neueste zuerst',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:05:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+    setPresenterSortModeMutateMock.mockResolvedValue({
+      sortMode: 'TIME',
+      search: '',
+      pinnedOnly: false,
+      authorNickname: null,
+      source: 'presenter',
+    });
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    await fixture.componentInstance.setPresenterQaSortMode('TIME');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.presenterQaSortMode()).toBe('TIME');
+    expect(fixture.componentInstance.qaSortError()).toBe('');
+    expect(fixture.componentInstance.qaNavError()).toContain(
+      'Fragen konnten nicht gewechselt werden',
+    );
+    expect(fixture.componentInstance.session()?.presenterPage?.index).toBe(1);
     fixture.destroy();
   });
 
@@ -1950,6 +3249,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1962,6 +3262,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1974,6 +3275,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2031,6 +3333,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -2041,6 +3344,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2066,7 +3370,137 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('Als Nächstes…');
     expect(text).not.toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(fixture.nativeElement.querySelector('.session-present__qa-list-card')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-qa-navigator"]'),
+    ).toBeNull();
     expectNoHostControls(fixture.nativeElement as HTMLElement);
+    fixture.destroy();
+  });
+
+  it('schaltet den Presenter-Footer auf die nächste freigegebene Frage', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue(
+      Array.from({ length: 3 }, (_, index) => ({
+        id: `00000000-0000-4000-8000-00000000000${index}`,
+        text: `Publikumsfrage ${index + 1}`,
+        upvoteCount: 3 - index,
+        status: 'ACTIVE',
+        createdAt: `2026-03-13T12:0${index}:00.000Z`,
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      })),
+    );
+    setPresenterSurfaceMutateMock.mockImplementation(
+      async (input: { page?: { context?: string; index?: number; count?: number } }) => ({
+        presenterSurface: 'default',
+        presenterPage: {
+          context: input.page?.context ?? 'qa-page',
+          index: input.page?.index ?? 0,
+          count: input.page?.count ?? 1,
+        },
+      }),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const previous = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-previous"]',
+    ) as HTMLButtonElement | null;
+    const next = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-next"]',
+    ) as HTMLButtonElement | null;
+    expect(previous?.getAttribute('aria-disabled')).toBe('true');
+    expect(next?.getAttribute('aria-disabled')).not.toBe('true');
+    expect(fixture.nativeElement.querySelectorAll('.session-present__qa-list-item')).toHaveLength(
+      2,
+    );
+    expect(fixture.nativeElement.textContent).toContain('Publikumsfrage 3');
+
+    next?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        page: { context: 'qa-page', index: 1, count: 3 },
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fixture.componentInstance.pinnedQaQuestion()?.text).toBe('Publikumsfrage 2');
+    expect(fixture.componentInstance.qaNavError()).toBe('');
+    fixture.destroy();
+  });
+
+  it('meldet einen fehlgeschlagenen Fragenwechsel und behält die aktuelle Frage', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    component.presenterQaOrderedQuestions.set([
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        text: 'Erste Frage',
+        upvoteCount: 2,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: '00000000-0000-4000-8000-000000000002',
+        text: 'Zweite Frage',
+        upvoteCount: 1,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+    component.session.set({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      preferredChannel: 'qa',
+      presenterSurface: 'default',
+      presenterPage: { context: 'qa-page', index: 0, count: 2 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    } as never);
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    await component.changeQaProjectionPage(1);
+
+    expect(component.qaNavPending()).toBe(false);
+    expect(component.qaNavError()).toContain('Fragen konnten nicht gewechselt werden');
+    expect(component.pinnedQaQuestion()?.text).toBe('Erste Frage');
     fixture.destroy();
   });
 
@@ -2098,6 +3532,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2150,6 +3585,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2197,18 +3633,21 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
     getQaWordCloudProjectionQueryMock.mockResolvedValue({
       projection: {
         mode: 'SEMANTIC',
+        effectiveMode: 'SEMANTIC',
         metric: 'BEST',
         locale: 'de',
         analysisEntries: [
           {
             key: 'kapitel-4',
-            label: 'Kapitel 4',
+            label: 'Stichprobengröße',
+            labelOrigin: 'model',
             count: 7,
             basisLabel: 'Kapitel',
             members: [
@@ -2238,10 +3677,10 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(fixture.componentInstance.presenterQaWordCloudTerms()).toBeNull();
     expect(fixture.componentInstance.presenterQaWordCloudAnalysisEntries()).toMatchObject([
-      { label: 'Kapitel 4' },
+      { label: 'Stichprobengröße', labelOrigin: 'model' },
     ]);
     expect(text).toContain('Themen in den Fragen');
-    expect(text).toContain('Kapitel 4');
+    expect(text).toContain('Stichprobengröße');
     expect(text).toContain('Ähnliche Fragen sind gruppiert.');
     expect(fixture.componentInstance.qaWordCloudContextPills()).toEqual([
       'Thema',
@@ -2250,6 +3689,11 @@ describe('SessionPresentComponent', () => {
     ]);
     expect(text).toContain('Beste Fragen');
     expect(text).toContain('ohne Wort-Glättung');
+
+    fixture.componentInstance.qaWordCloudProjection.update((projection) =>
+      projection ? { ...projection, effectiveMode: undefined } : null,
+    );
+    expect(fixture.componentInstance.qaWordCloudDisplayMode()).toBe('SEMANTIC');
     fixture.destroy();
   });
 
@@ -2281,6 +3725,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2324,7 +3769,7 @@ describe('SessionPresentComponent', () => {
     const pills = [...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill')].map((el) =>
       (el.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
-    expect(pills).toContain('120 Fragen');
+    expect(pills).toContain('120 von 120 Fragen analysiert');
     expect(pills).toContain('Vorkommen in Fragen');
     expect(
       pills.some((pill) => pill === '1 Frage' || pill === '12 Fragen' || pill === 'Zeit'),
@@ -2360,6 +3805,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2423,6 +3869,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -2434,6 +3881,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2497,6 +3945,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2544,6 +3993,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -2816,6 +4266,7 @@ describe('SessionPresentComponent', () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -3317,7 +4768,9 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const icons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.session-present__lobby-nick-icon',
+      ),
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🐉', '🐸']);
@@ -3401,7 +4854,9 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.showLobbyProjection()).toBe(true);
     const icons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.session-present__lobby-nick-icon',
+      ),
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🐉', '🐸']);
@@ -4083,6 +5538,596 @@ describe('SessionPresentComponent', () => {
     expect(ts).not.toContain('HostPairingDialog');
     expect(ts).not.toContain('createHostPairingInvite');
     expect(ts).not.toContain('approveHostPairing');
+  });
+
+  it('steuert Peer Instruction aus dem Presenter und sperrt persönliche Zeitfenster', async () => {
+    const question = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      text: 'Was ist 2 + 2?',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: true,
+      peerInstructionSuggestion: { suggested: true },
+      answers: [],
+    };
+    const progress = {
+      questionId: question.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      blockingTimerAccommodationCount: 1,
+      peerInstructionSuggestion: { suggested: true },
+    };
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'ACTIVE',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      enableTimerAccommodation: true,
+      presenterPage: { context: 'quiz:0:ACTIVE', index: 0, count: 2 },
+    });
+    getParticipantSummaryQueryMock.mockResolvedValue({
+      participantCount: 3,
+      connectedCount: 3,
+      revision: 1,
+      recentArrivals: [],
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(question);
+    getHostVoteProgressQueryMock.mockResolvedValue(progress);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('[data-testid="presenter-return-to-host"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="presenter-quiz-pages"]')?.textContent).toContain(
+      'Vorherige Seite',
+    );
+    expect(root.querySelector('[data-testid="presenter-quiz-pages"]')?.textContent).toContain(
+      '1 / 2',
+    );
+    expect(root.querySelector('.projection-pages__indicator')).toBeNull();
+    expect(root.textContent).toContain('Diskussionsphase');
+    expect(root.textContent).toContain('Ergebnis zeigen');
+    expect(root.textContent).not.toContain('Trotzdem freigeben');
+    expect(root.textContent).not.toContain('Frage auslassen');
+
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
+    await fixture.whenStable();
+    expect(startDiscussionMutateMock).not.toHaveBeenCalled();
+
+    component.hostVoteProgress.set({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      blockingTimerAccommodationCount: 0,
+      peerInstructionSuggestion: { suggested: true },
+    } as never);
+    startDiscussionMutateMock.mockResolvedValue({
+      status: 'DISCUSSION',
+      currentQuestion: 0,
+    });
+    getCurrentQuestionForHostQueryMock.mockReturnValue(new Promise(() => undefined));
+    fixture.detectChanges();
+    const discussion =
+      root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]') ?? null;
+    discussion?.focus();
+    discussion?.click();
+    await fixture.whenStable();
+
+    expect(startDiscussionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(component.session()?.status).toBe('DISCUSSION');
+    expect(component.quizControlPending()).toBe(false);
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-second-round"]'),
+    );
+    expect(root.textContent).toContain('Zweite Abstimmung');
+    expect(root.textContent).toContain('Zur nächsten Frage ohne zweite Abstimmung');
+
+    nextQuestionMutateMock.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+    });
+    root
+      .querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-skip-discussion"]')
+      ?.click();
+    await fixture.whenStable();
+    expect(nextQuestionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123', skipCurrentResultQuestion: true },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    fixture.destroy();
+  });
+
+  it('hält die neue Frage zurück, bis ihr Snapshot da ist, und führt das Quiz bis zur Auswertung', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      preferredChannel: 'quiz',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+    const questionOne = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      text: 'Frage eins',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: true,
+      peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' },
+      answers: [],
+    };
+    const questionTwo = {
+      ...questionOne,
+      questionId: '22222222-2222-4222-8222-222222222222',
+      order: 1,
+      text: 'Frage zwei',
+      hasUnopenedFollowingQuestion: false,
+      peerInstructionSuggestion: undefined,
+    };
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+    getInfoQueryMock.mockImplementation(async () => component.session());
+
+    const root = fixture.nativeElement as HTMLElement;
+    const start = root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-start"]');
+    expect(start).not.toBeNull();
+    start?.focus();
+
+    let releaseQuestion: (value: unknown) => void = () => undefined;
+    getCurrentQuestionForHostQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseQuestion = resolve;
+        }),
+    );
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    start?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(nextQuestionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).toBeNull();
+    expect(root.textContent).toContain('Die Frage wird geladen');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+    expect(component.quizControlPending()).toBe(false);
+
+    releaseQuestion(questionOne);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    component.quizAudience.set({
+      participantCount: 2,
+      readingReady: {
+        connectedCount: 2,
+        readyCount: 1,
+        allConnectedReady: false,
+      },
+    });
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.textContent).toContain('1 von 2 bereit');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
+
+    revealAnswersMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    const reveal = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-reveal-answers"]',
+    );
+    reveal?.focus();
+    reveal?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(revealAnswersMutateMock).toHaveBeenCalled();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-results"]'),
+    );
+
+    component.hostVoteProgress.set({
+      questionId: questionOne.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 2,
+      blockingTimerAccommodationCount: 1,
+      peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' },
+    } as never);
+    component.countdownSeconds.set(0);
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Persönliche Zeitfenster laufen noch');
+    startDiscussionMutateMock.mockClear();
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
+    await fixture.whenStable();
+    expect(startDiscussionMutateMock).not.toHaveBeenCalled();
+
+    component.hostVoteProgress.set({
+      questionId: questionOne.questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 2,
+      blockingTimerAccommodationCount: 0,
+      peerInstructionSuggestion: { suggested: true, reason: 'CORRECTNESS_WINDOW' },
+    } as never);
+    startDiscussionMutateMock.mockResolvedValue({
+      status: 'DISCUSSION',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+    const discussion = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-discussion"]',
+    );
+    discussion?.focus();
+    discussion?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.session()?.status).toBe('DISCUSSION');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-second-round"]'),
+    );
+
+    getCurrentQuestionForHostQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseQuestion = resolve;
+        }),
+    );
+    startSecondRoundMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+    });
+    const secondRound = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-second-round"]',
+    );
+    secondRound?.focus();
+    secondRound?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(component.session()?.currentRound).toBe(2);
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).not.toContain('2. Runde');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-results"]')).toBeNull();
+    expect(root.textContent).toContain('Die Frage wird geladen');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+
+    releaseQuestion({ ...questionOne, currentRound: 2 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()?.order).toBe(0);
+    expect(component.presentedQuizQuestion()?.currentRound).toBe(2);
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.textContent).toContain('2. Runde');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-results"]'),
+    );
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 0,
+      currentRound: 2,
+    });
+    const revealRoundTwo = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-reveal-results"]',
+    );
+    revealRoundTwo?.focus();
+    revealRoundTwo?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-next-question"]'),
+    );
+
+    getCurrentQuestionForHostQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseQuestion = resolve;
+        }),
+    );
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    const nextQuestion = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-next-question"]',
+    );
+    nextQuestion?.focus();
+    nextQuestion?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(nextQuestionMutateMock).toHaveBeenLastCalledWith(
+      { code: 'ABC123', skipCurrentResultQuestion: true },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(component.session()?.currentQuestion).toBe(1);
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).not.toContain('Frage zwei');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).toBeNull();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+    const returnToHost = root.querySelector<HTMLElement>(
+      '[data-testid="presenter-return-to-host"]',
+    );
+    returnToHost?.focus();
+
+    releaseQuestion(questionTwo);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Frage zwei');
+    expect(document.activeElement).toBe(returnToHost);
+
+    pauseQuizMutateMock.mockResolvedValue({
+      status: 'PAUSED',
+      currentQuestion: 1,
+      currentRound: 1,
+      pausedFromStatus: 'QUESTION_OPEN',
+    });
+    const pause = root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-pause"]');
+    pause?.focus();
+    pause?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Quiz fortsetzen');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-resume"]'),
+    );
+
+    resumeQuizMutateMock.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(questionTwo);
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-resume"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    revealAnswersMutateMock.mockResolvedValue({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-reveal-answers"]')?.click();
+    await fixture.whenStable();
+    revealResultsMutateMock.mockResolvedValue({
+      status: 'RESULTS',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    fixture.detectChanges();
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-reveal-results"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'FINISHED',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+    getLeaderboardQueryMock.mockResolvedValue([]);
+    getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-finish"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.session()?.status).toBe('FINISHED');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-return-to-host"]'),
+    );
+    fixture.destroy();
+  });
+
+  it('bleibt nach einem fehlgeschlagenen Fragenabruf bedienbar', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'LOBBY',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      preferredChannel: 'quiz',
+      currentQuestion: null,
+      currentRound: 1,
+    });
+    getCurrentQuestionForHostQueryMock.mockRejectedValue(new Error('offline'));
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+    getInfoQueryMock.mockImplementation(async () => component.session());
+
+    const root = fixture.nativeElement as HTMLElement;
+    nextQuestionMutateMock.mockResolvedValueOnce({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-start"]')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('Die Frage konnte nicht geladen werden');
+    expect(root.querySelector('[data-testid="presenter-quiz-question-retry"]')).not.toBeNull();
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]')).toBeNull();
+    expect(root.querySelector('[data-testid="presenter-return-to-host"]')).not.toBeNull();
+    expect(component.quizControlPending()).toBe(false);
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Frage eins',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      answers: [],
+    });
+    const retry = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-question-retry"]',
+    );
+    retry?.focus();
+    retry?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.textContent).toContain('Frage eins');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
+    fixture.destroy();
+  });
+
+  it('übernimmt Frage und Runde aus dem Live-Status des Hosts', async () => {
+    const roundOne = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      text: 'Frage eins',
+      type: 'SINGLE_CHOICE',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: true,
+      answers: [],
+    };
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'DISCUSSION',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 2,
+      preferredChannel: 'quiz',
+      currentQuestion: 0,
+      currentRound: 1,
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(roundOne);
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+    getInfoQueryMock.mockImplementation(async () => component.session());
+    getCurrentQuestionForHostQueryMock.mockImplementation(() => new Promise(() => undefined));
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Frage eins');
+    expect(component.session()?.currentRound).toBe(1);
+
+    const statusCall = subscribeMock.mock.calls.find(
+      ([input]) => typeof input === 'object' && input !== null && 'anonymousClientId' in input,
+    );
+    const questionCall = subscribeMock.mock.calls.find(
+      ([input]) =>
+        typeof input === 'object' &&
+        input !== null &&
+        'code' in input &&
+        !('anonymousClientId' in input),
+    );
+    expect(statusCall?.[1]).toBeTypeOf('object');
+    expect(questionCall?.[1]).toBeTypeOf('object');
+    const statusHandler = statusCall?.[1] as unknown as { onData: (data: unknown) => void };
+    const questionHandler = questionCall?.[1] as unknown as { onData: (data: unknown) => void };
+
+    statusHandler.onData({
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 2,
+      serverTime: MOCK_SERVER_TIME,
+    });
+    fixture.detectChanges();
+    expect(component.session()?.status).toBe('ACTIVE');
+    expect(component.session()?.currentRound).toBe(2);
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).toContain('Die Frage wird geladen');
+
+    questionHandler.onData({ ...roundOne, currentRound: 2 });
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()?.order).toBe(0);
+    expect(component.presentedQuizQuestion()?.currentRound).toBe(2);
+    expect(root.textContent).toContain('Frage eins');
+    expect(root.textContent).toContain('2. Runde');
+    expect(root.querySelector('[data-testid="presenter-quiz-reveal-results"]')).not.toBeNull();
+
+    const questionTwo = {
+      ...roundOne,
+      questionId: '22222222-2222-4222-8222-222222222222',
+      order: 1,
+      text: 'Frage zwei',
+      currentRound: 1,
+      hasUnopenedFollowingQuestion: false,
+    };
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(questionTwo);
+    statusHandler.onData({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+      serverTime: MOCK_SERVER_TIME,
+    });
+    fixture.detectChanges();
+    expect(component.session()?.currentQuestion).toBe(1);
+    expect(component.session()?.currentRound).toBe(1);
+    expect(component.presentedQuizQuestion()).toBeNull();
+    expect(root.textContent).not.toContain('Frage eins');
+    expect(root.textContent).not.toContain('Frage zwei');
+    expect(root.textContent).toContain('Die Frage wird geladen');
+
+    const pending = root.querySelector<HTMLElement>(
+      '[data-testid="presenter-quiz-question-pending"]',
+    );
+    pending?.focus();
+    await component.retryPresenterQuestion();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(component.presentedQuizQuestion()?.order).toBe(1);
+    expect(component.presentedQuizQuestion()?.currentRound).toBe(1);
+    expect(root.textContent).toContain('Frage zwei');
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
+    fixture.destroy();
   });
 
   it('hält Present-Display-Gewicht ohne font-weight 800', () => {

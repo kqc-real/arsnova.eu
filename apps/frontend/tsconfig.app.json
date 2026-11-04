@@ -7,6 +7,6 @@
   "angularCompilerOptions": {
     "strictTemplates": true
   },
-  "files": ["src/main.ts"],
+  "files": ["src/main.ts", "src/main.server.ts"],
   "include": ["src/**/*.d.ts"]
 }

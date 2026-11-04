@@ -2,15 +2,14 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "declaration": false,
     "outDir": "./dist",
     "rootDir": "./src",
     "types": ["node"],
     "lib": ["ES2022"],
     "esModuleInterop": true,
-    "paths": {
-      "@arsnova/session-export-report": ["../../libs/session-export-report/src/index.ts"]
-    }
+    "paths": {}
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "references": [

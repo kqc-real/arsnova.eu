@@ -9,9 +9,11 @@ import { By } from '@angular/platform-browser';
 import { NEVER, Subject, of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
+  HostCurrentQuestionDTO,
   QaQuestionDTO,
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
+  SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
   flushComponentAfterStable,
@@ -21,7 +23,11 @@ import { SessionHostComponent } from './session-host.component';
 import { SessionExpirationDialogComponent } from './session-expiration-dialog.component';
 import { HostRecoveryCardDialogComponent } from '../host-recovery/host-recovery-card-dialog.component';
 import { QaChannelConfigurationDialogComponent } from './qa-channel-configuration-dialog.component';
-import { persistInitialHostRecovery } from '../../../core/host-recovery-access';
+import {
+  clearHostBrowserCapability,
+  persistInitialHostRecovery,
+  storeHostBrowserCapability,
+} from '../../../core/host-recovery-access';
 import { ConfirmLeaveDialogComponent } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
@@ -32,6 +38,53 @@ import { HostDisplayModeService } from '../../../core/host-display-mode.service'
 import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
+import type { SpecAccess } from '../../../testing/spec-access';
+
+function pendingCompassQuestion(): QaQuestionDTO {
+  return {
+    id: '11111111-1111-4111-8111-111111111111',
+    text: 'Kommt Kapitel 4 in der Klausur vor?',
+    status: 'PENDING',
+    upvoteCount: 1,
+    createdAt: '2026-03-13T12:00:00.000Z',
+    myVote: null,
+    isOwn: false,
+    passagesRedacted: false,
+    hasUpvoted: false,
+  } as QaQuestionDTO;
+}
+
+function hostLearningObjective(
+  text: string,
+  state: 'draft' | 'confirmed',
+  scope: 'quiz-wide' | 'question-set',
+  idSuffix = '0',
+  questionId = '11111111-1111-4111-8111-111111111111',
+): SessionLearningObjectiveDTO {
+  const id = `${idSuffix.padEnd(8, '0').slice(0, 8)}-1111-4111-8111-111111111111`;
+  return {
+    id,
+    revision: 1,
+    text,
+    scope:
+      scope === 'quiz-wide'
+        ? { kind: 'quiz-wide' }
+        : { kind: 'question-set', taskReferences: [{ kind: 'quiz-question', questionId }] },
+    origin: { kind: 'manual' },
+    confirmation:
+      state === 'confirmed'
+        ? {
+            state: 'confirmed',
+            confirmedAt: '2026-10-04T10:00:00.000Z',
+            confirmedRevision: 1,
+          }
+        : { state: 'draft' },
+    projection: 'quiz-projected',
+    purpose: 'learning-objective',
+    createdAt: '2026-10-04T10:00:00.000Z',
+    updatedAt: '2026-10-04T10:00:00.000Z',
+  };
+}
 
 function exitAnchorButtonLabel(button: Element): string {
   return (button.textContent ?? '')
@@ -85,6 +138,19 @@ function qaHostSnapshot(
 }
 
 /** Bühnen-Snapshot wie `qa.presentProjection` (PINNED vor ACTIVE). */
+function hostTestAccess(component: SessionHostComponent) {
+  return component as unknown as {
+    isSessionActive(): boolean;
+    qaListPendingCount: { set(value: number | null): void };
+    qaListSessionPendingCount: { set(value: number | null): void };
+    qaHostStatusCounts: {
+      set(
+        value: { active: number; pinned: number; pending: number; archived: number } | null,
+      ): void;
+    };
+  };
+}
+
 function seedQaPresenterStage(component: SessionHostComponent, questions: QaQuestionDTO[]): void {
   component.qaQuestions.set(questions);
   qaListQueryMock.mockResolvedValue(qaHostSnapshot(questions));
@@ -96,9 +162,12 @@ function seedQaPresenterStage(component: SessionHostComponent, questions: QaQues
     (question) => question.status === 'PINNED' || question.status === 'ACTIVE',
   );
   (
-    component as SessionHostComponent & {
-      qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
-    }
+    component as unknown as SpecAccess<
+      SessionHostComponent,
+      {
+        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+      }
+    >
   ).qaPresenterStageOrderedQuestions.set([
     ...visible.filter((question) => question.status === 'PINNED'),
     ...visible.filter((question) => question.status === 'ACTIVE'),
@@ -159,6 +228,7 @@ const {
   closeQuickFeedbackChannelMutateMock,
   reopenQuickFeedbackChannelMutateMock,
   endMutateMock,
+  issueHostAccessTokenMutateMock,
   dismissFinishProjectionMutateMock,
   quickFeedbackHostResultsQueryMock,
   quickFeedbackOnHostResultsSubscribeMock,
@@ -202,7 +272,9 @@ const {
   qaPendingReleaseSnapshotQueryMock: vi.fn(),
   qaReleasePendingMutateMock: vi.fn(),
   qaToggleModerationMutateMock: vi.fn(),
-  qaOnQuestionsUpdatedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
+  qaOnQuestionsUpdatedSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: unsubscribeMock,
+  })),
   nextQuestionMutateMock: vi.fn(),
   prevQuestionMutateMock: vi.fn(),
   showQuestionResultMutateMock: vi.fn(),
@@ -227,17 +299,28 @@ const {
   closeQuickFeedbackChannelMutateMock: vi.fn(),
   reopenQuickFeedbackChannelMutateMock: vi.fn(),
   endMutateMock: vi.fn(),
+  issueHostAccessTokenMutateMock: vi.fn(),
   dismissFinishProjectionMutateMock: vi.fn(),
   quickFeedbackHostResultsQueryMock: vi.fn(),
-  quickFeedbackOnHostResultsSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
+  quickFeedbackOnHostResultsSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: unsubscribeMock,
+  })),
   quickFeedbackToggleLockMutateMock: vi.fn(),
   updateQaTitleMutateMock: vi.fn(),
   listPairedHostsQueryMock: vi.fn(),
   quizUploadMutateMock: vi.fn(),
-  onParticipantJoinedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
-  onStatusChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
-  onCurrentQuestionForHostChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
-  onHostVoteProgressChangedSubscribeMock: vi.fn(() => ({ unsubscribe: unsubscribeMock })),
+  onParticipantJoinedSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: unsubscribeMock,
+  })),
+  onStatusChangedSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: unsubscribeMock,
+  })),
+  onCurrentQuestionForHostChangedSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: unsubscribeMock,
+  })),
+  onHostVoteProgressChangedSubscribeMock: vi.fn((_input: never, _opts: never) => ({
+    unsubscribe: unsubscribeMock,
+  })),
   clearHostTokenMock: vi.fn(),
   dialogOpenMock: vi.fn(),
   persistCurrentHostTokenMock: vi.fn(async () => true),
@@ -294,6 +377,7 @@ vi.mock('../../../core/trpc.client', () => ({
       closeQuickFeedbackChannel: { mutate: closeQuickFeedbackChannelMutateMock },
       reopenQuickFeedbackChannel: { mutate: reopenQuickFeedbackChannelMutateMock },
       end: { mutate: endMutateMock },
+      issueHostAccessToken: { mutate: issueHostAccessTokenMutateMock },
       dismissFinishProjection: { mutate: dismissFinishProjectionMutateMock },
       updateQaTitle: { mutate: updateQaTitleMutateMock },
       listPairedHosts: { query: listPairedHostsQueryMock },
@@ -342,6 +426,7 @@ vi.mock('../../../core/host-session-token', () => ({
   getHostSessionRole: () => null,
   hasHostToken: () => true,
   normalizeHostSessionCode: (code: string) => code.trim().toUpperCase(),
+  setHostToken: vi.fn(),
 }));
 
 const defaultSession = {
@@ -353,7 +438,7 @@ const defaultSession = {
   quizName: 'Demo Quiz',
   quizMotifImageUrl: null as string | null,
   quizMotifImageCredit: null as string | null,
-  title: null,
+  title: null as string | null,
   participantCount: 0,
   nicknameTheme: 'HIGH_SCHOOL' as const,
   allowCustomNicknames: false,
@@ -797,7 +882,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         {
           text: 'Frage 1',
           type: 'SINGLE_CHOICE',
-          difficulty: 'MEDIUM',
+          difficulty: 'MEDIUM' as const,
           order: 0,
           timer: 30,
           answers: [
@@ -856,6 +941,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     qaToggleModerationMutateMock.mockResolvedValue({ enabled: true });
     dialogOpenMock.mockReturnValue({ afterClosed: () => of(true) });
+    issueHostAccessTokenMutateMock.mockResolvedValue({
+      hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+      hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+    });
+    clearHostBrowserCapability('ABC123');
     getExportDataQueryMock.mockResolvedValue({
       sessionId: defaultSession.id,
       sessionCode: 'ABC123',
@@ -932,6 +1022,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -942,6 +1033,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -952,6 +1044,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1008,6 +1101,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1020,6 +1114,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1054,6 +1149,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1064,6 +1160,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1074,6 +1171,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1127,6 +1225,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1137,6 +1236,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1207,6 +1307,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1217,6 +1318,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1227,6 +1329,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1237,6 +1340,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:03:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1317,6 +1421,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: `2026-03-13T12:0${index}:00.000Z`,
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       })) as never,
     );
@@ -1335,8 +1440,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(bar.querySelector('.session-qa-card__actions-end')).not.toBeNull();
     }
     const deleteButtons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-qa-card__action-btn--delete'),
-    ) as HTMLElement[];
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        '.session-qa-card__action-btn--delete',
+      ),
+    );
     expect(deleteButtons).toHaveLength(4);
     for (const button of deleteButtons) {
       expect(button.textContent).toContain('Löschen');
@@ -1348,13 +1455,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('wählt Moderations-Icons passend zu Pin/Unpin und Archiv/Zurück', () => {
     const fixture = setup();
     const component = fixture.componentInstance;
-    expect(component.qaActionIcon('PIN')).toBe('push_pin');
-    expect(component.qaActionIcon('UNPIN')).toBe('undo');
+    expect(component.qaActionIcon('PIN')).toBe('keep');
+    expect(component.qaActionIcon('UNPIN')).toBe('keep_off');
     expect(component.qaActionIcon('ARCHIVE')).toBe('archive');
     expect(component.qaActionIcon('APPROVE', 'PENDING')).toBe('check');
-    expect(component.qaActionIcon('APPROVE', 'ARCHIVED')).toBe('outbox');
-    expect(component.qaActionIcon('DELETE')).toBe('delete_outline');
-    expect(component.qaActionIcon('DELETE', 'DELETED')).toBe('delete');
+    expect(component.qaActionIcon('APPROVE', 'ARCHIVED')).toBe('unarchive');
+    expect(component.qaActionIcon('DELETE')).toBe('delete');
+    expect(component.qaActionIcon('DELETE', 'DELETED')).toBe('delete_forever');
     fixture.destroy();
   });
 
@@ -1384,6 +1491,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1394,6 +1502,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1404,6 +1513,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1441,6 +1551,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: `2026-03-13T12:0${index}:00.000Z`,
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     }));
     qaPresentProjectionQueryMock.mockResolvedValue({
@@ -1534,6 +1645,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1580,6 +1692,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1590,6 +1703,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -1600,6 +1714,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -1991,7 +2106,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           data: {
             mode: 'GLOBAL_WARNING';
             warningMinutes: 30;
-            lifecycle: typeof defaultLifecycle;
+            lifecycle: Omit<typeof defaultLifecycle, 'status'> & { status: 'LOBBY' | 'ACTIVE' };
           },
           focusReturn: HTMLElement | null,
         ): Promise<void>;
@@ -2601,7 +2716,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalQuestions: 1,
       text: 'Was ist 2+2?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: 30,
       answers: [
         { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '3', isCorrect: false },
@@ -2741,7 +2856,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ).toBeNull();
     expect(fixture.componentInstance.showLobbyStage()).toBe(true);
     const icons = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.session-lobby__nick-emoji--host-lobby',
+      ),
       (el) => (el.textContent ?? '').trim(),
     );
     expect(icons).toEqual(['🦎', '🐬']);
@@ -2845,6 +2962,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       authorTeamName: 'Team 🍎',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     };
     getInfoQueryMock.mockResolvedValue({
@@ -2953,6 +3071,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('zeigt die Teamzugehörigkeit an Host-Fragen auch ohne authorTeamName aus dem Verzeichnis', async () => {
     const dragonQuestion = {
+      passagesRedacted: false,
       id: 'question-dragon',
       text: 'Kannst du das Beispiel noch einmal erklären?',
       upvoteCount: 5,
@@ -3044,6 +3163,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         authorNickname: 'Roter Drache 2',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -3109,8 +3229,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const scaleValues = Array.from(
-      fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value'),
-    ).map((node: Element) => node.textContent?.trim());
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.session-host__rating-scale-value',
+      ),
+    ).map((node) => node.textContent?.trim());
 
     expect(scaleValues).toEqual(['1', '2', '3', '4', '5']);
     fixture.destroy();
@@ -3130,7 +3252,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalQuestions: 1,
       text: 'Welcher Fachbegriff ist gesucht?',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       timer: 30,
       answers: [
         {
@@ -3366,7 +3488,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalQuestions: 3,
       text: 'Welche Antwort stimmt?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       showQuestionTypeIndicators: true,
       timer: 30,
       answers: [],
@@ -4105,7 +4227,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           open: false,
           title: 'Fragen',
           moderationMode: true,
-          state: 'CLOSED',
+          state: 'MANUALLY_CLOSED',
         },
         quickFeedback: { enabled: true, open: true },
       },
@@ -4374,6 +4496,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.postProcessingEnded.set(false);
     fixture.componentInstance.qaQuestions.set([
       {
+        passagesRedacted: false,
+        myVote: 'UP',
+        isOwn: false,
+        hasUpvoted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Wartet auf Freigabe',
         upvoteCount: 0,
@@ -4434,6 +4560,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-24T11:59:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -4444,6 +4571,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-24T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -4454,6 +4582,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-24T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -4506,7 +4635,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       '[data-testid="qa-summary-total"]',
     ) as HTMLElement | null;
     expect(totalChip).not.toBeNull();
-    expect(totalChip?.querySelector('mat-icon')?.textContent?.trim()).toBe('chat_bubble_outline');
+    expect(totalChip?.querySelector('mat-icon')?.textContent?.trim()).toBe('chat_bubble');
     expect(totalChip?.getAttribute('aria-label')).toMatch(/Gesamt:\s*4/);
     expect(totalChip?.textContent).toMatch(/4/);
     const pendingChip = statusStrip?.querySelector(
@@ -4554,6 +4683,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-24T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -4611,6 +4741,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.activeChannel.set('qa');
     fixture.componentInstance.qaQuestions.set([
       {
+        passagesRedacted: false,
+        myVote: 'UP',
+        isOwn: false,
+        hasUpvoted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Nicht mehr zugängliche Frage',
         status: 'ACTIVE',
@@ -4646,6 +4780,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const fixture = setup();
       fixture.componentInstance.qaQuestions.set([
         {
+          passagesRedacted: false,
+          myVote: 'UP',
+          isOwn: false,
+          hasUpvoted: false,
           id: '11111111-1111-4111-8111-111111111111',
           text: 'Nur bis zur lokalen Deadline sichtbar',
           status: 'ACTIVE',
@@ -5392,7 +5530,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await fixture.componentInstance.ngOnInit();
       expect(enableQuickFeedbackChannelMutateMock).not.toHaveBeenCalled();
       expect(scenario.hasQuickFeedbackAfterQa('ABC123')).toBe(true);
-      fixture.componentInstance.hostSteeringCallout()?.retry();
+      fixture.componentInstance.hostSteeringCallout()?.retry?.();
       await vi.waitFor(() => expect(scenario.hasQuickFeedbackAfterQa('ABC123')).toBe(false));
       expect(startQaMutateMock).toHaveBeenCalledTimes(2);
       expect(enableQuickFeedbackChannelMutateMock).toHaveBeenCalledOnce();
@@ -5555,6 +5693,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-08-24T18:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -5684,6 +5823,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('projiziert Q&A beim Kanalwechsel, sobald eine sichtbare Frage vorhanden ist', async () => {
     const visibleQuestion = {
+      passagesRedacted: false,
       id: '11111111-1111-4111-8111-111111111111',
       text: 'Welche Frage wird projiziert?',
       upvoteCount: 2,
@@ -6404,11 +6544,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.hostSteeringCallout()).not.toBeNull();
 
-    fixture.componentInstance.hostSteeringCallout()?.retry();
+    fixture.componentInstance.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => attachQuizToSessionMutateMock.mock.calls.length === 2);
     await fixture.whenStable();
 
-    expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(2);
+    expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(3);
     expect(attachQuizToSessionMutateMock).toHaveBeenNthCalledWith(1, {
       code: 'ABC123',
       quizId: '44444444-4444-4444-8444-444444444444',
@@ -6510,7 +6650,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalQuestions: 3,
       text: 'Welche Antwort stimmt?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       showQuestionTypeIndicators: true,
       timer: 30,
       answers: [],
@@ -6940,9 +7080,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
-    const component = fixture.componentInstance as SessionHostComponent & {
-      unloadWarningEnabled: boolean;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      SessionHostComponent,
+      {
+        unloadWarningEnabled: boolean;
+      }
+    >;
 
     component.unloadWarningEnabled = true;
     const blockedEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
@@ -6964,12 +7107,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
-    const component = fixture.componentInstance as SessionHostComponent & {
-      unloadWarningEnabled: boolean;
-      participantsPayload: {
-        set(value: { participantCount: number; participants: unknown[] }): void;
-      };
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      SessionHostComponent,
+      {
+        unloadWarningEnabled: boolean;
+        participantsPayload: {
+          set(value: { participantCount: number; participants: unknown[] }): void;
+        };
+      }
+    >;
 
     component.unloadWarningEnabled = true;
     component.participantsPayload.set({ participantCount: 0, participants: [] });
@@ -6987,12 +7133,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
-    const component = fixture.componentInstance as SessionHostComponent & {
-      unloadWarningEnabled: boolean;
-      participantsPayload: {
-        set(value: { participantCount: number; participants: unknown[] }): void;
-      };
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      SessionHostComponent,
+      {
+        unloadWarningEnabled: boolean;
+        participantsPayload: {
+          set(value: { participantCount: number; participants: unknown[] }): void;
+        };
+      }
+    >;
 
     component.unloadWarningEnabled = true;
     component.participantsPayload.set({ participantCount: 3, participants: [] });
@@ -7015,7 +7164,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     const component = fixture.componentInstance;
-    const syncMusicSpy = vi.spyOn(component as never, 'syncMusic' as never);
+    const syncMusicSpy = vi.spyOn(component as unknown as { syncMusic(): void }, 'syncMusic');
     syncMusicSpy.mockClear();
 
     const themePreset = TestBed.inject(ThemePresetService);
@@ -7059,7 +7208,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.selectChannel('quickFeedback');
     expect(component.activeChannel()).toBe('quickFeedback');
 
-    const syncMusicSpy = vi.spyOn(component as never, 'syncMusic' as never);
+    const syncMusicSpy = vi.spyOn(component as unknown as { syncMusic(): void }, 'syncMusic');
     syncMusicSpy.mockClear();
 
     const themePreset = TestBed.inject(ThemePresetService);
@@ -7398,7 +7547,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(fixture.componentInstance.isSessionActive()).toBe(false);
+    expect(hostTestAccess(fixture.componentInstance).isSessionActive()).toBe(false);
     expect(fixture.componentInstance.keepQaOpenOnHostLeave()).toBe(false);
     expect(fixture.componentInstance.isLiveHostSurface()).toBe(true);
 
@@ -7961,7 +8110,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('2 Antworten');
     expect(text).toContain('Live-Freitext wird aktualisiert.');
     expect(text).toContain('Live-Freitext');
-    expect(text).toContain('Häufige Wörter und kurze Wortgruppen.');
+    expect(text).toContain('Häufige Wörter aus den Antworten.');
     expect(text).toContain('Wortwolke einfrieren');
     expect(text).toContain('Wortformen glätten');
     const extraSmoothButton = wordCloudDetails?.querySelector(
@@ -8223,9 +8372,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     expect(component.freetextWordCloudMode()).toBe('SEMANTIC');
-    expect(component.freetextWordCloudSemanticHint()).toBe(
-      'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
-    );
+    expect(component.freetextWordCloudSemanticHint()).toBe('Themen sind noch nicht verfügbar.');
     expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
     expect(component.displayedFreetextAnalysisEntries()?.[0]?.label).toBe('lineare Regression');
     expect(component.displayedFreetextVisibleTerms()).toBeNull();
@@ -8355,9 +8502,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(component.qaWordCloudAnalysisLocale()).toBeNull();
     expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
-    expect(component.freetextWordCloudSemanticHint()).toBe(
-      'Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.',
-    );
+    expect(component.freetextWordCloudSemanticHint()).toBe('Themen sind gerade nicht belastbar.');
     expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
     expect(component.displayedFreetextAnalysisEntries()).toBeNull();
     expect(
@@ -8365,9 +8510,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
       ),
     ).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain(
-      'Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Themen sind gerade nicht belastbar.');
     fixture.destroy();
   });
 
@@ -8441,7 +8584,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     const analyzeCallsAfterReady = wordCloudAnalyzeQueryMock.mock.calls.length;
     expect(component.freetextWordCloudSemanticStale()).toBe(false);
-    expect(component.freetextWordCloudShowThemeRefresh()).toBe(false);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
 
     component.freetextResponses.set([
       'Lineare Regression im Projekt',
@@ -8455,7 +8598,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.freetextWordCloudSemanticStale()).toBe(true);
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
     expect(component.freetextWordCloudSemanticHint()).toContain(
-      'Neue Antworten seit letzter Themenanalyse',
+      'Neue Antworten seit der letzten Themenanalyse',
     );
     expect(
       fixture.nativeElement.querySelector('[data-testid="freetext-word-cloud-refresh-themes"]'),
@@ -8484,7 +8627,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     expect(refreshedRequest.items).toHaveLength(3);
-    expect(component.freetextWordCloudShowThemeRefresh()).toBe(false);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
     fixture.destroy();
   });
 
@@ -8769,13 +8912,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(
         component.displayedFreetextVisibleTerms()?.every((term) => !term.key.includes(' ')),
       ).toBe(true);
-      await vi.waitUntil(
-        () =>
-          wordCloudAnalyzeQueryMock.mock.calls.some(
-            (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
-          ),
-        { timeout: 5000, interval: 25 },
-      );
+      expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
       expect(
         fixture.nativeElement.querySelector(
           '.session-host__extra--freetext.session-host__extra--maximized',
@@ -8792,8 +8929,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(
         fixture.nativeElement.querySelector('.session-host__extra-close-maximize'),
       ).not.toBeNull();
+      const freezeControl = fixture.nativeElement.querySelector(
+        '.session-host__extra-action--icon',
+      ) as HTMLButtonElement;
+      expect(freezeControl).not.toBeNull();
+      expect(freezeControl.classList.contains('mat-mdc-icon-button')).toBe(true);
+      expect(freezeControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
       expect(fixture.nativeElement.querySelector('.word-cloud-host--presentation')).not.toBeNull();
-      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).not.toBeNull();
       expect(fixture.nativeElement.textContent).not.toContain('Maximieren');
 
       const phrasesToggle = fixture.nativeElement.querySelector(
@@ -8805,6 +8948,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           '.session-host__extra--maximized mat-button-toggle[value="SEMANTIC"]',
         ),
       ).not.toBeNull();
+      expect(phrasesToggle?.disabled).toBe(true);
+      await component.toggleWordCloudFreeze();
+      fixture.detectChanges();
       phrasesToggle?.click();
       fixture.detectChanges();
       await fixture.whenStable();
@@ -8826,7 +8972,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       maximizedCloud?.toggleWord(selectedWord!.groupKey);
       fixture.detectChanges();
 
-      await component.toggleWordCloudFreeze();
       expect(component.wordCloudFrozen()).toBe(false);
 
       component.closeFreetextWordCloudMaximize();
@@ -8908,6 +9053,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('ordnet einen Kanalwechsel nach einer noch laufenden Wortwolken-Aktivierung ein', async () => {
     const visibleQuestion = {
+      passagesRedacted: false,
       id: '11111111-1111-4111-8111-111111111111',
       text: 'Welche Frage wird projiziert?',
       upvoteCount: 2,
@@ -9640,7 +9786,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('nimmt die Host-UI-Sprache als Wolkensprache ohne Sprachschalter in der Darstellung', async () => {
+  it('zeigt die Host-UI-Sprache als Standard und erlaubt eine andere Analysesprache', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -9692,16 +9838,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const component = fixture.componentInstance;
     expect(component.qaWordCloudAnalysisLocale()).toBe('de');
     expect(
-      fixture.nativeElement.querySelector(
-        '.session-host__extra--freetext app-word-cloud-lemma-locale-select',
-      ),
-    ).toBeNull();
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(
+        '.session-host__extra--freetext .session-host__word-cloud-language select',
+      )?.value,
+    ).toBe('de');
 
     await component.setWordCloudLemmaLocale('fr');
     fixture.detectChanges();
     expect(component.qaWordCloudAnalysisLocale()).toBe('fr');
 
-    await component.toggleFreetextWordCloudSmoothing();
     await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
       timeout: 5000,
       interval: 25,
@@ -9837,7 +9982,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await component.setWordCloudLemmaLocale('es');
     expect(component.qaWordCloudAnalysisLocale()).toBe('es');
     expect(component.freetextWordCloudSmoothingDisabled()).toBe(false);
-    await component.toggleFreetextWordCloudSmoothing();
     await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
       timeout: 5000,
       interval: 25,
@@ -9907,6 +10051,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -9917,6 +10062,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -9927,6 +10073,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -9956,6 +10103,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(toolsChildren[0]?.querySelector('[data-testid="qa-word-cloud"]')).not.toBeNull();
 
     dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     const trigger = fixture.nativeElement.querySelector(
       '[data-testid="qa-word-cloud"]',
     ) as HTMLButtonElement | null;
@@ -10003,6 +10151,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -10051,6 +10200,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         authorNickname: 'Roter Drache 2',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -10105,6 +10255,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.activeChannel.set('qa');
     component.qaQuestions.set([
       {
+        passagesRedacted: false,
         id: 'question-1',
         text: 'Kannst du das Beispiel noch einmal erklären?',
         upvoteCount: 5,
@@ -10116,6 +10267,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
       {
+        passagesRedacted: false,
         id: 'question-2',
         text: 'Gibt es die Folien später online?',
         upvoteCount: 3,
@@ -10184,6 +10336,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -10228,6 +10381,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -10268,6 +10422,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -10350,6 +10505,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     });
     const firstQuestion: QaQuestionDTO = {
+      passagesRedacted: false,
       id: '44444444-4444-4444-8444-444444444444',
       text: 'Erste wartende Frage',
       upvoteCount: 0,
@@ -10409,7 +10565,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     expect(component.hostSteeringCallout()).not.toBeNull();
 
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => dialogOpenMock.mock.calls.length === 2);
 
     const [, repeatedConfig] = dialogOpenMock.mock.calls[1] as [
@@ -10437,6 +10593,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     const pendingSnapshot = qaHostSnapshot([
       {
+        passagesRedacted: false,
         id: '44444444-4444-4444-8444-444444444444',
         text: 'Was ist klausurrelevant?',
         upvoteCount: 3,
@@ -10473,7 +10630,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     rejectReload = false;
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => component.hostSteeringCallout() === null);
 
     expect(component.qaQuestions()).toEqual(pendingSnapshot.questions);
@@ -10493,6 +10650,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     const pendingSnapshot = qaHostSnapshot([
       {
+        passagesRedacted: false,
         id: '44444444-4444-4444-8444-444444444444',
         text: 'Was ist klausurrelevant?',
         upvoteCount: 3,
@@ -10557,6 +10715,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     qaListQueryMock.mockResolvedValue(
       qaHostSnapshot([
         {
+          passagesRedacted: false,
           id: '44444444-4444-4444-8444-444444444444',
           text: 'Was ist klausurrelevant?',
           upvoteCount: 3,
@@ -10611,6 +10770,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     qaListQueryMock.mockResolvedValue(
       qaHostSnapshot([
         {
+          passagesRedacted: false,
           id: '44444444-4444-4444-8444-444444444444',
           text: 'Was ist klausurrelevant?',
           upvoteCount: 3,
@@ -10688,6 +10848,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     qaListQueryMock.mockResolvedValue(
       qaHostSnapshot([
         {
+          passagesRedacted: false,
           id: '44444444-4444-4444-8444-444444444444',
           text: 'Was ist klausurrelevant?',
           upvoteCount: 3,
@@ -10773,6 +10934,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
             createdAt: '2026-03-13T12:00:00.000Z',
             myVote: null,
             isOwn: false,
+            passagesRedacted: false,
             hasUpvoted: false,
           },
         ],
@@ -10856,6 +11018,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('blendet die Sammelfreigabe bei geschlossenem oder abgelaufenem Q&A aus', async () => {
     const pendingQuestion: QaQuestionDTO = {
+      passagesRedacted: false,
       id: '44444444-4444-4444-8444-444444444444',
       text: 'Wartende Frage',
       upvoteCount: 0,
@@ -10940,6 +11103,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -11004,6 +11168,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     });
     const pendingQuestion: QaQuestionDTO = {
+      passagesRedacted: false,
       id: '44444444-4444-4444-8444-444444444444',
       text: 'Wartende Frage',
       upvoteCount: 0,
@@ -11109,6 +11274,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: '2026-03-13T12:00:00.000Z',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     };
     const activeQuestion = {
@@ -11187,7 +11353,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     rejectUnfilteredReload = false;
-    component.hostSteeringCallout()?.retry();
+    component.hostSteeringCallout()?.retry?.();
     await vi.waitUntil(() => component.qaQuestions()[0]?.status === 'ACTIVE');
 
     expect(component.qaQuestions()[0]?.text).toBe('Sichtbare Frage');
@@ -11213,6 +11379,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -11223,6 +11390,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -11273,6 +11441,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -11396,6 +11565,51 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     return fixture;
   }
 
+  it('übernimmt den Pinfilter, obwohl das Abo die Presenter-Sortierung schon publiziert hat', async () => {
+    let stage: {
+      sortMode: string;
+      search: string;
+      pinnedOnly: boolean;
+      authorNickname: string | null;
+      source: 'host' | 'presenter';
+    } = {
+      sortMode: 'BEST',
+      search: '',
+      pinnedOnly: false,
+      authorNickname: null,
+      source: 'presenter',
+    };
+    setQaPresenterSortModeMutateMock.mockImplementation(
+      async (input: {
+        sortMode: string;
+        search?: string;
+        pinnedOnly?: boolean;
+        authorNickname?: string | null;
+        takeover?: boolean;
+      }) => {
+        if (stage.source !== 'presenter' || input.takeover === true) {
+          stage = {
+            sortMode: input.sortMode,
+            search: input.search ?? '',
+            pinnedOnly: input.pinnedOnly ?? false,
+            authorNickname: input.authorNickname ?? null,
+            source: 'host',
+          };
+        }
+        return { ...stage };
+      },
+    );
+
+    const fixture = await setupQaWorkspace(false);
+    await fixture.componentInstance.setQaPinnedFilter(true);
+
+    expect(stage).toMatchObject({ pinnedOnly: true, source: 'host' });
+    expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pinnedOnly: true, search: '', takeover: true }),
+    );
+    fixture.destroy();
+  });
+
   it('zeigt leere Q&A mit offenem Status und geschlossenen, benannten Werkzeugen', async () => {
     const fixture = await setupQaWorkspace(false);
     const host = fixture.nativeElement as HTMLElement;
@@ -11476,7 +11690,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('verschiebt Fokus vor dem Einklappen und hält ihn nach verspäteten Listenantworten', async () => {
     const fixture = await setupQaWorkspace();
     const component = fixture.componentInstance;
-    component.qaListSessionPendingCount.set(2);
+    hostTestAccess(component).qaListSessionPendingCount.set(2);
     fixture.detectChanges();
     component.toggleQaTools();
     fixture.detectChanges();
@@ -11507,6 +11721,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       qaHostSnapshot(
         [
           {
+            passagesRedacted: false,
             id: '33333333-3333-4333-8333-333333333333',
             text: 'Hervorgehoben',
             upvoteCount: 1,
@@ -11533,7 +11748,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.qaSearch.set('unsichtbar');
     component.qaSelectedAuthorNickname.set('Ada');
     component.qaShowPinnedOnly.set(true);
-    component.qaListSessionPendingCount.set(12);
+    hostTestAccess(component).qaListSessionPendingCount.set(12);
     fixture.detectChanges();
     const review = fixture.nativeElement.querySelector(
       '[data-testid="qa-review-pending"]',
@@ -11548,6 +11763,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: '2026-03-24T12:00:00.000Z',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     }));
     qaListQueryMock.mockResolvedValue(pendingQuestions);
@@ -11576,7 +11792,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('erhält Fokus bevor eine entfernte Moderationsänderung den Prüfen-Button entfernt', async () => {
     const fixture = await setupQaWorkspace();
     const component = fixture.componentInstance;
-    component.qaListSessionPendingCount.set(2);
+    hostTestAccess(component).qaListSessionPendingCount.set(2);
     fixture.detectChanges();
     fixture.nativeElement.querySelector('[data-testid="qa-review-pending"]').focus();
     component.session.update(
@@ -11600,12 +11816,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('blendet Fragen prüfen aus, wenn keine PENDING-Fragen warten', async () => {
     const fixture = await setupQaWorkspace(true);
     const component = fixture.componentInstance;
-    component.qaListSessionPendingCount.set(0);
-    component.qaListPendingCount.set(0);
+    hostTestAccess(component).qaListSessionPendingCount.set(0);
+    hostTestAccess(component).qaListPendingCount.set(0);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="qa-review-pending"]')).toBeNull();
     expect(component.qaToolsToggleEmphasis()).toBe('filled');
-    component.qaListSessionPendingCount.set(3);
+    hostTestAccess(component).qaListSessionPendingCount.set(3);
     fixture.detectChanges();
     expect(
       fixture.nativeElement.querySelector('[data-testid="qa-review-pending"]')?.textContent,
@@ -11617,8 +11833,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('erhält Fokus beim Wechsel vom Pending-Zähler zur Vorabmoderation durch einen anderen Host', async () => {
     const fixture = await setupQaWorkspace(false);
     const component = fixture.componentInstance;
-    component.qaListPendingCount.set(3);
-    component.qaListSessionPendingCount.set(3);
+    hostTestAccess(component).qaListPendingCount.set(3);
+    hostTestAccess(component).qaListSessionPendingCount.set(3);
     component.qaListTotalCount.set(3);
     fixture.detectChanges();
     fixture.nativeElement.querySelector('[data-testid="qa-summary-pending"]').focus();
@@ -11662,6 +11878,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -11672,6 +11889,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T11:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -11684,7 +11902,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.activeChannel.set('qa');
     component.qaToolsOpen.set(true);
     component.qaCompactToolbar.set(true);
-    component.qaHostStatusCounts.set({ active: 1, pinned: 0, pending: 0, archived: 1 });
+    hostTestAccess(component).qaHostStatusCounts.set({
+      active: 1,
+      pinned: 0,
+      pending: 0,
+      archived: 1,
+    });
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
     const qaList = host.querySelector('.session-qa-list') as HTMLElement | null;
@@ -11854,6 +12077,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -11879,6 +12103,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -11971,6 +12196,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -12025,6 +12251,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -12035,6 +12262,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -12101,6 +12329,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       })),
       state: 'ACTIVE' as const,
@@ -12169,6 +12398,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       qaHostSnapshot(
         [
           {
+            passagesRedacted: false,
             id: '11111111-1111-4111-8111-111111111111',
             text: 'Treffer ohne Moderationsstatus',
             upvoteCount: 2,
@@ -12246,6 +12476,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -12256,6 +12487,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -12292,6 +12524,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -12350,6 +12583,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:02:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -12412,6 +12646,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: '2026-03-13T12:00:00.000Z',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     };
     const archivedQuestion = {
@@ -12422,6 +12657,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: '2026-03-13T12:01:00.000Z',
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     };
     qaListQueryMock.mockImplementation(async (input?: { statuses?: string[] }) => {
@@ -12534,6 +12770,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -12544,6 +12781,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -12594,6 +12832,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -12744,6 +12983,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -12902,6 +13142,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -12980,6 +13221,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13037,6 +13279,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -13047,6 +13290,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13108,6 +13352,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -13118,6 +13363,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13235,6 +13481,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13249,7 +13496,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt ohne gewählte Analysesprache keinen lokalen Q&A-Seitenausschnitt', async () => {
+  it('zeigt auf Italienisch einen lokalen Q&A-Seitenausschnitt', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -13268,6 +13515,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13279,6 +13527,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       timeout: 5000,
       interval: 25,
     });
+
+    hostTestAccess(fixture.componentInstance).qaHostStatusCounts.set({
+      active: 1,
+      pinned: 0,
+      pending: 3,
+      archived: 4,
+    });
+    fixture.componentInstance.qaListTotalCount.set(8);
+    expect(fixture.componentInstance.qaWordCloudAnalyzedCount()).toBe(1);
+    expect(fixture.componentInstance.qaWordCloudEligibleCount()).toBe(1);
 
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     await fixture.componentInstance.openQaWordCloudDialog();
@@ -13305,7 +13563,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(data.analysisVariant()).toBe('THEME');
     expect(data.themeModeAvailable()).toBe(true);
     expect(data.themeFallbackHint()).toBeNull();
-    expect(data.terms()).toBeNull();
+    expect(data.terms()?.length).toBeGreaterThan(0);
     expect(Object.prototype.hasOwnProperty.call(config['data'], 'lemmaLocale')).toBe(false);
 
     wordCloudAnalyzeQueryMock.mockImplementation(
@@ -13373,6 +13631,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -13383,6 +13642,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13496,6 +13756,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -13506,6 +13767,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13597,6 +13859,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13688,6 +13951,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -13698,6 +13962,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13781,7 +14046,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(fixture.componentInstance.qaWordCloudAnalysisVariant()).toBe('SEMANTIC');
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBe(
-      'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
+      'Themen sind noch nicht verfügbar.',
     );
     expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
@@ -13837,6 +14102,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -13889,6 +14155,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.qaQuestions.update((questions) => [
       ...questions,
       {
+        passagesRedacted: false,
         id: '22222222-2222-4222-8222-222222222222',
         text: 'Der Beamer-Haenger ist defekt.',
         upvoteCount: 2,
@@ -13909,7 +14176,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       'Neue Fragen seit der letzten Themenanalyse',
     );
 
-    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    const component = fixture.componentInstance;
+    const previous = component.qaWordCloudThemeAnalysisResult();
+    component.qaListRankingRevision.set('17:BEST:');
+    let releaseAnalysis: (result: unknown) => void = () => undefined;
+    wordCloudAnalyzeQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseAnalysis = resolve;
+        }),
+    );
+    await component.toggleQaWordCloudSmoothing();
     await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length > analyzeCallsAfterOpen, {
       timeout: 5000,
       interval: 25,
@@ -13923,6 +14200,220 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     expect(refreshedThemeRequest).not.toHaveProperty('items');
+    component.qaListRankingRevision.set('18:BEST:');
+    releaseAnalysis(
+      wordCloudAnalyzeResult({ ...previous, corpusRevision: '17:', sortMode: 'BEST' }),
+    );
+    await vi.waitFor(() => expect(component.qaWordCloudThemeAnalysisPending()).toBe(false));
+    expect(component.qaWordCloudSemanticStale()).toBe(true);
+
+    const calls = wordCloudAnalyzeQueryMock.mock.calls.length;
+    wordCloudAnalyzeQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseAnalysis = resolve;
+        }),
+    );
+    await component.toggleQaWordCloudSmoothing();
+    await vi.waitFor(() =>
+      expect(wordCloudAnalyzeQueryMock.mock.calls.length).toBeGreaterThan(calls),
+    );
+    const visible = component.qaWordCloudAnalysisEntries()?.map(({ label }) => label);
+    component.toggleQaWordCloudFreeze();
+    releaseAnalysis(
+      wordCloudAnalyzeResult({
+        ...previous,
+        entries: previous?.entries.map((entry) => ({ ...entry, label: 'Verspäteter Themenname' })),
+      }),
+    );
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.qaWordCloudAnalysisEntries()?.map(({ label }) => label)).toEqual(visible);
+    component.toggleQaWordCloudFreeze();
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    fixture.destroy();
+  });
+
+  it('entfernt Q&A-Themen und Belege beim Wechsel zum Pinfilter auch bei Analysefehler', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const unpinned = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Eindeutiger Beleg aus einer nicht hervorgehobenen Frage',
+      status: 'ACTIVE',
+      upvoteCount: 3,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      passagesRedacted: false,
+    };
+    const pinned = {
+      ...unpinned,
+      id: '22222222-2222-4222-8222-222222222222',
+      text: 'Wie groß ist die Stichprobe?',
+      status: 'PINNED',
+    };
+    qaListQueryMock.mockResolvedValue([pinned, unpinned]);
+    let failPinnedAnalysis: (error: Error) => void = () => undefined;
+    wordCloudAnalyzeQueryMock.mockImplementation((request) => {
+      if (request.mode === 'SEMANTIC' && request.filter === 'PINNED_ONLY') {
+        return new Promise((_resolve, reject) => {
+          failPinnedAnalysis = reject;
+        });
+      }
+      return Promise.resolve(
+        wordCloudAnalyzeResult({
+          mode: request.mode,
+          analyzedQuestionCount: 2,
+          eligibleQuestionCount: 2,
+          entries: [
+            {
+              key: 'semantic-unpinned',
+              label: 'Thema aus beiden Fragen',
+              count: 4,
+              basisLabel: null,
+              members: [{ sourceId: unpinned.id, text: unpinned.text, weight: 3 }],
+              variants: [unpinned.text],
+              confidence: 0.9,
+            },
+          ],
+        }),
+      );
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(2));
+    component.setQaWordCloudAnalysisVariant('SEMANTIC');
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    await vi.waitFor(
+      () => {
+        expect(JSON.stringify(component.qaWordCloudAnalysisEntries())).toContain(unpinned.text);
+        expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            projection: expect.objectContaining({ analysisStatus: 'ready' }),
+          }),
+        );
+      },
+      { timeout: 5000 },
+    );
+
+    qaListQueryMock.mockResolvedValue([pinned]);
+    setQaWordCloudProjectionMutateMock.mockClear();
+    await component.setQaPinnedFilter(true);
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    expect(component.qaWordCloudAnalysisEntries()).toBeNull();
+    expect(component.qaWordCloudCoverage()).toBeNull();
+    expect(component.qaWordCloudEligibleCount()).toBe(1);
+    const expectScopedProjection = (analysisStatus: 'pending' | 'failed') =>
+      expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projection: expect.objectContaining({
+            analysisStatus,
+            analysisEntries: [],
+            analyzedQuestionCount: 0,
+            eligibleQuestionCount: 1,
+          }),
+        }),
+      );
+    await vi.waitFor(() => {
+      expectScopedProjection('pending');
+      expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+        expect.objectContaining({ mode: 'SEMANTIC', filter: 'PINNED_ONLY' }),
+        expect.anything(),
+      );
+    });
+
+    failPinnedAnalysis(new Error('timeout'));
+    await vi.waitFor(
+      () => {
+        expect(component.qaWordCloudThemeFallbackHint()).toBe('Themenanalyse fehlgeschlagen.');
+        expectScopedProjection('failed');
+      },
+      { timeout: 5000 },
+    );
+    expect(component.qaWordCloudAnalysisEntries()).toBeNull();
+    expect(component.qaWordCloudCoverage()).toBeNull();
+    expect(JSON.stringify(setQaWordCloudProjectionMutateMock.mock.calls)).not.toContain(
+      unpinned.text,
+    );
+    fixture.destroy();
+  });
+
+  it('markiert eine spätere Q&A-Korpusrevision bei gleichbleibender Seite als veraltet', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const question = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Wie groß ist die Stichprobe?',
+      status: 'ACTIVE',
+      upvoteCount: 3,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      passagesRedacted: false,
+    };
+    qaListQueryMock.mockResolvedValue([question]);
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        corpusRevision: '17:',
+        sortMode: 'BEST',
+        entries: [
+          {
+            key: 'semantic-stichprobe',
+            label: 'Stichprobengröße',
+            count: 3,
+            basisLabel: null,
+            members: [{ sourceId: question.id, text: question.text, weight: 3 }],
+            variants: [question.text],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(1));
+    component.qaListRankingRevision.set('16:BEST:');
+    component.setQaWordCloudAnalysisVariant('SEMANTIC');
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    await vi.waitFor(() => expect(component.qaWordCloudThemeAnalysisResult()).not.toBeNull(), {
+      timeout: 5000,
+    });
+    const questions = component.qaWordCloudQuestions();
+    expect(questions).toHaveLength(1);
+    const analysisCalls = wordCloudAnalyzeQueryMock.mock.calls.length;
+    expect(component.qaWordCloudSemanticStale()).toBe(false);
+
+    component.qaListRankingRevision.set('18:TOP:');
+    fixture.detectChanges();
+    expect(component.qaWordCloudSemanticStale()).toBe(false);
+
+    component.qaListRankingRevision.set('18:BEST:');
+    fixture.detectChanges();
+    expect(component.qaWordCloudQuestions()).toBe(questions);
+    expect(component.qaWordCloudSemanticStale()).toBe(true);
+    expect(component.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Stichprobengröße');
+    expect(component.qaWordCloudThemeFallbackHint()).toBe(
+      'Neue Fragen seit der letzten Themenanalyse',
+    );
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(analysisCalls);
     fixture.destroy();
   });
 
@@ -13945,6 +14436,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14033,6 +14525,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14082,6 +14575,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.qaQuestions.update((questions) => [
       ...questions,
       {
+        passagesRedacted: false,
         id: '22222222-2222-4222-8222-222222222222',
         text: 'Der Beamer-Haenger ist defekt.',
         upvoteCount: 2,
@@ -14109,8 +14603,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('stale');
     expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Neu analysieren');
     expect(fixture.componentInstance.qaWordCloudThemeAnalysisResult()?.status).toBe('ready');
+    expect(fixture.componentInstance.qaWordCloudSemanticStale()).toBe(true);
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
-      'Neue Fragen seit der letzten Themenanalyse',
+      'Themenanalyse fehlgeschlagen.',
     );
     fixture.destroy();
   });
@@ -14137,7 +14632,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     };
   }
 
-  function lemmaAnalyzeCalls(): unknown[] {
+  function lemmaAnalyzeCalls(): unknown[][] {
     return wordCloudAnalyzeQueryMock.mock.calls
       .filter((call) => (call[0] as { normalization?: string }).normalization === 'LEMMA')
       .map((call) => [call[0]]);
@@ -14162,6 +14657,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -14172,6 +14668,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14325,6 +14822,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14416,6 +14914,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14530,6 +15029,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -14540,6 +15040,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14682,6 +15183,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -14692,6 +15194,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14825,6 +15328,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -14922,6 +15426,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -14932,6 +15437,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15026,6 +15532,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15138,6 +15645,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15220,6 +15728,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.qaQuestions.update((questions) => [
       ...questions,
       {
+        passagesRedacted: false,
         id: '33333333-3333-4333-8333-333333333333',
         text: 'Gibt es Klausuraufgaben zu Kapitel 5?',
         upvoteCount: 2,
@@ -15279,6 +15788,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15398,6 +15908,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15465,6 +15976,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15506,6 +16018,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15538,6 +16051,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ]);
@@ -15658,7 +16172,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalQuestions: 1,
       text: 'Was ist 2+2?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       currentRound: 1,
       answers: [
         { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
@@ -15924,6 +16438,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.musicMuted.set(false);
     component.participantsPayload.set({ participantCount: 4, participants: [] });
     component.currentQuestionForHost.set({
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -15974,7 +16490,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.statusUpdate.set({
       status: 'QUESTION_OPEN',
       currentQuestion: 1,
-      activeAt: null,
     });
     fixture.detectChanges();
 
@@ -16002,13 +16517,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     playMusicSpy.mockClear();
     stopMusicSpy.mockClear();
 
-    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
-      | ((data: {
-          status: string;
-          currentQuestion: number | null;
-          activeAt?: string | null;
-        }) => void)
-      | undefined;
+    const statusHandler = (
+      onStatusChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        | {
+            onData?: (data: {
+              status: string;
+              currentQuestion: number | null;
+              activeAt?: string | null;
+            }) => void;
+          }
+        | undefined
+    )?.onData;
 
     expect(statusHandler).toBeTypeOf('function');
 
@@ -16066,13 +16585,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     playMusicSpy.mockClear();
     stopMusicSpy.mockClear();
 
-    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
-      | ((data: {
-          status: string;
-          currentQuestion: number | null;
-          activeAt?: string | null;
-        }) => void)
-      | undefined;
+    const statusHandler = (
+      onStatusChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        | {
+            onData?: (data: {
+              status: string;
+              currentQuestion: number | null;
+              activeAt?: string | null;
+            }) => void;
+          }
+        | undefined
+    )?.onData;
 
     statusHandler?.({ status: 'QUESTION_OPEN', currentQuestion: 0, activeAt: null });
     statusHandler?.({ status: 'ACTIVE', currentQuestion: 0, activeAt: null });
@@ -16239,6 +16762,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const component = fixture.componentInstance;
     const question = {
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -16349,6 +16874,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
 
     const question = {
+      order: 0,
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       questionOrder: 0,
       text: '2 + 2?',
@@ -16413,8 +16941,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       enableSoundEffects: true,
     } as typeof defaultSession & { enableSoundEffects: boolean; status: 'ACTIVE' });
     component.currentQuestionForHost.set({
+      order: 0,
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
-      questionOrder: 0,
       text: '2 + 2?',
       type: 'SINGLE_CHOICE' as const,
       currentRound: 1,
@@ -16469,8 +16999,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       enableSoundEffects: true,
     } as typeof defaultSession & { enableSoundEffects: boolean; status: 'ACTIVE' });
     component.currentQuestionForHost.set({
+      order: 0,
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
-      questionOrder: 0,
       text: '2 + 2?',
       type: 'SINGLE_CHOICE' as const,
       currentRound: 1,
@@ -16511,7 +17043,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.session.set({
       ...defaultSession,
       status: 'LOBBY',
-      preset: 'PLAYFUL',
       enableTimerAccommodation: false,
     });
     component.musicMenuEditPhase.set('personalTime');
@@ -16550,7 +17081,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.session.set({
       ...defaultSession,
       status: 'ACTIVE',
-      preset: 'PLAYFUL',
     });
     component.statusUpdate.set({
       status: 'ACTIVE',
@@ -16638,7 +17168,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.session.set({
       ...defaultSession,
       status: 'ACTIVE',
-      preset: 'PLAYFUL',
     });
     component.statusUpdate.set({
       status: 'ACTIVE',
@@ -17075,6 +17604,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17085,6 +17615,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17095,6 +17626,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ] as never);
@@ -17129,6 +17661,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17139,6 +17672,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -17152,6 +17686,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       listQuestions[1]!,
@@ -17189,9 +17724,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.activeChannel.set('qa');
     component.qaQuestions.set(listQuestions as never);
     (
-      component as SessionHostComponent & {
-        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
-      }
+      component as unknown as SpecAccess<
+        SessionHostComponent,
+        {
+          qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+        }
+      >
     ).qaPresenterStageOrderedQuestions.set(fullStage);
     fixture.detectChanges();
 
@@ -17230,6 +17768,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17240,6 +17779,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17250,6 +17790,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -17310,6 +17851,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17320,6 +17862,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -17380,6 +17923,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17390,6 +17934,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -17417,9 +17962,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.activeChannel.set('qa');
     component.qaQuestions.set(questions as never);
     (
-      component as SessionHostComponent & {
-        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
-      }
+      component as unknown as SpecAccess<
+        SessionHostComponent,
+        {
+          qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+        }
+      >
     ).qaPresenterStageOrderedQuestions.set([]);
     fixture.detectChanges();
 
@@ -17449,6 +17997,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Ada',
       },
@@ -17460,6 +18009,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Ada',
       },
@@ -17471,6 +18021,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Bob',
       },
@@ -17482,6 +18033,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:03:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Ada',
       },
@@ -17521,9 +18073,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     component.qaQuestions.set(mixedQuestions as never);
     (
-      component as SessionHostComponent & {
-        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
-      }
+      component as unknown as SpecAccess<
+        SessionHostComponent,
+        {
+          qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+        }
+      >
     ).qaPresenterStageOrderedQuestions.set(stageQuestions as never);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -17609,6 +18164,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17619,6 +18175,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17629,6 +18186,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -17678,6 +18236,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17688,6 +18247,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -17698,6 +18258,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -17795,6 +18356,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: `2026-03-13T12:0${minute}:00.000Z`,
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     });
     const questions = [
@@ -17905,6 +18467,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: `2026-03-13T12:0${minute}:00.000Z`,
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     });
     const questions = [
@@ -17987,6 +18550,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: `2026-03-13T12:0${minute}:00.000Z`,
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     });
     const questions = [
@@ -18093,6 +18657,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: `2026-03-13T12:0${minute}:00.000Z`,
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     });
     const questions = [
@@ -18177,6 +18742,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       createdAt: `2026-03-13T12:0${minute}:00.000Z`,
       myVote: null,
       isOwn: false,
+      passagesRedacted: false,
       hasUpvoted: false,
     });
     const questions = [
@@ -18261,6 +18827,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -18271,6 +18838,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -18281,6 +18849,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -18291,6 +18860,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:03:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -18385,6 +18955,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -18454,6 +19025,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -18464,6 +19036,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -18474,6 +19047,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
       {
@@ -18484,6 +19058,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:03:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       },
     ];
@@ -18607,6 +19182,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Ada',
       },
@@ -18618,6 +19194,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Ada',
       },
@@ -18629,6 +19206,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:02:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
         authorNickname: 'Bob',
       },
@@ -18676,9 +19254,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.presenterWindowOpen.set(true);
     component.activeChannel.set('qa');
     (
-      component as SessionHostComponent & {
-        qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
-      }
+      component as unknown as SpecAccess<
+        SessionHostComponent,
+        {
+          qaPresenterStageOrderedQuestions: { set: (value: QaQuestionDTO[] | null) => void };
+        }
+      >
     ).qaPresenterStageOrderedQuestions.set([
       ...allQuestions.filter((question) => question.status === 'PINNED'),
       ...allQuestions.filter((question) => question.status === 'ACTIVE'),
@@ -18758,6 +19339,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ],
@@ -18782,7 +19364,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     component.qaSortMode.set('TOP');
     (
-      component as SessionHostComponent & { lastQaPresenterStageViewKey: string | null }
+      component as unknown as SpecAccess<
+        SessionHostComponent,
+        { lastQaPresenterStageViewKey: string | null }
+      >
     ).lastQaPresenterStageViewKey = `TOP\u0001\u00010\u0001`;
     component.activeChannel.set('qa');
     fixture.detectChanges();
@@ -18806,6 +19391,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     const forumQuestion = {
+      passagesRedacted: false,
       id: 'forum-only',
       text: 'Nur im Forum',
       upvoteCount: 9,
@@ -18863,6 +19449,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       presenterPage: { context: 'qa-questions', index: 0, count: 1 },
     });
     const focusHero = {
+      passagesRedacted: false,
       id: 'focus-hero',
       text: 'Weiterhin Fokus',
       upvoteCount: 1,
@@ -19155,9 +19742,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('scrollt den Host-Inhalt hoch, sobald alle verbundenen Teilnehmenden bereit sind', async () => {
     const fixture = setup();
     const component = fixture.componentInstance;
-    const componentAccess = component as SessionHostComponent & {
-      scrollHostTargetIntoView: (targetRef: unknown) => void;
-    };
+    const componentAccess = component as unknown as SpecAccess<
+      SessionHostComponent,
+      {
+        scrollHostTargetIntoView: (targetRef: unknown) => void;
+      }
+    >;
     const scrollSpy = vi.spyOn(componentAccess, 'scrollHostTargetIntoView');
 
     fixture.detectChanges();
@@ -19168,15 +19758,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       status: 'QUESTION_OPEN',
       currentQuestion: 0,
       currentRound: 1,
-      activeAt: null,
     });
     component.currentQuestionForHost.set({
+      showQuestionTypeIndicators: true,
       questionId: '33333333-3333-4333-8333-333333333333',
       order: 0,
       totalQuestions: 1,
       text: 'Lese den Aufgabentext.',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: 'A', isCorrect: false },
         { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: 'B', isCorrect: true },
@@ -19490,6 +20080,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -19546,6 +20137,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 1,
       totalQuestions: 3,
@@ -19611,13 +20203,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     expect(component.timerAccommodationEnabled()).toBe(false);
 
-    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
-      | ((data: {
-          status: string;
-          currentQuestion: number | null;
-          enableTimerAccommodation?: boolean;
-        }) => void)
-      | undefined;
+    const statusHandler = (
+      onStatusChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        | {
+            onData?: (data: {
+              status: string;
+              currentQuestion: number | null;
+              enableTimerAccommodation?: boolean;
+            }) => void;
+          }
+        | undefined
+    )?.onData;
     statusHandler?.({
       status: 'LOBBY',
       currentQuestion: null,
@@ -20622,6 +21218,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('haelt die bisherige Frage sichtbar, bis Antwortoptionen fuer den Host nachgeladen sind', async () => {
     const initialQuestion = {
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -20636,7 +21234,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalVotes: 0,
       correctVoterCount: 0,
     };
-    let resolveRefresh: ((value: typeof initialQuestion) => void) | null = null;
+    let resolveRefresh: ((value: typeof initialQuestion) => void) | undefined;
 
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(initialQuestion);
@@ -20670,6 +21268,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -20704,6 +21303,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 7,
       totalQuestions: 10,
@@ -20750,8 +21350,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     const callsBeforeError = onCurrentQuestionForHostChangedSubscribeMock.mock.calls.length;
-    const currentQuestionErrorHandler = onCurrentQuestionForHostChangedSubscribeMock.mock
-      .calls[0]?.[1]?.onError as (() => void) | undefined;
+    const currentQuestionErrorHandler = (
+      onCurrentQuestionForHostChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        { onError?: () => void } | undefined
+    )?.onError;
     expect(currentQuestionErrorHandler).toBeTypeOf('function');
 
     vi.useFakeTimers();
@@ -20778,6 +21380,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     const component = fixture.componentInstance;
     const baseQuestion = {
+      showQuestionTypeIndicators: true,
       questionId: '66666666-6666-4666-8666-666666666666',
       order: 0,
       totalQuestions: 1,
@@ -20870,6 +21473,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: '66666666-6666-4666-8666-666666666666',
       order: 0,
       totalQuestions: 1,
@@ -20893,11 +21497,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     };
 
     expect(
-      component.numericHistogramRangeEdgeLabel(
-        question,
-        [{ from: 1740, to: 1830, count: 20, inBand: false }],
-        'min',
-      ),
+      component.numericHistogramRangeEdgeLabel(question, [{ from: 1740, to: 1830 }], 'min'),
     ).toBe('1740');
     expect(component.numericReferenceLabel(question)).toBe('Referenz 1789');
     expect(component.numericToleranceBandLabel(question)).toBe('Akzeptierter Wert 1789');
@@ -20945,7 +21545,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       medianDelta: -1.3,
       inBandPercentDelta: 33.3333,
       deltaHistogram: [],
-      pairedAnalysis: null,
     };
     expect(component.numericRoundDeltaValue(roundComparison, question)).toBe('-1');
     expect(component.numericRoundDeltaLabel(roundComparison, question)).toContain('Mittelwert -5');
@@ -20978,6 +21577,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: '66666666-6666-4666-8666-666666666666',
       order: 0,
       totalQuestions: 1,
@@ -21028,6 +21628,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: '66666666-6666-4666-8666-666666666666',
       order: 0,
       totalQuestions: 1,
@@ -21105,7 +21706,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalQuestions: 1,
       text: 'In welchem Jahr begann die Französische Revolution?',
       type: 'NUMERIC_ESTIMATE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       currentRound: 2,
       timer: null,
       answers: [],
@@ -21167,7 +21768,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalVotes: 0,
       correctVoterCount: 0,
     };
-    let resolveRefresh: ((value: typeof loadedQuestion) => void) | null = null;
+    let resolveRefresh: ((value: typeof loadedQuestion) => void) | undefined;
 
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     nextQuestionMutateMock.mockResolvedValue({
@@ -21229,7 +21830,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalVotes: 0,
       correctVoterCount: 0,
     };
-    let resolveRefresh: ((value: typeof loadedQuestion) => void) | null = null;
+    let resolveRefresh: ((value: typeof loadedQuestion) => void) | undefined;
 
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -21337,6 +21938,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     const question = {
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -21397,6 +21999,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('gibt Ergebnis-Aktion frei, waehrend Host-Fragendetails noch nachladen', async () => {
     const initialQuestion = {
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -21412,7 +22015,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalVotes: 0,
       correctVoterCount: 0,
     };
-    let resolveRefresh: ((value: typeof initialQuestion) => void) | null = null;
+    let resolveRefresh: ((value: typeof initialQuestion) => void) | undefined;
 
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'QUESTION_OPEN' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(initialQuestion);
@@ -21493,16 +22096,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       interval: 25,
     });
     const component = fixture.componentInstance;
-    const statusHandler = onStatusChangedSubscribeMock.mock.calls[0]?.[1]?.onData as
-      | ((data: {
-          status: string;
-          currentQuestion: number | null;
-          currentRound?: number;
-          activeAt?: string | null;
-          timer?: number | null;
-          serverTime?: string;
-        }) => void)
-      | undefined;
+    const statusHandler = (
+      onStatusChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        | {
+            onData?: (data: {
+              status: string;
+              currentQuestion: number | null;
+              currentRound?: number;
+              activeAt?: string | null;
+              timer?: number | null;
+              serverTime?: string;
+            }) => void;
+          }
+        | undefined
+    )?.onData;
 
     statusHandler?.({
       status: 'ACTIVE',
@@ -21521,7 +22128,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('startet den Countdown bei direkter ACTIVE-Frage vor dem Nachladen der Host-Details', async () => {
-    let resolveRefresh: ((value: null) => void) | null = null;
+    let resolveRefresh: ((value: null) => void) | undefined;
 
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
     nextQuestionMutateMock.mockResolvedValue({
@@ -21626,6 +22233,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('haelt die laufende Frage sichtbar, bis Runde 2 geladen ist', async () => {
     const roundOneQuestion = {
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 0,
       totalQuestions: 3,
@@ -21640,7 +22249,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       totalVotes: 12,
       correctVoterCount: 6,
     };
-    let resolveRefresh: ((value: typeof roundOneQuestion) => void) | null = null;
+    let resolveRefresh: ((value: typeof roundOneQuestion) => void) | undefined;
 
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'DISCUSSION' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(roundOneQuestion);
@@ -22988,7 +23597,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('zeigt im spielerischen Quiz-Foyer nur fuer echte Neuzugaenge einen Arrival-Chip', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -23032,7 +23641,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('haelt Arrival-Chips im Dev-Host lange genug sichtbar, um sie im Browser wahrzunehmen', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -23081,7 +23690,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('unterdrueckt den Foyer-Einflug im serioesen Preset', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -23119,7 +23728,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('zeigt groessere Join-Wellen im Quiz-Foyer nur noch als Einzelankuenfte', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -23161,7 +23770,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-shell'),
     ) as HTMLElement[];
     const chipTexts = Array.from(
-      fixture.nativeElement.querySelectorAll('.foyer-entrance-layer__chip-text'),
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.foyer-entrance-layer__chip-text',
+      ),
     ).map((element) => (element.textContent ?? '').trim());
 
     expect(chips).toHaveLength(6);
@@ -23180,7 +23791,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('staffelt spaetere Non-Team-Joins hinter bereits sichtbare Arrival-Chips', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -23236,7 +23847,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('staffelt normale Team-Arrivals so, dass Namens-Badges nacheinander vorgestellt werden', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -23456,9 +24067,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
 
     await (
-      fixture.componentInstance as SessionHostComponent & {
-        retryEndSessionAndNavigateHome: () => Promise<void>;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        SessionHostComponent,
+        {
+          retryEndSessionAndNavigateHome: () => Promise<void>;
+        }
+      >
     ).retryEndSessionAndNavigateHome();
 
     expect(endMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
@@ -23541,6 +24155,108 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('nennt in der Gesamtauswertung nur das bestätigte Lernziel dieser einen Frage', async () => {
+    const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.statusUpdate.set({
+      status: 'FINISHED',
+      currentQuestion: null,
+    });
+    fixture.componentInstance.sessionLearningObjectives.set([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        revision: 1,
+        text: 'Die Formel $$x^2$$ erläutern.',
+        scope: {
+          kind: 'question-set',
+          taskReferences: [{ kind: 'quiz-question', questionId }],
+        },
+        origin: { kind: 'manual' },
+        confirmation: {
+          state: 'confirmed',
+          confirmedAt: '2026-10-27T10:00:00.000Z',
+          confirmedRevision: 1,
+        },
+        projection: 'quiz-projected',
+        purpose: 'learning-objective',
+        createdAt: '2026-10-27T10:00:00.000Z',
+        updatedAt: '2026-10-27T10:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        revision: 1,
+        text: 'Das ganze Quiz verstehen.',
+        scope: { kind: 'quiz-wide' },
+        origin: { kind: 'manual' },
+        confirmation: {
+          state: 'confirmed',
+          confirmedAt: '2026-10-27T10:00:00.000Z',
+          confirmedRevision: 1,
+        },
+        projection: 'quiz-projected',
+        purpose: 'learning-objective',
+        createdAt: '2026-10-27T10:00:00.000Z',
+        updatedAt: '2026-10-27T10:00:00.000Z',
+      },
+    ]);
+    fixture.componentInstance.finishedConfidenceSummary.set({
+      responseCount: 5,
+      includedQuestionCount: 1,
+      suppressedQuestionCount: 0,
+      priorityQuestionCount: 1,
+      distribution: { '1': 0, '2': 0, '3': 0, '4': 2, '5': 3 },
+      crossTab: {
+        correctHigh: 3,
+        correctMid: 0,
+        correctLow: 0,
+        incorrectHigh: 2,
+        incorrectMid: 0,
+        incorrectLow: 0,
+      },
+      highConfidenceWrongCount: 2,
+      questions: [
+        {
+          questionId,
+          questionOrder: 0,
+          questionTextShort: 'Welche Aussage stimmt?',
+          questionType: 'SINGLE_CHOICE',
+          responseCount: 5,
+          result: {
+            distribution: { '1': 0, '2': 0, '3': 0, '4': 2, '5': 3 },
+            crossTab: {
+              correctHigh: 3,
+              correctMid: 0,
+              correctLow: 0,
+              incorrectHigh: 2,
+              incorrectMid: 0,
+              incorrectLow: 0,
+            },
+            highConfidenceWrongCount: 2,
+            highConfidenceWrongOptions: [
+              {
+                answerId: 'aaaaaaaa-1111-4111-8111-111111111111',
+                text: '$$x^3$$',
+                count: 2,
+              },
+            ],
+          },
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Lernziel zu Frage 1');
+    expect(text).toContain('»Die Formel x^2 erläutern.«');
+    expect(text).toContain('2 von 5 falsch bei hoher Selbsteinschätzung (40 %)');
+    expect(text).toContain('Häufigste falsche Option:');
+    expect(text).toContain('»x^3«');
+    expect(text).not.toContain('Das ganze Quiz verstehen.');
+    fixture.destroy();
+  });
+
   it('zeigt die didaktische Confidence-Zusammenfassung im Abschluss', async () => {
     const fixture = setup();
     fixture.detectChanges();
@@ -23566,6 +24282,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       highConfidenceWrongCount: 2,
       questions: [
         {
+          questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
           questionOrder: 0,
           questionTextShort:
             '### Welche Aussage stimmt?\n\n> **Unterrichtsidee:** Nutze die Nachbesprechung.',
@@ -24210,7 +24927,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('rendert Team-Einfluege lokal in der passenden Teamkarte und nutzt die Kartenrichtung', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -24301,7 +25018,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('unterdrueckt Team-Foyer-Animationen bei sehr grossen Join-Wellen', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -24350,7 +25067,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it('zeigt groessere Team-Join-Wellen lokal nur noch als Einzelankuenfte', async () => {
-    let participantJoinedHandler: ((data: unknown) => void) | null = null;
+    let participantJoinedHandler: ((data: unknown) => void) | undefined;
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'LOBBY',
@@ -24444,7 +25161,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('laesst Kindergarten-Tiere ohne Team erst einfliegen und haelt sie bis zur Landung aus dem Raster', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24519,7 +25236,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('rendert Kindergarten-Team-Arrivals mit Icon und separatem Namens-Badge', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24592,7 +25309,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('zeigt bei Nobelpreistraeger-Arrivals in der Kindergarten-Session den Vollnamen als Badge', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24662,7 +25379,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('stellt mehrteilige Pseudonym-Namen mit Vornamen im Chip und Vollnamen im Badge vor', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24733,7 +25450,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('staffelt Kindergarten-Team-Arrivals global, damit Tiere einzeln eintreten', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24801,7 +25518,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('vermeidet bei laengeren Kindergarten-Serien sichtbare Ueberlappungen zwischen den Tieren', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24859,7 +25576,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('klemmt groessere Kindergarten-Wellen nicht mehr auf denselben Startzeitpunkt', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24921,7 +25638,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('staffelt einen neuen Kindergarten-Einflug hinter ein bereits sichtbares Tier', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -24989,7 +25706,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('retriggert die Team-Pulse-Variante fuer spaetere Kindergarten-Ankuenfte derselben Karte', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -25075,7 +25792,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   it('raeumt die Kindergarten-Queue beim Reload auf und startet nicht mit alten Pending-Tieren neu', async () => {
     vi.useFakeTimers();
     try {
-      let participantJoinedHandler: ((data: unknown) => void) | null = null;
+      let participantJoinedHandler: ((data: unknown) => void) | undefined;
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'LOBBY',
@@ -25367,6 +26084,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -25459,6 +26177,201 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
+    it('erneuert den Host-Zugang und wiederholt den PDF-Export nach UNAUTHORIZED', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      const service = TestBed.inject(SessionResultsExportService);
+      const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
+      vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
+      const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
+      const issued = {
+        hostToken: 'refreshed-host-token-abcdefghijklmnopqrstuvwxyz',
+        hostTokenExpiresAt: '2026-11-03T13:00:00.000Z',
+      };
+      const releaseRenewal: Array<(value: typeof issued) => void> = [];
+      issueHostAccessTokenMutateMock.mockImplementation(
+        () =>
+          new Promise<typeof issued>((resolve) => {
+            releaseRenewal.push(resolve);
+          }),
+      );
+      const unauthorized = { data: { code: 'UNAUTHORIZED' } };
+      const exportPlan = vi
+        .spyOn(service, 'exportPdfFromSessionCode')
+        .mockRejectedValueOnce(unauthorized)
+        .mockResolvedValueOnce('pdf-view');
+
+      const pending = fixture.componentInstance.exportSessionResultsPdf('visual', 'view');
+      await Promise.resolve();
+
+      expect(service.openViewPlaceholder).toHaveBeenCalledOnce();
+      expect(releaseRenewal).toHaveLength(1);
+      expect(exportPlan).not.toHaveBeenCalled();
+      expect(closePlaceholder).not.toHaveBeenCalled();
+
+      releaseRenewal[0]?.(issued);
+      await vi.waitUntil(() => releaseRenewal.length === 2);
+      expect(exportPlan).toHaveBeenCalledTimes(1);
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        1,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(closePlaceholder).not.toHaveBeenCalled();
+
+      releaseRenewal[1]?.(issued);
+      await pending;
+      fixture.detectChanges();
+
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledWith({
+        code: 'ABC123',
+        browserCapability: 'browser-capability-abcdefghijklmnopqrstuvwxyz',
+      });
+      expect(exportPlan).toHaveBeenCalledTimes(2);
+      expect(exportPlan).toHaveBeenNthCalledWith(
+        2,
+        'ABC123',
+        expect.objectContaining({ disposition: 'view', viewPlaceholder: placeholder }),
+      );
+      expect(closePlaceholder).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.exportStatus()).toBe('Nachbesprechungsplan geöffnet.');
+      expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+      clearHostBrowserCapability('ABC123');
+      fixture.destroy();
+    });
+
+    it('wiederholt den CSV-Export einmal, nachdem der Host-Zugang erneuert wurde', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      getExportDataQueryMock.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(getExportDataQueryMock).toHaveBeenCalledTimes(2);
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledTimes(2);
+      expect(click).toHaveBeenCalled();
+      expect(fixture.componentInstance.exportStatus()).toBe('Ergebnis-CSV exportiert.');
+      expect(fixture.componentInstance.hostSteeringCallout()).toBeNull();
+      click.mockRestore();
+      clearHostBrowserCapability('ABC123');
+      fixture.destroy();
+    });
+
+    it('zeigt ohne erneuerbaren Host-Zugang keinen Retry-Callout', async () => {
+      getExportDataQueryMock.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      issueHostAccessTokenMutateMock.mockClear();
+      fixture.componentInstance.isPairedHostClient.set(true);
+
+      await fixture.componentInstance.exportSessionResultsCsv();
+      fixture.detectChanges();
+
+      expect(getExportDataQueryMock).toHaveBeenCalledTimes(1);
+      expect(issueHostAccessTokenMutateMock).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.hostSteeringCallout()?.title).toBe('Host-Zugang abgelaufen');
+      expect(fixture.componentInstance.hostSteeringCallout()?.retry).toBeUndefined();
+      expect(calloutEl(fixture)?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+      expect(calloutEl(fixture)?.textContent ?? '').toContain('Nachbesprechungsplan ansehen');
+      fixture.destroy();
+    });
+
+    it('führt Pending, Erfolg und Fehler des Nachbesprechungsplans im DOM', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.statusUpdate.set({
+        status: 'FINISHED',
+        currentQuestion: null,
+      });
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      const host = fixture.nativeElement as HTMLElement;
+      const planButton = host.querySelector<HTMLButtonElement>('.session-host__export-pdf-btn');
+      expect(planButton).not.toBeNull();
+      const service = TestBed.inject(SessionResultsExportService);
+      vi.spyOn(service, 'openViewPlaceholder').mockReturnValue({
+        closed: false,
+        close: vi.fn(),
+      } as unknown as Window);
+      let resolveExport!: (result: 'pdf-view') => void;
+      const exportPlan = vi.spyOn(service, 'exportPdfFromSessionCode').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveExport = resolve;
+          }),
+      );
+
+      planButton!.focus();
+      planButton!.click();
+      fixture.detectChanges();
+
+      expect(planButton!.getAttribute('aria-busy')).toBe('true');
+      expect(planButton!.getAttribute('aria-disabled')).toBe('true');
+      expect(document.activeElement).toBe(planButton);
+      expect(host.querySelector('.session-host__export-progress')?.textContent).toContain(
+        'Wird exportiert…',
+      );
+      expect(host.querySelector('#host-steering-callout')).toBeNull();
+
+      resolveExport('pdf-view');
+      await vi.waitUntil(() => !fixture.componentInstance.exportExporting(), {
+        timeout: 1000,
+        interval: 10,
+      });
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(planButton);
+      expect(planButton!.getAttribute('aria-disabled')).not.toBe('true');
+      expect(planButton!.getAttribute('aria-busy')).not.toBe('true');
+      expect(host.querySelector('.session-host__export-progress')).toBeNull();
+      expect(host.textContent).toContain('Nachbesprechungsplan geöffnet.');
+      expect(host.querySelector('#host-steering-callout')).toBeNull();
+
+      exportPlan.mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } });
+      planButton!.focus();
+      planButton!.click();
+      fixture.detectChanges();
+      expect(planButton!.getAttribute('aria-busy')).toBe('true');
+      expect(document.activeElement).toBe(planButton);
+
+      await vi.waitUntil(() => fixture.componentInstance.hostSteeringCallout() !== null, {
+        timeout: 1000,
+        interval: 10,
+      });
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+
+      const callout = host.querySelector<HTMLElement>('#host-steering-callout');
+      expect(callout?.getAttribute('role')).toBe('alert');
+      expect(callout?.textContent).toContain('Host-Zugang abgelaufen');
+      expect(callout?.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+      const dismiss = Array.from(callout?.querySelectorAll('button') ?? []).find((button) =>
+        button.textContent?.includes('Okay'),
+      );
+      expect(dismiss?.isConnected).toBe(true);
+      expect(callout?.getAttribute('tabindex')).toBe('-1');
+      expect(callout?.isConnected).toBe(true);
+      expect(document.activeElement).toBe(callout);
+      expect(planButton!.isConnected).toBe(true);
+      expect(planButton!.getAttribute('aria-busy')).not.toBe('true');
+      expect(planButton!.disabled).toBe(false);
+      fixture.destroy();
+    });
+
     it('exportiert alle Q&A-Fragen als CSV mit den in der Host-UI sichtbaren Attributen', async () => {
       let exportedCsv = '';
       const createObjectURLMock = vi.fn(() => 'blob:test-export');
@@ -25518,6 +26431,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -25535,6 +26449,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -25654,6 +26569,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       };
       const second = {
@@ -25664,6 +26580,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:01:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       };
       getInfoQueryMock.mockResolvedValue({
@@ -25726,6 +26643,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
               createdAt: '2026-03-13T12:00:00.000Z',
               myVote: null,
               isOwn: false,
+              passagesRedacted: false,
               hasUpvoted: false,
             },
           ],
@@ -26174,11 +27092,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const originalCreateObjectURL = URL.createObjectURL;
       const originalRevokeObjectURL = URL.revokeObjectURL;
 
-      let createdAnchor: HTMLAnchorElement | null = null;
+      const created: { anchor: HTMLAnchorElement | null } = { anchor: null };
       createElementSpy.mockImplementation((tagName: string): HTMLElement => {
         const element = originalCreateElement(tagName);
         if (tagName.toLowerCase() === 'a') {
-          createdAnchor = element as HTMLAnchorElement;
+          created.anchor = element as HTMLAnchorElement;
         }
         return element as HTMLElement;
       });
@@ -26211,7 +27129,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await fixture.componentInstance.exportSessionResultsCsv();
       fixture.detectChanges();
 
-      expect(createdAnchor?.download).toBe('arsnova-results-Demo-Quiz-ABC123.csv');
+      expect(created.anchor?.download).toBe('arsnova-results-Demo-Quiz-ABC123.csv');
 
       fixture.destroy();
       anchorClickSpy.mockRestore();
@@ -26252,9 +27170,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(component.hostSteeringCallout()).not.toBeNull();
 
-      const dismissBtn = Array.from(fixture.nativeElement.querySelectorAll('button')).find(
-        (b) => (b.textContent ?? '').trim() === 'Okay',
-      ) as HTMLButtonElement | undefined;
+      const dismissBtn = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button'),
+      ).find((b) => (b.textContent ?? '').trim() === 'Okay');
       expect(dismissBtn).toBeDefined();
       dismissBtn!.click();
       fixture.detectChanges();
@@ -26283,9 +27201,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await component.nextQuestion();
       fixture.detectChanges();
 
-      const retryBtn = Array.from(fixture.nativeElement.querySelectorAll('button')).find((b) =>
-        (b.textContent ?? '').includes('Nochmal probieren'),
-      ) as HTMLButtonElement | undefined;
+      const retryBtn = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('button'),
+      ).find((b) => (b.textContent ?? '').includes('Nochmal probieren'));
       expect(retryBtn).toBeDefined();
       retryBtn!.click();
       await fixture.whenStable();
@@ -26307,9 +27225,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await component.nextQuestion();
       fixture.detectChanges();
 
-      const reloadLink = Array.from(fixture.nativeElement.querySelectorAll('a')).find((link) =>
-        (link.textContent ?? '').includes('Seite neu laden'),
-      ) as HTMLAnchorElement | undefined;
+      const reloadLink = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('a'),
+      ).find((link) => (link.textContent ?? '').includes('Seite neu laden'));
       expect(reloadLink).toBeDefined();
       expect(reloadLink?.getAttribute('href')).toBe(document.location.href);
       fixture.destroy();
@@ -26317,27 +27235,21 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   describe('Moderationskompass', () => {
-    it('zeigt den Button Moderation neben der Live-Leiste', async () => {
+    it('blendet den Kompass ohne Handlungsempfehlung aus', async () => {
       const fixture = setup();
       fixture.detectChanges();
       await fixture.whenStable();
       await flushComponentAfterStable(fixture, 50);
       fixture.detectChanges();
 
-      const button = fixture.nativeElement.querySelector(
-        '[data-testid="host-moderation-compass"]',
-      ) as HTMLButtonElement | null;
-      expect(button).not.toBeNull();
-      expect(button?.textContent).toContain('Kompass');
-      expect(button?.querySelector('.moderation-compass-icon')).not.toBeNull();
-      expect(button?.classList.contains('session-host__moderation-control--has-signals')).toBe(
-        false,
-      );
-      expect(button?.getAttribute('aria-label')).toBe('Moderationskompass öffnen');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+      expect(fixture.componentInstance.moderationCompassView().actionRecommendation).toBeNull();
       fixture.destroy();
     });
 
-    it('bleibt in Quiz, Q&A und Blitzlicht sichtbar', async () => {
+    it('bleibt ohne Analyse in Quiz, Q&A und Blitzlicht aus', async () => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'ACTIVE',
@@ -26359,7 +27271,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         fixture.detectChanges();
         expect(
           fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
-        ).not.toBeNull();
+        ).toBeNull();
       }
       fixture.destroy();
     });
@@ -26381,13 +27293,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await flushComponentAfterStable(fixture, 50);
       const component = fixture.componentInstance;
 
-      for (const channel of ['quiz', 'qa'] as const) {
-        component.activeChannel.set(channel);
-        fixture.detectChanges();
-        expect(
-          fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
-        ).not.toBeNull();
-      }
+      component.activeChannel.set('quiz');
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).toBeNull();
+
+      component.activeChannel.set('qa');
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).not.toBeNull();
 
       component.activeChannel.set('quickFeedback');
       fixture.detectChanges();
@@ -26396,7 +27312,167 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       ).toBeNull();
       expect(
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+      fixture.destroy();
+    });
+
+    it('zeigt vor der ersten Frage alle bestätigten Lernziele und danach nur das Ziel der Frage', async () => {
+      const currentQuestionId = '11111111-1111-4111-8111-111111111111';
+      const otherQuestionId = '22222222-2222-4222-8222-222222222222';
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'LOBBY',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.activeChannel.set('quiz');
+      const learningObjectiveButton = () =>
+        fixture.nativeElement.querySelector(
+          '[data-testid="host-learning-objectives"]',
+        ) as HTMLButtonElement | null;
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective('Noch ein Entwurf.', 'draft', 'quiz-wide'),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()).toBeNull();
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective('Noch ein Entwurf.', 'draft', 'quiz-wide'),
+        hostLearningObjective('Das gesamte Quiz verstehen.', 'confirmed', 'quiz-wide', 'a'),
+        hostLearningObjective(
+          'Nur die andere Frage.',
+          'confirmed',
+          'question-set',
+          'b',
+          otherQuestionId,
+        ),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
+        'Lernziele',
+      );
+      expect(learningObjectiveButton()?.getAttribute('aria-label')).toBe(
+        'Bestätigte Lernziele anzeigen',
+      );
+
+      component.session.set({
+        ...component.session()!,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+      });
+      component.currentQuestionForHost.set({
+        questionId: currentQuestionId,
+        order: 0,
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM',
+        showQuestionTypeIndicators: true,
+        answers: [],
+        totalVotes: 0,
+        currentRound: 1,
+      } as unknown as HostCurrentQuestionDTO);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
+        'Lernziel',
+      );
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective(
+          'Nur die andere Frage.',
+          'confirmed',
+          'question-set',
+          'b',
+          otherQuestionId,
+        ),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()).toBeNull();
+
+      component.sessionLearningObjectives.set([
+        hostLearningObjective(
+          'Die aktuelle Frage verstehen.',
+          'confirmed',
+          'question-set',
+          'c',
+          currentQuestionId,
+        ),
+      ]);
+      fixture.detectChanges();
+      expect(learningObjectiveButton()?.querySelector('span')?.textContent?.trim()).toBe(
+        'Lernziel',
+      );
+      expect(learningObjectiveButton()?.getAttribute('aria-label')).toBe(
+        'Lernziel zur aktuellen Frage anzeigen',
+      );
+      fixture.destroy();
+    });
+
+    it('holt Lernziele nach einem fehlgeschlagenen Abruf über den Hilfs-Poll nach', async () => {
+      const confirmed = hostLearningObjective('Das Quiz verstehen.', 'confirmed', 'quiz-wide', 'a');
+      getLearningObjectivesQueryMock.mockReset();
+      getLearningObjectivesQueryMock.mockRejectedValueOnce(new Error('offline'));
+      getLearningObjectivesQueryMock.mockResolvedValue({
+        schemaVersion: 1,
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        learningContextRevision: 1,
+        configured: true,
+        access: { state: 'writable' },
+        availableQuizTasks: [],
+        availableQaTasks: [],
+        availableQaTasksTruncated: false,
+        objectives: [confirmed],
+      });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
+      ).toBeNull();
+      expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(1);
+
+      await (
+        fixture.componentInstance as unknown as SpecAccess<
+          SessionHostComponent,
+          { refreshAuxiliaryHostData: () => Promise<void> }
+        >
+      ).refreshAuxiliaryHostData();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(getLearningObjectivesQueryMock).toHaveBeenCalledTimes(2);
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="host-learning-objectives"]'),
       ).not.toBeNull();
+
+      getLearningObjectivesQueryMock.mockRejectedValueOnce(new Error('offline again'));
+      await (
+        fixture.componentInstance as unknown as SpecAccess<
+          SessionHostComponent,
+          { refreshSessionLearningObjectives: () => Promise<void> }
+        >
+      ).refreshSessionLearningObjectives();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(
+        fixture.nativeElement
+          .querySelector('[data-testid="host-learning-objectives"]')
+          ?.textContent?.trim(),
+      ).toContain('Lernziele');
       fixture.destroy();
     });
 
@@ -26423,6 +27499,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
       ).toBeNull();
 
+      component.qaQuestions.set([pendingCompassQuestion()]);
       component.activeChannel.set('qa');
       fixture.detectChanges();
 
@@ -26461,12 +27538,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           ? {
               ...current,
               channels: {
-                ...current.channels,
+                quiz: current.channels?.quiz ?? { enabled: false },
+                quickFeedback: current.channels?.quickFeedback ?? {
+                  enabled: false,
+                  open: false,
+                },
                 qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
               },
             }
           : current,
       );
+      component.qaQuestions.set([pendingCompassQuestion()]);
       fixture.detectChanges();
 
       expect(
@@ -26493,6 +27575,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -26532,6 +27615,65 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
+    it('hält den Kompass-Fokus, wenn die letzte Empfehlung wegfällt', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const closed = new Subject<void>();
+      dialogOpenMock.mockReturnValue({ afterClosed: () => closed.asObservable() });
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.qaQuestions.set([pendingCompassQuestion()]);
+      fixture.detectChanges();
+
+      const compass = (): HTMLButtonElement | null =>
+        fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]');
+      compass()?.focus();
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(compass());
+
+      component.qaQuestions.set([]);
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(compass()).toBeNull();
+      expect(document.activeElement).toBeInstanceOf(HTMLElement);
+      expect((document.activeElement as HTMLElement).isConnected).toBe(true);
+      expect(
+        (document.activeElement as HTMLElement).closest('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+
+      component.qaQuestions.set([pendingCompassQuestion()]);
+      fixture.detectChanges();
+      await component.openModerationCompassDialog();
+      component.qaQuestions.set([]);
+      fixture.detectChanges();
+      expect(compass()).not.toBeNull();
+
+      closed.next();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(compass()).toBeNull();
+      expect((document.activeElement as HTMLElement).isConnected).toBe(true);
+      expect(
+        (document.activeElement as HTMLElement).closest('[data-testid="host-moderation-compass"]'),
+      ).toBeNull();
+      fixture.destroy();
+    });
+
     it('gibt die Zusammenfassung nur an den Host-Dialog wenn sie aktiviert ist', async () => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
@@ -26556,6 +27698,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -26566,6 +27709,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -26576,6 +27720,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:02:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -26665,6 +27810,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -26758,6 +27904,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(component.qaSortMode()).toBe('BEST');
       component.qaQuestions.set([
         {
+          passagesRedacted: false,
           id: '11111111-1111-4111-8111-111111111111',
           text: 'Ist die Klausur open book?',
           upvoteCount: 0,
@@ -26774,8 +27921,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.detectChanges();
 
       const friction = component.moderationCompassCards().find((card) => card.kind === 'friction');
-      expect(friction?.sources[0]?.label).toContain('5 dafür, 5 dagegen');
-      expect(friction?.sources[0]?.label).toContain('Ist die Klausur open book?');
+      expect(friction?.sources[0]?.label).toBe('5 dafür, 5 dagegen');
+      expect(friction?.sources[0]?.context).toBe('Ist die Klausur open book?');
       fixture.destroy();
     });
 
@@ -26787,12 +27934,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const component = fixture.componentInstance;
 
       component.currentQuestionForHost.set({
+        showQuestionTypeIndicators: true,
         questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
         order: 0,
         totalQuestions: 1,
         text: 'Was ist 2+2?',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
           { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
@@ -26846,11 +27994,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const clarification = component
         .moderationCompassCards()
         .find((card) => card.kind === 'clarification');
-      expect(clarification?.sources.map((source) => source.label)).toEqual(
+      expect(clarification?.sources).toEqual(
         expect.arrayContaining([
-          '22 von 30 liegen daneben · Was ist 2+2?',
-          'Häufigste andere Antwort: 5 · Was ist 2+2?',
-          'Häufige Verwechslung: IaaS → SaaS · Was ist 2+2?',
+          expect.objectContaining({
+            label: '22 von 30 liegen daneben',
+            context: 'Was ist 2+2?',
+          }),
+          expect.objectContaining({
+            label: 'Häufigste andere Antwort',
+            evidence: '5',
+            context: 'Was ist 2+2?',
+          }),
+          expect.objectContaining({
+            label: 'Häufige Verwechslung',
+            evidence: 'IaaS → SaaS',
+            context: 'Was ist 2+2?',
+          }),
         ]),
       );
       expect(
@@ -26858,6 +28017,117 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           (source) => source.target?.questionId === 'bbbbbbbb-2222-4222-8222-222222222222',
         ),
       ).toBe(true);
+      fixture.destroy();
+    });
+
+    it('nennt im Kompass das bestätigte Lernziel der Frage mit Fehlkonzept', async () => {
+      const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      component.sessionLearningObjectives.set([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          revision: 1,
+          text: 'Die Formel $$x^2$$ erläutern.',
+          scope: {
+            kind: 'question-set',
+            taskReferences: [{ kind: 'quiz-question', questionId }],
+          },
+          origin: { kind: 'manual' },
+          confirmation: {
+            state: 'confirmed',
+            confirmedAt: '2026-10-27T10:00:00.000Z',
+            confirmedRevision: 1,
+          },
+          projection: 'quiz-projected',
+          purpose: 'learning-objective',
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          revision: 1,
+          text: 'Zwei Fragen vergleichen.',
+          scope: {
+            kind: 'question-set',
+            taskReferences: [
+              { kind: 'quiz-question', questionId },
+              {
+                kind: 'quiz-question',
+                questionId: 'cccccccc-3333-4333-8333-333333333333',
+              },
+            ],
+          },
+          origin: { kind: 'manual' },
+          confirmation: {
+            state: 'confirmed',
+            confirmedAt: '2026-10-27T10:00:00.000Z',
+            confirmedRevision: 1,
+          },
+          projection: 'quiz-projected',
+          purpose: 'learning-objective',
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+      ]);
+      component.currentQuestionForHost.set({
+        showQuestionTypeIndicators: true,
+        questionId,
+        order: 0,
+        totalQuestions: 1,
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'MEDIUM' as const,
+        answers: [
+          { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
+          { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
+        ],
+        voteDistribution: [],
+        totalVotes: 5,
+        correctVoterCount: 3,
+        incorrectVoterCount: 2,
+        confidenceEnabled: true,
+        confidenceResult: {
+          distribution: { '1': 0, '2': 0, '3': 0, '4': 2, '5': 3 },
+          crossTab: {
+            correctHigh: 3,
+            correctMid: 0,
+            correctLow: 0,
+            incorrectHigh: 2,
+            incorrectMid: 0,
+            incorrectLow: 0,
+          },
+          highConfidenceWrongCount: 2,
+          highConfidenceWrongOptions: [
+            { answerId: 'aaaaaaaa-1111-4111-8111-111111111111', text: '$$x^3$$', count: 2 },
+          ],
+        },
+      });
+      component.session.update((session) =>
+        session ? { ...session, status: 'RESULTS', currentQuestion: 0 } : session,
+      );
+      fixture.detectChanges();
+
+      const clarification = component
+        .moderationCompassCards()
+        .find((card) => card.kind === 'clarification');
+      expect(clarification?.sources).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Lernziel zu Frage 1',
+            evidence: '»Die Formel x^2 erläutern.«',
+            context:
+              '2 von 5 falsch bei hoher Selbsteinschätzung (40 %). Häufigste falsche Option: »x^3«',
+            target: { channel: 'quiz', questionId },
+          }),
+        ]),
+      );
+      expect(
+        clarification?.sources.some((source) => source.evidence?.includes('Zwei Fragen')),
+      ).toBe(false);
       fixture.destroy();
     });
 
@@ -26871,12 +28141,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         session ? { ...session, status: 'RESULTS', currentQuestion: 2 } : session,
       );
       component.currentQuestionForHost.set({
+        showQuestionTypeIndicators: true,
         questionId: '33333333-3333-4333-8333-333333333333',
         order: 2,
         totalQuestions: 3,
         text: 'Aktuelle Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [],
       });
       getCurrentQuestionForHostQueryMock.mockResolvedValue({
@@ -26885,7 +28156,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalQuestions: 3,
         text: 'Verlinkte Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [],
       });
 
@@ -26916,12 +28187,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await flushComponentAfterStable(fixture, 50);
       const component = fixture.componentInstance;
       component.currentQuestionForHost.set({
+        showQuestionTypeIndicators: true,
         questionId: '33333333-3333-4333-8333-333333333333',
         order: 2,
         totalQuestions: 3,
         text: 'Aktuelle Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [],
       });
       showQuestionResultMutateMock.mockRejectedValueOnce(new Error('temporarily unavailable'));
@@ -26944,7 +28216,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         currentQuestion: 0,
         currentRound: 1,
       });
-      component.hostSteeringCallout()?.retry();
+      component.hostSteeringCallout()?.retry?.();
       await vi.waitFor(() => expect(showQuestionResultMutateMock).toHaveBeenCalledTimes(2));
       fixture.destroy();
     });
@@ -26983,12 +28255,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const component = fixture.componentInstance;
 
       component.currentQuestionForHost.set({
+        showQuestionTypeIndicators: true,
         questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
         order: 0,
         totalQuestions: 2,
         text: 'Was ist 2+2?',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { id: 'aaaaaaaa-1111-4111-8111-111111111111', text: '5', isCorrect: false },
           { id: 'bbbbbbbb-2222-4222-8222-222222222222', text: '4', isCorrect: true },
@@ -27052,6 +28325,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -27113,9 +28387,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         createdAt: '2026-03-13T12:00:00.000Z',
         myVote: null,
         isOwn: false,
+        passagesRedacted: false,
         hasUpvoted: false,
       };
       const otherQuestion = {
+        passagesRedacted: false,
         id: '22222222-2222-4222-8222-222222222222',
         text: 'Ganz anderer Treffer zur Suche',
         upvoteCount: 1,
@@ -27195,6 +28471,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           nlp: { status: 'classified', category: 'content' },
         },
@@ -27206,6 +28483,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           nlp: { status: 'classified', category: 'content' },
         },
@@ -27217,6 +28495,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:02:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           nlp: { status: 'classified', category: 'organization' },
         },
@@ -27269,6 +28548,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -27279,6 +28559,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -27390,6 +28671,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         },
       });
       const pageQuestion = {
+        passagesRedacted: false,
         id: '11111111-1111-4111-8111-111111111111',
         text: 'Unverwandte Einzelfrage',
         upvoteCount: 1,
@@ -27409,6 +28691,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -27419,6 +28702,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:02:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ];
@@ -27463,6 +28747,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T11:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -27473,6 +28758,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
         {
@@ -27483,6 +28769,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T12:01:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
         },
       ]);
@@ -27559,6 +28846,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T10:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           score: 40,
           bestScore: 0.99,
@@ -27573,6 +28861,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T07:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           score: 56,
           bestScore: 0.94,
@@ -27587,6 +28876,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T05:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           score: 55,
           bestScore: 0.93,
@@ -27601,6 +28891,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           createdAt: '2026-03-13T08:00:00.000Z',
           myVote: null,
           isOwn: false,
+          passagesRedacted: false,
           hasUpvoted: false,
           score: 45,
           bestScore: 0.84,
@@ -27743,6 +29034,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       component.qaQuestions.set([
         {
+          passagesRedacted: false,
           id: '11111111-1111-4111-8111-111111111111',
           text: 'Bitte Kapitel 4 erklären',
           upvoteCount: 6,
@@ -27753,6 +29045,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           hasUpvoted: false,
         },
         {
+          passagesRedacted: false,
           id: '22222222-2222-4222-8222-222222222222',
           text: 'Alte Debatte',
           upvoteCount: 0,
@@ -27792,6 +29085,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(component.qaSortMode()).toBe('BEST');
       component.qaQuestions.set([
         {
+          passagesRedacted: false,
           id: '11111111-1111-4111-8111-111111111111',
           text: 'Weniger Wilson',
           upvoteCount: 8,
@@ -27804,6 +29098,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           bestScore: 0.2,
         },
         {
+          passagesRedacted: false,
           id: '22222222-2222-4222-8222-222222222222',
           text: 'Besserer Wilson',
           upvoteCount: 1,
@@ -27834,6 +29129,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await flushComponentAfterStable(fixture, 50);
       const component = fixture.componentInstance;
       const question = {
+        showQuestionTypeIndicators: true,
         questionId: '66666666-6666-4666-8666-666666666666',
         order: 0,
         totalQuestions: 1,
@@ -27897,7 +29193,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         fixture.nativeElement.querySelector('[data-testid="host-moderation-compass"]'),
-      ).not.toBeNull();
+      ).toBeNull();
       expect(fixture.componentInstance.moderationCompassCards()).toEqual([]);
       fixture.destroy();
     });

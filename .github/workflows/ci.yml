@@ -1905,7 +1905,7 @@ jobs:
   # Read-only: kein packages:write, kein GHCR-Login/Push (siehe publish-image).
   trivy-image:
     name: Trivy Image Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [changes, docker]
     if: github.event_name != 'schedule'
     permissions:
@@ -1981,7 +1981,7 @@ jobs:
   # Check-Name ist neu und bewusst kein Required-Check-Rename (#221).
   publish-image:
     name: Publish Scanned Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [changes, trivy-image]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:

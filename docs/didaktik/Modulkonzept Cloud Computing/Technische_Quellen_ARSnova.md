@@ -106,7 +106,7 @@ Ein grüner Test belegt das geprüfte Szenario, nicht Fehlerfreiheit. Ein vorhan
 
 **Status:** implementiert
 
-**Belegt:** `.nvmrc` nennt Node.js `24.18.0`. Das Rootmanifest erlaubt `>=22.22.1 <23` oder `>=24.0.0 <25`. Die [CI-Konfiguration](../../../.github/workflows/ci.yml) prüft die Hauptversionen 22 und 24; produktionsnahe Einzeljobs verwenden 24.
+**Belegt:** `.nvmrc` nennt Node.js `24.18.0`. Das Rootmanifest erlaubt `>=22.22.3 <23` oder `>=24.15.0 <25`. Die [CI-Konfiguration](../../../.github/workflows/ci.yml) prüft die Hauptversionen 22 und 24; produktionsnahe Einzeljobs verwenden 24.
 
 **Belegt nicht:** die tatsächlich laufende Node-Patchversion auf der Referenzinstanz. Das Produktionsimage verwendet einen gepinnten OCI-Index zu `node:24-alpine`; `.nvmrc` bindet dieses Image nicht auf `24.18.0`.
 
@@ -116,7 +116,7 @@ Ein grüner Test belegt das geprüfte Szenario, nicht Fehlerfreiheit. Ein vorhan
 
 **Status:** implementiert
 
-**Belegt:** deklarierte Versionsbereiche und Workspacebeziehungen, darunter Angular `^21.2.19`, Express `^5.2.1`, tRPC `^11`, Prisma `^7`, Zod `^4`, Yjs `13.6.31` beziehungsweise kompatible Bereiche sowie die gemeinsamen Pakete `@arsnova/shared-types` und `@arsnova/session-export-report`.
+**Belegt:** deklarierte Versionsbereiche und Workspacebeziehungen, darunter Angular `^22.2.3`, Express `^5.2.1`, tRPC `^11`, Prisma `7.9.1` (exakt in Root und Backend, einschließlich `@prisma/adapter-pg`), Zod `^4`, Yjs `13.6.31` beziehungsweise kompatible Bereiche sowie die gemeinsamen Pakete `@arsnova/shared-types` und `@arsnova/session-export-report`.
 
 **Belegt nicht:** welche konkrete Version `npm ci` installiert. Caret- und Tildebereiche sind keine exakten Laufzeitversionen.
 
@@ -126,7 +126,7 @@ Ein grüner Test belegt das geprüfte Szenario, nicht Fehlerfreiheit. Ein vorhan
 
 **Status:** implementiert
 
-**Belegt:** der eingecheckte Lockstand löst unter anderem Angular Core `21.2.23`, tRPC Server `11.18.0`, Prisma Client und CLI `7.9.0`, Zod `4.4.3`, Yjs `13.6.31`, `y-indexeddb` `9.0.12`, `y-websocket` `3.0.0`, `ioredis` `5.11.1`, `pg` `8.22.0` und `ws` `8.21.1` auf. Die Backend- und Frontend-Workspaces besitzen jeweils eine verschachtelte Express-Auflösung `5.2.1`; zusätzlich existiert ein anderer, transitiver Rootknoten Express `4.22.2`.
+**Belegt:** der eingecheckte Lockstand löst unter anderem Angular Core `22.2.3`, tRPC Server `11.18.0`, Prisma Client und CLI `7.9.1`, Zod `4.6.6`, Yjs `13.6.31`, `y-indexeddb` `9.0.12`, `y-websocket` `3.0.0`, `ioredis` `5.11.1`, `pg` `8.22.0` und `ws` `8.21.1` auf. Backend und Frontend deklarieren Express als `^5.2.1` und binden nach `npm ci` die Workspace-Knoten `apps/backend/node_modules/express` und `apps/frontend/node_modules/express` auf `5.2.1`. Der Root-Knoten `node_modules/express` liegt bei `5.3.0` und ist nicht der App-Import. Ein Express-4-Knoten liegt im Lockstand nicht mehr vor.
 
 **Belegt nicht:** dass ein vorhandener `node_modules`-Ordner, ein Container oder die Produktionsinstanz genau diesem Lockstand entspricht. Dafür sind `npm ci`, Image-Digest und Deploymentnachweis zusätzlich nötig.
 
@@ -136,9 +136,9 @@ Ein grüner Test belegt das geprüfte Szenario, nicht Fehlerfreiheit. Ein vorhan
 
 **Status:** implementierter Lockstand; Prosa teilweise veraltet
 
-**Belegt:** README und Handbuch nennen an einzelnen Stellen Prisma `7.4.x`; Manifest und Lockstand liegen inzwischen bei Prisma `7.9.0`. Für aktuelle Versionsangaben gilt daher `7.9.0`.
+**Belegt:** Root, Backend und Lockstand liegen bei Prisma `7.9.1`. README, Handbuch, Onboarding, Funktionsübersicht, Diagrammlegende und Praktikumstext nennen dieselbe Fassung. Für aktuelle Versionsangaben gilt der Lockstand.
 
-**Belegt nicht:** eine fachliche Inkompatibilität. Die Abweichung zeigt lediglich, dass allgemeine Prosa nicht als alleinige Versionsquelle dienen darf.
+**Belegt nicht:** dass ältere Prosa-Checkouts noch `7.4.x` nennen. Ein historischer Text ist keine zweite gültige Version.
 
 ### `SRC-VERSION-CONTAINER-DATENDIENSTE` – Container-Tags
 

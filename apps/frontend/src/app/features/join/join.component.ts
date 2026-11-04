@@ -38,6 +38,10 @@ import {
   findKindergartenNicknameEmoji,
   kindergartenEmojiAtIndex,
 } from './kindergarten-nickname-icons';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../core/update-banner-suppression.service';
 import { recordServerTimeIso } from '../session/session-server-clock';
 import { scrollAndFocusInAppMain } from '../session/session-auto-scroll.util';
 import { setParticipantJoinArrival } from '../../core/participant-join-arrival';
@@ -105,6 +109,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly localeId = inject(LOCALE_ID);
   private readonly themePreset = inject(ThemePresetService);
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   private readonly hostElement = inject(ElementRef<HTMLElement>);
   readonly code = (this.route.snapshot.paramMap.get('code') ?? '').trim().toUpperCase();
   private readonly locale = getEffectiveLocale(localeIdToSupported(this.localeId));
@@ -121,6 +126,14 @@ export class JoinComponent implements OnInit, OnDestroy {
   readonly selectedNickname = signal<string>('');
   readonly selectedTeamId = signal('');
   readonly customNickname = signal('');
+  private readonly joinDraftBanner = bindUpdateBannerSuppression(
+    this.updateBannerSuppression,
+    'join-draft',
+    () =>
+      this.selectedNickname().trim().length > 0 ||
+      this.customNickname().trim().length > 0 ||
+      this.selectedTeamId().trim().length > 0,
+  );
   /** Entspricht dem Shared-Zod-Maximum (`nickname.max(30)`). */
   readonly nicknameMaxLength = PARTICIPANT_NICKNAME_MAX_LENGTH;
   readonly joining = signal(false);
@@ -353,6 +366,7 @@ export class JoinComponent implements OnInit, OnDestroy {
   playfulTeamReadySuffix = () => $localize`:@@join.teamReadySuffixPlayful:wartet schon auf dich.`;
 
   ngOnInit(): void {
+    void this.joinDraftBanner;
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }

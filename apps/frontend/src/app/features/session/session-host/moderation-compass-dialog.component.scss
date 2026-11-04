@@ -317,22 +317,36 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
   white-space: nowrap;
 }
 
-.moderation-compass-card__source-label {
+.moderation-compass-card__source-copy {
+  display: grid;
+  gap: 0.12rem;
   min-width: 0;
   padding-top: 0.15rem;
+}
+
+.moderation-compass-card__source-label,
+.moderation-compass-card__source-evidence,
+.moderation-compass-card__source-context {
+  min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.moderation-compass-card__source-label {
   color: var(--mat-sys-on-surface);
+  font-weight: 650;
+}
+
+.moderation-compass-card__source-evidence {
+  color: var(--mat-sys-on-surface);
+}
+
+.moderation-compass-card__source-context {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
 }
 
 .moderation-compass-card__more {
   min-width: 0;
-}
-
-.moderation-compass-card__more-hint {
-  margin: 0 0 0.35rem;
-  padding: 0 0.15rem;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
 }
 
 .moderation-compass-card__more-summary,

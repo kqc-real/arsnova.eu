@@ -45,6 +45,8 @@ import {
 
 type Step = 'idle' | 'primary' | 'area' | 'thanks' | 'message' | 'done' | 'hidden' | 'error';
 
+export const PRODUCT_FEEDBACK_DONE_AUTO_DISMISS_MS = 3_500;
+
 @Component({
   selector: 'app-product-feedback-card',
   standalone: true,
@@ -90,6 +92,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   private pendingMessage = false;
   private pendingBootstrap = false;
   private focusOrigin: HTMLElement | null = null;
+  private doneDismissTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     void this.bootstrap();
@@ -97,6 +100,7 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.clearDoneDismissTimer();
   }
 
   async bootstrap(): Promise<void> {
@@ -439,13 +443,15 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
   }
 
   finish(): void {
+    this.clearDoneDismissTimer();
     this.forgetClaimedInvite();
-    this.step.set('done');
+    this.step.set('hidden');
     this.restoreFocus();
     this.dismissed.emit();
   }
 
   dismiss(): void {
+    this.clearDoneDismissTimer();
     this.forgetClaimedInvite();
     if (this.survey()) markProductFeedbackCooldown(this.cooldownScope());
     this.step.set('hidden');
@@ -534,7 +540,9 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
             '.product-feedback-card__actions button',
           ) as HTMLElement | null;
         } else if (step === 'done') {
-          target = root.querySelector('#product-feedback-heading') as HTMLElement | null;
+          target =
+            (root.querySelector('.product-feedback-card__actions button') as HTMLElement | null) ??
+            (root.querySelector('#product-feedback-heading') as HTMLElement | null);
         }
         if (!target) {
           target = root.querySelector('#product-feedback-heading') as HTMLElement | null;
@@ -553,23 +561,37 @@ export class ProductFeedbackCardComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Kurz „done“ belassen, damit aria-live den Status noch ausgeben kann (Host-Sheet). */
+  /**
+   * „Vielen Dank!“ / „Deine Ergänzung ist angekommen.“ ausreichend lange anzeigen,
+   * damit Nutzende und Screenreader die Bestätigung in Ruhe wahrnehmen können.
+   */
   private scheduleDismissAfterDone(): void {
+    this.clearDoneDismissTimer();
+    this.forgetClaimedInvite();
     afterNextRender(
       () => {
         if (this.destroyed || typeof globalThis.setTimeout !== 'function') {
           if (!this.destroyed) this.dismissed.emit();
           return;
         }
-        globalThis.setTimeout(() => {
-          if (!this.destroyed) {
+        this.doneDismissTimer = globalThis.setTimeout(() => {
+          this.doneDismissTimer = null;
+          if (!this.destroyed && this.step() === 'done') {
+            this.step.set('hidden');
             this.restoreFocus();
             this.dismissed.emit();
           }
-        }, 700);
+        }, PRODUCT_FEEDBACK_DONE_AUTO_DISMISS_MS);
       },
       { injector: this.injector },
     );
+  }
+
+  private clearDoneDismissTimer(): void {
+    if (this.doneDismissTimer !== null) {
+      clearTimeout(this.doneDismissTimer);
+      this.doneDismissTimer = null;
+    }
   }
 
   private resolveLocale(): ProductFeedbackLocale {

@@ -40,6 +40,17 @@ vi.mock('../../../core/trpc.client', async (importOriginal) => {
 
 describe('QuizStoreService', () => {
   const defaultSettings = {
+    enableMotivationMessages: true,
+    enableEmojiReactions: true,
+    showQuestionTypeIndicators: true,
+    anonymousMode: false,
+    teamMode: false,
+    teamCount: 2,
+    teamAssignment: 'AUTO' as const,
+    teamNames: [],
+    bonusTokenCount: null,
+    readingPhaseEnabled: true,
+    preset: 'PLAYFUL' as const,
     showLeaderboard: true,
     allowCustomNicknames: true,
     defaultTimer: null,
@@ -102,10 +113,14 @@ describe('QuizStoreService', () => {
         settings: defaultSettings,
         questions: [
           {
+            ratingMin: 0,
+            ratingMax: 0,
+            ratingLabelMin: null,
+            ratingLabelMax: null,
             id: '9eff562e-51f8-4f72-98a3-2f421ef2b411',
             text: 'Welche Aussagen sind korrekt?',
             type: 'MULTIPLE_CHOICE',
-            difficulty: 'MEDIUM',
+            difficulty: 'MEDIUM' as const,
             order: 0,
             enabled: true,
             timer: null,
@@ -156,7 +171,7 @@ describe('QuizStoreService', () => {
               id: questionId,
               text: 'Ordne zu',
               type: 'MATCHING',
-              difficulty: 'MEDIUM',
+              difficulty: 'MEDIUM' as const,
               order: 0,
               enabled: true,
               timer: null,
@@ -219,7 +234,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Welche Zahlen sind gerade?',
       type: 'MULTIPLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: '2', isCorrect: true },
         { text: '3', isCorrect: false },
@@ -239,7 +254,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Was war heute neu für dich?',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
     });
 
@@ -255,7 +270,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Wie viele Studierende sind im Raum?',
       type: 'NUMERIC_ESTIMATE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
       numericToleranceMode: 'RELATIVE_PERCENT',
       numericReferenceValue: 100,
@@ -353,7 +368,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Multiple Choice?',
       type: 'MULTIPLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: true },
@@ -363,7 +378,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Freitext?',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
     });
     service.addQuestion(created.id, {
@@ -484,7 +499,7 @@ describe('QuizStoreService', () => {
     const first = service.addQuestion(created.id, {
       text: 'Frage 1',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },
@@ -493,7 +508,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Frage 2',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'C', isCorrect: true },
         { text: 'D', isCorrect: false },
@@ -516,7 +531,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Falsche SC-Frage',
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { text: 'A', isCorrect: true },
           { text: 'B', isCorrect: true },
@@ -535,7 +550,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Zu wenige Antworten',
         type: 'MULTIPLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [{ text: 'Nur eine', isCorrect: true }],
       }),
     ).toThrowError();
@@ -551,7 +566,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Welche Option bevorzugst du?',
         type: 'SURVEY',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { text: 'A', isCorrect: true },
           { text: 'B', isCorrect: false },
@@ -570,7 +585,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Freitext mit Optionen',
         type: 'FREETEXT',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { text: 'Sollte', isCorrect: false },
           { text: 'Nicht gehen', isCorrect: false },
@@ -589,7 +604,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Sortiere',
         type: 'ORDERING',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [],
         orderingItems: [
           { id: 'step-a', text: 'Start' },
@@ -603,7 +618,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Ordne zu',
         type: 'CATEGORIZATION',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [],
         categories: [
           { id: 'category-a', name: 'Literatur' },
@@ -739,7 +754,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Wie war es?',
       type: 'RATING',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
       skipReadingPhase: true,
       ratingMin: 1,
@@ -765,13 +780,13 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Aus',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
     });
     service.addQuestion(created.id, {
       text: 'An',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
     });
     const doc = service.getQuizById(created.id)!;
@@ -796,7 +811,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Nenne ein Edelgas.',
       type: 'SHORT_TEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Neon', isCorrect: true },
         { text: 'Argon', isCorrect: true },
@@ -1227,13 +1242,13 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Skip',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
     });
     service.addQuestion(created.id, {
       text: 'Keep',
       type: 'FREETEXT',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [],
     });
     const doc = service.getQuizById(created.id)!;
@@ -1274,7 +1289,7 @@ describe('QuizStoreService', () => {
             {
               text: 'Frage 1',
               type: 'SINGLE_CHOICE',
-              difficulty: 'MEDIUM',
+              difficulty: 'MEDIUM' as const,
               order: 0,
               answers: [{ text: 'A' }],
             },
@@ -1334,7 +1349,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text: 'Ungültiges Rating',
         type: 'RATING',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [{ text: 'A', isCorrect: false }],
         ratingMin: 1,
         ratingMax: 7,
@@ -1674,12 +1689,12 @@ describe('QuizStoreService', () => {
     };
     const lifecycle: string[] = [];
     let providerDoc: import('yjs').Doc | null = null;
-    let providerSyncListener: ((isSynced: boolean) => void) | null = null;
+    let providerSyncListener: ((isSynced: boolean) => void) | undefined;
     let providerConnected = false;
     let providerConnections = 0;
     let staleCacheReachedProvider = false;
     let persistenceAttached = false;
-    let persistenceSyncedListener: (() => void) | null = null;
+    let persistenceSyncedListener: (() => void) | undefined;
 
     class FakeProvider {
       readonly awareness = {
@@ -2008,7 +2023,7 @@ describe('QuizStoreService', () => {
         roomId: string,
         yDoc: InstanceType<typeof Y.Doc>,
         generation: number,
-        persistence: typeof persistence,
+        handle: typeof persistence,
       ) => Promise<void>;
     };
 
@@ -2510,7 +2525,7 @@ describe('QuizStoreService', () => {
               id: '9eff562e-51f8-4f72-98a3-2f421ef2b411',
               text: 'In welchem Jahr begann die Französische Revolution?',
               type: 'NUMERIC_ESTIMATE',
-              difficulty: 'MEDIUM',
+              difficulty: 'MEDIUM' as const,
               order: 0,
               enabled: true,
               timer: null,
@@ -2610,7 +2625,7 @@ describe('QuizStoreService', () => {
               id: '9eff562e-51f8-4f72-98a3-2f421ef2b411',
               text: 'In welchem Jahr begann die Französische Revolution?',
               type: 'NUMERIC_ESTIMATE',
-              difficulty: 'MEDIUM',
+              difficulty: 'MEDIUM' as const,
               order: 0,
               enabled: true,
               timer: null,
@@ -2664,7 +2679,7 @@ describe('QuizStoreService', () => {
     service.addQuestion(created.id, {
       text: 'Frage?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },
@@ -2703,7 +2718,7 @@ describe('QuizStoreService', () => {
       service.addQuestion(created.id, {
         text,
         type: 'SINGLE_CHOICE',
-        difficulty: 'MEDIUM',
+        difficulty: 'MEDIUM' as const,
         answers: [
           { text: 'A', isCorrect: true },
           { text: 'B', isCorrect: false },
@@ -2745,7 +2760,7 @@ describe('QuizStoreService', () => {
     const question = service.addQuestion(created.id, {
       text: 'Was ist Kapselung?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Ein Entwurfsprinzip', isCorrect: true },
         { text: 'Ein Protokoll', isCorrect: false },
@@ -2886,7 +2901,7 @@ describe('QuizStoreService', () => {
     const question = service.addQuestion(quiz.id, {
       text: 'Was ist Polymorphie?',
       type: 'SINGLE_CHOICE',
-      difficulty: 'MEDIUM',
+      difficulty: 'MEDIUM' as const,
       answers: [
         { text: 'Viele Formen', isCorrect: true },
         { text: 'Ein Datentyp', isCorrect: false },
@@ -2907,7 +2922,7 @@ describe('QuizStoreService', () => {
         kind: 'model-derived',
         modelId: 'local-model',
         modelVersion: '1',
-        derivationVersion: 'learning-objectives-v1',
+        derivationVersion: 'learning-objectives-v1' as const,
         derivedFromSourceQuestionIds: [question.id],
         sourceDigest: 'a'.repeat(64),
       },
@@ -2991,7 +3006,7 @@ describe('QuizStoreService', () => {
         kind: 'model-derived',
         modelId: 'local-model',
         modelVersion: '1',
-        derivationVersion: 'learning-objectives-v1',
+        derivationVersion: 'learning-objectives-v1' as const,
         derivedFromSourceQuestionIds: [question.id],
         sourceDigest: 'b'.repeat(64),
       },
@@ -3038,7 +3053,7 @@ describe('QuizStoreService', () => {
         kind: 'model-derived',
         modelId: 'local-model',
         modelVersion: '1',
-        derivationVersion: 'learning-objectives-v1',
+        derivationVersion: 'learning-objectives-v1' as const,
         derivedFromSourceQuestionIds: [question.id],
         sourceDigest: 'e'.repeat(64),
       },
@@ -3085,7 +3100,7 @@ describe('QuizStoreService', () => {
         kind: 'model-derived',
         modelId: 'local-model',
         modelVersion: '1',
-        derivationVersion: 'learning-objectives-v1',
+        derivationVersion: 'learning-objectives-v1' as const,
         derivedFromSourceQuestionIds: [question.id],
         sourceDigest: 'f'.repeat(64),
       },

@@ -193,7 +193,7 @@ function convertArsnovaClickExport(source: JsonRecord): NormalizedQuizImportPayl
     allowCustomNicknames,
     defaultTimer: null,
     timerScaleByDifficulty: true,
-    enableTimerAccommodation: true,
+    enableTimerAccommodation: false,
     enableSoundEffects: true,
     enableRewardEffects: true,
     enableMotivationMessages: true,

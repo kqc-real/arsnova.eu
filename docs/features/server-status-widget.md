@@ -148,7 +148,7 @@ sequenceDiagram
   DB -->> Router: Counts + Platform/Daily/Usage
   Cache -->> Router: Presence + Load/SLO
 
-  Router ->> Router: serviceStatus; unknown bei Messausfall
+  Router ->> Router: serviceStatus, unknown bei Messausfall
   Router ->> Router: ServerStatsDTOSchema.parse
   Router -->> Client: ServerStatsDTO
   deactivate Router

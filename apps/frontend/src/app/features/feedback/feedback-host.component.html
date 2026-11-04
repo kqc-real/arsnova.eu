@@ -90,9 +90,7 @@
 } @else if (error(); as err) {
   <mat-card appearance="outlined" class="feedback-host__error" role="alert">
     <mat-card-content class="feedback-host__state">
-      <mat-icon class="feedback-host__state-icon feedback-host__state-icon--error"
-        >error_outline</mat-icon
-      >
+      <mat-icon class="feedback-host__state-icon feedback-host__state-icon--error">error</mat-icon>
       <p class="feedback-host__state-text">{{ err }}</p>
     </mat-card-content>
   </mat-card>
@@ -451,7 +449,7 @@
                     (click)="openTempoHelp($event)"
                     [attr.aria-label]="tempoHelpTriggerAria"
                   >
-                    <mat-icon aria-hidden="true">help_outline</mat-icon>
+                    <mat-icon aria-hidden="true">help</mat-icon>
                   </button>
                 </div>
                 <p class="feedback-host__tempo-trend-label">
@@ -498,7 +496,7 @@
                     <mat-icon
                       class="feedback-host__average-star-icon"
                       [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
-                      >{{ icon }}</mat-icon
+                      >{{ icon === 'star_border' ? 'star' : icon }}</mat-icon
                     >
                   }
                 </span>
@@ -535,7 +533,7 @@
                         <mat-icon
                           class="feedback-host__average-star-icon"
                           [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
-                          >{{ icon }}</mat-icon
+                          >{{ icon === 'star_border' ? 'star' : icon }}</mat-icon
                         >
                       }
                     </span>
@@ -557,7 +555,7 @@
                         <mat-icon
                           class="feedback-host__average-star-icon"
                           [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
-                          >{{ icon }}</mat-icon
+                          >{{ icon === 'star_border' ? 'star' : icon }}</mat-icon
                         >
                       }
                     </span>
@@ -750,7 +748,7 @@
                 (click)="openTempoHelp($event)"
                 [attr.aria-label]="tempoHelpTriggerAria"
               >
-                <mat-icon aria-hidden="true">help_outline</mat-icon>
+                <mat-icon aria-hidden="true">help</mat-icon>
               </button>
             </div>
           }
@@ -765,7 +763,7 @@
                   <mat-icon
                     class="feedback-host__average-star-icon"
                     [class.feedback-host__average-star-icon--empty]="icon === 'star_border'"
-                    >{{ icon }}</mat-icon
+                    >{{ icon === 'star_border' ? 'star' : icon }}</mat-icon
                   >
                 }
               </span>
@@ -982,7 +980,7 @@
       (click)="$event.stopPropagation()"
     >
       <div class="feedback-host__tempo-help-header">
-        <mat-icon class="feedback-host__tempo-help-lead" aria-hidden="true">help_outline</mat-icon>
+        <mat-icon class="feedback-host__tempo-help-lead" aria-hidden="true">help</mat-icon>
         <h2 class="feedback-host__tempo-help-title">{{ tempoHelpTitle }}</h2>
         <button
           mat-icon-button

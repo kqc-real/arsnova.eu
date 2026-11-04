@@ -85,7 +85,7 @@ Von der Startseite aus können Hosts direkt:
 - gespeicherte **Host-Zugänge** wieder öffnen (Live-Karte, höchstens 8 von 32 Capabilities; ab 3 offenen Sessions werden offene und geschlossene Zugänge gemeinsam im Pulldown gebündelt)
 - ohne gespeicherte Capability über **Host-Zugang wiederherstellen** nach `/host-recovery`
 
-Die optionale Aufgabenwahl **Was hast du heute vor?** steht unmittelbar über den drei Host-Karten. **Meinen Kurs begleiten** priorisiert den Quizstart und das Sammeln von Kursfragen; **Eine Veranstaltung moderieren** bietet **Fragen sammeln**, den normalen **Tempo**-Chip und **Beides**; **Schnell ein Format einsetzen** lässt die direkten Formatstarts im Vordergrund. Nach der Auswahl scrollt die Startseite zur zugehörigen, visuell hervorgehobenen Karte; der Tastaturfokus bleibt auf der Auswahl. Alle drei Karten und bestehende Q&A-Zugänge bleiben erreichbar. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
+Die Aufgabenwahl **Was hast du heute vor?** steht unmittelbar über einem gemeinsamen Kartenbereich. **Quiz erstellen & verwalten**, **Q&A-Forum erstellen & verwalten** (in der Zeile **Q&A erstellen & verwalten**) und **Blitzlicht auswählen** blenden jeweils nur die zugehörige Karte ein. Anfangs ist keine Karte sichtbar; ein erneuter Klick auf die aktive Auswahl lässt sie offen. Die Auswahl wird nicht gespeichert, verschiebt den Fokus nicht in die Karte und scrollt die Karte sanft in den sichtbaren Bereich. Der Wechsel blendet die Karten über. Die Auswahlbuttons bleiben beim Wechsel stehen und haben keine Füllfläche. Teilnahme bleibt immer sichtbar. In der Q&A-Karte bleiben **Fragen sammeln**, **Beides** und vorhandene Q&A-Zugänge. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
 
 Der direkte Q&A-Start und **Beides** führen durch zwei bestehende Schritte: Teilnahmeprofil auf der Startseite, danach Bestätigung der Host-Zugangskarte. Die Session übernimmt die Q&A-Initialwerte bereits beim Anlegen; ein zusätzlicher Q&A-Konfigurationsdialog gehört nicht zu diesem Einstieg. Frist und Vormoderation bleiben über **Q&A-Einstellungen** erreichbar. Erst nach Bestätigung der Zugangskarte und erfolgreichem Q&A-Start wird bei **Beides** Blitzlicht unter demselben Sessioncode hinzugefügt; die Fragenwand bleibt der priorisierte Einstieg. Schlägt nur das Hinzufügen von Blitzlicht fehl, bleibt Q&A offen und **Blitzlicht hinzufügen** wiederholt den fehlenden Schritt in derselben Session.
 
@@ -741,7 +741,7 @@ Unterstützt werden:
 Strikte Trennung von Session-Feedback und Blitzlicht: Bewertung von **Bedienbarkeit und Nutzen von arsnova.eu**, nur für Plattform-Admins sichtbar.
 
 - **Post-Session (12.1):** rollenspezifische Zwei-Klick-Mikroumfrage nach genutzten Sessions (Host-Sheet / Vote-Ende); optionale kurze Ergänzung; Stichprobe und Einmal-Tokens. Auf Mobilgeräten verkleinert die virtuelle Tastatur den App-Viewport, damit Texteingabe und Sheet-Aktionen sichtbar und scrollbar bleiben.
-- **In-App (12.2):** jederzeit **„arsnova.eu verbessern“** (Footer-Utility, Hilfe, immersive Hostansicht, eigenständiges Blitzlicht); Icon `insights`; Offline-Outbox; Admin-Triage inkl. optionalem GitHub-Entwurf ohne Originalfreitext.
+- **In-App (12.2):** jederzeit **„arsnova.eu verbessern“** (letzter Eintrag im Footer-Menü »Mehr«, durch einen Trenner abgesetzt, Hilfe, immersive Hostansicht, eigenständiges Blitzlicht); Icon `insights`; Offline-Outbox; Admin-Triage inkl. optionalem GitHub-Entwurf ohne Originalfreitext.
 - **LLM-Export (12.3):** Admin-Markdown mit Auswertungsprompt für ein externes Modell; kein serverseitiger LLM-Aufruf; Freitext nur als Opt-in.
 - **Massenlöschung (12.4):** Admin-Dialog löscht Rückmeldungen und den Einladungszähler bis einschließlich eines Datums oder vollständig; Sicherheitsphrase; kein Undo.
 - Presenteransicht ohne CTA. Fachdoku: [features/product-feedback.md](features/product-feedback.md).
@@ -1009,7 +1009,7 @@ Die technische Architektur ist selbst Teil des Funktionsumfangs, weil viele Feat
 
 ### 12.1 Frontend
 
-- Angular 21.2.x
+- Angular 22.2.x
 - Standalone Components
 - Angular Material 3
 - Signals
@@ -1020,7 +1020,7 @@ Die technische Architektur ist selbst Teil des Funktionsumfangs, weil viele Feat
 
 - Express
 - tRPC v11 für HTTP und WebSocket
-- PostgreSQL via Prisma 7.4.x
+- PostgreSQL via Prisma 7.9.1
 - Redis für Rate-Limits, Host-/Admin-Token-TTLs und kurzlebige Live-Hilfsdaten
 - Yjs-WebSocket-Server für Sammlungssync
 

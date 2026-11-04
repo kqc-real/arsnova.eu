@@ -268,12 +268,18 @@
   overflow-wrap: break-word;
 }
 
-/* Team-Block: Zeile 1 Zähler | Zuweisung, Zeile 2 Namen | Vorschau */
+/* Team-Block: mobil untereinander, ab 600 px Zeile 1 Zähler | Zuweisung, Zeile 2 Namen | Vorschau */
 .quiz-form__grid--team-block {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   column-gap: 0.75rem;
   row-gap: 1rem;
   align-items: start;
+}
+
+@media (min-width: 600px) {
+  .quiz-form__grid--team-block {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 
 .quiz-form__grid--team-block .quiz-form__team-preview {
@@ -309,25 +315,76 @@
 }
 
 .quiz-form__timer-accommodation {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
   margin: 0;
   padding-top: 0.65rem;
   border-top: 1px solid var(--mat-sys-outline-variant);
 }
 
-.quiz-form__timer-accommodation-lead {
-  margin: 0.15rem 0 0;
-  padding-left: 2rem;
+.quiz-form__timer-accommodation-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.quiz-form__timer-accommodation-summary::-webkit-details-marker,
+.quiz-form__timer-accommodation-summary::marker {
+  display: none;
+}
+
+.quiz-form__timer-accommodation-summary:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+  border-radius: var(--mat-sys-corner-small, 4px);
+}
+
+.quiz-form__timer-accommodation-summary-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.quiz-form__timer-accommodation-title {
   color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-label-medium);
+  font: var(--mat-sys-title-small);
   font-weight: 600;
 }
 
-.quiz-form__timer-accommodation p:not(.quiz-form__timer-accommodation-lead) {
+.quiz-form__timer-accommodation-lead {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+}
+
+.quiz-form__timer-accommodation-chevron {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.quiz-form__timer-accommodation[open] .quiz-form__timer-accommodation-chevron {
+  transform: rotate(-180deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .quiz-form__timer-accommodation-chevron {
+    transition: transform 0.2s ease;
+  }
+}
+
+.quiz-form__timer-accommodation-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.quiz-form__timer-accommodation-body p {
   margin: 0;
-  padding-left: 2rem;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
   line-height: 1.5;

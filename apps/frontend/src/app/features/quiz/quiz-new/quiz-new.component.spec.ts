@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { QuizNewComponent } from './quiz-new.component';
 import { QuizStoreService } from '../data/quiz-store.service';
 
@@ -85,6 +86,7 @@ describe('QuizNewComponent', () => {
         allowCustomNicknames: false,
         defaultTimer: 60,
         timerScaleByDifficulty: true,
+        enableTimerAccommodation: false,
         enableSoundEffects: true,
         enableRewardEffects: true,
         enableMotivationMessages: true,
@@ -99,7 +101,6 @@ describe('QuizNewComponent', () => {
         nicknameTheme: 'KINDERGARTEN',
         bonusTokenCount: null,
         readingPhaseEnabled: false,
-        timerScaleByDifficulty: true,
         preset: 'PLAYFUL',
       }),
     });
@@ -358,6 +359,7 @@ describe('QuizNewComponent', () => {
     component.descriptionControl.setValue('Programmatische Beschreibung');
     expect(component.form.dirty).toBe(false);
     expect(component.hasUnsavedChanges()).toBe(true);
+    expect(TestBed.inject(UpdateBannerSuppressionService).active()).toBe(true);
 
     await expect(component.canDeactivate()).resolves.toBe(true);
     expect(matDialogMock.open).toHaveBeenCalled();
@@ -407,7 +409,25 @@ describe('QuizNewComponent', () => {
     expect(matDialogMock.open).not.toHaveBeenCalled();
   });
 
-  it('blendet die Erklärung zur persönlichen Zeit aus, wenn die Checkbox aus ist', () => {
+  it('legt persönliche Zeit bei einem neuen Quiz standardmäßig aus', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.form.controls.enableTimerAccommodation.value).toBe(false);
+
+    component.showSettings.set(true);
+    fixture.detectChanges();
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-new-timer-accommodation-hint"]',
+    ) as HTMLDetailsElement;
+    hint.open = true;
+    fixture.detectChanges();
+    const checkbox = hint.querySelector('mat-checkbox input') as HTMLInputElement | null;
+    expect(checkbox?.checked).toBe(false);
+  });
+
+  it('hält die Erklärung zur persönlichen Zeit standardmäßig zugeklappt', () => {
     const fixture = TestBed.createComponent(QuizNewComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -417,18 +437,43 @@ describe('QuizNewComponent', () => {
 
     const hint = fixture.nativeElement.querySelector(
       '[data-testid="quiz-new-timer-accommodation-hint"]',
-    ) as HTMLElement | null;
+    ) as HTMLDetailsElement | null;
+    expect(hint).toBeTruthy();
+    expect(hint?.open).toBe(false);
+    expect(hint?.querySelector('summary')?.textContent).toContain('Persönliche Zeit');
+    expect(hint?.querySelector('summary')?.textContent).toContain('Faire Teilnahme ermöglichen');
+    expect(hint?.querySelectorAll('.quiz-form__timer-accommodation-body p').length).toBe(3);
     expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
-    expect(hint?.querySelectorAll('p').length).toBe(4);
-    expect(hint?.textContent).toContain('Faire Teilnahme ermöglichen');
+    expect(hint?.textContent).toContain('Nachteilsausgleich');
+    expect(hint?.textContent).toContain('Du entscheidest weiterhin');
 
     component.form.controls.enableTimerAccommodation.setValue(false);
     fixture.detectChanges();
 
+    expect(hint?.open).toBe(false);
+    expect(hint?.querySelector('summary')?.textContent).toContain('Faire Teilnahme ermöglichen');
+    expect(hint?.querySelectorAll('.quiz-form__timer-accommodation-body p').length).toBe(3);
     expect(hint?.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
-    expect(hint?.querySelectorAll('p').length).toBe(0);
-    expect(hint?.textContent).not.toContain('Faire Teilnahme ermöglichen');
-    expect(hint?.textContent).not.toContain('Nachteilsausgleich');
+  });
+
+  it('öffnet die Erklärung zur persönlichen Zeit über das Summary', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.showSettings.set(true);
+    fixture.detectChanges();
+
+    const hint = fixture.nativeElement.querySelector(
+      '[data-testid="quiz-new-timer-accommodation-hint"]',
+    ) as HTMLDetailsElement;
+    expect(hint.open).toBe(false);
+
+    hint.open = true;
+    fixture.detectChanges();
+
+    expect(hint.open).toBe(true);
+    expect(hint.querySelector('.quiz-form__timer-accommodation-body')).toBeTruthy();
+    expect(hint.querySelector('mat-checkbox')?.textContent).toContain('Persönliche Zeit');
   });
 
   it('zeigt die Checkbox für persönliche Zeit auch ohne quizweites Zeitlimit', () => {
@@ -462,12 +507,13 @@ describe('QuizNewComponent', () => {
     expect(html).toContain('quiz-new-timer-accommodation-hint');
     expect(html).toContain('formControlName="enableTimerAccommodation"');
     expect(html).toContain('<mat-checkbox');
+    expect(html).toContain('<details');
     expect(html).toContain('quiz-form__timer-accommodation-lead');
     expect(html).toContain('Persönliche Zeit');
     expect(html).toContain('Faire Teilnahme ermöglichen');
     expect(html).toContain('»10× Zeit«');
     expect(html).toContain('»Ohne Frist«');
-    expect(html).toContain('@if (form.controls.enableTimerAccommodation.value)');
+    expect(html).not.toContain('@if (form.controls.enableTimerAccommodation.value)');
     expect(scss).toMatch(/\.quiz-form__fieldset-hint\s*\{/);
     expect(scss).toMatch(
       /\.quiz-form__markdown-hints\s*\{[^}]*font:\s*var\(--mat-sys-label-small\)/,

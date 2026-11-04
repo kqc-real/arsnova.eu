@@ -2036,10 +2036,12 @@ $round2-color: var(--mat-sys-primary);
   font-size: 1.1rem;
   line-height: 1;
   color: inherit;
+  font-variation-settings: 'FILL' 1;
 }
 
 .feedback-host__average-star-icon--empty {
   opacity: 0.58;
+  font-variation-settings: 'FILL' 0;
 }
 
 .feedback-host__average-comparison {

@@ -232,6 +232,157 @@ export function estimateWordCloudPillExtent(
   return { halfWidth: boxWidth / 2, halfHeight: boxHeight / 2 };
 }
 
+type PositionedPill = {
+  readonly groupKey: string;
+  readonly word: string;
+  readonly size: number;
+  readonly rotate: number;
+  readonly x: number;
+  readonly y: number;
+};
+
+/** A new topic label alone should not enlarge the other bubbles. */
+export function keepWordCloudSizesOnRelabel<T extends PositionedPill & { count: number }>(
+  next: readonly T[],
+  previous: readonly T[],
+): readonly T[] {
+  if (next.length !== previous.length) return next;
+  const byKey = new Map(previous.map((pill) => [pill.groupKey, pill]));
+  if (
+    next.some((pill) => byKey.get(pill.groupKey)?.count !== pill.count) ||
+    next.every((pill) => byKey.get(pill.groupKey)?.word === pill.word)
+  ) {
+    return next;
+  }
+  return next.map((pill) => ({
+    ...pill,
+    size: Math.min(pill.size, byKey.get(pill.groupKey)!.size),
+  }));
+}
+
+/** Reuse earlier centers only when the new pill fits at that position. */
+export function retainWordCloudPillPositions<T extends PositionedPill>(
+  next: readonly T[],
+  previous: readonly PositionedPill[],
+  stageWidth: number,
+  stageHeight: number,
+  requireCollisionFree = false,
+): T[] {
+  if (previous.length === 0 && !requireCollisionFree) return [...next];
+  const previousByKey = new Map(previous.map((pill) => [pill.groupKey, pill]));
+  const extents = next.map((pill) =>
+    estimateWordCloudPillExtent(pill.word, pill.size, pill.rotate),
+  );
+
+  const fits = (
+    index: number,
+    x: number,
+    y: number,
+    occupied: ReadonlyMap<number, PositionedPill>,
+  ) => {
+    const extent = extents[index]!;
+    if (
+      Math.abs(x) + extent.halfWidth > stageWidth / 2 ||
+      Math.abs(y) + extent.halfHeight > stageHeight / 2
+    ) {
+      return false;
+    }
+    for (const [otherIndex, other] of occupied) {
+      if (otherIndex === index) continue;
+      const otherExtent = extents[otherIndex]!;
+      if (
+        Math.abs(x - other.x) < extent.halfWidth + otherExtent.halfWidth &&
+        Math.abs(y - other.y) < extent.halfHeight + otherExtent.halfHeight
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const anchors = new Map<number, T>();
+  const byUnchangedLabel = next
+    .map((pill, index) => ({
+      index,
+      unchanged: previousByKey.get(pill.groupKey)?.word === pill.word,
+    }))
+    .sort((left, right) => Number(right.unchanged) - Number(left.unchanged));
+  for (const { index } of byUnchangedLabel) {
+    const pill = next[index]!;
+    const anchor = previousByKey.get(pill.groupKey);
+    if (anchor && fits(index, anchor.x, anchor.y, anchors)) {
+      anchors.set(index, { ...pill, x: anchor.x, y: anchor.y });
+    }
+  }
+
+  if (anchors.size > 0 || requireCollisionFree) {
+    for (const [index, pill] of next.entries()) {
+      if (anchors.has(index)) continue;
+      const { halfWidth, halfHeight } = extents[index]!;
+      const stepX = halfWidth + 8;
+      const stepY = halfHeight + 8;
+      const insetX = stageWidth / 2 - halfWidth;
+      const insetY = stageHeight / 2 - halfHeight;
+      const previousPosition = requireCollisionFree ? previousByKey.get(pill.groupKey) : null;
+      const origin = previousPosition
+        ? {
+            x: Math.max(-insetX, Math.min(insetX, previousPosition.x)),
+            y: Math.max(-insetY, Math.min(insetY, previousPosition.y)),
+          }
+        : pill;
+      const nearby = (
+        [
+          [0, 0],
+          [0, -1],
+          [0, 1],
+          [-1, 0],
+          [1, 0],
+          [0, -2],
+          [0, 2],
+          [-2, 0],
+          [2, 0],
+        ] as const
+      ).map(([dx, dy]) => ({ x: origin.x + dx * stepX, y: origin.y + dy * stepY }));
+      const position = nearby.find(({ x, y }) => fits(index, x, y, anchors));
+      if (position) {
+        anchors.set(index, { ...pill, ...position });
+        continue;
+      }
+      if (requireCollisionFree) {
+        const stagePositions = [
+          { x: pill.x, y: pill.y },
+          ...[0, -insetY, insetY].flatMap((y) => [0, -insetX, insetX].map((x) => ({ x, y }))),
+        ];
+        if (previousPosition) {
+          const distance = ({ x, y }: { x: number; y: number }) =>
+            Math.hypot(x - previousPosition.x, y - previousPosition.y);
+          stagePositions.sort((left, right) => distance(left) - distance(right));
+        }
+        const alternative = stagePositions.find(({ x, y }) => fits(index, x, y, anchors));
+        if (alternative) anchors.set(index, { ...pill, ...alternative });
+      }
+    }
+    if (anchors.size === next.length || requireCollisionFree) {
+      return next.flatMap((_, index) => {
+        const pill = anchors.get(index);
+        return pill ? [pill] : [];
+      });
+    }
+  }
+
+  // Dense layouts can leave too little space around fixed positions. In that
+  // case only keep old centers that fit into the current packing.
+  const positioned = new Map(next.map((pill, index) => [index, pill]));
+  for (const [index, pill] of next.entries()) {
+    const anchor = previousByKey.get(pill.groupKey);
+    if (anchor && fits(index, anchor.x, anchor.y, positioned)) {
+      positioned.set(index, { ...pill, x: anchor.x, y: anchor.y });
+    }
+  }
+
+  return [...positioned.values()];
+}
+
 /**
  * Skaliert die Wolke nur nach unten, bis jede Kapsel vollständig in der Bühne liegt.
  * Verhindert abgeschnittene Pills nach D3-Packing und Präsentations-Auffüllung.

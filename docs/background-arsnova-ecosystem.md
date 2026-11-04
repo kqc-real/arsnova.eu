@@ -34,7 +34,7 @@ Das ARSnova-Projekt entstand 2012 an der **Technischen Hochschule Mittelhessen (
 Dieses Repo ist eine **eigenständige, moderne Neuimplementierung** einer Live-Quiz- und Abstimmungsplattform im Geiste von arsnova.click und der ARSnova-Tradition. Der aktuelle technische Stand ist in [docs/README.md](README.md), [docs/architecture/handbook.md](architecture/handbook.md) und [docs/ENVIRONMENT.md](ENVIRONMENT.md) dokumentiert:
 
 - **Gleiche Prinzipien:** Zero-Knowledge (Quiz-Inhalte nicht dauerhaft auf dem Server), Gamification, Bonus-Code für Top-Plätze, Presets Seriös/Spielerisch, didaktische Kontrolle (Lesephase, Schwierigkeit).
-- **Neuer Stack:** Angular 21.2, Node/Express, tRPC v11, PostgreSQL, Redis, Yjs (CRDT) + IndexedDB; Zod-Validierung; KI-Quiz-Import über externes LLM (Zero-Knowledge) statt integrierter Cloud-KI.
+- **Neuer Stack:** Angular 22.2, Node/Express, tRPC v11, PostgreSQL, Redis, Yjs (CRDT) + IndexedDB; Zod-Validierung; KI-Quiz-Import über externes LLM (Zero-Knowledge) statt integrierter Cloud-KI.
 - **Positionierung:** Europäische Alternative zu Mentimeter, Kahoot und Slido – interaktive Sessions, Quiz und Feedback, Made in Europe, ARSnova-Tradition seit 2012; DSGVO-konform, kostenlos, Open Source; erste Wahl für Schule, Uni und Business.
 
 Die Deep Research (PDF) beschreibt die **Herkunft** und **wissenschaftliche Einbettung**; dieses Repo setzt die **technische und produktive Weiterentwicklung** mit heutigen Architekturentscheidungen um.

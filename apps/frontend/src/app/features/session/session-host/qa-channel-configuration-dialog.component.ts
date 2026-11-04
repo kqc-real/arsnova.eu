@@ -163,6 +163,9 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   confirmLabel(): string {
+    if (this.error() && !this.preview()) {
+      return $localize`:@@qaConfig.retryPreview:Erneut prüfen`;
+    }
     const needsExtension = this.preview()?.requiresSessionExtension === true;
     if (this.configurationMode() === 'REPLAN') {
       if (this.willReopenQa()) {
@@ -215,10 +218,8 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       let preview: SessionQaConfigurationPreviewDTO;
       try {
         preview = await this.fetchPreview(selection);
-      } catch {
-        this.error.set(
-          $localize`:@@qaConfig.previewError:Die Q&A-Konfiguration konnte nicht geprüft werden. Bitte kontrolliere die Angaben und versuche es erneut.`,
-        );
+      } catch (previewError) {
+        this.error.set(this.previewFailureMessage(previewError));
         return;
       }
       this.preview.set(preview);
@@ -260,10 +261,8 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
         });
       }
       this.dialogRef.close(configured);
-    } catch {
-      this.error.set(
-        $localize`:@@qaConfig.confirmError:Q&A konnte nicht eingerichtet werden. Lade die Session neu und prüfe die Fristen erneut.`,
-      );
+    } catch (confirmError) {
+      this.error.set(this.confirmFailureMessage(confirmError));
     } finally {
       this.pending.set(false);
     }
@@ -415,11 +414,13 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
       const next = await this.fetchPreview(selection);
       if (requestId === this.previewRequest) {
         this.preview.set(next);
+        this.error.set(null);
         this.applyMaxSelectableDays(next.maxExpiresAt, next.serverNow);
       }
-    } catch {
+    } catch (error) {
       if (requestId === this.previewRequest) {
         this.preview.set(null);
+        this.error.set(this.previewFailureMessage(error));
       }
     }
   }
@@ -597,10 +598,61 @@ export class QaChannelConfigurationDialogComponent implements OnInit {
   }
 
   private isQaAlreadyConfiguredError(error: unknown): boolean {
-    if (!error || typeof error !== 'object' || !('message' in error)) {
-      return false;
+    return this.readErrorMessage(error).includes('Q&A wurde bereits eingerichtet.');
+  }
+
+  private previewFailureMessage(error: unknown): string {
+    switch (this.classifyConfigurationFailure(error)) {
+      case 'past':
+        return $localize`:@@qaConfig.deadlineInPast:Der Zeitpunkt muss in der Zukunft liegen. Wähle ein späteres Datum oder eine spätere Uhrzeit.`;
+      case 'beyondMax':
+        return $localize`:@@qaConfig.deadlineBeyondMax:Dieser Zeitpunkt liegt nach der maximalen Sessiondauer. Wähle ein früheres Datum.`;
+      case 'ended':
+        return $localize`:@@qaConfig.sessionEnded:Die Session ist bereits beendet. Die Fragerunde lässt sich so nicht mehr öffnen.`;
+      case 'network':
+        return $localize`:@@qaConfig.previewUnavailable:Die Prüfung ist gerade nicht erreichbar. Prüfe die Verbindung und versuche es erneut.`;
+      default:
+        return $localize`:@@qaConfig.previewError:Die Q&A-Konfiguration konnte nicht geprüft werden. Bitte kontrolliere die Angaben und versuche es erneut.`;
     }
-    return String(error.message).includes('Q&A wurde bereits eingerichtet.');
+  }
+
+  private confirmFailureMessage(error: unknown): string {
+    if (this.classifyConfigurationFailure(error) !== 'unknown') {
+      return this.previewFailureMessage(error);
+    }
+    return $localize`:@@qaConfig.confirmError:Q&A konnte nicht eingerichtet werden. Lade die Session neu und prüfe die Fristen erneut.`;
+  }
+
+  private classifyConfigurationFailure(
+    error: unknown,
+  ): 'past' | 'beyondMax' | 'ended' | 'network' | 'unknown' {
+    const message = this.readErrorMessage(error);
+    if (message.includes('Zukunft liegen') || message.includes('Frist in der Zukunft')) {
+      return 'past';
+    }
+    if (message.includes('maximal erlaubte Sessiondauer')) {
+      return 'beyondMax';
+    }
+    if (message.includes('bereits beendet') || message.includes('nicht mehr verändert')) {
+      return 'ended';
+    }
+    if (/failed to fetch|network error|load failed/i.test(message)) {
+      return 'network';
+    }
+    return 'unknown';
+  }
+
+  private readErrorMessage(error: unknown): string {
+    if (!error || typeof error !== 'object') {
+      return '';
+    }
+    const candidate = error as {
+      message?: unknown;
+      data?: { message?: unknown };
+      shape?: { message?: unknown };
+    };
+    const raw = candidate.message ?? candidate.data?.message ?? candidate.shape?.message;
+    return typeof raw === 'string' ? raw.trim() : '';
   }
 
   private buildParticipationProfile():

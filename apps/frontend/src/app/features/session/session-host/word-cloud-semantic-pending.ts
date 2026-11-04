@@ -8,10 +8,21 @@ export type SemanticPendingWaitHintKind = 'none' | 'moment' | 'minute';
 
 /** Ready/uncertain Themencluster — nicht der 2.x-Phrasen-Fallback. */
 export function isSemanticTopicCloudResult(
-  result: { readonly mode?: string; readonly status?: string } | null | undefined,
+  result:
+    | {
+        readonly mode?: string;
+        readonly status?: string;
+        readonly fallbackUsed?: boolean;
+        readonly entries?: readonly unknown[];
+      }
+    | null
+    | undefined,
 ): boolean {
   return (
-    result?.mode === 'SEMANTIC' && (result.status === 'ready' || result.status === 'uncertain')
+    result?.mode === 'SEMANTIC' &&
+    result.fallbackUsed !== true &&
+    (result.entries?.length ?? 1) > 0 &&
+    (result.status === 'ready' || result.status === 'uncertain')
   );
 }
 

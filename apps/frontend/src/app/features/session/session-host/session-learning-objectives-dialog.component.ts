@@ -30,6 +30,8 @@ import {
   LEARNING_OBJECTIVE_MAX_OBJECTIVES,
   LEARNING_OBJECTIVE_MAX_REFERENCES,
   LEARNING_OBJECTIVE_TEXT_MAX_LENGTH,
+  normalizeLearningObjectiveText,
+  stripLearningObjectiveQuestionIdCitations,
   type DeriveSessionLearningObjectivesResult,
   type SessionLearningObjectiveDTO,
   type SessionLearningObjectiveResolvedTaskReference,
@@ -38,6 +40,16 @@ import {
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { trpc } from '../../../core/trpc.client';
+import {
+  learningObjectiveAppliesToQuestion,
+  learningObjectiveQuestionNumbers,
+  quizQuestionNumberById,
+  sortLearningObjectivesByQuestionNumber,
+} from './session-learning-objective-match';
+import {
+  UpdateBannerSuppressionService,
+  bindUpdateBannerSuppression,
+} from '../../../core/update-banner-suppression.service';
 
 export interface SessionLearningObjectiveTaskOption {
   reference: SessionLearningObjectiveResolvedTaskReference;
@@ -117,6 +129,8 @@ export class SessionLearningObjectivesDialogComponent {
   readonly derivationMessage = signal<string | null>(null);
   readonly derivationLimitations = signal<readonly string[]>([]);
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly objectiveFormBaseline = signal<string | null>(null);
   readonly derivationCanRetry = computed(() =>
     [
       'busy',
@@ -144,12 +158,8 @@ export class SessionLearningObjectivesDialogComponent {
     const learningObjectives = all.filter((objective) => !isQaForumAssignmentObjective(objective));
     const focusedId = this.focusedQuestionId();
     if (focusedId) {
-      return learningObjectives.filter(
-        (objective) =>
-          objective.scope.kind === 'question-set' &&
-          objective.scope.taskReferences.some(
-            (ref) => ref.kind === 'quiz-question' && ref.questionId === focusedId,
-          ),
+      return learningObjectives.filter((objective) =>
+        learningObjectiveAppliesToQuestion(objective, focusedId),
       );
     }
     return learningObjectives;
@@ -162,25 +172,17 @@ export class SessionLearningObjectivesDialogComponent {
     if (this.isQaMode()) return this.objectives().length > 0;
     return this.confirmedObjectives().length > 0;
   });
+  readonly isOverview = computed(() => !this.isQaMode() && !this.isQuestionFocused());
+  private readonly questionNumberById = computed(() =>
+    quizQuestionNumberById(this.snapshot()?.availableQuizTasks ?? []),
+  );
   readonly visibleObjectives = computed(() => {
-    if (this.isAudiencePresentation() && !this.isQaMode()) {
-      return this.confirmedObjectives();
-    }
-    return this.objectives();
+    const list = this.isQaMode() ? this.objectives() : this.confirmedObjectives();
+    if (!this.isOverview()) return list;
+    return sortLearningObjectivesByQuestionNumber(list, this.snapshot()?.availableQuizTasks ?? []);
   });
-  readonly hasEligibleQuizTasksForDerivation = computed(() => {
-    if (this.isQaMode() || this.isReadOnly() || this.objectives().length > 0) return false;
-    const tasks = this.snapshot()?.availableQuizTasks ?? [];
-    const focusedId = this.focusedQuestionId();
-    if (focusedId) {
-      if (this.data.focusedQuestionEligibleForDerivation) {
-        return this.data.focusedQuestionEligibleForDerivation();
-      }
-      const match = tasks.find((task) => task.questionId === focusedId);
-      return match ? match.eligibleForDerivation !== false : false;
-    }
-    return tasks.some((task) => task.eligibleForDerivation !== false);
-  });
+  /** Ableitung und Entwürfe bleiben im Quiz-Editor. */
+  readonly hasEligibleQuizTasksForDerivation = computed(() => false);
 
   readonly taskOptions = computed(() => {
     const byKey = new Map<string, SessionLearningObjectiveTaskOption>();
@@ -237,12 +239,37 @@ export class SessionLearningObjectivesDialogComponent {
   private readonly textArea = viewChild<ElementRef<HTMLTextAreaElement>>('objectiveText');
 
   constructor() {
+    bindUpdateBannerSuppression(
+      this.updateBannerSuppression,
+      'session-learning-objective-draft',
+      () => this.learningObjectiveDraftBlocksUpdateBanner(),
+    );
     this.destroyRef.onDestroy(() => {
       this.derivationSequence += 1;
       this.derivationAbortController?.abort();
       this.derivationAbortController = null;
     });
     void this.loadSnapshot(false);
+  }
+
+  private learningObjectiveDraftBlocksUpdateBanner(): boolean {
+    if (this.pending() || this.derivationIsPending()) return true;
+    const baseline = this.objectiveFormBaseline();
+    if (!this.formOpen() || baseline === null) return false;
+    return this.serializeObjectiveForm() !== baseline;
+  }
+
+  private captureObjectiveFormBaseline(): void {
+    this.objectiveFormBaseline.set(this.serializeObjectiveForm());
+  }
+
+  private serializeObjectiveForm(): string {
+    return JSON.stringify({
+      text: this.text().trim(),
+      scopeKind: this.scopeKind(),
+      taskKeys: [...this.selectedTaskKeys()].sort(),
+      confirmation: this.confirmationState(),
+    });
   }
 
   close(): void {
@@ -254,7 +281,13 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   async deriveLearningObjectives(): Promise<void> {
-    if (this.derivationIsPending() || this.pending() || this.isReadOnly() || this.isQaMode()) {
+    if (
+      !this.isQaMode() ||
+      this.derivationIsPending() ||
+      this.pending() ||
+      this.isReadOnly() ||
+      this.isQaMode()
+    ) {
       return;
     }
     const snapshot = this.snapshot();
@@ -348,7 +381,7 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   beginAdd(): void {
-    if (this.isReadOnly()) return;
+    if (this.isReadOnly() || !this.isQaMode()) return;
     const focusedId = this.focusedQuestionId();
     this.editingId.set(null);
     this.expectedRevision.set(null);
@@ -375,11 +408,12 @@ export class SessionLearningObjectivesDialogComponent {
     this.pendingDeleteId.set(null);
     this.clearMessages();
     this.formOpen.set(true);
+    this.captureObjectiveFormBaseline();
     this.focusTextArea();
   }
 
   beginEdit(objective: SessionLearningObjectiveDTO): void {
-    if (this.isReadOnly()) return;
+    if (this.isReadOnly() || !this.isQaMode()) return;
     this.editingId.set(objective.id);
     this.expectedRevision.set(objective.revision);
     this.text.set(objective.text);
@@ -413,6 +447,7 @@ export class SessionLearningObjectivesDialogComponent {
     this.pendingDeleteId.set(null);
     this.clearMessages();
     this.formOpen.set(true);
+    this.captureObjectiveFormBaseline();
     this.focusTextArea();
   }
 
@@ -486,23 +521,45 @@ export class SessionLearningObjectivesDialogComponent {
     return rendered;
   }
 
-  renderObjectiveMarkdown(value: string): SafeHtml {
-    const cached = this.objectiveMarkdownCache.get(value);
+  private citedQuestionIds(objective: SessionLearningObjectiveDTO): readonly string[] {
+    if (objective.purpose === 'forum-assignment' || objective.origin.kind !== 'model-derived') {
+      return [];
+    }
+    const ids = objective.origin.derivedFrom.map((reference) =>
+      reference.kind === 'unresolved-task' ? reference.sourceReferenceId : reference.questionId,
+    );
+    if (objective.scope.kind === 'question-set') {
+      ids.push(
+        ...objective.scope.taskReferences.map((reference) =>
+          reference.kind === 'unresolved-task' ? reference.sourceReferenceId : reference.questionId,
+        ),
+      );
+    }
+    return ids;
+  }
+
+  renderObjectiveMarkdown(objective: SessionLearningObjectiveDTO): SafeHtml {
+    const normalized = normalizeLearningObjectiveText(
+      stripLearningObjectiveQuestionIdCitations(objective.text, this.citedQuestionIds(objective)),
+      this.locale,
+    );
+    const cached = this.objectiveMarkdownCache.get(normalized);
     if (cached) return cached;
     const rendered = this.sanitizer.bypassSecurityTrustHtml(
-      renderMarkdownWithKatex(value, {
+      renderMarkdownWithKatex(normalized, {
         escapeListMarkers: true,
         headingStartLevel: 4,
         imagePolicy: 'allow-relative-and-https',
         interactive: false,
       }).html,
     );
-    this.objectiveMarkdownCache.set(value, rendered);
+    this.objectiveMarkdownCache.set(normalized, rendered);
     return rendered;
   }
 
   async save(): Promise<void> {
     if (
+      !this.isQaMode() ||
       !this.formOpen() ||
       this.pending() ||
       this.derivationIsPending() ||
@@ -610,7 +667,7 @@ export class SessionLearningObjectivesDialogComponent {
   }
 
   requestDelete(objectiveId: string): void {
-    if (this.isReadOnly()) return;
+    if (this.isReadOnly() || !this.isQaMode()) return;
     this.pendingDeleteId.set(objectiveId);
     this.statusMessage.set(
       $localize`:@@sessionLearningObjectives.deletePrompt:Löschen bestätigen oder abbrechen.`,
@@ -626,7 +683,15 @@ export class SessionLearningObjectivesDialogComponent {
 
   async confirmDelete(objective: SessionLearningObjectiveDTO): Promise<void> {
     const snapshot = this.snapshot();
-    if (!snapshot || this.pending() || this.derivationIsPending() || this.isReadOnly()) return;
+    if (
+      !this.isQaMode() ||
+      !snapshot ||
+      this.pending() ||
+      this.derivationIsPending() ||
+      this.isReadOnly()
+    ) {
+      return;
+    }
     this.setPending(true);
     this.clearMessages();
     try {
@@ -716,6 +781,23 @@ export class SessionLearningObjectivesDialogComponent {
       return $localize`:@@sessionLearningObjectives.scopeQuiz:Gesamtes Quiz`;
     }
     return $localize`:@@sessionLearningObjectives.scopeTasks:${objective.scope.taskReferences.length}:count: Frage(n)`;
+  }
+
+  overviewQuestionLabel(objective: SessionLearningObjectiveDTO): string | null {
+    if (!this.isOverview()) return null;
+    if (objective.scope.kind === 'quiz-wide' || objective.scope.kind === 'session') {
+      return this.scopeLabel(objective);
+    }
+    const numbers = learningObjectiveQuestionNumbers(objective, this.questionNumberById());
+    if (numbers.length === 0) return null;
+    if (numbers.length === 1) {
+      return $localize`:@@sessionLearningObjectives.overviewQuestion:Frage ${numbers[0]}:number:`;
+    }
+    const list = new Intl.ListFormat(this.locale, {
+      style: 'long',
+      type: 'conjunction',
+    }).format(numbers.map(String));
+    return $localize`:@@sessionLearningObjectives.overviewQuestions:Fragen ${list}:list:`;
   }
 
   hasUnresolvedReferences(objective: SessionLearningObjectiveDTO): boolean {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { UpdateBannerSuppressionService } from '../../core/update-banner-suppression.service';
 
 export interface MarkdownLinkDialogResult {
   text: string;
@@ -62,6 +63,27 @@ export class MarkdownLinkDialogComponent {
       validators: [Validators.required, markdownLinkHrefValidator],
     }),
   });
+
+  private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly initialText = (this.data.text ?? '').trim();
+
+  constructor() {
+    const sync = (): void => {
+      const text = this.form.controls.text.value.trim();
+      const url = this.form.controls.url.value.trim();
+      this.updateBannerSuppression.set(
+        'markdown-link-draft',
+        text !== this.initialText || url.length > 0,
+      );
+    };
+    sync();
+    const subscription = this.form.events.subscribe(sync);
+    this.destroyRef.onDestroy(() => {
+      subscription.unsubscribe();
+      this.updateBannerSuppression.set('markdown-link-draft', false);
+    });
+  }
 
   cancel(): void {
     this.dialogRef.close();

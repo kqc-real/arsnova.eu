@@ -449,7 +449,7 @@ export interface ServerStatusHelpDialogData {
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
-                        <mat-icon aria-hidden="true">error_outline</mat-icon>
+                        <mat-icon aria-hidden="true">error</mat-icon>
                         <span i18n="@@app.footer.statusMetricErrorRate">Fehlerrate</span>
                       </div>
                       <strong
@@ -500,7 +500,9 @@ export interface ServerStatusHelpDialogData {
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
                         <mat-icon aria-hidden="true">science</mat-icon>
-                        <span i18n="@@app.footer.statusMetricSampleSize">Stichprobengröße</span>
+                        <span i18n="@@app.footer.statusMetricSampleSize"
+                          >Stichprobenumfang (n)</span
+                        >
                       </div>
                       <strong
                         [class.status-help-dialog__metric-value--prose]="
@@ -508,6 +510,12 @@ export interface ServerStatusHelpDialogData {
                         "
                         >{{ formatTrafficSampleSize(s.trafficQuality) }}</strong
                       >
+                      <p
+                        class="status-help-dialog__metric-hint"
+                        i18n="@@app.footer.statusMetricSampleSizeHint"
+                      >
+                        Überwachte API-Anfragen im Messfenster (60&nbsp;s).
+                      </p>
                     </article>
                   </div>
                   @if (s.trafficQuality.errorClasses; as errors) {
@@ -678,7 +686,7 @@ export interface ServerStatusHelpDialogData {
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
-                        <mat-icon aria-hidden="true">question_answer</mat-icon>
+                        <mat-icon aria-hidden="true">forum</mat-icon>
                         <span i18n="@@app.footer.statusMetricQualityQaSubmit">Q&A einreichen</span>
                       </div>
                       <strong
@@ -738,7 +746,7 @@ export interface ServerStatusHelpDialogData {
                     </article>
                     <article class="status-help-dialog__metric status-help-dialog__metric--key">
                       <div class="status-help-dialog__metric-head">
-                        <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
+                        <mat-icon aria-hidden="true">chat_bubble</mat-icon>
                         <span i18n="@@app.footer.statusMetricActiveQaSessions"
                           >Aktive Q&A-Sessions</span
                         >
@@ -821,7 +829,7 @@ export interface ServerStatusHelpDialogData {
                   <div class="status-help-dialog__metrics">
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
-                        <mat-icon aria-hidden="true">poll</mat-icon>
+                        <mat-icon aria-hidden="true">ballot</mat-icon>
                         <span i18n="@@app.footer.statusMetricVotes">Abstimmungen / Minute</span>
                       </div>
                       <strong>{{ formatCount(s.votesLastMinute) }}</strong>
@@ -834,7 +842,7 @@ export interface ServerStatusHelpDialogData {
                     </article>
                     <article class="status-help-dialog__metric">
                       <div class="status-help-dialog__metric-head">
-                        <mat-icon aria-hidden="true">question_answer</mat-icon>
+                        <mat-icon aria-hidden="true">forum</mat-icon>
                         <span i18n="@@app.footer.statusMetricQaQuestions">Q&A-Fragen / Minute</span>
                       </div>
                       <strong>{{
@@ -1129,7 +1137,7 @@ export interface ServerStatusHelpDialogData {
                       </article>
                       <article class="status-help-dialog__metric">
                         <div class="status-help-dialog__metric-head">
-                          <mat-icon aria-hidden="true">question_answer</mat-icon>
+                          <mat-icon aria-hidden="true">forum</mat-icon>
                           <span i18n="@@app.footer.statusMetricQaAccepted">Q&A-Fragen</span>
                         </div>
                         <strong
@@ -1155,7 +1163,7 @@ export interface ServerStatusHelpDialogData {
                       </article>
                       <article class="status-help-dialog__metric status-help-dialog__metric--wide">
                         <div class="status-help-dialog__metric-head">
-                          <mat-icon aria-hidden="true">chat_bubble_outline</mat-icon>
+                          <mat-icon aria-hidden="true">chat_bubble</mat-icon>
                           <span i18n="@@app.footer.statusMetricQaQuestionsTotal"
                             >Q&A-Fragen gesamt</span
                           >
@@ -1170,7 +1178,7 @@ export interface ServerStatusHelpDialogData {
                       </article>
                       <article class="status-help-dialog__metric status-help-dialog__metric--wide">
                         <div class="status-help-dialog__metric-head">
-                          <mat-icon aria-hidden="true">emoji_events</mat-icon>
+                          <mat-icon aria-hidden="true">trophy</mat-icon>
                           <span i18n="@@app.footer.statusMetricLargestQaCollection"
                             >Größte Q&A-Sammlung</span
                           >
@@ -1279,24 +1287,49 @@ export interface ServerStatusHelpDialogData {
                         class="status-help-dialog__metric-group-title status-help-dialog__metric-group-title--with-icon"
                       >
                         <mat-icon aria-hidden="true">category</mat-icon>
-                        <span i18n="@@app.footer.statusMetricGroupSize">Reichweite nach Größe</span>
+                        <span i18n="@@app.footer.statusMetricGroupSize"
+                          >Sessions nach Gruppengröße</span
+                        >
                       </h4>
+                      <p
+                        class="status-help-dialog__copy status-help-dialog__copy--compact"
+                        i18n="@@app.footer.statusMetricGroupSizeHint"
+                      >
+                        Klassierte Häufigkeitsverteilung der Sessions nach Zahl der Teilnahmen.
+                        Median und Quartile sind aus den Klassenmitten genähert (XS: 6, S: 20, M:
+                        66, L: 200, XL: 301).
+                      </p>
                       <dl class="status-help-dialog__meta status-help-dialog__meta--size">
                         <div class="status-help-dialog__meta-item">
-                          <dt i18n="@@app.footer.statusUsageSizeSample">Stichprobe:</dt>
-                          <dd>{{ formatCount(size.sampleSize) }}</dd>
+                          <dt i18n="@@app.footer.statusUsageSizeSample">Stichprobenumfang (n):</dt>
+                          <dd>
+                            {{ formatCount(size.sampleSize) }}
+                            <span i18n="@@app.footer.statusUsageSizeSessionsUnit">Sessions</span>
+                          </dd>
                         </div>
                         @if (size.median != null) {
                           <div class="status-help-dialog__meta-item">
-                            <dt i18n="@@app.footer.statusUsageSizeMedian">Median:</dt>
-                            <dd>{{ formatCount(size.median) }}</dd>
+                            <dt i18n="@@app.footer.statusUsageSizeMedian">
+                              Median (Klassenmitte):
+                            </dt>
+                            <dd>
+                              ≈ {{ formatCount(size.median) }}
+                              <span i18n="@@app.footer.statusUsageSizeParticipationsUnit"
+                                >Teilnahmen / Session</span
+                              >
+                            </dd>
                           </div>
                         }
                         @if (size.quartile1 != null && size.quartile3 != null) {
                           <div class="status-help-dialog__meta-item">
-                            <dt i18n="@@app.footer.statusUsageSizeQuartiles">Q1–Q3:</dt>
+                            <dt i18n="@@app.footer.statusUsageSizeQuartiles">
+                              Quartilsbereich (Q1–Q3):
+                            </dt>
                             <dd>
-                              {{ formatCount(size.quartile1) }}–{{ formatCount(size.quartile3) }}
+                              ≈ {{ formatCount(size.quartile1) }}–{{ formatCount(size.quartile3) }}
+                              <span i18n="@@app.footer.statusUsageSizeParticipationsUnit"
+                                >Teilnahmen / Session</span
+                              >
                             </dd>
                           </div>
                         }
@@ -1306,9 +1339,20 @@ export interface ServerStatusHelpDialogData {
                           <article class="status-help-dialog__metric">
                             <div class="status-help-dialog__metric-head">
                               <mat-icon aria-hidden="true">category</mat-icon>
-                              <span>{{ cls.id }} ({{ cls.label }})</span>
+                              <span
+                                >{{ cls.id }} ({{ cls.label }}
+                                <ng-container i18n="@@app.footer.statusUsageSizeClassRangeUnit"
+                                  >Teilnahmen</ng-container
+                                >)</span
+                              >
                             </div>
                             <strong>{{ formatCount(cls.count) }}</strong>
+                            <p class="status-help-dialog__metric-hint">
+                              <span i18n="@@app.footer.statusUsageSizeSessionsUnit">Sessions</span>
+                              @if (size.sampleSize > 0) {
+                                · {{ formatSizeClassShare(cls.count, size.sampleSize) }}
+                              }
+                            </p>
                           </article>
                         }
                       </div>
@@ -1529,7 +1573,7 @@ export interface ServerStatusHelpDialogData {
                           id="server-status-record-heading"
                           class="status-help-dialog__section-title status-help-dialog__section-title--with-icon"
                         >
-                          <mat-icon aria-hidden="true">emoji_events</mat-icon>
+                          <mat-icon aria-hidden="true">trophy</mat-icon>
                           <span i18n="@@help.statsTitle">Höchste Join-Teilnahme einer Session</span>
                         </h4>
                         <p class="status-help-dialog__record-hint" i18n="@@help.statsHint">
@@ -1587,25 +1631,32 @@ export interface ServerStatusHelpDialogData {
                               <mat-icon aria-hidden="true">analytics</mat-icon>
                               <span i18n="@@app.footer.statusDailyHistoryMedian">Median</span>
                             </div>
-                            <strong>{{ statsFmt.median }}</strong>
+                            <strong
+                              >{{ statsFmt.median }}
+                              <span i18n="@@help.statsUnit">Joins</span></strong
+                            >
                             <p
                               class="status-help-dialog__metric-hint"
                               i18n="@@app.footer.statusDailyHistoryMedianHint"
                             >
-                              Nur gemessene Tage im Fenster
+                              Über {{ statsFmt.sampleSize }} gemessene Tage (n) im 100-Tage-Fenster
                             </p>
                           </article>
                           <article class="status-help-dialog__metric">
                             <div class="status-help-dialog__metric-head">
                               <mat-icon aria-hidden="true">equalizer</mat-icon>
-                              <span i18n="@@app.footer.statusDailyHistoryIqr">IQR</span>
+                              <span i18n="@@app.footer.statusDailyHistoryIqr"
+                                >Quartilsabstand (IQR)</span
+                              >
                             </div>
-                            <strong>{{ statsFmt.iqr }}</strong>
+                            <strong
+                              >{{ statsFmt.iqr }} <span i18n="@@help.statsUnit">Joins</span></strong
+                            >
                             <p
                               class="status-help-dialog__metric-hint"
                               i18n="@@app.footer.statusDailyHistoryIqrHint"
                             >
-                              Q3−Q1 der gemessenen Tage
+                              Q3−Q1 der täglichen Join-Höchststände
                             </p>
                           </article>
                           <article class="status-help-dialog__metric">
@@ -1613,12 +1664,14 @@ export interface ServerStatusHelpDialogData {
                               <mat-icon aria-hidden="true">leaderboard</mat-icon>
                               <span i18n="@@app.footer.statusDailyHistoryMax">Maximum</span>
                             </div>
-                            <strong>{{ statsFmt.max }}</strong>
+                            <strong
+                              >{{ statsFmt.max }} <span i18n="@@help.statsUnit">Joins</span></strong
+                            >
                             <p
                               class="status-help-dialog__metric-hint"
                               i18n="@@app.footer.statusDailyHistoryMaxHint"
                             >
-                              Höchster Join-Stand im Fenster
+                              Höchster Tages-Join-Stand im 100-Tage-Fenster
                             </p>
                           </article>
                         </div>
@@ -1950,6 +2003,13 @@ export class ServerStatusHelpDialogComponent {
 
   protected formatCount(value: number): string {
     return formatLocaleCount(value, this.locale);
+  }
+
+  protected formatSizeClassShare(count: number, sampleSize: number): string {
+    if (sampleSize <= 0) return '0 %';
+    return `${formatLocaleNumber((count / sampleSize) * 100, this.locale, {
+      maximumFractionDigits: 1,
+    })} %`;
   }
 
   protected formatQaLiveValue(

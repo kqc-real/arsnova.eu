@@ -1,3 +1,4 @@
+import { CONFIDENCE_DEBRIEF_MIN_RESPONSES, isConfidenceDebriefRecommended } from './confidence.js';
 import type { QaNlpStatus, QuestionType, QuickFeedbackType, TempoTrendStatus } from './schemas.js';
 
 export const MODERATION_COMPASS_RULES_VERSION = 'moderation-compass-rules-v1' as const;
@@ -115,6 +116,12 @@ export type ModerationCompassQuizQuestion = {
   readonly ratingAvg?: number | null;
   readonly ratingCount?: number;
   readonly freeTextResponses?: readonly string[];
+  /** Aggregat der Selbsteinschätzung nach Ergebnisfreigabe, ohne Personenbezug. */
+  readonly confidenceMisconception?: {
+    readonly responseCount: number;
+    readonly highConfidenceWrongCount: number;
+    readonly wrongOptions?: readonly { readonly text: string; readonly count: number }[];
+  } | null;
 };
 
 export type ModerationQuizFact =
@@ -126,6 +133,12 @@ export type ModerationQuizFact =
   | { readonly type: 'ordering-swap'; readonly a: string; readonly b: string }
   | { readonly type: 'categorization-miss'; readonly item: string; readonly wrongCategory: string }
   | { readonly type: 'wrong-option'; readonly option: string }
+  | {
+      readonly type: 'confidence-misconception';
+      readonly option: string | null;
+      readonly count: number;
+      readonly responseCount: number;
+    }
   | { readonly type: 'survey-top'; readonly option: string; readonly share: number }
   | { readonly type: 'numeric-median'; readonly median: number; readonly reference: number }
   | { readonly type: 'numeric-spread' }
@@ -202,8 +215,58 @@ function collectFreetextQuizFacts(question: ModerationCompassQuizQuestion): Mode
   return repeat ? [repeat] : [];
 }
 
+function confidenceMisconceptionFact(
+  input: ModerationCompassQuizQuestion['confidenceMisconception'],
+): Extract<ModerationQuizFact, { type: 'confidence-misconception' }> | null {
+  if (!input || input.responseCount <= 0 || input.highConfidenceWrongCount <= 0) {
+    return null;
+  }
+  const visible = isConfidenceDebriefRecommended({
+    responseCount: input.responseCount,
+    result: {
+      distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+      crossTab: {
+        correctHigh: 0,
+        correctMid: 0,
+        correctLow: 0,
+        incorrectHigh: input.highConfidenceWrongCount,
+        incorrectMid: 0,
+        incorrectLow: 0,
+      },
+      highConfidenceWrongCount: input.highConfidenceWrongCount,
+    },
+  });
+  if (!visible) {
+    return null;
+  }
+  const topOption = [...(input.wrongOptions ?? [])]
+    .filter((option) => option.text.trim().length > 0 && option.count > 0)
+    .sort(
+      (left, right) =>
+        right.count - left.count || left.text.trim().localeCompare(right.text.trim()),
+    )[0];
+  if (topOption && topOption.count >= CONFIDENCE_DEBRIEF_MIN_RESPONSES) {
+    return {
+      type: 'confidence-misconception',
+      option: topOption.text.trim(),
+      count: topOption.count,
+      responseCount: input.responseCount,
+    };
+  }
+  return {
+    type: 'confidence-misconception',
+    option: null,
+    count: input.highConfidenceWrongCount,
+    responseCount: input.responseCount,
+  };
+}
+
 function collectScorableQuizFacts(question: ModerationCompassQuizQuestion): ModerationQuizFact[] {
   const facts: ModerationQuizFact[] = [];
+  const misconception = confidenceMisconceptionFact(question.confidenceMisconception);
+  if (misconception) {
+    facts.push(misconception);
+  }
   const correct = question.correctVoterCount;
   const incorrect = question.incorrectVoterCount;
   const total = question.totalVotes;
@@ -270,7 +333,7 @@ function collectScorableQuizFacts(question: ModerationCompassQuizQuestion): Mode
   const wrongOption = [...(question.voteDistribution ?? [])]
     .filter((option) => !option.isCorrect && option.voteCount > 0)
     .sort((left, right) => right.voteCount - left.voteCount)[0];
-  if (wrongOption) {
+  if (wrongOption && wrongOption.text.trim() !== misconception?.option) {
     facts.push({ type: 'wrong-option', option: wrongOption.text });
   }
 
@@ -639,6 +702,13 @@ export function moderationQuizFactEvidenceRole(
       return 'freetext';
     case 'wrong-option':
       return 'mention';
+    case 'confidence-misconception':
+      return fact.option !== null &&
+        fact.responseCount > 0 &&
+        fact.count / fact.responseCount >=
+          MODERATION_COMPASS_RULE_THRESHOLDS.quiz.structuredConfusionMinimumShare
+        ? 'clarification'
+        : 'mention';
     case 'matching-confusion':
       return structuredConfusionIsPrimary(
         question.matchingStats?.commonConfusions?.[0]?.count,

@@ -8,6 +8,7 @@ import {
   hashCapability,
   hashCapabilityIndex,
 } from './capabilityCrypto';
+import { rememberParticipantCapability } from './participantAuth';
 import { hashToken as hashProductFeedbackToken } from './productFeedbackTokens';
 import { enqueueUsageStatisticEvent } from './usageStatistic';
 
@@ -263,6 +264,7 @@ export async function prepareParticipantJoin(params: {
         expiresAt: new Date(now.getTime() + PARTICIPANT_JOIN_REPLAY_MS),
       },
     });
+    rememberParticipantCapability(params.sessionId, existing.id, rejoinCapability);
     return {
       participantId: existing.id,
       participantNumber: existing.participantNumber,
@@ -374,6 +376,7 @@ export async function prepareParticipantJoin(params: {
       sessionId: params.sessionId,
       idempotencyKey: `participation:${participant.id}`,
     });
+    rememberParticipantCapability(params.sessionId, participant.id, rejoinCapability);
     return {
       participantId: participant.id,
       participantNumber,

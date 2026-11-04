@@ -143,6 +143,14 @@
         </div>
       }
 
+      @if (step() === 'done') {
+        <div class="product-feedback-card__actions">
+          <button type="button" matButton="filled" (click)="finish()" i18n="@@common.close">
+            Schließen
+          </button>
+        </div>
+      }
+
       @if (step() === 'message') {
         <div class="product-feedback-card__message">
           <label

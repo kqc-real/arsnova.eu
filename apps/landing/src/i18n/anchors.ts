@@ -2,6 +2,7 @@
 export const CANONICAL_ANCHORS = [
   'workflow',
   'features',
+  'leaderboard',
   'host-pairing',
   'numeric-estimate',
   'confidence',
@@ -19,6 +20,7 @@ export type CanonicalAnchor = (typeof CANONICAL_ANCHORS)[number];
 /** Legacy German hash aliases → canonical anchors (must keep working). */
 export const LEGACY_ANCHOR_ALIASES: Record<string, CanonicalAnchor> = {
   ablauf: 'workflow',
+  rangliste: 'leaderboard',
   schaetzfrage: 'numeric-estimate',
   selbsteinschaetzung: 'confidence',
   fragenwand: 'qa-wall',

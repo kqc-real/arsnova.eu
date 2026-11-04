@@ -1,10 +1,17 @@
-import { ApplicationConfig, provideZonelessChangeDetection, isDevMode } from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  provideAppInitializer,
+  provideZonelessChangeDetection,
+  isDevMode,
+} from '@angular/core';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
+import { MatIconRegistry } from '@angular/material/icon';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { routes } from './app.routes';
 import {
@@ -16,6 +23,9 @@ import {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
+    provideAppInitializer(() => {
+      inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-outlined');
+    }),
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
     provideHttpClient(withFetch()),
     provideAnimationsAsync(),

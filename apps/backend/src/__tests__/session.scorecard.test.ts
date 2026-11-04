@@ -22,7 +22,7 @@ vi.mock('../lib/participantAuth', () => ({
 }));
 
 import { resetSessionRankingCacheForTests } from '../lib/sessionRankingCache';
-import { sessionRouter } from '../routers/session';
+import { resetSessionReadCachesForTests, sessionRouter } from '../routers/session';
 
 const caller = sessionRouter.createCaller({ req: undefined });
 
@@ -30,6 +30,7 @@ describe('session.getPersonalScorecard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetSessionRankingCacheForTests();
+    resetSessionReadCachesForTests();
   });
 
   trpcDodIt(
@@ -362,8 +363,10 @@ describe('session.getPersonalScorecard', () => {
 
     expect(first.currentRank).toBe(1);
     expect(second.currentRank).toBe(2);
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
     expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
     await caller.getPersonalScorecard({ code: 'ABC123', participantId, questionIndex: 0 });
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
     expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
   });
 

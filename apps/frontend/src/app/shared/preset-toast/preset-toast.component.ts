@@ -58,13 +58,13 @@ export const PRESET_OPTION_IDS = [
   {
     id: 'enableEmojiReactions',
     label: $localize`Emoji-Reaktionen`,
-    icon: 'emoji_emotions',
+    icon: 'sentiment_satisfied',
     categoryId: 'gamification' as CategoryId,
   },
   {
     id: 'bonusTokenCount',
     label: $localize`Bonus-Code für Top-Plätze`,
-    icon: 'emoji_events',
+    icon: 'trophy',
     categoryId: 'gamification' as CategoryId,
   },
   {

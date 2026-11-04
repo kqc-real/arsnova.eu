@@ -26,7 +26,8 @@ function baseQuestion(overrides: Partial<HostCurrentQuestionDTO> = {}): HostCurr
     order: 0,
     text: 'Frage',
     type: 'MATCHING',
-    difficulty: 'MEDIUM',
+    difficulty: 'MEDIUM' as const,
+    showQuestionTypeIndicators: true,
     answers: [],
     ...overrides,
   };

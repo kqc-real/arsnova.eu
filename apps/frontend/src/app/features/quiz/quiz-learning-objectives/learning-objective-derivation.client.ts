@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import type {
+  GetLearningObjectiveDerivationProgressInput,
+  GetLearningObjectiveDerivationProgressOutput,
   LearningObjectiveDerivationResult,
   PrepareLearningObjectiveDerivationInput,
   PrepareLearningObjectiveDerivationOutput,
@@ -21,5 +23,11 @@ export class LearningObjectiveDerivationClient {
     signal: AbortSignal,
   ): Promise<LearningObjectiveDerivationResult> {
     return trpc.quiz.deriveLearningObjectives.mutate(input, { signal });
+  }
+
+  progress(
+    input: GetLearningObjectiveDerivationProgressInput,
+  ): Promise<GetLearningObjectiveDerivationProgressOutput> {
+    return trpc.quiz.getLearningObjectiveDerivationProgress.query(input);
   }
 }

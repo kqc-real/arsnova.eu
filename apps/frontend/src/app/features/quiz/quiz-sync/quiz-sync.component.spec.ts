@@ -283,7 +283,7 @@ describe('QuizSyncComponent', () => {
     expect(invalidate).toBeTruthy();
     expect(unlink).toBeTruthy();
     expect(invalidate.querySelector('mat-icon')?.textContent?.trim()).toBe('link_off');
-    expect(unlink.querySelector('mat-icon')?.textContent?.trim()).toBe('phonelink_off');
+    expect(unlink.querySelector('mat-icon')?.textContent?.trim()).toBe('devices_off');
     expect(invalidate.getAttribute('aria-label')).toContain('für niemanden mehr');
     expect(unlink.getAttribute('aria-label')).toContain('nur auf diesem Gerät');
     expect(root.textContent).toContain('nur dieses Gerät');

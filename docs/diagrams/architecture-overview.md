@@ -18,7 +18,7 @@ Der Weg über Nginx und die drei Ports steht im [Netzwerkplan](./netzwerkplan.md
 %%{init: {'flowchart': {'curve': 'basis', 'nodeSpacing': 58, 'rankSpacing': 84, 'padding': 18}}}%%
 graph LR
     subgraph "Monorepo (npm Workspaces)"
-        subgraph "Frontend - Angular 21.2.x"
+        subgraph "Frontend - Angular 22.2.x"
             FE[Angular App<br/>Port 4200]
             FE_COMP[Standalone Components<br/>Signals · Angular Material 3]
             FE_ROUTES["Routing<br/>/<br/>/quiz · /quiz/sync/:docId<br/>/session/:code/(host|present|vote|pair)<br/>/host-recovery<br/>/join/:code · /feedback/:code · /feedback/:code/vote<br/>/admin · /help · /news-archive · /legal/*<br/>optional locale prefix:<br/>/de /en /fr /es /it"]
@@ -403,7 +403,7 @@ graph LR
 mindmap
   root((arsnova.eu))
     Frontend
-      Angular 21.2.x
+      Angular 22.2.x
         Standalone Components
         Signals
         Control Flow @if @for

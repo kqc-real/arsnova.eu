@@ -15,11 +15,79 @@ import {
   getWordCloudLayoutWordCap,
   getWordCloudRotation,
   getWordCloudWidthScale,
+  retainWordCloudPillPositions,
+  keepWordCloudSizesOnRelabel,
   scaleWordCloudFontSize,
   shouldUseWordCloudLayout,
 } from './word-cloud-layout';
 
 describe('word-cloud layout helpers', () => {
+  it('behält beim bloßen Labelwechsel die zuvor lesbaren Schriftgrößen', () => {
+    const previous = [
+      { groupKey: 'size', word: 'Stichprobenumfang', size: 58, count: 12, x: 0, y: 0, rotate: 0 },
+      { groupKey: 'bias', word: 'Selbstselektion', size: 48, count: 10, x: 0, y: 0, rotate: 0 },
+    ];
+    const relabeled = [
+      { ...previous[0]!, word: 'Stichprobengröße', size: 60 },
+      { ...previous[1]!, size: 50 },
+    ];
+    expect(keepWordCloudSizesOnRelabel(relabeled, previous).map(({ size }) => size)).toEqual([
+      58, 48,
+    ]);
+    const reweighted = [{ ...relabeled[0]!, count: 20 }, relabeled[1]!];
+    expect(keepWordCloudSizesOnRelabel(reweighted, previous)).toBe(reweighted);
+  });
+
+  it('hält eine gewachsene Kapsel nahe ihrem Bühnenrand', () => {
+    const previous = { groupKey: 'varianz', word: 'Varianz', size: 30, x: 540, y: 20, rotate: 0 };
+    const grown = { ...previous, size: 44, x: -350 };
+    const packed = retainWordCloudPillPositions([grown], [previous], 1280, 400, true);
+    expect(packed[0]?.y).toBe(previous.y);
+    expect(packed[0]?.x).toBeGreaterThan(450);
+    expect(packed[0]?.x).toBeLessThan(previous.x);
+  });
+
+  it('ordnet kollidierende Kapseln schon beim ersten Bühnenaufbau getrennt an', () => {
+    const source = ['Stichprobengröße', 'Selbstselektion', 'Varianz'].map((word) => ({
+      groupKey: word,
+      word,
+      size: 44,
+      x: 0,
+      y: 0,
+      rotate: 0,
+    }));
+    const packed = retainWordCloudPillPositions(source, [], 1280, 400, true);
+    expect(packed).toHaveLength(source.length);
+    for (const [index, first] of packed.entries()) {
+      const a = estimateWordCloudPillExtent(first.word, first.size);
+      for (const second of packed.slice(index + 1)) {
+        const b = estimateWordCloudPillExtent(second.word, second.size);
+        expect(
+          Math.abs(first.x - second.x) >= a.halfWidth + b.halfWidth ||
+            Math.abs(first.y - second.y) >= a.halfHeight + b.halfHeight,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('hält Platz für bestehende Bühnenbegriffe und verwirft überlappende oder abgeschnittene Anker', () => {
+    const pill = (groupKey: string, x: number, word = groupKey) => ({
+      groupKey,
+      word,
+      size: 36,
+      x,
+      y: 0,
+      rotate: 0,
+    });
+    const previous = [pill('size', -340, 'Umfang'), pill('removed', 0), pill('bias', 635)];
+    const next = [pill('size', -250, 'Stichprobengröße'), pill('new', 0), pill('bias', 330)];
+    const stabilized = retainWordCloudPillPositions(next, previous, 1280, 720);
+
+    expect(stabilized.map(({ x }) => x)).toEqual([-340, 0, 330]);
+    const blocked = retainWordCloudPillPositions(next, [pill('size', 0)], 1280, 720);
+    expect(blocked[0]).toMatchObject({ x: 0, y: 0 });
+    expect(blocked[1]?.y).not.toBe(0);
+  });
   it('aktiviert das echte Cloud-Layout erst ab sinnvoller Mindestbreite', () => {
     expect(shouldUseWordCloudLayout(MIN_WORD_CLOUD_LAYOUT_WIDTH - 1, 10)).toBe(false);
     expect(shouldUseWordCloudLayout(MIN_WORD_CLOUD_LAYOUT_WIDTH, 10)).toBe(true);

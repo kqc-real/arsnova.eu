@@ -9,6 +9,7 @@ import {
   QUIZ_UPLOAD_MAX_PAYLOAD_BYTES,
 } from '@arsnova/shared-types';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import { QuizListComponent } from './quiz-list.component';
 import { DEMO_QUIZ_ID, QuizStoreService, type QuizSummary } from '../data/quiz-store.service';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../../../core/host-recovery-access';
 import { clearHostToken, setHostToken } from '../../../core/host-session-token';
 import { HostScenarioService, type HostScenario } from '../../../core/host-scenario.service';
+import type { SpecAccess } from '../../../testing/spec-access';
 
 const {
   getActiveQuizIdsQueryMock,
@@ -442,9 +444,12 @@ describe('QuizListComponent', () => {
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     await (
-      fixture.componentInstance as QuizListComponent & {
-        handleSyncImportNoticeIfRequested: () => Promise<void>;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        QuizListComponent,
+        {
+          handleSyncImportNoticeIfRequested: () => Promise<void>;
+        }
+      >
     ).handleSyncImportNoticeIfRequested();
 
     expect(snackBarOpenMock).toHaveBeenCalledTimes(1);
@@ -1206,6 +1211,156 @@ describe('QuizListComponent', () => {
     expect(pdfButton?.disabled).toBe(false);
   });
 
+  it('reserviert den Druck-Tab vor dem PDF-Job und schließt ihn nur beim endgültigen Fehler', async () => {
+    const quiz = {
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    };
+    quizzesSignal.set([quiz]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: quiz.lastServerQuizId,
+        hasBonusTokens: true,
+        hasLastSessionAnalysis: true,
+      },
+    ]);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance.quizHistoryAvailability.set(
+      new Map([[quiz.id, { hasBonusTokens: true, hasLastSessionAnalysis: true }]]),
+    );
+    fixture.detectChanges();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const pdfButton = [...host.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('Nachbesprechungsplan'),
+    );
+    if (!pdfButton) {
+      throw new Error('Nachbesprechungsplan-Button fehlt');
+    }
+    const service = TestBed.inject(SessionResultsExportService);
+    const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
+    vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
+    const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
+    let releaseExport!: (result: 'print-fallback') => void;
+    const exportPdf = vi.spyOn(service, 'exportPdfFromQuizHistory').mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseExport = resolve;
+        }),
+    );
+
+    pdfButton.focus();
+    const pending = fixture.componentInstance.exportLastSessionPdf(quiz, 'visual');
+    fixture.detectChanges();
+
+    expect(service.openViewPlaceholder).toHaveBeenCalledOnce();
+    expect(exportPdf).not.toHaveBeenCalled();
+    expect(pdfButton.disabled).toBe(true);
+    expect(pdfButton.isConnected).toBe(true);
+    expect(document.activeElement).toBe(pdfButton);
+
+    await vi.waitUntil(() => exportPdf.mock.calls.length === 1);
+    expect(exportPdf).toHaveBeenCalledWith(
+      quiz.lastServerQuizId,
+      quiz.lastServerQuizAccessProof,
+      expect.objectContaining({ profile: 'visual', viewPlaceholder: placeholder }),
+    );
+    releaseExport('print-fallback');
+    await pending;
+    fixture.detectChanges();
+
+    expect(closePlaceholder).not.toHaveBeenCalled();
+    expect(pdfButton.disabled).toBe(false);
+    expect(pdfButton.isConnected).toBe(true);
+    expect(document.activeElement).toBe(pdfButton);
+    expect(snackBarOpenMock).toHaveBeenCalledWith(
+      'Ergebnis-PDF zum Speichern geöffnet.',
+      '',
+      expect.objectContaining({ duration: 5000 }),
+    );
+
+    exportPdf.mockRejectedValueOnce(new Error('pdf worker down'));
+    await fixture.componentInstance.exportLastSessionPdf(quiz, 'visual');
+    fixture.detectChanges();
+
+    expect(closePlaceholder).toHaveBeenCalledWith(placeholder);
+    expect(pdfButton.disabled).toBe(false);
+    expect(pdfButton.isConnected).toBe(true);
+    expect(snackBarOpenMock).toHaveBeenCalledWith(
+      'Ergebnis-PDF konnte nicht erstellt werden.',
+      '',
+      expect.objectContaining({ duration: 7000 }),
+    );
+    fixture.destroy();
+  });
+
+  it('behält die Nachbesprechung, wenn die Verfügbarkeitsabfrage später scheitert', async () => {
+    const quiz = {
+      id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+      name: 'Datenbanken',
+      description: null,
+      createdAt: '2026-03-08T10:00:00.000Z',
+      updatedAt: '2026-03-08T11:30:00.000Z',
+      questionCount: 2,
+      teamMode: false,
+      hasBonus: true,
+      lastServerQuizId: '11111111-1111-4111-8111-111111111111',
+      lastServerQuizAccessProof: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
+    };
+    quizzesSignal.set([quiz]);
+    getQuizCollectionHistoryAvailabilityQueryMock.mockResolvedValue([
+      {
+        quizId: '11111111-1111-4111-8111-111111111111',
+        hasBonusTokens: true,
+        hasLastSessionAnalysis: true,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+
+    expect(
+      fixture.componentInstance
+        .quizHistoryAvailability()
+        .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
+    ).toEqual({
+      hasBonusTokens: true,
+      hasLastSessionAnalysis: true,
+    });
+
+    getQuizCollectionHistoryAvailabilityQueryMock.mockRejectedValueOnce(new Error('network'));
+    quizzesSignal.set([{ ...quiz, updatedAt: '2026-03-08T12:00:00.000Z' }]);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await flushAsyncEffects();
+    fixture.detectChanges();
+
+    expect(
+      fixture.componentInstance
+        .quizHistoryAvailability()
+        .get('e31fef3f-f7b1-4705-a739-28c8ec4486bf'),
+    ).toEqual({
+      hasBonusTokens: true,
+      hasLastSessionAnalysis: true,
+    });
+    const pdfButton = Array.from(
+      fixture.nativeElement.querySelectorAll('.quiz-list-item__actions button'),
+    ).find((button) => (button as HTMLButtonElement).textContent?.includes('Nachbesprechungsplan'));
+    expect((pdfButton as HTMLButtonElement | undefined)?.disabled).toBe(false);
+  });
+
   it('migriert Legacy-Scopes und gibt bei fehlgeschlagenem Bind keinen Legacy-Proof weiter', async () => {
     quizzesSignal.set([
       {
@@ -1383,9 +1538,12 @@ describe('QuizListComponent', () => {
 
   it('scrollt beim Öffnen der KI-Import-Karte zum Panel', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
-    const component = fixture.componentInstance as QuizListComponent & {
-      scrollAiImportPanelIntoViewAfterRender: () => void;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      QuizListComponent,
+      {
+        scrollAiImportPanelIntoViewAfterRender: () => void;
+      }
+    >;
     const scrollSpy = vi
       .spyOn(component, 'scrollAiImportPanelIntoViewAfterRender')
       .mockImplementation(() => {});
@@ -1407,19 +1565,22 @@ describe('QuizListComponent', () => {
 
   it('richtet die KI-Import-Karte im App-Scrollcontainer aus', () => {
     const fixture = TestBed.createComponent(QuizListComponent);
-    const component = fixture.componentInstance as QuizListComponent & {
-      scrollAiImportPanelIntoView: () => boolean;
-    };
+    const component = fixture.componentInstance as unknown as SpecAccess<
+      QuizListComponent,
+      {
+        scrollAiImportPanelIntoView: () => boolean;
+      }
+    >;
     const scrollRoot = document.createElement('main');
     scrollRoot.className = 'app-main';
     scrollRoot.style.paddingTop = '64px';
     scrollRoot.scrollTop = 240;
     scrollRoot.getBoundingClientRect = () =>
       ({ top: 0, bottom: 600, left: 0, right: 360, width: 360, height: 600 }) as DOMRect;
-    const scrollTo = vi.fn((options: ScrollToOptions) => {
-      scrollRoot.scrollTop = Number(options.top ?? 0);
+    const scrollTo = vi.fn((options?: ScrollToOptions) => {
+      scrollRoot.scrollTop = Number(options?.top ?? 0);
     });
-    scrollRoot.scrollTo = scrollTo;
+    scrollRoot.scrollTo = scrollTo as typeof scrollRoot.scrollTo;
     document.body.appendChild(scrollRoot);
     scrollRoot.appendChild(fixture.nativeElement);
 
@@ -1541,7 +1702,7 @@ Viel Erfolg beim Import.`);
       value: [file],
     });
 
-    await component.onImportFileSelected({ target: input } as Event);
+    await component.onImportFileSelected({ target: input } as unknown as Event);
     fixture.detectChanges();
     await flushAsyncEffects();
     fixture.detectChanges();
@@ -1627,7 +1788,7 @@ Viel Erfolg beim Import.`);
       value: [file],
     });
 
-    await component.onImportFileSelected({ target: input } as Event);
+    await component.onImportFileSelected({ target: input } as unknown as Event);
     fixture.detectChanges();
     await flushAsyncEffects();
     fixture.detectChanges();
@@ -1655,7 +1816,7 @@ Viel Erfolg beim Import.`);
       value: [file],
     });
 
-    await component.onImportFileSelected({ target: input } as Event);
+    await component.onImportFileSelected({ target: input } as unknown as Event);
 
     expect(textMock).not.toHaveBeenCalled();
     expect(mockStore.importQuiz).not.toHaveBeenCalled();
@@ -1734,13 +1895,16 @@ Viel Erfolg beim Import.`);
 
     const fixture = TestBed.createComponent(QuizListComponent);
     const openSpy = vi
-      .spyOn(fixture.componentInstance, 'openLiveStartDialog' as keyof QuizListComponent)
+      .spyOn(fixture.componentInstance, 'openLiveStartDialog')
       .mockResolvedValue(undefined);
 
     await (
-      fixture.componentInstance as QuizListComponent & {
-        activateLiveStartShortcutIfRequested: () => Promise<void>;
-      }
+      fixture.componentInstance as unknown as SpecAccess<
+        QuizListComponent,
+        {
+          activateLiveStartShortcutIfRequested: () => Promise<void>;
+        }
+      >
     ).activateLiveStartShortcutIfRequested();
 
     expect(openSpy).toHaveBeenCalledWith('bb0cd69b-a0d2-4373-b83e-c1abb0a8b58a', 'Netzwerke', 3);

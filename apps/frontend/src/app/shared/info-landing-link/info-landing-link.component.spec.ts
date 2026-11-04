@@ -99,7 +99,7 @@ describe('InfoLandingLinkComponent', () => {
     const icon = (fixture.nativeElement as HTMLElement).querySelector(
       'mat-icon.info-landing-link__lead-icon',
     );
-    expect(icon?.textContent?.trim()).toBe('help_outline');
+    expect(icon?.textContent?.trim()).toBe('help');
   });
 
   it('zeigt optional die Beamer-Silhouette statt des Info-Icons', () => {
