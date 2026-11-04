@@ -2894,19 +2894,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         if (this.destroyRef.destroyed) {
           return;
         }
-        const refresh = this.hostElement.nativeElement.querySelector<HTMLElement>(
+        const refresh = this.hostElement.nativeElement.querySelector(
           '[data-testid="presenter-freetext-word-cloud-refresh"]',
         );
-        if (refresh?.isConnected) {
+        if (refresh instanceof HTMLElement && refresh.isConnected) {
           if (this.document.activeElement !== refresh) {
             refresh.focus({ preventScroll: true });
           }
           return;
         }
-        const semantic = this.hostElement.nativeElement.querySelector<HTMLElement>(
+        const semantic = this.hostElement.nativeElement.querySelector(
           '[data-testid="presenter-freetext-word-cloud-semantic"] button',
         );
-        if (semantic?.isConnected) {
+        if (semantic instanceof HTMLElement && semantic.isConnected) {
           semantic.focus({ preventScroll: true });
         }
       },
