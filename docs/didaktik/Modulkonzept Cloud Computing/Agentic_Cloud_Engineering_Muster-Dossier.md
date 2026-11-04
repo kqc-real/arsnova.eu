@@ -249,12 +249,12 @@ Browser (Freitext)
 
 **Sprache der Themenwolke:** Deutsch und Englisch gehen durch den Encoder. Französisch und Spanisch fallen auf das Zählen von Wörtern zurück. Italienisch ohne gewählte unterstützte Wolkensprache bleibt lokal und schickt keinen Analyseauftrag.
 
-|                   | Wörter / spaCy        | Encoder                                               | Privates LLM                                                              |
-| ----------------- | --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
-| Wo läuft es?      | Sidecar, 1 CPU, 1 GiB | Sidecar, bis 4 CPU, 2 GiB, höchstens 4 Rechen-Threads | Modell `Qwen3-4B-Instruct-2507-Q4_K_M`, nur CPU, ein Auftrag gleichzeitig |
-| Standard          | aus                   | aus                                                   | aus                                                                       |
-| Öffentliches SaaS | nein                  | nur Loopback oder privates Netz                       | öffentliche Hosts verboten                                                |
-| Wenn es ausfällt  | Originalwörter        | lexikalische Wolke                                    | Kurzfassung aus Quelltexten, Mitgliedstext oder manuelle Lernziele        |
+|                   | Wörter / spaCy        | Encoder                                               | Privates LLM                                                       |
+| ----------------- | --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------ |
+| Wo läuft es?      | Sidecar, 1 CPU, 1 GiB | Sidecar, bis 4 CPU, 2 GiB, höchstens 4 Rechen-Threads | Modell `gemma-3-4b-it-qat-Q4_0`, nur CPU, ein Auftrag gleichzeitig |
+| Standard          | aus                   | aus                                                   | aus                                                                |
+| Öffentliches SaaS | nein                  | nur Loopback oder privates Netz                       | öffentliche Hosts verboten                                         |
+| Wenn es ausfällt  | Originalwörter        | lexikalische Wolke                                    | Kurzfassung aus Quelltexten, Mitgliedstext oder manuelle Lernziele |
 
 Der Schutzschalter des Encoders sitzt in `wordCloudSemanticAnalyze.ts`: nach 3 Fehlern 30 Sekunden Pause. Ein ausgefallenes Sprachmodell ersetzt **nicht** still alle Funktionen durch dieselbe Wortwolke.
 

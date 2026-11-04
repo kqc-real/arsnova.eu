@@ -22,7 +22,7 @@ npm run setup:dev
 npm run dev
 ```
 
-Für den Einstieg ist Node 24.18.0 LTS aus `.nvmrc` der Standardweg; Node 22.22.3+ bleibt als CI-geprüfter Kompatibilitätspfad unterstützt. Windows-Nutzer:innen verwenden bitte WSL2/Ubuntu wie im Onboarding beschrieben. Die optionale lokale Text-KI (Qwen3-4B in Docker) ist in [docs/onboarding.md](docs/onboarding.md#optional-lokale-text-ki-qwen3-4b) beschrieben; `npm run dev` funktioniert ohne sie.
+Für den Einstieg ist Node 24.18.0 LTS aus `.nvmrc` der Standardweg; Node 22.22.3+ bleibt als CI-geprüfter Kompatibilitätspfad unterstützt. Windows-Nutzer:innen verwenden bitte WSL2/Ubuntu wie im Onboarding beschrieben. Die optionale lokale Text-KI (Gemma 3 4B in Docker) ist in [docs/onboarding.md](docs/onboarding.md#optional-lokale-text-ki-gemma-3-4b) beschrieben; `npm run dev` funktioniert ohne sie.
 
 ---
 

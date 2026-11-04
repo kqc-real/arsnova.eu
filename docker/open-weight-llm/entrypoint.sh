@@ -4,8 +4,9 @@ export LC_ALL=C
 . /opt/arsnova/validate-token.sh
 . /opt/arsnova/validate-bind.sh
 
-model_path=/models/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
-model_sha256=3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597
+# Text-only GGUF. The multimodal projector file stays unloaded.
+model_path=/models/gemma-3-4b-it-qat-Q4_0.gguf
+model_sha256=6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2
 transport=${OPEN_WEIGHT_LLM_TRANSPORT:-unix}
 token=${OPEN_WEIGHT_LLM_TOKEN:-}
 threads=${OPEN_WEIGHT_LLM_THREADS:-4}
@@ -34,12 +35,16 @@ fi
 set -- \
   /app/llama-server \
   --model "$model_path" \
-  --alias qwen3-4b-instruct-2507-q4_k_m \
+  --alias gemma-3-4b-it-qat-q4_0 \
   --parallel 1 \
   --ctx-size 8192 \
+  --batch-size 2048 \
+  --ubatch-size 512 \
   --n-predict 768 \
   --threads "$threads" \
   --threads-batch "$threads" \
+  --flash-attn on \
+  --cache-reuse 256 \
   --no-webui \
   --slots \
   --api-key "$token" \

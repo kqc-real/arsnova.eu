@@ -46,12 +46,19 @@ function main() {
     if (!modelDirectory.startsWith('/')) {
       throw new Error('OPEN_WEIGHT_LLM_MODEL_DIR must be absolute');
     }
+    const manifest = JSON.parse(
+      readFileSync(resolve(repositoryRoot, 'docker/open-weight-llm/model-manifest.json'), 'utf8'),
+    );
+    const filename = manifest.filename;
+    if (typeof filename !== 'string' || !/^[A-Za-z0-9._-]+\.gguf$/.test(filename)) {
+      throw new Error('model manifest filename must be a single GGUF basename');
+    }
     const verification = spawnSync(
       process.execPath,
       [
         resolve(repositoryRoot, 'scripts/open-weight-llm/verify-model.mjs'),
         resolve(repositoryRoot, 'docker/open-weight-llm/model-manifest.json'),
-        resolve(modelDirectory, 'Qwen3-4B-Instruct-2507-Q4_K_M.gguf'),
+        resolve(modelDirectory, filename),
       ],
       { env, stdio: 'inherit' },
     );

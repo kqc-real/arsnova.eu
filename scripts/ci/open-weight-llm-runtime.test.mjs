@@ -19,11 +19,18 @@ test('Runtime-Image und GGUF sind unverÃ¤nderlich gepinnt, das Modell bleibt auÃ
   assert.doesNotMatch(dockerfile, /COPY[^\n]*\.gguf/i);
 
   const manifest = JSON.parse(readFileSync(join(runtimeRoot, 'model-manifest.json'), 'utf8'));
-  assert.equal(manifest.sourceRevision, 'a06e946bb6b655725eafa393f4a9745d460374c9');
-  assert.equal(manifest.sizeBytes, 2_497_281_120);
-  assert.equal(manifest.sha256, '3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597');
-  assert.match(manifest.downloadUrl, /\/resolve\/a06e946bb6b655725eafa393f4a9745d460374c9\//);
+  assert.equal(manifest.sourceRepository, 'unsloth/gemma-3-4b-it-qat-GGUF');
+  assert.equal(manifest.sourceRevision, '0f80a8ebec6d07600bc3790a042a075527692b49');
+  assert.equal(manifest.filename, 'gemma-3-4b-it-qat-Q4_0.gguf');
+  assert.equal(manifest.quantization, 'Q4_0');
+  assert.equal(manifest.sizeBytes, 2_370_065_536);
+  assert.equal(manifest.sha256, '6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2');
+  assert.match(
+    manifest.downloadUrl,
+    /\/resolve\/0f80a8ebec6d07600bc3790a042a075527692b49\/gemma-3-4b-it-qat-Q4_0\.gguf$/,
+  );
   assert.doesNotMatch(manifest.downloadUrl, /\/resolve\/(?:main|latest)\//);
+  assert.doesNotMatch(manifest.downloadUrl, /mmproj/i);
 });
 
 test('Entry-Point erzwingt Auth, CPU-only, einen Slot und die vereinbarten Hartflags', () => {
@@ -31,7 +38,12 @@ test('Entry-Point erzwingt Auth, CPU-only, einen Slot und die vereinbarten Hartf
   for (const flag of [
     '--parallel 1',
     '--ctx-size 8192',
+    '--batch-size 2048',
+    '--ubatch-size 512',
     '--n-predict 768',
+    '--threads-batch',
+    '--flash-attn on',
+    '--cache-reuse 256',
     '--no-webui',
     '--slots',
     '--api-key',
@@ -43,9 +55,12 @@ test('Entry-Point erzwingt Auth, CPU-only, einen Slot und die vereinbarten Hartf
   ]) {
     assert.ok(entrypoint.includes(flag), `missing hard flag: ${flag}`);
   }
+  assert.match(entrypoint, /--alias gemma-3-4b-it-qat-q4_0/);
+  assert.match(entrypoint, /gemma-3-4b-it-qat-Q4_0\.gguf/);
+  assert.doesNotMatch(entrypoint, /--mmproj\b/);
   assert.match(
     entrypoint,
-    /model_sha256=3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597/,
+    /model_sha256=6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2/,
   );
   assert.match(entrypoint, /OPEN_WEIGHT_LLM_TOKEN/);
   assert.match(entrypoint, /OPEN_WEIGHT_LLM_THREADS must be an integer from 1 to 8/);

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "model": "Qwen3-4B-Instruct-2507",
-  "quantization": "Q4_K_M",
-  "license": "Apache-2.0",
-  "sourceRepository": "unsloth/Qwen3-4B-Instruct-2507-GGUF",
-  "sourceRevision": "a06e946bb6b655725eafa393f4a9745d460374c9",
-  "filename": "Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
-  "downloadUrl": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
-  "sizeBytes": 2497281120,
-  "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+  "model": "Gemma-3-4B-IT-QAT",
+  "quantization": "Q4_0",
+  "license": "gemma",
+  "sourceRepository": "unsloth/gemma-3-4b-it-qat-GGUF",
+  "sourceRevision": "0f80a8ebec6d07600bc3790a042a075527692b49",
+  "filename": "gemma-3-4b-it-qat-Q4_0.gguf",
+  "downloadUrl": "https://huggingface.co/unsloth/gemma-3-4b-it-qat-GGUF/resolve/0f80a8ebec6d07600bc3790a042a075527692b49/gemma-3-4b-it-qat-Q4_0.gguf",
+  "sizeBytes": 2370065536,
+  "sha256": "6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2",
   "runtimeImage": "ghcr.io/ggml-org/llama.cpp:server-b10524@sha256:57e505f69c3a55fa5dd9c15fced47cff7a899f5b5b504ea93d75b2f401b87830",
   "runtimePlatforms": ["linux/amd64", "linux/arm64", "linux/s390x"]
 }

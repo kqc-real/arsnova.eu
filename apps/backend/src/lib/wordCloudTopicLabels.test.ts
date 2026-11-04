@@ -153,7 +153,7 @@ describe('applyWordCloudTopicLabels', () => {
     expect(result.entries[1]?.label).toBe('Kopiere mich');
     expect(result.entries[1]?.labelOrigin).toBe('extractive');
     expect(result.labelSettlement).toBe('complete');
-    expect(result.labelModelId).toContain('Qwen3-4B-Instruct-2507');
+    expect(result.labelModelId).toContain('gemma-3-4b-it-qat-GGUF');
   });
 
   it('behandelt einen belegten Slot als vorübergehend und blockiert den zweiten Kanal nicht', async () => {

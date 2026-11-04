@@ -79,7 +79,7 @@ npm run dev
 
 Dann im Browser: **`http://localhost:4200`**
 
-Das ist absichtlich der einfachste Pfad: **Deutsch**, Backend, Frontend und der Host-spaCy-Sidecar laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und die Workspace-Bibliotheken (`shared-types`, `session-export-report`) sind gebaut. Wortwolken-Glättung braucht Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14; ist `python3` bereits 3.14, zusätzlich z. B. `python3.13` installieren – das Skript bevorzugt es automatisch); der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle (oft mehrere Minuten, Spalte `spacy` in concurrently). Die **lokale Text-KI** (Qwen3-4B) ist kein Bestandteil dieses Starts; ohne Modell und ohne SSH-Schlüssel läuft die App trotzdem. Wer später damit experimentieren will: [lokale Text-KI](#optional-lokale-text-ki-qwen3-4b). **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
+Das ist absichtlich der einfachste Pfad: **Deutsch**, Backend, Frontend und der Host-spaCy-Sidecar laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und die Workspace-Bibliotheken (`shared-types`, `session-export-report`) sind gebaut. Wortwolken-Glättung braucht Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14; ist `python3` bereits 3.14, zusätzlich z. B. `python3.13` installieren – das Skript bevorzugt es automatisch); der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle (oft mehrere Minuten, Spalte `spacy` in concurrently). Die **lokale Text-KI** (Gemma 3 4B) ist kein Bestandteil dieses Starts; ohne Modell und ohne SSH-Schlüssel läuft die App trotzdem. Wer später damit experimentieren will: [lokale Text-KI](#optional-lokale-text-ki-gemma-3-4b). **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
 
 **Wichtig für Windows:** Diese Befehle laufen dann in **WSL/Ubuntu**, nicht in PowerShell oder Git Bash.
 
@@ -201,21 +201,21 @@ belegt die Korrekturen der damals roten Gates.
 
 ### Typische Stolperstellen beim ersten Start
 
-| Symptom                                                  | Wahrscheinliche Ursache                                                                            | Direkt ausprobieren                                                                       |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `docker compose` geht nicht                              | Docker Desktop ist nicht installiert oder nicht gestartet                                          | Docker starten, dann `docker compose version` prüfen                                      |
-| `npm run dev` bricht sofort ab                           | Node-Version ist nicht passend                                                                     | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren                             |
-| Browser zeigt nicht `/en/`, sondern `/`                  | Das ist korrekt: Standard-`dev` ist **Deutsch**                                                    | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en`                     |
-| Fehler zu Prisma oder fehlenden Typen                    | `setup:dev`, `prisma:generate` oder `build:libs` fehlt                                             | `npm run setup:dev` erneut ausführen                                                      |
-| Port 3000 oder 4200 ist schon belegt                     | Voriger Dev-Server läuft noch                                                                      | `npm run free-dev-ports` und dann erneut `npm run dev`                                    |
-| Wortwolke bleibt leer / Seed bricht ab                   | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer                   | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev`       |
-| „Glättung nicht verfügbar“                               | Sidecar lädt noch Modelle, Python fehlt, oder `dev:backend` ohne Sidecar                           | Spalte `spacy` in concurrently prüfen; Python 3.10–3.13; nach Socket-Bind analysieren     |
-| `The table public.Quiz does not exist`                   | Postgres läuft, Prisma-Schema wurde nie angewendet                                                 | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                        |
-| „Wähle die Sprache der Antworten“ in it                  | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                                           | Am Glätten-Button DE/EN/FR/ES wählen                                                      |
-| `/admin` funktioniert lokal nicht                        | `ADMIN_SECRET` wurde nicht gesetzt                                                                 | `.env` ergänzen und Backend neu starten                                                   |
-| »Die automatische Herleitung ist gerade nicht verfügbar« | Runtime aus, Container noch nicht gesund, oder `.env` zeigt auf den Kurs-Tunnel ohne SSH-Schlüssel | Optionalen lokalen Container starten: [lokale Text-KI](#optional-lokale-text-ki-qwen3-4b) |
-| Test/Hook: `Executable doesn't exist`                    | Playwright-Chromium für die Projekt-Playwright-Version fehlt                                       | `npm run playwright:install` (nicht `npx playwright install`)                             |
-| Test/Hook: `missing dependencies`                        | Ubuntu/WSL2: Systembibliotheken für Chromium fehlen                                                | `npm run playwright:install-deps` (einmalig, fragt nach `sudo`)                           |
+| Symptom                                                  | Wahrscheinliche Ursache                                                                            | Direkt ausprobieren                                                                         |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `docker compose` geht nicht                              | Docker Desktop ist nicht installiert oder nicht gestartet                                          | Docker starten, dann `docker compose version` prüfen                                        |
+| `npm run dev` bricht sofort ab                           | Node-Version ist nicht passend                                                                     | `node -v` prüfen; dann `nvm use` oder Node 24/22 installieren                               |
+| Browser zeigt nicht `/en/`, sondern `/`                  | Das ist korrekt: Standard-`dev` ist **Deutsch**                                                    | Einfach `http://localhost:4200` nutzen; für Englisch `npm run dev:en`                       |
+| Fehler zu Prisma oder fehlenden Typen                    | `setup:dev`, `prisma:generate` oder `build:libs` fehlt                                             | `npm run setup:dev` erneut ausführen                                                        |
+| Port 3000 oder 4200 ist schon belegt                     | Voriger Dev-Server läuft noch                                                                      | `npm run free-dev-ports` und dann erneut `npm run dev`                                      |
+| Wortwolke bleibt leer / Seed bricht ab                   | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer                   | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev`         |
+| „Glättung nicht verfügbar“                               | Sidecar lädt noch Modelle, Python fehlt, oder `dev:backend` ohne Sidecar                           | Spalte `spacy` in concurrently prüfen; Python 3.10–3.13; nach Socket-Bind analysieren       |
+| `The table public.Quiz does not exist`                   | Postgres läuft, Prisma-Schema wurde nie angewendet                                                 | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                          |
+| „Wähle die Sprache der Antworten“ in it                  | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                                           | Am Glätten-Button DE/EN/FR/ES wählen                                                        |
+| `/admin` funktioniert lokal nicht                        | `ADMIN_SECRET` wurde nicht gesetzt                                                                 | `.env` ergänzen und Backend neu starten                                                     |
+| »Die automatische Herleitung ist gerade nicht verfügbar« | Runtime aus, Container noch nicht gesund, oder `.env` zeigt auf den Kurs-Tunnel ohne SSH-Schlüssel | Optionalen lokalen Container starten: [lokale Text-KI](#optional-lokale-text-ki-gemma-3-4b) |
+| Test/Hook: `Executable doesn't exist`                    | Playwright-Chromium für die Projekt-Playwright-Version fehlt                                       | `npm run playwright:install` (nicht `npx playwright install`)                               |
+| Test/Hook: `missing dependencies`                        | Ubuntu/WSL2: Systembibliotheken für Chromium fehlen                                                | `npm run playwright:install-deps` (einmalig, fragt nach `sudo`)                             |
 
 **Spezialfall Windows:** Wenn das Setup unter Windows „zufällig kaputt“ wirkt, wechsle auf **WSL2/Ubuntu**, klone das Repo dort unter `~/...` neu und starte den Ablauf noch einmal komplett in WSL.
 
@@ -231,11 +231,11 @@ npm run verify:production-serving
 
 Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`** und `npm run verify:production-serving -- http://localhost:3010`. Für den Einstieg reicht das; Details zu Auslieferung, Gzip und Fallbacks stehen im Root-[`README.md`](../README.md). Auf **macOS** kombiniert **`npm run spacy:macos-dev`** diesen Prod-Pfad mit Locale-UI auf 4200, spaCy und Seeds ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
 
-### Optional: lokale Text-KI (Qwen3-4B)
+### Optional: lokale Text-KI (Gemma 3 4B)
 
 Du brauchst **kein** Sprachmodell für den normalen Einstieg. Quiz, Q&A, Blitzlicht, Host-Ansicht und manuelle Lernziele funktionieren ohne Download, ohne extra Container und ohne SSH-Schlüssel. Ein Fork oder Clone startet mit `npm run dev` auch dann, wenn du keinen Zugang zu einem Kurs-Inferenzserver hast.
 
-Nur wenn du **selbst lokal** mit der Text-KI experimentieren möchtest, startest du **Qwen3-4B-Instruct** in Docker auf deinem Rechner. Die Gewichte bleiben bei dir; es gibt keinen Cloud-Fallback.
+Nur wenn du **selbst lokal** mit der Text-KI experimentieren möchtest, startest du **Gemma 3 4B Instruct QAT** in Docker auf deinem Rechner. Die Gewichte bleiben bei dir; es gibt keinen Cloud-Fallback.
 
 **Was du damit lokal ausprobieren kannst**
 
@@ -247,7 +247,7 @@ Nur wenn du **selbst lokal** mit der Text-KI experimentieren möchtest, startest
 
 | Bedarf                         | Richtwert                                                                               |
 | ------------------------------ | --------------------------------------------------------------------------------------- |
-| Speicherplatz                  | rund **2,5 GB** für die GGUF-Datei                                                      |
+| Speicherplatz                  | rund **2,4 GB** für die GGUF-Datei                                                      |
 | Arbeitsspeicher                | der Container ist auf **5 GiB** begrenzt; praxisnah sind **16 GB** Rechner-RAM          |
 | CPU                            | kein GPU-Zwang; der erste Start (Image bauen, Modell laden) kann mehrere Minuten dauern |
 | Docker                         | Docker Desktop bzw. Docker Engine mit Compose                                           |
@@ -262,8 +262,8 @@ Die Datei liegt nicht im Git und wird nicht ins Image kopiert. Lege sie im Repo-
 ```bash
 mkdir -p models/open-weight-llm
 curl --fail --location \
-  --output models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
-  https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  --output models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf \
+  https://huggingface.co/unsloth/gemma-3-4b-it-qat-GGUF/resolve/0f80a8ebec6d07600bc3790a042a075527692b49/gemma-3-4b-it-qat-Q4_0.gguf
 node scripts/open-weight-llm/verify-model.mjs
 ```
 
@@ -321,7 +321,7 @@ Für deinen Clone gilt deshalb:
 1. `.env.example` nach `.env` kopieren und die LLM-Zeilen auf Default lassen → App läuft ohne Modell.
 2. Lokal experimentieren → Modell laden und `npm run docker:up:llm:http` nutzen, **nicht** auf Port `18080` und **nicht** auf `arsnova-privat` zielen.
 
-Technischer Vertrag, Pins und Produktionshost: [features/open-weight-llm-runtime.md](features/open-weight-llm-runtime.md). Kurzüberblick im Root-[README.md](../README.md#optional-lokale-text-ki-qwen3-4b).
+Technischer Vertrag, Pins und Produktionshost: [features/open-weight-llm-runtime.md](features/open-weight-llm-runtime.md). Kurzüberblick im Root-[README.md](../README.md#optional-lokale-text-ki-gemma-3-4b).
 
 ---
 
@@ -595,22 +595,22 @@ Für Qualität und Tests sind diese Einstiege besonders relevant:
 
 ## 8. Pflichtlektüre
 
-| Dokument                                                                                                | Inhalt                                                                                     |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`AGENTS.md`](../AGENTS.md)                                                                             | KI-Coding-Regeln und Architektur-Leitplanken                                               |
-| [`Backlog.md`](../Backlog.md)                                                                           | Alle User Stories mit Priorität und Akzeptanzkriterien                                     |
-| [`docs/architecture/handbook.md`](architecture/handbook.md)                                             | Ausführliches Architektur-Handbuch                                                         |
-| [`docs/architecture/architecture-consistency-check.md`](architecture/architecture-consistency-check.md) | Aktueller Architektur-/Code-Abgleich und dokumentierte Driftpunkte                         |
-| [`docs/README.md`](README.md)                                                                           | Doku-Landkarte nach Rolle und Thema                                                        |
-| [`docs/ENVIRONMENT.md`](ENVIRONMENT.md)                                                                 | Umgebungsvariablen (Backend, Rate-Limits, Admin)                                           |
-| [`docs/features/open-weight-llm-runtime.md`](features/open-weight-llm-runtime.md)                       | Private Text-KI (technisch); lokales Labor: [§ Text-KI](#optional-lokale-text-ki-qwen3-4b) |
-| [`docs/SECURITY-OVERVIEW.md`](SECURITY-OVERVIEW.md)                                                     | Sicherheit, DSGVO, Rollen — Kurzüberblick                                                  |
-| [`docs/TESTING.md`](TESTING.md)                                                                         | Tests lokal, CI-Jobs (`npm test`, Lint, Build)                                             |
-| [`docs/GLOSSAR.md`](GLOSSAR.md)                                                                         | App-Begriffe (Workflows, UI, Rollen) — einheitlich mit ADRs/Features verlinkt              |
-| [`docs/architecture/decisions/`](architecture/decisions/)                                               | Architecture Decision Records (ADRs)                                                       |
-| [`docs/diagrams/diagrams.md`](diagrams/diagrams.md)                                                     | Mermaid-Diagramme (Backend, Frontend, DB, Sequenz)                                         |
-| [`prisma/schema.prisma`](../prisma/schema.prisma)                                                       | Datenbankmodell – Single Source of Truth                                                   |
-| [`libs/shared-types/src/schemas.ts`](../libs/shared-types/src/schemas.ts)                               | Alle Zod-Schemas und DTOs                                                                  |
+| Dokument                                                                                                | Inhalt                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [`AGENTS.md`](../AGENTS.md)                                                                             | KI-Coding-Regeln und Architektur-Leitplanken                                                 |
+| [`Backlog.md`](../Backlog.md)                                                                           | Alle User Stories mit Priorität und Akzeptanzkriterien                                       |
+| [`docs/architecture/handbook.md`](architecture/handbook.md)                                             | Ausführliches Architektur-Handbuch                                                           |
+| [`docs/architecture/architecture-consistency-check.md`](architecture/architecture-consistency-check.md) | Aktueller Architektur-/Code-Abgleich und dokumentierte Driftpunkte                           |
+| [`docs/README.md`](README.md)                                                                           | Doku-Landkarte nach Rolle und Thema                                                          |
+| [`docs/ENVIRONMENT.md`](ENVIRONMENT.md)                                                                 | Umgebungsvariablen (Backend, Rate-Limits, Admin)                                             |
+| [`docs/features/open-weight-llm-runtime.md`](features/open-weight-llm-runtime.md)                       | Private Text-KI (technisch); lokales Labor: [§ Text-KI](#optional-lokale-text-ki-gemma-3-4b) |
+| [`docs/SECURITY-OVERVIEW.md`](SECURITY-OVERVIEW.md)                                                     | Sicherheit, DSGVO, Rollen — Kurzüberblick                                                    |
+| [`docs/TESTING.md`](TESTING.md)                                                                         | Tests lokal, CI-Jobs (`npm test`, Lint, Build)                                               |
+| [`docs/GLOSSAR.md`](GLOSSAR.md)                                                                         | App-Begriffe (Workflows, UI, Rollen) — einheitlich mit ADRs/Features verlinkt                |
+| [`docs/architecture/decisions/`](architecture/decisions/)                                               | Architecture Decision Records (ADRs)                                                         |
+| [`docs/diagrams/diagrams.md`](diagrams/diagrams.md)                                                     | Mermaid-Diagramme (Backend, Frontend, DB, Sequenz)                                           |
+| [`prisma/schema.prisma`](../prisma/schema.prisma)                                                       | Datenbankmodell – Single Source of Truth                                                     |
+| [`libs/shared-types/src/schemas.ts`](../libs/shared-types/src/schemas.ts)                               | Alle Zod-Schemas und DTOs                                                                    |
 
 ### Zurücksetzen auf einen bekannten Stand
 

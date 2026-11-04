@@ -151,26 +151,26 @@ Danach ist die App lokal unter **http://localhost:4200** erreichbar. Backend, tR
 
 Für den Admin-Bereich (`/admin`) muss in `.env` ein starkes `ADMIN_SECRET` gesetzt sein.
 
-### Optional: lokale Text-KI (Qwen3-4B)
+### Optional: lokale Text-KI (Gemma 3 4B)
 
 Die Text-KI ist **kein** Pflichtbestandteil des Schnellstarts. Quiz, Q&A und Blitzlicht laufen ohne Modell, ohne Hugging-Face-Download und ohne SSH-Zugang zu einem Inferenzserver. Forks und Clones ohne Schlüssel werden dadurch nicht blockiert.
 
-Wer lokal mit Lernzielvorschlägen, Themenlabels oder der Moderationskurzfassung experimentieren möchte, startet **Qwen3-4B-Instruct** in Docker. Das Modell wird einmalig heruntergeladen (rund 2,5 GB) und nicht ins Git übernommen.
+Wer lokal mit Lernzielvorschlägen, Themenlabels oder der Moderationskurzfassung experimentieren möchte, startet **Gemma 3 4B Instruct QAT** in Docker. Das Modell wird einmalig heruntergeladen (rund 2,4 GB) und nicht ins Git übernommen.
 
 Neben dem normalen `npm run dev`:
 
 ```bash
 mkdir -p models/open-weight-llm
 curl --fail --location \
-  --output models/open-weight-llm/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
-  https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf
+  --output models/open-weight-llm/gemma-3-4b-it-qat-Q4_0.gguf \
+  https://huggingface.co/unsloth/gemma-3-4b-it-qat-GGUF/resolve/0f80a8ebec6d07600bc3790a042a075527692b49/gemma-3-4b-it-qat-Q4_0.gguf
 node scripts/open-weight-llm/verify-model.mjs
 npm run docker:up:llm:http
 ```
 
 Anschließend in `.env` `OPEN_WEIGHT_LLM_ENABLED=true`, `OPEN_WEIGHT_LLM_URL=http://127.0.0.1:8080` und dasselbe Runtime-Token wie im Container setzen, danach `npm run dev` neu starten. Den vollständigen Docker-Laborpfad (`npm run docker:up:llm`) nicht parallel zu `npm run dev` verwenden: Er startet zusätzlich den App-Container auf denselben Ports.
 
-Schritt-für-Schritt, Hardware, `.env` und typische Fehler stehen in [docs/onboarding.md](./docs/onboarding.md#optional-lokale-text-ki-qwen3-4b). Der technische Runtime-Vertrag bleibt [docs/features/open-weight-llm-runtime.md](./docs/features/open-weight-llm-runtime.md).
+Schritt-für-Schritt, Hardware, `.env` und typische Fehler stehen in [docs/onboarding.md](./docs/onboarding.md#optional-lokale-text-ki-gemma-3-4b). Der technische Runtime-Vertrag bleibt [docs/features/open-weight-llm-runtime.md](./docs/features/open-weight-llm-runtime.md).
 
 ### Lokale Checks
 

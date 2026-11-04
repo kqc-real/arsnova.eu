@@ -2078,8 +2078,8 @@ export class ServerStatusHelpDialogComponent {
   private formatLlmModelLabel(raw: string | null | undefined): string | null {
     if (!raw?.trim()) return null;
     const value = raw.trim();
-    if (/qwen3-4b-instruct-2507-q4_k_m/i.test(value)) {
-      return 'Qwen3-4B Instruct (Q4_K_M)';
+    if (/gemma-3-4b-it-qat-q4_0/i.test(value)) {
+      return 'Gemma 3 4B Instruct (Q4_0 QAT)';
     }
     return value;
   }

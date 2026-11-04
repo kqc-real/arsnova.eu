@@ -3,6 +3,11 @@ import { BlockList, isIP } from 'node:net';
 export const OPEN_WEIGHT_LLM_DEFAULT_SOCKET_PATH = '/run/open-weight-llm/llm.sock';
 export const OPEN_WEIGHT_LLM_LABEL_TIMEOUT_DEFAULT_MS = 30_000;
 export const OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_DEFAULT_MS = 90_000;
+/**
+ * Per-batch budget for learning-objective generation. A five-locale completion
+ * is about 400–600 output tokens and about 25–35 seconds on 8 CPU cores.
+ * 300 seconds stays above that so the JSON grammar is not cut off before `}`.
+ */
 export const OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_DEFAULT_MS = 300_000;
 export const OPEN_WEIGHT_LLM_TIMEOUT_MIN_MS = 1_000;
 export const OPEN_WEIGHT_LLM_TIMEOUT_MAX_MS = 300_000;
@@ -10,11 +15,11 @@ export const OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD = 3;
 export const OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS = 30_000;
 /** Persisted audit identity: canonical repository plus the verified GGUF digest. */
 export const OPEN_WEIGHT_LLM_MODEL_ID =
-  'unsloth/Qwen3-4B-Instruct-2507-GGUF@sha256:3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597';
+  'unsloth/gemma-3-4b-it-qat-GGUF@sha256:6a9baaf400db52a6855d2a0a20a5b4747ea9febbd304b7e2ecd8ab3a20711bb2';
 /** Source revision, quantization and inference runtime used with that artifact. */
 export const OPEN_WEIGHT_LLM_MODEL_VERSION =
-  'revision:a06e946bb6b655725eafa393f4a9745d460374c9|quant:Q4_K_M|llama:server-b10524';
-export const OPEN_WEIGHT_LLM_MODEL_ALIAS = 'qwen3-4b-instruct-2507-q4_k_m';
+  'revision:0f80a8ebec6d07600bc3790a042a075527692b49|quant:Q4_0|llama:server-b10524';
+export const OPEN_WEIGHT_LLM_MODEL_ALIAS = 'gemma-3-4b-it-qat-q4_0';
 
 const BLOCKED_SAAS_HOSTS = new Set([
   'api.openai.com',

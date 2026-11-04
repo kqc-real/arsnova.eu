@@ -122,7 +122,7 @@ const defaultConfig: OpenWeightLlmConfig = {
   enabled: true,
   transport: { kind: 'http', baseUrl: 'http://127.0.0.1:8080' },
   token: 'runtime-secret-000000000000000000',
-  model: 'qwen3-4b-instruct-2507-q4_k_m',
+  model: 'gemma-3-4b-it-qat-q4_0',
   timeoutsMs: { topic_label: 1_000, qa_summary: 1_000, learning_objectives: 1_000 },
   maxOutputTokens: { topic_label: 96, qa_summary: 640, learning_objectives: 768 },
 };
@@ -153,7 +153,8 @@ function successfulTransport() {
         messages: Array<{ role: string; content: string }>;
         response_format: { type: string; schema: { properties?: Record<string, unknown> } };
         max_tokens: number;
-        reasoning_effort: string;
+        temperature: number;
+        cache_prompt: boolean;
         stream: boolean;
       };
       const request = JSON.parse(payload.messages[1]!.content) as OpenWeightLlmRequest;
@@ -165,7 +166,10 @@ function successfulTransport() {
             ? 'result'
             : 'objectives',
       );
-      expect(payload.reasoning_effort).toBe('none');
+      expect(payload.temperature).toBe(0.2);
+      expect(payload.cache_prompt).toBe(true);
+      expect(payload).not.toHaveProperty('reasoning_effort');
+      expect(payload).not.toHaveProperty('chat_template_kwargs');
       expect(payload.stream).toBe(false);
       expect(payload.max_tokens).toBe(defaultConfig.maxOutputTokens[request.taskType]);
       return completionResponse(outputs[request.taskType]);
