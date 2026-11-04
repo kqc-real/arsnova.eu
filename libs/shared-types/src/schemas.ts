@@ -4414,6 +4414,19 @@ export type WordCloudNormalizationFallbackReason = z.infer<
 export const WordCloudAnalysisLocaleEnum = z.enum(WORD_CLOUD_LEMMA_LOCALES);
 export type WordCloudAnalysisLocale = z.infer<typeof WordCloudAnalysisLocaleEnum>;
 
+/** Lokale Wortextraktion unterstützt zusätzlich Italienisch. */
+export const WordCloudDisplayLocaleEnum = WordCloudAnalysisLocaleEnum.or(z.literal('it'));
+
+/**
+ * Darstellungsmetadaten. Bei älteren Snapshots und Projektionen können sie fehlen.
+ * mode bleibt die angeforderte bzw. in der Toolbar gewählte Variante.
+ */
+const WordCloudProjectionDisplaySchema = z.object({
+  effectiveMode: WordCloudAnalysisVariantEnum.optional(),
+  analysisStatus: WordCloudClusterStatusEnum.optional(),
+  analysisLanguage: WordCloudDisplayLocaleEnum.optional(),
+});
+
 /** Gewichtungsbasis für Q&A-Word-Cloud-Analysen. */
 export const WordCloudWeightMetricEnum = QaQuestionSortModeEnum;
 export type WordCloudWeightMetric = z.infer<typeof WordCloudWeightMetricEnum>;
@@ -4485,6 +4498,7 @@ export type WordCloudAnalysisEntryDTO = z.infer<typeof WordCloudAnalysisEntryDTO
 /** Output: Erklärbares Ergebnis einer Word-Cloud-Analyse. */
 export const WordCloudAnalysisResultDTOSchema = z.object({
   mode: WordCloudAnalysisVariantEnum,
+  effectiveMode: WordCloudAnalysisVariantEnum.optional(),
   locale: WordCloudAnalysisLocaleEnum,
   metric: WordCloudWeightMetricEnum,
   generatedAt: z.string(), // ISO-8601
@@ -4509,6 +4523,27 @@ export type WordCloudAnalysisResultDTO = z.infer<typeof WordCloudAnalysisResultD
 /** Output: Antwort auf einen zukünftigen `wordCloud.analyze`-Pfad. */
 export const AnalyzeWordCloudOutputSchema = WordCloudAnalysisResultDTOSchema;
 export type AnalyzeWordCloudOutput = z.infer<typeof AnalyzeWordCloudOutputSchema>;
+
+/** Lexical keys represent individual words or space-separated n-grams. */
+export function getWordCloudLexicalDisplayMode(
+  entries: readonly { key: string }[],
+): 'LEXICAL' | 'THEME' {
+  return entries.some(({ key }) => key.includes(' ')) ? 'THEME' : 'LEXICAL';
+}
+
+export function getWordCloudResultDisplayMode(
+  result: Pick<AnalyzeWordCloudOutput, 'mode' | 'status' | 'fallbackUsed' | 'entries'>,
+): WordCloudAnalysisVariant {
+  if (
+    result.mode === 'SEMANTIC' &&
+    !result.fallbackUsed &&
+    (result.status === 'ready' || result.status === 'uncertain') &&
+    result.entries.length > 0
+  ) {
+    return 'SEMANTIC';
+  }
+  return getWordCloudLexicalDisplayMode(result.entries);
+}
 
 export const QaWordCloudFilterEnum = z.enum(['ALL_ELIGIBLE', 'PINNED_ONLY']);
 export type QaWordCloudFilter = z.infer<typeof QaWordCloudFilterEnum>;
@@ -4569,7 +4604,7 @@ export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.exten
 export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
 
 /** Host-Q&A-Wortwolke, die der Presenter 1:1 projiziert (Variante, Metrik, Glättung, Analyse). */
-export const QaWordCloudPresenterProjectionDTOSchema = z.object({
+export const QaWordCloudPresenterProjectionDTOSchema = WordCloudProjectionDisplaySchema.extend({
   mode: WordCloudAnalysisVariantEnum,
   metric: WordCloudWeightMetricEnum,
   locale: WordCloudAnalysisLocaleEnum.nullable(),
@@ -4605,15 +4640,14 @@ export const FreetextWordCloudStageEntrySchema = z
   .strict();
 export type FreetextWordCloudStageEntry = z.infer<typeof FreetextWordCloudStageEntrySchema>;
 
-export const FreetextWordCloudPresenterProjectionDTOSchema = z
-  .object({
+export const FreetextWordCloudPresenterProjectionDTOSchema =
+  WordCloudProjectionDisplaySchema.extend({
     mode: WordCloudAnalysisVariantEnum,
     locale: WordCloudAnalysisLocaleEnum.nullable(),
     questionId: z.uuid(),
     smoothingActive: z.boolean(),
     entries: z.array(FreetextWordCloudStageEntrySchema).max(80),
-  })
-  .strict();
+  }).strict();
 export type FreetextWordCloudPresenterProjectionDTO = z.infer<
   typeof FreetextWordCloudPresenterProjectionDTOSchema
 >;

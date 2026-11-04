@@ -156,6 +156,44 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
     expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toContain(100);
   });
 
+  it('trennt im Lehrkorpus die Häufigkeit der Fragen von ihrer Gewichtung', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const { qa } = JSON.parse(
+      readFileSync(
+        resolve(process.cwd(), '../../docs/examples/word-cloud-teaching-corpus.v1.json'),
+        'utf8',
+      ),
+    ) as {
+      qa: { id: string; text: string; weight: number }[];
+    };
+    prismaMock.$queryRaw.mockResolvedValue(
+      qa.map((question, index) => ({
+        ...corpusRows(qa.length, qa.length)[index],
+        text: question.text,
+        upvoteCount: question.weight,
+        bestScore: question.weight === 9 ? 1 : 0,
+      })),
+    );
+    const request = {
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      normalization: 'NONE',
+    } as const;
+    const byFrequency = await caller.analyzeQa({ ...request, metric: 'TIME' });
+    const byQuality = await caller.analyzeQa({ ...request, metric: 'BEST' });
+    const entry = (result: typeof byFrequency, key: string) =>
+      result.entries.find((candidate) => candidate.key === key);
+
+    expect(entry(byFrequency, 'konfidenzintervall')).toMatchObject({ memberCount: 2, count: 2 });
+    expect(entry(byFrequency, 'verzerrt')).toMatchObject({ memberCount: 1, count: 1 });
+    expect(entry(byQuality, 'konfidenzintervall')).toMatchObject({ memberCount: 2 });
+    expect(entry(byQuality, 'verzerrt')).toMatchObject({ memberCount: 1 });
+    expect(entry(byQuality, 'verzerrt')?.count).toBeGreaterThan(1);
+    expect(entry(byQuality, 'konfidenzintervall')?.count).toBe(2);
+  });
+
   it('wertet bei TIME alle berechtigten Fragen gleich und sortiert nach createdAt', async () => {
     prismaMock.$queryRaw.mockResolvedValue(corpusRows(120, 120));
 

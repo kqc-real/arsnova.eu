@@ -1222,6 +1222,9 @@
       @if (showQaWordCloud()) {
         <section class="session-present__qa-stage">
           <section class="session-present__word-cloud-card">
+            @if (qaWordCloudProjectionHint(); as hint) {
+              <p role="status">{{ hint }}</p>
+            }
             <app-word-cloud
               [responses]="presenterQaWordCloudResponses()"
               [weightedResponses]="presenterQaWordCloudWeightedResponses()"
@@ -1235,6 +1238,8 @@
               [itemLabelSingular]="qaWordCloudItemSingular"
               [itemLabelPlural]="qaWordCloudItemPlural"
               [itemCount]="qaWordCloudProjection()?.analyzedQuestionCount ?? null"
+              [eligibleItemCount]="qaWordCloudProjection()?.eligibleQuestionCount ?? null"
+              [selectionScopeKey]="qaWordCloudProjection()?.mode ?? null"
               [wordLabelSingular]="qaWordCloudWordLabelSingular()"
               [wordLabelPlural]="qaWordCloudWordLabelPlural()"
               [weightingHint]="null"
@@ -1455,13 +1460,19 @@
           [responses]="presenterFreetextDisplayedResponses()"
           [terms]="freetextWordCloudTerms()"
           [analysisEntries]="freetextStageAnalysisEntries()"
-          [selectionScopeKey]="freetextQuestionId()"
           [title]="freetextWordCloudStageTitle()"
           [eyebrow]="freetextWordCloudEyebrow"
           [description]="presenterFreetextWordCloudDescription()"
           [wordLabelSingular]="presenterFreetextWordCloudWordLabelSingular()"
           [wordLabelPlural]="presenterFreetextWordCloudWordLabelPlural()"
-          [showConfidenceFilter]="presenterFreetextWordCloudModeEffective() === 'SEMANTIC'"
+          [showConfidenceFilter]="presenterFreetextDisplayMode() === 'SEMANTIC'"
+          [selectionScopeKey]="
+            freetextQuestionId() +
+            ':' +
+            presenterFreetextWordCloudModeEffective() +
+            ':' +
+            presenterFreetextTermLocale()
+          "
           [presentationMode]="true"
           [outputOnly]="true"
           [interactiveOutput]="true"

@@ -20745,7 +20745,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingHint" datatype="html">
-        <source>Themen werden vorbereitet. Es gelten Wörter und Phrasen.</source>
+        <source>Themen werden vorbereitet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1443</context>
@@ -20760,7 +20760,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
-        <source>Neue Antworten seit letzter Themenanalyse</source>
+        <source>Neue Fragen seit der letzten Themenanalyse</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1447</context>
@@ -20789,7 +20789,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFailedHint" datatype="html">
-        <source>Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.</source>
+        <source>Themenanalyse fehlgeschlagen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1459</context>
@@ -20800,7 +20800,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFallbackHint" datatype="html">
-        <source>Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.</source>
+        <source>Themen sind gerade nicht belastbar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1462</context>
@@ -20811,7 +20811,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticDisabledHint" datatype="html">
-        <source>Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.</source>
+        <source>Themen sind noch nicht verfügbar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1465</context>
@@ -32241,6 +32241,39 @@
       </trans-unit>
       <trans-unit id="sessionPresent.timerAccommodationBlocks" datatype="html">
         <source>Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu schließen.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.analysisLanguage" datatype="html">
+        <source>Analysesprache</source>
+      </trans-unit>
+      <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
+        <source>Neue Antworten seit der letzten Themenanalyse</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.qaCoverage" datatype="html">
+        <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
+        <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.qaSourceCoverage" datatype="html">
+        <source>In <x id="count"/> von <x id="total"/> analysierten Fragen</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.previousTopics" datatype="html">
+        <source>Die Themen werden aktualisiert. Der bisherige Stand bleibt sichtbar.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportTopics" datatype="html">
+        <source>Themen</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportFallbackPhrases" datatype="html">
+        <source>Ersatzansicht mit Wörtern und Phrasen</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportFallbackWords" datatype="html">
+        <source>Ersatzansicht mit Wörtern</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportPhrases" datatype="html">
+        <source>Wörter und Phrasen</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.exportWords" datatype="html">
+        <source>Wörter</source>
       </trans-unit>
     </body>
   </file>

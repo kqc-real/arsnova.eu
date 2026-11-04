@@ -3801,6 +3801,7 @@
                         class="session-host__extra-analysis-toggle"
                         name="freetext-word-cloud-host-mode"
                         [value]="freetextWordCloudMode()"
+                        [disabled]="wordCloudFrozen()"
                         (change)="setFreetextWordCloudMode($event.value)"
                         i18n-aria-label="@@sessionHost.wordCloudAnalysisAria"
                         aria-label="Wortwolken-Ansicht"
@@ -3824,6 +3825,20 @@
                           >Thema</mat-button-toggle
                         >
                       </mat-button-toggle-group>
+                      <label class="session-host__extra-action session-host__word-cloud-language">
+                        <span i18n="@@wordCloud.analysisLanguage">Analysesprache</span>
+                        <select
+                          [value]="wordCloudTermLocale()"
+                          [disabled]="wordCloudLocaleLocked()"
+                          (change)="setWordCloudLemmaLocale($any($event.target).value)"
+                        >
+                          <option value="de" lang="de">Deutsch</option>
+                          <option value="en" lang="en">English</option>
+                          <option value="fr" lang="fr">Français</option>
+                          <option value="es" lang="es">Español</option>
+                          <option value="it" lang="it">Italiano</option>
+                        </select>
+                      </label>
                       @if (freetextWordCloudMaximized()) {
                         <button
                           mat-icon-button
@@ -3865,7 +3880,11 @@
                             [class.session-host__extra-action--smooth-active]="
                               freetextWordCloudSmoothingPressed()
                             "
-                            [disabled]="freetextWordCloudSmoothingDisabled()"
+                            [attr.aria-disabled]="
+                              freetextWordCloudSmoothingDisabled() || wordCloudFrozen()
+                                ? true
+                                : null
+                            "
                             [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
                             [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
                             (click)="toggleFreetextWordCloudSmoothing()"
@@ -3883,6 +3902,9 @@
                           type="button"
                           class="session-host__extra-action session-host__extra-action--refresh"
                           data-testid="freetext-word-cloud-refresh-themes"
+                          [attr.aria-disabled]="
+                            freetextWordCloudThemeRefreshDisabled() ? true : null
+                          "
                           [attr.aria-busy]="
                             freetextWordCloudSemanticAnalysisPending() ? true : null
                           "
@@ -3905,7 +3927,8 @@
                         <div
                           class="session-host__word-cloud-status"
                           [class.session-host__word-cloud-status--cover]="
-                            freetextWordCloudSemanticAnalysisPending()
+                            freetextWordCloudSemanticAnalysisPending() &&
+                            freetextWordCloudDisplayMode() !== 'SEMANTIC'
                           "
                         >
                           @if (freetextWordCloudSemanticAnalysisPending()) {
@@ -3916,11 +3939,8 @@
                               aria-busy="true"
                               [attr.aria-label]="freetextWordCloudSemanticProgressAria()"
                             >
-                              <p
-                                class="session-host__word-cloud-progress-label"
-                                i18n="@@sessionQa.wordCloudSemanticPendingLabel"
-                              >
-                                Themen werden vorbereitet.
+                              <p class="session-host__word-cloud-progress-label">
+                                {{ freetextWordCloudSemanticHint() }}
                               </p>
                               @if (freetextWordCloudSemanticWaitHint(); as waitHint) {
                                 <p class="session-host__word-cloud-progress-wait">{{ waitHint }}</p>
@@ -3929,16 +3949,8 @@
                                 class="session-host__word-cloud-progress-bar"
                                 mode="indeterminate"
                               />
-                              <p
-                                class="session-host__word-cloud-progress-fallback"
-                                i18n="@@sessionQa.wordCloudSemanticPendingFallback"
-                              >
-                                Es gelten Wörter und Phrasen.
-                              </p>
                             </div>
-                          } @else if (
-                            freetextWordCloudSemanticHint() && !freetextWordCloudShowThemeRefresh()
-                          ) {
+                          } @else if (freetextWordCloudSemanticHint()) {
                             <p class="session-host__extra-note" role="status" aria-live="polite">
                               {{ freetextWordCloudSemanticHint() }}
                             </p>
@@ -3955,21 +3967,24 @@
                         [responses]="displayedFreetextResponses()"
                         [terms]="displayedFreetextVisibleTerms()"
                         [analysisEntries]="displayedFreetextAnalysisEntries()"
-                        [selectionScopeKey]="displayedCurrentQuestionForHost()?.questionId ?? null"
+                        [selectionScopeKey]="freetextWordCloudSelectionScope()"
                         [eyebrow]="freetextWordCloudEyebrow"
                         [description]="freetextWordCloudDescription()"
                         [wordLabelSingular]="freetextWordCloudWordLabelSingular()"
                         [wordLabelPlural]="freetextWordCloudWordLabelPlural()"
-                        [showConfidenceFilter]="freetextWordCloudMode() === 'SEMANTIC'"
+                        [showConfidenceFilter]="freetextWordCloudDisplayMode() === 'SEMANTIC'"
+                        [exportViewLabel]="freetextExportViewLabel()"
                         [weightingHint]="null"
                         [presentationMode]="freetextWordCloudMaximized()"
                         [showMaximizeAction]="!freetextWordCloudMaximized()"
-                        [showResponsesPanel]="!freetextWordCloudMaximized()"
+                        [showResponsesPanel]="true"
                         [maximizeActionHandler]="maximizeFreetextWordCloud"
                         [showReleaseNote]="false"
                         [focusedTermLabel]="moderationCompassFocusedTerm()"
                         [analysisModelVersion]="
-                          freetextWordCloudSemanticAnalysisResult()?.modelVersion ?? null
+                          freetextWordCloudDisplayMode() === 'SEMANTIC'
+                            ? (freetextWordCloudSemanticAnalysisResult()?.modelVersion ?? null)
+                            : null
                         "
                         [labelModelId]="
                           freetextWordCloudSemanticAnalysisResult()?.labelModelId ?? null

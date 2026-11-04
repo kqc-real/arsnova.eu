@@ -8110,7 +8110,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('2 Antworten');
     expect(text).toContain('Live-Freitext wird aktualisiert.');
     expect(text).toContain('Live-Freitext');
-    expect(text).toContain('Häufige Wörter und kurze Wortgruppen.');
+    expect(text).toContain('Häufige Wörter aus den Antworten.');
     expect(text).toContain('Wortwolke einfrieren');
     expect(text).toContain('Wortformen glätten');
     const extraSmoothButton = wordCloudDetails?.querySelector(
@@ -8372,9 +8372,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     expect(component.freetextWordCloudMode()).toBe('SEMANTIC');
-    expect(component.freetextWordCloudSemanticHint()).toBe(
-      'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
-    );
+    expect(component.freetextWordCloudSemanticHint()).toBe('Themen sind noch nicht verfügbar.');
     expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
     expect(component.displayedFreetextAnalysisEntries()?.[0]?.label).toBe('lineare Regression');
     expect(component.displayedFreetextVisibleTerms()).toBeNull();
@@ -8504,9 +8502,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(component.qaWordCloudAnalysisLocale()).toBeNull();
     expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
-    expect(component.freetextWordCloudSemanticHint()).toBe(
-      'Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.',
-    );
+    expect(component.freetextWordCloudSemanticHint()).toBe('Themen sind gerade nicht belastbar.');
     expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
     expect(component.displayedFreetextAnalysisEntries()).toBeNull();
     expect(
@@ -8514,9 +8510,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
       ),
     ).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain(
-      'Themen sind gerade nicht belastbar. Es gelten Wörter und Phrasen.',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Themen sind gerade nicht belastbar.');
     fixture.destroy();
   });
 
@@ -8590,7 +8584,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     const analyzeCallsAfterReady = wordCloudAnalyzeQueryMock.mock.calls.length;
     expect(component.freetextWordCloudSemanticStale()).toBe(false);
-    expect(component.freetextWordCloudShowThemeRefresh()).toBe(false);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
 
     component.freetextResponses.set([
       'Lineare Regression im Projekt',
@@ -8604,7 +8598,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.freetextWordCloudSemanticStale()).toBe(true);
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
     expect(component.freetextWordCloudSemanticHint()).toContain(
-      'Neue Antworten seit letzter Themenanalyse',
+      'Neue Antworten seit der letzten Themenanalyse',
     );
     expect(
       fixture.nativeElement.querySelector('[data-testid="freetext-word-cloud-refresh-themes"]'),
@@ -8633,7 +8627,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     expect(refreshedRequest.items).toHaveLength(3);
-    expect(component.freetextWordCloudShowThemeRefresh()).toBe(false);
+    expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
     fixture.destroy();
   });
 
@@ -8918,13 +8912,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(
         component.displayedFreetextVisibleTerms()?.every((term) => !term.key.includes(' ')),
       ).toBe(true);
-      await vi.waitUntil(
-        () =>
-          wordCloudAnalyzeQueryMock.mock.calls.some(
-            (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
-          ),
-        { timeout: 5000, interval: 25 },
-      );
+      expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
       expect(
         fixture.nativeElement.querySelector(
           '.session-host__extra--freetext.session-host__extra--maximized',
@@ -8948,7 +8936,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(freezeControl.classList.contains('mat-mdc-icon-button')).toBe(true);
       expect(freezeControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
       expect(fixture.nativeElement.querySelector('.word-cloud-host--presentation')).not.toBeNull();
-      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).not.toBeNull();
       expect(fixture.nativeElement.textContent).not.toContain('Maximieren');
 
       const phrasesToggle = fixture.nativeElement.querySelector(
@@ -8960,6 +8948,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           '.session-host__extra--maximized mat-button-toggle[value="SEMANTIC"]',
         ),
       ).not.toBeNull();
+      expect(phrasesToggle?.disabled).toBe(true);
+      await component.toggleWordCloudFreeze();
+      fixture.detectChanges();
       phrasesToggle?.click();
       fixture.detectChanges();
       await fixture.whenStable();
@@ -8981,7 +8972,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       maximizedCloud?.toggleWord(selectedWord!.groupKey);
       fixture.detectChanges();
 
-      await component.toggleWordCloudFreeze();
       expect(component.wordCloudFrozen()).toBe(false);
 
       component.closeFreetextWordCloudMaximize();
@@ -9796,7 +9786,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('nimmt die Host-UI-Sprache als Wolkensprache ohne Sprachschalter in der Darstellung', async () => {
+  it('zeigt die Host-UI-Sprache als Standard und erlaubt eine andere Analysesprache', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -9848,16 +9838,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const component = fixture.componentInstance;
     expect(component.qaWordCloudAnalysisLocale()).toBe('de');
     expect(
-      fixture.nativeElement.querySelector(
-        '.session-host__extra--freetext app-word-cloud-lemma-locale-select',
-      ),
-    ).toBeNull();
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>(
+        '.session-host__extra--freetext .session-host__word-cloud-language select',
+      )?.value,
+    ).toBe('de');
 
     await component.setWordCloudLemmaLocale('fr');
     fixture.detectChanges();
     expect(component.qaWordCloudAnalysisLocale()).toBe('fr');
 
-    await component.toggleFreetextWordCloudSmoothing();
     await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
       timeout: 5000,
       interval: 25,
@@ -9993,7 +9982,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await component.setWordCloudLemmaLocale('es');
     expect(component.qaWordCloudAnalysisLocale()).toBe('es');
     expect(component.freetextWordCloudSmoothingDisabled()).toBe(false);
-    await component.toggleFreetextWordCloudSmoothing();
     await vi.waitUntil(() => component.freetextWordCloudSmoothingStatus() === 'active', {
       timeout: 5000,
       interval: 25,
@@ -10115,6 +10103,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(toolsChildren[0]?.querySelector('[data-testid="qa-word-cloud"]')).not.toBeNull();
 
     dialogOpenMock.mockClear();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     const trigger = fixture.nativeElement.querySelector(
       '[data-testid="qa-word-cloud"]',
     ) as HTMLButtonElement | null;
@@ -13507,7 +13496,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt ohne gewählte Analysesprache keinen lokalen Q&A-Seitenausschnitt', async () => {
+  it('zeigt auf Italienisch einen lokalen Q&A-Seitenausschnitt', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -13539,6 +13528,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       interval: 25,
     });
 
+    hostTestAccess(fixture.componentInstance).qaHostStatusCounts.set({
+      active: 1,
+      pinned: 0,
+      pending: 3,
+      archived: 4,
+    });
+    fixture.componentInstance.qaListTotalCount.set(8);
+    expect(fixture.componentInstance.qaWordCloudAnalyzedCount()).toBe(1);
+    expect(fixture.componentInstance.qaWordCloudEligibleCount()).toBe(1);
+
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     await fixture.componentInstance.openQaWordCloudDialog();
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -13564,7 +13563,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(data.analysisVariant()).toBe('THEME');
     expect(data.themeModeAvailable()).toBe(true);
     expect(data.themeFallbackHint()).toBeNull();
-    expect(data.terms()).toBeNull();
+    expect(data.terms()?.length).toBeGreaterThan(0);
     expect(Object.prototype.hasOwnProperty.call(config['data'], 'lemmaLocale')).toBe(false);
 
     wordCloudAnalyzeQueryMock.mockImplementation(
@@ -14047,7 +14046,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(fixture.componentInstance.qaWordCloudAnalysisVariant()).toBe('SEMANTIC');
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toBe(
-      'Themen sind noch nicht verfügbar. Es gelten Wörter und Phrasen.',
+      'Themen sind noch nicht verfügbar.',
     );
     expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
@@ -14177,7 +14176,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       'Neue Fragen seit der letzten Themenanalyse',
     );
 
-    await fixture.componentInstance.toggleQaWordCloudSmoothing();
+    const component = fixture.componentInstance;
+    const previous = component.qaWordCloudThemeAnalysisResult();
+    component.qaListRankingRevision.set('17:BEST:');
+    let releaseAnalysis: (result: unknown) => void = () => undefined;
+    wordCloudAnalyzeQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseAnalysis = resolve;
+        }),
+    );
+    await component.toggleQaWordCloudSmoothing();
     await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length > analyzeCallsAfterOpen, {
       timeout: 5000,
       interval: 25,
@@ -14191,6 +14200,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     expect(refreshedThemeRequest).not.toHaveProperty('items');
+    component.qaListRankingRevision.set('18:BEST:');
+    releaseAnalysis(
+      wordCloudAnalyzeResult({ ...previous, corpusRevision: '17:', sortMode: 'BEST' }),
+    );
+    await vi.waitFor(() => expect(component.qaWordCloudThemeAnalysisPending()).toBe(false));
+    expect(component.qaWordCloudSemanticStale()).toBe(true);
+
+    const calls = wordCloudAnalyzeQueryMock.mock.calls.length;
+    wordCloudAnalyzeQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          releaseAnalysis = resolve;
+        }),
+    );
+    await component.toggleQaWordCloudSmoothing();
+    await vi.waitFor(() =>
+      expect(wordCloudAnalyzeQueryMock.mock.calls.length).toBeGreaterThan(calls),
+    );
+    const visible = component.qaWordCloudAnalysisEntries()?.map(({ label }) => label);
+    component.toggleQaWordCloudFreeze();
+    releaseAnalysis(
+      wordCloudAnalyzeResult({
+        ...previous,
+        entries: previous?.entries.map((entry) => ({ ...entry, label: 'Verspäteter Themenname' })),
+      }),
+    );
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.qaWordCloudAnalysisEntries()?.map(({ label }) => label)).toEqual(visible);
+    component.toggleQaWordCloudFreeze();
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
     fixture.destroy();
   });
 
@@ -14380,8 +14420,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('stale');
     expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Neu analysieren');
     expect(fixture.componentInstance.qaWordCloudThemeAnalysisResult()?.status).toBe('ready');
+    expect(fixture.componentInstance.qaWordCloudSemanticStale()).toBe(true);
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
-      'Neue Fragen seit der letzten Themenanalyse',
+      'Themenanalyse fehlgeschlagen.',
     );
     fixture.destroy();
   });

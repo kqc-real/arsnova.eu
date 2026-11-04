@@ -5977,6 +5977,23 @@ button.session-host__btn-discussion {
   font-weight: 600;
 }
 
+.session-host__word-cloud-language {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.session-host__word-cloud-language select {
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-small);
+}
+
 .session-host__extra-action--icon {
   --mat-icon-button-state-layer-size: 2.75rem;
   --mat-icon-button-icon-size: 1.5rem;

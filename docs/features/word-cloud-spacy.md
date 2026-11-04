@@ -12,7 +12,7 @@
 
 Die optionale Glättung führt in der **lexikalischen** Freitext- und Q&A-Wortwolke Flexionsformen zusammen (`Frage`/`Fragen`, `validieren`/`validiert`/`Validierung`). Sie erzeugt **keine** Synonym-, Intent- oder Themencluster.
 
-Ohne Sidecar und bei jedem Fehler bleibt die bestehende Wortwolke 2.5 der Standard. Mit Sidecar startet die Glättung, sobald die Wolke angezeigt wird.
+Ohne Sidecar und bei jedem Fehler bleibt die bestehende Wortwolke 2.5 der Standard. Mit Sidecar startet die Glättung, sobald die Wolke angezeigt wird. Die wirksame Analysesprache steht in beiden Host-Toolbars und gilt auch für den lokalen Ersatzpfad. Bei einer fehlgeschlagenen Glättung meldet die Oberfläche den Ausfall und zeigt die lexikalische Wolke ohne aktiven Glättungsstatus.
 
 ## UI-Begriffe
 

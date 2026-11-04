@@ -14,6 +14,7 @@
     <mat-button-toggle-group
       class="qa-word-cloud-dialog__analysis-toggle"
       [value]="analysisVariant()"
+      [disabled]="frozen()"
       (valueChange)="setAnalysisVariant($any($event))"
       i18n-aria-label="@@sessionQa.wordCloudAnalysisAria"
       aria-label="Wortwolken-Ansicht"
@@ -39,6 +40,7 @@
       <select
         class="qa-word-cloud-dialog__size-select"
         [value]="sortMode()"
+        [disabled]="frozen()"
         (change)="onSizeChange($event)"
         i18n-aria-label="@@sessionQa.wordCloudSizeAria"
         aria-label="Größe nach Kontroverse, besten Fragen, Stimmensaldo oder Vorkommen in Fragen"
@@ -49,6 +51,26 @@
         <option value="TIME" i18n="@@sessionQa.wordCloudMetricTime">Vorkommen in Fragen</option>
       </select>
     </label>
+
+    @if (data.analysisLanguage; as analysisLanguage) {
+      <label class="qa-word-cloud-dialog__size">
+        <span class="qa-word-cloud-dialog__size-label" i18n="@@wordCloud.analysisLanguage"
+          >Analysesprache</span
+        >
+        <select
+          class="qa-word-cloud-dialog__size-select"
+          [value]="analysisLanguage()"
+          [disabled]="data.languageLocked?.() ?? frozen()"
+          (change)="data.setAnalysisLanguage?.($any($event.target).value)"
+        >
+          <option value="de" lang="de">Deutsch</option>
+          <option value="en" lang="en">English</option>
+          <option value="fr" lang="fr">Français</option>
+          <option value="es" lang="es">Español</option>
+          <option value="it" lang="it">Italiano</option>
+        </select>
+      </label>
+    }
 
     <button
       mat-icon-button
@@ -71,7 +93,7 @@
           type="button"
           class="qa-word-cloud-dialog__smooth"
           [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
-          [disabled]="smoothingDisabled()"
+          [attr.aria-disabled]="smoothingDisabled() || frozen() ? true : null"
           [attr.aria-pressed]="smoothingPressed()"
           [attr.aria-busy]="smoothingBusy() ? true : null"
           (click)="toggleSmoothing()"
@@ -87,7 +109,7 @@
         mat-button
         type="button"
         class="qa-word-cloud-dialog__refresh"
-        [disabled]="smoothingDisabled()"
+        [attr.aria-disabled]="smoothingDisabled() || frozen() ? true : null"
         [attr.aria-busy]="smoothingBusy() ? true : null"
         (click)="toggleSmoothing()"
       >
@@ -97,10 +119,19 @@
     }
   </div>
 
+  @if (frozen()) {
+    <p
+      class="qa-word-cloud-dialog__mode-note"
+      role="status"
+      i18n="@@sessionHost.wordCloudFrozenInfo"
+    >
+      Wortwolke eingefroren.
+    </p>
+  }
   <div class="qa-word-cloud-dialog__stage">
     @if (
       themesPending() ||
-      (themeFallbackHint() && !themesRefreshing() && !showThemeRefresh()) ||
+      (themeFallbackHint() && !themesRefreshing()) ||
       (smoothingHint() && showSmoothingControls())
     ) {
       <div
@@ -120,25 +151,18 @@
               <p class="qa-word-cloud-dialog__progress-wait">{{ waitHint }}</p>
             }
             <mat-progress-bar class="qa-word-cloud-dialog__progress-bar" mode="indeterminate" />
-            <p class="qa-word-cloud-dialog__progress-fallback">{{ themeProgressFallback }}</p>
           </div>
-        } @else if (themeFallbackHint() && !themesRefreshing() && !showThemeRefresh()) {
-          <p class="qa-word-cloud-dialog__mode-note">{{ themeFallbackHint() }}</p>
+        } @else if (themeFallbackHint() && !themesRefreshing()) {
+          <p class="qa-word-cloud-dialog__mode-note" role="status">{{ themeFallbackHint() }}</p>
         }
         @if (smoothingHint() && showSmoothingControls()) {
           <p class="qa-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
         }
       </div>
     }
-    @if (themesRefreshing() && !themesPending()) {
-      <p
-        class="qa-word-cloud-dialog__sr-status sr-only"
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        [attr.aria-label]="themeProgressAria()"
-      >
-        {{ themeProgressLabel }}
+    @if (themesRefreshing()) {
+      <p class="qa-word-cloud-dialog__mode-note" role="status">
+        {{ previousTopicsLabel }}
       </p>
     }
 
@@ -150,15 +174,18 @@
       [analysisEntries]="analysisEntries()"
       [analysisMode]="'qa'"
       [title]="title()"
+      [exportViewLabel]="exportViewLabel()"
       [eyebrow]="data.eyebrow"
       [description]="description()"
       [itemLabelSingular]="data.itemLabelSingular"
       [itemLabelPlural]="data.itemLabelPlural"
       [itemCount]="analyzedQuestionCount()"
+      [eligibleItemCount]="eligibleQuestionCount()"
+      [selectionScopeKey]="analysisVariant() + ':' + (data.analysisLanguage?.() ?? '')"
       [wordLabelSingular]="wordLabelSingular()"
       [wordLabelPlural]="wordLabelPlural()"
-      [showConfidenceFilter]="analysisVariant() === 'SEMANTIC'"
-      [showResponsesPanel]="false"
+      [showConfidenceFilter]="displayMode() === 'SEMANTIC'"
+      [showResponsesPanel]="displayMode() === 'SEMANTIC'"
       [weightingHint]="null"
       [tooltipMetricLabel]="tooltipMetricLabel()"
       [analysisModelVersion]="analysisModelVersion()"
