@@ -14234,6 +14234,189 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('entfernt Q&A-Themen und Belege beim Wechsel zum Pinfilter auch bei Analysefehler', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const unpinned = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Eindeutiger Beleg aus einer nicht hervorgehobenen Frage',
+      status: 'ACTIVE',
+      upvoteCount: 3,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      passagesRedacted: false,
+    };
+    const pinned = {
+      ...unpinned,
+      id: '22222222-2222-4222-8222-222222222222',
+      text: 'Wie groß ist die Stichprobe?',
+      status: 'PINNED',
+    };
+    qaListQueryMock.mockResolvedValue([pinned, unpinned]);
+    let failPinnedAnalysis: (error: Error) => void = () => undefined;
+    wordCloudAnalyzeQueryMock.mockImplementation((request) => {
+      if (request.mode === 'SEMANTIC' && request.filter === 'PINNED_ONLY') {
+        return new Promise((_resolve, reject) => {
+          failPinnedAnalysis = reject;
+        });
+      }
+      return Promise.resolve(
+        wordCloudAnalyzeResult({
+          mode: request.mode,
+          analyzedQuestionCount: 2,
+          eligibleQuestionCount: 2,
+          entries: [
+            {
+              key: 'semantic-unpinned',
+              label: 'Thema aus beiden Fragen',
+              count: 4,
+              basisLabel: null,
+              members: [{ sourceId: unpinned.id, text: unpinned.text, weight: 3 }],
+              variants: [unpinned.text],
+              confidence: 0.9,
+            },
+          ],
+        }),
+      );
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(2));
+    component.setQaWordCloudAnalysisVariant('SEMANTIC');
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    await vi.waitFor(
+      () => {
+        expect(JSON.stringify(component.qaWordCloudAnalysisEntries())).toContain(unpinned.text);
+        expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            projection: expect.objectContaining({ analysisStatus: 'ready' }),
+          }),
+        );
+      },
+      { timeout: 5000 },
+    );
+
+    qaListQueryMock.mockResolvedValue([pinned]);
+    setQaWordCloudProjectionMutateMock.mockClear();
+    await component.setQaPinnedFilter(true);
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    expect(component.qaWordCloudAnalysisEntries()).toBeNull();
+    expect(component.qaWordCloudCoverage()).toBeNull();
+    expect(component.qaWordCloudEligibleCount()).toBe(1);
+    const expectScopedProjection = (analysisStatus: 'pending' | 'failed') =>
+      expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projection: expect.objectContaining({
+            analysisStatus,
+            analysisEntries: [],
+            analyzedQuestionCount: 0,
+            eligibleQuestionCount: 1,
+          }),
+        }),
+      );
+    await vi.waitFor(() => {
+      expectScopedProjection('pending');
+      expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+        expect.objectContaining({ mode: 'SEMANTIC', filter: 'PINNED_ONLY' }),
+        expect.anything(),
+      );
+    });
+
+    failPinnedAnalysis(new Error('timeout'));
+    await vi.waitFor(
+      () => {
+        expect(component.qaWordCloudThemeFallbackHint()).toBe('Themenanalyse fehlgeschlagen.');
+        expectScopedProjection('failed');
+      },
+      { timeout: 5000 },
+    );
+    expect(component.qaWordCloudAnalysisEntries()).toBeNull();
+    expect(component.qaWordCloudCoverage()).toBeNull();
+    expect(JSON.stringify(setQaWordCloudProjectionMutateMock.mock.calls)).not.toContain(
+      unpinned.text,
+    );
+    fixture.destroy();
+  });
+
+  it('markiert eine spätere Q&A-Korpusrevision bei gleichbleibender Seite als veraltet', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const question = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Wie groß ist die Stichprobe?',
+      status: 'ACTIVE',
+      upvoteCount: 3,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      passagesRedacted: false,
+    };
+    qaListQueryMock.mockResolvedValue([question]);
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        corpusRevision: '17:',
+        sortMode: 'BEST',
+        entries: [
+          {
+            key: 'semantic-stichprobe',
+            label: 'Stichprobengröße',
+            count: 3,
+            basisLabel: null,
+            members: [{ sourceId: question.id, text: question.text, weight: 3 }],
+            variants: [question.text],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(1));
+    component.qaListRankingRevision.set('16:BEST:');
+    component.setQaWordCloudAnalysisVariant('SEMANTIC');
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    await vi.waitFor(() => expect(component.qaWordCloudThemeAnalysisResult()).not.toBeNull(), {
+      timeout: 5000,
+    });
+    const questions = component.qaWordCloudQuestions();
+    expect(questions).toHaveLength(1);
+    const analysisCalls = wordCloudAnalyzeQueryMock.mock.calls.length;
+    expect(component.qaWordCloudSemanticStale()).toBe(false);
+
+    component.qaListRankingRevision.set('18:TOP:');
+    fixture.detectChanges();
+    expect(component.qaWordCloudSemanticStale()).toBe(false);
+
+    component.qaListRankingRevision.set('18:BEST:');
+    fixture.detectChanges();
+    expect(component.qaWordCloudQuestions()).toBe(questions);
+    expect(component.qaWordCloudSemanticStale()).toBe(true);
+    expect(component.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Stichprobengröße');
+    expect(component.qaWordCloudThemeFallbackHint()).toBe(
+      'Neue Fragen seit der letzten Themenanalyse',
+    );
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(analysisCalls);
+    fixture.destroy();
+  });
+
   it('startet Q&A-Themen per Neu analysieren erneut ohne Sprachwechsel', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

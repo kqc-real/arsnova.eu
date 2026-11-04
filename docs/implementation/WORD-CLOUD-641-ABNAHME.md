@@ -31,6 +31,10 @@ Für den lokalen Modellpfad wurden die erfolgreichen Analyseantworten aus den be
 
 Die gezielten Nachprüfungen umfassten 13 Tests am kanonischen Q&A-Router sowie Regressionen für den Q&A-Host und den Freitext-Presenter. Nach den Layoutänderungen liefen die Renderer- und Layout-Suite mit insgesamt 76 Tests erfolgreich. Die Nachprüfung älterer Bühnenprojektionen bestand in der Presenter-Suite mit 96 Tests. Bei 320 CSS-Pixeln zeigten beide Host-Dialoge keinen horizontalen Überlauf. Der Freitext-Ablauf prüfte auch die Navigation vom Presenter zurück zum Host. Für die Sidecar-Verträge gelten die Socket- und Compose-Prüfungen aus der ersten Abnahme.
 
+## Nachprüfung aus PR #642
+
+Beim Wechsel zu »Nur hervorgehobene Fragen« verwirft der Host den Themenstand, seine Belege und die Abdeckung des vorherigen Filters. Der Regressionstest prüft die Projektion während des Abrufs und nach einem simulierten Timeout. Ein zweiter Test hält die sichtbare Fragenseite konstant und erhöht erst nach erfolgreicher Analyse die Serverrevision. Eine Revision derselben Größenmetrik kennzeichnet die vorhandene Wolke als veraltet. Eine Revision einer anderen Metrik löst diese Kennzeichnung nicht aus.
+
 ## Vollständige Bühne bei 1280 × 720
 
 Die vollständige Q&A-Presenter-Route lief in Chromium 151 mit vier simulierten tRPC-Projektionen. Der Referenzlauf deaktivierte die Positionsübernahme und Kollisionsprüfung im Browser. Der zweite Lauf verwendete den lokalisierten Produktionsbuild. Die Messung addiert für weiterhin platzierte Blasen die Verschiebung ihrer Mittelpunkte in CSS-Pixeln, gerundet je Blase. Überdeckungen zählen Paare mit sich schneidenden Rechtecken.

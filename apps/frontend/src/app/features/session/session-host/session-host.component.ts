@@ -1195,7 +1195,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private lastQaPresenterStageViewTookOver = false;
   private channelToggleSyncing = false;
   private lastQaWordCloudAnalysisRequestKey: string | null = null;
-  private lastQaWordCloudSemanticAnalyzedKey: string | null = null;
+  private lastQaWordCloudSemanticAnalysis: {
+    requestKey: string;
+    corpusRevision: string;
+    observedListRevision: string | null;
+  } | null = null;
   private lastFreetextWordCloudSemanticAnalyzedKey: string | null = null;
   private qaWordCloudThemeAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   private freetextWordCloudSemanticAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
@@ -2772,8 +2776,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (request.mode === 'SEMANTIC') {
         if (!this.qaWordCloudThemeAnalysisResult()) {
           this.queueQaWordCloudSemanticAnalysis(request);
-        } else {
-          this.syncQaWordCloudSemanticStale(request);
+        } else if (this.hasQaWordCloudSemanticChanges(request, this.qaListRankingRevision())) {
+          this.qaWordCloudSemanticStale.set(true);
         }
       } else {
         this.queueQaWordCloudThemeAnalysis(request);
@@ -4487,13 +4491,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
 
-      untracked(() => {
-        if (request.mode === 'SEMANTIC') {
-          this.syncQaWordCloudSemanticStale(request);
-          return;
+      if (request.mode === 'SEMANTIC') {
+        if (this.hasQaWordCloudSemanticChanges(request, this.qaListRankingRevision())) {
+          this.qaWordCloudSemanticStale.set(true);
         }
-        this.queueQaWordCloudThemeAnalysis(request);
-      });
+        return;
+      }
+      untracked(() => this.queueQaWordCloudThemeAnalysis(request));
     });
     effect(() => {
       const dialogOpen = this.qaWordCloudDialogOpen();
@@ -4934,7 +4938,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudThemeFallbackActive.set(false);
     this.qaWordCloudCoverage.set(null);
     this.qaWordCloudSemanticStale.set(false);
-    this.lastQaWordCloudSemanticAnalyzedKey = null;
+    this.lastQaWordCloudSemanticAnalysis = null;
     this.freetextWordCloudSemanticAnalysisResult.set(null);
     this.freetextWordCloudSemanticFailed.set(false);
     this.freetextWordCloudSemanticStale.set(false);
@@ -11747,7 +11751,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudCoverage.set(null);
     this.qaWordCloudSemanticStale.set(false);
     this.qaWordCloudThemeFallbackActive.set(false);
-    this.lastQaWordCloudSemanticAnalyzedKey = null;
+    this.lastQaWordCloudSemanticAnalysis = null;
     this.moderationCompassFocusedTerm.set(null);
     this.qaWordCloudAnalysisVariant.set(nextVariant);
     if (nextVariant === 'SEMANTIC') {
@@ -13642,7 +13646,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaListPageSize.set(pageSize);
     this.qaWordCloudCoverage.set(null);
     this.lastQaWordCloudAnalysisRequestKey = '';
-    this.lastQaWordCloudSemanticAnalyzedKey = null;
+    this.lastQaWordCloudSemanticAnalysis = null;
     this.ensureQaSubscription();
     await this.refreshQaQuestions({ replaceStale: true });
     this.scrollQaListToTop();
@@ -13702,7 +13706,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.qaShowPinnedOnly() === pinnedOnly) return;
     this.invalidateQaWordCloudRequests();
     this.clearQaWordCloudLemmaSmoothing();
+    this.qaWordCloudThemeAnalysisResult.set(null);
     this.qaWordCloudRetainedPhrases.set([]);
+    this.qaWordCloudCoverage.set(null);
+    this.qaWordCloudThemeFallbackActive.set(false);
+    this.qaWordCloudSemanticStale.set(false);
+    this.lastQaWordCloudSemanticAnalysis = null;
+    this.moderationCompassFocusedTerm.set(null);
     this.qaShowPinnedOnly.set(pinnedOnly);
     const request = this.buildQaWordCloudAnalysisRequest();
     if (request?.mode === 'SEMANTIC') this.queueQaWordCloudSemanticAnalysis(request);
@@ -14206,14 +14216,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }, QA_WORD_CLOUD_ANALYSIS_DEBOUNCE_MS);
   }
 
-  private syncQaWordCloudSemanticStale(request: QaWordCloudAnalysisRequest): void {
-    const requestKey = wordCloudAnalysisRequestKey(request);
-    if (
-      this.lastQaWordCloudSemanticAnalyzedKey &&
-      requestKey !== this.lastQaWordCloudSemanticAnalyzedKey
-    ) {
-      this.qaWordCloudSemanticStale.set(true);
-    }
+  private hasQaWordCloudSemanticChanges(
+    request: QaWordCloudAnalysisRequest,
+    listRevision: string | null,
+  ): boolean {
+    const analysis = this.lastQaWordCloudSemanticAnalysis;
+    if (!analysis) return false;
+
+    const previousListRevision = analysis.observedListRevision;
+    analysis.observedListRevision = listRevision;
+    if (wordCloudAnalysisRequestKey(request) !== analysis.requestKey) return true;
+    if (!listRevision || !analysis.corpusRevision) return false;
+
+    const [ranking, metric, participants] = listRevision.split(':');
+    if (metric !== request.metric) return false;
+    const [analyzedRanking, analyzedParticipants] = analysis.corpusRevision.split(':');
+    return (
+      Number(ranking) > Number(analyzedRanking) ||
+      (ranking === analyzedRanking &&
+        metric === 'CONTROVERSIAL' &&
+        listRevision !== previousListRevision &&
+        participants !== analyzedParticipants)
+    );
   }
 
   private queueQaWordCloudSemanticAnalysis(request: QaWordCloudAnalysisRequest): void {
@@ -14360,20 +14384,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       this.qaWordCloudThemeFallbackActive.set(result.fallbackUsed);
       if (request.mode === 'SEMANTIC') {
-        this.lastQaWordCloudSemanticAnalyzedKey = wordCloudAnalysisRequestKey(request);
+        this.lastQaWordCloudSemanticAnalysis = {
+          requestKey: wordCloudAnalysisRequestKey(request),
+          corpusRevision: result.corpusRevision,
+          observedListRevision: listRevisionAtStart,
+        };
         const current = this.qaWordCloudAnalysisRequest();
-        const listRevision = this.qaListRankingRevision();
-        const [revision, participants] = result.corpusRevision?.split(':') ?? [];
-        const expected = `${revision}:${result.sortMode}:${participants ?? ''}`;
         this.qaWordCloudSemanticStale.set(
-          !current ||
-            wordCloudAnalysisRequestKey(current) !== this.lastQaWordCloudSemanticAnalyzedKey ||
-            (revision !== undefined &&
-              listRevision !== null &&
-              listRevision.split(':')[1] === result.sortMode &&
-              listRevision !== expected &&
-              (listRevision !== listRevisionAtStart ||
-                Number(listRevision.split(':')[0]) > Number(revision))),
+          !current || this.hasQaWordCloudSemanticChanges(current, this.qaListRankingRevision()),
         );
       }
     } catch {
