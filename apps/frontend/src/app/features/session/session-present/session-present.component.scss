@@ -2509,6 +2509,70 @@ app-session-projection-quiz,
   min-height: 16rem;
 }
 
+.session-present__word-cloud-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.session-present__word-cloud-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+  z-index: 5;
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline-end: 13rem;
+  pointer-events: auto;
+}
+
+.session-present__word-cloud-mode {
+  width: fit-content;
+  max-width: 100%;
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+
+.session-present__word-cloud-mode .mat-button-toggle {
+  min-height: 2.75rem;
+  pointer-events: auto;
+}
+
+.session-present__word-cloud-action {
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.session-present__word-cloud-action--pressed {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}
+
+.session-present__word-cloud-toolbar-status {
+  margin: 0;
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.session-present--word-cloud
+  .session-present__word-cloud-layout
+  .session-present__word-cloud-stage {
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .session-present__confetti {
   position: absolute;
   inset: 0;

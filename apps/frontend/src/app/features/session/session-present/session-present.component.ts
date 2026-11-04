@@ -20,6 +20,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MatButton } from '@angular/material/button';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
@@ -52,9 +53,11 @@ import {
   EMOJI_REACTIONS,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+  isWordCloudLemmaLocale,
   isWordCloudPhraseAnalysisVariant,
 } from '@arsnova/shared-types';
 import type {
+  AnalyzeWordCloudInput,
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
@@ -69,6 +72,7 @@ import type {
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
   WordCloudAnalysisEntryDTO,
+  WordCloudAnalysisLocale,
   WordCloudAnalysisVariant,
   WordCloudWeightMetric,
 } from '@arsnova/shared-types';
@@ -169,6 +173,8 @@ type LobbyFoyerMotionProfile = {
   pulseDelayMs: number;
 };
 
+type PresenterFreetextWordCloudMode = 'WORDS' | 'PHRASES' | 'SEMANTIC';
+
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
  * Story 2.5, 2.6, 3.5, 4.1, 4.4, 4.5, 1.14, 7.1, 8.2, 8.3.
@@ -180,6 +186,8 @@ type LobbyFoyerMotionProfile = {
     DecimalPipe,
     CdkTrapFocus,
     MatButton,
+    MatButtonToggle,
+    MatButtonToggleGroup,
     MatRadioButton,
     MatRadioGroup,
     MatCard,
@@ -308,7 +316,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
-  readonly freetextWordCloudDescription = $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
   readonly freetextWordCloudStageTitle = computed(
     () => this.currentQuestionLabel() ?? $localize`:@@wordCloud.title:Wortwolke`,
   );
@@ -1083,7 +1090,193 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudProjection = signal<FreetextWordCloudPresenterProjectionDTO | null>(
     null,
   );
-  readonly freetextStageAnalysisEntries = computed(() => {
+  /** Gesetzte Presenter-Ansicht bleibt bestehen, auch wenn der Host danach neu projiziert. */
+  readonly presenterFreetextWordCloudModeOverride = signal<PresenterFreetextWordCloudMode | null>(
+    null,
+  );
+  readonly presenterFreetextWordCloudFrozen = signal(false);
+  private readonly presenterFreetextFrozenResponses = signal<string[] | null>(null);
+  readonly presenterFreetextLemmaPreferred = signal(false);
+  readonly presenterFreetextLemmaPending = signal(false);
+  readonly presenterFreetextLemmaEntries = signal<WordCloudAnalysisEntryDTO[] | null>(null);
+  private readonly presenterFreetextLemmaAnalyzedKey = signal<string | null>(null);
+  readonly presenterFreetextSemanticPending = signal(false);
+  readonly presenterFreetextSemanticEntries = signal<WordCloudAnalysisEntryDTO[] | null>(null);
+  private readonly presenterFreetextSemanticAnalyzedKey = signal<string | null>(null);
+  readonly presenterFreetextSemanticFailed = signal(false);
+  private presenterFreetextAnalysisGeneration = 0;
+  readonly presenterFreetextDisplayedResponses = computed(() =>
+    this.presenterFreetextWordCloudFrozen()
+      ? (this.presenterFreetextFrozenResponses() ?? this.freetextResponses())
+      : this.freetextResponses(),
+  );
+  readonly presenterFreetextResponseKey = computed(() =>
+    this.presenterFreetextDisplayedResponses().join('\u0000'),
+  );
+  readonly presenterFreetextWordCloudModeEffective = computed<PresenterFreetextWordCloudMode>(
+    () => {
+      const override = this.presenterFreetextWordCloudModeOverride();
+      if (override) {
+        return override;
+      }
+      switch (this.freetextWordCloudProjection()?.mode) {
+        case 'LEXICAL':
+          return 'WORDS';
+        case 'SEMANTIC':
+          return 'SEMANTIC';
+        default:
+          return 'PHRASES';
+      }
+    },
+  );
+  readonly presenterFreetextWordCloudDescription = computed(() => {
+    switch (this.presenterFreetextWordCloudModeEffective()) {
+      case 'SEMANTIC':
+        return $localize`:@@sessionWordCloud.freetextDescriptionSemantic:Ähnliche Antworten sind gruppiert.`;
+      case 'WORDS':
+        return $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
+      default:
+        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Häufige Wörter und kurze Wortgruppen.`;
+    }
+  });
+  readonly presenterFreetextWordCloudWordLabelSingular = computed(() => {
+    switch (this.presenterFreetextWordCloudModeEffective()) {
+      case 'SEMANTIC':
+        return $localize`:@@sessionQa.wordCloudThemeSingular:Thema`;
+      case 'PHRASES':
+        return $localize`:@@sessionQa.wordCloudEntrySingular:Begriff`;
+      default:
+        return $localize`:@@wordCloud.wordSingular:Wort`;
+    }
+  });
+  readonly presenterFreetextWordCloudWordLabelPlural = computed(() => {
+    switch (this.presenterFreetextWordCloudModeEffective()) {
+      case 'SEMANTIC':
+        return $localize`:@@sessionQa.wordCloudThemePlural:Themen`;
+      case 'PHRASES':
+        return $localize`:@@sessionQa.wordCloudEntryPlural:Begriffe`;
+      default:
+        return $localize`:@@wordCloud.wordPlural:Wörter`;
+    }
+  });
+  readonly presenterFreetextWordCloudFreezeLabel = computed(() =>
+    this.presenterFreetextWordCloudFrozen()
+      ? $localize`:@@sessionHost.wordCloudResume:Live fortsetzen`
+      : $localize`:@@sessionHost.wordCloudFreeze:Wortwolke einfrieren`,
+  );
+  readonly presenterFreetextShowSmoothing = computed(
+    () => this.presenterFreetextWordCloudModeEffective() !== 'SEMANTIC',
+  );
+  readonly presenterFreetextSmoothingStatus = computed(() => {
+    if (this.presenterFreetextLemmaPending()) {
+      return 'pending' as const;
+    }
+    if (!this.presenterFreetextLemmaPreferred() || !this.presenterFreetextLemmaEntries()) {
+      return 'idle' as const;
+    }
+    const analyzed = this.presenterFreetextLemmaAnalyzedKey();
+    if (analyzed !== null && analyzed !== this.presenterFreetextResponseKey()) {
+      return 'stale' as const;
+    }
+    return 'active' as const;
+  });
+  readonly presenterFreetextSmoothingPressed = computed(() => {
+    if (this.presenterFreetextWordCloudModeEffective() === 'SEMANTIC') {
+      return false;
+    }
+    if (this.presenterFreetextWordCloudModeOverride() === null) {
+      return this.freetextWordCloudProjection()?.smoothingActive === true;
+    }
+    const status = this.presenterFreetextSmoothingStatus();
+    return status === 'active' || status === 'pending' || status === 'stale';
+  });
+  readonly presenterFreetextSmoothingDisabled = computed(() => {
+    if (!this.presenterFreetextShowSmoothing() || this.presenterFreetextLemmaPending()) {
+      return true;
+    }
+    if (!this.presenterFreetextAnalysisLocale()) {
+      return true;
+    }
+    return this.presenterFreetextAnalysisItems().length === 0;
+  });
+  readonly presenterFreetextSmoothingLabel = computed(() => {
+    switch (this.presenterFreetextSmoothingStatus()) {
+      case 'pending':
+        return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
+      case 'active':
+        return $localize`:@@sessionQa.wordCloudSmoothActive:Wort-Glättung ist an`;
+      case 'stale':
+        return $localize`:@@sessionQa.wordCloudSmoothRetry:Neu analysieren`;
+      default:
+        return $localize`:@@sessionQa.wordCloudSmooth:Wortformen glätten`;
+    }
+  });
+  readonly presenterFreetextSmoothingIcon = computed(() => {
+    switch (this.presenterFreetextSmoothingStatus()) {
+      case 'pending':
+        return 'hourglass_top';
+      case 'active':
+        return 'check';
+      case 'stale':
+        return 'refresh';
+      default:
+        return 'wand_stars';
+    }
+  });
+  readonly presenterFreetextShowThemeRefresh = computed(() => {
+    if (
+      this.presenterFreetextWordCloudModeEffective() !== 'SEMANTIC' ||
+      this.presenterFreetextSemanticPending()
+    ) {
+      return false;
+    }
+    if (this.presenterFreetextSemanticFailed()) {
+      return true;
+    }
+    const analyzed = this.presenterFreetextSemanticAnalyzedKey();
+    return analyzed !== null && analyzed !== this.presenterFreetextResponseKey();
+  });
+  readonly presenterFreetextThemeRefreshLabel = $localize`:@@sessionQa.wordCloudRefreshThemes:Themen aktualisieren`;
+  readonly presenterFreetextWordCloudHint = computed(() => {
+    if (this.presenterFreetextSemanticPending()) {
+      return $localize`:@@sessionQa.wordCloudSemanticPendingHint:Themen werden vorbereitet. Es gelten Wörter und Phrasen.`;
+    }
+    if (
+      this.presenterFreetextWordCloudModeEffective() === 'SEMANTIC' &&
+      this.presenterFreetextSemanticFailed()
+    ) {
+      return $localize`:@@sessionQa.wordCloudSemanticFailedHint:Themenanalyse fehlgeschlagen. Es gelten Wörter und Phrasen.`;
+    }
+    if (
+      this.presenterFreetextShowSmoothing() &&
+      !this.presenterFreetextAnalysisLocale() &&
+      this.presenterFreetextAnalysisItems().length > 0
+    ) {
+      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Antworten`;
+    }
+    if (this.presenterFreetextSmoothingStatus() === 'stale') {
+      return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten seit letzter Wort-Glättung`;
+    }
+    if (this.presenterFreetextWordCloudFrozen()) {
+      return $localize`:@@sessionHost.wordCloudFrozenInfo:Wortwolke eingefroren.`;
+    }
+    return null;
+  });
+  readonly freetextStageAnalysisEntries = computed<WordCloudAnalysisEntryDTO[] | null>(() => {
+    const override = this.presenterFreetextWordCloudModeOverride();
+    if (override === 'SEMANTIC') {
+      return this.presenterFreetextSemanticEntries();
+    }
+    if (
+      override !== null &&
+      this.presenterFreetextLemmaPreferred() &&
+      this.presenterFreetextLemmaEntries()
+    ) {
+      return this.presenterFreetextLemmaEntries();
+    }
+    if (override !== null) {
+      return null;
+    }
     const projection = this.freetextWordCloudProjection();
     if (
       !projection ||
@@ -1107,15 +1300,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.freetextStageAnalysisEntries()) {
       return null;
     }
+    const mode = this.presenterFreetextWordCloudModeEffective();
     return this.wordCloudTermExtractor.extractTerms(
-      this.freetextResponses().map((response, index) => ({
+      this.presenterFreetextDisplayedResponses().map((response, index) => ({
         id: `response-${index}`,
         body: response,
       })),
       {
         locale: this.wordCloudTermLocale(),
         maxEntries: 80,
-        maxNgramLength: 3,
+        maxNgramLength:
+          mode === 'WORDS'
+            ? WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH
+            : WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
       },
     );
   });
@@ -2170,6 +2367,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.quickFeedbackResult.set(null);
     this.freetextResponses.set([]);
     this.freetextQuestionId.set(null);
+    this.resetPresenterFreetextWordCloudControls();
     this.hostQuestion.set(null);
     this.hostVoteProgress.set(null);
     this.emojiReactions.set(null);
@@ -2287,6 +2485,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     try {
       const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
       if (this.presentDeadlineClosed) return;
+      if (data.questionId !== this.freetextQuestionId()) {
+        this.resetPresenterFreetextWordCloudControls();
+      }
       this.freetextResponses.set(data.responses);
       this.freetextQuestionId.set(data.questionId);
 
@@ -2389,6 +2590,226 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.qaWordCloudProjection.set(result.projection);
     } catch {
       // Optionale Host-Projektion: ohne Snapshot bleibt der lexikalische Presenter-Pfad.
+    }
+  }
+
+  setPresenterFreetextWordCloudMode(mode: string): void {
+    if (mode !== 'WORDS' && mode !== 'PHRASES' && mode !== 'SEMANTIC') {
+      return;
+    }
+    if (this.presenterFreetextWordCloudModeOverride() === mode) {
+      return;
+    }
+    this.presenterFreetextWordCloudModeOverride.set(mode);
+    this.presenterFreetextSemanticFailed.set(false);
+    if (mode === 'SEMANTIC') {
+      this.presenterFreetextLemmaPreferred.set(false);
+      void this.requestPresenterFreetextSemantic(false);
+      return;
+    }
+    this.presenterFreetextAnalysisGeneration += 1;
+    this.presenterFreetextSemanticPending.set(false);
+    this.presenterFreetextSemanticEntries.set(null);
+    this.presenterFreetextSemanticAnalyzedKey.set(null);
+    void this.publishPresenterFreetextWordCloud();
+  }
+
+  togglePresenterFreetextWordCloudFreeze(): void {
+    if (this.presenterFreetextWordCloudFrozen()) {
+      this.presenterFreetextWordCloudFrozen.set(false);
+      this.presenterFreetextFrozenResponses.set(null);
+      return;
+    }
+    this.presenterFreetextFrozenResponses.set([...this.freetextResponses()]);
+    this.presenterFreetextWordCloudFrozen.set(true);
+  }
+
+  togglePresenterFreetextWordCloudSmoothing(): void {
+    if (!this.presenterFreetextShowSmoothing() || this.presenterFreetextLemmaPending()) {
+      return;
+    }
+    const followingProjection = this.presenterFreetextWordCloudModeOverride() === null;
+    if (followingProjection && this.freetextWordCloudProjection()?.smoothingActive === true) {
+      this.presenterFreetextWordCloudModeOverride.set(
+        this.presenterFreetextWordCloudModeEffective(),
+      );
+      this.presenterFreetextLemmaPreferred.set(false);
+      this.presenterFreetextLemmaEntries.set(null);
+      void this.publishPresenterFreetextWordCloud();
+      return;
+    }
+    if (this.presenterFreetextSmoothingStatus() === 'active') {
+      this.presenterFreetextLemmaPreferred.set(false);
+      this.presenterFreetextLemmaEntries.set(null);
+      this.presenterFreetextLemmaAnalyzedKey.set(null);
+      void this.publishPresenterFreetextWordCloud();
+      return;
+    }
+    this.presenterFreetextWordCloudModeOverride.set(this.presenterFreetextWordCloudModeEffective());
+    this.presenterFreetextLemmaPreferred.set(true);
+    void this.requestPresenterFreetextLemmaSmoothing();
+  }
+
+  refreshPresenterFreetextWordCloudThemes(): void {
+    if (this.presenterFreetextSemanticPending()) {
+      return;
+    }
+    void this.requestPresenterFreetextSemantic(true);
+  }
+
+  private resetPresenterFreetextWordCloudControls(): void {
+    this.presenterFreetextAnalysisGeneration += 1;
+    this.presenterFreetextWordCloudModeOverride.set(null);
+    this.presenterFreetextWordCloudFrozen.set(false);
+    this.presenterFreetextFrozenResponses.set(null);
+    this.presenterFreetextLemmaPreferred.set(false);
+    this.presenterFreetextLemmaPending.set(false);
+    this.presenterFreetextLemmaEntries.set(null);
+    this.presenterFreetextLemmaAnalyzedKey.set(null);
+    this.presenterFreetextSemanticPending.set(false);
+    this.presenterFreetextSemanticEntries.set(null);
+    this.presenterFreetextSemanticAnalyzedKey.set(null);
+    this.presenterFreetextSemanticFailed.set(false);
+  }
+
+  private presenterFreetextAnalysisLocale(): WordCloudAnalysisLocale | null {
+    const projected = this.freetextWordCloudProjection()?.locale;
+    if (projected && isWordCloudLemmaLocale(projected)) {
+      return projected;
+    }
+    const locale = this.wordCloudTermLocale();
+    return isWordCloudLemmaLocale(locale) ? locale : null;
+  }
+
+  private presenterFreetextAnalysisItems(): AnalyzeWordCloudInput['items'] {
+    return this.presenterFreetextDisplayedResponses()
+      .map((response) => response.trim())
+      .filter((response) => response.length > 0)
+      .map((text, index) => ({
+        id: `response-${index}`,
+        text,
+        weight: 1,
+      }));
+  }
+
+  private async requestPresenterFreetextSemantic(refresh: boolean): Promise<void> {
+    const locale = this.presenterFreetextAnalysisLocale();
+    const items = this.presenterFreetextAnalysisItems();
+    if (!locale || items.length === 0) {
+      this.presenterFreetextSemanticFailed.set(true);
+      return;
+    }
+    const generation = ++this.presenterFreetextAnalysisGeneration;
+    this.presenterFreetextSemanticPending.set(true);
+    this.presenterFreetextSemanticFailed.set(false);
+    try {
+      const result = await trpc.wordCloud.analyze.mutate({
+        sessionCode: this.code.toUpperCase(),
+        mode: 'SEMANTIC',
+        locale,
+        metric: 'TOP',
+        channel: 'FREETEXT',
+        normalization: 'NONE',
+        items,
+        maxEntries: 40,
+        ...(refresh ? { refresh: true } : {}),
+      });
+      if (generation !== this.presenterFreetextAnalysisGeneration) {
+        return;
+      }
+      this.presenterFreetextSemanticEntries.set(result.entries);
+      this.presenterFreetextSemanticAnalyzedKey.set(this.presenterFreetextResponseKey());
+      await this.publishPresenterFreetextWordCloud();
+    } catch {
+      if (generation !== this.presenterFreetextAnalysisGeneration) {
+        return;
+      }
+      this.presenterFreetextSemanticFailed.set(true);
+    } finally {
+      if (generation === this.presenterFreetextAnalysisGeneration) {
+        this.presenterFreetextSemanticPending.set(false);
+      }
+    }
+  }
+
+  private async requestPresenterFreetextLemmaSmoothing(): Promise<void> {
+    const locale = this.presenterFreetextAnalysisLocale();
+    const items = this.presenterFreetextAnalysisItems();
+    const mode = this.presenterFreetextWordCloudModeEffective();
+    if (!locale || items.length === 0 || mode === 'SEMANTIC') {
+      this.presenterFreetextLemmaPreferred.set(false);
+      return;
+    }
+    const generation = ++this.presenterFreetextAnalysisGeneration;
+    this.presenterFreetextLemmaPending.set(true);
+    try {
+      const result = await trpc.wordCloud.analyze.mutate({
+        sessionCode: this.code.toUpperCase(),
+        mode: 'LEXICAL',
+        locale,
+        metric: 'TOP',
+        normalization: 'LEMMA',
+        items,
+        maxEntries: 80,
+        maxNgramLength:
+          mode === 'WORDS'
+            ? WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH
+            : WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+      });
+      if (
+        generation !== this.presenterFreetextAnalysisGeneration ||
+        !this.presenterFreetextLemmaPreferred()
+      ) {
+        return;
+      }
+      this.presenterFreetextLemmaEntries.set(result.entries);
+      this.presenterFreetextLemmaAnalyzedKey.set(this.presenterFreetextResponseKey());
+      await this.publishPresenterFreetextWordCloud();
+    } catch {
+      if (generation === this.presenterFreetextAnalysisGeneration) {
+        this.presenterFreetextLemmaPreferred.set(false);
+      }
+    } finally {
+      if (generation === this.presenterFreetextAnalysisGeneration) {
+        this.presenterFreetextLemmaPending.set(false);
+      }
+    }
+  }
+
+  private async publishPresenterFreetextWordCloud(): Promise<void> {
+    const questionId = this.freetextQuestionId();
+    const locale = this.presenterFreetextAnalysisLocale();
+    if (!questionId) {
+      return;
+    }
+    const mode = this.presenterFreetextWordCloudModeEffective();
+    const analysis = this.freetextStageAnalysisEntries();
+    const terms = this.freetextWordCloudTerms();
+    const entries = analysis
+      ? analysis.slice(0, 80).map((entry) => ({
+          key: entry.key,
+          label: entry.label,
+          count: entry.count,
+          ...(entry.labelOrigin ? { labelOrigin: entry.labelOrigin } : {}),
+        }))
+      : (terms ?? []).slice(0, 80).map((term) => ({
+          key: term.key,
+          label: term.label,
+          count: term.sourceCount,
+        }));
+    try {
+      await trpc.session.setFreetextWordCloudProjection.mutate({
+        code: this.code.toUpperCase(),
+        projection: {
+          mode: mode === 'WORDS' ? 'LEXICAL' : mode === 'SEMANTIC' ? 'SEMANTIC' : 'THEME',
+          locale,
+          questionId,
+          smoothingActive: this.presenterFreetextSmoothingPressed(),
+          entries,
+        },
+      });
+    } catch {
+      // Die Bühne zeigt die gewählte Ansicht auch ohne gespeicherte Projektion.
     }
   }
 

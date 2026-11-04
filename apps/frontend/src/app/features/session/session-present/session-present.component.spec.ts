@@ -32,6 +32,8 @@ const {
   getReactionsQueryMock,
   getQaWordCloudProjectionQueryMock,
   getFreetextWordCloudProjectionQueryMock,
+  setFreetextWordCloudProjectionMutateMock,
+  analyzeWordCloudMutateMock,
   subscribeMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
@@ -57,6 +59,8 @@ const {
   getReactionsQueryMock: vi.fn(),
   getQaWordCloudProjectionQueryMock: vi.fn(),
   getFreetextWordCloudProjectionQueryMock: vi.fn(),
+  setFreetextWordCloudProjectionMutateMock: vi.fn(),
+  analyzeWordCloudMutateMock: vi.fn(),
   subscribeMock: vi.fn((_input: never, _opts: never) => ({ unsubscribe: vi.fn() })),
 }));
 
@@ -110,6 +114,9 @@ vi.mock('../../../core/trpc.client', () => ({
       getFreetextWordCloudProjection: {
         query: getFreetextWordCloudProjectionQueryMock,
       },
+      setFreetextWordCloudProjection: {
+        mutate: setFreetextWordCloudProjectionMutateMock,
+      },
       onCurrentQuestionForHostChanged: {
         subscribe: subscribeMock,
       },
@@ -118,6 +125,11 @@ vi.mock('../../../core/trpc.client', () => ({
       },
       onStatusChanged: {
         subscribe: subscribeMock,
+      },
+    },
+    wordCloud: {
+      analyze: {
+        mutate: analyzeWordCloudMutateMock,
       },
     },
     qa: {
@@ -198,6 +210,21 @@ describe('SessionPresentComponent', () => {
     getReactionsQueryMock.mockResolvedValue({ reactions: {}, total: 0 });
     getQaWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
     getFreetextWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
+    setFreetextWordCloudProjectionMutateMock.mockReset();
+    setFreetextWordCloudProjectionMutateMock.mockResolvedValue({ ok: true });
+    analyzeWordCloudMutateMock.mockReset();
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      entries: [
+        {
+          key: 'struktur',
+          label: 'Struktur',
+          count: 2,
+          members: [{ sourceId: 'response-0', text: 'Klare Struktur', weight: 1 }],
+          variants: ['Struktur'],
+          confidence: 0.9,
+        },
+      ],
+    });
     subscribeMock.mockClear();
     subscribeMock.mockReturnValue({ unsubscribe: vi.fn() });
 
@@ -528,7 +555,13 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
-    expect(text).toContain('Häufige Wörter aus den Antworten.');
+    expect(text).toContain('Häufige Wörter und kurze Wortgruppen.');
+    expect(text).toContain('Wörter & Phrasen');
+    expect(text).toContain('Wortwolke einfrieren');
+    expect(text).toContain('Wortformen glätten');
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-freetext-word-cloud-words"]'),
+    ).toBeTruthy();
     expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(
       fixture.nativeElement.querySelector('.word-cloud__meta .word-cloud__reading-hint'),
@@ -537,6 +570,57 @@ describe('SessionPresentComponent', () => {
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
     expect(text).not.toContain('Maximieren');
+    fixture.destroy();
+  });
+
+  it('schaltet die Freitext-Wortwolke über die Presenter-Werkzeugleiste um', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    const words = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-words"] button',
+    ) as HTMLButtonElement;
+    const phrases = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+    ) as HTMLButtonElement;
+    const semantic = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-semantic"] button',
+    ) as HTMLButtonElement;
+    const freeze = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-freeze"]',
+    ) as HTMLButtonElement;
+    const smooth = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    ) as HTMLButtonElement;
+    expect(words.disabled).toBe(false);
+    expect(phrases.disabled).toBe(false);
+    expect(semantic.disabled).toBe(false);
+    expect(freeze.disabled).toBe(false);
+    expect(smooth.disabled).toBe(false);
+
+    words.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
+    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    expect(setFreetextWordCloudProjectionMutateMock).toHaveBeenCalled();
+
+    freeze.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudFrozen()).toBe(true);
+    expect(freeze.getAttribute('aria-pressed')).toBe('true');
+
+    semantic.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(analyzeWordCloudMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'SEMANTIC', channel: 'FREETEXT' }),
+    );
+    expect(fixture.nativeElement.textContent).toContain('Struktur');
+    expect(fixture.nativeElement.querySelector('.word-cloud__analysis-toolbar')).toBeTruthy();
     fixture.destroy();
   });
 

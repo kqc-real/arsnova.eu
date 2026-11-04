@@ -215,6 +215,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly disableCloudLayout = input(false);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
+  /** Confidence-Auswahl auch in der Ausgabe-Ansicht, ohne Export oder Maximieren. */
+  readonly interactiveOutput = input(false);
   readonly showMaximizeAction = input(true);
   readonly maximizeActionHandler = input<(() => void | Promise<void>) | null>(null);
   readonly showExportActions = input(true);
@@ -466,7 +468,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly showConfidenceFilterToggle = computed(
     () =>
       this.showConfidenceFilter() &&
-      !this.outputOnly() &&
+      (!this.outputOnly() || this.interactiveOutput()) &&
       this.confidenceFilterOptions().length > 0,
   );
 
