@@ -1112,6 +1112,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly presenterFreetextFrozenMode = signal<PresenterFreetextWordCloudMode | null>(
     null,
   );
+  private readonly presenterFreetextFrozenSmoothing = signal(false);
+  private readonly presenterFreetextThemeRefreshRetained = signal(false);
   private readonly presenterFreetextFrozenResponses = signal<string[] | null>(null);
   readonly presenterFreetextLemmaPreferred = signal(false);
   readonly presenterFreetextLemmaPending = signal(false);
@@ -1273,7 +1275,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return false;
     }
     if (this.presenterFreetextWordCloudModeOverride() === null) {
-      return this.freetextWordCloudProjection()?.smoothingActive === true;
+      return this.presenterFreetextDisplayedSmoothingActive();
     }
     const status = this.presenterFreetextSmoothingStatus();
     return status === 'active' || status === 'pending' || status === 'stale';
@@ -1312,10 +1314,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
   });
   readonly presenterFreetextShowThemeRefresh = computed(() => {
-    if (
-      this.presenterFreetextWordCloudModeEffective() !== 'SEMANTIC' ||
-      this.presenterFreetextSemanticPending()
-    ) {
+    if (this.presenterFreetextWordCloudModeEffective() !== 'SEMANTIC') {
+      return false;
+    }
+    if (this.presenterFreetextSemanticPending() && this.presenterFreetextThemeRefreshRetained()) {
+      return true;
+    }
+    if (this.presenterFreetextSemanticPending()) {
       return false;
     }
     if (this.presenterFreetextSemanticFailed()) {
@@ -2703,6 +2708,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     this.presenterFreetextWordCloudModeOverride.set(mode);
+    this.presenterFreetextThemeRefreshRetained.set(false);
     this.presenterFreetextSemanticFailed.set(false);
     if (mode === 'SEMANTIC') {
       this.presenterFreetextLemmaPreferred.set(false);
@@ -2719,11 +2725,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.presenterFreetextWordCloudFrozen()) {
       this.presenterFreetextWordCloudFrozen.set(false);
       this.presenterFreetextFrozenMode.set(null);
+      this.presenterFreetextFrozenSmoothing.set(false);
       this.presenterFreetextFrozenResponses.set(null);
       this.presenterFreetextFrozenAnalysis.set(null);
       return;
     }
     this.presenterFreetextFrozenMode.set(this.presenterFreetextWordCloudModeEffective());
+    this.presenterFreetextFrozenSmoothing.set(this.presenterFreetextSmoothingPressed());
     this.presenterFreetextFrozenAnalysis.set(this.freetextStageAnalysisEntries());
     this.presenterFreetextFrozenResponses.set([...this.freetextResponses()]);
     this.presenterFreetextWordCloudFrozen.set(true);
@@ -2734,7 +2742,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     const followingProjection = this.presenterFreetextWordCloudModeOverride() === null;
-    if (followingProjection && this.freetextWordCloudProjection()?.smoothingActive === true) {
+    if (followingProjection && this.presenterFreetextDisplayedSmoothingActive()) {
       this.presenterFreetextWordCloudModeOverride.set(
         this.presenterFreetextWordCloudModeEffective(),
       );
@@ -2759,6 +2767,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.presenterFreetextSemanticPending()) {
       return;
     }
+    this.presenterFreetextThemeRefreshRetained.set(true);
     void this.requestPresenterFreetextSemantic(true);
   }
 
@@ -2767,6 +2776,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.presenterFreetextWordCloudModeOverride.set(null);
     this.presenterFreetextWordCloudFrozen.set(false);
     this.presenterFreetextFrozenMode.set(null);
+    this.presenterFreetextFrozenSmoothing.set(false);
+    this.presenterFreetextThemeRefreshRetained.set(false);
     this.presenterFreetextFrozenResponses.set(null);
     this.presenterFreetextFrozenAnalysis.set(null);
     this.presenterFreetextLemmaPreferred.set(false);
@@ -2815,6 +2826,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const analyzedKey = this.presenterFreetextResponseKey();
     if (!locale || items.length === 0) {
       this.presenterFreetextSemanticFailed.set(true);
+      this.presenterFreetextThemeRefreshRetained.set(false);
       return;
     }
     this.presenterFreetextSemanticPending.set(true);
@@ -2844,9 +2856,62 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.presenterFreetextSemanticFailed.set(true);
     } finally {
       if (generation === this.presenterFreetextAnalysisGeneration) {
+        const restoreRefreshFocus = this.presenterFreetextThemeRefreshRetained();
         this.presenterFreetextSemanticPending.set(false);
+        this.presenterFreetextThemeRefreshRetained.set(false);
+        if (restoreRefreshFocus) {
+          this.restorePresenterFreetextThemeRefreshFocus();
+        }
       }
     }
+  }
+
+  /** Dieselbe Glättung, die der Knopf anzeigt: eingefroren oder die aktuelle Host-Projektion. */
+  private presenterFreetextDisplayedSmoothingActive(): boolean {
+    if (
+      this.presenterFreetextWordCloudFrozen() &&
+      this.presenterFreetextWordCloudModeOverride() === null
+    ) {
+      return this.presenterFreetextFrozenSmoothing();
+    }
+    return this.freetextWordCloudProjection()?.smoothingActive === true;
+  }
+
+  /**
+   * Der Aktualisieren-Knopf bleibt während des Abrufs im DOM. Verschwindet er danach,
+   * liegt der Fokus auf der weiterhin sichtbaren Themenwahl.
+   */
+  private restorePresenterFreetextThemeRefreshFocus(): void {
+    const active = this.document.activeElement;
+    const refreshHadFocus =
+      active instanceof HTMLElement &&
+      active.dataset['testid'] === 'presenter-freetext-word-cloud-refresh';
+    if (!refreshHadFocus) {
+      return;
+    }
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) {
+          return;
+        }
+        const refresh = this.hostElement.nativeElement.querySelector<HTMLElement>(
+          '[data-testid="presenter-freetext-word-cloud-refresh"]',
+        );
+        if (refresh?.isConnected) {
+          if (this.document.activeElement !== refresh) {
+            refresh.focus({ preventScroll: true });
+          }
+          return;
+        }
+        const semantic = this.hostElement.nativeElement.querySelector<HTMLElement>(
+          '[data-testid="presenter-freetext-word-cloud-semantic"] button',
+        );
+        if (semantic?.isConnected) {
+          semantic.focus({ preventScroll: true });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   private async requestPresenterFreetextLemmaSmoothing(): Promise<void> {

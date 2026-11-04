@@ -1437,6 +1437,7 @@
               type="button"
               class="session-present__word-cloud-action"
               data-testid="presenter-freetext-word-cloud-refresh"
+              [attr.aria-disabled]="presenterFreetextSemanticPending() ? true : null"
               [attr.aria-busy]="presenterFreetextSemanticPending() ? true : null"
               (click)="refreshPresenterFreetextWordCloudThemes()"
             >
