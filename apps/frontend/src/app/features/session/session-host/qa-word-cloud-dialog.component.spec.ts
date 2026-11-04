@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { describe, expect, it, vi } from 'vitest';
@@ -142,7 +142,7 @@ describe('QaWordCloudDialogComponent', () => {
   it('zeigt einen Fortschritt, solange Themen vorbereitet werden', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
-      themeFallbackHint: () => 'Themen werden vorbereitet. Es gelten Wörter und Phrasen.',
+      themeFallbackHint: () => 'Themen werden vorbereitet.',
     });
 
     const stage = fixture.nativeElement.querySelector(
@@ -156,7 +156,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(progress).not.toBeNull();
     expect(progress?.getAttribute('aria-busy')).toBe('true');
     expect(progress?.textContent).toContain('Themen werden vorbereitet.');
-    expect(progress?.textContent).toContain('Es gelten Wörter und Phrasen.');
+    expect(progress?.textContent).not.toContain('Es gelten Wörter und Phrasen.');
     expect(progress?.querySelector('mat-progress-bar')).not.toBeNull();
     expect(progress?.textContent).not.toContain('Das kann einen Moment dauern');
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__mode-note')).toBeNull();
@@ -166,7 +166,7 @@ describe('QaWordCloudDialogComponent', () => {
   it('ergaenzt nach laengerem Warten einen groben Zeit-Hinweis', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
-      themeFallbackHint: () => 'Themen werden vorbereitet. Es gelten Wörter und Phrasen.',
+      themeFallbackHint: () => 'Themen werden vorbereitet.',
       themeWaitHint: () => 'Das kann einen Moment dauern.',
     });
 
@@ -180,7 +180,7 @@ describe('QaWordCloudDialogComponent', () => {
   it('nennt bei vielen Fragen eine grobe Minute statt einer Zahl', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
-      themeFallbackHint: () => 'Themen werden vorbereitet. Es gelten Wörter und Phrasen.',
+      themeFallbackHint: () => 'Themen werden vorbereitet.',
       themeWaitHint: () => 'Bei vielen Fragen kann das eine Minute dauern.',
     });
 
@@ -193,7 +193,7 @@ describe('QaWordCloudDialogComponent', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
       hasPreparedThemes: () => false,
-      themeFallbackHint: () => 'Themen werden vorbereitet. Es gelten Wörter und Phrasen.',
+      themeFallbackHint: () => 'Themen werden vorbereitet.',
       analysisEntries: () => [
         {
           key: 'kapitel-4',
@@ -220,11 +220,11 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__sr-status')).toBeNull();
   });
 
-  it('hält bei vorhandenen Themen während eines Sortier-/Refresh-Lauzes einen layoutfreien Live-Status für Screenreader aufrecht', () => {
+  it('kennzeichnet vorhandene Themen während des Refreshs sichtbar als bisherigen Stand', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
       hasPreparedThemes: () => true,
-      themeFallbackHint: () => 'Themen werden vorbereitet. Es gelten Wörter und Phrasen.',
+      themeFallbackHint: () => 'Themen werden vorbereitet.',
       analysisEntries: () => [
         {
           key: 'kapitel-4',
@@ -239,20 +239,14 @@ describe('QaWordCloudDialogComponent', () => {
     });
 
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__progress')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__mode-note')).toBeNull();
-
-    const srStatus = fixture.nativeElement.querySelector(
-      '.qa-word-cloud-dialog__sr-status',
+    const status = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__mode-note[role="status"]',
     ) as HTMLElement | null;
-    expect(srStatus).not.toBeNull();
-    expect(srStatus?.classList.contains('sr-only')).toBe(true);
-    expect(srStatus?.getAttribute('role')).toBe('status');
-    expect(srStatus?.getAttribute('aria-live')).toBe('polite');
-    expect(srStatus?.getAttribute('aria-busy')).toBe('true');
-    expect(srStatus?.textContent).toContain('Themen werden vorbereitet.');
+    expect(status?.classList.contains('sr-only')).toBe(false);
+    expect(status?.textContent).toContain('Der bisherige Stand bleibt sichtbar.');
   });
 
-  it('bietet Themen aktualisieren nur wenn die Analyse veraltet ist', () => {
+  it('bietet Themen aktualisieren mit einem verständlichen Veraltet-Hinweis', () => {
     const toggleSmoothing = vi.fn();
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'stale',
@@ -266,10 +260,35 @@ describe('QaWordCloudDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(refresh).not.toBeNull();
     expect(refresh.textContent).toContain('Themen aktualisieren');
-    expect(fixture.nativeElement.textContent).not.toContain(
+    expect(fixture.nativeElement.textContent).toContain(
       'Neue Fragen seit der letzten Themenanalyse',
     );
 
+    refresh.click();
+    expect(toggleSmoothing).toHaveBeenCalledTimes(1);
+  });
+
+  it('lässt einen ausgelösten Refresh fokussierbar und sperrt weitere Aktivierungen', () => {
+    const pending = signal(false);
+    const available = signal(true);
+    const toggleSmoothing = vi.fn(() => pending.set(true));
+    const { fixture } = setup('SEMANTIC', {
+      showThemeRefresh: available,
+      smoothingStatus: () => (pending() ? 'pending' : 'idle'),
+      smoothingDisabled: pending,
+      toggleSmoothing,
+    });
+    const refresh = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__refresh',
+    ) as HTMLButtonElement;
+    refresh.focus();
+    refresh.click();
+    available.set(false);
+    fixture.detectChanges();
+    expect(refresh.isConnected).toBe(true);
+    expect(refresh.disabled).toBe(false);
+    expect(refresh.getAttribute('aria-busy')).toBe('true');
+    expect(document.activeElement).toBe(refresh);
     refresh.click();
     expect(toggleSmoothing).toHaveBeenCalledTimes(1);
   });

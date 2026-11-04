@@ -15,6 +15,7 @@ export type WordCloudDialogData = {
   analysisMode: WordCloudAnalysisMode;
   disableCloudLayout: boolean;
   title: string;
+  exportViewLabel?: string | null;
   eyebrow: string | null;
   description: string | null;
   emptyMessage: string;

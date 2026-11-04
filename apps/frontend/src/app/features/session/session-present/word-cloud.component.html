@@ -32,9 +32,10 @@
             {{ words().length }} {{ wordLabel(words().length) }}
           }
         </span>
-        <span class="word-cloud__meta-pill"
-          >{{ formatCount(responseSummary().total) }} {{ itemLabel(responseSummary().total) }}</span
-        >
+        <span class="word-cloud__meta-pill">{{
+          qaCoverageLabel() ??
+            formatCount(responseSummary().total) + ' ' + itemLabel(responseSummary().total)
+        }}</span>
         @if (analysisDetailLabel()) {
           <span class="word-cloud__meta-pill word-cloud__meta-pill--focus">
             @if (showsSelectedFilterDetails()) {
@@ -237,6 +238,9 @@
                 showResponses() ? 'expand_less' : 'expand_more'
               }}</mat-icon>
             </summary>
+            @if (selectedEvidenceCoverage(); as evidenceCoverage) {
+              <p>{{ evidenceCoverage }}</p>
+            }
             <ul class="word-cloud__responses">
               @for (response of visibleResponses(); track response + $index) {
                 <li>{{ response }}</li>

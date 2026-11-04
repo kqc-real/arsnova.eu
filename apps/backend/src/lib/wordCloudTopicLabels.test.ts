@@ -1,14 +1,19 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import type {
+  AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
   OpenWeightLlmTopicLabelOutput,
   WordCloudAnalysisEntryDTO,
 } from '@arsnova/shared-types';
+import { getWordCloudResultDisplayMode, toWordCloudSemanticSourceId } from '@arsnova/shared-types';
 import {
   invalidateWordCloudSemanticSession,
   resetWordCloudSemanticAnalyzeForTests,
 } from './wordCloudSemanticAnalyze';
 import { geometricEmbeddingForSeedText } from './wordCloudSemanticFixtures';
+import { buildLexicalWordCloudEntries } from './wordCloudAnalysis';
 import { resolveWordCloudNormalizationMeta } from './wordCloudNormalization';
 import {
   applyWordCloudTopicLabels,
@@ -25,6 +30,23 @@ const enabledEnv = {
   OPEN_WEIGHT_LLM_URL: 'http://127.0.0.1:8080',
   OPEN_WEIGHT_LLM_TOKEN: 'a'.repeat(32),
 } as NodeJS.ProcessEnv;
+
+const teachingCorpus = JSON.parse(
+  readFileSync(
+    resolve(process.cwd(), '../../docs/examples/word-cloud-teaching-corpus.v1.json'),
+    'utf8',
+  ),
+) as {
+  qa: AnalyzeWordCloudInput['items'];
+  freetext: AnalyzeWordCloudInput['items'];
+  expected: {
+    stopwords: string[];
+    surfaceForms: string[];
+    lemma: string;
+    qaClusters: { members: string[]; modelLabel: string }[];
+    freetextClusters: { members: string[]; modelLabel: string }[];
+  };
+};
 
 function entry(label: string, members: readonly string[]): WordCloudAnalysisEntryDTO {
   return {
@@ -98,6 +120,123 @@ describe('applyWordCloudTopicLabels', () => {
     resetWordCloudSemanticAnalyzeForTests();
     resetWordCloudTopicLabelCacheForTests();
   });
+
+  it.each(['qa', 'freetext'] as const)(
+    'filtert im deutschen Lehrkorpus %s Stoppwörter auch ohne spaCy',
+    (channel) => {
+      const entries = buildLexicalWordCloudEntries(teachingCorpus[channel], 'de', 80);
+      const keys = entries.map(({ key }) => key);
+      expect(keys).toEqual(expect.arrayContaining(teachingCorpus.expected.surfaceForms));
+      for (const stopword of teachingCorpus.expected.stopwords) {
+        expect(keys).not.toContain(stopword);
+      }
+      expect(keys).not.toContain('minus 1');
+
+      const forms = teachingCorpus[channel].slice(0, 2);
+      const tokens = new Map(
+        forms.map(({ id }, index) => [
+          id,
+          [
+            {
+              display: teachingCorpus.expected.surfaceForms[index]!,
+              lookup: teachingCorpus.expected.lemma,
+              surfaceLookup: teachingCorpus.expected.surfaceForms[index],
+              pos: 'NOUN',
+            },
+          ],
+        ]),
+      );
+      expect(buildLexicalWordCloudEntries(forms, 'de', 80, tokens)).toMatchObject([
+        { key: teachingCorpus.expected.lemma, count: 2 },
+      ]);
+    },
+  );
+
+  it.each(['QA', 'FREETEXT'] as const)(
+    'behält beim Lehrkorpus für %s die Cluster bei und übernimmt einen Modellnamen',
+    async (channel) => {
+      const items = channel === 'QA' ? teachingCorpus.qa : teachingCorpus.freetext;
+      const expected =
+        channel === 'QA'
+          ? teachingCorpus.expected.qaClusters
+          : teachingCorpus.expected.freetextClusters;
+      resetWordCloudSemanticAnalyzeForTests({
+        config: () => ({
+          enabled: true,
+          socketPath: '/tmp/test-encoder.sock',
+          inferenceUrl: null,
+          inferenceToken: null,
+          timeoutMs: 8_000,
+          cacheTtlSeconds: 60,
+        }),
+        embed: async (request) => ({
+          modelId: 'intfloat/multilingual-e5-small',
+          modelVersion: 'teaching-corpus-v1',
+          items: request.items.map(({ id }) => {
+            const originalId = id.replace(/^qa-question:/u, '');
+            const cluster = expected.findIndex(({ members }) => members.includes(originalId));
+            return {
+              id: toWordCloudSemanticSourceId(originalId),
+              embedding: [0, 1, 2].map((axis) => Number(axis === (cluster < 0 ? 2 : cluster))),
+            };
+          }),
+        }),
+      });
+      const request = { ...input, channel, items };
+      const meta = resolveWordCloudNormalizationMeta(request);
+      const baseline = await labelSemanticWordCloudSnapshot(request, meta, { env: {} });
+      const named = await labelSemanticWordCloudSnapshot(request, meta, {
+        env: enabledEnv,
+        label: async (labelRequest) => ({
+          status: 'completed',
+          output: {
+            schemaVersion: 1,
+            taskType: 'topic_label',
+            label: labelRequest.sources.some(({ text }) => /freiwillig|selbstselekt/iu.test(text))
+              ? 'eins zwei drei vier fünf sechs sieben'
+              : 'Stichprobengröße',
+            sourceIds: labelRequest.sources.map(({ id }) => id),
+          },
+          telemetry: {
+            taskType: 'topic_label',
+            elapsedMs: 1,
+            model: null,
+            promptTokens: null,
+            completionTokens: null,
+          },
+        }),
+      });
+      expect(getWordCloudResultDisplayMode(named)).toBe('SEMANTIC');
+      expect(named.labelModelId).toBeTruthy();
+      expect(
+        named.entries.map(({ key, members, count, confidence }) => ({
+          key,
+          members,
+          count,
+          confidence,
+        })),
+      ).toEqual(
+        baseline.entries.map(({ key, members, count, confidence }) => ({
+          key,
+          members,
+          count,
+          confidence,
+        })),
+      );
+      for (const [index, cluster] of expected.entries()) {
+        const actual = named.entries.find(
+          ({ members }) =>
+            members
+              .map(({ sourceId }) => sourceId)
+              .sort()
+              .join() === [...cluster.members].sort().join(),
+        );
+        expect(actual).toBeDefined();
+        expect(actual?.labelOrigin).toBe(index === 0 ? 'model' : 'extractive');
+        if (index === 0) expect(actual?.label).toBe(cluster.modelLabel);
+      }
+    },
+  );
 
   it('lässt bei ausgeschalteter Runtime den Mitgliedstext stehen', async () => {
     const result = await applyWordCloudTopicLabels(
@@ -378,6 +517,28 @@ describe('applyWordCloudTopicLabels', () => {
     expect(result.entries[0]?.label).toBe('Kurzer Satz hier');
     expect(result.labelSettlement).toBe('complete');
     expect(result.labelModelId).toBeNull();
+  });
+
+  it('liefert nach dem Label-Timeout weiterhin die extraktiven Themen', async () => {
+    const original = output([
+      entry('Was ist die Steigung?', ['Was ist die Steigung?', 'Wie bestimmt man die Steigung?']),
+    ]);
+    const result = await applyWordCloudTopicLabels(input, original, {
+      env: { ...enabledEnv, OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS: '1000' },
+      label: async (_request, fallback, { signal }) => {
+        await new Promise<void>((resolve) =>
+          signal!.addEventListener('abort', () => resolve(), { once: true }),
+        );
+        expect(signal?.reason).toMatchObject({ name: 'TimeoutError' });
+        return { status: 'fallback', reason: 'timeout', output: fallback };
+      },
+    });
+    expect(getWordCloudResultDisplayMode(result)).toBe('SEMANTIC');
+    expect(result.labelSettlement).toBe('transient');
+    expect(result.labelModelId).toBeNull();
+    expect(result.entries).toEqual(
+      original.entries.map((item) => ({ ...item, labelOrigin: 'extractive' })),
+    );
   });
 
   it('begrenzt Cluster-Quellen auf 6 und komprimiert lange UUID-SourceIds für das 96-Token-Budget', async () => {

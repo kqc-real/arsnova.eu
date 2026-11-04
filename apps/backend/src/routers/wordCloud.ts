@@ -9,6 +9,7 @@ import {
   AnalyzeWordCloudInputSchema,
   AnalyzeWordCloudOutputSchema,
   type AnalyzeWordCloudOutput,
+  getWordCloudResultDisplayMode,
   isWordCloudPhraseAnalysisVariant,
   prepareWordCloudAnalysisText,
 } from '@arsnova/shared-types';
@@ -122,9 +123,7 @@ export async function analyzeWordCloudSnapshot(
   const startedAt = Date.now();
   const cache = options.cache ?? getWordCloudAnalysisCache();
   const normalize = options.normalize ?? normalizeWordCloudItems;
-  const analyzableItems = input.items.filter(
-    (item) => prepareWordCloudAnalysisText(item.text).segments.length > 0,
-  );
+  const analyzableItems = input.items.filter(isAnalyzableWordCloudItem);
   const effectiveInput: AnalyzeWordCloudInput =
     analyzableItems.length === input.items.length
       ? input
@@ -152,7 +151,8 @@ export async function analyzeWordCloudSnapshot(
       labelSettlement: cached.labelSettlement ?? null,
       labelModelAccepted: Boolean(cached.labelModelId),
     });
-    return options.compactOutput?.(cached) ?? cached;
+    const output = options.compactOutput?.(cached) ?? cached;
+    return { ...output, effectiveMode: getWordCloudResultDisplayMode(output) };
   }
 
   const normalized = await normalize(effectiveInput, {
@@ -178,7 +178,8 @@ export async function analyzeWordCloudSnapshot(
       });
     }
   }
-  const output = options.compactOutput?.(rawOutput) ?? rawOutput;
+  const compact = options.compactOutput?.(rawOutput) ?? rawOutput;
+  const output = { ...compact, effectiveMode: getWordCloudResultDisplayMode(compact) };
   await cache.setSnapshot(effectiveInput, output, options.cacheScope);
   recordWordCloudAnalyzeTelemetry({
     sessionCode: effectiveInput.sessionCode,
@@ -200,6 +201,10 @@ export async function analyzeWordCloudSnapshot(
     labelModelAccepted: Boolean(output.labelModelId),
   });
   return output;
+}
+
+function isAnalyzableWordCloudItem(item: AnalyzeWordCloudInput['items'][number]): boolean {
+  return prepareWordCloudAnalysisText(item.text).segments.length > 0;
 }
 
 function truncateQaExplanation(value: string): string {
@@ -475,7 +480,7 @@ export const wordCloudRouter = router({
       return {
         ...analysis,
         eligibleQuestionCount,
-        analyzedQuestionCount: corpus.length,
+        analyzedQuestionCount: items.filter(isAnalyzableWordCloudItem).length,
         corpusRevision,
         sortMode: input.metric,
         filter: input.filter,

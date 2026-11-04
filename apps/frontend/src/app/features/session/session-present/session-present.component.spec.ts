@@ -225,6 +225,9 @@ describe('SessionPresentComponent', () => {
     setFreetextWordCloudProjectionMutateMock.mockResolvedValue({ ok: true });
     analyzeWordCloudMutateMock.mockReset();
     analyzeWordCloudMutateMock.mockResolvedValue({
+      mode: 'SEMANTIC',
+      status: 'ready',
+      fallbackUsed: false,
       entries: [
         {
           key: 'struktur',
@@ -895,6 +898,89 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('behält eine geglättete Host-Phrasenwolke bei Pending und Encoder-Fallback', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const component = fixture.componentInstance;
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    component.freetextQuestionId.set(questionId);
+    component.freetextResponses.set(['Die Stichprobe wird größer.', 'Größere Stichproben helfen.']);
+    component.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      effectiveMode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: true,
+      entries: [{ key: 'grosse stichprobe', label: 'Große Stichprobe', count: 2 }],
+    });
+    let complete: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        }),
+    );
+
+    component.setPresenterFreetextWordCloudMode('SEMANTIC');
+    expect(component.presenterFreetextSemanticPending()).toBe(true);
+    expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Große Stichprobe');
+    complete({
+      mode: 'SEMANTIC',
+      status: 'fallback',
+      fallbackUsed: true,
+      entries: [wordCloudEntry('Stichproben', 'stichproben')],
+    });
+    await vi.waitFor(() => expect(component.presenterFreetextSemanticPending()).toBe(false));
+    expect(component.presenterFreetextDisplayMode()).toBe('THEME');
+    expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Große Stichprobe');
+    expect(setFreetextWordCloudProjectionMutateMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        projection: expect.objectContaining({ effectiveMode: 'THEME', smoothingActive: true }),
+      }),
+    );
+    fixture.destroy();
+  });
+
+  it('verwirft das eigene Analyseergebnis bei einem Sprachwechsel während des Einfrierens', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const component = fixture.componentInstance;
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    component.freetextQuestionId.set(questionId);
+    component.freetextResponses.set(['Die Stichprobe wird größer.', 'Größere Stichproben helfen.']);
+    const projection = {
+      mode: 'SEMANTIC',
+      effectiveMode: 'SEMANTIC',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    } as const;
+    component.freetextWordCloudProjection.set({ ...projection, entries: [] });
+    analyzeWordCloudMutateMock.mockResolvedValueOnce({
+      mode: 'SEMANTIC',
+      status: 'ready',
+      fallbackUsed: false,
+      entries: [wordCloudEntry('Stichprobengröße', 'sample-size', 0.92)],
+    });
+    component.setPresenterFreetextWordCloudMode('SEMANTIC');
+    await vi.waitFor(() => expect(component.presenterFreetextSemanticPending()).toBe(false));
+    component.togglePresenterFreetextWordCloudFreeze();
+    component.freetextWordCloudProjection.set({ ...projection, locale: 'en', entries: [] });
+    expect(component.presenterFreetextTermLocale()).toBe('de');
+    expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Stichprobengröße');
+
+    component.togglePresenterFreetextWordCloudFreeze();
+    expect(component.presenterFreetextTermLocale()).toBe('en');
+    expect(component.freetextStageAnalysisEntries()).toBeNull();
+    expect(component.presenterFreetextDisplayMode()).not.toBe('SEMANTIC');
+    fixture.destroy();
+  });
+
   it('hält eingefrorene Glättung und den Fokus der Themen-Aktualisierung', async () => {
     const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
     const fixture = TestBed.createComponent(SessionPresentComponent);
@@ -1050,12 +1136,11 @@ describe('SessionPresentComponent', () => {
     focusFixture.detectChanges();
     await focusFixture.whenStable();
     focusFixture.detectChanges();
-    expect(
-      focusRoot.querySelector('[data-testid="presenter-freetext-word-cloud-refresh"]'),
-    ).toBeNull();
-    expect(document.activeElement).toBe(
-      focusRoot.querySelector('[data-testid="presenter-freetext-word-cloud-semantic"] button'),
+    const successfulRefresh = focusRoot.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-refresh"]',
     );
+    expect(successfulRefresh).not.toBeNull();
+    expect(document.activeElement).toBe(successfulRefresh);
     focusFixture.destroy();
   });
 
@@ -1180,14 +1265,46 @@ describe('SessionPresentComponent', () => {
     fixture.componentInstance.freetextQuestionId.set(questionId);
     fixture.componentInstance.freetextWordCloudProjection.set({
       mode: 'SEMANTIC',
+      effectiveMode: 'SEMANTIC',
+      analysisLanguage: 'de',
       locale: 'de',
       questionId,
       smoothingActive: false,
-      entries: [{ key: 'erschoepfung', label: 'Erschöpfung', count: 2, labelOrigin: 'model' }],
+      entries: [{ key: 'sample-size', label: 'Stichprobengröße', count: 2, labelOrigin: 'model' }],
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Erschöpfung');
+    expect(fixture.nativeElement.textContent).toContain('Stichprobengröße');
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('SEMANTIC');
     expect(fixture.componentInstance.freetextWordCloudTerms()).toBeNull();
+
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'SEMANTIC',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'semantic-0-response-0', label: 'Stichprobengröße', count: 2 }],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('SEMANTIC');
+
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'SEMANTIC',
+      effectiveMode: 'LEXICAL',
+      analysisStatus: 'fallback',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'stichprobe', label: 'Stichprobe', count: 2 }],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('LEXICAL');
+    expect(fixture.nativeElement.textContent).toContain('Themen sind gerade nicht belastbar.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__analysis-toolbar')).toBeNull();
+
+    fixture.componentInstance.freetextWordCloudProjection.update((projection) =>
+      projection ? { ...projection, effectiveMode: undefined, analysisStatus: undefined } : null,
+    );
+    expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('LEXICAL');
 
     fixture.componentInstance.freetextWordCloudProjection.set({
       mode: 'SEMANTIC',
@@ -3523,12 +3640,14 @@ describe('SessionPresentComponent', () => {
     getQaWordCloudProjectionQueryMock.mockResolvedValue({
       projection: {
         mode: 'SEMANTIC',
+        effectiveMode: 'SEMANTIC',
         metric: 'BEST',
         locale: 'de',
         analysisEntries: [
           {
             key: 'kapitel-4',
-            label: 'Kapitel 4',
+            label: 'Stichprobengröße',
+            labelOrigin: 'model',
             count: 7,
             basisLabel: 'Kapitel',
             members: [
@@ -3558,10 +3677,10 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(fixture.componentInstance.presenterQaWordCloudTerms()).toBeNull();
     expect(fixture.componentInstance.presenterQaWordCloudAnalysisEntries()).toMatchObject([
-      { label: 'Kapitel 4' },
+      { label: 'Stichprobengröße', labelOrigin: 'model' },
     ]);
     expect(text).toContain('Themen in den Fragen');
-    expect(text).toContain('Kapitel 4');
+    expect(text).toContain('Stichprobengröße');
     expect(text).toContain('Ähnliche Fragen sind gruppiert.');
     expect(fixture.componentInstance.qaWordCloudContextPills()).toEqual([
       'Thema',
@@ -3570,6 +3689,11 @@ describe('SessionPresentComponent', () => {
     ]);
     expect(text).toContain('Beste Fragen');
     expect(text).toContain('ohne Wort-Glättung');
+
+    fixture.componentInstance.qaWordCloudProjection.update((projection) =>
+      projection ? { ...projection, effectiveMode: undefined } : null,
+    );
+    expect(fixture.componentInstance.qaWordCloudDisplayMode()).toBe('SEMANTIC');
     fixture.destroy();
   });
 
@@ -3645,7 +3769,7 @@ describe('SessionPresentComponent', () => {
     const pills = [...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill')].map((el) =>
       (el.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
-    expect(pills).toContain('120 Fragen');
+    expect(pills).toContain('120 von 120 Fragen analysiert');
     expect(pills).toContain('Vorkommen in Fragen');
     expect(
       pills.some((pill) => pill === '1 Frage' || pill === '12 Fragen' || pill === 'Zeit'),

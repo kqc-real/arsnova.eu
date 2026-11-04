@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "locale": "de",
+  "qa": [
+    {
+      "id": "qa-size-1",
+      "text": "Wie groß muss die **Stichprobe** für ein enges Konfidenzintervall sein?",
+      "weight": 1
+    },
+    {
+      "id": "qa-size-2",
+      "text": "Wie viele Beobachtungen brauchen wir für ein enges Konfidenzintervall bei Stichproben?",
+      "weight": 1
+    },
+    {
+      "id": "qa-bias-1",
+      "text": "Verzerrt eine Stichprobe aus freiwilligen Antworten die Schätzung?",
+      "weight": 9
+    },
+    {
+      "id": "qa-bias-2",
+      "text": "Wie entsteht Selbstselektionsbias in der Stichprobe, und wie vermeiden wir ihn?",
+      "weight": 1
+    },
+    {
+      "id": "qa-formula",
+      "text": "Wie interpretiere ich die Varianz $s^2 = \\sum_i (x_i-\\bar{x})^2/(n-1)$?",
+      "weight": 1
+    }
+  ],
+  "freetext": [
+    {
+      "id": "ft-size-1",
+      "text": "Eine größere **Stichprobe** liefert ein engeres Konfidenzintervall.",
+      "weight": 1
+    },
+    {
+      "id": "ft-size-2",
+      "text": "Bei größeren Stichproben schrumpft der Standardfehler $s/\\sqrt{n}$.",
+      "weight": 1
+    },
+    {
+      "id": "ft-bias-1",
+      "text": "Wer freiwillig teilnimmt, kann die Stichprobe durch Selbstselektion verzerren.",
+      "weight": 1
+    },
+    {
+      "id": "ft-bias-2",
+      "text": "Eine Stichprobe aus Freiwilligen ist verzerrt oder bildet die Grundgesamtheit schlecht ab.",
+      "weight": 1
+    }
+  ],
+  "expected": {
+    "stopwords": ["der", "und", "oder"],
+    "surfaceForms": ["stichprobe", "stichproben"],
+    "lemma": "stichprobe",
+    "qaClusters": [
+      { "members": ["qa-size-1", "qa-size-2"], "modelLabel": "Stichprobengröße" },
+      { "members": ["qa-bias-1", "qa-bias-2"], "modelLabel": "Selbstselektion" }
+    ],
+    "freetextClusters": [
+      { "members": ["ft-size-1", "ft-size-2"], "modelLabel": "Stichprobengröße" },
+      { "members": ["ft-bias-1", "ft-bias-2"], "modelLabel": "Selbstselektion" }
+    ]
+  }
+}

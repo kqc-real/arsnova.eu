@@ -444,7 +444,7 @@ describe('WordCloudComponent', () => {
     const klausur = fixture.componentInstance.words().find((entry) => entry.word === 'Klausur');
     expect(klausur?.sourceCount).toBe(80);
     expect(fixture.componentInstance.wordTooltipDisplay(klausur!)).toContain(
-      'In 80 Fragen gefunden',
+      'In 80 von 120 analysierten Fragen',
     );
   });
 
@@ -1578,6 +1578,7 @@ describe('WordCloudComponent', () => {
         confidence: 0.92,
       },
     ]);
+    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern');
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
@@ -1593,7 +1594,8 @@ describe('WordCloudComponent', () => {
     component.exportCsv();
 
     const [csv] = downloadSpy.mock.calls[0] as [string, string, string];
-    expect(csv).toContain('label,count,variants,basis,members');
+    expect(csv).toContain('label,count,variants,basis,members,view');
+    expect(csv).toContain('Ersatzansicht mit Wörtern');
     expect(csv).toContain(
       '"Pruefungsstoff Kapitel 4",2,"Pruefungsstoff Kapitel 4","Kapitel 4","Kapitel 4 klausurrelevant? | Kapitel 4 pruefungsstoff?"',
     );
@@ -1656,6 +1658,7 @@ describe('WordCloudComponent', () => {
       'Teamarbeit schafft Fokus',
       'Motivation hilft beim Lernen',
     ]);
+    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern und Phrasen');
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
@@ -1703,7 +1706,7 @@ describe('WordCloudComponent', () => {
 
     await component.exportPng();
 
-    expect(context.fillText).toHaveBeenCalled();
+    expect(context.fillText).toHaveBeenCalledWith('Ersatzansicht mit Wörtern und Phrasen', 64, 64);
     expect(clickSpy).toHaveBeenCalled();
     expect(component.statusMessage()).toBe('PNG exportiert.');
     expect(fixture.nativeElement.textContent).toContain('PNG speichern');
