@@ -739,9 +739,13 @@ describe('SessionPresentComponent', () => {
     expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('idle');
     expect(fixture.nativeElement.textContent).toContain('Wort-Glättung nicht verfügbar');
     expect(fixture.nativeElement.textContent).not.toContain('Wort-Glättung ist an');
+    const publishedFallback = setFreetextWordCloudProjectionMutateMock.mock.calls.at(-1)?.[0] as {
+      projection: { smoothingActive: boolean };
+    };
+    expect(publishedFallback.projection.smoothingActive).toBe(false);
 
     fixture.componentInstance.freetextWordCloudProjection.set({
-      mode: 'THEME',
+      mode: 'LEXICAL',
       locale: 'de',
       questionId,
       smoothingActive: false,
@@ -751,6 +755,7 @@ describe('SessionPresentComponent', () => {
     fixture.componentInstance.presenterFreetextLemmaPreferred.set(false);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
+    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
     (
       fixture.nativeElement.querySelector(
         '[data-testid="presenter-freetext-word-cloud-freeze"]',
@@ -765,8 +770,54 @@ describe('SessionPresentComponent', () => {
       entries: [{ key: 'neu', label: 'NeueProjektion', count: 2 }],
     });
     fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
     expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
+    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
     expect(fixture.nativeElement.textContent).not.toContain('NeueProjektion');
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Häufige Wörter und kurze Wortgruppen.',
+    );
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-freeze"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set([
+      'Nach 10 Minuten Pause',
+      'Bitte 10 Minuten einplanen',
+    ]);
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'LEXICAL',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    });
+    fixture.componentInstance.presenterFreetextWordCloudModeOverride.set(null);
+    fixture.detectChanges();
+    expect(
+      fixture.componentInstance.freetextWordCloudTerms()?.some((term) => term.key === '10 minuten'),
+    ).toBe(false);
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-freeze"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
+    expect(
+      fixture.componentInstance.freetextWordCloudTerms()?.some((term) => term.key === '10 minuten'),
+    ).toBe(false);
 
     fixture.componentInstance.presenterFreetextWordCloudFrozen.set(false);
     fixture.componentInstance.freetextResponses.set(['Alt']);

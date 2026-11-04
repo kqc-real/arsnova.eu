@@ -1109,6 +1109,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     null,
   );
   readonly presenterFreetextWordCloudFrozen = signal(false);
+  private readonly presenterFreetextFrozenMode = signal<PresenterFreetextWordCloudMode | null>(
+    null,
+  );
   private readonly presenterFreetextFrozenResponses = signal<string[] | null>(null);
   readonly presenterFreetextLemmaPreferred = signal(false);
   readonly presenterFreetextLemmaPending = signal(false);
@@ -1139,6 +1142,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       const override = this.presenterFreetextWordCloudModeOverride();
       if (override) {
         return override;
+      }
+      if (this.presenterFreetextWordCloudFrozen()) {
+        const frozenMode = this.presenterFreetextFrozenMode();
+        if (frozenMode) {
+          return frozenMode;
+        }
       }
       switch (this.freetextWordCloudProjection()?.mode) {
         case 'LEXICAL':
@@ -2709,10 +2718,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   togglePresenterFreetextWordCloudFreeze(): void {
     if (this.presenterFreetextWordCloudFrozen()) {
       this.presenterFreetextWordCloudFrozen.set(false);
+      this.presenterFreetextFrozenMode.set(null);
       this.presenterFreetextFrozenResponses.set(null);
       this.presenterFreetextFrozenAnalysis.set(null);
       return;
     }
+    this.presenterFreetextFrozenMode.set(this.presenterFreetextWordCloudModeEffective());
     this.presenterFreetextFrozenAnalysis.set(this.freetextStageAnalysisEntries());
     this.presenterFreetextFrozenResponses.set([...this.freetextResponses()]);
     this.presenterFreetextWordCloudFrozen.set(true);
@@ -2755,6 +2766,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.presenterFreetextAnalysisGeneration += 1;
     this.presenterFreetextWordCloudModeOverride.set(null);
     this.presenterFreetextWordCloudFrozen.set(false);
+    this.presenterFreetextFrozenMode.set(null);
     this.presenterFreetextFrozenResponses.set(null);
     this.presenterFreetextFrozenAnalysis.set(null);
     this.presenterFreetextLemmaPreferred.set(false);
@@ -2927,7 +2939,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           mode: mode === 'WORDS' ? 'LEXICAL' : mode === 'SEMANTIC' ? 'SEMANTIC' : 'THEME',
           locale,
           questionId,
-          smoothingActive: this.presenterFreetextSmoothingPressed(),
+          smoothingActive: this.presenterFreetextLemmaSnapshotVisible(),
           entries,
         },
       });
