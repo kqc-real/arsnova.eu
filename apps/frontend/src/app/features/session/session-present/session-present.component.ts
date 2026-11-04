@@ -2998,7 +2998,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         const smooth = this.hostElement.nativeElement.querySelector(
           '[data-testid="presenter-freetext-word-cloud-smooth"]',
         );
-        if (!(smooth instanceof HTMLElement) || !smooth.isConnected || smooth.disabled) {
+        if (!(smooth instanceof HTMLButtonElement) || !smooth.isConnected || smooth.disabled) {
           return;
         }
         if (this.document.activeElement !== smooth) {
