@@ -1,0 +1,40 @@
+🚀 Backend HTTP auf http://localhost:3000
+   tRPC: http://localhost:3000/trpc
+Cleanup-Scheduler gestartet (alle 1 Min).
+   WebSocket (tRPC): ws://127.0.0.1:3001
+   Yjs WebSocket: ws://127.0.0.1:3002
+prisma:error 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Raw query failed. Code: `P0001`. Message: `ARSNOVA_QA_QUESTION_NOT_VOTABLE`
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'disabled',
+  latencyMs: 143
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'disabled',
+  latencyMs: 154
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'disabled',
+  latencyMs: 143
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'disabled',
+  latencyMs: 122
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'disabled',
+  latencyMs: 124
+}

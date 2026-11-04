@@ -1,0 +1,4218 @@
+{
+  "experiment": "E3b",
+  "condition": "C3",
+  "startedAt": "2026-11-04T16:34:12.131Z",
+  "finishedAt": "2026-11-04T16:35:05.524Z",
+  "backendPid": 35517,
+  "pollIntervalMs": 25,
+  "scenario": {
+    "code": "DHX6T3",
+    "sessionId": "9881e881-deaa-4dc8-986f-5ce23c09c58f",
+    "participantsJoined": 200,
+    "qaConfiguredClosesAt": "2026-11-05T16:34:12.151Z",
+    "qaStartStatus": "ACTIVE",
+    "submitted": [
+      {
+        "key": "A",
+        "id": "eef5b644-39d1-45c0-bd67-01e38f6a2bf7",
+        "statusAfterSubmit": "PENDING",
+        "authorIndex": 0
+      },
+      {
+        "key": "B",
+        "id": "16e21e45-69f3-4c72-923a-9eed5f1ee6c5",
+        "statusAfterSubmit": "PENDING",
+        "authorIndex": 1
+      },
+      {
+        "key": "C",
+        "id": "2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+        "statusAfterSubmit": "PENDING",
+        "authorIndex": 2
+      },
+      {
+        "key": "D",
+        "id": "316dd69d-8fbd-4438-ac89-7fe32de15819",
+        "statusAfterSubmit": "PENDING",
+        "authorIndex": 3
+      },
+      {
+        "key": "E",
+        "id": "7234a109-4347-430f-a8f1-77b912ff03e8",
+        "statusAfterSubmit": "PENDING",
+        "authorIndex": 4
+      },
+      {
+        "key": "F",
+        "id": "c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+        "statusAfterSubmit": "PENDING",
+        "authorIndex": 5
+      }
+    ],
+    "pendingVoteProbe": {
+      "accepted": false,
+      "code": "BAD_REQUEST",
+      "message": "Diese Frage kann aktuell nicht bewertet werden."
+    },
+    "moderation": [
+      {
+        "key": "A",
+        "action": "APPROVE",
+        "status": "ACTIVE"
+      },
+      {
+        "key": "B",
+        "action": "APPROVE",
+        "status": "ACTIVE"
+      },
+      {
+        "key": "C",
+        "action": "APPROVE",
+        "status": "ACTIVE"
+      },
+      {
+        "key": "C",
+        "action": "PIN",
+        "status": "PINNED"
+      },
+      {
+        "key": "D",
+        "action": "APPROVE",
+        "status": "ACTIVE"
+      },
+      {
+        "key": "E",
+        "action": "APPROVE",
+        "status": "ACTIVE"
+      },
+      {
+        "key": "F",
+        "action": "APPROVE",
+        "status": "ACTIVE"
+      }
+    ],
+    "votes": {
+      "attempted": 282,
+      "accepted": 282,
+      "failures": []
+    },
+    "hostListTotalCount": 6,
+    "hostListRaw": [
+      {
+        "id": "2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+        "text": "Ist Kapitel 4 klausurrelevant?",
+        "upvoteCount": 30,
+        "score": 30,
+        "status": "PINNED",
+        "createdAt": "2026-11-04T16:34:20.607Z",
+        "updatedAt": "2026-11-04T16:34:21.673Z",
+        "passagesRedacted": false,
+        "authorNickname": "TN 003",
+        "positiveVoteCount": 30,
+        "negativeVoteCount": 0,
+        "voteCount": 30,
+        "bestScore": 0.886482908609522,
+        "controversyScore": 0,
+        "isControversial": false,
+        "controversyInsufficientVotes": false,
+        "myVote": null,
+        "isOwn": false,
+        "hasUpvoted": false
+      },
+      {
+        "id": "eef5b644-39d1-45c0-bd67-01e38f6a2bf7",
+        "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+        "upvoteCount": 50,
+        "score": 50,
+        "status": "ACTIVE",
+        "createdAt": "2026-11-04T16:34:20.539Z",
+        "updatedAt": "2026-11-04T16:34:20.603Z",
+        "passagesRedacted": false,
+        "authorNickname": "TN 001",
+        "positiveVoteCount": 80,
+        "negativeVoteCount": 30,
+        "voteCount": 110,
+        "bestScore": 0.637432407306822,
+        "controversyScore": 0.46153846153846156,
+        "isControversial": false,
+        "controversyInsufficientVotes": false,
+        "myVote": null,
+        "isOwn": false,
+        "hasUpvoted": false
+      },
+      {
+        "id": "316dd69d-8fbd-4438-ac89-7fe32de15819",
+        "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+        "upvoteCount": 12,
+        "score": 12,
+        "status": "ACTIVE",
+        "createdAt": "2026-11-04T16:34:20.643Z",
+        "updatedAt": "2026-11-04T16:34:22.064Z",
+        "passagesRedacted": false,
+        "authorNickname": "TN 004",
+        "positiveVoteCount": 12,
+        "negativeVoteCount": 0,
+        "voteCount": 12,
+        "bestScore": 0.7574992425007574,
+        "controversyScore": 0,
+        "isControversial": false,
+        "controversyInsufficientVotes": true,
+        "myVote": null,
+        "isOwn": false,
+        "hasUpvoted": false
+      },
+      {
+        "id": "16e21e45-69f3-4c72-923a-9eed5f1ee6c5",
+        "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+        "upvoteCount": 10,
+        "score": 10,
+        "status": "ACTIVE",
+        "createdAt": "2026-11-04T16:34:20.573Z",
+        "updatedAt": "2026-11-04T16:34:21.202Z",
+        "passagesRedacted": false,
+        "authorNickname": "TN 002",
+        "positiveVoteCount": 10,
+        "negativeVoteCount": 0,
+        "voteCount": 10,
+        "bestScore": 0.7224598312333834,
+        "controversyScore": 0,
+        "isControversial": false,
+        "controversyInsufficientVotes": true,
+        "myVote": null,
+        "isOwn": false,
+        "hasUpvoted": false
+      },
+      {
+        "id": "7234a109-4347-430f-a8f1-77b912ff03e8",
+        "text": "Soll die Anwesenheit verpflichtend sein?",
+        "upvoteCount": 0,
+        "score": 0,
+        "status": "ACTIVE",
+        "createdAt": "2026-11-04T16:34:20.678Z",
+        "updatedAt": "2026-11-04T16:34:23.527Z",
+        "passagesRedacted": false,
+        "authorNickname": "TN 005",
+        "positiveVoteCount": 40,
+        "negativeVoteCount": 40,
+        "voteCount": 80,
+        "bestScore": 0.392972274311075,
+        "controversyScore": 0.8,
+        "isControversial": true,
+        "controversyInsufficientVotes": false,
+        "myVote": null,
+        "isOwn": false,
+        "hasUpvoted": false
+      },
+      {
+        "id": "c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+        "text": "Sollten wir eine Anwesenheitspflicht einführen?",
+        "upvoteCount": 0,
+        "score": 0,
+        "status": "ACTIVE",
+        "createdAt": "2026-11-04T16:34:20.720Z",
+        "updatedAt": "2026-11-04T16:34:24.629Z",
+        "passagesRedacted": false,
+        "authorNickname": "TN 006",
+        "positiveVoteCount": 20,
+        "negativeVoteCount": 20,
+        "voteCount": 40,
+        "bestScore": 0.35199278797099753,
+        "controversyScore": 0.6666666666666666,
+        "isControversial": true,
+        "controversyInsufficientVotes": false,
+        "myVote": null,
+        "isOwn": false,
+        "hasUpvoted": false
+      }
+    ],
+    "scoreTable": [
+      {
+        "key": "A",
+        "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+        "status": "ACTIVE",
+        "up": 80,
+        "down": 30,
+        "reported": {
+          "upvoteCount": 50,
+          "downvoteCount": null,
+          "voteCount": 110,
+          "bestScore": 0.637432407306822,
+          "controversyScore": 0.46153846153846156,
+          "isControversial": false,
+          "controversyInsufficientVotes": false
+        },
+        "expected": {
+          "bestScore": 0.6374,
+          "controversyScore": 0.4615,
+          "isControversial": false,
+          "T": 20
+        },
+        "match": true
+      },
+      {
+        "key": "B",
+        "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+        "status": "ACTIVE",
+        "up": 10,
+        "down": 0,
+        "reported": {
+          "upvoteCount": 10,
+          "downvoteCount": null,
+          "voteCount": 10,
+          "bestScore": 0.7224598312333834,
+          "controversyScore": 0,
+          "isControversial": false,
+          "controversyInsufficientVotes": true
+        },
+        "expected": {
+          "bestScore": 0.7225,
+          "controversyScore": 0,
+          "isControversial": false,
+          "T": 20
+        },
+        "match": true
+      },
+      {
+        "key": "C",
+        "text": "Ist Kapitel 4 klausurrelevant?",
+        "status": "PINNED",
+        "up": 30,
+        "down": 0,
+        "reported": {
+          "upvoteCount": 30,
+          "downvoteCount": null,
+          "voteCount": 30,
+          "bestScore": 0.886482908609522,
+          "controversyScore": 0,
+          "isControversial": false,
+          "controversyInsufficientVotes": false
+        },
+        "expected": {
+          "bestScore": 0.8865,
+          "controversyScore": 0,
+          "isControversial": false,
+          "T": 20
+        },
+        "match": true
+      },
+      {
+        "key": "D",
+        "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+        "status": "ACTIVE",
+        "up": 12,
+        "down": 0,
+        "reported": {
+          "upvoteCount": 12,
+          "downvoteCount": null,
+          "voteCount": 12,
+          "bestScore": 0.7574992425007574,
+          "controversyScore": 0,
+          "isControversial": false,
+          "controversyInsufficientVotes": true
+        },
+        "expected": {
+          "bestScore": 0.7575,
+          "controversyScore": 0,
+          "isControversial": false,
+          "T": 20
+        },
+        "match": true
+      },
+      {
+        "key": "E",
+        "text": "Soll die Anwesenheit verpflichtend sein?",
+        "status": "ACTIVE",
+        "up": 40,
+        "down": 40,
+        "reported": {
+          "upvoteCount": 0,
+          "downvoteCount": null,
+          "voteCount": 80,
+          "bestScore": 0.392972274311075,
+          "controversyScore": 0.8,
+          "isControversial": true,
+          "controversyInsufficientVotes": false
+        },
+        "expected": {
+          "bestScore": 0.393,
+          "controversyScore": 0.8,
+          "isControversial": true,
+          "T": 20
+        },
+        "match": true
+      },
+      {
+        "key": "F",
+        "text": "Sollten wir eine Anwesenheitspflicht einführen?",
+        "status": "ACTIVE",
+        "up": 20,
+        "down": 20,
+        "reported": {
+          "upvoteCount": 0,
+          "downvoteCount": null,
+          "voteCount": 40,
+          "bestScore": 0.35199278797099753,
+          "controversyScore": 0.6666666666666666,
+          "isControversial": true,
+          "controversyInsufficientVotes": false
+        },
+        "expected": {
+          "bestScore": 0.352,
+          "controversyScore": 0.6667,
+          "isControversial": true,
+          "T": 20
+        },
+        "match": true
+      }
+    ],
+    "timings": {
+      "createMs": 123,
+      "joinMs": 8233,
+      "submitMs": 216,
+      "voteMs": 6244
+    }
+  },
+  "runtimeBefore": {
+    "schemaVersion": 2,
+    "enabled": true,
+    "inferenceConfigured": true,
+    "capabilities": {
+      "contractVersion": "qa-summary-adapter-capabilities-v1",
+      "adapterId": "arsnova-summary-adapter-v2",
+      "modes": [
+        {
+          "kind": "full-context",
+          "requestContract": "qa-summary-context-v2",
+          "outputContract": "qa-summary-model-output-v3",
+          "promptContextContract": "moderation-prompt-context-v1",
+          "definitionVersion": "moderation-prompt-definitions-v1"
+        },
+        {
+          "kind": "legacy-text"
+        }
+      ]
+    },
+    "result": null
+  },
+  "contextPreview": {
+    "schemaVersion": 1,
+    "contractVersion": "qa-summary-context-preview-v1",
+    "promptContext": {
+      "schemaVersion": 1,
+      "contractVersion": "moderation-prompt-context-v1",
+      "packedAt": "2026-11-04T16:34:25.248Z",
+      "hashAlgorithm": "sha-256",
+      "hashMaterialVersion": "moderation-prompt-hash-material-v1",
+      "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+      "context": {
+        "contractVersion": "moderation-domain-context-v1",
+        "representation": "prompt-selection",
+        "definitionsVersion": "moderation-prompt-definitions-v1",
+        "locale": "de",
+        "meta": {
+          "sourceRevision": "moderation-source-revision-v1:ead9f06fe0c2d3a3a6cfb6498c7af529fdb208d6b0b511078dd0f2c2a559b052",
+          "analysisVersion": "moderation-analysis-builder-v1",
+          "selectionVersion": "moderation-prompt-selection-v1",
+          "revisions": {
+            "questionText": {
+              "state": "available",
+              "value": "qa-ranking-v1:295"
+            },
+            "questionVotes": {
+              "state": "available",
+              "value": "qa-ranking-v1:295:participants:200:200"
+            },
+            "questionStatus": {
+              "state": "available",
+              "value": "qa-ranking-v1:295"
+            },
+            "questionAnswerState": {
+              "state": "unavailable",
+              "reason": "not-collected"
+            },
+            "questionNlp": {
+              "state": "available",
+              "value": "qa-nlp:6b0d7834ab33aa23a29da5760e890b71f1f31c9e8e926444934cf929d9e2892b"
+            },
+            "topics": {
+              "state": "not-applicable",
+              "reason": "Semantische Q&A-Themen sind serverseitig deaktiviert."
+            },
+            "learningObjectives": {
+              "state": "unavailable",
+              "reason": "not-collected"
+            },
+            "releasedResults": {
+              "state": "not-applicable",
+              "reason": "Released quiz results do not apply to this session."
+            },
+            "feedback": {
+              "state": "not-applicable",
+              "reason": "Quick feedback is disabled for this session."
+            }
+          }
+        },
+        "scope": {
+          "channels": ["qa"],
+          "sessionPhase": "ACTIVE",
+          "questionFilter": {
+            "state": "available",
+            "statuses": ["PENDING", "ACTIVE", "PINNED"],
+            "timeWindow": {
+              "kind": "entire-session"
+            }
+          },
+          "activeWeighting": {
+            "kind": "qa-ranking",
+            "version": "qa-ranking-v1",
+            "sortMode": "BEST"
+          },
+          "selectionLimits": {
+            "questions": 4,
+            "topics": 30,
+            "compassSignals": 30,
+            "learningObjectives": 100,
+            "resultAggregates": 100,
+            "feedbackAggregates": 100
+          }
+        },
+        "questions": {
+          "state": "available",
+          "participantBasis": {
+            "state": "available",
+            "kind": "session-participant-record-count",
+            "value": 200,
+            "calculationVersion": "qa-ranking-v1"
+          },
+          "corpus": {
+            "total": 6,
+            "eligible": 6,
+            "analyzed": 6,
+            "deduplicated": 4,
+            "represented": 4
+          },
+          "items": [
+            {
+              "sourceId": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+              "status": "PINNED",
+              "answerState": {
+                "state": "unavailable",
+                "reason": "not-collected"
+              },
+              "votes": {
+                "state": "available",
+                "positive": 30,
+                "negative": 0,
+                "net": 30,
+                "total": 30,
+                "bestScore": {
+                  "state": "available",
+                  "value": 0.886482908609522
+                },
+                "controversyScore": {
+                  "state": "available",
+                  "value": 0
+                }
+              },
+              "nlp": {
+                "state": "disabled",
+                "reason": "Optional Q&A classification is disabled or was not collected for this question."
+              },
+              "topicSourceIds": []
+            },
+            {
+              "sourceId": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+              "status": "ACTIVE",
+              "answerState": {
+                "state": "unavailable",
+                "reason": "not-collected"
+              },
+              "votes": {
+                "state": "available",
+                "positive": 12,
+                "negative": 0,
+                "net": 12,
+                "total": 12,
+                "bestScore": {
+                  "state": "available",
+                  "value": 0.7574992425007574
+                },
+                "controversyScore": {
+                  "state": "available",
+                  "value": 0
+                }
+              },
+              "nlp": {
+                "state": "disabled",
+                "reason": "Optional Q&A classification is disabled or was not collected for this question."
+              },
+              "topicSourceIds": []
+            },
+            {
+              "sourceId": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+              "status": "ACTIVE",
+              "answerState": {
+                "state": "unavailable",
+                "reason": "not-collected"
+              },
+              "votes": {
+                "state": "available",
+                "positive": 40,
+                "negative": 40,
+                "net": 0,
+                "total": 80,
+                "bestScore": {
+                  "state": "available",
+                  "value": 0.392972274311075
+                },
+                "controversyScore": {
+                  "state": "available",
+                  "value": 0.8
+                }
+              },
+              "nlp": {
+                "state": "disabled",
+                "reason": "Optional Q&A classification is disabled or was not collected for this question."
+              },
+              "topicSourceIds": []
+            },
+            {
+              "sourceId": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+              "status": "ACTIVE",
+              "answerState": {
+                "state": "unavailable",
+                "reason": "not-collected"
+              },
+              "votes": {
+                "state": "available",
+                "positive": 20,
+                "negative": 20,
+                "net": 0,
+                "total": 40,
+                "bestScore": {
+                  "state": "available",
+                  "value": 0.35199278797099753
+                },
+                "controversyScore": {
+                  "state": "available",
+                  "value": 0.6666666666666666
+                }
+              },
+              "nlp": {
+                "state": "disabled",
+                "reason": "Optional Q&A classification is disabled or was not collected for this question."
+              },
+              "topicSourceIds": []
+            }
+          ]
+        },
+        "topics": {
+          "state": "disabled",
+          "reason": "Semantische Q&A-Themen sind serverseitig deaktiviert."
+        },
+        "compass": {
+          "state": "available",
+          "rulesVersion": "moderation-compass-rules-v1",
+          "signals": [
+            {
+              "sourceId": "compass-signal:friction.5e56befee429aa9325c7e5527e43fe835cebacdce61072028cdd1673f0ec73f9",
+              "signal": "high-controversy",
+              "basis": "controversy-score",
+              "cardKind": "friction",
+              "questionSourceIds": [
+                "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+                "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"
+              ],
+              "value": 0.8,
+              "reason": "The selected authoritative Q&A controversy scores exceed the visible-label threshold.",
+              "evidence": [
+                {
+                  "sourceId": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+                  "detail": "Authoritative Q&A controversy evidence."
+                },
+                {
+                  "sourceId": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+                  "detail": "Authoritative Q&A controversy evidence."
+                }
+              ],
+              "suggestedNextStep": {
+                "action": "open-discussion",
+                "rationale": "Invite clarification around the contested questions."
+              }
+            }
+          ],
+          "primarySignalSourceId": "compass-signal:friction.5e56befee429aa9325c7e5527e43fe835cebacdce61072028cdd1673f0ec73f9"
+        },
+        "learningContext": {
+          "state": "unavailable",
+          "reason": "not-collected"
+        },
+        "releasedResults": {
+          "state": "not-applicable",
+          "reason": "Released quiz results do not apply to this session."
+        },
+        "feedback": {
+          "state": "disabled",
+          "reason": "Quick feedback is disabled for this session."
+        },
+        "sources": [
+          {
+            "id": "compass-signal:friction.5e56befee429aa9325c7e5527e43fe835cebacdce61072028cdd1673f0ec73f9",
+            "kind": "compass-signal",
+            "label": "Q&A controversy"
+          },
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "content": {
+              "state": "included",
+              "text": "Ist Kapitel 4 klausurrelevant?",
+              "truncated": false
+            }
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "content": {
+              "state": "included",
+              "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+              "truncated": false
+            }
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "content": {
+              "state": "included",
+              "text": "Soll die Anwesenheit verpflichtend sein?",
+              "truncated": false
+            }
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "content": {
+              "state": "included",
+              "text": "Sollten wir eine Anwesenheitspflicht einführen?",
+              "truncated": false
+            }
+          }
+        ],
+        "limitations": [
+          {
+            "code": "module-disabled",
+            "section": "feedback",
+            "detail": "Quick feedback is disabled for this session."
+          },
+          {
+            "code": "module-disabled",
+            "section": "topics",
+            "detail": "Semantische Q&A-Themen sind serverseitig deaktiviert."
+          },
+          {
+            "code": "budget-truncated",
+            "section": "compass",
+            "detail": "1 item(s) were omitted by deterministic prompt packing."
+          }
+        ]
+      },
+      "budget": {
+        "version": "moderation-prompt-budget-v1",
+        "tokenizer": {
+          "method": "conservative-estimate",
+          "id": "utf8-byte-upper-bound",
+          "version": "1"
+        },
+        "modelProfile": "qwen3-4b-instruct-2507-q4_k_m:ctx-8192:summary-v2",
+        "contextWindowTokens": 8192,
+        "instructionTokens": 314,
+        "definitionTokens": 203,
+        "dataTokens": 6304,
+        "packedInputTokens": 6821,
+        "reservedOutputTokens": 640,
+        "safetyMarginTokens": 128,
+        "truncations": [
+          {
+            "section": "questions",
+            "omittedItems": 2,
+            "reason": "deduplication"
+          },
+          {
+            "section": "compass",
+            "omittedItems": 1,
+            "reason": "token-budget"
+          }
+        ]
+      }
+    },
+    "instructionVersion": "qa-summary-technical-handoff-v2",
+    "definitionVersion": "moderation-prompt-definitions-v1",
+    "capabilities": {
+      "contractVersion": "qa-summary-adapter-capabilities-v1",
+      "adapterId": "arsnova-summary-adapter-v2",
+      "modes": [
+        {
+          "kind": "full-context",
+          "requestContract": "qa-summary-context-v2",
+          "outputContract": "qa-summary-model-output-v3",
+          "promptContextContract": "moderation-prompt-context-v1",
+          "definitionVersion": "moderation-prompt-definitions-v1"
+        },
+        {
+          "kind": "legacy-text"
+        }
+      ]
+    },
+    "selectedMode": "full-context",
+    "fallback": null,
+    "cache": "miss"
+  },
+  "runs": [
+    {
+      "label": "burst-01",
+      "startedAt": "2026-11-04T16:34:50.257Z",
+      "windowPerf": [40401, 41820],
+      "enqueueMs": 141.3,
+      "terminalMs": 1418.5,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: -923 }",
+          "event": "completed",
+          "latencyMs": null,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": null,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:49.466Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:49.466Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-02",
+      "startedAt": "2026-11-04T16:34:49.690Z",
+      "windowPerf": [41971, 43252],
+      "enqueueMs": 65.4,
+      "terminalMs": 1280.7,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1131 }",
+          "event": "completed",
+          "latencyMs": 1131,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1131,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:50.885Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:50.885Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-03",
+      "startedAt": "2026-11-04T16:34:51.122Z",
+      "windowPerf": [43402, 44707],
+      "enqueueMs": 78.6,
+      "terminalMs": 1304.2,
+      "polls": 33,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1178 }",
+          "event": "completed",
+          "latencyMs": 1178,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1178,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:52.367Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:52.367Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-04",
+      "startedAt": "2026-11-04T16:34:52.577Z",
+      "windowPerf": [44858, 46122],
+      "enqueueMs": 69.1,
+      "terminalMs": 1264.3,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1113 }",
+          "event": "completed",
+          "latencyMs": 1113,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1113,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:53.756Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:53.756Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-05",
+      "startedAt": "2026-11-04T16:34:53.992Z",
+      "windowPerf": [46273, 47511],
+      "enqueueMs": 67.1,
+      "terminalMs": 1237.7,
+      "polls": 33,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1114 }",
+          "event": "completed",
+          "latencyMs": 1114,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1114,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:55.169Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:55.169Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-06",
+      "startedAt": "2026-11-04T16:34:55.380Z",
+      "windowPerf": [47661, 48933],
+      "enqueueMs": 73.2,
+      "terminalMs": 1271.8,
+      "polls": 33,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1125 }",
+          "event": "completed",
+          "latencyMs": 1125,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1125,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:56.572Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:56.572Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-07",
+      "startedAt": "2026-11-04T16:34:56.803Z",
+      "windowPerf": [49084, 50328],
+      "enqueueMs": 65,
+      "terminalMs": 1244.7,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1123 }",
+          "event": "completed",
+          "latencyMs": 1123,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1123,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:57.987Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:57.987Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-08",
+      "startedAt": "2026-11-04T16:34:58.198Z",
+      "windowPerf": [50479, 51767],
+      "enqueueMs": 72.8,
+      "terminalMs": 1288.2,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1125 }",
+          "event": "completed",
+          "latencyMs": 1125,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1125,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:34:59.394Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:34:59.394Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-09",
+      "startedAt": "2026-11-04T16:34:59.638Z",
+      "windowPerf": [51919, 53233],
+      "enqueueMs": 97.9,
+      "terminalMs": 1314.7,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1142 }",
+          "event": "completed",
+          "latencyMs": 1142,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1142,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:35:00.875Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:35:00.875Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    },
+    {
+      "label": "burst-10",
+      "startedAt": "2026-11-04T16:35:01.104Z",
+      "windowPerf": [53385, 54652],
+      "enqueueMs": 70.6,
+      "terminalMs": 1266.6,
+      "polls": 32,
+      "requestReturnedStatus": "pending",
+      "immediateNonPending": false,
+      "runtimeEnvelope": {
+        "schemaVersion": 2,
+        "enabled": true,
+        "inferenceConfigured": true,
+        "capabilitiesModes": ["full-context", "legacy-text"]
+      },
+      "effectiveMode": "extractive",
+      "attemptedMode": "full-context",
+      "fallbackMode": "extractive",
+      "fallbackReason": "timeout",
+      "fallbackRetry": "manual",
+      "serverLog": [
+        {
+          "line": "qa_summary:completed { status: 'ready', effectiveMode: 'extractive', fallbackReason: 'timeout', latencyMs: 1121 }",
+          "event": "completed",
+          "latencyMs": 1121,
+          "fallbackReason": "timeout"
+        }
+      ],
+      "serverLatencyMs": 1121,
+      "summary": {
+        "status": "ready",
+        "modelVersion": "extractive-v2",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "analyzedAt": "2026-11-04T16:35:02.294Z",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        },
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"],
+            "questionKeys": ["C"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"],
+            "questionKeys": ["D"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"],
+            "questionKeys": ["E"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"],
+            "questionKeys": ["F"]
+          }
+        ],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sourcesCount": 4
+      },
+      "rawResult": {
+        "schemaVersion": 2,
+        "contractVersion": "qa-summary-result-v2",
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Hervorgehobener Beleg: »Ist Kapitel 4 klausurrelevant?«",
+            "sourceIds": ["qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Müssen wir den vierten Abschnitt für die Prüfung lernen?«",
+            "sourceIds": ["qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Soll die Anwesenheit verpflichtend sein?«",
+            "sourceIds": ["qa-question:7234a109-4347-430f-a8f1-77b912ff03e8"]
+          },
+          {
+            "text": "Hervorgehobener Beleg: »Sollten wir eine Anwesenheitspflicht einführen?«",
+            "sourceIds": ["qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19"]
+          }
+        ],
+        "suggestedNextSteps": [],
+        "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+        "sources": [
+          {
+            "id": "qa-question:2eccb50e-3227-46dd-b8f0-c8b5d59df31f",
+            "kind": "qa-question",
+            "label": "Ist Kapitel 4 klausurrelevant?"
+          },
+          {
+            "id": "qa-question:316dd69d-8fbd-4438-ac89-7fe32de15819",
+            "kind": "qa-question",
+            "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+          },
+          {
+            "id": "qa-question:7234a109-4347-430f-a8f1-77b912ff03e8",
+            "kind": "qa-question",
+            "label": "Soll die Anwesenheit verpflichtend sein?"
+          },
+          {
+            "id": "qa-question:c0f1a850-68aa-47c1-8884-c1fbaf705c19",
+            "kind": "qa-question",
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?"
+          }
+        ],
+        "modelVersion": "extractive-v2",
+        "analyzedAt": "2026-11-04T16:35:02.294Z",
+        "snapshotHash": "64ebf9f656159e7ee773506f1aea18efcd33213260649edb68c4a09f76003ec7",
+        "locale": "de",
+        "execution": {
+          "attemptedMode": "full-context",
+          "effectiveMode": "extractive",
+          "fallback": {
+            "contractVersion": "qa-summary-fallback-v1",
+            "requestedRequestContract": "qa-summary-context-v2",
+            "requestedOutputContract": "qa-summary-model-output-v3",
+            "mode": "extractive",
+            "reason": "timeout",
+            "retry": "manual"
+          }
+        }
+      }
+    }
+  ],
+  "waits": [],
+  "aggregate": {
+    "runs": 10,
+    "realJobs": 10,
+    "byReason": {
+      "timeout": 10
+    },
+    "latencyByReason": {
+      "timeout": {
+        "terminalMs": {
+          "n": 10,
+          "min": 1237.7,
+          "median": 1276.25,
+          "p95": 1418.5,
+          "max": 1418.5
+        },
+        "enqueueMs": {
+          "n": 10,
+          "min": 65,
+          "median": 71.69999999999999,
+          "p95": 141.3,
+          "max": 141.3
+        },
+        "serverLatencyMs": {
+          "n": 9,
+          "min": 1113,
+          "median": 1125,
+          "p95": 1178,
+          "max": 1178
+        },
+        "polls": {
+          "n": 10,
+          "min": 32,
+          "median": 32,
+          "p95": 33,
+          "max": 33
+        }
+      }
+    }
+  },
+  "resource": {
+    "method": "/proc/<pid>/stat utime+stime Δ je 200-ms-Intervall (CLK_TCK=100) und /proc/<pid>/status VmRSS",
+    "idle": {
+      "cpuPct": {
+        "n": 49,
+        "min": 0,
+        "median": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "rssMb": {
+        "n": 49,
+        "min": 329.4296875,
+        "median": 329.4296875,
+        "p95": 329.5546875,
+        "max": 329.5546875
+      }
+    },
+    "duringSummaryWindows": {
+      "note": "Samples, deren 200-ms-Intervall ein [request-start, terminal]-Fenster überlappt",
+      "cpuPct": {
+        "n": 73,
+        "min": 0,
+        "median": 15,
+        "p95": 44.9,
+        "max": 114.8
+      },
+      "rssMb": {
+        "n": 73,
+        "min": 330.8046875,
+        "median": 362.8046875,
+        "p95": 393.8046875,
+        "max": 393.8046875
+      }
+    },
+    "setup": {
+      "cpuPct": {
+        "n": 75,
+        "min": 14.9,
+        "median": 35,
+        "p95": 65.1,
+        "max": 109.8
+      },
+      "rssMb": {
+        "n": 75,
+        "min": 410.8515625,
+        "median": 462.234375,
+        "p95": 492.0625,
+        "max": 501.1875
+      }
+    }
+  },
+  "samples": [
+    {
+      "t": 529,
+      "from": 328,
+      "phase": "setup",
+      "cpuPct": 109.8,
+      "rssKb": 420712
+    },
+    {
+      "t": 730,
+      "from": 529,
+      "phase": "setup",
+      "cpuPct": 84.7,
+      "rssKb": 439920
+    },
+    {
+      "t": 930,
+      "from": 730,
+      "phase": "setup",
+      "cpuPct": 55,
+      "rssKb": 440432
+    },
+    {
+      "t": 1130,
+      "from": 930,
+      "phase": "setup",
+      "cpuPct": 54.9,
+      "rssKb": 440816
+    },
+    {
+      "t": 1331,
+      "from": 1130,
+      "phase": "setup",
+      "cpuPct": 54.8,
+      "rssKb": 441328
+    },
+    {
+      "t": 1531,
+      "from": 1331,
+      "phase": "setup",
+      "cpuPct": 34.9,
+      "rssKb": 441712
+    },
+    {
+      "t": 1731,
+      "from": 1531,
+      "phase": "setup",
+      "cpuPct": 60.1,
+      "rssKb": 447728
+    },
+    {
+      "t": 1931,
+      "from": 1731,
+      "phase": "setup",
+      "cpuPct": 30,
+      "rssKb": 447728
+    },
+    {
+      "t": 2131,
+      "from": 1931,
+      "phase": "setup",
+      "cpuPct": 40.1,
+      "rssKb": 447984
+    },
+    {
+      "t": 2331,
+      "from": 2131,
+      "phase": "setup",
+      "cpuPct": 30,
+      "rssKb": 448112
+    },
+    {
+      "t": 2531,
+      "from": 2331,
+      "phase": "setup",
+      "cpuPct": 45,
+      "rssKb": 448240
+    },
+    {
+      "t": 2731,
+      "from": 2531,
+      "phase": "setup",
+      "cpuPct": 49.9,
+      "rssKb": 451568
+    },
+    {
+      "t": 2932,
+      "from": 2731,
+      "phase": "setup",
+      "cpuPct": 39.9,
+      "rssKb": 451568
+    },
+    {
+      "t": 3132,
+      "from": 2932,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 451696
+    },
+    {
+      "t": 3332,
+      "from": 3132,
+      "phase": "setup",
+      "cpuPct": 40.1,
+      "rssKb": 451952
+    },
+    {
+      "t": 3532,
+      "from": 3332,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 452080
+    },
+    {
+      "t": 3733,
+      "from": 3532,
+      "phase": "setup",
+      "cpuPct": 54.8,
+      "rssKb": 455920
+    },
+    {
+      "t": 3933,
+      "from": 3733,
+      "phase": "setup",
+      "cpuPct": 69.7,
+      "rssKb": 455920
+    },
+    {
+      "t": 4134,
+      "from": 3933,
+      "phase": "setup",
+      "cpuPct": 54.9,
+      "rssKb": 456304
+    },
+    {
+      "t": 4334,
+      "from": 4134,
+      "phase": "setup",
+      "cpuPct": 49.8,
+      "rssKb": 456432
+    },
+    {
+      "t": 4535,
+      "from": 4334,
+      "phase": "setup",
+      "cpuPct": 29.9,
+      "rssKb": 460144
+    },
+    {
+      "t": 4735,
+      "from": 4535,
+      "phase": "setup",
+      "cpuPct": 25.1,
+      "rssKb": 460400
+    },
+    {
+      "t": 4935,
+      "from": 4735,
+      "phase": "setup",
+      "cpuPct": 34.9,
+      "rssKb": 460400
+    },
+    {
+      "t": 5135,
+      "from": 4935,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 460528
+    },
+    {
+      "t": 5336,
+      "from": 5135,
+      "phase": "setup",
+      "cpuPct": 29.9,
+      "rssKb": 460656
+    },
+    {
+      "t": 5536,
+      "from": 5336,
+      "phase": "setup",
+      "cpuPct": 40,
+      "rssKb": 460656
+    },
+    {
+      "t": 5738,
+      "from": 5536,
+      "phase": "setup",
+      "cpuPct": 49.7,
+      "rssKb": 464624
+    },
+    {
+      "t": 5939,
+      "from": 5738,
+      "phase": "setup",
+      "cpuPct": 44.7,
+      "rssKb": 464752
+    },
+    {
+      "t": 6139,
+      "from": 5939,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 464752
+    },
+    {
+      "t": 6339,
+      "from": 6139,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 464752
+    },
+    {
+      "t": 6539,
+      "from": 6339,
+      "phase": "setup",
+      "cpuPct": 34.9,
+      "rssKb": 465008
+    },
+    {
+      "t": 6740,
+      "from": 6539,
+      "phase": "setup",
+      "cpuPct": 49.9,
+      "rssKb": 469104
+    },
+    {
+      "t": 6940,
+      "from": 6740,
+      "phase": "setup",
+      "cpuPct": 29.9,
+      "rssKb": 469232
+    },
+    {
+      "t": 7140,
+      "from": 6940,
+      "phase": "setup",
+      "cpuPct": 30,
+      "rssKb": 469232
+    },
+    {
+      "t": 7342,
+      "from": 7140,
+      "phase": "setup",
+      "cpuPct": 29.8,
+      "rssKb": 469360
+    },
+    {
+      "t": 7542,
+      "from": 7342,
+      "phase": "setup",
+      "cpuPct": 34.9,
+      "rssKb": 469360
+    },
+    {
+      "t": 7741,
+      "from": 7542,
+      "phase": "setup",
+      "cpuPct": 35.1,
+      "rssKb": 473328
+    },
+    {
+      "t": 7941,
+      "from": 7741,
+      "phase": "setup",
+      "cpuPct": 30,
+      "rssKb": 473328
+    },
+    {
+      "t": 8143,
+      "from": 7941,
+      "phase": "setup",
+      "cpuPct": 24.9,
+      "rssKb": 473712
+    },
+    {
+      "t": 8343,
+      "from": 8143,
+      "phase": "setup",
+      "cpuPct": 39.8,
+      "rssKb": 473712
+    },
+    {
+      "t": 8544,
+      "from": 8343,
+      "phase": "setup",
+      "cpuPct": 24.9,
+      "rssKb": 473840
+    },
+    {
+      "t": 8745,
+      "from": 8544,
+      "phase": "setup",
+      "cpuPct": 24.9,
+      "rssKb": 474224
+    },
+    {
+      "t": 8945,
+      "from": 8745,
+      "phase": "setup",
+      "cpuPct": 65.1,
+      "rssKb": 483008
+    },
+    {
+      "t": 9146,
+      "from": 8945,
+      "phase": "setup",
+      "cpuPct": 39.8,
+      "rssKb": 483392
+    },
+    {
+      "t": 9346,
+      "from": 9146,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 483392
+    },
+    {
+      "t": 9546,
+      "from": 9346,
+      "phase": "setup",
+      "cpuPct": 44.9,
+      "rssKb": 483392
+    },
+    {
+      "t": 9747,
+      "from": 9546,
+      "phase": "setup",
+      "cpuPct": 39.9,
+      "rssKb": 484544
+    },
+    {
+      "t": 9948,
+      "from": 9747,
+      "phase": "setup",
+      "cpuPct": 34.7,
+      "rssKb": 484544
+    },
+    {
+      "t": 10148,
+      "from": 9948,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 484544
+    },
+    {
+      "t": 10349,
+      "from": 10148,
+      "phase": "setup",
+      "cpuPct": 54.8,
+      "rssKb": 484800
+    },
+    {
+      "t": 10549,
+      "from": 10349,
+      "phase": "setup",
+      "cpuPct": 50,
+      "rssKb": 489536
+    },
+    {
+      "t": 10749,
+      "from": 10549,
+      "phase": "setup",
+      "cpuPct": 30,
+      "rssKb": 489664
+    },
+    {
+      "t": 10949,
+      "from": 10749,
+      "phase": "setup",
+      "cpuPct": 15,
+      "rssKb": 489664
+    },
+    {
+      "t": 11149,
+      "from": 10949,
+      "phase": "setup",
+      "cpuPct": 14.9,
+      "rssKb": 489664
+    },
+    {
+      "t": 11350,
+      "from": 11149,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 489920
+    },
+    {
+      "t": 11551,
+      "from": 11350,
+      "phase": "setup",
+      "cpuPct": 24.9,
+      "rssKb": 490176
+    },
+    {
+      "t": 11751,
+      "from": 11551,
+      "phase": "setup",
+      "cpuPct": 24.9,
+      "rssKb": 490432
+    },
+    {
+      "t": 11951,
+      "from": 11751,
+      "phase": "setup",
+      "cpuPct": 30.1,
+      "rssKb": 490688
+    },
+    {
+      "t": 12151,
+      "from": 11951,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 491072
+    },
+    {
+      "t": 12351,
+      "from": 12151,
+      "phase": "setup",
+      "cpuPct": 50,
+      "rssKb": 495936
+    },
+    {
+      "t": 12551,
+      "from": 12351,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 496064
+    },
+    {
+      "t": 12751,
+      "from": 12551,
+      "phase": "setup",
+      "cpuPct": 29.9,
+      "rssKb": 496448
+    },
+    {
+      "t": 12952,
+      "from": 12751,
+      "phase": "setup",
+      "cpuPct": 44.8,
+      "rssKb": 496832
+    },
+    {
+      "t": 13152,
+      "from": 12952,
+      "phase": "setup",
+      "cpuPct": 35,
+      "rssKb": 497088
+    },
+    {
+      "t": 13353,
+      "from": 13152,
+      "phase": "setup",
+      "cpuPct": 24.9,
+      "rssKb": 497472
+    },
+    {
+      "t": 13554,
+      "from": 13353,
+      "phase": "setup",
+      "cpuPct": 44.8,
+      "rssKb": 497728
+    },
+    {
+      "t": 13754,
+      "from": 13554,
+      "phase": "setup",
+      "cpuPct": 44.9,
+      "rssKb": 497984
+    },
+    {
+      "t": 13955,
+      "from": 13754,
+      "phase": "setup",
+      "cpuPct": 34.8,
+      "rssKb": 502848
+    },
+    {
+      "t": 14155,
+      "from": 13955,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 503232
+    },
+    {
+      "t": 14355,
+      "from": 14155,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 503616
+    },
+    {
+      "t": 14555,
+      "from": 14355,
+      "phase": "setup",
+      "cpuPct": 25,
+      "rssKb": 503744
+    },
+    {
+      "t": 14755,
+      "from": 14555,
+      "phase": "setup",
+      "cpuPct": 20,
+      "rssKb": 503872
+    },
+    {
+      "t": 14955,
+      "from": 14755,
+      "phase": "setup",
+      "cpuPct": 30,
+      "rssKb": 504128
+    },
+    {
+      "t": 15155,
+      "from": 14955,
+      "phase": "setup",
+      "cpuPct": 20,
+      "rssKb": 504256
+    },
+    {
+      "t": 15355,
+      "from": 15155,
+      "phase": "setup",
+      "cpuPct": 64.9,
+      "rssKb": 513216
+    },
+    {
+      "t": 15556,
+      "from": 15355,
+      "phase": "settle",
+      "cpuPct": 44.8,
+      "rssKb": 514496
+    },
+    {
+      "t": 15756,
+      "from": 15556,
+      "phase": "settle",
+      "cpuPct": 10,
+      "rssKb": 514496
+    },
+    {
+      "t": 15957,
+      "from": 15756,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 16157,
+      "from": 15957,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 16357,
+      "from": 16157,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 16557,
+      "from": 16357,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 16758,
+      "from": 16557,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 16958,
+      "from": 16758,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 17158,
+      "from": 16958,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 17359,
+      "from": 17158,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 17559,
+      "from": 17359,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 17760,
+      "from": 17559,
+      "phase": "settle",
+      "cpuPct": 5,
+      "rssKb": 514496
+    },
+    {
+      "t": 17960,
+      "from": 17760,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 18161,
+      "from": 17960,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 18361,
+      "from": 18161,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 18561,
+      "from": 18361,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 18762,
+      "from": 18561,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 18962,
+      "from": 18762,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 19163,
+      "from": 18962,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 19363,
+      "from": 19163,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 19563,
+      "from": 19363,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 19763,
+      "from": 19563,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 19964,
+      "from": 19763,
+      "phase": "settle",
+      "cpuPct": 20,
+      "rssKb": 514496
+    },
+    {
+      "t": 20164,
+      "from": 19964,
+      "phase": "settle",
+      "cpuPct": 20,
+      "rssKb": 514496
+    },
+    {
+      "t": 20364,
+      "from": 20164,
+      "phase": "settle",
+      "cpuPct": 15,
+      "rssKb": 514496
+    },
+    {
+      "t": 20565,
+      "from": 20364,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 20765,
+      "from": 20565,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 20965,
+      "from": 20765,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 21165,
+      "from": 20965,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 21365,
+      "from": 21165,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 21565,
+      "from": 21365,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 21765,
+      "from": 21565,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 21966,
+      "from": 21765,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 22166,
+      "from": 21966,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 22367,
+      "from": 22166,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 22567,
+      "from": 22367,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 22768,
+      "from": 22567,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 22969,
+      "from": 22768,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 23170,
+      "from": 22969,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 23370,
+      "from": 23170,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 23571,
+      "from": 23370,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 23772,
+      "from": 23571,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 23973,
+      "from": 23772,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 24174,
+      "from": 23973,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 514496
+    },
+    {
+      "t": 24375,
+      "from": 24174,
+      "phase": "settle",
+      "cpuPct": 84.6,
+      "rssKb": 347296
+    },
+    {
+      "t": 24576,
+      "from": 24375,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 347296
+    },
+    {
+      "t": 24777,
+      "from": 24576,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 347296
+    },
+    {
+      "t": 24980,
+      "from": 24777,
+      "phase": "settle",
+      "cpuPct": 34.5,
+      "rssKb": 347296
+    },
+    {
+      "t": 25181,
+      "from": 24980,
+      "phase": "settle",
+      "cpuPct": 54.7,
+      "rssKb": 336824
+    },
+    {
+      "t": 25381,
+      "from": 25181,
+      "phase": "settle",
+      "cpuPct": 5,
+      "rssKb": 336952
+    },
+    {
+      "t": 25582,
+      "from": 25381,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 25782,
+      "from": 25582,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 25983,
+      "from": 25782,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 26183,
+      "from": 25983,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 26384,
+      "from": 26183,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 26585,
+      "from": 26384,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 26786,
+      "from": 26585,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 26986,
+      "from": 26786,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 27187,
+      "from": 26986,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 27387,
+      "from": 27187,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 27588,
+      "from": 27387,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 27789,
+      "from": 27588,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 27989,
+      "from": 27789,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 28190,
+      "from": 27989,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 28391,
+      "from": 28190,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 28591,
+      "from": 28391,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 28792,
+      "from": 28591,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 28993,
+      "from": 28792,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 29194,
+      "from": 28993,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 29395,
+      "from": 29194,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 29595,
+      "from": 29395,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 336952
+    },
+    {
+      "t": 29795,
+      "from": 29595,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 337208
+    },
+    {
+      "t": 29995,
+      "from": 29795,
+      "phase": "settle",
+      "cpuPct": 5,
+      "rssKb": 337336
+    },
+    {
+      "t": 30195,
+      "from": 29995,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 30395,
+      "from": 30195,
+      "phase": "settle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 30595,
+      "from": 30395,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 30796,
+      "from": 30595,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 30996,
+      "from": 30796,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 31207,
+      "from": 30996,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 31408,
+      "from": 31207,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 31609,
+      "from": 31408,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 31809,
+      "from": 31609,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 32009,
+      "from": 31809,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 32210,
+      "from": 32009,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 32411,
+      "from": 32210,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 32612,
+      "from": 32411,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 32812,
+      "from": 32612,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 33012,
+      "from": 32812,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 33213,
+      "from": 33012,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 33414,
+      "from": 33213,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 33615,
+      "from": 33414,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 33815,
+      "from": 33615,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 34016,
+      "from": 33815,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 34216,
+      "from": 34016,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 34417,
+      "from": 34216,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 34617,
+      "from": 34417,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 34817,
+      "from": 34617,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 35017,
+      "from": 34817,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 35218,
+      "from": 35017,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 35418,
+      "from": 35218,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 35619,
+      "from": 35418,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 35819,
+      "from": 35619,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 36019,
+      "from": 35819,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 36221,
+      "from": 36019,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 36422,
+      "from": 36221,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 36623,
+      "from": 36422,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 36823,
+      "from": 36623,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 37023,
+      "from": 36823,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 37223,
+      "from": 37023,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 37424,
+      "from": 37223,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 37625,
+      "from": 37424,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 37826,
+      "from": 37625,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 38026,
+      "from": 37826,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 38227,
+      "from": 38026,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 38427,
+      "from": 38227,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 38627,
+      "from": 38427,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 38827,
+      "from": 38627,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 39028,
+      "from": 38827,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 39228,
+      "from": 39028,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 39428,
+      "from": 39228,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 39628,
+      "from": 39428,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337336
+    },
+    {
+      "t": 39828,
+      "from": 39628,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337464
+    },
+    {
+      "t": 40028,
+      "from": 39828,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337464
+    },
+    {
+      "t": 40228,
+      "from": 40028,
+      "phase": "idle",
+      "cpuPct": 0,
+      "rssKb": 337464
+    },
+    {
+      "t": 40429,
+      "from": 40228,
+      "phase": "summary",
+      "cpuPct": 5,
+      "rssKb": 338744
+    },
+    {
+      "t": 40630,
+      "from": 40429,
+      "phase": "summary",
+      "cpuPct": 49.8,
+      "rssKb": 340152
+    },
+    {
+      "t": 40830,
+      "from": 40630,
+      "phase": "summary",
+      "cpuPct": 30,
+      "rssKb": 341944
+    },
+    {
+      "t": 41030,
+      "from": 40830,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 342200
+    },
+    {
+      "t": 41230,
+      "from": 41030,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 342328
+    },
+    {
+      "t": 41430,
+      "from": 41230,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 342456
+    },
+    {
+      "t": 41630,
+      "from": 41430,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 342840
+    },
+    {
+      "t": 41830,
+      "from": 41630,
+      "phase": "summary",
+      "cpuPct": 44.9,
+      "rssKb": 347320
+    },
+    {
+      "t": 42031,
+      "from": 41830,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 347576
+    },
+    {
+      "t": 42231,
+      "from": 42031,
+      "phase": "summary",
+      "cpuPct": 34.9,
+      "rssKb": 348344
+    },
+    {
+      "t": 42431,
+      "from": 42231,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 348600
+    },
+    {
+      "t": 42631,
+      "from": 42431,
+      "phase": "summary",
+      "cpuPct": 5,
+      "rssKb": 348600
+    },
+    {
+      "t": 42831,
+      "from": 42631,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 348984
+    },
+    {
+      "t": 43032,
+      "from": 42831,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 350776
+    },
+    {
+      "t": 43232,
+      "from": 43032,
+      "phase": "summary",
+      "cpuPct": 35,
+      "rssKb": 355256
+    },
+    {
+      "t": 43432,
+      "from": 43232,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 355896
+    },
+    {
+      "t": 43633,
+      "from": 43432,
+      "phase": "summary",
+      "cpuPct": 114.8,
+      "rssKb": 356152
+    },
+    {
+      "t": 43833,
+      "from": 43633,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 356152
+    },
+    {
+      "t": 44033,
+      "from": 43833,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 356152
+    },
+    {
+      "t": 44233,
+      "from": 44033,
+      "phase": "summary",
+      "cpuPct": 14.9,
+      "rssKb": 356792
+    },
+    {
+      "t": 44434,
+      "from": 44233,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 357048
+    },
+    {
+      "t": 44634,
+      "from": 44434,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 357048
+    },
+    {
+      "t": 44834,
+      "from": 44634,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 357048
+    },
+    {
+      "t": 45034,
+      "from": 44834,
+      "phase": "summary",
+      "cpuPct": 30,
+      "rssKb": 357176
+    },
+    {
+      "t": 45234,
+      "from": 45034,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 357176
+    },
+    {
+      "t": 45434,
+      "from": 45234,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 357432
+    },
+    {
+      "t": 45634,
+      "from": 45434,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 357432
+    },
+    {
+      "t": 45834,
+      "from": 45634,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 358072
+    },
+    {
+      "t": 46035,
+      "from": 45834,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 363704
+    },
+    {
+      "t": 46235,
+      "from": 46035,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 365240
+    },
+    {
+      "t": 46435,
+      "from": 46235,
+      "phase": "summary",
+      "cpuPct": 34.9,
+      "rssKb": 370872
+    },
+    {
+      "t": 46636,
+      "from": 46435,
+      "phase": "summary",
+      "cpuPct": 5,
+      "rssKb": 370872
+    },
+    {
+      "t": 46836,
+      "from": 46636,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 370872
+    },
+    {
+      "t": 47037,
+      "from": 46836,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 371000
+    },
+    {
+      "t": 47237,
+      "from": 47037,
+      "phase": "summary",
+      "cpuPct": 5,
+      "rssKb": 371000
+    },
+    {
+      "t": 47437,
+      "from": 47237,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 371000
+    },
+    {
+      "t": 47637,
+      "from": 47437,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 371512
+    },
+    {
+      "t": 47837,
+      "from": 47637,
+      "phase": "summary",
+      "cpuPct": 35,
+      "rssKb": 373944
+    },
+    {
+      "t": 48037,
+      "from": 47837,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 373944
+    },
+    {
+      "t": 48237,
+      "from": 48037,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 373944
+    },
+    {
+      "t": 48437,
+      "from": 48237,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 374584
+    },
+    {
+      "t": 48637,
+      "from": 48437,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 374584
+    },
+    {
+      "t": 48837,
+      "from": 48637,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 374712
+    },
+    {
+      "t": 49037,
+      "from": 48837,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 375352
+    },
+    {
+      "t": 49237,
+      "from": 49037,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 376120
+    },
+    {
+      "t": 49437,
+      "from": 49237,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 376120
+    },
+    {
+      "t": 49638,
+      "from": 49437,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 376120
+    },
+    {
+      "t": 49839,
+      "from": 49638,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 376120
+    },
+    {
+      "t": 50039,
+      "from": 49839,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 376632
+    },
+    {
+      "t": 50239,
+      "from": 50039,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 376760
+    },
+    {
+      "t": 50440,
+      "from": 50239,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 377400
+    },
+    {
+      "t": 50641,
+      "from": 50440,
+      "phase": "summary",
+      "cpuPct": 24.9,
+      "rssKb": 377912
+    },
+    {
+      "t": 50841,
+      "from": 50641,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 377912
+    },
+    {
+      "t": 51041,
+      "from": 50841,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 377912
+    },
+    {
+      "t": 51242,
+      "from": 51041,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 377912
+    },
+    {
+      "t": 51442,
+      "from": 51242,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 377912
+    },
+    {
+      "t": 51642,
+      "from": 51442,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 378680
+    },
+    {
+      "t": 51842,
+      "from": 51642,
+      "phase": "summary",
+      "cpuPct": 90,
+      "rssKb": 379832
+    },
+    {
+      "t": 52042,
+      "from": 51842,
+      "phase": "summary",
+      "cpuPct": 35,
+      "rssKb": 379832
+    },
+    {
+      "t": 52242,
+      "from": 52042,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 379832
+    },
+    {
+      "t": 52442,
+      "from": 52242,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 380856
+    },
+    {
+      "t": 52642,
+      "from": 52442,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 383416
+    },
+    {
+      "t": 52842,
+      "from": 52642,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 385976
+    },
+    {
+      "t": 53042,
+      "from": 52842,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 388280
+    },
+    {
+      "t": 53242,
+      "from": 53042,
+      "phase": "summary",
+      "cpuPct": 30.1,
+      "rssKb": 390968
+    },
+    {
+      "t": 53442,
+      "from": 53242,
+      "phase": "summary",
+      "cpuPct": 5,
+      "rssKb": 391480
+    },
+    {
+      "t": 53643,
+      "from": 53442,
+      "phase": "summary",
+      "cpuPct": 20,
+      "rssKb": 400568
+    },
+    {
+      "t": 53843,
+      "from": 53643,
+      "phase": "summary",
+      "cpuPct": 15,
+      "rssKb": 403256
+    },
+    {
+      "t": 54044,
+      "from": 53843,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 403256
+    },
+    {
+      "t": 54245,
+      "from": 54044,
+      "phase": "summary",
+      "cpuPct": 10,
+      "rssKb": 403256
+    },
+    {
+      "t": 54446,
+      "from": 54245,
+      "phase": "summary",
+      "cpuPct": 5,
+      "rssKb": 403256
+    },
+    {
+      "t": 54646,
+      "from": 54446,
+      "phase": "summary",
+      "cpuPct": 29.9,
+      "rssKb": 403256
+    },
+    {
+      "t": 54846,
+      "from": 54646,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 55046,
+      "from": 54846,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 55247,
+      "from": 55046,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 55448,
+      "from": 55247,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 55648,
+      "from": 55448,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 55848,
+      "from": 55648,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 56049,
+      "from": 55848,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 56249,
+      "from": 56049,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 56450,
+      "from": 56249,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 56650,
+      "from": 56450,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 56851,
+      "from": 56650,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 57051,
+      "from": 56851,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 57252,
+      "from": 57051,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 57452,
+      "from": 57252,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    },
+    {
+      "t": 57654,
+      "from": 57452,
+      "phase": "idle-after",
+      "cpuPct": 0,
+      "rssKb": 403256
+    }
+  ]
+}

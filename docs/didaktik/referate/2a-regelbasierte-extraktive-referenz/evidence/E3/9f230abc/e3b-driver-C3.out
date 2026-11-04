@@ -1,0 +1,12 @@
+[C3] setup ok session=DHX6T3 {"createMs":123,"joinMs":8233,"submitMs":216,"voteMs":6244}
+[C3] burst-01: extractive/timeout enq=141.3ms term=1418.5ms polls=32 server=NaN immediate=false
+[C3] burst-02: extractive/timeout enq=65.4ms term=1280.7ms polls=32 server=1131 immediate=false
+[C3] burst-03: extractive/timeout enq=78.6ms term=1304.2ms polls=33 server=1178 immediate=false
+[C3] burst-04: extractive/timeout enq=69.1ms term=1264.3ms polls=32 server=1113 immediate=false
+[C3] burst-05: extractive/timeout enq=67.1ms term=1237.7ms polls=33 server=1114 immediate=false
+[C3] burst-06: extractive/timeout enq=73.2ms term=1271.8ms polls=33 server=1125 immediate=false
+[C3] burst-07: extractive/timeout enq=65ms term=1244.7ms polls=32 server=1123 immediate=false
+[C3] burst-08: extractive/timeout enq=72.8ms term=1288.2ms polls=32 server=1125 immediate=false
+[C3] burst-09: extractive/timeout enq=97.9ms term=1314.7ms polls=32 server=1142 immediate=false
+[C3] burst-10: extractive/timeout enq=70.6ms term=1266.6ms polls=32 server=1121 immediate=false
+[C3] wrote <evidence>/E3/e3b-raw-C3.json

@@ -1,0 +1,22 @@
+[C2] setup ok session=NATRC7 {"createMs":133,"joinMs":7487,"submitMs":230,"voteMs":5502}
+[C2] burst-01: extractive/unavailable enq=78.9ms term=284ms polls=4 server=125 immediate=false
+[C2] burst-02: extractive/unavailable enq=60.9ms term=267.3ms polls=4 server=140 immediate=false
+[C2] burst-03: extractive/unavailable enq=58.8ms term=249.2ms polls=4 server=112 immediate=false
+[C2] burst-04: extractive/circuit_open enq=80.6ms term=288.9ms polls=4 server=136 immediate=false
+[C2] burst-05: extractive/circuit_open enq=83.6ms term=288.6ms polls=4 server=158 immediate=false
+[C2] burst-06: extractive/circuit_open enq=60.5ms term=218.5ms polls=3 server=107 immediate=false
+[C2] burst-07: extractive/circuit_open enq=65.7ms term=283.6ms polls=4 server=122 immediate=false
+[C2] burst-08: extractive/circuit_open enq=68.6ms term=263.8ms polls=4 server=114 immediate=false
+[C2] burst-09: extractive/circuit_open enq=61.6ms term=250.6ms polls=4 server=116 immediate=false
+[C2] burst-10: extractive/circuit_open enq=56.6ms term=248.2ms polls=4 server=112 immediate=false
+[C2] spaced-01: extractive/unavailable enq=86.4ms term=280.8ms polls=3 server=122 immediate=false
+[C2] spaced-02: extractive/unavailable enq=58.6ms term=256.3ms polls=4 server=121 immediate=false
+[C2] spaced-03: extractive/unavailable enq=68.2ms term=260.8ms polls=4 server=117 immediate=false
+[C2] spaced-04: extractive/circuit_open enq=60.1ms term=269.6ms polls=4 server=115 immediate=false
+[C2] spaced-05: extractive/unavailable enq=84.9ms term=284.2ms polls=4 server=132 immediate=false
+[C2] spaced-06: extractive/unavailable enq=67ms term=264.4ms polls=4 server=122 immediate=false
+[C2] spaced-07: extractive/unavailable enq=64.8ms term=260.7ms polls=4 server=108 immediate=false
+[C2] spaced-08: extractive/circuit_open enq=64.2ms term=318.4ms polls=5 server=189 immediate=false
+[C2] spaced-09: extractive/circuit_open enq=86.2ms term=285.1ms polls=4 server=118 immediate=false
+[C2] spaced-10: extractive/unavailable enq=102.8ms term=327.4ms polls=4 server=148 immediate=false
+[C2] wrote <evidence>/E3/e3b-raw-C2.json

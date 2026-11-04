@@ -77,7 +77,7 @@ const combined = {
   conditions: CONDS.map((c) => ({ ...c, env: readEnv(c.id) })),
   c2aIpv4Blackhole: {
     env: readEnv('C2a-ipv4-blackhole'),
-    note: 'Vorlauf abgebrochen (8 Jobs à ~90 s); Driver-JSON nicht geschrieben, Werte aus Backend-Log.',
+    note: 'Vorlauf vom 21.10.2026 auf a657798e (abgebrochen, 8 Jobs à ~90 s), nicht wiederholt; Werte aus Backend-Log.',
     runs: c2aRuns,
   },
   stubRequests: stubLog,
@@ -169,7 +169,9 @@ for (const c of CONDS) {
   p('```');
   p();
 }
-p('### C2a – Vorlauf „unavailable“ über IPv4-Loopback (abgebrochen)');
+p(
+  '### C2a – Vorlauf „unavailable“ über IPv4-Loopback (abgebrochen; Lauf vom 21.10.2026 auf a657798e, nicht wiederholt)',
+);
 p();
 p(
   'Wie C2, aber `OPEN_WEIGHT_LLM_URL=http://127.0.0.1:59999`. Unter WSL2 (mirrored networking) hängt `connect()` zu einem geschlossenen IPv4-Loopback-Port, statt sofort abgelehnt zu werden. Ergebnis aus dem Backend-Log:',

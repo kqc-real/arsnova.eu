@@ -1,0 +1,130 @@
+🚀 Backend HTTP auf http://localhost:3000
+   tRPC: http://localhost:3000/trpc
+Cleanup-Scheduler gestartet (alle 1 Min).
+   WebSocket (tRPC): ws://127.0.0.1:3001
+   Yjs WebSocket: ws://127.0.0.1:3002
+prisma:error 
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Raw query failed. Code: `P0001`. Message: `ARSNOVA_QA_QUESTION_NOT_VOTABLE`
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 125
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 140
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 112
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 136
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 158
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 107
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 122
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 114
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 116
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 112
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 122
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 121
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 117
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 115
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 132
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 122
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 108
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 189
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'circuit_open',
+  latencyMs: 118
+}
+qa_summary:completed {
+  status: 'ready',
+  effectiveMode: 'extractive',
+  fallbackReason: 'unavailable',
+  latencyMs: 148
+}
