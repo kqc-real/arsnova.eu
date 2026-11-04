@@ -1059,6 +1059,89 @@ describe('SessionPresentComponent', () => {
     focusFixture.destroy();
   });
 
+  it('behält den Fokus auf der Wort-Glättung während der Analyse', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+
+    const focusSmooth = () => {
+      const button = root.querySelector<HTMLButtonElement>(
+        '[data-testid="presenter-freetext-word-cloud-smooth"]',
+      );
+      button?.focus();
+      return button;
+    };
+
+    let rejectSmoothing: (reason?: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectSmoothing = reject;
+        }),
+    );
+    focusSmooth()?.click();
+    fixture.detectChanges();
+    const pending = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(pending?.disabled).toBe(false);
+    expect(pending?.getAttribute('aria-disabled')).toBe('true');
+    expect(pending?.getAttribute('aria-busy')).toBe('true');
+    expect(document.activeElement).toBe(pending);
+    pending?.click();
+    expect(analyzeWordCloudMutateMock).toHaveBeenCalledTimes(1);
+
+    rejectSmoothing(new Error('Analyse fehlgeschlagen'));
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const failed = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(failed?.getAttribute('aria-busy')).toBeNull();
+    expect(document.activeElement).toBe(failed);
+
+    let releaseSmoothing: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseSmoothing = resolve;
+        }),
+    );
+    focusSmooth()?.click();
+    fixture.detectChanges();
+    const pendingAgain = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    );
+    expect(pendingAgain?.disabled).toBe(false);
+    expect(document.activeElement).toBe(pendingAgain);
+    releaseSmoothing({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('Alt', 'alt')],
+    });
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-freetext-word-cloud-smooth"]'),
+    );
+    expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('active');
+
+    fixture.destroy();
+  });
+
   it('zeigt während der Freitext-Abstimmung die Frage statt der Wortwolke', async () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',

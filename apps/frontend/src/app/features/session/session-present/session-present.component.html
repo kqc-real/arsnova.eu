@@ -1422,7 +1422,8 @@
               [class.session-present__word-cloud-action--pressed]="
                 presenterFreetextSmoothingPressed()
               "
-              [disabled]="presenterFreetextSmoothingDisabled()"
+              [disabled]="presenterFreetextSmoothingDisabled() && !presenterFreetextLemmaPending()"
+              [attr.aria-disabled]="presenterFreetextSmoothingDisabled() ? true : null"
               [attr.aria-pressed]="presenterFreetextSmoothingPressed()"
               [attr.aria-busy]="presenterFreetextLemmaPending() ? true : null"
               (click)="togglePresenterFreetextWordCloudSmoothing()"

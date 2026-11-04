@@ -2971,9 +2971,42 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.presenterFreetextLemmaFallbackReason.set('TIMEOUT');
     } finally {
       if (generation === this.presenterFreetextAnalysisGeneration) {
+        const restoreSmoothingFocus = this.presenterFreetextSmoothingButtonHasFocus();
         this.presenterFreetextLemmaPending.set(false);
+        if (restoreSmoothingFocus) {
+          this.restorePresenterFreetextSmoothingFocus();
+        }
       }
     }
+  }
+
+  private presenterFreetextSmoothingButtonHasFocus(): boolean {
+    const active = this.document.activeElement;
+    return (
+      active instanceof HTMLElement &&
+      active.dataset['testid'] === 'presenter-freetext-word-cloud-smooth'
+    );
+  }
+
+  /** Der Glättungsknopf bleibt während der Analyse fokussierbar und danach das Fokusziel. */
+  private restorePresenterFreetextSmoothingFocus(): void {
+    afterNextRender(
+      () => {
+        if (this.destroyRef.destroyed) {
+          return;
+        }
+        const smooth = this.hostElement.nativeElement.querySelector(
+          '[data-testid="presenter-freetext-word-cloud-smooth"]',
+        );
+        if (!(smooth instanceof HTMLElement) || !smooth.isConnected || smooth.disabled) {
+          return;
+        }
+        if (this.document.activeElement !== smooth) {
+          smooth.focus({ preventScroll: true });
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   private async publishPresenterFreetextWordCloud(): Promise<void> {
