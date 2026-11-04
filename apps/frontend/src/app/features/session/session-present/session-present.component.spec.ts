@@ -150,6 +150,17 @@ vi.mock('../../../core/trpc.client', () => ({
 
 const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
 
+function wordCloudEntry(label: string, key: string, confidence: number | null = null) {
+  return {
+    key,
+    label,
+    count: 1,
+    members: [{ sourceId: 'response-0', text: label, weight: 1 }],
+    variants: [label],
+    confidence,
+  };
+}
+
 function expectNoHostControls(root: HTMLElement): void {
   const forbiddenSelectors = [
     'app-session-host',
@@ -621,6 +632,215 @@ describe('SessionPresentComponent', () => {
     );
     expect(fixture.nativeElement.textContent).toContain('Struktur');
     expect(fixture.nativeElement.querySelector('.word-cloud__analysis-toolbar')).toBeTruthy();
+    fixture.destroy();
+  });
+
+  it('hält Glättung, Modus, Einfrieren und den Antwortstand auseinander', async () => {
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+
+    let releaseAnalysis: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseAnalysis = resolve;
+        }),
+    );
+
+    const smooth = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-freetext-word-cloud-smooth"]',
+    ) as HTMLButtonElement;
+    smooth.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(true);
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-words"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    expect(smooth.disabled).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('Analyse läuft');
+
+    releaseAnalysis({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('verspätet', 'verspatet')],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('verspätet');
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [
+        wordCloudEntry('klare Struktur', 'klare struktur'),
+        wordCloudEntry('Struktur', 'struktur'),
+      ],
+    });
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    smooth.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(
+      fixture.componentInstance.presenterFreetextLemmaDisplayEntries()?.map((entry) => entry.key),
+    ).toEqual(expect.arrayContaining(['klare struktur', 'struktur']));
+    expect(fixture.componentInstance.presenterFreetextLemmaDisplayEntries()).toHaveLength(2);
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-words"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(
+      fixture.componentInstance.presenterFreetextLemmaDisplayEntries()?.map((entry) => entry.key),
+    ).toEqual(['struktur']);
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('Wort', 'wort')],
+    });
+    smooth.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextLemmaDisplayEntries()).toBeNull();
+
+    analyzeWordCloudMutateMock.mockResolvedValue({
+      normalizationApplied: 'NONE',
+      normalizationFallbackReason: 'NLP_DISABLED',
+      entries: [wordCloudEntry('Fallback', 'fallback')],
+    });
+    smooth.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('idle');
+    expect(fixture.nativeElement.textContent).toContain('Wort-Glättung nicht verfügbar');
+    expect(fixture.nativeElement.textContent).not.toContain('Wort-Glättung ist an');
+
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'alt', label: 'AlteProjektion', count: 2 }],
+    });
+    fixture.componentInstance.presenterFreetextWordCloudModeOverride.set(null);
+    fixture.componentInstance.presenterFreetextLemmaPreferred.set(false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-freeze"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [{ key: 'neu', label: 'NeueProjektion', count: 2 }],
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
+    expect(fixture.nativeElement.textContent).not.toContain('NeueProjektion');
+
+    fixture.componentInstance.presenterFreetextWordCloudFrozen.set(false);
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+    let releaseSemantic: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseSemantic = resolve;
+        }),
+    );
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-semantic"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set(['Alt', 'Neu']);
+    fixture.detectChanges();
+    releaseSemantic({
+      entries: [wordCloudEntry('Alt', 'alt', 0.4)],
+    });
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextSemanticPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    const semanticItems = analyzeWordCloudMutateMock.mock.calls.at(-1)?.[0] as {
+      items: Array<{ text: string }>;
+      mode: string;
+    };
+    expect(semanticItems.mode).toBe('SEMANTIC');
+    expect(semanticItems.items.map((item) => item.text)).toEqual(['Alt']);
+    expect(fixture.componentInstance.presenterFreetextShowThemeRefresh()).toBe(true);
+
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-phrases"] button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set(['Alt']);
+    fixture.detectChanges();
+    let releaseLemma: (value: unknown) => void = () => undefined;
+    analyzeWordCloudMutateMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releaseLemma = resolve;
+        }),
+    );
+    (
+      fixture.nativeElement.querySelector(
+        '[data-testid="presenter-freetext-word-cloud-smooth"]',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    fixture.componentInstance.freetextResponses.set(['Alt', 'Neu']);
+    fixture.detectChanges();
+    releaseLemma({
+      normalizationApplied: 'LEMMA',
+      normalizationFallbackReason: null,
+      entries: [wordCloudEntry('Alt', 'alt')],
+    });
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.presenterFreetextLemmaPending()).toBe(false);
+    });
+    fixture.detectChanges();
+    const lemmaItems = analyzeWordCloudMutateMock.mock.calls.at(-1)?.[0] as {
+      items: Array<{ text: string }>;
+      normalization: string;
+    };
+    expect(lemmaItems.normalization).toBe('LEMMA');
+    expect(lemmaItems.items.map((item) => item.text)).toEqual(['Alt']);
+    expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('stale');
+
     fixture.destroy();
   });
 

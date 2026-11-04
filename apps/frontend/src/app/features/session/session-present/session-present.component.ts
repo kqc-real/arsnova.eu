@@ -24,6 +24,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { selectFreetextLemmaDisplayEntries } from '../session-host/qa-word-cloud-theme-merge';
 import { WordCloudComponent } from './word-cloud.component';
 import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
 import type { Unsubscribable } from '@trpc/server/observable';
@@ -74,6 +75,7 @@ import type {
   WordCloudAnalysisEntryDTO,
   WordCloudAnalysisLocale,
   WordCloudAnalysisVariant,
+  WordCloudNormalizationFallbackReason,
   WordCloudWeightMetric,
 } from '@arsnova/shared-types';
 import { recordServerTimeSample } from '../session-server-clock';
@@ -174,6 +176,18 @@ type LobbyFoyerMotionProfile = {
 };
 
 type PresenterFreetextWordCloudMode = 'WORDS' | 'PHRASES' | 'SEMANTIC';
+
+function presenterFreetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null): number | null {
+  if (!snapshotKey) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(snapshotKey) as { maxNgramLength?: unknown };
+    return typeof parsed.maxNgramLength === 'number' ? parsed.maxNgramLength : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Beamer-Ansicht / Presenter-Mode (Epic 2).
@@ -1099,7 +1113,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly presenterFreetextLemmaPreferred = signal(false);
   readonly presenterFreetextLemmaPending = signal(false);
   readonly presenterFreetextLemmaEntries = signal<WordCloudAnalysisEntryDTO[] | null>(null);
+  private readonly presenterFreetextLemmaApplied = signal(false);
   private readonly presenterFreetextLemmaAnalyzedKey = signal<string | null>(null);
+  private readonly presenterFreetextLemmaFallbackReason = signal<
+    WordCloudNormalizationFallbackReason | 'TIMEOUT' | null
+  >(null);
+  private readonly presenterFreetextFrozenAnalysis = signal<WordCloudAnalysisEntryDTO[] | null>(
+    null,
+  );
   readonly presenterFreetextSemanticPending = signal(false);
   readonly presenterFreetextSemanticEntries = signal<WordCloudAnalysisEntryDTO[] | null>(null);
   private readonly presenterFreetextSemanticAnalyzedKey = signal<string | null>(null);
@@ -1167,18 +1188,76 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly presenterFreetextShowSmoothing = computed(
     () => this.presenterFreetextWordCloudModeEffective() !== 'SEMANTIC',
   );
+  readonly presenterFreetextLemmaFingerprint = computed(() => {
+    const items = this.presenterFreetextAnalysisItems();
+    if (items.length === 0) {
+      return null;
+    }
+    const mode = this.presenterFreetextWordCloudModeEffective();
+    return JSON.stringify({
+      locale: this.presenterFreetextAnalysisLocale(),
+      texts: items.map((item) => item.text),
+      maxNgramLength:
+        mode === 'WORDS' ? WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH : WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+    });
+  });
+  readonly presenterFreetextLemmaSnapshotVisible = computed(() => {
+    const mode = this.presenterFreetextWordCloudModeEffective();
+    if (
+      mode === 'SEMANTIC' ||
+      !this.presenterFreetextLemmaPreferred() ||
+      !this.presenterFreetextLemmaApplied() ||
+      !this.presenterFreetextLemmaEntries() ||
+      this.presenterFreetextAnalysisItems().length === 0
+    ) {
+      return false;
+    }
+    if (mode === 'WORDS') {
+      return true;
+    }
+    const snapshotNgram = presenterFreetextLemmaSnapshotMaxNgramLength(
+      this.presenterFreetextLemmaAnalyzedKey(),
+    );
+    return snapshotNgram !== null && snapshotNgram > WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH;
+  });
+  readonly presenterFreetextLemmaDisplayEntries = computed(() => {
+    if (!this.presenterFreetextLemmaSnapshotVisible()) {
+      return null;
+    }
+    const entries = this.presenterFreetextLemmaEntries();
+    if (!entries) {
+      return null;
+    }
+    const mode = this.presenterFreetextWordCloudModeEffective();
+    const visible = selectFreetextLemmaDisplayEntries(
+      entries,
+      mode === 'SEMANTIC' ? 'PHRASES' : mode,
+      80,
+    );
+    return visible.length > 0 ? visible : null;
+  });
   readonly presenterFreetextSmoothingStatus = computed(() => {
+    if (this.presenterFreetextWordCloudModeEffective() === 'SEMANTIC') {
+      return 'idle' as const;
+    }
     if (this.presenterFreetextLemmaPending()) {
       return 'pending' as const;
     }
-    if (!this.presenterFreetextLemmaPreferred() || !this.presenterFreetextLemmaEntries()) {
-      return 'idle' as const;
+    if (this.presenterFreetextLemmaDisplayEntries()) {
+      const analyzed = this.presenterFreetextLemmaAnalyzedKey();
+      if (analyzed !== null && analyzed !== this.presenterFreetextLemmaFingerprint()) {
+        return 'stale' as const;
+      }
+      return 'active' as const;
     }
-    const analyzed = this.presenterFreetextLemmaAnalyzedKey();
-    if (analyzed !== null && analyzed !== this.presenterFreetextResponseKey()) {
+    if (
+      this.presenterFreetextLemmaPreferred() &&
+      this.presenterFreetextLemmaApplied() &&
+      this.presenterFreetextLemmaAnalyzedKey() !== this.presenterFreetextLemmaFingerprint()
+    ) {
       return 'stale' as const;
     }
-    return 'active' as const;
+    return 'idle' as const;
   });
   readonly presenterFreetextSmoothingPressed = computed(() => {
     if (this.presenterFreetextWordCloudModeEffective() === 'SEMANTIC') {
@@ -1257,22 +1336,36 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.presenterFreetextSmoothingStatus() === 'stale') {
       return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten seit letzter Wort-Glättung`;
     }
+    const fallback = this.presenterFreetextLemmaFallbackReason();
+    if (fallback === 'TIMEOUT' || fallback === 'INVALID_RESPONSE') {
+      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wort-Glättung fehlgeschlagen`;
+    }
+    if (
+      fallback === 'NLP_DISABLED' ||
+      fallback === 'SIDECAR_UNAVAILABLE' ||
+      fallback === 'LOCALE_UNSUPPORTED' ||
+      fallback === 'MODE_UNSUPPORTED'
+    ) {
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Wort-Glättung nicht verfügbar`;
+    }
     if (this.presenterFreetextWordCloudFrozen()) {
       return $localize`:@@sessionHost.wordCloudFrozenInfo:Wortwolke eingefroren.`;
     }
     return null;
   });
   readonly freetextStageAnalysisEntries = computed<WordCloudAnalysisEntryDTO[] | null>(() => {
+    if (
+      this.presenterFreetextWordCloudFrozen() &&
+      this.presenterFreetextWordCloudModeOverride() === null
+    ) {
+      return this.presenterFreetextFrozenAnalysis();
+    }
     const override = this.presenterFreetextWordCloudModeOverride();
     if (override === 'SEMANTIC') {
       return this.presenterFreetextSemanticEntries();
     }
-    if (
-      override !== null &&
-      this.presenterFreetextLemmaPreferred() &&
-      this.presenterFreetextLemmaEntries()
-    ) {
-      return this.presenterFreetextLemmaEntries();
+    if (override !== null && this.presenterFreetextLemmaDisplayEntries()) {
+      return this.presenterFreetextLemmaDisplayEntries();
     }
     if (override !== null) {
       return null;
@@ -2607,8 +2700,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       void this.requestPresenterFreetextSemantic(false);
       return;
     }
-    this.presenterFreetextAnalysisGeneration += 1;
-    this.presenterFreetextSemanticPending.set(false);
+    this.beginPresenterFreetextAnalysis();
     this.presenterFreetextSemanticEntries.set(null);
     this.presenterFreetextSemanticAnalyzedKey.set(null);
     void this.publishPresenterFreetextWordCloud();
@@ -2618,8 +2710,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.presenterFreetextWordCloudFrozen()) {
       this.presenterFreetextWordCloudFrozen.set(false);
       this.presenterFreetextFrozenResponses.set(null);
+      this.presenterFreetextFrozenAnalysis.set(null);
       return;
     }
+    this.presenterFreetextFrozenAnalysis.set(this.freetextStageAnalysisEntries());
     this.presenterFreetextFrozenResponses.set([...this.freetextResponses()]);
     this.presenterFreetextWordCloudFrozen.set(true);
   }
@@ -2662,10 +2756,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.presenterFreetextWordCloudModeOverride.set(null);
     this.presenterFreetextWordCloudFrozen.set(false);
     this.presenterFreetextFrozenResponses.set(null);
+    this.presenterFreetextFrozenAnalysis.set(null);
     this.presenterFreetextLemmaPreferred.set(false);
     this.presenterFreetextLemmaPending.set(false);
     this.presenterFreetextLemmaEntries.set(null);
+    this.presenterFreetextLemmaApplied.set(false);
     this.presenterFreetextLemmaAnalyzedKey.set(null);
+    this.presenterFreetextLemmaFallbackReason.set(null);
     this.presenterFreetextSemanticPending.set(false);
     this.presenterFreetextSemanticEntries.set(null);
     this.presenterFreetextSemanticAnalyzedKey.set(null);
@@ -2692,14 +2789,22 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }));
   }
 
+  private beginPresenterFreetextAnalysis(): number {
+    const generation = ++this.presenterFreetextAnalysisGeneration;
+    this.presenterFreetextLemmaPending.set(false);
+    this.presenterFreetextSemanticPending.set(false);
+    return generation;
+  }
+
   private async requestPresenterFreetextSemantic(refresh: boolean): Promise<void> {
+    const generation = this.beginPresenterFreetextAnalysis();
     const locale = this.presenterFreetextAnalysisLocale();
     const items = this.presenterFreetextAnalysisItems();
+    const analyzedKey = this.presenterFreetextResponseKey();
     if (!locale || items.length === 0) {
       this.presenterFreetextSemanticFailed.set(true);
       return;
     }
-    const generation = ++this.presenterFreetextAnalysisGeneration;
     this.presenterFreetextSemanticPending.set(true);
     this.presenterFreetextSemanticFailed.set(false);
     try {
@@ -2718,7 +2823,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       this.presenterFreetextSemanticEntries.set(result.entries);
-      this.presenterFreetextSemanticAnalyzedKey.set(this.presenterFreetextResponseKey());
+      this.presenterFreetextSemanticAnalyzedKey.set(analyzedKey);
       await this.publishPresenterFreetextWordCloud();
     } catch {
       if (generation !== this.presenterFreetextAnalysisGeneration) {
@@ -2733,15 +2838,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async requestPresenterFreetextLemmaSmoothing(): Promise<void> {
+    const generation = this.beginPresenterFreetextAnalysis();
     const locale = this.presenterFreetextAnalysisLocale();
     const items = this.presenterFreetextAnalysisItems();
+    const analyzedKey = this.presenterFreetextLemmaFingerprint();
     const mode = this.presenterFreetextWordCloudModeEffective();
-    if (!locale || items.length === 0 || mode === 'SEMANTIC') {
+    if (!locale || items.length === 0 || !analyzedKey || mode === 'SEMANTIC') {
       this.presenterFreetextLemmaPreferred.set(false);
       return;
     }
-    const generation = ++this.presenterFreetextAnalysisGeneration;
     this.presenterFreetextLemmaPending.set(true);
+    this.presenterFreetextLemmaFallbackReason.set(null);
     try {
       const result = await trpc.wordCloud.analyze.mutate({
         sessionCode: this.code.toUpperCase(),
@@ -2762,13 +2869,29 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       ) {
         return;
       }
-      this.presenterFreetextLemmaEntries.set(result.entries);
-      this.presenterFreetextLemmaAnalyzedKey.set(this.presenterFreetextResponseKey());
+      if (result.normalizationApplied === 'LEMMA') {
+        this.presenterFreetextLemmaEntries.set(result.entries);
+        this.presenterFreetextLemmaApplied.set(true);
+        this.presenterFreetextLemmaAnalyzedKey.set(analyzedKey);
+        this.presenterFreetextLemmaFallbackReason.set(null);
+        await this.publishPresenterFreetextWordCloud();
+        return;
+      }
+      this.presenterFreetextLemmaEntries.set(null);
+      this.presenterFreetextLemmaApplied.set(false);
+      this.presenterFreetextLemmaAnalyzedKey.set(null);
+      this.presenterFreetextLemmaFallbackReason.set(
+        result.normalizationFallbackReason ?? 'SIDECAR_UNAVAILABLE',
+      );
       await this.publishPresenterFreetextWordCloud();
     } catch {
-      if (generation === this.presenterFreetextAnalysisGeneration) {
-        this.presenterFreetextLemmaPreferred.set(false);
+      if (generation !== this.presenterFreetextAnalysisGeneration) {
+        return;
       }
+      this.presenterFreetextLemmaEntries.set(null);
+      this.presenterFreetextLemmaApplied.set(false);
+      this.presenterFreetextLemmaAnalyzedKey.set(null);
+      this.presenterFreetextLemmaFallbackReason.set('TIMEOUT');
     } finally {
       if (generation === this.presenterFreetextAnalysisGeneration) {
         this.presenterFreetextLemmaPending.set(false);
