@@ -373,6 +373,12 @@ describe('SessionProjectionQuizComponent', () => {
     expect(poles[0]?.querySelector('.session-projection-quiz__rating-pole-icon')).toBeNull();
     expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
     expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Die Verteilung erscheint mit dem Ergebnis.',
+    );
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__bar-fill')?.style.width,
+    ).toBe('0%');
 
     const styles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),

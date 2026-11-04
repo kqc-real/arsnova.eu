@@ -156,6 +156,9 @@ Tastaturfokus nicht verloren geht.
 - Wortwolken: höchstens 24 Ausgangsbegriffe, mindestens 30 px nach Layout und
   eine sichtbare Restzahl. Tatsächliche Textflächen werden auf Überschneidung
   geprüft; nicht passend darstellbare Begriffe gehen in die Restzahl ein.
+  Die Freitext-Bühne zeigt dieselbe Werkzeugleiste wie der Host: »Wörter«,
+  »Wörter & Phrasen«, »Thema«, Einfrieren, Wortformen glätten und Themen
+  aktualisieren. Eine Auswahl im Presenter bleibt in diesem Fenster gültig.
 - Schätzfragen: beschriftete horizontale Verteilungsbalken, Stimmenzahl und
   bestehende Kennzahlen; längere Ergebnisse werden ebenfalls aufgeteilt.
 - Blitzlicht: neutrale Fläche vor Freigabe, beschriftete Balken danach;

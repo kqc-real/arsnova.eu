@@ -27398,8 +27398,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizRatingWaiting" datatype="html">
-        <source> Bewertungen kommen live an.</source>
-        <target>Ratings are arriving live.</target>
+        <source> Die Verteilung erscheint mit dem Ergebnis.</source>
+        <target>The distribution appears with the results.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
           <context context-type="linenumber">182,184</context>
