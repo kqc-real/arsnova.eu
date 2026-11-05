@@ -286,7 +286,8 @@
 
 .word-cloud__summary-hero-text {
   margin: 0;
-  max-width: 80ch;
+  width: 100%;
+  max-width: none;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-large);
   line-height: 1.5;

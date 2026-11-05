@@ -1290,7 +1290,7 @@ describe('WordCloudComponent', () => {
     ).not.toContain('Beispiel aus den Originalbeiträgen');
   });
 
-  it('zeigt im Themenmodus die vollständigen Originalfragen statt gekürzter Analysetexte', () => {
+  it('zeigt im Themenmodus die vollständigen Originalfragen statt gekürzter Analysetexte', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     const fullQuestion =
       'Wie können »kurze Erklärung« und »Visualisierung der Verteilung« so verzahnt werden, dass Fragen nicht untergehen? Bitte mit einem vollständigen Beispiel antworten.';
@@ -1332,6 +1332,17 @@ describe('WordCloudComponent', () => {
       '.word-cloud__responses',
     ) as HTMLUListElement | null;
     expect(responseList?.querySelector('li')?.textContent?.trim()).toBe(fullQuestion);
+
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'word-cloud.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.word-cloud__summary-hero-text \{[^}]*width:\s*100%;[^}]*max-width:\s*none;/,
+    );
   });
 
   it('stuft Analyse-Confidence semantisch in mittel und niedrig ein', () => {
