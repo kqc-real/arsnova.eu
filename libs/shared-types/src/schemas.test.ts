@@ -29,6 +29,7 @@ import {
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
   TrpcWebSocketParticipantBindingSchema,
   AnalyzeWordCloudInputSchema,
+  AnalyzeQaWordCloudInputSchema,
   AnalyzeQaWordCloudOutputSchema,
   QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS,
   WordCloudAnalysisResultDTOSchema,
@@ -1238,8 +1239,19 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
       corpusRevision: 'revision-1',
       sortMode: 'BEST',
       filter: 'ALL_ELIGIBLE',
+      focusedGroupKey: 'serverlose-verarbeitung',
     });
     expect(qaResult.entries[0]?.basisLabel).toBe(fullQuestion);
+    expect(qaResult.focusedGroupKey).toBe('serverlose-verarbeitung');
+    expect(
+      AnalyzeQaWordCloudInputSchema.parse({
+        sessionCode: 'ABC123',
+        mode: 'SEMANTIC',
+        locale: 'de',
+        metric: 'TOP',
+        focusQuestionIds: [sourceItem.id],
+      }).focusQuestionIds,
+    ).toEqual([sourceItem.id]);
     const fullQuestionWithAstralCharacter = `${'F'.repeat(
       QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS - 1,
     )}😀`;

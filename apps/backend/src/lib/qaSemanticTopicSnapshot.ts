@@ -1,6 +1,7 @@
 import {
   WordCloudWeightMetricEnum,
   type AnalyzeQaWordCloudInput,
+  type AnalyzeWordCloudInput,
   type AnalyzeWordCloudOutput,
   type WordCloudAnalysisSourceItem,
 } from '@arsnova/shared-types';
@@ -132,6 +133,7 @@ export interface QaSemanticTopicSnapshotBuildInput {
 export interface RecordLatestQaSemanticTopicSnapshotInput extends QaSemanticTopicSnapshotBuildInput {
   readonly cache: WordCloudAnalysisCache;
   readonly scope: WordCloudSnapshotCacheScope;
+  readonly analysisInput: AnalyzeWordCloudInput;
 }
 
 export function hashQaSemanticTopicMemberText(text: string): string {
@@ -263,6 +265,9 @@ export async function recordLatestQaSemanticTopicSnapshot(
   if (snapshot === null) {
     return null;
   }
-  await input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope);
+  await Promise.all([
+    input.cache.setQaSemanticTopicSnapshot(input.analysisInput, snapshot, input.scope),
+    input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope),
+  ]);
   return snapshot;
 }

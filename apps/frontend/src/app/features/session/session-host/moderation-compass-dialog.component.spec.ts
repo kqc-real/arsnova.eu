@@ -1,14 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import {
   qaSummaryQuestionSourceId,
   type QaSummaryContextPreviewDTO,
   type QaSummaryRuntimeCompatibleDTO,
   type QaSummaryRuntimeV2DTO,
+  type ModerationCompassRecommendation,
 } from '@arsnova/shared-types';
 import { ModerationCompassDialogComponent } from './moderation-compass-dialog.component';
-import type { ModerationCompassCard } from './moderation-compass';
+import { buildModerationCompassView, type ModerationCompassCard } from './moderation-compass';
 
 describe('ModerationCompassDialogComponent', () => {
   function v2Runtime(
@@ -109,16 +111,28 @@ describe('ModerationCompassDialogComponent', () => {
       visibleQuestionCount?: number;
       runtime?: QaSummaryRuntimeCompatibleDTO | null;
       onRequestSummary?: () => void;
-      onSummarySourceActivate?: (source: { id: string; label: string }) => void;
+      onSummarySourceActivate?: (source: {
+        id: string;
+        label: string;
+      }) => void | boolean | Promise<void | boolean>;
       onRequestSummaryContextPreview?: () => Promise<QaSummaryContextPreviewDTO>;
     },
     moreSourcesContext?: {
+      recommendation?: ModerationCompassRecommendation | null;
       qaSortMode?: 'TOP' | 'BEST' | 'CONTROVERSIAL' | 'TIME';
       wordCloudSmoothingActive?: boolean;
       wordCloudSingleWordsOnly?: boolean;
     },
   ) {
-    const dialogRef = { close: vi.fn() };
+    const closed = new Subject<void>();
+    const dialogRef = {
+      close: vi.fn(() => {
+        closed.next();
+        closed.complete();
+      }),
+      afterClosed: () => closed.asObservable(),
+      disableClose: false,
+    };
     TestBed.configureTestingModule({
       imports: [ModerationCompassDialogComponent],
       providers: [
@@ -126,6 +140,7 @@ describe('ModerationCompassDialogComponent', () => {
           provide: MAT_DIALOG_DATA,
           useValue: {
             cards: () => cards,
+            recommendation: () => moreSourcesContext?.recommendation ?? null,
             analysisMode,
             onSourceActivate,
             summaryEnabled: () => summary?.enabled === true,
@@ -153,11 +168,11 @@ describe('ModerationCompassDialogComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Moderationskompass');
     expect(text).toContain(
-      'Sobald Rückmeldungen vorliegen, zeigt dir der Kompass wichtige Themen, offene Fragen und Hinweise zum Tempo.',
+      'Noch keine Hinweise. Sobald Fragen, Ergebnisse oder Tempo-Rückmeldungen vorliegen, unterstützt dich der Kompass bei der Wahl des nächsten Schritts.',
     );
     expect(text).toContain('Du entscheidest, was du als Nächstes aufgreifst.');
     expect(text).not.toContain(
-      'Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.',
+      'Wähle einen Eintrag, um die zugehörige Frage, Wortwolke, das Ergebnis oder die Rückmeldung zu öffnen.',
     );
     expect(text).not.toContain('Aus der Live-Runde');
     expect(text).not.toContain('Die automatische Sortierung der Fragen ist aus.');
@@ -166,6 +181,31 @@ describe('ModerationCompassDialogComponent', () => {
     ).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.moderation-compass-card')).toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="moderation-next-step"]')).toBeNull();
+  });
+
+  it('zeigt den naechsten Schritt und die Direktaktion auch bei nur einer Themenkarte', () => {
+    const view = buildModerationCompassView({
+      qaQuestions: [],
+      qaTerms: [{ label: 'Stichprobe', documentFrequency: 3, sourceCount: 3, memberTexts: [] }],
+      freetextTerms: [],
+      extraTopicSources: [],
+      topicWeightLabel: null,
+      tempo: null,
+      quizSources: [],
+    });
+    expect(view.cards).toHaveLength(1);
+    expect(view.cards[0]?.nextStepReason).toBeUndefined();
+    expect(view.recommendation?.reason).toBe('topics');
+    const { fixture } = setup(view.cards, vi.fn(), 'rule-based', undefined, {
+      recommendation: view.recommendation,
+    });
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="moderation-next-step"]')?.textContent,
+    ).toContain('Fass die häufigsten Themen kurz zusammen.');
+    expect(
+      fixture.nativeElement.querySelector('.moderation-compass-dialog__primary-source')
+        ?.textContent,
+    ).toContain('Wortwolke öffnen');
   });
 
   it('zeigt quellenbelegte Moderationskarten', () => {
@@ -195,7 +235,7 @@ describe('ModerationCompassDialogComponent', () => {
     ).toContain('Fass die häufigsten Themen kurz zusammen.');
     expect(text).toContain('Aus der Live-Runde');
     expect(text).toContain(
-      'Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.',
+      'Wähle einen Eintrag, um die zugehörige Frage, Wortwolke, das Ergebnis oder die Rückmeldung zu öffnen.',
     );
     expect(text).toContain('Wortwolke');
     expect(fixture.nativeElement.querySelectorAll('.moderation-compass-card')).toHaveLength(1);
@@ -212,7 +252,7 @@ describe('ModerationCompassDialogComponent', () => {
     const { fixture } = setup([], vi.fn(), 'disabled');
     const text = fixture.nativeElement.textContent as string;
     expect(text).not.toContain('Die automatische Sortierung der Fragen ist aus.');
-    expect(text).toContain('Sobald Rückmeldungen vorliegen');
+    expect(text).toContain('Noch keine Hinweise.');
     expect(text).not.toContain('Aus der Live-Runde');
   });
 
@@ -335,7 +375,58 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).not.toContain('Erkläre kurz die Lösung');
   });
 
-  it('macht Quellen klickbar und schließt den Dialog', () => {
+  it('oeffnet die erste erreichbare Quelle direkt aus dem naechsten Schritt und erlaubt Retry', async () => {
+    const source = {
+      kind: 'qa-question' as const,
+      label: 'Warum diese Verteilung?',
+      target: { channel: 'qa' as const },
+    };
+    let reject!: (error: Error) => void;
+    const onSourceActivate = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((_resolve, rejectPromise) => {
+            reject = rejectPromise;
+          }),
+      )
+      .mockResolvedValueOnce(true);
+    const { fixture, dialogRef } = setup(
+      [
+        {
+          kind: 'friction',
+          nextStepReason: 'controversy',
+          sources: [{ kind: 'qa-question', label: 'Nur Kontext' }, source],
+        },
+      ],
+      onSourceActivate,
+    );
+    const button = fixture.nativeElement.querySelector(
+      '.moderation-compass-dialog__primary-source',
+    ) as HTMLButtonElement;
+    expect(button.textContent).toContain('Frage öffnen');
+    expect(button.getAttribute('aria-label')).toContain('Warum diese Verteilung?');
+    button.focus();
+    button.click();
+    fixture.detectChanges();
+    button.click();
+    expect(onSourceActivate).toHaveBeenCalledTimes(1);
+    expect(onSourceActivate).toHaveBeenCalledWith(source, 'friction');
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    reject(new Error('offline'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(dialogRef.close).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
+      'Versuche es erneut.',
+    );
+    expect(document.activeElement).toBe(button);
+    button.click();
+    await fixture.whenStable();
+    expect(dialogRef.close).toHaveBeenCalledOnce();
+  });
+
+  it('macht Quellen klickbar und schließt den Dialog', async () => {
     const source = {
       kind: 'qa-question' as const,
       label: 'Kommt Kapitel 4 in der Klausur vor?',
@@ -360,8 +451,36 @@ describe('ModerationCompassDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-tone="caution"]')).not.toBeNull();
     button?.click();
 
+    await fixture.whenStable();
     expect(onSourceActivate).toHaveBeenCalledWith(source, 'clarification');
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('übergibt den Fokus nach einem Wortwolken-Sprung an den Zieldialog', async () => {
+    const source = {
+      kind: 'qa-term' as const,
+      label: 'Stichprobe',
+      target: { channel: 'qa' as const, surface: 'word-cloud' as const },
+    };
+    const destinationClose = document.createElement('button');
+    destinationClose.className = 'qa-word-cloud-dialog__close';
+    document.body.append(destinationClose);
+    const { fixture } = setup([
+      {
+        kind: 'topics',
+        sources: [source],
+      },
+    ]);
+
+    const button = fixture.nativeElement.querySelector(
+      '.moderation-compass-card__source-button',
+    ) as HTMLButtonElement;
+    button.click();
+    await fixture.whenStable();
+    await Promise.resolve();
+
+    expect(document.activeElement).toBe(destinationClose);
+    destinationClose.remove();
   });
 
   it('lässt den Dialog offen, wenn der Sprung fehlschlägt', async () => {
@@ -579,7 +698,7 @@ describe('ModerationCompassDialogComponent', () => {
     ).not.toBeNull();
   });
 
-  it('zeigt pending und ready quellengebunden', () => {
+  it('zeigt pending und ready quellengebunden', async () => {
     const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
     const onRequestSummary = vi.fn();
     const onSummarySourceActivate = vi.fn();
@@ -647,12 +766,93 @@ describe('ModerationCompassDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(fixture.nativeElement.textContent).toContain('Kommt Kapitel 4 in der Klausur vor?');
     sourceButton.click();
+    await fixture.whenStable();
     expect(onSummarySourceActivate).toHaveBeenCalledWith({
       id: sourceId,
       kind: 'qa-question',
       label: 'Kommt Kapitel 4 in der Klausur vor?',
     });
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('wartet beim Sprung aus den verwendeten Beiträgen und bleibt bei Fehler offen', async () => {
+    const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    let resolveJump!: (value: boolean) => void;
+    const onSummarySourceActivate = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveJump = resolve;
+          }),
+      )
+      .mockRejectedValueOnce(new Error('temporär'));
+    const { fixture, dialogRef } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 3,
+      onSummarySourceActivate,
+      runtime: v2Runtime({
+        inferenceConfigured: false,
+        result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
+          status: 'ready',
+          statements: [{ text: 'Klausur: Der Umfang ist noch offen.', sourceIds: [sourceId] }],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [
+            { id: sourceId, kind: 'qa-question', label: 'Kommt Kapitel 4 in der Klausur vor?' },
+          ],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+          execution: {
+            attemptedMode: null,
+            effectiveMode: 'extractive',
+            fallback: {
+              contractVersion: 'qa-summary-fallback-v1',
+              requestedRequestContract: 'qa-summary-context-v2',
+              requestedOutputContract: 'qa-summary-model-output-v3',
+              mode: 'extractive',
+              reason: 'disabled',
+              retry: 'not-applicable',
+            },
+          },
+        },
+      }),
+    });
+
+    (
+      fixture.nativeElement.querySelector(
+        '.moderation-compass-dialog__summary-button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+    const details = fixture.nativeElement.querySelector(
+      '.moderation-compass-dialog__summary-sources',
+    ) as HTMLDetailsElement;
+    details.open = true;
+    fixture.detectChanges();
+    const sourceButton = fixture.nativeElement.querySelector(
+      '[data-testid="moderation-summary"] .moderation-compass-card__source-button',
+    ) as HTMLButtonElement;
+
+    sourceButton.click();
+    fixture.detectChanges();
+    expect(sourceButton.getAttribute('aria-disabled')).toBe('true');
+    expect(dialogRef.close).not.toHaveBeenCalled();
+    resolveJump(false);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(dialogRef.close).not.toHaveBeenCalled();
+    expect(sourceButton.getAttribute('aria-disabled')).toBeNull();
+
+    sourceButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(dialogRef.close).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
+      'Der Eintrag konnte nicht geöffnet werden.',
+    );
   });
 
   it('hebt das Thema der Zusammenfassung als Lead hervor', () => {
@@ -1037,6 +1237,80 @@ describe('ModerationCompassDialogComponent', () => {
       ),
     ).toBeNull();
     expect(onSummarySourceActivate).not.toHaveBeenCalled();
+  });
+
+  it('lässt extraktive Fragen mit nachgestelltem Antwortwunsch vollständig im Wortlaut', () => {
+    const firstSourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    const secondSourceId = qaSummaryQuestionSourceId('22222222-2222-4222-8222-222222222222');
+    const firstQuestion =
+      'Welche Beispiele zu »roter Faden« würden helfen, wenn Pausen das Lernen stützen? Bitte mit Visualisierung oder Gegenbeispiel antworten.';
+    const secondQuestion =
+      'Wie hängt »Fragen im Q&A« mit den Übungen zusammen, damit Rückmeldungen rechtzeitig kommen? Kontext: Lernen mit Beispielen und Übungen.';
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 4,
+      runtime: v2Runtime({
+        inferenceConfigured: false,
+        result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
+          status: 'ready',
+          statements: [
+            { text: firstQuestion, sourceIds: [firstSourceId] },
+            { text: secondQuestion, sourceIds: [secondSourceId] },
+          ],
+          suggestedNextSteps: [],
+          limitations: [
+            'Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt.',
+          ],
+          sources: [
+            { id: firstSourceId, kind: 'qa-question', label: firstQuestion },
+            { id: secondSourceId, kind: 'qa-question', label: secondQuestion },
+          ],
+          modelVersion: 'extractive-v2',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'extractive',
+            fallback: {
+              contractVersion: 'qa-summary-fallback-v1',
+              requestedRequestContract: 'qa-summary-context-v2',
+              requestedOutputContract: 'qa-summary-model-output-v3',
+              mode: 'extractive',
+              reason: 'invalid_response',
+              retry: 'manual',
+            },
+          },
+        },
+      }),
+    });
+
+    (
+      fixture.nativeElement.querySelector(
+        '.moderation-compass-dialog__summary-button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    const statements = Array.from(
+      fixture.nativeElement.querySelectorAll('.moderation-compass-dialog__summary-statements li'),
+      (item) => (item as HTMLElement).textContent?.trim(),
+    );
+    expect(statements).toEqual([firstQuestion, secondQuestion]);
+    expect(fixture.nativeElement.textContent).not.toContain('Beispiele: Welche zu');
+    expect(fixture.nativeElement.textContent).not.toContain('Übungen: Wie hängt');
+
+    const sources = fixture.nativeElement.querySelector(
+      '.moderation-compass-dialog__summary-sources',
+    ) as HTMLDetailsElement;
+    sources.open = true;
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector(
+        '[data-testid="moderation-summary"] .moderation-compass-card__source-button',
+      )?.textContent,
+    ).toContain(`Fragen:\u00a0${firstQuestion}`);
   });
 
   it('erklärt die Auswertung verständlich und verbirgt Fachbegriffe in technischen Details', async () => {

@@ -72,22 +72,32 @@
       }
     </div>
     @if (showConfidenceFilterToggle()) {
-      <div class="word-cloud__analysis-toolbar">
-        <span class="word-cloud__analysis-toolbar-label">{{ confidenceFilterGroupLabel }}</span>
-        <mat-button-toggle-group
-          class="word-cloud__analysis-toggle"
-          [value]="confidenceFilter()"
-          (valueChange)="setConfidenceFilter($any($event))"
-          [hideSingleSelectionIndicator]="true"
-          [attr.aria-label]="confidenceFilterGroupLabel"
-        >
-          @for (option of confidenceFilterOptions(); track option.value) {
-            <mat-button-toggle [value]="option.value" [disabled]="option.count === 0">
-              {{ option.label }} {{ option.count }}
-            </mat-button-toggle>
-          }
-        </mat-button-toggle-group>
-      </div>
+      <details class="word-cloud__grouping-details">
+        <summary i18n="@@wordCloud.groupingDetails">Gruppierung prüfen</summary>
+        <p i18n="@@wordCloud.groupingExplanation">
+          Die Einschätzung betrifft nur die automatische Gruppierung, nicht die fachliche
+          Richtigkeit oder das Verständnis der Teilnehmenden.
+        </p>
+        @if (groupingConfidence(); as confidence) {
+          <p>{{ confidence }}</p>
+        }
+        <div class="word-cloud__analysis-toolbar">
+          <span class="word-cloud__analysis-toolbar-label">{{ confidenceFilterGroupLabel }}</span>
+          <mat-button-toggle-group
+            class="word-cloud__analysis-toggle"
+            [value]="confidenceFilter()"
+            (valueChange)="setConfidenceFilter($any($event))"
+            [hideSingleSelectionIndicator]="true"
+            [attr.aria-label]="confidenceFilterGroupLabel"
+          >
+            @for (option of confidenceFilterOptions(); track option.value) {
+              <mat-button-toggle [value]="option.value" [disabled]="option.count === 0">
+                {{ option.label }} {{ option.count }}
+              </mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+        </div>
+      </details>
     }
     <div
       #exportSurface
@@ -185,9 +195,11 @@
     @if (analysisSummaryHero(); as summary) {
       <section class="word-cloud__summary-hero">
         <h3 class="word-cloud__summary-hero-heading" i18n="@@wordCloud.summaryHeroHeading">
-          Zusammengefasst als
+          Beispiel aus den Originalbeiträgen
         </h3>
-        <p class="word-cloud__summary-hero-text">{{ summary }}</p>
+        <blockquote class="word-cloud__summary-hero-text">
+          <p>{{ summary }}</p>
+        </blockquote>
       </section>
     }
     @if (words().length > 0) {

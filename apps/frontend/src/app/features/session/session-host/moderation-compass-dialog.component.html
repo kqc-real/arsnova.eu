@@ -9,7 +9,8 @@
     <span class="dialog-title-header__sub moderation-compass-dialog__intro">
       @if (hasCards()) {
         <span i18n="@@sessionHost.moderationDialogJump">
-          Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.
+          Wähle einen Eintrag, um die zugehörige Frage, Wortwolke, das Ergebnis oder die Rückmeldung
+          zu öffnen.
         </span>
       }
       @if (showAnalysisStatus()) {
@@ -45,6 +46,7 @@
   mat-icon-button
   type="button"
   class="moderation-compass-dialog__close"
+  [disabled]="sourcePending()"
   mat-dialog-close
   i18n-aria-label="@@sessionHost.moderationDialogCloseAria"
   aria-label="Moderationskompass schließen"
@@ -63,6 +65,29 @@
       >
         <p class="moderation-compass-dialog__now-label">{{ nextStepHeading() }}</p>
         <p class="moderation-compass-dialog__now-action">{{ suggestion }}</p>
+        @if (primarySource(); as source) {
+          @if (leadCard(); as card) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="moderation-compass-dialog__primary-source"
+              [attr.aria-label]="
+                primarySourceLabel(source) + ': ' + displaySourceLabel(source.label)
+              "
+              [attr.aria-disabled]="sourcePending() ? true : null"
+              [attr.aria-busy]="sourcePending()"
+              (click)="activateSource(source, card)"
+            >
+              {{ primarySourceLabel(source) }}
+            </button>
+            <p class="moderation-compass-card__source-label">
+              {{ displaySourceLabel(source.label) }}
+            </p>
+          }
+        }
+        @if (sourceError()) {
+          <p role="alert">{{ sourceError() }}</p>
+        }
       </div>
     }
     <p
@@ -97,6 +122,7 @@
                       type="button"
                       class="moderation-compass-card__source-button"
                       [attr.aria-label]="sourceJumpAria(source)"
+                      [attr.aria-disabled]="sourcePending() ? true : null"
                       (click)="activateSource(source, card)"
                     >
                       <ng-container
@@ -127,6 +153,7 @@
                         type="button"
                         class="moderation-compass-card__source-button"
                         [attr.aria-label]="sourceJumpAria(source)"
+                        [attr.aria-disabled]="sourcePending() ? true : null"
                         (click)="activateSource(source, card)"
                       >
                         <ng-container
@@ -151,8 +178,8 @@
   } @else {
     <div class="moderation-compass-dialog__empty" role="status">
       <p i18n="@@sessionHost.moderationEmptyHint">
-        Sobald Rückmeldungen vorliegen, zeigt dir der Kompass wichtige Themen, offene Fragen und
-        Hinweise zum Tempo.
+        Noch keine Hinweise. Sobald Fragen, Ergebnisse oder Tempo-Rückmeldungen vorliegen,
+        unterstützt dich der Kompass bei der Wahl des nächsten Schritts.
       </p>
       <p i18n="@@sessionHost.moderationDialogIntroDecide">
         Du entscheidest, was du als Nächstes aufgreifst.
@@ -218,7 +245,7 @@
           @if (result.statements.length > 0) {
             <ul class="moderation-compass-dialog__summary-statements">
               @for (statement of summaryStatements(result); track statement.text) {
-                @let parts = summaryScanParts(statement.text);
+                @let parts = summaryScanParts(statement.text, result);
                 <li>
                   @if (parts.lead) {
                     <span class="moderation-compass-dialog__summary-lead">{{ parts.lead }}:</span>
@@ -253,7 +280,7 @@
             </h4>
             <ul class="moderation-compass-dialog__summary-statements">
               @for (step of result.suggestedNextSteps; track step.text) {
-                @let parts = summaryScanParts(step.text);
+                @let parts = summaryScanParts(step.text, result);
                 <li>
                   @if (parts.lead) {
                     <span class="moderation-compass-dialog__summary-lead">{{ parts.lead }}:</span>
@@ -278,29 +305,33 @@
                         type="button"
                         class="moderation-compass-card__source-button"
                         [attr.aria-label]="summarySourceJumpAria(source)"
+                        [attr.aria-disabled]="sourcePending() ? true : null"
                         (click)="activateSummarySource(source)"
                       >
                         <span class="moderation-compass-card__source-dest"
                           >{{ summarySourceDestinationLabel(source) }}:</span
                         >
-                        <span class="moderation-compass-card__source-label">{{
-                          displaySourceLabel(source.label)
-                        }}</span>
+                        <span class="moderation-compass-card__source-label"
+                          >&nbsp;{{ displaySourceLabel(source.label) }}</span
+                        >
                       </button>
                     } @else {
                       <span class="moderation-compass-card__source-static">
                         <span class="moderation-compass-card__source-dest"
                           >{{ summarySourceDestinationLabel(source) }}:</span
                         >
-                        <span class="moderation-compass-card__source-label">{{
-                          displaySourceLabel(source.label)
-                        }}</span>
+                        <span class="moderation-compass-card__source-label"
+                          >&nbsp;{{ displaySourceLabel(source.label) }}</span
+                        >
                       </span>
                     }
                   </li>
                 }
               </ul>
             </details>
+          }
+          @if (sourceError()) {
+            <p role="alert">{{ sourceError() }}</p>
           }
         }
       }

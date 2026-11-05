@@ -1242,8 +1242,7 @@
               [selectionScopeKey]="qaWordCloudProjection()?.mode ?? null"
               [wordLabelSingular]="qaWordCloudWordLabelSingular()"
               [wordLabelPlural]="qaWordCloudWordLabelPlural()"
-              [weightingHint]="null"
-              [contextPills]="qaWordCloudContextPills()"
+              [weightingHint]="qaWordCloudReadingHint()"
               [emptyMessage]="qaWordCloudEmptyMessage"
               [presentationMode]="true"
               [outputOnly]="true"
@@ -1395,7 +1394,7 @@
               value="PHRASES"
               data-testid="presenter-freetext-word-cloud-phrases"
               i18n="@@sessionHost.wordCloudAnalysisPhrases"
-              >Wörter &amp; Phrasen</mat-button-toggle
+              >Wortgruppen</mat-button-toggle
             >
             <mat-button-toggle
               value="SEMANTIC"
@@ -1419,23 +1418,34 @@
             <span>{{ presenterFreetextWordCloudFreezeLabel() }}</span>
           </button>
           @if (presenterFreetextShowSmoothing()) {
-            <button
-              mat-button
-              type="button"
-              class="session-present__word-cloud-action"
-              data-testid="presenter-freetext-word-cloud-smooth"
-              [class.session-present__word-cloud-action--pressed]="
-                presenterFreetextSmoothingPressed()
-              "
-              [disabled]="presenterFreetextSmoothingDisabled() && !presenterFreetextLemmaPending()"
-              [attr.aria-disabled]="presenterFreetextSmoothingDisabled() ? true : null"
-              [attr.aria-pressed]="presenterFreetextSmoothingPressed()"
-              [attr.aria-busy]="presenterFreetextLemmaPending() ? true : null"
-              (click)="togglePresenterFreetextWordCloudSmoothing()"
-            >
-              <mat-icon aria-hidden="true">{{ presenterFreetextSmoothingIcon() }}</mat-icon>
-              <span>{{ presenterFreetextSmoothingLabel() }}</span>
-            </button>
+            <details class="session-present__word-cloud-options">
+              <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
+              <div class="session-present__word-cloud-options-body">
+                <button
+                  mat-button
+                  type="button"
+                  class="session-present__word-cloud-action"
+                  data-testid="presenter-freetext-word-cloud-smooth"
+                  [class.session-present__word-cloud-action--pressed]="
+                    presenterFreetextSmoothingPressed()
+                  "
+                  [disabled]="
+                    presenterFreetextSmoothingDisabled() && !presenterFreetextLemmaPending()
+                  "
+                  [attr.aria-disabled]="presenterFreetextSmoothingDisabled() ? true : null"
+                  [attr.aria-pressed]="presenterFreetextSmoothingPressed()"
+                  [attr.aria-busy]="presenterFreetextLemmaPending() ? true : null"
+                  (click)="togglePresenterFreetextWordCloudSmoothing()"
+                >
+                  <mat-icon aria-hidden="true">{{ presenterFreetextSmoothingIcon() }}</mat-icon>
+                  <span>{{ presenterFreetextSmoothingLabel() }}</span>
+                </button>
+                <p i18n="@@wordCloud.smoothingExample">
+                  Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben
+                  erhalten.
+                </p>
+              </div>
+            </details>
           }
           @if (presenterFreetextShowThemeRefresh()) {
             <button
@@ -1475,7 +1485,6 @@
           "
           [presentationMode]="true"
           [outputOnly]="true"
-          [interactiveOutput]="true"
         />
       </div>
     } @else if (quizQuestionAwaitingSnapshot()) {

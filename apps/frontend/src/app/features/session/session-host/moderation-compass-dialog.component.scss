@@ -147,6 +147,13 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
   line-height: 1.3;
 }
 
+.moderation-compass-dialog__primary-source {
+  align-self: flex-start;
+  min-height: 44px;
+  height: auto;
+  margin-top: 0.65rem;
+}
+
 .moderation-compass-dialog__now[data-tone='caution'] .moderation-compass-dialog__now-label {
   color: var(--mat-sys-tertiary);
 }

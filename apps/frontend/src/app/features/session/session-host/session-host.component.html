@@ -3785,6 +3785,20 @@
                   </summary>
                   <div class="session-host__extra-content">
                     @if (freetextWordCloudMaximized()) {
+                      @if (moderationCompassReturn()) {
+                        <button
+                          mat-button
+                          type="button"
+                          class="session-host__extra-return-to-compass"
+                          data-testid="freetext-word-cloud-return-to-compass"
+                          (click)="returnToModerationCompass()"
+                        >
+                          <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                          <span i18n="@@sessionHost.moderationReturnToCompass"
+                            >Zurück zum Kompass</span
+                          >
+                        </button>
+                      }
                       <button
                         mat-icon-button
                         type="button"
@@ -3800,6 +3814,7 @@
                       <mat-button-toggle-group
                         class="session-host__extra-analysis-toggle"
                         name="freetext-word-cloud-host-mode"
+                        [hideSingleSelectionIndicator]="true"
                         [value]="freetextWordCloudMode()"
                         [disabled]="wordCloudFrozen()"
                         (change)="setFreetextWordCloudMode($event.value)"
@@ -3816,7 +3831,7 @@
                           value="PHRASES"
                           (click)="setFreetextWordCloudMode('PHRASES')"
                           i18n="@@sessionHost.wordCloudAnalysisPhrases"
-                          >Wörter &amp; Phrasen</mat-button-toggle
+                          >Wortgruppen</mat-button-toggle
                         >
                         <mat-button-toggle
                           value="SEMANTIC"
@@ -3825,77 +3840,72 @@
                           >Themen</mat-button-toggle
                         >
                       </mat-button-toggle-group>
-                      <label class="session-host__extra-action session-host__word-cloud-language">
-                        <span i18n="@@wordCloud.analysisLanguage">Analysesprache:</span>
-                        <select
-                          [value]="wordCloudTermLocale()"
-                          [disabled]="wordCloudLocaleLocked()"
-                          (change)="setWordCloudLemmaLocale($any($event.target).value)"
-                        >
-                          <option value="de" lang="de">Deutsch</option>
-                          <option value="en" lang="en">English</option>
-                          <option value="fr" lang="fr">Français</option>
-                          <option value="es" lang="es">Español</option>
-                          <option value="it" lang="it">Italiano</option>
-                        </select>
-                      </label>
-                      @if (freetextWordCloudMaximized()) {
-                        <button
-                          mat-icon-button
-                          type="button"
-                          class="session-host__extra-action session-host__extra-action--icon"
-                          [attr.aria-pressed]="wordCloudFrozen()"
-                          [attr.aria-label]="wordCloudFreezeLabel()"
-                          [matTooltip]="wordCloudFreezeLabel()"
-                          matTooltipTouchGestures="off"
-                          (click)="toggleWordCloudFreeze()"
-                        >
-                          <mat-icon aria-hidden="true">{{
-                            wordCloudFrozen() ? 'play_arrow' : 'pause'
-                          }}</mat-icon>
-                        </button>
-                      } @else {
-                        <button
-                          mat-button
-                          type="button"
-                          class="session-host__extra-action"
-                          [attr.aria-pressed]="wordCloudFrozen()"
-                          [attr.aria-label]="wordCloudFreezeLabel()"
-                          [matTooltip]="wordCloudFreezeLabel()"
-                          matTooltipTouchGestures="off"
-                          (click)="toggleWordCloudFreeze()"
-                        >
-                          <mat-icon aria-hidden="true">{{
-                            wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
-                          }}</mat-icon>
-                          <span>{{ wordCloudFreezeLabel() }}</span>
-                        </button>
-                      }
-                      @if (freetextWordCloudShowSmoothing()) {
-                        <div class="session-host__smooth-cluster">
-                          <button
-                            mat-button
-                            type="button"
-                            class="session-host__extra-action session-host__extra-action--smooth"
-                            [class.session-host__extra-action--smooth-active]="
-                              freetextWordCloudSmoothingPressed()
-                            "
-                            [attr.aria-disabled]="
-                              freetextWordCloudSmoothingDisabled() || wordCloudFrozen()
-                                ? true
-                                : null
-                            "
-                            [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
-                            [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
-                            (click)="toggleFreetextWordCloudSmoothing()"
+
+                      <button
+                        mat-button
+                        type="button"
+                        class="session-host__extra-action"
+                        [attr.aria-pressed]="wordCloudFrozen()"
+                        [attr.aria-label]="wordCloudFreezeLabel()"
+                        [matTooltip]="wordCloudFreezeLabel()"
+                        matTooltipTouchGestures="off"
+                        (click)="toggleWordCloudFreeze()"
+                      >
+                        <mat-icon aria-hidden="true">{{
+                          wordCloudFrozen() ? 'play_arrow' : 'pause_circle'
+                        }}</mat-icon>
+                        <span>{{ wordCloudFreezeLabel() }}</span>
+                      </button>
+                      <details class="session-host__word-cloud-options">
+                        <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
+                        <div class="session-host__word-cloud-options-body">
+                          <label
+                            class="session-host__extra-action session-host__word-cloud-language"
                           >
-                            <mat-icon aria-hidden="true">{{
-                              freetextWordCloudSmoothingIcon()
-                            }}</mat-icon>
-                            <span>{{ freetextWordCloudSmoothingLabel() }}</span>
-                          </button>
+                            <span i18n="@@wordCloud.analysisLanguage">Sprache der Beiträge:</span>
+                            <select
+                              [value]="wordCloudTermLocale()"
+                              [disabled]="wordCloudLocaleLocked()"
+                              (change)="setWordCloudLemmaLocale($any($event.target).value)"
+                            >
+                              <option value="de" lang="de">Deutsch</option>
+                              <option value="en" lang="en">English</option>
+                              <option value="fr" lang="fr">Français</option>
+                              <option value="es" lang="es">Español</option>
+                              <option value="it" lang="it">Italiano</option>
+                            </select>
+                          </label>
+                          @if (freetextWordCloudShowSmoothing()) {
+                            <div class="session-host__smooth-cluster">
+                              <button
+                                mat-button
+                                type="button"
+                                class="session-host__extra-action session-host__extra-action--smooth"
+                                [class.session-host__extra-action--smooth-active]="
+                                  freetextWordCloudSmoothingPressed()
+                                "
+                                [attr.aria-disabled]="
+                                  freetextWordCloudSmoothingDisabled() || wordCloudFrozen()
+                                    ? true
+                                    : null
+                                "
+                                [attr.aria-pressed]="freetextWordCloudSmoothingPressed()"
+                                [attr.aria-busy]="freetextWordCloudSmoothingBusy() ? true : null"
+                                (click)="toggleFreetextWordCloudSmoothing()"
+                              >
+                                <mat-icon aria-hidden="true">{{
+                                  freetextWordCloudSmoothingIcon()
+                                }}</mat-icon>
+                                <span>{{ freetextWordCloudSmoothingLabel() }}</span>
+                              </button>
+                            </div>
+                          }
+                          <p i18n="@@wordCloud.smoothingExample">
+                            Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen
+                            Beiträge bleiben erhalten.
+                          </p>
                         </div>
-                      }
+                      </details>
                       @if (freetextWordCloudShowThemeRefresh()) {
                         <button
                           mat-button
@@ -3915,6 +3925,12 @@
                         </button>
                       }
                     </div>
+                    @if (wordCloudFrozen()) {
+                      <p role="status" i18n="@@sessionHost.wordCloudFrozenInfo">
+                        Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht
+                        angehalten.
+                      </p>
+                    }
                     @if (exportStatus()) {
                       <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
                     }
@@ -4548,7 +4564,7 @@
                           </mat-button-toggle>
                           <mat-button-toggle value="BEST">
                             <span class="session-qa-sort-toggle__label">
-                              <span i18n="@@sessionQa.sortBest">Beste Fragen</span>
+                              <span i18n="@@sessionQa.sortBest">Klare Zustimmung</span>
                               <span
                                 class="session-qa-sort-help"
                                 role="button"
@@ -4673,7 +4689,7 @@
                             <mat-icon aria-hidden="true">{{
                               qaSortMode() === 'BEST' ? 'check' : 'auto_awesome'
                             }}</mat-icon>
-                            <span i18n="@@sessionQa.sortBest">Beste Fragen</span>
+                            <span i18n="@@sessionQa.sortBest">Klare Zustimmung</span>
                           </button>
                           <button
                             mat-menu-item
