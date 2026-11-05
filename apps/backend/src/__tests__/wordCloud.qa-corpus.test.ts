@@ -351,6 +351,81 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
     expect(JSON.stringify(latest)).not.toContain(corpus[2]!.id);
   });
 
+  it('löst eine Fokusfrage trotz gekürzter semantischer Mitglieder auf ihre Themen-Gruppe auf', async () => {
+    const corpus = corpusRows(2, 2);
+    corpus[0]!.text = 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?';
+    corpus[1]!.text = 'Welche Grenzen hat Lambda bei langen Aufgaben?';
+    prismaMock.$queryRaw.mockResolvedValue(corpus);
+    wordCloudCacheMocks.getSnapshot.mockResolvedValueOnce({
+      mode: 'SEMANTIC',
+      effectiveMode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      generatedAt: '2026-11-05T14:00:00.000Z',
+      fallbackUsed: false,
+      status: 'ready',
+      modelVersion: 'sha256:test-model',
+      normalization: 'NONE',
+      normalizationApplied: 'NONE',
+      normalizationFallbackUsed: false,
+      normalizationFallbackReason: null,
+      fallbackLocale: 'de',
+      analysisVersion: '1.14c.4',
+      modelId: 'intfloat/multilingual-e5-small',
+      snapshotHash: 'c'.repeat(64),
+      entries: [
+        {
+          key: 'serverlose-verarbeitung',
+          label: 'Serverlose Verarbeitung',
+          count: 2,
+          basisLabel: corpus[0]!.text,
+          members: [{ sourceId: corpus[0]!.id, text: corpus[0]!.text, weight: 1 }],
+          variants: [corpus[0]!.text],
+          confidence: 0.9,
+          memberCount: 2,
+          membersTruncated: true,
+        },
+      ],
+    });
+    wordCloudCacheMocks.getLatestQaSemanticTopicSnapshot.mockResolvedValueOnce({
+      version: 'qa-semantic-topic-snapshot-v1',
+      status: 'ready',
+      metric: 'BEST',
+      corpusRevision: '17:',
+      analyzedAt: '2026-11-05T14:00:00.000Z',
+      analysisVersion: '1.14c.4',
+      model: { id: 'intfloat/multilingual-e5-small', version: 'sha256:test-model' },
+      eligibleQuestionCount: 2,
+      analyzedQuestionCount: 2,
+      topics: [
+        {
+          topicId: 'd'.repeat(64),
+          confidence: 0.9,
+          labelSourceQuestionId: corpus[0]!.id,
+          members: corpus.map((question) => ({
+            questionId: question.id,
+            textDigest: 'e'.repeat(64),
+          })),
+        },
+      ],
+    });
+
+    const result = await caller.analyzeQa({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      filter: 'ALL_ELIGIBLE',
+      normalization: 'NONE',
+      maxEntries: 40,
+      limit: 500,
+      focusQuestionIds: [corpus[1]!.id],
+    });
+
+    expect(result.entries[0]?.members.map(({ sourceId }) => sourceId)).toEqual([corpus[0]!.id]);
+    expect(result.focusedGroupKey).toBe('serverlose-verarbeitung');
+  });
+
   trpcDodIt(
     {
       procedure: 'wordCloud.analyzeQa',

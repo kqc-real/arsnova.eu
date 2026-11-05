@@ -201,6 +201,7 @@ const {
   qaSummaryContextPreviewQueryMock,
   qaRequestSummaryMutateMock,
   qaModerateMutateMock,
+  qaRedactPassagesMutateMock,
   qaPendingReleaseSnapshotQueryMock,
   qaReleasePendingMutateMock,
   qaToggleModerationMutateMock,
@@ -270,6 +271,7 @@ const {
   qaSummaryContextPreviewQueryMock: vi.fn(),
   qaRequestSummaryMutateMock: vi.fn(),
   qaModerateMutateMock: vi.fn(),
+  qaRedactPassagesMutateMock: vi.fn(),
   qaPendingReleaseSnapshotQueryMock: vi.fn(),
   qaReleasePendingMutateMock: vi.fn(),
   qaToggleModerationMutateMock: vi.fn(),
@@ -398,6 +400,7 @@ vi.mock('../../../core/trpc.client', () => ({
       summaryContextPreview: { query: qaSummaryContextPreviewQueryMock },
       requestSummary: { mutate: qaRequestSummaryMutateMock },
       moderate: { mutate: qaModerateMutateMock },
+      redactPassages: { mutate: qaRedactPassagesMutateMock },
       pendingReleaseSnapshot: { query: qaPendingReleaseSnapshotQueryMock },
       releasePending: { mutate: qaReleasePendingMutateMock },
       toggleModeration: { mutate: qaToggleModerationMutateMock },
@@ -724,6 +727,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       result: null,
     });
     qaModerateMutateMock.mockResolvedValue({});
+    qaRedactPassagesMutateMock.mockResolvedValue({});
     qaPendingReleaseSnapshotQueryMock.mockResolvedValue({
       pendingCount: 0,
       pendingSetFingerprint: '0'.repeat(64),
@@ -28975,7 +28979,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     });
 
-    it('öffnet die Q&A-Wortwolke für einen Themenbegriff', async () => {
+    it('öffnet einen lexikalischen Kompassbegriff in der anders benannten semantischen Gruppe', async () => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
         status: 'ACTIVE',
@@ -28988,7 +28992,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       qaListQueryMock.mockResolvedValue([
         {
           id: '11111111-1111-4111-8111-111111111111',
-          text: 'Grenzen von ChatGPT in der Übung',
+          text: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
           upvoteCount: 3,
           status: 'ACTIVE',
           createdAt: '2026-03-13T12:00:00.000Z',
@@ -28999,7 +29003,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         },
         {
           id: '22222222-2222-4222-8222-222222222222',
-          text: 'Brauchen wir mehr Übung zu ChatGPT?',
+          text: 'Welche Grenzen hat Lambda bei langen Aufgaben?',
           upvoteCount: 2,
           status: 'ACTIVE',
           createdAt: '2026-03-13T12:01:00.000Z',
@@ -29009,6 +29013,41 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           hasUpvoted: false,
         },
       ]);
+      wordCloudAnalyzeQueryMock.mockResolvedValue(
+        wordCloudAnalyzeResult({
+          mode: 'SEMANTIC',
+          effectiveMode: 'SEMANTIC',
+          metric: 'TOP',
+          modelVersion: 'sha256:test-model',
+          modelId: 'intfloat/multilingual-e5-small',
+          entries: [
+            {
+              key: 'serverlose-verarbeitung',
+              label: 'Serverlose Verarbeitung',
+              count: 2,
+              basisLabel: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+              members: [
+                {
+                  sourceId: '11111111-1111-4111-8111-111111111111',
+                  text: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+                  weight: 2,
+                },
+              ],
+              variants: ['Ereignisgesteuerte Verarbeitung'],
+              confidence: 0.91,
+              memberCount: 2,
+              membersTruncated: true,
+            },
+          ],
+          eligibleQuestionCount: 2,
+          analyzedQuestionCount: 2,
+          corpusRevision: '17:',
+          sortMode: 'TOP',
+          filter: 'ALL_ELIGIBLE',
+          focusedGroupKey: 'serverlose-verarbeitung',
+        }),
+      );
+      dialogOpenMock.mockReturnValue({ afterClosed: () => NEVER });
 
       const fixture = setup();
       fixture.detectChanges();
@@ -29026,36 +29065,48 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       await component.followModerationCompassSource({
         kind: 'qa-term',
-        label: 'Übung · Grenzen von ChatGPT in der Übung',
+        label: 'Lambda · Welche Grenzen hat Lambda bei langen Aufgaben?',
         target: {
           channel: 'qa',
           surface: 'word-cloud',
-          termLabel: 'Übung',
-          memberText: 'Grenzen von ChatGPT in der Übung',
-          memberTexts: ['Grenzen von ChatGPT in der Übung', 'Brauchen wir mehr Übung zu ChatGPT?'],
-          questionId: '11111111-1111-4111-8111-111111111111',
-          questionIds: [
-            '11111111-1111-4111-8111-111111111111',
-            '22222222-2222-4222-8222-222222222222',
-          ],
+          termLabel: 'Lambda',
+          memberText: 'Welche Grenzen hat Lambda bei langen Aufgaben?',
+          memberTexts: ['Welche Grenzen hat Lambda bei langen Aufgaben?'],
+          questionId: '22222222-2222-4222-8222-222222222222',
+          questionIds: ['22222222-2222-4222-8222-222222222222'],
           sortMode: 'TOP',
           analysisVariant: 'LEXICAL',
         },
       });
       fixture.detectChanges();
+      await vi.waitUntil(
+        () => component.qaWordCloudFocusedGroupKey() === 'serverlose-verarbeitung',
+        { timeout: 5000, interval: 25 },
+      );
 
       expect(component.activeChannel()).toBe('qa');
       expect(component.qaSortMode()).toBe('TOP');
       expect(component.qaWordCloudAnalysisVariant()).toBe('SEMANTIC');
-      expect(component.moderationCompassFocusedTerm()).toBe('Übung');
-      expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(true);
+      expect(component.moderationCompassFocusedTerm()).toBe('Lambda');
+      expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(false);
       expect(component.isQaCompassFocused('22222222-2222-4222-8222-222222222222')).toBe(true);
-      expect(component.isQaCompassFocusPrimary('11111111-1111-4111-8111-111111111111')).toBe(true);
-      expect(component.isQaCompassFocusPrimary('22222222-2222-4222-8222-222222222222')).toBe(false);
+      expect(component.isQaCompassFocusPrimary('22222222-2222-4222-8222-222222222222')).toBe(true);
+      expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: 'SEMANTIC',
+          limit: 500,
+          focusQuestionIds: ['22222222-2222-4222-8222-222222222222'],
+        }),
+        expect.anything(),
+      );
       const [, config] = dialogOpenMock.mock.calls.at(-1) as [unknown, Record<string, unknown>];
       expect(config['panelClass']).toBe('word-cloud-dialog-panel');
-      const data = config['data'] as { returnToCompassVisible: () => boolean };
+      const data = config['data'] as {
+        returnToCompassVisible: () => boolean;
+        focusedGroupKey: () => string | null;
+      };
       expect(data.returnToCompassVisible()).toBe(true);
+      expect(data.focusedGroupKey()).toBe('serverlose-verarbeitung');
       fixture.destroy();
     });
 
@@ -29209,6 +29260,145 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(component.qaForumQuestions().map((question) => question.id)).toEqual([
         pageQuestion.id,
       ]);
+      fixture.destroy();
+    });
+
+    it('entfernt eine gelöschte Fokusfrage aus dem dauerhaften Kompass-Cache', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const focusedQuestion = {
+        passagesRedacted: false,
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Welche Grenzen hat Lambda?',
+        upvoteCount: 2,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      qaListQueryMock.mockResolvedValue(qaHostSnapshot([focusedQuestion]));
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      await component.followModerationCompassSource({
+        kind: 'qa-question',
+        label: focusedQuestion.text,
+        target: {
+          channel: 'qa',
+          questionId: focusedQuestion.id,
+          questionIds: [focusedQuestion.id],
+        },
+      });
+      expect(component.isQaCompassFocused(focusedQuestion.id)).toBe(true);
+
+      qaModerateMutateMock.mockResolvedValue({ ...focusedQuestion, status: 'DELETED' });
+      qaListQueryMock.mockResolvedValue(qaHostSnapshot([]));
+      await component.moderateQaQuestion(focusedQuestion.id, 'DELETE');
+
+      expect(component.isQaCompassFocused(focusedQuestion.id)).toBe(false);
+      expect(component.qaForumQuestions().some(({ id }) => id === focusedQuestion.id)).toBe(false);
+      fixture.destroy();
+    });
+
+    it('behält nach Schwärzung und Seitenwechsel nur die autoritativ aktualisierte Fokusfrage', async () => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: true },
+          quickFeedback: { enabled: false, open: false },
+        },
+      });
+      const pageQuestion = {
+        passagesRedacted: false,
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Wie funktioniert serverlose Verarbeitung?',
+        upvoteCount: 3,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      const focusedQuestion = {
+        passagesRedacted: false,
+        id: '22222222-2222-4222-8222-222222222222',
+        text: 'Lambda verrät geheime Kundendaten',
+        upvoteCount: 2,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-03-13T12:01:00.000Z',
+        updatedAt: '2026-03-13T12:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+      };
+      qaListQueryMock.mockResolvedValue(qaHostSnapshot([pageQuestion, focusedQuestion]));
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+      const component = fixture.componentInstance;
+      await component.followModerationCompassSource({
+        kind: 'qa-question',
+        label: focusedQuestion.text,
+        target: {
+          channel: 'qa',
+          questionId: focusedQuestion.id,
+          questionIds: [focusedQuestion.id],
+        },
+      });
+
+      const redactedQuestion = {
+        ...focusedQuestion,
+        text: 'Lambda verrät ███████████████',
+        passagesRedacted: true,
+        passagesRedactedAt: '2026-03-13T12:02:00.000Z',
+        updatedAt: '2026-03-13T12:02:00.000Z',
+      };
+      qaRedactPassagesMutateMock.mockResolvedValue(redactedQuestion);
+      qaListQueryMock.mockResolvedValue({
+        ...qaHostSnapshot([pageQuestion]),
+        totalCount: 2,
+        nextCursor: 'next-page',
+      });
+
+      await component['applyQaPassageRedaction'](
+        focusedQuestion.id,
+        [{ start: 15, end: focusedQuestion.text.length }],
+        focusedQuestion.text,
+      );
+
+      expect(
+        component.qaForumQuestions().find(({ id }) => id === focusedQuestion.id),
+      ).toMatchObject({
+        text: redactedQuestion.text,
+        passagesRedacted: true,
+      });
+
+      const archivedQuestion = { ...redactedQuestion, status: 'ARCHIVED' as const };
+      qaListQueryMock.mockResolvedValue(qaHostSnapshot([pageQuestion, archivedQuestion]));
+      await component['refreshCompassInventory']();
+
+      expect(
+        component.qaForumQuestions().find(({ id }) => id === focusedQuestion.id),
+      ).toMatchObject({
+        text: redactedQuestion.text,
+        status: 'ARCHIVED',
+        passagesRedacted: true,
+      });
       fixture.destroy();
     });
 

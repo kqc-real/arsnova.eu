@@ -136,6 +136,7 @@ import {
   CONFIDENCE_SCALE_MIN,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+  QA_WORD_CLOUD_MAX_FOCUS_QUESTION_IDS,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
   SESSION_LOBBY_RECENT_ARRIVALS_MAX,
   SESSION_POST_PROCESSING_HOURS,
@@ -158,6 +159,7 @@ import {
   canRequestQaSummary,
   countQaSummaryVisibleQuestions,
   type AnalyzeQaWordCloudInput,
+  type AnalyzeQaWordCloudOutput,
   type AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
   ConfidenceResultDTO,
@@ -1161,7 +1163,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudThemeAnalysisPending = signal(false);
   readonly qaWordCloudThemeFallbackActive = signal(false);
   private readonly qaWordCloudThemeAnalysisFailed = signal(false);
-  readonly qaWordCloudThemeAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly qaWordCloudThemeAnalysisResult = signal<AnalyzeQaWordCloudOutput | null>(null);
   private readonly qaWordCloudRetainedPhrases = signal<WordCloudAnalysisEntryDTO[]>([]);
   private readonly qaWordCloudFrozenProjection = signal<QaWordCloudPresenterProjectionDTO | null>(
     null,
@@ -2475,6 +2477,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const themeEntries = this.qaWordCloudPhraseFallbackEntries();
     return themeEntries.length > 0 ? themeEntries : null;
   });
+  readonly qaWordCloudFocusedGroupKey = computed(
+    () => this.qaWordCloudThemeAnalysisResult()?.focusedGroupKey ?? null,
+  );
   readonly qaWordCloudLemmaStale = computed(() => {
     const snapshotKey = this.qaWordCloudLemmaSnapshotKey();
     if (this.qaWordCloudLemmaResult()?.normalizationApplied !== 'LEMMA' || !snapshotKey) {
@@ -2852,6 +2857,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           itemLabelSingular: $localize`:@@sessionQa.wordCloudItemSingular:Frage`,
           itemLabelPlural: $localize`:@@sessionQa.wordCloudItemPlural:Fragen`,
           focusedTermLabel: () => this.moderationCompassFocusedTerm(),
+          focusedGroupKey: () => this.qaWordCloudFocusedGroupKey(),
           returnToCompassVisible: () => this.moderationCompassReturn() !== null,
         },
         autoFocus: '.qa-word-cloud-dialog__close',
@@ -3292,6 +3298,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (Array.isArray(snapshot) || snapshot.state !== 'ACTIVE') {
         return;
       }
+      this.reconcileQaCompassFocusQuestions(snapshot.questions, { complete: true });
       this.qaCompassInventoryBeyondPage.set(true);
       this.qaCompassInventory.set(
         snapshot.questions.filter((question) => question.status !== 'DELETED'),
@@ -3430,6 +3437,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     }
     if (target.surface === 'word-cloud') {
+      const cloudFocusedIds = this.resolveQaCompassMemberQuestionIds(target);
+      this.ensureCompassFocusedQuestionsInList(cloudFocusedIds);
+      this.applyQaCompassFocus(cloudFocusedIds, 'compass', focusHint);
       if (target.channel === 'qa') {
         if (target.sortMode && target.sortMode !== this.qaSortMode()) {
           await this.setQaSortMode(target.sortMode, { scrollToTop: false });
@@ -3437,9 +3447,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.setQaWordCloudAnalysisVariant(this.preferredQaWordCloudCompassVariant());
       }
       this.moderationCompassFocusedTerm.set(target.termLabel ?? null);
-      const cloudFocusedIds = this.resolveQaCompassMemberQuestionIds(target);
-      this.ensureCompassFocusedQuestionsInList(cloudFocusedIds);
-      this.applyQaCompassFocus(cloudFocusedIds, 'compass', focusHint);
       this.releaseQaChromeAfterCompassJump();
       if (target.channel === 'qa') {
         await this.openQaWordCloudDialog(target.termLabel ?? null);
@@ -3721,6 +3728,58 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       .map((id) => chromeById.get(id))
       .filter((question): question is QaQuestionDTO => question !== undefined);
     this.qaCompassFocusQuestions.set(focusedQuestions);
+  }
+
+  /**
+   * Gleicht den kurzzeitig über Seitengrenzen gehaltenen Kompass-Fokus mit
+   * aktuellen Serverdaten ab. Nur ein vollständiger Bestand darf fehlende IDs
+   * entfernen; explizite DELETED-Tombstones sind immer autoritativ.
+   */
+  private reconcileQaCompassFocusQuestions(
+    questions: readonly QaQuestionDTO[],
+    options: { readonly complete: boolean },
+  ): void {
+    const focusedIds = [...this.qaCompassFocusQuestionIds()];
+    if (focusedIds.length === 0) {
+      return;
+    }
+    const currentById = new Map(questions.map((question) => [question.id, question] as const));
+    const cachedById = new Map(
+      this.qaCompassFocusQuestions().map((question) => [question.id, question] as const),
+    );
+    const nextIds: string[] = [];
+    const nextQuestions: QaQuestionDTO[] = [];
+
+    for (const id of focusedIds) {
+      const current = currentById.get(id);
+      if (current) {
+        if (current.status !== 'DELETED') {
+          nextIds.push(id);
+          nextQuestions.push(current);
+        }
+        continue;
+      }
+      if (options.complete) {
+        continue;
+      }
+      nextIds.push(id);
+      const cached = cachedById.get(id);
+      if (cached && cached.status !== 'DELETED') {
+        nextQuestions.push(cached);
+      }
+    }
+
+    this.qaCompassFocusQuestionIds.set(new Set(nextIds));
+    this.qaCompassFocusQuestionId.set(nextIds[0] ?? null);
+    this.qaCompassFocusQuestions.set(nextQuestions);
+    if (nextIds.length === 0) {
+      this.qaFocusOrigin.set(null);
+      this.qaFocusHint.set(null);
+    }
+  }
+
+  private reconcileQaCompassFocusQuestion(question: QaQuestionDTO): void {
+    this.reconcileQaCompassFocusQuestions([question], { complete: false });
   }
 
   private findQaQuestionIdForCompassMember(memberText: string | undefined): string | null {
@@ -13398,6 +13457,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (this.postProcessingEnded()) {
         return false;
       }
+      this.reconcileQaCompassFocusQuestions(snapshot, { complete: false });
       this.qaQuestions.set(snapshot);
       this.qaListTotalCount.set(
         snapshot.filter((question) => question.status !== 'DELETED').length,
@@ -13444,6 +13504,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (snapshot.state !== 'ACTIVE') {
+      this.clearQaCompassFocus();
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(0);
@@ -13464,6 +13525,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return false;
     }
     this.postProcessingEnded.set(false);
+    // Die reguläre Listenabfrage ist auch bei einer einzelnen Seite kein
+    // autoritativer Vollbestand für einen über Seitengrenzen gehaltenen Fokus.
+    // Fehlende IDs entfernt ausschließlich refreshCompassInventory(); explizite
+    // DELETED-Tombstones werden auch in diesem partiellen Snapshot verarbeitet.
+    this.reconcileQaCompassFocusQuestions(snapshot.questions, { complete: false });
     this.qaQuestions.set(snapshot.questions);
     // append/preservePaging: Seitennavigation nicht auf 0 zurücksetzen —
     // sonst springt „Weiter“ nach Live-Invalidierung sofort wieder auf Seite 1.
@@ -13571,6 +13637,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private closeHostPostProcessing(): void {
     const wasAlreadyEnded = this.postProcessingEnded();
     this.postProcessingEnded.set(true);
+    this.clearQaCompassFocus();
     this.qaQuestions.set([]);
     this.qaCompassInventory.set(null);
     this.qaCompassInventoryBeyondPage.set(false);
@@ -13932,6 +13999,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const sessionId = this.session()?.id;
     const requestGeneration = ++this.qaListRequestGeneration;
     if (!sessionId || !this.channels().qa) {
+      this.clearQaCompassFocus();
       this.qaQuestions.set([]);
       this.qaListTotalCount.set(0);
       this.qaListPendingCount.set(null);
@@ -14246,6 +14314,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       text: question.text,
       weight: this.qaWordCloudQuestionWeight(question),
     }));
+    const focusQuestionIds = [...this.qaCompassFocusQuestionIds()].slice(
+      0,
+      QA_WORD_CLOUD_MAX_FOCUS_QUESTION_IDS,
+    );
+    const compassAnalysisLimit =
+      QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1] ?? QA_LIST_DEFAULT_PAGE_SIZE;
     return {
       sessionCode: this.code.toUpperCase(),
       mode: variant,
@@ -14253,9 +14327,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       metric: this.qaSortMode(),
       normalization: 'NONE',
       filter: this.qaShowPinnedOnly() ? 'PINNED_ONLY' : 'ALL_ELIGIBLE',
-      limit: this.qaListPageSize(),
+      limit: focusQuestionIds.length > 0 ? compassAnalysisLimit : this.qaListPageSize(),
       items,
       maxEntries: 40,
+      ...(focusQuestionIds.length > 0 ? { focusQuestionIds } : {}),
       ...(options.refresh ? { refresh: true } : {}),
     };
   }
@@ -15087,11 +15162,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaInfo.set(null);
 
     try {
-      await trpc.qa.moderate.mutate({
+      const moderated = await trpc.qa.moderate.mutate({
         sessionCode: this.code.toUpperCase(),
         questionId,
         action,
       });
+      this.reconcileQaCompassFocusQuestion(moderated);
       await this.refreshQaQuestions();
       this.qaInfo.set(
         action === 'APPROVE'
@@ -15192,12 +15268,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaPendingQuestionIds.set(pending);
 
     try {
-      await trpc.qa.redactPassages.mutate({
+      const redacted = await trpc.qa.redactPassages.mutate({
         sessionCode: this.code.toUpperCase(),
         questionId,
         expectedTextVersion: qaQuestionTextVersion(sourceText),
         ranges,
       });
+      this.reconcileQaCompassFocusQuestion(redacted);
       await this.refreshQaQuestions();
       return { ok: true };
     } catch (error) {

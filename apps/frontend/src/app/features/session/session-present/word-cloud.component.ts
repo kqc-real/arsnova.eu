@@ -198,7 +198,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private d3CloudImportPromise: Promise<(typeof import('d3-cloud'))['default']> | null = null;
   private layoutRunId = 0;
   private previousSelectionScopeKey: string | null | undefined = undefined;
-  private appliedFocusedTermLabel: string | null = null;
+  private appliedFocusIdentity: string | null = null;
 
   readonly responses = input<string[]>([]);
   readonly responseTextsBySourceId = input<Readonly<Record<string, string>> | null>(null);
@@ -208,6 +208,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly selectionScopeKey = input<string | null>(null);
   readonly focusedTermLabel = input<string | null>(null);
+  readonly focusedGroupKey = input<string | null>(null);
   readonly title = input($localize`:@@wordCloud.title:Wortwolke`);
   readonly eyebrow = input<string | null>(null);
   readonly description = input<string | null>(
@@ -945,15 +946,19 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     effect(() => {
       const label = this.focusedTermLabel()?.trim() ?? '';
+      const focusedGroupKey = this.focusedGroupKey()?.trim() ?? '';
       const words = this.words();
       const selected = this.selectedGroupKey();
       const filter = this.confidenceFilter();
-      if (!label) {
-        this.appliedFocusedTermLabel = null;
+      const focusIdentity = focusedGroupKey ? `group:${focusedGroupKey}` : `label:${label}`;
+      if (!focusedGroupKey && !label) {
+        this.appliedFocusIdentity = null;
         return;
       }
 
-      const match = this.findFocusedWord(words, label);
+      const match = focusedGroupKey
+        ? words.find((entry) => entry.groupKey === focusedGroupKey)
+        : this.findFocusedWord(words, label);
       if (!match) {
         if (filter !== 'all' && this.showConfidenceFilterToggle()) {
           this.confidenceFilter.set('all');
@@ -962,16 +967,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       }
 
       if (selected === match.groupKey) {
-        this.appliedFocusedTermLabel = label;
+        this.appliedFocusIdentity = focusIdentity;
         return;
       }
 
-      if (this.appliedFocusedTermLabel === label && selected) {
+      if (this.appliedFocusIdentity === focusIdentity && selected) {
         return;
       }
 
       this.selectedGroupKey.set(match.groupKey);
-      this.appliedFocusedTermLabel = label;
+      this.appliedFocusIdentity = focusIdentity;
     });
 
     effect(() => {
@@ -1092,6 +1097,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return selected;
     }
 
+    const focusedGroupKey = this.focusedGroupKey()?.trim() ?? '';
+    if (focusedGroupKey && words.some((entry) => entry.groupKey === focusedGroupKey)) {
+      return focusedGroupKey;
+    }
+
     const label = this.focusedTermLabel()?.trim() ?? '';
     if (!label) {
       return null;
@@ -1168,12 +1178,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   revealFocusedOrSelectedResponses(): boolean {
     if (!this.selectedGroupKey()) {
+      const words = this.words();
+      const focusedGroupKey = this.focusedGroupKey()?.trim() ?? '';
       const label = this.focusedTermLabel()?.trim() ?? '';
-      if (label) {
-        const match = this.findFocusedWord(this.words(), label);
-        if (match) {
-          this.selectedGroupKey.set(match.groupKey);
-        }
+      const match = focusedGroupKey
+        ? words.find((entry) => entry.groupKey === focusedGroupKey)
+        : label
+          ? this.findFocusedWord(words, label)
+          : undefined;
+      if (match) {
+        this.selectedGroupKey.set(match.groupKey);
       }
     }
 

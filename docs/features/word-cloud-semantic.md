@@ -49,6 +49,8 @@ Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Die Wortgrupp
 
 Die Q&A-Wolke öffnet aus Werkzeugen und Kompass zunächst ohne eigene Projektion und ohne zusätzlichen Statussatz. Der Präsentationseinstieg verwendet dasselbe Beamer-Icon und abhängig vom Fensterzustand dasselbe Label **Präsentationsansicht öffnen**, **Zur Präsentationsansicht wechseln** oder **Präsentationsansicht fortsetzen** wie die übrige Host-Oberfläche. Eine laufende Änderung und die bestätigte Projektion werden angekündigt; zum Beenden steht **Auf der Präsentation ausblenden** bereit. Bei Fehler bleibt die Aktion erneut erreichbar. Das Schließen einer selbst projizierten Wolke blendet diese zuerst bestätigt aus; bei Fehler bleibt der Dialog offen. Eine bereits von anderer Stelle projizierte Wolke wird beim Öffnen oder Schließen nicht übernommen.
 
+Ein Kompass-Sprung übergibt die IDs der belegenden Q&A-Fragen an die kanonische Host-Analyse. Das Backend ordnet diese IDs anhand des vollständigen Themen-Snapshots einer stabilen Gruppenschlüssel-ID zu. So trifft die Wortwolke auch dann die richtige Themenblase, wenn ihr kurzes Themenlabel weder dem ursprünglichen Suchbegriff noch dem repräsentativen, in der kompakten Antwort enthaltenen Mitgliedstext entspricht. Die zusätzlichen Fokusfelder sind ausschließlich Host-Metadaten; Teilnehmer-DTOs und die kompakte Mitgliedsliste werden nicht erweitert.
+
 Q&A-Dialog und Bühne erklären die Größe mit demselben, zur angezeigten Snapshot-Metrik gehörenden Lesesatz. **Klare Zustimmung** bezeichnet Bewertungen durch Teilnehmende, keine fachliche Qualitätsprüfung. Die Bühne zeigt keine Glättungs-, Konfidenz- oder Modell-Chips. **Gruppierung prüfen** hält Konfidenzfilter und die Erläuterung ihrer Grenzen in der Host-Ansicht zugänglich. **Anzeige anhalten** und **Anzeige fortsetzen** beziehen sich auf die Wolke; ein Hinweis erklärt, dass damit die Sammlung neuer Beiträge nicht angehalten wird.
 
 ## Host-Verhalten
@@ -198,7 +200,7 @@ Lokale Q&A-Paraphrasen (Klausur/Regression/Folien/Beamer plus längere Fragen f�
 
 ## Vertrag
 
-Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstanten in `libs/shared-types/src/word-cloud-semantic.ts`. Cluster-Status liegen auf diesem Vertrag, nicht auf `QaSummaryStatusEnum` / 8.9c.
+Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstanten in `libs/shared-types/src/word-cloud-semantic.ts`. `wordCloud.analyzeQa` nimmt optional eine begrenzte Liste `focusQuestionIds` entgegen und liefert den zugehörigen `focusedGroupKey`, sofern der aktuelle Themen-Snapshot eine Zuordnung erlaubt. Cluster-Status liegen auf diesem Vertrag, nicht auf `QaSummaryStatusEnum` / 8.9c.
 
 Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `fallback`.
 

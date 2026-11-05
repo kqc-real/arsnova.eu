@@ -68,6 +68,7 @@ export type QaWordCloudDialogData = {
   itemLabelSingular: string;
   itemLabelPlural: string;
   focusedTermLabel?: () => string | null;
+  focusedGroupKey?: () => string | null;
   returnToCompassVisible?: () => boolean;
 };
 
@@ -149,6 +150,7 @@ export class QaWordCloudDialogComponent {
     }
   });
   readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
+  readonly focusedGroupKey = computed(() => this.data.focusedGroupKey?.() ?? null);
   readonly returnToCompassVisible = computed(() => this.data.returnToCompassVisible?.() ?? false);
   readonly showSmoothingControls = computed(
     () => this.analysisVariant() === 'LEXICAL' || this.analysisVariant() === 'THEME',

@@ -119,6 +119,39 @@ describe('WordCloudComponent', () => {
     expect(fixture.componentInstance.showResponses()).toBe(true);
   });
 
+  it('priorisiert die stabile Gruppenidentität vor einem nicht mehr enthaltenen Wortlabel', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'serverlose-verarbeitung',
+        label: 'Serverlose Verarbeitung',
+        count: 2,
+        basisLabel: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+        members: [
+          {
+            sourceId: 'question-example',
+            text: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+            weight: 2,
+          },
+        ],
+        variants: ['Ereignisgesteuerte Verarbeitung'],
+        confidence: 0.91,
+        memberCount: 2,
+        membersTruncated: true,
+      },
+    ]);
+    fixture.componentRef.setInput('focusedTermLabel', 'Lambda');
+    fixture.componentRef.setInput('focusedGroupKey', 'serverlose-verarbeitung');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.selectedGroupKey()).toBe('serverlose-verarbeitung');
+    expect(fixture.componentInstance.selectedWordLabel()).toBe('Serverlose Verarbeitung');
+    expect(fixture.componentInstance.revealFocusedOrSelectedResponses()).toBe(true);
+    expect(fixture.componentInstance.filteredResponses()).toEqual([
+      'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+    ]);
+  });
+
   it('stellt den Fokusbegriff in displayWords nach vorne, auch wenn er schon im Cap liegt', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     const terms = ['Zulage', 'Betrieb', 'Prämie', 'Stelle', 'Plan', 'Entgelt'].map(
