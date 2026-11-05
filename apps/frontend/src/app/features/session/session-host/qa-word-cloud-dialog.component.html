@@ -49,9 +49,13 @@
     >
       @if (projected()) {
         <mat-icon aria-hidden="true">visibility_off</mat-icon>
+      }
+      @if (!projected()) {
+        <app-presenter-icon matButtonIcon />
+      }
+      @if (projected()) {
         <span i18n="@@sessionQa.wordCloudHideProjection">Auf der Präsentation ausblenden</span>
       } @else {
-        <app-presenter-icon matButtonIcon />
         <span>{{ data.presenterViewActionLabel() }}</span>
       }
     </button>
