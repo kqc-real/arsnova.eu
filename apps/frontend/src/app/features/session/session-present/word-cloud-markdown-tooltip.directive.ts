@@ -106,7 +106,7 @@ export class WordCloudMarkdownTooltipDirective implements OnDestroy {
   private readonly tooltipId = `word-cloud-tooltip-${++wordCloudTooltipId}`;
   private overlayRef: OverlayRef | null = null;
   private openedByTouch = false;
-  private removeOutsideTouch: (() => void) | null = null;
+  private removeOutsidePointer: (() => void) | null = null;
 
   openFromPointer(): void {
     if (this.openedByTouch) {
@@ -125,7 +125,6 @@ export class WordCloudMarkdownTooltipDirective implements OnDestroy {
   openFromTouch(): void {
     this.open();
     this.openedByTouch = true;
-    this.bindOutsideTouch();
   }
 
   open(): void {
@@ -169,20 +168,21 @@ export class WordCloudMarkdownTooltipDirective implements OnDestroy {
     ref.instance.tooltipId = this.tooltipId;
     ref.changeDetectorRef.detectChanges();
     this.host.nativeElement.setAttribute('aria-describedby', this.tooltipId);
+    this.bindOutsidePointer();
   }
 
   close(): void {
     this.openedByTouch = false;
-    this.removeOutsideTouch?.();
-    this.removeOutsideTouch = null;
+    this.removeOutsidePointer?.();
+    this.removeOutsidePointer = null;
     this.host.nativeElement.removeAttribute('aria-describedby');
     this.overlayRef?.dispose();
     this.overlayRef = null;
   }
 
-  private bindOutsideTouch(): void {
-    this.removeOutsideTouch?.();
-    const listener = (event: TouchEvent) => {
+  private bindOutsidePointer(): void {
+    this.removeOutsidePointer?.();
+    const listener = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) {
         this.close();
@@ -196,8 +196,9 @@ export class WordCloudMarkdownTooltipDirective implements OnDestroy {
       }
       this.close();
     };
-    this.document.addEventListener('touchstart', listener, true);
-    this.removeOutsideTouch = () => this.document.removeEventListener('touchstart', listener, true);
+    this.document.addEventListener('pointerdown', listener, true);
+    this.removeOutsidePointer = () =>
+      this.document.removeEventListener('pointerdown', listener, true);
   }
 
   ngOnDestroy(): void {

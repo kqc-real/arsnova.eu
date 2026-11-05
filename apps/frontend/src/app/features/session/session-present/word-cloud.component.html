@@ -182,6 +182,14 @@
         </div>
       }
     </div>
+    @if (analysisSummaryHero(); as summary) {
+      <section class="word-cloud__summary-hero">
+        <h3 class="word-cloud__summary-hero-heading" i18n="@@wordCloud.summaryHeroHeading">
+          Zusammengefasst als
+        </h3>
+        <p class="word-cloud__summary-hero-text">{{ summary }}</p>
+      </section>
+    }
     @if (words().length > 0) {
       <ol class="sr-only" [attr.aria-label]="title()">
         @for (entry of words(); track entry.groupKey) {
@@ -241,7 +249,13 @@
             @if (selectedEvidenceCoverage(); as evidenceCoverage) {
               <p>{{ evidenceCoverage }}</p>
             }
-            <ul class="word-cloud__responses">
+            <ul
+              class="word-cloud__responses"
+              tabindex="0"
+              [attr.aria-label]="
+                formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
+              "
+            >
               @for (response of visibleResponses(); track response + $index) {
                 <li>{{ response }}</li>
               }

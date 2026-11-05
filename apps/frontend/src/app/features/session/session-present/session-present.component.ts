@@ -1627,7 +1627,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private qaWordCloudModePill(mode: WordCloudAnalysisVariant): string {
     switch (mode) {
       case 'SEMANTIC':
-        return $localize`:@@sessionQa.wordCloudAnalysisSemantic:Thema`;
+        return $localize`:@@sessionQa.wordCloudAnalysisSemantic:Themen`;
       case 'LEXICAL':
         return $localize`:@@sessionQa.wordCloudAnalysisLexical:Wörter`;
       default:

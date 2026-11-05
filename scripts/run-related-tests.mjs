@@ -20,9 +20,10 @@ export const WORKSPACE_DEPENDENTS = {
 
 const TESTABLE = /\.(?:[cm]?[jt]sx?|html|scss)$/;
 const TEST_FILE = /\.(?:spec|test)\.[cm]?[jt]sx?$/;
+const TYPE_DECLARATION = /\.d\.[cm]?[jt]sx?$/;
 
 export function isTestablePath(path) {
-  return TESTABLE.test(path);
+  return TESTABLE.test(path) && !TYPE_DECLARATION.test(path);
 }
 
 export function isTestFile(path) {
@@ -104,7 +105,7 @@ export function planRelatedRuns(files, exists = existsSync) {
       continue;
     }
     const companion = file.replace(/\.(mjs|cjs|js)$/, '.test.$1');
-    if (exists(companion)) scriptTests.add(companion);
+    if (companion !== file && exists(companion)) scriptTests.add(companion);
   }
   if (scriptTests.size > 0) {
     runs.push({

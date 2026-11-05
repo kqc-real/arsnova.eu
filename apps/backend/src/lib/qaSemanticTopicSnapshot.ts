@@ -22,6 +22,14 @@ const QaSemanticTopicSnapshotItemSchema = z
     topicId: z.string().regex(/^[a-f0-9]{64}$/),
     confidence: z.number().min(0).max(1),
     labelSourceQuestionId: z.string().trim().min(1).max(160),
+    modelLabel: z
+      .object({
+        text: z.string().trim().min(1).max(200),
+        modelId: z.string().trim().min(1).max(120),
+        modelVersion: z.string().trim().min(1).max(120),
+      })
+      .strict()
+      .optional(),
     members: z.array(QaSemanticTopicSnapshotMemberSchema).min(1).max(500),
   })
   .strict()
@@ -48,8 +56,10 @@ const QaSemanticTopicSnapshotItemSchema = z
 
 /**
  * Internal, purge-bound representation of the latest usable Q&A semantic analysis.
- * It deliberately stores neither question nor label text. Current text is loaded
- * authoritatively later and matched against the per-member digest.
+ * It deliberately stores no question text. Current question text is loaded
+ * authoritatively later and matched against the per-member digest. A short,
+ * accepted model label may be retained with its model provenance so downstream
+ * summaries do not have to replace it with the long extractive source question.
  */
 export const QaSemanticTopicSnapshotSchema = z
   .object({
@@ -211,10 +221,19 @@ export function buildQaSemanticTopicSnapshot(
     if (!labelSourceQuestionId) {
       return null;
     }
+    const labelModelId = analysis.labelModelId;
+    const labelModelVersion = analysis.labelModelVersion;
+    const modelLabel =
+      entry.labelOrigin === 'model' &&
+      typeof labelModelId === 'string' &&
+      typeof labelModelVersion === 'string'
+        ? { text: entry.label, modelId: labelModelId, modelVersion: labelModelVersion }
+        : undefined;
     topics.push({
       topicId: buildTopicId(completeMembers, labelSourceQuestionId),
       confidence: entry.confidence,
       labelSourceQuestionId,
+      ...(modelLabel ? { modelLabel } : {}),
       members: completeMembers,
     });
   }

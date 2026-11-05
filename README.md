@@ -155,9 +155,31 @@ Für den Admin-Bereich (`/admin`) muss in `.env` ein starkes `ADMIN_SECRET` gese
 
 Die Text-KI ist **kein** Pflichtbestandteil des Schnellstarts. Quiz, Q&A und Blitzlicht laufen ohne Modell, ohne Hugging-Face-Download und ohne SSH-Zugang zu einem Inferenzserver. Forks und Clones ohne Schlüssel werden dadurch nicht blockiert.
 
+Sind ein privater Qwen-Dienst und die Zugangswerte in `.env` bereits vorhanden,
+startet der hervorgehobene Gesamtbefehl alle KI-Pfade der Entwicklungsumgebung:
+
+```bash
+npm run dev:ai
+```
+
+Er umfasst Q&A-Kategorisierung, spaCy-Lemmatisierung, E5-Themenbildung, den
+lokalen Ersatz für Zusammenfassungen sowie die über Qwen laufenden
+Themenbeschriftungen, Moderationszusammenfassungen und Lernzielvorschläge. Qwen
+selbst wird dabei nicht gestartet; der Befehl verwendet die konfigurierte URL
+oder den Maintainer-SSH-Tunnel.
+
+Für den Entwicklungsrechner sind mit entferntem Qwen konservativ 4 Kerne,
+12 GiB RAM und 10 GiB freier Speicher einzuplanen; empfohlen sind 8 Kerne,
+16 GiB RAM und 20 GiB frei. Läuft Qwen zusätzlich lokal, gelten 8 Kerne,
+16 GiB RAM und 20 GiB frei als Planungswert. Der E5-Container ist auf 1 CPU und
+2 GiB RAM begrenzt; der lokale Qwen-Laborcontainer auf 4 CPUs und 5 GiB RAM.
+Die GGUF-Datei belegt exakt 2.497.281.120 Byte, zusätzlich fallen Docker-Image
+und Build-Cache an. Die vollständige Aufschlüsselung, Grenzen und Locales stehen
+im [`dev:ai`-Onboarding](./docs/onboarding.md#alle-ki-komponenten-starten-npm-run-devai).
+
 Wer lokal mit Lernzielvorschlägen, Themenlabels oder der Moderationskurzfassung experimentieren möchte, startet **Qwen3-4B-Instruct** in Docker. Das Modell wird einmalig heruntergeladen (rund 2,5 GB) und nicht ins Git übernommen.
 
-Neben dem normalen `npm run dev`:
+Die Qwen-Runtime zuerst in einem eigenen Terminal vorbereiten:
 
 ```bash
 mkdir -p models/open-weight-llm
@@ -168,7 +190,7 @@ node scripts/open-weight-llm/verify-model.mjs
 npm run docker:up:llm:http
 ```
 
-Anschließend in `.env` `OPEN_WEIGHT_LLM_ENABLED=true`, `OPEN_WEIGHT_LLM_URL=http://127.0.0.1:8080` und dasselbe Runtime-Token wie im Container setzen, danach `npm run dev` neu starten. Den vollständigen Docker-Laborpfad (`npm run docker:up:llm`) nicht parallel zu `npm run dev` verwenden: Er startet zusätzlich den App-Container auf denselben Ports.
+Anschließend in `.env` `OPEN_WEIGHT_LLM_ENABLED=true`, `OPEN_WEIGHT_LLM_URL=http://127.0.0.1:8080` und dasselbe Runtime-Token wie im Container setzen, danach `npm run dev:ai` starten. Den vollständigen Docker-Laborpfad (`npm run docker:up:llm`) nicht parallel zu `npm run dev` oder `npm run dev:ai` verwenden: Er startet zusätzlich den App-Container auf denselben Ports.
 
 Schritt-für-Schritt, Hardware, `.env` und typische Fehler stehen in [docs/onboarding.md](./docs/onboarding.md#optional-lokale-text-ki-qwen3-4b). Der technische Runtime-Vertrag bleibt [docs/features/open-weight-llm-runtime.md](./docs/features/open-weight-llm-runtime.md).
 

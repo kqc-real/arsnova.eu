@@ -104,9 +104,9 @@ Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.
 
 ### Lokaler Dev-Server (`npm run dev`)
 
-`npm run dev`, `npm run dev:de` und `npm run dev:en` starten den Host-Sidecar (`npm run spacy:dev`). Das Backend bekommt prozesslokal `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock` und `NLP_TIMEOUT_MS=15000`. Die Datei `.env` bleibt `NLP_ENABLED=false` (Produktiv-Default).
+`npm run dev`, `npm run dev:de`, `npm run dev:en`, `npm run dev:qa-summary` und `npm run dev:ai` starten den Host-Sidecar (`npm run spacy:dev`). Das Backend bekommt prozesslokal `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock` und `NLP_TIMEOUT_MS=15000`. Zusätzlich startet der Dev-Stack den getrennten Themenanalyse-Encoder über `npm run encoder:dev`; dessen Konfiguration ist in [word-cloud-semantic.md](word-cloud-semantic.md#lokal-host-npm--macos) beschrieben. Die Datei `.env` bleibt `NLP_ENABLED=false` (Produktiv-Default).
 
-Erster Lauf legt `docker/spacy/.venv` an und lädt die Modelle `de`/`en`/`fr`/`es` (oft mehrere Minuten). Dafür braucht es Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14); das Skript nimmt `python3.13` … `python3.10` vor `python3`. In concurrently erscheint die Spalte `spacy`. Solange die Modelle laden, bleibt die Host-UI bei **Glättung nicht verfügbar**; nach dem Socket-Bind neu analysieren.
+Der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle `de`/`en`/`fr`/`es` (oft mehrere Minuten). Dafür braucht es Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14); das Skript nimmt `python3.13` … `python3.10` vor `python3`. Im Terminal erscheint der Kanal `lemmatisierung`. Solange die Modelle laden, bleibt die Host-UI bei **Glättung nicht verfügbar**; nach dem Socket-Bind neu analysieren. Der Hostprozess besitzt kein eigenes CPU- oder RAM-Limit; als Compose-Referenz gelten 1 CPU und 1 GiB. Gesamtwerte für `dev:ai`: [Onboarding](../onboarding.md#ressourcen-für-devai).
 
 `npm run docker:up:nlp` hilft Host-Node nicht: das Compose-Volume `/run/spacy/nlp.sock` ist außerhalb des App-Containers unsichtbar. Nur API ohne Wolke: `npm run dev:backend` lässt den Sidecar aus.
 

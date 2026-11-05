@@ -17,6 +17,7 @@ import { buildLexicalWordCloudEntries } from './wordCloudAnalysis';
 import { resolveWordCloudNormalizationMeta } from './wordCloudNormalization';
 import {
   applyWordCloudTopicLabels,
+  getWordCloudTopicLabelTelemetry,
   labelSemanticWordCloudSnapshot,
   resetWordCloudTopicLabelCacheForTests,
   resolveTopicLabelPhaseBudgetMs,
@@ -285,7 +286,7 @@ describe('applyWordCloudTopicLabels', () => {
     expect(calls).toHaveLength(2);
     expect(result.entries[0]).toMatchObject({
       label: 'Erschöpfung',
-      basisLabel: 'Erschöpfung',
+      basisLabel: 'ich bin müde heute',
       labelOrigin: 'model',
       members: [{ text: 'ich bin müde heute' }, { text: 'irgendwie erschöpft' }],
     });
@@ -635,6 +636,16 @@ describe('applyWordCloudTopicLabels', () => {
     expect(second.entries[0]?.label).toBe('Steigung linearer Funktionen');
     expect(second.entries[0]?.labelOrigin).toBe('model');
     expect(second.labelSettlement).toBe('complete');
+    expect(getWordCloudTopicLabelTelemetry(first)).toEqual({
+      labelModelCalled: true,
+      labelCacheHits: 0,
+      labelCacheMisses: 1,
+    });
+    expect(getWordCloudTopicLabelTelemetry(second)).toEqual({
+      labelModelCalled: false,
+      labelCacheHits: 1,
+      labelCacheMisses: 0,
+    });
   });
 
   it('isoliert den Prozess-Label-Cache strikt nach sessionId und räumt beim Session-Purge sowie nach Ablauf auf', async () => {
@@ -865,10 +876,17 @@ describe('applyWordCloudTopicLabels', () => {
     });
 
     expect(batchCalls).toBe(1);
+    expect(getWordCloudTopicLabelTelemetry(result)).toEqual({
+      labelModelCalled: true,
+      labelCacheHits: 0,
+      labelCacheMisses: 0,
+    });
     expect(result.labelSettlement).toBe('complete');
     expect(result.entries[0]?.label).toBe('Steigung linearer Funktionen');
     expect(result.entries[0]?.labelOrigin).toBe('model');
+    expect(result.entries[0]?.basisLabel).toBe('Was ist die Steigung?');
     expect(result.entries[1]?.label).toBe('Ableitungsregeln');
     expect(result.entries[1]?.labelOrigin).toBe('model');
+    expect(result.entries[1]?.basisLabel).toBe('Was ist die Ableitung?');
   });
 });

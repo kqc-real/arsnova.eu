@@ -22,6 +22,12 @@ export interface WordCloudAnalyzeTelemetryEvent {
   readonly labelSettlement?: string | null;
   /** true, sobald mindestens ein Modellname übernommen wurde */
   readonly labelModelAccepted?: boolean;
+  /** true, sobald dieser Analyselauf den LLM-Adapter tatsächlich aufgerufen hat */
+  readonly labelModelCalled?: boolean;
+  /** Treffer im sessiongebundenen 30-Minuten-Clusterlabelcache */
+  readonly labelCacheHits?: number;
+  /** Fehlende Clusterlabels, die einen Modellaufruf erforderlich machten */
+  readonly labelCacheMisses?: number;
 }
 
 export interface WordCloudNlpTelemetrySnapshot {
@@ -99,6 +105,9 @@ export function recordWordCloudAnalyzeTelemetry(event: WordCloudAnalyzeTelemetry
     encoderCalled: event.encoderCalled === true,
     labelSettlement: event.labelSettlement ?? null,
     labelModelAccepted: event.labelModelAccepted === true,
+    labelModelCalled: event.labelModelCalled === true,
+    labelCacheHits: event.labelCacheHits ?? 0,
+    labelCacheMisses: event.labelCacheMisses ?? 0,
   });
 }
 

@@ -100,6 +100,29 @@ type CachedClusterTopicLabel = {
 const clusterTopicLabelCache = new Map<string, CachedClusterTopicLabel>();
 const sessionLabelAbortControllers = new Map<string, AbortController>();
 
+export type WordCloudTopicLabelTelemetry = {
+  readonly labelModelCalled: boolean;
+  readonly labelCacheHits: number;
+  readonly labelCacheMisses: number;
+};
+
+const topicLabelTelemetryByOutput = new WeakMap<
+  AnalyzeWordCloudOutput,
+  WordCloudTopicLabelTelemetry
+>();
+
+const EMPTY_TOPIC_LABEL_TELEMETRY: WordCloudTopicLabelTelemetry = Object.freeze({
+  labelModelCalled: false,
+  labelCacheHits: 0,
+  labelCacheMisses: 0,
+});
+
+export function getWordCloudTopicLabelTelemetry(
+  output: AnalyzeWordCloudOutput,
+): WordCloudTopicLabelTelemetry {
+  return topicLabelTelemetryByOutput.get(output) ?? EMPTY_TOPIC_LABEL_TELEMETRY;
+}
+
 function sessionLabelCachePrefix(sessionId?: string, sessionCode = ''): string {
   const trimmedSessionId = sessionId?.trim();
   if (trimmedSessionId && trimmedSessionId.length > 0) {
@@ -280,7 +303,9 @@ function withOrigin(
   return {
     ...entry,
     label,
-    basisLabel: label,
+    // Der Modellname ist nur die sichtbare Kurzform. Der interne Themenbeleg
+    // braucht weiterhin den extraktiven Mitgliedstext als überprüfbare Quelle.
+    basisLabel: entry.basisLabel ?? entry.label,
     labelOrigin: origin,
   };
 }
@@ -406,6 +431,16 @@ export async function applyWordCloudTopicLabels(
   output: AnalyzeWordCloudOutput,
   options: LabelOptions = {},
 ): Promise<AnalyzeWordCloudOutput> {
+  const telemetry = {
+    labelModelCalled: false,
+    labelCacheHits: 0,
+    labelCacheMisses: 0,
+  };
+  const finish = (result: AnalyzeWordCloudOutput): AnalyzeWordCloudOutput => {
+    topicLabelTelemetryByOutput.set(result, { ...telemetry });
+    return result;
+  };
+
   if (
     output.mode !== 'SEMANTIC' ||
     output.fallbackUsed ||
@@ -413,18 +448,18 @@ export async function applyWordCloudTopicLabels(
     (input.channel !== 'QA' && input.channel !== 'FREETEXT') ||
     !TOPIC_LABEL_LOCALES.has(output.locale)
   ) {
-    return output;
+    return finish(output);
   }
 
   const env = options.env ?? process.env;
   if (!runtimeEnabled(env)) {
-    return {
+    return finish({
       ...output,
       labelSettlement: 'disabled',
       labelModelId: null,
       labelModelVersion: null,
       entries: output.entries.map((entry) => withOrigin(entry, 'extractive')),
-    };
+    });
   }
 
   const now = options.now ?? Date.now;
@@ -474,16 +509,18 @@ export async function applyWordCloudTopicLabels(
       if (useProcessLabelCache) {
         const cachedLabel = readCachedClusterTopicLabel(labelCacheKey, now());
         if (cachedLabel !== null && acceptLabel(cachedLabel, request.sources)) {
+          telemetry.labelCacheHits += 1;
           acceptedModelLabel = true;
           resolvedEntries[i] = withOrigin(entry, 'model', cachedLabel);
           continue;
         }
+        telemetry.labelCacheMisses += 1;
       }
       pendingCandidates.push({ entryIndex: i, entry, request, labelCacheKey });
     }
 
     if (pendingCandidates.length === 0) {
-      return {
+      return finish({
         ...output,
         labelSettlement: 'complete',
         labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
@@ -491,7 +528,7 @@ export async function applyWordCloudTopicLabels(
         entries: resolvedEntries.map(
           (entry, idx) => entry ?? withOrigin(output.entries[idx]!, 'extractive'),
         ),
-      };
+      });
     }
 
     if (pendingCandidates.length >= 2) {
@@ -527,6 +564,7 @@ export async function applyWordCloudTopicLabels(
         const callSignal = callerSignal
           ? AbortSignal.any([timeoutSignal, callerSignal])
           : timeoutSignal;
+        telemetry.labelModelCalled = true;
         const batchResult = await labelBatch(batch.batchRequest, { signal: callSignal });
         if (batchResult.status === 'completed' && !sessionSignal?.aborted) {
           for (const item of batchResult.output.labels) {
@@ -561,13 +599,13 @@ export async function applyWordCloudTopicLabels(
       const finalEntries = output.entries.map(
         (entry, idx) => resolvedEntries[idx] ?? withOrigin(entry, 'extractive'),
       );
-      return {
+      return finish({
         ...output,
         labelSettlement: transient ? 'transient' : 'complete',
         labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
         labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
         entries: finalEntries,
-      };
+      });
     }
   }
 
@@ -606,10 +644,12 @@ export async function applyWordCloudTopicLabels(
     if (useProcessLabelCache) {
       const cachedLabel = readCachedClusterTopicLabel(labelCacheKey, now());
       if (cachedLabel !== null && acceptLabel(cachedLabel, request.sources)) {
+        telemetry.labelCacheHits += 1;
         acceptedModelLabel = true;
         entries.push(withOrigin(entry, 'model', cachedLabel));
         continue;
       }
+      telemetry.labelCacheMisses += 1;
     }
     const remaining = phaseBudgetMs - (now() - startedAt);
     if (remaining < 50) {
@@ -627,6 +667,7 @@ export async function applyWordCloudTopicLabels(
     const callSignal = callerSignal
       ? AbortSignal.any([timeoutSignal, callerSignal])
       : timeoutSignal;
+    telemetry.labelModelCalled = true;
     const result = await label(request, fallback, {
       signal: callSignal,
     });
@@ -653,13 +694,13 @@ export async function applyWordCloudTopicLabels(
   }
 
   const labelSettlement: WordCloudLabelSettlement = transient ? 'transient' : 'complete';
-  return {
+  return finish({
     ...output,
     labelSettlement,
     labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
     labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
     entries,
-  };
+  });
 }
 
 export async function labelSemanticWordCloudSnapshot(

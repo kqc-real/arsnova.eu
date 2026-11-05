@@ -79,7 +79,7 @@ npm run dev
 
 Dann im Browser: **`http://localhost:4200`**
 
-Das ist absichtlich der einfachste Pfad: **Deutsch**, Backend, Frontend und der Host-spaCy-Sidecar laufen parallel, Postgres + Redis sind gestartet, Prisma ist vorbereitet und die Workspace-Bibliotheken (`shared-types`, `session-export-report`) sind gebaut. Wortwolken-Glättung braucht Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14; ist `python3` bereits 3.14, zusätzlich z. B. `python3.13` installieren – das Skript bevorzugt es automatisch); der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle (oft mehrere Minuten, Spalte `spacy` in concurrently). Die **lokale Text-KI** (Qwen3-4B) ist kein Bestandteil dieses Starts; ohne Modell und ohne SSH-Schlüssel läuft die App trotzdem. Wer später damit experimentieren will: [lokale Text-KI](#optional-lokale-text-ki-qwen3-4b). **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
+Das ist absichtlich der einfachste Pfad: **Deutsch**, Backend, Frontend, Lemmatisierung mit spaCy und der E5-Themenencoder laufen parallel; Postgres + Redis sind gestartet, Prisma ist vorbereitet und die Workspace-Bibliotheken (`shared-types`, `session-export-report`) sind gebaut. Die Lemmatisierung braucht Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14; ist `python3` bereits 3.14, zusätzlich z. B. `python3.13` installieren – das Skript bevorzugt es automatisch); der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle (oft mehrere Minuten, Terminalkanal `lemmatisierung`). Der Themenencoder läuft getrennt in Docker (Terminalkanal `themen`). **Qwen3-4B** für Themenbeschriftungen, Zusammenfassungen und Lernzielvorschläge ist kein Bestandteil dieses normalen Starts; ohne Modell und ohne SSH-Schlüssel läuft die App trotzdem. Wer alle KI-Pfade bewusst aktivieren will, verwendet [`npm run dev:ai`](#alle-ki-komponenten-starten-npm-run-devai). **Englisch** brauchst du erst später; dafür gibt es **`npm run dev:en`**. Die Startseite ist dann leer — für eine **volle Hörsaal-Session** (Freitext + Q&A, ~500 Einträge) den nächsten Abschnitt nutzen.
 
 **Wichtig für Windows:** Diese Befehle laufen dann in **WSL/Ubuntu**, nicht in PowerShell oder Git Bash.
 
@@ -103,7 +103,7 @@ npm run spacy:macos-dev
 
 Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap) plus ein Moderationskompass-Overlay (offene Fragen, Kontroverse, Quiz-Ergebnisse, Tempo). Sprachformen glätten in **de/en/fr/es**. Unter **it** die Wolkensprache am Glätten-Button auf DE/EN/FR/ES stellen; ohne Wahl bleibt die Glättung aus.
 
-Der optionale Themenmodus ist davon getrennt. Story 1.14d verarbeitet Host-Freitext bei `de`/`en` über den privaten Encoderpfad aus 1.14c; `fr`/`es` fallen im Backend lexikalisch zurück, unter italienischer UI bleibt der Fallback ohne gewählte unterstützte Wolkensprache lokal. `npm run dev` startet den Encoder nicht automatisch. Für eine bewusste lokale Prüfung siehe [word-cloud-semantic.md](features/word-cloud-semantic.md); `WORD_CLOUD_SEMANTIC_ENABLED` bleibt standardmäßig aus.
+Der optionale Themenmodus ist davon getrennt. Story 1.14d verarbeitet Host-Freitext bei `de`/`en` über den privaten Encoderpfad aus 1.14c; `fr`/`es` fallen im Backend lexikalisch zurück, unter italienischer UI bleibt der Fallback ohne gewählte unterstützte Wolkensprache lokal. `npm run dev` startet den Encoder für die lokale Prüfung und aktiviert den Pfad nur im gestarteten Backendprozess; der Produktiv-Default von `WORD_CLOUD_SEMANTIC_ENABLED` bleibt `false`. Details: [word-cloud-semantic.md](features/word-cloud-semantic.md).
 
 | Locale | URL                       |
 | ------ | ------------------------- |
@@ -209,7 +209,7 @@ belegt die Korrekturen der damals roten Gates.
 | Fehler zu Prisma oder fehlenden Typen                    | `setup:dev`, `prisma:generate` oder `build:libs` fehlt                                             | `npm run setup:dev` erneut ausführen                                                      |
 | Port 3000 oder 4200 ist schon belegt                     | Voriger Dev-Server läuft noch                                                                      | `npm run free-dev-ports` und dann erneut `npm run dev`                                    |
 | Wortwolke bleibt leer / Seed bricht ab                   | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer                   | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev`       |
-| „Glättung nicht verfügbar“                               | Sidecar lädt noch Modelle, Python fehlt, oder `dev:backend` ohne Sidecar                           | Spalte `spacy` in concurrently prüfen; Python 3.10–3.13; nach Socket-Bind analysieren     |
+| „Glättung nicht verfügbar“                               | Sidecar lädt noch Modelle, Python fehlt, oder `dev:backend` ohne Sidecar                           | Kanal `lemmatisierung` prüfen; Python 3.10–3.13; nach Socket-Bind analysieren             |
 | `The table public.Quiz does not exist`                   | Postgres läuft, Prisma-Schema wurde nie angewendet                                                 | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                        |
 | „Wähle die Sprache der Antworten“ in it                  | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                                           | Am Glätten-Button DE/EN/FR/ES wählen                                                      |
 | `/admin` funktioniert lokal nicht                        | `ADMIN_SECRET` wurde nicht gesetzt                                                                 | `.env` ergänzen und Backend neu starten                                                   |
@@ -230,6 +230,54 @@ npm run verify:production-serving
 ```
 
 Im Browser **`http://localhost:3000`** öffnen. Bei belegtem Port zuerst `npm run free-port-3000`, dann `npm run start:prod`; oder mit anderem Port: `PORT=3010 npm run start:prod` → dann **`http://localhost:3010`** und `npm run verify:production-serving -- http://localhost:3010`. Für den Einstieg reicht das; Details zu Auslieferung, Gzip und Fallbacks stehen im Root-[`README.md`](../README.md). Auf **macOS** kombiniert **`npm run spacy:macos-dev`** diesen Prod-Pfad mit Locale-UI auf 4200, spaCy und Seeds ([hohe Befüllung](#volle-lokale-session-mit-hoher-befüllung)).
+
+### Alle KI-Komponenten starten: `npm run dev:ai`
+
+Für die vollständige lokale Entwicklungsansicht ist dieser Befehl der zentrale Einstieg:
+
+```bash
+npm run dev:ai
+```
+
+Er startet Backend, deutsches Frontend, Q&A-Kategorisierung, spaCy-Lemmatisierung,
+den E5-Themenencoder und den lokalen extraktiven Zusammenfassungshelfer. Zusätzlich
+aktiviert er die drei privaten Qwen-Aufträge: Themenblasen benennen, offene Fragen im
+Moderationskompass zusammenfassen und Lernziele für einen Quizentwurf vorschlagen.
+Qwen selbst wird durch den Befehl **nicht** heruntergeladen oder gestartet. Der Starter
+verlangt einen bereits erreichbaren privaten Qwen-Dienst aus `.env`; bei der
+Maintainer-Konfiguration auf `127.0.0.1:18080` übernimmt oder öffnet er den SSH-Tunnel.
+
+Beim Start erklärt die farbige Terminalübersicht für jede Komponente Ort in der App,
+Datenherkunft, aktiv unterstützte Locales, Ergebnis und verwendetes Modell. Die
+Portmeldungen nennen zusätzlich den jeweiligen Dienst. `Ctrl+C` beendet den gemeinsam
+gestarteten Stack und den lokalen E5-Container.
+
+#### Ressourcen für `dev:ai`
+
+Die folgende Tabelle trennt feste Prozessgrenzen von Planungswerten. Sie ist keine
+Lastfreigabe für 500 Clients.
+
+| Bestandteil                             | CPU-Kerne                                              | RAM                                                    | Festplatte                                                                                          |
+| --------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Backend, Frontend und Summary-Helfer    | keine feste Begrenzung                                 | keine feste Begrenzung                                 | bestehende `node_modules`, Angular-Cache und Projektdaten                                           |
+| spaCy-Lemmatisierung auf dem Host       | keine feste Begrenzung im Host-Starter; Compose: 1 CPU | keine feste Begrenzung im Host-Starter; Compose: 1 GiB | Python-venv und vier Sprachmodelle werden beim ersten Lauf unter `docker/spacy/.venv` gespeichert   |
+| E5-Themenencoder im Dev-Container       | **1 CPU**                                              | **2 GiB**                                              | Docker-Image, Python-Abhängigkeiten und ONNX-Modell; erster Build benötigt zusätzlichen Build-Cache |
+| Qwen über SSH auf einem getrennten Host | lokal praktisch nur Tunnel-Overhead                    | lokal praktisch nur Tunnel-Overhead                    | lokal keine GGUF-Datei erforderlich                                                                 |
+| Qwen als eigener lokaler Laborcontainer | **4 CPUs**                                             | **5 GiB Containerlimit**                               | exakt 2.497.281.120 Byte GGUF plus Runtime-Image und Docker-Build-Cache                             |
+
+Praktische Planungswerte für den **Entwicklungsrechner**:
+
+- mit Qwen über SSH: mindestens 4 nutzbare Kerne, 12 GiB RAM und 10 GiB freier
+  Speicher; empfohlen sind 8 Kerne, 16 GiB RAM und 20 GiB frei;
+- mit Qwen zusätzlich auf demselben Rechner: 8 Kerne, 16 GiB RAM und 20 GiB freier
+  Speicher einplanen. Gleichzeitig laufen bis zu 5 GiB Qwen, 2 GiB E5 sowie die
+  nicht separat begrenzten Node-, spaCy-, PostgreSQL- und Redis-Prozesse.
+
+Der **getrennte private Qwen-Host** hat einen eigenen Betriebsvertrag: mindestens
+4 Kerne, 12 GiB RAM und 10 GiB frei; empfohlen 8 Kerne, 16 GiB RAM und 20 GiB frei.
+Sein Produktionscontainer ist auf 8 CPUs, 8 GiB RAM und 10 GiB RAM einschließlich
+Swap begrenzt. Details und Messgrenzen stehen im
+[Betriebshandbuch für den Inferenz-Host](operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md#21-hardware-und-netz).
 
 ### Optional: lokale Text-KI (Qwen3-4B)
 
@@ -271,14 +319,14 @@ Bei Erfolg siehst du eine Zeile mit `verified` und dem Digest. Die GGUF-Datei ni
 
 #### 2. Den passenden Docker-Befehl wählen
 
-| So arbeitest du lokal                       | Befehl                       | Bedeutung                                                                         |
-| ------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------- |
-| **Normaler Studierendenweg:** `npm run dev` | `npm run docker:up:llm:http` | Startet nur llama.cpp an **`http://127.0.0.1:8080`**. Das ist der empfohlene Weg. |
-| Alles in Docker, ohne `npm run dev`         | `npm run docker:up:llm`      | Startet Runtime **und** den App-Container über einen Unix-Socket.                 |
+| So arbeitest du lokal                | Befehl                       | Bedeutung                                                                                     |
+| ------------------------------------ | ---------------------------- | --------------------------------------------------------------------------------------------- |
+| **KI-Gesamtstart:** `npm run dev:ai` | `npm run docker:up:llm:http` | Startet nur llama.cpp an **`http://127.0.0.1:8080`**. Das ist der empfohlene lokale Laborweg. |
+| Alles in Docker, ohne `npm run dev`  | `npm run docker:up:llm`      | Startet Runtime **und** den App-Container über einen Unix-Socket.                             |
 
-**Wichtig:** `npm run docker:up:llm` und `npm run dev` nicht parallel nutzen. Der Laborbefehl startet den App-Container auf den Ports 3000–3002 und kollidiert sonst mit dem Dev-Server.
+**Wichtig:** `npm run docker:up:llm` und `npm run dev` beziehungsweise `npm run dev:ai` nicht parallel nutzen. Der Laborbefehl startet den App-Container auf den Ports 3000–3002 und kollidiert sonst mit dem Dev-Server.
 
-Neben `npm run dev`:
+Vor `npm run dev:ai` in einem eigenen Terminal:
 
 ```bash
 npm run docker:up:llm:http
@@ -299,7 +347,7 @@ docker compose --profile llm-http stop open-weight-llm-http
 
 #### 3. `.env` an das lokale Modell anbinden
 
-Für `npm run dev` dieselben Werte setzen wie der Container (das Compose-Default-Token reicht lokal):
+Für `npm run dev:ai` dieselben Werte setzen wie der Container (das Compose-Default-Token reicht lokal):
 
 ```dotenv
 OPEN_WEIGHT_LLM_ENABLED=true
@@ -308,13 +356,13 @@ OPEN_WEIGHT_LLM_SOCKET_PATH=
 OPEN_WEIGHT_LLM_TOKEN=local-runtime-token-change-me-000000000000
 ```
 
-Anschließend **`npm run dev` neu starten**, damit das Backend die Werte liest. Danach: **http://localhost:4200** → **Betrieb & Nutzung** → **Lokale Text-KI**. Im Quiz-Editor erscheint **Lernziele vorschlagen lassen**, sobald es geeignete aktive Fragen mit Lösung gibt.
+Anschließend **`npm run dev:ai` starten**, damit alle KI-Pfade aktiviert werden. Danach: **http://localhost:4200** → **Betrieb & Nutzung** → **Lokale Text-KI**. Im Quiz-Editor erscheint **Lernziele vorschlagen lassen**, sobald es geeignete aktive Fragen mit Lösung gibt. Das lokale 5-GiB-Qwen-Labor ist nicht für große Lasten freigegeben; umfangreiche Lernziel- oder Zusammenfassungsaufträge können mehr Speicher benötigen als kurze Themenbeschriftungen.
 
 Setzt du ein eigenes Token, muss derselbe Wert in der Shell beim `docker compose`-Start **und** in `.env` stehen (32–512 Zeichen aus `A–Z`, `a–z`, `0–9`, `.`, `_`, `~`, `-`; kein Komma).
 
 #### 4. Was Studierende ohne SSH-Schlüssel nicht tun müssen
 
-Manche Maintainer-`.env` zeigt auf `http://127.0.0.1:18080` und öffnet beim Dev-Start automatisch einen SSH-Tunnel zum Kurs-Inferenzserver. Das passiert **nur**, wenn `OPEN_WEIGHT_LLM_ENABLED=true` gesetzt ist **und** ein passender SSH-Host mit privatem Schlüssel existiert. Fehlt der Schlüssel, wird der Start **nicht** abgebrochen; die Text-KI bleibt einfach aus.
+Manche Maintainer-`.env` zeigt auf `http://127.0.0.1:18080` und öffnet beim Dev-Start automatisch einen SSH-Tunnel zum Kurs-Inferenzserver. Das passiert **nur**, wenn `OPEN_WEIGHT_LLM_ENABLED=true` gesetzt ist **und** ein passender SSH-Host mit privatem Schlüssel existiert. Der normale Start `npm run dev` bleibt ohne Schlüssel nutzbar. Der ausdrücklich vollständige Start `npm run dev:ai` bricht dagegen mit einer konkreten Meldung ab, wenn Qwen nicht erreichbar ist; ein grüner Gesamtstatus darf keine fehlende KI-Komponente verschweigen.
 
 Für deinen Clone gilt deshalb:
 

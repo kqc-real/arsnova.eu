@@ -13,6 +13,7 @@ import { platform } from 'os';
 import { resolve } from 'path';
 
 const portsArg = process.argv.find((a) => a.startsWith('--ports='));
+const requireOpenWeightLlm = process.argv.includes('--require-open-weight-llm');
 const PORTS = portsArg
   ? portsArg
       .slice('--ports='.length)
@@ -20,6 +21,14 @@ const PORTS = portsArg
       .map((s) => Number.parseInt(s.trim(), 10))
       .filter((n) => Number.isFinite(n) && n > 0)
   : [3000, 3001, 3002, 4200];
+
+const PORT_DESCRIPTIONS = new Map([
+  [3000, 'Backend und Schnittstelle zwischen Weboberfläche und Datenbank'],
+  [3001, 'Live-Aktualisierungen, zum Beispiel neue Fragen und Abstimmungen'],
+  [3002, 'gemeinsame Quizbearbeitung und Synchronisierung zwischen Geräten'],
+  [4200, 'Weboberfläche im Browser'],
+  [8787, 'lokaler Helfer für eine Ersatz-Zusammenfassung'],
+]);
 
 function freePort(port) {
   try {
@@ -34,7 +43,8 @@ function freePort(port) {
     } else {
       execSync(`lsof -ti :${port} | xargs kill 2>/dev/null || true`, { stdio: 'pipe' });
     }
-    console.log(`Port ${port} freigegeben.`);
+    const description = PORT_DESCRIPTIONS.get(port) ?? 'lokaler Entwicklungsdienst';
+    console.log(`Port ${port} freigegeben – ${description}.`);
   } catch {
     // Port war frei oder kill fehlgeschlagen
   }
@@ -78,7 +88,13 @@ function isTcpPortOpen(host, port, timeoutMs = 1000) {
 }
 
 async function ensureOpenWeightLlmTunnelIfConfigured() {
-  if (platform() === 'win32') return;
+  const failRequired = (message) => {
+    if (requireOpenWeightLlm) throw new Error(message);
+  };
+  if (platform() === 'win32') {
+    failRequired('dev:ai unterstützt den automatischen SSH-Tunnel unter Windows nicht.');
+    return;
+  }
   const envMap = readLocalEnvMap();
   const enabled =
     (process.env.OPEN_WEIGHT_LLM_ENABLED ?? envMap.get('OPEN_WEIGHT_LLM_ENABLED')) === 'true';
@@ -87,19 +103,45 @@ async function ensureOpenWeightLlmTunnelIfConfigured() {
     envMap.get('OPEN_WEIGHT_LLM_URL') ??
     ''
   ).trim();
-  if (!enabled || !rawUrl) return;
+  const token = (
+    process.env.OPEN_WEIGHT_LLM_TOKEN ??
+    envMap.get('OPEN_WEIGHT_LLM_TOKEN') ??
+    ''
+  ).trim();
+  if (!enabled || !rawUrl) {
+    failRequired(
+      'dev:ai benötigt OPEN_WEIGHT_LLM_ENABLED=true und eine OPEN_WEIGHT_LLM_URL in .env.',
+    );
+    return;
+  }
+  if (!token) {
+    failRequired('dev:ai benötigt OPEN_WEIGHT_LLM_TOKEN in .env.');
+    return;
+  }
 
   let parsed;
   try {
     parsed = new URL(rawUrl);
   } catch {
+    failRequired('OPEN_WEIGHT_LLM_URL in .env ist ungültig.');
     return;
   }
-  const port = Number.parseInt(parsed.port, 10);
-  if (parsed.hostname !== '127.0.0.1' || port !== 18080) return;
+  const port = Number.parseInt(parsed.port || (parsed.protocol === 'https:' ? '443' : '80'), 10);
+  if (parsed.hostname !== '127.0.0.1' || port !== 18080) {
+    if (await isTcpPortOpen(parsed.hostname, port)) {
+      console.log(
+        `✓ Private Text-KI erreichbar: Der konfigurierte Qwen-Dienst antwortet unter ${parsed.hostname}:${port}.`,
+      );
+      return;
+    }
+    failRequired(`OPEN_WEIGHT_LLM_URL ist nicht erreichbar: ${parsed.hostname}:${port}.`);
+    return;
+  }
 
   if (await isTcpPortOpen('127.0.0.1', 18080)) {
-    console.log('Open-Weight-LLM-Tunnel (127.0.0.1:18080) ist bereits aktiv.');
+    console.log(
+      '✓ Private Text-KI erreichbar: Die sichere SSH-Verbindung auf Port 18080 führt zu Qwen für Themenbeschriftungen, Zusammenfassungen und Lernzielvorschläge.',
+    );
     return;
   }
 
@@ -117,6 +159,7 @@ async function ensureOpenWeightLlmTunnelIfConfigured() {
     ).trim() || '10.0.0.2:8080';
 
   if (!/^[A-Za-z0-9._-]+$/u.test(sshHost) || !/^[A-Za-z0-9._:-]+$/u.test(remoteTarget)) {
+    failRequired('OPEN_WEIGHT_LLM_TUNNEL_HOST oder OPEN_WEIGHT_LLM_TUNNEL_TARGET ist ungültig.');
     return;
   }
 
@@ -132,8 +175,12 @@ async function ensureOpenWeightLlmTunnelIfConfigured() {
           .replace(/^~/u, process.env.HOME ?? ''),
       )
       .some((keyPath) => existsSync(keyPath));
-    if (!hasConfiguredKey) return;
+    if (!hasConfiguredKey) {
+      failRequired(`Für den SSH-Host ${sshHost} ist kein IdentityFile verfügbar.`);
+      return;
+    }
   } catch {
+    failRequired(`Die SSH-Konfiguration für ${sshHost} ist nicht verwendbar.`);
     return;
   }
 
@@ -167,7 +214,7 @@ async function ensureOpenWeightLlmTunnelIfConfigured() {
       await new Promise((r) => setTimeout(r, 200));
       if (await isTcpPortOpen('127.0.0.1', 18080, 300)) {
         console.log(
-          `Open-Weight-LLM-Tunnel gestartet (127.0.0.1:18080 -> ${sshHost}/${remoteTarget}).`,
+          `✓ Private Text-KI erreichbar: Die sichere SSH-Verbindung zu Qwen wurde aufgebaut (${sshHost}/${remoteTarget}) – für Themenbeschriftungen, Zusammenfassungen und Lernzielvorschläge.`,
         );
         return;
       }
@@ -175,15 +222,18 @@ async function ensureOpenWeightLlmTunnelIfConfigured() {
     console.warn(
       `Hinweis: Open-Weight-LLM-Tunnel auf 127.0.0.1:18080 antwortet noch nicht (${sshHost}).`,
     );
-  } catch {
+    failRequired(`Open-Weight-LLM-Tunnel zu ${sshHost} wurde nicht rechtzeitig erreichbar.`);
+  } catch (error) {
+    if (requireOpenWeightLlm) throw error;
     console.warn(
       `Hinweis: Open-Weight-LLM-Tunnel auf 127.0.0.1:18080 konnte nicht automatisch zu ${sshHost} aufgebaut werden.`,
     );
   }
 }
 
+console.log('Lokale App- und KI-Dienste werden vorbereitet …');
 for (const port of PORTS) {
   freePort(port);
 }
 await ensureOpenWeightLlmTunnelIfConfigured();
-console.log(`Dev-Ports (${PORTS.join(', ')}) bereit.`);
+console.log(`✓ Alle benötigten lokalen Anschlüsse sind bereit (${PORTS.join(', ')}).`);

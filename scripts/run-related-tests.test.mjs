@@ -22,6 +22,7 @@ test('treats source, template and script files as testable', () => {
   assert.equal(isTestablePath('apps/backend/src/lib/rateLimit.ts'), true);
   assert.equal(isTestablePath('apps/frontend/src/app/home.component.html'), true);
   assert.equal(isTestablePath('scripts/run-related-tests.mjs'), true);
+  assert.equal(isTestablePath('scripts/ensure-schema.d.mts'), false);
   assert.equal(isTestablePath('docs/TESTING.md'), false);
 });
 
@@ -71,6 +72,11 @@ test('plans vitest runs per workspace and node tests for scripts', () => {
       },
     ],
   );
+});
+
+test('does not execute TypeScript declaration files as script tests', () => {
+  const runs = planRelatedRuns(['scripts/ensure-schema.d.mts'], () => true);
+  assert.deepEqual(runs, []);
 });
 
 test('expands only companions that exist', () => {

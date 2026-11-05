@@ -340,7 +340,7 @@ const statements = [
  * In Produktion NICHT erneut ausführen: `prisma migrate deploy` übernimmt das bereits,
  * und spätere Runtime-Ausführung würde redaktionelle Änderungen an festen MOTD-IDs überschreiben.
  */
-function seedMotdMakingOfSql() {
+function seedMotdMakingOfSql(reportSuccess = true) {
   if (!shouldSeedMotdRuntime(process.env.NODE_ENV)) {
     console.log('>>> MOTD Making-of: übersprungen (Produktion nutzt prisma migrate deploy).');
     return;
@@ -379,7 +379,7 @@ function seedMotdMakingOfSql() {
       return;
     }
   }
-  if (applied === files.length) {
+  if (reportSuccess && applied === files.length) {
     console.log('>>> MOTD Making-of: SQL angewendet (Archiv + Overlay-Kette).');
   }
 }
@@ -388,7 +388,7 @@ function seedMotdMakingOfSql() {
  * Aktuelle Feature-MOTDs: In Dev-Setups ohne `prisma migrate deploy` ebenfalls einspielen.
  * In Produktion bleibt `prisma migrate deploy` die Quelle.
  */
-function seedMotdFeatureSql() {
+function seedMotdFeatureSql(reportSuccess = true) {
   if (!shouldSeedMotdFeatureRuntime(process.env.NODE_ENV)) {
     console.log('>>> MOTD Feature: übersprungen (Produktion nutzt prisma migrate deploy).');
     return;
@@ -427,7 +427,7 @@ function seedMotdFeatureSql() {
       return;
     }
   }
-  if (applied === files.length) {
+  if (reportSuccess && applied === files.length) {
     console.log('>>> MOTD Feature: SQL angewendet (aktuelle Feature-Meldungen).');
   }
 }
@@ -437,7 +437,7 @@ function seedMotdFeatureSql() {
  * Deshalb wird die feste Onboarding-MOTD vor der Making-of-Kette idempotent angelegt.
  * In Produktion NICHT erneut ausführen: `prisma migrate deploy` ist dort die Quelle.
  */
-function seedMotdWelcomeSql() {
+function seedMotdWelcomeSql(reportSuccess = true) {
   if (!shouldSeedMotdRuntime(process.env.NODE_ENV)) {
     console.log('>>> MOTD Welcome: übersprungen (Produktion nutzt prisma migrate deploy).');
     return;
@@ -476,7 +476,7 @@ function seedMotdWelcomeSql() {
       return;
     }
   }
-  if (applied === files.length) {
+  if (reportSuccess && applied === files.length) {
     console.log('>>> MOTD Welcome: SQL angewendet (dauerhafte Onboarding-Meldung).');
   }
 }

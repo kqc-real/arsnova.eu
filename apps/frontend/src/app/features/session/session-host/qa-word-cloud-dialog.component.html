@@ -29,7 +29,7 @@
         >Wörter &amp; Phrasen</mat-button-toggle
       >
       <mat-button-toggle value="SEMANTIC" i18n="@@sessionQa.wordCloudAnalysisSemantic"
-        >Thema</mat-button-toggle
+        >Themen</mat-button-toggle
       >
     </mat-button-toggle-group>
 
@@ -55,7 +55,7 @@
     @if (data.analysisLanguage; as analysisLanguage) {
       <label class="qa-word-cloud-dialog__size">
         <span class="qa-word-cloud-dialog__size-label" i18n="@@wordCloud.analysisLanguage"
-          >Analysesprache</span
+          >Analysesprache:</span
         >
         <select
           class="qa-word-cloud-dialog__size-select"
@@ -169,6 +169,7 @@
     <app-word-cloud
       class="qa-word-cloud-dialog__cloud"
       [responses]="responses()"
+      [responseTextsBySourceId]="responseTextsBySourceId()"
       [weightedResponses]="weightedResponses()"
       [terms]="terms()"
       [analysisEntries]="analysisEntries()"

@@ -16,6 +16,7 @@ import {
 import { runOpenWeightLlmSummaryV2 } from './openWeightLlmClient';
 import { runQaSummaryLegacyRequest } from './qaSummaryAdapter';
 import { createExtractiveQaSummaryOutput } from './qaSummaryExtractive';
+import { hasAcceptableQaSummaryQuality } from './qaSummaryQuality';
 import { DROPPED_UNSOURCED_QA_SUMMARY_LIMITATION } from './qaSummaryValidateV2';
 
 export type QaSummaryPreparedRun = Readonly<{
@@ -126,7 +127,14 @@ export async function runPreparedQaSummary(
       });
     }
     const result = await runOpenWeightLlmSummaryV2(prepared.request, options);
-    if (result.status === 'completed' && result.output.output.status !== 'failed') {
+    if (
+      result.status === 'completed' &&
+      result.output.output.status !== 'failed' &&
+      hasAcceptableQaSummaryQuality(
+        result.output.output,
+        prepared.request.promptContext.context.locale,
+      )
+    ) {
       return {
         output: result.output.output,
         execution: QaSummaryExecutionV2Schema.parse({
@@ -144,9 +152,14 @@ export async function runPreparedQaSummary(
 
   if (prepared.plan.selectedMode === 'legacy-text') {
     const legacy = await runQaSummaryLegacyRequest(prepared.legacyRequest, options);
-    if (legacy.status !== 'failed') {
+    const output =
+      legacy.status === 'failed' ? null : projectLegacyOutputToModelOutputV2(legacy, prepared);
+    if (
+      output !== null &&
+      hasAcceptableQaSummaryQuality(output, prepared.request.promptContext.context.locale)
+    ) {
       return {
-        output: projectLegacyOutputToModelOutputV2(legacy, prepared),
+        output,
         execution: QaSummaryExecutionV2Schema.parse({
           attemptedMode: 'legacy-text',
           effectiveMode: 'legacy-text',
@@ -158,7 +171,7 @@ export async function runPreparedQaSummary(
     }
     return extractiveRun(prepared, {
       attemptedMode: 'legacy-text',
-      reason: legacyFailureReason(legacy.modelVersion),
+      reason: output === null ? legacyFailureReason(legacy.modelVersion) : 'invalid_response',
     });
   }
 

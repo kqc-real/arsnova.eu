@@ -16510,7 +16510,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogJump" datatype="html">
-        <source> Tippe einen Eintrag an, um zur Frage oder zur Wortwolke zu springen.</source>
+        <source> Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">11,13</context>
@@ -16524,28 +16524,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
-        <source> Die Fragen werden noch sortiert.</source>
+        <source> Die Fragen werden gerade geordnet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">22,24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
-        <source> Die Sortierung der Fragen ist unsicher.</source>
+        <source> Einige Fragen konnten nicht eindeutig zugeordnet werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">26,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
-        <source> Die automatische Sortierung ist gerade nicht verfügbar.</source>
+        <source> Die Fragen können gerade nicht automatisch geordnet werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">30,32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
-        <source> Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.</source>
+        <source> Die Fragen sind nach Inhalt, Organisation und Technik geordnet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">34,36</context>
@@ -16566,38 +16566,44 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationEmptyHint" datatype="html">
-        <source> Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärungsbedarf, umstrittene Fragen und Feedback zum Vortragstempo.</source>
+        <source> Sobald Rückmeldungen vorliegen, zeigt dir der Kompass wichtige Themen, offene Fragen und Hinweise zum Tempo.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">165,168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogIntroDecide" datatype="html">
-        <source> Du entscheidest, welche Themen behandelt werden.</source>
+        <source> Du entscheidest, was du als Nächstes aufgreifst.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">169,171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryTitle" datatype="html">
-        <source> Kurzfassung der offenen Fragen</source>
+        <source> Wichtige offene Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">184,186</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryIntro" datatype="html">
-        <source> Optional: 2–4 kurze Stichpunkte zum Überfliegen.</source>
+        <source>Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">190,192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
-        <source> Zusammenfassung</source>
+        <source> Fragen zusammenfassen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">201,203</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryUpdateButton" datatype="html">
+        <source>Zusammenfassung aktualisieren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryLimitations" datatype="html">
@@ -16629,7 +16635,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationMoreSources" datatype="html">
-        <source>Weitere Einstiege (<x id="count" equiv-text="extras.length"/>)</source>
+        <source>Weitere Hinweise (<x id="count" equiv-text="extras.length"/>)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">170</context>
@@ -16664,14 +16670,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
-        <source>Die Zusammenfassung wird erstellt.</source>
+        <source>Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryProgressHint" datatype="html">
+        <source>Das kann bei vielen Fragen etwas dauern. Du kannst den Kompass schließen und später wieder öffnen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryUncertain" datatype="html">
-        <source>Die Zusammenfassung ist unsicher.</source>
+        <source>Die Fragen lassen sich nicht eindeutig zusammenfassen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">266</context>
@@ -16807,7 +16819,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardMention" datatype="html">
-        <source>Andere Antworten</source>
+        <source>Weitere Einzelantworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -16821,7 +16833,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNextMention" datatype="html">
-        <source>Einzelne andere Antworten sind sichtbar. Du musst sie nicht zum Thema machen.</source>
+        <source>Einzelne Antworten passen zu keinem häufigen Thema. Du musst sie nicht alle besprechen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -16919,7 +16931,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSourceChannelQa" datatype="html">
-        <source>Q&amp;A</source>
+        <source>Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">347</context>
@@ -17713,7 +17725,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisSemantic" datatype="html">
-        <source>Thema</source>
+        <source>Themen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">31</context>
@@ -19354,7 +19366,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisSemantic" datatype="html">
-        <source>Thema</source>
+        <source>Themen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3752</context>
@@ -31805,182 +31817,218 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDiagnosis" datatype="html">
-        <source>Diagnose</source>
+        <source>Was wurde ausgewertet?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">304</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationDiagnosisPending" datatype="html">
+        <source>Was wird ausgewertet?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationDiagnosisIntro" datatype="html">
-        <source> Die Vorschau zeigt Verträge, Umfang und Kürzungen des aktuellen Kontexts. Inhalte und technische Anweisungen werden nicht angezeigt. </source>
+        <source>Hier siehst du, welche Bereiche und wie viele Beiträge für die Zusammenfassung ausgewählt wurden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">310,313</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewReload" datatype="html">
-        <source>Kontextvorschau neu laden</source>
+        <source>Informationen aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLoad" datatype="html">
-        <source>Kontextvorschau laden</source>
+        <source>Informationen laden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">325</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLoading" datatype="html">
-        <source> Kontextvorschau wird geladen. </source>
+        <source>Informationen zur Auswertung werden geladen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">334,336</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewFailed" datatype="html">
-        <source> Kontextvorschau konnte nicht geladen werden. Du kannst es erneut versuchen. </source>
+        <source>Informationen zur Auswertung konnten nicht geladen werden. Versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">338,340</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewContracts" datatype="html">
-        <source>Verträge und Stand</source>
+        <source>Überblick</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">347</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewMode" datatype="html">
-        <source>Modus</source>
+        <source>Auswertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">350</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewPackedAt" datatype="html">
-        <source>Stand</source>
+        <source>Zuletzt aktualisiert</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">354</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSnapshotHash" datatype="html">
-        <source>Snapshot-Hash</source>
+        <source>Kennung des ausgewerteten Datenstands</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewContract" datatype="html">
-        <source>Vorschauvertrag</source>
+        <source>Version dieser Informationsansicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">362</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewContextContract" datatype="html">
-        <source>Kontextvertrag</source>
+        <source>Version der Datenauswahl</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">366</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewInstructionVersion" datatype="html">
-        <source>Anweisungsversion</source>
+        <source>Version der Zusammenfassungsregeln</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">370</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewDefinitionVersion" datatype="html">
-        <source>Definitionsversion</source>
+        <source>Version der Auswertungsregeln</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewAdapter" datatype="html">
-        <source>Adapter</source>
+        <source>Verwendete KI-Anbindung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewCache" datatype="html">
-        <source>Cache</source>
+        <source>Vorbereitung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">382</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewCacheHit" datatype="html">
+        <source>Eine bereits vorbereitete Auswahl wurde verwendet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewCacheMiss" datatype="html">
+        <source>Die Auswahl wurde neu erstellt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewScope" datatype="html">
-        <source>Datenumfang</source>
+        <source>Ausgewählte Inhalte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">387</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewQuestionCountHint" datatype="html">
-        <source> Bei Fragen: dargestellt / insgesamt. </source>
+        <source>Bei Fragen steht, wie viele ausgewählt wurden, zum Beispiel »2 von 500«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">388,390</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSourceGroups" datatype="html">
-        <source>Quellengruppen</source>
+        <source>Direkt ausgewertete Beiträge</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">400</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSourceGroupsHint" datatype="html">
+        <source> Diese Beiträge wurden direkt ausgewertet. Ähnliche Fragen sind darin mitberücksichtigt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewNoSources" datatype="html">
-        <source> Keine Quellen im gepackten Kontext. </source>
+        <source>Für diese Zusammenfassung wurden keine Beiträge ausgewählt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">408,410</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewBudget" datatype="html">
-        <source>Kontextbudget</source>
+        <source>Verfügbarer Platz für die Auswertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">413</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewInputBudget" datatype="html">
-        <source>Gepackte Eingabe / Kontextfenster</source>
+        <source>Verwendeter Platz / insgesamt verfügbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewOutputReserve" datatype="html">
-        <source>Antwortreserve</source>
+        <source>Für die Antwort reserviert</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">420</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSafetyMargin" datatype="html">
-        <source>Sicherheitsmarge</source>
+        <source>Zusätzlicher freier Platz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">424</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTokenUnit" datatype="html">
+        <source>Tokens</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.summaryHeroHeading" datatype="html">
+        <source> Zusammengefasst als </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLimitations" datatype="html">
-        <source>Einschränkungen</source>
+        <source>Nicht einbezogen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">430</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewTruncations" datatype="html">
-        <source>Kürzungen</source>
+        <source>Zusammengefasste Inhalte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">438</context>
@@ -32015,10 +32063,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryEvidenceToggle" datatype="html">
-        <source>Belege (<x id="count" equiv-text="count"/>)</source>
+        <source>Verwendete Beiträge (<x id="count" equiv-text="count"/>)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">252</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSelectedOfTotal" datatype="html">
+        <source><x id="selected" equiv-text="row.selected"/> von <x id="total" equiv-text="row.total"/> ausgewählt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewNoneSelected" datatype="html">
+        <source>Keine ausgewählt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewCountSelected" datatype="html">
+        <source><x id="selected" equiv-text="row.selected"/> ausgewählt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSectionQuestions" datatype="html">
@@ -32036,14 +32102,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSectionCompass" datatype="html">
-        <source>Kompasssignale</source>
+        <source>Hinweise aus dem Kompass</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSectionLearning" datatype="html">
-        <source>Lernkontext</source>
+        <source>Lernziele</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">418</context>
@@ -32064,70 +32130,70 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateAvailable" datatype="html">
-        <source>verfügbar</source>
+        <source>ausgewählt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">429</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateDisabled" datatype="html">
-        <source>deaktiviert</source>
+        <source>wurde nicht in die Auswertung einbezogen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStatePending" datatype="html">
-        <source>ausstehend</source>
+        <source>wird noch vorbereitet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">433</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateFailed" datatype="html">
-        <source>fehlgeschlagen</source>
+        <source>konnte nicht geladen werden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">435</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateNotReleased" datatype="html">
-        <source>nicht freigegeben</source>
+        <source>ist noch nicht freigegeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">437</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateNotApplicable" datatype="html">
-        <source>nicht zutreffend</source>
+        <source>spielt hier keine Rolle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">439</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateUnavailable" datatype="html">
-        <source>nicht verfügbar</source>
+        <source>in dieser Session nicht vorhanden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">441</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewModeFullContext" datatype="html">
-        <source>Vollständiger Kontext</source>
+        <source>Fragen und weitere verfügbare Bereiche werden gemeinsam ausgewertet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">447</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewModeLegacy" datatype="html">
-        <source>Legacy-Text</source>
+        <source>Die wichtigsten offenen Fragen werden direkt ausgewertet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">450</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewModeExtractive" datatype="html">
-        <source>Lokaler extraktiver Fallback</source>
+        <source>Die wichtigsten offenen Fragen werden direkt ausgewählt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">452</context>
@@ -32243,7 +32309,7 @@
         <source>Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu schließen.</source>
       </trans-unit>
       <trans-unit id="wordCloud.analysisLanguage" datatype="html">
-        <source>Analysesprache</source>
+        <source>Analysesprache:</source>
       </trans-unit>
       <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
         <source>Neue Antworten seit der letzten Themenanalyse</source>
@@ -32274,6 +32340,108 @@
       </trans-unit>
       <trans-unit id="wordCloud.exportWords" datatype="html">
         <source>Wörter</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewEntries" datatype="html">
+        <source>Einträge</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalDetails" datatype="html">
+        <source>Weitere Informationen zur Auswertung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalIntro" datatype="html">
+        <source> Diese Angaben helfen dem Support, falls bei der Auswertung ein Fehler auftritt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSourceQuestions" datatype="html">
+        <source>Fragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSourceTopics" datatype="html">
+        <source>Themen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalContracts" datatype="html">
+        <source>Verwendete Versionen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalLimitations" datatype="html">
+        <source>Warum Bereiche nicht einbezogen wurden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalTruncations" datatype="html">
+        <source>Warum Beiträge zusammengefasst oder ausgelassen wurden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationModuleDisabled" datatype="html">
+        <source>Dieser Bereich ist ausgeschaltet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationModuleUnavailable" datatype="html">
+        <source>Dieser Bereich ist in der Session nicht vorhanden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationNotReleased" datatype="html">
+        <source>Diese Ergebnisse sind noch nicht freigegeben.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationBudgetTruncated" datatype="html">
+        <source>Nur die wichtigsten Beiträge wurden ausgewählt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationOther" datatype="html">
+        <source>Dieser Bereich konnte nicht vollständig berücksichtigt werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationDeduplication" datatype="html">
+        <source>ähnliche Beiträge wurden zusammengefasst</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationTokenBudget" datatype="html">
+        <source>nicht alle Beiträge konnten einzeln ausgewertet werden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationItemLimit" datatype="html">
+        <source>es wurde eine übersichtliche Auswahl getroffen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationOther" datatype="html">
+        <source>einige Beiträge wurden nicht einzeln berücksichtigt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
       </trans-unit>
     </body>
   </file>

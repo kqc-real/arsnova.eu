@@ -724,7 +724,8 @@ export async function collectQaTopicContext(input: {
       currentMembers.push(current);
     }
     const labelRow = rowsById.get(snapshotTopic.labelSourceQuestionId);
-    const label = labelRow ? truncateTopicLabel(labelRow.text) : null;
+    const label =
+      snapshotTopic.modelLabel?.text ?? (labelRow ? truncateTopicLabel(labelRow.text) : null);
     if (!topicMembershipValid || !labelRow || !label) {
       invalidMembership = true;
       continue;
@@ -788,10 +789,18 @@ export async function collectQaTopicContext(input: {
     const negativeVotes = currentMembers.reduce((sum, member) => sum + member.negativeVoteCount, 0);
     topicItems.push({
       sourceId: topicSource,
-      labelOrigin: {
-        kind: 'source-extractive',
-        sourceQuestionId: qaSourceId(labelRow.id),
-      },
+      labelOrigin: snapshotTopic.modelLabel
+        ? {
+            kind: 'model-generated',
+            modelId: snapshotTopic.modelLabel.modelId,
+            modelVersion: snapshotTopic.modelLabel.modelVersion,
+            generationVersion: 'topic-label-system-v1',
+            derivedFromSourceIds: memberQuestionSourceIds.slice(0, 100),
+          }
+        : {
+            kind: 'source-extractive',
+            sourceQuestionId: qaSourceId(labelRow.id),
+          },
       labelQuality: { state: 'unavailable', value: null, reason: 'not-collected' },
       clusterConfidence: {
         state: 'available',

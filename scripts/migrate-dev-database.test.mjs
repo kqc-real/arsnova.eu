@@ -59,7 +59,9 @@ describe('migrate-dev-database', () => {
 
   it('bindet die lokalen Dev-Skripte an migrate deploy statt db push', () => {
     const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-    assert.match(pkg.scripts.dev, /migrate-dev-database\.mjs/);
+    assert.match(pkg.scripts.dev, /dev-stack\.mjs/);
+    const starter = readFileSync(join(root, 'scripts/dev-stack.mjs'), 'utf8');
+    assert.match(starter, /migrate-dev-database\.mjs/);
     assert.match(pkg.scripts['setup:dev'], /prisma:migrate/);
     assert.doesNotMatch(pkg.scripts['setup:dev'], /prisma:push/);
     assert.equal(
@@ -75,6 +77,21 @@ describe('migrate-dev-database', () => {
       return '';
     });
     assert.equal(capturedEnv?.PRISMA_HIDE_UPDATE_MESSAGE, 'true');
+  });
+
+  it('kann technische Prisma-Erfolgsmeldungen für den Anfänger-Start ausblenden', () => {
+    let written = '';
+    const originalWrite = process.stdout.write;
+    process.stdout.write = (chunk) => {
+      written += String(chunk);
+      return true;
+    };
+    try {
+      runMigrateDeploy(() => 'No pending migrations to apply.\n', { quietSuccess: true });
+    } finally {
+      process.stdout.write = originalWrite;
+    }
+    assert.equal(written, '');
   });
 
   it('baut in setup:dev und build:prod alle Workspace-Bibliotheken (#532)', () => {

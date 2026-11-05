@@ -2,6 +2,7 @@ import {
   AnalyzeQaWordCloudInputSchema,
   AnalyzeQaWordCloudOutputSchema,
   type AnalyzeQaWordCloudOutput,
+  QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS,
   QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS,
   QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
@@ -38,7 +39,10 @@ import {
   recordWordCloudAnalyzeTelemetry,
 } from '../lib/wordCloudNlpTelemetry';
 import { acquireQaWordCloudAnalysisLock } from '../lib/qaWordCloudAnalysisLock';
-import { labelSemanticWordCloudSnapshot } from '../lib/wordCloudTopicLabels';
+import {
+  getWordCloudTopicLabelTelemetry,
+  labelSemanticWordCloudSnapshot,
+} from '../lib/wordCloudTopicLabels';
 import { hostProcedure, router } from '../trpc';
 
 export interface AnalyzeWordCloudSnapshotOptions {
@@ -169,6 +173,7 @@ export async function analyzeWordCloudSnapshot(
           tokensByItemId: normalized.tokensByItemId,
         })
       : analyzeFromNormalized(effectiveInput, normalized);
+  const topicLabelTelemetry = getWordCloudTopicLabelTelemetry(rawOutput);
   if (options.onFreshOutput) {
     try {
       await options.onFreshOutput(rawOutput, effectiveInput);
@@ -199,6 +204,9 @@ export async function analyzeWordCloudSnapshot(
       (rawOutput.encoderCalled ?? Boolean(output.modelVersion)),
     labelSettlement: output.labelSettlement ?? null,
     labelModelAccepted: Boolean(output.labelModelId),
+    labelModelCalled: topicLabelTelemetry.labelModelCalled,
+    labelCacheHits: topicLabelTelemetry.labelCacheHits,
+    labelCacheMisses: topicLabelTelemetry.labelCacheMisses,
   });
   return output;
 }
@@ -207,8 +215,11 @@ function isAnalyzableWordCloudItem(item: AnalyzeWordCloudInput['items'][number])
   return prepareWordCloudAnalysisText(item.text).segments.length > 0;
 }
 
-function truncateQaExplanation(value: string): string {
-  return Array.from(value).slice(0, QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS).join('');
+function truncateQaExplanation(
+  value: string,
+  maxChars = QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS,
+): string {
+  return Array.from(value).slice(0, maxChars).join('');
 }
 
 function compactQaWordCloudOutput(output: AnalyzeWordCloudOutput): AnalyzeWordCloudOutput {
@@ -220,11 +231,14 @@ function compactQaWordCloudOutput(output: AnalyzeWordCloudOutput): AnalyzeWordCl
         ...entry,
         key: truncateQaExplanation(entry.key),
         label: truncateQaExplanation(entry.label),
-        basisLabel: entry.basisLabel === null ? null : truncateQaExplanation(entry.basisLabel),
+        basisLabel:
+          entry.basisLabel === null
+            ? null
+            : truncateQaExplanation(entry.basisLabel, QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS),
         members: entry.members
           .slice(0, QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS)
           .map((member) => ({ ...member, text: truncateQaExplanation(member.text) })),
-        variants: entry.variants.slice(0, 1).map(truncateQaExplanation),
+        variants: entry.variants.slice(0, 1).map((variant) => truncateQaExplanation(variant)),
         memberCount,
         membersTruncated:
           entry.membersTruncated === true || memberCount > QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS,

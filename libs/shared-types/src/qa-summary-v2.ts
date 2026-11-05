@@ -18,7 +18,7 @@ export const QA_SUMMARY_CONTEXT_PREVIEW_CONTRACT_VERSION = 'qa-summary-context-p
 export const QA_SUMMARY_ADAPTER_CAPABILITIES_CONTRACT_VERSION =
   'qa-summary-adapter-capabilities-v1' as const;
 export const QA_SUMMARY_FALLBACK_CONTRACT_VERSION = 'qa-summary-fallback-v1' as const;
-export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v2' as const;
+export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v5' as const;
 
 /** Short aliases for consumers that consistently call contract literals “contracts”. */
 export const QA_SUMMARY_CONTEXT_V2_CONTRACT = QA_SUMMARY_CONTEXT_V2_CONTRACT_VERSION;

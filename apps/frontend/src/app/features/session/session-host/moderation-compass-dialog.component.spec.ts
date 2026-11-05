@@ -40,7 +40,7 @@ describe('ModerationCompassDialogComponent', () => {
     return {
       schemaVersion: 1,
       contractVersion: 'qa-summary-context-preview-v1',
-      instructionVersion: 'qa-summary-technical-handoff-v2',
+      instructionVersion: 'qa-summary-technical-handoff-v5',
       definitionVersion: 'moderation-prompt-definitions-v1',
       capabilities: v2Runtime({ inferenceConfigured: false, result: null }).capabilities,
       selectedMode: null,
@@ -153,11 +153,11 @@ describe('ModerationCompassDialogComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Moderationskompass');
     expect(text).toContain(
-      'Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärungsbedarf, umstrittene Fragen und Feedback zum Vortragstempo.',
+      'Sobald Rückmeldungen vorliegen, zeigt dir der Kompass wichtige Themen, offene Fragen und Hinweise zum Tempo.',
     );
-    expect(text).toContain('Du entscheidest, welche Themen behandelt werden.');
+    expect(text).toContain('Du entscheidest, was du als Nächstes aufgreifst.');
     expect(text).not.toContain(
-      'Tippe einen Eintrag an, um zur Frage oder zur Wortwolke zu springen.',
+      'Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.',
     );
     expect(text).not.toContain('Aus der Live-Runde');
     expect(text).not.toContain('Die automatische Sortierung der Fragen ist aus.');
@@ -194,7 +194,9 @@ describe('ModerationCompassDialogComponent', () => {
       fixture.nativeElement.querySelector('.moderation-compass-dialog__now-action')?.textContent,
     ).toContain('Fass die häufigsten Themen kurz zusammen.');
     expect(text).toContain('Aus der Live-Runde');
-    expect(text).toContain('Tippe einen Eintrag an, um zur Frage oder zur Wortwolke zu springen.');
+    expect(text).toContain(
+      'Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.',
+    );
     expect(text).toContain('Wortwolke');
     expect(fixture.nativeElement.querySelectorAll('.moderation-compass-card')).toHaveLength(1);
     expect(
@@ -210,31 +212,33 @@ describe('ModerationCompassDialogComponent', () => {
     const { fixture } = setup([], vi.fn(), 'disabled');
     const text = fixture.nativeElement.textContent as string;
     expect(text).not.toContain('Die automatische Sortierung der Fragen ist aus.');
-    expect(text).toContain('Sobald Fragen oder ein Blitzlicht da sind');
+    expect(text).toContain('Sobald Rückmeldungen vorliegen');
     expect(text).not.toContain('Aus der Live-Runde');
   });
 
   it('zeigt pending zurückhaltend', () => {
     const { fixture } = setup([], vi.fn(), 'pending');
-    expect(fixture.nativeElement.textContent).toContain('Die Fragen werden noch sortiert.');
+    expect(fixture.nativeElement.textContent).toContain('Die Fragen werden gerade geordnet.');
   });
 
   it('zeigt uncertain zurückhaltend', () => {
     const { fixture } = setup([], vi.fn(), 'uncertain');
-    expect(fixture.nativeElement.textContent).toContain('Die Sortierung der Fragen ist unsicher.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Einige Fragen konnten nicht eindeutig zugeordnet werden.',
+    );
   });
 
   it('zeigt failed zurückhaltend', () => {
     const { fixture } = setup([], vi.fn(), 'failed');
     expect(fixture.nativeElement.textContent).toContain(
-      'Die automatische Sortierung ist gerade nicht verfügbar.',
+      'Die Fragen können gerade nicht automatisch geordnet werden.',
     );
   });
 
   it('zeigt classified mit Hinweis auf Inhalt, Ablauf und Technik', () => {
     const { fixture } = setup([], vi.fn(), 'classified');
     expect(fixture.nativeElement.textContent).toContain(
-      'Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.',
+      'Die Fragen sind nach Inhalt, Organisation und Technik geordnet.',
     );
   });
 
@@ -349,7 +353,7 @@ describe('ModerationCompassDialogComponent', () => {
       '.moderation-compass-card__source-button',
     ) as HTMLButtonElement | null;
     expect(button).not.toBeNull();
-    expect(button?.textContent).toContain('Q&A');
+    expect(button?.textContent).toContain('Fragen');
     expect(
       button?.querySelector('.moderation-compass-card__source-label')?.textContent?.trim(),
     ).toBe('Kommt Kapitel 4 in der Klausur vor?');
@@ -411,7 +415,7 @@ describe('ModerationCompassDialogComponent', () => {
       '.moderation-compass-card > .moderation-compass-card__sources li',
     );
     expect(visible).toHaveLength(3);
-    expect(fixture.nativeElement.textContent).toContain('Weitere Einstiege (2)');
+    expect(fixture.nativeElement.textContent).toContain('Weitere Hinweise (2)');
     expect([...visible].map((item) => item.textContent ?? '').join(' ')).not.toContain(
       'Frage fünf?',
     );
@@ -602,9 +606,11 @@ describe('ModerationCompassDialogComponent', () => {
     });
 
     let text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Zusammenfassung');
-    expect(text).toContain('Kurzfassung der offenen Fragen');
-    expect(text).toContain('Optional: 2–4 kurze Stichpunkte zum Überfliegen.');
+    expect(text).toContain('Fragen zusammenfassen');
+    expect(text).toContain('Wichtige offene Fragen');
+    expect(text).toContain(
+      'Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.',
+    );
     expect(text).not.toContain('Es gibt eine Frage zur Klausur.');
     expect(text).not.toContain('Mögliche nächste Schritte');
 
@@ -621,6 +627,8 @@ describe('ModerationCompassDialogComponent', () => {
     expect(onRequestSummary).toHaveBeenCalledTimes(1);
 
     text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Zusammenfassung aktualisieren');
+    expect(text).not.toContain('Fragen zusammenfassen');
     expect(text).toContain('Es gibt eine Frage zur Klausur.');
     expect(text).toContain('Mögliche nächste Schritte');
     expect(text).toContain('Klär die Klausurfragen zuerst.');
@@ -811,10 +819,11 @@ describe('ModerationCompassDialogComponent', () => {
   it('zeigt failed ruhig und sperrt den Button während pending', () => {
     const pending = setup([], vi.fn(), 'rule-based', {
       enabled: true,
-      runtime: {
-        enabled: true,
+      runtime: v2Runtime({
         inferenceConfigured: true,
         result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
           status: 'pending',
           statements: [],
           suggestedNextSteps: [],
@@ -822,11 +831,28 @@ describe('ModerationCompassDialogComponent', () => {
           sources: [],
           snapshotHash: 'b'.repeat(64),
           locale: 'de',
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'full-context',
+            fallback: null,
+          },
         },
-      },
+      }),
     });
     expect(pending.fixture.nativeElement.textContent).toContain(
-      'Die Zusammenfassung wird erstellt.',
+      'Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.',
+    );
+    expect(pending.fixture.nativeElement.textContent).toContain(
+      'Das kann bei vielen Fragen etwas dauern.',
+    );
+    expect(pending.fixture.nativeElement.textContent).toContain('Was wird ausgewertet?');
+    expect(pending.fixture.nativeElement.textContent).not.toContain('Was wurde ausgewertet?');
+    const progress = pending.fixture.nativeElement.querySelector(
+      'mat-progress-bar.moderation-compass-dialog__summary-progress-bar',
+    ) as HTMLElement | null;
+    expect(progress).not.toBeNull();
+    expect(progress?.getAttribute('aria-label')).toBe(
+      'Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.',
     );
     expect(
       (
@@ -883,7 +909,11 @@ describe('ModerationCompassDialogComponent', () => {
     expect(duplicateText.match(/Die Zusammenfassung ist gerade nicht verfügbar\./g)).toHaveLength(
       1,
     );
-    expect(duplicateText).not.toContain('Hinweise');
+    expect(
+      failedDuplicate.fixture.nativeElement.querySelector(
+        '.moderation-compass-dialog__summary-heading',
+      ),
+    ).toBeNull();
 
     TestBed.resetTestingModule();
     const emptySnapshot = setup([], vi.fn(), 'rule-based', {
@@ -990,7 +1020,12 @@ describe('ModerationCompassDialogComponent', () => {
     ).click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Belege (1)');
+    expect(fixture.nativeElement.textContent).toContain('Verwendete Beiträge (1)');
+    expect(
+      fixture.nativeElement.querySelector(
+        '[data-testid="moderation-summary"] .moderation-compass-card__source-static',
+      )?.textContent,
+    ).toContain('Thema:');
     expect(
       fixture.nativeElement.querySelector(
         '[data-testid="moderation-summary"] .moderation-compass-card__source-static',
@@ -1004,7 +1039,7 @@ describe('ModerationCompassDialogComponent', () => {
     expect(onSummarySourceActivate).not.toHaveBeenCalled();
   });
 
-  it('lädt die Diagnose erst auf ausdrücklichen Klick und zeigt keine Kontextinhalte', async () => {
+  it('erklärt die Auswertung verständlich und verbirgt Fachbegriffe in technischen Details', async () => {
     const preview = contextPreviewFixture();
     const onRequestSummaryContextPreview = vi
       .fn<() => Promise<QaSummaryContextPreviewDTO>>()
@@ -1033,7 +1068,7 @@ describe('ModerationCompassDialogComponent', () => {
     await vi.waitFor(() => {
       fixture.detectChanges();
       expect(fixture.nativeElement.textContent).toContain(
-        'Kontextvorschau konnte nicht geladen werden.',
+        'Informationen zur Auswertung konnten nicht geladen werden.',
       );
     });
     expect(loadButton.disabled).toBe(false);
@@ -1048,11 +1083,38 @@ describe('ModerationCompassDialogComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(onRequestSummaryContextPreview).toHaveBeenCalledTimes(2);
+    expect(text).toContain('Überblick');
+    expect(text).toContain('Die wichtigsten offenen Fragen werden direkt ausgewählt');
+    expect(text).toContain('Direkt ausgewertete Beiträge');
+    expect(text).toContain('Themen: 1');
+    expect(text).not.toContain('Q&A:');
+    expect(text).toContain('wurde nicht in die Auswertung einbezogen');
+    expect(text).not.toContain('ist ausgeschaltet');
+    expect(text).toContain(
+      'Diese Beiträge wurden direkt ausgewertet. Ähnliche Fragen sind darin mitberücksichtigt.',
+    );
+    expect(text).toContain('Oct 5, 2026');
+    expect(text).not.toContain('2026-10-05T17:00:00.000Z');
+    expect(text).not.toContain('Zusammengefasste Inhalte');
+    expect(text).toContain('Nur die wichtigsten Beiträge wurden ausgewählt.');
+    const technicalDetails = fixture.nativeElement.querySelector(
+      '.moderation-compass-dialog__technical-details',
+    ) as HTMLDetailsElement;
+    expect(technicalDetails).not.toBeNull();
+    expect(technicalDetails.open).toBe(false);
     expect(text).toContain('qa-summary-context-preview-v1');
     expect(text).toContain('moderation-prompt-context-v1');
-    expect(text).toContain('1 / 2500');
-    expect(text).toContain('budget-truncated');
-    expect(text).toContain('token-budget');
+    expect(text).toContain('1 von 2500 ausgewählt');
+    const technicalValues = [...fixture.nativeElement.querySelectorAll('dd')].map((entry) =>
+      (entry.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(technicalValues).toContain('3138 / 8192 Tokens');
+    expect(technicalValues).toContain('640 Tokens');
+    expect(technicalValues).toContain('128 Tokens');
+    expect(text).toContain('Die Auswahl wurde neu erstellt.');
+    expect(text).toContain('nicht alle Beiträge konnten einzeln ausgewertet werden');
+    expect(text).not.toContain('budget-truncated');
+    expect(text).not.toContain('token-budget');
     expect(text).not.toContain('GEHEIMER QUELLENTEXT');
     expect(text).not.toContain('GEHEIMES LIMITDETAIL');
     expect(text).not.toContain('hidden fixture detail');

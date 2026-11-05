@@ -7,36 +7,66 @@ import {
 } from '@arsnova/shared-types';
 
 type LocaleCopy = Readonly<{
-  statement: (label: string) => string;
+  statement: (label: string, kind: ModerationPromptSource['kind']) => string;
   empty: string;
   limitation: string;
 }>;
 
 const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
   de: {
-    statement: (label) => `Hervorgehobener Beleg: »${label}«`,
-    empty: 'Für eine extraktive Kurzfassung sind noch keine Textbelege ausgewählt.',
-    limitation: 'Extraktive Kurzfassung ohne generative Interpretation.',
+    statement: (label, kind) =>
+      kind === 'semantic-topic'
+        ? `Häufig genannt: ${label}.`
+        : kind === 'qa-question'
+          ? label
+          : `Wichtiger Punkt: ${label}.`,
+    empty: 'Es wurden noch keine offenen Fragen für die Kurzfassung ausgewählt.',
+    limitation:
+      'Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt.',
   },
   en: {
-    statement: (label) => `Highlighted evidence: “${label}”`,
-    empty: 'No textual evidence has been selected for an extractive summary yet.',
-    limitation: 'Extractive summary without generative interpretation.',
+    statement: (label, kind) =>
+      kind === 'semantic-topic'
+        ? `Frequently mentioned: ${label}.`
+        : kind === 'qa-question'
+          ? label
+          : `Important point: ${label}.`,
+    empty: 'No open questions have been selected for the summary yet.',
+    limitation:
+      'A detailed summary was not possible this time, so the most important questions are shown in their original wording.',
   },
   fr: {
-    statement: (label) => `Élément mis en évidence : « ${label} »`,
-    empty: 'Aucun élément textuel n’est encore sélectionné pour un résumé extractif.',
-    limitation: 'Résumé extractif sans interprétation générative.',
+    statement: (label, kind) =>
+      kind === 'semantic-topic'
+        ? `Souvent mentionné : ${label}.`
+        : kind === 'qa-question'
+          ? label
+          : `Point important : ${label}.`,
+    empty: 'Aucune question ouverte n’a encore été sélectionnée pour le résumé.',
+    limitation:
+      'Un résumé détaillé n’a pas été possible cette fois-ci. Les questions les plus importantes sont donc affichées telles qu’elles ont été formulées.',
   },
   es: {
-    statement: (label) => `Evidencia destacada: «${label}»`,
-    empty: 'Aún no se han seleccionado evidencias textuales para un resumen extractivo.',
-    limitation: 'Resumen extractivo sin interpretación generativa.',
+    statement: (label, kind) =>
+      kind === 'semantic-topic'
+        ? `Mencionado con frecuencia: ${label}.`
+        : kind === 'qa-question'
+          ? label
+          : `Punto importante: ${label}.`,
+    empty: 'Aún no se han seleccionado preguntas abiertas para el resumen.',
+    limitation:
+      'Esta vez no ha sido posible crear un resumen detallado. Por eso se muestran las preguntas más importantes con su redacción original.',
   },
   it: {
-    statement: (label) => `Evidenza in primo piano: «${label}»`,
-    empty: 'Non sono ancora state selezionate evidenze testuali per un riepilogo estrattivo.',
-    limitation: 'Riepilogo estrattivo senza interpretazione generativa.',
+    statement: (label, kind) =>
+      kind === 'semantic-topic'
+        ? `Citato spesso: ${label}.`
+        : kind === 'qa-question'
+          ? label
+          : `Punto importante: ${label}.`,
+    empty: 'Non sono ancora state selezionate domande aperte per il riepilogo.',
+    limitation:
+      'Questa volta non è stato possibile creare un riepilogo dettagliato. Vengono quindi mostrate le domande più importanti nella loro formulazione originale.',
   },
 };
 
@@ -92,7 +122,7 @@ export function createExtractiveQaSummaryOutput(
 ): QaSummaryModelOutputV2 {
   const locale = promptContext.context.locale;
   const copy = COPY[locale];
-  const candidates = promptContext.context.sources
+  const availableCandidates = promptContext.context.sources
     .map((source) => ({ source, label: extractiveLabel(source) }))
     .filter(
       (candidate): candidate is { source: ModerationPromptSource; label: string } =>
@@ -102,8 +132,13 @@ export function createExtractiveQaSummaryOutput(
       (left, right) =>
         sourcePriority(left.source) - sourcePriority(right.source) ||
         left.source.id.localeCompare(right.source.id),
-    )
-    .slice(0, 4);
+    );
+  const questionCandidates = availableCandidates.filter(
+    ({ source }) => source.kind === 'qa-question',
+  );
+  const candidates = (
+    questionCandidates.length >= 2 ? questionCandidates : availableCandidates
+  ).slice(0, 4);
 
   if (candidates.length === 0) {
     return QaSummaryModelOutputV2Schema.parse({
@@ -118,7 +153,11 @@ export function createExtractiveQaSummaryOutput(
   return QaSummaryModelOutputV2Schema.parse({
     status: 'ready',
     statements: candidates.map(({ source, label }) => ({
-      text: truncateCodePoints(copy.statement(truncateCodePoints(label, 320)), 400, false),
+      text: truncateCodePoints(
+        copy.statement(truncateCodePoints(label, 320), source.kind),
+        400,
+        false,
+      ),
       sourceIds: [source.id],
     })),
     suggestedNextSteps: [],
