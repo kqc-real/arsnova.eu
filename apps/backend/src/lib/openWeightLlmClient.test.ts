@@ -361,8 +361,8 @@ describe('openWeightLlmClient', () => {
         };
       };
     };
-    expect(outputProp?.properties?.statements?.minItems).toBeUndefined();
-    expect(outputProp?.properties?.statements?.maxItems).toBe(3);
+    expect(outputProp?.properties?.statements?.minItems).toBe(2);
+    expect(outputProp?.properties?.statements?.maxItems).toBe(4);
     expect(outputProp?.properties?.statements?.items?.properties?.sourceIds?.items?.enum).toEqual(
       prepared.request.promptContext.context.sources.map((s) => s.id),
     );

@@ -55,7 +55,7 @@ export function bindQaSummaryModelOutputV2(input: {
 }): QaSummaryResultV2 {
   const context = input.prepared.request.promptContext;
   const rankedSourceIds = context.context.sources.map((source) => source.id);
-  const allowedSourceIds = new Set(rankedSourceIds);
+  const allowedSourceIds = new Set(input.prepared.presentationLabels.keys());
   const statements = sortQaSummaryStatementsByImportance(
     input.output.statements
       .map((statement) => bindStatement(statement, allowedSourceIds))
@@ -101,7 +101,7 @@ export function bindQaSummaryModelOutputV2(input: {
     .map((source) => ({
       id: source.id,
       kind: source.kind,
-      label: input.prepared.presentationLabels.get(source.id) ?? source.id,
+      label: input.prepared.presentationLabels.get(source.id)!,
     }));
   const status = statements.length === 0 ? 'uncertain' : 'ready';
 

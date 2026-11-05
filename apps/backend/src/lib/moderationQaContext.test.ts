@@ -100,6 +100,7 @@ function topicSnapshot(input: {
   members: readonly { id: string; text: string }[];
   labelSourceQuestionId: string;
   corpusRevision?: string;
+  modelLabel?: { text: string; modelId: string; modelVersion: string };
 }): QaSemanticTopicSnapshot {
   return QaSemanticTopicSnapshotSchema.parse({
     version: 'qa-semantic-topic-snapshot-v1',
@@ -116,6 +117,7 @@ function topicSnapshot(input: {
         topicId: 'e'.repeat(64),
         confidence: 0.91,
         labelSourceQuestionId: input.labelSourceQuestionId,
+        ...(input.modelLabel ? { modelLabel: input.modelLabel } : {}),
         members: input.members.map((member) => ({
           questionId: member.id,
           textDigest: hashQaSemanticTopicMemberText(member.text),
@@ -444,6 +446,45 @@ describe('moderationQaContext N7', () => {
         limitations: projection.limitations,
       }).success,
     ).toBe(true);
+  });
+
+  it('preserves an accepted short model label with explicit provenance', async () => {
+    const candidateProjection = await candidates();
+    const projection = await collectQaTopicContext({
+      tx: txWithTopicRows([], topicRows()),
+      state: state(),
+      participantCount: 200,
+      candidates: candidateProjection,
+      snapshot: topicSnapshot({
+        members: topicMembers,
+        labelSourceQuestionId: QUESTION_B,
+        modelLabel: {
+          text: 'Lineare Regression',
+          modelId: 'Qwen3-4B-Instruct-2507',
+          modelVersion: 'sha256:topic-label-model',
+        },
+      }),
+      semanticEnabled: true,
+    });
+
+    expect(projection.sources).toContainEqual({
+      id: `semantic-topic:${'e'.repeat(64)}`,
+      kind: 'semantic-topic',
+      label: 'Lineare Regression',
+    });
+    expect(projection.topics).toMatchObject({
+      state: 'available',
+      items: [
+        {
+          labelOrigin: {
+            kind: 'model-generated',
+            modelId: 'Qwen3-4B-Instruct-2507',
+            modelVersion: 'sha256:topic-label-model',
+            generationVersion: 'topic-label-system-v1',
+          },
+        },
+      ],
+    });
   });
 
   it('omits a whole topic and marks it stale when any member changed', async () => {

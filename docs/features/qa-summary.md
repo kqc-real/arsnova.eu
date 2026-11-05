@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-10-17
-**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v2`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert und auf dem privaten 8-vCPU-Produktionshost real vermessen (~56,9 s / 374 Completion-Tokens); Kill-Switches im Repo standardmäßig `false`
+**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v5`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert; die historische `v2`-Messung auf dem privaten 8-vCPU-Produktionshost lag bei ~56,9 s / 374 Completion-Tokens, `v5` muss nach der Qualitäts- und Auswahlhärtung neu vermessen werden; Kill-Switches im Repo standardmäßig `false`
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Kaskade), [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) (Slice-4-Runtime)
 
@@ -49,9 +49,15 @@ Teilnehmer-DTOs enthalten kein Summary- oder Kontextfeld. V2 entsteht ausschlie�
 
 ## Host-UI
 
-Im Moderationskompass erscheint der Block **Kurzfassung der offenen Fragen**, wenn `QA_SUMMARY_ENABLED=true`, mindestens drei sichtbare Q&A-Beiträge (`PENDING`/`ACTIVE`/`PINNED`) vorliegen und entweder ein Adapter oder der lokale V2-Fallback verfügbar ist. Ein `pending`- oder `ready`-Ergebnis bleibt sichtbar, auch wenn die Zahl danach unter drei fällt; eine neue Anfrage startet in dem Fall nicht. Es gibt keinen Live-Ping und keinen automatischen Modellauftrag. Der Button **Zusammenfassung** steht am Anfang dieses Blocks. Ein vorhandenes Ergebnis bleibt zugeklappt, bis der Host es anfordert; Aussagen erscheinen als scanbare Stichpunkte mit Themen-Lead. **Hinweise** stehen direkt unter den Punkten. V2 nennt die aufgelösten Quellen **Belege**, der Legacy-Vertrag weiterhin **Zugehörige Fragen**. Nur Q&A-Fragen sind Sprungziele; Aggregate und andere V2-Belegarten bleiben semantisch beschrifteter statischer Nachweis.
+Im Moderationskompass erscheint der Block **Wichtige offene Fragen**, wenn `QA_SUMMARY_ENABLED=true`, mindestens drei sichtbare Q&A-Beiträge (`PENDING`/`ACTIVE`/`PINNED`) vorliegen und entweder ein Adapter oder der lokale V2-Fallback verfügbar ist. Ein `pending`- oder `ready`-Ergebnis bleibt sichtbar, auch wenn die Zahl danach unter drei fällt; eine neue Anfrage startet in dem Fall nicht. Es gibt keinen Live-Ping und keinen automatischen Modellauftrag. Der Button **Fragen zusammenfassen** steht am Anfang dieses Blocks. Ein vorhandenes Ergebnis bleibt zugeklappt, bis der Host es anfordert; Aussagen erscheinen als scanbare Stichpunkte mit Themen-Lead. **Hinweise** stehen direkt unter den Punkten. Unter **Verwendete Beiträge** stehen die aufgelösten Quellen der Zusammenfassung. Nur Q&A-Fragen sind Sprungziele; Aggregate und andere V2-Quellen bleiben semantisch beschriftete statische Nachweise.
 
-Die native, standardmäßig geschlossene **Diagnose** lädt nicht beim Öffnen oder Aufklappen. Erst **Kontextvorschau laden** ruft `qa.summaryContextPreview` auf. Pending-, Fehler- und Retryzustand werden zugänglich angekündigt, ohne den Fokus zu stehlen. Die Vorschau zeigt Versionen, Modus/Fallback, Cache, Bereichszustände und -mengen, Quellarten, Budget sowie Kürzungs-/Grenzcodes. Sie zeigt weder die technischen Systemtexte noch vollständige Quellenlabels oder kanonisches Modell-JSON. Ein nach Dialogschluss, Sessionwechsel oder Rechteentzug eintreffendes Ergebnis wird verworfen.
+Bei großen Sessions wählt der V2-Packer bis zu 16 unterschiedliche Fragekandidaten aus und versucht, mindestens acht davon direkt in den Modellkontext aufzunehmen. Reicht das sichere Kontextbudget dafür nicht, verwendet er die größtmögliche passende Auswahl. Die Diagnose bezeichnet diese Quellen als **Direkt ausgewertete Beiträge**; ähnliche oder zusammengefasste Fragen können dadurch zusätzlich vertreten sein.
+
+Während ein Auftrag läuft, heißt die Diagnose **Was wird ausgewertet?**, nach Abschluss **Was wurde ausgewertet?**. Sie verwendet für Lehrkräfte verständliche Bereichsnamen wie **Fragen** und **Themen**. Interne Werte wie Cache-Status, Kontextbudget und Kürzungscodes werden nicht roh angezeigt, sondern erklärt; die versionierten Kennungen bleiben in der eingeklappten Support-Ansicht erhalten.
+
+Alle Größen zum verfügbaren Platz, zur Antwortreserve und zur Sicherheitsmarge werden ausdrücklich in **Tokens** ausgewiesen.
+
+Die native, standardmäßig geschlossene **Diagnose** lädt nicht beim Öffnen oder Aufklappen. Erst **Informationen laden** ruft `qa.summaryContextPreview` auf. Pending-, Fehler- und Retryzustand werden zugänglich angekündigt, ohne den Fokus zu stehlen. Die Vorschau erklärt Versionen, Modus, vorbereitete Auswahl, Bereichszustände und -mengen, Quellarten, verfügbaren Platz sowie Gründe für ausgelassene Inhalte in verständlicher Sprache. Interne Kürzungs- und Grenzcodes, technische Systemtexte, vollständige Quellenlabels und kanonisches Modell-JSON werden nicht angezeigt. Ein nach Dialogschluss, Sessionwechsel oder Rechteentzug eintreffendes Ergebnis wird verworfen.
 
 ## Adapter, Fallback und Lebenszyklus
 
@@ -92,7 +98,12 @@ QA_SUMMARY_INFERENCE_URL=
 OPEN_WEIGHT_LLM_ENABLED=false
 ```
 
-App plus Helfer in einem Terminal: `npm run dev:qa-summary`. Hilfe: `npm run qa-summary:dev -- --help`. Tests: `npm run qa-summary:dev:test`.
+App plus Helfer in einem Terminal: `npm run dev:qa-summary`. Dieser Pfad testet
+den lokalen Legacy-/Ersatzhelfer. Der vollständige KI-Entwicklungsstack mit
+privatem Qwen-V2-Pfad, Themenencoder und Lemmatisierung startet über
+`npm run dev:ai`; Ressourcen und aktiv unterstützte Locales stehen im
+[Onboarding](../onboarding.md#alle-ki-komponenten-starten-npm-run-devai).
+Hilfe: `npm run qa-summary:dev -- --help`. Tests: `npm run qa-summary:dev:test`.
 
 ```bash
 npm test -w @arsnova/shared-types -- --run \
@@ -120,4 +131,11 @@ Produktiv weder `QA_SUMMARY_ENABLED` noch `OPEN_WEIGHT_LLM_ENABLED` stillschweig
 
 [Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) liefert den versionierten Shared-Vertrag, hostautorisierten Gesamtbuilder, deterministischen Packer/Hash/Cache, die getrennte Lernzielvorbereitung sowie den V2-Adapter- und Vorschaupfad. Integrationsgrenzen und Zustände stehen in [moderation-prompt-context.md](moderation-prompt-context.md); die Datenhaltung regelt [ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md).
 
-Runtime R ist in die Summary-Queue verdrahtet und bleibt im Repository standardmäßig deaktiviert (`false`). Auf dem privaten 8-vCPU-Produktionshost wurden neben dem kurzen `topic_label`-Auftrag (Einzel- und Multi-Cluster-Batch V2: 6 Cluster in 22,9 s) und `learning_objectives` (10 Entwürfe im Demo-Quiz, ~3,56 GiB Peak-RAM) auch `qa_summary` V2 (`qa-summary-technical-handoff-v2` + `qa-summary-model-output-v3`: 56,9 s, 374 Completion-Tokens) erfolgreich real ausgeführt. Die formale Detailprotokollierung (isolierte TTFT-/Prefill- und RSS-Werte für die Obergrenze des reichhaltigen 8.192-Vollkontexts sowie fachliche Qualitätsabnahme) bleibt in der [Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md) als getrennter Abnahmepunkt dokumentiert; kein Flag wird im Repository standardmäßig aktiviert.
+Runtime R ist in die Summary-Queue verdrahtet und bleibt im Repository standardmäßig deaktiviert (`false`). Auf dem privaten 8-vCPU-Produktionshost wurden neben dem kurzen `topic_label`-Auftrag (Einzel- und Multi-Cluster-Batch V2: 6 Cluster in 22,9 s) und `learning_objectives` (10 Entwürfe im Demo-Quiz, ~3,56 GiB Peak-RAM) auch `qa_summary` V2 mit dem damaligen Instruktionsvertrag `qa-summary-technical-handoff-v2` (`qa-summary-model-output-v3`: 56,9 s, 374 Completion-Tokens) erfolgreich real ausgeführt. Der aktuelle `v4`-Vertrag ignoriert eingebettete Antwortwünsche in Quellfragen ausdrücklich, priorisiert beim Summary-Packing semantische Themen und verlangt vollständige, laienverständliche Aussagen ohne technische Metadaten; diese Variante ist noch neu zu vermessen. Die formale Detailprotokollierung (isolierte TTFT-/Prefill- und RSS-Werte für die Obergrenze des reichhaltigen 8.192-Vollkontexts sowie fachliche Qualitätsabnahme) bleibt in der [Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md) als getrennter Abnahmepunkt dokumentiert; kein Flag wird im Repository standardmäßig aktiviert.
+
+Vor der Anzeige verwirft ein enger Qualitätsfilter generative Ergebnisse mit nur einer
+Aussage, fehlenden oder wiederholten Themenüberschriften, unvollständigen Sätzen,
+technischen Metadaten oder generischen Antwortformat-Labels wie »Fragen«/»Beispiele«
+(sprachspezifisch für `de`, `en`, `fr`, `es`, `it`). In diesem Fall
+liefert die Queue statt der schwachen Modellantwort den quellengebundenen extraktiven
+Fallback.

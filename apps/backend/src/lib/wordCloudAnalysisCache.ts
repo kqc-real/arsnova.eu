@@ -41,6 +41,8 @@ import {
 const TEXT_KEY_PREFIX = 'nlp:wc:text';
 const LEGACY_SNAPSHOT_KEY_PREFIX = 'nlp:wc:snap';
 const SNAPSHOT_KEY_PREFIX = 'nlp:wc:snapshot:v2';
+/** Invalidate compact snapshots when their externally visible payload contract changes. */
+const SNAPSHOT_PAYLOAD_VERSION = 'qa-basis-label-v2';
 const SNAPSHOT_PURGE_DURABILITY_PREFIX = 'nlp:wc:purge-durability:v1';
 const LEGACY_SNAPSHOT_PURGE_SCAN_COUNT = 500;
 const ROLLOUT_CACHE_PURGE_PATTERNS = ['nlp:wc:snap*', `${TEXT_KEY_PREFIX}:*`] as const;
@@ -134,6 +136,7 @@ function snapshotCacheKeyParts(input: AnalyzeWordCloudInput): readonly string[] 
     input.metric,
     input.normalization,
     WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
+    SNAPSHOT_PAYLOAD_VERSION,
     input.corpusRevision ?? 'client',
     String(input.maxEntries ?? 'default'),
     String(input.maxNgramLength ?? 1),

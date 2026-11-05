@@ -4550,6 +4550,8 @@ export type QaWordCloudFilter = z.infer<typeof QaWordCloudFilterEnum>;
 export const QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES = 80;
 export const QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS = 1;
 export const QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS = 128;
+/** Repräsentative Q&A-Frage für den prominenten Themen-Hero, ungekürzt bis zum Einreichungslimit. */
+export const QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS = QA_QUESTION_TEXT_MAX_CODE_POINTS;
 
 /** Host-/Teilnehmer-Seitengrößen; Obergrenze = Wortwolken-Analysebudget. */
 export const QA_LIST_PAGE_SIZE_OPTIONS = [100, 250, 500] as const;
@@ -4583,7 +4585,7 @@ const QaWordCloudAnalysisMemberDTOSchema = WordCloudAnalysisMemberDTOSchema.exte
 const QaWordCloudAnalysisEntryDTOSchema = WordCloudAnalysisEntryDTOSchema.extend({
   key: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
   label: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
-  basisLabel: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS).nullable(),
+  basisLabel: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS).nullable(),
   members: z
     .array(QaWordCloudAnalysisMemberDTOSchema)
     .min(1)

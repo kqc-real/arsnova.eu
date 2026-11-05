@@ -29,6 +29,8 @@ import {
   TIMER_ACCOMMODATION_EXTENDED_FACTOR,
   TrpcWebSocketParticipantBindingSchema,
   AnalyzeWordCloudInputSchema,
+  AnalyzeQaWordCloudOutputSchema,
+  QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS,
   WordCloudAnalysisResultDTOSchema,
   CreateSessionInputSchema,
   PreviewSessionExpirationInputSchema,
@@ -1219,6 +1221,31 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     expect(result.modelVersion).toBeNull();
     expect(result.fallbackUsed).toBe(true);
     expect(result.entries[0]?.members).toHaveLength(1);
+
+    const fullQuestion = 'F'.repeat(QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS);
+    const qaResult = AnalyzeQaWordCloudOutputSchema.parse({
+      ...result,
+      entries: [
+        {
+          ...result.entries[0],
+          basisLabel: fullQuestion,
+          memberCount: 1,
+          membersTruncated: false,
+        },
+      ],
+      eligibleQuestionCount: 1,
+      analyzedQuestionCount: 1,
+      corpusRevision: 'revision-1',
+      sortMode: 'BEST',
+      filter: 'ALL_ELIGIBLE',
+    });
+    expect(qaResult.entries[0]?.basisLabel).toBe(fullQuestion);
+    expect(() =>
+      AnalyzeQaWordCloudOutputSchema.parse({
+        ...qaResult,
+        entries: [{ ...qaResult.entries[0], basisLabel: `${fullQuestion}X` }],
+      }),
+    ).toThrow();
 
     expect(() =>
       WordCloudAnalysisResultDTOSchema.parse({

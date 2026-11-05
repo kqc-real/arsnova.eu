@@ -119,6 +119,32 @@ describe('qaSemanticTopicSnapshot', () => {
     expect(reordered?.topics).toEqual(first?.topics);
   });
 
+  it('akzeptiert einen Modell-Anzeigenamen mit extraktiver Labelquelle', () => {
+    const snapshot = buildQaSemanticTopicSnapshot({
+      ...buildInput,
+      analysis: {
+        ...analysis,
+        labelModelId: 'Qwen3-4B-Instruct-2507',
+        labelModelVersion: 'sha256:topic-label-model',
+        entries: [
+          {
+            ...analysis.entries[0],
+            label: 'Vertrauliche Fragen',
+            basisLabel: secondQuestion.text,
+            labelOrigin: 'model',
+          },
+        ],
+      },
+    });
+
+    expect(snapshot?.topics[0]?.labelSourceQuestionId).toBe(secondQuestion.id);
+    expect(snapshot?.topics[0]?.modelLabel).toEqual({
+      text: 'Vertrauliche Fragen',
+      modelId: 'Qwen3-4B-Instruct-2507',
+      modelVersion: 'sha256:topic-label-model',
+    });
+  });
+
   it.each([
     ['lexikalischer Auftrag', { request: { ...buildInput.request, mode: 'LEXICAL' as const } }],
     ['Pinned-only-Auftrag', { request: { ...buildInput.request, filter: 'PINNED_ONLY' as const } }],

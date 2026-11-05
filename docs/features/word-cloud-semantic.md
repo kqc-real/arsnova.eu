@@ -14,7 +14,7 @@
 
 ## Zweck
 
-Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden ein erklärbares Thema mit Mitgliedsliste, Konfidenz und Modellversion.
+Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden zu erklärbaren Themen mit Mitgliedsliste, Konfidenz und Modellversion gruppiert.
 
 Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentraler Mitgliedstext). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
 
@@ -22,7 +22,9 @@ Kein Encoder-Code im Browser. Teilnehmer-DTOs enthalten keine Cluster-Felder. Li
 
 ## UI-Begriffe
 
-Die Auswahloption heißt **Thema** in Q&A, Freitext und auf der Presenter-Pille. Statussätze wie **Themen werden vorbereitet.** bleiben in der Mehrzahl. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
+Die Auswahloption heißt **Themen** in Q&A, Freitext und auf der Presenter-Pille. Statussätze wie **Themen werden vorbereitet.** bleiben ebenfalls in der Mehrzahl. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
+
+Wenn ein Themenname aus einer längeren repräsentativen Frage oder Antwort zusammengefasst wurde, steht diese Zusammenfassung als hervorgehobener Hero unter der Wortwolke. Erkennungssicherheit, Gewichtung und weitere Angaben bleiben nachgeordnete Metadaten. Das kompakte Themenlabel bleibt auf 128 Zeichen begrenzt; die repräsentative Q&A-Frage wird dagegen bis zum vollständigen Einreichungslimit von 1.000 Unicode-Codepoints übertragen, um den Hero nicht abzuschneiden. Eine Payload-Version im Snapshot-Cache trennt ältere, bereits gekürzte Ergebnisse von diesem Vertrag.
 
 | Zustand         | Host-Text                                                                                             |
 | --------------- | ----------------------------------------------------------------------------------------------------- |
@@ -100,6 +102,13 @@ Die globalen Sweeps erfassen ihren Server-`run_id` und ihre `CLIENT ID` vor dem 
 
 Circuit Breaker: drei Encoder-Fehler öffnen 30 s; danach `failed` plus 2.x ohne neuen Call.
 
+Das strukturierte `wordcloud:analyze`-Log unterscheidet den Namensschritt
+explizit: `labelModelCalled` zeigt einen tatsächlichen LLM-Adapteraufruf,
+`labelCacheHits` und `labelCacheMisses` den davon unabhängigen
+Clusterlabelcache. `labelModelAccepted` bedeutet weiterhin nur, dass mindestens
+ein Modelllabel im Ergebnis verwendet wird; bei einem Cachetreffer kann dieser
+Wert daher `true` sein, obwohl `labelModelCalled=false` ist.
+
 Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln. Q&A verwendet UUID-basierte Schlüssel; Freitext verwendet die stabilen `response-{index}`-Schlüssel des unveränderlichen Host-Snapshots. Der interne Encodertransport versieht beide mit demselben Prefix und bildet sie anschließend auf die ursprünglichen IDs zurück. Keine Tokens, IPs, Nicknames, Participant-IDs oder Session-Codes in den Item-Feldern. Extra-Felder lehnt der Sidecar ab.
 
 ## Betrieb
@@ -133,7 +142,32 @@ Im App-Container `WORD_CLOUD_SEMANTIC_ENABLED=true` und Socket `/run/wordcloud-e
 
 ### Lokal (Host-npm / macOS)
 
-Compose-Profil `encoder` bleibt `network_mode: none` (Unix-Socket, für Host-Node unsichtbar). Lokal das gebaute Image per Loopback-HTTP:
+`npm run dev`, `npm run dev:de`, `npm run dev:en`, `npm run dev:qa-summary` und
+der hervorgehobene KI-Gesamtstart `npm run dev:ai`
+starten den Encoder als zusätzlichen Vordergrundprozess über `npm run encoder:dev`. Das
+Backend aktiviert dabei `WORD_CLOUD_SEMANTIC_ENABLED=true`, verwendet
+`http://127.0.0.1:8790/embed` und setzt den CPU-Timeout auf 120 Sekunden. Der erste
+Start baut das Image und lädt Modell sowie Python-Abhängigkeiten; spätere Starts
+verwenden den Docker-Build-Cache. `Ctrl+C` beendet und entfernt den Dev-Container.
+Der Dev-Container ist auf 1 CPU und 2 GiB RAM begrenzt. Der Datenträgerbedarf
+umfasst Image, ONNX-Modell und Docker-Build-Cache und ist daher
+plattformabhängig. Für den vollständigen `dev:ai`-Stack gelten die
+[Ressourcen-Planungswerte im Onboarding](../onboarding.md#ressourcen-für-devai).
+
+Der Themenpfad verwendet kein k-NN. Das E5-Modell erzeugt Vektoren; die
+Gruppierung erfolgt im Backend durch Complete-Linkage über alle paarweisen
+Kosinusähnlichkeiten. k-NN kommt nur in der getrennten Q&A-Kategorisierung
+aus Story 8.9b als Fallback zum Einsatz.
+
+Der eigenständige Aufruf lautet:
+
+```bash
+npm run encoder:dev
+```
+
+Das Compose-Profil `encoder` bleibt `network_mode: none` (Unix-Socket, für
+Host-Node unsichtbar). Der Dev-Starter verwendet deshalb denselben gebauten
+Container ausschließlich per Loopback-HTTP. Der entsprechende manuelle Aufruf ist:
 
 ```bash
 docker build -t arsnova-wordcloud-encoder:e5-small docker/wordcloud-encoder

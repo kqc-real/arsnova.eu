@@ -25,6 +25,7 @@ describe('QaWordCloudDialogComponent', () => {
     const setSortMode = vi.fn();
     const data: QaWordCloudDialogData = {
       responses: () => [],
+      responseTextsBySourceId: () => ({}),
       weightedResponses: () => [],
       terms: () => null,
       analysisEntries: () => null,
@@ -84,7 +85,7 @@ describe('QaWordCloudDialogComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Wörter');
     expect(text).toContain('Wörter & Phrasen');
-    expect(text).toContain('Thema');
+    expect(text).toContain('Themen');
     expect(text).toContain('Größe nach:');
     expect(text).toContain('Stimmensaldo');
     expect(text).not.toContain('Meist unterstützt');
@@ -108,6 +109,14 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__coverage')).toBeNull();
     expect(text).not.toContain('ausgewertete Fragen');
     expect(text).not.toContain('berücksichtigten Fragen');
+  });
+
+  it('kennzeichnet die Analysesprache mit einem Doppelpunkt', () => {
+    const { fixture } = setup('THEME', {
+      analysisLanguage: () => 'de',
+    });
+
+    expect(fixture.nativeElement.textContent).toContain('Analysesprache:');
   });
 
   it('zeigt bei Haeufigkeit die Groessenoption ohne Coverage-Zeile', () => {

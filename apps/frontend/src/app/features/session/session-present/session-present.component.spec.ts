@@ -3683,7 +3683,7 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Stichprobengröße');
     expect(text).toContain('Ähnliche Fragen sind gruppiert.');
     expect(fixture.componentInstance.qaWordCloudContextPills()).toEqual([
-      'Thema',
+      'Themen',
       'Beste Fragen',
       'ohne Wort-Glättung',
     ]);

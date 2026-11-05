@@ -13,6 +13,7 @@ import type {
   QaQuestionDTO,
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
+  QaSummaryRuntimeCompatibleDTO,
   SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
@@ -13727,12 +13728,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const data = config['data'] as {
       analysisVariant: () => string;
       analysisEntries: () => Array<{ label: string }> | null;
+      responseTextsBySourceId: () => Readonly<Record<string, string>>;
       themeModeAvailable: () => boolean;
       themeFallbackHint: () => string | null;
     };
     expect(data.analysisVariant()).toBe('THEME');
     expect(data.themeModeAvailable()).toBe(true);
     expect(data.analysisEntries()).toMatchObject([{ label: 'Kapitel 4' }]);
+    expect(data.responseTextsBySourceId()).toEqual({
+      '11111111-1111-4111-8111-111111111111': 'Kommt Kapitel 4 in der Klausur vor?',
+      '22222222-2222-4222-8222-222222222222': 'Brauchen wir Kapitel 4 fuer die Pruefung?',
+    });
     expect(data.themeFallbackHint()).toBeNull();
     fixture.destroy();
   });
@@ -27235,6 +27241,212 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   describe('Moderationskompass', () => {
+    it('setzt die Statusabfrage beim Wiederöffnen einer laufenden Zusammenfassung fort', async () => {
+      const pendingRuntime: QaSummaryRuntimeCompatibleDTO = {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'pending',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [],
+          modelVersion: 'pending',
+          analyzedAt: '2026-11-05T07:48:00.000Z',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      };
+      qaSummaryRuntimeQueryMock.mockResolvedValue(pendingRuntime);
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+
+      const component = fixture.componentInstance as unknown as SpecAccess<
+        SessionHostComponent,
+        { startQaSummaryPolling(): void }
+      >;
+      const startPolling = vi.spyOn(component, 'startQaSummaryPolling');
+      await fixture.componentInstance.openModerationCompassDialog();
+
+      expect(startPolling).toHaveBeenCalledOnce();
+      fixture.destroy();
+    });
+
+    it('ignoriert eine verspätete Pending-Antwort nach dem fertigen Ergebnis', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+
+      const pendingRuntime: QaSummaryRuntimeCompatibleDTO = {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'pending',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [],
+          modelVersion: 'pending',
+          analyzedAt: '2026-11-05T07:48:00.000Z',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      };
+      const readyRuntime: QaSummaryRuntimeCompatibleDTO = {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Mehrere Fragen betreffen die Visualisierung.',
+              sourceIds: ['qa-question:11111111-1111-4111-8111-111111111111'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [
+            {
+              id: 'qa-question:11111111-1111-4111-8111-111111111111',
+              kind: 'qa-question',
+              label: 'Wie wird die Verteilung visualisiert?',
+            },
+          ],
+          modelVersion: 'test-ready',
+          analyzedAt: '2026-11-05T07:49:00.000Z',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      };
+      let resolveOlder!: (runtime: QaSummaryRuntimeCompatibleDTO) => void;
+      let resolveNewer!: (runtime: QaSummaryRuntimeCompatibleDTO) => void;
+      qaSummaryRuntimeQueryMock.mockReset();
+      qaSummaryRuntimeQueryMock
+        .mockImplementationOnce(
+          () =>
+            new Promise<QaSummaryRuntimeCompatibleDTO>((resolve) => {
+              resolveOlder = resolve;
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise<QaSummaryRuntimeCompatibleDTO>((resolve) => {
+              resolveNewer = resolve;
+            }),
+        );
+
+      const component = fixture.componentInstance as unknown as SpecAccess<
+        SessionHostComponent,
+        { refreshQaSummaryRuntime(): Promise<void> }
+      >;
+      const olderRequest = component.refreshQaSummaryRuntime();
+      const newerRequest = component.refreshQaSummaryRuntime();
+      resolveNewer(readyRuntime);
+      await newerRequest;
+      resolveOlder(pendingRuntime);
+      await olderRequest;
+
+      expect(fixture.componentInstance.qaSummaryRuntime()?.result?.status).toBe('ready');
+      fixture.destroy();
+    });
+
+    it('startet keine zweite Statusabfrage, solange die erste noch läuft', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+
+      let resolveRuntime!: (runtime: QaSummaryRuntimeCompatibleDTO) => void;
+      qaSummaryRuntimeQueryMock.mockReset();
+      qaSummaryRuntimeQueryMock.mockImplementation(
+        () =>
+          new Promise<QaSummaryRuntimeCompatibleDTO>((resolve) => {
+            resolveRuntime = resolve;
+          }),
+      );
+      const component = fixture.componentInstance as unknown as SpecAccess<
+        SessionHostComponent,
+        { pollQaSummaryRuntime(): Promise<void> }
+      >;
+
+      const firstPoll = component.pollQaSummaryRuntime();
+      const overlappingPoll = component.pollQaSummaryRuntime();
+      await overlappingPoll;
+      expect(qaSummaryRuntimeQueryMock).toHaveBeenCalledOnce();
+
+      resolveRuntime({ enabled: true, inferenceConfigured: true, result: null });
+      await firstPoll;
+      fixture.destroy();
+    });
+
+    it('fragt eine laufende Zusammenfassung nach einem kurzen Abfragefehler weiter ab', async () => {
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await flushComponentAfterStable(fixture, 50);
+
+      const pendingRuntime: QaSummaryRuntimeCompatibleDTO = {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'pending',
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [],
+          modelVersion: 'pending',
+          analyzedAt: '2026-11-05T09:31:00.000Z',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      };
+      const readyRuntime: QaSummaryRuntimeCompatibleDTO = {
+        enabled: true,
+        inferenceConfigured: true,
+        result: {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Mehrere Fragen betreffen die Visualisierung.',
+              sourceIds: ['qa-question:11111111-1111-4111-8111-111111111111'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [
+            {
+              id: 'qa-question:11111111-1111-4111-8111-111111111111',
+              kind: 'qa-question',
+              label: 'Wie wird die Verteilung visualisiert?',
+            },
+          ],
+          modelVersion: 'test-ready',
+          analyzedAt: '2026-11-05T09:32:00.000Z',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+        },
+      };
+      fixture.componentInstance.qaSummaryRuntime.set(pendingRuntime);
+      qaSummaryRuntimeQueryMock.mockReset();
+      qaSummaryRuntimeQueryMock
+        .mockRejectedValueOnce(new Error('temporary network error'))
+        .mockResolvedValueOnce(readyRuntime);
+
+      const component = fixture.componentInstance as unknown as SpecAccess<
+        SessionHostComponent,
+        { refreshQaSummaryRuntime(): Promise<void> }
+      >;
+      await component.refreshQaSummaryRuntime();
+      expect(fixture.componentInstance.qaSummaryRuntime()?.result?.status).toBe('pending');
+
+      await component.refreshQaSummaryRuntime();
+      expect(fixture.componentInstance.qaSummaryRuntime()?.result?.status).toBe('ready');
+      fixture.destroy();
+    });
+
     it('blendet den Kompass ohne Handlungsempfehlung aus', async () => {
       const fixture = setup();
       fixture.detectChanges();
@@ -27743,36 +27955,47 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(data.summaryEnabled()).toBe(true);
       expect(data.summaryVisibleQuestionCount()).toBe(3);
 
-      qaSummaryContextPreviewQueryMock.mockResolvedValue({
-        contractVersion: 'qa-summary-context-preview-v1',
-      });
+      storeHostBrowserCapability('ABC123', 'browser-capability-abcdefghijklmnopqrstuvwxyz');
+      issueHostAccessTokenMutateMock.mockClear();
+      qaSummaryContextPreviewQueryMock
+        .mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } })
+        .mockResolvedValueOnce({
+          contractVersion: 'qa-summary-context-preview-v1',
+        });
       await expect(data.onRequestSummaryContextPreview()).resolves.toEqual({
         contractVersion: 'qa-summary-context-preview-v1',
       });
-      expect(qaSummaryContextPreviewQueryMock).toHaveBeenCalledWith({
+      expect(qaSummaryContextPreviewQueryMock).toHaveBeenCalledTimes(2);
+      expect(qaSummaryContextPreviewQueryMock).toHaveBeenLastCalledWith({
         sessionId: defaultSession.id,
         locale: 'de',
       });
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledOnce();
 
-      qaRequestSummaryMutateMock.mockResolvedValue({
-        enabled: true,
-        inferenceConfigured: true,
-        result: {
-          status: 'pending',
-          statements: [],
-          suggestedNextSteps: [],
-          limitations: [],
-          sources: [],
-          snapshotHash: 'a'.repeat(64),
-          locale: 'de',
-        },
-      });
+      issueHostAccessTokenMutateMock.mockClear();
+      qaRequestSummaryMutateMock
+        .mockRejectedValueOnce({ data: { code: 'UNAUTHORIZED' } })
+        .mockResolvedValueOnce({
+          enabled: true,
+          inferenceConfigured: true,
+          result: {
+            status: 'pending',
+            statements: [],
+            suggestedNextSteps: [],
+            limitations: [],
+            sources: [],
+            snapshotHash: 'a'.repeat(64),
+            locale: 'de',
+          },
+        });
       data.onRequestSummary();
       await fixture.whenStable();
-      expect(qaRequestSummaryMutateMock).toHaveBeenCalledWith({
+      expect(qaRequestSummaryMutateMock).toHaveBeenCalledTimes(2);
+      expect(qaRequestSummaryMutateMock).toHaveBeenLastCalledWith({
         sessionId: defaultSession.id,
         locale: 'de',
       });
+      expect(issueHostAccessTokenMutateMock).toHaveBeenCalledOnce();
 
       await fixture.componentInstance.followQaSummarySource({
         id: 'qa-question:11111111-1111-4111-8111-111111111111',
@@ -27783,6 +28006,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(
         fixture.componentInstance.isQaCompassFocused('11111111-1111-4111-8111-111111111111'),
       ).toBe(true);
+      clearHostBrowserCapability('ABC123');
       fixture.destroy();
     });
 

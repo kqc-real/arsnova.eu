@@ -22,6 +22,7 @@ export type QaWordCloudSmoothingStatus = 'idle' | 'pending' | 'active' | 'stale'
 
 export type QaWordCloudDialogData = {
   responses: () => string[];
+  responseTextsBySourceId: () => Readonly<Record<string, string>>;
   weightedResponses: () => WeightedWordSource[];
   terms: () => WordCloudTerm[] | null;
   analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
@@ -85,6 +86,7 @@ export class QaWordCloudDialogComponent {
   @ViewChild(WordCloudComponent) private wordCloud?: WordCloudComponent;
 
   readonly responses = computed(() => this.data.responses());
+  readonly responseTextsBySourceId = computed(() => this.data.responseTextsBySourceId());
   readonly weightedResponses = computed(() => this.data.weightedResponses());
   readonly terms = computed(() => this.data.terms());
   readonly analysisEntries = computed(() => this.data.analysisEntries());

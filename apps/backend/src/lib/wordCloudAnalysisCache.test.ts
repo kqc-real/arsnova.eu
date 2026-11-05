@@ -132,6 +132,7 @@ describe('wordCloudAnalysisCache', () => {
         'nlp:wc:snapshot:v2:{11111111-1111-4111-8111-111111111111}:value:ABC123:LEXICAL:TOP:LEMMA:1.14b.14:',
       ),
     ).toBe(true);
+    expect(key).toContain(':qa-basis-label-v2:');
     expect(key).not.toContain('Häuser');
     expect(buildWordCloudSnapshotCacheKey({ ...input, maxEntries: 40 }, scope)).not.toBe(key);
     expect(buildWordCloudSnapshotCacheKey({ ...input, maxNgramLength: 3 }, scope)).not.toBe(key);

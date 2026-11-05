@@ -8,6 +8,6 @@ export function getMotdWelcomeSeedFiles(): string[];
 export function getMotdMakingOfSeedFiles(): string[];
 export function getMotdFeatureSeedFiles(): string[];
 
-export function seedMotdWelcomeSql(): void;
-export function seedMotdMakingOfSql(): void;
-export function seedMotdFeatureSql(): void;
+export function seedMotdWelcomeSql(reportSuccess?: boolean): void;
+export function seedMotdMakingOfSql(reportSuccess?: boolean): void;
+export function seedMotdFeatureSql(reportSuccess?: boolean): void;

@@ -351,7 +351,8 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
 
 .moderation-compass-card__more-summary,
 .moderation-compass-dialog__summary-sources-summary,
-.moderation-compass-dialog__diagnosis-summary {
+.moderation-compass-dialog__diagnosis-summary,
+.moderation-compass-dialog__technical-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -367,7 +368,8 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
 
 .moderation-compass-card__more-summary::after,
 .moderation-compass-dialog__summary-sources-summary::after,
-.moderation-compass-dialog__diagnosis-summary::after {
+.moderation-compass-dialog__diagnosis-summary::after,
+.moderation-compass-dialog__technical-summary::after {
   content: '';
   flex: 0 0 auto;
   width: 0.45rem;
@@ -380,7 +382,8 @@ html.dark .cdk-overlay-backdrop.moderation-compass-dialog-backdrop {
 
 details[open] > .moderation-compass-card__more-summary::after,
 details[open] > .moderation-compass-dialog__summary-sources-summary::after,
-details[open] > .moderation-compass-dialog__diagnosis-summary::after {
+details[open] > .moderation-compass-dialog__diagnosis-summary::after,
+details[open] > .moderation-compass-dialog__technical-summary::after {
   transform: rotate(-135deg);
 }
 
@@ -389,13 +392,16 @@ details[open] > .moderation-compass-dialog__diagnosis-summary::after {
 .moderation-compass-dialog__summary-sources-summary::-webkit-details-marker,
 .moderation-compass-dialog__summary-sources-summary::marker,
 .moderation-compass-dialog__diagnosis-summary::-webkit-details-marker,
-.moderation-compass-dialog__diagnosis-summary::marker {
+.moderation-compass-dialog__diagnosis-summary::marker,
+.moderation-compass-dialog__technical-summary::-webkit-details-marker,
+.moderation-compass-dialog__technical-summary::marker {
   display: none;
 }
 
 .moderation-compass-card__more-summary:focus-visible,
 .moderation-compass-dialog__summary-sources-summary:focus-visible,
-.moderation-compass-dialog__diagnosis-summary:focus-visible {
+.moderation-compass-dialog__diagnosis-summary:focus-visible,
+.moderation-compass-dialog__technical-summary:focus-visible {
   outline: 2px solid var(--mat-sys-primary);
   outline-offset: 2px;
   border-radius: 0.2rem;
@@ -426,6 +432,24 @@ details[open] > .moderation-compass-dialog__diagnosis-summary::after {
   line-height: 1.45;
 }
 
+.moderation-compass-dialog__summary-progress {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.moderation-compass-dialog__summary-progress-bar {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--mat-sys-corner-full);
+}
+
+.moderation-compass-dialog__summary-progress-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.45;
+}
+
 .moderation-compass-dialog__summary-heading {
   margin: 0.15rem 0 0;
   color: var(--mat-sys-on-surface);
@@ -442,13 +466,22 @@ details[open] > .moderation-compass-dialog__diagnosis-summary::after {
 }
 
 .moderation-compass-dialog__summary-statements li {
+  position: relative;
   margin: 0;
-  padding: 0.55rem 0.7rem;
+  padding: 0.55rem 0.7rem 0.55rem 1.7rem;
   border-radius: var(--mat-sys-corner-medium, 0.75rem);
   background: var(--mat-sys-surface-container-low);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-large);
   line-height: 1.35;
+}
+
+.moderation-compass-dialog__summary-statements li::before {
+  content: '•';
+  position: absolute;
+  left: 0.75rem;
+  color: var(--mat-sys-primary);
+  font-weight: 700;
 }
 
 .moderation-compass-dialog__summary-lead {
@@ -560,6 +593,19 @@ details[open] > .moderation-compass-dialog__diagnosis-summary::after {
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-body-small);
   line-height: 1.4;
+}
+
+.moderation-compass-dialog__technical-details {
+  min-width: 0;
+  margin-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent);
+}
+
+.moderation-compass-dialog__technical-body {
+  display: grid;
+  min-width: 0;
+  gap: 0.55rem;
+  padding-block: 0.15rem 0.35rem;
 }
 
 @media (max-width: 599px) {

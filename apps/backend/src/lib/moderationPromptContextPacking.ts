@@ -50,6 +50,7 @@ export type PackModerationPromptContextInput = Readonly<{
   analysis: ModerationAnalysisContextV1;
   profile: ModerationPromptPackingProfile;
   packedAt?: Date;
+  candidatePriority?: 'balanced' | 'topics-first';
 }>;
 
 type CandidateBundle = Readonly<{
@@ -516,6 +517,29 @@ function buildCandidateBundles(context: AnalysisDomain, index: PackingIndex): Ca
   ]);
 }
 
+function prioritizeCandidateBundles(
+  candidates: readonly CandidateBundle[],
+  priority: PackModerationPromptContextInput['candidatePriority'],
+): CandidateBundle[] {
+  if (priority !== 'topics-first') return [...candidates];
+  const rank = (candidate: CandidateBundle): number => {
+    switch (candidate.kind) {
+      case 'topic':
+        return 0;
+      case 'signal':
+        return 1;
+      case 'question':
+        return 2;
+      default:
+        return 3;
+    }
+  };
+  return candidates
+    .map((candidate, index) => ({ candidate, index }))
+    .sort((left, right) => rank(left.candidate) - rank(right.candidate) || left.index - right.index)
+    .map(({ candidate }) => candidate);
+}
+
 function addQuestion(selection: Selection, index: PackingIndex, sourceId: string): void {
   const canonicalSourceId = index.canonicalQuestionIdById.get(sourceId) ?? sourceId;
   if (index.questionById.has(canonicalSourceId)) {
@@ -684,6 +708,8 @@ function buildDomainContext(
     index.canonicalQuestionIdById.get(sourceId) ?? sourceId;
   const uniqueQuestionIds = (sourceIds: readonly string[]) =>
     [...new Set(sourceIds.map(canonicalQuestionId))].sort(compareModerationPromptCodeUnits);
+  const uniqueSourceIds = (sourceIds: readonly string[]) =>
+    [...new Set(sourceIds)].sort(compareModerationPromptCodeUnits);
   const packedTopics = selectedTopics.map((topic) => {
     const representedQuestionSourceIds = uniqueQuestionIds(topic.memberQuestionSourceIds).filter(
       (sourceId) => selectedQuestionTextSourceIds.has(sourceId),
@@ -700,7 +726,11 @@ function buildDomainContext(
         : topic.labelOrigin.kind === 'model-generated'
           ? {
               ...topic.labelOrigin,
-              derivedFromSourceIds: uniqueQuestionIds(topic.labelOrigin.derivedFromSourceIds),
+              // Die vollständige Themenmitgliedschaft bleibt absichtlich
+              // undedupliziert. Generative Provenienz muss deshalb dieselben
+              // Original-IDs behalten; eine Umleitung auf kanonische Fragen
+              // würde Quellen erzeugen, die keine Themenmitglieder sind.
+              derivedFromSourceIds: uniqueSourceIds(topic.labelOrigin.derivedFromSourceIds),
             }
           : topic.labelOrigin;
     return {
@@ -1045,7 +1075,11 @@ export function packModerationPromptContext(
   }
 
   const sourceLimitedSections = new Set<ModerationPromptSection>();
-  for (const candidate of buildCandidateBundles(analysis.context, index)) {
+  const candidates = prioritizeCandidateBundles(
+    buildCandidateBundles(analysis.context, index),
+    input.candidatePriority,
+  );
+  for (const candidate of candidates) {
     const trial = cloneSelection(selection);
     addCandidateBundle(trial, index, candidate);
     const trialBuild = buildCandidate(analysis.context, index, trial, input.profile);

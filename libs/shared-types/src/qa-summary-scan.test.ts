@@ -32,6 +32,12 @@ describe('toQaSummaryScanBullet', () => {
     );
   });
 
+  it('lässt auch lange unzitierte Originalfragen unangetastet', () => {
+    const question =
+      'Wie hängt »roter Faden« mit den Übungen zusammen, damit Erklärungen auch bei mehreren aufeinanderfolgenden Schritten nachvollziehbar bleiben?';
+    expect(toQaSummaryScanBullet(question)).toBe(question);
+  });
+
   it('lässt kurze Sätze unverändert', () => {
     expect(toQaSummaryScanBullet('Es gibt eine Frage zur Klausur.')).toBe(
       'Es gibt eine Frage zur Klausur.',

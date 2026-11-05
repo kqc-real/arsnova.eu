@@ -166,6 +166,8 @@ interface RoundedRectStyle {
   host: {
     '[class.word-cloud-host--presentation]': 'presentationMode()',
     '[class.word-cloud-host--output]': 'outputOnly()',
+    '[class.word-cloud-host--responses-expanded]':
+      'presentationMode() && !outputOnly() && showResponses()',
   },
 })
 export class WordCloudComponent implements AfterViewInit, OnDestroy {
@@ -199,6 +201,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private appliedFocusedTermLabel: string | null = null;
 
   readonly responses = input<string[]>([]);
+  readonly responseTextsBySourceId = input<Readonly<Record<string, string>> | null>(null);
   readonly weightedResponses = input<WeightedWordSource[] | null>(null);
   readonly terms = input<WordCloudTerm[] | null>(null);
   readonly analysisEntries = input<WordCloudAnalysisEntryDTO[] | null>(null);
@@ -346,7 +349,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           continue;
         }
         seenSourceIds.add(member.sourceId);
-        responses.push(normalizeFreeTextResponseForDisplay(member.text));
+        responses.push(this.displayResponseText(member.sourceId, member.text));
       }
       grouped.set(entry.key, responses);
     }
@@ -364,7 +367,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           continue;
         }
         seenSourceIds.add(member.sourceId);
-        responses.push(normalizeFreeTextResponseForDisplay(member.text));
+        responses.push(this.displayResponseText(member.sourceId, member.text));
       }
     }
 
@@ -382,7 +385,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           continue;
         }
         seenSourceIds.add(member.sourceId);
-        responses.push(normalizeFreeTextResponseForDisplay(member.text));
+        responses.push(this.displayResponseText(member.sourceId, member.text));
       }
       grouped.set(term.key, responses);
     }
@@ -400,12 +403,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           continue;
         }
         seenSourceIds.add(member.sourceId);
-        responses.push(normalizeFreeTextResponseForDisplay(member.text));
+        responses.push(this.displayResponseText(member.sourceId, member.text));
       }
     }
 
     return responses;
   });
+
+  private displayResponseText(sourceId: string, fallback: string): string {
+    const fullText = this.responseTextsBySourceId()?.[sourceId]?.trim();
+    return normalizeFreeTextResponseForDisplay(fullText || fallback);
+  }
 
   private readonly filteredTerms = computed(() => {
     const terms = this.terms();
@@ -699,6 +707,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   readonly showsSelectedFilterDetails = computed(() => this.selectedWordEntry() !== null);
 
+  readonly analysisSummaryHero = computed(() => {
+    const entry = this.analysisDetailEntry();
+    if (!entry) {
+      return null;
+    }
+    const basisLabel = entry.basisLabel?.trim();
+    return basisLabel && basisLabel !== entry.word ? basisLabel : null;
+  });
+
   readonly selectedWordAnalysisDetails = computed<AnalysisDetailChip[]>(() => {
     const entry = this.analysisDetailEntry();
     if (!entry) {
@@ -710,11 +727,6 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const metric = this.tooltipMetricLine();
     if (sourceCount) details.push({ label: sourceCount, tone: 'neutral' });
     if (metric) details.push({ label: metric, tone: 'neutral' });
-    const basisDetail = this.analysisBasisDetail(entry);
-    if (basisDetail) {
-      details.push(basisDetail);
-    }
-
     const confidenceDetail = this.analysisConfidenceDetail(entry.confidence);
     if (confidenceDetail) {
       details.push(confidenceDetail);
@@ -2148,20 +2160,6 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
 
     return $localize`:@@wordCloud.groupedAsTooltip:Zusammengefasst als: ${basisLabel}:metric:`;
-  }
-
-  private analysisBasisDetail(
-    entry: Pick<CloudWord, 'basisLabel' | 'word'>,
-  ): AnalysisDetailChip | null {
-    const label = this.analysisBasisLine(entry);
-    if (!label) {
-      return null;
-    }
-
-    return {
-      label,
-      tone: 'neutral',
-    };
   }
 
   private analysisConfidenceLine(confidence: number | null): string | null {

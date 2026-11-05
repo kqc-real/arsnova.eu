@@ -505,10 +505,52 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     expect(component.showResponses()).toBe(true);
+    const responseList = fixture.nativeElement.querySelector(
+      '.word-cloud__responses',
+    ) as HTMLUListElement | null;
+    expect(responseList?.tabIndex).toBe(0);
+    expect(responseList?.getAttribute('aria-label')).toBe('2 Antworten');
     expect(fixture.nativeElement.textContent).toContain('Word Cloud 2.1');
     expect(fixture.nativeElement.textContent).toContain('Wortfamilien');
     expect(fixture.nativeElement.textContent).toContain('Natural Language Processing');
     expect(fixture.nativeElement.textContent).toContain('Themenclustern');
+  });
+
+  it('macht die Vollbildbuehne bei geoeffneter Antwortliste bis zum Listenende scrollbar', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput(
+      'responses',
+      Array.from({ length: 12 }, (_, index) => `Vollständige Antwort ${index + 1}`),
+    );
+    fixture.detectChanges();
+
+    fixture.componentInstance.toggleResponses();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('word-cloud-host--responses-expanded')).toBe(
+      true,
+    );
+
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'word-cloud.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /:host\.word-cloud-host--presentation\.word-cloud-host--responses-expanded \{[^}]*overflow-y:\s*auto/,
+    );
+    expect(styles).toMatch(
+      /:host\.word-cloud-host--responses-expanded \.word-cloud__responses \{[^}]*overscroll-behavior-y:\s*auto/,
+    );
+
+    fixture.componentInstance.toggleResponses();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.classList.contains('word-cloud-host--responses-expanded')).toBe(
+      false,
+    );
   });
 
   it('zeigt standardmäßig Erklärtext und Gewichtungshinweis für bessere Orientierung', () => {
@@ -1177,7 +1219,7 @@ describe('WordCloudComponent', () => {
 
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
     expect(text).toContain('Pruefungsstoff Kapitel 4');
-    expect(text).toContain('Zusammengefasst als: Kapitel 4');
+    expect(text).toContain('Zusammengefasst als Kapitel 4');
     expect(text).toMatch(/Erkennung:\s*sicher\s*\(92\s*%\)/);
     expect(text).toContain('Ausgewählt: Pruefungsstoff Kapitel 4');
     expect(
@@ -1191,6 +1233,55 @@ describe('WordCloudComponent', () => {
     expect(highBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
       /Erkennung:\s*sicher\s*\(92\s*%\)/,
     );
+    const summaryHero = fixture.nativeElement.querySelector(
+      '.word-cloud__summary-hero',
+    ) as HTMLElement | null;
+    expect(summaryHero?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Zusammengefasst als Kapitel 4',
+    );
+    expect(summaryHero?.querySelector('.word-cloud__meta-pill')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.word-cloud__analysis-meta')?.textContent,
+    ).not.toContain('Zusammengefasst als');
+  });
+
+  it('zeigt im Themenmodus die vollständigen Originalfragen statt gekürzter Analysetexte', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const fullQuestion =
+      'Wie können »kurze Erklärung« und »Visualisierung der Verteilung« so verzahnt werden, dass Fragen nicht untergehen? Bitte mit einem vollständigen Beispiel antworten.';
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('responseTextsBySourceId', {
+      'question-long': fullQuestion,
+    });
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'erklaerung-visualisierung',
+        label: 'Erklärung und Visualisierung',
+        count: 1,
+        basisLabel: null,
+        members: [
+          {
+            sourceId: 'question-long',
+            text: 'Wie können »kurze Erklärung« und »Visualisierung der Verteilung« so verzahnt werden, dass Fragen nicht untergehen? Bitte mit ein',
+            weight: 1,
+          },
+        ],
+        variants: ['Erklärung und Visualisierung'],
+        confidence: 0.9,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.toggleWord('erklaerung-visualisierung');
+    component.toggleResponses();
+    fixture.detectChanges();
+
+    expect(component.filteredResponses()).toEqual([fullQuestion]);
+    const responseList = fixture.nativeElement.querySelector(
+      '.word-cloud__responses',
+    ) as HTMLUListElement | null;
+    expect(responseList?.querySelector('li')?.textContent?.trim()).toBe(fullQuestion);
   });
 
   it('stuft Analyse-Confidence semantisch in mittel und niedrig ein', () => {

@@ -41,6 +41,8 @@ test('--help nennt Socket, venv, Modelle und npm run dev', () => {
 
 test('prueft spaCy-Modelle de/en/fr/es und startet server.py im Vordergrund', () => {
   const source = readFileSync(script, 'utf8');
+  assert.match(source, /Lemmatisierung \(spaCy\)/);
+  assert.match(source, /Grundform zurückgeführt/);
   assert.match(source, /de_core_news_sm/);
   assert.match(source, /en_core_web_sm/);
   assert.match(source, /fr_core_news_sm/);
@@ -54,13 +56,12 @@ test('npm run dev startet den Host-Sidecar und schaltet NLP für das Backend ein
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   assert.equal(
     pkg.scripts['dev:backend:nlp'],
-    'NLP_ENABLED=true NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock NLP_TIMEOUT_MS=15000 npm run dev -w @arsnova/backend',
+    'NLP_ENABLED=true NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock NLP_TIMEOUT_MS=15000 WORD_CLOUD_SEMANTIC_ENABLED=true WORD_CLOUD_ENCODER_URL=http://127.0.0.1:8790/embed WORD_CLOUD_ENCODER_TIMEOUT_MS=120000 npm run dev -w @arsnova/backend',
   );
   assert.equal(pkg.scripts['spacy:dev'], 'bash scripts/spacy-dev-sidecar.sh');
-  for (const name of ['dev', 'dev:de', 'dev:en', 'dev:qa-summary']) {
-    assert.match(pkg.scripts[name], /dev:backend:nlp/, name);
-    assert.match(pkg.scripts[name], /spacy:dev/, name);
-  }
+  const starter = readFileSync(join(root, 'scripts/dev-stack.mjs'), 'utf8');
+  assert.match(starter, /npm run dev:backend:nlp/);
+  assert.match(starter, /npm run spacy:dev/);
   assert.doesNotMatch(pkg.scripts['dev:backend'], /spacy:dev/);
 });
 

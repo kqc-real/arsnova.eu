@@ -218,6 +218,10 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
 
   it('speichert nur intern die vollständige Membership eines frischen semantischen Ergebnisses', async () => {
     const corpus = corpusRows(2, 2);
+    const fullBasisLabel =
+      'Wie können »kurze Erklärung« und »Visualisierung der Verteilung« so verzahnt werden, dass Fragen nicht untergehen? Bitte mit einem vollständigen Beispiel antworten.';
+    expect(Array.from(fullBasisLabel).length).toBeGreaterThan(128);
+    corpus[1]!.text = fullBasisLabel;
     prismaMock.$queryRaw.mockResolvedValue(corpus);
     analyzeSemanticWordCloudSnapshotMock.mockResolvedValue({
       mode: 'SEMANTIC',
@@ -265,6 +269,8 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
 
     expect(result.entries[0]).toMatchObject({ memberCount: 2, membersTruncated: true });
     expect(result.entries[0]?.members).toHaveLength(1);
+    expect(result.entries[0]?.basisLabel).toBe(fullBasisLabel);
+    expect(Array.from(result.entries[0]?.label ?? '')).toHaveLength(128);
     expect(wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
     const [latest, scope] = wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mock.calls[0]!;
     expect(scope).toEqual({ sessionId: '11111111-1111-4111-8111-111111111111' });

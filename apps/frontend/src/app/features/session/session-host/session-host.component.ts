@@ -1275,6 +1275,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly emojiBadgePulse = signal(false);
   private emojiPulseTimer: ReturnType<typeof setTimeout> | null = null;
   private qaSummaryPollTimer: ReturnType<typeof setInterval> | null = null;
+  private qaSummaryPollInFlight = false;
+  private qaSummaryRuntimeRequestGeneration = 0;
   private qaSummaryPreviewRequestGeneration = 0;
   /** Frage + Abstimmungsrunde (Peer Instruction), damit Emoji-Badge bei Rundenwechsel zurücksetzt. */
   private lastEmojiReactionScope = '';
@@ -2238,6 +2240,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudResponses = computed(() =>
     this.qaWordCloudQuestions().map((question) => question.text),
   );
+  readonly qaWordCloudResponseTextsBySourceId = computed<Readonly<Record<string, string>>>(() =>
+    Object.fromEntries(
+      this.qaWordCloudQuestions().map((question) => [question.id, question.text] as const),
+    ),
+  );
   readonly wordCloudLemmaLocaleOverride = signal<SupportedLocale | null>(
     readWordCloudLemmaLocaleOverride(this.code),
   );
@@ -2792,6 +2799,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           // Der sichtbare Client-Ausschnitt ist nie der kanonische Korpus.
           // Inhalte erscheinen erst aus der serverseitig gerankten Auswahl.
           responses: () => [],
+          // Die Analyse bleibt serverseitig kanonisch. Dieses Verzeichnis ersetzt
+          // ausschließlich gekürzte Erklärungstexte in der sichtbaren Antwortliste.
+          responseTextsBySourceId: () => this.qaWordCloudResponseTextsBySourceId(),
           weightedResponses: () => [],
           terms: () => this.qaWordCloudLocalTerms(),
           analysisEntries: () => this.qaWordCloudAnalysisEntries(),
@@ -2994,6 +3004,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const { ModerationCompassDialogComponent } =
       await import('./moderation-compass-dialog.component');
     this.moderationCompassDialogOpen.set(true);
+    if (this.qaSummaryRuntime()?.result?.status === 'pending') {
+      this.startQaSummaryPolling();
+    }
     const dialogRef = this.dialog.open(ModerationCompassDialogComponent, {
       data: {
         cards: () => this.moderationCompassCards(),
@@ -6676,6 +6689,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     this.clearFoyerArrivalState();
     this.stopCountdown();
+    this.qaSummaryRuntimeRequestGeneration += 1;
     this.qaSummaryPreviewRequestGeneration += 1;
     this.stopQaSummaryPolling();
     this.sound.stopAll();
@@ -7772,6 +7786,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.hostAccessRefreshInFlight) {
       await renewal;
     }
+    try {
+      return await run();
+    } catch (error) {
+      if (!this.isTrpcUnauthorizedError(error) || !this.canRenewHostAccess()) {
+        throw error;
+      }
+      await this.refreshDurableHostAccess();
+      return await run();
+    }
+  }
+
+  /**
+   * Interaktive Host-Aktionen versuchen ihren Request zunächst mit dem
+   * vorhandenen Token. Nur nach UNAUTHORIZED wird die langlebige
+   * Browser-Capability einmal gegen einen frischen Host-Token getauscht.
+   */
+  private async withHostAccessRetry<T>(run: () => Promise<T>): Promise<T> {
     try {
       return await run();
     } catch (error) {
@@ -14057,18 +14088,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async refreshQaSummaryRuntime(): Promise<void> {
     const sessionId = this.session()?.id;
+    const generation = ++this.qaSummaryRuntimeRequestGeneration;
     if (!sessionId) {
       this.qaSummaryRuntime.set(null);
       this.stopQaSummaryPolling();
       return;
     }
     try {
-      const runtime = await trpc.qa.summaryRuntime.query({ sessionId });
+      const runtime = await this.withHostAccessRetry(() =>
+        trpc.qa.summaryRuntime.query({ sessionId }),
+      );
+      if (
+        generation !== this.qaSummaryRuntimeRequestGeneration ||
+        this.session()?.id !== sessionId ||
+        this.hostAccessRevoked()
+      ) {
+        return;
+      }
       this.qaSummaryRuntime.set(runtime);
       if (runtime.result?.status !== 'pending') {
         this.stopQaSummaryPolling();
       }
-    } catch {
+    } catch (error) {
+      if (
+        generation !== this.qaSummaryRuntimeRequestGeneration ||
+        this.session()?.id !== sessionId
+      ) {
+        return;
+      }
+      // Ein kurzer Netzwerkfehler darf einen serverseitig weiterlaufenden Auftrag
+      // nicht vom Polling trennen. Der nächste Tick übernimmt das fertige Ergebnis.
+      if (
+        this.qaSummaryRuntime()?.result?.status === 'pending' &&
+        !this.isTrpcUnauthorizedError(error) &&
+        !this.hostAccessRevoked()
+      ) {
+        return;
+      }
       this.qaSummaryRuntime.set(null);
       this.stopQaSummaryPolling();
     }
@@ -14089,11 +14145,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     ) {
       return;
     }
+    const generation = ++this.qaSummaryRuntimeRequestGeneration;
     try {
-      const runtime = await trpc.qa.requestSummary.mutate({
-        sessionId,
-        locale: getEffectiveLocale(localeIdToSupported(this.localeId)),
-      });
+      const runtime = await this.withHostAccessRetry(() =>
+        trpc.qa.requestSummary.mutate({
+          sessionId,
+          locale: getEffectiveLocale(localeIdToSupported(this.localeId)),
+        }),
+      );
+      if (
+        generation !== this.qaSummaryRuntimeRequestGeneration ||
+        this.session()?.id !== sessionId ||
+        this.hostAccessRevoked()
+      ) {
+        return;
+      }
       this.qaSummaryRuntime.set(runtime);
       if (runtime.result?.status === 'pending') {
         this.startQaSummaryPolling();
@@ -14101,6 +14167,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.stopQaSummaryPolling();
       }
     } catch {
+      if (
+        generation !== this.qaSummaryRuntimeRequestGeneration ||
+        this.session()?.id !== sessionId
+      ) {
+        return;
+      }
       this.stopQaSummaryPolling();
     }
   }
@@ -14111,10 +14183,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       throw new Error('Session context is no longer available.');
     }
     const generation = ++this.qaSummaryPreviewRequestGeneration;
-    const preview = await trpc.qa.summaryContextPreview.query({
-      sessionId,
-      locale: getEffectiveLocale(localeIdToSupported(this.localeId)),
-    });
+    const preview = await this.withHostAccessRetry(() =>
+      trpc.qa.summaryContextPreview.query({
+        sessionId,
+        locale: getEffectiveLocale(localeIdToSupported(this.localeId)),
+      }),
+    );
     if (
       generation !== this.qaSummaryPreviewRequestGeneration ||
       this.session()?.id !== sessionId ||
@@ -14127,9 +14201,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private startQaSummaryPolling(): void {
     this.stopQaSummaryPolling();
+    void this.pollQaSummaryRuntime();
     this.qaSummaryPollTimer = setInterval(() => {
-      void this.refreshQaSummaryRuntime();
+      void this.pollQaSummaryRuntime();
     }, 750);
+  }
+
+  private async pollQaSummaryRuntime(): Promise<void> {
+    if (this.qaSummaryPollInFlight) {
+      return;
+    }
+    this.qaSummaryPollInFlight = true;
+    try {
+      await this.refreshQaSummaryRuntime();
+    } finally {
+      this.qaSummaryPollInFlight = false;
+    }
   }
 
   private stopQaSummaryPolling(): void {
