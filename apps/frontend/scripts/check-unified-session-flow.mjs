@@ -701,6 +701,9 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     .first();
   await waitForVisible(openWordCloud);
   await clickViaDom(openWordCloud);
+  const projectWordCloud = host.locator('.qa-word-cloud-dialog__project').first();
+  await waitForVisible(projectWordCloud);
+  await clickViaDom(projectWordCloud);
   const exclusiveWordCloudVisible = await presenter
     .locator('.session-present__word-cloud-card')
     .waitFor({ state: 'visible', timeout: 10_000 })
