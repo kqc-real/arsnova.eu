@@ -86,8 +86,8 @@ describe('PresentationStartDialogComponent', () => {
     await flush();
     fixture.detectChanges();
     expect(
-      fixture.nativeElement.querySelector('[data-testid="presentation-start-loading"]'),
-    ).toBeTruthy();
+      fixture.nativeElement.querySelector('[data-testid="presentation-start-phone"]'),
+    ).toBeNull();
     expect(
       fixture.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
     ).toBeNull();
@@ -99,9 +99,11 @@ describe('PresentationStartDialogComponent', () => {
     });
     await flush();
     fixture.detectChanges();
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presentation-start-loading"]'),
-    ).toBeNull();
+    const phone = fixture.nativeElement.querySelector(
+      '[data-testid="presentation-start-phone"]',
+    ) as HTMLDetailsElement | null;
+    expect(phone).not.toBeNull();
+    expect(phone?.open).toBe(false);
     expect(
       fixture.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
     ).not.toBeNull();
@@ -114,9 +116,11 @@ describe('PresentationStartDialogComponent', () => {
       current.nativeElement.querySelector('.dialog-title-header app-presenter-icon'),
     ).not.toBeNull();
     expect(current.nativeElement.textContent).toContain('Mit Smartphone steuern');
-    expect(
-      current.nativeElement.querySelector('.presentation-start-dialog__subtitle'),
-    ).not.toBeNull();
+    const phone = current.nativeElement.querySelector(
+      '[data-testid="presentation-start-phone"]',
+    ) as HTMLDetailsElement | null;
+    expect(phone).not.toBeNull();
+    expect(phone?.open).toBe(false);
     expect(current.nativeElement.textContent).toContain(
       'Steuere Fragen und Ergebnisse live auf deinem Handy',
     );
@@ -152,6 +156,13 @@ describe('PresentationStartDialogComponent', () => {
     });
     const current = await render();
     expect(current.nativeElement.textContent).toContain('Smartphone verbunden');
+    expect(
+      (
+        current.nativeElement.querySelector(
+          '[data-testid="presentation-start-phone"]',
+        ) as HTMLDetailsElement
+      ).open,
+    ).toBe(false);
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
     ).toBeNull();
@@ -256,6 +267,17 @@ describe('PresentationStartDialogComponent', () => {
     expect(notice).toBeTruthy();
     expect(notice?.classList.contains('presentation-start-dialog__notice')).toBe(true);
     expect(notice?.textContent).toContain('Es wartet bereits eine Verbindungsanfrage.');
+    expect(
+      (
+        current.nativeElement.querySelector(
+          '[data-testid="presentation-start-phone"]',
+        ) as HTMLDetailsElement
+      ).open,
+    ).toBe(false);
+    expect(
+      current.nativeElement.querySelector('[data-testid="presentation-start-pending-summary"]')
+        ?.textContent,
+    ).toContain('Es wartet bereits eine Verbindungsanfrage.');
     expect(notice?.querySelector('mat-icon')?.textContent?.trim()).toBe('hourglass_top');
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-review-request"]'),

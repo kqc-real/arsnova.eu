@@ -11,115 +11,106 @@
 
 <mat-dialog-content class="presentation-start-dialog">
   <p class="presentation-start-dialog__hint" i18n="@@presentationStart.screenHint">
-    Öffne die Präsentation auf dem Projektionsbildschirm. Hier steuerst du weiter; die
-    Smartphone-Verbindung ist optional.
+    Öffne die Präsentation auf dem Projektionsbildschirm.
   </p>
-  @if (pairingAdminLoading()) {
-    <p
-      class="presentation-start-dialog__hint"
-      data-testid="presentation-start-loading"
-      i18n="@@presentationStart.loadingAdmin"
-    >
-      Verbindungsmöglichkeiten werden geladen …
-    </p>
-  } @else if (pairingAdmin() || phoneConnected()) {
-    <section
-      class="presentation-start-dialog__section"
-      aria-labelledby="presentation-start-phone-title"
-    >
-      <h3
-        id="presentation-start-phone-title"
-        class="presentation-start-dialog__subtitle"
-        i18n="@@presentationStart.phoneTitle"
-      >
-        Mit Smartphone steuern
-      </h3>
-      <p class="presentation-start-dialog__hint" i18n="@@presentationStart.phoneHint">
-        Steuere Fragen und Ergebnisse live auf deinem Handy, während die Präsentation auf dem Laptop
-        läuft.
-      </p>
-
-      @if (phoneConnected()) {
-        <p
-          class="presentation-start-dialog__status"
-          role="status"
-          aria-live="polite"
-          data-testid="presentation-start-connected"
-          i18n="@@hostPairing.connected"
-        >
-          Smartphone verbunden
-        </p>
-      }
-
-      @if (pairingAdmin() && pending()) {
-        <p
-          class="presentation-start-dialog__notice"
-          role="status"
-          data-testid="presentation-start-pending"
-        >
-          <mat-icon aria-hidden="true">hourglass_top</mat-icon>
-          <span i18n="@@hostPairing.pendingOpenHint"
+  @if (!pairingAdminLoading() && (pairingAdmin() || phoneConnected())) {
+    <details class="presentation-start-dialog__phone" data-testid="presentation-start-phone">
+      <summary class="presentation-start-dialog__phone-summary">
+        <span i18n="@@presentationStart.phoneTitle">Mit Smartphone steuern</span>
+        @if (pending()) {
+          <span
+            class="presentation-start-dialog__summary-status"
+            role="status"
+            data-testid="presentation-start-pending-summary"
+            i18n="@@hostPairing.pendingOpenHint"
             >Es wartet bereits eine Verbindungsanfrage.</span
           >
+        } @else if (phoneConnected()) {
+          <span
+            class="presentation-start-dialog__summary-status"
+            role="status"
+            data-testid="presentation-start-connected"
+            i18n="@@hostPairing.connected"
+            >Smartphone verbunden</span
+          >
+        }
+      </summary>
+      <div class="presentation-start-dialog__phone-body">
+        <p class="presentation-start-dialog__hint" i18n="@@presentationStart.phoneHint">
+          Steuere Fragen und Ergebnisse live auf deinem Handy, während die Präsentation auf dem
+          Laptop läuft.
         </p>
-        <button
-          matButton="outlined"
-          type="button"
-          class="presentation-start-dialog__connect"
-          data-testid="presentation-start-review-request"
-          (click)="openPairing()"
-          i18n="@@presentationStart.reviewRequest"
-        >
-          Anfrage prüfen
-        </button>
-      } @else if (pairingAdmin() && capReached()) {
-        <p
-          class="presentation-start-dialog__hint"
-          role="status"
-          data-testid="presentation-start-cap"
-          i18n="@@hostPairing.capReachedHint"
-        >
-          Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.
-        </p>
-        <button
-          matButton="outlined"
-          type="button"
-          class="presentation-start-dialog__connect"
-          data-testid="presentation-start-manage"
-          (click)="openPairing()"
-          i18n="@@presentationStart.manageDevices"
-        >
-          Geräte verwalten
-        </button>
-      } @else if (pairingAdmin() && canAddAnother()) {
-        @if (phoneConnected()) {
-          <p class="presentation-start-dialog__hint" i18n="@@presentationStart.coHostHint">
-            So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.
+
+        @if (pairingAdmin() && pending()) {
+          <p
+            class="presentation-start-dialog__notice"
+            role="status"
+            data-testid="presentation-start-pending"
+          >
+            <mat-icon aria-hidden="true">hourglass_top</mat-icon>
+            <span i18n="@@hostPairing.pendingOpenHint"
+              >Es wartet bereits eine Verbindungsanfrage.</span
+            >
           </p>
           <button
             matButton="outlined"
             type="button"
             class="presentation-start-dialog__connect"
-            data-testid="presentation-start-cohost"
+            data-testid="presentation-start-review-request"
             (click)="openPairing()"
-            i18n="@@presentationStart.coHostAction"
+            i18n="@@presentationStart.reviewRequest"
           >
-            Weiteres Gerät verbinden
+            Anfrage prüfen
           </button>
-        } @else {
+        } @else if (pairingAdmin() && capReached()) {
+          <p
+            class="presentation-start-dialog__hint"
+            role="status"
+            data-testid="presentation-start-cap"
+            i18n="@@hostPairing.capReachedHint"
+          >
+            Es sind bereits drei weitere Geräte verbunden. Trenne zuerst eine Verbindung.
+          </p>
           <button
             matButton="outlined"
             type="button"
             class="presentation-start-dialog__connect"
-            data-testid="presentation-start-connect"
+            data-testid="presentation-start-manage"
             (click)="openPairing()"
-            i18n="@@hostPairing.connectLabel"
+            i18n="@@presentationStart.manageDevices"
           >
-            Smartphone verbinden
+            Geräte verwalten
           </button>
+        } @else if (pairingAdmin() && canAddAnother()) {
+          @if (phoneConnected()) {
+            <p class="presentation-start-dialog__hint" i18n="@@presentationStart.coHostHint">
+              So kann sich auch eine vertrauenswürdige Person mit einem weiteren Gerät verbinden.
+            </p>
+            <button
+              matButton="outlined"
+              type="button"
+              class="presentation-start-dialog__connect"
+              data-testid="presentation-start-cohost"
+              (click)="openPairing()"
+              i18n="@@presentationStart.coHostAction"
+            >
+              Weiteres Gerät verbinden
+            </button>
+          } @else {
+            <button
+              matButton="outlined"
+              type="button"
+              class="presentation-start-dialog__connect"
+              data-testid="presentation-start-connect"
+              (click)="openPairing()"
+              i18n="@@hostPairing.connectLabel"
+            >
+              Smartphone verbinden
+            </button>
+          }
         }
-      }
-    </section>
+      </div>
+    </details>
   }
 </mat-dialog-content>
 
