@@ -4585,7 +4585,14 @@ const QaWordCloudAnalysisMemberDTOSchema = WordCloudAnalysisMemberDTOSchema.exte
 const QaWordCloudAnalysisEntryDTOSchema = WordCloudAnalysisEntryDTOSchema.extend({
   key: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
   label: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
-  basisLabel: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS).nullable(),
+  basisLabel: z
+    .string()
+    .trim()
+    .min(1)
+    .refine((value) => qaTextCodePointLength(value) <= QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS, {
+      message: `Repräsentative Frage darf maximal ${QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS} Zeichen haben.`,
+    })
+    .nullable(),
   members: z
     .array(QaWordCloudAnalysisMemberDTOSchema)
     .min(1)

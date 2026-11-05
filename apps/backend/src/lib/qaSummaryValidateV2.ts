@@ -103,7 +103,8 @@ export function bindQaSummaryModelOutputV2(input: {
       kind: source.kind,
       label: input.prepared.presentationLabels.get(source.id)!,
     }));
-  const status = statements.length === 0 ? 'uncertain' : 'ready';
+  const status =
+    input.output.status === 'uncertain' || statements.length === 0 ? 'uncertain' : 'ready';
 
   return QaSummaryResultV2Schema.parse({
     schemaVersion: QA_SUMMARY_V2_SCHEMA_VERSION,

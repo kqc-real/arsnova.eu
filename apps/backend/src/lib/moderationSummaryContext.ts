@@ -687,6 +687,7 @@ function packOnce(input: {
     analysis: input.analysis,
     profile: QA_SUMMARY_MODERATION_PACKING_PROFILE,
     packedAt: input.packedAt,
+    candidatePriority: 'topics-first',
   });
 }
 

@@ -22,6 +22,7 @@ import {
 import {
   canonicalModerationPromptJson,
   estimateModerationPromptUtf8Tokens,
+  packModerationPromptContext,
 } from './moderationPromptContextPacking';
 import { resetQaSummaryAdapterForTests } from './qaSummaryAdapter';
 import { createExtractiveQaSummaryOutput } from './qaSummaryExtractive';
@@ -131,6 +132,57 @@ describe('moderationSummaryContext', () => {
     ).toBeLessThanOrEqual(QA_SUMMARY_MODERATION_PACKING_PROFILE.contextWindowTokens);
     expect(prepared.request.promptContext.budget.truncations.length).toBeGreaterThan(0);
     expect(prepared.plan.selectedMode).toBe('full-context');
+  });
+
+  it('priorisiert Themen im tatsächlichen Kurzfassungs-Packer ohne zusätzliche Aufrufoption', () => {
+    const base = analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
+    let comparison:
+      | {
+          readonly balancedTopics: number;
+          readonly summaryTopics: number;
+          readonly qaSources: number;
+        }
+      | undefined;
+
+    for (let paddingCount = 0; paddingCount <= 24; paddingCount += 1) {
+      const analysis = ModerationAnalysisContextV1Schema.parse({
+        ...base,
+        context: {
+          ...base.context,
+          limitations: [
+            ...base.context.limitations,
+            ...Array.from({ length: paddingCount }, (_, index) => ({
+              code: 'budget-truncated' as const,
+              section: 'released-results' as const,
+              detail: `summary-priority-${index}`.padEnd(96, '.'),
+            })),
+          ],
+        },
+      });
+      const prepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });
+      const balanced = packModerationPromptContext({
+        analysis,
+        profile: QA_SUMMARY_MODERATION_PACKING_PROFILE,
+      });
+      const summaryTopics =
+        prepared.request.promptContext.context.topics.state === 'available'
+          ? prepared.request.promptContext.context.topics.items.length
+          : 0;
+      const balancedTopics =
+        balanced.context.topics.state === 'available' ? balanced.context.topics.items.length : 0;
+      if (summaryTopics > balancedTopics) {
+        comparison = {
+          balancedTopics,
+          summaryTopics,
+          qaSources: countIncludedQaQuestionSources(prepared.request.promptContext),
+        };
+        break;
+      }
+    }
+
+    expect(comparison).toBeDefined();
+    expect(comparison?.summaryTopics).toBeGreaterThan(comparison?.balancedTopics ?? 0);
+    expect(comparison?.qaSources).toBeGreaterThan(0);
   });
 
   it('hält semantische Themenmitgliedschaft und questionCount konsistent wenn >12 Fragen gekürzt werden', () => {
@@ -599,6 +651,70 @@ describe('moderationSummaryContext', () => {
     expect(run.execution.fallback).toMatchObject({ reason: 'no_packed_sources' });
   });
 
+  it.each(['ready', 'uncertain'] as const)(
+    'verwirft unvollständige Modellaussagen auch mit Status %s',
+    async (status) => {
+      const legacyPlan = {
+        capabilities: resolveQaSummaryAdapterPlan().capabilities,
+        selectedMode: 'legacy-text' as const,
+        fallback: createQaSummaryFallback('legacy-text', 'adapter_incompatible'),
+        inferenceConfigured: true,
+      };
+      const prepared = prepareModerationSummaryContextFromAnalysis({
+        analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
+        plan: legacyPlan,
+      });
+      const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources.map(
+        (source) => source.id,
+      );
+      if (!firstSourceId || !secondSourceId) {
+        throw new Error('Erwartete mindestens zwei Quellen im Referenzfixture.');
+      }
+      resetQaSummaryAdapterForTests({
+        config: () => ({
+          enabled: true,
+          timeoutMs: 1_000,
+          queueLimit: 8,
+          concurrency: 1,
+          cooldownMs: 30_000,
+          ttlMs: 1_800_000,
+          maxSources: 20,
+          inferenceUrl: 'http://127.0.0.1:8787/summary',
+          inferenceToken: null,
+        }),
+        fetch: async () => ({
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              status,
+              statements: [
+                { text: 'ChatGPT-Grenzen: Die Frage hat eine hohe.', sourceIds: [firstSourceId] },
+                {
+                  text: 'Auswahl: Einige Fragen wurden aufgrund des Budgets nicht berücksichtigt.',
+                  sourceIds: [secondSourceId],
+                },
+              ],
+              suggestedNextSteps: [],
+              limitations: [],
+            }),
+        }),
+      });
+
+      const run = await runPreparedQaSummary(prepared);
+      expect(run.execution.effectiveMode).toBe('extractive');
+      expect(run.execution.fallback).toMatchObject({ reason: 'invalid_response' });
+      const bound = bindQaSummaryModelOutputV2({
+        output: run.output,
+        prepared,
+        execution: run.execution,
+        analyzedAt: '2026-11-05T08:00:00.000Z',
+      });
+      expect(JSON.stringify(bound)).not.toContain('Die Frage hat eine hohe.');
+      expect(JSON.stringify(bound)).not.toContain('aufgrund des Budgets nicht berücksichtigt');
+    },
+  );
+
   it('filtert und sortiert Legacy-Statements gegen den Kontext vor der 4/2/2-Kappung', async () => {
     const legacyPlan = {
       capabilities: resolveQaSummaryAdapterPlan().capabilities,
@@ -730,6 +846,47 @@ describe('moderationSummaryContext', () => {
     expect(bound.statements).toEqual([]);
     expect(bound.sources).toEqual([]);
     expect(JSON.stringify(bound)).not.toContain(sourceId);
+  });
+
+  it('bewahrt den Modellstatus uncertain trotz belegter Aussagen', () => {
+    const prepared = prepareModerationSummaryContextFromAnalysis({
+      analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
+      plan,
+    });
+    const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources.map(
+      (source) => source.id,
+    );
+    if (!firstSourceId || !secondSourceId) {
+      throw new Error('Erwartete mindestens zwei Quellen im Referenzfixture.');
+    }
+
+    const bound = bindQaSummaryModelOutputV2({
+      output: {
+        status: 'uncertain',
+        statements: [
+          {
+            text: 'Erstes Thema: Der erste Punkt ist möglicherweise noch offen.',
+            sourceIds: [firstSourceId],
+          },
+          {
+            text: 'Zweites Thema: Der zweite Punkt ist möglicherweise noch offen.',
+            sourceIds: [secondSourceId],
+          },
+        ],
+        suggestedNextSteps: [],
+        limitations: ['Die automatische Zusammenfassung ist unsicher.'],
+      },
+      prepared,
+      execution: {
+        attemptedMode: 'full-context',
+        effectiveMode: 'full-context',
+        fallback: null,
+      },
+      analyzedAt: '2026-11-05T08:00:00.000Z',
+    });
+
+    expect(bound.status).toBe('uncertain');
+    expect(bound.statements).toHaveLength(2);
   });
 
   it('wählt Full-context, Legacy oder extraktiv anhand expliziter Adapterkonfiguration', () => {

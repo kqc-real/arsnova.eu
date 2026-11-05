@@ -2,9 +2,12 @@ import type { QaSummaryModelOutputV2 } from '@arsnova/shared-types';
 import { describe, expect, it } from 'vitest';
 import { hasAcceptableQaSummaryQuality } from './qaSummaryQuality';
 
-function output(statements: string[]): QaSummaryModelOutputV2 {
+function output(
+  statements: string[],
+  status: QaSummaryModelOutputV2['status'] = 'ready',
+): QaSummaryModelOutputV2 {
   return {
-    status: 'ready',
+    status,
     statements: statements.map((text, index) => ({ text, sourceIds: [`source-${index}`] })),
     suggestedNextSteps: [],
     limitations: [],
@@ -22,6 +25,44 @@ describe('hasAcceptableQaSummaryQuality', () => {
         'de',
       ),
     ).toBe(true);
+  });
+
+  it('behandelt Bindestriche innerhalb eines Themen-Leads nicht als Trennzeichen', () => {
+    expect(
+      hasAcceptableQaSummaryQuality(
+        output([
+          'HTTP-Fehler: Der Umgang mit Status 404 ist noch offen.',
+          'HTTP-Statuscodes: Die Bedeutung der Statusgruppen braucht Klärung.',
+        ]),
+        'de',
+      ),
+    ).toBe(true);
+  });
+
+  it('akzeptiert Fachthemen über Tokens, Budgets und Abstimmungen', () => {
+    expect(
+      hasAcceptableQaSummaryQuality(
+        output([
+          'Tokenisierung: Wie aus Text einzelne Tokens entstehen, ist noch offen.',
+          'Cloud-Budget: Die Kostenplanung für den Kurs braucht eine Erläuterung.',
+          'Abstimmung: 48 positive und 12 negative Stimmen sollen fachlich verglichen werden.',
+        ]),
+        'de',
+      ),
+    ).toBe(true);
+  });
+
+  it('prüft dieselben fehlerhaften Aussagen bei ready und uncertain', () => {
+    const statements = [
+      'ChatGPT-Grenzen: Die Frage hat eine hohe.',
+      'Auswahl: Einige Fragen wurden aufgrund des Budgets nicht berücksichtigt.',
+    ];
+    expect(hasAcceptableQaSummaryQuality(output(statements, 'ready'), 'de')).toBe(false);
+    expect(hasAcceptableQaSummaryQuality(output(statements, 'uncertain'), 'de')).toBe(false);
+  });
+
+  it('lässt ein leeres uncertain-Ergebnis für die vorgesehene Unsicherheitsanzeige zu', () => {
+    expect(hasAcceptableQaSummaryQuality(output([], 'uncertain'), 'de')).toBe(true);
   });
 
   it.each([

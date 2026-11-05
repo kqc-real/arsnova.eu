@@ -1240,6 +1240,18 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
       filter: 'ALL_ELIGIBLE',
     });
     expect(qaResult.entries[0]?.basisLabel).toBe(fullQuestion);
+    const fullQuestionWithAstralCharacter = `${'F'.repeat(
+      QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS - 1,
+    )}😀`;
+    expect(Array.from(fullQuestionWithAstralCharacter)).toHaveLength(
+      QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS,
+    );
+    expect(
+      AnalyzeQaWordCloudOutputSchema.parse({
+        ...qaResult,
+        entries: [{ ...qaResult.entries[0], basisLabel: fullQuestionWithAstralCharacter }],
+      }).entries[0]?.basisLabel,
+    ).toBe(fullQuestionWithAstralCharacter);
     expect(() =>
       AnalyzeQaWordCloudOutputSchema.parse({
         ...qaResult,
