@@ -724,6 +724,15 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     logStep(false, 'Presenter switches exclusively to Q&A word cloud');
   }
 
+  const presentationStartDialog = host.locator('.presentation-start-dialog-panel').first();
+  if (await presentationStartDialog.isVisible().catch(() => false)) {
+    await presentationStartDialog
+      .locator('.presentation-start-dialog__actions button')
+      .first()
+      .click();
+    await presentationStartDialog.waitFor({ state: 'hidden', timeout: 10_000 });
+  }
+
   const closeWordCloud = host.locator('.qa-word-cloud-dialog__close').first();
   if (await closeWordCloud.isVisible().catch(() => false)) {
     await clickViaDom(closeWordCloud);
