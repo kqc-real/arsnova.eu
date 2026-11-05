@@ -36770,9 +36770,9 @@
         <source>Beim Schließen erscheint dort wieder die Fragenwand.</source>
         <target>En fermant cette vue, tu réaffiches le mur de questions.</target>
         </trans-unit>
-      <trans-unit id="sessionQa.wordCloudPrivate" datatype="html">
-        <source>Nur für dich sichtbar.</source>
-        <target>Visible uniquement pour toi.</target>
+      <trans-unit id="sessionQa.wordCloudNotProjected" datatype="html">
+        <source>Nicht auf der Präsentation.</source>
+        <target>Non affiché sur l’écran de présentation.</target>
         </trans-unit>
       <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
         <source>Auf der Präsentation ausblenden</source>

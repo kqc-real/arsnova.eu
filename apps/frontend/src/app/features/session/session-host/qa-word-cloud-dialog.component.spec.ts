@@ -145,7 +145,8 @@ describe('QaWordCloudDialogComponent', () => {
     const button = fixture.nativeElement.querySelector(
       '.qa-word-cloud-dialog__project',
     ) as HTMLButtonElement;
-    expect(fixture.nativeElement.textContent).toContain('Nur für dich sichtbar.');
+    expect(fixture.nativeElement.textContent).toContain('Nicht auf der Präsentation.');
+    expect(fixture.nativeElement.textContent).not.toContain('Nur für dich sichtbar.');
     expect(setProjected).not.toHaveBeenCalled();
     button.focus();
     button.click();
