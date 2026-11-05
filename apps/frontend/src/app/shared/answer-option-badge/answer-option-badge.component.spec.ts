@@ -29,4 +29,23 @@ describe('AnswerOptionBadgeComponent', () => {
       'triangle',
     );
   });
+
+  it('zeichnet ab der siebten Antwort Kreuz und Herz statt weiterer Vielecke', () => {
+    const plus = TestBed.createComponent(AnswerOptionBadgeComponent);
+    plus.componentRef.setInput('index', 6);
+    plus.componentRef.setInput('questionType', 'SURVEY');
+    plus.detectChanges();
+    const heart = TestBed.createComponent(AnswerOptionBadgeComponent);
+    heart.componentRef.setInput('index', 7);
+    heart.componentRef.setInput('questionType', 'SURVEY');
+    heart.detectChanges();
+
+    const plusHost = plus.nativeElement as HTMLElement;
+    const heartHost = heart.nativeElement as HTMLElement;
+    expect(plusHost.getAttribute('data-answer-shape')).toBe('plus');
+    expect(heartHost.getAttribute('data-answer-shape')).toBe('heart');
+    expect(plusHost.querySelector('path')?.getAttribute('d')).not.toBe(
+      heartHost.querySelector('path')?.getAttribute('d'),
+    );
+  });
 });

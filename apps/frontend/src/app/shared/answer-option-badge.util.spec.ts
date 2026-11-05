@@ -28,6 +28,17 @@ describe('answer-option-badge.util', () => {
     expect(answerOptionShape(1, 'MULTIPLE_CHOICE', false)).toBe('○');
   });
 
+  it('gibt ab der fuenften Antwort eine eigene Figur', () => {
+    expect(answerOptionShapeKind(4, 'SURVEY')).toBe('star');
+    expect(answerOptionShapeKind(5, 'SURVEY')).toBe('hexagon');
+    expect(answerOptionShapeKind(6, 'SURVEY')).toBe('plus');
+    expect(answerOptionShapeKind(7, 'SURVEY')).toBe('heart');
+    expect(answerOptionShape(6, 'SURVEY')).toBe('✚');
+    expect(answerOptionShape(7, 'SURVEY')).toBe('♡');
+    const kinds = [0, 1, 2, 3, 4, 5, 6, 7].map((index) => answerOptionShapeKind(index, 'SURVEY'));
+    expect(new Set(kinds).size).toBe(kinds.length);
+  });
+
   it('wertet nur explizit false als ausgeblendet', () => {
     expect(showQuestionTypeIndicator(undefined)).toBe(true);
     expect(showQuestionTypeIndicator(true)).toBe(true);
