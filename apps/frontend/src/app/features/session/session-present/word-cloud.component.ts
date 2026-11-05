@@ -221,8 +221,6 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly disableCloudLayout = input(false);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
-  /** Confidence-Auswahl auch in der Ausgabe-Ansicht, ohne Export oder Maximieren. */
-  readonly interactiveOutput = input(false);
   readonly showMaximizeAction = input(true);
   readonly maximizeActionHandler = input<(() => void | Promise<void>) | null>(null);
   readonly showExportActions = input(true);
@@ -425,7 +423,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return terms;
     }
 
-    const filter = this.confidenceFilter();
+    const filter = this.outputOnly() ? 'all' : this.confidenceFilter();
     if (filter === 'all') {
       return terms;
     }
@@ -481,7 +479,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly showConfidenceFilterToggle = computed(
     () =>
       this.showConfidenceFilter() &&
-      (!this.outputOnly() || this.interactiveOutput()) &&
+      !this.outputOnly() &&
       this.confidenceFilterOptions().length > 0,
   );
 
@@ -495,7 +493,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return entries;
     }
 
-    const filter = this.confidenceFilter();
+    const filter = this.outputOnly() ? 'all' : this.confidenceFilter();
     if (filter === 'all') {
       return entries;
     }
@@ -727,12 +725,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const metric = this.tooltipMetricLine();
     if (sourceCount) details.push({ label: sourceCount, tone: 'neutral' });
     if (metric) details.push({ label: metric, tone: 'neutral' });
-    const confidenceDetail = this.analysisConfidenceDetail(entry.confidence);
-    if (confidenceDetail) {
-      details.push(confidenceDetail);
-    }
 
     return details;
+  });
+
+  readonly groupingConfidence = computed(() => {
+    const entry = this.analysisDetailEntry();
+    return entry ? this.analysisConfidenceLine(entry.confidence) : null;
   });
 
   readonly qaCoverageLabel = computed(() => {
@@ -2159,11 +2158,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return null;
     }
 
-    return $localize`:@@wordCloud.groupedAsTooltip:Zusammengefasst als: ${basisLabel}:metric:`;
+    return $localize`:@@wordCloud.groupedAsTooltip:Beispiel aus den Originalbeiträgen: ${basisLabel}:metric:`;
   }
 
   private analysisConfidenceLine(confidence: number | null): string | null {
-    if (confidence === null) {
+    if (this.outputOnly() || confidence === null) {
       return null;
     }
 
@@ -2174,40 +2173,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     const tier = this.analysisConfidenceTierLabel(confidence);
 
-    return $localize`:@@wordCloud.themeConfidenceLabel:Erkennung: ${tier}:tier: (${percent}:percent:)`;
+    return $localize`:@@wordCloud.themeConfidenceLabel:Sicherheit der Gruppierung: ${tier}:tier: (${percent}:percent:)`;
   }
 
   private analysisModelVersionLine(): string | null {
     const version = this.analysisModelVersion()?.trim();
-    if (!version) {
+    if (this.outputOnly() || !version) {
       return null;
     }
 
     return $localize`:@@wordCloud.modelVersionTooltip:Modell: ${version}:version:`;
-  }
-
-  private analysisConfidenceDetail(confidence: number | null): AnalysisDetailChip | null {
-    const label = this.analysisConfidenceLine(confidence);
-    if (label === null || confidence === null) {
-      return null;
-    }
-
-    return {
-      label,
-      tone: this.analysisConfidenceTone(confidence),
-    };
-  }
-
-  private analysisConfidenceTone(confidence: number): AnalysisDetailTone {
-    if (confidence >= 0.85) {
-      return 'high';
-    }
-
-    if (confidence >= 0.65) {
-      return 'medium';
-    }
-
-    return 'cautious';
   }
 
   private analysisConfidenceTierLabel(confidence: number): string {

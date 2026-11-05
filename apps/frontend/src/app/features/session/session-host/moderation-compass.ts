@@ -18,6 +18,7 @@ import {
   type QaNlpResult,
   type QuestionType,
   type TempoTrendStatus,
+  type WordCloudAnalysisVariant,
   type ModerationCompassAnalysisMode as SharedModerationCompassAnalysisMode,
   type ModerationCompassCardKind as SharedModerationCompassCardKind,
   type ModerationCompassCardTone as SharedModerationCompassCardTone,
@@ -25,6 +26,7 @@ import {
   type ModerationCompassQuizInsightKind as SharedModerationCompassQuizInsightKind,
   type ModerationCompassQuizQuestion as SharedModerationCompassQuizQuestion,
   type ModerationCompassRuleQuestion,
+  type ModerationCompassRecommendation,
   type ModerationCompassSortMode as SharedModerationCompassSortMode,
   type ModerationCompassTopicRuleSource,
   type ModerationCompassTopicTermRuleSource,
@@ -59,7 +61,7 @@ export type ModerationCompassSourceKind =
 export type ModerationCompassLiveChannel = 'quiz' | 'qa' | 'quickFeedback';
 
 export type ModerationCompassSortMode = SharedModerationCompassSortMode;
-export type ModerationCompassAnalysisVariant = 'LEXICAL' | 'THEME';
+export type ModerationCompassAnalysisVariant = WordCloudAnalysisVariant;
 
 export type ModerationCompassSourceTarget = {
   readonly channel: ModerationCompassLiveChannel;
@@ -739,7 +741,8 @@ function registeredSourceIds(
 
 export type ModerationCompassView = {
   readonly cards: readonly ModerationCompassCard[];
-  /** Nächster Schritt aus der stärksten Karte. Ohne ihn bleibt der Kompass zu. */
+  readonly recommendation: ModerationCompassRecommendation | null;
+  /** Nächster Schritt aus der stärksten Karte; null ergibt den erklärenden Leerzustand. */
   readonly actionRecommendation: ModerationCompassNextStepReason | null;
 };
 
@@ -821,6 +824,7 @@ export function buildModerationCompassView(
     feedback,
   });
   return {
+    recommendation: plan.recommendation,
     actionRecommendation: plan.recommendation?.reason ?? null,
     cards: plan.cards.map((card) => {
       const mapped: ModerationCompassCard = {

@@ -42,13 +42,17 @@ describe('WordCloudComponent', () => {
   it('zeigt Kontext-Pills neben den Zaehlern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation durch Teamarbeit']);
-    fixture.componentRef.setInput('contextPills', ['Themen', 'Beste Fragen', 'ohne Wort-Glättung']);
+    fixture.componentRef.setInput('contextPills', [
+      'Themen',
+      'Klare Zustimmung',
+      'ohne Wort-Glättung',
+    ]);
     fixture.detectChanges();
 
     const pills = [
       ...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill--context'),
     ].map((el) => (el.textContent ?? '').trim());
-    expect(pills).toEqual(['Themen', 'Beste Fragen', 'ohne Wort-Glättung']);
+    expect(pills).toEqual(['Themen', 'Klare Zustimmung', 'ohne Wort-Glättung']);
   });
 
   it('waehlt einen vorgegebenen Fokusbegriff in der Wolke', () => {
@@ -590,6 +594,46 @@ describe('WordCloudComponent', () => {
     expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
   });
 
+  it('zeigt auf der Buehne Quellenumfang statt Gruppierungssicherheit und Modellversion', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('analysisModelVersion', 'private-model-v1');
+    fixture.componentRef.setInput('itemCount', 5);
+    fixture.componentRef.setInput('eligibleItemCount', 5);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'theme',
+        label: 'Stichprobe',
+        count: 4,
+        basisLabel: 'Stichprobe',
+        confidence: 0.92,
+        variants: ['Stichprobe'],
+        members: [{ sourceId: 'q1', text: 'Wie groß ist die Stichprobe?', weight: 4 }],
+      },
+      {
+        key: 'uncertain',
+        label: 'Offene Frage',
+        count: 1,
+        basisLabel: 'Offene Frage',
+        confidence: 0.5,
+        variants: ['Offene Frage'],
+        members: [{ sourceId: 'q2', text: 'Was ist noch offen?', weight: 1 }],
+      },
+    ]);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('5 von 5 Fragen analysiert');
+    expect(text).not.toContain('Sicherheit der Gruppierung');
+    expect(text).not.toContain('92');
+    expect(fixture.componentInstance.words().map((entry) => entry.word)).toContain('Offene Frage');
+    expect(fixture.nativeElement.querySelector('.word-cloud__grouping-details')).toBeNull();
+    const tooltip = fixture.componentInstance.wordTooltip(fixture.componentInstance.words()[0]!);
+    expect(tooltip).toContain('In 1 von 5 analysierten Fragen');
+    expect(tooltip).not.toContain('private-model-v1');
+    expect(tooltip).not.toContain('92');
+  });
+
   it('keeps projected words readable and counts the undisplayed terms', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput(
@@ -1123,7 +1167,7 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('analysisMode', 'qa');
     fixture.componentRef.setInput('itemLabelSingular', 'Frage');
     fixture.componentRef.setInput('itemLabelPlural', 'Fragen');
-    fixture.componentRef.setInput('tooltipMetricLabel', 'beste Fragen');
+    fixture.componentRef.setInput('tooltipMetricLabel', 'klare Zustimmung');
     fixture.componentRef.setInput('responses', [
       'Sollten wir zuerst Python oder zuerst die Formel herleiten?',
       'Brauchen wir noch ein Rechenbeispiel zur Standardabweichung?',
@@ -1143,7 +1187,7 @@ describe('WordCloudComponent', () => {
     const tooltip = component.wordTooltipDisplay(entry!);
     expect(tooltip).toContain('Größenwert: 23');
     expect(tooltip).toContain('In 2 Fragen gefunden');
-    expect(tooltip).toContain('Gewichtung: beste Fragen');
+    expect(tooltip).toContain('Gewichtung: klare Zustimmung');
     expect(tooltip).toContain('Fragen:');
     expect(
       component
@@ -1213,14 +1257,14 @@ describe('WordCloudComponent', () => {
       'Kapitel 4 pruefungsstoff?',
     ]);
     const tooltip = component.wordTooltipDisplay(component.words()[0]!);
-    expect(tooltip).toContain('Zusammengefasst als: Kapitel 4');
-    expect(tooltip).toMatch(/Erkennung:\s*sicher\s*\(92\s*%\)/);
+    expect(tooltip).toContain('Beispiel aus den Originalbeiträgen: Kapitel 4');
+    expect(tooltip).toMatch(/Sicherheit der Gruppierung:\s*sicher\s*\(92\s*%\)/);
     expect(tooltip).toContain('Kapitel 4 klausurrelevant?');
 
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
     expect(text).toContain('Pruefungsstoff Kapitel 4');
-    expect(text).toContain('Zusammengefasst als Kapitel 4');
-    expect(text).toMatch(/Erkennung:\s*sicher\s*\(92\s*%\)/);
+    expect(text).toContain('Beispiel aus den Originalbeiträgen Kapitel 4');
+    expect(text).toMatch(/Sicherheit der Gruppierung:\s*sicher\s*\(92\s*%\)/);
     expect(text).toContain('Ausgewählt: Pruefungsstoff Kapitel 4');
     expect(
       fixture.nativeElement
@@ -1229,20 +1273,21 @@ describe('WordCloudComponent', () => {
         .trim(),
     ).toBe('Ausgewählt: Pruefungsstoff Kapitel 4');
 
-    const highBadge = fixture.nativeElement.querySelector('.word-cloud__meta-pill--detail-high');
+    const highBadge = fixture.nativeElement.querySelector('.word-cloud__grouping-details');
     expect(highBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
-      /Erkennung:\s*sicher\s*\(92\s*%\)/,
+      /Sicherheit der Gruppierung:\s*sicher\s*\(92\s*%\)/,
     );
     const summaryHero = fixture.nativeElement.querySelector(
       '.word-cloud__summary-hero',
     ) as HTMLElement | null;
     expect(summaryHero?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
-      'Zusammengefasst als Kapitel 4',
+      'Beispiel aus den Originalbeiträgen Kapitel 4',
     );
+    expect(summaryHero?.querySelector('blockquote')?.textContent?.trim()).toBe('Kapitel 4');
     expect(summaryHero?.querySelector('.word-cloud__meta-pill')).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.word-cloud__analysis-meta')?.textContent,
-    ).not.toContain('Zusammengefasst als');
+    ).not.toContain('Beispiel aus den Originalbeiträgen');
   });
 
   it('zeigt im Themenmodus die vollständigen Originalfragen statt gekürzter Analysetexte', () => {
@@ -1258,7 +1303,7 @@ describe('WordCloudComponent', () => {
         key: 'erklaerung-visualisierung',
         label: 'Erklärung und Visualisierung',
         count: 1,
-        basisLabel: null,
+        basisLabel: fullQuestion,
         members: [
           {
             sourceId: 'question-long',
@@ -1278,6 +1323,11 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     expect(component.filteredResponses()).toEqual([fullQuestion]);
+    const originalExample = fixture.nativeElement.querySelector(
+      '.word-cloud__summary-hero blockquote',
+    ) as HTMLElement | null;
+    expect(originalExample?.textContent?.trim()).toBe(fullQuestion);
+    expect(fixture.nativeElement.textContent).not.toContain('Zusammengefasst als');
     const responseList = fixture.nativeElement.querySelector(
       '.word-cloud__responses',
     ) as HTMLUListElement | null;
@@ -1327,17 +1377,17 @@ describe('WordCloudComponent', () => {
     expect(component.confidenceFilter()).toBe('all');
 
     expect(component.wordTooltipDisplay(component.words()[0]!)).toMatch(
-      /Erkennung:\s*mittel\s*\(72\s*%\)/,
+      /Sicherheit der Gruppierung:\s*mittel\s*\(72\s*%\)/,
     );
     expect(component.wordTooltipDisplay(component.words()[1]!)).toMatch(
-      /Erkennung:\s*unsicher\s*\(54\s*%\)/,
+      /Sicherheit der Gruppierung:\s*unsicher\s*\(54\s*%\)/,
     );
 
     component.setConfidenceFilter('low');
     fixture.detectChanges();
 
     expect(component.wordTooltipDisplay(component.words()[0]!)).toMatch(
-      /Erkennung:\s*unsicher\s*\(54\s*%\)/,
+      /Sicherheit der Gruppierung:\s*unsicher\s*\(54\s*%\)/,
     );
 
     component.setConfidenceFilter('medium');
@@ -1346,11 +1396,9 @@ describe('WordCloudComponent', () => {
     component.toggleWord('mittel-cluster');
     fixture.detectChanges();
 
-    const mediumBadge = fixture.nativeElement.querySelector(
-      '.word-cloud__meta-pill--detail-medium',
-    );
+    const mediumBadge = fixture.nativeElement.querySelector('.word-cloud__grouping-details');
     expect(mediumBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
-      /Erkennung:\s*mittel\s*\(72\s*%\)/,
+      /Sicherheit der Gruppierung:\s*mittel\s*\(72\s*%\)/,
     );
 
     component.setConfidenceFilter('low');
@@ -1359,11 +1407,9 @@ describe('WordCloudComponent', () => {
     component.toggleWord('vorsichtig-cluster');
     fixture.detectChanges();
 
-    const cautiousBadge = fixture.nativeElement.querySelector(
-      '.word-cloud__meta-pill--detail-cautious',
-    );
+    const cautiousBadge = fixture.nativeElement.querySelector('.word-cloud__grouping-details');
     expect(cautiousBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
-      /Erkennung:\s*unsicher\s*\(54\s*%\)/,
+      /Sicherheit der Gruppierung:\s*unsicher\s*\(54\s*%\)/,
     );
   });
 

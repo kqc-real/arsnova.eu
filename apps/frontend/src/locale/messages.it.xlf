@@ -18572,8 +18572,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogJump" datatype="html">
-        <source> Wähle einen Eintrag aus, um die zugehörige Frage oder Wortwolke zu öffnen.</source>
-        <target>Seleziona una voce per aprire la domanda o il word cloud associato.</target>
+        <source>Wähle einen Eintrag, um die zugehörige Frage, Wortwolke, das Ergebnis oder die Rückmeldung zu öffnen.</source>
+        <target>Scegli una voce per aprire la domanda, la nuvola di parole, i risultati o i feedback corrispondenti.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">11,13</context>
@@ -18636,16 +18636,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationEmptyHint" datatype="html">
-        <source> Sobald Rückmeldungen vorliegen, zeigt dir der Kompass wichtige Themen, offene Fragen und Hinweise zum Tempo.</source>
-        <target>Non appena ricevi un feedback, la bussola ti mostra argomenti importanti, domande aperte e suggerimenti sul ritmo.</target>
+        <source>Noch keine Hinweise. Sobald Fragen, Ergebnisse oder Tempo-Rückmeldungen vorliegen, unterstützt dich der Kompass bei der Wahl des nächsten Schritts.</source>
+        <target>Non ci sono ancora suggerimenti. Quando saranno disponibili domande, risultati o feedback sul ritmo, la bussola ti aiuterà a scegliere il passo successivo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">165,168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogIntroDecide" datatype="html">
-        <source> Du entscheidest, was du als Nächstes aufgreifst.</source>
-        <target>Decidi tu cosa intraprendere dopo.</target>
+        <source>Du entscheidest, was du als Nächstes aufgreifst.</source>
+        <target>Decidi tu cosa affrontare dopo.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">169,171</context>
@@ -18764,7 +18764,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryProgressHint" datatype="html">
         <source>Das kann bei vielen Fragen etwas dauern. Du kannst den Kompass schließen und später wieder öffnen.</source>
-        <target>Questo può richiedere del tempo se ci sono molte domande. Puoi chiudere la bussola e riaprirla in seguito.</target>
+        <target>Se ci sono molte domande, potrebbe volerci un po’ di tempo. Puoi chiudere la bussola e riaprirla più tardi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
         </context-group>
@@ -18891,7 +18891,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
         <source>Greif die umstrittenen Fragen kurz auf.</source>
-        <target>Riprendi in breve le domande controverse.</target>
+        <target>Affronta brevemente le domande su cui il gruppo è diviso.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">324</context>
@@ -19942,8 +19942,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisTheme" datatype="html">
-        <source>Wörter &amp; Phrasen</source>
-        <target>Parole e frasi</target>
+        <source>Wortgruppen</source>
+        <target>Gruppi di parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">28</context>
@@ -19974,16 +19974,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSizeAria" datatype="html">
-        <source>Größe nach Kontroverse, besten Fragen, Stimmensaldo oder Vorkommen in Fragen</source>
-        <target>Dimensione in base a controversia, domande migliori, saldo dei voti o presenza nelle domande</target>
+        <source>Größe nach Bewertungen oder Häufigkeit</source>
+        <target>Dimensione in base a valutazioni o frequenza</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortBest" datatype="html">
-        <source>Beste Fragen</source>
-        <target>Migliori domande</target>
+        <source>Klare Zustimmung</source>
+        <target>Consenso netto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">47</context>
@@ -21790,8 +21790,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisPhrases" datatype="html">
-        <source>Wörter &amp; Phrasen</source>
-        <target>Parole e frasi</target>
+        <source>Wortgruppen</source>
+        <target>Gruppi di parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3746</context>
@@ -23170,8 +23170,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudResume" datatype="html">
-        <source>Live fortsetzen</source>
-        <target>Riprendi live</target>
+        <source>Anzeige fortsetzen</source>
+        <target>Riprendi la visualizzazione in diretta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1298</context>
@@ -23182,8 +23182,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudFreeze" datatype="html">
-        <source>Wortwolke einfrieren</source>
-        <target>Blocca la nuvola di parole</target>
+        <source>Anzeige anhalten</source>
+        <target>Ferma la visualizzazione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1299</context>
@@ -23194,8 +23194,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.freetextDescriptionSemantic" datatype="html">
-        <source>Ähnliche Antworten sind gruppiert.</source>
-        <target>Le risposte simili sono raggruppate.</target>
+        <source>Inhaltlich ähnliche Antworten sind zu Themen zusammengefasst.</source>
+        <target>Le risposte con contenuti simili sono raggruppate per tema.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1304</context>
@@ -23214,8 +23214,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionPhrases" datatype="html">
-        <source>Häufige Wörter und kurze Wortgruppen.</source>
-        <target>Parole frequenti e brevi gruppi di parole.</target>
+        <source>Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.</source>
+        <target>Parole e gruppi di parole, ad esempio «spiegazione chiara».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1308</context>
@@ -23382,8 +23382,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFailedHint" datatype="html">
-        <source>Themenanalyse fehlgeschlagen.</source>
-        <target>Analisi dei temi non riuscita.</target>
+        <source>Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.</source>
+        <target>Al momento non è stato possibile aggiornare i temi. Usa la vista esistente o riprova.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1459</context>
@@ -23394,8 +23394,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFallbackHint" datatype="html">
-        <source>Themen sind gerade nicht belastbar.</source>
-        <target>Al momento i temi non sono abbastanza affidabili.</target>
+        <source>Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.</source>
+        <target>Al momento non è possibile raggruppare in modo affidabile i contributi simili. Vengono mostrate parole o gruppi di parole.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1462</context>
@@ -23406,8 +23406,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticDisabledHint" datatype="html">
-        <source>Themen sind noch nicht verfügbar.</source>
-        <target>I temi non sono disponibili.</target>
+        <source>Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen.</source>
+        <target>I temi non sono disponibili qui. Usa parole o gruppi di parole.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1465</context>
@@ -23434,8 +23434,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
-        <source>Wort-Glättung ist an</source>
-        <target>Uniformazione delle parole attiva</target>
+        <source>Wortformen gebündelt</source>
+        <target>Forme delle parole raggruppate</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1536</context>
@@ -23446,8 +23446,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
-        <source>Neu analysieren</source>
-        <target>Analizza di nuovo</target>
+        <source>Wortformen aktualisieren</source>
+        <target>Aggiorna le forme delle parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1538</context>
@@ -23462,8 +23462,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Wortformen glätten</source>
-        <target>Uniforma le forme</target>
+        <source>Wortformen bündeln</source>
+        <target>Raggruppa le forme delle parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -23494,8 +23494,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
-        <source>Wort-Glättung fehlgeschlagen</source>
-        <target>Uniformazione delle parole non riuscita</target>
+        <source>Wortformen konnten gerade nicht gebündelt werden. Die bisherige Auswertung bleibt nutzbar.</source>
+        <target>Al momento non è stato possibile raggruppare le forme delle parole. Puoi continuare a usare l’analisi esistente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1558</context>
@@ -23506,8 +23506,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
-        <source>Wort-Glättung nicht verfügbar</source>
-        <target>Uniformazione delle parole non disponibile</target>
+        <source>Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.</source>
+        <target>Il raggruppamento delle forme delle parole non è disponibile qui. Puoi continuare a usare la nuvola di parole.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1567</context>
@@ -23518,8 +23518,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudFrozenInfo" datatype="html">
-        <source>Wortwolke eingefroren.</source>
-        <target>Nuvola di parole bloccata.</target>
+        <source>Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.</source>
+        <target>La nuvola di parole è ferma. La raccolta di nuovi contributi non viene interrotta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1593</context>
@@ -23638,8 +23638,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
-        <source>beste Fragen</source>
-        <target>domande migliori</target>
+        <source>klare Zustimmung</source>
+        <target>consenso netto</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2129</context>
@@ -23670,8 +23670,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionSemantic" datatype="html">
-        <source>Ähnliche Fragen sind gruppiert.</source>
-        <target>Le domande simili sono raggruppate.</target>
+        <source>Inhaltlich ähnliche Fragen sind zu Themen zusammengefasst.</source>
+        <target>Le domande con contenuti simili sono raggruppate per tema.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2146</context>
@@ -23682,8 +23682,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionLexical" datatype="html">
-        <source>Häufige Wörter aus den sichtbaren Fragen.</source>
-        <target>Parole frequenti dalle domande visibili.</target>
+        <source>Einzelne Wörter aus den freigegebenen Fragen.</source>
+        <target>Singole parole tratte dalle domande pubblicate.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2148</context>
@@ -23694,32 +23694,32 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.</source>
-        <target>Le parole e le frasi più grandi provengono da domande con molto consenso e abbastanza voti.</target>
+        <source>Größer erscheinen Begriffe aus Fragen mit viel Zustimmung und ausreichend Bewertungen. Das sagt nichts über ihre fachliche Richtigkeit aus.</source>
+        <target>I termini delle domande con ampio consenso e un numero sufficiente di valutazioni appaiono più grandi. Questo non ne indica la correttezza.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus Fragen mit hoher Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Darüberfahren zeigt die zugehörigen Fragen.</source>
-        <target>Le parole e le frasi grandi provengono da domande con alta controversia: i voti a favore e contrari sono il più possibile equilibrati. Passando sopra si vedono le domande collegate.</target>
+        <source>Größer erscheinen Begriffe aus Fragen mit vielen, ähnlich verteilten Dafür- und Dagegen-Stimmen.</source>
+        <target>I termini delle domande con molti voti, distribuiti in modo simile tra favorevoli e contrari, appaiono più grandi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintTime" datatype="html">
-        <source>Ein Wort wird größer, je mehr sichtbare Fragen es enthalten. In einer Frage zählt es nur einmal.</source>
-        <target>Una parola diventa più grande quante più domande visibili la contengono. In una domanda conta una sola volta.</target>
+        <source>Je mehr freigegebene Fragen einen Begriff enthalten, desto größer erscheint er. Pro Frage zählt er einmal.</source>
+        <target>Più domande pubblicate contengono un termine, più grande appare. Viene contato una sola volta per domanda.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2180</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintTop" datatype="html">
-        <source>Große Einträge stammen aus Fragen mit hohem Stimmensaldo (Stimmen dafür minus Stimmen dagegen).</source>
-        <target>Gli elementi più grandi provengono da domande con un saldo dei voti più alto (voti a favore meno voti contrari).</target>
+        <source>Größer erscheinen Begriffe aus Fragen mit mehr Dafür- als Dagegen-Stimmen. Maßgeblich ist die Differenz.</source>
+        <target>I termini delle domande con più voti favorevoli che contrari appaiono più grandi. La dimensione dipende dalla differenza tra i due conteggi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2182</context>
@@ -27904,16 +27904,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.groupedAsTooltip" datatype="html">
-        <source>Zusammengefasst als: <x id="metric" equiv-text="basisLabel"/></source>
-        <target>Raggruppato come: <x id="metric" equiv-text="metric"/></target>
+        <source>Beispiel aus den Originalbeiträgen: <x id="metric" equiv-text="basisLabel"/></source>
+        <target>Esempio tratto dai contributi originali: <x id="metric" equiv-text="metric"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">1959</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.themeConfidenceLabel" datatype="html">
-        <source>Erkennung: <x id="tier" equiv-text="tier"/> (<x id="percent" equiv-text="percent"/>)</source>
-        <target>Rilevamento: <x id="tier" equiv-text="tier"/> (<x id="percent" equiv-text="percent"/>)</target>
+        <source>Sicherheit der Gruppierung: <x id="tier" equiv-text="tier"/> (<x id="percent" equiv-text="percent"/>)</source>
+        <target>Affidabilità del raggruppamento: <x id="tier" equiv-text="tier"/> (<x id="percent" equiv-text="percent"/>)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">1988</context>
@@ -36236,8 +36236,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.summaryHeroHeading" datatype="html">
-        <source> Zusammengefasst als</source>
-        <target>Riassunto come</target>
+        <source> Beispiel aus den Originalbeiträgen</source>
+        <target>Esempio tratto dai contributi originali</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
         </context-group>
@@ -36592,8 +36592,8 @@
         <target>Ci sono ancora finestre di tempo personali. Attendi oppure torna all’host per chiuderle.</target>
         </trans-unit>
       <trans-unit id="wordCloud.analysisLanguage" datatype="html">
-        <source>Analysesprache:</source>
-        <target>Lingua di analisi:</target>
+        <source>Sprache der Beiträge:</source>
+        <target>Lingua dei contributi:</target>
         </trans-unit>
       <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
         <source>Neue Antworten seit der letzten Themenanalyse</source>
@@ -36754,6 +36754,78 @@
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionQa.wordCloudProjectionFailed" datatype="html">
+        <source>Die Präsentation konnte nicht geändert werden. Versuche es erneut.</source>
+        <target>Non è stato possibile modificare la presentazione. Riprova.</target>
+        </trans-unit>
+      <trans-unit id="sessionQa.wordCloudProjectionPending" datatype="html">
+        <source>Präsentation wird geändert …</source>
+        <target>Modifica della presentazione in corso…</target>
+        </trans-unit>
+      <trans-unit id="sessionQa.wordCloudProjected" datatype="html">
+        <source>Auf der Präsentation sichtbar.</source>
+        <target>Visibile sullo schermo della presentazione.</target>
+        </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCloseProjection" datatype="html">
+        <source>Beim Schließen erscheint dort wieder die Fragenwand.</source>
+        <target>Chiudendo questa vista, sullo schermo torna la bacheca delle domande.</target>
+        </trans-unit>
+      <trans-unit id="sessionQa.wordCloudPrivate" datatype="html">
+        <source>Nur für dich sichtbar.</source>
+        <target>Visibile solo a te.</target>
+        </trans-unit>
+      <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
+        <source>Auf der Präsentation ausblenden</source>
+        <target>Nascondi dallo schermo</target>
+        </trans-unit>
+      <trans-unit id="sessionQa.wordCloudShowProjection" datatype="html">
+        <source>Auf der Präsentation zeigen</source>
+        <target>Mostra sullo schermo</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.moreOptions" datatype="html">
+        <source>Weitere Optionen</source>
+        <target>Altre opzioni</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.smoothingExample" datatype="html">
+        <source>Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben erhalten.</source>
+        <target>Raggruppa forme di una parola, come «imparare» e «imparato». I contributi originali vengono conservati.</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.groupingDetails" datatype="html">
+        <source>Gruppierung prüfen</source>
+        <target>Verifica il raggruppamento</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.groupingExplanation" datatype="html">
+        <source>Die Einschätzung betrifft nur die automatische Gruppierung, nicht die fachliche Richtigkeit oder das Verständnis der Teilnehmenden.</source>
+        <target>Questa stima riguarda solo il raggruppamento automatico. Non valuta la correttezza dei contenuti né la comprensione di chi partecipa.</target>
+        </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenCloud" datatype="html">
+        <source>Wortwolke öffnen</source>
+        <target>Apri la nuvola di parole</target>
+        </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenResult" datatype="html">
+        <source>Ergebnis öffnen</source>
+        <target>Apri i risultati</target>
+        </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenFeedback" datatype="html">
+        <source>Rückmeldungen öffnen</source>
+        <target>Apri i feedback</target>
+        </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenQuestion" datatype="html">
+        <source>Frage öffnen</source>
+        <target>Apri la domanda</target>
+        </trans-unit>
+      <trans-unit id="sessionHost.moderationSourceFailed" datatype="html">
+        <source>Der Eintrag konnte nicht geöffnet werden. Versuche es erneut.</source>
+        <target>Non è stato possibile aprire questo elemento. Riprova.</target>
+        </trans-unit>
+      <trans-unit id="sessionHost.wordCloudFrozenStatus" datatype="html">
+        <source>Anzeige angehalten</source>
+        <target>Visualizzazione ferma</target>
+        </trans-unit>
+      <trans-unit id="sessionPresent.wordCloudChooseHostLocale" datatype="html">
+        <source>Wähle die Sprache der Beiträge in der Steueransicht.</source>
+        <target>Scegli la lingua dei contributi nella vista di controllo.</target>
+        </trans-unit>
     </body>
   </file>
 </xliff>

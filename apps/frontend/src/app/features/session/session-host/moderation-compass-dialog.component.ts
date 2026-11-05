@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, LOCALE_ID, signal, ViewEncapsulation } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
@@ -16,6 +16,7 @@ import {
   shouldShowQaSummaryCard,
   sortQaSummaryStatementsByImportance,
   type ModerationPromptSection,
+  type ModerationCompassRecommendation,
   type QaSummaryContextPreviewDTO,
   type QaSummaryPresentationSourceKind,
   type QaSummaryPresentationSourceV2,
@@ -51,15 +52,6 @@ function normalizeSummaryNotice(text: string): string {
   return text.trim().replace(/\s+/g, ' ').toLocaleLowerCase('de-DE');
 }
 
-function isPromise(value: unknown): value is Promise<void | boolean> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'then' in value &&
-    typeof value.then === 'function'
-  );
-}
-
 type CompatibleQaSummaryResult = QaSummaryResult | QaSummaryResultV2;
 type CompatibleQaSummarySource = QaSummarySource | QaSummaryPresentationSourceV2;
 type SummaryPreviewState =
@@ -77,6 +69,7 @@ type SummaryPreviewSectionRow = Readonly<{
 
 export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];
+  recommendation?: () => ModerationCompassRecommendation | null;
   analysisMode?: ModerationCompassAnalysisMode;
   onSourceActivate?: (
     source: ModerationCompassSource,
@@ -86,7 +79,7 @@ export type ModerationCompassDialogData = {
   summaryVisibleQuestionCount?: () => number;
   summary?: () => QaSummaryRuntimeCompatibleDTO | null;
   onRequestSummary?: () => void;
-  onSummarySourceActivate?: (source: QaSummarySource) => void;
+  onSummarySourceActivate?: (source: QaSummarySource) => void | boolean | Promise<void | boolean>;
   onRequestSummaryContextPreview?: () => Promise<QaSummaryContextPreviewDTO>;
   /** Aktuelle Q&A-Sortierung für kontextbezogene Extra-Quellen-Labels. */
   qaSortMode?: () => ModerationCompassSortMode;
@@ -118,6 +111,7 @@ export type ModerationCompassDialogData = {
   encapsulation: ViewEncapsulation.None,
 })
 export class ModerationCompassDialogComponent {
+  private readonly document = inject(DOCUMENT);
   readonly data = inject<ModerationCompassDialogData>(MAT_DIALOG_DATA);
   private readonly localeId = inject(LOCALE_ID);
   private readonly dialogRef = inject(MatDialogRef<ModerationCompassDialogComponent>);
@@ -128,10 +122,37 @@ export class ModerationCompassDialogComponent {
     const mode = this.analysisMode();
     return mode !== 'rule-based' && mode !== 'disabled';
   });
-  readonly leadCard = computed(
-    () => this.cards().find((card) => card.nextStepReason !== undefined) ?? null,
+  readonly leadCard = computed(() => {
+    const recommendation = this.data.recommendation?.();
+    return (
+      this.cards().find((card) =>
+        recommendation
+          ? card.kind === recommendation.preferredCardKind
+          : card.nextStepReason !== undefined,
+      ) ?? null
+    );
+  });
+  readonly primaryNextStepReason = computed(
+    () => this.data.recommendation?.()?.reason ?? this.leadCard()?.nextStepReason,
   );
-  readonly primaryNextStepReason = computed(() => this.leadCard()?.nextStepReason);
+  readonly primarySource = computed(
+    () => this.leadCard()?.sources.find((source) => source.target) ?? null,
+  );
+  readonly sourcePending = signal(false);
+  readonly sourceError = signal('');
+
+  primarySourceLabel(source: ModerationCompassSource): string {
+    switch (moderationCompassSourceDestination(source)) {
+      case 'word-cloud':
+        return $localize`:@@sessionHost.moderationOpenCloud:Wortwolke öffnen`;
+      case 'quiz':
+        return $localize`:@@sessionHost.moderationOpenResult:Ergebnis öffnen`;
+      case 'quickFeedback':
+        return $localize`:@@sessionHost.moderationOpenFeedback:Rückmeldungen öffnen`;
+      default:
+        return $localize`:@@sessionHost.moderationOpenQuestion:Frage öffnen`;
+    }
+  }
   readonly summaryEnabled = computed(() => this.data.summaryEnabled?.() === true);
   readonly summaryRuntime = computed(() => this.data.summary?.() ?? null);
   readonly summaryResult = computed(() => this.summaryRuntime()?.result ?? null);
@@ -194,8 +215,14 @@ export class ModerationCompassDialogComponent {
     return extraModerationCompassSources(card.sources);
   }
 
-  summaryScanParts(text: string): ModerationSummaryScanParts {
-    return splitModerationSummaryLead(text, this.summaryResult()?.locale ?? 'de');
+  summaryScanParts(
+    text: string,
+    result: CompatibleQaSummaryResult | null = this.summaryResult(),
+  ): ModerationSummaryScanParts {
+    if (result && 'execution' in result && result.execution.effectiveMode === 'extractive') {
+      return { lead: null, body: text.trim() };
+    }
+    return splitModerationSummaryLead(text, result?.locale ?? 'de');
   }
 
   summaryStatements(result: CompatibleQaSummaryResult): CompatibleQaSummaryResult['statements'] {
@@ -274,35 +301,70 @@ export class ModerationCompassDialogComponent {
     return $localize`:@@sessionHost.moderationSummarySourcesToggle:Zugehörige Fragen (${count}:count:)`;
   }
 
-  activateSource(source: ModerationCompassSource, card: ModerationCompassCard): void {
-    if (!source.target) {
+  async activateSource(
+    source: ModerationCompassSource,
+    card: ModerationCompassCard,
+  ): Promise<void> {
+    if (!source.target || this.sourcePending()) {
       return;
     }
-    const outcome = this.data.onSourceActivate?.(source, card.kind);
-    if (isPromise(outcome)) {
-      void outcome.then((shouldClose) => {
-        if (shouldClose !== false) {
-          this.dialogRef.close();
+    this.sourcePending.set(true);
+    this.sourceError.set('');
+    const previousDisableClose = this.dialogRef.disableClose;
+    this.dialogRef.disableClose = true;
+    try {
+      const outcome = await this.data.onSourceActivate?.(source, card.kind);
+      if (outcome !== false) {
+        if (source.target.surface === 'word-cloud') {
+          this.dialogRef.afterClosed().subscribe(() => {
+            queueMicrotask(() => {
+              const destinationClose = this.document.querySelector<HTMLElement>(
+                '.qa-word-cloud-dialog__close',
+              );
+              if (!destinationClose?.isConnected) return;
+              try {
+                destinationClose.focus({ preventScroll: true });
+              } catch {
+                destinationClose.focus();
+              }
+            });
+          });
         }
-      });
-      return;
+        this.dialogRef.close();
+      }
+    } catch {
+      this.sourceError.set(
+        $localize`:@@sessionHost.moderationSourceFailed:Der Eintrag konnte nicht geöffnet werden. Versuche es erneut.`,
+      );
+    } finally {
+      this.dialogRef.disableClose = previousDisableClose;
+      this.sourcePending.set(false);
     }
-    if (outcome === false) {
-      return;
-    }
-    this.dialogRef.close();
   }
 
   isQaQuestionSummarySource(source: CompatibleQaSummarySource): source is QaSummarySource {
     return source.kind === 'qa-question' && parseQaSummaryQuestionSourceId(source.id) !== null;
   }
 
-  activateSummarySource(source: CompatibleQaSummarySource): void {
-    if (!this.isQaQuestionSummarySource(source)) {
+  async activateSummarySource(source: CompatibleQaSummarySource): Promise<void> {
+    if (!this.isQaQuestionSummarySource(source) || this.sourcePending()) {
       return;
     }
-    this.data.onSummarySourceActivate?.(source);
-    this.dialogRef.close();
+    this.sourcePending.set(true);
+    this.sourceError.set('');
+    const previousDisableClose = this.dialogRef.disableClose;
+    this.dialogRef.disableClose = true;
+    try {
+      const outcome = await this.data.onSummarySourceActivate?.(source);
+      if (outcome !== false) this.dialogRef.close();
+    } catch {
+      this.sourceError.set(
+        $localize`:@@sessionHost.moderationSourceFailed:Der Eintrag konnte nicht geöffnet werden. Versuche es erneut.`,
+      );
+    } finally {
+      this.dialogRef.disableClose = previousDisableClose;
+      this.sourcePending.set(false);
+    }
   }
 
   requestSummary(): void {

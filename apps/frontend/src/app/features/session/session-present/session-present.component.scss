@@ -82,8 +82,8 @@
   inset: 0;
   display: grid;
   place-items: center;
-  padding: clamp(1rem, 4vw, 4rem);
-  background: color-mix(in srgb, var(--mat-sys-scrim) 78%, transparent);
+  padding: clamp(1rem, 3vw, 2rem);
+  background: color-mix(in srgb, var(--mat-sys-scrim) 46%, transparent);
 }
 
 .session-present__host-return {
@@ -128,11 +128,13 @@
 }
 
 .session-present__fullscreen-action {
-  width: min(100%, 54rem);
-  min-height: min(46vh, 25rem);
-  padding: clamp(2rem, 6vw, 5rem);
+  width: min(100%, 34rem);
+  height: auto;
+  min-height: 44px;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
   border-radius: var(--mat-sys-corner-extra-large);
-  box-shadow: var(--mat-sys-level3);
+  box-shadow: var(--mat-sys-level2);
+  white-space: normal;
 }
 
 .session-present__fullscreen-action-content {
@@ -140,24 +142,24 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.75rem, 2vh, 1.5rem);
+  gap: clamp(0.625rem, 1.5vh, 1rem);
 
   mat-icon {
-    width: clamp(4rem, 10vw, 7rem);
-    height: clamp(4rem, 10vw, 7rem);
-    font-size: clamp(4rem, 10vw, 7rem);
+    width: clamp(2.75rem, 7vw, 4rem);
+    height: clamp(2.75rem, 7vw, 4rem);
+    font-size: clamp(2.75rem, 7vw, 4rem);
   }
 }
 
 .session-present__fullscreen-action-label {
-  font: var(--mat-sys-display-small);
+  font: var(--mat-sys-headline-small);
   text-align: center;
 }
 
 .session-present__fullscreen-action-hint {
-  font: var(--mat-sys-title-large);
+  font: var(--mat-sys-body-large);
   text-align: center;
-  opacity: 0.86;
+  opacity: 0.82;
 }
 
 .session-present--quiz,
@@ -2854,5 +2856,34 @@ app-session-projection-quiz,
   }
   .session-present__lobby-audience:has(.session-present__audience-summary) {
     justify-content: center;
+  }
+}
+
+.session-present__word-cloud-options {
+  max-width: 100%;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+
+  summary {
+    min-height: 44px;
+    align-content: center;
+    cursor: pointer;
+    color: var(--mat-sys-on-surface);
+  }
+
+  summary:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+.session-present__word-cloud-options-body {
+  display: grid;
+  gap: 0.65rem;
+  padding-block: 0.45rem;
+
+  p {
+    margin: 0;
   }
 }

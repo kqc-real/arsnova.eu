@@ -14,7 +14,7 @@
 
 ## Zweck
 
-Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden zu erklärbaren Themen mit Mitgliedsliste, Konfidenz und Modellversion gruppiert.
+Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Klare Zustimmung` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden zu erklärbaren Themen mit Mitgliedsliste, Konfidenz und Modellversion gruppiert.
 
 Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentraler Mitgliedstext). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
 
@@ -22,18 +22,18 @@ Kein Encoder-Code im Browser. Teilnehmer-DTOs enthalten keine Cluster-Felder. Li
 
 ## UI-Begriffe
 
-Die Auswahloption heißt **Themen** in Q&A, Freitext und auf der Presenter-Pille. Statussätze wie **Themen werden vorbereitet.** bleiben ebenfalls in der Mehrzahl. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
+Die Auswahloption heißt **Themen** in Q&A, Freitext und im Presenter. Statussätze wie **Themen werden vorbereitet.** bleiben ebenfalls in der Mehrzahl. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
 
-Wenn ein Themenname aus einer längeren repräsentativen Frage oder Antwort zusammengefasst wurde, steht diese Zusammenfassung als hervorgehobener Hero unter der Wortwolke. Erkennungssicherheit, Gewichtung und weitere Angaben bleiben nachgeordnete Metadaten. Das kompakte Themenlabel bleibt auf 128 Zeichen begrenzt; die repräsentative Q&A-Frage wird dagegen bis zum vollständigen Einreichungslimit von 1.000 Unicode-Codepoints übertragen, um den Hero nicht abzuschneiden. Eine Payload-Version im Snapshot-Cache trennt ältere, bereits gekürzte Ergebnisse von diesem Vertrag.
+Wenn das kurze Themenlabel von einer längeren repräsentativen Frage oder Antwort abweicht, steht dieser unveränderte Beleg unter der Wortwolke als **Beispiel aus den Originalbeiträgen**. Er wird semantisch als Zitat und visuell nachgeordnet dargestellt, nie als redaktionell geglättete Zusammenfassung. Grammatik, Stil und Aufbau bleiben deshalb so erhalten, wie sie eingereicht wurden. Erkennungssicherheit, Gewichtung und weitere Angaben bleiben nachgeordnete Metadaten. Das kompakte Themenlabel bleibt auf 128 Zeichen begrenzt; die repräsentative Q&A-Frage wird dagegen bis zum vollständigen Einreichungslimit von 1.000 Unicode-Codepoints übertragen, um den Beleg nicht abzuschneiden. Eine Payload-Version im Snapshot-Cache trennt ältere, bereits gekürzte Ergebnisse von diesem Vertrag.
 
-| Zustand         | Host-Text                                                                                             |
-| --------------- | ----------------------------------------------------------------------------------------------------- |
-| Läuft           | **Themen werden vorbereitet.**                                                                        |
-| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** bzw. **Neue Antworten seit der letzten Themenanalyse** |
-| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                           |
-| Fehlgeschlagen  | **Themenanalyse fehlgeschlagen.**                                                                     |
-| Nicht belastbar | **Themen sind gerade nicht belastbar.**                                                               |
-| Nicht verfügbar | **Themen sind noch nicht verfügbar.**                                                                 |
+| Zustand         | Host-Text                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Läuft           | **Themen werden vorbereitet.**                                                                                                 |
+| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** bzw. **Neue Antworten seit der letzten Themenanalyse**                          |
+| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                                                    |
+| Fehlgeschlagen  | **Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.**                      |
+| Nicht belastbar | **Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.** |
+| Nicht verfügbar | **Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen.**                                                           |
 
 Die Toolbars zeigen die wirksame Analysesprache. Ohne Sprachwahl entspricht sie der Oberflächensprache. Lokale Extraktion, Stoppwörter, Glättung und Themenanalyse verwenden dieselbe Wahl. Lemma ist für DE/EN/FR/ES verfügbar. Encoder und Modellnamen sind auf DE/EN beschränkt. Italienisch verwendet lokale Extraktion. Für Q&A umfasst die lokale Analyse den sichtbaren Seitenausschnitt.
 
@@ -42,6 +42,14 @@ Die Toolbars zeigen die wirksame Analysesprache. Ohne Sprachwahl entspricht sie 
 Der Q&A-Presenter übernimmt die Host-Projektion einschließlich Gewichtung, Glättung und Korpusabdeckung. Der Quiz-Freitext-Presenter folgt zunächst der Projektion und kann mit Host-Berechtigung selbst analysieren. Er verwendet dabei die gewählte Host-Analysesprache. Das öffentliche Freitext-DTO enthält die kompakten Einträge samt sichtbaren Labels und gegebenenfalls deren Herkunft. Bei älteren Projektionen ohne Ergebnistyp erkennt die Bühne Themen an der Namensherkunft oder am früheren Cluster-Schlüssel. Bei lexikalischen Einträgen bestimmt sie die passende Wort- oder Phrasenansicht. Die Bühnenansichten verwenden weiterhin `outputOnly` und die bestehende Begrenzung der sichtbaren Blasen.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
+
+### Verständliche Bedienung und Projektion
+
+Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Die Wortgruppenansicht nennt ein Beispiel; Themen fasst inhaltlich ähnliche Beiträge zusammen. Sprachwahl und **Wortformen bündeln** liegen unter **Weitere Optionen**; ein Beispiel erklärt das Bündeln, ohne Änderungen an den Originalbeiträgen zu behaupten.
+
+Die Q&A-Wolke öffnet aus Werkzeugen und Kompass zunächst privat. Der Dialog bietet **Auf der Präsentation zeigen** beziehungsweise **Auf der Präsentation ausblenden** und kündigt laufende Änderungen an. Er zeigt die eigene Projektion erst nach Serverbestätigung als sichtbar. Bei Fehler bleibt die Aktion erneut erreichbar. Das Schließen einer selbst projizierten Wolke blendet diese zuerst bestätigt aus; bei Fehler bleibt der Dialog offen. Eine bereits von anderer Stelle projizierte Wolke wird beim privaten Öffnen oder Schließen nicht übernommen.
+
+Q&A-Dialog und Bühne erklären die Größe mit demselben, zur angezeigten Snapshot-Metrik gehörenden Lesesatz. **Klare Zustimmung** bezeichnet Bewertungen durch Teilnehmende, keine fachliche Qualitätsprüfung. Die Bühne zeigt keine Glättungs-, Konfidenz- oder Modell-Chips. **Gruppierung prüfen** hält Konfidenzfilter und die Erläuterung ihrer Grenzen in der Host-Ansicht zugänglich. **Anzeige anhalten** und **Anzeige fortsetzen** beziehen sich auf die Wolke; ein Hinweis erklärt, dass damit die Sammlung neuer Beiträge nicht angehalten wird.
 
 ## Host-Verhalten
 

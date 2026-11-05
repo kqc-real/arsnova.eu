@@ -1,10 +1,9 @@
-import { computed, Component, inject, ViewChild } from '@angular/core';
+import { computed, Component, inject, signal, ViewChild } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
-import { MatTooltip } from '@angular/material/tooltip';
 import type {
   QaQuestionSortMode,
   WordCloudAnalysisEntryDTO,
@@ -20,7 +19,12 @@ import {
 
 export type QaWordCloudSmoothingStatus = 'idle' | 'pending' | 'active' | 'stale';
 
+export type QaWordCloudDialogResult = readonly string[] | { readonly action: 'return-to-compass' };
+
 export type QaWordCloudDialogData = {
+  projected: () => boolean;
+  ownsProjection: () => boolean;
+  setProjected: (projected: boolean) => Promise<void>;
   responses: () => string[];
   responseTextsBySourceId: () => Readonly<Record<string, string>>;
   weightedResponses: () => WeightedWordSource[];
@@ -62,6 +66,7 @@ export type QaWordCloudDialogData = {
   itemLabelSingular: string;
   itemLabelPlural: string;
   focusedTermLabel?: () => string | null;
+  returnToCompassVisible?: () => boolean;
 };
 
 @Component({
@@ -70,19 +75,25 @@ export type QaWordCloudDialogData = {
   imports: [
     MatButton,
     MatIconButton,
-    MatDialogClose,
     MatIcon,
     MatButtonToggleGroup,
     MatButtonToggle,
-    MatTooltip,
     MatProgressBar,
     WordCloudComponent,
   ],
   templateUrl: './qa-word-cloud-dialog.component.html',
   styleUrl: './qa-word-cloud-dialog.component.scss',
+  host: { '(keydown.escape)': 'close($event)' },
 })
 export class QaWordCloudDialogComponent {
   readonly data = inject<QaWordCloudDialogData>(MAT_DIALOG_DATA);
+  private readonly dialogRef = inject(
+    MatDialogRef<QaWordCloudDialogComponent, QaWordCloudDialogResult>,
+  );
+  readonly projected = computed(() => this.data.projected());
+  readonly ownsProjection = computed(() => this.data.ownsProjection());
+  readonly projectionPending = signal(false);
+  readonly projectionError = signal('');
   @ViewChild(WordCloudComponent) private wordCloud?: WordCloudComponent;
 
   readonly responses = computed(() => this.data.responses());
@@ -135,6 +146,7 @@ export class QaWordCloudDialogComponent {
     }
   });
   readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
+  readonly returnToCompassVisible = computed(() => this.data.returnToCompassVisible?.() ?? false);
   readonly showSmoothingControls = computed(
     () => this.analysisVariant() === 'LEXICAL' || this.analysisVariant() === 'THEME',
   );
@@ -166,6 +178,45 @@ export class QaWordCloudDialogComponent {
   );
   readonly themeRefreshLabel = $localize`:@@sessionQa.wordCloudRefreshThemes:Themen aktualisieren`;
 
+  async toggleProjection(): Promise<void> {
+    if (this.projectionPending()) return;
+    await this.changeProjection(!this.projected());
+  }
+
+  async close(event?: Event): Promise<void> {
+    event?.stopPropagation();
+    if (this.projectionPending()) return;
+    if (this.projected() && this.ownsProjection()) {
+      if (!(await this.changeProjection(false))) return;
+    }
+    this.dialogRef.close();
+  }
+
+  async returnToCompass(event?: Event): Promise<void> {
+    event?.stopPropagation();
+    if (this.projectionPending() || !this.returnToCompassVisible()) return;
+    if (this.projected() && this.ownsProjection()) {
+      if (!(await this.changeProjection(false))) return;
+    }
+    this.dialogRef.close({ action: 'return-to-compass' });
+  }
+
+  private async changeProjection(projected: boolean): Promise<boolean> {
+    this.projectionPending.set(true);
+    this.projectionError.set('');
+    try {
+      await this.data.setProjected(projected);
+      return true;
+    } catch {
+      this.projectionError.set(
+        $localize`:@@sessionQa.wordCloudProjectionFailed:Die Präsentation konnte nicht geändert werden. Versuche es erneut.`,
+      );
+      return false;
+    } finally {
+      this.projectionPending.set(false);
+    }
+  }
+
   selectedSourceIds(): readonly string[] {
     return this.wordCloud?.selectedSourceIds() ?? [];
   }
@@ -178,7 +229,7 @@ export class QaWordCloudDialogComponent {
   }
 
   setSortMode(mode: QaQuestionSortMode): void {
-    if (this.frozen() || mode === this.sortMode()) {
+    if (this.projectionPending() || this.frozen() || mode === this.sortMode()) {
       return;
     }
 
@@ -186,7 +237,7 @@ export class QaWordCloudDialogComponent {
   }
 
   setAnalysisVariant(variant: WordCloudAnalysisVariant): void {
-    if (this.frozen() || variant === this.analysisVariant()) {
+    if (this.projectionPending() || this.frozen() || variant === this.analysisVariant()) {
       return;
     }
 
@@ -194,11 +245,12 @@ export class QaWordCloudDialogComponent {
   }
 
   toggleFreeze(): void {
+    if (this.projectionPending()) return;
     void this.data.toggleFreeze();
   }
 
   toggleSmoothing(): void {
-    if (this.frozen() || this.smoothingDisabled()) {
+    if (this.projectionPending() || this.frozen() || this.smoothingDisabled()) {
       return;
     }
 

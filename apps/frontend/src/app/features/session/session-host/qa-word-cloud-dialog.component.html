@@ -3,18 +3,70 @@
     mat-icon-button
     type="button"
     class="qa-word-cloud-dialog__close"
-    matDialogClose
+    [attr.aria-disabled]="projectionPending() ? true : null"
+    (click)="close()"
     i18n-aria-label="@@wordCloud.dialogCloseAria"
     aria-label="Wortwolke schließen"
   >
     <mat-icon aria-hidden="true">close</mat-icon>
   </button>
 
+  <div class="qa-word-cloud-dialog__projection">
+    @if (returnToCompassVisible()) {
+      <button
+        mat-button
+        type="button"
+        class="qa-word-cloud-dialog__return"
+        data-testid="qa-word-cloud-return-to-compass"
+        [attr.aria-disabled]="projectionPending() ? true : null"
+        (click)="returnToCompass($event)"
+      >
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+        <span i18n="@@sessionHost.moderationReturnToCompass">Zurück zum Kompass</span>
+      </button>
+    }
+    <p class="qa-word-cloud-dialog__projection-status" role="status" aria-live="polite">
+      @if (projectionPending()) {
+        <span i18n="@@sessionQa.wordCloudProjectionPending">Präsentation wird geändert …</span>
+      } @else if (projected()) {
+        <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
+        @if (ownsProjection()) {
+          <span i18n="@@sessionQa.wordCloudCloseProjection"
+            >Beim Schließen erscheint dort wieder die Fragenwand.</span
+          >
+        }
+      } @else {
+        <span i18n="@@sessionQa.wordCloudPrivate">Nur für dich sichtbar.</span>
+      }
+    </p>
+    <button
+      mat-button
+      type="button"
+      class="qa-word-cloud-dialog__project"
+      [attr.aria-disabled]="projectionPending() ? true : null"
+      [attr.aria-busy]="projectionPending()"
+      (click)="toggleProjection()"
+    >
+      <mat-icon aria-hidden="true">{{
+        projected() ? 'visibility_off' : 'present_to_all'
+      }}</mat-icon>
+      @if (projected()) {
+        <span i18n="@@sessionQa.wordCloudHideProjection">Auf der Präsentation ausblenden</span>
+      } @else {
+        <span i18n="@@sessionQa.wordCloudShowProjection">Auf der Präsentation zeigen</span>
+      }
+    </button>
+    @if (projectionError()) {
+      <p class="qa-word-cloud-dialog__error" role="alert">{{ projectionError() }}</p>
+    }
+  </div>
+
   <div class="qa-word-cloud-dialog__toolbar">
     <mat-button-toggle-group
       class="qa-word-cloud-dialog__analysis-toggle"
       [value]="analysisVariant()"
-      [disabled]="frozen()"
+      [hideSingleSelectionIndicator]="true"
+      [disabled]="frozen() || projectionPending()"
       (valueChange)="setAnalysisVariant($any($event))"
       i18n-aria-label="@@sessionQa.wordCloudAnalysisAria"
       aria-label="Wortwolken-Ansicht"
@@ -26,7 +78,7 @@
         value="THEME"
         [disabled]="!themeModeAvailable()"
         i18n="@@sessionQa.wordCloudAnalysisTheme"
-        >Wörter &amp; Phrasen</mat-button-toggle
+        >Wortgruppen</mat-button-toggle
       >
       <mat-button-toggle value="SEMANTIC" i18n="@@sessionQa.wordCloudAnalysisSemantic"
         >Themen</mat-button-toggle
@@ -40,70 +92,83 @@
       <select
         class="qa-word-cloud-dialog__size-select"
         [value]="sortMode()"
-        [disabled]="frozen()"
+        [disabled]="frozen() || projectionPending()"
         (change)="onSizeChange($event)"
         i18n-aria-label="@@sessionQa.wordCloudSizeAria"
-        aria-label="Größe nach Kontroverse, besten Fragen, Stimmensaldo oder Vorkommen in Fragen"
+        aria-label="Größe nach Bewertungen oder Häufigkeit"
       >
         <option value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial">Kontroverse</option>
-        <option value="BEST" i18n="@@sessionQa.sortBest">Beste Fragen</option>
+        <option value="BEST" i18n="@@sessionQa.sortBest">Klare Zustimmung</option>
         <option value="TOP" i18n="@@sessionQa.sortTop">Stimmensaldo</option>
         <option value="TIME" i18n="@@sessionQa.wordCloudMetricTime">Vorkommen in Fragen</option>
       </select>
     </label>
 
-    @if (data.analysisLanguage; as analysisLanguage) {
-      <label class="qa-word-cloud-dialog__size">
-        <span class="qa-word-cloud-dialog__size-label" i18n="@@wordCloud.analysisLanguage"
-          >Analysesprache:</span
-        >
-        <select
-          class="qa-word-cloud-dialog__size-select"
-          [value]="analysisLanguage()"
-          [disabled]="data.languageLocked?.() ?? frozen()"
-          (change)="data.setAnalysisLanguage?.($any($event.target).value)"
-        >
-          <option value="de" lang="de">Deutsch</option>
-          <option value="en" lang="en">English</option>
-          <option value="fr" lang="fr">Français</option>
-          <option value="es" lang="es">Español</option>
-          <option value="it" lang="it">Italiano</option>
-        </select>
-      </label>
-    }
-
     <button
-      mat-icon-button
+      mat-button
       type="button"
       class="qa-word-cloud-dialog__freeze"
       [class.qa-word-cloud-dialog__freeze--active]="frozen()"
       [attr.aria-pressed]="frozen()"
-      [attr.aria-label]="freezeLabel()"
-      [matTooltip]="freezeLabel()"
-      matTooltipTouchGestures="off"
+      [attr.aria-disabled]="projectionPending() ? true : null"
       (click)="toggleFreeze()"
     >
       <mat-icon aria-hidden="true">{{ frozen() ? 'play_arrow' : 'pause' }}</mat-icon>
+      <span>{{ freezeLabel() }}</span>
     </button>
 
-    @if (showSmoothingControls()) {
-      <div class="qa-word-cloud-dialog__smooth-cluster">
-        <button
-          mat-button
-          type="button"
-          class="qa-word-cloud-dialog__smooth"
-          [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
-          [attr.aria-disabled]="smoothingDisabled() || frozen() ? true : null"
-          [attr.aria-pressed]="smoothingPressed()"
-          [attr.aria-busy]="smoothingBusy() ? true : null"
-          (click)="toggleSmoothing()"
-        >
-          <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
-          <span>{{ smoothingLabel() }}</span>
-        </button>
-      </div>
-    }
+    <details class="qa-word-cloud-dialog__options">
+      <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
+      <div class="qa-word-cloud-dialog__options-body">
+        @if (data.analysisLanguage; as analysisLanguage) {
+          <label class="qa-word-cloud-dialog__size">
+            <span class="qa-word-cloud-dialog__size-label" i18n="@@wordCloud.analysisLanguage"
+              >Sprache der Beiträge:</span
+            >
+            <select
+              class="qa-word-cloud-dialog__size-select"
+              [value]="analysisLanguage()"
+              [disabled]="projectionPending() || (data.languageLocked?.() ?? frozen())"
+              (change)="data.setAnalysisLanguage?.($any($event.target).value)"
+            >
+              <option value="de" lang="de">Deutsch</option>
+              <option value="en" lang="en">English</option>
+              <option value="fr" lang="fr">Français</option>
+              <option value="es" lang="es">Español</option>
+              <option value="it" lang="it">Italiano</option>
+            </select>
+          </label>
+        }
 
+        @if (showSmoothingControls()) {
+          <div class="qa-word-cloud-dialog__smooth-cluster">
+            <button
+              mat-button
+              type="button"
+              class="qa-word-cloud-dialog__smooth"
+              [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
+              [attr.aria-disabled]="smoothingDisabled() || frozen() ? true : null"
+              [attr.aria-pressed]="smoothingPressed()"
+              [attr.aria-busy]="smoothingBusy() ? true : null"
+              (click)="toggleSmoothing()"
+            >
+              <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
+              <span>{{ smoothingLabel() }}</span>
+            </button>
+          </div>
+        }
+
+        @if (showSmoothingControls()) {
+          <p class="qa-word-cloud-dialog__mode-note" i18n="@@wordCloud.smoothingExample">
+            Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben
+            erhalten.
+          </p>
+          @if (smoothingHint()) {
+            <p class="qa-word-cloud-dialog__mode-note" role="status">{{ smoothingHint() }}</p>
+          }
+        }
+      </div>
+    </details>
     @if (showThemeRefresh()) {
       <button
         mat-button
@@ -125,15 +190,11 @@
       role="status"
       i18n="@@sessionHost.wordCloudFrozenInfo"
     >
-      Wortwolke eingefroren.
+      Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.
     </p>
   }
   <div class="qa-word-cloud-dialog__stage">
-    @if (
-      themesPending() ||
-      (themeFallbackHint() && !themesRefreshing()) ||
-      (smoothingHint() && showSmoothingControls())
-    ) {
+    @if (themesPending() || (themeFallbackHint() && !themesRefreshing())) {
       <div
         class="qa-word-cloud-dialog__status"
         [class.qa-word-cloud-dialog__status--cover]="themesPending()"
@@ -154,9 +215,6 @@
           </div>
         } @else if (themeFallbackHint() && !themesRefreshing()) {
           <p class="qa-word-cloud-dialog__mode-note" role="status">{{ themeFallbackHint() }}</p>
-        }
-        @if (smoothingHint() && showSmoothingControls()) {
-          <p class="qa-word-cloud-dialog__mode-note" aria-live="polite">{{ smoothingHint() }}</p>
         }
       </div>
     }
@@ -187,7 +245,7 @@
       [wordLabelPlural]="wordLabelPlural()"
       [showConfidenceFilter]="displayMode() === 'SEMANTIC'"
       [showResponsesPanel]="displayMode() === 'SEMANTIC'"
-      [weightingHint]="null"
+      [weightingHint]="data.weightingHint()"
       [tooltipMetricLabel]="tooltipMetricLabel()"
       [analysisModelVersion]="analysisModelVersion()"
       [labelModelId]="labelModelId()"
