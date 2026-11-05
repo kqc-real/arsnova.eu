@@ -709,12 +709,12 @@
     },
     "session.getPersonalResult": {
       "kind": "query",
-      "fingerprint": "sha256:712ddac80c0a8ee648001919a1fbc4b9b0563abcb500bf50a2078005dd9e6e53",
+      "fingerprint": "sha256:7ab1cad849825205aa832cd33d7437258052da300193417e41221676296c2da1",
       "missing": []
     },
     "session.getPersonalScorecard": {
       "kind": "query",
-      "fingerprint": "sha256:ee8cd0e1720b1c87feb115813f051734940330070025ef33cf1cd69be9f2817e",
+      "fingerprint": "sha256:afa486f36e8c85f33d36b9f399ae5df0b9588e69d2353fe0412b170244a471b0",
       "missing": []
     },
     "session.getQaWordCloudProjection": {
