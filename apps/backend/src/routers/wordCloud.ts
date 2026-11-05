@@ -61,6 +61,7 @@ export interface AnalyzeWordCloudSnapshotOptions {
     output: AnalyzeWordCloudOutput,
     effectiveInput: AnalyzeWordCloudInput,
   ) => Promise<void> | void;
+  readonly onResolvedInput?: (effectiveInput: AnalyzeWordCloudInput) => void;
 }
 
 function buildAnalysisOutput(
@@ -135,6 +136,7 @@ export async function analyzeWordCloudSnapshot(
     analyzableItems.length === input.items.length
       ? input
       : AnalyzeWordCloudInputSchema.parse({ ...input, items: analyzableItems });
+  options.onResolvedInput?.(effectiveInput);
 
   const cached =
     effectiveInput.refresh === true
@@ -508,6 +510,7 @@ export const wordCloudRouter = router({
       const eligibleQuestionCount = Number(corpus[0]?.eligibleCount ?? 0);
       const cache = getWordCloudAnalysisCache();
       const disconnect = createRequestDisconnectSignal(ctx.req);
+      let resolvedAnalysisInput: AnalyzeWordCloudInput | null = null;
       let analysis: Omit<AnalyzeWordCloudOutput, 'entries'> & {
         entries: AnalyzeQaWordCloudOutput['entries'];
       };
@@ -531,10 +534,14 @@ export const wordCloudRouter = router({
             signal: disconnect.signal,
             compactOutput: compactQaWordCloudOutput,
             cacheScope: { sessionId: session.id },
+            onResolvedInput: (effectiveAnalysisInput) => {
+              resolvedAnalysisInput = effectiveAnalysisInput;
+            },
             onFreshOutput: async (rawAnalysis, effectiveAnalysisInput) => {
               await recordLatestQaSemanticTopicSnapshot({
                 cache,
                 scope: { sessionId: session.id },
+                analysisInput: effectiveAnalysisInput,
                 request: input,
                 analysis: rawAnalysis,
                 corpusRevision,
@@ -551,8 +558,10 @@ export const wordCloudRouter = router({
       }
       const focusQuestionIds = input.focusQuestionIds ?? [];
       const semanticSnapshot =
-        focusQuestionIds.length > 0 && input.mode === 'SEMANTIC'
-          ? await cache.getLatestQaSemanticTopicSnapshot({ sessionId: session.id })
+        focusQuestionIds.length > 0 && input.mode === 'SEMANTIC' && resolvedAnalysisInput !== null
+          ? await cache.getQaSemanticTopicSnapshot(resolvedAnalysisInput, {
+              sessionId: session.id,
+            })
           : null;
       const focusedGroupKey = resolveFocusedQaWordCloudGroupKey({
         focusQuestionIds,

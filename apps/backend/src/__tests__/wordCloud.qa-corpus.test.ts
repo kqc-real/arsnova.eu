@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
+import type { QaSemanticTopicSnapshot } from '../lib/qaSemanticTopicSnapshot';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const {
@@ -21,6 +23,8 @@ const {
   wordCloudCacheMocks: {
     getSnapshot: vi.fn().mockResolvedValue(null),
     setSnapshot: vi.fn().mockResolvedValue(undefined),
+    getQaSemanticTopicSnapshot: vi.fn().mockResolvedValue(null),
+    setQaSemanticTopicSnapshot: vi.fn().mockResolvedValue(undefined),
     getLatestQaSemanticTopicSnapshot: vi.fn().mockResolvedValue(null),
     setLatestQaSemanticTopicSnapshot: vi.fn().mockResolvedValue(undefined),
   },
@@ -41,6 +45,8 @@ vi.mock('../lib/wordCloudAnalysisCache', () => ({
   getWordCloudAnalysisCache: () => ({
     getSnapshot: wordCloudCacheMocks.getSnapshot,
     setSnapshot: wordCloudCacheMocks.setSnapshot,
+    getQaSemanticTopicSnapshot: wordCloudCacheMocks.getQaSemanticTopicSnapshot,
+    setQaSemanticTopicSnapshot: wordCloudCacheMocks.setQaSemanticTopicSnapshot,
     getText: vi.fn().mockResolvedValue(null),
     setText: vi.fn().mockResolvedValue(undefined),
     getLatestQaSemanticTopicSnapshot: wordCloudCacheMocks.getLatestQaSemanticTopicSnapshot,
@@ -82,6 +88,12 @@ function corpusRows(returnedCount: number, eligibleCount: number) {
 describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    wordCloudCacheMocks.getSnapshot.mockResolvedValue(null);
+    wordCloudCacheMocks.setSnapshot.mockResolvedValue(undefined);
+    wordCloudCacheMocks.getQaSemanticTopicSnapshot.mockResolvedValue(null);
+    wordCloudCacheMocks.setQaSemanticTopicSnapshot.mockResolvedValue(undefined);
+    wordCloudCacheMocks.getLatestQaSemanticTopicSnapshot.mockResolvedValue(null);
+    wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mockResolvedValue(undefined);
     extractHostTokenFromContextMock.mockReturnValue('host-token');
     isHostSessionTokenValidMock.mockResolvedValue(true);
     acquireQaWordCloudAnalysisLockMock.mockResolvedValue(async () => undefined);
@@ -272,6 +284,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
     expect(result.entries[0]?.basisLabel).toBe(fullBasisLabel);
     expect(Array.from(result.entries[0]?.label ?? '')).toHaveLength(128);
     expect(wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
+    expect(wordCloudCacheMocks.setQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
     const [latest, scope] = wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mock.calls[0]!;
     expect(scope).toEqual({ sessionId: '11111111-1111-4111-8111-111111111111' });
     expect(latest.topics[0]?.members).toHaveLength(2);
@@ -342,6 +355,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
     });
 
     expect(wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
+    expect(wordCloudCacheMocks.setQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
     const [latest] = wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mock.calls[0]!;
     expect(latest).toMatchObject({
       eligibleQuestionCount: 3,
@@ -387,7 +401,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
         },
       ],
     });
-    wordCloudCacheMocks.getLatestQaSemanticTopicSnapshot.mockResolvedValueOnce({
+    wordCloudCacheMocks.getQaSemanticTopicSnapshot.mockResolvedValueOnce({
       version: 'qa-semantic-topic-snapshot-v1',
       status: 'ready',
       metric: 'BEST',
@@ -424,6 +438,106 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
 
     expect(result.entries[0]?.members.map(({ sourceId }) => sourceId)).toEqual([corpus[0]!.id]);
     expect(result.focusedGroupKey).toBe('serverlose-verarbeitung');
+  });
+
+  it('bindet Fokus-Membership bei 500 → 100 → 500-Cache-Hit an exakt dieselbe Analyse', async () => {
+    const corpus500 = corpusRows(500, 500);
+    const corpus100 = corpus500.slice(0, 100).map((question) => ({ ...question }));
+    const focusQuestion = corpus500[399]!;
+    const compactByRevision = new Map<string, AnalyzeWordCloudOutput>();
+    const topicsByRevision = new Map<string, QaSemanticTopicSnapshot>();
+    let latestTopicSnapshot: QaSemanticTopicSnapshot | null = null;
+
+    prismaMock.$queryRaw
+      .mockResolvedValueOnce(corpus500)
+      .mockResolvedValueOnce(corpus100)
+      .mockResolvedValueOnce(corpus500);
+    wordCloudCacheMocks.getSnapshot.mockImplementation(
+      async (analysisInput: AnalyzeWordCloudInput) =>
+        compactByRevision.get(analysisInput.corpusRevision ?? '') ?? null,
+    );
+    wordCloudCacheMocks.setSnapshot.mockImplementation(
+      async (analysisInput: AnalyzeWordCloudInput, output: AnalyzeWordCloudOutput) => {
+        compactByRevision.set(analysisInput.corpusRevision ?? '', output);
+      },
+    );
+    wordCloudCacheMocks.getQaSemanticTopicSnapshot.mockImplementation(
+      async (analysisInput: AnalyzeWordCloudInput) =>
+        topicsByRevision.get(analysisInput.corpusRevision ?? '') ?? null,
+    );
+    wordCloudCacheMocks.setQaSemanticTopicSnapshot.mockImplementation(
+      async (analysisInput: AnalyzeWordCloudInput, snapshot: QaSemanticTopicSnapshot) => {
+        topicsByRevision.set(analysisInput.corpusRevision ?? '', snapshot);
+      },
+    );
+    wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot.mockImplementation(
+      async (snapshot: QaSemanticTopicSnapshot) => {
+        latestTopicSnapshot = snapshot;
+      },
+    );
+    analyzeSemanticWordCloudSnapshotMock.mockImplementation(
+      async (analysisInput: AnalyzeWordCloudInput) => {
+        const isFullCorpus = analysisInput.items.length === 500;
+        const labelSource = analysisInput.items[0]!;
+        return {
+          mode: 'SEMANTIC',
+          locale: 'de',
+          metric: 'BEST',
+          generatedAt: isFullCorpus ? '2026-11-05T14:00:00.000Z' : '2026-11-05T14:01:00.000Z',
+          fallbackUsed: false,
+          normalization: 'NONE',
+          normalizationApplied: 'NONE',
+          normalizationFallbackUsed: false,
+          normalizationFallbackReason: null,
+          fallbackLocale: 'de',
+          analysisVersion: '1.14c.4',
+          modelId: 'intfloat/multilingual-e5-small',
+          snapshotHash: (isFullCorpus ? 'f' : 'a').repeat(64),
+          status: 'ready',
+          modelVersion: 'sha256:test-model',
+          entries: [
+            {
+              key: isFullCorpus ? 'thema-aus-500-fragen' : 'thema-aus-100-fragen',
+              label: labelSource.text,
+              count: analysisInput.items.length,
+              basisLabel: labelSource.text,
+              members: analysisInput.items.map((item) => ({
+                sourceId: item.id,
+                text: item.text,
+                weight: item.weight,
+              })),
+              variants: analysisInput.items.map((item) => item.text),
+              confidence: 0.9,
+            },
+          ],
+        } satisfies AnalyzeWordCloudOutput;
+      },
+    );
+
+    const request = {
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      locale: 'de',
+      metric: 'BEST',
+      filter: 'ALL_ELIGIBLE',
+      normalization: 'NONE',
+      maxEntries: 40,
+    } as const;
+    await caller.analyzeQa({ ...request, limit: 500 });
+    await caller.analyzeQa({ ...request, limit: 100 });
+    const result = await caller.analyzeQa({
+      ...request,
+      limit: 500,
+      focusQuestionIds: [focusQuestion.id],
+    });
+
+    expect(analyzeSemanticWordCloudSnapshotMock).toHaveBeenCalledTimes(2);
+    expect(latestTopicSnapshot).toMatchObject({ analyzedQuestionCount: 100 });
+    expect(wordCloudCacheMocks.getQaSemanticTopicSnapshot).toHaveBeenLastCalledWith(
+      expect.objectContaining({ corpusRevision: expect.stringContaining(':limit=500') }),
+      { sessionId: '11111111-1111-4111-8111-111111111111' },
+    );
+    expect(result.focusedGroupKey).toBe('thema-aus-500-fragen');
   });
 
   trpcDodIt(
