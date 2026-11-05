@@ -11,6 +11,7 @@ import type {
 } from '@arsnova/shared-types';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
+import { PresenterIconComponent } from '../presenter-icon.component';
 import {
   wordCloudExportViewLabel,
   wordCloudTopicProgressLabel,
@@ -25,6 +26,7 @@ export type QaWordCloudDialogData = {
   projected: () => boolean;
   ownsProjection: () => boolean;
   setProjected: (projected: boolean) => Promise<void>;
+  presenterViewActionLabel: () => string;
   responses: () => string[];
   responseTextsBySourceId: () => Readonly<Record<string, string>>;
   weightedResponses: () => WeightedWordSource[];
@@ -79,6 +81,7 @@ export type QaWordCloudDialogData = {
     MatButtonToggleGroup,
     MatButtonToggle,
     MatProgressBar,
+    PresenterIconComponent,
     WordCloudComponent,
   ],
   templateUrl: './qa-word-cloud-dialog.component.html',

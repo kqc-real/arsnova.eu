@@ -36828,17 +36828,9 @@
         <source>Beim Schließen erscheint dort wieder die Fragenwand.</source>
         <target>Closing this view brings the question wall back on screen.</target>
         </trans-unit>
-      <trans-unit id="sessionQa.wordCloudNotProjected" datatype="html">
-        <source>Nicht auf der Präsentation.</source>
-        <target>Not shown on the presentation screen.</target>
-        </trans-unit>
       <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
         <source>Auf der Präsentation ausblenden</source>
         <target>Hide from screen</target>
-        </trans-unit>
-      <trans-unit id="sessionQa.wordCloudShowProjection" datatype="html">
-        <source>Auf der Präsentation zeigen</source>
-        <target>Show on screen</target>
         </trans-unit>
       <trans-unit id="wordCloud.moreOptions" datatype="html">
         <source>Weitere Optionen</source>

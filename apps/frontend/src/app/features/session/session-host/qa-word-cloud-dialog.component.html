@@ -25,20 +25,20 @@
         <span i18n="@@sessionHost.moderationReturnToCompass">Zurück zum Kompass</span>
       </button>
     }
-    <p class="qa-word-cloud-dialog__projection-status" role="status" aria-live="polite">
-      @if (projectionPending()) {
-        <span i18n="@@sessionQa.wordCloudProjectionPending">Präsentation wird geändert …</span>
-      } @else if (projected()) {
-        <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
-        @if (ownsProjection()) {
-          <span i18n="@@sessionQa.wordCloudCloseProjection"
-            >Beim Schließen erscheint dort wieder die Fragenwand.</span
-          >
+    @if (projectionPending() || projected()) {
+      <p class="qa-word-cloud-dialog__projection-status" role="status" aria-live="polite">
+        @if (projectionPending()) {
+          <span i18n="@@sessionQa.wordCloudProjectionPending">Präsentation wird geändert …</span>
+        } @else {
+          <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
+          @if (ownsProjection()) {
+            <span i18n="@@sessionQa.wordCloudCloseProjection"
+              >Beim Schließen erscheint dort wieder die Fragenwand.</span
+            >
+          }
         }
-      } @else {
-        <span i18n="@@sessionQa.wordCloudNotProjected">Nicht auf der Präsentation.</span>
-      }
-    </p>
+      </p>
+    }
     <button
       mat-button
       type="button"
@@ -47,13 +47,12 @@
       [attr.aria-busy]="projectionPending()"
       (click)="toggleProjection()"
     >
-      <mat-icon aria-hidden="true">{{
-        projected() ? 'visibility_off' : 'present_to_all'
-      }}</mat-icon>
       @if (projected()) {
+        <mat-icon aria-hidden="true">visibility_off</mat-icon>
         <span i18n="@@sessionQa.wordCloudHideProjection">Auf der Präsentation ausblenden</span>
       } @else {
-        <span i18n="@@sessionQa.wordCloudShowProjection">Auf der Präsentation zeigen</span>
+        <app-presenter-icon matButtonIcon />
+        <span>{{ data.presenterViewActionLabel() }}</span>
       }
     </button>
     @if (projectionError()) {

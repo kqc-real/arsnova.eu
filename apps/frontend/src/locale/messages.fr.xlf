@@ -36770,17 +36770,9 @@
         <source>Beim Schließen erscheint dort wieder die Fragenwand.</source>
         <target>En fermant cette vue, tu réaffiches le mur de questions.</target>
         </trans-unit>
-      <trans-unit id="sessionQa.wordCloudNotProjected" datatype="html">
-        <source>Nicht auf der Präsentation.</source>
-        <target>Non affiché sur l’écran de présentation.</target>
-        </trans-unit>
       <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
         <source>Auf der Präsentation ausblenden</source>
         <target>Masquer à l’écran</target>
-        </trans-unit>
-      <trans-unit id="sessionQa.wordCloudShowProjection" datatype="html">
-        <source>Auf der Präsentation zeigen</source>
-        <target>Afficher à l’écran</target>
         </trans-unit>
       <trans-unit id="wordCloud.moreOptions" datatype="html">
         <source>Weitere Optionen</source>

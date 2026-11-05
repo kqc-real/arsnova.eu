@@ -13202,6 +13202,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         title: () => string;
         tooltipMetricLabel: () => string;
         weightingHint: () => string | null;
+        presenterViewActionLabel: () => string;
       };
       expect(data.analysisVariant()).toBe('THEME');
       expect(data.themeModeAvailable()).toBe(true);
@@ -13209,6 +13210,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(data.title()).toBe('Q&A-Wortwolke');
       expect(data.tooltipMetricLabel()).toBe('Kontroverse');
       expect(data.weightingHint()).toContain('Dafür- und Dagegen-Stimmen');
+      expect(data.presenterViewActionLabel()).toBe('Präsentationsansicht öffnen');
     } finally {
       if (previousDescriptor) {
         Object.defineProperty(documentRef.documentElement, 'requestFullscreen', previousDescriptor);

@@ -27,6 +27,7 @@ describe('QaWordCloudDialogComponent', () => {
       projected: () => false,
       ownsProjection: () => false,
       setProjected: vi.fn().mockResolvedValue(undefined),
+      presenterViewActionLabel: () => 'Präsentationsansicht öffnen',
       responses: () => [],
       responseTextsBySourceId: () => ({}),
       weightedResponses: () => [],
@@ -145,8 +146,11 @@ describe('QaWordCloudDialogComponent', () => {
     const button = fixture.nativeElement.querySelector(
       '.qa-word-cloud-dialog__project',
     ) as HTMLButtonElement;
-    expect(fixture.nativeElement.textContent).toContain('Nicht auf der Präsentation.');
-    expect(fixture.nativeElement.textContent).not.toContain('Nur für dich sichtbar.');
+    expect(
+      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__projection-status'),
+    ).toBeNull();
+    expect(button.textContent).toContain('Präsentationsansicht öffnen');
+    expect(button.querySelector('app-presenter-icon')).not.toBeNull();
     expect(setProjected).not.toHaveBeenCalled();
     button.focus();
     button.click();
@@ -165,6 +169,8 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Beim Schließen erscheint dort wieder die Fragenwand.',
     );
+    expect(button.textContent).toContain('Auf der Präsentation ausblenden');
+    expect(button.querySelector('app-presenter-icon')).toBeNull();
     expect(document.activeElement).toBe(button);
   });
 

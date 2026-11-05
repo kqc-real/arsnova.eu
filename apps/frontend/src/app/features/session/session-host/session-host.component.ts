@@ -2802,6 +2802,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           projected: () => this.qaWordCloudIsProjected() && this.qaWordCloudProjectsToPresenter(),
           ownsProjection: () => this.qaWordCloudProjectsToPresenter(),
           setProjected: (projected: boolean) => this.setQaWordCloudProjected(projected),
+          presenterViewActionLabel: () => this.presenterViewActionLabel(),
           // Der sichtbare Client-Ausschnitt ist nie der kanonische Korpus.
           // Inhalte erscheinen erst aus der serverseitig gerankten Auswahl.
           responses: () => [],
