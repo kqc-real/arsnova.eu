@@ -29675,6 +29675,38 @@
           <context context-type="linenumber">2139,2141</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionHint" datatype="html">
+        <source>Du hast selbstsicher falsch geantwortet!</source>
+        <target>Tu as répondu avec assurance, mais c’était faux !</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3564</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionNone" datatype="html">
+        <source>Du hast nie selbstsicher falsch geantwortet.</source>
+        <target>Tu n’as jamais répondu faux avec assurance.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3554</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionOne" datatype="html">
+        <source>Du hast einmal selbstsicher falsch geantwortet.</source>
+        <target>Tu as répondu faux avec assurance une fois.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3557</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionMany" datatype="html">
+        <source>Du hast <x id="count" equiv-text="count"/>-mal selbstsicher falsch geantwortet.</source>
+        <target>Tu as répondu faux avec assurance <x id="count" equiv-text="count"/> fois.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3560</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.confidenceResultPrefix" datatype="html">
         <source>Deine Selbsteinschätzung:</source>
         <target>Ton autoévaluation :</target>

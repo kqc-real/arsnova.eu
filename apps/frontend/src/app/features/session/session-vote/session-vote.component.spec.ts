@@ -2254,6 +2254,68 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt nach einer selbstsicher falschen Antwort einen Hinweis und am Quizende die Zahl', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+    inst.sessionSettings.set({ type: 'QUIZ' });
+    inst.status.set('RESULTS');
+    inst.currentQuestion.set({
+      id: 'q-confidence',
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 1,
+      answers: [],
+      totalVotes: 2,
+      confidenceEnabled: true,
+    } as never);
+    const scorecard = {
+      questionOrder: 2,
+      totalQuestions: 3,
+      wasCorrect: false as boolean | null,
+      questionScore: 0,
+      baseScore: 0,
+      streakCount: 0,
+      streakMultiplier: 1,
+      currentRank: 2,
+      previousRank: null,
+      rankChange: 0,
+      totalScore: 10,
+      confidenceValue: 2,
+    };
+    inst.scorecard.set(scorecard);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('[data-testid="vote-confidence-misconceptions"]')).toBeNull();
+
+    inst.scorecard.set({
+      ...scorecard,
+      confidenceValue: 5,
+    });
+    fixture.detectChanges();
+    expect(
+      host.querySelector('[data-testid="vote-confidence-misconceptions"]')?.textContent,
+    ).toContain('Du hast selbstsicher falsch geantwortet!');
+
+    inst.scorecard.set({
+      ...scorecard,
+      wasCorrect: true,
+      confidenceValue: 5,
+    });
+    fixture.detectChanges();
+    expect(host.querySelector('[data-testid="vote-confidence-misconceptions"]')).toBeNull();
+
+    inst.status.set('FINISHED');
+    inst.personalResultLoaded.set(true);
+    inst.personalMisconceptionCount.set(1);
+    fixture.detectChanges();
+    expect(
+      host.querySelector('[data-testid="vote-finished-misconceptions"]')?.textContent,
+    ).toContain('Du hast einmal selbstsicher falsch geantwortet.');
+    fixture.destroy();
+  });
+
   it('zeigt für Platz 1 im Finale eine explizite Sieger-Copy', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const inst = fixture.componentInstance;

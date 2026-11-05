@@ -69,6 +69,7 @@ import {
   qaTextCodePointLength,
   qaTruncateToCodePoints,
   isNumericToleranceMode,
+  isPersonalMisconception,
   questionSupportsConfidence,
   normalizeShortTextValue,
   normalizeTimerAccommodation,
@@ -711,6 +712,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly currentRound = signal(1);
   readonly personalRank = signal<number | null>(null);
   readonly personalScore = signal<number | null>(null);
+  /** Eigene selbstsicher falsche Antworten nach Quizende. `null` = keine Selbsteinschätzung. */
+  readonly personalMisconceptionCount = signal<number | null>(null);
   readonly bonusToken = signal<string | null>(null);
   readonly personalResultLoaded = signal(false);
 
@@ -3549,6 +3552,35 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       return $localize`:@@sessionVote.confidenceAriaWithHigh:Selbsteinschätzung von 1 bis 5, hoch: ${high}:high:`;
     }
     return $localize`:@@sessionVote.confidenceAria:Selbsteinschätzung von 1 bis 5`;
+  }
+
+  questionConfidenceMisconceptionHint(): string | null {
+    if (!this.isResults() || !this.isConfidenceEnabled()) {
+      return null;
+    }
+    const card = this.scorecard();
+    if (!isPersonalMisconception(card?.wasCorrect, card?.confidenceValue)) {
+      return null;
+    }
+    return $localize`:@@sessionVote.confidenceMisconceptionHint:Du hast selbstsicher falsch geantwortet!`;
+  }
+
+  finishedConfidenceMisconceptionHint(): string | null {
+    if (!this.personalResultLoaded()) {
+      return null;
+    }
+    const count = this.personalMisconceptionCount();
+    return typeof count === 'number' ? this.confidenceMisconceptionHint(count) : null;
+  }
+
+  confidenceMisconceptionHint(count: number): string {
+    if (count <= 0) {
+      return $localize`:@@sessionVote.confidenceMisconceptionNone:Du hast nie selbstsicher falsch geantwortet.`;
+    }
+    if (count === 1) {
+      return $localize`:@@sessionVote.confidenceMisconceptionOne:Du hast einmal selbstsicher falsch geantwortet.`;
+    }
+    return $localize`:@@sessionVote.confidenceMisconceptionMany:Du hast ${count}:count:-mal selbstsicher falsch geantwortet.`;
   }
 
   confidenceValueAriaLabel(value: number): string {
@@ -7134,6 +7166,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
         return;
       }
       this.scorecard.set(sc);
+      if (typeof sc.confidenceValue === 'number' && this.confidenceValue() === null) {
+        this.confidenceValue.set(sc.confidenceValue);
+      }
       if (question && requestedQuestionId === question.id) {
         this.restoreStructuredVoteState(question, sc);
       }
@@ -7169,6 +7204,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       this.personalRank.set(result.rank);
       this.personalScore.set(result.totalScore);
       this.bonusToken.set(result.bonusToken);
+      this.personalMisconceptionCount.set(
+        typeof result.misconceptionCount === 'number' ? result.misconceptionCount : null,
+      );
       this.personalResultLoaded.set(true);
     } catch {
       /* noop */

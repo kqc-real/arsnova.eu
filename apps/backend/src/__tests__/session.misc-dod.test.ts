@@ -202,7 +202,12 @@ describe('session remaining DoD procedure evidence', () => {
           }),
         }),
       );
-      expect(result).toEqual({ totalScore: 42, rank: 1, bonusToken: 'BNS-TEST-1234' });
+      expect(result).toEqual({
+        totalScore: 42,
+        rank: 1,
+        bonusToken: 'BNS-TEST-1234',
+        misconceptionCount: null,
+      });
     },
   );
 

@@ -4888,6 +4888,14 @@ export const PersonalScorecardDTOSchema = z.object({
   matchingSelections: z.array(MatchingSelectionInputSchema).min(2).max(6).optional(),
   orderingSequence: OrderingSequenceInputSchema.optional(),
   categorizationSelections: z.array(CategorizationSelectionInputSchema).min(4).max(12).optional(),
+  /** Eigene Selbsteinschätzung dieser Frage, nur nach Ergebnisfreigabe. */
+  confidenceValue: z
+    .number()
+    .int()
+    .min(CONFIDENCE_SCALE_MIN)
+    .max(CONFIDENCE_SCALE_MAX)
+    .nullable()
+    .optional(),
 });
 export type PersonalScorecardDTO = z.infer<typeof PersonalScorecardDTOSchema>;
 
