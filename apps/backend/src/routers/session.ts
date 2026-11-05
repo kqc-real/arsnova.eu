@@ -11479,24 +11479,26 @@ const sessionCoreRouter = router({
           confidenceEnabled:
             question.confidenceEnabled === true && questionSupportsConfidence(question.type),
         }));
-      const personalConfidenceVotes = confidenceQuestions.some(
-        (question) => question.confidenceEnabled,
-      )
-        ? await prisma.vote.findMany({
-            where: {
-              sessionId: session.id,
-              participantId: input.participantId,
-              questionId: { in: confidenceQuestions.map((question) => question.questionId) },
-              round: { in: [1, 2] },
-            },
-            select: {
-              questionId: true,
-              round: true,
-              isCorrect: true,
-              confidenceValue: true,
-            },
-          })
-        : [];
+      const enabledConfidenceQuestionIds = confidenceQuestions
+        .filter((question) => question.confidenceEnabled)
+        .map((question) => question.questionId);
+      const personalConfidenceVotes =
+        enabledConfidenceQuestionIds.length > 0
+          ? await prisma.vote.findMany({
+              where: {
+                sessionId: session.id,
+                participantId: input.participantId,
+                questionId: { in: enabledConfidenceQuestionIds },
+                round: { in: [1, 2] },
+              },
+              select: {
+                questionId: true,
+                round: true,
+                isCorrect: true,
+                confidenceValue: true,
+              },
+            })
+          : [];
 
       return {
         totalScore: myScore,

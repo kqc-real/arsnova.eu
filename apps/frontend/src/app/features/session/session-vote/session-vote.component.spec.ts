@@ -2316,6 +2316,41 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('lädt das persönliche Ergebnis beim Quizende nur einmal', async () => {
+    let resolveResult: (value: {
+      totalScore: number;
+      rank: number;
+      bonusToken: null;
+      misconceptionCount: number;
+    }) => void = () => undefined;
+    getPersonalResultQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveResult = resolve;
+        }),
+    );
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+    inst.participantId.set('11111111-1111-4111-8111-111111111111');
+    inst.sessionSettings.set({ type: 'QUIZ', hostEnded: false });
+
+    (
+      inst as unknown as {
+        handleSessionFinished(): void;
+      }
+    ).handleSessionFinished();
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(getPersonalResultQueryMock).toHaveBeenCalledTimes(1);
+    resolveResult({ totalScore: 10, rank: 1, bonusToken: null, misconceptionCount: 1 });
+    await fixture.whenStable();
+    expect(inst.personalResultLoaded()).toBe(true);
+    expect(inst.personalMisconceptionCount()).toBe(1);
+    expect(getPersonalResultQueryMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
   it('zeigt für Platz 1 im Finale eine explizite Sieger-Copy', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const inst = fixture.componentInstance;

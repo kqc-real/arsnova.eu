@@ -1148,6 +1148,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
    */
   readonly showSessionEndGate = signal(false);
   private sessionEndRedirectInFlight = false;
+  private personalResultInFlight: Promise<void> | null = null;
   private participantOfflineMarked = false;
   private previousPausedForAutoScroll = false;
   private previousQaOpenForAutoScroll: boolean | null = null;
@@ -7194,8 +7195,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   async loadPersonalResult(): Promise<void> {
+    if (this.personalResultLoaded()) return;
+    if (this.personalResultInFlight) return this.personalResultInFlight;
     const pid = this.participantId();
     if (!this.code || !pid) return;
+    const request = this.fetchPersonalResult(pid);
+    this.personalResultInFlight = request;
+    try {
+      await request;
+    } finally {
+      if (this.personalResultInFlight === request) {
+        this.personalResultInFlight = null;
+      }
+    }
+  }
+
+  private async fetchPersonalResult(pid: string): Promise<void> {
     try {
       const result = await trpc.session.getPersonalResult.query({
         code: this.code,
