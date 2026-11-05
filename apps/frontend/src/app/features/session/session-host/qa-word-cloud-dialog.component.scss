@@ -138,6 +138,14 @@
   }
 }
 
+.qa-word-cloud-dialog__presenter-icon {
+  --app-presenter-icon-size: 1.25rem;
+  --app-presenter-icon-nudge-y: 0px;
+  align-self: center;
+  margin-inline-start: var(--mat-button-text-icon-offset, -4px);
+  margin-inline-end: 0.75rem;
+}
+
 .qa-word-cloud-dialog__return {
   min-height: 44px;
   height: auto;

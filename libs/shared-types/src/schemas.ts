@@ -4644,6 +4644,8 @@ export type QaWordCloudPresenterProjectionDTO = z.infer<
 
 export const SetQaWordCloudProjectionInputSchema = GetSessionInfoInputSchema.extend({
   projection: QaWordCloudPresenterProjectionDTOSchema,
+  /** Übernimmt Kanal, Snapshot und Presenter-Fläche in einem Host-Kommando. */
+  activate: z.boolean().optional().default(false),
 });
 export type SetQaWordCloudProjectionInput = z.infer<typeof SetQaWordCloudProjectionInputSchema>;
 
@@ -4651,6 +4653,14 @@ export const GetQaWordCloudProjectionOutputSchema = z.object({
   projection: QaWordCloudPresenterProjectionDTOSchema.nullable(),
 });
 export type GetQaWordCloudProjectionOutput = z.infer<typeof GetQaWordCloudProjectionOutputSchema>;
+
+export const SetQaWordCloudProjectionOutputSchema = GetQaWordCloudProjectionOutputSchema.extend({
+  preferredChannel: SessionLiveChannelSchema.optional(),
+  presenterSurface: SessionPresenterSurfaceSchema.optional(),
+  sessionLifecycleRevision: z.number().int().min(0).optional(),
+  serverNow: z.string().datetime().optional(),
+});
+export type SetQaWordCloudProjectionOutput = z.infer<typeof SetQaWordCloudProjectionOutputSchema>;
 
 /** Öffentliche Freitext-Bühne: nur sichtbare Namen, keine Rohantworten. */
 export const FreetextWordCloudStageEntrySchema = z

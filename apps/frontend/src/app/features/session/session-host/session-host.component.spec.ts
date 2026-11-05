@@ -13255,10 +13255,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const projectionPending = new Promise<void>((resolve) => {
       releaseProjection = resolve;
     });
-    setPresenterSurfaceMutateMock.mockImplementationOnce(
-      async ({ surface }: { surface: 'default' | 'qaWordCloud' | 'freetextWordCloud' }) => {
+    setQaWordCloudProjectionMutateMock.mockImplementationOnce(
+      async ({ projection }: { projection: unknown }) => {
         await projectionPending;
-        return { presenterSurface: surface };
+        return {
+          projection,
+          preferredChannel: 'qa',
+          presenterSurface: 'qaWordCloud',
+        };
       },
     );
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
@@ -13282,12 +13286,62 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
     const data = dialogOpenMock.mock.calls.at(-1)?.[1]?.data;
     const show = data.setProjected(true);
-    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 1);
+    await vi.waitUntil(() => setQaWordCloudProjectionMutateMock.mock.calls.length === 1);
 
     releaseProjection();
     await show;
     await vi.waitUntil(() => component.session()?.presenterSurface === 'qaWordCloud');
     expect(openPresenterView).toHaveBeenCalledWith(true);
+    fixture.destroy();
+  });
+
+  it('aktiviert Q&A-Kanal, Wortwolken-Snapshot und Presenter-Fläche in einem Serverkommando', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preferredChannel: 'quiz',
+      presenterSurface: 'default',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    const component = fixture.componentInstance;
+    await component.openQaWordCloudDialog();
+    setPreferredLiveChannelMutateMock.mockClear();
+    setQaWordCloudProjectionMutateMock.mockClear();
+    setPresenterSurfaceMutateMock.mockClear();
+    setQaWordCloudProjectionMutateMock.mockImplementationOnce(async ({ projection }) => {
+      expect(component.session()?.preferredChannel).toBe('quiz');
+      return {
+        projection,
+        preferredChannel: 'qa',
+        presenterSurface: 'qaWordCloud',
+        sessionLifecycleRevision: 2,
+        serverNow: '2026-11-05T15:00:00.000Z',
+      };
+    });
+    vi.spyOn(component, 'openPresenterView').mockResolvedValue();
+
+    await component.setQaWordCloudProjected(true);
+
+    expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'ABC123', activate: true }),
+    );
+    expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
+    expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
+    expect(component.session()).toMatchObject({
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      sessionLifecycleRevision: 2,
+    });
+    expect(component['qaWordCloudProjectsToPresenter']()).toBe(true);
     fixture.destroy();
   });
 

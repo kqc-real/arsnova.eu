@@ -1147,9 +1147,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly qaWordCloudProjectsToPresenter = signal(false);
   private qaWordCloudDialogGeneration = 0;
   readonly qaWordCloudIsProjected = computed(
-    () =>
-      this.session()?.presenterSurface === 'qaWordCloud' &&
-      this.session()?.preferredChannel === 'qa',
+    () => this.session()?.presenterSurface === 'qaWordCloud',
   );
   private qaWordCloudDialogRef: { close?: (result?: unknown) => void } | null = null;
   private quizPickerDialogRef: MatDialogRef<
@@ -2924,15 +2922,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       assertCurrent();
       if (projected) {
         const projection = this.buildQaWordCloudPresenterProjection();
-        await trpc.session.setQaWordCloudProjection.mutate({
+        // Ein serverseitiges Kommando übernimmt Kanal, Snapshot und Fläche,
+        // damit kein konkurrierender Status-Refresh den Start dazwischen trennt.
+        const result = await trpc.session.setQaWordCloudProjection.mutate({
           code: this.code.toUpperCase(),
           projection,
+          activate: true,
         });
         assertCurrent();
-        await this.syncPreferredLiveChannelNow('qa', { forceServer: true });
-        assertCurrent();
-        if (this.session()?.preferredChannel !== 'qa') throw new Error('channel');
-        if (!(await this.mutatePresenterSurfaceNow('qaWordCloud'))) throw new Error('surface');
+        this.session.update((session) =>
+          session
+            ? {
+                ...session,
+                preferredChannel: result.preferredChannel ?? 'qa',
+                presenterSurface: result.presenterSurface ?? 'qaWordCloud',
+                ...(result.sessionLifecycleRevision !== undefined
+                  ? { sessionLifecycleRevision: result.sessionLifecycleRevision }
+                  : {}),
+                ...(result.serverNow ? { serverNow: result.serverNow } : {}),
+              }
+            : session,
+        );
         if (!isCurrent()) {
           await this.mutatePresenterSurfaceNow('default');
           throw new Error('closed');

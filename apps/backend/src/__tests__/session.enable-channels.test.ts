@@ -1017,6 +1017,121 @@ describe('session.enable channel mutations', () => {
     },
   );
 
+  it('aktiviert Q&A-Kanal, Wortwolken-Snapshot und Presenter-Fläche in einem Kommando', async () => {
+    let preferredChannel = 'quiz';
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_SESSION,
+      preferredChannel,
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: true,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    }));
+    prismaMock.session.update.mockImplementation(async () => {
+      preferredChannel = 'qa';
+      return { sessionLifecycleRevision: 2 };
+    });
+
+    await expect(
+      caller.setQaWordCloudProjection({
+        code: 'ABC123',
+        projection: QA_WORD_CLOUD_PROJECTION,
+        activate: true,
+      }),
+    ).resolves.toMatchObject({
+      projection: QA_WORD_CLOUD_PROJECTION,
+      preferredChannel: 'qa',
+      presenterSurface: 'qaWordCloud',
+      sessionLifecycleRevision: 2,
+      serverNow: expect.any(String),
+    });
+    expect(prismaMock.session.update).toHaveBeenCalledWith({
+      where: { id: SESSION_ID },
+      data: {
+        preferredChannel: 'qa',
+        sessionLifecycleRevision: { increment: 1 },
+      },
+      select: { sessionLifecycleRevision: true },
+    });
+    await expect(caller.getQaWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+      projection: QA_WORD_CLOUD_PROJECTION,
+    });
+    await expect(
+      caller.setPresenterSurface({ code: 'ABC123', surface: 'qaWordCloud' }),
+    ).resolves.toMatchObject({ presenterSurface: 'qaWordCloud' });
+  });
+
+  it('projiziert die Q&A-Wortwolke in der laufenden Nachbesprechungsfrist', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      status: 'FINISHED',
+      expiresAt: new Date('2099-01-02T00:00:00.000Z'),
+      preferredChannel: 'quiz',
+      type: 'QUIZ',
+      quizId: '11111111-1111-4111-8111-111111111111',
+      qaEnabled: true,
+      qaOpen: false,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    await expect(
+      caller.setQaWordCloudProjection({
+        code: 'ABC123',
+        projection: QA_WORD_CLOUD_PROJECTION,
+        activate: true,
+      }),
+    ).resolves.toMatchObject({
+      projection: QA_WORD_CLOUD_PROJECTION,
+      preferredChannel: 'quiz',
+      presenterSurface: 'qaWordCloud',
+    });
+    await expect(
+      caller.setQaWordCloudProjection({
+        code: 'ABC123',
+        projection: QA_WORD_CLOUD_PROJECTION,
+      }),
+    ).resolves.toEqual({ projection: QA_WORD_CLOUD_PROJECTION });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+  });
+
+  it('weist Projektionsänderungen nach Ablauf der Sessionfrist zurück', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      status: 'FINISHED',
+      expiresAt: new Date('2000-01-02T00:00:00.000Z'),
+      preferredChannel: 'qa',
+      type: 'QUIZ',
+      quizId: null,
+      qaEnabled: true,
+      qaOpen: false,
+      qaTitle: 'Fragen',
+      qaModerationMode: true,
+      title: null,
+      moderationMode: false,
+      quickFeedbackEnabled: false,
+      quickFeedbackOpen: false,
+    });
+
+    await expect(
+      caller.setQaWordCloudProjection({
+        code: 'ABC123',
+        projection: QA_WORD_CLOUD_PROJECTION,
+        activate: true,
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  });
+
   it('isoliert Presenter-Zustand bei Wiederverwendung desselben Session-Codes per Session-ID', async () => {
     let currentSessionId = 'old-session-id';
     prismaMock.session.findUnique.mockImplementation(async () => ({
@@ -1131,11 +1246,15 @@ describe('session.enable channel mutations', () => {
     }
   });
 
-  it('rejects malformed page changes and finished sessions', async () => {
+  it('rejects malformed page changes and expired finished sessions', async () => {
     await expect(
       caller.setPresenterSurface({ code: 'ABC123', page: { context: '', count: 0 } }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
-    prismaMock.session.findUnique.mockResolvedValue({ ...ACTIVE_SESSION, status: 'FINISHED' });
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_SESSION,
+      status: 'FINISHED',
+      expiresAt: new Date('2000-01-02T00:00:00.000Z'),
+    });
     await expect(
       caller.setPresenterSurface({ code: 'ABC123', page: { context: '', delta: 1 } }),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' });

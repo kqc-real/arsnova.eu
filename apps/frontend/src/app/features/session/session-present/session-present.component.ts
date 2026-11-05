@@ -1140,7 +1140,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   readonly showQaWordCloud = computed(() => {
     const session = this.session();
-    if (!this.showSecondaryPresentSurfaces() || session?.presenterSurface !== 'qaWordCloud') {
+    if (this.showPresentationEndedProjection() || session?.presenterSurface !== 'qaWordCloud') {
       return false;
     }
     return session.channels?.qa.enabled === true || session.type === 'Q_AND_A';
@@ -1729,7 +1729,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   });
   readonly showFinishProjection = computed(
-    () => !this.showPresentationEndedProjection() && this.session()?.status === 'FINISHED',
+    () =>
+      !this.showPresentationEndedProjection() &&
+      !this.showQaWordCloud() &&
+      this.session()?.status === 'FINISHED',
   );
   /** Verhindert Idle-Flash, solange Leaderboards für die Abschlussprojektion noch laden. */
   readonly finishBoardsResolved = signal(false);
@@ -1746,9 +1749,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly showTeamFinish = computed(() => {
     const session = this.session();
     return (
-      !this.showPresentationEndedProjection() &&
+      this.showFinishProjection() &&
       session?.teamMode === true &&
-      session.status === 'FINISHED' &&
       session.finishProjection !== 'idle' &&
       this.finishBoardsResolved() &&
       this.teamLeaderboard().length > 0
@@ -2809,7 +2811,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private async refreshQaWordCloudProjection(): Promise<void> {
-    if (!this.showQaWordCloud() || this.showFinishProjection() || this.presentDeadlineClosed) {
+    if (!this.showQaWordCloud() || this.presentDeadlineClosed) {
       this.qaWordCloudProjection.set(null);
       return;
     }

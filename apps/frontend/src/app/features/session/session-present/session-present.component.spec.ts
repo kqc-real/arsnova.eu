@@ -3570,6 +3570,64 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt eine ausdrücklich projizierte Q&A-Wortwolke auch nach Quizabschluss', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Team-Quiz',
+      title: null,
+      participantCount: 3,
+      teamMode: false,
+      preferredChannel: 'quiz',
+      presenterSurface: 'qaWordCloud',
+      finishProjection: 'idle',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: false, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false },
+      },
+    });
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        text: 'Kommt Kapitel 4 in der Klausur vor?',
+        upvoteCount: 9,
+        status: 'ACTIVE',
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((r) => setTimeout(r, 50));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showQaWordCloud()).toBe(true);
+    expect(fixture.componentInstance.showFinishProjection()).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
+    expect(fixture.nativeElement.textContent as string).toContain('Q&A-Wortwolke');
+
+    fixture.componentInstance.session.update((session) =>
+      session ? { ...session, presenterSurface: 'default' } : session,
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.showQaWordCloud()).toBe(false);
+    expect(fixture.componentInstance.showFinishProjection()).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]'),
+    ).not.toBeNull();
+    fixture.destroy();
+  });
+
   it('zeigt die Q&A-Wortwolke statt der leeren Freitext-Wolke', async () => {
     liveQueryMock.mockResolvedValue({
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

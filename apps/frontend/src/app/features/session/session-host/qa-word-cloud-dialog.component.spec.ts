@@ -150,7 +150,9 @@ describe('QaWordCloudDialogComponent', () => {
       fixture.nativeElement.querySelector('.qa-word-cloud-dialog__projection-status'),
     ).toBeNull();
     expect(button.textContent).toContain('Präsentationsansicht öffnen');
-    expect(button.querySelector('app-presenter-icon')).not.toBeNull();
+    const presenterIcon = button.querySelector('app-presenter-icon');
+    expect(presenterIcon).not.toBeNull();
+    expect(presenterIcon?.classList).toContain('qa-word-cloud-dialog__presenter-icon');
     expect(setProjected).not.toHaveBeenCalled();
     button.focus();
     button.click();
