@@ -14599,6 +14599,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(1));
+    hostTestAccess(component).qaHostStatusCounts.set({
+      active: 1,
+      pinned: 0,
+      pending: 0,
+      archived: 0,
+    });
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     await component.openQaWordCloudDialog();
     await vi.waitFor(() => expect(component.qaWordCloudAnalysisEntries()).not.toBeNull());
@@ -14606,6 +14612,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     setQaWordCloudProjectionMutateMock.mockClear();
 
     qaListQueryMock.mockResolvedValue([]);
+    hostTestAccess(component).qaHostStatusCounts.set({
+      active: 0,
+      pinned: 0,
+      pending: 0,
+      archived: 1,
+    });
     component.qaQuestions.set([]);
     fixture.detectChanges();
 
@@ -14624,6 +14636,85 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         }),
       );
     });
+    fixture.destroy();
+  });
+
+  it('behält die Q&A-Wolke, wenn nur die geladene Moderatorenseite keine geeignete Frage enthält', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const activeQuestion = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Wie groß ist die Stichprobe?',
+      status: 'ACTIVE' as const,
+      upvoteCount: 3,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      passagesRedacted: false,
+    };
+    const pendingQuestion = {
+      ...activeQuestion,
+      id: '22222222-2222-4222-8222-222222222222',
+      text: 'Noch nicht freigegeben',
+      status: 'PENDING' as const,
+    };
+    const result = wordCloudAnalyzeResult({
+      mode: 'THEME',
+      analyzedQuestionCount: 1,
+      eligibleQuestionCount: 1,
+      entries: [
+        {
+          key: 'stichprobe',
+          label: 'Größe der Stichprobe',
+          count: 3,
+          basisLabel: null,
+          members: [{ sourceId: activeQuestion.id, text: activeQuestion.text, weight: 3 }],
+          variants: [activeQuestion.text],
+          confidence: 0.9,
+        },
+      ],
+    });
+    qaListQueryMock.mockResolvedValue([activeQuestion]);
+    wordCloudAnalyzeQueryMock.mockResolvedValue(result);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    hostTestAccess(component).qaHostStatusCounts.set({
+      active: 1,
+      pinned: 0,
+      pending: 1,
+      archived: 0,
+    });
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    await vi.waitFor(() => expect(component.qaWordCloudAnalysisEntries()).not.toBeNull());
+    await component.setQaWordCloudProjected(true);
+    setQaWordCloudProjectionMutateMock.mockClear();
+
+    component.qaQuestions.set([pendingQuestion]);
+    fixture.detectChanges();
+
+    expect(component.qaWordCloudQuestions()).toEqual([]);
+    expect(component.qaWordCloudAnalysisRequest()).toEqual(
+      expect.objectContaining({ items: [], filter: 'ALL_ELIGIBLE' }),
+    );
+    await vi.waitFor(() =>
+      expect(wordCloudAnalyzeQueryMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ mode: 'THEME', filter: 'ALL_ELIGIBLE' }),
+        expect.anything(),
+      ),
+    );
+    expect(component.qaWordCloudThemeAnalysisResult()).toEqual(result);
+    expect(component.qaWordCloudAnalysisEntries()).not.toBeNull();
+    expect(JSON.stringify(setQaWordCloudProjectionMutateMock.mock.calls)).not.toContain(
+      '"analysisEntries":[]',
+    );
     fixture.destroy();
   });
 
