@@ -590,19 +590,28 @@ describe('WordCloudComponent', () => {
     );
   });
 
-  it('zeigt standardmäßig Erklärtext und Gewichtungshinweis für bessere Orientierung', () => {
+  it('zeigt standardmäßig nur den Gewichtungshinweis für bessere Orientierung', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation', 'Teamarbeit']);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Häufig genannte Wörter erscheinen größer.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
     expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     const hint = fixture.nativeElement.querySelector(
       '.word-cloud__meta .word-cloud__reading-hint',
     ) as HTMLElement | null;
     expect(hint).toBeTruthy();
     expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
+  });
+
+  it('zeigt bei einer vollständig leeren Wolke weder Zähler noch Gewichtungshinweis', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.word-cloud__meta')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.word-cloud__reading-hint')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Noch keine Freitext-Antworten vorhanden.');
   });
 
   it('kann öffentliche Presenter-Ansichten im Output-only-Modus ohne Bedien-UI rendern', () => {
@@ -1839,7 +1848,7 @@ describe('WordCloudComponent', () => {
       'Teamarbeit schafft Fokus',
       'Motivation hilft beim Lernen',
     ]);
-    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern und Phrasen');
+    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern und Wortgruppen');
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
@@ -1887,7 +1896,11 @@ describe('WordCloudComponent', () => {
 
     await component.exportPng();
 
-    expect(context.fillText).toHaveBeenCalledWith('Ersatzansicht mit Wörtern und Phrasen', 64, 64);
+    expect(context.fillText).toHaveBeenCalledWith(
+      'Ersatzansicht mit Wörtern und Wortgruppen',
+      64,
+      64,
+    );
     expect(clickSpy).toHaveBeenCalled();
     expect(component.statusMessage()).toBe('PNG exportiert.');
     expect(fixture.nativeElement.textContent).toContain('PNG speichern');

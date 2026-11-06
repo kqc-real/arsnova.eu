@@ -23193,29 +23193,9 @@
           <context context-type="linenumber">2477</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextDescriptionSemantic" datatype="html">
-        <source>Inhaltlich ähnliche Antworten sind zu Themen zusammengefasst.</source>
-        <target>Le risposte con contenuti simili sono raggruppate per tema.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1304</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextDescription" datatype="html">
-        <source>Häufige Wörter aus den Antworten.</source>
-        <target>Parole frequenti nelle risposte.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1306</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">275</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionPhrases" datatype="html">
-        <source>Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.</source>
-        <target>Parole e gruppi di parole, ad esempio «spiegazione chiara».</target>
+        <source>Wörter und Wortgruppen, zum Beispiel »roter Faden«.</source>
+        <target>Parole e gruppi di parole, ad esempio «filo conduttore».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1308</context>
@@ -23434,8 +23414,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
-        <source>Wortformen gebündelt</source>
-        <target>Forme delle parole raggruppate</target>
+        <source>Nach Grundform gebündelt</source>
+        <target>Raggruppate per forma base</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1536</context>
@@ -23446,8 +23426,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
-        <source>Wortformen aktualisieren</source>
-        <target>Aggiorna le forme delle parole</target>
+        <source>Bündelung aktualisieren</source>
+        <target>Aggiorna il raggruppamento</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1538</context>
@@ -23462,8 +23442,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Wortformen bündeln</source>
-        <target>Raggruppa le forme delle parole</target>
+        <source>Nach Grundform bündeln</source>
+        <target>Raggruppa per forma base</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -23474,8 +23454,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
-        <source>Wähle die Sprache der Antworten</source>
-        <target>Scegli la lingua delle risposte</target>
+        <source>Wähle die Sprache der Beiträge</source>
+        <target>Scegli la lingua dei contributi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1549</context>
@@ -23486,16 +23466,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudSmoothStale" datatype="html">
-        <source>Neue Antworten seit letzter Wort-Glättung</source>
-        <target>Nuove risposte dall’ultima uniformazione delle parole</target>
+        <source>Neue Antworten noch nicht nach Grundform gebündelt</source>
+        <target>Nuove risposte non ancora raggruppate per forma base</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1553</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
-        <source>Wortformen konnten gerade nicht gebündelt werden. Die bisherige Auswertung bleibt nutzbar.</source>
-        <target>Al momento non è stato possibile raggruppare le forme delle parole. Puoi continuare a usare l’analisi esistente.</target>
+        <source>Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.</source>
+        <target>Al momento non è stato possibile raggruppare le parole per forma base. Puoi continuare a usare l’analisi esistente.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1558</context>
@@ -23506,8 +23486,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
-        <source>Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.</source>
-        <target>Il raggruppamento delle forme delle parole non è disponibile qui. Puoi continuare a usare la nuvola di parole.</target>
+        <source>Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.</source>
+        <target>Il raggruppamento per forma base non è disponibile qui. Puoi continuare a usare la nuvola di parole.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1567</context>
@@ -23726,8 +23706,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
-        <source>Neue Fragen seit letzter Wort-Glättung</source>
-        <target>Nuove domande dall’ultima uniformazione delle parole</target>
+        <source>Neue Fragen noch nicht nach Grundform gebündelt</source>
+        <target>Nuove domande non ancora raggruppate per forma base</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2389</context>
@@ -27665,14 +27645,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
           <context context-type="linenumber">21,23</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="wordCloud.description" datatype="html">
-        <source>Häufig genannte Wörter erscheinen größer.</source>
-        <target>Le parole citate spesso appaiono più grandi.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.empty" datatype="html">
@@ -36652,7 +36624,7 @@
         <target>Temi</target>
         </trans-unit>
       <trans-unit id="wordCloud.exportFallbackPhrases" datatype="html">
-        <source>Ersatzansicht mit Wörtern und Phrasen</source>
+        <source>Ersatzansicht mit Wörtern und Wortgruppen</source>
         <target>Vista alternativa con parole ed espressioni</target>
         </trans-unit>
       <trans-unit id="wordCloud.exportFallbackWords" datatype="html">
@@ -36660,7 +36632,7 @@
         <target>Vista alternativa con parole</target>
         </trans-unit>
       <trans-unit id="wordCloud.exportPhrases" datatype="html">
-        <source>Wörter und Phrasen</source>
+        <source>Wörter und Wortgruppen</source>
         <target>Parole ed espressioni</target>
         </trans-unit>
       <trans-unit id="wordCloud.exportWords" datatype="html">
@@ -36810,9 +36782,21 @@
         <source>Weitere Optionen</source>
         <target>Altre opzioni</target>
         </trans-unit>
-      <trans-unit id="wordCloud.smoothingExample" datatype="html">
-        <source>Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben erhalten.</source>
-        <target>Raggruppa forme di una parola, come «imparare» e «imparato». I contributi originali vengono conservati.</target>
+      <trans-unit id="wordCloud.viewHintWords" datatype="html">
+        <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
+        <target>Parole singole raggruppate per forma base: «imparare» e «imparato» vengono conteggiate insieme come «imparare».</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+        <target>Parole singole così come sono state inserite.</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
+        <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
+        <target>Parole e brevi gruppi di parole come «filo conduttore».</target>
+        </trans-unit>
+      <trans-unit id="wordCloud.viewHintTopics" datatype="html">
+        <source>Ähnliche Beiträge, zusammengefasst als Themen.</source>
+        <target>Contributi simili, riassunti per temi.</target>
         </trans-unit>
       <trans-unit id="wordCloud.groupingDetails" datatype="html">
         <source>Gruppierung prüfen</source>

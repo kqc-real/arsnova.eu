@@ -16,61 +16,63 @@
     class="word-cloud l-stack l-stack--sm"
     [class.word-cloud--presentation]="presentationMode()"
   >
-    <div class="word-cloud__meta">
-      @if (outputOnly() && isWordCountPartial()) {
-        <p class="word-cloud__remaining" i18n="@@wordCloud.remainingTerms">
-          + {{ words().length - visibleWordCount() }} weitere Begriffe
-        </p>
-      }
+    @if (words().length > 0 || responseSummary().total > 0 || (itemCount() ?? 0) > 0) {
+      <div class="word-cloud__meta">
+        @if (outputOnly() && isWordCountPartial()) {
+          <p class="word-cloud__remaining" i18n="@@wordCloud.remainingTerms">
+            + {{ words().length - visibleWordCount() }} weitere Begriffe
+          </p>
+        }
 
-      <p class="word-cloud__meta-line">
-        <span class="word-cloud__meta-pill">
-          @if (isWordCountPartial()) {
-            {{ formatCount(visibleWordCount()) }} / {{ formatCount(words().length) }}
-            {{ wordLabel(words().length) }}
-          } @else {
-            {{ words().length }} {{ wordLabel(words().length) }}
-          }
-        </span>
-        <span class="word-cloud__meta-pill">{{
-          qaCoverageLabel() ??
-            formatCount(responseSummary().total) + ' ' + itemLabel(responseSummary().total)
-        }}</span>
-        @if (analysisDetailLabel()) {
-          <span class="word-cloud__meta-pill word-cloud__meta-pill--focus">
-            @if (showsSelectedFilterDetails()) {
-              {{ selectedFilterPrefix }} {{ analysisDetailLabel() }}
+        <p class="word-cloud__meta-line">
+          <span class="word-cloud__meta-pill">
+            @if (isWordCountPartial()) {
+              {{ formatCount(visibleWordCount()) }} / {{ formatCount(words().length) }}
+              {{ wordLabel(words().length) }}
             } @else {
-              {{ focusFilterPrefix }} {{ analysisDetailLabel() }}
+              {{ words().length }} {{ wordLabel(words().length) }}
             }
           </span>
+          <span class="word-cloud__meta-pill">{{
+            qaCoverageLabel() ??
+              formatCount(responseSummary().total) + ' ' + itemLabel(responseSummary().total)
+          }}</span>
+          @if (analysisDetailLabel()) {
+            <span class="word-cloud__meta-pill word-cloud__meta-pill--focus">
+              @if (showsSelectedFilterDetails()) {
+                {{ selectedFilterPrefix }} {{ analysisDetailLabel() }}
+              } @else {
+                {{ focusFilterPrefix }} {{ analysisDetailLabel() }}
+              }
+            </span>
+          }
+          @for (pill of contextPills(); track pill) {
+            <span class="word-cloud__meta-pill word-cloud__meta-pill--context">{{ pill }}</span>
+          }
+        </p>
+        @if (weightingHint() && words().length > 0) {
+          <div class="word-cloud__reading-hint" role="note">
+            <mat-icon aria-hidden="true">insights</mat-icon>
+            <span>{{ weightingHint() }}</span>
+          </div>
         }
-        @for (pill of contextPills(); track pill) {
-          <span class="word-cloud__meta-pill word-cloud__meta-pill--context">{{ pill }}</span>
+        @if (selectedWordAnalysisDetails().length > 0) {
+          <div class="word-cloud__filter-info">
+            <p class="word-cloud__analysis-meta">
+              @for (detail of selectedWordAnalysisDetails(); track detail.label) {
+                <span
+                  class="word-cloud__meta-pill word-cloud__meta-pill--detail"
+                  [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
+                  [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
+                  [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
+                  >{{ detail.label }}</span
+                >
+              }
+            </p>
+          </div>
         }
-      </p>
-      @if (weightingHint()) {
-        <div class="word-cloud__reading-hint" role="note">
-          <mat-icon aria-hidden="true">insights</mat-icon>
-          <span>{{ weightingHint() }}</span>
-        </div>
-      }
-      @if (selectedWordAnalysisDetails().length > 0) {
-        <div class="word-cloud__filter-info">
-          <p class="word-cloud__analysis-meta">
-            @for (detail of selectedWordAnalysisDetails(); track detail.label) {
-              <span
-                class="word-cloud__meta-pill word-cloud__meta-pill--detail"
-                [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
-                [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
-                [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
-                >{{ detail.label }}</span
-              >
-            }
-          </p>
-        </div>
-      }
-    </div>
+      </div>
+    }
     @if (showConfidenceFilterToggle()) {
       <details class="word-cloud__grouping-details">
         <summary i18n="@@wordCloud.groupingDetails">Gruppierung prüfen</summary>

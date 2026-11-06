@@ -1,14 +1,7 @@
 import type { QuestionType } from '@arsnova/shared-types';
 
 export type AnswerOptionShapeKind =
-  | 'triangle'
-  | 'circle'
-  | 'square'
-  | 'diamond'
-  | 'star'
-  | 'hexagon'
-  | 'pentagon'
-  | 'kite';
+  'triangle' | 'circle' | 'square' | 'diamond' | 'star' | 'hexagon' | 'plus' | 'heart';
 
 export const ANSWER_OPTION_COLORS = [
   '#1565c0',
@@ -28,8 +21,8 @@ export const ANSWER_OPTION_SHAPES = [
   'diamond',
   'star',
   'hexagon',
-  'pentagon',
-  'kite',
+  'plus',
+  'heart',
 ] as const satisfies readonly AnswerOptionShapeKind[];
 
 const ANSWER_OPTION_SHAPE_SYMBOLS: Record<AnswerOptionShapeKind, string> = {
@@ -39,8 +32,8 @@ const ANSWER_OPTION_SHAPE_SYMBOLS: Record<AnswerOptionShapeKind, string> = {
   diamond: '\u25C7',
   star: '\u2606',
   hexagon: '\u2B21',
-  pentagon: '\u2B20',
-  kite: '\u2BC6',
+  plus: '\u271A',
+  heart: '\u2661',
 };
 
 export const ANSWER_OPTION_SHAPE_SYMBOL_SEQUENCE = [
@@ -50,8 +43,8 @@ export const ANSWER_OPTION_SHAPE_SYMBOL_SEQUENCE = [
   '\u25C7',
   '\u2606',
   '\u2B21',
-  '\u2B20',
-  '\u2BC6',
+  '\u271A',
+  '\u2661',
 ];
 
 export function answerOptionColor(index: number): string {

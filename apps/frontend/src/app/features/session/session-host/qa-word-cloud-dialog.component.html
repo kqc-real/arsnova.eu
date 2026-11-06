@@ -25,42 +25,44 @@
         <span i18n="@@sessionHost.moderationReturnToCompass">Zurück zum Kompass</span>
       </button>
     }
-    @if (projectionPending() || projected()) {
-      <p class="qa-word-cloud-dialog__projection-status" role="status" aria-live="polite">
-        @if (projectionPending()) {
-          <span i18n="@@sessionQa.wordCloudProjectionPending">Präsentation wird geändert …</span>
-        } @else {
-          <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
-          @if (ownsProjection()) {
-            <span i18n="@@sessionQa.wordCloudCloseProjection"
-              >Beim Schließen erscheint dort wieder die Fragenwand.</span
-            >
+    @if (data.projectionControlsOffered()) {
+      @if (projectionPending() || projected()) {
+        <p class="qa-word-cloud-dialog__projection-status" role="status" aria-live="polite">
+          @if (projectionPending()) {
+            <span i18n="@@sessionQa.wordCloudProjectionPending">Präsentation wird geändert …</span>
+          } @else {
+            <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
+            @if (ownsProjection()) {
+              <span i18n="@@sessionQa.wordCloudCloseProjection"
+                >Beim Schließen erscheint dort wieder die Fragenwand.</span
+              >
+            }
           }
+        </p>
+      }
+      <button
+        mat-button
+        type="button"
+        class="qa-word-cloud-dialog__project"
+        [attr.aria-disabled]="projectionPending() ? true : null"
+        [attr.aria-busy]="projectionPending()"
+        (click)="toggleProjection()"
+      >
+        @if (projected()) {
+          <mat-icon aria-hidden="true">visibility_off</mat-icon>
         }
-      </p>
-    }
-    <button
-      mat-button
-      type="button"
-      class="qa-word-cloud-dialog__project"
-      [attr.aria-disabled]="projectionPending() ? true : null"
-      [attr.aria-busy]="projectionPending()"
-      (click)="toggleProjection()"
-    >
-      @if (projected()) {
-        <mat-icon aria-hidden="true">visibility_off</mat-icon>
+        @if (!projected()) {
+          <app-presenter-icon matButtonIcon class="qa-word-cloud-dialog__presenter-icon" />
+        }
+        @if (projected()) {
+          <span i18n="@@sessionQa.wordCloudHideProjection">Auf der Präsentation ausblenden</span>
+        } @else {
+          <span>{{ data.presenterViewActionLabel() }}</span>
+        }
+      </button>
+      @if (projectionError()) {
+        <p class="qa-word-cloud-dialog__error" role="alert">{{ projectionError() }}</p>
       }
-      @if (!projected()) {
-        <app-presenter-icon matButtonIcon class="qa-word-cloud-dialog__presenter-icon" />
-      }
-      @if (projected()) {
-        <span i18n="@@sessionQa.wordCloudHideProjection">Auf der Präsentation ausblenden</span>
-      } @else {
-        <span>{{ data.presenterViewActionLabel() }}</span>
-      }
-    </button>
-    @if (projectionError()) {
-      <p class="qa-word-cloud-dialog__error" role="alert">{{ projectionError() }}</p>
     }
   </div>
 
@@ -162,10 +164,6 @@
         }
 
         @if (showSmoothingControls()) {
-          <p class="qa-word-cloud-dialog__mode-note" i18n="@@wordCloud.smoothingExample">
-            Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben
-            erhalten.
-          </p>
           @if (smoothingHint()) {
             <p class="qa-word-cloud-dialog__mode-note" role="status">{{ smoothingHint() }}</p>
           }
@@ -186,6 +184,10 @@
       </button>
     }
   </div>
+
+  <p class="qa-word-cloud-dialog__mode-note qa-word-cloud-dialog__view-hint">
+    {{ viewHint() }}
+  </p>
 
   @if (frozen()) {
     <p
@@ -238,7 +240,7 @@
       [title]="title()"
       [exportViewLabel]="exportViewLabel()"
       [eyebrow]="data.eyebrow"
-      [description]="description()"
+      [description]="null"
       [itemLabelSingular]="data.itemLabelSingular"
       [itemLabelPlural]="data.itemLabelPlural"
       [itemCount]="analyzedQuestionCount()"
