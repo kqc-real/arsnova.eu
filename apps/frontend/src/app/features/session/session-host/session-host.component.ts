@@ -4565,6 +4565,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       const request = this.qaWordCloudAnalysisRequest();
       if (!request) {
+        const corpusBecameEmpty =
+          this.qaWordCloudDialogOpen() &&
+          !this.qaWordCloudFrozen() &&
+          this.qaWordCloudQuestions().length === 0;
+        if (corpusBecameEmpty) {
+          untracked(() => this.clearQaWordCloudAnalysisForEmptyCorpus());
+          return;
+        }
         this.clearQaWordCloudThemeAnalysisTimer();
         this.lastQaWordCloudAnalysisRequestKey = null;
         this.qaWordCloudThemeAnalysisPending.set(false);
@@ -14520,6 +14528,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     clearTimeout(this.qaWordCloudThemeAnalysisTimer);
     this.qaWordCloudThemeAnalysisTimer = null;
+  }
+
+  private clearQaWordCloudAnalysisForEmptyCorpus(): void {
+    this.invalidateQaWordCloudRequests();
+    this.clearQaWordCloudLemmaSmoothing();
+    this.qaWordCloudThemeAnalysisResult.set(null);
+    this.qaWordCloudRetainedPhrases.set([]);
+    this.qaWordCloudCoverage.set(null);
+    this.qaWordCloudThemeFallbackActive.set(false);
+    this.qaWordCloudSemanticStale.set(false);
+    this.lastQaWordCloudSemanticAnalysis = null;
   }
 
   private async refreshQaWordCloudThemeAnalysis(

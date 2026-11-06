@@ -14557,6 +14557,76 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('leert eine offene Q&A-Wolke und ihre Projektion, wenn die letzte geeignete Frage entfällt', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const question = {
+      id: '11111111-1111-4111-8111-111111111111',
+      text: 'Wie groß ist die Stichprobe?',
+      status: 'ACTIVE',
+      upvoteCount: 3,
+      createdAt: '2026-03-13T12:00:00.000Z',
+      myVote: null,
+      isOwn: false,
+      hasUpvoted: false,
+      passagesRedacted: false,
+    };
+    qaListQueryMock.mockResolvedValue([question]);
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'THEME',
+        analyzedQuestionCount: 1,
+        eligibleQuestionCount: 1,
+        entries: [
+          {
+            key: 'stichprobe',
+            label: 'Größe der Stichprobe',
+            count: 3,
+            basisLabel: null,
+            members: [{ sourceId: question.id, text: question.text, weight: 3 }],
+            variants: [question.text],
+            confidence: 0.9,
+          },
+        ],
+      }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(1));
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    await vi.waitFor(() => expect(component.qaWordCloudAnalysisEntries()).not.toBeNull());
+    await component.setQaWordCloudProjected(true);
+    setQaWordCloudProjectionMutateMock.mockClear();
+
+    qaListQueryMock.mockResolvedValue([]);
+    component.qaQuestions.set([]);
+    fixture.detectChanges();
+
+    await vi.waitFor(() => {
+      expect(component.qaWordCloudQuestions()).toEqual([]);
+      expect(component.qaWordCloudThemeAnalysisResult()).toBeNull();
+      expect(component.qaWordCloudAnalysisEntries()).toBeNull();
+      expect(component.qaWordCloudCoverage()).toBeNull();
+      expect(setQaWordCloudProjectionMutateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projection: expect.objectContaining({
+            analysisEntries: [],
+            analyzedQuestionCount: 0,
+            eligibleQuestionCount: 0,
+          }),
+        }),
+      );
+    });
+    fixture.destroy();
+  });
+
   it('markiert eine spätere Q&A-Korpusrevision bei gleichbleibender Seite als veraltet', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
