@@ -4565,7 +4565,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         const corpusBecameEmpty =
           this.qaWordCloudDialogOpen() &&
           !this.qaWordCloudFrozen() &&
-          this.qaWordCloudQuestions().length === 0;
+          this.qaWordCloudKnownEligibleCount() === 0;
         if (corpusBecameEmpty) {
           untracked(() => this.clearQaWordCloudAnalysisForEmptyCorpus());
           return;
@@ -14345,7 +14345,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       text: question.text,
       weight: this.qaWordCloudQuestionWeight(question),
     }));
-    if (items.length === 0) {
+    if (items.length === 0 && this.qaWordCloudKnownEligibleCount() === 0) {
       return null;
     }
     const focusQuestionIds = [...this.qaCompassFocusQuestionIds()].slice(
@@ -14367,6 +14367,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ...(focusQuestionIds.length > 0 ? { focusQuestionIds } : {}),
       ...(options.refresh ? { refresh: true } : {}),
     };
+  }
+
+  private qaWordCloudKnownEligibleCount(): number | null {
+    const counts = this.qaHostStatusCounts();
+    if (!counts) return null;
+    return counts.pinned + (this.qaShowPinnedOnly() ? 0 : counts.active);
   }
 
   private invalidateQaWordCloudRequests(): void {
