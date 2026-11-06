@@ -1259,11 +1259,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
   readonly presenterFreetextWordCloudViewHint = computed(() =>
     wordCloudViewHint(
-      this.presenterFreetextWordCloudModeEffective() === 'WORDS'
-        ? 'LEXICAL'
-        : this.presenterFreetextWordCloudModeEffective() === 'PHRASES'
-          ? 'THEME'
-          : 'SEMANTIC',
+      this.presenterFreetextDisplayMode(),
+      this.presenterFreetextWordCloudModeOverride() === null
+        ? this.presenterFreetextDisplayedSmoothingActive()
+        : this.presenterFreetextLemmaDisplayEntries() !== null,
     ),
   );
   readonly presenterFreetextWordCloudWordLabelSingular = computed(() => {

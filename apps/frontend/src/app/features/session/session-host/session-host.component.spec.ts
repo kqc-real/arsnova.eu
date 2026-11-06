@@ -8126,7 +8126,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const viewHint = wordCloudDetails?.querySelector(
       '.session-host__word-cloud-view-hint',
     ) as HTMLElement | null;
-    expect(viewHint?.textContent).toContain('Wörter und kurze Wortgruppen');
+    expect(viewHint?.textContent).toContain('Einzelne Wörter in der eingegebenen Form');
     expect(viewHint?.closest('.session-host__word-cloud-options')).toBeNull();
     const extraSmoothButton = wordCloudDetails?.querySelector(
       '.session-host__extra-action--smooth',

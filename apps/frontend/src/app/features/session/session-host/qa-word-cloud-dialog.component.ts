@@ -119,7 +119,12 @@ export class QaWordCloudDialogComponent {
   readonly displayMode = computed(() => this.data.displayMode?.() ?? 'LEXICAL');
   readonly eligibleQuestionCount = computed(() => this.data.eligibleQuestionCount());
   readonly analysisVariant = computed(() => this.data.analysisVariant());
-  readonly viewHint = computed(() => wordCloudViewHint(this.analysisVariant()));
+  readonly viewHint = computed(() =>
+    wordCloudViewHint(
+      this.displayMode(),
+      this.smoothingStatus() === 'active' || this.smoothingStatus() === 'stale',
+    ),
+  );
   readonly themeModeAvailable = computed(() => this.data.themeModeAvailable());
   readonly themeFallbackHint = computed(() => this.data.themeFallbackHint());
   readonly themeWaitHint = computed(() => this.data.themeWaitHint?.() ?? null);

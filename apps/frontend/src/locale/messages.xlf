@@ -32467,6 +32467,9 @@
       <trans-unit id="wordCloud.viewHintWords" datatype="html">
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
       </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+      </trans-unit>
       <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
         <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
       </trans-unit>

@@ -1001,6 +1001,12 @@ describe('SessionPresentComponent', () => {
     });
     await vi.waitFor(() => expect(component.presenterFreetextSemanticPending()).toBe(false));
     expect(component.presenterFreetextDisplayMode()).toBe('THEME');
+    expect(component.presenterFreetextWordCloudViewHint()).toContain(
+      'Wörter und kurze Wortgruppen',
+    );
+    expect(component.presenterFreetextWordCloudViewHint()).not.toContain(
+      'zusammengefasst als Themen',
+    );
     expect(component.freetextStageAnalysisEntries()?.[0]?.label).toBe('Große Stichprobe');
     expect(setFreetextWordCloudProjectionMutateMock).toHaveBeenLastCalledWith(
       expect.objectContaining({

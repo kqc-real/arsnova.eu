@@ -36786,6 +36786,10 @@
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
         <target>Mots individuels regroupés par forme de base. « Apprendre » et « appris » sont comptés ensemble sous « apprendre ».</target>
         </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+        <target>Mots individuels tels qu’ils ont été saisis.</target>
+        </trans-unit>
       <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
         <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
         <target>Mots et courtes expressions comme « fil conducteur ».</target>

@@ -1376,11 +1376,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudMode = signal<FreetextWordCloudMode>('PHRASES');
   readonly freetextWordCloudViewHint = computed(() =>
     wordCloudViewHint(
-      this.freetextWordCloudMode() === 'WORDS'
-        ? 'LEXICAL'
-        : this.freetextWordCloudMode() === 'PHRASES'
-          ? 'THEME'
-          : 'SEMANTIC',
+      this.freetextWordCloudDisplayMode(),
+      this.freetextWordCloudLemmaSnapshotVisible(),
     ),
   );
   readonly wordCloudFreezeLabel = computed(() =>

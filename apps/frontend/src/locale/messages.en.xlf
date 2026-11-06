@@ -36844,6 +36844,10 @@
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
         <target>Individual words by base form: “learn” and “learned” are counted together as “learn”.</target>
         </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+        <target>Individual words as entered.</target>
+        </trans-unit>
       <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
         <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
         <target>Words and short phrases such as “clear structure”.</target>

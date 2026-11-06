@@ -36786,6 +36786,10 @@
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
         <target>Palabras individuales agrupadas por su forma base: «aprender» y «aprendido» se cuentan juntas como «aprender».</target>
         </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+        <target>Palabras individuales tal como se introdujeron.</target>
+        </trans-unit>
       <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
         <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
         <target>Palabras y grupos breves de palabras como «hilo conductor».</target>

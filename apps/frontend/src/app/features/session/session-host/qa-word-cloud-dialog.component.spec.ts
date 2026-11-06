@@ -45,6 +45,7 @@ describe('QaWordCloudDialogComponent', () => {
       eligibleQuestionCount: () => 18,
       analysisModelVersion: () => null,
       analysisVariant: () => analysisVariant,
+      displayMode: () => analysisVariant,
       setAnalysisVariant,
       themeModeAvailable: () => true,
       themeFallbackHint: () =>
@@ -144,7 +145,7 @@ describe('QaWordCloudDialogComponent', () => {
   });
 
   it.each([
-    ['LEXICAL', 'Einzelne Wörter nach Grundform'],
+    ['LEXICAL', 'Einzelne Wörter in der eingegebenen Form'],
     ['THEME', 'Wörter und kurze Wortgruppen'],
     ['SEMANTIC', 'zusammengefasst als Themen'],
   ] as const)('erklärt die Ansicht %s passend zur Auswahl', (analysisVariant, expected) => {
@@ -155,6 +156,14 @@ describe('QaWordCloudDialogComponent', () => {
 
     expect(hint.textContent).toContain(expected);
     expect(hint.closest('details')).toBeNull();
+  });
+
+  it('nennt die Grundform nur bei einer tatsächlich sichtbaren Bündelung', () => {
+    const { fixture } = setup('LEXICAL', { smoothingStatus: () => 'active' });
+
+    expect(
+      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__view-hint')?.textContent,
+    ).toContain('»lernen« und »gelernt« zählen gemeinsam als »lernen«');
   });
 
   it('projiziert erst auf ausdruecklichen Wunsch und behaelt Fokus und Sperre bis zur Bestaetigung', async () => {

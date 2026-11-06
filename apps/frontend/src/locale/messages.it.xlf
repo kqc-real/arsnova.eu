@@ -36786,6 +36786,10 @@
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
         <target>Parole singole raggruppate per forma base: «imparare» e «imparato» vengono conteggiate insieme come «imparare».</target>
         </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+        <target>Parole singole così come sono state inserite.</target>
+        </trans-unit>
       <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
         <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
         <target>Parole e brevi gruppi di parole come «filo conduttore».</target>
