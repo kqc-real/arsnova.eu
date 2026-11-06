@@ -294,6 +294,28 @@ describe('openWeightLlmClient', () => {
     expect(JSON.parse(body.messages[1]?.content ?? '{}')).toEqual(injected);
   });
 
+  it.each(['de', 'en', 'fr', 'es', 'it'] as const)(
+    'sendet die deutsche Lernziel-Wortstellungsregel nur für de (%s)',
+    async (locale) => {
+      const request = successfulTransport();
+      resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+      await expect(
+        runOpenWeightLlmLearningObjectives({ ...requests.learning_objectives, locale }),
+      ).resolves.toMatchObject({ status: 'completed' });
+
+      const completion = request.mock.calls.find(([input]) => input.method === 'POST')?.[0];
+      const body = JSON.parse(completion?.body ?? '{}') as {
+        messages: Array<{ role: string; content: string }>;
+      };
+      expect(body.messages[0]).toMatchObject({ role: 'system' });
+      expect(
+        body.messages[0]?.content.includes(
+          'Nenne zuerst den fachlichen Gegenstand und setze das Handlungsverb im Infinitiv möglichst ans Ende.',
+        ),
+      ).toBe(locale === 'de');
+    },
+  );
+
   it('serialisiert Summary V2 exakt als zwei Systemnachrichten plus kanonischen Fachkontext', async () => {
     const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
     const analysis = ModerationAnalysisContextV1Schema.parse({
