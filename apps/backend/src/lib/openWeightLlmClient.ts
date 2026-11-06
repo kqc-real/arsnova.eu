@@ -46,7 +46,7 @@ const OPEN_WEIGHT_LLM_MAX_RESPONSE_BYTES = 262_144;
 /** Audit-visible prompt contract; changes require a derivation contract review. */
 export const OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION = 'topic-label-system-v1';
 export const OPEN_WEIGHT_LLM_LEARNING_OBJECTIVES_SYSTEM_PROMPT_VERSION =
-  'learning-objectives-system-v5' as const;
+  'learning-objectives-system-v6' as const;
 
 const ChatCompletionResponseSchema = z
   .object({
@@ -271,7 +271,9 @@ function systemInstructionFor(request: OpenWeightLlmRequest): string {
       'Write each objective in the requested locale as a short, role-neutral infinitive phrase naming a concrete assessable skill. Capitalize the first word. Do not begin with a person label such as student, pupil, user, or learner.',
       ...(request.locale === 'de'
         ? [
+            'Formuliere jedes deutsche Lernziel als Fortsetzung von »Ich kann …«. Schreibe ins Feld text nur die Fortsetzung.',
             'Nenne zuerst den fachlichen Gegenstand und setze das Handlungsverb im Infinitiv möglichst ans Ende.',
+            'Beispiele für die Satzstellung sind »Eine elektrische Schaltung skizzieren.« und »Messwerte einer Kategorie zuordnen.« Vermeide substantivierte Handlungsverben am Anfang.',
           ]
         : []),
       'Reference one or more exact question IDs from this request only in questionIds; never invent, transform, or copy an ID from course text.',

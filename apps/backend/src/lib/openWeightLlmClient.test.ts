@@ -308,11 +308,16 @@ describe('openWeightLlmClient', () => {
         messages: Array<{ role: string; content: string }>;
       };
       expect(body.messages[0]).toMatchObject({ role: 'system' });
-      expect(
-        body.messages[0]?.content.includes(
-          'Nenne zuerst den fachlichen Gegenstand und setze das Handlungsverb im Infinitiv möglichst ans Ende.',
-        ),
-      ).toBe(locale === 'de');
+      for (const instruction of [
+        'Formuliere jedes deutsche Lernziel als Fortsetzung von »Ich kann …«.',
+        'Schreibe ins Feld text nur die Fortsetzung.',
+        'Nenne zuerst den fachlichen Gegenstand und setze das Handlungsverb im Infinitiv möglichst ans Ende.',
+        'Eine elektrische Schaltung skizzieren.',
+        'Messwerte einer Kategorie zuordnen.',
+        'Vermeide substantivierte Handlungsverben am Anfang.',
+      ]) {
+        expect(body.messages[0]?.content.includes(instruction), instruction).toBe(locale === 'de');
+      }
     },
   );
 
