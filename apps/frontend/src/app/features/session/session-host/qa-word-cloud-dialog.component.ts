@@ -15,6 +15,7 @@ import { PresenterIconComponent } from '../presenter-icon.component';
 import {
   wordCloudExportViewLabel,
   wordCloudTopicProgressLabel,
+  wordCloudViewHint,
   type WeightedWordSource,
 } from '../session-present/word-cloud.util';
 
@@ -27,6 +28,7 @@ export type QaWordCloudDialogData = {
   ownsProjection: () => boolean;
   setProjected: (projected: boolean) => Promise<void>;
   presenterViewActionLabel: () => string;
+  projectionControlsOffered: () => boolean;
   responses: () => string[];
   responseTextsBySourceId: () => Readonly<Record<string, string>>;
   weightedResponses: () => WeightedWordSource[];
@@ -117,6 +119,7 @@ export class QaWordCloudDialogComponent {
   readonly displayMode = computed(() => this.data.displayMode?.() ?? 'LEXICAL');
   readonly eligibleQuestionCount = computed(() => this.data.eligibleQuestionCount());
   readonly analysisVariant = computed(() => this.data.analysisVariant());
+  readonly viewHint = computed(() => wordCloudViewHint(this.analysisVariant()));
   readonly themeModeAvailable = computed(() => this.data.themeModeAvailable());
   readonly themeFallbackHint = computed(() => this.data.themeFallbackHint());
   readonly themeWaitHint = computed(() => this.data.themeWaitHint?.() ?? null);

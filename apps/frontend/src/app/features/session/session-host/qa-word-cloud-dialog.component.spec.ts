@@ -28,6 +28,7 @@ describe('QaWordCloudDialogComponent', () => {
       ownsProjection: () => false,
       setProjected: vi.fn().mockResolvedValue(undefined),
       presenterViewActionLabel: () => 'Präsentationsansicht öffnen',
+      projectionControlsOffered: () => true,
       responses: () => [],
       responseTextsBySourceId: () => ({}),
       weightedResponses: () => [],
@@ -35,7 +36,7 @@ describe('QaWordCloudDialogComponent', () => {
       analysisEntries: () => null,
       title: () => 'Q&A-Wortwolke',
       eyebrow: 'Q&A-Analyse',
-      description: () => 'Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.',
+      description: () => 'Wörter und Wortgruppen, zum Beispiel »roter Faden«.',
       wordLabelSingular: () => 'Begriff',
       wordLabelPlural: () => 'Begriffe',
       weightingHint: () => null,
@@ -48,7 +49,7 @@ describe('QaWordCloudDialogComponent', () => {
       themeModeAvailable: () => true,
       themeFallbackHint: () =>
         analysisVariant === 'SEMANTIC'
-          ? 'Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen. Es gelten Wörter und Phrasen.'
+          ? 'Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen. Es gelten Wörter und Wortgruppen.'
           : null,
       themeWaitHint: () => null,
       sortMode: () => 'TOP',
@@ -57,7 +58,7 @@ describe('QaWordCloudDialogComponent', () => {
       freezeLabel: () => 'Anzeige anhalten',
       toggleFreeze: vi.fn(),
       smoothingStatus: () => 'idle',
-      smoothingLabel: () => 'Wortformen bündeln',
+      smoothingLabel: () => 'Nach Grundform bündeln',
       smoothingHint: () => null,
       smoothingDisabled: () => analysisVariant === 'SEMANTIC',
       toggleSmoothing: vi.fn(),
@@ -127,6 +128,33 @@ describe('QaWordCloudDialogComponent', () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="qa-word-cloud-return-to-compass"]'),
     ).toBeNull();
+  });
+
+  it('blendet Projektionsstatus und -aktionen auf Smartphones aus', () => {
+    const { fixture } = setup('SEMANTIC', {
+      projected: () => true,
+      projectionControlsOffered: () => false,
+    });
+
+    expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__project')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__projection-status'),
+    ).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Präsentation');
+  });
+
+  it.each([
+    ['LEXICAL', 'Einzelne Wörter nach Grundform'],
+    ['THEME', 'Wörter und kurze Wortgruppen'],
+    ['SEMANTIC', 'zusammengefasst als Themen'],
+  ] as const)('erklärt die Ansicht %s passend zur Auswahl', (analysisVariant, expected) => {
+    const { fixture } = setup(analysisVariant);
+    const hint = fixture.nativeElement.querySelector(
+      '.qa-word-cloud-dialog__view-hint',
+    ) as HTMLElement;
+
+    expect(hint.textContent).toContain(expected);
+    expect(hint.closest('details')).toBeNull();
   });
 
   it('projiziert erst auf ausdruecklichen Wunsch und behaelt Fokus und Sperre bis zur Bestaetigung', async () => {
@@ -245,7 +273,7 @@ describe('QaWordCloudDialogComponent', () => {
         (option: HTMLOptionElement) => option.value,
       ),
     ).toEqual(['CONTROVERSIAL', 'BEST', 'TOP', 'TIME']);
-    expect(text).toContain('Wortformen bündeln');
+    expect(text).toContain('Nach Grundform bündeln');
 
     const values = [...fixture.nativeElement.querySelectorAll('mat-button-toggle')]
       .map((toggle) => toggle.getAttribute('value'))
@@ -285,7 +313,7 @@ describe('QaWordCloudDialogComponent', () => {
   it('zeigt Glaettung bei Woertern ohne Sprachschalter', () => {
     const { fixture } = setup('LEXICAL');
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Wortformen bündeln');
+    expect(text).toContain('Nach Grundform bündeln');
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__smooth')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-word-cloud-lemma-locale-select')).toBeNull();
   });
@@ -316,10 +344,12 @@ describe('QaWordCloudDialogComponent', () => {
     expect(progress).not.toBeNull();
     expect(progress?.getAttribute('aria-busy')).toBe('true');
     expect(progress?.textContent).toContain('Themen werden vorbereitet.');
-    expect(progress?.textContent).not.toContain('Es gelten Wörter und Phrasen.');
+    expect(progress?.textContent).not.toContain('Es gelten Wörter und Wortgruppen.');
     expect(progress?.querySelector('mat-progress-bar')).not.toBeNull();
     expect(progress?.textContent).not.toContain('Das kann einen Moment dauern');
-    expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__mode-note')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__mode-note')?.textContent,
+    ).toContain('Ähnliche Beiträge, zusammengefasst als Themen');
     expect(stage?.querySelector('.qa-word-cloud-dialog__cloud')).not.toBeNull();
   });
 

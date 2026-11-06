@@ -10,7 +10,19 @@ import {
   getStopwordsForLocale,
   normalizeFreeTextResponseForDisplay,
   responseContainsWord,
+  wordCloudViewHint,
 } from './word-cloud.util';
+
+describe('wordCloudViewHint', () => {
+  it('erklärt Wörter, Wortgruppen und Themen in Lehrkraftsprache', () => {
+    expect(wordCloudViewHint('LEXICAL')).toContain('Einzelne Wörter nach Grundform');
+    expect(wordCloudViewHint('LEXICAL')).toContain(
+      '»lernen« und »gelernt« zählen gemeinsam als »lernen«',
+    );
+    expect(wordCloudViewHint('THEME')).toContain('Wörter und kurze Wortgruppen');
+    expect(wordCloudViewHint('SEMANTIC')).toContain('zusammengefasst als Themen');
+  });
+});
 
 describe('aggregateWords', () => {
   it('aggregiert Freitext-Antworten und filtert Stopwords', () => {

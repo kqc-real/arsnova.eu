@@ -2567,6 +2567,15 @@ app-session-projection-quiz,
   font: var(--mat-sys-body-medium);
 }
 
+.session-present__word-cloud-view-hint {
+  margin: 0;
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  text-align: start;
+}
+
 .session-present--word-cloud
   .session-present__word-cloud-layout
   .session-present__word-cloud-stage {
@@ -2882,8 +2891,4 @@ app-session-projection-quiz,
   display: grid;
   gap: 0.65rem;
   padding-block: 0.45rem;
-
-  p {
-    margin: 0;
-  }
 }

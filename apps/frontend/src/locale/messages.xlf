@@ -20625,26 +20625,8 @@
           <context context-type="linenumber">2477</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextDescriptionSemantic" datatype="html">
-        <source>Inhaltlich ähnliche Antworten sind zu Themen zusammengefasst.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1304</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextDescription" datatype="html">
-        <source>Häufige Wörter aus den Antworten.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1306</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">275</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionPhrases" datatype="html">
-        <source>Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.</source>
+        <source>Wörter und Wortgruppen, zum Beispiel »roter Faden«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1308</context>
@@ -20849,7 +20831,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
-        <source>Wortformen gebündelt</source>
+        <source>Nach Grundform gebündelt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1536</context>
@@ -20860,7 +20842,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
-        <source>Wortformen aktualisieren</source>
+        <source>Bündelung aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1538</context>
@@ -20875,7 +20857,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Wortformen bündeln</source>
+        <source>Nach Grundform bündeln</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -20886,7 +20868,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
-        <source>Wähle die Sprache der Antworten</source>
+        <source>Wähle die Sprache der Beiträge</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1549</context>
@@ -20897,14 +20879,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudSmoothStale" datatype="html">
-        <source>Neue Antworten seit letzter Wort-Glättung</source>
+        <source>Neue Antworten noch nicht nach Grundform gebündelt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1553</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
-        <source>Wortformen konnten gerade nicht gebündelt werden. Die bisherige Auswertung bleibt nutzbar.</source>
+        <source>Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1558</context>
@@ -20915,7 +20897,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
-        <source>Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.</source>
+        <source>Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1567</context>
@@ -21111,7 +21093,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
-        <source>Neue Fragen seit letzter Wort-Glättung</source>
+        <source>Neue Fragen noch nicht nach Grundform gebündelt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2389</context>
@@ -24515,13 +24497,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
           <context context-type="linenumber">21,23</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="wordCloud.description" datatype="html">
-        <source>Häufig genannte Wörter erscheinen größer.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">202</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.empty" datatype="html">
@@ -32358,13 +32333,13 @@
         <source>Themen</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportFallbackPhrases" datatype="html">
-        <source>Ersatzansicht mit Wörtern und Phrasen</source>
+        <source>Ersatzansicht mit Wörtern und Wortgruppen</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportFallbackWords" datatype="html">
         <source>Ersatzansicht mit Wörtern</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportPhrases" datatype="html">
-        <source>Wörter und Phrasen</source>
+        <source>Wörter und Wortgruppen</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportWords" datatype="html">
         <source>Wörter</source>
@@ -32489,8 +32464,14 @@
       <trans-unit id="wordCloud.moreOptions" datatype="html">
         <source>Weitere Optionen</source>
       </trans-unit>
-      <trans-unit id="wordCloud.smoothingExample" datatype="html">
-        <source>Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben erhalten.</source>
+      <trans-unit id="wordCloud.viewHintWords" datatype="html">
+        <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
+        <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.viewHintTopics" datatype="html">
+        <source>Ähnliche Beiträge, zusammengefasst als Themen.</source>
       </trans-unit>
       <trans-unit id="wordCloud.groupingDetails" datatype="html">
         <source>Gruppierung prüfen</source>

@@ -211,9 +211,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly focusedGroupKey = input<string | null>(null);
   readonly title = input($localize`:@@wordCloud.title:Wortwolke`);
   readonly eyebrow = input<string | null>(null);
-  readonly description = input<string | null>(
-    $localize`:@@wordCloud.description:Häufig genannte Wörter erscheinen größer.`,
-  );
+  readonly description = input<string | null>(null);
   readonly tooltipMetricLabel = input<string | null>(null);
   readonly exportViewLabel = input<string | null>(null);
   readonly analysisModelVersion = input<string | null>(null);

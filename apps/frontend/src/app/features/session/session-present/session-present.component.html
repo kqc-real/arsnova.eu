@@ -1440,10 +1440,11 @@
                   <mat-icon aria-hidden="true">{{ presenterFreetextSmoothingIcon() }}</mat-icon>
                   <span>{{ presenterFreetextSmoothingLabel() }}</span>
                 </button>
-                <p i18n="@@wordCloud.smoothingExample">
-                  Bündelt Wortformen wie »lernen« und »gelernt«. Die ursprünglichen Beiträge bleiben
-                  erhalten.
-                </p>
+                @if (presenterFreetextSmoothingOptionHint(); as hint) {
+                  <p class="session-present__word-cloud-toolbar-status" role="status">
+                    {{ hint }}
+                  </p>
+                }
               </div>
             </details>
           }
@@ -1462,6 +1463,9 @@
             </button>
           }
         </div>
+        <p class="session-present__word-cloud-view-hint">
+          {{ presenterFreetextWordCloudViewHint() }}
+        </p>
         @if (presenterFreetextWordCloudHint(); as hint) {
           <p class="session-present__word-cloud-toolbar-status" role="status">{{ hint }}</p>
         }
@@ -1472,9 +1476,9 @@
           [analysisEntries]="freetextStageAnalysisEntries()"
           [title]="freetextWordCloudStageTitle()"
           [eyebrow]="freetextWordCloudEyebrow"
-          [description]="presenterFreetextWordCloudDescription()"
           [wordLabelSingular]="presenterFreetextWordCloudWordLabelSingular()"
           [wordLabelPlural]="presenterFreetextWordCloudWordLabelPlural()"
+          [weightingHint]="null"
           [showConfidenceFilter]="presenterFreetextDisplayMode() === 'SEMANTIC'"
           [selectionScopeKey]="
             freetextQuestionId() +

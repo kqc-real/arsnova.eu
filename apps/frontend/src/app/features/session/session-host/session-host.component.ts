@@ -235,6 +235,7 @@ import {
 import {
   wordCloudExportViewLabel,
   wordCloudTopicProgressLabel,
+  wordCloudViewHint,
 } from '../session-present/word-cloud.util';
 import {
   buildModerationCompassView,
@@ -1184,6 +1185,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudLemmaFallbackReason =
     signal<WordCloudNormalizationFallbackReason | null>(null);
   readonly freetextWordCloudLemmaPreferred = signal(true);
+  readonly freetextWordCloudSmoothingFeedbackRequested = signal(false);
   readonly freetextWordCloudMaximized = signal(false);
   readonly freetextWordCloudSemanticAnalysisPending = signal(false);
   readonly freetextWordCloudSemanticAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
@@ -1372,21 +1374,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       : $localize`:@@sessionHost.wordCloudShow:Wortwolke anzeigen`,
   );
   readonly freetextWordCloudMode = signal<FreetextWordCloudMode>('PHRASES');
+  readonly freetextWordCloudViewHint = computed(() =>
+    wordCloudViewHint(
+      this.freetextWordCloudMode() === 'WORDS'
+        ? 'LEXICAL'
+        : this.freetextWordCloudMode() === 'PHRASES'
+          ? 'THEME'
+          : 'SEMANTIC',
+    ),
+  );
   readonly wordCloudFreezeLabel = computed(() =>
     this.wordCloudFrozen()
       ? $localize`:@@sessionHost.wordCloudResume:Anzeige fortsetzen`
       : $localize`:@@sessionHost.wordCloudFreeze:Anzeige anhalten`,
   );
-  readonly freetextWordCloudDescription = computed(() => {
-    switch (this.freetextWordCloudDisplayMode()) {
-      case 'SEMANTIC':
-        return $localize`:@@sessionWordCloud.freetextDescriptionSemantic:Inhaltlich ähnliche Antworten sind zu Themen zusammengefasst.`;
-      case 'LEXICAL':
-        return $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
-      default:
-        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.`;
-    }
-  });
   readonly freetextWordCloudWordLabelSingular = computed(() => {
     switch (this.freetextWordCloudDisplayMode()) {
       case 'SEMANTIC':
@@ -1545,6 +1546,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return null;
     }
 
+    if (this.displayedFreetextResponses().length === 0) {
+      return null;
+    }
+
     if (this.freetextWordCloudSemanticAnalysisPending()) {
       return wordCloudTopicProgressLabel(this.freetextWordCloudDisplayMode() === 'SEMANTIC');
     }
@@ -1654,11 +1659,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'pending':
         return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
       case 'active':
-        return $localize`:@@sessionQa.wordCloudSmoothActive:Wortformen gebündelt`;
+        return $localize`:@@sessionQa.wordCloudSmoothActive:Nach Grundform gebündelt`;
       case 'stale':
-        return $localize`:@@sessionQa.wordCloudSmoothRetry:Wortformen aktualisieren`;
+        return $localize`:@@sessionQa.wordCloudSmoothRetry:Bündelung aktualisieren`;
       default:
-        return $localize`:@@sessionQa.wordCloudSmooth:Wortformen bündeln`;
+        return $localize`:@@sessionQa.wordCloudSmooth:Nach Grundform bündeln`;
     }
   });
   readonly freetextWordCloudSmoothingHint = computed(() => {
@@ -1667,16 +1672,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (!this.qaWordCloudAnalysisLocale()) {
-      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Antworten`;
+      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Beiträge`;
     }
 
     if (this.freetextWordCloudSmoothingStatus() === 'stale') {
-      return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten seit letzter Wort-Glättung`;
+      return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten noch nicht nach Grundform gebündelt`;
     }
 
     const reason = this.freetextWordCloudLemmaFallbackReason();
     if (reason === 'TIMEOUT' || reason === 'INVALID_RESPONSE') {
-      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wortformen konnten gerade nicht gebündelt werden. Die bisherige Auswertung bleibt nutzbar.`;
+      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.`;
     }
 
     if (
@@ -1685,11 +1690,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       reason === 'LOCALE_UNSUPPORTED' ||
       reason === 'MODE_UNSUPPORTED'
     ) {
-      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.`;
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.`;
     }
 
     return null;
   });
+  readonly freetextWordCloudSmoothingOptionHint = computed(() =>
+    this.freetextWordCloudSmoothingFeedbackRequested()
+      ? this.freetextWordCloudSmoothingHint()
+      : null,
+  );
   readonly freetextWordCloudSmoothingBusy = computed(
     () => this.freetextWordCloudSmoothingStatus() === 'pending',
   );
@@ -1922,15 +1932,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    | 'skip'
-    | 'previous'
-    | 'replace'
-    | 'leave'
-    | 'openPresentation'
-    | 'endPresentation'
-    | 'feedback'
-    | 'end'
-    | null
+    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'feedback' | 'end' | null
   >(null);
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
@@ -1956,9 +1958,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         break;
       case 'leave':
         void this.onLeaveHostKeepingQaOpen();
-        break;
-      case 'openPresentation':
-        void this.openPresenterView(true);
         break;
       case 'endPresentation':
         void this.endPresentationView();
@@ -2018,6 +2017,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * damit SSR/Hydration denselben DOM behalten. Tablets und Desktop bleiben sichtbar.
    */
   readonly showPresenterViewButton = signal(true);
+  /** Technische Projektionsaktionen werden nur ab Tabletgröße angeboten. */
+  readonly projectionControlsOffered = computed(() => this.showPresenterViewButton());
   private presenterDesktopMediaQuery: MediaQueryList | null = null;
   private readonly onPresenterDesktopMediaChange = (
     event: MediaQueryListEvent | MediaQueryList,
@@ -2344,7 +2345,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'LEXICAL':
         return $localize`:@@sessionQa.wordCloudDescriptionLexical:Einzelne Wörter aus den freigegebenen Fragen.`;
       default:
-        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.`;
+        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »roter Faden«.`;
     }
   });
   readonly qaWordCloudWordLabelSingular = computed(() => {
@@ -2540,18 +2541,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (this.qaWordCloudThemeAnalysisPending()) {
         return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
       }
-      return $localize`:@@sessionQa.wordCloudSmoothRetry:Wortformen aktualisieren`;
+      return $localize`:@@sessionQa.wordCloudSmoothRetry:Bündelung aktualisieren`;
     }
 
     switch (this.qaWordCloudSmoothingStatus()) {
       case 'pending':
         return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
       case 'active':
-        return $localize`:@@sessionQa.wordCloudSmoothActive:Wortformen gebündelt`;
+        return $localize`:@@sessionQa.wordCloudSmoothActive:Nach Grundform gebündelt`;
       case 'stale':
-        return $localize`:@@sessionQa.wordCloudSmoothRetry:Wortformen aktualisieren`;
+        return $localize`:@@sessionQa.wordCloudSmoothRetry:Bündelung aktualisieren`;
       default:
-        return $localize`:@@sessionQa.wordCloudSmooth:Wortformen bündeln`;
+        return $localize`:@@sessionQa.wordCloudSmooth:Nach Grundform bündeln`;
     }
   });
   readonly qaWordCloudSmoothingHint = computed(() => {
@@ -2570,16 +2571,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     if (!this.qaWordCloudAnalysisLocale()) {
-      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Antworten`;
+      return $localize`:@@sessionQa.wordCloudSmoothChooseLocale:Wähle die Sprache der Beiträge`;
     }
 
     if (this.qaWordCloudSmoothingStatus() === 'stale') {
-      return $localize`:@@sessionQa.wordCloudSmoothStale:Neue Fragen seit letzter Wort-Glättung`;
+      return $localize`:@@sessionQa.wordCloudSmoothStale:Neue Fragen noch nicht nach Grundform gebündelt`;
     }
 
     const reason = this.qaWordCloudLemmaFallbackReason();
     if (reason === 'TIMEOUT' || reason === 'INVALID_RESPONSE') {
-      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wortformen konnten gerade nicht gebündelt werden. Die bisherige Auswertung bleibt nutzbar.`;
+      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.`;
     }
 
     if (
@@ -2588,12 +2589,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       reason === 'LOCALE_UNSUPPORTED' ||
       reason === 'MODE_UNSUPPORTED'
     ) {
-      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.`;
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.`;
     }
 
     return null;
   });
   readonly qaWordCloudThemeFallbackHint = computed(() => {
+    if (this.qaWordCloudQuestions().length === 0) {
+      return null;
+    }
+
     if (this.qaWordCloudEffectiveAnalysisVariant() === 'SEMANTIC') {
       if (this.qaWordCloudThemeAnalysisPending()) {
         return $localize`:@@sessionQa.wordCloudSemanticPendingHint:Themen werden vorbereitet.`;
@@ -2806,6 +2811,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ownsProjection: () => this.qaWordCloudProjectsToPresenter(),
           setProjected: (projected: boolean) => this.setQaWordCloudProjected(projected),
           presenterViewActionLabel: () => this.presenterViewActionLabel(),
+          projectionControlsOffered: () => this.projectionControlsOffered(),
           // Der sichtbare Client-Ausschnitt ist nie der kanonische Korpus.
           // Inhalte erscheinen erst aus der serverseitig gerankten Auswahl.
           responses: () => [],
@@ -2841,7 +2847,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           themeFallbackHint: () => this.qaWordCloudThemeFallbackHint(),
           themeWaitHint: () => this.qaWordCloudSemanticWaitHint(),
           hasPreparedThemes: () => this.qaWordCloudDisplayMode() === 'SEMANTIC',
-          showThemeRefresh: () => this.qaWordCloudAnalysisLocale() !== null,
+          showThemeRefresh: () =>
+            this.qaWordCloudAnalysisLocale() !== null && this.qaWordCloudQuestions().length > 0,
           sortMode: () => this.qaSortMode(),
           setSortMode: (mode: QaQuestionSortMode) => this.setQaSortMode(mode),
           frozen: () => this.qaWordCloudFrozen(),
@@ -5060,6 +5067,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.freetextWordCloudSmoothingFeedbackRequested.set(true);
     this.freetextWordCloudLemmaPreferred.set(true);
     if (!this.qaWordCloudAnalysisLocale() || this.buildFreetextWordCloudLemmaItems().length === 0) {
       return;
@@ -7053,6 +7061,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return Math.max(1, this.qaProjectionQueuePageCount());
   });
   readonly showProjectionPageNavigation = computed(() => {
+    if (!this.projectionControlsOffered()) {
+      return false;
+    }
     // Sticky Host-Navigator (Fragen) ausschließlich im Q&A-Kanal-Tab —
     // nicht auf Quiz/Kurzfeedback, auch nicht als Seiten-Fallback nach Kanalwechsel.
     if (this.activeChannel() !== 'qa') {
@@ -7071,7 +7082,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.projectionPageDisplayCount() > 1 ||
       this.projectionControlsVisible() ||
       this.presenterWindowOpen() ||
-      !this.showPresenterViewButton() ||
       session?.presenterSurface === 'ended'
     );
   });
@@ -12626,13 +12636,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       mode: this.qaWordCloudEffectiveAnalysisVariant(),
       effectiveMode: this.qaWordCloudDisplayMode(),
       analysisLanguage: this.wordCloudTermLocale(),
-      analysisStatus: this.qaWordCloudThemeAnalysisPending()
-        ? 'pending'
-        : this.qaWordCloudThemeAnalysisFailed()
-          ? 'failed'
-          : this.qaWordCloudSemanticStale()
-            ? 'stale'
-            : this.qaWordCloudThemeAnalysisResult()?.status,
+      analysisStatus:
+        this.qaWordCloudQuestions().length === 0
+          ? undefined
+          : this.qaWordCloudThemeAnalysisPending()
+            ? 'pending'
+            : this.qaWordCloudThemeAnalysisFailed()
+              ? 'failed'
+              : this.qaWordCloudSemanticStale()
+                ? 'stale'
+                : this.qaWordCloudThemeAnalysisResult()?.status,
       metric: this.qaWordCloudDisplayMetric(),
       locale: this.qaWordCloudAnalysisLocale(),
       analysisEntries: this.collectQaWordCloudPresenterEntries(),
@@ -12725,13 +12738,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       questionId,
       effectiveMode: this.freetextWordCloudDisplayMode(),
       analysisLanguage: this.wordCloudTermLocale(),
-      analysisStatus: this.freetextWordCloudSemanticAnalysisPending()
-        ? 'pending'
-        : this.freetextWordCloudSemanticStale()
-          ? 'stale'
-          : this.freetextWordCloudSemanticFailed()
-            ? 'failed'
-            : this.freetextWordCloudSemanticAnalysisResult()?.status,
+      analysisStatus:
+        this.displayedFreetextResponses().length === 0
+          ? undefined
+          : this.freetextWordCloudSemanticAnalysisPending()
+            ? 'pending'
+            : this.freetextWordCloudSemanticStale()
+              ? 'stale'
+              : this.freetextWordCloudSemanticFailed()
+                ? 'failed'
+                : this.freetextWordCloudSemanticAnalysisResult()?.status,
       smoothingActive: this.freetextWordCloudLemmaSnapshotVisible(),
       entries: entries.slice(0, 80),
     };
@@ -14324,6 +14340,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       text: question.text,
       weight: this.qaWordCloudQuestionWeight(question),
     }));
+    if (items.length === 0) {
+      return null;
+    }
     const focusQuestionIds = [...this.qaCompassFocusQuestionIds()].slice(
       0,
       QA_WORD_CLOUD_MAX_FOCUS_QUESTION_IDS,
@@ -14603,6 +14622,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const items = this.buildFreetextWordCloudLemmaItems();
+    if (items.length === 0) {
+      return null;
+    }
     return {
       sessionCode: this.code.toUpperCase(),
       mode: 'SEMANTIC',
@@ -14955,6 +14977,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.freetextWordCloudLemmaResult.set(null);
     this.freetextWordCloudLemmaSnapshotKey.set(null);
     this.freetextWordCloudLemmaFallbackReason.set(null);
+    this.freetextWordCloudSmoothingFeedbackRequested.set(false);
   }
 
   private async requestFreetextWordCloudLemmaSmoothing(): Promise<void> {

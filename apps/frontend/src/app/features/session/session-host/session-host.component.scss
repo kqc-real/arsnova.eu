@@ -867,8 +867,7 @@
     font: var(--mat-sys-label-medium);
   }
 
-  /* Rahmen-Umschaltung bleibt sichtbar als Fokus-Fallback,
-     wenn Presenter/Fullscreen unter 600px ausgeblendet werden. */
+  /* Technische Projektionsaktionen werden auf Smartphones nicht angeboten. */
   .session-host__view-toggle--fullscreen,
   .session-host__view-toggle--presenter,
   .session-host__presenter-cta {
@@ -5971,9 +5970,18 @@ button.session-host__btn-discussion {
 .session-host__extra-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   justify-content: flex-end;
   gap: 0.5rem;
   margin: 0 0 0.5rem;
+}
+
+.session-host__word-cloud-view-hint {
+  margin: 0 0 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+  text-align: start;
 }
 
 .session-host__extra-analysis-toggle {
@@ -8943,8 +8951,4 @@ $round2-color: var(--mat-sys-primary);
   display: grid;
   gap: 0.65rem;
   padding-block: 0.45rem;
-
-  p {
-    margin: 0;
-  }
 }

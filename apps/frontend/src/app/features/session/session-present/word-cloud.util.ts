@@ -32,6 +32,17 @@ export function wordCloudTopicProgressLabel(showPrevious: boolean): string {
     : $localize`:@@sessionQa.wordCloudSemanticPendingHint:Themen werden vorbereitet.`;
 }
 
+export function wordCloudViewHint(variant: WordCloudAnalysisVariant): string {
+  switch (variant) {
+    case 'LEXICAL':
+      return $localize`:@@wordCloud.viewHintWords:Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.`;
+    case 'THEME':
+      return $localize`:@@wordCloud.viewHintPhrases:Wörter und kurze Wortgruppen wie »roter Faden«.`;
+    case 'SEMANTIC':
+      return $localize`:@@wordCloud.viewHintTopics:Ähnliche Beiträge, zusammengefasst als Themen.`;
+  }
+}
+
 export function wordCloudExportViewLabel(
   selected: WordCloudAnalysisVariant,
   displayed: WordCloudAnalysisVariant,
@@ -39,11 +50,11 @@ export function wordCloudExportViewLabel(
   if (displayed === 'SEMANTIC') return $localize`:@@wordCloud.exportTopics:Themen`;
   if (selected !== displayed) {
     return displayed === 'THEME'
-      ? $localize`:@@wordCloud.exportFallbackPhrases:Ersatzansicht mit Wörtern und Phrasen`
+      ? $localize`:@@wordCloud.exportFallbackPhrases:Ersatzansicht mit Wörtern und Wortgruppen`
       : $localize`:@@wordCloud.exportFallbackWords:Ersatzansicht mit Wörtern`;
   }
   return displayed === 'THEME'
-    ? $localize`:@@wordCloud.exportPhrases:Wörter und Phrasen`
+    ? $localize`:@@wordCloud.exportPhrases:Wörter und Wortgruppen`
     : $localize`:@@wordCloud.exportWords:Wörter`;
 }
 export {

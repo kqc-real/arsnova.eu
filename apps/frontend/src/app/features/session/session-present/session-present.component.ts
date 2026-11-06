@@ -122,7 +122,11 @@ import {
   lobbyFitColumnCount,
 } from './lobby-audience-density.util';
 import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
-import { hasLegacyWordCloudTopics, wordCloudTopicProgressLabel } from './word-cloud.util';
+import {
+  hasLegacyWordCloudTopics,
+  wordCloudTopicProgressLabel,
+  wordCloudViewHint,
+} from './word-cloud.util';
 import { qaWordCloudReadingHint } from './word-cloud-labels';
 import {
   WordCloudTermExtractorService,
@@ -1163,6 +1167,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly presenterFreetextThemeRefreshRetained = signal(false);
   private readonly presenterFreetextFrozenResponses = signal<string[] | null>(null);
   readonly presenterFreetextLemmaPreferred = signal(false);
+  readonly presenterFreetextSmoothingFeedbackRequested = signal(false);
   readonly presenterFreetextLemmaPending = signal(false);
   readonly presenterFreetextLemmaEntries = signal<WordCloudAnalysisEntryDTO[] | null>(null);
   private readonly presenterFreetextLemmaApplied = signal(false);
@@ -1252,16 +1257,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }
     },
   );
-  readonly presenterFreetextWordCloudDescription = computed(() => {
-    switch (this.presenterFreetextDisplayMode()) {
-      case 'SEMANTIC':
-        return $localize`:@@sessionWordCloud.freetextDescriptionSemantic:Inhaltlich ähnliche Antworten sind zu Themen zusammengefasst.`;
-      case 'LEXICAL':
-        return $localize`:@@sessionWordCloud.freetextDescription:Häufige Wörter aus den Antworten.`;
-      default:
-        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.`;
-    }
-  });
+  readonly presenterFreetextWordCloudViewHint = computed(() =>
+    wordCloudViewHint(
+      this.presenterFreetextWordCloudModeEffective() === 'WORDS'
+        ? 'LEXICAL'
+        : this.presenterFreetextWordCloudModeEffective() === 'PHRASES'
+          ? 'THEME'
+          : 'SEMANTIC',
+    ),
+  );
   readonly presenterFreetextWordCloudWordLabelSingular = computed(() => {
     switch (this.presenterFreetextDisplayMode()) {
       case 'SEMANTIC':
@@ -1390,11 +1394,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'pending':
         return $localize`:@@sessionQa.wordCloudSmoothPending:Analyse läuft`;
       case 'active':
-        return $localize`:@@sessionQa.wordCloudSmoothActive:Wortformen gebündelt`;
+        return $localize`:@@sessionQa.wordCloudSmoothActive:Nach Grundform gebündelt`;
       case 'stale':
-        return $localize`:@@sessionQa.wordCloudSmoothRetry:Wortformen aktualisieren`;
+        return $localize`:@@sessionQa.wordCloudSmoothRetry:Bündelung aktualisieren`;
       default:
-        return $localize`:@@sessionQa.wordCloudSmooth:Wortformen bündeln`;
+        return $localize`:@@sessionQa.wordCloudSmooth:Nach Grundform bündeln`;
     }
   });
   readonly presenterFreetextSmoothingIcon = computed(() => {
@@ -1411,6 +1415,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly presenterFreetextShowThemeRefresh = computed(() => {
     if (this.presenterFreetextWordCloudModeEffective() !== 'SEMANTIC') {
+      return false;
+    }
+    if (this.presenterFreetextAnalysisItems().length === 0) {
       return false;
     }
     if (this.presenterFreetextSemanticPending() && this.presenterFreetextThemeRefreshRetained()) {
@@ -1433,6 +1440,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly presenterFreetextThemeRefreshLabel = $localize`:@@sessionQa.wordCloudRefreshThemes:Themen aktualisieren`;
   readonly presenterFreetextWordCloudHint = computed(() => {
+    if (this.presenterFreetextAnalysisItems().length === 0) {
+      return null;
+    }
     if (this.presenterFreetextSemanticPending()) {
       return wordCloudTopicProgressLabel(this.presenterFreetextDisplayMode() === 'SEMANTIC');
     }
@@ -1467,19 +1477,29 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return $localize`:@@sessionWordCloud.freetextTopicsStale:Neue Antworten seit der letzten Themenanalyse`;
       }
     }
+    if (this.presenterFreetextWordCloudFrozen()) {
+      return $localize`:@@sessionHost.wordCloudFrozenInfo:Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.`;
+    }
+    return null;
+  });
+  readonly presenterFreetextSmoothingOptionHint = computed(() => {
     if (
-      this.presenterFreetextShowSmoothing() &&
-      !this.presenterFreetextAnalysisLocale() &&
-      this.presenterFreetextAnalysisItems().length > 0
+      !this.presenterFreetextSmoothingFeedbackRequested() ||
+      !this.presenterFreetextShowSmoothing() ||
+      this.presenterFreetextAnalysisItems().length === 0 ||
+      this.presenterFreetextLemmaPending()
     ) {
+      return null;
+    }
+    if (!this.presenterFreetextAnalysisLocale()) {
       return $localize`:@@sessionPresent.wordCloudChooseHostLocale:Wähle die Sprache der Beiträge in der Steueransicht.`;
     }
     if (this.presenterFreetextSmoothingStatus() === 'stale') {
-      return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten seit letzter Wort-Glättung`;
+      return $localize`:@@sessionHost.wordCloudSmoothStale:Neue Antworten noch nicht nach Grundform gebündelt`;
     }
     const fallback = this.presenterFreetextLemmaFallbackReason();
     if (fallback === 'TIMEOUT' || fallback === 'INVALID_RESPONSE') {
-      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wortformen konnten gerade nicht gebündelt werden. Die bisherige Auswertung bleibt nutzbar.`;
+      return $localize`:@@sessionQa.wordCloudSmoothFailed:Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.`;
     }
     if (
       fallback === 'NLP_DISABLED' ||
@@ -1487,10 +1507,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       fallback === 'LOCALE_UNSUPPORTED' ||
       fallback === 'MODE_UNSUPPORTED'
     ) {
-      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.`;
-    }
-    if (this.presenterFreetextWordCloudFrozen()) {
-      return $localize`:@@sessionHost.wordCloudFrozenInfo:Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.`;
+      return $localize`:@@sessionQa.wordCloudSmoothUnavailable:Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.`;
     }
     return null;
   });
@@ -1601,7 +1618,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly qaWordCloudProjectionHint = computed(() => {
     const projection = this.qaWordCloudProjection();
-    if (projection?.mode !== 'SEMANTIC') return null;
+    if (projection?.mode !== 'SEMANTIC' || projection.analysisEntries.length === 0) return null;
     switch (projection.analysisStatus) {
       case 'pending':
         return wordCloudTopicProgressLabel(this.qaWordCloudDisplayMode() === 'SEMANTIC');
@@ -1629,7 +1646,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'LEXICAL':
         return $localize`:@@sessionQa.wordCloudDescriptionLexical:Einzelne Wörter aus den freigegebenen Fragen.`;
       default:
-        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.`;
+        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »roter Faden«.`;
     }
   });
   readonly qaWordCloudWordLabelSingular = computed(() => {
@@ -2885,18 +2902,21 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.presenterFreetextWordCloudModeEffective(),
       );
       this.presenterFreetextLemmaPreferred.set(false);
+      this.presenterFreetextSmoothingFeedbackRequested.set(false);
       this.presenterFreetextLemmaEntries.set(null);
       void this.publishPresenterFreetextWordCloud();
       return;
     }
     if (this.presenterFreetextSmoothingStatus() === 'active') {
       this.presenterFreetextLemmaPreferred.set(false);
+      this.presenterFreetextSmoothingFeedbackRequested.set(false);
       this.presenterFreetextLemmaEntries.set(null);
       this.presenterFreetextLemmaAnalyzedKey.set(null);
       void this.publishPresenterFreetextWordCloud();
       return;
     }
     this.presenterFreetextWordCloudModeOverride.set(this.presenterFreetextWordCloudModeEffective());
+    this.presenterFreetextSmoothingFeedbackRequested.set(true);
     this.presenterFreetextLemmaPreferred.set(true);
     void this.requestPresenterFreetextLemmaSmoothing();
   }
@@ -2928,6 +2948,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.presenterFreetextFrozenAnalysis.set(null);
     this.presenterFreetextProjectedLemmaFallback.set(null);
     this.presenterFreetextLemmaPreferred.set(false);
+    this.presenterFreetextSmoothingFeedbackRequested.set(false);
     this.presenterFreetextLemmaPending.set(false);
     this.presenterFreetextLemmaEntries.set(null);
     this.presenterFreetextLemmaApplied.set(false);

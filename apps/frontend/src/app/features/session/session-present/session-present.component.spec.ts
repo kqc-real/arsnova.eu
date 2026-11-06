@@ -587,21 +587,62 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
-    expect(text).toContain('Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.');
     expect(text).toContain('Wortgruppen');
     expect(text).toContain('Anzeige anhalten');
-    expect(text).toContain('Wortformen bündeln');
+    expect(text).toContain('Nach Grundform bündeln');
+    expect(text).toContain('Wörter und kurze Wortgruppen');
+    expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
+    const viewHint = fixture.nativeElement.querySelector(
+      '.session-present__word-cloud-view-hint',
+    ) as HTMLElement;
+    expect(viewHint).toBeTruthy();
+    expect(viewHint.closest('details')).toBeNull();
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-freetext-word-cloud-words"]'),
     ).toBeTruthy();
-    expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
+    expect(text).not.toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     expect(
       fixture.nativeElement.querySelector('.word-cloud__meta .word-cloud__reading-hint'),
-    ).toBeTruthy();
+    ).toBeNull();
     expect(text).not.toContain('CSV speichern');
     expect(text).not.toContain('PNG speichern');
     expect(text).not.toContain('Antwort anzeigen');
     expect(text).not.toContain('Maximieren');
+    fixture.destroy();
+  });
+
+  it('ignoriert einen alten Themenfehler, solange noch keine Freitext-Beiträge vorliegen', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    fixture.componentInstance.session.update((session) =>
+      session ? { ...session, presenterSurface: 'freetextWordCloud' } : session,
+    );
+    fixture.componentInstance.freetextQuestionId.set(questionId);
+    fixture.componentInstance.freetextResponses.set([]);
+    fixture.componentInstance.freetextWordCloudProjection.set({
+      mode: 'SEMANTIC',
+      effectiveMode: 'SEMANTIC',
+      analysisStatus: 'failed',
+      analysisLanguage: 'de',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.presenterFreetextWordCloudHint()).toBeNull();
+    expect(fixture.componentInstance.presenterFreetextShowThemeRefresh()).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Themen konnten gerade nicht aktualisiert werden.',
+    );
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-freetext-word-cloud-refresh"]'),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -636,7 +677,7 @@ describe('SessionPresentComponent', () => {
     words.click();
     fixture.detectChanges();
     expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
-    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
     expect(setFreetextWordCloudProjectionMutateMock).toHaveBeenCalled();
 
     freeze.click();
@@ -759,9 +800,15 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.presenterFreetextSmoothingStatus()).toBe('idle');
     expect(fixture.nativeElement.textContent).toContain(
-      'Das Bündeln von Wortformen ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.',
+      'Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.',
     );
-    expect(fixture.nativeElement.textContent).not.toContain('Wortformen gebündelt');
+    const smoothingFeedback = fixture.nativeElement.querySelector(
+      '.session-present__word-cloud-options .session-present__word-cloud-toolbar-status',
+    ) as HTMLElement | null;
+    expect(smoothingFeedback?.textContent).toContain(
+      'Das Bündeln nach Grundform ist hier nicht verfügbar.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Nach Grundform gebündelt');
     const publishedFallback = setFreetextWordCloudProjectionMutateMock.mock.calls.at(-1)?.[0] as {
       projection: { smoothingActive: boolean };
     };
@@ -778,7 +825,7 @@ describe('SessionPresentComponent', () => {
     fixture.componentInstance.presenterFreetextLemmaPreferred.set(false);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
-    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
     (
       fixture.nativeElement.querySelector(
         '[data-testid="presenter-freetext-word-cloud-freeze"]',
@@ -795,10 +842,10 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.presenterFreetextWordCloudModeEffective()).toBe('WORDS');
     expect(fixture.nativeElement.textContent).toContain('AlteProjektion');
-    expect(fixture.nativeElement.textContent).toContain('Häufige Wörter aus den Antworten.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('NeueProjektion');
     expect(fixture.nativeElement.textContent).not.toContain(
-      'Wörter und Wortgruppen, zum Beispiel »klare Erklärung«.',
+      'Wörter und kurze Wortgruppen wie »roter Faden«.',
     );
 
     (
