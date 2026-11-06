@@ -165,6 +165,7 @@ import {
   resolveNumericEstimateToleranceMode,
   buildConfidenceResult,
   buildSessionConfidenceSummary,
+  countPersonalMisconceptions,
   questionSupportsConfidence,
   questionShufflesParticipantChoiceAnswers,
   resolveEffectiveAggregationRound,
@@ -11216,6 +11217,7 @@ const sessionCoreRouter = router({
         select: {
           score: true,
           isCorrect: true,
+          confidenceValue: true,
           streakCount: true,
           streakBonus: true,
           matchingSelections: true,
@@ -11292,6 +11294,8 @@ const sessionCoreRouter = router({
           : 0;
 
       const totalQuestions = session.quiz.questions.length;
+      const currentQuestionUsesConfidence =
+        question.confidenceEnabled === true && questionSupportsConfidence(question.type);
       return {
         questionOrder: input.questionIndex + 1,
         totalQuestions,
@@ -11321,6 +11325,12 @@ const sessionCoreRouter = router({
           questionType === 'CATEGORIZATION' && Array.isArray(myVote?.categorizationSelections)
             ? (myVote.categorizationSelections as CategorizationSelection[])
             : undefined,
+        ...(currentQuestionUsesConfidence
+          ? {
+              confidenceValue:
+                typeof myVote?.confidenceValue === 'number' ? myVote.confidenceValue : null,
+            }
+          : {}),
       };
     }),
 
@@ -11337,6 +11347,8 @@ const sessionCoreRouter = router({
         totalScore: z.number(),
         rank: z.number(),
         bonusToken: z.string().nullable(),
+        /** Eigene selbstsicher falsche Antworten. `null`, wenn keine Selbsteinschätzung vorliegt. */
+        misconceptionCount: z.number().int().min(0).nullable(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -11352,7 +11364,10 @@ const sessionCoreRouter = router({
             questionProgressComplete: true,
             quiz: {
               select: {
-                questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+                questions: {
+                  orderBy: { order: 'asc' },
+                  select: { id: true, order: true, type: true, confidenceEnabled: true },
+                },
               },
             },
             participants: { select: { id: true } },
@@ -11457,10 +11472,42 @@ const sessionCoreRouter = router({
         select: { token: true },
       });
 
+      const confidenceQuestions = (session.quiz?.questions ?? [])
+        .filter((question) => includedQuestionIds.has(question.id))
+        .map((question) => ({
+          questionId: question.id,
+          confidenceEnabled:
+            question.confidenceEnabled === true && questionSupportsConfidence(question.type),
+        }));
+      const enabledConfidenceQuestionIds = confidenceQuestions
+        .filter((question) => question.confidenceEnabled)
+        .map((question) => question.questionId);
+      const personalConfidenceVotes =
+        enabledConfidenceQuestionIds.length > 0
+          ? await prisma.vote.findMany({
+              where: {
+                sessionId: session.id,
+                participantId: input.participantId,
+                questionId: { in: enabledConfidenceQuestionIds },
+                round: { in: [1, 2] },
+              },
+              select: {
+                questionId: true,
+                round: true,
+                isCorrect: true,
+                confidenceValue: true,
+              },
+            })
+          : [];
+
       return {
         totalScore: myScore,
         rank: myRank,
         bonusToken: token?.token ?? null,
+        misconceptionCount: countPersonalMisconceptions(
+          confidenceQuestions,
+          personalConfidenceVotes,
+        ),
       };
     }),
 

@@ -686,6 +686,16 @@
             }
           </section>
 
+          @if (finishedConfidenceMisconceptionHint(); as misconceptionHint) {
+            <p
+              class="vote-confidence vote-confidence--result vote-finished-misconceptions"
+              role="status"
+              data-testid="vote-finished-misconceptions"
+            >
+              {{ misconceptionHint }}
+            </p>
+          }
+
           @if (personalLeaderboard().length > 0) {
             <section
               class="vote-finished-leaderboard"
@@ -2194,6 +2204,15 @@
                 <strong>{{ confidenceResultSummary() }}</strong>
               </p>
             </div>
+          }
+          @if (questionConfidenceMisconceptionHint(); as misconceptionHint) {
+            <p
+              class="vote-confidence vote-confidence--result"
+              role="status"
+              data-testid="vote-confidence-misconceptions"
+            >
+              {{ misconceptionHint }}
+            </p>
           }
 
           @if (voteSent()) {

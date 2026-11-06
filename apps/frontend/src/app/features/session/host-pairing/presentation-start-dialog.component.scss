@@ -17,16 +17,62 @@
   @include md3.pairing-hint;
 }
 
-.presentation-start-dialog__section {
-  @include md3.pairing-section;
+.presentation-start-dialog__phone {
+  margin: 0;
 }
 
-.presentation-start-dialog__subtitle {
-  @include md3.pairing-heading;
+.presentation-start-dialog__phone-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::after {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-left: auto;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translateY(-0.1rem);
+    flex-shrink: 0;
+  }
 }
 
-.presentation-start-dialog__status {
-  @include md3.pairing-status;
+.presentation-start-dialog__phone[open] .presentation-start-dialog__phone-summary::after {
+  transform: rotate(225deg) translateY(-0.1rem);
+}
+
+.presentation-start-dialog__phone-summary:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.presentation-start-dialog__phone[open] .presentation-start-dialog__summary-status {
+  display: none;
+}
+
+.presentation-start-dialog__summary-status {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+}
+
+.presentation-start-dialog__phone-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-block: 0.45rem 0.15rem;
 }
 
 .presentation-start-dialog__notice {

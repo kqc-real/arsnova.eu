@@ -17683,8 +17683,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="presentationStart.screenHint" datatype="html">
-        <source> Öffne die Präsentation auf dem Projektionsbildschirm. Hier steuerst du weiter; die Smartphone-Verbindung ist optional.</source>
-        <target>Open the presentation on the projection screen. Keep controlling it here; connecting a smartphone is optional.</target>
+        <source> Öffne die Präsentation auf dem Projektionsbildschirm.</source>
+        <target>Open the presentation on the projection screen.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
           <context context-type="linenumber">13,16</context>
@@ -29729,6 +29729,38 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">2139,2141</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionHint" datatype="html">
+        <source>Du hast selbstsicher falsch geantwortet!</source>
+        <target>You were confidently wrong!</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3564</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionNone" datatype="html">
+        <source>Du hast nie selbstsicher falsch geantwortet.</source>
+        <target>You were never confidently wrong.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3554</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionOne" datatype="html">
+        <source>Du hast einmal selbstsicher falsch geantwortet.</source>
+        <target>You were confidently wrong once.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3557</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionMany" datatype="html">
+        <source>Du hast <x id="count" equiv-text="count"/>-mal selbstsicher falsch geantwortet.</source>
+        <target>You were confidently wrong <x id="count" equiv-text="count"/> times.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3560</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceResultPrefix" datatype="html">
