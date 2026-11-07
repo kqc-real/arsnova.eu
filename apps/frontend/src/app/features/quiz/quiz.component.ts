@@ -1,5 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -16,6 +16,7 @@ import { filter } from 'rxjs/operators';
 })
 export class QuizComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private navSub?: Subscription;
 
   readonly showHeader = signal(true);
@@ -35,9 +36,14 @@ export class QuizComponent implements OnInit, OnDestroy {
   }
 
   private updateHeaderVisibility(): void {
-    const segments = this.router.url.split('?')[0].split('/').filter(Boolean);
-    const childRoute = segments[1] ?? '';
-    const isPreview = segments[2] === 'preview';
+    const childSegments: string[] = [];
+    let activeChild = this.route.firstChild;
+    while (activeChild) {
+      childSegments.push(...activeChild.snapshot.url.map((segment) => segment.path));
+      activeChild = activeChild.firstChild;
+    }
+    const childRoute = childSegments[0] ?? '';
+    const isPreview = childSegments.includes('preview');
     const isEditorRoute = childRoute === 'new' || (childRoute !== '' && childRoute !== 'sync');
 
     this.showHeader.set(!isPreview);

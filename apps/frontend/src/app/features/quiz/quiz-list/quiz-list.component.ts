@@ -169,6 +169,10 @@ export class QuizListComponent implements OnInit {
       read: ElementRef,
     },
   );
+  private readonly deleteAllButton = viewChild<unknown, ElementRef<HTMLButtonElement>>(
+    'deleteAllButton',
+    { read: ElementRef },
+  );
   private readonly sortSelect = viewChild(MatSelect);
   readonly searchQuery = signal('');
   readonly clearSearchLabel = $localize`:@@quizList.clearSearch:Suche löschen`;
@@ -380,8 +384,13 @@ export class QuizListComponent implements OnInit {
       untracked(() => {
         this.searchQuery.set('');
         const tools = this.collectionTools()?.nativeElement;
+        const deleteAllButton = this.deleteAllButton()?.nativeElement;
         const select = this.sortSelect();
-        if (tools?.contains(this.document.activeElement) || select?.panelOpen) {
+        if (
+          tools?.contains(this.document.activeElement) ||
+          deleteAllButton === this.document.activeElement ||
+          select?.panelOpen
+        ) {
           select?.close();
           this.focusCreateQuizLink();
         }

@@ -650,6 +650,24 @@ describe('QuizListComponent', () => {
     },
   );
 
+  it('rettet bei vier auf drei Quizzen den Fokus vom Sammellösch-Button', () => {
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    const deleteAll = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent?.includes('Alle Quizze löschen'))!;
+    deleteAll.focus();
+    expect(document.activeElement).toBe(deleteAll);
+
+    quizzesSignal.set(sortableQuizzes.slice(0, 3));
+    fixture.detectChanges();
+
+    const create = fixture.nativeElement.querySelector('a[routerLink="new"]') as HTMLElement;
+    expect(document.activeElement).toBe(create);
+    expect(create.closest('[hidden]')).toBeNull();
+  });
+
   it('zählt die Demo zur Schwelle und durchsucht sie zusammen mit eigenen Quizzen', () => {
     const demo = summary({ id: DEMO_QUIZ_ID, name: 'Demo', description: 'SQL' });
     quizzesSignal.set([demo]);
