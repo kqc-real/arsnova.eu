@@ -2333,6 +2333,20 @@ jobs:
             export DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
             export DEPLOY_SHA="$DEPLOY_SHA"
             export DEPLOY_IMAGE="$DEPLOY_IMAGE"
+            # Der Checkout selbst braucht freien Platz. Ein volles Dateisystem
+            # darf den Server daher nicht vor deploy.sh in einem angerissenen
+            # Zustand lassen. Nur reproduzierbaren Build-Cache und unreferenzierte
+            # Images entfernen; Volumes und laufende Container bleiben unberührt.
+            echo "Speicherbelegung vor risikoarmer Deploy-Bereinigung:"
+            df -h /
+            docker system df
+            docker builder prune -af --reserved-space 10GB
+            # Aktive Images (insbesondere der laufende Last-known-good-Stand)
+            # bleiben erhalten. Der 24h-Filter bewahrt zusätzlich frisch
+            # gepullte, noch nicht gestartete Release-Kandidaten.
+            docker image prune -af --filter "until=24h"
+            echo "Speicherbelegung nach risikoarmer Deploy-Bereinigung:"
+            df -h /
             cd "$DEPLOY_DIR"
             # Bootstrap: Ziel-Commit AUSCHECKEN, bevor deploy.sh startet.
             # Sonst würde der erste Post-Merge-Lauf noch das alte 1B-Skript
