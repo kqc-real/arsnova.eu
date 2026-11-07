@@ -1,6 +1,7 @@
 <section class="quiz-list-page l-stack l-stack--sm">
   <div class="quiz-list__actions">
     <a
+      #createQuizLink
       matButton="filled"
       routerLink="new"
       i18n-aria-label="@@quizList.createAria"
@@ -22,6 +23,20 @@
       <mat-icon>upload_file</mat-icon>
       <span i18n>Importieren</span>
     </button>
+    @if (showCollectionTools()) {
+      <button
+        mat-button
+        type="button"
+        color="warn"
+        class="quiz-list__delete-all"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="deleteAllDialogOpen()"
+        (click)="deleteAllQuizzes()"
+      >
+        <mat-icon aria-hidden="true">delete</mat-icon>
+        <span i18n="@@quizList.deleteAllConfirm">Alle Quizze löschen</span>
+      </button>
+    }
     <input
       #importFileInput
       type="file"
@@ -30,6 +45,53 @@
       (change)="onImportFileSelected($event)"
     />
   </div>
+  <div #collectionTools [hidden]="!showCollectionTools()">
+    <div class="quiz-list__tools l-grid l-grid--lg">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="quiz-list__search">
+        <mat-label i18n="@@quizList.searchLabel">Quiz suchen</mat-label>
+        <mat-icon matIconPrefix aria-hidden="true">search</mat-icon>
+        <input
+          #quizSearchInput
+          matInput
+          type="search"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+        />
+        @if (searchQuery().length > 0) {
+          <button
+            mat-icon-button
+            matIconSuffix
+            type="button"
+            [attr.aria-label]="clearSearchLabel"
+            [matTooltip]="clearSearchLabel"
+            (click)="clearSearch(quizSearchInput)"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        }
+        <mat-hint i18n="@@quizList.searchHint">Titel und Beschreibung durchsuchen</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="quiz-list__sort">
+        <mat-label i18n="@@quizList.sortLabel">Sortieren nach</mat-label>
+        <mat-select [value]="sortMode()" (selectionChange)="setSortMode($event.value)">
+          @for (option of sortOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <p class="quiz-list__results" role="status" aria-live="polite" aria-atomic="true">
+      <span i18n="@@quizList.resultCount"
+        >{{ formatCount(visibleQuizCount()) }} von {{ formatCount(quizzes().length) }} Quizzen</span
+      >
+    </p>
+    @if (hasSearch() && visibleQuizCount() === 0) {
+      <p class="quiz-list__no-results" i18n="@@quizList.noSearchResults">
+        Keine passenden Quizze. Ändere oder lösche deinen Suchtext.
+      </p>
+    }
+  </div>
+
   @if (demoQuizWhenLibraryEmpty(); as quiz) {
     <section class="quiz-list__lead-demo l-stack l-stack--sm" aria-labelledby="quiz-demo-heading">
       <div class="quiz-list__demo-head">
@@ -334,7 +396,7 @@
   }
 
   @if (sortedQuizzesForList().length > 0) {
-    <div class="quiz-list__items l-stack l-stack--sm">
+    <div class="quiz-list__items l-grid l-grid--lg">
       @for (quiz of sortedQuizzesForList(); track quiz.id) {
         <ng-container
           [ngTemplateOutlet]="quizItemCard"

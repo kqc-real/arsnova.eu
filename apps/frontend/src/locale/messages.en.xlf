@@ -36892,6 +36892,178 @@
         <source>Wähle die Sprache der Beiträge in der Steueransicht.</source>
         <target>Choose the contribution language in the host view.</target>
         </trans-unit>
+      <trans-unit id="quizList.searchLabel" datatype="html">
+        <source>Quiz suchen</source>
+        <target>Search quizzes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">35,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.searchHint" datatype="html">
+        <source>Titel und Beschreibung durchsuchen</source>
+        <target>Search titles and descriptions</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">42,44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortLabel" datatype="html">
+        <source>Sortieren nach</source>
+        <target>Sort by</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">45,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.resultCount" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ formatCount(visibleQuizCount()) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(quizzes().length) }}"/> Quizzen</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ formatCount(visibleQuizCount()) }}"/> of <x id="INTERPOLATION_1" equiv-text="{{ formatCount(quizzes().length) }}"/> quizzes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">55,57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.noSearchResults" datatype="html">
+        <source> Keine passenden Quizze. Ändere oder lösche deinen Suchtext. </source>
+        <target>No matching quizzes. Change or clear your search.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">60,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortTitleAsc" datatype="html">
+        <source>Titel A–Z</source>
+        <target>Title A–Z</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">95</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortTitleDesc" datatype="html">
+        <source>Titel Z–A</source>
+        <target>Title Z–A</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">96</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortUpdated" datatype="html">
+        <source>Zuletzt geändert</source>
+        <target>Last modified</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortCreated" datatype="html">
+        <source>Zuletzt erstellt</source>
+        <target>Newest first</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortQuestionsAsc" datatype="html">
+        <source>Wenigste Fragen zuerst</source>
+        <target>Fewest questions first</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortQuestionsDesc" datatype="html">
+        <source>Meiste Fragen zuerst</source>
+        <target>Most questions first</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.clearSearch" datatype="html">
+        <source>Suche löschen</source>
+        <target>Clear search</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">174</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllConfirm" datatype="html">
+        <source>Alle Quizze löschen</source>
+        <target>Delete all quizzes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">36,39</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">845</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllTitle" datatype="html">
+        <source>Alle Quizze löschen?</source>
+        <target>Delete all quizzes?</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">829</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllMessage" datatype="html">
+        <source>Alle <x id="count" equiv-text="this.formatCount(quizIds.length)"/> Quizze dieser Sammlung werden gelöscht. Das gilt auch für Quizze, die durch die Suche ausgeblendet sind.</source>
+        <target>All <x id="count" equiv-text="this.formatCount(quizIds.length)"/> quizzes in this collection will be deleted, including quizzes hidden by the search.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">830</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllShared" datatype="html">
+        <source>Bei einer geteilten Sammlung wird die Löschung auf die verbundenen Geräte übertragen.</source>
+        <target>If this collection is shared, deletion will sync to connected devices.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">835</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllLive" datatype="html">
+        <source>Laufende Sessions bleiben geöffnet. Für ihre Moderation brauchst du weiterhin den Host-Zugang.</source>
+        <target>Live sessions stay open. You still need host access to moderate them.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">838</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllDemoNote" datatype="html">
+        <source>Das Demo-Quiz wird beim nächsten Öffnen der Sammlung wieder angeboten.</source>
+        <target>The demo quiz will be available again the next time you open the collection.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">848</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllSuccess" datatype="html">
+        <source>Gelöschte Quizze: <x id="count" equiv-text="this.formatCount(deleted)"/>.</source>
+        <target>Quizzes deleted: <x id="count" equiv-text="this.formatCount(deleted)"/>.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">860</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.quizCountOne" datatype="html">
+        <source><x id="count" equiv-text="formattedCount"/> Quiz</source>
+        <target><x id="count" equiv-text="formattedCount"/> quiz</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">299</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.quizCountMany" datatype="html">
+        <source><x id="count" equiv-text="formattedCount"/> Quizze</source>
+        <target><x id="count" equiv-text="formattedCount"/> quizzes</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">300</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

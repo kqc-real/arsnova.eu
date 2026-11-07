@@ -21,6 +21,7 @@ export class QuizComponent implements OnInit, OnDestroy {
   readonly showHeader = signal(true);
   readonly pageTitle = signal<'LIST' | 'NEW'>('LIST');
   readonly useCompactLayout = signal(true);
+  readonly useCollectionLayout = signal(false);
 
   ngOnInit(): void {
     this.updateHeaderVisibility();
@@ -41,6 +42,7 @@ export class QuizComponent implements OnInit, OnDestroy {
 
     this.showHeader.set(!isPreview);
     this.pageTitle.set(childRoute === 'new' ? 'NEW' : 'LIST');
-    this.useCompactLayout.set(!isEditorRoute);
+    this.useCollectionLayout.set(childRoute === '');
+    this.useCompactLayout.set(childRoute !== '' && !isEditorRoute);
   }
 }

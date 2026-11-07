@@ -45,3 +45,7 @@
     width: 100%;
   }
 }
+.confirm-leave__content:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
+}

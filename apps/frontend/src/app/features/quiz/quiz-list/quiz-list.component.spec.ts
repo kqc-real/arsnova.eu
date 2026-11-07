@@ -146,6 +146,7 @@ describe('QuizListComponent', () => {
     ),
     duplicateQuiz: vi.fn(),
     deleteQuiz: vi.fn(),
+    deleteQuizzes: vi.fn(),
     exportQuiz: vi.fn(),
     getUploadPayload: vi.fn(),
     takeUploadLearningObjectiveWarning: vi.fn(),
@@ -157,6 +158,8 @@ describe('QuizListComponent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockStore.deleteQuizzes.mockReset().mockReturnValue(0);
+    localStorage.removeItem('arsnova-quiz-list-sort:v1');
     localStorage.removeItem('arsnova-host-scenario:v1');
     sessionStorage.removeItem('arsnova-host-scenario-session:v1:NEW123');
     quizzesSignal.set([]);
@@ -204,8 +207,482 @@ describe('QuizListComponent', () => {
   });
 
   afterEach(() => {
+    localStorage.removeItem('arsnova-quiz-list-sort:v1');
     localStorage.removeItem('arsnova-host-scenario:v1');
     sessionStorage.removeItem('arsnova-host-scenario-session:v1:NEW123');
+  });
+
+  function summary(overrides: Partial<QuizSummary> = {}): QuizSummary {
+    return {
+      id: 'alpha',
+      name: 'Alpha',
+      description: null,
+      createdAt: '2026-03-01T10:00:00.000Z',
+      updatedAt: '2026-03-02T10:00:00.000Z',
+      questionCount: 5,
+      teamMode: false,
+      hasBonus: false,
+      lastServerQuizId: null,
+      lastServerQuizAccessProof: null,
+      ...overrides,
+    };
+  }
+
+  const sortableQuizzes = [
+    summary({
+      id: 'quiz10',
+      name: 'Quiz 10',
+      questionCount: 10,
+      createdAt: '2026-03-03T10:00:00.000Z',
+      updatedAt: '2026-03-01T10:00:00.000Z',
+    }),
+    summary({
+      id: 'zebra',
+      name: 'Zebra',
+      questionCount: 2,
+      createdAt: '2026-03-02T10:00:00.000Z',
+      updatedAt: '2026-03-03T10:00:00.000Z',
+    }),
+    summary({ id: 'quiz2', name: 'Quiz 2' }),
+    summary(),
+  ];
+
+  it('sortiert standardmäßig natürlich nach Titel, ohne die Sammlung zu verändern', () => {
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sortMode()).toBe('title-asc');
+    expect(
+      Array.from(fixture.nativeElement.querySelectorAll('.quiz-list-item__title')).map((title) =>
+        (title as HTMLElement).textContent?.trim(),
+      ),
+    ).toEqual(['Alpha', 'Quiz 2', 'Quiz 10', 'Zebra']);
+    expect(quizzesSignal()).toBe(sortableQuizzes);
+    expect(quizzesSignal().map((quiz) => quiz.id)).toEqual(['quiz10', 'zebra', 'quiz2', 'alpha']);
+  });
+
+  it.each([
+    ['title-asc', ['alpha', 'quiz2', 'quiz10', 'zebra']],
+    ['title-desc', ['zebra', 'quiz10', 'quiz2', 'alpha']],
+    ['updated-desc', ['zebra', 'alpha', 'quiz2', 'quiz10']],
+    ['created-desc', ['quiz10', 'zebra', 'alpha', 'quiz2']],
+    ['questions-asc', ['zebra', 'alpha', 'quiz2', 'quiz10']],
+    ['questions-desc', ['quiz10', 'alpha', 'quiz2', 'zebra']],
+  ])('sortiert nach %s und löst Gleichstände nach Titel auf', (mode, expected) => {
+    quizzesSignal.set(sortableQuizzes);
+    const component = TestBed.createComponent(QuizListComponent).componentInstance;
+    component.setSortMode(mode as string);
+    expect(component.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual(expected);
+  });
+
+  it('löst identische Titel unabhängig von der Eingangsreihenfolge stabil auf', () => {
+    quizzesSignal.set([summary({ id: 'b' }), summary({ id: 'a' })]);
+    const component = TestBed.createComponent(QuizListComponent).componentInstance;
+    expect(component.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual(['a', 'b']);
+    quizzesSignal.update((quizzes) => [...quizzes].reverse());
+    expect(component.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual(['a', 'b']);
+  });
+
+  it('speichert die Auswahl aus dem Sortierfeld und stellt sie beim erneuten Öffnen wieder her', async () => {
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('mat-select') as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const option = Array.from(document.querySelectorAll('mat-option')).find((element) =>
+      element.textContent?.includes('Wenigste Fragen zuerst'),
+    ) as HTMLElement;
+    option.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sortMode()).toBe('questions-asc');
+    expect(localStorage.getItem('arsnova-quiz-list-sort:v1')).toBe('questions-asc');
+    fixture.destroy();
+    const reopened = TestBed.createComponent(QuizListComponent);
+    reopened.detectChanges();
+    await reopened.whenStable();
+    reopened.detectChanges();
+    expect(reopened.componentInstance.sortMode()).toBe('questions-asc');
+    expect(reopened.nativeElement.querySelector('mat-select').textContent).toContain(
+      'Wenigste Fragen zuerst',
+    );
+  });
+
+  it('verwendet bei ungültig gespeicherter Auswahl A–Z und ignoriert ungültige Änderungen', () => {
+    localStorage.setItem('arsnova-quiz-list-sort:v1', 'legacy-or-invalid');
+    const component = TestBed.createComponent(QuizListComponent).componentInstance;
+    expect(component.sortMode()).toBe('title-asc');
+    component.setSortMode('unrecognized');
+    expect(component.sortMode()).toBe('title-asc');
+    expect(localStorage.getItem('arsnova-quiz-list-sort:v1')).toBe('legacy-or-invalid');
+  });
+
+  it('bleibt bei gesperrtem Browser-Speicher sortierbar', () => {
+    const getItem = Storage.prototype.getItem;
+    const readSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (
+      this: Storage,
+      key,
+    ) {
+      if (key === 'arsnova-quiz-list-sort:v1') throw new DOMException('Blocked', 'SecurityError');
+      return getItem.call(this, key);
+    });
+    const setItem = Storage.prototype.setItem;
+    const writeSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      key,
+      value,
+    ) {
+      if (key === 'arsnova-quiz-list-sort:v1') throw new DOMException('Full', 'QuotaExceededError');
+      setItem.call(this, key, value);
+    });
+    try {
+      quizzesSignal.set(sortableQuizzes);
+      const component = TestBed.createComponent(QuizListComponent).componentInstance;
+      expect(component.sortMode()).toBe('title-asc');
+      expect(() => component.setSortMode('questions-asc')).not.toThrow();
+      expect(component.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual([
+        'zebra',
+        'alpha',
+        'quiz2',
+        'quiz10',
+      ]);
+    } finally {
+      readSpy.mockRestore();
+      writeSpy.mockRestore();
+    }
+  });
+
+  it('durchsucht Titel und Beschreibung ohne Beachtung der Großschreibung und behält den Eingabefokus', () => {
+    quizzesSignal.set([
+      summary({ name: 'Datenbanken', description: 'SQL und Transaktionen' }),
+      summary({ id: 'null-description', name: 'SQL Grundlagen' }),
+      summary({ id: 'other', name: 'Netzwerke', description: 'Routing' }),
+      summary({ id: 'fourth', name: 'Betriebssysteme' }),
+    ]);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    input.focus();
+    input.value = '  datenBANKEN   sQl  ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual([
+      'alpha',
+    ]);
+    expect(document.activeElement).toBe(input);
+    expect(fixture.nativeElement.querySelector('.quiz-list__results').textContent).toContain(
+      '1 von 4',
+    );
+    input.value = 'SQL';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.quiz-list-item')).toHaveLength(2);
+    input.value = '  ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.quiz-list-item')).toHaveLength(4);
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('zeigt ein dekoratives Suchsymbol und bei leerem Feld keine Löschaktion', () => {
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    const field = fixture.nativeElement.querySelector('.quiz-list__search') as HTMLElement;
+    const icon = field.querySelector('mat-icon[matIconPrefix]')!;
+    expect(icon.textContent?.trim()).toBe('search');
+    expect(icon.getAttribute('aria-hidden')).toBe('true');
+    expect(field.querySelector('button')).toBeNull();
+  });
+
+  it.each(['Quiz 2', 'missing', '   '])(
+    'löscht den Suchtext %j und erhält den Eingabefokus',
+    (query) => {
+      quizzesSignal.set(sortableQuizzes);
+      const fixture = TestBed.createComponent(QuizListComponent);
+      fixture.componentInstance.setSortMode('questions-desc');
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+      input.value = query;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      const clear = fixture.nativeElement.querySelector(
+        '.quiz-list__search button',
+      ) as HTMLButtonElement;
+      expect(clear.getAttribute('aria-label')).toBe('Suche löschen');
+      expect(clear.type).toBe('button');
+      clear.focus();
+      clear.click();
+      fixture.detectChanges();
+
+      expect(input.value).toBe('');
+      expect(fixture.componentInstance.searchQuery()).toBe('');
+      expect(document.activeElement).toBe(input);
+      expect(fixture.nativeElement.querySelector('input[type="search"]')).toBe(input);
+      expect(fixture.nativeElement.querySelector('.quiz-list__search button')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.quiz-list__no-results')).toBeNull();
+      expect(fixture.nativeElement.querySelectorAll('.quiz-list-item')).toHaveLength(4);
+      expect(fixture.componentInstance.sortMode()).toBe('questions-desc');
+    },
+  );
+
+  it('zeigt einen leeren Suchtrefferzustand und aktualisiert Treffer nach Sammlungsänderungen', () => {
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance.searchQuery.set('beta');
+    fixture.componentInstance.setSortMode('questions-desc');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.quiz-list-item')).toHaveLength(0);
+    expect(fixture.nativeElement.querySelector('.quiz-list__no-results').textContent).toContain(
+      'Keine passenden Quizze',
+    );
+    const status = fixture.nativeElement.querySelector('.quiz-list__results') as HTMLElement;
+    expect(status.getAttribute('role')).toBe('status');
+    expect(status.textContent).toContain('0 von 4');
+
+    quizzesSignal.update((quizzes) => [
+      ...quizzes,
+      summary({ id: 'beta2', name: 'Beta 2', questionCount: 2 }),
+      summary({ id: 'beta1', name: 'Beta 1', questionCount: 10 }),
+    ]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual([
+      'beta1',
+      'beta2',
+    ]);
+    expect(fixture.nativeElement.querySelector('.quiz-list__no-results')).toBeNull();
+    expect(status.textContent).toContain('2 von 6');
+  });
+
+  it.each([0, 1, 2, 3, 4])('zeigt Such- und Sortieroptionen nur ab vier Quizzen: %i', (count) => {
+    quizzesSignal.set(sortableQuizzes.slice(0, count));
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    const tools = fixture.nativeElement.querySelector('.quiz-list__tools')
+      .parentElement as HTMLElement;
+    expect(tools.hidden).toBe(count <= 3);
+    expect(fixture.componentInstance.showCollectionTools()).toBe(count > 3);
+    const deleteAll = Array.from(fixture.nativeElement.querySelectorAll('button')).find((button) =>
+      (button as HTMLButtonElement).textContent?.includes('Alle Quizze löschen'),
+    );
+    expect(!!deleteAll).toBe(count > 3);
+  });
+
+  it.each([false, undefined])(
+    'löscht bei Abbruch der Sicherheitsabfrage (%s) keine Quizze',
+    async (confirmed) => {
+      const { of } = await import('rxjs');
+      quizzesSignal.set(sortableQuizzes);
+      const fixture = TestBed.createComponent(QuizListComponent);
+      fixture.detectChanges();
+      const open = vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+        afterClosed: () => of(confirmed),
+      } as never);
+      await fixture.componentInstance.deleteAllQuizzes();
+      expect(open).toHaveBeenCalledOnce();
+      expect(mockStore.deleteQuizzes).not.toHaveBeenCalled();
+      expect(quizzesSignal()).toEqual(sortableQuizzes);
+      expect(fixture.componentInstance.deleteAllDialogOpen()).toBe(false);
+    },
+  );
+
+  it('bestätigt die gesamte Sammlung trotz Suchfilter und fokussiert nach Löschung Quiz erstellen', async () => {
+    const { of } = await import('rxjs');
+    quizzesSignal.set(sortableQuizzes);
+    mockStore.deleteQuizzes.mockImplementation((ids: string[]) => {
+      const removed = quizzesSignal().filter((quiz) => ids.includes(quiz.id)).length;
+      quizzesSignal.update((quizzes) => quizzes.filter((quiz) => !ids.includes(quiz.id)));
+      return removed;
+    });
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.componentInstance.searchQuery.set('Alpha');
+    fixture.detectChanges();
+    const open = vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+      afterClosed: () => of(true),
+    } as never);
+    await fixture.componentInstance.deleteAllQuizzes();
+    fixture.detectChanges();
+    expect(open).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        autoFocus: 'dialog',
+        role: 'alertdialog',
+        restoreFocus: '.quiz-list__delete-all',
+        data: expect.objectContaining({
+          message: expect.stringContaining('Alle 4 Quizze'),
+          confirmLabel: 'Alle Quizze löschen',
+          consequences: expect.arrayContaining([
+            expect.stringContaining('nicht rückgängig'),
+            expect.stringContaining('Laufende Sessions bleiben geöffnet'),
+          ]),
+        }),
+      }),
+    );
+    expect(mockStore.deleteQuizzes).toHaveBeenCalledWith(sortableQuizzes.map((quiz) => quiz.id));
+    expect(fixture.componentInstance.actionInfo()).toBe('Gelöschte Quizze: 4.');
+    expect(quizzesSignal()).toEqual([]);
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('a[routerLink="new"]'));
+    expect(fixture.componentInstance.searchQuery()).toBe('');
+  });
+
+  it('fokussiert bei Abbruch nach externer Verkleinerung einen weiterhin sichtbaren Auslöser', async () => {
+    const { Subject } = await import('rxjs');
+    const closed = new Subject<boolean>();
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+      afterClosed: () => closed,
+    } as never);
+    const pending = fixture.componentInstance.deleteAllQuizzes();
+    quizzesSignal.set(sortableQuizzes.slice(0, 3));
+    fixture.detectChanges();
+    closed.next(false);
+    closed.complete();
+    await pending;
+    expect(mockStore.deleteQuizzes).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('a[routerLink="new"]'));
+  });
+
+  it('verhindert doppelte Sicherheitsabfragen und erhält währenddessen neu hinzugekommene Quizze', async () => {
+    const { Subject } = await import('rxjs');
+    const closed = new Subject<boolean>();
+    quizzesSignal.set(sortableQuizzes);
+    mockStore.deleteQuizzes.mockImplementation((ids: string[]) => {
+      const removed = quizzesSignal().filter((quiz) => ids.includes(quiz.id)).length;
+      quizzesSignal.update((quizzes) => quizzes.filter((quiz) => !ids.includes(quiz.id)));
+      return removed;
+    });
+    mockStore.librarySharingMode.set('shared');
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    const open = vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+      afterClosed: () => closed,
+    } as never);
+    const pending = fixture.componentInstance.deleteAllQuizzes();
+    await fixture.componentInstance.deleteAllQuizzes();
+    expect(open).toHaveBeenCalledOnce();
+    expect(open).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          consequences: expect.arrayContaining([expect.stringContaining('verbundenen Geräte')]),
+        }),
+      }),
+    );
+    quizzesSignal.set([...sortableQuizzes.slice(1), summary({ id: 'new', name: 'Neu' })]);
+    closed.next(true);
+    closed.complete();
+    await pending;
+    fixture.detectChanges();
+    expect(quizzesSignal().map((quiz) => quiz.id)).toEqual(['new']);
+    expect(fixture.componentInstance.actionInfo()).toBe('Gelöschte Quizze: 3.');
+    expect(fixture.componentInstance.deleteAllDialogOpen()).toBe(false);
+  });
+
+  it('zeigt Löschfehler und lässt einen erneuten Versuch zu', async () => {
+    const { of } = await import('rxjs');
+    quizzesSignal.set(sortableQuizzes);
+    mockStore.deleteQuizzes.mockImplementation(() => {
+      throw new Error('Löschen fehlgeschlagen');
+    });
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    const open = vi.spyOn(fixture.componentInstance['dialog'], 'open').mockReturnValue({
+      afterClosed: () => of(true),
+    } as never);
+    await fixture.componentInstance.deleteAllQuizzes();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.actionError()).toBe('Löschen fehlgeschlagen');
+    expect(fixture.componentInstance.deleteAllDialogOpen()).toBe(false);
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('a[routerLink="new"]'));
+    expect(quizzesSignal()).toEqual(sortableQuizzes);
+    mockStore.deleteQuizzes.mockReturnValue(4);
+    await fixture.componentInstance.deleteAllQuizzes();
+    expect(open).toHaveBeenCalledTimes(2);
+    expect(fixture.componentInstance.actionError()).toBeNull();
+  });
+
+  it('öffnet bei höchstens drei Quizzen auch programmgesteuert keine Sammellöschung', async () => {
+    quizzesSignal.set(sortableQuizzes.slice(0, 3));
+    const fixture = TestBed.createComponent(QuizListComponent);
+    const open = vi.spyOn(fixture.componentInstance['dialog'], 'open');
+    await fixture.componentInstance.deleteAllQuizzes();
+    expect(open).not.toHaveBeenCalled();
+    expect(mockStore.deleteQuizzes).not.toHaveBeenCalled();
+  });
+
+  it.each(['input', 'clear'] as const)(
+    'setzt bei vier auf drei Quizzen die Suche zurück und gibt den Fokus von %s an Quiz erstellen',
+    (focusTarget) => {
+      quizzesSignal.set(sortableQuizzes);
+      const fixture = TestBed.createComponent(QuizListComponent);
+      fixture.detectChanges();
+      const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+      input.focus();
+      input.value = 'missing';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(fixture.componentInstance.visibleQuizCount()).toBe(0);
+      expect(fixture.componentInstance.showCollectionTools()).toBe(true);
+
+      if (focusTarget === 'clear') {
+        (
+          fixture.nativeElement.querySelector('.quiz-list__search button') as HTMLButtonElement
+        ).focus();
+      }
+
+      quizzesSignal.set(sortableQuizzes.slice(0, 3));
+      fixture.detectChanges();
+      expect(fixture.componentInstance.searchQuery()).toBe('');
+      expect(fixture.componentInstance.visibleQuizCount()).toBe(3);
+      expect(fixture.nativeElement.querySelectorAll('.quiz-list-item')).toHaveLength(3);
+      const create = fixture.nativeElement.querySelector('a[routerLink="new"]') as HTMLElement;
+      expect(document.activeElement).toBe(create);
+      expect(create.closest('[hidden]')).toBeNull();
+      quizzesSignal.set(sortableQuizzes);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.visibleQuizCount()).toBe(4);
+      expect(fixture.componentInstance.searchQuery()).toBe('');
+    },
+  );
+
+  it('zählt die Demo zur Schwelle und durchsucht sie zusammen mit eigenen Quizzen', () => {
+    const demo = summary({ id: DEMO_QUIZ_ID, name: 'Demo', description: 'SQL' });
+    quizzesSignal.set([demo]);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.quiz-list__lead-demo')).toBeTruthy();
+    expect(fixture.componentInstance.showCollectionTools()).toBe(false);
+    quizzesSignal.set([demo, ...sortableQuizzes.slice(0, 3)]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.showCollectionTools()).toBe(true);
+    fixture.componentInstance.searchQuery.set('sql');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.sortedQuizzesForList().map((quiz) => quiz.id)).toEqual([
+      DEMO_QUIZ_ID,
+    ]);
+    expect(fixture.nativeElement.querySelector('.quiz-list__lead-demo')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.quiz-list-item')).toHaveLength(1);
+  });
+
+  it('schließt bei kleiner werdender Sammlung auch eine offene Sortierauswahl und erhält ein sichtbares Fokusziel', async () => {
+    quizzesSignal.set(sortableQuizzes);
+    const fixture = TestBed.createComponent(QuizListComponent);
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('mat-select') as HTMLElement).click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.querySelector('[role="listbox"]')).toBeTruthy();
+    quizzesSignal.set(sortableQuizzes.slice(0, 3));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(document.querySelector('[role="listbox"]')).toBeNull();
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('a[routerLink="new"]'));
   });
 
   it('startet ohne eigene Quizzes bei der Aktionsleiste statt einem Willkommen-Text', () => {

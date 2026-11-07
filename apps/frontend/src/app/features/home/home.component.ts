@@ -19,7 +19,6 @@ import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { CdkTrapFocus, FocusMonitor } from '@angular/cdk/a11y';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatBadge } from '@angular/material/badge';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MatCard,
@@ -200,7 +199,6 @@ function isFinishedWithoutJoinableQa(resolution: {
   host: { class: 'route-home' },
   imports: [
     RouterLink,
-    MatBadge,
     MatButton,
     MatCard,
     MatCardActions,
@@ -294,7 +292,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly quizCount = computed(
     () => this.quizStore.quizzes().filter((q) => q.id !== DEMO_QUIZ_ID).length,
   );
-  readonly quizCountBadgeText = computed(() => formatLocaleCount(this.quizCount(), this.localeId));
+  readonly quizCountLabel = computed(() => {
+    const count = this.quizCount();
+    const formattedCount = formatLocaleCount(count, this.localeId);
+    return count === 1
+      ? $localize`:@@homeHostCard.quizCountOne:${formattedCount}:count: Quiz`
+      : $localize`:@@homeHostCard.quizCountMany:${formattedCount}:count: Quizze`;
+  });
   readonly latestHostedQuizId = computed(() => {
     const quizzes = this.quizStore.quizzes().filter((quiz) => quiz.id !== DEMO_QUIZ_ID);
     return quizzes.reduce<string | null>((latestId, quiz) => {

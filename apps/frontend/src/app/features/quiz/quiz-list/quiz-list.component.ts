@@ -16,9 +16,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
+import {
+  MatFormField,
+  MatHint,
+  MatLabel,
+  MatPrefix,
+  MatSuffix,
+} from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
+import { MatOption, MatSelect } from '@angular/material/select';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -89,6 +96,17 @@ import { localizeCommands } from '../../../core/locale-router';
 const QUIZ_HISTORY_SCOPE_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const QUIZ_SORT_STORAGE_KEY = 'arsnova-quiz-list-sort:v1';
+const QUIZ_SORT_OPTIONS = [
+  { value: 'title-asc', label: $localize`:@@quizList.sortTitleAsc:Titel A–Z` },
+  { value: 'title-desc', label: $localize`:@@quizList.sortTitleDesc:Titel Z–A` },
+  { value: 'updated-desc', label: $localize`:@@quizList.sortUpdated:Zuletzt geändert` },
+  { value: 'created-desc', label: $localize`:@@quizList.sortCreated:Zuletzt erstellt` },
+  { value: 'questions-asc', label: $localize`:@@quizList.sortQuestionsAsc:Wenigste Fragen zuerst` },
+  { value: 'questions-desc', label: $localize`:@@quizList.sortQuestionsDesc:Meiste Fragen zuerst` },
+] as const;
+type QuizSortMode = (typeof QUIZ_SORT_OPTIONS)[number]['value'];
+
 /**
  * Quiz-Liste (Epic 1).
  * Story 1.1 (Quiz erstellen), 1.8 (Export), 1.9 (Import), 1.10 (Bearbeiten, Löschen).
@@ -107,8 +125,12 @@ const QUIZ_HISTORY_SCOPE_ID_PATTERN =
     MatCardContent,
     MatFormField,
     MatHint,
+    MatPrefix,
+    MatSuffix,
     MatIcon,
     MatInput,
+    MatSelect,
+    MatOption,
     MatLabel,
     MatMenu,
     MatMenuItem,
@@ -134,24 +156,116 @@ export class QuizListComponent implements OnInit {
   private readonly hostScenario = inject(HostScenarioService);
   readonly emphasizeQuizStart = computed(() => this.hostScenario.scenarioForAction() !== 'EVENT');
   readonly quizzes = this.quizStore.quizzes;
-  readonly sortedQuizzes = computed(() =>
-    [...this.quizzes()].sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    ),
+  readonly showCollectionTools = computed(() => this.quizzes().length > 3);
+  private readonly collectionTools = viewChild<unknown, ElementRef<HTMLElement>>(
+    'collectionTools',
+    {
+      read: ElementRef,
+    },
   );
+  private readonly createQuizLink = viewChild<unknown, ElementRef<HTMLAnchorElement>>(
+    'createQuizLink',
+    {
+      read: ElementRef,
+    },
+  );
+  private readonly sortSelect = viewChild(MatSelect);
+  readonly searchQuery = signal('');
+  readonly clearSearchLabel = $localize`:@@quizList.clearSearch:Suche löschen`;
+  readonly deleteAllDialogOpen = signal(false);
+  readonly sortOptions = QUIZ_SORT_OPTIONS;
+  readonly sortMode = signal<QuizSortMode>(this.readSortMode());
+  private readonly titleCollator = new Intl.Collator(this.localeId, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+  private readonly searchTerms = computed(() =>
+    this.showCollectionTools()
+      ? this.normalizeSearch(this.searchQuery()).split(/\s+/).filter(Boolean)
+      : [],
+  );
+  readonly sortedQuizzes = computed(() => {
+    const mode = this.sortMode();
+    return [...this.quizzes()].sort((a, b) => {
+      const titleOrder = this.titleCollator.compare(a.name, b.name);
+      let order: number;
+      switch (mode) {
+        case 'title-asc':
+          order = titleOrder;
+          break;
+        case 'title-desc':
+          order = -titleOrder;
+          break;
+        case 'updated-desc':
+          order = Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
+          break;
+        case 'created-desc':
+          order = Date.parse(b.createdAt) - Date.parse(a.createdAt);
+          break;
+        case 'questions-asc':
+          order = a.questionCount - b.questionCount;
+          break;
+        case 'questions-desc':
+          order = b.questionCount - a.questionCount;
+          break;
+      }
+      return order || titleOrder || a.id.localeCompare(b.id);
+    });
+  });
   readonly hasUserQuizzes = computed(() => this.quizzes().some((q) => q.id !== DEMO_QUIZ_ID));
   /** Nur-Demo-Sammlung: Demo-Karte direkt unter der Aktionsleiste, nicht in der Hauptliste. */
   readonly demoQuizWhenLibraryEmpty = computed(() => {
     if (this.hasUserQuizzes()) return null;
-    return this.quizzes().find((q) => q.id === DEMO_QUIZ_ID) ?? null;
+    return this.quizzes().find((q) => q.id === DEMO_QUIZ_ID && this.matchesSearch(q)) ?? null;
   });
   readonly sortedQuizzesForList = computed(() => {
     const sorted = this.sortedQuizzes();
-    if (!this.hasUserQuizzes()) {
-      return sorted.filter((q) => q.id !== DEMO_QUIZ_ID);
-    }
-    return sorted;
+    return sorted.filter(
+      (quiz) => (this.hasUserQuizzes() || quiz.id !== DEMO_QUIZ_ID) && this.matchesSearch(quiz),
+    );
   });
+  readonly visibleQuizCount = computed(
+    () => this.sortedQuizzesForList().length + (this.demoQuizWhenLibraryEmpty() ? 1 : 0),
+  );
+  readonly hasSearch = computed(() => this.searchTerms().length > 0);
+
+  clearSearch(input: HTMLInputElement): void {
+    // Fokus vor dem Entfernen des Löschbuttons auf das weiterhin sichtbare Feld zurückgeben.
+    input.focus();
+    this.searchQuery.set('');
+  }
+
+  setSortMode(value: string): void {
+    const option = QUIZ_SORT_OPTIONS.find((candidate) => candidate.value === value);
+    if (!option) return;
+    this.sortMode.set(option.value);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(QUIZ_SORT_STORAGE_KEY, option.value);
+      }
+    } catch {
+      // Die Auswahl bleibt auch ohne verfügbaren Browser-Speicher nutzbar.
+    }
+  }
+
+  private readSortMode(): QuizSortMode {
+    try {
+      const stored =
+        typeof localStorage !== 'undefined' ? localStorage.getItem(QUIZ_SORT_STORAGE_KEY) : null;
+      return QUIZ_SORT_OPTIONS.find((option) => option.value === stored)?.value ?? 'title-asc';
+    } catch {
+      return 'title-asc';
+    }
+  }
+
+  private normalizeSearch(value: string): string {
+    return value.normalize('NFKC').toLocaleLowerCase(this.localeId);
+  }
+
+  private matchesSearch(quiz: QuizSummary): boolean {
+    const text = this.normalizeSearch(`${quiz.name} ${quiz.description ?? ''}`);
+    return this.searchTerms().every((term) => text.includes(term));
+  }
   readonly demoQuizId = DEMO_QUIZ_ID;
   readonly syncRoomId = this.quizStore.syncRoomId;
   readonly syncConnectionState = this.quizStore.syncConnectionState;
@@ -261,6 +375,18 @@ export class QuizListComponent implements OnInit {
   readonly liveStartPending = signal(false);
 
   constructor() {
+    effect(() => {
+      if (this.showCollectionTools()) return;
+      untracked(() => {
+        this.searchQuery.set('');
+        const tools = this.collectionTools()?.nativeElement;
+        const select = this.sortSelect();
+        if (tools?.contains(this.document.activeElement) || select?.panelOpen) {
+          select?.close();
+          this.focusCreateQuizLink();
+        }
+      });
+    });
     effect(() => {
       const quizzes = this.quizzes();
       const requestKey = JSON.stringify(
@@ -683,6 +809,68 @@ export class QuizListComponent implements OnInit {
         );
       }
     });
+  }
+
+  private focusCreateQuizLink(): void {
+    const target = this.createQuizLink()?.nativeElement;
+    target?.scrollIntoView?.({ block: 'center' });
+    target?.focus();
+  }
+
+  async deleteAllQuizzes(): Promise<void> {
+    if (this.deleteAllDialogOpen() || !this.showCollectionTools()) return;
+    const quizzes = this.quizzes();
+    const quizIds = quizzes.map((quiz) => quiz.id);
+    this.deleteAllDialogOpen.set(true);
+    this.actionError.set(null);
+    try {
+      const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+        data: {
+          title: $localize`:@@quizList.deleteAllTitle:Alle Quizze löschen?`,
+          message: $localize`:@@quizList.deleteAllMessage:Alle ${this.formatCount(quizIds.length)}:count: Quizze dieser Sammlung werden gelöscht. Das gilt auch für Quizze, die durch die Suche ausgeblendet sind.`,
+          consequences: [
+            $localize`:@@quiz.deleteIrreversible:Das lässt sich nicht rückgängig machen.`,
+            ...(this.isSharedLibrary()
+              ? [
+                  $localize`:@@quizList.deleteAllShared:Bei einer geteilten Sammlung wird die Löschung auf die verbundenen Geräte übertragen.`,
+                ]
+              : []),
+            $localize`:@@quizList.deleteAllLive:Laufende Sessions bleiben geöffnet. Für ihre Moderation brauchst du weiterhin den Host-Zugang.`,
+            ...(quizzes.some((quiz) => quiz.hasBonus)
+              ? [
+                  $localize`:@@quizList.deleteQuizBonusCodesHint:Wenn Bonus-Codes vorhanden sind, exportiere sie vorher über »Bonus-Codes« > »CSV exportieren«.`,
+                ]
+              : []),
+          ],
+          confirmLabel: $localize`:@@quizList.deleteAllConfirm:Alle Quizze löschen`,
+          cancelLabel: $localize`:@@quizList.deleteQuizCancel:Abbrechen`,
+          note: quizIds.includes(DEMO_QUIZ_ID)
+            ? $localize`:@@quizList.deleteAllDemoNote:Das Demo-Quiz wird beim nächsten Öffnen der Sammlung wieder angeboten.`
+            : undefined,
+        } satisfies ConfirmLeaveDialogData,
+        role: 'alertdialog',
+        restoreFocus: '.quiz-list__delete-all',
+        width: 'min(30rem, calc(100vw - 1.5rem))',
+        maxWidth: '100vw',
+        autoFocus: 'dialog',
+      });
+      if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
+        if (!this.showCollectionTools()) this.focusCreateQuizLink();
+        return;
+      }
+      this.focusCreateQuizLink();
+      const deleted = this.quizStore.deleteQuizzes(quizIds);
+      this.actionInfoWarnings.set([]);
+      this.setActionInfo(
+        $localize`:@@quizList.deleteAllSuccess:Gelöschte Quizze: ${this.formatCount(deleted)}:count:.`,
+      );
+    } catch (error) {
+      this.actionError.set(
+        error instanceof Error ? error.message : $localize`Löschen fehlgeschlagen.`,
+      );
+    } finally {
+      this.deleteAllDialogOpen.set(false);
+    }
   }
 
   exportQuiz(quizId: string): void {
