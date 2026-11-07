@@ -55,23 +55,35 @@ Quellen auszuführen; der Befund bleibt offen und darf nicht als behoben gelten.
 - Chromium-/WebKit-Seitensmokes für App-Quizsammlung und Landingpage in allen
   fünf Sprachen: 20 Aufrufe ohne JavaScript-Seitenfehler bestanden. Das Backend
   lief dabei nicht; die Prüfung belegt keine Live-Session- oder API-Ende-zu-Ende-Flows.
-- `npm test`: Open-Weight-Runtimechecks, Shared Types (296), PDF-Bericht (88)
-  und Backend (2.047 Tests, 60 übersprungen) bestanden. Der anschließende
-  Frontend-Lauf wurde wegen der bereits vor den Updates beobachteten
-  JSDOM-/Host-Polling-Schleife abgebrochen; die vollständige Suite ist nicht grün
-  bestätigt.
+- `npm test`: im erneuten vollständigen Review-Lauf auf Release-Stand 1.4.0
+  bestanden: zwölf Open-Weight-Runtimechecks, Shared Types (296), PDF-Bericht (88),
+  Backend (2.047 Tests, 60 übersprungen) und Frontend (2.859 Tests in 157 Dateien).
+  Der Host-Spec ist vollständig enthalten; es wurde kein Test ausgeschlossen.
 - `npm run test -w @arsnova/frontend -- --exclude '**/session-host.component.spec.ts'`:
-  156 Dateien mit 2.344 Tests bestanden. Die Ursache des Host-Spec-Problems ist
-  durch diese Prüfung nicht eingegrenzt.
+  156 Dateien mit 2.344 Tests bestanden. Diese frühere Teilprüfung wird durch den
+  späteren vollständigen Lauf ergänzt und ersetzt das Voll-Gate nicht.
 
 Beim anschließenden Versionswechsel auf 1.4.0 wurden Typecheck, Lint, beide
 Builds, Engine-Prüfung und die 2.344 Frontendtests ohne Host-Spec erneut
 erfolgreich ausgeführt. Zwei gezielte QR-Hosttests und die kompilierte
 QR-Geometrie in Chromium/WebKit auf sechs Viewports bestanden ebenfalls.
-Der vollständige Host-Spec hing auch im Pre-Commit-Related-Testlauf. Dieser
-Lauf wurde beendet und der Release-Commit mit einmalig deaktiviertem Husky-Hook
-erstellt. Die vollständige Testsuite bleibt ein offenes CI-/Release-Gate;
-die Einzelprüfungen sind kein Ersatz für diesen Nachweis.
+Die ersten Voll- und Pre-Commit-Related-Testläufe wurden angesichts wiederholter
+JSDOM-/Polling-Ausgaben vorzeitig abgebrochen. Der Release-Commit wurde mit
+einmalig deaktiviertem Husky-Hook erstellt. Die Einordnung als Hänger war nicht
+belegt: Der anschließende detaillierte Diagnoselauf bestand alle 515 Host-Tests
+in 76 Sekunden; die danach erneut regulär ausgeführte vollständige Suite bestand
+ebenfalls. Es war dafür keine Codeänderung und kein Ausschluss des Host-Specs
+erforderlich. Die erforderliche CI sowie die Last- und Upgrade-Abnahmen bleiben
+unabhängige Release-Gates.
+
+Die zusätzlich auf Runtime-Commit `40c62cb9` gestartete
+[isolierte CI-Abnahme](https://github.com/kqc-real/arsnova.eu/actions/runs/42389910632)
+bestand beide Jobs **Artillery 500 Live Session** und **Artillery 500 Reconnect
+Wave**, einschließlich der im Live-Job ausgeführten Timer-/Vote-, Yjs-,
+Wortwolken- und Soak-Smokes. Der Produktionslasttest war deaktiviert; dies war
+kein Lasttest auf der öffentlichen Referenzinstanz und kein Produktionsrollout.
+Eine gesonderte Upgrade-Abnahme mit bestehenden 1.3-Daten und die
+Post-Deploy-Smokes bleiben vor Veröffentlichung erforderlich.
 
 Es sind keine neuen Datenbankmigrationen oder Environment-Variablen erforderlich.
 Ein Deployment benötigt neue App- und Landing-Builds. Die Node-22-Untergrenze
