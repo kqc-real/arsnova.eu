@@ -1566,6 +1566,58 @@ test('CI deploy bootstraps DEPLOY_SHA checkout before deploy.sh', () => {
   );
 });
 
+test('CI deploy requires 15 GiB free after pruning and before checkout', () => {
+  const yaml = readFileSync(ciWorkflow, 'utf8');
+  const deployJob = yaml.split('name: Deploy via SSH')[1];
+  assert.ok(deployJob, 'Deploy via SSH step missing');
+  const script = deployJob.split('script: |')[1]?.split(/^ {2}[A-Za-z]/m)[0];
+  assert.ok(script, 'deploy SSH script missing');
+
+  const pruneIdx = script.indexOf('docker image prune -af --filter "until=24h"');
+  const thresholdIdx = script.indexOf('MIN_DEPLOY_FREE_KIB=15728640');
+  const gateIdx = script.indexOf('[ "$deploy_free_kib" -lt "$MIN_DEPLOY_FREE_KIB" ]');
+  const fetchIdx = script.indexOf('git fetch --prune origin "$DEPLOY_BRANCH"');
+
+  assert.ok(pruneIdx >= 0, 'safe image cleanup missing before free-space gate');
+  assert.ok(thresholdIdx > pruneIdx, '15 GiB threshold must be set after cleanup');
+  assert.ok(gateIdx > thresholdIdx, 'numeric free-space comparison missing');
+  assert.ok(fetchIdx > gateIdx, 'free-space gate must run before git fetch');
+  assert.match(script.slice(thresholdIdx, fetchIdx), /df -Pk \/[\s\S]*exit 1/);
+  assert.match(script.slice(gateIdx, fetchIdx), /mindestens 15 GiB erforderlich/);
+
+  const gateEndIdx = script.indexOf('cd "$DEPLOY_DIR"');
+  assert.ok(gateEndIdx > gateIdx, 'free-space gate end missing');
+  const gateScript = script.slice(thresholdIdx, gateEndIdx);
+  const mockBin = mkdtempSync(join(tmpdir(), 'arsnova-deploy-space-gate-'));
+  const mockDf = join(mockBin, 'df');
+  writeFileSync(
+    mockDf,
+    `#!/usr/bin/env bash
+printf 'Filesystem 1024-blocks Used Available Capacity Mounted on\\n'
+printf '/dev/mock 100000000 80000000 %s 80%% /\\n' "\${MOCK_FREE_KIB}"
+`,
+  );
+  chmodSync(mockDf, 0o755);
+
+  const runGate = (freeKib) =>
+    bash(gateScript, {
+      PATH: `${mockBin}:${process.env.PATH}`,
+      MOCK_FREE_KIB: freeKib,
+    });
+
+  const belowThreshold = runGate('15728639');
+  assert.notEqual(belowThreshold.status, 0);
+  assert.match(belowThreshold.stderr, /mindestens 15 GiB erforderlich/);
+
+  const atThreshold = runGate('15728640');
+  assert.equal(atThreshold.status, 0, atThreshold.stderr);
+  assert.match(atThreshold.stdout, /Deploy-Speicher-Gate OK/);
+
+  const invalidOutput = runGate('unknown');
+  assert.notEqual(invalidOutput.status, 0);
+  assert.match(invalidOutput.stderr, /nicht zuverlässig bestimmt/);
+});
+
 test('first manual rollout bootstraps inline without assuming the target helper exists', () => {
   const guide = readFileSync(deploymentGuide, 'utf8');
   const firstRollout = guide.split('## 7. Deployment-Ablauf')[1]?.split('CI setzt')[0];
