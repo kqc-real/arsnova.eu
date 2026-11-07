@@ -889,6 +889,33 @@
   text-wrap: balance;
 }
 
+/* Bestandsmenge statt Benachrichtigungs-Badge: innerhalb des gemeinsamen Klickziels. */
+.home-library-button__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.home-library-button__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding-inline: 0.65rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-label-medium);
+  line-height: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
 .home-choice-button__busy,
 .home-feedback-chip__busy {
   position: absolute;

@@ -729,6 +729,71 @@ describe('QuizStoreService', () => {
     expect(secondUpload.historyScopeId).toBe(firstUpload.historyScopeId);
   });
 
+  it('löscht bestätigte Quizze samt Lernzielen in einem Speichervorgang und erhält andere Quizze', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const first = service.createQuiz({ name: 'Erstes Testquiz' });
+    const second = service.createQuiz({ name: 'Zweites Testquiz' });
+    const retained = service.createQuiz({ name: 'Behalten' });
+    for (const quiz of [first, second, retained]) {
+      service.saveQuizLearningObjective(quiz.id, {
+        text: 'Den Inhalt einordnen',
+        scope: { kind: 'quiz-wide' },
+        confirmationState: 'draft',
+      });
+    }
+    const storage = vi.spyOn(Storage.prototype, 'setItem');
+    try {
+      expect(service.deleteQuizzes([first.id, second.id, first.id])).toBe(2);
+      expect(service.getQuizById(first.id)).toBeNull();
+      expect(service.getQuizById(second.id)).toBeNull();
+      expect(service.getQuizById(retained.id)).toBeTruthy();
+      expect(service.getLearningObjectiveBundle(first.id).objectives).toEqual([]);
+      expect(service.getLearningObjectiveBundle(second.id).objectives).toEqual([]);
+      expect(service.getLearningObjectiveBundle(retained.id).objectives).toHaveLength(1);
+      const writes = storage.mock.calls.filter(([key]) => key === QUIZ_STORAGE_KEY);
+      expect(writes).toHaveLength(1);
+      const stored = JSON.parse(writes[0]![1]) as QuizDocument[];
+      expect(stored.some((quiz) => quiz.id === first.id || quiz.id === second.id)).toBe(false);
+      expect(stored.some((quiz) => quiz.id === retained.id)).toBe(true);
+      const roomId = localStorage.getItem('quiz-sync-room-id');
+      const bundles = JSON.parse(
+        localStorage.getItem(`quiz-learning-objectives-v1:${roomId}`) ?? '[]',
+      ) as Array<{ quizId: string }>;
+      expect(bundles.map((bundle) => bundle.quizId)).toEqual([retained.id]);
+    } finally {
+      storage.mockRestore();
+    }
+  });
+
+  it('löscht nur die bestätigten IDs trotz zwischenzeitlicher Löschung und neuem Quiz', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const first = service.createQuiz({ name: 'Erstes Testquiz' });
+    service.createQuiz({ name: 'Zweites Testquiz' });
+    const confirmed = service.quizzes().map((quiz) => quiz.id);
+    service.deleteQuiz(first.id);
+    const newQuiz = service.createQuiz({ name: 'Später hinzugekommen' });
+    expect(service.deleteQuizzes(confirmed)).toBe(confirmed.length - 1);
+    expect(service.quizzes().map((quiz) => quiz.id)).toEqual([newQuiz.id]);
+    expect(service.deleteQuizzes(confirmed)).toBe(0);
+    expect(service.deleteQuizzes([])).toBe(0);
+    expect(() => service.deleteQuiz(first.id)).toThrow('Quiz nicht gefunden');
+    expect(service.getQuizById(newQuiz.id)).toBeTruthy();
+  });
+
+  it('hält Sammellöschungen nach erneutem Laden fest und bietet nur die Demo wieder an', () => {
+    const service = TestBed.inject(QuizStoreService);
+    service.createQuiz({ name: 'Erstes Testquiz' });
+    service.createQuiz({ name: 'Zweites Testquiz' });
+    const confirmed = service.quizzes().map((quiz) => quiz.id);
+    expect(service.deleteQuizzes(confirmed)).toBe(confirmed.length);
+    expect(service.quizzes()).toEqual([]);
+    expect(JSON.parse(localStorage.getItem(QUIZ_STORAGE_KEY) ?? 'null')).toEqual([]);
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    const reloaded = TestBed.inject(QuizStoreService);
+    expect(reloaded.quizzes().map((quiz) => quiz.id)).toEqual([DEMO_QUIZ_ID]);
+  });
+
   it('migriert den öffentlichen Demo-Legacy-Scope vor dem nächsten Upload', () => {
     const service = TestBed.inject(QuizStoreService);
     service.setLastServerQuizAccessProof(DEMO_QUIZ_ID, DEMO_QUIZ_ID);
