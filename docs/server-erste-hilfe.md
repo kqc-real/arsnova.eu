@@ -416,7 +416,12 @@ Für regelmäßige Pflege mit Zielgröße:
 docker builder prune -af --reserved-space 10GB
 ```
 
-Hinweis: Ältere Docker-Beispiele nutzen `--keep-storage`; das Flag ist veraltet und heißt inzwischen `--reserved-space`. Das Löschen des Build-Caches entfernt keine PostgreSQL-/Redis-Volumes. Der nächste Docker-Build kann danach länger dauern.
+Hinweis: Die aktuelle Buildx-gestützte Docker-CLI leitet `docker builder prune`
+an `docker buildx prune` weiter und unterstützt deshalb `--reserved-space`.
+Ältere Docker-Engine-CLIs verwenden stattdessen `--keep-storage`; vor einer
+Übernahme auf andere Hosts die dortige Ausgabe von `docker builder prune
+--help` prüfen. Das Löschen des Build-Caches entfernt keine
+PostgreSQL-/Redis-Volumes. Der nächste Docker-Build kann danach länger dauern.
 
 ### Regelmäßige Prävention
 
