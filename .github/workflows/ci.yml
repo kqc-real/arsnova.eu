@@ -2347,6 +2347,20 @@ jobs:
             docker image prune -af --filter "until=24h"
             echo "Speicherbelegung nach risikoarmer Deploy-Bereinigung:"
             df -h /
+            MIN_DEPLOY_FREE_KIB=15728640
+            deploy_free_kib="$(df -Pk / | awk 'NR == 2 { print $4 }')"
+            case "$deploy_free_kib" in
+              ''|*[!0-9]*)
+                echo "Fehler: Freier Speicher auf / konnte nicht zuverlässig bestimmt werden." >&2
+                exit 1
+                ;;
+            esac
+            if [ "$deploy_free_kib" -lt "$MIN_DEPLOY_FREE_KIB" ]; then
+              deploy_free_gib="$(awk -v kib="$deploy_free_kib" 'BEGIN { printf "%.2f", kib / 1024 / 1024 }')"
+              echo "Fehler: Nach der sicheren Bereinigung sind auf / nur ${deploy_free_gib} GiB frei; für den Deploy sind mindestens 15 GiB erforderlich." >&2
+              exit 1
+            fi
+            echo "Deploy-Speicher-Gate OK: mindestens 15 GiB auf / frei."
             cd "$DEPLOY_DIR"
             # Bootstrap: Ziel-Commit AUSCHECKEN, bevor deploy.sh startet.
             # Sonst würde der erste Post-Merge-Lauf noch das alte 1B-Skript
