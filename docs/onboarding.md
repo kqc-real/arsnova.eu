@@ -16,12 +16,12 @@ Willkommen im Entwickler-Team von **arsnova.eu**. Dieses Dokument hilft dir als 
 
 | Tool                    | Version                                                                           | Prüfbefehl               |
 | ----------------------- | --------------------------------------------------------------------------------- | ------------------------ |
-| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.22.3+ unterstützt | `node -v`                |
+| Node.js                 | **24.18.0 LTS** empfohlen (`.nvmrc`; `nvm use` / `fnm use`), 22.23.4+ unterstützt | `node -v`                |
 | npm                     | ≥ 10 (nach `npm ci` zur Lockfile-Passung)                                         | `npm -v`                 |
 | Docker & Docker Compose | aktuell                                                                           | `docker compose version` |
 | Git                     | aktuell                                                                           | `git -v`                 |
 
-**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.22.3+ LTS** bleibt als Kompatibilitätspfad unterstützt (Untergrenze durch Angular 22). EOL- und ungerade Majors sind nicht unterstützt; `.npmrc` setzt `engine-strict=true`, daher bricht `npm ci` mit einer nicht passenden Node-Version sofort mit `EBADENGINE` ab. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
+**Node-Version:** Nimm für den Einstieg die per `.nvmrc` gepinnte **24.18.0 LTS**. Node **22.23.4+ LTS** bleibt als Kompatibilitätspfad unterstützt (Untergrenze durch Astro; Angular 22 ist ebenfalls kompatibel). EOL- und ungerade Majors sind nicht unterstützt; `.npmrc` setzt `engine-strict=true`, daher bricht `npm ci` mit einer nicht passenden Node-Version sofort mit `EBADENGINE` ab. Die vollständige Regel steht in der Root-[`package.json`](../package.json) (`engines`); die CI baut mit **Node 22 und 24** (GitHub Actions).
 
 ### Windows? Bitte direkt WSL2 nutzen
 
@@ -567,6 +567,9 @@ graph TB
 > ✅ = im Projektstand 2026-09-10 umgesetzt
 
 ### A. Frontend (Angular 22.2.x)
+
+Der aktuelle Patchstand ist Angular Framework 22.2.5 sowie CLI, Build, SSR und
+Material/CDK 22.2.6. Die exakten aufgelösten Versionen stehen in `package-lock.json`.
 
 Das Frontend nutzt modernste Angular-Features:
 

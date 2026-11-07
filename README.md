@@ -15,11 +15,11 @@
 
 Die öffentliche Referenzinstanz läuft unter **https://arsnova.eu**; die getrennte Marketing- und Informationsseite unter **https://info.arsnova.eu/**. Der externe Betriebsstatus ist unter **https://arsnova.betteruptime.com/** einsehbar. Dieses Repository richtet sich an Organisationen, die arsnova.eu evaluieren, forken, anpassen oder auf eigener Infrastruktur produktiv betreiben möchten.
 
-**Aktueller Release:** Die vollständige Beschreibung von 1.3.0 mit Upgrade-,
-Betriebs- und Rollbackhinweisen steht in den
-[Release Notes 1.3.0](./docs/releases/1.3.0.md). Der zugehörige
-[GitHub-Release](https://github.com/kqc-real/arsnova.eu/releases/tag/v1.3.0)
-verweist auf den erfolgreich in Produktion ausgerollten Commit.
+**Aktueller Versionsstand: 1.4.0.** Neuerungen sowie Upgrade-, Betriebs- und
+Rollbackhinweise stehen in den [Release Notes 1.4.0](./docs/releases/1.4.0.md).
+Der letzte bestätigte Produktionsrelease ist
+[v1.3.0](https://github.com/kqc-real/arsnova.eu/releases/tag/v1.3.0).
+Der Produktionsnachweis für 1.4.0 wird nach erfolgreichem Rollout ergänzt.
 
 ## Für wen ist dieses Repository relevant?
 

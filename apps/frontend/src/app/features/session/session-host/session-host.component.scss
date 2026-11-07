@@ -1682,9 +1682,12 @@
 }
 
 .session-host__join-menu-qr--viewport-overlay {
-  width: min(16rem, calc(100vw - 4rem), calc(100dvh - 17rem)) !important;
-  max-width: min(62vmin, 18rem) !important;
-  max-height: min(42dvh, 18rem) !important;
+  /* Höhe nicht separat deckeln: sonst wird die Fläche breiter als der Code und der weiße Hintergrund steht links und rechts an. */
+  width: min(16rem, 18rem, 62vmin, 42dvh, calc(100vw - 4rem), calc(100dvh - 17rem)) !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  aspect-ratio: 1;
   padding: 0.15rem;
 }
 
@@ -1723,9 +1726,10 @@
   }
 
   .session-host__join-menu-qr--viewport-overlay {
-    width: min(19rem, calc(100vw - 6rem), calc(100dvh - 18rem)) !important;
-    max-width: min(44dvh, 20rem) !important;
-    max-height: min(36dvh, 20rem) !important;
+    width: min(19rem, 20rem, 36dvh, calc(100vw - 6rem), calc(100dvh - 18rem)) !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
     padding: 0.25rem;
   }
 
