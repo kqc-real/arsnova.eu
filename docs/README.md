@@ -4,12 +4,12 @@
 
 Zentrale **Landkarte** für alles unter `docs/`. Für Setup und erste Schritte zusätzlich [README.md](../README.md), [onboarding.md](onboarding.md) und [praktikum/EINSTIEG-TOOLS-UND-STACK.md](praktikum/EINSTIEG-TOOLS-UND-STACK.md).
 
-**Aktueller Release:**
-[arsnova.eu 1.3.0 – Moderationskompass, private CPU-Inferenz und geführte Live-Sessions](releases/1.3.0.md).
-Der zugehörige
-[GitHub-Release](https://github.com/kqc-real/arsnova.eu/releases/tag/v1.3.0)
-verweist auf den erfolgreich in Produktion ausgerollten Commit; optionale
-Inferenzfunktionen bleiben standardmäßig ausgeschaltet.
+**Aktueller Versionsstand:**
+[arsnova.eu 1.4.0 – Quizsammlung, Live-Steuerung und Lernziel-Workflows](releases/1.4.0.md).
+Der letzte bestätigte Produktionsrelease ist
+[v1.3.0](https://github.com/kqc-real/arsnova.eu/releases/tag/v1.3.0).
+Der Produktionsnachweis für 1.4.0 steht noch aus; optionale Inferenzfunktionen
+bleiben standardmäßig ausgeschaltet.
 
 ---
 

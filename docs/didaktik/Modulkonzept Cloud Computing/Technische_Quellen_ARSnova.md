@@ -106,7 +106,7 @@ Ein grüner Test belegt das geprüfte Szenario, nicht Fehlerfreiheit. Ein vorhan
 
 **Status:** implementiert
 
-**Belegt:** `.nvmrc` nennt Node.js `24.18.0`. Das Rootmanifest erlaubt `>=22.22.3 <23` oder `>=24.15.0 <25`. Die [CI-Konfiguration](../../../.github/workflows/ci.yml) prüft die Hauptversionen 22 und 24; produktionsnahe Einzeljobs verwenden 24.
+**Belegt:** `.nvmrc` nennt Node.js `24.18.0`. Das Rootmanifest erlaubt `>=22.23.4 <23` oder `>=24.15.0 <25`. Die [CI-Konfiguration](../../../.github/workflows/ci.yml) prüft die Hauptversionen 22 und 24; produktionsnahe Einzeljobs verwenden 24.
 
 **Belegt nicht:** die tatsächlich laufende Node-Patchversion auf der Referenzinstanz. Das Produktionsimage verwendet einen gepinnten OCI-Index zu `node:24-alpine`; `.nvmrc` bindet dieses Image nicht auf `24.18.0`.
 
