@@ -22790,8 +22790,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.endPresentationView" datatype="html">
-        <source>Projektionsansicht beenden</source>
-        <target>Arrêter la vue de projection</target>
+        <source>Live-Projektion ausblenden</source>
+        <target>Masquer la présentation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5477</context>
@@ -23506,8 +23506,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.resumePresentationView" datatype="html">
-        <source>Präsentationsansicht fortsetzen</source>
-        <target>Reprendre la vue Présentation</target>
+        <source>Live-Projektion fortsetzen</source>
+        <target>Reprendre la présentation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1884</context>
@@ -24452,16 +24452,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewEnded" datatype="html">
-        <source>Projektionsansicht beendet. Das Quiz läuft weiter.</source>
-        <target>La vue de projection est terminée. Le quiz continue.</target>
+        <source>Live-Projektion ausgeblendet. Das Quiz läuft weiter.</source>
+        <target>La présentation est masquée. Le quiz continue.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6070</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewEndError" datatype="html">
-        <source>Projektionsansicht konnte nicht beendet werden. Bitte erneut versuchen.</source>
-        <target>La vue de projection n&apos;a pas pu être arrêtée. Veuillez réessayer.</target>
+        <source>Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.</source>
+        <target>Impossible de masquer la présentation. Veuillez réessayer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6071</context>
@@ -24508,8 +24508,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewResumeError" datatype="html">
-        <source>Die Projektionsansicht konnte nicht fortgesetzt werden. Bitte erneut versuchen.</source>
-        <target>La vue de projection n&apos;a pas pu continuer. Veuillez réessayer.</target>
+        <source>Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.</source>
+        <target>Impossible de reprendre la présentation. Veuillez réessayer.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6453</context>
@@ -26942,8 +26942,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.presentationEndedTitle" datatype="html">
-        <source> Die Live-Präsentation wurde beendet.</source>
-        <target>La présentation en direct est terminée.</target>
+        <source> Die Live-Projektion ist ausgeblendet.</source>
+        <target>La présentation est masquée.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">123,125</context>
