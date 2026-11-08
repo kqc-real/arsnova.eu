@@ -1,0 +1,16 @@
+
+> @arsnova/frontend@1.3.0 test
+> vitest run moderation-compass
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:2:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.10 <repo>/apps/frontend
+
+
+ Test Files  2 passed (2)
+      Tests  107 passed (107)
+   Start at  15:29:09
+   Duration  3.39s (transform 2.26s, setup 1.29s, import 2.77s, tests 740ms, environment 1.01s)
+

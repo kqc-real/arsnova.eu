@@ -1,0 +1,12 @@
+[C3] setup ok session=QZ2SBE {"createMs":110,"joinMs":6597,"submitMs":226,"voteMs":6167}
+[C3] burst-01: extractive/timeout enq=97ms term=1329.9ms polls=30 server=1149 immediate=false
+[C3] burst-02: extractive/timeout enq=81ms term=1310.4ms polls=32 server=1141 immediate=false
+[C3] burst-03: extractive/timeout enq=88.7ms term=1287ms polls=31 server=1150 immediate=false
+[C3] burst-04: extractive/timeout enq=70.2ms term=1248.3ms polls=30 server=NaN immediate=false
+[C3] burst-05: extractive/timeout enq=75.4ms term=1296.7ms polls=31 server=1127 immediate=false
+[C3] burst-06: extractive/timeout enq=68.4ms term=1225.5ms polls=28 server=1104 immediate=false
+[C3] burst-07: extractive/timeout enq=82.1ms term=1233ms polls=28 server=1104 immediate=false
+[C3] burst-08: extractive/timeout enq=93.7ms term=1275.7ms polls=31 server=1137 immediate=false
+[C3] burst-09: extractive/timeout enq=71.2ms term=1260.6ms polls=31 server=1114 immediate=false
+[C3] burst-10: extractive/timeout enq=64.6ms term=1292.1ms polls=31 server=1138 immediate=false
+[C3] wrote <repo>/docs/didaktik/referate/2a-regelbasierte-extraktive-referenz/harness/../evidence/E3/e3b-raw-C3.json

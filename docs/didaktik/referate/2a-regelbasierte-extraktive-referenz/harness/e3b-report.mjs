@@ -217,8 +217,17 @@ for (const c of CONDS) {
 p();
 p('### Extraktive Aussagen (wörtlich) und Quellenzuordnung');
 p();
+// Hinweistexte aus den Rohdaten statt fest im Bericht (Text hat sich mit efd71b44 geändert)
+const observedLimitations = [
+  ...new Set(CONDS.flatMap((c) => raw[c.id].runs.flatMap((r) => r.summary?.limitations ?? []))),
+];
+const observedModelVersions = [
+  ...new Set(
+    CONDS.flatMap((c) => raw[c.id].runs.map((r) => r.summary?.modelVersion).filter(Boolean)),
+  ),
+];
 p(
-  'Innerhalb jeder Bedingung waren alle Läufe inhaltsgleich (ein snapshotHash, eine Reihenfolge). `modelVersion` = `extractive-v2`, `limitations` = [„Extraktive Kurzfassung ohne generative Interpretation.“], `suggestedNextSteps` = [].',
+  `Innerhalb jeder Bedingung waren alle Läufe inhaltsgleich (ein snapshotHash, eine Reihenfolge). \`modelVersion\` = ${observedModelVersions.map((v) => `\`${v}\``).join(', ')}, \`limitations\` = [${observedLimitations.map((l) => `„${l}“`).join(', ')}], \`suggestedNextSteps\` = [].`,
 );
 p();
 for (const c of CONDS) {

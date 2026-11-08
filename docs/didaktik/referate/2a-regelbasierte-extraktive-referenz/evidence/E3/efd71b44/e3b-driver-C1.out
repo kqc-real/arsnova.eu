@@ -1,0 +1,13 @@
+[C1] setup ok session=VZ23SS {"createMs":115,"joinMs":4386,"submitMs":116,"voteMs":1663}
+[C1] run-01: extractive/disabled enq=97.1ms term=286.7ms polls=4 server=120 immediate=false
+[C1] cooldown-probe-immediate: extractive/disabled enq=72.8ms term=72.8ms polls=0 server=null immediate=true
+[C1] run-02: extractive/disabled enq=121ms term=312.2ms polls=4 server=127 immediate=false
+[C1] run-03: extractive/disabled enq=119.5ms term=304.7ms polls=4 server=118 immediate=false
+[C1] run-04: extractive/disabled enq=104.9ms term=260.2ms polls=3 server=101 immediate=false
+[C1] run-05: extractive/disabled enq=99ms term=239.7ms polls=3 server=99 immediate=false
+[C1] run-06: extractive/disabled enq=89.1ms term=229.2ms polls=3 server=97 immediate=false
+[C1] run-07: extractive/disabled enq=95.7ms term=247.6ms polls=3 server=103 immediate=false
+[C1] run-08: extractive/disabled enq=85ms term=283.7ms polls=4 server=119 immediate=false
+[C1] run-09: extractive/disabled enq=104.4ms term=254.5ms polls=3 server=109 immediate=false
+[C1] run-10: extractive/disabled enq=88.5ms term=314.2ms polls=4 server=107 immediate=false
+[C1] wrote <repo>/docs/didaktik/referate/2a-regelbasierte-extraktive-referenz/harness/../evidence/E3/e3b-raw-C1.json
