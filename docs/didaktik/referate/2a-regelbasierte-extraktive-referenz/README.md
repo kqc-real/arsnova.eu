@@ -18,7 +18,7 @@ Die erste Messreihe lief auf `a657798e` (20.10.2026), die zweite nach dem Abglei
 - Der extraktive Fallback wurde am 05.11.2026 geändert (`moderationSummaryContext.ts`, `qaSummaryExtractive.ts`): Bei weniger als 100 Fragen bleiben höchstens 3 statt 4 Fragekandidaten, die Ausgabe zeigt Fragen im Wortlaut und einen allgemeinen Hinweis auf den Rückfall. E3a und E3b ändern sich entsprechend; die Rubrikbewertung ist in [bewertung-efd71b44.md](./evidence/E4/bewertung-efd71b44.md) neu angewendet.
 - E5 schwankt zwischen Läufen und Ständen (500 Fragen, p95: 9,7 ms auf `a657798e`, 19,1 ms auf `9f230abc`, 14,0 ms auf `efd71b44`); die Größenordnung bleibt Millisekunden.
 - Die Messskripte sind unverändert bis auf eine Korrektur in `e3b-report.mjs`: Der Hinweistext der Ausgabe wird jetzt aus den Rohdaten übernommen statt als fester Text.
-- Dieser Branch basiert auf `9f230abc`. Zum Wiederholen der Messung auf `efd71b44` diesen Ordner in einen Checkout von `efd71b44` kopieren.
+- Dieser Branch enthält den Stand `efd71b44` (Merge-Commit); der Code außerhalb dieses Ordners ist identisch mit `efd71b44`. Die Messung lässt sich direkt aus dem Branch wiederholen.
 
 ## Ergebnisse
 
