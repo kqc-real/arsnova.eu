@@ -427,7 +427,7 @@ Die App liefert nur `de` und `en` ohne Region. Quellsprache ist Deutsch nach **D
 - **Nur Bezeichner:** Anführungszeichen um UI-Namen (Buttons, Auswahloptionen, Menüpunkte), nicht um ganze Sätze und nicht um umschriebene Handlungen.
 - **Dynamische Namen** in Anführungszeichen (`»{{ name }}«`) brauchen ein eigenes i18n-Markup; sonst bleiben die deutschen Zeichen in allen Locales.
 - Gerade ASCII-`"` in sichtbarer Copy vermeiden. HTML-Entities in XLF-`<target>` (`&quot;Edit&quot;`) durch die locale-richtigen Zeichen ersetzen.
-- Prüfung: `npm run check:i18n -w @arsnova/frontend` (`apps/frontend/scripts/check-i18n-locales.mjs`). Englische Zusatzregeln: [ENGLISH-UI-COPY.md](ENGLISH-UI-COPY.md).
+- Prüfung: `npm run check:i18n -w @arsnova/frontend` (`apps/frontend/scripts/check-i18n-locales.mjs`). Sprachspezifische Regeln und Do’s/Don’ts: [Englisch](ENGLISH-UI-COPY.md), [Französisch](FRENCH-UI-COPY.md), [Spanisch](SPANISH-UI-COPY.md) und [Italienisch](ITALIAN-UI-COPY.md).
 
 ### Micro-Copy: Natuerlichkeit, Geraet, Denglisch (Empfehlung)
 

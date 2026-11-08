@@ -352,13 +352,25 @@ Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf
 
 Für **Locale `fr`** gelten die **[französischen Übersetzungsregeln mit Do’s und Don’ts](ui/FRENCH-UI-COPY.md)**: Ansprache, idiomatische Aktionen und Statusmeldungen, Q&R-/Blitzlicht-Terminologie, Lernziele, fachliche Bedeutungsunterschiede und französische Typografie. Die Prüfung umfasst auch TypeScript-Copy, Demo-Inhalte, PDF-Berichte, Legal-Markdown, Landingpage und PWA-Texte. App, Hilfe und Landing verwenden dieselben Produktbegriffe; PDF-Berichte folgen ihrem eigenen Ansprache-Glossar.
 
+### 9a.3 Spanische UI-Copy (`es`)
+
+Für App, Demo, PDF, Hilfe, Rechtstexte, Landingpage und PWA gelten die Regeln in
+[SPANISH-UI-COPY.md](ui/SPANISH-UI-COPY.md): einheitliche Ansprache, Produktbegriffe,
+konkrete Do’s/Don’ts, fachliche Grenzen und Prüfung aller Textquellen.
+
+### 9a.4 Italienische UI-Copy (`it`)
+
+Für denselben Umfang gelten die Regeln in
+[ITALIAN-UI-COPY.md](ui/ITALIAN-UI-COPY.md): direkte App-Aktionen, neutrale
+Berichtsempfehlungen, Produktbegriffe, Do’s/Don’ts und technische Invarianten.
+
 ---
 
 ## 9b. Aktueller Stand (Projekt arsnova.eu)
 
 | Aspekt                       | Stand                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Extrahierte Messages**     | 4083 trans-units in `messages.xlf` (Stand 2026-10-22; maßgeblich geprüft über `npm run check:i18n -w @arsnova/frontend`); alle vier Zielkataloge bestehen mit 4083/4083 Einheiten.                                                                                                                                                                                                                                                          |
+| **Extrahierte Messages**     | 4235 trans-units in `messages.xlf` (Stand 2026-11-08; maßgeblich geprüft über `npm run check:i18n -w @arsnova/frontend`); alle vier Zielkataloge bestehen mit 4235/4235 Einheiten.                                                                                                                                                                                                                                                          |
 | **Englisch (en)**            | Vollständig: Alle trans-units in `messages.en.xlf` haben ein `<target>`; Build ohne „No translation found“.                                                                                                                                                                                                                                                                                                                                 |
 | **fr/it/es (Technikstatus)** | `messages.fr.xlf`, `messages.it.xlf`, `messages.es.xlf` sind vollständig gepflegt und in `angular.json` eingebunden; der lokalisierte Build erzeugt Ausgaben für alle fünf Sprachen.                                                                                                                                                                                                                                                        |
 | **Legal-Seiten**             | Impressum und Datenschutz liegen für `de`, `en`, `fr`, `es` und `it` in `src/assets/legal/`.                                                                                                                                                                                                                                                                                                                                                |

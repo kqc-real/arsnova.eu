@@ -424,16 +424,16 @@ describe('HomeComponent', () => {
           'Choisir un feedback express',
         ],
         'messages.es.xlf': [
-          'Crear y gestionar un quiz',
+          'Crear y gestionar un cuestionario',
           'Crear y gestionar un Q&amp;A',
           'Crear y gestionar un foro de Q&amp;A',
           'Elegir un sondeo rápido',
         ],
         'messages.it.xlf': [
-          'Creare e gestire un quiz',
-          'Creare e gestire un Q&amp;A',
-          'Creare e gestire un forum Q&amp;A',
-          'Scegliere un sondaggio rapido',
+          'Crea e gestisci un quiz',
+          'Crea e gestisci un Q&amp;A',
+          'Crea e gestisci un forum Q&amp;A',
+          'Scegli un sondaggio rapido',
         ],
       };
 

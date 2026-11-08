@@ -8,6 +8,8 @@ Quellsprache ist **Deutsch** (Duzen in DE-UI). Ziel: idiomatisch, didaktisch pr�
 - Englisch: Direkte, sachliche Ansprache mit **you**. **Debriefing report** bezeichnet das PDF-Dokument, **debriefing plan** den Planabschnitt darin. Terminologie und Do’s/Don’ts stehen in [ENGLISH-UI-COPY.md](../ui/ENGLISH-UI-COPY.md).
 
 - Französisch: Im Nachbesprechungsbericht die formelle Ansprache **vous** verwenden. Für die App-Oberfläche gilt dagegen die Du-Ansprache mit **tu** nach [FRENCH-UI-COPY.md](../ui/FRENCH-UI-COPY.md).
+- Spanisch: **Informe de resultados** ist das Dokument, **plan para la puesta en común** der Planabschnitt. Details: [SPANISH-UI-COPY.md](../ui/SPANISH-UI-COPY.md).
+- Italienisch: **Rapporto sui risultati** ist das Dokument, **piano per la discussione dei risultati** der Planabschnitt. Details: [ITALIAN-UI-COPY.md](../ui/ITALIAN-UI-COPY.md).
 - Spanisch und Italienisch: **neutrale, professionelle Handlungsformulierungen**; Personalpronomen möglichst vermeiden. Keine saloppe oder umgangssprachliche Ansprache (kein informelles Du wie `Revisa` / `Rivedi`).
   - Infinitiv: ES `Revisar primero la pregunta 4.` · IT `Rivedere prima la domanda 4.`
   - unpersönlich: ES `Conviene revisar primero la pregunta 4.` · IT `È consigliabile rivedere prima la domanda 4.`

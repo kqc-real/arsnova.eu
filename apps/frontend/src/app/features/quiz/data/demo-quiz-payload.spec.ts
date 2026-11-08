@@ -528,8 +528,8 @@ describe('getDemoQuizSeedFingerprint', () => {
   it('verwendet idiomatische Demo-Titel statt „Showcase“ in FR, ES und IT', () => {
     const expected = {
       fr: 'Quiz démo',
-      es: 'Demostración didáctica',
-      it: 'Dimostrazione didattica',
+      es: 'Cuestionario por equipos de ejemplo',
+      it: 'Quiz a squadre di esempio',
     } as const;
 
     for (const [locale, title] of Object.entries(expected) as Array<

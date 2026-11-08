@@ -12,6 +12,10 @@ const legalPages = [
   { path: 'fr/datenschutz/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
   { path: 'en/impressum/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
   { path: 'en/datenschutz/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
+  { path: 'es/impressum/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
+  { path: 'es/datenschutz/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
+  { path: 'it/impressum/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
+  { path: 'it/datenschutz/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
 ];
 
 export const GET: APIRoute = () => {

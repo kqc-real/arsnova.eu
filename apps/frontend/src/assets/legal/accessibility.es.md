@@ -8,7 +8,7 @@ Dentro del ámbito que se describe a continuación, arsnova.eu es **accesible co
 
 La aplicación se ha sometido a revisiones técnicas y pruebas manuales, entre ellas pruebas con teclado, lectores de pantalla, niveles altos de ampliación y modos de contraste del sistema. Las comprobaciones automatizadas también forman parte de nuestro proceso de desarrollo. Repetimos y ampliamos estas pruebas cada vez que cambia la aplicación.
 
-La aceptación formal completada el 27 de julio de 2026 incluyó comprobaciones técnicas automatizadas, recorridos principales probados manualmente con VoiceOver/Safari y NVDA/Firefox, muestras adicionales de navegadores y sistemas operativos, zoom del navegador al 200 % y al 400 %, redistribución del contenido, Windows High Contrast/Forced Colors y pruebas con lectores de PDF y PDF/UA. Se superaron todos los criterios pertinentes de WCAG 2.2 de los niveles A y AA, sin hallazgos A o AA abiertos.
+La revisión formal de accesibilidad completada el 27 de julio de 2026 incluyó comprobaciones técnicas automatizadas, recorridos principales probados manualmente con VoiceOver/Safari y NVDA/Firefox, pruebas con otros navegadores y sistemas operativos, zoom del navegador al 200 % y al 400 %, redistribución del contenido, Windows High Contrast/Forced Colors y pruebas con lectores de PDF y PDF/UA. Se superaron todos los criterios pertinentes de WCAG 2.2 de los niveles A y AA, sin hallazgos A o AA abiertos.
 
 ## Uso y orientación
 
@@ -21,12 +21,12 @@ Los lectores de pantalla reciben mensajes de estado breves cuando cambia algún 
 Cuando una pregunta tiene una cuenta atrás, puedes elegir entre tres opciones en **Tiempo personal**:
 
 - **Estándar:** cuenta atrás compartida de la sesión
-- **Tiempo 10×:** diez veces el tiempo de respuesta personal
+- **Tiempo ×10:** diez veces el tiempo de respuesta personal
 - **Sin plazo:** sin cuenta atrás personal durante la pregunta actual
 
 La opción elegida se guarda para la sesión y se restablece si vuelves a entrar.
 
-La persona que modera coordina el desarrollo común de la sesión en directo. Cuando publica los resultados, la pregunta termina para todas las personas participantes. Antes de cambiar de fase, puede ver si alguien sigue utilizando su tiempo personal. Una vez finalizada la cuenta atrás compartida, una ventana de tiempo 10× que continúe abierta solo puede cerrarse después de una confirmación explícita. De este modo se combinan las necesidades individuales de tiempo con un desarrollo compartido y fiable de la sesión.
+La persona que modera coordina el desarrollo común de la sesión en directo. Cuando muestra los resultados, la pregunta termina para todas las personas participantes. Antes de cambiar de fase, puede ver si alguien sigue utilizando su tiempo personal. Una vez finalizada la cuenta atrás compartida, una ventana de tiempo 10× que continúe abierta solo puede cerrarse después de una confirmación explícita. De este modo se combinan las necesidades individuales de tiempo con un desarrollo compartido y fiable de la sesión.
 
 ## Presentación y movimiento
 
@@ -34,11 +34,11 @@ En las preguntas con puntuación puedes ocultar la visualización de puntos en d
 
 Si el sistema utiliza la opción **Reducir movimiento**, arsnova.eu limita las animaciones decorativas. La interfaz también se adapta al idioma seleccionado y a las presentaciones clara, oscura y de alto contraste.
 
-Para los informes de resultados está disponible un perfil PDF/UA estructurado que incluye el título y el idioma del documento, etiquetas y fuentes incrustadas.
+Para los informes de resultados está disponible una versión PDF/UA estructurada que incluye el título y el idioma del documento, etiquetas y fuentes incrustadas.
 
 ## Ámbito
 
-Esta información se refiere a las funciones de arsnova.eu y a los documentos generados por la aplicación. La información sobre la accesibilidad de los servicios externos enlazados corresponde a sus respectivos responsables. La declaración se limita a WCAG 2.2 AA; no afirma el nivel AAA ni una universalidad completa en todas las combinaciones posibles de dispositivos y tecnologías de asistencia.
+Esta información se refiere a las funciones de arsnova.eu y a los documentos generados por la aplicación. La información sobre la accesibilidad de los servicios externos enlazados corresponde a sus respectivos responsables. La declaración se limita a WCAG 2.2 AA; no declara conformidad con el nivel AAA ni compatibilidad universal con todas las combinaciones de dispositivos y tecnologías de asistencia.
 
 ## Tus comentarios
 

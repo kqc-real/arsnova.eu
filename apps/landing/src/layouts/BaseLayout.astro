@@ -45,7 +45,7 @@ const url = toAbsoluteUrl(path.startsWith('/') ? path.slice(1) : path);
 const ogImage = toAbsoluteUrl('og.png');
 const alternateLocales = getOgAlternateLocales(locale);
 const a11yUrl = appAccessibilityUrl(locale);
-const legalBase = locale === 'fr' || locale === 'en' ? `${base}${locale}/` : base;
+const legalBase = locale === 'de' ? base : `${base}${locale}/`;
 const impressumHref = `${legalBase}impressum/`.replace(/\/{2,}/g, '/');
 const privacyHref = `${legalBase}datenschutz/`.replace(/\/{2,}/g, '/');
 
