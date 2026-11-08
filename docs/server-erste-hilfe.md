@@ -514,6 +514,14 @@ docker builder prune
 docker image prune
 ```
 
+Der CI-Deploy führt diese risikoarme Bereinigung vor dem Checkout automatisch
+aus und verlangt danach mindestens **15 GiB freien Speicher auf `/`**. Kann der
+freie Platz nicht numerisch bestimmt werden oder liegt er unter diesem Wert,
+bricht der Job noch vor `git fetch`, Checkout, Migrationen und
+Containeränderungen mit einer eindeutigen Fehlermeldung ab. Das Gate löscht
+keine Volumes und ersetzt weder Monitoring noch die Ursachenanalyse dauerhaft
+wachsender Daten.
+
 Vor dem Löschen erst anzeigen lassen:
 
 ```bash
