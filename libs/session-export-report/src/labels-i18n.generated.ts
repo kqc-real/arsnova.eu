@@ -813,7 +813,7 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceCoverageFormulaTemplate:
     '{0} domande × {1} partecipanti = {2} risposte con grado di sicurezza autovalutato.',
   confidenceCoverageTemplate:
-    'Il grado di sicurezza autovalutato è stata raccolta per {0} domande su {1}, per un totale di {2} risposte.',
+    'Il grado di sicurezza autovalutato è stato raccolto per {0} domande su {1}, per un totale di {2} risposte.',
   confidenceDegenerateAllHighWrongResult:
     'Risultato: tutte le {0} risposte sono completamente sbagliate',
   confidenceDegenerateAllHighWrongTemplate:
@@ -850,7 +850,7 @@ export const IT_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     'Per questa domanda non è stata raccolta alcuna autovalutazione.',
   confidenceNotCollectedTemplate: 'Nessuna autovalutazione valutabile per {0}.',
   confidenceNotSupportedForQuestion:
-    'Il grado di sicurezza autovalutato non è offerta per il tipo di domanda «{0}».',
+    'L’autovalutazione non è prevista per le domande di tipo «{0}».',
   confidenceNotSupportedTemplate: 'L’autovalutazione non viene raccolta per {0}.',
   confidenceOmissionActionTemplate:
     'Raccomandazione: chiarire perché "{0}" fa parte della soluzione completa e fornire le ragioni delle tipiche omissioni.',
