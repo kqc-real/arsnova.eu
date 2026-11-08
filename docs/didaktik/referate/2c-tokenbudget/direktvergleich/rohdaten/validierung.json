@@ -1,0 +1,82 @@
+[
+  {
+    "id": "E-DIREKT12-0-auswahl",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-0-alle",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-1-auswahl",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-1-alle",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-2-alle",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-2-auswahl",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-3-alle",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-3-auswahl",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-4-auswahl",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  },
+  {
+    "id": "E-DIREKT12-4-alle",
+    "json": true,
+    "schema": true,
+    "ids": true,
+    "form": true,
+    "status": "ready"
+  }
+]

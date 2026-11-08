@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "moderation-prompt-context-v1",
+  "packedAt": "2026-01-15T10:05:00.000Z",
+  "hashAlgorithm": "sha-256",
+  "hashMaterialVersion": "moderation-prompt-hash-material-v1",
+  "snapshotHash": "271239e816e8feb35c3c11c44655a24814edcb40139027f88044f25808d9f010",
+  "context": {
+    "contractVersion": "moderation-domain-context-v1",
+    "representation": "prompt-selection",
+    "definitionsVersion": "moderation-prompt-definitions-v1",
+    "locale": "de",
+    "meta": {
+      "sourceRevision": "direkt-12-v1",
+      "analysisVersion": "fixture-analysis-v1",
+      "selectionVersion": "moderation-prompt-selection-v1",
+      "revisions": {
+        "questionText": {
+          "state": "available",
+          "value": "question-text-r1"
+        },
+        "questionVotes": {
+          "state": "available",
+          "value": "question-votes-r1"
+        },
+        "questionStatus": {
+          "state": "available",
+          "value": "question-status-r1"
+        },
+        "questionAnswerState": {
+          "state": "available",
+          "value": "question-answer-state-r1"
+        },
+        "questionNlp": {
+          "state": "available",
+          "value": "question-nlp-r1"
+        },
+        "topics": {
+          "state": "not-applicable",
+          "reason": "Themen sind in dieser Ablation ausgenommen."
+        },
+        "learningObjectives": {
+          "state": "not-applicable",
+          "reason": "Lernziele sind in dieser Ablation ausgenommen."
+        },
+        "releasedResults": {
+          "state": "not-applicable",
+          "reason": "Quizaggregate sind in dieser Ablation ausgenommen."
+        },
+        "feedback": {
+          "state": "not-applicable",
+          "reason": "Feedback ist in dieser Ablation ausgenommen."
+        }
+      }
+    },
+    "scope": {
+      "channels": [
+        "qa"
+      ],
+      "sessionPhase": "ACTIVE",
+      "questionFilter": {
+        "state": "available",
+        "statuses": [
+          "PENDING",
+          "ACTIVE",
+          "PINNED"
+        ],
+        "timeWindow": {
+          "kind": "entire-session"
+        }
+      },
+      "activeWeighting": {
+        "kind": "qa-ranking",
+        "version": "qa-ranking-v1",
+        "sortMode": "TOP"
+      },
+      "selectionLimits": {
+        "questions": 3,
+        "topics": 0,
+        "compassSignals": 0,
+        "learningObjectives": 0,
+        "resultAggregates": 0,
+        "feedbackAggregates": 0
+      }
+    },
+    "questions": {
+      "state": "available",
+      "participantBasis": {
+        "state": "available",
+        "kind": "session-participant-record-count",
+        "value": 200,
+        "calculationVersion": "qa-ranking-v1"
+      },
+      "corpus": {
+        "total": 12,
+        "eligible": 12,
+        "analyzed": 12,
+        "deduplicated": 3,
+        "represented": 3
+      },
+      "items": [
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "addressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        }
+      ]
+    },
+    "topics": {
+      "state": "not-applicable",
+      "reason": "Themen sind in dieser Ablation ausgenommen."
+    },
+    "compass": {
+      "state": "not-applicable",
+      "reason": "Kompasssignale sind in dieser Ablation ausgenommen."
+    },
+    "learningContext": {
+      "state": "not-applicable",
+      "reason": "Lernziele sind in dieser Ablation ausgenommen."
+    },
+    "releasedResults": {
+      "state": "not-applicable",
+      "reason": "Quizaggregate sind in dieser Ablation ausgenommen."
+    },
+    "feedback": {
+      "state": "not-applicable",
+      "reason": "Feedback ist in dieser Ablation ausgenommen."
+    },
+    "sources": [
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Könnten wir im Tutorium ein Konfidenzintervall einmal gemeinsam von Anfang bis Ende berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Bis wann muss das Übungsblatt abgegeben werden?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Wann endet die Abgabe des Übungsblatts? Nachtrag der Lehrperson: Die Frist ist verbindlich Freitag um 18 Uhr.",
+          "truncated": false
+        }
+      }
+    ],
+    "limitations": [
+      {
+        "code": "module-unavailable",
+        "section": "compass",
+        "detail": "Ablation enthält bewusst keine Kompasssignale."
+      },
+      {
+        "code": "module-unavailable",
+        "section": "learning-context",
+        "detail": "Ablation enthält bewusst keine Lernziele."
+      },
+      {
+        "code": "module-unavailable",
+        "section": "topics",
+        "detail": "Ablation enthält bewusst keine Themenmetadaten."
+      }
+    ]
+  },
+  "budget": {
+    "version": "moderation-prompt-budget-v1",
+    "tokenizer": {
+      "method": "conservative-estimate",
+      "id": "utf8-byte-upper-bound",
+      "version": "1"
+    },
+    "modelProfile": "qwen3-4b-instruct-2507-q4_k_m:ctx-8192:summary-v2",
+    "contextWindowTokens": 8192,
+    "instructionTokens": 650,
+    "definitionTokens": 203,
+    "dataTokens": 3950,
+    "packedInputTokens": 4803,
+    "reservedOutputTokens": 640,
+    "safetyMarginTokens": 128,
+    "truncations": [
+      {
+        "section": "questions",
+        "omittedItems": 9,
+        "reason": "deduplication"
+      }
+    ]
+  }
+}

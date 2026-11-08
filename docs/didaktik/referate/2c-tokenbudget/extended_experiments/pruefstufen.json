@@ -1,0 +1,562 @@
+{
+  "640-P0-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-P0-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R1-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R1-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R1-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R1-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R2-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R2-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R2-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R2-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R3-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R3-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R3-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R3-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R4-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R4-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R4-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R4-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R5-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R5-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R5-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "640-R5-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-P0-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-P0-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R1-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R1-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R1-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R1-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R2-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R2-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R2-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R2-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R3-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R3-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R3-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R3-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R4-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R4-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R4-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R4-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R5-S100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "uncertain",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R5-S100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R5-S6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "1024-R5-S6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R1-long100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R1-long100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R1-meta6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R1-meta6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R2-long100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R2-long100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R2-meta6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R2-meta6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R3-long100-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R3-long100-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R3-meta6-A": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": null,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  },
+  "erweitert-R3-meta6-B": {
+    "json": true,
+    "schema": true,
+    "appRefs": true,
+    "armRefs": true,
+    "qualityGate": false,
+    "modelStatus": "ready",
+    "actualMode": "extractive",
+    "finalStatus": "ready"
+  }
+}

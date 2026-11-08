@@ -1,0 +1,52 @@
+Pack S6/S100
+✓ src/lib/topic2c.experiment.test.ts (1 test) 132ms
+Test Files  1 passed (1)
+Tests  1 passed (1)
+Start at  15:52:37
+Duration  1.35s (transform 711ms, setup 0ms, import 1.10s, tests 132ms, environment 0ms)
+
+E-Long erster Pack-Versuch
+Test Files  1 failed (1)
+Tests  1 failed (1)
+Start at  15:52:37
+Duration  1.33s (transform 706ms, setup 0ms, import 1.08s, tests 102ms, environment 0ms)
+
+Erweiterte Eingaben korrigiert
+✓ src/lib/topic2c.experiment.test.ts (1 test) 174ms
+Test Files  1 passed (1)
+Tests  1 passed (1)
+Start at  15:58:18
+Duration  1.26s (transform 634ms, setup 0ms, import 984ms, tests 174ms, environment 0ms)
+
+V640
+✓ src/lib/topic2c.experiment.test.ts (1 test) 127405ms
+Test Files  1 passed (1)
+Tests  1 passed (1)
+Start at  15:53:24
+Duration  128.55s (transform 688ms, setup 0ms, import 1.04s, tests 127.40s, environment 0ms)
+
+V1024
+✓ src/lib/topic2c.experiment.test.ts (1 test) 127385ms
+Test Files  1 passed (1)
+Tests  1 passed (1)
+Start at  15:55:39
+Duration  128.48s (transform 629ms, setup 0ms, import 983ms, tests 127.39s, environment 0ms)
+
+Quellenkontrollen und Audit
+✓ src/lib/topic2c.kontrollen.test.ts (1 test) 913ms
+Test Files  1 passed (1)
+Tests  1 passed (1)
+Start at  16:01:29
+Duration  1.96s (transform 613ms, setup 0ms, import 942ms, tests 913ms, environment 0ms)
+
+640
+0.00.041.988 I cmn  common_param:   - ROCm0   : AMD Radeon RX 9070 XT (16188 MiB, 14101 MiB free)
+0.00.719.915 I load_tensors: offloaded 37/37 layers to GPU
+
+1024
+0.00.030.848 I cmn  common_param:   - ROCm0   : AMD Radeon RX 9070 XT (16188 MiB, 13945 MiB free)
+0.00.677.506 I load_tensors: offloaded 37/37 layers to GPU
+
+erweitert
+0.00.035.090 I cmn  common_param:   - ROCm0   : AMD Radeon RX 9070 XT (16188 MiB, 14173 MiB free)
+0.00.692.924 I load_tensors: offloaded 37/37 layers to GPU
