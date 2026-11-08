@@ -167,9 +167,9 @@ En cas d’égalité, le nombre de votes favorables, la valeur de vote compléme
 `.trim(),
     },
     es: {
-      title: 'Mejores preguntas',
+      title: 'Apoyo claro',
       markdown: `
-Esta ordenación da prioridad a las preguntas que cuentan con un amplio respaldo positivo sustentado por un número suficiente de votos. Por tanto, un único voto favorable no basta para situar automáticamente una pregunta en primer lugar.
+Esta ordenación da prioridad a las preguntas que cuentan con un amplio respaldo positivo sustentado por un número suficiente de votos. Por tanto, un único voto favorable no basta para situar automáticamente una pregunta en primer lugar. Esta puntuación no mide la exactitud del contenido.
 
 #### Fórmula
 
@@ -197,13 +197,13 @@ La puntuación tiene en cuenta tanto el nivel de apoyo como la fiabilidad del re
 | 10 a favor, 0 en contra | 100 % | 0,72 |
 | 8 a favor, 2 en contra | 80 % | 0,49 |
 
-En caso de empate, se comparan sucesivamente el número de votos a favor, el valor adicional de los votos y, por último, la fecha de creación. Las preguntas destacadas se muestran primero con independencia de esta puntuación.
+En caso de empate, se comparan sucesivamente el número de votos a favor, el saldo de votos y, por último, la fecha de creación. Las preguntas fijadas se muestran primero con independencia de esta puntuación.
 `.trim(),
     },
     it: {
-      title: 'Domande migliori',
+      title: 'Consenso solido',
       markdown: `
-Questo ordinamento privilegia le domande che ricevono un ampio consenso positivo, sostenuto da un numero sufficiente di voti. Un solo voto favorevole, quindi, non basta per portare automaticamente una domanda al primo posto.
+Questo ordinamento privilegia le domande che ricevono un ampio consenso positivo, sostenuto da un numero sufficiente di voti. Un solo voto favorevole, quindi, non basta per portare automaticamente una domanda al primo posto. Il punteggio non misura la correttezza del contenuto.
 
 #### Formula
 
@@ -231,7 +231,7 @@ Il punteggio considera sia il livello di consenso sia l’affidabilità del risu
 | 10 favorevoli, 0 contrari | 100% | 0,72 |
 | 8 favorevoli, 2 contrari | 80% | 0,49 |
 
-In caso di parità vengono confrontati, nell’ordine, il numero di voti favorevoli, il valore di voto aggiuntivo e infine la data di creazione. Le domande in evidenza vengono mostrate per prime indipendentemente da questo punteggio.
+In caso di parità vengono confrontati, nell’ordine, il numero di voti favorevoli, il saldo dei voti e infine la data di creazione. Le domande in evidenza vengono mostrate per prime indipendentemente da questo punteggio.
 `.trim(),
     },
   },

@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { legal, site } from '../../config/legal';
+
+const providerCountry = legal.provider.address.country === 'Deutschland'
+  ? 'Germania'
+  : legal.provider.address.country;
+const hostingLocation = legal.hosting.location === 'USA' ? 'Stati Uniti' : legal.hosting.location;
+---
+
+<BaseLayout
+  locale="it"
+  title="Informativa sulla privacy"
+  description="Informativa sulla privacy del sito informativo arsnova.eu: trattamento dei dati, hosting e diritti."
+  canonicalPath="/it/datenschutz/"
+>
+  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6" lang="it">
+    <h1 class="font-display text-3xl font-bold text-landing-fg">Informativa sulla privacy</h1>
+    <p class="mt-2 text-landing-fg-muted">Informazioni ai sensi degli articoli 13 e 14 del Regolamento generale sulla protezione dei dati (GDPR)</p>
+
+    <section class="landing-card mt-6 p-5 text-landing-fg-body">
+      <p class="landing-eyebrow">In breve</p>
+      <ul class="mt-3 list-inside list-disc space-y-1 leading-7">
+        <li>Questa informativa riguarda principalmente il sito informativo {site.landingUrl}.</li>
+        <li>Il sito informativo non imposta cookie e non utilizza strumenti di analisi.</li>
+        <li>
+          L’applicazione per quiz, votazioni e Q&amp;A in diretta è disponibile separatamente su {site.appUrl}.
+          All’applicazione e alle installazioni su altri server possono applicarsi informazioni sulla privacy aggiuntive o diverse.
+        </li>
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-8 text-landing-fg-body">
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">1. Titolare del trattamento</h2>
+        <p class="mt-2">
+          {legal.provider.name}<br />
+          {legal.provider.address.street}<br />
+          {legal.provider.address.city}<br />
+          {providerCountry}
+        </p>
+        <p class="mt-2">
+          Email: <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">2. Ambito di applicazione</h2>
+        <p class="mt-2">
+          Questa informativa sulla privacy si applica principalmente al sito informativo statico <strong>{site.landingUrl}</strong>. Descrive il trattamento dei dati quando visiti queste pagine, segui link esterni e utilizzi il sito ospitato.
+        </p>
+        <p class="mt-2">
+          All’applicazione per quiz, votazioni e Q&amp;A in diretta su <strong>{site.appUrl}</strong> e alle installazioni su altri server possono applicarsi informazioni sulla privacy aggiuntive o diverse. Il relativo gestore o istituzione è responsabile del trattamento dei dati.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">3. Dati trattati durante la visita</h2>
+        <p class="mt-2">
+          Quando visiti questo sito, il fornitore di hosting può trattare dati tecnici di accesso, tra cui indirizzo IP, data e ora della richiesta, URL visitato, informazioni sul browser e quantità di dati trasferiti. Il trattamento è tecnicamente necessario per fornire il sito e mantenerne sicurezza e stabilità. La base giuridica è l’articolo 6, paragrafo 1, lettera f, del GDPR.
+        </p>
+        <p class="mt-2">
+          Questo sito statico <strong>non imposta cookie</strong> e non utilizza strumenti di analisi. La visita non comporta il trattamento di contenuti dei quiz, risposte, dati delle sessioni o dati di utilizzo analoghi dell’applicazione.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">4. Link a servizi esterni</h2>
+        <p class="mt-2">
+          Questo sito contiene link a servizi esterni, tra cui GitHub e l’applicazione {site.name}. Seguendoli, lasci il sito informativo. Si applicano quindi le informative sulla privacy e le condizioni d’uso dei rispettivi fornitori o gestori.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">5. Hosting del sito informativo</h2>
+        <p class="mt-2">
+          Questo sito informativo è ospitato da <strong>{legal.hosting.provider}</strong>. I dati tecnici di accesso possono essere trattati sui server del fornitore. Il fornitore ha sede negli <strong>{hostingLocation}</strong>, quindi non si può escludere un trasferimento verso un paese terzo.
+        </p>
+        <p class="mt-2">
+          Per maggiori informazioni sul trattamento dei dati da parte del fornitore di hosting, consulta l’<a href={legal.hosting.privacyUrl} class="landing-link" target="_blank" rel="noopener noreferrer">Informativa sulla privacy di GitHub</a>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">6. I tuoi diritti</h2>
+        <p class="mt-2">Hai i seguenti diritti nei confronti del titolare del trattamento:</p>
+        <ul class="mt-2 list-inside list-disc space-y-1">
+          <li><strong>Accesso</strong> (articolo 15 del GDPR) ai tuoi dati personali trattati</li>
+          <li><strong>Rettifica</strong> (articolo 16 del GDPR) dei dati inesatti</li>
+          <li><strong>Cancellazione</strong> (articolo 17 del GDPR) o <strong>limitazione del trattamento</strong> (articolo 18 del GDPR)</li>
+          <li><strong>Opposizione</strong> (articolo 21 del GDPR) al trattamento basato sull’articolo 6, paragrafo 1, lettera f, del GDPR</li>
+          <li><strong>Portabilità dei dati</strong> (articolo 20 del GDPR), ove applicabile</li>
+          <li><strong>Revoca del consenso</strong> (articolo 7, paragrafo 3, del GDPR), con effetto per il futuro</li>
+          <li><strong>Reclamo</strong> a un’autorità di controllo (articolo 77 del GDPR)</li>
+        </ul>
+        <p class="mt-2">
+          Per domande o per esercitare i tuoi diritti, contatta: <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">7. È obbligatorio fornire dati?</h2>
+        <p class="mt-2">
+          Non devi fornire attivamente dati personali per visitare questo sito informativo. Tuttavia, per fornire il sito il servizio di hosting deve trattare alcuni dati di connessione. Se ci contatti via email, abbiamo bisogno dei tuoi dati di mittente.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">8. L’applicazione arsnova.eu</h2>
+        <p class="mt-2">
+          L’applicazione su <strong>{site.appUrl}</strong> è progettata per tutelare la privacy e privilegia il salvataggio locale. I dati trattati durante l’uso, le sessioni in diretta o l’installazione su altri server dipendono dal gestore dell’istanza. Consulta l’informativa sulla privacy dell’applicazione che utilizzi.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">9. Modifiche</h2>
+        <p class="mt-2">
+          Possiamo aggiornare questa informativa per riflettere modifiche della normativa o dell’effettivo trattamento dei dati. La versione corrente è disponibile in questa pagina.
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

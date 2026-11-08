@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { legal, site } from '../../config/legal';
+
+const providerCountry = legal.provider.address.country === 'Deutschland'
+  ? 'Alemania'
+  : legal.provider.address.country;
+---
+
+<BaseLayout
+  locale="es"
+  title="Aviso legal"
+  description="Aviso legal y datos de contacto de quien gestiona el sitio informativo arsnova.eu."
+  canonicalPath="/es/impressum/"
+>
+  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6" lang="es">
+    <h1 class="font-display text-3xl font-bold text-landing-fg">Aviso legal</h1>
+    <p class="mt-2 text-landing-fg-muted">Información conforme al artículo 5 de la ley alemana de servicios digitales (Digitale-Dienste-Gesetz, DDG)</p>
+
+    <section class="landing-card mt-6 p-5 text-landing-fg-body">
+      <p class="landing-eyebrow">De un vistazo</p>
+      <p class="mt-3 leading-7">
+        Esta página identifica a quien gestiona el sitio informativo <strong>{site.landingUrl}</strong> y facilita sus datos de contacto. La aplicación en directo está disponible por separado en <strong>{site.appUrl}</strong>.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-6 text-landing-fg-body">
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Responsable del sitio y prestador de servicios</h2>
+        <p class="mt-2">
+          {legal.provider.name}<br />
+          {legal.provider.institution && <>{legal.provider.institution}<br /></>}
+          {legal.provider.address.street}<br />
+          {legal.provider.address.city}<br />
+          {providerCountry}
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Contacto</h2>
+        <p class="mt-2">
+          Correo electrónico: <a href={`mailto:${legal.provider.contact.email}`} class="landing-link">{legal.provider.contact.email}</a>
+          {legal.provider.contact.website && (
+            <><br />Sitio web: <a href={legal.provider.contact.website} class="landing-link" target="_blank" rel="noopener noreferrer">{legal.provider.contact.website}</a></>
+          )}
+          {legal.provider.contact.phone && (
+            <><br />Teléfono: {legal.provider.contact.phone}</>
+          )}
+        </p>
+      </div>
+
+      {legal.provider.editorialResponsible && (
+        <div>
+          <h2 class="font-display text-lg font-semibold text-landing-fg">Responsabilidad editorial conforme al artículo 18, apartado 2, del Tratado interestatal alemán de medios de comunicación (MStV)</h2>
+          <p class="mt-2">{legal.provider.editorialResponsible}</p>
+        </div>
+      )}
+
+      {legal.provider.vatId && (
+        <div>
+          <h2 class="font-display text-lg font-semibold text-landing-fg">Número de identificación a efectos del IVA</h2>
+          <p class="mt-2">{legal.provider.vatId}</p>
+        </div>
+      )}
+
+      {legal.provider.supervisoryAuthority && (
+        <div>
+          <h2 class="font-display text-lg font-semibold text-landing-fg">Autoridad de control</h2>
+          <p class="mt-2">{legal.provider.supervisoryAuthority}</p>
+        </div>
+      )}
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Responsabilidad por los contenidos</h2>
+        <p class="mt-2">
+          Somos responsables de nuestros propios contenidos en este sitio conforme a la legislación general. Enlazar o integrar automáticamente información de terceros no la convierte, por sí solo, en contenido propio. Si recibimos un aviso de una infracción concreta, revisamos el contenido afectado y lo retiramos o bloqueamos su acceso cuando lo exige la ley.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Responsabilidad por los enlaces</h2>
+        <p class="mt-2">
+          Este sitio enlaza a servicios externos, entre ellos GitHub y la aplicación {site.name}. No supervisamos continuamente sus contenidos ni su tratamiento de datos. Si tenemos conocimiento de una infracción concreta, retiramos los enlaces afectados cuando sea razonablemente posible y lo exija la ley.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">Derechos de autor</h2>
+        <p class="mt-2">
+          Los contenidos, textos, imágenes, marcas y código fuente de este sitio están sujetos a las normas aplicables sobre derechos de autor, marcas y licencias. El código y los materiales del proyecto también están sujetos a las licencias indicadas en el repositorio correspondiente. Los contenidos de terceros se identifican siempre que sea posible.
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

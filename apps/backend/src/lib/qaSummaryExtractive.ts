@@ -53,7 +53,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Punto importante: ${label}.`,
-    empty: 'Aún no se han seleccionado preguntas abiertas para el resumen.',
+    empty: 'Aún no se han seleccionado preguntas sin responder para el resumen.',
     limitation:
       'Esta vez no ha sido posible crear un resumen detallado. Por eso se muestran las preguntas más importantes con su redacción original.',
   },
@@ -64,7 +64,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Punto importante: ${label}.`,
-    empty: 'Non sono ancora state selezionate domande aperte per il riepilogo.',
+    empty: 'Non sono ancora state selezionate domande senza risposta per il riepilogo.',
     limitation:
       'Questa volta non è stato possibile creare un riepilogo dettagliato. Vengono quindi mostrate le domande più importanti nella loro formulazione originale.',
   },
