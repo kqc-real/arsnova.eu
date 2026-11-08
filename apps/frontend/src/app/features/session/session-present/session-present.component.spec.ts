@@ -424,7 +424,7 @@ describe('SessionPresentComponent', () => {
       '[data-testid="presenter-presentation-ended"]',
     ) as HTMLElement | null;
     expect(ended?.getAttribute('role')).toBe('status');
-    expect(ended?.textContent).toContain('Die Live-Präsentation wurde beendet.');
+    expect(ended?.textContent).toContain('Die Live-Projektion ist ausgeblendet.');
     expect(ended?.textContent).toContain('Das Quiz läuft weiter.');
     expect(ended?.textContent).toContain('Bitte warte auf weitere Anweisungen.');
     expect(ended?.textContent).toContain('ABC123');

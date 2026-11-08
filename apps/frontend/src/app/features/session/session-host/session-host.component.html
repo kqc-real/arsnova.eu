@@ -5591,7 +5591,11 @@
           </button>
         </div>
       }
-      @if (projectionControlsOffered() && session()?.presenterSurface !== 'ended') {
+      @if (
+        projectionControlsOffered() &&
+        presenterWindowOpen() &&
+        session()?.presenterSurface !== 'ended'
+      ) {
         <button
           mat-menu-item
           type="button"
@@ -5599,7 +5603,7 @@
           [disabled]="presenterSurfacePending()"
         >
           <mat-icon aria-hidden="true">stop_screen_share</mat-icon>
-          <span i18n="@@sessionHost.endPresentationView">Projektionsansicht beenden</span>
+          <span i18n="@@sessionHost.endPresentationView">Live-Projektion ausblenden</span>
         </button>
       }
       <button

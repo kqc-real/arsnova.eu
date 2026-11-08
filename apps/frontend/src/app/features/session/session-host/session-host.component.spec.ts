@@ -3405,7 +3405,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('setzt eine beendete Projektionsansicht beim erneuten Öffnen fort', async () => {
+  it('setzt eine ausgeblendete Live-Projektion beim erneuten Öffnen fort', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -3433,9 +3433,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       launchPresenterViewWindow(): Promise<Window | null>;
       session: typeof fixture.componentInstance.session;
     };
-    expect(fixture.componentInstance.presenterViewActionLabel()).toBe(
-      'Präsentationsansicht fortsetzen',
-    );
+    expect(fixture.componentInstance.presenterViewActionLabel()).toBe('Live-Projektion fortsetzen');
     const opened = await component.launchPresenterViewWindow();
 
     expect(opened).toBe(existingPresenter);
@@ -3456,6 +3454,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       'Zur Präsentationsansicht wechseln',
     );
 
+    fixture.detectChanges();
+    const { menu } = await openHostMoreActions(fixture);
+    expect(menu.textContent).toContain('Live-Projektion ausblenden');
+    fixture.debugElement
+      .query(By.css('[data-testid="host-more-actions"]'))
+      .injector.get(MatMenuTrigger)
+      .closeMenu();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
     dialogOpenMock.mockClear();
     open.mockClear();
     await fixture.componentInstance.openPresenterView();
@@ -3467,6 +3475,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.presenterViewActionLabel()).toBe(
       'Präsentationsansicht öffnen',
     );
+    const closedMenu = await openHostMoreActions(fixture);
+    expect(closedMenu.menu.textContent).not.toContain('Live-Projektion ausblenden');
     open.mockRestore();
     fixture.destroy();
   });
@@ -3744,6 +3754,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(fixture.componentInstance.showPresenterViewButton()).toBe(false);
     expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    fixture.componentInstance.presenterWindowOpen.set(true);
     const { menu } = await openHostMoreActions(fixture);
     expect(fixture.componentInstance.projectionControlsOffered()).toBe(false);
     expect(menu.querySelector('[data-testid="mobile-presenter-view-action"]')).toBeNull();
@@ -3751,7 +3762,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(frameAction).not.toBeNull();
     expect(menu.querySelector('.session-host__view-toggle--fullscreen')).toBeNull();
     expect(menu.textContent).not.toContain('Präsentationsansicht');
-    expect(menu.textContent).not.toContain('Projektionsansicht');
+    expect(menu.textContent).not.toContain('Live-Projektion');
     expect(menu.textContent).toContain('App-Rahmen');
     expect(menu.textContent).toContain('Session beenden');
     frameAction!.click();
@@ -3788,7 +3799,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const { menu } = await openHostMoreActions(fixture);
     expect(menu.querySelector('[data-testid="mobile-presenter-view-action"]')).toBeNull();
     expect(menu.textContent).not.toContain('Präsentationsansicht');
-    expect(menu.textContent).not.toContain('Projektionsansicht beenden');
+    expect(menu.textContent).not.toContain('Live-Projektion ausblenden');
     fixture.destroy();
     vi.unstubAllGlobals();
   });
@@ -17912,7 +17923,55 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('beendet im Menü nur die Projektionsansicht und lässt das Quiz weiterlaufen', async () => {
+  it.each(['quiz', 'qa', 'quickFeedback'] as const)(
+    'bietet im %s-Kanal ohne geöffneten Presenter kein Projektionsende an',
+    async (channel) => {
+      getInfoQueryMock.mockResolvedValue({
+        ...defaultSession,
+        status: 'ACTIVE',
+        presenterSurface: 'default',
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance.activeChannel.set(channel);
+      fixture.detectChanges();
+
+      const { menu } = await openHostMoreActions(fixture);
+      expect(fixture.componentInstance.presenterWindowOpen()).toBe(false);
+      expect(menu.textContent).not.toContain('Live-Projektion ausblenden');
+      expect(menu.textContent).toContain('Session beenden');
+      fixture.destroy();
+    },
+  );
+
+  it('bietet nach blockiertem Presenter-Start kein Projektionsende an', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    try {
+      const component = fixture.componentInstance as unknown as {
+        launchPresenterViewWindow(): Promise<Window | null>;
+      };
+      expect(await component.launchPresenterViewWindow()).toBeNull();
+      expect(open).toHaveBeenCalled();
+      fixture.detectChanges();
+      const { menu } = await openHostMoreActions(fixture);
+      expect(fixture.componentInstance.presenterWindowOpen()).toBe(false);
+      expect(menu.textContent).not.toContain('Live-Projektion ausblenden');
+    } finally {
+      open.mockRestore();
+      fixture.destroy();
+    }
+  });
+
+  it('blendet im Menü nur die Live-Projektion aus und lässt das Quiz weiterlaufen', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -17923,9 +17982,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const { menu } = await openHostMoreActions(fixture);
+    fixture.componentInstance.presenterWindowOpen.set(true);
+    const { trigger, menu } = await openHostMoreActions(fixture);
     const endPresentation = Array.from(menu.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Projektionsansicht beenden'),
+      button.textContent?.includes('Live-Projektion ausblenden'),
     );
     expect(endPresentation).toBeTruthy();
     endPresentation!.click();
@@ -17933,6 +17993,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.componentInstance.runHostMoreAction();
     await fixture.whenStable();
 
+    expect(document.activeElement).toBe(trigger);
+    expect(trigger.isConnected).toBe(true);
+    expect(getComputedStyle(trigger).display).not.toBe('none');
     expect(fixture.componentInstance.session()?.presenterSurface).toBe('ended');
     expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
@@ -17941,10 +18004,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.effectiveStatus()).toBe('ACTIVE');
     expect(fixture.componentInstance.presenterSurfacePending()).toBe(false);
     expect(fixture.nativeElement.querySelector('.session-host__projection-pages')).toBeNull();
+    const reopened = await openHostMoreActions(fixture);
+    expect(reopened.menu.textContent).not.toContain('Live-Projektion ausblenden');
     fixture.destroy();
   });
 
-  it('hält Hero-Rahmen und Navigator nach Beenden der Projektionsansicht als Host-Bearbeitungshilfe', async () => {
+  it('hält Hero-Rahmen und Navigator nach Ausblenden der Live-Projektion als Host-Bearbeitungshilfe', async () => {
     setPresenterSurfaceMutateMock.mockImplementation(
       async (input: { surface?: string; page?: { count?: number; index?: number } }) => ({
         presenterSurface: (input.surface ?? 'ended') as 'ended',
@@ -19873,7 +19938,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
   });
 
   it.each(['qa', 'quickFeedback'] as const)(
-    'hält das Beenden der Projektionsansicht auch im %s-Kanal erreichbar',
+    'hält das Ausblenden der Live-Projektion auch im %s-Kanal erreichbar',
     async (channel) => {
       getInfoQueryMock.mockResolvedValue({
         ...defaultSession,
@@ -19888,12 +19953,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const fixture = setup();
       fixture.detectChanges();
       await fixture.whenStable();
+      fixture.componentInstance.presenterWindowOpen.set(true);
       fixture.componentInstance.activeChannel.set(channel);
       fixture.detectChanges();
 
       const { menu } = await openHostMoreActions(fixture);
       const endPresentation = Array.from(menu.querySelectorAll('button')).find((button) =>
-        button.textContent?.includes('Projektionsansicht beenden'),
+        button.textContent?.includes('Live-Projektion ausblenden'),
       );
       expect(endPresentation).toBeTruthy();
       endPresentation!.click();
