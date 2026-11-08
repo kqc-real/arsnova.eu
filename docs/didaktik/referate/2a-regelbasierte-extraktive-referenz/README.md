@@ -8,6 +8,8 @@
 
 Dieser Ordner enthält die Evidenz zum Handout: Rohdaten, Messskripte, Rubrik, Bewertung und Entscheidung. Alle Versuche liefen gegen das unveränderte Repository; die Messskripte rufen ausschließlich vorhandene Funktionen auf und reproduzieren die Referenzwerte aus `libs/shared-types/src/moderation-prompt-context-fixtures.ts` exakt.
 
+**Belegkarte:** Welche Datei und welche Zeile jede Aussage aus Folien und Handout belegt, steht in [BELEGE.md](./BELEGE.md).
+
 ## Messstände
 
 Die erste Messreihe lief auf `a657798e` (20.10.2026). Nach dem Abgleich mit `main` wurden am 04.11.2026 alle Versuche auf `9f230abc` wiederholt. Die Berichte tragen den Commit im Dateinamen; die Rohdateien des zweiten E3b-Laufs liegen in `evidence/E3/9f230abc/`.
@@ -25,7 +27,7 @@ Die erste Messreihe lief auf `a657798e` (20.10.2026). Nach dem Abgleich mit `mai
 | E2: Gegenfälle                                                             | Eine ungeprüfte Frage mit hoher Kontroversität erscheint in der Klärungs-, nicht in der Reibungskarte (K9; im Releasepfad unerreichbar, da Stimmen auf PENDING abgelehnt werden). Fehlende Stimmdaten erzeugen dieselbe Ausgabe wie 0 Stimmen. Eine einzelne ungeprüfte Frage ohne Stimme verdrängt den Kontroversen-Hinweis aus „Als Nächstes“; bleibt eine Karte übrig, entfällt der Vorschlag. Das Label „umstritten“ gilt für E (40:40) nur bis N = 790, für A (80:30) schon in Räumen bis N = 90. | [E2](./evidence/E2/e2-9f230abc.md)                                                                   |
 | E3: Extraktiver Fallback über den Releasepfad (Backend, PostgreSQL, Redis) | 62 von 62 Anfragen lieferten ein Ergebnis (erste Messreihe: 59 von 59) (`disabled`, `unavailable`, `circuit_open`, `timeout`). Jeder Lauf zeigte E, F, C, D; die meistunterstützte Frage A fehlte immer, weil der Kandidatenfilter (max. 4 Fragen) nach Best-Score auffüllt und die Wilson-Untergrenze 12:0 vor 80:30 stellt. Der Fallback-Grund ist im UI nicht sichtbar.                                                                                                                             | [E3](./evidence/E3/e3b-9f230abc.md)                                                                  |
 | E4: Rubrik (fünf Dimensionen, vorab festgelegt)                            | Beste nichtgenerative Variante 5/10, ebenso die ungefilterte Liste. Keine Variante erfüllt Bedeutung der Bewertungen, Trennung der Anliegen und Vollständigkeit zugleich.                                                                                                                                                                                                                                                                                                                              | [Bewertung](./evidence/E4/bewertung-a657798e.md), [Bestätigung](./evidence/E4/bewertung-9f230abc.md) |
-| E5: Rechenaufwand                                                          | Regelkern inklusive Wortextraktion 14,8 ms (p95) bei 500 Fragen (erste Messreihe 9,7 ms); extraktiver Fallback 143 ms Serverzeit (Median).                                                                                                                                                                                                                                                                                                                                                             | [E5](./evidence/E5/e5-9f230abc.md)                                                                   |
+| E5: Rechenaufwand                                                          | Regelkern inklusive Wortextraktion 19,1 ms (p95) bei 500 Fragen (erste Messreihe 9,7 ms; [Bericht](./evidence/E5/e5-9f230abc.md)); extraktiver Fallback 143 ms Serverzeit (Median).                                                                                                                                                                                                                                                                                                                    | [E5](./evidence/E5/e5-9f230abc.md)                                                                   |
 
 ## Entscheidung und Verbesserungsvorschläge
 
@@ -56,11 +58,12 @@ E3b benötigt PostgreSQL und Redis (`docker compose up -d postgres redis`) und s
 
 ## Dateien
 
-| Pfad                                                                | Inhalt                                                                  |
-| ------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `evidence/E1` … `evidence/E5`                                       | Berichte (Markdown) und Rohdaten (JSON, Logs) je Versuch                |
-| `evidence/tests/`                                                   | Baseline-Testläufe (`9f230abc`: 283/283, `a657798e`: 270/270 bestanden) |
-| `evidence/E4/rubrik.md`                                             | Rubrik mit Prüfregeln, vor der Bewertung festgelegt                     |
-| `evidence/literatur-verifiziert.md`, `evidence/literatur-seiten.md` | Literatur mit DOI-Prüfung und Seitenangaben                             |
-| `harness/`                                                          | Messskripte                                                             |
-| [KI-OFFENLEGUNG.md](./KI-OFFENLEGUNG.md)                            | Protokoll der KI-Nutzung                                                |
+| Pfad                                                                | Inhalt                                                                            |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `evidence/E1` … `evidence/E5`                                       | Berichte (Markdown) und Rohdaten (JSON, Logs) je Versuch                          |
+| `evidence/tests/`                                                   | Baseline-Testläufe (`9f230abc`: 283/283, `a657798e`: 270/270 bestanden)           |
+| `evidence/E4/rubrik.md`                                             | Rubrik mit Prüfregeln, vor der Bewertung festgelegt                               |
+| `evidence/literatur-verifiziert.md`, `evidence/literatur-seiten.md` | Literatur mit DOI-Prüfung und Seitenangaben                                       |
+| `harness/`                                                          | Messskripte                                                                       |
+| [BELEGE.md](./BELEGE.md)                                            | Belegkarte: jede Aussage aus Folien und Handout mit Datei, Zeile und Evidenzstufe |
+| [KI-OFFENLEGUNG.md](./KI-OFFENLEGUNG.md)                            | Protokoll der KI-Nutzung                                                          |

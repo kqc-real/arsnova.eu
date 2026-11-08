@@ -1,10 +1,10 @@
-# Entscheidung 2A (Commit a657798e)
+# Entscheidung 2A (Commit 9f230abc; erste Fassung auf a657798e, Befunde unverändert)
 
 ## Hypothese (vorab)
 
 Ohne generative Inferenz liefert Release 1.3 eine quellentreue und nahezu kostenfreie, aber kategorienblinde Lageeinschätzung: Bewertungssignale werden korrekt getragen, Übungswunsch und Prüfungsorganisation jedoch nicht getrennt. Der extraktive Fallback bleibt hinter dem Regelkern zurück, weil er nicht nach Relevanz auswählt.
 
-**Ergebnis:** Teilweise bestätigt. Quellentreue (keine unzulässigen Verkürzungen) und Kosten (< 10 ms p95 bei 500 Fragen, kein Modell) bestätigt. Kategorienblindheit bestätigt (D3 ≤ 1 in allen realistischen Varianten). Die Vermutung zum extraktiven Fallback ist **präziser zu fassen**: Er wählt nach einer Relevanzregel aus (Signal-Schutz, Pin, Best-Score), aber diese Regel verdrängt systematisch die meistunterstützte, jedoch nicht einstimmige Frage A.
+**Ergebnis:** Teilweise bestätigt. Quellentreue (keine unzulässigen Verkürzungen) und Kosten (< 20 ms p95 bei 500 Fragen, kein Modell; E5) bestätigt. Kategorienblindheit bestätigt (D3 ≤ 1 in allen realistischen Varianten). Die Vermutung zum extraktiven Fallback ist **präziser zu fassen**: Er wählt nach einer Relevanzregel aus (Signal-Schutz, Pin, Best-Score), aber diese Regel verdrängt systematisch die meistunterstützte, jedoch nicht einstimmige Frage A.
 
 ## Entscheidung
 
@@ -23,7 +23,7 @@ Ohne generative Inferenz liefert Release 1.3 eine quellentreue und nahezu kosten
 
 ## Kosten-, Risiko- und Betriebsfolge
 
-- Beibehaltung verursacht keine zusätzlichen Infrastrukturkosten. Der Regelkern läuft im Browser (< 10 ms), der extraktive Fallback in-process in der App (Median 163 ms Serverzeit, überwiegend Kontextaufbau).
+- Beibehaltung verursacht keine zusätzlichen Infrastrukturkosten. Der Regelkern läuft im Browser (< 20 ms bei 500 Fragen, p95), der extraktive Fallback in-process in der App (Median 143 ms Serverzeit, überwiegend Kontextaufbau).
 - Verbesserungen 1–4 sind lokale Änderungen in App und Frontend mit Testbedarf, ohne neue Dienste.
 - Risiko der Beibehaltung: Organisatorische Anliegen (C/D) bleiben im Regelkern unsichtbar; die Lehrperson muss die Q&A-Liste selbst lesen.
 - Risiko einer vorschnellen Aktivierung: zweiter Host im Dauerbetrieb, 57 s pro Kurzfassung (dokumentierte Referenz) und – bei hängender Runtime – 90 s Wartezeit je Anfrage ohne automatische Abschaltung (E3b, C2a).
