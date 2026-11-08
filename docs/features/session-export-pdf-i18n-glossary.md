@@ -5,7 +5,7 @@ Quellsprache ist **Deutsch** (Duzen in DE-UI). Ziel: idiomatisch, didaktisch pr�
 
 **Anrede**
 
-- Französisch: Lehrkräfte-Interface grundsätzlich mit **vous** (nicht als übertragenes deutsches Du/`tu`).
+- Französisch: Im Nachbesprechungsbericht die formelle Ansprache **vous** verwenden. Für die App-Oberfläche gilt dagegen die Du-Ansprache mit **tu** nach [FRENCH-UI-COPY.md](../ui/FRENCH-UI-COPY.md).
 - Spanisch und Italienisch: **neutrale, professionelle Handlungsformulierungen**; Personalpronomen möglichst vermeiden. Keine saloppe oder umgangssprachliche Ansprache (kein informelles Du wie `Revisa` / `Rivedi`).
   - Infinitiv: ES `Revisar primero la pregunta 4.` · IT `Rivedere prima la domanda 4.`
   - unpersönlich: ES `Conviene revisar primero la pregunta 4.` · IT `È consigliabile rivedere prima la domanda 4.`

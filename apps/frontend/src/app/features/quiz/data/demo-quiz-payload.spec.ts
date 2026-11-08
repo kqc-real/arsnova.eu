@@ -527,7 +527,7 @@ describe('getDemoQuizSeedFingerprint', () => {
 
   it('verwendet idiomatische Demo-Titel statt „Showcase“ in FR, ES und IT', () => {
     const expected = {
-      fr: 'Démonstration pédagogique',
+      fr: 'Quiz démo',
       es: 'Demostración didáctica',
       it: 'Dimostrazione didattica',
     } as const;

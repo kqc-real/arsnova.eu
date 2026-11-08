@@ -419,8 +419,8 @@ describe('HomeComponent', () => {
         ],
         'messages.fr.xlf': [
           'Créer et gérer un quiz',
-          'Créer et gérer un Q&amp;A',
-          'Créer et gérer un forum Q&amp;A',
+          'Créer et gérer un espace Q&amp;R',
+          'Créer et gérer un forum Q&amp;R',
           'Choisir un feedback express',
         ],
         'messages.es.xlf': [

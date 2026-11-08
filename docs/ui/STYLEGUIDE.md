@@ -457,6 +457,7 @@ Die App richtet sich auch an Trainer:innen, Workshop- und Event-Moderation sowie
 
 - **UI-Sprache:** "Vorschau" statt "Preview", "Tastenkürzel" statt "Hotkeys".
 - **Englisch (`en`):** Konkrete Copy- und Terminologieregeln für `messages.en.xlf` (Host/Session, Interpunktion, Fehlertoast, SEO): **[ENGLISH-UI-COPY.md](ENGLISH-UI-COPY.md)**.
+- **Französisch (`fr`):** Ansprache, Aktionslabels und Fachbegriffe für `messages.fr.xlf`: **[FRENCH-UI-COPY.md](FRENCH-UI-COPY.md)**. Einzelpersonen duzen, tatsächliche Gruppenansprache im Plural erhalten; PDF-Berichte folgen ihrem eigenen Glossar.
 - **Verständlichkeit:** "gültig" statt "valide".
 - **KI-Import-Texte:** Keine internen Technikbegriffe wie "Schema-Validierung" in Primaertexten; stattdessen nutzerorientierte Formulierungen ("Wir pruefen den Inhalt vor dem Import.").
 

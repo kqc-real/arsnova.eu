@@ -31,11 +31,11 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   bonusCodesTitle: 'Codes bonus',
   bonusGeneratedAt: 'Généré le',
   bonusNickname: 'Pseudonyme',
-  bonusRank: 'rang',
+  bonusRank: 'Rang',
   bonusScore: 'Points',
   bonusScoreTieNote: 'À points égaux, le temps de réponse évalué départage le classement.',
   confidenceActionRecommendationTemplate:
-    'Recommandation : reprenez « {0} », faites justifier le choix et confrontez-le à la bonne réponse.',
+    'Recommandation : reprenez l’option « {0} », demandez aux participants de justifier leur choix et comparez-la à la bonne réponse.',
   confidenceCompactDistributionTemplate:
     'Confiance dans la réponse : {0} faible · {1} moyenne · {2} élevée',
   confidenceCoverageFormulaTemplate:
@@ -45,7 +45,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceDegenerateAllHighWrongResult:
     'Résultat : toutes les {0} réponses sont entièrement incorrectes',
   confidenceDegenerateAllHighWrongTemplate:
-    'Confiance dans la réponse : toutes les {0} réponses avec un degré de confiance élevé',
+    'Confiance : les {0} réponses ont été données avec une confiance élevée',
   confidenceDisabledForQuestion:
     'La confiance dans la réponse a été désactivée pour cette question dans ce quiz.',
   confidenceDisabledTemplate:
@@ -62,15 +62,15 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceIncludedQuestions: 'Questions évaluées',
   confidenceIncorrectShare: 'Réponses incorrectes au total',
   confidenceLead:
-    'La justesse et le degré de confiance autoévalué montrent ensemble les connaissances consolidées, les lacunes et les possibles conceptions erronées.',
+    'Croiser la justesse des réponses et le degré de confiance autoévalué permet de repérer des connaissances consolidées, des lacunes et des indices de possibles conceptions erronées.',
   confidenceMastery: 'Connaissances consolidées',
   confidenceMasteryCol: 'Consolidé',
   confidenceMasteryZeroNote:
     '0 % de connaissances consolidées ne signifie pas 0 % de réponses correctes. Les réponses correctes ont ici été données surtout avec un degré de confiance faible ou moyen.',
   confidenceMcCombinedActionTemplate:
-    'Expliquez d’abord pourquoi « {0} » fait partie de la réponse complète. Précisez ensuite pourquoi « {1} » ne s’applique pas.',
+    'Expliquez d’abord pourquoi « {0} » fait partie de la réponse complète. Précisez ensuite pourquoi « {1} » ne s’applique pas.',
   confidenceMcCombinedAllOmittedTemplate:
-    '{0} participants ont répondu incorrectement avec un degré de confiance élevé. Tous ont omis l’option correcte « {1} » ; {2} ont également sélectionné « {3} ».',
+    '{0} participants ont répondu incorrectement avec un degré de confiance élevé. Tous ont omis l’option correcte « {1} » ; {2} ont également sélectionné « {3} ».',
   confidenceMetricsBasisTemplate:
     'Part arrondie de toutes les {0} réponses avec degré de confiance autoévalué (total 100 %)',
   confidenceMiddle: 'Confiance moyenne',
@@ -79,12 +79,12 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     'Aucun degré de confiance autoévalué n’a été recueilli pour cette question.',
   confidenceNotCollectedTemplate: 'Aucun degré de confiance autoévalué exploitable pour {0}.',
   confidenceNotSupportedForQuestion:
-    'La confiance dans la réponse n’est pas recueillie pour les questions de type « {0} ».',
+    'La confiance dans la réponse n’est pas recueillie pour les questions de type « {0} ».',
   confidenceNotSupportedTemplate: 'La confiance dans la réponse n’est pas recueillie pour {0}.',
   confidenceOmissionActionTemplate:
-    'Recommandation : expliquez pourquoi « {0} » fait partie de la réponse complète, et discutez les omissions typiques.',
+    'Recommandation : expliquez pourquoi « {0} » fait partie de la réponse complète, et discutez les omissions typiques.',
   confidenceOmissionSignalTemplate:
-    '{1} participants ont répondu incorrectement avec un degré de confiance élevé. Option correcte la plus souvent omise : « {0} » ({2}×).',
+    '{1} participants ont répondu incorrectement avec un degré de confiance élevé. Option correcte la plus souvent omise : « {0} » ({2}×).',
   confidencePrioritiesTitle: 'Priorité pour le débriefing',
   confidencePriorityAlert: 'Débriefing recommandé',
   confidencePriorityRuleTemplate:
@@ -101,7 +101,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     'Confiance dans la réponse (1–5) : Faible = 1–2 · Moyenne = 3 · Élevée = 4–5',
   confidenceReadingGuideTitle: 'Comment lire cette section',
   confidenceReadingGuideUndecided:
-    'Confiance moyenne = niveau 3, correcte ou incorrecte ; aucune catégorie diagnostique',
+    'Confiance moyenne = niveau 3, quelle que soit la justesse de la réponse ; aucune catégorie diagnostique',
   confidenceResponseCountTemplate: '{0} réponses',
   confidenceRisk: 'Réponses signalant une possible conception erronée',
   confidenceRiskCol: 'Possible conception erronée',
@@ -109,10 +109,10 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceRowIncorrect: 'Réponse incorrecte',
   confidenceScaleEndpoints: '1 = très incertain · 5 = très certain',
   confidenceScCombinedActionTemplate:
-    'Expliquez d’abord pourquoi « {0} » est la bonne réponse. Précisez ensuite pourquoi « {1} » est incorrect.',
+    'Expliquez d’abord pourquoi « {0} » est la bonne réponse. Précisez ensuite pourquoi « {1} » est incorrect.',
   confidenceSection: 'Confiance dans la réponse',
   confidenceSignalRuleTemplate:
-    '{0} questions au niveau signalement, car elles ont reçu au moins une réponse incorrecte avec un degré de confiance élevé.',
+    '{0} questions signalées à titre d’information : chacune a reçu au moins une réponse fausse avec un degré de confiance élevé.',
   confidenceSuppressedQuestions: 'Non agrégées (<5 réponses avec degré de confiance autoévalué)',
   confidenceTierHigh: 'Élevée',
   confidenceTierLow: 'Faible',
@@ -120,14 +120,14 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   confidenceTitle: 'Niveau de maîtrise et confiance dans la réponse',
   confidenceTopSignal: '⚠ Piste de débriefing',
   confidenceTopSignalTemplate:
-    '{1} participants ont choisi « {0} » incorrectement avec un degré de confiance élevé.',
+    '{1} participants ont choisi à tort l’option « {0} » avec un degré de confiance élevé.',
   confidenceUndecidedCol: 'Confiance moyenne',
   confidenceValidResponses: 'Réponses avec degré de confiance autoévalué',
-  confidenceWrongHigh: 'Incorrecte et confiante',
+  confidenceWrongHigh: 'Réponse fausse, confiance élevée',
   countOfTemplate: '{0} sur {1}',
   coverActionStartTemplate: 'Point de départ recommandé : commencez par la question {0}.',
   coverActionTitle: 'Ce qu’il convient de reprendre en débriefing',
-  coverActionWrongTemplate: '{0} sur {1} incorrectes et confiantes',
+  coverActionWrongTemplate: '{0} sur {1} : réponse fausse, confiance élevée',
   coverPrivacyExcluded:
     'Non inclus : noms réels, adresses IP, votes individuels, textes bruts à caractère personnel. Pseudonymes uniquement sur les pages de codes bonus.',
   coverPrivacyIncluded:
@@ -150,13 +150,13 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     'L’option incorrecte était aussi attrayante que la bonne réponse.',
   distractorChosenByTemplate: 'choisi par {0} participants',
   documentTitle: 'Analyse pédagogique du quiz',
-  exportFooterMeta: 'Export {0} · Séance {1}',
+  exportFooterMeta: 'Exportation {0} · Session {1}',
   feedbackCoverageCompactTemplate: '{0} avis · taux de réponse {1}',
-  feedbackCoverageTemplate: 'Taux de feedback : {0} sur {1} · {2}',
+  feedbackCoverageTemplate: 'Taux de réponse à l’évaluation : {0} sur {1} · {2}',
   feedbackNoLowStarsNote: 'Personne n’a attribué une ou deux étoiles.',
   feedbackOverall: 'Note globale',
   feedbackOverallHighlightTemplate:
-    '{0} des répondants ont attribué quatre ou cinq étoiles à la séance.',
+    '{0} des répondants ont attribué quatre ou cinq étoiles à la session.',
   feedbackQualityHighlightTemplate:
     '{0} des répondants ont attribué quatre ou cinq étoiles à la qualité des questions.',
   feedbackQuestionQuality: 'Qualité des questions',
@@ -176,7 +176,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   freetextResponses: 'Réponses en texte libre',
   generatedBy: 'Créé avec arsnova.eu',
   hardestQuestionDifficultyMismatchTemplate:
-    'Configurée comme « {0} », mais seulement {1} des réponses évaluées entièrement correctes — vérifiez la difficulté ou la formulation.',
+    'Configurée comme « {0} », mais seulement {1} des réponses évaluées entièrement correctes — vérifiez la difficulté ou la formulation.',
   hardestQuestionRateTemplate:
     'Taux de réponses correctes : {0} ({1} sur {2} entièrement correctes)',
   hardestQuestionsLead:
@@ -197,20 +197,20 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     '✓ Connaissances consolidées : correcte avec degré de confiance autoévalué élevé',
   heatmapLegendToneTitle: 'Catégories diagnostiques',
   lowSuccessRateHintTemplate:
-    'Seulement {0} ont répondu correctement dans cette séance. Vérifiez la formulation, les prérequis et la limite de temps.',
+    'Seulement {0} ont répondu correctement dans cette session. Vérifiez la formulation, les prérequis et la limite de temps.',
   mcFalseSelection: 'Option incorrecte la plus souvent choisie',
   mcOmission: 'Option correcte la plus souvent omise',
   mcOmissionCountTemplate: 'omise par {0} participants',
   multipleChoiceFullyCorrect: 'Réponses entièrement correctes',
   nextQuestion: 'Question suivante',
   nextStepsDebriefFirstTemplate:
-    'Pour la question {0}, traitez d’abord une possible conception erronée',
-  nextStepsDebriefNextTemplate: 'Pour la question {0}, clarifiez ensuite',
-  nextStepsDebriefOmitTemplate: 'Pour la question {0}, revenez sur l’option omise « {1} ».',
+    'Commencez le débriefing par la question {0} : indice d’une possible conception erronée.',
+  nextStepsDebriefNextTemplate: 'Poursuivez le débriefing avec la question {0}.',
+  nextStepsDebriefOmitTemplate: 'Pour la question {0}, revenez sur l’option omise « {1} ».',
   nextStepsDebriefWrongTemplate:
-    'Pour la question {0}, expliquez la distinction autour de « {1} ».',
+    'Pour la question {0}, expliquez la distinction autour de « {1} ».',
   nextStepsDebriefWrongVsCorrectTemplate:
-    'Pour la question {0}, expliquez pourquoi {1} est incorrect et {2} correct.',
+    'Pour la question {0}, expliquez pourquoi « {1} » est faux et « {2} » est correct.',
   nextStepsReinforceConcreteTemplate:
     'Pour la question {0}, consolidez la bonne réponse : {1} ont répondu correctement, mais le degré de confiance reste hétérogène.',
   nextStepsReinforceLowConfidenceTemplate:
@@ -245,7 +245,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
     '{0} plus proches de la valeur de référence · {1} plus éloignées · {2} inchangées',
   numericPlainExactHalfTemplate: 'Au moins la moitié des participants ont répondu exactement {0}.',
   numericPlainInBandTemplate: '{0} réponses sur {1} se situaient dans la plage acceptée.',
-  numericPlainIqrTemplate: 'La moitié médiane des estimations se situait entre {0} et {1}.',
+  numericPlainIqrTemplate: 'Les 50 % centraux des estimations se situaient entre {0} et {1}.',
   numericPlainMaeTemplate: 'L’écart moyen par rapport à la valeur de référence était de {0}.',
   numericReference: 'Référence',
   numericRound1Histogram: 'Tour 1',
@@ -269,7 +269,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   participationOverviewTitle: 'Participation au fil du quiz',
   participationStableTemplate:
     'Participation stable : {1} personnes ont répondu à toutes les {0} questions.',
-  piComparisonTitle: 'Peer Instruction — tour 1 vs. tour 2',
+  piComparisonTitle: 'Peer Instruction : premier et deuxième tours',
   piGainCeilingNumericTemplate:
     'Aucun gain d’apprentissage supplémentaire mesurable : déjà au premier tour, {0} sur {1} réponses se situaient dans la plage acceptée. Un deuxième tour n’était pas nécessaire.',
   piGainCeilingTemplate:
@@ -285,18 +285,17 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   privacyNotice:
     'Confidentialité : ce rapport contient uniquement des résultats agrégés. Les noms réels, adresses IP et votes individuels ne sont pas exportés. Les pseudonymes apparaissent uniquement avec les codes bonus.',
   qaControversial: 'Controversé',
-  qaPassagesRedacted: 'Passages caviardées par la modération',
+  qaPassagesRedacted: 'Passages caviardés par la modération',
   qaCoverageTemplate:
     'Les {0} questions les mieux classées sur {1} questions exportables sont affichées.',
-  qaFollowUpControversial: 'Discuté de manière controversée',
-  qaFollowUpCountsTemplate:
-    '{0} questions soumises · {1} répondues ou archivées · {2} toujours ouvertes',
-  qaFollowUpTitle: 'Suivi des questions et réponses',
-  qaFollowUpTopOpen: 'Question ouverte la plus votée',
+  qaFollowUpControversial: 'Questions controversées',
+  qaFollowUpCountsTemplate: '{0} questions reçues · {1} traitées ou archivées · {2} en attente',
+  qaFollowUpTitle: 'Suivi des questions Q&R',
+  qaFollowUpTopOpen: 'Question en attente la plus soutenue',
   qaNegative: 'négatif',
   qaPositive: 'positif',
   qaStatus: 'Statut',
-  qaTitle: 'Questions Q&R des participants',
+  qaTitle: 'Questions des participants (Q&R)',
   qaUpvotes: 'Votes positifs',
   questionContinuationShortTemplate: 'Question {0} — suite',
   questionContinuationTemplate: 'Question {0} — suite : {1}',
@@ -329,17 +328,17 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   responseTimeMedianOneTemplate: 'Médiane : 1 seconde',
   responseTimeMedianTemplate: 'Médiane : {0} secondes',
   responseTimeNearDeadlineTemplate:
-    '{0} réponses sur {1} ont été soumises au cours des 20 derniers % du temps disponible.',
+    '{0} réponses sur {1} ont été envoyées dans les derniers 20 % du temps disponible.',
   responseTimePressureHint:
-    'Remarque : le temps imparti pour cette question a peut-être été serré.',
+    'Remarque : le temps imparti était peut-être trop court pour cette question.',
   responseTimeRound1Title: 'Temps de réponse au premier tour',
   responseTimeTitle: 'Temps de réponse',
   roundParticipationDropTemplate:
     'Tour 1 : {0} réponses · Tour 2 : {1} réponses · {2} personnes n’ont plus participé au deuxième tour.',
   roundParticipationGapTemplate: 'Tour 1 : {0} votes · Agrégé : tour 2 avec {1} votes',
   scoreExplanation:
-    'Les points servent au classement et tiennent compte de la justesse des réponses, de la difficulté des questions, du temps de réponse lorsqu’un minuteur est actif et des bonus de série. La confiance dans la réponse n’a aucune incidence sur les points. Comme le score maximal dépend de la configuration et du déroulement du quiz, les scores ne sont pas des pourcentages et ne doivent pas être comparés entre plusieurs séances.',
-  sessionCode: 'Code de séance',
+    'Les points servent au classement et tiennent compte de la justesse des réponses, de la difficulté des questions, du temps de réponse lorsqu’un minuteur est actif et des bonus de série. La confiance dans la réponse n’a aucune incidence sur les points. Comme le score maximal dépend de la configuration et du déroulement du quiz, les scores ne sont pas des pourcentages et ne doivent pas être comparés entre plusieurs sessions.',
+  sessionCode: 'Code de session',
   sessionScope: 'Déroulement',
   sessionScopeTemplate: '{0} questions traitées sur {1} · {2} ignorées',
   sessionStartTemplate: 'Début à la question {0}',
@@ -347,7 +346,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   shortTextExpectedSolutions: 'Solutions acceptées',
   shortTextIncorrect: 'Réponses incorrectes',
   shortTextIncorrectHeading: 'Réponses non acceptées les plus fréquentes',
-  shortTextIncorrectItemTemplate: '« {0} » · {1} sur {2}',
+  shortTextIncorrectItemTemplate: '« {0} » · {1} sur {2}',
   shortTextSubmittedAnswers: 'Réponses soumises',
   strongestDistractor: 'Distracteur le plus souvent choisi',
   structuredCategorizationMatrixTitle: 'Catégories sélectionnées',
@@ -363,11 +362,11 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   structuredMatrixItemHeader: 'Élément',
   structuredMisclassificationItemTemplate: '{0} → {1} · {2}',
   structuredOrderingMatrixTitle: 'Positions sélectionnées',
-  structuredPairHitRates: 'Taux de réussite par paire',
+  structuredPairHitRates: 'Taux de réponses correctes par paire',
   structuredSolutionCategorizationTitle: 'Catégories correctes (solution modèle)',
   structuredSolutionMatchingTitle: 'Paires correctes (solution modèle)',
   structuredSolutionOrderingTitle: 'Ordre correct (solution modèle)',
-  structuredSwapItemTemplate: '« {0} » ↔ « {1} » ({2})',
+  structuredSwapItemTemplate: '« {0} » ↔ « {1} » ({2})',
   tableOfContentsTitle: 'Sommaire',
   teamAverageScore: 'Ø points par membre',
   teamLeaderboardTitle: 'Classement des équipes',
@@ -378,7 +377,7 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   teamLearningTitle: 'Profil d’apprentissage des équipes',
   teamMembers: 'Membres',
   teamName: 'Équipe',
-  teamRank: 'rang',
+  teamRank: 'Rang',
   teamScoreExplanation:
     'Le score de l’équipe est la moyenne des points des membres, afin de comparer équitablement des équipes de tailles différentes.',
   teamTotalScore: 'Score de l’équipe',
@@ -387,11 +386,11 @@ export const FR_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {
   tocConfidence: 'Niveau de maîtrise et confiance dans la réponse',
   tocFeedback: 'Avis des participants',
   tocHardestQuestions: 'Questions aux taux de réponses correctes les plus faibles',
-  tocQa: 'Questions Q&R',
+  tocQa: 'Questions du public (Q&R)',
   tocQuestions: 'Résultats question par question',
   tocTeams: 'Classement par équipe',
   unusedDistractorTemplate:
-    'L’option incorrecte « {0} » n’a pas été choisie dans cette séance. En cas de répétition, envisagez une révision.',
+    'L’option incorrecte « {0} » n’a pas été choisie dans cette session. En cas de répétition, envisagez une révision.',
 };
 
 export const ES_LABEL_OVERRIDES: Partial<SessionResultsReportLabels> = {

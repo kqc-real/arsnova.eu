@@ -133,9 +133,9 @@ If scores are equal, ties are resolved by the number of votes in favour, the add
 `.trim(),
     },
     fr: {
-      title: 'Meilleures questions',
+      title: 'Forte adhésion',
       markdown: `
-Ce classement privilégie les questions qui recueillent une forte adhésion, confirmée par un nombre suffisant de votes. Une seule voix favorable ne suffit donc pas automatiquement pour placer une question en tête.
+Ce classement privilégie les questions qui recueillent une forte adhésion, appuyée par un nombre suffisant de votes. Un seul vote favorable ne suffit donc pas automatiquement à placer une question en tête. Ce score ne mesure pas l’exactitude du contenu de la question.
 
 #### Formule
 

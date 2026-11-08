@@ -42,7 +42,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Point important : ${label}.`,
-    empty: 'Aucune question ouverte n’a encore été sélectionnée pour le résumé.',
+    empty: 'Aucune question en attente de réponse n’a encore été sélectionnée pour le résumé.',
     limitation:
       'Un résumé détaillé n’a pas été possible cette fois-ci. Les questions les plus importantes sont donc affichées telles qu’elles ont été formulées.',
   },

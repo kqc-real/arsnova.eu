@@ -833,7 +833,7 @@ _Match each date on the left to its historical milestone on the right._
     ],
   },
   fr: {
-    name: 'Démonstration pédagogique : quiz en équipe',
+    name: 'Quiz démo en équipe',
     teamNames: ['Équipe 🍎', 'Équipe 🍐'],
     confidenceLabelLow: 'Très peu sûr·e',
     confidenceLabelHigh: 'Très sûr·e',
@@ -844,24 +844,24 @@ Les réponses seront affichées sous forme de nuage de mots.
     `,
     description: md`![Démonstration pédagogique](${PI_IMAGE_URL})
 
-# Démonstration pédagogique
+# Quiz démo en équipe
 
-Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.
+Ces 13 questions te font découvrir les dix types de questions d’arsnova.eu dans une courte session en direct. Tu peux utiliser des images, Markdown et KaTeX, demander aux participants d’indiquer leur confiance dans leur réponse et proposer une estimation numérique en deux tours de vote séparés par une discussion.
 
-La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Une fois les résultats affichés, les corrigés types et les répartitions des réponses font apparaître les hésitations et les conceptions erronées fréquentes.
+La démo montre aussi comment **ordonner des étapes**, **associer des termes**, **classer des exemples** et recueillir des réponses libres dans un nuage de mots. Les corrigés et la répartition des réponses aident à repérer les hésitations et de possibles conceptions erronées.
 
-Les chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.`,
+Les limites de temps, le jeu en équipe, le classement et les codes bonus donnent du rythme à la session. Rejoins-la sur un deuxième appareil, puis ouvre l’éditeur pour voir comment chaque question est construite.`,
     questions: [
       {
         text: md`### Comment se sent le groupe en ce moment ?
 
-> **Piste pédagogique :** utilisez cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.
+> **Piste pédagogique :** utilise cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.
 
 ![Aperçu des émotions](${EMOTION_IMAGE_URL})
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Clique pour agrandir.*`,
+*Ouvre l’image pour l’agrandir.*`,
         answers: [
           { text: ':smile: Prêt·e à s’y mettre', isCorrect: false },
           { text: ':cry: Un peu dépassé·e', isCorrect: false },
@@ -872,7 +872,7 @@ Les chronos, les équipes, le classement et les codes bonus donnent du rythme. R
       {
         text: md`### Arrondis $\pi$ à deux décimales.
 
-> **Piste pédagogique :** utilisez cette question comme brève activité d’estimation en STEM avec valeur de référence, bande de tolérance absolue de 3,1 à 3,2 et plage de plausibilité de 3,0 à 3,5.
+> **Piste pédagogique :** utilise cette question comme brève estimation numérique avec une valeur de référence, un intervalle accepté de 3,135 à 3,15 et des valeurs autorisées de 3,0 à 3,5.
 
 ![Le nombre pi](${PI_IMAGE_URL})
 
@@ -887,7 +887,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       {
         text: md`### Image IA ou photo réelle ?
 
-> **Piste pédagogique :** utilisez cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.
+> **Piste pédagogique :** utilise cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.
 
 ![Scène sur un toit](${ROOFTOP_SCENE_IMAGE_URL})`,
         answers: [
@@ -897,15 +897,18 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Lesquels de ces usages conviennent à une question flash en direct ?
+### Dans quels cas une question rapide en direct est-elle utile ?
 
-> **Piste pédagogique :** utilisez cette question pour illustrer un format à réponses multiples.
+> **Piste pédagogique :** utilise cette question pour illustrer un format à réponses multiples.
 
 _Plusieurs réponses possibles._
         `,
         answers: [
           { text: 'Activer les connaissances préalables au début du cours', isCorrect: true },
-          { text: 'Faire émerger des idées fausses au milieu d’une séance', isCorrect: true },
+          {
+            text: 'Repérer de possibles conceptions erronées pendant une activité',
+            isCorrect: true,
+          },
           {
             text: 'Attribuer des notes individuelles sans vérifier les identités',
             isCorrect: false,
@@ -920,7 +923,7 @@ _Plusieurs réponses possibles._
         text: md`
 ### Combien de petits cubes visibles de l’extérieur composent un Rubik’s Cube 3×3 classique ?
 
-> **Piste pédagogique :** utilisez cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
+> **Piste pédagogique :** utilise cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
 
 Il s’agit du Rubik’s Cube classique conçu par Ernő Rubik.
 
@@ -934,9 +937,9 @@ Ressource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérien
         ],
       },
       {
-        text: md`### Pour quel environnement de programmation créative ce sketch a-t-il été écrit ?
+        text: md`### Dans quel environnement de programmation créative ce programme a-t-il été écrit ?
 
-> **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.
+> **Piste pédagogique :** utilise cette question pour reconnaître rapidement un programme en informatique ou dans un atelier de création numérique.
 
 ${CODE_FENCE}java
 ${PROCESSING_SKETCH}
@@ -952,7 +955,7 @@ ${CODE_FENCE}`,
         text: md`
 ### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?
 
-> **Piste pédagogique :** utilisez cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.
+> **Piste pédagogique :** utilise cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.
 
 On cherche le terme pédagogique établi pour cette séquence.
         `,
@@ -967,16 +970,16 @@ On cherche le terme pédagogique établi pour cette séquence.
         text: md`
 ### En quelle année la Révolution française a-t-elle commencé ?
 
-> **Piste pédagogique :** utilisez cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.
+> **Piste pédagogique :** utilise cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.
 
 On cherche l’année généralement retenue comme début de la Révolution française.
         `,
       },
       {
         text: md`
-### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?
+### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans une de tes activités ?
 
-> **Piste pédagogique :** utilisez cette question comme prise de température, ticket de sortie ou évaluation rapide.
+> **Piste pédagogique :** utilise cette question comme prise de température, ticket de sortie ou évaluation rapide.
         `,
         ratingLabelMin: 'Très peu probable',
         ratingLabelMax: 'Très probable',
@@ -985,9 +988,9 @@ On cherche l’année généralement retenue comme début de la Révolution fran
         text: md`
 ### Mets dans l’ordre les étapes de l’expression des gènes dans une cellule eucaryote.
 
-> **Piste pédagogique :** utilisez des questions de classement en biologie, chimie ou physique pour vous entraîner aux chaînes de réaction complexes.
+> **Piste pédagogique :** utilise des questions de classement en biologie, chimie ou physique pour travailler les enchaînements de phénomènes complexes.
 
-Mets les six étapes dans la bonne séquence.
+Remets les six étapes dans le bon ordre.
         `,
         orderingItems: [
           {
@@ -1020,7 +1023,7 @@ Mets les six étapes dans la bonne séquence.
         text: md`
 ### Associe chaque date de la République de Weimar à l’événement correspondant.
 
-> **Piste pédagogique :** utilisez des questions d'association en histoire ou géographie pour vérifier des dates clés ou traités de manière 1:1.
+> **Piste pédagogique :** utilise des questions d'association en histoire ou géographie pour associer sans ambiguïté des dates et des événements.
 
 _Associe chaque date à gauche à l’événement historique correspondant à droite._
         `,
@@ -1050,9 +1053,9 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
       },
       {
         text: md`
-### Classe les six œuvres suivantes dans leur période littéraire.
+### Associe chaque œuvre au mouvement littéraire allemand auquel elle appartient.
 
-> **Piste pédagogique :** utilisez des questions de catégorisation en littérature ou langues vivantes pour classer des mouvements littéraires.
+> **Piste pédagogique :** utilise des questions de catégorisation en littérature ou langues vivantes pour associer des œuvres à des mouvements littéraires.
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Lumières / Aufklärung (v. 1720–1785)' },

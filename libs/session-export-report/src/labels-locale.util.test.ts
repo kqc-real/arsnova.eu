@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   getSessionResultsReportLabelsDe,
   getSessionResultsReportLabelsEn,
@@ -9,6 +10,7 @@ import {
   type SessionResultsReportLabels,
 } from './labels-locale.util';
 import { REPORT_COVER_LOGO_SVG } from './report-cover-logo';
+import { applyFrenchColonTypography } from './french-colon-typography.util';
 
 /** Keys that may intentionally match DE (cognates / shared loanwords). */
 const ALLOW_SAME_AS_DE: Record<string, ReadonlySet<string>> = {
@@ -31,6 +33,51 @@ const ALLOW_SAME_AS_DE: Record<string, ReadonlySet<string>> = {
 };
 
 describe('labels-locale', () => {
+  it('hält französische Reportlabels mit den Übersetzungen der App synchron', () => {
+    const frontend = new URL('../../../apps/frontend/src/', import.meta.url);
+    const catalog = readFileSync(new URL('locale/messages.fr.xlf', frontend), 'utf8');
+    const bindings = readFileSync(
+      new URL('app/core/session-results-report-labels.ts', frontend),
+      'utf8',
+    );
+    const messageIds = new Map(
+      [...bindings.matchAll(/(\w+):\s*\$localize`:@@([^:]+):/g)].map((match) => [
+        match[1],
+        match[2],
+      ]),
+    );
+    const targets = new Map(
+      [...catalog.matchAll(/<trans-unit\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/trans-unit>/g)].map(
+        (match) => {
+          const target = match[2].match(/<target>([\s\S]*?)<\/target>/)?.[1] ?? '';
+          return [
+            match[1],
+            target
+              .replaceAll('&lt;', '<')
+              .replaceAll('&gt;', '>')
+              .replaceAll('&quot;', '"')
+              .replaceAll('&apos;', "'")
+              .replaceAll('&amp;', '&'),
+          ];
+        },
+      ),
+    );
+    for (const [key, label] of Object.entries(getSessionResultsReportLabelsFr())) {
+      const id = messageIds.get(key);
+      expect(id, key).toBeDefined();
+      const target = targets.get(id!);
+      expect(target, key).toBeDefined();
+      if (key === 'questionTypeSingleChoice' || key === 'questionTypeMultipleChoice') {
+        // Mobile Vorschau: »Réponse unique«; PDF: »Question à réponse unique«.
+        expect(label.toLocaleLowerCase('fr').endsWith(target!.toLocaleLowerCase('fr')), key).toBe(
+          true,
+        );
+      } else {
+        expect(label, key).toBe(applyFrenchColonTypography(target!));
+      }
+    }
+  });
+
   it('folgt dem Glossar für Kernbegriffe (EN/FR/ES/IT)', () => {
     expect(getSessionResultsReportLabelsEn().confidenceRiskCol).toBe('Possible misconception');
     expect(getSessionResultsReportLabelsEn().confidenceSection).toBe('Answer confidence');

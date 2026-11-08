@@ -45,8 +45,9 @@ const url = toAbsoluteUrl(path.startsWith('/') ? path.slice(1) : path);
 const ogImage = toAbsoluteUrl('og.png');
 const alternateLocales = getOgAlternateLocales(locale);
 const a11yUrl = appAccessibilityUrl(locale);
-const impressumHref = `${base}impressum/`.replace(/\/{2,}/g, '/');
-const privacyHref = `${base}datenschutz/`.replace(/\/{2,}/g, '/');
+const legalBase = locale === 'fr' ? `${base}fr/` : base;
+const impressumHref = `${legalBase}impressum/`.replace(/\/{2,}/g, '/');
+const privacyHref = `${legalBase}datenschutz/`.replace(/\/{2,}/g, '/');
 
 const navItems = [
   { href: `${localeHome}#workflow`, label: t.nav.workflow },
