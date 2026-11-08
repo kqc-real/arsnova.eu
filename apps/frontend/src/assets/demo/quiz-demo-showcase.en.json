@@ -2,8 +2,8 @@
   "exportVersion": 1,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
-    "name": "Teaching Showcase: Live Team Demo",
-    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, ask learners to rate their confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, sample solutions and response distributions expose uncertainty and common misconceptions.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
+    "name": "Live team quiz demo",
+    "description": "![Live team quiz demo](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Live team quiz demo\n\nThese 13 questions introduce all ten arsnova.eu question types in a short live session. Use images, Markdown, and KaTeX, ask participants to rate their answer confidence, and try a numeric estimate with two votes separated by a discussion.\n\nThe demo also shows how to **order steps**, **match terms**, **categorize examples**, and collect free-text responses in a word cloud. Answer keys and response distributions help identify uncertainty and possible misconceptions.\n\nTime limits, teams, the leaderboard, and bonus codes add energy to the session. Join on a second device, then open the editor to see how each question is built.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
@@ -26,7 +26,7 @@
     "readingPhaseEnabled": false,
     "questions": [
       {
-        "text": "### How is the room feeling right now?\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Click for full view.*",
+        "text": "### How is the room feeling right now?\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Open the image to enlarge it.*",
         "type": "SURVEY",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -87,7 +87,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### Which of these are strong use cases for a quick live check?\n\n_Select all that apply._",
+        "text": "### When is a quick live question useful?\n\n_Select all that apply._",
         "type": "MULTIPLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -100,7 +100,7 @@
             "isCorrect": true
           },
           {
-            "text": "Surface misconceptions halfway through a lesson",
+            "text": "Identify possible misconceptions during an activity",
             "isCorrect": true
           },
           {
@@ -108,7 +108,7 @@
             "isCorrect": false
           },
           {
-            "text": "Make a final judgement on complex learning goals from one poll",
+            "text": "Make a final judgment on complex learning goals from one poll",
             "isCorrect": false
           }
         ],
@@ -117,7 +117,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### How many externally visible cubies make up a classic 3×3 Rubik’s Cube?\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional resource: [How to solve a 3×3 Rubik’s Cube with no prior experience — German-language resource](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### How many small cubes (cubies) make up the outside of a classic 3×3 Rubik’s Cube?\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional resource: [How to solve a 3×3 Rubik’s Cube with no prior experience — German-language resource](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -237,37 +237,37 @@
         "matchingPairs": [
           {
             "leftId": "95d15b08-c999-403d-adb0-cfc18a4249ad",
-            "left": "9 November 1918",
+            "left": "November 9, 1918",
             "right": "Proclamation of the Republic by Philipp Scheidemann",
             "rightId": "30b3ddd5-65c0-46c3-9184-116c6d60ec80"
           },
           {
             "leftId": "984ef5dc-fd8c-47e9-9c57-8d6e6e799835",
-            "left": "28 June 1919",
+            "left": "June 28, 1919",
             "right": "Signing of the Treaty of Versailles",
             "rightId": "65399907-87d5-491b-aea8-18e76093e3a4"
           },
           {
             "leftId": "be54805d-8643-48b0-9034-d90567bc2b12",
-            "left": "11 August 1919",
+            "left": "August 11, 1919",
             "right": "Signing of the Weimar Constitution by Friedrich Ebert",
             "rightId": "d130f8c6-42a6-423b-bc45-7382bbfce72d"
           },
           {
             "leftId": "023134ad-42c5-4474-b865-1cf3142291e2",
-            "left": "15 November 1923",
+            "left": "November 15, 1923",
             "right": "Introduction of the Rentenmark",
             "rightId": "bc1f2b60-a2d1-45a8-bb91-9931858f0745"
           },
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
-            "left": "29 October 1929",
-            "right": "Wall Street stock-market crash (“Black Tuesday”)",
+            "left": "October 29, 1929",
+            "right": "Wall Street stock market crash (“Black Tuesday”)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {
             "leftId": "9e8bd516-2844-4f20-9222-6c5817327907",
-            "left": "30 January 1933",
+            "left": "January 30, 1933",
             "right": "Appointment of Adolf Hitler as Chancellor",
             "rightId": "f97e1e9a-c0fa-423d-be92-35802101930d"
           }
@@ -278,7 +278,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### Categorise the following six works by literary period.",
+        "text": "### Match each work to its German literary movement.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -327,7 +327,7 @@
         "confidenceLabelHigh": "Very confident"
       },
       {
-        "text": "### How likely are you to try a live quiz like this in one of your own classes?",
+        "text": "### How likely are you to use a live quiz like this in one of your sessions?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",

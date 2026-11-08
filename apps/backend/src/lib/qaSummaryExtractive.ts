@@ -31,7 +31,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Important point: ${label}.`,
-    empty: 'No open questions have been selected for the summary yet.',
+    empty: 'No unanswered questions have been selected for the summary yet.',
     limitation:
       'A detailed summary was not possible this time, so the most important questions are shown in their original wording.',
   },

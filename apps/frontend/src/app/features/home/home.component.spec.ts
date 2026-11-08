@@ -415,7 +415,7 @@ describe('HomeComponent', () => {
           'Create and manage a quiz',
           'Create and manage Q&amp;A',
           'Create and manage a Q&amp;A forum',
-          'Choose a pulse check',
+          'Choose a Pulse Check',
         ],
         'messages.fr.xlf': [
           'Créer et gérer un quiz',
