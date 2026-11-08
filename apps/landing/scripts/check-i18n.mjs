@@ -267,7 +267,14 @@ function checkRootRedirectPreservesHash() {
 }
 
 function checkLegalPagesOmitHomeHreflang() {
-  for (const page of ['impressum', 'datenschutz', 'fr/impressum', 'fr/datenschutz']) {
+  for (const page of [
+    'impressum',
+    'datenschutz',
+    'fr/impressum',
+    'fr/datenschutz',
+    'en/impressum',
+    'en/datenschutz',
+  ]) {
     const pagePath = join(dist, page, 'index.html');
     if (!existsSync(pagePath)) {
       fail(`Missing built legal page: /${page}/`);
@@ -284,56 +291,62 @@ function checkLegalPagesOmitHomeHreflang() {
   }
 }
 
-function checkFrenchLegalPages() {
-  const home = readFileSync(join(dist, 'fr', 'index.html'), 'utf8');
-  const sitemap = readFileSync(join(dist, 'sitemap.xml'), 'utf8');
-  for (const [slug, title] of [
-    ['impressum', 'Mentions légales'],
-    ['datenschutz', 'Politique de confidentialité'],
-  ]) {
-    const file = join(dist, 'fr', slug, 'index.html');
-    if (!existsSync(file)) {
-      fail(`Missing French legal page /fr/${slug}/`);
-      continue;
-    }
-    const html = readFileSync(file, 'utf8');
-    const german = readFileSync(join(dist, slug, 'index.html'), 'utf8');
-    const article = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
-    const germanArticle = german.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
-    if (!html.includes('lang="fr"') || !article.includes(title)) {
-      fail(`/fr/${slug}/ missing French language or title`);
-    }
-    if ((article.match(/<h2\b/g) ?? []).length !== (germanArticle.match(/<h2\b/g) ?? []).length) {
-      fail(`/fr/${slug}/ must retain every German legal section`);
-    }
-    if (!html.match(new RegExp(`rel="canonical"[^>]*href="[^"]*/fr/${slug}/"`))) {
-      fail(`/fr/${slug}/ missing its own canonical URL`);
-    }
-    if (!home.match(new RegExp(`href="[^"]*/fr/${slug}/"`)) || !sitemap.includes(`/fr/${slug}/`)) {
-      fail(`/fr/${slug}/ missing localized footer link or sitemap entry`);
-    }
-    for (const required of [
-      'https://info.arsnova.eu',
-      'https://arsnova.eu',
-      'mailto:klaus.quibeldey-cirkel@iu.org',
+function checkLocalizedLegalPages() {
+  for (const locale of ['en', 'fr']) {
+    const home = readFileSync(join(dist, locale, 'index.html'), 'utf8');
+    const sitemap = readFileSync(join(dist, 'sitemap.xml'), 'utf8');
+    for (const [slug, title] of [
+      ['impressum', locale === 'en' ? 'Legal notice' : 'Mentions légales'],
+      ['datenschutz', locale === 'en' ? 'Privacy policy' : 'Politique de confidentialité'],
     ]) {
-      if (!article.includes(required)) fail(`/fr/${slug}/ missing ${required}`);
-    }
-    if (slug === 'datenschutz') {
+      const file = join(dist, locale, slug, 'index.html');
+      if (!existsSync(file)) {
+        fail(`Missing localized legal page /${locale}/${slug}/`);
+        continue;
+      }
+      const html = readFileSync(file, 'utf8');
+      const german = readFileSync(join(dist, slug, 'index.html'), 'utf8');
+      const article = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
+      const germanArticle = german.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
+      if (!html.includes(`lang="${locale}"`) || !article.includes(title)) {
+        fail(`/${locale}/${slug}/ missing localized language or title`);
+      }
+      if ((article.match(/<h2\b/g) ?? []).length !== (germanArticle.match(/<h2\b/g) ?? []).length) {
+        fail(`/${locale}/${slug}/ must retain every German legal section`);
+      }
+      if (!html.match(new RegExp(`rel="canonical"[^>]*href="[^"]*/${locale}/${slug}/"`))) {
+        fail(`/${locale}/${slug}/ missing its own canonical URL`);
+      }
+      if (
+        !home.match(new RegExp(`href="[^"]*/${locale}/${slug}/"`)) ||
+        !sitemap.includes(`/${locale}/${slug}/`)
+      ) {
+        fail(`/${locale}/${slug}/ missing localized footer link or sitemap entry`);
+      }
       for (const required of [
-        'GitHub, Inc. (GitHub Pages)',
-        'États-Unis',
-        'article 6',
-        'article 7',
-        'article 15',
-        'article 16',
-        'article 17',
-        'article 18',
-        'article 20',
-        'article 21',
-        'article 77',
+        'https://info.arsnova.eu',
+        'https://arsnova.eu',
+        'mailto:klaus.quibeldey-cirkel@iu.org',
       ]) {
-        if (!article.includes(required)) fail(`/fr/${slug}/ missing legal detail ${required}`);
+        if (!article.includes(required)) fail(`/${locale}/${slug}/ missing ${required}`);
+      }
+      if (slug === 'datenschutz') {
+        for (const required of [
+          'GitHub, Inc. (GitHub Pages)',
+          locale === 'en' ? 'United States' : 'États-Unis',
+          `${locale === 'en' ? 'Article' : 'article'} 6`,
+          `${locale === 'en' ? 'Article' : 'article'} 7`,
+          `${locale === 'en' ? 'Article' : 'article'} 15`,
+          `${locale === 'en' ? 'Article' : 'article'} 16`,
+          `${locale === 'en' ? 'Article' : 'article'} 17`,
+          `${locale === 'en' ? 'Article' : 'article'} 18`,
+          `${locale === 'en' ? 'Article' : 'article'} 20`,
+          `${locale === 'en' ? 'Article' : 'article'} 21`,
+          `${locale === 'en' ? 'Article' : 'article'} 77`,
+        ]) {
+          if (!article.includes(required))
+            fail(`/${locale}/${slug}/ missing legal detail ${required}`);
+        }
       }
     }
   }
@@ -401,9 +414,9 @@ const localeContentSmoke = {
     structured: [
       'Matching',
       'Ordering',
-      'Categorisation',
+      'Categorization',
       'full credit or no credit',
-      'correct pairings, target order and target categories remain hidden',
+      'correct pairs, the correct order, and target categories stay hidden',
     ],
     matrix: [
       'Correct · low confidence',
@@ -417,37 +430,41 @@ const localeContentSmoke = {
     wcag: 'Conforms to WCAG 2.2 Level AA',
     term: 'numeric estimation question',
     editorial: [
-      'The leaderboard that pulls the room in',
+      'A leaderboard that keeps the group engaged',
       'Gamification preset',
-      'With the confidence rating,',
-      'Confidently wrong answers may indicate misconceptions.',
-      'Pedagogical analysis',
-      'The moderation compass shows where the room stands',
+      'Answer confidence',
+      'Incorrect answers given with high confidence may indicate misconceptions.',
+      'The moderation compass helps you choose your next step',
       'What does the moderation compass do?',
-      'Built on an established foundation',
-      'The facilitator and presenter show the quiz, Q&amp;A wall, word cloud',
+      'Host Q&amp;A view',
       'Create and host on a phone',
       'Create and host on your phone',
       'Can I really create a quiz and run a session entirely from my phone?',
-      'fully on a smartphone, in every question format',
-      'Present from anywhere in the room',
+      'entirely on your phone and in every format',
+      'Control the presentation from your phone or tablet',
       'No account on the phone',
       'No credentials to share',
-      'Why this pairing is different from a remote',
-      'Until then, only a neutral progress indicator is visible.',
-      'Facilitator’s Q&amp;A view',
-      'Share the collection',
-      'instead of a USB stick',
-      'so you can use and edit the collection together',
-      'Can I use the quiz collection on another device or with colleagues?',
+      'What the connected device can do',
+      'Share the library',
+      'Use a sync link to open it on a borrowed computer instead of bringing a USB drive.',
+      'use and edit the library together',
+      'Can I use my quiz library on another device or with colleagues?',
+      'Strong support',
+      'Next step',
     ],
-    banned: ['Until then only neutral progress', 'Facilitator view Q&amp;A'],
+    banned: [
+      '6-digit code',
+      'Best questions',
+      'Facilitator view Q&amp;A',
+      'organisations',
+      'prioritise',
+    ],
     workflowSteps: [
       'Prepare a quiz',
-      'Share the collection',
+      'Share the library',
       'Start a session',
-      'Moderate live',
-      'Follow up and export',
+      'Host live',
+      'Review and export',
     ],
   },
   fr: {
@@ -926,7 +943,7 @@ if (!errors.length) {
   checkSitemap();
   checkRootRedirectPreservesHash();
   checkLegalPagesOmitHomeHreflang();
-  checkFrenchLegalPages();
+  checkLocalizedLegalPages();
   checkLocaleContentSmoke();
   checkLanguageSwitcherMarkup();
   checkNavAndSectionOrder();

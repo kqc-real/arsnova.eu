@@ -71,7 +71,7 @@ const PRIOR_KNOWLEDGE_NEEDLES_BY_LOCALE = {
 
 const FREETEXT_RESPONSES_BY_LOCALE = {
   de: ['Praxis', 'Beispiele', 'Austausch', 'Visualisierung', 'Feedback'],
-  en: ['Practice', 'Examples', 'Discussion', 'Visualisation', 'Feedback'],
+  en: ['Practice', 'Examples', 'Discussion', 'Visualization', 'Feedback'],
   fr: ['Pratique', 'Exemples', 'Échanges', 'Visualisation', 'Retours'],
   es: ['Práctica', 'Ejemplos', 'Intercambio', 'Visualización', 'Comentarios'],
   it: ['Pratica', 'Esempi', 'Confronto', 'Visualizzazione', 'Feedback'],

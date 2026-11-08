@@ -2,9 +2,9 @@ import type { Messages } from './types';
 
 const en: Messages = {
   meta: {
-    homeTitle: 'arsnova.eu | Live quiz, numeric estimation questions and Q&A wall',
+    homeTitle: 'arsnova.eu | Live quizzes, Q&A, and word clouds',
     homeDescription:
-      'Open-source audience response for education, training and organisations: quiz creation and session hosting designed for smartphones, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, available for self-hosting and ready to use without an account.',
+      'Run live quizzes, Q&A, word clouds, and Pulse Checks from your phone. Free, open source, self-hostable, and usable without an account. WCAG 2.2 AA.',
     siteNameInfo: 'arsnova.eu – Information',
     ogLocale: 'en_US',
   },
@@ -48,76 +48,76 @@ const en: Messages = {
     viewOpenSource: 'View source code',
   },
   hero: {
-    eyebrow: 'Audience response for education and organisations',
-    titleLine1: 'Quiz, estimate,',
-    titleLine2: 'moderate questions',
+    eyebrow: 'Audience participation for education and organizations',
+    titleLine1: 'Run quizzes, collect questions,',
+    titleLine2: 'hear from your audience',
     titleAccent1: 'live and free',
     titleAccent2: ' without an account.',
-    lead: 'arsnova.eu brings together live quizzes, numeric estimation questions, confidence ratings on scored questions, a Q&A wall, word-cloud analysis and Pulse Check feedback in one interface for schools, universities, continuing education, workshops and business. The quiz editor and host view for teachers and presenters are built for a phone first — every question format, not scaled down from a desktop. Open source, ready to run on your own infrastructure and designed for operation with GDPR in mind.',
+    lead: 'Bring live quizzes, numeric estimates, answer confidence, audience questions, word clouds, and Pulse Checks into one session. Create every question type and host from your phone, whether you’re running a class, workshop, training session, or meeting. arsnova.eu is open source, self-hostable, and designed with GDPR requirements in mind.',
     a11yLink: 'Conforms to WCAG 2.2 Level AA',
-    a11ySuffix: '— keyboard, screen reader and individually adjustable response time.',
+    a11ySuffix: '—keyboard support, screen readers, and adjustable response time.',
     cards: [
       {
         title: 'Create and host on a phone',
-        text: 'Build every question format and run the live session — designed for a phone, not a desktop console squeezed down',
+        text: 'Create every question type and run a live session from your phone',
       },
       {
         title: 'Q&A with a question wall',
         text: 'Moderation, voting, word cloud and moderation compass',
       },
       {
-        title: 'Confidence rating & follow-up',
-        text: 'Spot misconceptions, export a PDF results report',
+        title: 'Answer confidence and follow-up',
+        text: 'Identify possible misconceptions and export a PDF debriefing report',
       },
       {
-        title: 'Open source & self-hosted',
-        text: 'Docker, Postgres, Redis and admin activity log',
+        title: 'Open source and self-hostable',
+        text: 'Docker, PostgreSQL, Redis, and an admin activity log',
       },
     ],
   },
   estimate: {
     eyebrow: 'New in the live quiz',
-    title: 'Estimate numbers, discuss, and compare the second round clearly',
-    lead: 'The numeric estimation question is built for years, orders of magnitude, measurements and probabilities. Facilitators set a reference value, allowed input range and tolerance; participants enter only a number.',
+    title: 'Estimate, discuss, and compare two rounds',
+    lead: 'Use numeric estimates for dates, orders of magnitude, measurements, and probabilities. Set a reference value, allowed input range, and tolerance. Participants simply enter a number.',
     summary: [
-      'A plausibility band limits allowed inputs.',
-      'A tolerance band scores estimates that are acceptable from a subject-matter perspective.',
-      'Nobody sees the distribution before results are released.',
+      'The input range defines which values participants can enter.',
+      'The tolerance range defines which estimates count as correct.',
+      'The response distribution stays hidden until results are shown.',
       'Round 1 and round 2 are compared after the discussion.',
     ],
     docsLink: 'Open the numeric estimation question documentation',
     demoAria: 'Sample results for a numeric estimation question about the French Revolution',
-    hostView: 'Facilitator view after release',
+    hostView: 'Host view after results are shown',
     demoQuestion: 'When did the French Revolution begin?',
     reference: 'Reference 1789',
     toleranceBand: 'Tolerance band',
     toleranceValue: '1700 to 1900',
-    plausibilityBand: 'Plausibility band',
+    plausibilityBand: 'Allowed input range',
     plausibilityValue: '1500 to 2000',
     histogramNote:
-      'Histogram, reference line and tolerance band appear only after results are released. Until then, only a neutral progress indicator is visible.',
+      'The histogram, reference line, and tolerance range appear only after results are shown. Until then, only participation progress is visible.',
     median: 'Median',
-    inBand: 'in band',
+    inBand: 'within tolerance',
     round2: 'Round 2',
     round2Value: '14 answers closer to the reference',
   },
   confidence: {
     eyebrow: 'Pedagogical analysis',
-    title: 'Right or wrong — and how sure?',
-    lead: 'With the confidence rating, participants indicate how sure they are after answering (1–5). You see not only the hit rate, but also confidently wrong answers — a useful tool for formative evaluation, focused debriefing and the results report (PDF) after the session ends.',
+    title: 'Correct or incorrect—and how confident?',
+    lead: 'After answering a scored question, participants can rate their confidence from 1 to 5. This helps you spot incorrect answers given with high confidence, which may indicate a misconception. Use these signals to plan your debrief and review them in the PDF report after the session.',
     summary: [
-      'Not a separate question type — optional on scored quiz questions.',
-      'Scale 1–5 after the answer, with no effect on points.',
-      'After release, the facilitator sees correctness × confidence.',
-      'Confidently wrong answers may indicate misconceptions.',
-      'After the session: results report (PDF) and debriefing.',
+      'An optional setting for scored questions, not a separate question type.',
+      'A scale from 1 to 5 after answering, with no effect on points.',
+      'After results are shown, the host can compare answer correctness and confidence.',
+      'Incorrect answers given with high confidence may indicate misconceptions.',
+      'After the session, use the PDF debriefing report to plan your discussion.',
     ],
-    docsConfidence: 'Confidence rating docs',
-    docsExport: 'Results report (PDF) docs',
-    demoAria: 'Sample evaluation with confidence rating after results release',
-    hostView: 'Facilitator view after release',
+    docsConfidence: 'Answer confidence documentation',
+    docsExport: 'PDF debriefing report documentation',
+    demoAria: 'Example of answer correctness and confidence after results are shown',
+    hostView: 'Host view after results are shown',
     demoQuestion: 'Which structure is the most stable?',
-    badge: 'Confidence rating',
+    badge: 'Answer confidence',
     matrix: [
       { label: 'Correct · low confidence', count: 3, tone: 'emerald' },
       { label: 'Correct · medium confidence', count: 8, tone: 'emerald' },
@@ -126,27 +126,27 @@ const en: Messages = {
       { label: 'Incorrect · medium confidence', count: 4, tone: 'amber' },
       { label: 'Incorrect · high confidence', count: 2, tone: 'rose' },
     ],
-    falseHighTitle: '2 confidently wrong answers',
+    falseHighTitle: '2 incorrect answers with high confidence',
     falseHighText:
-      'Option B was chosen twice with high confidence — a signal for possible misconceptions in the debriefing.',
+      'Option B was selected twice with high confidence. This may indicate a misconception to revisit during the debrief.',
     consolidated: 'Solid',
-    misconceptionRisk: 'Misconception risk',
+    misconceptionRisk: 'Possible misconception',
     fragile: 'Fragile',
     afterSessionAria: 'Export after the session ends',
     afterSession: 'After the session ends',
     debriefing: 'Debriefing',
-    resultsPdf: 'Results report (PDF)',
+    resultsPdf: 'PDF debriefing report',
     exportNote:
-      'Print-ready report with learning progress, heatmap and full question text — in the facilitator view and on the quiz card. CSV for Excel remains available under “More”.',
+      'A print-ready report with understanding, answer confidence, a heatmap, and full question text. Open it from the host view or quiz card. CSV export for spreadsheets remains under “More”.',
   },
   qaWall: {
-    eyebrow: 'Live Q&A as a moderation space',
-    title: 'Collect questions, prioritise them, and read them as a topic map',
-    lead: 'The Q&A wall is not a side chat. It is a dedicated live channel for facilitators and speakers: moderate submissions, spot collective priorities, surface controversial points and bring the key themes into the room via a weighted Q&A word cloud.',
+    eyebrow: 'A dedicated space for audience questions',
+    title: 'Collect questions, set priorities, and spot recurring topics',
+    lead: 'Use Q&A to publish audience questions, identify priorities, and address disagreements. A weighted word cloud helps bring recurring topics into the discussion.',
     signals: [
       {
         label: 'Pre-moderation',
-        text: 'Release questions only when they are relevant in the teaching context.',
+        text: 'Review questions before publishing them to participants.',
       },
       {
         label: 'Collective voting',
@@ -154,26 +154,26 @@ const en: Messages = {
       },
       {
         label: 'Topic word cloud',
-        text: 'Words and phrases are weighted by support, agreement or controversy.',
+        text: 'Words and phrases are weighted by the selected sort: net votes, strong support, or controversy.',
       },
       {
         label: 'Moderation compass',
-        text: 'One glance, and you see the next move — from questions, the word cloud, the quiz and pace.',
+        text: 'A suggested next step based on questions, word clouds, quiz results, and pace feedback.',
       },
     ],
-    docsLink: 'Open Q&A scoring and controversy docs on GitHub',
+    docsLink: 'Read about Q&A sorting and controversy on GitHub',
     demoAria: 'Sample Q&A wall with moderation, voting and word cloud',
-    hostView: 'Facilitator’s Q&A view',
+    hostView: 'Host Q&A view',
     demoTitle: 'Questions about the event',
     moderationActive: 'Pre-moderation on',
     sortMostSupported: 'Net votes',
-    sortBest: 'Best questions',
+    sortBest: 'Strong support',
     sortControversial: 'Controversy',
     questions: [
       {
         score: '+18',
-        title: 'When is an estimate still plausible from a subject-matter perspective?',
-        meta: '15 up · 3 down · best question',
+        title: 'When does an estimate fall within an acceptable range?',
+        meta: '15 up · 3 down · strong support',
       },
       {
         score: '+4',
@@ -187,8 +187,8 @@ const en: Messages = {
       },
     ],
     wordCloud: 'Q&A word cloud',
-    wordCloudHint: 'Weighted by positive support and controversy.',
-    frozenLive: 'Live updates paused',
+    wordCloudHint: 'Term size reflects the weighting of the questions.',
+    frozenLive: 'Display paused',
     terms: [
       { label: 'Tolerance band', className: 'text-3xl text-landing-primary' },
       { label: 'Discussion', className: 'text-2xl text-landing-status-emerald' },
@@ -200,28 +200,28 @@ const en: Messages = {
       { label: 'Need for clarification', className: 'text-xl text-landing-status-violet' },
     ],
     nextStep:
-      'Up next in the compass: bring the controversial question to the room — tap once and you jump there.',
+      'Next step in the compass: discuss the controversial question with the group. Open the question with a tap.',
   },
   compass: {
     eyebrow: 'Now in the live session',
-    title: 'The moderation compass shows where the room stands',
-    lead: 'Mid-session, one glance and you see the next useful move — from open questions, the word cloud, the quiz and pace. Not a dashboard to study: one suggestion you can try in the room right away.',
+    title: 'The moderation compass helps you choose your next step',
+    lead: 'During a session, the compass suggests a next step based on unanswered questions, word clouds, quiz results, and pace feedback. Review the signals, open the source, and decide what to do next.',
     summary: [
       'Tap “Compass” in any live view.',
-      'At the top is “Up next”: one clear action.',
-      'Below it: signals on pace, controversial questions and what still needs clarifying.',
-      'Jump straight to the question, the word cloud or the results.',
+      '“Next step” at the top suggests one concrete action.',
+      'Below it, review pace feedback, controversial questions, and points to clarify.',
+      'Go directly to the question, word cloud, or results.',
       'You decide. The compass never runs the session on its own.',
     ],
     docsLink: 'How the compass works',
     tryLink: 'Try it in the app',
     demoAria: 'Sample moderation compass with the next step and live signals',
-    hostView: 'Facilitator view',
+    hostView: 'Host view',
     demoTitle: 'Moderation compass',
-    nextLabel: 'Up next',
-    nextTitle: 'Bring the controversial question to the room',
+    nextLabel: 'Next step',
+    nextTitle: 'Discuss the controversial question with the group',
     nextText:
-      '“Should we really hide results before the discussion?” is splitting the group. Clear it now, before you move on.',
+      'The question about hiding results has divided the group. Clarify it before moving on.',
     cards: [
       {
         label: 'Controversial questions',
@@ -230,7 +230,7 @@ const en: Messages = {
       },
       {
         label: 'Feedback on presentation pace',
-        text: 'Several people are falling behind. A short pause will help.',
+        text: 'Several people say the pace is too fast. Consider a short pause.',
         tone: 'amber',
       },
       {
@@ -239,100 +239,100 @@ const en: Messages = {
         tone: 'violet',
       },
     ],
-    sourcesLabel: 'Jump straight in',
+    sourcesLabel: 'Go directly to',
     sources: ['Q&A', 'Word cloud', 'Quiz', 'Pulse Check'],
-    note: 'The compass reads only what you already see as facilitator. It never rates individual people.',
+    note: 'The compass uses only information already available to the host. It does not evaluate individual participants.',
   },
   workflow: {
-    eyebrow: 'For teaching, training and workshops',
+    eyebrow: 'For teaching, training, and workshops',
     title: 'From idea to live session in a few minutes',
-    lead: 'From preparation to the running session, the flow deliberately avoids unnecessary steps. That is what makes getting started fast and reliable for educators, trainers and facilitators.',
+    lead: 'Prepare your content, invite participants, and host the session. The workflow takes you from creating questions to reviewing the results.',
     stepLabel: 'Step',
     steps: [
       {
         number: '01',
         title: 'Prepare a quiz',
         description:
-          'Create questions directly or import existing content — fully on a smartphone, in every question format. Markdown, KaTeX, short answer, numeric estimation, matching, ordering and categorisation are built in, rather than limited to a simplified mobile editor.',
+          'Create questions or import existing content, entirely on your phone and in every format. Use Markdown, KaTeX, short answers, numeric estimates, matching, ordering, and categorization.',
       },
       {
         number: '02',
-        title: 'Share the collection',
+        title: 'Share the library',
         description:
-          'The quiz collection stays on your device — important for GDPR compliance. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
+          'Your quiz library stays on your device, helping protect your data. Use a sync link to open it on a borrowed computer instead of bringing a USB drive. Share the same link with colleagues to use and edit the library together. Create the link in your quiz library and paste received links on the home page.',
       },
       {
         number: '03',
         title: 'Start a session',
         description:
-          'Start without an account: open a session, choose a style, share a code or QR. Optionally connect a phone or tablet and open presenter view for the projector.',
+          'Start without an account: open a session, choose a style, and share the session code or QR code. You can also connect a phone or tablet and open the presenter view on a projector.',
       },
       {
         number: '04',
-        title: 'Moderate live',
+        title: 'Host live',
         description:
-          'You move around the room and run the live session from your phone. The host view is built for that — not scaled down from a desktop. Participants vote, ask questions and prioritise together. The moderation compass shows the next move. The facilitator and presenter show the quiz, Q&A wall, word cloud, Pulse Check, reading phase, countdown, second round and results in one flow.',
+          'Control the session from your phone as you move around the room. Participants answer, ask questions, and help set priorities. The moderation compass suggests a next step. The host and presenter views support quizzes, Q&A, Pulse Check, word clouds, reading phases, countdowns, second votes, and results.',
       },
       {
         number: '05',
-        title: 'Follow up and export',
+        title: 'Review and export',
         description:
-          'After the session ends, the results report (PDF) is ready — with learning progress, confidence rating and full question text. In the quiz collection you will find the debriefing and PDF report for the most recent session; CSV for Excel under “More”.',
+          'After the session, open the PDF debriefing report with understanding, answer confidence, and full question text. The latest session’s debrief and PDF remain available from the quiz library. CSV export for spreadsheets is under “More”.',
       },
     ],
   },
   pairing: {
     eyebrow: 'What sets us apart',
-    title: 'Present from anywhere in the room — from your phone or tablet',
-    lead: 'Pairing works because the host view itself is designed for a phone first. Other audience-response tools often offer a remote — as a slide clicker or with a separate account on the phone. With arsnova.eu you scan a QR code, approve the connection on the laptop, and the phone only runs the live session.',
-    whyTitle: 'Why this pairing is different from a remote',
+    title: 'Control the presentation from your phone or tablet',
+    lead: 'Connect a phone or tablet to control the session while moving around the room. Scan the QR code and confirm the connection on the computer. The connected device gets controls for the current session without needing a separate account.',
+    whyTitle: 'What the connected device can do',
     summary: [
-      'Full freedom of movement while you present — a clear advantage for teaching and presenting.',
-      'The same live-session controls as on the laptop: questions, results, Q&A, Pulse Check, End session — not just the next slide.',
+      'Move around the room while staying in control of the presentation.',
+      'Control questions, results, Q&A, Pulse Check, and the end of the session, beyond just advancing slides.',
       'No account on the phone: you can hand the device to an assistant without sharing passwords.',
-      'No credentials to share: the QR appears on the laptop, and so does the approval. The phone gets the session — not your account.',
-      'The quiz collection stays on the laptop — edit or delete only there, not from the paired device.',
+      'No credentials to share: show the QR code and confirm the connection on the computer. The phone gets controls for this session only.',
+      'The quiz library stays on the computer. The connected device cannot edit or delete quizzes.',
     ],
     laptopLabel: 'Laptop and projector',
     laptopText:
-      'The laptop and projector display the presentation. You confirm the connection here. The quiz collection stays here.',
+      'The computer and projector show the presentation. Confirm the connection here. The quiz library stays on this computer.',
     phoneLabel: 'Phone or tablet',
-    phoneText: 'Runs the live session — no extra login — while you are in the room.',
+    phoneText: 'Control the current session as you move around the room, without another account.',
     demoAria: 'Laptop shows the presentation; the phone controls the session',
   },
   features: {
     eyebrow: 'What sets arsnova.eu apart',
-    title: 'Built for live interaction, not only for polling slides',
-    lead: 'arsnova.eu combines a fast start, pedagogical depth and a transparent technical foundation. The platform stays simple day to day without shrinking what you can do.',
+    title: 'Everything you need for live audience participation',
+    lead: 'Start without an account and use tools to prepare, host, and review live sessions. Open source code lets you examine how the platform works.',
     items: [
       {
         title: 'Create and host on your phone',
         description:
-          'Other audience-response tools usually treat authoring and the teacher role as desktop products. Here you create a quiz on a smartphone in every question format — and the same host view runs quiz, Q&A, Pulse Check and results in your hand, even without a laptop. Pairing with a projector is optional.',
+          'Create every question type on your phone and control quizzes, Q&A, Pulse Check, and results from the same host view. Run the session without a computer, or connect a device to a projected presentation.',
         icon: 'phone',
       },
       {
         title: 'Present from anywhere in the room',
         description:
-          'Connect a phone or tablet and run the live session on the move: questions, results, Q&A, Pulse Check, End session. No account on the phone: the QR is on the laptop, and you approve there. The quiz collection stays on the computer — you can hand the device over without sharing passwords.',
+          'Connect a phone or tablet to control questions, results, Q&A, Pulse Check, and the end of the session. Scan the QR code and confirm on the computer. The quiz library stays there, so you can hand the connected device to an assistant without sharing passwords.',
         icon: 'presenter',
       },
       {
         title: 'Ready in no time',
         description:
-          'Facilitators start without an account. Participants join the session directly with a 6-digit code or QR.',
+          'Hosts start without an account. Participants join directly with a 6-character code or QR code.',
         icon: 'single',
       },
       {
-        title: 'Confidence rating in the live quiz',
+        title: 'Answer confidence in live quizzes',
         description:
-          'Participants say how sure they are after answering. You spot confidently wrong answers, prioritise the debriefing and export the level of understanding in the results report (PDF).',
+          'Participants rate their confidence after answering. Identify incorrect answers given with high confidence, prioritize your debrief, and review the findings in the PDF report.',
         icon: 'confidence',
       },
       {
-        title: 'Results report for follow-up',
+        title: 'A debriefing report for follow-up',
         description:
-          'After the session ends you export a print-ready PDF report with charts, question text and confidence rating. CSV for Excel remains optional under “More”.',
+          'Export a print-ready PDF after the session with charts, question text, and answer confidence. CSV export for spreadsheets remains under “More”.',
         icon: 'export',
       },
       {
@@ -344,25 +344,25 @@ const en: Messages = {
       {
         title: 'More than a standard quiz',
         description:
-          'MC/SC, short answers, ratings, matching, ordering, categorisation, reading phase, Peer Instruction and presenter mode support learning, training and live facilitation.',
+          'MC/SC, short answers, ratings, matching, ordering, categorization, reading phase, Peer Instruction and presenter mode support learning, training and live facilitation.',
         icon: 'toggle',
       },
       {
-        title: 'Q&A wall instead of a side chat',
+        title: 'A dedicated space for audience questions',
         description:
-          'Q&A offers pre-moderation, pinning, archiving, up/down voting and sorting by support, quality and controversy.',
+          'Review, publish, pin, and archive questions. Participants can upvote or downvote them. Sort by net votes, strong support, or controversy.',
         icon: 'qa',
       },
       {
         title: 'Rich word cloud',
         description:
-          'Free text and Q&A are condensed into words and phrases; the wall weights by agreement, clear majority score or controversy.',
+          'Group free-text responses and Q&A questions into words and phrases. In Q&A, term size follows the selected sort: net votes, strong support, or controversy.',
         icon: 'cloud',
       },
       {
         title: 'Moderation compass in the live session',
         description:
-          'One glance, and you know what the room needs now: pace, a controversial question or an open quiz result. Tap “Compass” and try the next step straight away.',
+          'Review pace feedback, controversial questions, or quiz results that need discussion. Open “Compass” to see a suggested next step and decide how to continue.',
         icon: 'compass',
       },
       {
@@ -393,10 +393,10 @@ const en: Messages = {
   },
   leaderboard: {
     eyebrow: 'Gamification preset',
-    title: 'The leaderboard that pulls the room in',
-    lead: 'Anonymous animal nicknames, points and hits — no real names. In the Gamification preset the live results match the session itself: dark, clear and full of energy.',
+    title: 'A leaderboard that keeps the group engaged',
+    lead: 'Animal nicknames, scores, and correct answers: a leaderboard without real names. The Gamification preset gives live results a dark, clear presentation.',
     points: [
-      'Anonymous nicknames instead of real names',
+      'Animal nicknames in place of real names',
       'Points and correct answers at a glance',
       'The same look in light and dark',
     ],
@@ -423,15 +423,15 @@ const en: Messages = {
   },
   structuredQuestionTypes: {
     eyebrow: 'Structured question types',
-    title: 'Match, order and categorise — complete interactions with useful results',
-    lead: 'Three formats turn relationships, sequences and conceptual boundaries into active tasks — and you create them fully on a smartphone. Solutions stay hidden while voting is open; model answers and common error patterns appear only after reveal.',
+    title: 'Match, order, and categorize—with results you can review',
+    lead: 'Explore relationships, sequences, and categories through interactive questions you can create entirely on your phone. Answer keys stay hidden during voting. After results are shown, review the correct answers and common mistakes.',
     interactionLabel: 'Interaction',
     exampleLabel: 'Teaching example',
     resultLabel: 'Results',
     scoringNote:
       'All three formats are scored. An answer currently receives full credit or no credit; partial credit is not available.',
     revealNote:
-      'During an active round, correct pairings, target order and target categories remain hidden. The model answer and detailed distributions appear only after reveal.',
+      'During voting, correct pairs, the correct order, and target categories stay hidden. The answer key and detailed response distributions appear only after results are shown.',
     items: [
       {
         id: 'matching',
@@ -441,7 +441,7 @@ const en: Messages = {
         interaction:
           'Each term receives exactly one target, each target is used once, and every match must be completed.',
         example: 'Match historical dates to the corresponding events.',
-        result: 'Correct pairs, hit rates and frequently confused targets.',
+        result: 'Correct pairs, correct-response rates, and common mismatches.',
         symbol: 'A↔B',
       },
       {
@@ -450,14 +450,14 @@ const en: Messages = {
         description:
           'Put steps, events or stages of a process in the correct order. The results show which positions caused uncertainty.',
         interaction:
-          'All items form a complete linear sequence, using visible move controls and the keyboard without requiring drag-and-drop.',
+          'Put all items in order with visible move controls or the keyboard. Drag-and-drop is not required.',
         example: 'Order the stages of a biological process.',
         result: 'Model sequence, position distribution and common swaps.',
         symbol: '1→3',
       },
       {
         id: 'categorisation',
-        title: 'Categorisation',
+        title: 'Categorization',
         description:
           'Assign terms or examples to the appropriate categories. The results reveal clear distinctions and common misclassifications.',
         interaction: 'Each item receives exactly one category, and every item must be assigned.',
@@ -475,22 +475,22 @@ const en: Messages = {
       {
         title: 'Keyboard operation',
         description:
-          'You and your participants can use the core flows without a mouse. Visible focus marks and a skip link to content make navigation easier.',
+          'You and your participants can use the core workflows without a mouse. Visible focus indicators and a skip link help you navigate.',
       },
       {
         title: 'Screen-reader support in live use',
         description:
-          'Status changes when joining a session, during voting and at phase changes are announced for screen readers so users can follow the flow.',
+          'Screen readers announce important changes when you join a session, submit an answer, or move to a new phase.',
       },
       {
         title: 'Individually adjustable response time',
         description:
-          'For timed questions you choose standard time, tenfold response time or participation without a time limit. Reasonable adjustments can be applied directly in the live session.',
+          'For timed questions, choose standard response time, “10× time”, or “No deadline”. These options help accommodate individual response-time needs during the session.',
       },
       {
         title: 'Accessibly structured results report',
         description:
-          'The print-ready report is PDF/UA-1-validated and includes document title, language and tags — for follow-up and accessible sharing.',
+          'The print-ready report is validated against PDF/UA-1 and includes a document title, language, and structure tags for accessible sharing and follow-up.',
       },
     ],
     statementLink: 'Open the accessibility statement',
@@ -498,7 +498,7 @@ const en: Messages = {
   trust: {
     eyebrow: 'Trust',
     title: 'Built on an established foundation',
-    lead: 'arsnova.eu continues the ARSnova ecosystem tradition and builds on scientific, pedagogical and practical experience from many years of education technology.',
+    lead: 'arsnova.eu is part of the ARSnova ecosystem, drawing on years of research, teaching practice, and education technology development.',
     proofItems: [
       { value: 'Since 2012', label: 'ARSnova tradition in education and edtech' },
       { value: 'WCAG 2.2 AA', label: 'Verified accessibility for teaching and institutions' },
@@ -537,33 +537,33 @@ const en: Messages = {
   },
   comparison: {
     eyebrow: 'Differentiation',
-    title: 'Not just a Mentimeter or Kahoot substitute',
+    title: 'Compare arsnova.eu with Mentimeter and Kahoot!',
     lead: 'The focus is not only voting, but the full live flow: prepare on your phone, facilitate from anywhere in the room, make results visible and keep control of content and operations.',
     points: [
       {
         title: 'Create and host on your phone',
         description:
-          'Most audience-response tools design quiz authoring and the teacher role for a desk and a large screen. Here you create every question format on a smartphone and run the quiz, Q&A, Pulse Check and results in your hand. A laptop and projector remain optional — not a requirement for the console to be usable.',
+          'Create every question type and control quizzes, Q&A, Pulse Check, and results from your phone. You can also use a computer and projector. All host controls remain available on your phone.',
       },
       {
         title: 'Freedom to move, not tied to the laptop',
         description:
-          'Other tools often offer a remote as a slide clicker or with a separate login. Here you scan a QR code and approve the connection on the laptop. The phone runs the session without its own account: questions, results, Q&A, Pulse Check, End session. The quiz collection stays on the laptop.',
+          'Some tools offer a remote that needs a separate login or only advances slides. Here, scan a QR code and confirm on the computer. The phone can control questions, results, Q&A, Pulse Check, and the end of the session without its own account. The quiz library stays on the computer.',
       },
       {
         title: 'Lower barriers to entry',
         description:
-          'No separate product logic for “create” and “join”. Facilitators start without an account; participants enter the session via code or QR.',
+          'Both hosts and participants can start without an account. Open a session and invite participants to join with a code or QR code.',
       },
       {
         title: 'More interaction formats',
         description:
-          'Alongside quizzes: matching, ordering, categorisation, numeric estimation questions, reading phase, Peer Instruction, Pulse Check, Q&A wall, weighted word cloud and moderation compass in one platform — not only slide polls.',
+          'Alongside quizzes: matching, ordering, categorization, numeric estimation questions, reading phase, Peer Instruction, Pulse Check, Q&A wall, weighted word cloud and moderation compass in one platform — not only slide polls.',
       },
       {
         title: 'More control over data and access',
         description:
-          'Open source, ready to run on your own infrastructure and with quiz content kept locally — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organisations with privacy and inclusion requirements.',
+          'Open source, ready to run on your own infrastructure and with quiz content kept locally — plus conformance to WCAG 2.2 Level AA. Relevant for schools, universities and organizations with privacy and inclusion requirements.',
       },
     ],
     comparePrefix: 'You can still find the full feature comparison in the docs:',
@@ -575,19 +575,19 @@ const en: Messages = {
     answerLabel: 'Answer',
     items: [
       {
-        question: 'Do facilitators or participants need an account?',
+        question: 'Do hosts or participants need an account?',
         answer:
-          'No. A session can be started without an account. Participants join via code or QR.',
+          'No. Hosts can start a session without an account. Participants join with a session code or QR code.',
       },
       {
         question: 'Can I really create a quiz and run a session entirely from my phone?',
         answer:
-          'Yes. You create a quiz on a smartphone in every question format — single- and multiple-answer, short answer, numeric estimation, matching, ordering and categorisation. The same host view runs the live session: quiz, Q&A, Pulse Check and results. Both are designed for a phone first, not as a shrunken desktop. Optionally you pair a second device: the projector stays on the laptop, the phone runs the live session, without a separate account.',
+          'Yes. Create every question type on your phone, including single choice, multiple choice, short answer, numeric estimate, matching, ordering, and categorization. Control quizzes, Q&A, Pulse Check, and results from the same host view. You can also connect a second device: the presentation stays on the computer while the phone controls the session, without another account.',
       },
       {
         question: 'Can I control the session from my phone?',
         answer:
-          'Yes. When you start the presentation the QR appears on the laptop; you approve the connection there. The phone needs no account. It runs the live session — questions, results, Q&A, Pulse Check, End session — not the quiz collection. You can hand the device to an assistant without sharing passwords. Other tools often have a remote with an extra login or only as a slide clicker.',
+          'Yes. Scan the QR code shown on the computer when starting the presentation, then confirm the connection there. Without another account, the phone can control questions, results, Q&A, Pulse Check, and the end of the session. Your quiz library stays on the computer. You can hand the phone to a trusted assistant without sharing a password.',
       },
       {
         question: 'Where is the data stored?',
@@ -595,9 +595,9 @@ const en: Messages = {
           'Quiz content stays on your device. For live sessions only the technically necessary session data is processed; when you run it yourself, operations stay within your own infrastructure.',
       },
       {
-        question: 'Can I use the quiz collection on another device or with colleagues?',
+        question: 'Can I use my quiz library on another device or with colleagues?',
         answer:
-          'Yes. The collection stays on your device on purpose — important for GDPR compliance. If you have to use someone else’s computer in the lecture room, you bring it over with a sync link instead of a USB stick. You can give the same link to colleagues so you can use and edit the collection together. Create the link in the quiz collection; paste a received link on the home page.',
+          'Yes. Your library stays on your device, helping protect your data. Open it on another computer with a sync link rather than a USB drive. Share the same link with colleagues to use and edit the library together. Create the link in your quiz library and paste received links on the home page.',
       },
       {
         question: 'Can I run arsnova.eu on my own infrastructure?',
@@ -605,39 +605,39 @@ const en: Messages = {
           'Yes. The platform is open source and designed to run with Docker, PostgreSQL and Redis.',
       },
       {
-        question: 'What is confidence rating in the quiz?',
+        question: 'What is answer confidence?',
         answer:
-          'An optional follow-up after scored questions: participants rate on a scale of 1–5 how sure they are about their answer. Points stay unchanged; in the facilitator evaluation you see correctness × confidence and flag confidently wrong answers as a misconception signal. After the session ends, learning outcomes feed into debriefing and the results report (PDF).',
+          'For scored questions, participants can rate their confidence in their answer from 1 to 5. This does not affect points. Comparing correctness and confidence helps identify possible misconceptions, especially when incorrect answers are given with high confidence. These findings appear in the debrief and PDF report after the session.',
       },
       {
         question: 'Can I export session results?',
         answer:
-          'Yes. After the session ends, the results report (PDF) is the primary format — including confidence rating, debriefing priorities and full question text. In the quiz collection you will find the debriefing and PDF report for the most recent session. Tabular CSV data is available under “More” for Excel.',
+          'Yes. After the session, export the PDF debriefing report with answer confidence, priorities for discussion, and full question text. The latest session’s debrief and report are available from the quiz library. CSV export for spreadsheets is under “More”.',
       },
       {
         question: 'What makes the numeric estimation question special?',
         answer:
-          'It separates allowed inputs from the subject-matter tolerance band, shows no distribution during voting, and can evaluate a second round after discussion with statistics and round comparison.',
+          'It separates the allowed input range from the range considered correct. Results stay hidden during voting. A second round after discussion lets you compare estimates with statistics.',
       },
       {
         question: 'What can the Q&A wall do?',
         answer:
-          'Participants submit questions and weight them with upvotes and downvotes. Facilitators can pre-moderate, pin, archive or remove questions and sort the list by support, clear majority agreement or controversy.',
+          'Participants submit questions and upvote or downvote them. Hosts can review, publish, pin, archive, or delete questions and sort by net votes, strong support, or controversy.',
       },
       {
         question: 'What makes the Q&A word cloud different?',
         answer:
-          'It condenses visible questions into words and phrases and follows the active sort logic. So it shows not only frequent terms, but topic groups from supported, clearly high-scoring or controversial questions.',
+          'It groups visible questions into words and phrases, weighted by the active sort. This highlights topics from questions with high net votes, strong support, or split opinions.',
       },
       {
         question: 'What does the moderation compass do?',
         answer:
-          'During the session it shows the next useful move — from open questions, the word cloud, quiz results and pace feedback. “Up next” sits at the top, the signals below. You jump to the source and decide; the compass never starts an action on its own. Tap “Compass” in the live view and try it with a few votes.',
+          'During the session, it suggests a next step based on unanswered questions, word clouds, quiz results, and pace feedback. The suggested action appears under “Next step”, followed by its supporting signals. Open the source and decide what to do. The compass never starts an action automatically.',
       },
       {
         question: 'Who is the platform for?',
         answer:
-          'For live interaction in education and organisations: school, university, continuing education, training, workshop, event or meeting.',
+          'Anyone running live audience participation in a class, seminar, training session, workshop, event, or meeting.',
       },
       {
         question: 'Is arsnova.eu accessible?',
@@ -649,31 +649,31 @@ const en: Messages = {
   },
   ctaSection: {
     title: 'Ready for the next live session?',
-    lead: 'Try the live flow and the moderation compass directly in the app — or take a look at the open source code, the Q&A logic, the word-cloud processing pipeline and the technical foundations for deployment and operations.',
+    lead: 'Try the live formats and moderation compass in the app. You can also explore the source code and read how Q&A, word clouds, deployment, and operations work.',
   },
   jsonLd: {
     websiteName: 'arsnova.eu – Information',
     webAppDescription:
-      'Open-source audience response for education, training and organisations: quiz creation and session hosting designed for smartphones, live quiz with matching, ordering and categorisation, confidence rating, results report (PDF), numeric estimation questions, moderated Q&A wall, word cloud and feedback — conforms to WCAG 2.2 Level AA, free, available for self-hosting and ready to use without an account.',
+      'Free, open-source audience participation with live quizzes, numeric estimates, Q&A, word clouds, and Pulse Checks. Create and host from your phone, use answer confidence and PDF debriefing reports, and self-host if needed. No account required. Conforms to WCAG 2.2 Level AA.',
     featureList: [
       'Live quiz and voting',
-      'Confidence rating on scored questions',
-      'Results report (PDF) and debriefing after the session ends',
+      'Answer confidence on scored questions',
+      'PDF debriefing report and follow-up after the session',
       'Numeric estimation questions with two rounds and statistics',
       'Q&A wall with moderation, upvoting and downvoting',
       'Moderation compass with a next-step suggestion from live signals',
       'Waiting room, presenter, QR/code',
-      'Quiz creation and session hosting designed for smartphones — every question format, a productive mode for teachers and presenters',
+      'Quiz creation and hosting from a phone, with every question type',
       'Host pairing: live-session control from a phone or tablet',
-      'Question types MC/SC/short answer/free text/survey/rating/numeric estimation/matching/ordering/categorisation',
+      'Question types MC/SC/short answer/free text/survey/rating/numeric estimation/matching/ordering/categorization',
       'Markdown and KaTeX',
       'Reading phase and Peer Instruction',
       'Q&A and free-text word cloud with phrases and weighting',
-      'Sorting by support, clear majority agreement and controversy',
+      'Sorting by net votes, strong support, and controversy',
       'Team mode and presets',
       'Leaderboard, streak, bonus code',
       'Import/export and Yjs sync',
-      'External AI import, Zod-validated',
+      'Import of quizzes created with external AI, with format validation',
       'UI in five languages',
       'Conforms to WCAG 2.2 Level AA',
       'Docker on your own infrastructure and admin activity log',

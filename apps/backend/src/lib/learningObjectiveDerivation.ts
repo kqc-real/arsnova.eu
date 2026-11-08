@@ -44,8 +44,9 @@ const DERIVATION_LIMITATIONS = {
     empty: 'Das Modell hat keine belegten Lernzielvorschläge geliefert.',
   },
   en: {
-    capped: 'Additional suggestions were omitted because of the learning-objective limit.',
-    empty: 'The model returned no supported learning-objective suggestions.',
+    capped:
+      'Additional suggestions were not added because the maximum number of learning objectives was reached.',
+    empty: 'The model did not suggest any learning objectives supported by the questions.',
   },
   fr: {
     capped:

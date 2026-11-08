@@ -1,101 +1,178 @@
-# English UI copy — language rules (`messages.en.xlf`)
+# English UI copy
 
-This document generalises the copy-editing rules applied to the English XLF targets for **arsnova.eu**. It complements **ADR-0008** (informal address, idiomatic targets, mobile-first length) and **`docs/I18N-ANGULAR.md`** (workflow, ICU, XLF mechanics).
+These rules apply to English user-facing copy across arsnova.eu. They complement
+[ADR-0008](../architecture/decisions/0008-i18n-internationalization.md), the
+[styleguide](STYLEGUIDE.md), and the [Angular i18n workflow](../I18N-ANGULAR.md).
+German remains the source language. Preserve the intended behavior and write
+natural English rather than following German sentence structure.
 
-**Scope:** User-facing strings in **`apps/frontend/src/locale/messages.en.xlf`** (and the same voice for **legal markdown** in English where we control the wording). **Quiz content** in the app is not extracted to XLF; the **English showcase demo quiz** (`apps/frontend/src/assets/demo/quiz-demo-showcase.en.json`) is authored in English and should follow this guide (terminology, US spelling, tone). Regenerate from **`apps/frontend/scripts/apply-demo-quiz-locale-strings.mjs`** keeps the `en` patch in sync with the JSON.
+Use **US English**: **color**, **organization**, **prioritize**, **categorization**,
+**canceled**, and **neighbor**. Technical keys, enum values, IDs, code samples,
+URLs, and proper names keep their original spelling.
 
-**Default variety:** **US English** for spelling (_color_, _center_ when used, _neighbor_ if ever needed) and typical product UI tone. Prefer **clear, conversational** phrasing over formal or “translatorese”.
+## Product terminology
 
-**Local dev default:** Root **`npm run dev`** serves the **English** bundle (`localize: ["en"]`); open **`http://localhost:4200/en/`**. For German source strings without XLF merge, use **`npm run dev:de`** and **`http://localhost:4200`**. See **`docs/I18N-ANGULAR.md`** (Dev-Server).
+| Meaning                         | English copy                                                 | Avoid                                                                                   |
+| ------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Person running a session        | **host**                                                     | **instructor**, **lecturer**, or **teacher** in generic session UI                      |
+| Live event in the app           | **session**, **live session**                                | Switching between **event**, **room**, and **session** for the same thing               |
+| Quiz-Sammlung                   | **quiz library**                                             | Mixing **library** and **collection** in the same flow                                  |
+| Share the quiz library          | **Share library**                                            | **Share collection** when the visible button says **Share library**                     |
+| Blitzlicht, named feature       | **Pulse Check**                                              | **Blitzlicht**, **quick feedback**, or **instant feedback** as alternate feature names  |
+| Generic polling in marketing    | **live polls**                                               | Treating every use of **feedback** as the named Pulse Check feature                     |
+| Feedback about speed            | **pace feedback**, **Pace barometer**                        | Switching between **pace** and **tempo** in the same UI                                 |
+| Q&A                             | **Q&A**, **Q&A questions**, **Q&A forum**                    | **Q&As** as a channel name                                                              |
+| Q&A freigeben                   | **Publish**, **Published**, **Awaiting review**              | **Release** for questions or labels that imply the host grades their content            |
+| Q&A anheften                    | **Pin**, **Unpin**, **Pinned**                               | **Highlight** when the action persistently pins a question                              |
+| Q&A Stimmensaldo                | **Net votes**                                                | Calling the vote difference a rating of factual correctness                             |
+| Q&A klare Zustimmung            | **Strong support**                                           | **Best questions**, **quality**, or **correctness** for this score                      |
+| Wortwolken-Wortgruppen          | **Phrases**; in explanations, **words and phrases**          | Literal **word groups** as the main label                                               |
+| Wortwolken-Themen               | **Topics**                                                   | Implying that topic grouping assesses the participants                                  |
+| Sicherheit der Gruppierung      | **Grouping reliability**                                     | Confusing it with answer confidence                                                     |
+| Selbsteinschätzung der Antwort  | **Answer confidence**; **self-rated confidence** in analysis | **Self-assessment** without specifying what is assessed; **safe/unsafe**                |
+| Moderations-Kompass             | **Moderation compass**, compact **Compass**                  | Different names in host, help, and landing views                                        |
+| Suggested action in the compass | **Next step**                                                | **Next move** or **Up next** as competing product labels                                |
+| Lernziel                        | **Learning objective**                                       | Alternating **goal**, **target**, **proposal**, and **objective**                       |
+| KI-Vorschlag: origin            | **AI suggestion**                                            | **AI draft** when describing origin rather than status                                  |
+| Lernziel: status                | **Draft**, **Confirmed**, **Review required**                | Treating an AI suggestion as confirmed or always unconfirmed                            |
+| PDF document used for follow-up | **Debriefing report**                                        | Mixing **debrief plan**, **results PDF**, and **debriefing report** for one action      |
+| Plan section inside the report  | **Debriefing plan**                                          | Using this term as an alternate name for every export action                            |
+| Accessible PDF option           | **Accessible (PDF/UA-1)**                                    | Literal **Barrier-free**                                                                |
+| Single Choice / Multiple Choice | **Single choice**, **Multiple choice**                       | Inconsistent capitalization or different names in preview and PDF                       |
+| Other structured formats        | **Matching**, **Ordering**, **Categorization**               | **Attribution**, **association elements**, or **sequence question** as competing labels |
+| Schätzfrage                     | **Numeric estimate**, **numeric estimation question**        | Switching to **numerical estimate** in the same type selector                           |
+| Local style labels              | **Business**, **Gamification**                               | Replacing established labels with **Professional**, **Serious**, or **Gamified**        |
+| Session code                    | **6-character code**                                         | **6-digit code**: codes can contain letters                                             |
 
----
+Presets and themes are local browser choices in session views. Do not imply that
+the host forces a participant’s style or theme. Quiz setup presets describe
+initial configuration values.
 
-## 1. Product terminology (stay consistent)
+## Do’s and don’ts from the review
 
-| Prefer                                                     | Avoid / use only if source locks you                                                                                                              |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **host** (person running the live session)                 | _instructor_, _lecturer_, _teacher_ in generic session UI — those imply a classroom and confuse corporate or informal use                         |
-| **session**, **live session**                              | _event_ when we mean the same flow as “Veranstaltung” in product copy (SEO/join/help/errors)                                                      |
-| **Start session** (button/help that quotes the UI)         | _Start event_ if the German UI still says “Veranstaltung starten” — English UI and help should **quote the same English label**                   |
-| **participants** / **audience**                            | stiff _learners_ unless the sentence is clearly didactic                                                                                          |
-| **leaderboard** (feature/options)                          | _rankings_ as a noun for that feature                                                                                                             |
-| **Reveal answers** / **Show results**                      | _Release answers_ / _Show result_ — must match **actual button labels** in `messages.en.xlf`                                                      |
-| **Privacy policy** (page title, SEO, navigation)           | _Data protection_ as a standalone consumer-facing title (UK/legal tone); body text can still mention GDPR/data handling                           |
-| **quiz, Q&A, and live polls** (home hero tagline)          | _quiz, Q&A and Blitzlicht_ in source — marketing line favors **live polls** (US SaaS idiom); elsewhere keep **Pulse Check** for the named feature |
-| **6-character** (session code)                             | _6-digit_ when the code is alphanumeric                                                                                                           |
-| **Business** (local UI / quiz preset; DE: Seriös)          | _Professional_ / _Serious_ as the toggle label — **Business** reads better for corporate US than “professional” alone                             |
-| **Gamification** (local UI / quiz preset; DE: Spielerisch) | _Gamified_ as an adjective label — prefer the **category noun** **Gamification** on toggles and in help                                           |
-| **Pulse Check** (feature; tabs, errors, help)              | _Blitzlicht_ — standard US term for a quick mood/status poll; avoid leaving _Blitzlicht_ in English targets                                       |
-| **poll** (verb/noun in UX)                                 | _pulse_ as a verb (_to pulse_ the room) — use **poll** / **live polls** instead                                                                   |
+| Context                      | Do                                                                       | Don’t                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Matching validation          | **Left-hand terms must be unique.**                                      | **Left-wing terms must be clear.**                                               |
+| Waiting for answers          | **Waiting for participants to submit their matches…**                    | **Waiting for participants to be assigned…**                                     |
+| Ordering results             | **Correct order**, **Common swaps**                                      | **Unsorted order**, **Frequent substitutions** when neither describes the result |
+| Finding text to redact       | **One match found.**                                                     | **Found a site.**                                                                |
+| Saving a redaction           | **Saving redactions…**                                                   | **Blackness is saved…**                                                          |
+| Checking a service           | **Checking…**                                                            | **Exam is ongoing…**                                                             |
+| Failed action                | **Couldn’t save the learning objective. Try again.**                     | Empty **Error** messages or an unsupported promise that nothing is broken        |
+| Pending versus success       | **Saving…** while pending; **Saved.** after confirmation                 | A success message before the server confirms the action                          |
+| Source and status            | **AI suggestion** + **Confirmed**, when confirmed                        | A permanent **AI draft** badge after confirmation                                |
+| Learning objective reference | **The question used to generate this suggestion is missing.**            | **The original question about this AI proposal is missing.**                     |
+| Q&A analysis                 | **Unanswered questions** when the state means unanswered                 | **Open questions** when readers could interpret it as open-ended questions       |
+| Agreement versus correctness | **Strong support** for a question’s votes                                | Declaring a popular question factually correct or better quality                 |
+| Educational interpretation   | **Possible misconception**, **understanding**                            | A confirmed diagnosis or proven learning gain based only on one answer or score  |
+| A second vote                | **Your second-round answer replaces your first.**                        | Implying that an earlier vote disappears even when no replacement is submitted   |
+| Connected-device permissions | **Control the current session; the quiz library stays on the computer.** | Suggesting that a paired device can edit or delete quizzes                       |
+| Privacy                      | Explain pseudonyms and optional identity linking                         | Equating a nickname with complete anonymity                                      |
+| Extra response time          | Explain extra time and the host’s phase controls                         | Promising that results will always wait indefinitely                             |
+| A shared confirmation button | **Continue anyway** if used for both discussion and results              | **Show results anyway** in a dialog that may start a discussion                  |
+| Legal hold                   | Explain retention separately from access                                 | Suggesting a hold extends host or participant access                             |
 
-**Note:** German source strings still say **Blitzlicht** / **Seriös** / **Spielerisch**. The home hero uses **live polls** (`@@homeHero.channelBlitzlicht`), while the named feature uses **Pulse Check** (`@@homeLiveCard.quickFeedbackLabel`). English preset targets remain **Business** and **Gamification**.
+## Tone, grammar, and typography
 
-Preset and theme wording should not imply that a host forces a participant’s UI style during a live session. In session routes, Business/Gamification and light/dark/system remain local browser choices; quiz presets only describe quiz-default configuration at setup/live start.
+- Use short, direct sentences with one main idea. Rewrite German noun chains
+  and passive constructions when ordinary English is clearer.
+- Use **you**, **your**, and conversational contractions where appropriate:
+  **you’re**, **couldn’t**, **don’t**. Report prose and legal copy can be more
+  formal while staying readable.
+- Use sentence case for ordinary labels and headings. Keep established feature
+  names such as **Pulse Check**, **Business**, and **Gamification**, as well as
+  proper names and deliberately styled report titles.
+- Use verbs for actions: **Save**, **Publish**, **Delete**, **Try again**. Quote
+  the actual visible label in instructions. For example, the quiz card uses
+  **Start**, so its help text must not invent a different button name.
+- Use an Oxford comma in lists of three or more items.
+- Check subject–verb agreement, singular/plural forms, articles, and the noun
+  modified by a phrase. Change the whole sentence when a word substitution
+  changes its meaning.
+- Prefer short sentences to long strings of dashes. When useful, use an em dash
+  without surrounding spaces. An en dash can separate paired labels.
+- Use US quotation marks **“…”** around control labels and dynamic names.
+  Preserve the separate i18n markup around dynamic quoted values.
+- Prefer typographic apostrophes in authored prose. Existing `&apos;` entities
+  are valid. Never alter apostrophes or braces that are part of ICU syntax,
+  source code, answer variants, or machine-readable content.
+- Keep the full accessible name when shortening a visible label, for example
+  **Objectives** or **Generate**. Check the real layout at 320 px.
 
----
+## Preserve the actual behavior
 
-## 2. Tone and register
+Read the implementation and nearby tests before translating stateful copy.
+Follow the full sequence: action, pending, success, rejection or timeout, then
+retry or dismissal. A failed save may retain input; a conflict may already load
+the latest version. Describe that specific result.
 
-- **Short and direct:** Especially buttons, errors, snackbars, and participant one-liners. Prefer **one clear idea per sentence**.
-- **Contractions in UI:** **Do** use _couldn’t_, _won’t_, _you’re_, _it’s_ where it fits the voice — errors sound less stiff than _could not_ / _will not_.
-- **Errors:** Pattern **“Couldn’t &lt;verb&gt; …”** or **“Couldn’t &lt;verb&gt; the &lt;noun&gt;. Try again.”** instead of passive _X could not be loaded_.
-- **Encouragement (gamification style):** Idiomatic and upbeat; avoid literal renderings of German idioms if English has a natural equivalent (_So close—next round!_ vs _Just missed it - next round_).
-- **Business style:** Still friendly, but slightly more neutral; no slang that ages quickly.
+Keep these distinctions clear:
 
----
+- Pausing a word cloud pauses its display; it does not stop new contributions.
+- Publishing a question changes visibility. Pinning, archiving, deleting, and
+  redacting are separate actions.
+- Word grouping reliability is independent of answer confidence and correctness.
+- Learning objective origin is independent of confirmation status. Confirmed
+  objectives can later need review when linked questions change.
+- Completed generation batches and drafts may survive an interruption. Explain
+  whether retry continues or starts again; do not imply existing drafts vanish.
+- Effective-vote scoring uses a replacement second-round answer when submitted.
+  Copy must not change the scoring rule or imply that confidence affects points.
+- Pseudonymous participation, anonymous display, and anonymized data are different
+  concepts. Preserve the legal source’s qualifications and retention periods.
 
-## 3. Punctuation and typography
+The [report glossary](../features/session-export-pdf-i18n-glossary.md) defines
+pedagogical terms. A wrong answer with high confidence is an **indicator of a
+possible misconception**, not a diagnosis. A correct-response rate is not a
+complete measure of learning or a person’s ability.
 
-- **Sentence breaks:** Prefer the **em dash (—)** without spaces for sharp breaks in short UI copy (_Stay on this page—we’ll update for you_). Avoid **space-hyphen-space** (`-`) as a sentence dash; hyphens stay for **compound modifiers** (_high-energy_, _on-the-fly_).
-- **En dash (–):** Acceptable where the German source uses it for **paired labels** (_Lobby – participants can join_); keep **consistent** within the same UI surface.
-- **Apostrophes in XLF:** Use **`&apos;`** in `<target>` where escaping keeps the file uniform (_Time&apos;s up_, _You&apos;re in_).
-- **Quotation marks:** US typographic **“…”** (not UK `‘…’`, not straight `"`, not `«…»`). Quote **actual** English control labels. Canonical table for all locales: [STYLEGUIDE.md](STYLEGUIDE.md) (Wording: Anführungszeichen).
+## Cover every text source
 
----
+| Source                                                                                      | Review scope                                                                                                           |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `apps/frontend/src/locale/messages.en.xlf`                                                  | Navigation, host/participant/presenter views, settings, results, help, ARIA names, SEO, and loading/empty/error states |
+| Locale-specific Frontend/Backend TypeScript                                                 | Sort help, summary fallbacks, and learning-objective generation limitations outside XLF                                |
+| `apps/frontend/scripts/apply-demo-quiz-locale-strings.mjs` and `quiz-demo-showcase.en.json` | Demo title, introduction, questions, answers, image descriptions, and generator output                                 |
+| `libs/session-export-report/src/labels-locale.util.ts`                                      | Curated `EN_LABELS`, in addition to their app-catalog equivalents                                                      |
+| Both English demo PDFs                                                                      | Actual rendered text, charts, tables, pagination, and accessibility profile                                            |
+| `scripts/load/demo-quiz-classroom-30.mjs`                                                   | Authored sample responses used to generate the demo reports                                                            |
+| `apps/frontend/src/assets/legal/*.en.md`                                                    | Legal notice, privacy policy, accessibility statement, and their UI references                                         |
+| `apps/landing/src/i18n/en.ts`                                                               | Hero, every section, FAQ, sample views, navigation, accessible names, metadata, and JSON-LD                            |
+| `apps/landing/src/pages/en/`                                                                | The landing site’s own legal context, footer routes, canonicals, and sitemap                                           |
+| `apps/frontend/scripts/patch-pwa-manifest-per-locale.mjs`                                   | Shortcuts and screenshot labels                                                                                        |
 
-## 4. Grammar and micro-style
+The landing site and live app describe different hosting contexts. Do not replace
+one set of legal pages with the other. Preserve provider details, URLs, legal
+references, deadlines, and qualifications when improving legal wording.
 
-- **Oxford comma** in lists of three or more (_quiz, Q&A, and Pulse Check_).
-- **Agreement:** When separate `trans-units` exist for _one_ vs _many_ (ICU split), keep **has/have** correct (_1 of 10 has voted_ vs _3 of 10 have voted_).
-- **Avoid calques** from German: _operation takes place_, _widespread offers_, _traceable instead of closed platform_ → rewrite as natural English (_runs on_, _mainstream tools_, _transparent, not a walled garden_).
-- **CTAs:** Imperative or _you_-focused (_Share the preview link…_, _Tap “Next question” to begin_).
+English report labels are maintained in both `EN_LABELS` and the Angular catalog.
+The locale-label regression test compares all effective English report labels to
+the actual `$localize` bindings. Update both sources. Do not assume a catalog
+edit automatically overwrites curated report labels.
 
----
+For the fixed demo, edit the generator and regenerate its JSON. Preserve question
+types, IDs, solution keys, numeric settings, and accepted answer variants unless
+a separate functional correction is intended. Regenerate both English demo PDFs
+when demo or report copy changes, render all pages, and validate PDF/UA.
 
-## 5. SEO and meta descriptions
+## Validation and review
 
-- **Titles:** _Privacy policy – arsnova.eu_ (not _Data protection_) for parity with user expectations and `descPrivacy`.
-- **Descriptions:** Benefit-led, scannable; **em dash** or tight clauses; avoid bureaucratic phrasing (_how we handle personal data_ beats _processing of personal data_ when space allows).
-- **Home (`@@seo.titleHome` / `@@seo.descHome`), aligned with `apps/landing/src/config/seo.ts`:** EN title _arsnova.eu | The European Alternative to Mentimeter & Kahoot_; EN description _Interactive sessions, quizzes & live feedback – Made in Europe. The privacy-first ARS since 2012 for schools, universities, and business. Discover more!_ — FR/ES/IT targets live in the respective XLF files.
+- Edit English `<target>` values only unless the German source needs a deliberate
+  change. Preserve source text, IDs, context, inline XML, indexed report slots,
+  ICU keywords, and case selectors.
+- Do not translate user-authored quiz content. The fixed demo is a deliberate
+  exception. Changes to German UI wording require all five locales; English-only
+  language improvements do not require rewriting the other languages.
+- Run `npm run check:i18n -w @arsnova/frontend`, appropriate tests, and the localized
+  build. A passing catalog check proves structural consistency, not idiomatic
+  language or accessibility.
+- For landing changes, build the landing, run `test:i18n`, and test the new links
+  and real mobile layout. Include metadata and structured data in the review.
+- For PDFs, inspect rendered pages as well as text extraction and run veraPDF
+  for the PDF/UA output. Text extraction alone cannot detect clipping.
+- Review the complete diff. Report executed checks and manual limits honestly;
+  an automated axe pass does not replace a full screen-reader or keyboard audit.
 
----
-
-## 6. XLF / i18n mechanics (do not break the build)
-
-- Edit **`<target>`** only unless the German source changes; preserve **`<x id=…/>`**, **ICU** (`plural`, `select`, `other`), and **placeholders**.
-- Never translate **ICU keywords** — see **`docs/I18N-ANGULAR.md` § 3.3.1**.
-- After bulk edits: **`xmllint --noout apps/frontend/src/locale/messages.en.xlf`** and **`npm run build -w @arsnova/frontend`** (or localised build if you changed structure).
-
----
-
-## 7. Relation to other languages
-
-- **German** remains the **i18n source** in code; English rules apply to **`en`** targets only.
-- Other locales (**fr**, **es**, **it**) should follow the **same product terminology** where those languages have a natural equivalent (_host_, _session_, equivalent of **Pulse Check**).
-- Any change that **relabels German UI** (e.g. button text) requires **all five locales** per ADR-0008 — not only English.
-
----
-
-## 8. Quick checklist (before merging EN copy)
-
-- [ ] Host/session wording; no stray _instructor/lecturer_ unless legally or contextually required
-- [ ] Button quotes match **actual** EN labels
-- [ ] Preset toggles use **Business** and **Gamification**; feature **Blitzlicht** is **Pulse Check** in EN targets
-- [ ] Oxford comma in triple lists; **Q&A** spelling consistent
-- [ ] No `-` as em dash; **`&apos;`** where we standardize apostrophes
-- [ ] Errors short, with contractions where appropriate
-- [ ] XML/ICU valid; frontend build passes
-
----
-
-_Stand: derived from the EN copy pass on `messages.en.xlf` (2025–2026); update this doc when product terms or button labels change._
+For local development, root `npm run dev` defaults to German. Use
+`npm run dev:en` for English and `npm run dev:de` for German. See the
+[development workflow](../I18N-ANGULAR.md) for localized builds and previews.

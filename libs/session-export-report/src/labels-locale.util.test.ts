@@ -33,22 +33,25 @@ const ALLOW_SAME_AS_DE: Record<string, ReadonlySet<string>> = {
 };
 
 describe('labels-locale', () => {
-  it('hält französische Reportlabels mit den Übersetzungen der App synchron', () => {
-    const frontend = new URL('../../../apps/frontend/src/', import.meta.url);
-    const catalog = readFileSync(new URL('locale/messages.fr.xlf', frontend), 'utf8');
-    const bindings = readFileSync(
-      new URL('app/core/session-results-report-labels.ts', frontend),
-      'utf8',
-    );
-    const messageIds = new Map(
-      [...bindings.matchAll(/(\w+):\s*\$localize`:@@([^:]+):/g)].map((match) => [
-        match[1],
-        match[2],
-      ]),
-    );
-    const targets = new Map(
-      [...catalog.matchAll(/<trans-unit\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/trans-unit>/g)].map(
-        (match) => {
+  it.each(['en', 'fr'] as const)(
+    'hält %s-Reportlabels mit den Übersetzungen der App synchron',
+    (locale) => {
+      const frontend = new URL('../../../apps/frontend/src/', import.meta.url);
+      const catalog = readFileSync(new URL(`locale/messages.${locale}.xlf`, frontend), 'utf8');
+      const bindings = readFileSync(
+        new URL('app/core/session-results-report-labels.ts', frontend),
+        'utf8',
+      );
+      const messageIds = new Map(
+        [...bindings.matchAll(/(\w+):\s*\$localize`:@@([^:]+):/g)].map((match) => [
+          match[1],
+          match[2],
+        ]),
+      );
+      const targets = new Map(
+        [
+          ...catalog.matchAll(/<trans-unit\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/trans-unit>/g),
+        ].map((match) => {
           const target = match[2].match(/<target>([\s\S]*?)<\/target>/)?.[1] ?? '';
           return [
             match[1],
@@ -59,24 +62,27 @@ describe('labels-locale', () => {
               .replaceAll('&apos;', "'")
               .replaceAll('&amp;', '&'),
           ];
-        },
-      ),
-    );
-    for (const [key, label] of Object.entries(getSessionResultsReportLabelsFr())) {
-      const id = messageIds.get(key);
-      expect(id, key).toBeDefined();
-      const target = targets.get(id!);
-      expect(target, key).toBeDefined();
-      if (key === 'questionTypeSingleChoice' || key === 'questionTypeMultipleChoice') {
-        // Mobile Vorschau: »Réponse unique«; PDF: »Question à réponse unique«.
-        expect(label.toLocaleLowerCase('fr').endsWith(target!.toLocaleLowerCase('fr')), key).toBe(
-          true,
-        );
-      } else {
-        expect(label, key).toBe(applyFrenchColonTypography(target!));
+        }),
+      );
+      for (const [key, label] of Object.entries(getSessionResultsReportLabelsForLocale(locale))) {
+        const id = messageIds.get(key);
+        expect(id, key).toBeDefined();
+        const target = targets.get(id!);
+        expect(target, key).toBeDefined();
+        if (
+          locale === 'fr' &&
+          (key === 'questionTypeSingleChoice' || key === 'questionTypeMultipleChoice')
+        ) {
+          // Mobile Vorschau: »Réponse unique«; PDF: »Question à réponse unique«.
+          expect(label.toLocaleLowerCase('fr').endsWith(target!.toLocaleLowerCase('fr')), key).toBe(
+            true,
+          );
+        } else {
+          expect(label, key).toBe(locale === 'fr' ? applyFrenchColonTypography(target!) : target!);
+        }
       }
-    }
-  });
+    },
+  );
 
   it('folgt dem Glossar für Kernbegriffe (EN/FR/ES/IT)', () => {
     expect(getSessionResultsReportLabelsEn().confidenceRiskCol).toBe('Possible misconception');
@@ -102,9 +108,7 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsEn().confidenceDisabledTemplate).toBe(
       'Answer confidence was disabled for {0} in this quiz.',
     );
-    expect(getSessionResultsReportLabelsEn().questionTypeNumericEstimate).toBe(
-      'Numerical estimate',
-    );
+    expect(getSessionResultsReportLabelsEn().questionTypeNumericEstimate).toBe('Numeric estimate');
     expect(getSessionResultsReportLabelsEn().hardestQuestionRateTemplate).toContain(
       'Correct-response rate:',
     );
@@ -120,9 +124,7 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsEn().confidenceReadingGuideRisk).toContain(
       'Indicator of a possible misconception',
     );
-    expect(getSessionResultsReportLabelsEn().questionTypeSingleChoice).toBe(
-      'Single-answer question',
-    );
+    expect(getSessionResultsReportLabelsEn().questionTypeSingleChoice).toBe('Single choice');
     expect(getSessionResultsReportLabelsFr().hardestQuestionRateTemplate).toContain(
       'Taux de réponses correctes',
     );

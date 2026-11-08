@@ -346,7 +346,7 @@ Details: [docs/architecture/decisions/0008-i18n-internationalization.md](archite
 
 ### 9a.1 Englische UI-Copy (`en`)
 
-Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf`) gelten zusätzlich die verallgemeinerten **Sprach- und Terminologieregeln** (Host/Session, Gedankenstriche, Fehlermeldungen, SEO, Oxford Comma, XLF-Pflege): **[docs/ui/ENGLISH-UI-COPY.md](ui/ENGLISH-UI-COPY.md)**.
+Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf`) gelten zusätzlich die verallgemeinerten **Sprach- und Terminologieregeln mit Do’s und Don’ts** (US-Englisch, Host/Session, Lernziele, Antwortsicherheit, Q&A, Pulse Check, Demo, PDF, Hilfe, Legal, Landing und XLF-Pflege): **[docs/ui/ENGLISH-UI-COPY.md](ui/ENGLISH-UI-COPY.md)**.
 
 ### 9a.2 Französische UI-Copy (`fr`)
 

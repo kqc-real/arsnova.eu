@@ -577,7 +577,7 @@ _Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
     ],
   },
   en: {
-    name: 'Teaching Showcase: Live Team Demo',
+    name: 'Live team quiz demo',
     teamNames: ['Team 🍎', 'Team 🍐'],
     confidenceLabelLow: 'Very unsure',
     confidenceLabelHigh: 'Very confident',
@@ -586,15 +586,15 @@ _Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
 
 The responses will be displayed as a word cloud.
     `,
-    description: md`![Teaching showcase](${PI_IMAGE_URL})
+    description: md`![Live team quiz demo](${PI_IMAGE_URL})
 
-# Teaching Practice Showcase
+# Live team quiz demo
 
-These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, ask learners to rate their confidence after graded questions, and run a numeric question in two discussion rounds.
+These 13 questions introduce all ten arsnova.eu question types in a short live session. Use images, Markdown, and KaTeX, ask participants to rate their answer confidence, and try a numeric estimate with two votes separated by a discussion.
 
-The showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, sample solutions and response distributions expose uncertainty and common misconceptions.
+The demo also shows how to **order steps**, **match terms**, **categorize examples**, and collect free-text responses in a word cloud. Answer keys and response distributions help identify uncertainty and possible misconceptions.
 
-Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.`,
+Time limits, teams, the leaderboard, and bonus codes add energy to the session. Join on a second device, then open the editor to see how each question is built.`,
     questions: [
       {
         text: md`### How is the room feeling right now?
@@ -605,7 +605,7 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Click for full view.*`,
+*Open the image to enlarge it.*`,
         answers: [
           { text: ':smile: Ready to dive in', isCorrect: false },
           { text: ':cry: A little overwhelmed', isCorrect: false },
@@ -616,7 +616,7 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
       {
         text: md`### Round $\pi$ to two decimal places.
 
-> **Teaching move:** Use this as a short STEM prompt that combines formulas, media, and open text input.
+> **Teaching move:** Use this numeric estimate with a reference value, an accepted range of 3.135 to 3.15, and allowed inputs from 3.0 to 3.5.
 
 ![The number pi](${PI_IMAGE_URL})
 
@@ -641,7 +641,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Which of these are strong use cases for a quick live check?
+### When is a quick live question useful?
 
 > **Teaching move:** Use this to demonstrate a multiple-answer question.
 
@@ -649,17 +649,17 @@ _Select all that apply._
         `,
         answers: [
           { text: 'Activate prior knowledge at the start of class', isCorrect: true },
-          { text: 'Surface misconceptions halfway through a lesson', isCorrect: true },
+          { text: 'Identify possible misconceptions during an activity', isCorrect: true },
           { text: 'Award individual exam grades without verified identities', isCorrect: false },
           {
-            text: 'Make a final judgement on complex learning goals from one poll',
+            text: 'Make a final judgment on complex learning goals from one poll',
             isCorrect: false,
           },
         ],
       },
       {
         text: md`
-### How many externally visible cubies make up a classic 3×3 Rubik’s Cube?
+### How many small cubes (cubies) make up the outside of a classic 3×3 Rubik’s Cube?
 
 > **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.
 
@@ -715,9 +715,9 @@ Expected answer: the year commonly used as the beginning of the French Revolutio
       },
       {
         text: md`
-### How likely are you to try a live quiz like this in one of your own classes?
+### How likely are you to use a live quiz like this in one of your sessions?
 
-> **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.
+> **Teaching move:** Use this as an exit ticket or quick rating at the end of a session.
         `,
         ratingLabelMin: 'Very unlikely',
         ratingLabelMax: 'Very likely',
@@ -767,34 +767,34 @@ _Match each date on the left to its historical milestone on the right._
         `,
         matchingPairs: [
           {
-            left: '9 November 1918',
+            left: 'November 9, 1918',
             right: 'Proclamation of the Republic by Philipp Scheidemann',
           },
           {
-            left: '28 June 1919',
+            left: 'June 28, 1919',
             right: 'Signing of the Treaty of Versailles',
           },
           {
-            left: '11 August 1919',
+            left: 'August 11, 1919',
             right: 'Signing of the Weimar Constitution by Friedrich Ebert',
           },
           {
-            left: '15 November 1923',
+            left: 'November 15, 1923',
             right: 'Introduction of the Rentenmark',
           },
           {
-            left: '29 October 1929',
-            right: 'Wall Street stock-market crash (“Black Tuesday”)',
+            left: 'October 29, 1929',
+            right: 'Wall Street stock market crash (“Black Tuesday”)',
           },
           {
-            left: '30 January 1933',
+            left: 'January 30, 1933',
             right: 'Appointment of Adolf Hitler as Chancellor',
           },
         ],
       },
       {
         text: md`
-### Categorise the following six works by literary period.
+### Match each work to its German literary movement.
 
 > **Teaching move:** Use categorization prompts in literature or language learning to sort works, concepts, or authors into literary periods.
         `,

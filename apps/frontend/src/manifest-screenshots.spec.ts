@@ -69,9 +69,9 @@ describe('PWA-Manifest-Screenshots', () => {
     const screenshots = structuredClone(manifest.screenshots ?? []);
     applyScreenshotLabels(screenshots, MANIFEST_I18N.en);
     expect(screenshots.map((shot) => shot.label)).toEqual([
-      'Quiz, Q&A and live feedback – no sign-up',
+      'Quiz, Q&A, and live feedback – no sign-up',
       'Join with a QR code – no account',
-      'Quiz, Q&A and live feedback in one session',
+      'Quiz, Q&A, and live feedback in one session',
       'Presenter view for lecture halls',
       'Live word cloud from the audience',
       'Audience Q&A – no login',
@@ -79,7 +79,7 @@ describe('PWA-Manifest-Screenshots', () => {
       'Team leaderboard with nicknames',
       'Join live without an account',
       'Vote on your phone – no account',
-      'Open answers become a word cloud',
+      'Free-text answers become a word cloud',
       'Ask a question anonymously',
       'Mood check with one tap',
     ]);
@@ -145,7 +145,7 @@ describe('PWA-Manifest-Shortcuts', () => {
       'Enter the code',
       'Create quiz',
       'Create Q&A',
-      'Start pulse check',
+      'Start Pulse Check',
     ]);
     expect(shortcuts.map((item) => item.url)).toEqual([
       '/en/join?homescreen=1',
