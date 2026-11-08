@@ -3,13 +3,14 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Démonstration pédagogique : quiz en équipe",
-    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Démonstration pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
+    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Démonstration pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Une fois les résultats affichés, les corrigés types et les répartitions des réponses font apparaître les hésitations et les conceptions erronées fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": 30,
+    "defaultTimer": 60,
     "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": false,
     "enableSoundEffects": true,
     "enableRewardEffects": true,
     "enableMotivationMessages": true,
@@ -22,11 +23,12 @@
     "backgroundMusic": null,
     "nicknameTheme": "KINDERGARTEN",
     "bonusTokenCount": 3,
-    "readingPhaseEnabled": true,
+    "readingPhaseEnabled": false,
     "questions": [
       {
         "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Clique pour agrandir.*",
         "type": "SURVEY",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 0,
@@ -48,7 +50,7 @@
         "confidenceEnabled": false
       },
       {
-        "text": "### Arrondis $\\pi$ à deux décimales.\n\n![Le nombre pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler :\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß :\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Arrondis $\\pi$ à deux décimales.\n\n![Le nombre pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nIdentité d’Euler :\n\n$$e^{i \\pi} + 1 = 0$$\n\nReprésentation intégrale de $\\pi$ :\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -72,6 +74,7 @@
       {
         "text": "### Image IA ou photo réelle ?\n\n![Scène sur un toit](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 3,
@@ -86,6 +89,7 @@
       {
         "text": "### Lesquels de ces usages conviennent à une question flash en direct ?\n\n_Plusieurs réponses possibles._",
         "type": "MULTIPLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 4,
@@ -115,6 +119,7 @@
       {
         "text": "### Combien de petits cubes visibles de l’extérieur composent un Rubik’s Cube 3×3 classique ?\n\nIl s’agit du Rubik’s Cube classique conçu par Ernő Rubik.\n\nRessource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérience préalable — ressource en allemand](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "HARD",
         "order": 5,
@@ -129,8 +134,9 @@
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Pour quel environnement de creative coding ce sketch a-t-il été écrit ?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### Pour quel environnement de programmation créative ce sketch a-t-il été écrit ?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 6,
@@ -142,7 +148,7 @@
         ]
       },
       {
-        "text": "### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?\n\nOn cherche le terme didactique établi pour cette séquence.",
+        "text": "### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?\n\nOn cherche le terme pédagogique établi pour cette séquence.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
@@ -198,11 +204,11 @@
           },
           {
             "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
-            "text": "Maturation de l’ARN"
+            "text": "Maturation du pré-ARNm"
           },
           {
             "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
-            "text": "Export de l’ARNm mature"
+            "text": "Export de l’ARNm mature hors du noyau"
           },
           {
             "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
@@ -256,7 +262,7 @@
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "29 octobre 1929",
-            "right": "Effondrement massif des cours à Wall Street (« Black Tuesday »)",
+            "right": "Krach boursier de Wall Street (« Black Tuesday »)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {

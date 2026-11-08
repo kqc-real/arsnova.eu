@@ -1088,7 +1088,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceCoverageTemplate" datatype="html">
         <source>Selbsteinschätzung wurde bei {0} von {1} Fragen erhoben. Dabei entstanden {2} Antworten.</source>
-        <target>L&apos;autovalutazione è stata raccolta su {0} di {1} domande. Ciò ha prodotto {2} risposte.</target>
+        <target>Il grado di sicurezza autovalutato è stato raccolto per {0} domande su {1}, per un totale di {2} risposte.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">46</context>
@@ -1136,7 +1136,7 @@
       </trans-unit>
       <trans-unit id="sessionReport.confidenceNotSupportedForQuestion" datatype="html">
         <source>Selbsteinschätzung wird für den Fragetyp »{0}« nicht angeboten.</source>
-        <target>L’autovalutazione non è offerta per il tipo di domanda «{0}».</target>
+        <target>L’autovalutazione non è prevista per le domande di tipo «{0}».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/core/session-results-report-labels.ts</context>
           <context context-type="linenumber">52</context>

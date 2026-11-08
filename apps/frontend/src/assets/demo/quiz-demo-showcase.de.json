@@ -3,13 +3,14 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Praxis-Showcase: Team-Quiz",
-    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDie 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.\n\nDie Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Freitextfrage Antworten aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.\n\nTimer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.",
+    "description": "![Praxis-Showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Praxis-Showcase für den Unterricht\n\nDie 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.\n\nDie Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Freitextfrage Antworten aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Antwortverteilungen typische Unsicherheiten und Fehlvorstellungen sichtbar.\n\nTimer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": 30,
+    "defaultTimer": 60,
     "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": false,
     "enableSoundEffects": true,
     "enableRewardEffects": true,
     "enableMotivationMessages": true,
@@ -22,11 +23,12 @@
     "backgroundMusic": null,
     "nicknameTheme": "KINDERGARTEN",
     "bonusTokenCount": 3,
-    "readingPhaseEnabled": true,
+    "readingPhaseEnabled": false,
     "questions": [
       {
         "text": "### Wie ist die Stimmung im Raum gerade?\n\n![Emotionen im Überblick](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Für die Vollansicht anklicken.*",
         "type": "SURVEY",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 0,
@@ -48,7 +50,7 @@
         "confidenceEnabled": false
       },
       {
-        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Runde $\\pi$ auf zwei Dezimalstellen.\n\n![Die Zahl Pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nEulersche Identität:\n\n$$e^{i \\pi} + 1 = 0$$\n\nIntegraldarstellung von $\\pi$:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -72,6 +74,7 @@
       {
         "text": "### KI-Bild oder echtes Foto?\n\n![Dachszene](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 3,
@@ -86,6 +89,7 @@
       {
         "text": "### Welche dieser Einsätze eignen sich gut für einen kurzen Live-Check?\n\n_Mehrere Antworten möglich._",
         "type": "MULTIPLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 4,
@@ -96,7 +100,7 @@
             "isCorrect": true
           },
           {
-            "text": "Missverständnisse mitten in der Stunde sichtbar machen",
+            "text": "Fehlvorstellungen im Verlauf der Stunde sichtbar machen",
             "isCorrect": true
           },
           {
@@ -115,6 +119,7 @@
       {
         "text": "### Aus wie vielen von außen sichtbaren Einzelwürfeln (Cubies) besteht ein klassischer 3×3-Zauberwürfel?\n\nGemeint ist der klassische Rubik’s Cube von Ernő Rubik.\n\nOptionaler Impuls: [Wie man einen 3×3-Zauberwürfel ohne Erfahrung löst](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "HARD",
         "order": 5,
@@ -131,6 +136,7 @@
       {
         "text": "### Für welche Creative-Coding-Umgebung wurde dieser Sketch geschrieben?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 6,
@@ -198,11 +204,11 @@
           },
           {
             "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
-            "text": "RNA-Prozessierung"
+            "text": "Prozessierung der prä-mRNA"
           },
           {
             "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
-            "text": "Export der reifen mRNA"
+            "text": "Export der reifen mRNA aus dem Zellkern"
           },
           {
             "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",

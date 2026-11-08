@@ -28,6 +28,38 @@ describe('getDemoQuizSeedFingerprint', () => {
     expect(getDemoQuizSeedFingerprint('de')).not.toBe(getDemoQuizSeedFingerprint('en'));
   });
 
+  it('verwendet in allen Locales 60 Sekunden ohne persoenliche Lernzeit, Lesephase oder gemischte Antwortoptionen', () => {
+    const choiceQuestionTypes = new Set(['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'SURVEY']);
+
+    for (const locale of ['de', 'en', 'fr', 'es', 'it'] as const) {
+      const payload = getDemoQuizPayload(locale) as {
+        quiz?: {
+          defaultTimer?: number | null;
+          enableTimerAccommodation?: boolean;
+          readingPhaseEnabled?: boolean;
+          questions?: Array<{
+            type?: string;
+            shuffleAnswerOptions?: boolean;
+          }>;
+        };
+      };
+      const choiceQuestions =
+        payload.quiz?.questions?.filter((question) =>
+          choiceQuestionTypes.has(question.type ?? ''),
+        ) ?? [];
+
+      expect(payload.quiz).toMatchObject({
+        defaultTimer: 60,
+        enableTimerAccommodation: false,
+        readingPhaseEnabled: false,
+      });
+      expect(choiceQuestions).toHaveLength(5);
+      expect(choiceQuestions.every((question) => question.shuffleAnswerOptions === false)).toBe(
+        true,
+      );
+    }
+  });
+
   it('markiert Freitext, Pi und Multiple Choice explizit ohne Lesephase', () => {
     const payload = getDemoQuizPayload('de') as {
       quiz?: { questions?: Array<{ skipReadingPhase?: boolean }> };

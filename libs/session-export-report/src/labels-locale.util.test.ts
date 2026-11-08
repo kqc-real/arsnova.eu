@@ -132,6 +132,12 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsIt().confidenceDisabledForQuestion).toBe(
       'L’autovalutazione del grado di sicurezza era disattivata per questa domanda.',
     );
+    expect(getSessionResultsReportLabelsIt().confidenceCoverageTemplate).toBe(
+      'Il grado di sicurezza autovalutato è stato raccolto per {0} domande su {1}, per un totale di {2} risposte.',
+    );
+    expect(getSessionResultsReportLabelsIt().confidenceNotSupportedForQuestion).toBe(
+      'L’autovalutazione non è prevista per le domande di tipo «{0}».',
+    );
     expect(getSessionResultsReportLabelsIt().confidenceFragile).toBe(
       'Conoscenze non ancora consolidate',
     );

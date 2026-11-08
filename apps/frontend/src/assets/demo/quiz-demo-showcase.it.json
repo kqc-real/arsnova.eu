@@ -3,13 +3,14 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Dimostrazione didattica: quiz a squadre",
-    "description": "![Dimostrazione didattica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Dimostrazione didattica\n\nQueste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e frequenti errori di abbinamento.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
+    "description": "![Dimostrazione didattica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Dimostrazione didattica\n\nQueste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di fiducia dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Quando vengono mostrati i risultati, le soluzioni modello e le distribuzioni delle risposte evidenziano incertezze e concezioni errate ricorrenti.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": 30,
+    "defaultTimer": 60,
     "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": false,
     "enableSoundEffects": true,
     "enableRewardEffects": true,
     "enableMotivationMessages": true,
@@ -22,11 +23,12 @@
     "backgroundMusic": null,
     "nicknameTheme": "KINDERGARTEN",
     "bonusTokenCount": 3,
-    "readingPhaseEnabled": true,
+    "readingPhaseEnabled": false,
     "questions": [
       {
         "text": "### Che clima c’è nel gruppo in questo momento?\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Clicca per ingrandire.*",
         "type": "SURVEY",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 0,
@@ -48,7 +50,7 @@
         "confidenceEnabled": false
       },
       {
-        "text": "### Arrotonda $\\pi$ a due cifre decimali.\n\n![Il numero pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Arrotonda $\\pi$ a due cifre decimali.\n\n![Il numero pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nIdentità di Eulero:\n\n$$e^{i \\pi} + 1 = 0$$\n\nRappresentazione integrale di $\\pi$:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -72,6 +74,7 @@
       {
         "text": "### Immagine generata dall’IA o foto reale?\n\n![Scena sul tetto](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 3,
@@ -86,6 +89,7 @@
       {
         "text": "### Quali di questi usi sono adatti a una breve verifica in diretta?\n\n_Sono possibili più risposte corrette._",
         "type": "MULTIPLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 4,
@@ -96,7 +100,7 @@
             "isCorrect": true
           },
           {
-            "text": "Far emergere i fraintendimenti a metà attività",
+            "text": "Far emergere concezioni errate durante l’attività",
             "isCorrect": true
           },
           {
@@ -115,6 +119,7 @@
       {
         "text": "### Da quanti cubetti visibili dall’esterno è composto un classico Cubo di Rubik 3×3?\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.\n\nSpunto facoltativo: [Come risolvere un cubo di Rubik 3×3 senza esperienza (video in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "HARD",
         "order": 5,
@@ -131,6 +136,7 @@
       {
         "text": "### Per quale ambiente di programmazione creativa è stato scritto questo sketch?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 6,
@@ -198,11 +204,11 @@
           },
           {
             "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
-            "text": "Maturazione dell’RNA"
+            "text": "Maturazione del pre-mRNA"
           },
           {
             "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
-            "text": "Esportazione dell’mRNA maturo"
+            "text": "Esportazione dell’mRNA maturo dal nucleo"
           },
           {
             "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
@@ -222,7 +228,7 @@
         "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.\n\n_Collega ciascuna data a sinistra con il relativo evento storico a destra._",
+        "text": "### Associa le date storiche della Repubblica di Weimar all’evento corrispondente.\n\n_Collega ciascuna data a sinistra con il relativo evento storico a destra._",
         "type": "MATCHING",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -256,7 +262,7 @@
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "29 ottobre 1929",
-            "right": "Crollo massiccio delle quotazioni a Wall Street («Black Tuesday»)",
+            "right": "Crollo della borsa di Wall Street («Black Tuesday»)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {

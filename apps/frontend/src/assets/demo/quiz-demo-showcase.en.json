@@ -3,13 +3,14 @@
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
     "name": "Teaching Showcase: Live Team Demo",
-    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
+    "description": "![Teaching showcase](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Teaching Practice Showcase\n\nThese 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, ask learners to rate their confidence after graded questions, and run a numeric question in two discussion rounds.\n\nThe showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, sample solutions and response distributions expose uncertainty and common misconceptions.\n\nTimers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
     "allowCustomNicknames": false,
-    "defaultTimer": 30,
+    "defaultTimer": 60,
     "timerScaleByDifficulty": true,
+    "enableTimerAccommodation": false,
     "enableSoundEffects": true,
     "enableRewardEffects": true,
     "enableMotivationMessages": true,
@@ -22,11 +23,12 @@
     "backgroundMusic": null,
     "nicknameTheme": "KINDERGARTEN",
     "bonusTokenCount": 3,
-    "readingPhaseEnabled": true,
+    "readingPhaseEnabled": false,
     "questions": [
       {
         "text": "### How is the room feeling right now?\n\n![Overview of emotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Click for full view.*",
         "type": "SURVEY",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 0,
@@ -48,7 +50,7 @@
         "confidenceEnabled": false
       },
       {
-        "text": "### Round $\\pi$ to two decimal places.\n\n![The number pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nLeonhard Euler:\n\n$$e^{i \\pi} + 1 = 0$$\n\nKarl Weierstraß:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
+        "text": "### Round $\\pi$ to two decimal places.\n\n![The number pi](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\nEuler’s identity:\n\n$$e^{i \\pi} + 1 = 0$$\n\nIntegral representation of $\\pi$:\n\n$$\\pi = \\int_{-\\infty}^{\\infty} \\frac{\\mathrm{d}x}{1 + x^2} = 2 \\cdot \\int_{-1}^{1} \\frac{\\mathrm{d}x}{1 + x^2}$$",
         "type": "NUMERIC_ESTIMATE",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -72,6 +74,7 @@
       {
         "text": "### AI image or real photo?\n\n![Rooftop scene](/assets/demo/Bettgestell%20auf%20der%20Dachspitze.png)",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "EASY",
         "order": 3,
@@ -86,6 +89,7 @@
       {
         "text": "### Which of these are strong use cases for a quick live check?\n\n_Select all that apply._",
         "type": "MULTIPLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 4,
@@ -115,6 +119,7 @@
       {
         "text": "### How many externally visible cubies make up a classic 3×3 Rubik’s Cube?\n\nThe question refers to the classic Rubik’s Cube designed by Ernő Rubik.\n\nOptional resource: [How to solve a 3×3 Rubik’s Cube with no prior experience — German-language resource](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "HARD",
         "order": 5,
@@ -131,6 +136,7 @@
       {
         "text": "### Which creative-coding environment was this sketch written for?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
+        "shuffleAnswerOptions": false,
         "timer": null,
         "difficulty": "MEDIUM",
         "order": 6,
@@ -142,7 +148,7 @@
         ]
       },
       {
-        "text": "### What is the teaching method called in which learners vote individually, discuss briefly, and then vote again?\n\nExpected answer: the established instructional term for this sequence.",
+        "text": "### What is the instructional strategy called in which learners vote individually, discuss briefly, and then vote again?\n\nExpected answer: the established term for this sequence.",
         "type": "SHORT_TEXT",
         "timer": null,
         "difficulty": "HARD",
@@ -198,11 +204,11 @@
           },
           {
             "id": "5cdfcfe2-c879-476b-b2f1-76c783571830",
-            "text": "RNA processing"
+            "text": "Pre-mRNA processing"
           },
           {
             "id": "77ac6f31-b8ce-483c-8af5-d0abdf15e88c",
-            "text": "Export of mature mRNA"
+            "text": "Export of mature mRNA from the nucleus"
           },
           {
             "id": "89e52fb7-20d1-4aa8-b7d4-a1d059dd0c23",
@@ -256,7 +262,7 @@
           {
             "leftId": "10e6b6b2-9ef3-4a52-855b-592e1eb69678",
             "left": "29 October 1929",
-            "right": "Massive Wall Street price collapse (“Black Tuesday”)",
+            "right": "Wall Street stock-market crash (“Black Tuesday”)",
             "rightId": "9342f709-78d4-488b-bffb-b781b168f5c1"
           },
           {
