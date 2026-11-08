@@ -8,6 +8,8 @@ export const prerender = true;
 const legalPages = [
   { path: 'impressum/', lastmod: '2026-07-19', changefreq: 'monthly', priority: '0.5' },
   { path: 'datenschutz/', lastmod: '2026-07-19', changefreq: 'monthly', priority: '0.5' },
+  { path: 'fr/impressum/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
+  { path: 'fr/datenschutz/', lastmod: '2026-11-08', changefreq: 'monthly', priority: '0.5' },
 ];
 
 export const GET: APIRoute = () => {

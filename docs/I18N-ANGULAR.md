@@ -348,6 +348,10 @@ Details: [docs/architecture/decisions/0008-i18n-internationalization.md](archite
 
 Für **Locale `en`** (XLIFF-Targets in `apps/frontend/src/locale/messages.en.xlf`) gelten zusätzlich die verallgemeinerten **Sprach- und Terminologieregeln** (Host/Session, Gedankenstriche, Fehlermeldungen, SEO, Oxford Comma, XLF-Pflege): **[docs/ui/ENGLISH-UI-COPY.md](ui/ENGLISH-UI-COPY.md)**.
 
+### 9a.2 Französische UI-Copy (`fr`)
+
+Für **Locale `fr`** gelten die **[französischen Übersetzungsregeln mit Do’s und Don’ts](ui/FRENCH-UI-COPY.md)**: Ansprache, idiomatische Aktionen und Statusmeldungen, Q&R-/Blitzlicht-Terminologie, Lernziele, fachliche Bedeutungsunterschiede und französische Typografie. Die Prüfung umfasst auch TypeScript-Copy, Demo-Inhalte, PDF-Berichte, Legal-Markdown, Landingpage und PWA-Texte. App, Hilfe und Landing verwenden dieselben Produktbegriffe; PDF-Berichte folgen ihrem eigenen Ansprache-Glossar.
+
 ---
 
 ## 9b. Aktueller Stand (Projekt arsnova.eu)

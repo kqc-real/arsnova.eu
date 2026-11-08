@@ -267,7 +267,7 @@ function checkRootRedirectPreservesHash() {
 }
 
 function checkLegalPagesOmitHomeHreflang() {
-  for (const page of ['impressum', 'datenschutz']) {
+  for (const page of ['impressum', 'datenschutz', 'fr/impressum', 'fr/datenschutz']) {
     const pagePath = join(dist, page, 'index.html');
     if (!existsSync(pagePath)) {
       fail(`Missing built legal page: /${page}/`);
@@ -280,6 +280,61 @@ function checkLegalPagesOmitHomeHreflang() {
       html.includes('rel="alternate" hreflang="en"')
     ) {
       fail(`/${page}/ must not declare localized-home hreflang alternates`);
+    }
+  }
+}
+
+function checkFrenchLegalPages() {
+  const home = readFileSync(join(dist, 'fr', 'index.html'), 'utf8');
+  const sitemap = readFileSync(join(dist, 'sitemap.xml'), 'utf8');
+  for (const [slug, title] of [
+    ['impressum', 'Mentions légales'],
+    ['datenschutz', 'Politique de confidentialité'],
+  ]) {
+    const file = join(dist, 'fr', slug, 'index.html');
+    if (!existsSync(file)) {
+      fail(`Missing French legal page /fr/${slug}/`);
+      continue;
+    }
+    const html = readFileSync(file, 'utf8');
+    const german = readFileSync(join(dist, slug, 'index.html'), 'utf8');
+    const article = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
+    const germanArticle = german.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
+    if (!html.includes('lang="fr"') || !article.includes(title)) {
+      fail(`/fr/${slug}/ missing French language or title`);
+    }
+    if ((article.match(/<h2\b/g) ?? []).length !== (germanArticle.match(/<h2\b/g) ?? []).length) {
+      fail(`/fr/${slug}/ must retain every German legal section`);
+    }
+    if (!html.match(new RegExp(`rel="canonical"[^>]*href="[^"]*/fr/${slug}/"`))) {
+      fail(`/fr/${slug}/ missing its own canonical URL`);
+    }
+    if (!home.match(new RegExp(`href="[^"]*/fr/${slug}/"`)) || !sitemap.includes(`/fr/${slug}/`)) {
+      fail(`/fr/${slug}/ missing localized footer link or sitemap entry`);
+    }
+    for (const required of [
+      'https://info.arsnova.eu',
+      'https://arsnova.eu',
+      'mailto:klaus.quibeldey-cirkel@iu.org',
+    ]) {
+      if (!article.includes(required)) fail(`/fr/${slug}/ missing ${required}`);
+    }
+    if (slug === 'datenschutz') {
+      for (const required of [
+        'GitHub, Inc. (GitHub Pages)',
+        'États-Unis',
+        'article 6',
+        'article 7',
+        'article 15',
+        'article 16',
+        'article 17',
+        'article 18',
+        'article 20',
+        'article 21',
+        'article 77',
+      ]) {
+        if (!article.includes(required)) fail(`/fr/${slug}/ missing legal detail ${required}`);
+      }
     }
   }
 }
@@ -413,33 +468,35 @@ const localeContentSmoke = {
     ],
     round2: '14 réponses plus proches de la référence',
     wcag: 'Conforme aux WCAG 2.2, niveau AA',
-    term: 'sondage express',
+    term: 'feedback express',
     editorial: [
-      'Le classement qui emporte la salle',
+      'Un classement qui donne du rythme à la session',
       'Style Ludique',
-      'D’abord pour le téléphone',
-      'Créer et animer d’abord sur téléphone',
-      'Puis-je vraiment créer un quiz et animer une session entièrement depuis le téléphone',
-      'entièrement sur smartphone, dans tous les formats',
-      'Présenter depuis n’importe où dans la salle',
+      'Pensé pour le smartphone',
+      'Créer et animer depuis un smartphone',
+      'Puis-je créer un quiz et animer une session entièrement depuis un smartphone',
+      'entièrement sur smartphone et dans tous les formats',
+      'Piloter la présentation depuis un téléphone ou une tablette',
       'Sans compte sur le téléphone',
-      'Pas d’identifiants à partager',
+      'Aucun identifiant à partager',
       'Publier les questions uniquement lorsqu’elles sont pertinentes dans le contexte pédagogique.',
-      'La boussole de modération te dit où en est la salle',
+      'La boussole de modération t’aide à choisir la prochaine étape',
       'Que fait la boussole de modération ?',
-      'L’animateur et le présentateur affichent le quiz,',
+      'La vue d’animation et la vue présentateur donnent accès au quiz,',
       'indiquent les priorités, les désaccords et les besoins de clarification',
-      'Vue Q&amp;A de l’animateur',
+      'Vue Q&amp;R de l’animateur',
       'indicateur neutre de progression',
       'mode présentateur',
-      'croisement entre l’exactitude des réponses et le degré de confiance',
+      'croisement entre l’exactitude des réponses et la confiance',
       'Partager la collection',
       'plutôt qu’avec une clé USB',
       'utiliser et modifier la collection ensemble',
       'Puis-je utiliser la collection de quiz sur un autre appareil ou avec des collègues ?',
     ],
     banned: [
-      'Feedback express',
+      'sondage express',
+      'Q&amp;A',
+      '« À suivre »',
       'Vue hôte',
       'En direct immédiatement',
       'montrent priorité, friction',
@@ -452,7 +509,7 @@ const localeContentSmoke = {
       'Partager la collection',
       'Démarrer une session',
       'Animer en direct',
-      'Suivre et exporter',
+      'Analyser et exporter',
     ],
   },
   it: {
@@ -869,6 +926,7 @@ if (!errors.length) {
   checkSitemap();
   checkRootRedirectPreservesHash();
   checkLegalPagesOmitHomeHreflang();
+  checkFrenchLegalPages();
   checkLocaleContentSmoke();
   checkLanguageSwitcherMarkup();
   checkNavAndSectionOrder();

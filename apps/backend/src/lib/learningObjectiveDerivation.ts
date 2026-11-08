@@ -49,8 +49,8 @@ const DERIVATION_LIMITATIONS = {
   },
   fr: {
     capped:
-      'D’autres suggestions ont été omises en raison de la limite des objectifs pédagogiques.',
-    empty: 'Le modèle n’a fourni aucune suggestion d’objectif pédagogique étayée.',
+      'D’autres propositions n’ont pas été ajoutées, car le nombre maximal d’objectifs d’apprentissage a été atteint.',
+    empty: 'Le modèle n’a proposé aucun objectif d’apprentissage étayé par les questions.',
   },
   es: {
     capped: 'Se omitieron más sugerencias debido al límite de objetivos de aprendizaje.',

@@ -27,7 +27,7 @@ Die Landingpage ist fünfsprachig (`de`, `en`, `fr`, `it`, `es`), analog zur App
 - **Abschnittsreihenfolge:** Hero → Workflow → Features → Leaderboard-Spotlight (Preset Spielerisch) → Host-Pairing-Spotlight → strukturierte Fragetypen → Estimate-/Confidence-/Q&A-/Kompass-Spotlights → Accessibility → Trust → Comparison → FAQ → CTA.
 - **Zwei getrennte Mobil-Claims:** **Zuerst fürs Smartphone** umfasst Quiz-Erstellung in allen Frageformaten und die Host-Ansicht (ADR-0014 / Story 2.8): Hero (Karte 1 und Lead), Ablauf-Schritt 01, erstes Feature, strukturierte Fragetypen, erster Vergleichspunkt, eigene FAQ und Meta/JSON-LD. **Host-Pairing** (`#host-pairing`) bleibt der Zwei-Geräte-Claim (Beamer am Laptop, Steuerung vom Handy) und wird damit nicht vermischt.
 - App-CTAs verlinken immer locale-sicher auf `https://arsnova.eu/{locale}/` (`appHomeUrl`).
-- **Impressum** und **Datenschutz** bleiben bewusst deutschsprachig unter `/impressum/` und `/datenschutz/` (rechtliche Pflichttexte); die lokalisierten Homepages verlinken dorthin.
+- **Impressum** und **Datenschutz** liegen auf Deutsch unter `/impressum/` und `/datenschutz/`. Die französische Homepage verlinkt auf die französischen Fassungen unter `/fr/impressum/` und `/fr/datenschutz/`; die übrigen Homepages nutzen weiterhin die deutschen Fassungen. Die Landing-Rechtstexte beschreiben das GitHub-Pages-Hosting und bleiben von den Rechtstexten der Live-App getrennt.
 
 Prüfungen:
 
@@ -86,17 +86,17 @@ den Pages-Einstellungen.
 ## SEO
 
 - Lokalisiertes `<html lang>`, Title/Description, Open Graph, Twitter Cards
-- `hreflang` auf lokalisierten Homepages für alle fünf Locales plus `x-default` → `/de/` (nicht auf deutschsprachigen Legal-Seiten)
+- `hreflang` auf lokalisierten Homepages für alle fünf Locales plus `x-default` → `/de/` (nicht auf Legal-Seiten)
 - Canonical pro Sprachfassung (nicht alle auf DE)
 - JSON-LD `WebSite` / `WebApplication` mit `inLanguage`
-- Sitemap unter `/sitemap.xml` enthält alle Locale-Homes
+- Sitemap unter `/sitemap.xml` enthält alle Locale-Homes und die deutschen und französischen Rechtstexte
 - `robots.txt` unter `/robots.txt`
 
 Für Builds auf GitHub Pages setzt der Workflow `PUBLIC_SITE_URL=https://info.arsnova.eu/` und `BASE_PATH=/`. Dadurch verweisen Canonical, Open Graph, Sitemap und `robots.txt` auf die Landing-Domain. App-CTAs und das JSON-LD-Objekt `WebApplication` verwenden dagegen weiterhin `https://arsnova.eu/{locale}/`.
 
 ## Impressum & Datenschutz (DSGVO)
 
-Die Seiten `/impressum/` und `/datenschutz/` sind mit DSGVO-tauglichen Inhalten vorstrukturiert und bleiben auf Deutsch. **Vor Go-Live** die Platzhalter in **`src/config/legal.ts`** durch echte Angaben ersetzen (Anbieter, Anschrift, E-Mail, ggf. USt-ID, Verantwortliche Person, Datenschutz-E-Mail). Die Texte (Haftung, Urheberrecht, Betroffenenrechte etc.) sind rechtlich üblich formuliert; bei Bedarf durch einen Anwalt prüfen lassen.
+Die Seiten `/impressum/` und `/datenschutz/` sowie ihre französischen Fassungen unter `/fr/` beziehen sich auf die getrennte Landing. Anbieter, Anschrift, E-Mail und Hosting-Angaben werden in **`src/config/legal.ts`** gepflegt. Inhaltliche Änderungen in beiden Sprachfassungen nachführen; die französischen Texte ergänzen keine eigenen Zusagen oder Fristen. Die App-Rechtstexte liegen separat unter `apps/frontend/src/assets/legal/` und beschreiben den Betrieb der Live-Anwendung.
 
 ## OG-Bild
 
