@@ -402,6 +402,54 @@ describe('session.getPersonalScorecard', () => {
       expect(prismaMock.vote.findUnique).not.toHaveBeenCalled();
     },
   );
+
+  it('gibt die Selbsteinschätzung dieser Frage zurück, ohne eine laufende Fehlkonzept-Zahl', async () => {
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const otherParticipantId = '22222222-2222-4222-8222-222222222222';
+    const questionId = '55555555-5555-4555-8555-555555555555';
+
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'sess-1',
+      status: 'RESULTS',
+      quiz: {
+        questions: [
+          {
+            id: questionId,
+            type: 'SINGLE_CHOICE',
+            confidenceEnabled: true,
+            answers: [{ id: '66666666-6666-4666-8666-666666666666', isCorrect: true }],
+          },
+        ],
+      },
+      participants: [{ id: participantId }, { id: otherParticipantId }],
+    });
+    prismaMock.vote.findUnique.mockResolvedValue({
+      score: 0,
+      isCorrect: false,
+      confidenceValue: 5,
+      streakCount: 0,
+      streakBonus: 1,
+      selectedAnswers: [],
+    });
+    prismaMock.vote.findMany.mockResolvedValue([
+      { participantId, questionId, round: 1, score: 0, responseTimeMs: 1000 },
+    ]);
+
+    const result = await caller.getPersonalScorecard({
+      code: 'ABC123',
+      participantId,
+      questionIndex: 0,
+      round: 1,
+    });
+
+    expect(result.confidenceValue).toBe(5);
+    expect(result).not.toHaveProperty('misconceptionCount');
+    expect(prismaMock.vote.findMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({ confidenceValue: true }),
+      }),
+    );
+  });
 });
 
 trpcDodIt(
@@ -414,6 +462,8 @@ trpcDodIt(
   },
   async () => {
     vi.clearAllMocks();
+    resetSessionReadCachesForTests();
+    resetSessionRankingCacheForTests();
     prismaMock.session.findUnique.mockResolvedValue({
       id: 'sess-1',
       status: 'RESULTS',

@@ -686,6 +686,16 @@
             }
           </section>
 
+          @if (finishedConfidenceMisconceptionHint(); as misconceptionHint) {
+            <p
+              class="vote-confidence vote-confidence--result vote-finished-misconceptions"
+              role="status"
+              data-testid="vote-finished-misconceptions"
+            >
+              {{ misconceptionHint }}
+            </p>
+          }
+
           @if (personalLeaderboard().length > 0) {
             <section
               class="vote-finished-leaderboard"
@@ -2195,6 +2205,15 @@
               </p>
             </div>
           }
+          @if (questionConfidenceMisconceptionHint(); as misconceptionHint) {
+            <p
+              class="vote-confidence vote-confidence--result"
+              role="status"
+              data-testid="vote-confidence-misconceptions"
+            >
+              {{ misconceptionHint }}
+            </p>
+          }
 
           @if (voteSent()) {
             @if (isActive()) {
@@ -2865,7 +2884,7 @@
                 </mat-button-toggle>
                 <mat-button-toggle value="BEST">
                   <span class="session-qa-sort-toggle__label">
-                    <span i18n="@@sessionQa.sortBest">Beste Fragen</span>
+                    <span i18n="@@sessionQa.sortBest">Klare Zustimmung</span>
                     <span
                       class="session-qa-sort-help"
                       role="button"

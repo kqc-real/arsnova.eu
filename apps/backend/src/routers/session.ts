@@ -60,6 +60,7 @@ import {
   SetPresenterSurfaceInputSchema,
   SetPresenterSurfaceOutputSchema,
   SetQaWordCloudProjectionInputSchema,
+  SetQaWordCloudProjectionOutputSchema,
   GetQaWordCloudProjectionOutputSchema,
   SetFreetextWordCloudProjectionInputSchema,
   GetFreetextWordCloudProjectionOutputSchema,
@@ -164,6 +165,7 @@ import {
   resolveNumericEstimateToleranceMode,
   buildConfidenceResult,
   buildSessionConfidenceSummary,
+  countPersonalMisconceptions,
   questionSupportsConfidence,
   questionShufflesParticipantChoiceAnswers,
   resolveEffectiveAggregationRound,
@@ -448,6 +450,8 @@ const presenterSurfaceBySessionId = new Map<
   string,
   z.infer<typeof SessionPresenterSurfaceSchema>
 >();
+/** Abschlussprojektion darf Q&A zeigen, ohne den gesperrten Sessionkanal umzuschreiben. */
+const finishedQaWordCloudSurfaceBySessionId = new Set<string>();
 const presenterPageBySessionId = new Map<string, z.infer<typeof PresenterPageSchema>>();
 const presenterPageIdentityBySessionId = new Map<string, string>();
 
@@ -627,6 +631,7 @@ function clearSessionReadCaches(code?: string): void {
 export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
   presenterSurfaceBySessionId.clear();
+  finishedQaWordCloudSurfaceBySessionId.clear();
   presenterPageBySessionId.clear();
   presenterPageIdentityBySessionId.clear();
   qaWordCloudProjectionBySessionId.clear();
@@ -1092,6 +1097,7 @@ export async function purgeSessionRuntimeArtifacts(params: {
   clearSessionReadCaches(code);
   invalidateParticipantCapabilitiesForSession(params.sessionId);
   presenterSurfaceBySessionId.delete(params.sessionId);
+  finishedQaWordCloudSurfaceBySessionId.delete(params.sessionId);
   presenterPageBySessionId.delete(params.sessionId);
   presenterPageIdentityBySessionId.delete(params.sessionId);
   qaWordCloudProjectionBySessionId.delete(params.sessionId);
@@ -3731,6 +3737,22 @@ function assertSessionAllowsLiveMutation(status: string | null | undefined): voi
   }
 }
 
+function assertSessionAllowsProjectionMutation(
+  session: { status?: string | null; expiresAt?: Date | null },
+  now = new Date(),
+): void {
+  if (session.status !== 'FINISHED') {
+    return;
+  }
+  if (session.expiresAt instanceof Date && now.getTime() < session.expiresAt.getTime()) {
+    return;
+  }
+  throw new TRPCError({
+    code: 'BAD_REQUEST',
+    message: 'Beendete Sessions können nicht mehr verändert werden.',
+  });
+}
+
 function sessionAllowsUnconfiguredFollowUp(session: {
   qaClosesAt?: Date | string | null;
 }): boolean {
@@ -3889,7 +3911,12 @@ function resolvePresenterSurface(
 ): z.infer<typeof SessionPresenterSurfaceSchema> {
   const stored = presenterSurfaceBySessionId.get(sessionId);
   if (stored === 'ended') return stored;
-  if (stored === 'qaWordCloud' && preferredChannel === 'qa') return stored;
+  if (
+    stored === 'qaWordCloud' &&
+    (preferredChannel === 'qa' || finishedQaWordCloudSurfaceBySessionId.has(sessionId))
+  ) {
+    return stored;
+  }
   if (stored === 'freetextWordCloud' && preferredChannel === 'quiz') return stored;
   return 'default';
 }
@@ -8000,6 +8027,7 @@ const sessionCoreRouter = router({
         if (presenterSurfaceBySessionId.get(identity.id) !== 'ended') {
           presenterSurfaceBySessionId.set(identity.id, 'default');
         }
+        finishedQaWordCloudSurfaceBySessionId.delete(identity.id);
         presenterPageBySessionId.delete(identity.id);
         presenterPageIdentityBySessionId.delete(identity.id);
         qaWordCloudProjectionBySessionId.delete(identity.id);
@@ -8039,10 +8067,7 @@ const sessionCoreRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      assertSessionAllowsLiveMutation(session.status);
-      if (isSessionEffectivelyFinished(session, new Date())) {
-        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Session beendet.' });
-      }
+      assertSessionAllowsProjectionMutation(session);
 
       const channels = buildSessionChannels(session);
       const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
@@ -8091,6 +8116,7 @@ const sessionCoreRouter = router({
       if (input.surface !== resolvePresenterSurface(session.id, preferredChannel))
         presenterPageBySessionId.delete(session.id);
       presenterSurfaceBySessionId.set(session.id, input.surface);
+      finishedQaWordCloudSurfaceBySessionId.delete(session.id);
       if (input.surface !== 'qaWordCloud') {
         qaWordCloudProjectionBySessionId.delete(session.id);
       }
@@ -8103,7 +8129,7 @@ const sessionCoreRouter = router({
 
   setQaWordCloudProjection: hostProcedure
     .input(SetQaWordCloudProjectionInputSchema)
-    .output(GetQaWordCloudProjectionOutputSchema)
+    .output(SetQaWordCloudProjectionOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
@@ -8122,24 +8148,68 @@ const sessionCoreRouter = router({
           quickFeedbackEnabled: true,
           quickFeedbackOpen: true,
           preferredChannel: true,
+          sessionLifecycleRevision: true,
+          expiresAt: true,
         },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      assertSessionAllowsLiveMutation(session.status);
+      assertSessionAllowsProjectionMutation(session);
 
       const channels = buildSessionChannels(session);
-      const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
-      if (preferredChannel !== 'qa' || !channels.qa.enabled) {
+      let preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
+      if (
+        !channels.qa.enabled ||
+        (!input.activate &&
+          preferredChannel !== 'qa' &&
+          !finishedQaWordCloudSurfaceBySessionId.has(session.id))
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
         });
       }
 
+      let sessionLifecycleRevision = session.sessionLifecycleRevision;
+      const serverNow = new Date().toISOString();
+      if (input.activate && preferredChannel !== 'qa' && session.status !== 'FINISHED') {
+        const updated = await prisma.session.update({
+          where: { id: session.id },
+          data: {
+            preferredChannel: 'qa',
+            sessionLifecycleRevision: { increment: 1 },
+          },
+          select: { sessionLifecycleRevision: true },
+        });
+        sessionLifecycleRevision = updated.sessionLifecycleRevision;
+        preferredChannel = 'qa';
+        presenterPageBySessionId.delete(session.id);
+        presenterPageIdentityBySessionId.delete(session.id);
+        freetextWordCloudProjectionBySessionId.delete(session.id);
+      }
+
       qaWordCloudProjectionBySessionId.set(session.id, input.projection);
-      return { projection: input.projection };
+      if (input.activate) {
+        presenterSurfaceBySessionId.set(session.id, 'qaWordCloud');
+        if (session.status === 'FINISHED') {
+          finishedQaWordCloudSurfaceBySessionId.add(session.id);
+        } else {
+          finishedQaWordCloudSurfaceBySessionId.delete(session.id);
+        }
+        invalidateSessionStatusCachesForCode(code);
+      }
+      return {
+        projection: input.projection,
+        ...(input.activate
+          ? {
+              preferredChannel,
+              presenterSurface: 'qaWordCloud' as const,
+              sessionLifecycleRevision,
+              serverNow,
+            }
+          : {}),
+      };
     }),
 
   getQaWordCloudProjection: publicProcedure
@@ -8183,12 +8253,12 @@ const sessionCoreRouter = router({
       const code = input.code.toUpperCase();
       const session = await prisma.session.findUnique({
         where: { code },
-        select: { id: true, status: true },
+        select: { id: true, status: true, expiresAt: true },
       });
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      assertSessionAllowsLiveMutation(session.status);
+      assertSessionAllowsProjectionMutation(session);
       freetextWordCloudProjectionBySessionId.set(session.id, input.projection);
       return { projection: input.projection };
     }),
@@ -11147,6 +11217,7 @@ const sessionCoreRouter = router({
         select: {
           score: true,
           isCorrect: true,
+          confidenceValue: true,
           streakCount: true,
           streakBonus: true,
           matchingSelections: true,
@@ -11223,6 +11294,8 @@ const sessionCoreRouter = router({
           : 0;
 
       const totalQuestions = session.quiz.questions.length;
+      const currentQuestionUsesConfidence =
+        question.confidenceEnabled === true && questionSupportsConfidence(question.type);
       return {
         questionOrder: input.questionIndex + 1,
         totalQuestions,
@@ -11252,6 +11325,12 @@ const sessionCoreRouter = router({
           questionType === 'CATEGORIZATION' && Array.isArray(myVote?.categorizationSelections)
             ? (myVote.categorizationSelections as CategorizationSelection[])
             : undefined,
+        ...(currentQuestionUsesConfidence
+          ? {
+              confidenceValue:
+                typeof myVote?.confidenceValue === 'number' ? myVote.confidenceValue : null,
+            }
+          : {}),
       };
     }),
 
@@ -11268,6 +11347,8 @@ const sessionCoreRouter = router({
         totalScore: z.number(),
         rank: z.number(),
         bonusToken: z.string().nullable(),
+        /** Eigene selbstsicher falsche Antworten. `null`, wenn keine Selbsteinschätzung vorliegt. */
+        misconceptionCount: z.number().int().min(0).nullable(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -11283,7 +11364,10 @@ const sessionCoreRouter = router({
             questionProgressComplete: true,
             quiz: {
               select: {
-                questions: { orderBy: { order: 'asc' }, select: { id: true, order: true } },
+                questions: {
+                  orderBy: { order: 'asc' },
+                  select: { id: true, order: true, type: true, confidenceEnabled: true },
+                },
               },
             },
             participants: { select: { id: true } },
@@ -11388,10 +11472,42 @@ const sessionCoreRouter = router({
         select: { token: true },
       });
 
+      const confidenceQuestions = (session.quiz?.questions ?? [])
+        .filter((question) => includedQuestionIds.has(question.id))
+        .map((question) => ({
+          questionId: question.id,
+          confidenceEnabled:
+            question.confidenceEnabled === true && questionSupportsConfidence(question.type),
+        }));
+      const enabledConfidenceQuestionIds = confidenceQuestions
+        .filter((question) => question.confidenceEnabled)
+        .map((question) => question.questionId);
+      const personalConfidenceVotes =
+        enabledConfidenceQuestionIds.length > 0
+          ? await prisma.vote.findMany({
+              where: {
+                sessionId: session.id,
+                participantId: input.participantId,
+                questionId: { in: enabledConfidenceQuestionIds },
+                round: { in: [1, 2] },
+              },
+              select: {
+                questionId: true,
+                round: true,
+                isCorrect: true,
+                confidenceValue: true,
+              },
+            })
+          : [];
+
       return {
         totalScore: myScore,
         rank: myRank,
         bonusToken: token?.token ?? null,
+        misconceptionCount: countPersonalMisconceptions(
+          confidenceQuestions,
+          personalConfidenceVotes,
+        ),
       };
     }),
 

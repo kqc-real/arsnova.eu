@@ -1978,16 +1978,31 @@ export class QuizStoreService implements OnDestroy {
       throw new Error('Quiz nicht gefunden.');
     }
 
-    this.markDemoQuizUserModified(quizId);
-    this.quizDocuments.update((current) => current.filter((quiz) => quiz.id !== quizId));
-    this.malformedLearningObjectiveKeys.delete(quizId);
+    this.deleteQuizzes([quizId]);
+  }
+
+  /** Löscht nur die zuvor bestätigten IDs; später hinzugekommene Quizze bleiben erhalten. */
+  deleteQuizzes(quizIds: readonly string[]): number {
+    const requestedIds = new Set(quizIds);
+    const removedIds = new Set(
+      this.quizDocuments()
+        .filter((quiz) => requestedIds.has(quiz.id))
+        .map((quiz) => quiz.id),
+    );
+    if (removedIds.size === 0) return 0;
+
+    for (const quizId of removedIds) {
+      this.markDemoQuizUserModified(quizId);
+      this.malformedLearningObjectiveKeys.delete(quizId);
+    }
+    this.quizDocuments.update((current) => current.filter((quiz) => !removedIds.has(quiz.id)));
     this.learningObjectiveBundles.update((current) => {
-      if (!current[quizId]) return current;
       const next = { ...current };
-      delete next[quizId];
+      for (const quizId of removedIds) delete next[quizId];
       return next;
     });
     this.persistToStorage();
+    return removedIds.size;
   }
 
   exportQuiz(quizId: string): QuizExport {

@@ -35,8 +35,10 @@ Technische Feldnamen im Code und in Exporten bleiben aus Kompatibilitätsgründe
 2. Danach erscheint die Selbsteinschätzungs-Skala (Progressive Disclosure)
 3. Absenden erst möglich, wenn Antwort **und** Selbsteinschätzung gesetzt sind
 4. `confidenceValue` wird mit dem Vote gespeichert (1–5)
+5. Nach der Ergebnisfreigabe sieht die abstimmende Person »Du hast selbstsicher falsch geantwortet!«, wenn diese eine Antwort selbstsicher falsch war. Richtige Antworten und unsichere falsche Antworten bleiben ohne diesen Hinweis. Es gibt keine laufende Summe während des Quiz.
+6. Am Quizende steht die eigene Summe als Satz: »Du hast nie selbstsicher falsch geantwortet.«, »Du hast einmal selbstsicher falsch geantwortet.« oder »Du hast N-mal selbstsicher falsch geantwortet.« Die eigene spätere Runde ersetzt die frühere.
 
-Während `ACTIVE` erhalten Teilnehmende **keine** aggregierten Selbsteinschätzungs-Daten anderer Personen.
+Punkte und Leaderboard bleiben unverändert. Während `ACTIVE` und auch danach erhalten Teilnehmende **keine** aggregierten Selbsteinschätzungs-Daten anderer Personen.
 
 ## Host-Auswertung (nach Ergebnisfreigabe)
 

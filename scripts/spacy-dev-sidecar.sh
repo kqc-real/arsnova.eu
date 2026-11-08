@@ -111,5 +111,5 @@ ensure_python() {
 }
 
 ensure_python
-info "Starte Host-Sidecar auf $SOCKET (Modelle laden, danach GET /health) …"
+info "Starte die Lemmatisierung (spaCy): Wörter werden auf ihre Grundform zurückgeführt. Die Sprachmodelle werden jetzt geladen …"
 exec env NLP_SOCKET_PATH="$SOCKET" "$PYTHON_BIN" "$ROOT/docker/spacy/server.py"

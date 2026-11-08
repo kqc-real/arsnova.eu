@@ -16,30 +16,30 @@ Ohne Sidecar und bei jedem Fehler bleibt die bestehende Wortwolke 2.5 der Standa
 
 ## UI-Begriffe
 
-| Zustand         | Host-Text                                                                                                        |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Auslöser        | **Wortformen glätten** (Q&A: **Wörter** und **Wörter & Phrasen**; Freitext: **Wörter** und **Wörter & Phrasen**) |
-| Läuft           | **Analyse läuft**                                                                                                |
-| Aktiv           | **Glättung ist an** (Zustand eingeschaltet, nicht „läuft gerade“)                                                |
-| Neue Daten      | **Neue Antworten/Fragen seit letzter Glättung** plus **Neu analysieren**                                         |
-| Nicht verfügbar | **Glättung nicht verfügbar**                                                                                     |
-| Sprache wählen  | **Wähle die Sprache der Antworten** (kein Lemma-Modell für die Host-UI)                                          |
-| Fehler          | **Glättung fehlgeschlagen**                                                                                      |
+| Zustand         | Host-Text                                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| Auslöser        | **Nach Grundform bündeln** (Q&A und Freitext jeweils in **Wörter** und **Wortgruppen**)                   |
+| Läuft           | **Analyse läuft**                                                                                         |
+| Aktiv           | **Nach Grundform gebündelt**                                                                              |
+| Neue Daten      | **Neue Antworten/Fragen noch nicht nach Grundform gebündelt** plus **Bündelung aktualisieren**            |
+| Nicht verfügbar | **Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.**        |
+| Sprache wählen  | **Wähle die Sprache der Beiträge** (kein Lemma-Modell für die Host-UI)                                    |
+| Fehler          | **Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.** |
 
 Nicht in der Host-UI: `spaCy`, `NLP`, `Lemma`, `Lemmatisierung`. Modell- und Versionsangaben dürfen in Diagnose, Telemetrie und Export erscheinen. Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 ## Host-Verhalten
 
-Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung. **Beim Anzeigen** der Wolke startet die Glättung von selbst (`Glättung ist an`), wenn eine Wolkensprache existiert; der Host kann sie wieder ausschalten. Unter `/it/` bleibt sie aus, bis eine Lemma-Sprache gewählt ist — danach startet sie ebenfalls.
+Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung. **Beim Anzeigen** der Wolke startet die Glättung von selbst (**Nach Grundform gebündelt**), wenn eine Wolkensprache existiert; der Host kann sie wieder ausschalten. Unter `/it/` bleibt sie aus, bis eine Lemma-Sprache gewählt ist — danach startet sie ebenfalls. Schlägt dieser automatische Lauf fehl, bleibt die Wortwolke ohne technischen Hinweis nutzbar. Erst nach einer ausdrücklich ausgelösten Bündelung erscheint die Rückmeldung direkt unter der Aktion in **Weitere Optionen**, nicht über der Wortwolke.
 
-| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                                 | Glättung                                                                                                                                                    |
-| -------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Wörter` / `Wörter & Phrasen` / `Themen` (`SEMANTIC`, 1.14d: Encoder für `de`/`en`, sonst 2.x) | sichtbar bei `WORDS` und `PHRASES`; `SEMANTIC` blendet sie aus                                                                                              |
-| Q&A      | eigener `MatDialog`                                  | `Wörter` (`LEXICAL`) / `Wörter & Phrasen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)   | sichtbar bei `LEXICAL` und `THEME`; `SEMANTIC` blendet sie aus. `THEME + LEMMA` bleibt `MODE_UNSUPPORTED` (Lemma nur für Unigramme, Phrasen weiter `THEME`) |
+| Kanal    | Vollansicht                                          | Ansichtsachsen                                                                            | Glättung                                                                                                                                                    |
+| -------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Freitext | dieselbe `app-word-cloud`-Instanz, In-Place-Maximize | `Wörter` / `Wortgruppen` / `Themen` (`SEMANTIC`, 1.14d: Encoder für `de`/`en`, sonst 2.x) | sichtbar bei `WORDS` und `PHRASES`; `SEMANTIC` blendet sie aus                                                                                              |
+| Q&A      | eigener `MatDialog`                                  | `Wörter` (`LEXICAL`) / `Wortgruppen` (`THEME`) / `Themen` (`SEMANTIC`, Stufe 1 Encoder)   | sichtbar bei `LEXICAL` und `THEME`; `SEMANTIC` blendet sie aus. `THEME + LEMMA` bleibt `MODE_UNSUPPORTED` (Lemma nur für Unigramme, Phrasen weiter `THEME`) |
 
-Presenter zeigt die Wolke ohne Glättungssteuerung und ohne Wolkensprache. Die vom Host gewählte Option, Sortierung und Glättung erscheinen als Pills neben Begriffe und Fragen.
+Der Presenter übernimmt die Host-Projektion als Ausgangszustand. Seine Werkzeugleiste kann Ansicht, Sprache und Grundform-Bündelung für die Projektion lokal überschreiben; diese Auswahl bleibt bestehen, wenn der Host später erneut projiziert. Der Host behält davon unabhängig seine eigene Steueransicht.
 
-Die **Wolkensprache** steht klein neben **Wortformen glätten** und nur in der Ansicht, in der Glättung wirkt (Q&A: **Wörter** und **Wörter & Phrasen**; Freitext: **Wörter** und **Wörter & Phrasen**). Sie ist unabhängig von Quiz und Participant-Browser. Default ist die Host-UI-Sprache, sofern ein Lemma-Modell existiert (`de`/`en`/`fr`/`es`). Unter `/it/` bleibt die Glättung aus, bis der Host eine dieser Sprachen wählt. Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
+Die **Wolkensprache** steht unter **Weitere Optionen** neben **Nach Grundform bündeln** und nur in der Ansicht, in der Glättung wirkt (Q&A und Freitext jeweils in **Wörter** und **Wortgruppen**). Sie ist unabhängig von Quiz und Participant-Browser. Default ist die Host-UI-Sprache, sofern ein Lemma-Modell existiert (`de`/`en`/`fr`/`es`). Unter `/it/` bleibt die Glättung aus, bis der Host eine dieser Sprachen wählt. Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
 
 In der Q&A-Wolke steht **Größe nach:** (Kontroverse / Beste Fragen / Stimmensaldo / Vorkommen in Fragen) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
 
@@ -50,9 +50,9 @@ In der Q&A-Wolke steht **Größe nach:** (Kontroverse / Beste Fragen / Stimmensa
 - **Freitext-Ansicht wechseln** bei aktiver Glättung: dieselbe Antwortmenge mit der anderen N-Gramm-Länge neu analysieren.
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
 - **Q&A-Sortierung** `Größe nach: Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Vorkommen in Fragen` (Forumsliste: `Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Stimmensaldo` ist Stimmen dafür minus Stimmen dagegen. `Vorkommen in Fragen` zählt, in wie vielen sichtbaren Fragen ein Wort steht; jede Frage zählt einmal. Die Fragenliste bleibt nach Eingangszeit sortiert. Stimmen steuern die Wortgröße nicht.
-- **Q&A `Wörter & Phrasen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, danach den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Die Session-Sperre erlaubt nur eine `analyzeQa`-Analyse gleichzeitig; der Host reiht Theme- und Lemma-Aufrufe und wiederholt `CONFLICT`. Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
+- **Q&A `Wortgruppen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, danach den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Die Session-Sperre erlaubt nur eine `analyzeQa`-Analyse gleichzeitig; der Host reiht Theme- und Lemma-Aufrufe und wiederholt `CONFLICT`. Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
-- **Freitext `Themen`:** Story 1.14d verwendet für `de`/`en` denselben privaten Encoder- und Clusteringpfad wie Q&A. `fr`/`es` fallen im Backend auf 2.x zurück; unter italienischer UI bleibt der Fallback ohne gewählte unterstützte Wolkensprache lokal und sendet keinen Backendauftrag. Der gemeinsame Kill-Switch bleibt default aus; eine Produktivaktivierung ist nicht belegt. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne eigenen semantischen Analysejob. `maxNgramLength` 1 beziehungsweise 3 gilt weiter für `Wörter` / `Wörter & Phrasen`.
+- **Freitext `Themen`:** Story 1.14d verwendet für `de`/`en` denselben privaten Encoder- und Clusteringpfad wie Q&A. `fr`/`es` fallen im Backend auf 2.x zurück; unter italienischer UI bleibt der Fallback ohne gewählte unterstützte Wolkensprache lokal und sendet keinen Backendauftrag. Der gemeinsame Kill-Switch bleibt default aus; eine Produktivaktivierung ist nicht belegt. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne eigenen semantischen Analysejob. `maxNgramLength` 1 beziehungsweise 3 gilt weiter für `Wörter` / `Wortgruppen`.
 
 Während der Analyse bleibt die lexikalische Wolke sichtbar und bedienbar. Sidecar-Ausfall, Timeout oder unsupported Locale fallen hart auf den 2.x-Pfad zurück.
 
@@ -77,9 +77,9 @@ Erste Qualitätsstufe:
 - substantivierte Infinitive (`Lernen`) bleiben sichtbar
 - Stopwortfilter auf Lemma **und** gebeugte Oberfläche
 - leere Unigramm-Liste fällt nicht auf die lokale ungeglättete Aggregation zurück
-- Q&A **Wörter & Phrasen** mit Glättung: Unigramme vom Lemma-Pfad, Phrasen weiter aus `THEME` (kein `THEME + LEMMA`)
-- Q&A **Wörter & Phrasen** zeigt nur belastbare Kurzgruppen (2–3 Tokens) und keine einzigartigen Vollfragen
-- Q&A **Themen** in Vorbereitung oder 2.x-Fallback: sichtbare Wörter & Phrasen behalten die Glättung; `SEMANTIC + LEMMA` bleibt `MODE_UNSUPPORTED`
+- Q&A **Wortgruppen** mit Glättung: Unigramme vom Lemma-Pfad, Phrasen weiter aus `THEME` (kein `THEME + LEMMA`)
+- Q&A **Wortgruppen** zeigt nur belastbare Kurzgruppen (2–3 Tokens) und keine einzigartigen Vollfragen
+- Q&A **Themen** in Vorbereitung oder 2.x-Fallback: sichtbare Wörter und Wortgruppen behalten die Glättung; `SEMANTIC + LEMMA` bleibt `MODE_UNSUPPORTED`
 
 Locales: `de`/`en` (MIT), `fr` (LGPL-LR) und `es` (GPL-3.0) im Default-Sidecar. `it` fällt lexikalisch zurück (`it_core_news_sm` ist CC BY-NC-SA 3.0 und gehört nicht ins Default-Image). Das Image ist kein reines MIT-Artefakt. Hinweise: [NOTICE](../../NOTICE).
 
@@ -104,9 +104,9 @@ Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.
 
 ### Lokaler Dev-Server (`npm run dev`)
 
-`npm run dev`, `npm run dev:de` und `npm run dev:en` starten den Host-Sidecar (`npm run spacy:dev`). Das Backend bekommt prozesslokal `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock` und `NLP_TIMEOUT_MS=15000`. Die Datei `.env` bleibt `NLP_ENABLED=false` (Produktiv-Default).
+`npm run dev`, `npm run dev:de`, `npm run dev:en`, `npm run dev:qa-summary` und `npm run dev:ai` starten den Host-Sidecar (`npm run spacy:dev`). Das Backend bekommt prozesslokal `NLP_ENABLED=true`, `NLP_SOCKET_PATH=/tmp/arsnova-nlp.sock` und `NLP_TIMEOUT_MS=15000`. Zusätzlich startet der Dev-Stack den getrennten Themenanalyse-Encoder über `npm run encoder:dev`; dessen Konfiguration ist in [word-cloud-semantic.md](word-cloud-semantic.md#lokal-host-npm--macos) beschrieben. Die Datei `.env` bleibt `NLP_ENABLED=false` (Produktiv-Default).
 
-Erster Lauf legt `docker/spacy/.venv` an und lädt die Modelle `de`/`en`/`fr`/`es` (oft mehrere Minuten). Dafür braucht es Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14); das Skript nimmt `python3.13` … `python3.10` vor `python3`. In concurrently erscheint die Spalte `spacy`. Solange die Modelle laden, bleibt die Host-UI bei **Glättung nicht verfügbar**; nach dem Socket-Bind neu analysieren.
+Der erste Lauf legt `docker/spacy/.venv` an und lädt die Modelle `de`/`en`/`fr`/`es` (oft mehrere Minuten). Dafür braucht es Python 3.10–3.13 (spaCy 3.8.15 hat keine Pakete für 3.14); das Skript nimmt `python3.13` … `python3.10` vor `python3`. Im Terminal erscheint der Kanal `lemmatisierung`. Solange die Modelle laden, bleibt die Host-UI bei **Glättung nicht verfügbar**; nach dem Socket-Bind neu analysieren. Der Hostprozess besitzt kein eigenes CPU- oder RAM-Limit; als Compose-Referenz gelten 1 CPU und 1 GiB. Gesamtwerte für `dev:ai`: [Onboarding](../onboarding.md#ressourcen-für-devai).
 
 `npm run docker:up:nlp` hilft Host-Node nicht: das Compose-Volume `/run/spacy/nlp.sock` ist außerhalb des App-Containers unsichtbar. Nur API ohne Wolke: `npm run dev:backend` lässt den Sidecar aus.
 
@@ -131,9 +131,9 @@ Für den Einstieg (Setup plus dieser Befehl): [onboarding.md](../onboarding.md#v
 
 `NODE_ENV=production` setzt kein HTTP-CORS für `ng serve`. Die Locale-UI daher über **4200 (Proxy)** oder **3000 (same-origin)** öffnen, nicht über einen parallelen Dev-Server.
 
-Die **Wolkensprache** am Glätten-Button folgt zuerst der Host-UI. Unter `/it/` zuerst DE/EN/FR/ES wählen; danach ist Glättung unabhängig von der UI-Locale.
+Die **Wolkensprache** bei **Nach Grundform bündeln** folgt zuerst der Host-UI. Unter `/it/` zuerst DE/EN/FR/ES wählen; danach ist die Bündelung unabhängig von der UI-Locale.
 
-| Locale | URL                       | Wortformen glätten                                       |
+| Locale | URL                       | Nach Grundform bündeln                                   |
 | ------ | ------------------------- | -------------------------------------------------------- |
 | de     | http://localhost:4200/de/ | an (Default DE)                                          |
 | en     | http://localhost:4200/en/ | an (Default EN)                                          |

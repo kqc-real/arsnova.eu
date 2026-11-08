@@ -43,7 +43,7 @@ export interface ConfirmLeaveDialogData {
         <span class="dialog-title-header__heading">{{ data.title }}</span>
       </span>
     </h2>
-    <mat-dialog-content>
+    <mat-dialog-content class="confirm-leave__content" tabindex="0">
       @if (data.message) {
         <p class="confirm-leave__message">{{ data.message }}</p>
       }

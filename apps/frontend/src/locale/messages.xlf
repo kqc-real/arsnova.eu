@@ -15658,7 +15658,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="presentationStart.screenHint" datatype="html">
-        <source> Öffne die Präsentation auf dem Projektionsbildschirm. Hier steuerst du weiter; die Smartphone-Verbindung ist optional.</source>
+        <source> Öffne die Präsentation auf dem Projektionsbildschirm.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
           <context context-type="linenumber">13,16</context>
@@ -16510,7 +16510,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogJump" datatype="html">
-        <source> Tippe einen Eintrag an, um zur Frage oder zur Wortwolke zu springen.</source>
+        <source>Wähle einen Eintrag, um die zugehörige Frage, Wortwolke, das Ergebnis oder die Rückmeldung zu öffnen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">11,13</context>
@@ -16524,28 +16524,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisPending" datatype="html">
-        <source> Die Fragen werden noch sortiert.</source>
+        <source> Die Fragen werden gerade geordnet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">22,24</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisUncertain" datatype="html">
-        <source> Die Sortierung der Fragen ist unsicher.</source>
+        <source> Einige Fragen konnten nicht eindeutig zugeordnet werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">26,28</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisFailed" datatype="html">
-        <source> Die automatische Sortierung ist gerade nicht verfügbar.</source>
+        <source> Die Fragen können gerade nicht automatisch geordnet werden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">30,32</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationAnalysisClassified" datatype="html">
-        <source> Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.</source>
+        <source> Die Fragen sind nach Inhalt, Organisation und Technik geordnet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">34,36</context>
@@ -16566,38 +16566,44 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationEmptyHint" datatype="html">
-        <source> Sobald Fragen oder ein Blitzlicht da sind, siehst du hier Themen, Klärungsbedarf, umstrittene Fragen und Feedback zum Vortragstempo.</source>
+        <source>Noch keine Hinweise. Sobald Fragen, Ergebnisse oder Tempo-Rückmeldungen vorliegen, unterstützt dich der Kompass bei der Wahl des nächsten Schritts.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">165,168</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDialogIntroDecide" datatype="html">
-        <source> Du entscheidest, welche Themen behandelt werden.</source>
+        <source>Du entscheidest, was du als Nächstes aufgreifst.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">169,171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryTitle" datatype="html">
-        <source> Kurzfassung der offenen Fragen</source>
+        <source> Wichtige offene Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">184,186</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryIntro" datatype="html">
-        <source> Optional: 2–4 kurze Stichpunkte zum Überfliegen.</source>
+        <source>Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">190,192</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
-        <source> Zusammenfassung</source>
+        <source> Fragen zusammenfassen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">201,203</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryUpdateButton" datatype="html">
+        <source>Zusammenfassung aktualisieren</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryLimitations" datatype="html">
@@ -16629,7 +16635,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationMoreSources" datatype="html">
-        <source>Weitere Einstiege (<x id="count" equiv-text="extras.length"/>)</source>
+        <source>Weitere Hinweise (<x id="count" equiv-text="extras.length"/>)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">170</context>
@@ -16664,14 +16670,20 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
-        <source>Die Zusammenfassung wird erstellt.</source>
+        <source>Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryProgressHint" datatype="html">
+        <source>Das kann bei vielen Fragen etwas dauern. Du kannst den Kompass schließen und später wieder öffnen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryUncertain" datatype="html">
-        <source>Die Zusammenfassung ist unsicher.</source>
+        <source>Die Fragen lassen sich nicht eindeutig zusammenfassen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">266</context>
@@ -16807,7 +16819,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardMention" datatype="html">
-        <source>Andere Antworten</source>
+        <source>Weitere Einzelantworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -16821,7 +16833,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNextMention" datatype="html">
-        <source>Einzelne andere Antworten sind sichtbar. Du musst sie nicht zum Thema machen.</source>
+        <source>Einzelne Antworten passen zu keinem häufigen Thema. Du musst sie nicht alle besprechen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -16919,7 +16931,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSourceChannelQa" datatype="html">
-        <source>Q&amp;A</source>
+        <source>Fragen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">347</context>
@@ -17702,7 +17714,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisTheme" datatype="html">
-        <source>Wörter &amp; Phrasen</source>
+        <source>Wortgruppen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">28</context>
@@ -17713,7 +17725,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisSemantic" datatype="html">
-        <source>Thema</source>
+        <source>Themen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">31</context>
@@ -17731,14 +17743,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSizeAria" datatype="html">
-        <source>Größe nach Kontroverse, besten Fragen, Stimmensaldo oder Vorkommen in Fragen</source>
+        <source>Größe nach Bewertungen oder Häufigkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">44</context>
         </context-group>
       </trans-unit>
             <trans-unit id="sessionQa.sortBest" datatype="html">
-        <source>Beste Fragen</source>
+        <source>Klare Zustimmung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">47</context>
@@ -19347,14 +19359,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisPhrases" datatype="html">
-        <source>Wörter &amp; Phrasen</source>
+        <source>Wortgruppen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3746</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisSemantic" datatype="html">
-        <source>Thema</source>
+        <source>Themen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3752</context>
@@ -20592,7 +20604,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudResume" datatype="html">
-        <source>Live fortsetzen</source>
+        <source>Anzeige fortsetzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1298</context>
@@ -20603,7 +20615,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudFreeze" datatype="html">
-        <source>Wortwolke einfrieren</source>
+        <source>Anzeige anhalten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1299</context>
@@ -20613,26 +20625,8 @@
           <context context-type="linenumber">2477</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextDescriptionSemantic" datatype="html">
-        <source>Ähnliche Antworten sind gruppiert.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1304</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextDescription" datatype="html">
-        <source>Häufige Wörter aus den Antworten.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1306</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">275</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionPhrases" datatype="html">
-        <source>Häufige Wörter und kurze Wortgruppen.</source>
+        <source>Wörter und Wortgruppen, zum Beispiel »roter Faden«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1308</context>
@@ -20789,7 +20783,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFailedHint" datatype="html">
-        <source>Themenanalyse fehlgeschlagen.</source>
+        <source>Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1459</context>
@@ -20800,7 +20794,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticFallbackHint" datatype="html">
-        <source>Themen sind gerade nicht belastbar.</source>
+        <source>Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1462</context>
@@ -20811,7 +20805,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticDisabledHint" datatype="html">
-        <source>Themen sind noch nicht verfügbar.</source>
+        <source>Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1465</context>
@@ -20837,7 +20831,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothActive" datatype="html">
-        <source>Wort-Glättung ist an</source>
+        <source>Nach Grundform gebündelt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1536</context>
@@ -20848,7 +20842,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothRetry" datatype="html">
-        <source>Neu analysieren</source>
+        <source>Bündelung aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1538</context>
@@ -20863,7 +20857,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Wortformen glätten</source>
+        <source>Nach Grundform bündeln</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -20874,7 +20868,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothChooseLocale" datatype="html">
-        <source>Wähle die Sprache der Antworten</source>
+        <source>Wähle die Sprache der Beiträge</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1549</context>
@@ -20885,14 +20879,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudSmoothStale" datatype="html">
-        <source>Neue Antworten seit letzter Wort-Glättung</source>
+        <source>Neue Antworten noch nicht nach Grundform gebündelt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1553</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothFailed" datatype="html">
-        <source>Wort-Glättung fehlgeschlagen</source>
+        <source>Wörter konnten gerade nicht nach Grundform gebündelt werden. Die bisherige Auswertung bleibt nutzbar.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1558</context>
@@ -20903,7 +20897,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothUnavailable" datatype="html">
-        <source>Wort-Glättung nicht verfügbar</source>
+        <source>Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1567</context>
@@ -20914,7 +20908,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudFrozenInfo" datatype="html">
-        <source>Wortwolke eingefroren.</source>
+        <source>Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1593</context>
@@ -21020,7 +21014,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
-        <source>beste Fragen</source>
+        <source>klare Zustimmung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2129</context>
@@ -21049,7 +21043,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionSemantic" datatype="html">
-        <source>Ähnliche Fragen sind gruppiert.</source>
+        <source>Inhaltlich ähnliche Fragen sind zu Themen zusammengefasst.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2146</context>
@@ -21060,7 +21054,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudDescriptionLexical" datatype="html">
-        <source>Häufige Wörter aus den sichtbaren Fragen.</source>
+        <source>Einzelne Wörter aus den freigegebenen Fragen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2148</context>
@@ -21071,35 +21065,35 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus Fragen mit viel Zustimmung und ausreichend Stimmen.</source>
+        <source>Größer erscheinen Begriffe aus Fragen mit viel Zustimmung und ausreichend Bewertungen. Das sagt nichts über ihre fachliche Richtigkeit aus.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Große Wörter und Phrasen kommen aus Fragen mit hoher Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Darüberfahren zeigt die zugehörigen Fragen.</source>
+        <source>Größer erscheinen Begriffe aus Fragen mit vielen, ähnlich verteilten Dafür- und Dagegen-Stimmen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintTime" datatype="html">
-        <source>Ein Wort wird größer, je mehr sichtbare Fragen es enthalten. In einer Frage zählt es nur einmal.</source>
+        <source>Je mehr freigegebene Fragen einen Begriff enthalten, desto größer erscheint er. Pro Frage zählt er einmal.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2180</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintTop" datatype="html">
-        <source>Große Einträge stammen aus Fragen mit hohem Stimmensaldo (Stimmen dafür minus Stimmen dagegen).</source>
+        <source>Größer erscheinen Begriffe aus Fragen mit mehr Dafür- als Dagegen-Stimmen. Maßgeblich ist die Differenz.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2182</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmoothStale" datatype="html">
-        <source>Neue Fragen seit letzter Wort-Glättung</source>
+        <source>Neue Fragen noch nicht nach Grundform gebündelt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2389</context>
@@ -24505,13 +24499,6 @@
           <context context-type="linenumber">21,23</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="wordCloud.description" datatype="html">
-        <source>Häufig genannte Wörter erscheinen größer.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">202</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="wordCloud.empty" datatype="html">
         <source>Noch keine Freitext-Antworten vorhanden.</source>
         <context-group purpose="location">
@@ -24714,14 +24701,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.groupedAsTooltip" datatype="html">
-        <source>Zusammengefasst als: <x id="metric" equiv-text="basisLabel"/></source>
+        <source>Beispiel aus den Originalbeiträgen: <x id="metric" equiv-text="basisLabel"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">1959</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.themeConfidenceLabel" datatype="html">
-        <source>Erkennung: <x id="tier" equiv-text="tier"/> (<x id="percent" equiv-text="percent"/>)</source>
+        <source>Sicherheit der Gruppierung: <x id="tier" equiv-text="tier"/> (<x id="percent" equiv-text="percent"/>)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">1988</context>
@@ -26265,6 +26252,34 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">2139,2141</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionHint" datatype="html">
+        <source>Du hast selbstsicher falsch geantwortet!</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3564</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionNone" datatype="html">
+        <source>Du hast nie selbstsicher falsch geantwortet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3554</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionOne" datatype="html">
+        <source>Du hast einmal selbstsicher falsch geantwortet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3557</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.confidenceMisconceptionMany" datatype="html">
+        <source>Du hast <x id="count" equiv-text="count"/>-mal selbstsicher falsch geantwortet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.ts</context>
+          <context context-type="linenumber">3560</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.confidenceResultPrefix" datatype="html">
@@ -31805,182 +31820,218 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationDiagnosis" datatype="html">
-        <source>Diagnose</source>
+        <source>Was wurde ausgewertet?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">304</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationDiagnosisPending" datatype="html">
+        <source>Was wird ausgewertet?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationDiagnosisIntro" datatype="html">
-        <source> Die Vorschau zeigt Verträge, Umfang und Kürzungen des aktuellen Kontexts. Inhalte und technische Anweisungen werden nicht angezeigt. </source>
+        <source>Hier siehst du, welche Bereiche und wie viele Beiträge für die Zusammenfassung ausgewählt wurden.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">310,313</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewReload" datatype="html">
-        <source>Kontextvorschau neu laden</source>
+        <source>Informationen aktualisieren</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">323</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLoad" datatype="html">
-        <source>Kontextvorschau laden</source>
+        <source>Informationen laden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">325</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLoading" datatype="html">
-        <source> Kontextvorschau wird geladen. </source>
+        <source>Informationen zur Auswertung werden geladen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">334,336</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewFailed" datatype="html">
-        <source> Kontextvorschau konnte nicht geladen werden. Du kannst es erneut versuchen. </source>
+        <source>Informationen zur Auswertung konnten nicht geladen werden. Versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">338,340</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewContracts" datatype="html">
-        <source>Verträge und Stand</source>
+        <source>Überblick</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">347</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewMode" datatype="html">
-        <source>Modus</source>
+        <source>Auswertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">350</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewPackedAt" datatype="html">
-        <source>Stand</source>
+        <source>Zuletzt aktualisiert</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">354</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSnapshotHash" datatype="html">
-        <source>Snapshot-Hash</source>
+        <source>Kennung des ausgewerteten Datenstands</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">358</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewContract" datatype="html">
-        <source>Vorschauvertrag</source>
+        <source>Version dieser Informationsansicht</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">362</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewContextContract" datatype="html">
-        <source>Kontextvertrag</source>
+        <source>Version der Datenauswahl</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">366</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewInstructionVersion" datatype="html">
-        <source>Anweisungsversion</source>
+        <source>Version der Zusammenfassungsregeln</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">370</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewDefinitionVersion" datatype="html">
-        <source>Definitionsversion</source>
+        <source>Version der Auswertungsregeln</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewAdapter" datatype="html">
-        <source>Adapter</source>
+        <source>Verwendete KI-Anbindung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewCache" datatype="html">
-        <source>Cache</source>
+        <source>Vorbereitung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">382</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewCacheHit" datatype="html">
+        <source>Eine bereits vorbereitete Auswahl wurde verwendet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewCacheMiss" datatype="html">
+        <source>Die Auswahl wurde neu erstellt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewScope" datatype="html">
-        <source>Datenumfang</source>
+        <source>Ausgewählte Inhalte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">387</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewQuestionCountHint" datatype="html">
-        <source> Bei Fragen: dargestellt / insgesamt. </source>
+        <source>Bei Fragen steht, wie viele ausgewählt wurden, zum Beispiel »2 von 500«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">388,390</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSourceGroups" datatype="html">
-        <source>Quellengruppen</source>
+        <source>Direkt ausgewertete Beiträge</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">400</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSourceGroupsHint" datatype="html">
+        <source> Diese Beiträge wurden direkt ausgewertet. Ähnliche Fragen sind darin mitberücksichtigt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewNoSources" datatype="html">
-        <source> Keine Quellen im gepackten Kontext. </source>
+        <source>Für diese Zusammenfassung wurden keine Beiträge ausgewählt.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">408,410</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewBudget" datatype="html">
-        <source>Kontextbudget</source>
+        <source>Verfügbarer Platz für die Auswertung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">413</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewInputBudget" datatype="html">
-        <source>Gepackte Eingabe / Kontextfenster</source>
+        <source>Verwendeter Platz / insgesamt verfügbar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewOutputReserve" datatype="html">
-        <source>Antwortreserve</source>
+        <source>Für die Antwort reserviert</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">420</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSafetyMargin" datatype="html">
-        <source>Sicherheitsmarge</source>
+        <source>Zusätzlicher freier Platz</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">424</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTokenUnit" datatype="html">
+        <source>Tokens</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.summaryHeroHeading" datatype="html">
+        <source> Beispiel aus den Originalbeiträgen </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLimitations" datatype="html">
-        <source>Einschränkungen</source>
+        <source>Nicht einbezogen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">430</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewTruncations" datatype="html">
-        <source>Kürzungen</source>
+        <source>Zusammengefasste Inhalte</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">438</context>
@@ -32015,10 +32066,28 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryEvidenceToggle" datatype="html">
-        <source>Belege (<x id="count" equiv-text="count"/>)</source>
+        <source>Verwendete Beiträge (<x id="count" equiv-text="count"/>)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">252</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSelectedOfTotal" datatype="html">
+        <source><x id="selected" equiv-text="row.selected"/> von <x id="total" equiv-text="row.total"/> ausgewählt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewNoneSelected" datatype="html">
+        <source>Keine ausgewählt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewCountSelected" datatype="html">
+        <source><x id="selected" equiv-text="row.selected"/> ausgewählt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSectionQuestions" datatype="html">
@@ -32036,14 +32105,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSectionCompass" datatype="html">
-        <source>Kompasssignale</source>
+        <source>Hinweise aus dem Kompass</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">416</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewSectionLearning" datatype="html">
-        <source>Lernkontext</source>
+        <source>Lernziele</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">418</context>
@@ -32064,70 +32133,70 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateAvailable" datatype="html">
-        <source>verfügbar</source>
+        <source>ausgewählt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">429</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateDisabled" datatype="html">
-        <source>deaktiviert</source>
+        <source>wurde nicht in die Auswertung einbezogen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStatePending" datatype="html">
-        <source>ausstehend</source>
+        <source>wird noch vorbereitet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">433</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateFailed" datatype="html">
-        <source>fehlgeschlagen</source>
+        <source>konnte nicht geladen werden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">435</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateNotReleased" datatype="html">
-        <source>nicht freigegeben</source>
+        <source>ist noch nicht freigegeben</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">437</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateNotApplicable" datatype="html">
-        <source>nicht zutreffend</source>
+        <source>spielt hier keine Rolle</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">439</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewStateUnavailable" datatype="html">
-        <source>nicht verfügbar</source>
+        <source>in dieser Session nicht vorhanden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">441</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewModeFullContext" datatype="html">
-        <source>Vollständiger Kontext</source>
+        <source>Fragen und weitere verfügbare Bereiche werden gemeinsam ausgewertet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">447</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewModeLegacy" datatype="html">
-        <source>Legacy-Text</source>
+        <source>Die wichtigsten offenen Fragen werden direkt ausgewertet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">450</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewModeExtractive" datatype="html">
-        <source>Lokaler extraktiver Fallback</source>
+        <source>Die wichtigsten offenen Fragen werden direkt ausgewählt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">452</context>
@@ -32243,7 +32312,7 @@
         <source>Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu schließen.</source>
       </trans-unit>
       <trans-unit id="wordCloud.analysisLanguage" datatype="html">
-        <source>Analysesprache</source>
+        <source>Sprache der Beiträge:</source>
       </trans-unit>
       <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
         <source>Neue Antworten seit der letzten Themenanalyse</source>
@@ -32264,16 +32333,326 @@
         <source>Themen</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportFallbackPhrases" datatype="html">
-        <source>Ersatzansicht mit Wörtern und Phrasen</source>
+        <source>Ersatzansicht mit Wörtern und Wortgruppen</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportFallbackWords" datatype="html">
         <source>Ersatzansicht mit Wörtern</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportPhrases" datatype="html">
-        <source>Wörter und Phrasen</source>
+        <source>Wörter und Wortgruppen</source>
       </trans-unit>
       <trans-unit id="wordCloud.exportWords" datatype="html">
         <source>Wörter</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewEntries" datatype="html">
+        <source>Einträge</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalDetails" datatype="html">
+        <source>Weitere Informationen zur Auswertung</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalIntro" datatype="html">
+        <source> Diese Angaben helfen dem Support, falls bei der Auswertung ein Fehler auftritt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSourceQuestions" datatype="html">
+        <source>Fragen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewSourceTopics" datatype="html">
+        <source>Themen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalContracts" datatype="html">
+        <source>Verwendete Versionen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalLimitations" datatype="html">
+        <source>Warum Bereiche nicht einbezogen wurden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTechnicalTruncations" datatype="html">
+        <source>Warum Beiträge zusammengefasst oder ausgelassen wurden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationModuleDisabled" datatype="html">
+        <source>Dieser Bereich ist ausgeschaltet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationModuleUnavailable" datatype="html">
+        <source>Dieser Bereich ist in der Session nicht vorhanden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationNotReleased" datatype="html">
+        <source>Diese Ergebnisse sind noch nicht freigegeben.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationBudgetTruncated" datatype="html">
+        <source>Nur die wichtigsten Beiträge wurden ausgewählt.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewLimitationOther" datatype="html">
+        <source>Dieser Bereich konnte nicht vollständig berücksichtigt werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationDeduplication" datatype="html">
+        <source>ähnliche Beiträge wurden zusammengefasst</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationTokenBudget" datatype="html">
+        <source>nicht alle Beiträge konnten einzeln ausgewertet werden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationItemLimit" datatype="html">
+        <source>es wurde eine übersichtliche Auswahl getroffen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationPreviewTruncationOther" datatype="html">
+        <source>einige Beiträge wurden nicht einzeln berücksichtigt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudProjectionFailed" datatype="html">
+        <source>Die Präsentation konnte nicht geändert werden. Versuche es erneut.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudProjectionPending" datatype="html">
+        <source>Präsentation wird geändert …</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudProjected" datatype="html">
+        <source>Auf der Präsentation sichtbar.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudCloseProjection" datatype="html">
+        <source>Beim Schließen erscheint dort wieder die Fragenwand.</source>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
+        <source>Auf der Präsentation ausblenden</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.moreOptions" datatype="html">
+        <source>Weitere Optionen</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.viewHintWords" datatype="html">
+        <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.viewHintWordsOriginal" datatype="html">
+        <source>Einzelne Wörter in der eingegebenen Form.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.viewHintPhrases" datatype="html">
+        <source>Wörter und kurze Wortgruppen wie »roter Faden«.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.viewHintTopics" datatype="html">
+        <source>Ähnliche Beiträge, zusammengefasst als Themen.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.groupingDetails" datatype="html">
+        <source>Gruppierung prüfen</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.groupingExplanation" datatype="html">
+        <source>Die Einschätzung betrifft nur die automatische Gruppierung, nicht die fachliche Richtigkeit oder das Verständnis der Teilnehmenden.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenCloud" datatype="html">
+        <source>Wortwolke öffnen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenResult" datatype="html">
+        <source>Ergebnis öffnen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenFeedback" datatype="html">
+        <source>Rückmeldungen öffnen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationOpenQuestion" datatype="html">
+        <source>Frage öffnen</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSourceFailed" datatype="html">
+        <source>Der Eintrag konnte nicht geöffnet werden. Versuche es erneut.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.wordCloudFrozenStatus" datatype="html">
+        <source>Anzeige angehalten</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.wordCloudChooseHostLocale" datatype="html">
+        <source>Wähle die Sprache der Beiträge in der Steueransicht.</source>
+      </trans-unit>
+      <trans-unit id="quizList.searchLabel" datatype="html">
+        <source>Quiz suchen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">35,37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.searchHint" datatype="html">
+        <source>Titel und Beschreibung durchsuchen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">42,44</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortLabel" datatype="html">
+        <source>Sortieren nach</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">45,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.resultCount" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ formatCount(visibleQuizCount()) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(quizzes().length) }}"/> Quizzen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">55,57</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.noSearchResults" datatype="html">
+        <source> Keine passenden Quizze. Ändere oder lösche deinen Suchtext. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">60,64</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortTitleAsc" datatype="html">
+        <source>Titel A–Z</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">95</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortTitleDesc" datatype="html">
+        <source>Titel Z–A</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">96</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortUpdated" datatype="html">
+        <source>Zuletzt geändert</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">97</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortCreated" datatype="html">
+        <source>Zuletzt erstellt</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">98</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortQuestionsAsc" datatype="html">
+        <source>Wenigste Fragen zuerst</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">99</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.sortQuestionsDesc" datatype="html">
+        <source>Meiste Fragen zuerst</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.clearSearch" datatype="html">
+        <source>Suche löschen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">174</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllConfirm" datatype="html">
+        <source>Alle Quizze löschen</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
+          <context context-type="linenumber">36,39</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">845</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllTitle" datatype="html">
+        <source>Alle Quizze löschen?</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">829</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllMessage" datatype="html">
+        <source>Alle <x id="count" equiv-text="this.formatCount(quizIds.length)"/> Quizze dieser Sammlung werden gelöscht. Das gilt auch für Quizze, die durch die Suche ausgeblendet sind.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">830</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllShared" datatype="html">
+        <source>Bei einer geteilten Sammlung wird die Löschung auf die verbundenen Geräte übertragen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">835</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllLive" datatype="html">
+        <source>Laufende Sessions bleiben geöffnet. Für ihre Moderation brauchst du weiterhin den Host-Zugang.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">838</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllDemoNote" datatype="html">
+        <source>Das Demo-Quiz wird beim nächsten Öffnen der Sammlung wieder angeboten.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">848</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizList.deleteAllSuccess" datatype="html">
+        <source>Gelöschte Quizze: <x id="count" equiv-text="this.formatCount(deleted)"/>.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
+          <context context-type="linenumber">860</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.quizCountOne" datatype="html">
+        <source><x id="count" equiv-text="formattedCount"/> Quiz</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">299</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="homeHostCard.quizCountMany" datatype="html">
+        <source><x id="count" equiv-text="formattedCount"/> Quizze</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
+          <context context-type="linenumber">300</context>
+        </context-group>
       </trans-unit>
     </body>
   </file>

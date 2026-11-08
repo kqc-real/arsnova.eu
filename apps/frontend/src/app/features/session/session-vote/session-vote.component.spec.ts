@@ -2254,6 +2254,103 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt nach einer selbstsicher falschen Antwort einen Hinweis und am Quizende die Zahl', () => {
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+    inst.sessionSettings.set({ type: 'QUIZ' });
+    inst.status.set('RESULTS');
+    inst.currentQuestion.set({
+      id: 'q-confidence',
+      text: 'Welche Antwort ist richtig?',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      order: 1,
+      answers: [],
+      totalVotes: 2,
+      confidenceEnabled: true,
+    } as never);
+    const scorecard = {
+      questionOrder: 2,
+      totalQuestions: 3,
+      wasCorrect: false as boolean | null,
+      questionScore: 0,
+      baseScore: 0,
+      streakCount: 0,
+      streakMultiplier: 1,
+      currentRank: 2,
+      previousRank: null,
+      rankChange: 0,
+      totalScore: 10,
+      confidenceValue: 2,
+    };
+    inst.scorecard.set(scorecard);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('[data-testid="vote-confidence-misconceptions"]')).toBeNull();
+
+    inst.scorecard.set({
+      ...scorecard,
+      confidenceValue: 5,
+    });
+    fixture.detectChanges();
+    expect(
+      host.querySelector('[data-testid="vote-confidence-misconceptions"]')?.textContent,
+    ).toContain('Du hast selbstsicher falsch geantwortet!');
+
+    inst.scorecard.set({
+      ...scorecard,
+      wasCorrect: true,
+      confidenceValue: 5,
+    });
+    fixture.detectChanges();
+    expect(host.querySelector('[data-testid="vote-confidence-misconceptions"]')).toBeNull();
+
+    inst.status.set('FINISHED');
+    inst.personalResultLoaded.set(true);
+    inst.personalMisconceptionCount.set(1);
+    fixture.detectChanges();
+    expect(
+      host.querySelector('[data-testid="vote-finished-misconceptions"]')?.textContent,
+    ).toContain('Du hast einmal selbstsicher falsch geantwortet.');
+    fixture.destroy();
+  });
+
+  it('lädt das persönliche Ergebnis beim Quizende nur einmal', async () => {
+    let resolveResult: (value: {
+      totalScore: number;
+      rank: number;
+      bonusToken: null;
+      misconceptionCount: number;
+    }) => void = () => undefined;
+    getPersonalResultQueryMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveResult = resolve;
+        }),
+    );
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const inst = fixture.componentInstance;
+    inst.participantId.set('11111111-1111-4111-8111-111111111111');
+    inst.sessionSettings.set({ type: 'QUIZ', hostEnded: false });
+
+    (
+      inst as unknown as {
+        handleSessionFinished(): void;
+      }
+    ).handleSessionFinished();
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(getPersonalResultQueryMock).toHaveBeenCalledTimes(1);
+    resolveResult({ totalScore: 10, rank: 1, bonusToken: null, misconceptionCount: 1 });
+    await fixture.whenStable();
+    expect(inst.personalResultLoaded()).toBe(true);
+    expect(inst.personalMisconceptionCount()).toBe(1);
+    expect(getPersonalResultQueryMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
   it('zeigt für Platz 1 im Finale eine explizite Sieger-Copy', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const inst = fixture.componentInstance;
@@ -4947,7 +5044,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Stimmensaldo');
-    expect(text).toContain('Beste Fragen');
+    expect(text).toContain('Klare Zustimmung');
     expect(text).toContain('Kontroverse');
     expect(text).toContain('Zeit');
     expect(text).toContain('Fragen durchsuchen');

@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from './logger';
 import {
   beginWordCloudAnalysisTelemetry,
   recordWordCloudAnalyzeTelemetry,
@@ -65,5 +66,40 @@ describe('wordCloudNlpTelemetry', () => {
 
     finishSecond();
     expect(snapshotWordCloudNlpTelemetry().inFlight).toBe(0);
+  });
+
+  it('unterscheidet LLM-Aufruf, Modellannahme und Labelcache im Analyse-Log', () => {
+    const info = vi.spyOn(logger, 'info').mockImplementation(() => logger);
+    recordWordCloudAnalyzeTelemetry({
+      sessionCode: 'ABC123',
+      mode: 'SEMANTIC',
+      metric: 'BEST',
+      normalization: 'NONE',
+      normalizationApplied: 'NONE',
+      fallbackReason: null,
+      durationMs: 42,
+      itemCount: 100,
+      snapshotCache: 'miss',
+      textCacheHits: 0,
+      textCacheMisses: 0,
+      sidecarCalled: false,
+      encoderCalled: true,
+      labelSettlement: 'complete',
+      labelModelAccepted: true,
+      labelModelCalled: false,
+      labelCacheHits: 3,
+      labelCacheMisses: 0,
+    });
+
+    expect(info).toHaveBeenCalledWith(
+      'wordcloud:analyze',
+      expect.objectContaining({
+        labelModelAccepted: true,
+        labelModelCalled: false,
+        labelCacheHits: 3,
+        labelCacheMisses: 0,
+      }),
+    );
+    info.mockRestore();
   });
 });

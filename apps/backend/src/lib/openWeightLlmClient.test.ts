@@ -294,6 +294,33 @@ describe('openWeightLlmClient', () => {
     expect(JSON.parse(body.messages[1]?.content ?? '{}')).toEqual(injected);
   });
 
+  it.each(['de', 'en', 'fr', 'es', 'it'] as const)(
+    'sendet die deutsche Lernziel-Wortstellungsregel nur für de (%s)',
+    async (locale) => {
+      const request = successfulTransport();
+      resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+      await expect(
+        runOpenWeightLlmLearningObjectives({ ...requests.learning_objectives, locale }),
+      ).resolves.toMatchObject({ status: 'completed' });
+
+      const completion = request.mock.calls.find(([input]) => input.method === 'POST')?.[0];
+      const body = JSON.parse(completion?.body ?? '{}') as {
+        messages: Array<{ role: string; content: string }>;
+      };
+      expect(body.messages[0]).toMatchObject({ role: 'system' });
+      for (const instruction of [
+        'Formuliere jedes deutsche Lernziel als Fortsetzung von »Ich kann …«.',
+        'Schreibe ins Feld text nur die Fortsetzung.',
+        'Nenne zuerst den fachlichen Gegenstand und setze das Handlungsverb im Infinitiv möglichst ans Ende.',
+        'Eine elektrische Schaltung skizzieren.',
+        'Messwerte einer Kategorie zuordnen.',
+        'Vermeide substantivierte Handlungsverben am Anfang.',
+      ]) {
+        expect(body.messages[0]?.content.includes(instruction), instruction).toBe(locale === 'de');
+      }
+    },
+  );
+
   it('serialisiert Summary V2 exakt als zwei Systemnachrichten plus kanonischen Fachkontext', async () => {
     const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
     const analysis = ModerationAnalysisContextV1Schema.parse({
@@ -361,8 +388,8 @@ describe('openWeightLlmClient', () => {
         };
       };
     };
-    expect(outputProp?.properties?.statements?.minItems).toBeUndefined();
-    expect(outputProp?.properties?.statements?.maxItems).toBe(3);
+    expect(outputProp?.properties?.statements?.minItems).toBe(2);
+    expect(outputProp?.properties?.statements?.maxItems).toBe(4);
     expect(outputProp?.properties?.statements?.items?.properties?.sourceIds?.items?.enum).toEqual(
       prepared.request.promptContext.context.sources.map((s) => s.id),
     );

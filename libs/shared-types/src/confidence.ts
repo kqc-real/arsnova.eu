@@ -136,6 +136,79 @@ export function isConfidenceScaleValue(value: number): boolean {
   return Number.isInteger(value) && value >= CONFIDENCE_SCALE_MIN && value <= CONFIDENCE_SCALE_MAX;
 }
 
+/**
+ * Eigene selbstsicher falsche Antwort (Skala 4–5). Zählt nur die Stimme dieser Person,
+ * nicht das Aggregat der Gruppe.
+ */
+export function isPersonalMisconception(
+  isCorrect: boolean | null | undefined,
+  confidenceValue: number | null | undefined,
+): boolean {
+  return (
+    isCorrect === false &&
+    typeof confidenceValue === 'number' &&
+    isConfidenceScaleValue(confidenceValue) &&
+    classifyConfidenceTier(confidenceValue) === 'high'
+  );
+}
+
+/**
+ * Zahl der eigenen möglichen Fehlkonzepte.
+ * Die spätere Runde derselben Person ersetzt ihre frühere Runde.
+ * `null`, wenn keine Selbsteinschätzung abgegeben wurde.
+ */
+export function countPersonalMisconceptions(
+  questions: ReadonlyArray<{ questionId: string; confidenceEnabled: boolean }>,
+  votes: ReadonlyArray<{
+    questionId: string;
+    round?: number | null;
+    isCorrect?: boolean | null;
+    confidenceValue?: number | null;
+  }>,
+): number | null {
+  const enabled = new Set(
+    questions
+      .filter((question) => question.confidenceEnabled)
+      .map((question) => question.questionId),
+  );
+  if (enabled.size === 0) {
+    return null;
+  }
+
+  const latest = new Map<
+    string,
+    { round: number; isCorrect: boolean | null; confidenceValue: number | null }
+  >();
+  for (const vote of votes) {
+    if (!enabled.has(vote.questionId)) {
+      continue;
+    }
+    const round = vote.round ?? 1;
+    const current = latest.get(vote.questionId);
+    if (current && current.round > round) {
+      continue;
+    }
+    latest.set(vote.questionId, {
+      round,
+      isCorrect: vote.isCorrect ?? null,
+      confidenceValue: vote.confidenceValue ?? null,
+    });
+  }
+
+  let sawConfidence = false;
+  let count = 0;
+  for (const vote of latest.values()) {
+    if (typeof vote.confidenceValue !== 'number' || !isConfidenceScaleValue(vote.confidenceValue)) {
+      continue;
+    }
+    sawConfidence = true;
+    if (isPersonalMisconception(vote.isCorrect, vote.confidenceValue)) {
+      count += 1;
+    }
+  }
+  return sawConfidence ? count : null;
+}
+
 export function classifyConfidenceTier(value: number): ConfidenceTier {
   if (value <= CONFIDENCE_LOW_MAX) {
     return 'low';

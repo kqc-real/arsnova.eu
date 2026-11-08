@@ -281,6 +281,12 @@ export function toQaSummaryScanBullet(text: string, locale: QaSummaryScanLocale 
     return normalized;
   }
 
+  // Extraktive Rückfälle zeigen die Originalfrage. Fragen dürfen weder gekürzt
+  // noch durch die Heuristik zu einer vermeintlichen Themenaussage umgebaut werden.
+  if (/[?？][«»“”"']?$/u.test(normalized)) {
+    return normalized;
+  }
+
   const existing = normalized.match(EXISTING_LEAD_RE);
   if (existing) {
     const lead = existing[1]?.trim() ?? '';

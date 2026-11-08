@@ -701,6 +701,9 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
     .first();
   await waitForVisible(openWordCloud);
   await clickViaDom(openWordCloud);
+  const projectWordCloud = host.locator('.qa-word-cloud-dialog__project').first();
+  await waitForVisible(projectWordCloud);
+  await clickViaDom(projectWordCloud);
   const exclusiveWordCloudVisible = await presenter
     .locator('.session-present__word-cloud-card')
     .waitFor({ state: 'visible', timeout: 10_000 })
@@ -719,6 +722,15 @@ async function verifyPresenterView(host, presenter, code, hardFailures) {
   } else {
     hardFailures.push('Presenter does not switch exclusively to the Q&A word cloud.');
     logStep(false, 'Presenter switches exclusively to Q&A word cloud');
+  }
+
+  const presentationStartDialog = host.locator('.presentation-start-dialog-panel').first();
+  if (await presentationStartDialog.isVisible().catch(() => false)) {
+    await presentationStartDialog
+      .locator('.presentation-start-dialog__actions button')
+      .first()
+      .click();
+    await presentationStartDialog.waitFor({ state: 'hidden', timeout: 10_000 });
   }
 
   const closeWordCloud = host.locator('.qa-word-cloud-dialog__close').first();

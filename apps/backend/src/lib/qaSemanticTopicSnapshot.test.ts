@@ -1,4 +1,4 @@
-import type { AnalyzeWordCloudOutput } from '@arsnova/shared-types';
+import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
 import { describe, expect, it, vi } from 'vitest';
 import type { WordCloudAnalysisCache } from './wordCloudAnalysisCache';
 import {
@@ -60,12 +60,25 @@ const buildInput = {
   corpusItems: [firstQuestion, secondQuestion],
 } as const satisfies QaSemanticTopicSnapshotBuildInput;
 
+const analysisInput = {
+  sessionCode: 'ABC123',
+  mode: 'SEMANTIC',
+  locale: 'de',
+  metric: 'BEST',
+  channel: 'QA',
+  normalization: 'NONE',
+  items: [...buildInput.corpusItems],
+  corpusRevision: 'ranking-revision-7:limit=500',
+} as const satisfies AnalyzeWordCloudInput;
+
 function createCacheMock() {
   return {
     getText: vi.fn(async () => null),
     setText: vi.fn(async () => undefined),
     getSnapshot: vi.fn(async () => null),
     setSnapshot: vi.fn(async () => undefined),
+    getQaSemanticTopicSnapshot: vi.fn(async () => null),
+    setQaSemanticTopicSnapshot: vi.fn(async () => undefined),
     getLatestQaSemanticTopicSnapshot: vi.fn(async () => null),
     setLatestQaSemanticTopicSnapshot: vi.fn(async () => undefined),
   } satisfies WordCloudAnalysisCache;
@@ -117,6 +130,32 @@ describe('qaSemanticTopicSnapshot', () => {
     });
 
     expect(reordered?.topics).toEqual(first?.topics);
+  });
+
+  it('akzeptiert einen Modell-Anzeigenamen mit extraktiver Labelquelle', () => {
+    const snapshot = buildQaSemanticTopicSnapshot({
+      ...buildInput,
+      analysis: {
+        ...analysis,
+        labelModelId: 'Qwen3-4B-Instruct-2507',
+        labelModelVersion: 'sha256:topic-label-model',
+        entries: [
+          {
+            ...analysis.entries[0],
+            label: 'Vertrauliche Fragen',
+            basisLabel: secondQuestion.text,
+            labelOrigin: 'model',
+          },
+        ],
+      },
+    });
+
+    expect(snapshot?.topics[0]?.labelSourceQuestionId).toBe(secondQuestion.id);
+    expect(snapshot?.topics[0]?.modelLabel).toEqual({
+      text: 'Vertrauliche Fragen',
+      modelId: 'Qwen3-4B-Instruct-2507',
+      modelVersion: 'sha256:topic-label-model',
+    });
   });
 
   it.each([
@@ -195,11 +234,13 @@ describe('qaSemanticTopicSnapshot', () => {
     const recorded = await recordLatestQaSemanticTopicSnapshot({
       cache,
       scope,
+      analysisInput,
       ...buildInput,
     });
     const skipped = await recordLatestQaSemanticTopicSnapshot({
       cache,
       scope,
+      analysisInput,
       ...buildInput,
       request: { ...buildInput.request, filter: 'PINNED_ONLY' },
     });
@@ -208,5 +249,7 @@ describe('qaSemanticTopicSnapshot', () => {
     expect(skipped).toBeNull();
     expect(cache.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
     expect(cache.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledWith(recorded, scope);
+    expect(cache.setQaSemanticTopicSnapshot).toHaveBeenCalledOnce();
+    expect(cache.setQaSemanticTopicSnapshot).toHaveBeenCalledWith(analysisInput, recorded, scope);
   });
 });

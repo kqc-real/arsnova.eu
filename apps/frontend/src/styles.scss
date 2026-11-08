@@ -1169,6 +1169,15 @@ html {
   --mdc-dialog-container-color: transparent;
 }
 
+// Material has no public label-wrapping/padding token for button toggles.
+// Fullscreen cloud tools must keep all three analysis choices visible at 320 px.
+.word-cloud-dialog-panel .qa-word-cloud-dialog__analysis-toggle .mat-button-toggle-label-content {
+  padding-inline: 0.45rem;
+  padding-block: 0.5rem;
+  line-height: 1.4;
+  white-space: normal;
+}
+
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-inner-container,
 .cdk-overlay-pane.word-cloud-dialog-panel .mdc-dialog__container,
 .cdk-overlay-pane.word-cloud-dialog-panel .mat-mdc-dialog-container,

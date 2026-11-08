@@ -14,7 +14,7 @@
 
 ## Zweck
 
-Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden ein erklärbares Thema mit Mitgliedsliste, Konfidenz und Modellversion.
+Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Klare Zustimmung` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden zu erklärbaren Themen mit Mitgliedsliste, Konfidenz und Modellversion gruppiert.
 
 Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentraler Mitgliedstext). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
 
@@ -22,24 +22,36 @@ Kein Encoder-Code im Browser. Teilnehmer-DTOs enthalten keine Cluster-Felder. Li
 
 ## UI-Begriffe
 
-Die Auswahloption heißt **Thema** in Q&A, Freitext und auf der Presenter-Pille. Statussätze wie **Themen werden vorbereitet.** bleiben in der Mehrzahl. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
+Die Auswahloption heißt **Themen** in Q&A, Freitext und im Presenter. Statussätze wie **Themen werden vorbereitet.** bleiben ebenfalls in der Mehrzahl. Intern heißt die Variante `SEMANTIC`. Nicht in der Host-UI: `Semantische Themen`, `Encoder`, `e5`, `Embedding`, `Clustering`.
 
-| Zustand         | Host-Text                                                                                             |
-| --------------- | ----------------------------------------------------------------------------------------------------- |
-| Läuft           | **Themen werden vorbereitet.**                                                                        |
-| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** bzw. **Neue Antworten seit der letzten Themenanalyse** |
-| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                           |
-| Fehlgeschlagen  | **Themenanalyse fehlgeschlagen.**                                                                     |
-| Nicht belastbar | **Themen sind gerade nicht belastbar.**                                                               |
-| Nicht verfügbar | **Themen sind noch nicht verfügbar.**                                                                 |
+Wenn das kurze Themenlabel von einer längeren repräsentativen Frage oder Antwort abweicht, steht dieser unveränderte Beleg unter der Wortwolke als **Beispiel aus den Originalbeiträgen**. Er wird semantisch als Zitat und visuell nachgeordnet dargestellt, nie als redaktionell geglättete Zusammenfassung. Grammatik, Stil und Aufbau bleiben deshalb so erhalten, wie sie eingereicht wurden. Erkennungssicherheit, Gewichtung und weitere Angaben bleiben nachgeordnete Metadaten. Das kompakte Themenlabel bleibt auf 128 Zeichen begrenzt; die repräsentative Q&A-Frage wird dagegen bis zum vollständigen Einreichungslimit von 1.000 Unicode-Codepoints übertragen, um den Beleg nicht abzuschneiden. Eine Payload-Version im Snapshot-Cache trennt ältere, bereits gekürzte Ergebnisse von diesem Vertrag.
+
+| Zustand         | Host-Text                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Läuft           | **Themen werden vorbereitet.**                                                                                                 |
+| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** bzw. **Neue Antworten seit der letzten Themenanalyse**                          |
+| Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                                                    |
+| Fehlgeschlagen  | **Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.**                      |
+| Nicht belastbar | **Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.** |
+| Nicht verfügbar | **Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen.**                                                           |
 
 Die Toolbars zeigen die wirksame Analysesprache. Ohne Sprachwahl entspricht sie der Oberflächensprache. Lokale Extraktion, Stoppwörter, Glättung und Themenanalyse verwenden dieselbe Wahl. Lemma ist für DE/EN/FR/ES verfügbar. Encoder und Modellnamen sind auf DE/EN beschränkt. Italienisch verwendet lokale Extraktion. Für Q&A umfasst die lokale Analyse den sichtbaren Seitenausschnitt.
 
-`mode` hält die Wahl der Toolbar fest. `effectiveMode` beschreibt die sichtbaren Einträge. `analysisStatus` beschreibt den Analysestand in der Projektion. Titel, Zähler, Beschreibungen und Themenfilter folgen den sichtbaren Einträgen. Die Ersatzansicht kann je nach Daten Wörter oder Wörter und Phrasen enthalten. Während einer Aktualisierung können vorherige Themen sichtbar bleiben. `THEME` bezeichnet die lexikalische Phrasenansicht.
+`mode` hält die Wahl der Toolbar fest. `effectiveMode` beschreibt die sichtbaren Einträge. `analysisStatus` beschreibt den Analysestand in der Projektion. Titel, Zähler, Beschreibungen und Themenfilter folgen den sichtbaren Einträgen. Die Ersatzansicht kann je nach Daten Wörter oder Wörter und Wortgruppen enthalten. Während einer Aktualisierung können vorherige Themen sichtbar bleiben. `THEME` bezeichnet die lexikalische Wortgruppenansicht.
 
 Der Q&A-Presenter übernimmt die Host-Projektion einschließlich Gewichtung, Glättung und Korpusabdeckung. Der Quiz-Freitext-Presenter folgt zunächst der Projektion und kann mit Host-Berechtigung selbst analysieren. Er verwendet dabei die gewählte Host-Analysesprache. Das öffentliche Freitext-DTO enthält die kompakten Einträge samt sichtbaren Labels und gegebenenfalls deren Herkunft. Bei älteren Projektionen ohne Ergebnistyp erkennt die Bühne Themen an der Namensherkunft oder am früheren Cluster-Schlüssel. Bei lexikalischen Einträgen bestimmt sie die passende Wort- oder Phrasenansicht. Die Bühnenansichten verwenden weiterhin `outputOnly` und die bestehende Begrenzung der sichtbaren Blasen.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
+
+### Verständliche Bedienung und Projektion
+
+Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Direkt unter der Auswahl erklärt ein dauerhaft sichtbarer, kurzer Hinweis die tatsächlich angezeigte Verarbeitung: Ersatzansichten folgen ihrem effektiven Modus, und die Grundform-Bündelung wird nur bei einem sichtbaren Lemma-Snapshot behauptet. Die zusätzliche Beschreibung im Wolkenkopf entfällt, weil sie Auswahl und Hinweis nur wiederholen würde. Sprachwahl und **Nach Grundform bündeln** liegen unter **Weitere Optionen**. Beim Aufklappen dieses Bereichs bleiben die Umschalter oben ausgerichtet und behalten ihre normale Höhe.
+
+Die Q&A-Wolke öffnet aus Werkzeugen und Kompass zunächst ohne eigene Projektion und ohne zusätzlichen Statussatz. Ab Tabletgröße verwendet der Präsentationseinstieg dasselbe Beamer-Icon und abhängig vom Fensterzustand dasselbe Label **Präsentationsansicht öffnen**, **Zur Präsentationsansicht wechseln** oder **Präsentationsansicht fortsetzen** wie die übrige Host-Oberfläche. Auf Smartphones bleibt die Wortwolke eine reine Analyseansicht ohne Projektionsaktion oder Projektionsstatus. Beim Projizieren übernimmt ein gemeinsames Host-Kommando serverseitig den Q&A-Live-Kanal, den sichtbaren Wortwolken-Snapshot und die Q&A-Wortwolkenfläche; Status-Refreshes können den Start deshalb nicht mehr zwischen mehreren Client-Requests trennen. Die Projektion bleibt auch nach dem Quizabschluss während der gültigen Session- und Nachbesprechungsfrist steuerbar; nach Ablauf lehnt das Backend Änderungen weiter ab. Eine laufende Änderung und die bestätigte Projektion werden angekündigt; zum Beenden steht **Auf der Präsentation ausblenden** bereit. Bei Fehler bleibt die Aktion erneut erreichbar. Das Schließen einer selbst projizierten Wolke blendet diese zuerst bestätigt aus; bei Fehler bleibt der Dialog offen. Eine bereits von anderer Stelle projizierte Wolke wird beim Öffnen oder Schließen nicht übernommen.
+
+Ein Kompass-Sprung übergibt die IDs der belegenden Q&A-Fragen an die kanonische Host-Analyse. Das Backend ordnet diese IDs anhand des vollständigen Themen-Snapshots einer stabilen Gruppenschlüssel-ID zu. So trifft die Wortwolke auch dann die richtige Themenblase, wenn ihr kurzes Themenlabel weder dem ursprünglichen Suchbegriff noch dem repräsentativen, in der kompakten Antwort enthaltenen Mitgliedstext entspricht. Die zusätzlichen Fokusfelder sind ausschließlich Host-Metadaten; Teilnehmer-DTOs und die kompakte Mitgliedsliste werden nicht erweitert.
+
+Q&A-Dialog und Bühne erklären die Größe mit demselben, zur angezeigten Snapshot-Metrik gehörenden Lesesatz. **Klare Zustimmung** bezeichnet Bewertungen durch Teilnehmende, keine fachliche Qualitätsprüfung. Die Bühne zeigt keine Glättungs-, Konfidenz- oder Modell-Chips. **Gruppierung prüfen** hält Konfidenzfilter und die Erläuterung ihrer Grenzen in der Host-Ansicht zugänglich. **Anzeige anhalten** und **Anzeige fortsetzen** beziehen sich auf die Wolke; ein Hinweis erklärt, dass damit die Sammlung neuer Beiträge nicht angehalten wird.
 
 ## Host-Verhalten
 
@@ -63,7 +75,7 @@ Einfrieren hält die sichtbare Wolke samt Ergebnistyp, Einträgen, Abdeckung und
 
 In Q&A zeigt das Blasendetail die Anzahl der enthaltenen Fragen und die Größenmetrik separat. Die Abdeckung zeigt ausgewertete und geeignete Fragen. Host-Ansichten öffnen zu einer ausgewählten Themenblase die vorhandenen Mitgliedsbelege und geben bei Kürzung den sichtbaren und gesamten Umfang an. Die Bühnenplatzierung versucht, vorhandene Positionen anhand stabiler Eintragsschlüssel zu übernehmen, wenn die Kapseln kollisionsfrei innerhalb der Bühne liegen.
 
-Tooltip und Fokus-/Textalternative zeigen Label, Gewichtung, Metrik, Mitgliedsfragen beziehungsweise -antworten und bei Themen auch die Konfidenz. Der CSV-Export kennzeichnet die sichtbare Ansicht in der Spalte `view`. Im PNG steht dieselbe Kennzeichnung über der Wolke. Bei einer lexikalischen Ersatzansicht nennt der Export die tatsächlich dargestellten Wörter beziehungsweise Wörter und Phrasen.
+Tooltip und Fokus-/Textalternative zeigen Label, Gewichtung, Metrik, Mitgliedsfragen beziehungsweise -antworten und bei Themen auch die Konfidenz. Der CSV-Export kennzeichnet die sichtbare Ansicht in der Spalte `view`. Im PNG steht dieselbe Kennzeichnung über der Wolke. Bei einer lexikalischen Ersatzansicht nennt der Export die tatsächlich dargestellten Wörter beziehungsweise Wörter und Wortgruppen.
 
 ## Pipeline
 
@@ -82,13 +94,13 @@ Host-Snapshot (Q&A: PINNED/ACTIVE; Freitext: aktuelle sichtbare Antworten; Gewic
 
 Der Sidecar liefert ausschließlich Vektoren. Clustering und Labels laufen in TypeScript im App-Backend, nicht im Browser und nicht in spaCy. Der Encodertransport lässt global höchstens einen Sidecar-Call gleichzeitig zu (`MAX_IN_FLIGHT=1`). Die vorgeschaltete Orchestrierung hält **pro Session** höchstens einen aktiven Job und genau den neuesten abweichenden Folgesnapshot (`active + latest`). Gleiche Snapshot-Hashes teilen das Promise des aktiven beziehungsweise wartenden Jobs. Der neueste verschiedene Snapshot wartet auf den Abschluss des aktiven Jobs; er erhält nicht sofort eine künstliche `pending`-Antwort. Kommt vorher noch ein neuerer verschiedener Snapshot, wird nur der wartende Slot ersetzt: Die verdrängten Aufrufer erhalten sofort den lexikalischen, nicht cachebaren `fallback`, während der neue `latest`-Aufruf wartet. Nach Erfolg oder Fehler des aktiven Jobs startet der verbliebene Ersatzjob serialisiert. `pending` ist dabei der Frontend-Fortschrittszustand während des wartenden Requests, kein zweiter parallel laufender Encoderjob.
 
-### Interner Latest-Q&A-Themenbeleg für #456 Slice 2
+### Interne Q&A-Themenbelege für #456 Slice 2
 
-Ein frisch berechneter Q&A-Lauf aktualisiert neben dem normalen Anzeige-Cache genau dann einen getrennten internen Latest-Beleg, wenn Anfrage und Ergebnis `SEMANTIC`, `ALL_ELIGIBLE`, `ready` oder `uncertain`, kein Fallback und eine vollständig aufgeführte Mitgliedschaft ausweisen. `PINNED_ONLY`, lexikalische Ergebnisse, Fehler, Fallbacks und vom Presenter kompakt gekürzte Mitgliedslisten werden nicht als ungekürzter Themenbeleg gespeichert. Der bestehende Host-Response und seine Kompaktierung bleiben davon unverändert.
+Ein frisch berechneter Q&A-Lauf aktualisiert neben dem normalen Anzeige-Cache genau dann getrennte interne Themenbelege, wenn Anfrage und Ergebnis `SEMANTIC`, `ALL_ELIGIBLE`, `ready` oder `uncertain`, kein Fallback und eine vollständig aufgeführte Mitgliedschaft ausweisen. Ein Beleg ist an exakt dieselbe Analyseidentität wie der kompakte Anzeige-Snapshot gebunden; dazu gehören insbesondere Session, Korpusrevision einschließlich Limit, Metrik, Normalisierung und Snapshot-Hash. Ein zusätzlicher sessionweiter Latest-Beleg bleibt die Quelle für den Moderationskontext. `PINNED_ONLY`, lexikalische Ergebnisse, Fehler, Fallbacks und vom Presenter kompakt gekürzte Mitgliedslisten werden nicht als ungekürzter Themenbeleg gespeichert. Der bestehende Host-Response und seine Kompaktierung bleiben davon unverändert. Kompass-Sprünge lesen ausschließlich den Beleg der konkret ausgelieferten Analyse. Eine zwischenzeitliche Analyse mit einem anderen Limit kann ihre Fokuszuordnung daher auch bei einem Cache-Treffer nicht überschreiben.
 
 Der Wert ist über die unveränderliche, serverseitig ermittelte Session-ID gebunden und enthält keine Fragen- oder Labeltexte. Gespeichert werden Status, Metrik, Korpus- und Analyserevision, Analysezeit, Modellkennung/-version, Korpusgrößen sowie je Thema eine stabile Kennung, Konfidenz, Labelquellen-ID und die vollständige Menge `{ questionId, textDigest }`. Der Moderationskontext lädt aktuelle Texte später erneut aus PostgreSQL, prüft Sessionzugehörigkeit, sichtbaren Status und Digest und bildet das extraktive Label aus der aktuellen Labelquelle. Damit kann ein veralteter Cachewert weder alten Fragetext noch ein altes Label offenlegen.
 
-Der Latest-Beleg verwendet denselben Redis-v2-Sessionnamespace, dieselbe Encoder-Cache-TTL, denselben begrenzten Index, dieselbe Purge-Fence und denselben atomaren indizierten Schreibpfad wie die anderen Analysesnapshots. Er wird daher durch Retention oder explizite Sessionlöschung gemeinsam entfernt und kann hinter einer gesetzten Fence nicht neu geschrieben werden. Lesen und Projizieren startet keinen Encoder-, NLP- oder LLM-Job. Bei deaktiviertem Semantikmodul, fehlendem Beleg, abweichender Revision oder nicht mehr vollständig validierbarer Mitgliedschaft degradiert der Moderationskontext ausdrücklich zu `disabled`, `no-data`, `stale` beziehungsweise einer Redaktionsbegrenzung. Der Wert ist kein neuer tRPC-Pfad und wird nicht an Presenter oder Teilnehmende ausgeliefert.
+Die Themenbelege verwenden denselben Redis-v2-Sessionnamespace, dieselbe Encoder-Cache-TTL, denselben begrenzten Index, dieselbe Purge-Fence und denselben atomaren indizierten Schreibpfad wie die anderen Analysesnapshots. Sie werden daher durch Retention oder explizite Sessionlöschung gemeinsam entfernt und können hinter einer gesetzten Fence nicht neu geschrieben werden. Lesen und Projizieren startet keinen Encoder-, NLP- oder LLM-Job. Bei deaktiviertem Semantikmodul, fehlendem Beleg, abweichender Revision oder nicht mehr vollständig validierbarer Mitgliedschaft degradiert der Moderationskontext ausdrücklich zu `disabled`, `no-data`, `stale` beziehungsweise einer Redaktionsbegrenzung. Die Werte bilden keinen neuen tRPC-Pfad und werden nicht an Presenter oder Teilnehmende ausgeliefert.
 
 Ein Session-Purge erhöht die Queue-Epoche und invalidiert aktive wie wartende Arbeit. Der wartende Aufruf fällt sofort lexikalisch zurück; ein bereits laufender Sidecar-Call darf technisch auslaufen, sein Ergebnis wird nach der Rückkehr jedoch ebenfalls durch einen nicht cachebaren Fallback ersetzt. Ein danach angeforderter Ersatzsnapshot läuft erst serialisiert nach dem alten Call. Redis-Snapshots liegen im v2-Namespace unter der unveränderlichen, serverseitig aus PostgreSQL geladenen Session-ID. Ein begrenzter Session-Index (maximal 2.048 Einträge) und eine 24 Stunden gültige Purge-Fence teilen denselben Redis-Hash-Slot. Der Lua-Write prüft die Fence, indiziert zuerst und schreibt Mitgliedstexte zuletzt. Der Purge setzt die Fence, validiert den zuvor gelesenen Index gegen einen möglichen Write-Race und entfernt Index plus Snapshot-Schlüssel atomar; bei einer Indexänderung wiederholt er den nun durch die Fence stabilen Versuch einmal. In Produktion liest die Durability-Barriere vor diesem Write-Segment sowohl den Redis-Server-`run_id` aus `INFO server` als auch die verbindungsgebundene `CLIENT ID`, schreibt danach einen zufälligen, unsensiblen Fünf-Minuten-Marker, verlangt per `WAITAOF` mindestens einen lokalen AOF-Fsync und akzeptiert nur denselben Serverlauf und dieselbe Verbindung danach. Fehlender Fsync, Reconnect oder Redis-Neustart bricht den fachlichen Session-Delete für einen sichtbaren vollständigen Retry ab. Danach kann kein alter LEXICAL-, LEMMA- oder SEMANTIC-Aufruf mehr schreiben; deshalb bleibt der zweite Pass nach dem Datenbank-Delete idempotente Absicherung und braucht bei einem Fehler keinen dauerhaften Datenschutz-Retry. Ein wiederverwendeter sechsstelliger Code erhält eine neue Session-ID und damit einen unabhängigen Cache-Scope.
 
@@ -99,6 +111,13 @@ Der bewusst kalte Analysecache gilt für Normaldeploy sowie für Rollback/Recove
 Die globalen Sweeps erfassen ihren Server-`run_id` und ihre `CLIENT ID` vor dem ersten `SCAN` und bestätigen alle `UNLINK`s mit einem zufälligen Marker unter `nlp:wc:purge-durability:v1:*`, `WAITAOF` sowie unverändertem Serverlauf und unveränderter Verbindung. Der Marker enthält keine Sessiondaten, verfällt nach fünf Minuten, liegt außerhalb beider Scan-Namespaces und überspringt nie einen Sweep. Ein Fehler verhindert Retention beziehungsweise App-Start; ein späterer Lauf scannt vollständig neu. Jeder Rollout-Sweep kostet `O(N + K)` für N besuchte Redis-Schlüssel und K entfernte Cache-Treffer; die konstanten Wiederholungen ändern die asymptotische Grenze nicht. Zusammen mit S indizierten Session-Purges bleibt sie `O(N + K + S)` statt früher `O(S×N)`. Bulk-Purges verarbeiten höchstens 25 Sessions parallel und verwenden pro Chunk eine gemeinsame Barriere; `Promise.allSettled` lässt den Chunk vor dem ersten gemeldeten Fehler vollständig auslaufen. Dieser globale Vertrag setzt den produktiven einzelnen Redis-7.4-Primary mit normalem ioredis-Client und ACL-Rechten für `CLIENT ID`, `INFO server`, `SET`, `WAITAOF`, `SCAN` und `UNLINK` voraus; Redis Cluster wird nicht unterstützt. Die sessiongebundenen Lua-Schlüssel teilen unabhängig davon `{sessionId}` als Hash-Slot.
 
 Circuit Breaker: drei Encoder-Fehler öffnen 30 s; danach `failed` plus 2.x ohne neuen Call.
+
+Das strukturierte `wordcloud:analyze`-Log unterscheidet den Namensschritt
+explizit: `labelModelCalled` zeigt einen tatsächlichen LLM-Adapteraufruf,
+`labelCacheHits` und `labelCacheMisses` den davon unabhängigen
+Clusterlabelcache. `labelModelAccepted` bedeutet weiterhin nur, dass mindestens
+ein Modelllabel im Ergebnis verwendet wird; bei einem Cachetreffer kann dieser
+Wert daher `true` sein, obwohl `labelModelCalled=false` ist.
 
 Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln. Q&A verwendet UUID-basierte Schlüssel; Freitext verwendet die stabilen `response-{index}`-Schlüssel des unveränderlichen Host-Snapshots. Der interne Encodertransport versieht beide mit demselben Prefix und bildet sie anschließend auf die ursprünglichen IDs zurück. Keine Tokens, IPs, Nicknames, Participant-IDs oder Session-Codes in den Item-Feldern. Extra-Felder lehnt der Sidecar ab.
 
@@ -133,7 +152,32 @@ Im App-Container `WORD_CLOUD_SEMANTIC_ENABLED=true` und Socket `/run/wordcloud-e
 
 ### Lokal (Host-npm / macOS)
 
-Compose-Profil `encoder` bleibt `network_mode: none` (Unix-Socket, für Host-Node unsichtbar). Lokal das gebaute Image per Loopback-HTTP:
+`npm run dev`, `npm run dev:de`, `npm run dev:en`, `npm run dev:qa-summary` und
+der hervorgehobene KI-Gesamtstart `npm run dev:ai`
+starten den Encoder als zusätzlichen Vordergrundprozess über `npm run encoder:dev`. Das
+Backend aktiviert dabei `WORD_CLOUD_SEMANTIC_ENABLED=true`, verwendet
+`http://127.0.0.1:8790/embed` und setzt den CPU-Timeout auf 120 Sekunden. Der erste
+Start baut das Image und lädt Modell sowie Python-Abhängigkeiten; spätere Starts
+verwenden den Docker-Build-Cache. `Ctrl+C` beendet und entfernt den Dev-Container.
+Der Dev-Container ist auf 1 CPU und 2 GiB RAM begrenzt. Der Datenträgerbedarf
+umfasst Image, ONNX-Modell und Docker-Build-Cache und ist daher
+plattformabhängig. Für den vollständigen `dev:ai`-Stack gelten die
+[Ressourcen-Planungswerte im Onboarding](../onboarding.md#ressourcen-für-devai).
+
+Der Themenpfad verwendet kein k-NN. Das E5-Modell erzeugt Vektoren; die
+Gruppierung erfolgt im Backend durch Complete-Linkage über alle paarweisen
+Kosinusähnlichkeiten. k-NN kommt nur in der getrennten Q&A-Kategorisierung
+aus Story 8.9b als Fallback zum Einsatz.
+
+Der eigenständige Aufruf lautet:
+
+```bash
+npm run encoder:dev
+```
+
+Das Compose-Profil `encoder` bleibt `network_mode: none` (Unix-Socket, für
+Host-Node unsichtbar). Der Dev-Starter verwendet deshalb denselben gebauten
+Container ausschließlich per Loopback-HTTP. Der entsprechende manuelle Aufruf ist:
 
 ```bash
 docker build -t arsnova-wordcloud-encoder:e5-small docker/wordcloud-encoder
@@ -156,7 +200,7 @@ Lokale Q&A-Paraphrasen (Klausur/Regression/Folien/Beamer plus längere Fragen f�
 
 ## Vertrag
 
-Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstanten in `libs/shared-types/src/word-cloud-semantic.ts`. Cluster-Status liegen auf diesem Vertrag, nicht auf `QaSummaryStatusEnum` / 8.9c.
+Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstanten in `libs/shared-types/src/word-cloud-semantic.ts`. `wordCloud.analyzeQa` nimmt optional eine begrenzte Liste `focusQuestionIds` entgegen und liefert den zugehörigen `focusedGroupKey`, sofern der aktuelle Themen-Snapshot eine Zuordnung erlaubt. Cluster-Status liegen auf diesem Vertrag, nicht auf `QaSummaryStatusEnum` / 8.9c.
 
 Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `fallback`.
 

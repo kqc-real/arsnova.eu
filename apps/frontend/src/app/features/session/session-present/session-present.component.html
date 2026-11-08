@@ -1242,8 +1242,7 @@
               [selectionScopeKey]="qaWordCloudProjection()?.mode ?? null"
               [wordLabelSingular]="qaWordCloudWordLabelSingular()"
               [wordLabelPlural]="qaWordCloudWordLabelPlural()"
-              [weightingHint]="null"
-              [contextPills]="qaWordCloudContextPills()"
+              [weightingHint]="qaWordCloudReadingHint()"
               [emptyMessage]="qaWordCloudEmptyMessage"
               [presentationMode]="true"
               [outputOnly]="true"
@@ -1395,13 +1394,13 @@
               value="PHRASES"
               data-testid="presenter-freetext-word-cloud-phrases"
               i18n="@@sessionHost.wordCloudAnalysisPhrases"
-              >Wörter &amp; Phrasen</mat-button-toggle
+              >Wortgruppen</mat-button-toggle
             >
             <mat-button-toggle
               value="SEMANTIC"
               data-testid="presenter-freetext-word-cloud-semantic"
               i18n="@@sessionHost.wordCloudAnalysisSemantic"
-              >Thema</mat-button-toggle
+              >Themen</mat-button-toggle
             >
           </mat-button-toggle-group>
           <button
@@ -1419,23 +1418,35 @@
             <span>{{ presenterFreetextWordCloudFreezeLabel() }}</span>
           </button>
           @if (presenterFreetextShowSmoothing()) {
-            <button
-              mat-button
-              type="button"
-              class="session-present__word-cloud-action"
-              data-testid="presenter-freetext-word-cloud-smooth"
-              [class.session-present__word-cloud-action--pressed]="
-                presenterFreetextSmoothingPressed()
-              "
-              [disabled]="presenterFreetextSmoothingDisabled() && !presenterFreetextLemmaPending()"
-              [attr.aria-disabled]="presenterFreetextSmoothingDisabled() ? true : null"
-              [attr.aria-pressed]="presenterFreetextSmoothingPressed()"
-              [attr.aria-busy]="presenterFreetextLemmaPending() ? true : null"
-              (click)="togglePresenterFreetextWordCloudSmoothing()"
-            >
-              <mat-icon aria-hidden="true">{{ presenterFreetextSmoothingIcon() }}</mat-icon>
-              <span>{{ presenterFreetextSmoothingLabel() }}</span>
-            </button>
+            <details class="session-present__word-cloud-options">
+              <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
+              <div class="session-present__word-cloud-options-body">
+                <button
+                  mat-button
+                  type="button"
+                  class="session-present__word-cloud-action"
+                  data-testid="presenter-freetext-word-cloud-smooth"
+                  [class.session-present__word-cloud-action--pressed]="
+                    presenterFreetextSmoothingPressed()
+                  "
+                  [disabled]="
+                    presenterFreetextSmoothingDisabled() && !presenterFreetextLemmaPending()
+                  "
+                  [attr.aria-disabled]="presenterFreetextSmoothingDisabled() ? true : null"
+                  [attr.aria-pressed]="presenterFreetextSmoothingPressed()"
+                  [attr.aria-busy]="presenterFreetextLemmaPending() ? true : null"
+                  (click)="togglePresenterFreetextWordCloudSmoothing()"
+                >
+                  <mat-icon aria-hidden="true">{{ presenterFreetextSmoothingIcon() }}</mat-icon>
+                  <span>{{ presenterFreetextSmoothingLabel() }}</span>
+                </button>
+                @if (presenterFreetextSmoothingOptionHint(); as hint) {
+                  <p class="session-present__word-cloud-toolbar-status" role="status">
+                    {{ hint }}
+                  </p>
+                }
+              </div>
+            </details>
           }
           @if (presenterFreetextShowThemeRefresh()) {
             <button
@@ -1452,6 +1463,9 @@
             </button>
           }
         </div>
+        <p class="session-present__word-cloud-view-hint">
+          {{ presenterFreetextWordCloudViewHint() }}
+        </p>
         @if (presenterFreetextWordCloudHint(); as hint) {
           <p class="session-present__word-cloud-toolbar-status" role="status">{{ hint }}</p>
         }
@@ -1462,9 +1476,9 @@
           [analysisEntries]="freetextStageAnalysisEntries()"
           [title]="freetextWordCloudStageTitle()"
           [eyebrow]="freetextWordCloudEyebrow"
-          [description]="presenterFreetextWordCloudDescription()"
           [wordLabelSingular]="presenterFreetextWordCloudWordLabelSingular()"
           [wordLabelPlural]="presenterFreetextWordCloudWordLabelPlural()"
+          [weightingHint]="null"
           [showConfidenceFilter]="presenterFreetextDisplayMode() === 'SEMANTIC'"
           [selectionScopeKey]="
             freetextQuestionId() +
@@ -1475,7 +1489,6 @@
           "
           [presentationMode]="true"
           [outputOnly]="true"
-          [interactiveOutput]="true"
         />
       </div>
     } @else if (quizQuestionAwaitingSnapshot()) {

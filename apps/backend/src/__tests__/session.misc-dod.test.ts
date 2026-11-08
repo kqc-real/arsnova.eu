@@ -202,7 +202,101 @@ describe('session remaining DoD procedure evidence', () => {
           }),
         }),
       );
-      expect(result).toEqual({ totalScore: 42, rank: 1, bonusToken: 'BNS-TEST-1234' });
+      expect(result).toEqual({
+        totalScore: 42,
+        rank: 1,
+        bonusToken: 'BNS-TEST-1234',
+        misconceptionCount: null,
+      });
+      expect(prismaMock.vote.findMany).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          select: expect.objectContaining({ confidenceValue: true }),
+        }),
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getPersonalResult',
+      case: 'happy',
+      mode: 'direct',
+      title: 'lädt für die Fehlkonzept-Zahl nur aktivierte Konfidenzfragen',
+    },
+    async () => {
+      const enabledQuestionId = '11111111-1111-4111-8111-111111111111';
+      const disabledQuestionId = '22222222-2222-4222-8222-222222222222';
+      const unsupportedQuestionId = '33333333-3333-4333-8333-333333333333';
+      prismaMock.participant.findFirst.mockResolvedValue({ id: PARTICIPANT_ID });
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'FINISHED',
+        questionProgress: null,
+        questionProgressComplete: false,
+        quiz: {
+          questions: [
+            {
+              id: enabledQuestionId,
+              order: 0,
+              type: 'SINGLE_CHOICE',
+              confidenceEnabled: true,
+            },
+            {
+              id: disabledQuestionId,
+              order: 1,
+              type: 'SINGLE_CHOICE',
+              confidenceEnabled: false,
+            },
+            {
+              id: unsupportedQuestionId,
+              order: 2,
+              type: 'FREETEXT',
+              confidenceEnabled: true,
+            },
+          ],
+        },
+        participants: [{ id: PARTICIPANT_ID }],
+      });
+      prismaMock.vote.findMany.mockImplementation(
+        async (args: { select?: Record<string, boolean> }) => {
+          if (args.select?.confidenceValue === true) {
+            return [
+              {
+                questionId: enabledQuestionId,
+                round: 1,
+                isCorrect: false,
+                confidenceValue: 5,
+              },
+            ];
+          }
+          return [
+            {
+              participantId: PARTICIPANT_ID,
+              questionId: enabledQuestionId,
+              round: 1,
+              score: 0,
+              responseTimeMs: 800,
+            },
+          ];
+        },
+      );
+      prismaMock.bonusToken.findFirst.mockResolvedValue(null);
+
+      const result = await participantCaller.getPersonalResult({
+        code: 'ABC123',
+        participantId: PARTICIPANT_ID,
+      });
+
+      expect(result.misconceptionCount).toBe(1);
+      expect(prismaMock.vote.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            participantId: PARTICIPANT_ID,
+            questionId: { in: [enabledQuestionId] },
+          }),
+          select: expect.objectContaining({ confidenceValue: true }),
+        }),
+      );
     },
   );
 

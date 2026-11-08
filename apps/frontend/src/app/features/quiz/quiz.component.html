@@ -1,4 +1,8 @@
-<div class="l-page" [class.l-section]="useCompactLayout()">
+<div
+  class="l-page"
+  [class.l-section]="useCompactLayout()"
+  [class.quiz-page--collection]="useCollectionLayout()"
+>
   @if (showHeader()) {
     <div class="quiz-page__header">
       <h1 class="quiz-page__title">

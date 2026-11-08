@@ -917,13 +917,13 @@ describe('buildModerationCompassCards', () => {
           memberTexts: ['Wie berechnet man den Median?'],
         },
       ],
-      topicWeightLabel: 'Gewichtung: beste Fragen',
+      topicWeightLabel: 'Gewichtung: klare Zustimmung',
     });
 
     const topics = cards.find((card) => card.kind === 'topics');
     expect(topics?.sources.map((source) => source.label)).toEqual(['Median']);
     expect(topics?.sources[0]?.evidence).toBe('Wie berechnet man den Median?');
-    expect(topics?.hint).toBe('Gewichtung: beste Fragen');
+    expect(topics?.hint).toBe('Gewichtung: klare Zustimmung');
   });
 
   it('nimmt hervorgehobene Fragen als zusätzliche Themenquellen', () => {

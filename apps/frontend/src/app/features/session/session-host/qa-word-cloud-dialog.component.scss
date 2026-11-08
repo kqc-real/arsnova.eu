@@ -39,6 +39,8 @@
 }
 
 .qa-word-cloud-dialog__analysis-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: fit-content;
   max-width: min(100%, 48rem);
   flex: 0 1 auto;
@@ -48,7 +50,7 @@
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
-.qa-word-cloud-dialog__analysis-toggle .mat-button-toggle {
+.qa-word-cloud-dialog__analysis-toggle mat-button-toggle {
   flex: 0 0 auto;
 }
 
@@ -111,28 +113,87 @@
 }
 
 .qa-word-cloud-dialog__freeze {
-  --mat-icon-button-state-layer-size: 2.75rem;
-  --mat-icon-button-icon-size: 1.5rem;
-  --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
-  display: inline-flex;
+  min-height: 44px;
+}
+
+.qa-word-cloud-dialog__projection {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  width: var(--mat-icon-button-state-layer-size);
-  height: var(--mat-icon-button-state-layer-size);
-  min-width: var(--mat-icon-button-state-layer-size);
-  min-height: var(--mat-icon-button-state-layer-size);
-  padding: 0;
+  gap: 0.65rem 1rem;
+  padding-inline-end: 3rem;
+}
 
-  .mat-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--mat-icon-button-icon-size);
-    height: var(--mat-icon-button-icon-size);
-    margin: 0;
-    font-size: var(--mat-icon-button-icon-size);
-    line-height: 0;
+.qa-word-cloud-dialog__project {
+  min-height: 44px;
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+  flex: 0 1 auto;
+
+  span {
+    white-space: normal;
+    line-height: 1.4;
   }
+}
+
+.qa-word-cloud-dialog__presenter-icon {
+  --app-presenter-icon-size: 1.25rem;
+  --app-presenter-icon-nudge-y: 0px;
+  align-self: center;
+  margin-inline-start: var(--mat-button-text-icon-offset, -4px);
+  margin-inline-end: 0.75rem;
+}
+
+.qa-word-cloud-dialog__return {
+  min-height: 44px;
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+  flex: 0 1 auto;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 24%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 64%, transparent);
+  color: var(--mat-sys-on-primary-container);
+
+  span {
+    white-space: normal;
+    line-height: 1.4;
+  }
+}
+
+.qa-word-cloud-dialog__error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.5;
+}
+
+.qa-word-cloud-dialog__options {
+  max-width: 100%;
+
+  summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    cursor: pointer;
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-label-large);
+  }
+
+  summary:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+.qa-word-cloud-dialog__options-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.45rem;
 }
 
 .qa-word-cloud-dialog__smooth-cluster {
@@ -161,18 +222,15 @@
 }
 
 .qa-word-cloud-dialog__status {
-  position: absolute;
+  position: relative;
   z-index: 4;
-  top: 0.75rem;
-  left: 50%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0.45rem;
-  width: min(calc(100% - 1.5rem), 24rem);
+  width: auto;
   padding: 0.55rem 0.75rem 0.65rem;
   pointer-events: none;
-  transform: translateX(-50%);
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   border-radius: var(--mat-sys-corner-small, 0.5rem);
   background: color-mix(in srgb, var(--mat-sys-surface) 82%, transparent);
@@ -181,6 +239,7 @@
 }
 
 .qa-word-cloud-dialog__status--cover {
+  position: absolute;
   inset: 0;
   top: 0;
   left: 0;
@@ -196,11 +255,17 @@
   backdrop-filter: none;
 }
 
-.qa-word-cloud-dialog__mode-note {
+.qa-word-cloud-dialog__mode-note,
+.qa-word-cloud-dialog__projection-status {
   margin: 0;
   text-align: center;
   font: var(--mat-sys-label-medium);
   color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+}
+
+.qa-word-cloud-dialog__view-hint {
+  text-align: start;
 }
 
 .qa-word-cloud-dialog__progress {
@@ -280,7 +345,7 @@
 
   .qa-word-cloud-dialog__toolbar {
     justify-content: flex-start;
-    padding-right: 3.25rem;
+    padding-inline: 0;
   }
 
   .qa-word-cloud-dialog__analysis-toggle,
@@ -299,7 +364,13 @@
   }
 
   .qa-word-cloud-dialog__analysis-toggle {
+    width: 100%;
     font-size: 0.8125rem;
+  }
+
+  .qa-word-cloud-dialog__stage {
+    flex: 1 0 34rem;
+    height: auto;
   }
 }
 

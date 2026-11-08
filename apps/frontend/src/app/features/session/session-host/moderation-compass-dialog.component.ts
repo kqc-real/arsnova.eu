@@ -1,5 +1,5 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, signal, ViewEncapsulation } from '@angular/core';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { Component, computed, inject, LOCALE_ID, signal, ViewEncapsulation } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -9,12 +9,14 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { MatProgressBar } from '@angular/material/progress-bar';
 import {
   canRequestQaSummary,
   parseQaSummaryQuestionSourceId,
   shouldShowQaSummaryCard,
   sortQaSummaryStatementsByImportance,
   type ModerationPromptSection,
+  type ModerationCompassRecommendation,
   type QaSummaryContextPreviewDTO,
   type QaSummaryPresentationSourceKind,
   type QaSummaryPresentationSourceV2,
@@ -50,15 +52,6 @@ function normalizeSummaryNotice(text: string): string {
   return text.trim().replace(/\s+/g, ' ').toLocaleLowerCase('de-DE');
 }
 
-function isPromise(value: unknown): value is Promise<void | boolean> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'then' in value &&
-    typeof value.then === 'function'
-  );
-}
-
 type CompatibleQaSummaryResult = QaSummaryResult | QaSummaryResultV2;
 type CompatibleQaSummarySource = QaSummarySource | QaSummaryPresentationSourceV2;
 type SummaryPreviewState =
@@ -70,11 +63,13 @@ type SummaryPreviewState =
 type SummaryPreviewSectionRow = Readonly<{
   section: ModerationPromptSection;
   state: string;
-  count: string;
+  selected: number | null;
+  total: number | null;
 }>;
 
 export type ModerationCompassDialogData = {
   cards: () => readonly ModerationCompassCard[];
+  recommendation?: () => ModerationCompassRecommendation | null;
   analysisMode?: ModerationCompassAnalysisMode;
   onSourceActivate?: (
     source: ModerationCompassSource,
@@ -84,7 +79,7 @@ export type ModerationCompassDialogData = {
   summaryVisibleQuestionCount?: () => number;
   summary?: () => QaSummaryRuntimeCompatibleDTO | null;
   onRequestSummary?: () => void;
-  onSummarySourceActivate?: (source: QaSummarySource) => void;
+  onSummarySourceActivate?: (source: QaSummarySource) => void | boolean | Promise<void | boolean>;
   onRequestSummaryContextPreview?: () => Promise<QaSummaryContextPreviewDTO>;
   /** Aktuelle Q&A-Sortierung für kontextbezogene Extra-Quellen-Labels. */
   qaSortMode?: () => ModerationCompassSortMode;
@@ -105,6 +100,7 @@ export type ModerationCompassDialogData = {
     MatDialogContent,
     MatDialogTitle,
     MatIcon,
+    MatProgressBar,
     ModerationCompassIconComponent,
   ],
   templateUrl: './moderation-compass-dialog.component.html',
@@ -115,7 +111,9 @@ export type ModerationCompassDialogData = {
   encapsulation: ViewEncapsulation.None,
 })
 export class ModerationCompassDialogComponent {
+  private readonly document = inject(DOCUMENT);
   readonly data = inject<ModerationCompassDialogData>(MAT_DIALOG_DATA);
+  private readonly localeId = inject(LOCALE_ID);
   private readonly dialogRef = inject(MatDialogRef<ModerationCompassDialogComponent>);
   readonly cards = computed(() => this.data.cards());
   readonly hasCards = computed(() => this.cards().length > 0);
@@ -124,10 +122,37 @@ export class ModerationCompassDialogComponent {
     const mode = this.analysisMode();
     return mode !== 'rule-based' && mode !== 'disabled';
   });
-  readonly leadCard = computed(
-    () => this.cards().find((card) => card.nextStepReason !== undefined) ?? null,
+  readonly leadCard = computed(() => {
+    const recommendation = this.data.recommendation?.();
+    return (
+      this.cards().find((card) =>
+        recommendation
+          ? card.kind === recommendation.preferredCardKind
+          : card.nextStepReason !== undefined,
+      ) ?? null
+    );
+  });
+  readonly primaryNextStepReason = computed(
+    () => this.data.recommendation?.()?.reason ?? this.leadCard()?.nextStepReason,
   );
-  readonly primaryNextStepReason = computed(() => this.leadCard()?.nextStepReason);
+  readonly primarySource = computed(
+    () => this.leadCard()?.sources.find((source) => source.target) ?? null,
+  );
+  readonly sourcePending = signal(false);
+  readonly sourceError = signal('');
+
+  primarySourceLabel(source: ModerationCompassSource): string {
+    switch (moderationCompassSourceDestination(source)) {
+      case 'word-cloud':
+        return $localize`:@@sessionHost.moderationOpenCloud:Wortwolke öffnen`;
+      case 'quiz':
+        return $localize`:@@sessionHost.moderationOpenResult:Ergebnis öffnen`;
+      case 'quickFeedback':
+        return $localize`:@@sessionHost.moderationOpenFeedback:Rückmeldungen öffnen`;
+      default:
+        return $localize`:@@sessionHost.moderationOpenQuestion:Frage öffnen`;
+    }
+  }
   readonly summaryEnabled = computed(() => this.data.summaryEnabled?.() === true);
   readonly summaryRuntime = computed(() => this.data.summary?.() ?? null);
   readonly summaryResult = computed(() => this.summaryRuntime()?.result ?? null);
@@ -177,6 +202,10 @@ export class ModerationCompassDialogComponent {
     }
     return this.summaryRevealed() || this.summaryPending();
   });
+  readonly summaryCanBeUpdated = computed(() => {
+    const status = this.summaryResult()?.status;
+    return this.showSummaryBody() && (status === 'ready' || status === 'uncertain');
+  });
 
   visibleSources(card: ModerationCompassCard): readonly ModerationCompassSource[] {
     return visibleModerationCompassSources(card.sources);
@@ -186,8 +215,14 @@ export class ModerationCompassDialogComponent {
     return extraModerationCompassSources(card.sources);
   }
 
-  summaryScanParts(text: string): ModerationSummaryScanParts {
-    return splitModerationSummaryLead(text, this.summaryResult()?.locale ?? 'de');
+  summaryScanParts(
+    text: string,
+    result: CompatibleQaSummaryResult | null = this.summaryResult(),
+  ): ModerationSummaryScanParts {
+    if (result && 'execution' in result && result.execution.effectiveMode === 'extractive') {
+      return { lead: null, body: text.trim() };
+    }
+    return splitModerationSummaryLead(text, result?.locale ?? 'de');
   }
 
   summaryStatements(result: CompatibleQaSummaryResult): CompatibleQaSummaryResult['statements'] {
@@ -213,7 +248,7 @@ export class ModerationCompassDialogComponent {
       case 'word-cloud-more':
         return $localize`:@@sessionHost.moderationMoreWordCloudTopics:Weitere Wortwolken-Themen`;
       default:
-        return $localize`:@@sessionHost.moderationMoreSources:Weitere Einstiege (${extras.length}:count:)`;
+        return $localize`:@@sessionHost.moderationMoreSources:Weitere Hinweise (${extras.length}:count:)`;
     }
   }
 
@@ -261,40 +296,75 @@ export class ModerationCompassDialogComponent {
   summarySourcesToggleLabel(result: CompatibleQaSummaryResult): string {
     const count = result.sources.length;
     if ('schemaVersion' in result) {
-      return $localize`:@@sessionHost.moderationSummaryEvidenceToggle:Belege (${count}:count:)`;
+      return $localize`:@@sessionHost.moderationSummaryEvidenceToggle:Verwendete Beiträge (${count}:count:)`;
     }
     return $localize`:@@sessionHost.moderationSummarySourcesToggle:Zugehörige Fragen (${count}:count:)`;
   }
 
-  activateSource(source: ModerationCompassSource, card: ModerationCompassCard): void {
-    if (!source.target) {
+  async activateSource(
+    source: ModerationCompassSource,
+    card: ModerationCompassCard,
+  ): Promise<void> {
+    if (!source.target || this.sourcePending()) {
       return;
     }
-    const outcome = this.data.onSourceActivate?.(source, card.kind);
-    if (isPromise(outcome)) {
-      void outcome.then((shouldClose) => {
-        if (shouldClose !== false) {
-          this.dialogRef.close();
+    this.sourcePending.set(true);
+    this.sourceError.set('');
+    const previousDisableClose = this.dialogRef.disableClose;
+    this.dialogRef.disableClose = true;
+    try {
+      const outcome = await this.data.onSourceActivate?.(source, card.kind);
+      if (outcome !== false) {
+        if (source.target.surface === 'word-cloud') {
+          this.dialogRef.afterClosed().subscribe(() => {
+            queueMicrotask(() => {
+              const destinationClose = this.document.querySelector<HTMLElement>(
+                '.qa-word-cloud-dialog__close',
+              );
+              if (!destinationClose?.isConnected) return;
+              try {
+                destinationClose.focus({ preventScroll: true });
+              } catch {
+                destinationClose.focus();
+              }
+            });
+          });
         }
-      });
-      return;
+        this.dialogRef.close();
+      }
+    } catch {
+      this.sourceError.set(
+        $localize`:@@sessionHost.moderationSourceFailed:Der Eintrag konnte nicht geöffnet werden. Versuche es erneut.`,
+      );
+    } finally {
+      this.dialogRef.disableClose = previousDisableClose;
+      this.sourcePending.set(false);
     }
-    if (outcome === false) {
-      return;
-    }
-    this.dialogRef.close();
   }
 
   isQaQuestionSummarySource(source: CompatibleQaSummarySource): source is QaSummarySource {
     return source.kind === 'qa-question' && parseQaSummaryQuestionSourceId(source.id) !== null;
   }
 
-  activateSummarySource(source: CompatibleQaSummarySource): void {
-    if (!this.isQaQuestionSummarySource(source)) {
+  async activateSummarySource(source: CompatibleQaSummarySource): Promise<void> {
+    if (!this.isQaQuestionSummarySource(source) || this.sourcePending()) {
       return;
     }
-    this.data.onSummarySourceActivate?.(source);
-    this.dialogRef.close();
+    this.sourcePending.set(true);
+    this.sourceError.set('');
+    const previousDisableClose = this.dialogRef.disableClose;
+    this.dialogRef.disableClose = true;
+    try {
+      const outcome = await this.data.onSummarySourceActivate?.(source);
+      if (outcome !== false) this.dialogRef.close();
+    } catch {
+      this.sourceError.set(
+        $localize`:@@sessionHost.moderationSourceFailed:Der Eintrag konnte nicht geöffnet werden. Versuche es erneut.`,
+      );
+    } finally {
+      this.dialogRef.disableClose = previousDisableClose;
+      this.sourcePending.set(false);
+    }
   }
 
   requestSummary(): void {
@@ -338,9 +408,9 @@ export class ModerationCompassDialogComponent {
   private genericSummaryStatus(status: CompatibleQaSummaryResult['status']): string | null {
     switch (status) {
       case 'pending':
-        return $localize`:@@sessionHost.moderationSummaryPending:Die Zusammenfassung wird erstellt.`;
+        return $localize`:@@sessionHost.moderationSummaryPending:Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.`;
       case 'uncertain':
-        return $localize`:@@sessionHost.moderationSummaryUncertain:Die Zusammenfassung ist unsicher.`;
+        return $localize`:@@sessionHost.moderationSummaryUncertain:Die Fragen lassen sich nicht eindeutig zusammenfassen.`;
       case 'failed':
         return $localize`:@@sessionHost.moderationSummaryFailed:Die Zusammenfassung ist gerade nicht verfügbar.`;
       default:
@@ -368,49 +438,65 @@ export class ModerationCompassDialogComponent {
 
   previewSectionRows(preview: QaSummaryContextPreviewDTO): readonly SummaryPreviewSectionRow[] {
     const context = preview.promptContext.context;
-    const questionCount =
-      context.questions.state === 'available'
-        ? `${context.questions.corpus.represented} / ${context.questions.corpus.total}`
-        : '—';
     return [
       {
         section: 'questions',
         state: context.questions.state,
-        count: questionCount,
+        selected:
+          context.questions.state === 'available' ? context.questions.corpus.represented : null,
+        total: context.questions.state === 'available' ? context.questions.corpus.total : null,
       },
       {
         section: 'topics',
         state: context.topics.state,
-        count: context.topics.state === 'available' ? String(context.topics.items.length) : '—',
+        selected: context.topics.state === 'available' ? context.topics.items.length : null,
+        total: null,
       },
       {
         section: 'compass',
         state: context.compass.state,
-        count: context.compass.state === 'available' ? String(context.compass.signals.length) : '—',
+        selected: context.compass.state === 'available' ? context.compass.signals.length : null,
+        total: null,
       },
       {
         section: 'learning-context',
         state: context.learningContext.state,
-        count:
+        selected:
           context.learningContext.state === 'available'
-            ? String(context.learningContext.objectives.length)
-            : '—',
+            ? context.learningContext.objectives.length
+            : null,
+        total: null,
       },
       {
         section: 'released-results',
         state: context.releasedResults.state,
-        count:
+        selected:
           context.releasedResults.state === 'available'
-            ? String(context.releasedResults.aggregates.length)
-            : '—',
+            ? context.releasedResults.aggregates.length
+            : null,
+        total: null,
       },
       {
         section: 'feedback',
         state: context.feedback.state,
-        count:
-          context.feedback.state === 'available' ? String(context.feedback.aggregates.length) : '—',
+        selected:
+          context.feedback.state === 'available' ? context.feedback.aggregates.length : null,
+        total: null,
       },
     ];
+  }
+
+  previewRowValue(row: SummaryPreviewSectionRow): string {
+    if (row.state !== 'available' || row.selected === null) {
+      return this.previewStateLabel(row.state);
+    }
+    if (row.total !== null) {
+      return $localize`:@@sessionHost.moderationPreviewSelectedOfTotal:${row.selected}:selected: von ${row.total}:total: ausgewählt`;
+    }
+    if (row.selected === 0) {
+      return $localize`:@@sessionHost.moderationPreviewNoneSelected:Keine ausgewählt`;
+    }
+    return $localize`:@@sessionHost.moderationPreviewCountSelected:${row.selected}:selected: ausgewählt`;
   }
 
   previewSourceGroups(
@@ -424,6 +510,12 @@ export class ModerationCompassDialogComponent {
   }
 
   previewSourceKindLabel(kind: QaSummaryPresentationSourceKind): string {
+    if (kind === 'qa-question') {
+      return $localize`:@@sessionHost.moderationPreviewSourceQuestions:Fragen`;
+    }
+    if (kind === 'semantic-topic') {
+      return $localize`:@@sessionHost.moderationPreviewSourceTopics:Themen`;
+    }
     return this.summarySourceDestinationLabel({ id: kind, kind, label: kind });
   }
 
@@ -434,9 +526,9 @@ export class ModerationCompassDialogComponent {
       case 'topics':
         return $localize`:@@sessionHost.moderationPreviewSectionTopics:Themen`;
       case 'compass':
-        return $localize`:@@sessionHost.moderationPreviewSectionCompass:Kompasssignale`;
+        return $localize`:@@sessionHost.moderationPreviewSectionCompass:Hinweise aus dem Kompass`;
       case 'learning-context':
-        return $localize`:@@sessionHost.moderationPreviewSectionLearning:Lernkontext`;
+        return $localize`:@@sessionHost.moderationPreviewSectionLearning:Lernziele`;
       case 'released-results':
         return $localize`:@@sessionHost.moderationPreviewSectionResults:Freigegebene Ergebnisse`;
       case 'feedback':
@@ -444,33 +536,84 @@ export class ModerationCompassDialogComponent {
     }
   }
 
+  previewUserLimitations(preview: QaSummaryContextPreviewDTO) {
+    return preview.promptContext.context.limitations.filter(
+      (limitation) => limitation.code !== 'budget-truncated',
+    );
+  }
+
   previewStateLabel(state: string): string {
     switch (state) {
       case 'available':
-        return $localize`:@@sessionHost.moderationPreviewStateAvailable:verfügbar`;
+        return $localize`:@@sessionHost.moderationPreviewStateAvailable:ausgewählt`;
       case 'disabled':
-        return $localize`:@@sessionHost.moderationPreviewStateDisabled:deaktiviert`;
+        return $localize`:@@sessionHost.moderationPreviewStateDisabled:wurde nicht in die Auswertung einbezogen`;
       case 'pending':
-        return $localize`:@@sessionHost.moderationPreviewStatePending:ausstehend`;
+        return $localize`:@@sessionHost.moderationPreviewStatePending:wird noch vorbereitet`;
       case 'failed':
-        return $localize`:@@sessionHost.moderationPreviewStateFailed:fehlgeschlagen`;
+        return $localize`:@@sessionHost.moderationPreviewStateFailed:konnte nicht geladen werden`;
       case 'not-released':
-        return $localize`:@@sessionHost.moderationPreviewStateNotReleased:nicht freigegeben`;
+        return $localize`:@@sessionHost.moderationPreviewStateNotReleased:ist noch nicht freigegeben`;
       case 'not-applicable':
-        return $localize`:@@sessionHost.moderationPreviewStateNotApplicable:nicht zutreffend`;
+        return $localize`:@@sessionHost.moderationPreviewStateNotApplicable:spielt hier keine Rolle`;
       default:
-        return $localize`:@@sessionHost.moderationPreviewStateUnavailable:nicht verfügbar`;
+        return $localize`:@@sessionHost.moderationPreviewStateUnavailable:in dieser Session nicht vorhanden`;
     }
   }
 
   previewModeLabel(preview: QaSummaryContextPreviewDTO): string {
     if (preview.selectedMode === 'full-context') {
-      return $localize`:@@sessionHost.moderationPreviewModeFullContext:Vollständiger Kontext`;
+      return $localize`:@@sessionHost.moderationPreviewModeFullContext:Fragen und weitere verfügbare Bereiche werden gemeinsam ausgewertet`;
     }
     if (preview.selectedMode === 'legacy-text') {
-      return $localize`:@@sessionHost.moderationPreviewModeLegacy:Legacy-Text`;
+      return $localize`:@@sessionHost.moderationPreviewModeLegacy:Die wichtigsten offenen Fragen werden direkt ausgewertet`;
     }
-    return $localize`:@@sessionHost.moderationPreviewModeExtractive:Lokaler extraktiver Fallback`;
+    return $localize`:@@sessionHost.moderationPreviewModeExtractive:Die wichtigsten offenen Fragen werden direkt ausgewählt`;
+  }
+
+  previewPackedAtLabel(packedAt: string): string {
+    const date = new Date(packedAt);
+    if (Number.isNaN(date.getTime())) {
+      return packedAt;
+    }
+    return new Intl.DateTimeFormat(this.localeId, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  }
+
+  previewCacheLabel(cache: QaSummaryContextPreviewDTO['cache']): string {
+    return cache === 'hit'
+      ? $localize`:@@sessionHost.moderationPreviewCacheHit:Eine bereits vorbereitete Auswahl wurde verwendet.`
+      : $localize`:@@sessionHost.moderationPreviewCacheMiss:Die Auswahl wurde neu erstellt.`;
+  }
+
+  previewLimitationLabel(code: string): string {
+    switch (code) {
+      case 'module-disabled':
+        return $localize`:@@sessionHost.moderationPreviewLimitationModuleDisabled:Dieser Bereich ist ausgeschaltet.`;
+      case 'module-unavailable':
+        return $localize`:@@sessionHost.moderationPreviewLimitationModuleUnavailable:Dieser Bereich ist in der Session nicht vorhanden.`;
+      case 'not-released':
+        return $localize`:@@sessionHost.moderationPreviewLimitationNotReleased:Diese Ergebnisse sind noch nicht freigegeben.`;
+      case 'budget-truncated':
+        return $localize`:@@sessionHost.moderationPreviewLimitationBudgetTruncated:Nur die wichtigsten Beiträge wurden ausgewählt.`;
+      default:
+        return $localize`:@@sessionHost.moderationPreviewLimitationOther:Dieser Bereich konnte nicht vollständig berücksichtigt werden.`;
+    }
+  }
+
+  previewTruncationReasonLabel(reason: string): string {
+    switch (reason) {
+      case 'deduplication':
+        return $localize`:@@sessionHost.moderationPreviewTruncationDeduplication:ähnliche Beiträge wurden zusammengefasst`;
+      case 'token-budget':
+        return $localize`:@@sessionHost.moderationPreviewTruncationTokenBudget:nicht alle Beiträge konnten einzeln ausgewertet werden`;
+      case 'item-limit':
+        return $localize`:@@sessionHost.moderationPreviewTruncationItemLimit:es wurde eine übersichtliche Auswahl getroffen`;
+      default:
+        return $localize`:@@sessionHost.moderationPreviewTruncationOther:einige Beiträge wurden nicht einzeln berücksichtigt`;
+    }
   }
 
   cardTitle(card: ModerationCompassCard): string {
@@ -485,7 +628,7 @@ export class ModerationCompassDialogComponent {
           return $localize`:@@sessionHost.moderationCardFreetext:Ähnliche Antworten`;
         }
         if (card.nextStepReason === 'quiz-mention') {
-          return $localize`:@@sessionHost.moderationCardMention:Andere Antworten`;
+          return $localize`:@@sessionHost.moderationCardMention:Weitere Einzelantworten`;
         }
         return $localize`:@@sessionHost.moderationCardClarification:Noch klären`;
       case 'survey':
@@ -537,7 +680,7 @@ export class ModerationCompassDialogComponent {
       case 'quiz-freetext':
         return $localize`:@@sessionHost.moderationNextFreetext:Lies die wiederkehrenden Freitextantworten kurz vor.`;
       case 'quiz-mention':
-        return $localize`:@@sessionHost.moderationNextMention:Einzelne andere Antworten sind sichtbar. Du musst sie nicht zum Thema machen.`;
+        return $localize`:@@sessionHost.moderationNextMention:Einzelne Antworten passen zu keinem häufigen Thema. Du musst sie nicht alle besprechen.`;
       case 'controversy':
         return $localize`:@@sessionHost.moderationNextFriction:Greif die umstrittenen Fragen kurz auf.`;
       case 'tempo':
@@ -566,7 +709,7 @@ export class ModerationCompassDialogComponent {
       case 'quickFeedback':
         return $localize`:@@sessionHost.moderationSourceChannelFeedback:Blitzlicht`;
       default:
-        return $localize`:@@sessionHost.moderationSourceChannelQa:Q&A`;
+        return $localize`:@@sessionHost.moderationSourceChannelQa:Fragen`;
     }
   }
 }

@@ -403,6 +403,55 @@ describe('moderation prompt context packing', () => {
     ).toBe(true);
   });
 
+  it('priorisiert für Kurzfassungen repräsentative Themen vor zusätzlichen Einzelfragen', () => {
+    const analysis = analysisFixture();
+    let comparison:
+      { balanced: ModerationPromptContextV1; topicsFirst: ModerationPromptContextV1 } | undefined;
+
+    for (let window = 3_000; window <= 40_000; window += 128) {
+      const candidateProfile = profile({
+        contextWindowTokens: window,
+        reservedOutputTokens: 256,
+        safetyMarginTokens: 128,
+      });
+      try {
+        const balanced = packModerationPromptContext({
+          analysis,
+          profile: candidateProfile,
+          packedAt: PACKED_AT,
+        });
+        const topicsFirst = packModerationPromptContext({
+          analysis,
+          profile: candidateProfile,
+          packedAt: PACKED_AT,
+          candidatePriority: 'topics-first',
+        });
+        const balancedTopics =
+          balanced.context.topics.state === 'available' ? balanced.context.topics.items.length : 0;
+        const prioritizedTopics =
+          topicsFirst.context.topics.state === 'available'
+            ? topicsFirst.context.topics.items.length
+            : 0;
+        if (prioritizedTopics > balancedTopics) {
+          comparison = { balanced, topicsFirst };
+          break;
+        }
+      } catch {
+        // Die Basismetadaten passen in die kleinsten Testfenster noch nicht.
+      }
+    }
+
+    expect(comparison).toBeDefined();
+    const prioritizedTopics =
+      comparison?.topicsFirst.context.topics.state === 'available'
+        ? comparison.topicsFirst.context.topics.items
+        : [];
+    expect(prioritizedTopics.length).toBeGreaterThan(0);
+    expect(
+      comparison?.topicsFirst.context.sources.some((source) => source.kind === 'qa-question'),
+    ).toBe(true);
+  });
+
   it('covers multiple topics plus unvoted, controversial, and supported questions deterministically under a tight budget', () => {
     const analysis = analysisFixture();
     if (
@@ -646,6 +695,71 @@ describe('moderation prompt context packing', () => {
     expect(result.context.sources.find(({ id }) => id === duplicateSourceId)).toMatchObject({
       kind: 'qa-question',
       content: { state: 'reference-only', reason: 'deduplicated' },
+    });
+    expect(ModerationPromptContextV1Schema.parse(result)).toEqual(result);
+  });
+
+  it('preserves original topic members as generative label sources during question deduplication', () => {
+    const analysis = analysisFixture();
+    if (
+      analysis.context.questions.state !== 'available' ||
+      analysis.context.topics.state !== 'available'
+    ) {
+      throw new Error('Reference fixture questions and topics must be available.');
+    }
+    const [first, second] = analysis.context.questions.items;
+    const firstSource = analysis.context.sources.find(({ id }) => id === first?.sourceId);
+    const secondSource = analysis.context.sources.find(({ id }) => id === second?.sourceId);
+    const topic = analysis.context.topics.items.find(
+      ({ sourceId }) => sourceId === first?.topicSourceIds[0],
+    );
+    if (
+      !first ||
+      !second ||
+      firstSource?.kind !== 'qa-question' ||
+      firstSource.content.state !== 'included' ||
+      secondSource?.kind !== 'qa-question' ||
+      !topic
+    ) {
+      throw new Error('Expected two included questions in one topic.');
+    }
+    analysis.context.questions.items[1] = {
+      ...structuredClone(first),
+      sourceId: second.sourceId,
+    };
+    secondSource.content = {
+      state: 'included',
+      text: `»${firstSource.content.text}???«`,
+      truncated: false,
+    };
+    const [canonicalSourceId, duplicateSourceId] = [first.sourceId, second.sourceId].sort();
+    topic.memberQuestionSourceIds = [canonicalSourceId!, duplicateSourceId!];
+    topic.representedQuestionSourceIds = [canonicalSourceId!, duplicateSourceId!];
+    topic.representativeQuestionSourceId = duplicateSourceId!;
+    topic.aggregates.questionCount = 2;
+    topic.labelOrigin = {
+      kind: 'model-generated',
+      modelId: 'topic-label-model',
+      modelVersion: '1',
+      generationVersion: 'topic-label-system-v1',
+      derivedFromSourceIds: [canonicalSourceId!, duplicateSourceId!],
+    };
+
+    const result = pack(ModerationAnalysisContextV1Schema.parse(analysis));
+    const packedTopic =
+      result.context.topics.state === 'available'
+        ? result.context.topics.items.find(({ sourceId }) => sourceId === topic.sourceId)
+        : undefined;
+
+    expect(packedTopic).toMatchObject({
+      memberQuestionSourceIds: [canonicalSourceId, duplicateSourceId],
+      representedQuestionSourceIds: [canonicalSourceId],
+      representativeQuestionSourceId: canonicalSourceId,
+      aggregates: { questionCount: 2 },
+      labelOrigin: {
+        kind: 'model-generated',
+        derivedFromSourceIds: [canonicalSourceId, duplicateSourceId],
+      },
     });
     expect(ModerationPromptContextV1Schema.parse(result)).toEqual(result);
   });

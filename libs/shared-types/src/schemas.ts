@@ -4550,6 +4550,9 @@ export type QaWordCloudFilter = z.infer<typeof QaWordCloudFilterEnum>;
 export const QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES = 80;
 export const QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS = 1;
 export const QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS = 128;
+export const QA_WORD_CLOUD_MAX_FOCUS_QUESTION_IDS = 40;
+/** Repräsentative Q&A-Frage für den prominenten Themen-Hero, ungekürzt bis zum Einreichungslimit. */
+export const QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS = QA_QUESTION_TEXT_MAX_CODE_POINTS;
 
 /** Host-/Teilnehmer-Seitengrößen; Obergrenze = Wortwolken-Analysebudget. */
 export const QA_LIST_PAGE_SIZE_OPTIONS = [100, 250, 500] as const;
@@ -4562,6 +4565,11 @@ export const AnalyzeQaWordCloudInputSchema = AnalyzeWordCloudInputSchema.omit({
   corpusRevision: true,
 }).extend({
   filter: QaWordCloudFilterEnum.default('ALL_ELIGIBLE'),
+  /** Stabile Quellenidentität für einen Sprung aus dem Moderationskompass. */
+  focusQuestionIds: z
+    .array(z.string().trim().min(1).max(WORD_CLOUD_MAX_ITEM_ID_CHARS))
+    .max(QA_WORD_CLOUD_MAX_FOCUS_QUESTION_IDS)
+    .optional(),
   /**
    * Korpusgröße analog zur Host-Forum-Seitengröße (100/250/500).
    * Obergrenze bleibt das Analysebudget der Wortwolke.
@@ -4583,7 +4591,14 @@ const QaWordCloudAnalysisMemberDTOSchema = WordCloudAnalysisMemberDTOSchema.exte
 const QaWordCloudAnalysisEntryDTOSchema = WordCloudAnalysisEntryDTOSchema.extend({
   key: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
   label: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS),
-  basisLabel: z.string().trim().min(1).max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS).nullable(),
+  basisLabel: z
+    .string()
+    .trim()
+    .min(1)
+    .refine((value) => qaTextCodePointLength(value) <= QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS, {
+      message: `Repräsentative Frage darf maximal ${QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS} Zeichen haben.`,
+    })
+    .nullable(),
   members: z
     .array(QaWordCloudAnalysisMemberDTOSchema)
     .min(1)
@@ -4600,6 +4615,14 @@ export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.exten
   corpusRevision: z.string().min(1).max(100),
   sortMode: QaQuestionSortModeEnum,
   filter: QaWordCloudFilterEnum,
+  /** Aufgelöste Gruppe für die angeforderten Fokusfragen; Label können davon abweichen. */
+  focusedGroupKey: z
+    .string()
+    .trim()
+    .min(1)
+    .max(QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS)
+    .nullable()
+    .optional(),
 });
 export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
 
@@ -4621,6 +4644,8 @@ export type QaWordCloudPresenterProjectionDTO = z.infer<
 
 export const SetQaWordCloudProjectionInputSchema = GetSessionInfoInputSchema.extend({
   projection: QaWordCloudPresenterProjectionDTOSchema,
+  /** Übernimmt Kanal, Snapshot und Presenter-Fläche in einem Host-Kommando. */
+  activate: z.boolean().optional().default(false),
 });
 export type SetQaWordCloudProjectionInput = z.infer<typeof SetQaWordCloudProjectionInputSchema>;
 
@@ -4628,6 +4653,14 @@ export const GetQaWordCloudProjectionOutputSchema = z.object({
   projection: QaWordCloudPresenterProjectionDTOSchema.nullable(),
 });
 export type GetQaWordCloudProjectionOutput = z.infer<typeof GetQaWordCloudProjectionOutputSchema>;
+
+export const SetQaWordCloudProjectionOutputSchema = GetQaWordCloudProjectionOutputSchema.extend({
+  preferredChannel: SessionLiveChannelSchema.optional(),
+  presenterSurface: SessionPresenterSurfaceSchema.optional(),
+  sessionLifecycleRevision: z.number().int().min(0).optional(),
+  serverNow: z.string().datetime().optional(),
+});
+export type SetQaWordCloudProjectionOutput = z.infer<typeof SetQaWordCloudProjectionOutputSchema>;
 
 /** Öffentliche Freitext-Bühne: nur sichtbare Namen, keine Rohantworten. */
 export const FreetextWordCloudStageEntrySchema = z
@@ -4855,6 +4888,14 @@ export const PersonalScorecardDTOSchema = z.object({
   matchingSelections: z.array(MatchingSelectionInputSchema).min(2).max(6).optional(),
   orderingSequence: OrderingSequenceInputSchema.optional(),
   categorizationSelections: z.array(CategorizationSelectionInputSchema).min(4).max(12).optional(),
+  /** Eigene Selbsteinschätzung dieser Frage, nur nach Ergebnisfreigabe. */
+  confidenceValue: z
+    .number()
+    .int()
+    .min(CONFIDENCE_SCALE_MIN)
+    .max(CONFIDENCE_SCALE_MAX)
+    .nullable()
+    .optional(),
 });
 export type PersonalScorecardDTO = z.infer<typeof PersonalScorecardDTOSchema>;
 

@@ -26,6 +26,7 @@ vi.mock('./logger', () => ({
 import {
   beginWordCloudAnalysisCacheShutdown,
   buildLatestQaSemanticTopicSnapshotCacheKey,
+  buildQaSemanticTopicSnapshotCacheKey,
   buildWordCloudSnapshotCacheKey,
   buildWordCloudSnapshotIndexKey,
   buildWordCloudSnapshotPurgeFenceKey,
@@ -132,6 +133,7 @@ describe('wordCloudAnalysisCache', () => {
         'nlp:wc:snapshot:v2:{11111111-1111-4111-8111-111111111111}:value:ABC123:LEXICAL:TOP:LEMMA:1.14b.14:',
       ),
     ).toBe(true);
+    expect(key).toContain(':qa-basis-label-v2:');
     expect(key).not.toContain('Häuser');
     expect(buildWordCloudSnapshotCacheKey({ ...input, maxEntries: 40 }, scope)).not.toBe(key);
     expect(buildWordCloudSnapshotCacheKey({ ...input, maxNgramLength: 3 }, scope)).not.toBe(key);
@@ -146,6 +148,12 @@ describe('wordCloudAnalysisCache', () => {
     expect(buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId)).toBe(
       `nlp:wc:snapshot:v2:{${scope.sessionId}}:value:latest-qa-semantic`,
     );
+    expect(
+      buildQaSemanticTopicSnapshotCacheKey(
+        { ...input, mode: 'SEMANTIC', corpusRevision: '17:limit=500' },
+        scope,
+      ),
+    ).toContain(`{${scope.sessionId}}:qa-semantic:ABC123:SEMANTIC:TOP:LEMMA:`);
   });
 
   it('cacht transiente Sidecar-Fallbacks und NLP_DISABLED nicht', () => {
@@ -287,6 +295,36 @@ describe('wordCloudAnalysisCache', () => {
     expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).not.toBeNull();
     vi.advanceTimersByTime(1);
     expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toBeNull();
+  });
+
+  it('isoliert vollständige Q&A-Themen im Memory-Cache per exakter Analyseidentität', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createMemoryWordCloudAnalysisCache(60);
+    const input500 = {
+      ...input,
+      mode: 'SEMANTIC',
+      corpusRevision: '17:limit=500',
+    } as const satisfies AnalyzeWordCloudInput;
+    const input100 = { ...input500, corpusRevision: '17:limit=100' };
+    const snapshot500 = {
+      ...latestQaSemanticTopicSnapshot,
+      corpusRevision: '17',
+      analyzedQuestionCount: 500,
+      eligibleQuestionCount: 500,
+    } as const satisfies QaSemanticTopicSnapshot;
+    const snapshot100 = {
+      ...latestQaSemanticTopicSnapshot,
+      corpusRevision: '17',
+      analyzedQuestionCount: 100,
+      eligibleQuestionCount: 500,
+    } as const satisfies QaSemanticTopicSnapshot;
+
+    await cache.setQaSemanticTopicSnapshot(input500, snapshot500, scope);
+    await cache.setQaSemanticTopicSnapshot(input100, snapshot100, scope);
+
+    expect(await cache.getQaSemanticTopicSnapshot(input500, scope)).toEqual(snapshot500);
+    expect(await cache.getQaSemanticTopicSnapshot(input100, scope)).toEqual(snapshot100);
+    expect(await cache.getQaSemanticTopicSnapshot(input500, otherScope)).toBeNull();
   });
 
   it('liefert Latest-Q&A-Semantik nach Kill-Switch-Rollback nicht aus und bleibt im Noop-Cache leer', async () => {
@@ -509,6 +547,39 @@ describe('createRedisWordCloudAnalysisCache', () => {
       latestKey,
     );
     expect(store.get(latestKey)).not.toContain('vertraulich');
+  });
+
+  it('liest vollständige Q&A-Themen über die exakte Analyseidentität unter Index und Fence', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    vi.stubEnv('WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS', '120');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    const semanticInput = {
+      ...input,
+      mode: 'SEMANTIC',
+      corpusRevision: '17:limit=500',
+    } as const satisfies AnalyzeWordCloudInput;
+
+    await cache.setQaSemanticTopicSnapshot(semanticInput, latestQaSemanticTopicSnapshot, scope);
+
+    const exactKey = buildQaSemanticTopicSnapshotCacheKey(semanticInput, scope);
+    expect(redisMock.eval).toHaveBeenLastCalledWith(
+      expect.stringContaining('wordcloud_snapshot_write_v2'),
+      3,
+      exactKey,
+      buildWordCloudSnapshotIndexKey(scope.sessionId),
+      buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
+      JSON.stringify(latestQaSemanticTopicSnapshot),
+      '120',
+      '420',
+      '2048',
+    );
+    expect(await cache.getQaSemanticTopicSnapshot(semanticInput, scope)).toEqual(
+      latestQaSemanticTopicSnapshot,
+    );
+    expect(redisMock.mget).toHaveBeenLastCalledWith(
+      buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
+      exactKey,
+    );
   });
 
   it('purgt Latest-Q&A-Semantik atomar, fenced spätere Writes und isoliert andere Session-IDs', async () => {

@@ -29,6 +29,64 @@ Deshalb folgt die gesamte Textverarbeitung in arsnova.eu einer **mehrstufigen Ka
 
 ---
 
+## Lokaler Gesamtstart
+
+```bash
+npm run dev:ai
+```
+
+Der Befehl startet Backend und deutsches Frontend sowie alle lokalen
+KI-Bausteine: die In-Process-Q&A-Kategorisierung, den spaCy-Sidecar, den
+ONNX-Themenencoder und den lokalen Summary-Helfer. Für die private
+Open-Weight-Runtime verwendet er `OPEN_WEIGHT_LLM_URL` und
+`OPEN_WEIGHT_LLM_TOKEN` aus `.env`; zeigt die URL auf `127.0.0.1:18080`, wird
+der bestehende SSH-Tunnel automatisch übernommen oder über die konfigurierten
+`OPEN_WEIGHT_LLM_TUNNEL_*`-Werte aufgebaut. Der Remote-`llama-server` selbst
+muss bereits auf dem privaten Inferenzhost laufen. Ist weder die konfigurierte
+Runtime noch der Tunnel erreichbar, bricht `dev:ai` vor dem Start des
+Anwendungsstacks mit einer konkreten Fehlermeldung ab.
+
+Der KI-Gesamtstart setzt für die CPU-basierte Moderationszusammenfassung
+`QA_SUMMARY_TIMEOUT_MS` und `OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS` auf 240
+Sekunden. Das umfasst auch die Vorverarbeitung eines nahezu vollen
+8k-Kontexts; der allgemeine Produktionsdefault bleibt davon unberührt.
+
+Der Summary-Helfer läuft in diesem Gesamtstack ausdrücklich im lokalen
+`extractive`-Modus. Ein eventuell gesetzter `GEMINI_API_KEY` wird dadurch nicht
+verwendet. Fällt ein lokaler KI-Prozess beim Start aus, beendet
+`--kill-others-on-fail` den übrigen Stack statt einen unvollständigen KI-Devmodus
+weiterlaufen zu lassen.
+
+### Ressourcen und Zuständigkeiten des Gesamtstarts
+
+`k-NN` gehört ausschließlich zur In-Process-Q&A-Kategorisierung aus Stufe 2.
+Die semantische Themenwolke aus Stufe 3 verwendet **kein k-NN**: E5 erzeugt
+Vektoren, anschließend bildet das Backend die Gruppen per agglomerativem
+Complete-Linkage-Clustering mit Kosinus-Schwelle 0,87.
+
+| Prozess im `dev:ai`-Stack                | Kerne / CPU                                     | RAM                                             | Datenträger                                                      |
+| ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| Node-Backend, Angular und Summary-Helfer | keine feste Prozessgrenze                       | keine feste Prozessgrenze                       | vorhandene npm-Abhängigkeiten, Angular-Cache und Projektdaten    |
+| spaCy-Lemmatisierung                     | Hostprozess ohne Limit; Compose-Referenz: 1 CPU | Hostprozess ohne Limit; Compose: 1 GiB          | lokales Python-venv plus Modelle für `de`, `en`, `fr`, `es`      |
+| E5-Themenencoder                         | 1 CPU im Dev-Container                          | 2 GiB Containerlimit                            | Docker-Image, ONNX-Modell und Build-Cache                        |
+| Qwen über SSH                            | auf dem Entwicklungsrechner nur Tunnel-Overhead | auf dem Entwicklungsrechner nur Tunnel-Overhead | keine lokale GGUF-Datei                                          |
+| Qwen im optionalen lokalen HTTP-Labor    | 4 CPUs                                          | 5 GiB Containerlimit                            | 2.497.281.120 Byte GGUF zuzüglich Runtime-Image und Docker-Cache |
+
+Als konservativer, nicht lastvermessener Planungswert gelten für den lokalen
+Stack mit entferntem Qwen 4 Kerne, 12 GiB RAM und 10 GiB freier Speicher;
+empfohlen sind 8 Kerne, 16 GiB RAM und 20 GiB frei. Läuft Qwen auf demselben
+Rechner, sollten 8 Kerne, 16 GiB RAM und 20 GiB frei verfügbar sein. Der
+getrennte private Inferenzhost benötigt mindestens 4 Kerne, 12 GiB RAM und
+10 GiB frei; empfohlen sind 8 Kerne, 16 GiB RAM und 20 GiB frei. Diese Werte
+sind Kapazitätsplanung für Entwicklung, keine 500-Client-Lastfreigabe.
+
+Aktiv unterstützte Locales: spaCy `de/en/fr/es`; E5-Themenbildung und damit
+Qwen-Themenbeschriftung `de/en`; Qwen-Zusammenfassung und Lernzielvorschläge
+`de/en/fr/es/it`. Nicht unterstützte Themen-Locales erhalten die dokumentierte
+lexikalische Ersatzansicht.
+
+---
+
 ## 2. Gesamtarchitektur (Zwei-Host-Produktionstopologie)
 
 ```mermaid
@@ -151,7 +209,7 @@ Gute Moderation im Hörsaal hängt davon ab, _was_ die Studierenden in der aktue
 
 1. **Vorbereitungsauftrag (`quiz.deriveLearningObjectives`):**
    - Im Quiz-Editor kann die Lehrkraft bewusst **»Lernziele vorschlagen«** auslösen. Die Oberfläche zeigt währenddessen einen kleinen Kreisindikator für die lebende Abfrage, einen bestimmten Balken mit Skala der fertigen Fragegruppen und nach der ersten Gruppe eine grobe Restdauer. Einen vorzeitigen Abbruch erklärt sie mit Grund, Dauer und bisherigem Textumfang.
-   - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v4`) übergeben.
+   - Dabei werden die Fragenstämme, Antwortoptionen, Musterlösungen und Lösungserklärungen in deterministischen Batches (≤ 2.500 UTF-8-Bytes pro Batch) an die private Runtime (`taskType: 'learning_objectives'`, Prompt `learning-objectives-system-v6`) übergeben.
    - Das Modell formuliert kurze, rollenneutrale Infinitivphrasen (z. B. _»Lineare Regressionsmodelle auf Stichprobendaten anwenden.«_) mit großgeschriebenem Anfangswort und muss jedes Lernziel mit mindestens einer exakten `questionId` aus dem Request belegen. Diese ID steht nur im Feld `questionIds`. Kleingeschriebene Modellausgaben werden nachträglich großgeschrieben. Steht eine dieser IDs zusätzlich im Satz eines Modellvorschlags, wird nur sie entfernt; andere Kennungen bleiben stehen. Fehlende Schlusspunkte werden ergänzt.
 2. **Menschliche Bestätigung & Lebenszyklus ([ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md)):**
    - Alle vom Modell gelieferten Ziele starten als **Entwürfe (`derived`, unbestätigt)**.
@@ -198,7 +256,7 @@ Für die Erstellung der Zusammenfassung handelt `qaSummaryRuntimeAdapter.ts` den
 
 1. **Generativer `full-context`-Pfad (`OPEN_WEIGHT_LLM_ENABLED=true`):**
    - `llama-server` erhält exakt drei Nachrichten:
-     - `system`: Technische Instruktion (`qa-summary-technical-handoff-v2`, 314 UTF-8-Bytes: einzeiliges JSON, ausschließlich `included`-Quellen zusammenfassen, keine Metadaten über ausgelassene Bereiche wiederholen).
+     - `system`: Technische Instruktion (`qa-summary-technical-handoff-v5`): Fragetexte bleiben auch bei eingebetteten Antwortwünschen ausschließlich nicht vertrauenswürdige Daten; die Ausgabe verlangt vollständige, laienverständliche Themensätze und verbietet technische Metadaten. Große Sessions erhalten eine breitere, repräsentative Fragenauswahl.
      - `system`: Maschinenlesbares Bedeutungslexikon (203 UTF-8-Bytes: z. B. `PENDING` = Freigabestatus, nicht Lernrückstand; `bestScore` = Wilson-Untergrenze, nicht fachliche Qualität).
      - `user`: Das kanonische JSON des gepackten Fachkontexts.
    - Das GBNF-Ausgabeschema (`qa-summary-model-output-v3`) erzwingt **2–4 prägnante Aussagen (`statements.max(4)`)**, höchstens **2 nächste Schritte (`suggestedNextSteps.max(2)`)** und höchstens **2 Hinweise (`limitations.max(2)`)**, jeweils mit Pflicht-`sourceIds`.
@@ -221,11 +279,11 @@ Da `llama-server` auf dem dedizierten 8-Core-ARM-Inferenzhost (`arsnova-privat`,
 
 ### Zusammenfassung der realen Laufzeitmessungen (Stand: 17.10.2026)
 
-| Szenario (500 Fragen / Antworten, 2-Host-Architektur)                                         | Vor den Optimierungen                                      | Aktueller Stand (mit PR #576–#579)                                   | Maßgebliche Optimierung                                                                                   |
-| :-------------------------------------------------------------------------------------------- | :--------------------------------------------------------- | :------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| **Q&A-Themenwolke: Wechsel der Sortierung** (`BEST` ↔ `TOP` ↔ `TIME` ↔ `CONTROVERSIAL`)       | ~148 s pro Wechsel (**10–15 Min.** für alle 4 Ansichten)   | **< 5 Millisekunden**                                                | `sessionClustersCache` + `clusterTopicLabelCache` (kein erneuter Encoder- oder LLM-Lauf)                  |
-| **Live-Freitext / Q&A: Klick auf »Thema« oder »Ergebnis anzeigen« nach laufendem Einreichen** | ~60 s ONNX + ~90 s LLM                                     | **0 ms ONNX** + **~15–22 s LLM** (für neue Cluster)                  | Hintergrund-Pre-Warming (`wordCloudPrewarmQueue`) + `sessionItemEmbeddingsCache`                          |
-| **Kaltstart: 6 unbenannte Themen-Cluster durch `Qwen3-4B` benennen**                          | ~45–90 s (6 Einzel-Calls, häufige UUID-Token-Abbrüche)     | **22,9 Sekunden** (`411` Prompt- / `179` Completion-Tokens)          | Multi-Cluster-Batching (`schemaVersion: 2`) + kompakte Quell-IDs (`s1`..`s6`)                             |
-| **Kaltstart: 500 uncached Texte im ONNX-Encoder (`e5-small`)**                                | ~60 s (1 vCPU, unsortiertes Padding)                       | **~8–12 Sekunden**                                                   | Längensortierte 16er-Batches (`embed.py`) + 4 CPU-Threads (`docker-compose.prod.yml`)                     |
-| **Q&A-Moderationszusammenfassung (`qa.requestSummary` V2)**                                   | > 90 s (Timeout bei 640 Tokens, `finish_reason: "length"`) | **56,9 Sekunden** (`374` Completion-Tokens, `finish_reason: "stop"`) | `qa-summary-technical-handoff-v2` (einzeilig, nur `included`) + `qa-summary-model-output-v3` (Caps 4/2/2) |
-| **Öffnen des Dialogs »Betrieb & Nutzung« (`health.stats` parallel zu `openWeightLlmProbe`)**  | ~70–95 s blockiert                                         | **~150 Millisekunden**                                               | `health.openWeightLlmProbe` im ungebündelten `httpLink`                                                   |
+| Szenario (500 Fragen / Antworten, 2-Host-Architektur)                                         | Vor den Optimierungen                                      | Aktueller Stand (mit PR #576–#579)                                   | Maßgebliche Optimierung                                                                                                                              |
+| :-------------------------------------------------------------------------------------------- | :--------------------------------------------------------- | :------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Q&A-Themenwolke: Wechsel der Sortierung** (`BEST` ↔ `TOP` ↔ `TIME` ↔ `CONTROVERSIAL`)       | ~148 s pro Wechsel (**10–15 Min.** für alle 4 Ansichten)   | **< 5 Millisekunden**                                                | `sessionClustersCache` + `clusterTopicLabelCache` (kein erneuter Encoder- oder LLM-Lauf)                                                             |
+| **Live-Freitext / Q&A: Klick auf »Thema« oder »Ergebnis anzeigen« nach laufendem Einreichen** | ~60 s ONNX + ~90 s LLM                                     | **0 ms ONNX** + **~15–22 s LLM** (für neue Cluster)                  | Hintergrund-Pre-Warming (`wordCloudPrewarmQueue`) + `sessionItemEmbeddingsCache`                                                                     |
+| **Kaltstart: 6 unbenannte Themen-Cluster durch `Qwen3-4B` benennen**                          | ~45–90 s (6 Einzel-Calls, häufige UUID-Token-Abbrüche)     | **22,9 Sekunden** (`411` Prompt- / `179` Completion-Tokens)          | Multi-Cluster-Batching (`schemaVersion: 2`) + kompakte Quell-IDs (`s1`..`s6`)                                                                        |
+| **Kaltstart: 500 uncached Texte im ONNX-Encoder (`e5-small`)**                                | ~60 s (1 vCPU, unsortiertes Padding)                       | **~8–12 Sekunden**                                                   | Längensortierte 16er-Batches (`embed.py`) + 4 CPU-Threads (`docker-compose.prod.yml`)                                                                |
+| **Q&A-Moderationszusammenfassung (`qa.requestSummary` V2)**                                   | > 90 s (Timeout bei 640 Tokens, `finish_reason: "length"`) | **56,9 Sekunden** (`374` Completion-Tokens, `finish_reason: "stop"`) | Historische Messung mit `qa-summary-technical-handoff-v2`; aktueller, noch neu zu vermessender Qualitätsvertrag: `v3` + `qa-summary-model-output-v3` |
+| **Öffnen des Dialogs »Betrieb & Nutzung« (`health.stats` parallel zu `openWeightLlmProbe`)**  | ~70–95 s blockiert                                         | **~150 Millisekunden**                                               | `health.openWeightLlmProbe` im ungebündelten `httpLink`                                                                                              |

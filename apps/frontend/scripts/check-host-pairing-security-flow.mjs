@@ -276,6 +276,9 @@ async function main() {
     await presenterStartButton(host).evaluate((element) => {
       element.click();
     });
+    const phoneSection = host.locator('[data-testid="presentation-start-phone"]').first();
+    await phoneSection.waitFor({ state: 'visible', timeout: 15_000 });
+    await phoneSection.locator('summary').first().click();
     const reviewOrConnect = host
       .locator(
         '[data-testid="presentation-start-review-request"], [data-testid="presentation-start-connect"]',

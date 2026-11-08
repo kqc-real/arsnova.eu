@@ -33,14 +33,14 @@ export function listMigrationNames(migrationsDir = MIGRATIONS_DIR) {
     .sort();
 }
 
-function execPrisma(exec, args) {
+function execPrisma(exec, args, { quietSuccess = false } = {}) {
   try {
     const output = exec(PRISMA_BIN, args, {
       cwd: REPO_ROOT,
       encoding: 'utf8',
       env: { ...process.env, PRISMA_HIDE_UPDATE_MESSAGE: 'true' },
     });
-    if (typeof output === 'string' && output) process.stdout.write(output);
+    if (!quietSuccess && typeof output === 'string' && output) process.stdout.write(output);
     return output;
   } catch (error) {
     if (typeof error?.stdout === 'string' && error.stdout) process.stdout.write(error.stdout);
@@ -57,18 +57,22 @@ export function isEmptyHistoryOnExistingSchema(error) {
   return /P3005/.test(combinedOutput(error));
 }
 
-export function baselineExistingDevSchema(exec = execFileSync, names = listMigrationNames()) {
+export function baselineExistingDevSchema(
+  exec = execFileSync,
+  names = listMigrationNames(),
+  { quietSuccess = false } = {},
+) {
   console.log(
-    `>>> Dev-DB ohne Migrationshistorie — markiere ${names.length} vorhandene Migrationen als applied.`,
+    `Die vorhandene Datenbank wird einmalig mit ${names.length} gespeicherten Datenbank-Aktualisierungen abgeglichen …`,
   );
   for (const name of names) {
-    execPrisma(exec, migrateResolveAppliedArgs(name));
+    execPrisma(exec, migrateResolveAppliedArgs(name), { quietSuccess });
   }
 }
 
-export function runMigrateDeploy(exec = execFileSync) {
+export function runMigrateDeploy(exec = execFileSync, { quietSuccess = false } = {}) {
   try {
-    execPrisma(exec, migrateDeployArgs());
+    execPrisma(exec, migrateDeployArgs(), { quietSuccess });
     return;
   } catch (error) {
     if (!isEmptyHistoryOnExistingSchema(error)) {
@@ -81,17 +85,23 @@ export function runMigrateDeploy(exec = execFileSync) {
       );
       throw error;
     }
-    baselineExistingDevSchema(exec);
-    execPrisma(exec, migrateDeployArgs());
+    baselineExistingDevSchema(exec, listMigrationNames(), { quietSuccess });
+    execPrisma(exec, migrateDeployArgs(), { quietSuccess });
   }
 }
 
 function main() {
-  console.log('>>> Dev-DB: prisma migrate deploy');
-  runMigrateDeploy();
-  seedMotdWelcomeSql();
-  seedMotdMakingOfSql();
-  seedMotdFeatureSql();
+  const migrationCount = listMigrationNames().length;
+  console.log('Datenbank wird geprüft …');
+  runMigrateDeploy(execFileSync, { quietSuccess: true });
+  console.log(
+    `✓ Datenbank bereit: ${migrationCount} vorbereitete Aktualisierungen wurden geprüft; fehlende Aktualisierungen wurden automatisch eingespielt.`,
+  );
+  console.log('Hinweise für die Startseite werden vorbereitet …');
+  seedMotdWelcomeSql(false);
+  seedMotdMakingOfSql(false);
+  seedMotdFeatureSql(false);
+  console.log('✓ Startseiten-Hinweise geprüft: Willkommen, Making-of und aktuelle Funktionen.');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

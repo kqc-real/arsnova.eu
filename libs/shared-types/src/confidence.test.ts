@@ -3,7 +3,9 @@ import {
   buildConfidenceResult,
   buildSessionConfidenceSummary,
   classifyConfidenceTier,
+  countPersonalMisconceptions,
   isConfidenceScaleValue,
+  isPersonalMisconception,
   questionSupportsConfidence,
   resolveEffectiveAggregationRound,
   selectConfidencePriorityQuestions,
@@ -14,6 +16,32 @@ describe('confidence helpers (Story 1.2i)', () => {
     expect(questionSupportsConfidence('SINGLE_CHOICE')).toBe(true);
     expect(questionSupportsConfidence('RATING')).toBe(false);
     expect(questionSupportsConfidence('FREETEXT')).toBe(false);
+  });
+
+  it('zählt eigene selbstsicher falsche Antworten und ersetzt die frühere Runde', () => {
+    expect(isPersonalMisconception(false, 4)).toBe(true);
+    expect(isPersonalMisconception(false, 3)).toBe(false);
+    expect(isPersonalMisconception(true, 5)).toBe(false);
+    const questions = [
+      { questionId: 'q1', confidenceEnabled: true },
+      { questionId: 'q2', confidenceEnabled: true },
+      { questionId: 'q3', confidenceEnabled: false },
+    ];
+    expect(
+      countPersonalMisconceptions(questions, [
+        { questionId: 'q1', round: 1, isCorrect: false, confidenceValue: 5 },
+        { questionId: 'q1', round: 2, isCorrect: true, confidenceValue: 4 },
+        { questionId: 'q2', round: 1, isCorrect: false, confidenceValue: 4 },
+        { questionId: 'q3', round: 1, isCorrect: false, confidenceValue: 5 },
+      ]),
+    ).toBe(1);
+    expect(countPersonalMisconceptions(questions, [])).toBeNull();
+    expect(
+      countPersonalMisconceptions(
+        [{ questionId: 'q1', confidenceEnabled: false }],
+        [{ questionId: 'q1', round: 1, isCorrect: false, confidenceValue: 5 }],
+      ),
+    ).toBeNull();
   });
 
   it('klassifiziert Skalenwerte in niedrig, mittel und hoch', () => {

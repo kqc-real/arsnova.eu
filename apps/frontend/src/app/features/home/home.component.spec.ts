@@ -670,6 +670,27 @@ describe('HomeComponent', () => {
       ).toBe(false);
     });
 
+    it('zeigt die Anzahl eigener Quizze als integrierte Mengenangabe statt als Badge', () => {
+      const fixture = createHomeFixture();
+      fixture.componentInstance.hostScenario.selectScenario('CLASSROOM');
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+
+      expect(root.querySelector('.home-library-button__count')).toBeNull();
+      expect(root.querySelector('.home-library-button .mat-badge-content')).toBeNull();
+
+      const quizStore = TestBed.inject(QuizStoreService);
+      quizStore.createQuiz({ name: 'Erstes Quiz', description: '' });
+      fixture.detectChanges();
+      expect(root.querySelector('.home-library-button__count')?.textContent?.trim()).toBe('1 Quiz');
+
+      quizStore.createQuiz({ name: 'Zweites Quiz', description: '' });
+      fixture.detectChanges();
+      expect(root.querySelector('.home-library-button__count')?.textContent?.trim()).toBe(
+        '2 Quizze',
+      );
+    });
+
     it('öffnet bestehendes Q&A in jedem Szenario ohne Setup und erhält dessen Zuordnung', async () => {
       const { trpc } = await import('../../core/trpc.client');
       seedHostCapability();

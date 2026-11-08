@@ -337,22 +337,25 @@
                   [routerLink]="localizedPath('/quiz')"
                   class="home-cta home-cta--secondary home-choice-button home-library-button"
                   (mouseenter)="preloadQuiz()"
-                  [matBadge]="quizCountBadgeText()"
-                  [matBadgeHidden]="quizCount() === 0"
                 >
-                  <span class="home-choice-button__copy">
-                    <span class="home-choice-button__label">
-                      @if (hostPanelChoice() === 'CLASSROOM') {
-                        <span i18n="@@homeScenario.selectQuiz">Quiz auswählen</span>
-                      } @else {
-                        <span i18n="@@homeHostCard.libraryCta">Quiz-Sammlung öffnen</span>
-                      }
+                  <span class="home-library-button__content">
+                    <span class="home-choice-button__copy">
+                      <span class="home-choice-button__label">
+                        @if (hostPanelChoice() === 'CLASSROOM') {
+                          <span i18n="@@homeScenario.selectQuiz">Quiz auswählen</span>
+                        } @else {
+                          <span i18n="@@homeHostCard.libraryCta">Quiz-Sammlung öffnen</span>
+                        }
+                      </span>
+                      <span
+                        class="home-choice-button__description"
+                        i18n="@@homeHostCard.libraryCtaDescription"
+                        >Quizze verwalten</span
+                      >
                     </span>
-                    <span
-                      class="home-choice-button__description"
-                      i18n="@@homeHostCard.libraryCtaDescription"
-                      >Quizze verwalten</span
-                    >
+                    @if (quizCount() > 0) {
+                      <span class="home-library-button__count">{{ quizCountLabel() }}</span>
+                    }
                   </span>
                 </a>
               </div>

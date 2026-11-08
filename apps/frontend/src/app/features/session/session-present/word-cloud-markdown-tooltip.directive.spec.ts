@@ -68,4 +68,22 @@ describe('WordCloudMarkdownTooltipDirective', () => {
     fixture.detectChanges();
     expect(button.getAttribute('aria-describedby')).toBe(touchId);
   });
+
+  it('schließt einen Hover-Tooltip bei einem Mausklick außerhalb', () => {
+    const fixture = TestBed.createComponent(TooltipHost);
+    fixture.componentInstance.blocks = [{ kind: 'text', text: 'Nennungen: 2' }];
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+
+    button.dispatchEvent(new Event('mouseenter'));
+    fixture.detectChanges();
+    const tooltipId = button.getAttribute('aria-describedby');
+    expect(document.getElementById(tooltipId!)).not.toBeNull();
+
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    fixture.detectChanges();
+
+    expect(button.hasAttribute('aria-describedby')).toBe(false);
+    expect(document.getElementById(tooltipId!)).toBeNull();
+  });
 });

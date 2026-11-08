@@ -42,13 +42,17 @@ describe('WordCloudComponent', () => {
   it('zeigt Kontext-Pills neben den Zaehlern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation durch Teamarbeit']);
-    fixture.componentRef.setInput('contextPills', ['Themen', 'Beste Fragen', 'ohne Wort-Glättung']);
+    fixture.componentRef.setInput('contextPills', [
+      'Themen',
+      'Klare Zustimmung',
+      'ohne Wort-Glättung',
+    ]);
     fixture.detectChanges();
 
     const pills = [
       ...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill--context'),
     ].map((el) => (el.textContent ?? '').trim());
-    expect(pills).toEqual(['Themen', 'Beste Fragen', 'ohne Wort-Glättung']);
+    expect(pills).toEqual(['Themen', 'Klare Zustimmung', 'ohne Wort-Glättung']);
   });
 
   it('waehlt einen vorgegebenen Fokusbegriff in der Wolke', () => {
@@ -113,6 +117,39 @@ describe('WordCloudComponent', () => {
     expect(fixture.componentInstance.selectedSourceIds()).toEqual(['q1']);
     expect(fixture.componentInstance.revealFocusedOrSelectedResponses()).toBe(true);
     expect(fixture.componentInstance.showResponses()).toBe(true);
+  });
+
+  it('priorisiert die stabile Gruppenidentität vor einem nicht mehr enthaltenen Wortlabel', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'serverlose-verarbeitung',
+        label: 'Serverlose Verarbeitung',
+        count: 2,
+        basisLabel: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+        members: [
+          {
+            sourceId: 'question-example',
+            text: 'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+            weight: 2,
+          },
+        ],
+        variants: ['Ereignisgesteuerte Verarbeitung'],
+        confidence: 0.91,
+        memberCount: 2,
+        membersTruncated: true,
+      },
+    ]);
+    fixture.componentRef.setInput('focusedTermLabel', 'Lambda');
+    fixture.componentRef.setInput('focusedGroupKey', 'serverlose-verarbeitung');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.selectedGroupKey()).toBe('serverlose-verarbeitung');
+    expect(fixture.componentInstance.selectedWordLabel()).toBe('Serverlose Verarbeitung');
+    expect(fixture.componentInstance.revealFocusedOrSelectedResponses()).toBe(true);
+    expect(fixture.componentInstance.filteredResponses()).toEqual([
+      'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
+    ]);
   });
 
   it('stellt den Fokusbegriff in displayWords nach vorne, auch wenn er schon im Cap liegt', () => {
@@ -505,25 +542,76 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     expect(component.showResponses()).toBe(true);
+    const responseList = fixture.nativeElement.querySelector(
+      '.word-cloud__responses',
+    ) as HTMLUListElement | null;
+    expect(responseList?.tabIndex).toBe(0);
+    expect(responseList?.getAttribute('aria-label')).toBe('2 Antworten');
     expect(fixture.nativeElement.textContent).toContain('Word Cloud 2.1');
     expect(fixture.nativeElement.textContent).toContain('Wortfamilien');
     expect(fixture.nativeElement.textContent).toContain('Natural Language Processing');
     expect(fixture.nativeElement.textContent).toContain('Themenclustern');
   });
 
-  it('zeigt standardmäßig Erklärtext und Gewichtungshinweis für bessere Orientierung', () => {
+  it('macht die Vollbildbuehne bei geoeffneter Antwortliste bis zum Listenende scrollbar', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput(
+      'responses',
+      Array.from({ length: 12 }, (_, index) => `Vollständige Antwort ${index + 1}`),
+    );
+    fixture.detectChanges();
+
+    fixture.componentInstance.toggleResponses();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.classList.contains('word-cloud-host--responses-expanded')).toBe(
+      true,
+    );
+
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'word-cloud.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /:host\.word-cloud-host--presentation\.word-cloud-host--responses-expanded \{[^}]*overflow-y:\s*auto/,
+    );
+    expect(styles).toMatch(
+      /:host\.word-cloud-host--responses-expanded \.word-cloud__responses \{[^}]*overscroll-behavior-y:\s*auto/,
+    );
+
+    fixture.componentInstance.toggleResponses();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.classList.contains('word-cloud-host--responses-expanded')).toBe(
+      false,
+    );
+  });
+
+  it('zeigt standardmäßig nur den Gewichtungshinweis für bessere Orientierung', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation', 'Teamarbeit']);
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Häufig genannte Wörter erscheinen größer.');
+    expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
     expect(text).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
     const hint = fixture.nativeElement.querySelector(
       '.word-cloud__meta .word-cloud__reading-hint',
     ) as HTMLElement | null;
     expect(hint).toBeTruthy();
     expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
+  });
+
+  it('zeigt bei einer vollständig leeren Wolke weder Zähler noch Gewichtungshinweis', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.word-cloud__meta')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.word-cloud__reading-hint')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Noch keine Freitext-Antworten vorhanden.');
   });
 
   it('kann öffentliche Presenter-Ansichten im Output-only-Modus ohne Bedien-UI rendern', () => {
@@ -546,6 +634,46 @@ describe('WordCloudComponent', () => {
     ) as HTMLElement | null;
     expect(hint).toBeTruthy();
     expect(hint?.textContent).toContain('Je größer ein Wort, desto öfter wurde es genannt.');
+  });
+
+  it('zeigt auf der Buehne Quellenumfang statt Gruppierungssicherheit und Modellversion', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('analysisModelVersion', 'private-model-v1');
+    fixture.componentRef.setInput('itemCount', 5);
+    fixture.componentRef.setInput('eligibleItemCount', 5);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'theme',
+        label: 'Stichprobe',
+        count: 4,
+        basisLabel: 'Stichprobe',
+        confidence: 0.92,
+        variants: ['Stichprobe'],
+        members: [{ sourceId: 'q1', text: 'Wie groß ist die Stichprobe?', weight: 4 }],
+      },
+      {
+        key: 'uncertain',
+        label: 'Offene Frage',
+        count: 1,
+        basisLabel: 'Offene Frage',
+        confidence: 0.5,
+        variants: ['Offene Frage'],
+        members: [{ sourceId: 'q2', text: 'Was ist noch offen?', weight: 1 }],
+      },
+    ]);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('5 von 5 Fragen analysiert');
+    expect(text).not.toContain('Sicherheit der Gruppierung');
+    expect(text).not.toContain('92');
+    expect(fixture.componentInstance.words().map((entry) => entry.word)).toContain('Offene Frage');
+    expect(fixture.nativeElement.querySelector('.word-cloud__grouping-details')).toBeNull();
+    const tooltip = fixture.componentInstance.wordTooltip(fixture.componentInstance.words()[0]!);
+    expect(tooltip).toContain('In 1 von 5 analysierten Fragen');
+    expect(tooltip).not.toContain('private-model-v1');
+    expect(tooltip).not.toContain('92');
   });
 
   it('keeps projected words readable and counts the undisplayed terms', () => {
@@ -1081,7 +1209,7 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('analysisMode', 'qa');
     fixture.componentRef.setInput('itemLabelSingular', 'Frage');
     fixture.componentRef.setInput('itemLabelPlural', 'Fragen');
-    fixture.componentRef.setInput('tooltipMetricLabel', 'beste Fragen');
+    fixture.componentRef.setInput('tooltipMetricLabel', 'klare Zustimmung');
     fixture.componentRef.setInput('responses', [
       'Sollten wir zuerst Python oder zuerst die Formel herleiten?',
       'Brauchen wir noch ein Rechenbeispiel zur Standardabweichung?',
@@ -1101,7 +1229,7 @@ describe('WordCloudComponent', () => {
     const tooltip = component.wordTooltipDisplay(entry!);
     expect(tooltip).toContain('Größenwert: 23');
     expect(tooltip).toContain('In 2 Fragen gefunden');
-    expect(tooltip).toContain('Gewichtung: beste Fragen');
+    expect(tooltip).toContain('Gewichtung: klare Zustimmung');
     expect(tooltip).toContain('Fragen:');
     expect(
       component
@@ -1171,14 +1299,14 @@ describe('WordCloudComponent', () => {
       'Kapitel 4 pruefungsstoff?',
     ]);
     const tooltip = component.wordTooltipDisplay(component.words()[0]!);
-    expect(tooltip).toContain('Zusammengefasst als: Kapitel 4');
-    expect(tooltip).toMatch(/Erkennung:\s*sicher\s*\(92\s*%\)/);
+    expect(tooltip).toContain('Beispiel aus den Originalbeiträgen: Kapitel 4');
+    expect(tooltip).toMatch(/Sicherheit der Gruppierung:\s*sicher\s*\(92\s*%\)/);
     expect(tooltip).toContain('Kapitel 4 klausurrelevant?');
 
     const text = (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
     expect(text).toContain('Pruefungsstoff Kapitel 4');
-    expect(text).toContain('Zusammengefasst als: Kapitel 4');
-    expect(text).toMatch(/Erkennung:\s*sicher\s*\(92\s*%\)/);
+    expect(text).toContain('Beispiel aus den Originalbeiträgen Kapitel 4');
+    expect(text).toMatch(/Sicherheit der Gruppierung:\s*sicher\s*\(92\s*%\)/);
     expect(text).toContain('Ausgewählt: Pruefungsstoff Kapitel 4');
     expect(
       fixture.nativeElement
@@ -1187,9 +1315,75 @@ describe('WordCloudComponent', () => {
         .trim(),
     ).toBe('Ausgewählt: Pruefungsstoff Kapitel 4');
 
-    const highBadge = fixture.nativeElement.querySelector('.word-cloud__meta-pill--detail-high');
+    const highBadge = fixture.nativeElement.querySelector('.word-cloud__grouping-details');
     expect(highBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
-      /Erkennung:\s*sicher\s*\(92\s*%\)/,
+      /Sicherheit der Gruppierung:\s*sicher\s*\(92\s*%\)/,
+    );
+    const summaryHero = fixture.nativeElement.querySelector(
+      '.word-cloud__summary-hero',
+    ) as HTMLElement | null;
+    expect(summaryHero?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Beispiel aus den Originalbeiträgen Kapitel 4',
+    );
+    expect(summaryHero?.querySelector('blockquote')?.textContent?.trim()).toBe('Kapitel 4');
+    expect(summaryHero?.querySelector('.word-cloud__meta-pill')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.word-cloud__analysis-meta')?.textContent,
+    ).not.toContain('Beispiel aus den Originalbeiträgen');
+  });
+
+  it('zeigt im Themenmodus die vollständigen Originalfragen statt gekürzter Analysetexte', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const fullQuestion =
+      'Wie können »kurze Erklärung« und »Visualisierung der Verteilung« so verzahnt werden, dass Fragen nicht untergehen? Bitte mit einem vollständigen Beispiel antworten.';
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('responseTextsBySourceId', {
+      'question-long': fullQuestion,
+    });
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'erklaerung-visualisierung',
+        label: 'Erklärung und Visualisierung',
+        count: 1,
+        basisLabel: fullQuestion,
+        members: [
+          {
+            sourceId: 'question-long',
+            text: 'Wie können »kurze Erklärung« und »Visualisierung der Verteilung« so verzahnt werden, dass Fragen nicht untergehen? Bitte mit ein',
+            weight: 1,
+          },
+        ],
+        variants: ['Erklärung und Visualisierung'],
+        confidence: 0.9,
+      },
+    ]);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.toggleWord('erklaerung-visualisierung');
+    component.toggleResponses();
+    fixture.detectChanges();
+
+    expect(component.filteredResponses()).toEqual([fullQuestion]);
+    const originalExample = fixture.nativeElement.querySelector(
+      '.word-cloud__summary-hero blockquote',
+    ) as HTMLElement | null;
+    expect(originalExample?.textContent?.trim()).toBe(fullQuestion);
+    expect(fixture.nativeElement.textContent).not.toContain('Zusammengefasst als');
+    const responseList = fixture.nativeElement.querySelector(
+      '.word-cloud__responses',
+    ) as HTMLUListElement | null;
+    expect(responseList?.querySelector('li')?.textContent?.trim()).toBe(fullQuestion);
+
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'word-cloud.component.scss'),
+      'utf8',
+    );
+    expect(styles).toMatch(
+      /\.word-cloud__summary-hero-text \{[^}]*width:\s*100%;[^}]*max-width:\s*none;/,
     );
   });
 
@@ -1236,17 +1430,17 @@ describe('WordCloudComponent', () => {
     expect(component.confidenceFilter()).toBe('all');
 
     expect(component.wordTooltipDisplay(component.words()[0]!)).toMatch(
-      /Erkennung:\s*mittel\s*\(72\s*%\)/,
+      /Sicherheit der Gruppierung:\s*mittel\s*\(72\s*%\)/,
     );
     expect(component.wordTooltipDisplay(component.words()[1]!)).toMatch(
-      /Erkennung:\s*unsicher\s*\(54\s*%\)/,
+      /Sicherheit der Gruppierung:\s*unsicher\s*\(54\s*%\)/,
     );
 
     component.setConfidenceFilter('low');
     fixture.detectChanges();
 
     expect(component.wordTooltipDisplay(component.words()[0]!)).toMatch(
-      /Erkennung:\s*unsicher\s*\(54\s*%\)/,
+      /Sicherheit der Gruppierung:\s*unsicher\s*\(54\s*%\)/,
     );
 
     component.setConfidenceFilter('medium');
@@ -1255,11 +1449,9 @@ describe('WordCloudComponent', () => {
     component.toggleWord('mittel-cluster');
     fixture.detectChanges();
 
-    const mediumBadge = fixture.nativeElement.querySelector(
-      '.word-cloud__meta-pill--detail-medium',
-    );
+    const mediumBadge = fixture.nativeElement.querySelector('.word-cloud__grouping-details');
     expect(mediumBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
-      /Erkennung:\s*mittel\s*\(72\s*%\)/,
+      /Sicherheit der Gruppierung:\s*mittel\s*\(72\s*%\)/,
     );
 
     component.setConfidenceFilter('low');
@@ -1268,11 +1460,9 @@ describe('WordCloudComponent', () => {
     component.toggleWord('vorsichtig-cluster');
     fixture.detectChanges();
 
-    const cautiousBadge = fixture.nativeElement.querySelector(
-      '.word-cloud__meta-pill--detail-cautious',
-    );
+    const cautiousBadge = fixture.nativeElement.querySelector('.word-cloud__grouping-details');
     expect(cautiousBadge?.textContent?.replace(/\s+/g, ' ')).toMatch(
-      /Erkennung:\s*unsicher\s*\(54\s*%\)/,
+      /Sicherheit der Gruppierung:\s*unsicher\s*\(54\s*%\)/,
     );
   });
 
@@ -1658,7 +1848,7 @@ describe('WordCloudComponent', () => {
       'Teamarbeit schafft Fokus',
       'Motivation hilft beim Lernen',
     ]);
-    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern und Phrasen');
+    fixture.componentRef.setInput('exportViewLabel', 'Ersatzansicht mit Wörtern und Wortgruppen');
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
@@ -1706,7 +1896,11 @@ describe('WordCloudComponent', () => {
 
     await component.exportPng();
 
-    expect(context.fillText).toHaveBeenCalledWith('Ersatzansicht mit Wörtern und Phrasen', 64, 64);
+    expect(context.fillText).toHaveBeenCalledWith(
+      'Ersatzansicht mit Wörtern und Wortgruppen',
+      64,
+      64,
+    );
     expect(clickSpy).toHaveBeenCalled();
     expect(component.statusMessage()).toBe('PNG exportiert.');
     expect(fixture.nativeElement.textContent).toContain('PNG speichern');

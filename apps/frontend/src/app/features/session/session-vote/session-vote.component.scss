@@ -3799,7 +3799,13 @@
     margin-top: 0.75rem;
     padding: 0.85rem 1rem;
     background: var(--mat-sys-surface-container-lowest);
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface);
   }
+}
+
+.vote-finished-misconceptions {
+  margin-top: 0;
 }
 
 @keyframes vote-confidence-in {

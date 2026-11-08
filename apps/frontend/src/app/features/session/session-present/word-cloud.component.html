@@ -16,78 +16,90 @@
     class="word-cloud l-stack l-stack--sm"
     [class.word-cloud--presentation]="presentationMode()"
   >
-    <div class="word-cloud__meta">
-      @if (outputOnly() && isWordCountPartial()) {
-        <p class="word-cloud__remaining" i18n="@@wordCloud.remainingTerms">
-          + {{ words().length - visibleWordCount() }} weitere Begriffe
-        </p>
-      }
+    @if (words().length > 0 || responseSummary().total > 0 || (itemCount() ?? 0) > 0) {
+      <div class="word-cloud__meta">
+        @if (outputOnly() && isWordCountPartial()) {
+          <p class="word-cloud__remaining" i18n="@@wordCloud.remainingTerms">
+            + {{ words().length - visibleWordCount() }} weitere Begriffe
+          </p>
+        }
 
-      <p class="word-cloud__meta-line">
-        <span class="word-cloud__meta-pill">
-          @if (isWordCountPartial()) {
-            {{ formatCount(visibleWordCount()) }} / {{ formatCount(words().length) }}
-            {{ wordLabel(words().length) }}
-          } @else {
-            {{ words().length }} {{ wordLabel(words().length) }}
-          }
-        </span>
-        <span class="word-cloud__meta-pill">{{
-          qaCoverageLabel() ??
-            formatCount(responseSummary().total) + ' ' + itemLabel(responseSummary().total)
-        }}</span>
-        @if (analysisDetailLabel()) {
-          <span class="word-cloud__meta-pill word-cloud__meta-pill--focus">
-            @if (showsSelectedFilterDetails()) {
-              {{ selectedFilterPrefix }} {{ analysisDetailLabel() }}
+        <p class="word-cloud__meta-line">
+          <span class="word-cloud__meta-pill">
+            @if (isWordCountPartial()) {
+              {{ formatCount(visibleWordCount()) }} / {{ formatCount(words().length) }}
+              {{ wordLabel(words().length) }}
             } @else {
-              {{ focusFilterPrefix }} {{ analysisDetailLabel() }}
+              {{ words().length }} {{ wordLabel(words().length) }}
             }
           </span>
-        }
-        @for (pill of contextPills(); track pill) {
-          <span class="word-cloud__meta-pill word-cloud__meta-pill--context">{{ pill }}</span>
-        }
-      </p>
-      @if (weightingHint()) {
-        <div class="word-cloud__reading-hint" role="note">
-          <mat-icon aria-hidden="true">insights</mat-icon>
-          <span>{{ weightingHint() }}</span>
-        </div>
-      }
-      @if (selectedWordAnalysisDetails().length > 0) {
-        <div class="word-cloud__filter-info">
-          <p class="word-cloud__analysis-meta">
-            @for (detail of selectedWordAnalysisDetails(); track detail.label) {
-              <span
-                class="word-cloud__meta-pill word-cloud__meta-pill--detail"
-                [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
-                [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
-                [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
-                >{{ detail.label }}</span
-              >
-            }
-          </p>
-        </div>
-      }
-    </div>
-    @if (showConfidenceFilterToggle()) {
-      <div class="word-cloud__analysis-toolbar">
-        <span class="word-cloud__analysis-toolbar-label">{{ confidenceFilterGroupLabel }}</span>
-        <mat-button-toggle-group
-          class="word-cloud__analysis-toggle"
-          [value]="confidenceFilter()"
-          (valueChange)="setConfidenceFilter($any($event))"
-          [hideSingleSelectionIndicator]="true"
-          [attr.aria-label]="confidenceFilterGroupLabel"
-        >
-          @for (option of confidenceFilterOptions(); track option.value) {
-            <mat-button-toggle [value]="option.value" [disabled]="option.count === 0">
-              {{ option.label }} {{ option.count }}
-            </mat-button-toggle>
+          <span class="word-cloud__meta-pill">{{
+            qaCoverageLabel() ??
+              formatCount(responseSummary().total) + ' ' + itemLabel(responseSummary().total)
+          }}</span>
+          @if (analysisDetailLabel()) {
+            <span class="word-cloud__meta-pill word-cloud__meta-pill--focus">
+              @if (showsSelectedFilterDetails()) {
+                {{ selectedFilterPrefix }} {{ analysisDetailLabel() }}
+              } @else {
+                {{ focusFilterPrefix }} {{ analysisDetailLabel() }}
+              }
+            </span>
           }
-        </mat-button-toggle-group>
+          @for (pill of contextPills(); track pill) {
+            <span class="word-cloud__meta-pill word-cloud__meta-pill--context">{{ pill }}</span>
+          }
+        </p>
+        @if (weightingHint() && words().length > 0) {
+          <div class="word-cloud__reading-hint" role="note">
+            <mat-icon aria-hidden="true">insights</mat-icon>
+            <span>{{ weightingHint() }}</span>
+          </div>
+        }
+        @if (selectedWordAnalysisDetails().length > 0) {
+          <div class="word-cloud__filter-info">
+            <p class="word-cloud__analysis-meta">
+              @for (detail of selectedWordAnalysisDetails(); track detail.label) {
+                <span
+                  class="word-cloud__meta-pill word-cloud__meta-pill--detail"
+                  [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
+                  [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
+                  [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
+                  >{{ detail.label }}</span
+                >
+              }
+            </p>
+          </div>
+        }
       </div>
+    }
+    @if (showConfidenceFilterToggle()) {
+      <details class="word-cloud__grouping-details">
+        <summary i18n="@@wordCloud.groupingDetails">Gruppierung prüfen</summary>
+        <p i18n="@@wordCloud.groupingExplanation">
+          Die Einschätzung betrifft nur die automatische Gruppierung, nicht die fachliche
+          Richtigkeit oder das Verständnis der Teilnehmenden.
+        </p>
+        @if (groupingConfidence(); as confidence) {
+          <p>{{ confidence }}</p>
+        }
+        <div class="word-cloud__analysis-toolbar">
+          <span class="word-cloud__analysis-toolbar-label">{{ confidenceFilterGroupLabel }}</span>
+          <mat-button-toggle-group
+            class="word-cloud__analysis-toggle"
+            [value]="confidenceFilter()"
+            (valueChange)="setConfidenceFilter($any($event))"
+            [hideSingleSelectionIndicator]="true"
+            [attr.aria-label]="confidenceFilterGroupLabel"
+          >
+            @for (option of confidenceFilterOptions(); track option.value) {
+              <mat-button-toggle [value]="option.value" [disabled]="option.count === 0">
+                {{ option.label }} {{ option.count }}
+              </mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+        </div>
+      </details>
     }
     <div
       #exportSurface
@@ -182,6 +194,16 @@
         </div>
       }
     </div>
+    @if (analysisSummaryHero(); as summary) {
+      <section class="word-cloud__summary-hero">
+        <h3 class="word-cloud__summary-hero-heading" i18n="@@wordCloud.summaryHeroHeading">
+          Beispiel aus den Originalbeiträgen
+        </h3>
+        <blockquote class="word-cloud__summary-hero-text">
+          <p>{{ summary }}</p>
+        </blockquote>
+      </section>
+    }
     @if (words().length > 0) {
       <ol class="sr-only" [attr.aria-label]="title()">
         @for (entry of words(); track entry.groupKey) {
@@ -241,7 +263,13 @@
             @if (selectedEvidenceCoverage(); as evidenceCoverage) {
               <p>{{ evidenceCoverage }}</p>
             }
-            <ul class="word-cloud__responses">
+            <ul
+              class="word-cloud__responses"
+              tabindex="0"
+              [attr.aria-label]="
+                formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
+              "
+            >
               @for (response of visibleResponses(); track response + $index) {
                 <li>{{ response }}</li>
               }
