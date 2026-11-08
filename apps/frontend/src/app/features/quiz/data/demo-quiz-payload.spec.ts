@@ -1,8 +1,35 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { QuestionTypeEnum } from '@arsnova/shared-types';
 import { getDemoQuizPayload, getDemoQuizSeedFingerprint } from './demo-quiz-payload';
 
+const demoQuizGeneratorPath = resolve(process.cwd(), 'scripts/apply-demo-quiz-locale-strings.mjs');
+const demoQuizLocales = ['de', 'en', 'fr', 'es', 'it'] as const;
+
 describe('getDemoQuizSeedFingerprint', () => {
+  it('regeneriert alle Locale-Dateien ohne Abweichung vom ausgelieferten Payload', async () => {
+    const outputDir = await mkdtemp(join(tmpdir(), 'arsnova-demo-quiz-locales-'));
+
+    try {
+      execFileSync(process.execPath, [demoQuizGeneratorPath], {
+        env: { ...process.env, DEMO_QUIZ_OUTPUT_DIR: outputDir },
+        stdio: 'pipe',
+      });
+
+      for (const locale of demoQuizLocales) {
+        const generatedPayload = JSON.parse(
+          await readFile(join(outputDir, `quiz-demo-showcase.${locale}.json`), 'utf8'),
+        );
+        expect(generatedPayload).toEqual(getDemoQuizPayload(locale));
+      }
+    } finally {
+      await rm(outputDir, { recursive: true, force: true });
+    }
+  });
+
   it('ändert sich mit exportVersion, Motiv-URL und komplettem Payload (Demo-Reseed)', () => {
     const de = getDemoQuizSeedFingerprint('de');
     expect(de).toMatch(/^de\|1\|/);

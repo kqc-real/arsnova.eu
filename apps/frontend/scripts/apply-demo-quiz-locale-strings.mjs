@@ -8,13 +8,15 @@ import { fileURLToPath } from 'node:url';
 import { format } from 'prettier';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const demoDir = path.join(__dirname, '../src/assets/demo');
+const demoDir = process.env.DEMO_QUIZ_OUTPUT_DIR
+  ? path.resolve(process.env.DEMO_QUIZ_OUTPUT_DIR)
+  : path.join(__dirname, '../src/assets/demo');
 
 function md(strings, ...values) {
   return String.raw({ raw: strings.raw }, ...values).trim();
 }
 
-const EXPORT_VERSION = 30;
+const EXPORT_VERSION = 1;
 const EXPORTED_AT = '2026-05-24T10:00:00.000Z';
 
 const EMOTION_IMAGE_URL =
@@ -106,8 +108,9 @@ function buildPayload(locale) {
       motifImageCredit: 'Pass / Le Brun (1821), via Wikimedia Commons',
       showLeaderboard: true,
       allowCustomNicknames: false,
-      defaultTimer: 30,
+      defaultTimer: 60,
       timerScaleByDifficulty: true,
+      enableTimerAccommodation: false,
       enableSoundEffects: true,
       enableRewardEffects: true,
       enableMotivationMessages: true,
@@ -120,11 +123,12 @@ function buildPayload(locale) {
       backgroundMusic: null,
       nicknameTheme: 'KINDERGARTEN',
       bonusTokenCount: 3,
-      readingPhaseEnabled: true,
+      readingPhaseEnabled: false,
       questions: [
         {
           text: questionText(0),
           type: 'SURVEY',
+          shuffleAnswerOptions: false,
           timer: null,
           difficulty: 'EASY',
           order: 0,
@@ -165,6 +169,7 @@ function buildPayload(locale) {
         {
           text: questionText(2),
           type: 'SINGLE_CHOICE',
+          shuffleAnswerOptions: false,
           timer: null,
           difficulty: 'EASY',
           order: 3,
@@ -176,6 +181,7 @@ function buildPayload(locale) {
         {
           text: questionText(3),
           type: 'MULTIPLE_CHOICE',
+          shuffleAnswerOptions: false,
           timer: null,
           difficulty: 'MEDIUM',
           order: 4,
@@ -188,6 +194,7 @@ function buildPayload(locale) {
         {
           text: questionText(4),
           type: 'SINGLE_CHOICE',
+          shuffleAnswerOptions: false,
           timer: null,
           difficulty: 'HARD',
           order: 5,
@@ -199,6 +206,7 @@ function buildPayload(locale) {
         {
           text: questionText(5),
           type: 'SINGLE_CHOICE',
+          shuffleAnswerOptions: false,
           timer: null,
           difficulty: 'MEDIUM',
           order: 6,
@@ -325,7 +333,7 @@ Die Antworten werden als Wortwolke dargestellt.
 
 Die 13 Fragen zeigen alle zehn Quiz-Fragetypen von arsnova.eu in einem kompakten Live-Ablauf. Du kannst Bilder, Markdown und KaTeX einsetzen, die Antwortsicherheit als Selbsteinschätzung nach bewertbaren Fragen erheben und numerische Fragen auch in zwei Diskussionsrunden durchführen.
 
-Die Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Freitextfrage Antworten aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Verteilungen typische Unsicherheiten und Verwechslungen sichtbar.
+Die Demo zeigt außerdem, wie du **Schritte sortierst**, **Begriffe eindeutig zuordnest**, **Beispiele kategorisierst** sowie mit einer offenen Freitextfrage Antworten aus dem Raum sammelst und als Wortwolke besprichst. Nach der Auflösung machen Musterlösungen und Antwortverteilungen typische Unsicherheiten und Fehlvorstellungen sichtbar.
 
 Timer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Tritt der Session für die Demo auf einem zweiten Gerät bei und öffne das Quiz anschließend im Bearbeitungsmodus, um die Umsetzung zu erkunden.`,
     questions: [
@@ -353,11 +361,11 @@ Timer, Teams, Rangliste und Bonus-Codes ergänzen den spielerischen Ablauf. Trit
 
 ![Die Zahl Pi](${PI_IMAGE_URL})
 
-Leonhard Euler:
+Eulersche Identität:
 
 $$e^{i \pi} + 1 = 0$$
 
-Karl Weierstraß:
+Integraldarstellung von $\pi$:
 
 $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^{1} \frac{\mathrm{d}x}{1 + x^2}$$`,
       },
@@ -382,7 +390,7 @@ _Mehrere Antworten möglich._
         `,
         answers: [
           { text: 'Vorwissen zu Beginn einer Stunde aktivieren', isCorrect: true },
-          { text: 'Missverständnisse mitten in der Stunde sichtbar machen', isCorrect: true },
+          { text: 'Fehlvorstellungen im Verlauf der Stunde sichtbar machen', isCorrect: true },
           {
             text: 'Individuelle Prüfungsnoten ohne Identitätsnachweis vergeben',
             isCorrect: false,
@@ -473,11 +481,11 @@ Bringe die sechs Schritte in die korrekte Abfolge.
           },
           {
             id: 'step2',
-            text: 'RNA-Prozessierung',
+            text: 'Prozessierung der prä-mRNA',
           },
           {
             id: 'step3',
-            text: 'Export der reifen mRNA',
+            text: 'Export der reifen mRNA aus dem Zellkern',
           },
           {
             id: 'step4',
@@ -582,9 +590,9 @@ The responses will be displayed as a word cloud.
 
 # Teaching Practice Showcase
 
-These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, collect answer confidence after graded questions, and run a numeric question in two discussion rounds.
+These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, ask learners to rate their confidence after graded questions, and run a numeric question in two discussion rounds.
 
-The showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, model solutions and distributions expose uncertainty and common mix-ups.
+The showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, sample solutions and response distributions expose uncertainty and common misconceptions.
 
 Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.`,
     questions: [
@@ -612,11 +620,11 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
 
 ![The number pi](${PI_IMAGE_URL})
 
-Leonhard Euler:
+Euler’s identity:
 
 $$e^{i \pi} + 1 = 0$$
 
-Karl Weierstraß:
+Integral representation of $\pi$:
 
 $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^{1} \frac{\mathrm{d}x}{1 + x^2}$$`,
       },
@@ -683,11 +691,11 @@ ${CODE_FENCE}`,
       },
       {
         text: md`
-### What is the teaching method called in which learners vote individually, discuss briefly, and then vote again?
+### What is the instructional strategy called in which learners vote individually, discuss briefly, and then vote again?
 
 > **Teaching move:** Use this as a challenging terminology question to demonstrate accepted answer variants, minor spelling errors, and transparent partial-credit scoring.
 
-Expected answer: the established instructional term for this sequence.
+Expected answer: the established term for this sequence.
         `,
         answers: [
           { text: 'Peer Instruction', isCorrect: true },
@@ -729,11 +737,11 @@ Arrange the six steps in the correct sequence.
           },
           {
             id: 'step2',
-            text: 'RNA processing',
+            text: 'Pre-mRNA processing',
           },
           {
             id: 'step3',
-            text: 'Export of mature mRNA',
+            text: 'Export of mature mRNA from the nucleus',
           },
           {
             id: 'step4',
@@ -776,7 +784,7 @@ _Match each date on the left to its historical milestone on the right._
           },
           {
             left: '29 October 1929',
-            right: 'Massive Wall Street price collapse (“Black Tuesday”)',
+            right: 'Wall Street stock-market crash (“Black Tuesday”)',
           },
           {
             left: '30 January 1933',
@@ -840,7 +848,7 @@ Les réponses seront affichées sous forme de nuage de mots.
 
 Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.
 
-La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Après la révélation, les solutions modèles et les répartitions font apparaître les hésitations et les confusions fréquentes.
+La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Une fois les résultats affichés, les corrigés types et les répartitions des réponses font apparaître les hésitations et les conceptions erronées fréquentes.
 
 Les chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.`,
     questions: [
@@ -868,11 +876,11 @@ Les chronos, les équipes, le classement et les codes bonus donnent du rythme. R
 
 ![Le nombre pi](${PI_IMAGE_URL})
 
-Leonhard Euler :
+Identité d’Euler :
 
 $$e^{i \pi} + 1 = 0$$
 
-Karl Weierstraß :
+Représentation intégrale de $\pi$ :
 
 $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^{1} \frac{\mathrm{d}x}{1 + x^2}$$`,
       },
@@ -926,7 +934,7 @@ Ressource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérien
         ],
       },
       {
-        text: md`### Pour quel environnement de creative coding ce sketch a-t-il été écrit ?
+        text: md`### Pour quel environnement de programmation créative ce sketch a-t-il été écrit ?
 
 > **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.
 
@@ -946,7 +954,7 @@ ${CODE_FENCE}`,
 
 > **Piste pédagogique :** utilisez cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.
 
-On cherche le terme didactique établi pour cette séquence.
+On cherche le terme pédagogique établi pour cette séquence.
         `,
         answers: [
           { text: 'Peer Instruction', isCorrect: true },
@@ -988,11 +996,11 @@ Mets les six étapes dans la bonne séquence.
           },
           {
             id: 'step2',
-            text: 'Maturation de l’ARN',
+            text: 'Maturation du pré-ARNm',
           },
           {
             id: 'step3',
-            text: 'Export de l’ARNm mature',
+            text: 'Export de l’ARNm mature hors du noyau',
           },
           {
             id: 'step4',
@@ -1032,7 +1040,7 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
           },
           {
             left: '29 octobre 1929',
-            right: 'Effondrement massif des cours à Wall Street (« Black Tuesday »)',
+            right: 'Krach boursier de Wall Street (« Black Tuesday »)',
           },
           {
             left: '30 janvier 1933',
@@ -1094,9 +1102,9 @@ Las respuestas se mostrarán como una nube de palabras.
 
 # Demostración didáctica
 
-Estas 13 preguntas presentan los diez formatos de preguntas de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de seguridad tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
+Estas 13 preguntas presentan los diez formatos de preguntas de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de confianza tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
 
-La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y distribuciones revelan dudas y confusiones frecuentes.
+La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones modelo y las distribuciones de respuestas revelan dudas y concepciones erróneas frecuentes.
 
 Los temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.`,
     questions: [
@@ -1124,11 +1132,11 @@ Los temporizadores, los equipos, la clasificación y los códigos de bonificaci�
 
 ![El número pi](${PI_IMAGE_URL})
 
-Leonhard Euler:
+Identidad de Euler:
 
 $$e^{i \pi} + 1 = 0$$
 
-Karl Weierstraß:
+Representación integral de $\pi$:
 
 $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^{1} \frac{\mathrm{d}x}{1 + x^2}$$`,
       },
@@ -1153,7 +1161,7 @@ _Puede haber varias respuestas correctas._
         `,
         answers: [
           { text: 'Activar conocimientos previos al inicio de la clase', isCorrect: true },
-          { text: 'Detectar malentendidos a mitad de la sesión', isCorrect: true },
+          { text: 'Detectar concepciones erróneas durante la sesión', isCorrect: true },
           {
             text: 'Asignar notas individuales sin comprobar la identidad',
             isCorrect: false,
@@ -1222,7 +1230,7 @@ Buscamos el año que se suele tomar como inicio de la Revolución francesa.
       },
       {
         text: md`
-### ¿Qué probabilidad hay de que pruebes pronto un cuestionario en directo como este en una de tus clases?
+### ¿Qué probabilidades hay de que pruebes pronto un cuestionario en directo como este en una de tus clases?
 
 > **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.
         `,
@@ -1244,11 +1252,11 @@ Coloca los seis pasos en la secuencia correcta.
           },
           {
             id: 'step2',
-            text: 'Procesamiento del ARN',
+            text: 'Procesamiento del pre-ARNm',
           },
           {
             id: 'step3',
-            text: 'Exportación del ARNm maduro',
+            text: 'Exportación del ARNm maduro desde el núcleo',
           },
           {
             id: 'step4',
@@ -1288,7 +1296,7 @@ _Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
           },
           {
             left: '29 de octubre de 1929',
-            right: 'Desplome masivo de las cotizaciones en Wall Street («Black Tuesday»)',
+            right: 'Crac bursátil de Wall Street («Black Tuesday»)',
           },
           {
             left: '30 de enero de 1933',
@@ -1350,9 +1358,9 @@ Le risposte saranno visualizzate sotto forma di nuvola di parole.
 
 # Dimostrazione didattica
 
-Queste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di sicurezza dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
+Queste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di fiducia dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
 
-La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Dopo la rivelazione, soluzioni e distribuzioni evidenziano incertezze e frequenti errori di abbinamento.
+La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Quando vengono mostrati i risultati, le soluzioni modello e le distribuzioni delle risposte evidenziano incertezze e concezioni errate ricorrenti.
 
 Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.`,
     questions: [
@@ -1380,11 +1388,11 @@ Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo d
 
 ![Il numero pi](${PI_IMAGE_URL})
 
-Leonhard Euler:
+Identità di Eulero:
 
 $$e^{i \pi} + 1 = 0$$
 
-Karl Weierstraß:
+Rappresentazione integrale di $\pi$:
 
 $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^{1} \frac{\mathrm{d}x}{1 + x^2}$$`,
       },
@@ -1409,7 +1417,7 @@ _Sono possibili più risposte corrette._
         `,
         answers: [
           { text: 'Attivare le conoscenze pregresse all’inizio della lezione', isCorrect: true },
-          { text: 'Far emergere i fraintendimenti a metà attività', isCorrect: true },
+          { text: 'Far emergere concezioni errate durante l’attività', isCorrect: true },
           {
             text: 'Assegnare voti individuali senza verificare l’identità',
             isCorrect: false,
@@ -1500,11 +1508,11 @@ Disponi i sei passaggi nella sequenza corretta.
           },
           {
             id: 'step2',
-            text: 'Maturazione dell’RNA',
+            text: 'Maturazione del pre-mRNA',
           },
           {
             id: 'step3',
-            text: 'Esportazione dell’mRNA maturo',
+            text: 'Esportazione dell’mRNA maturo dal nucleo',
           },
           {
             id: 'step4',
@@ -1522,7 +1530,7 @@ Disponi i sei passaggi nella sequenza corretta.
       },
       {
         text: md`
-### Associa le date storiche della Repubblica di Weimar all'evento corrispondente.
+### Associa le date storiche della Repubblica di Weimar all’evento corrispondente.
 
 > **Uso didattico:** Usalo come domanda di associazione in storia o scienze sociali per verificare date chiave o trattati 1:1.
 
@@ -1544,7 +1552,7 @@ _Collega ciascuna data a sinistra con il relativo evento storico a destra._
           },
           {
             left: '29 ottobre 1929',
-            right: 'Crollo massiccio delle quotazioni a Wall Street («Black Tuesday»)',
+            right: 'Crollo della borsa di Wall Street («Black Tuesday»)',
           },
           {
             left: '30 gennaio 1933',
