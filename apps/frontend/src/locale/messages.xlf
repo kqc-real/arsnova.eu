@@ -20268,7 +20268,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.endPresentationView" datatype="html">
-        <source>Projektionsansicht beenden</source>
+        <source>Live-Projektion ausblenden</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5477</context>
@@ -20915,7 +20915,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.resumePresentationView" datatype="html">
-        <source>Präsentationsansicht fortsetzen</source>
+        <source>Live-Projektion fortsetzen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1884</context>
@@ -21732,14 +21732,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewEnded" datatype="html">
-        <source>Projektionsansicht beendet. Das Quiz läuft weiter.</source>
+        <source>Live-Projektion ausgeblendet. Das Quiz läuft weiter.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6070</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewEndError" datatype="html">
-        <source>Projektionsansicht konnte nicht beendet werden. Bitte erneut versuchen.</source>
+        <source>Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6071</context>
@@ -21781,7 +21781,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.presentationViewResumeError" datatype="html">
-        <source>Die Projektionsansicht konnte nicht fortgesetzt werden. Bitte erneut versuchen.</source>
+        <source>Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6453</context>
@@ -23875,7 +23875,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.presentationEndedTitle" datatype="html">
-        <source> Die Live-Präsentation wurde beendet.</source>
+        <source> Die Live-Projektion ist ausgeblendet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">123,125</context>

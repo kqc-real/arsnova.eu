@@ -1998,7 +1998,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly isImmersiveMode = computed(() => this.hostDisplayMode.immersiveHostActive());
   readonly presenterViewActionLabel = computed(() => {
     if (this.session()?.presenterSurface === 'ended') {
-      return $localize`:@@sessionHost.resumePresentationView:Präsentationsansicht fortsetzen`;
+      return $localize`:@@sessionHost.resumePresentationView:Live-Projektion fortsetzen`;
     }
     if (this.presenterWindowOpen()) {
       return $localize`:@@sessionHost.switchToPresentationView:Zur Präsentationsansicht wechseln`;
@@ -6882,8 +6882,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       this.snackBar.open(
         ended
-          ? $localize`:@@sessionHost.presentationViewEnded:Projektionsansicht beendet. Das Quiz läuft weiter.`
-          : $localize`:@@sessionHost.presentationViewEndError:Projektionsansicht konnte nicht beendet werden. Bitte erneut versuchen.`,
+          ? $localize`:@@sessionHost.presentationViewEnded:Live-Projektion ausgeblendet. Das Quiz läuft weiter.`
+          : $localize`:@@sessionHost.presentationViewEndError:Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.`,
         '',
         { duration: ended ? 4000 : 6000 },
       );
@@ -6904,7 +6904,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaProjectionPageSyncInFlight = false;
   /**
    * Q&A-Fragenmodus für Navigator/Hero: solange der Q&A-Kanal bevorzugt ist
-   * (auch ohne laufende Projektion / nach »Projektionsansicht beenden«).
+   * (auch ohne laufende Projektion / nach »Live-Projektion ausblenden«).
    * Die sichtbare Navigator-UI bleibt auf den Q&A-Kanal-Tab beschränkt
    * (`showProjectionPageNavigation`).
    */
@@ -7362,7 +7362,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
         if (!resumed) {
           this.snackBar.open(
-            $localize`:@@sessionHost.presentationViewResumeError:Die Projektionsansicht konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
+            $localize`:@@sessionHost.presentationViewResumeError:Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
             '',
             { duration: 6000 },
           );
