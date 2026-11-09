@@ -3,7 +3,7 @@ import { networkInterfaces } from 'node:os';
 
 const EXPECTED_TMPFS_BYTES = 256 * 1024 * 1024;
 const MAX_MEMORY_BYTES = 1024 * 1024 * 1024;
-const MAX_PIDS = 128;
+const EXPECTED_PIDS = 256;
 const socketPath = process.env.PDF_WORKER_SOCKET_PATH || '/run/pdf-worker/render.sock';
 
 function assert(condition, message) {
@@ -58,7 +58,7 @@ async function assertCgroupLimits() {
     Number.isFinite(memory) && memory <= MAX_MEMORY_BYTES,
     `Ungültiges RAM-Limit: ${memoryRaw}`,
   );
-  assert(Number.isFinite(pids) && pids <= MAX_PIDS, `Ungültiges PID-Limit: ${pidsRaw}`);
+  assert(pids === EXPECTED_PIDS, `Ungültiges PID-Limit: ${pidsRaw}`);
   assert(
     Number.isFinite(quota) && Number.isFinite(period) && quota / period <= 1,
     `Ungültiges CPU-Limit: ${cpuRaw}`,

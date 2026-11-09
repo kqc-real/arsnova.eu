@@ -316,7 +316,9 @@ Der Worker-Smoke prüft im echten Compose-Service Netzwerk-/Secret-Abwesenheit,
 UID, Capabilities, `NoNewPrivs`, read-only Rootfs, Socketmodus und die
 PID-/RAM-/CPU-/`tmpfs`-Grenzen. Der App-Smoke prüft den read-only Socket-Mount
 und rendert einen 200-Fragen-/500-Teilnehmenden-Bericht im `pdfUa`-Profil über
-den Unix-Socket. CI beendet den Worker dazwischen einmal hart und erwartet einen
+den Unix-Socket. Der Smoke prüft, dass das Ergebnis mehrere Seiten enthält. CI
+prüft während dieses Render-Tests zusätzlich, dass der PID-Limit-Zähler des
+Workers nicht steigt. CI beendet den Worker zuvor einmal hart und erwartet einen
 healthy `restart: always`, bevor der PDF-Smoke Socket-Cleanup und
 Wiederanbindung bestätigt; die exakte Policy wird am laufenden Container
 assertiert und deckt auch Host-/Daemon-Neustarts ab. Der Unit-Test mit einem nie
