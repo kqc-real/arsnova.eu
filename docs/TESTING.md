@@ -580,7 +580,7 @@ Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`, 
 | `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                                                      |
 | `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                                                     |
 | `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                                                            |
-| `smoke:host-present-auth`          | Host/Present-Auth-Smoke                                                                                                     |
+| `smoke:host-present-auth`          | Host-/Presenter-Zugriff, Live-Beitritt und nativer Schließdialog nach dem Ansichtswechsel während der Abstimmung            |
 | `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf                                                |
 | `smoke:presenter-viewports`        | Gefüllte Presenter-Lobby in vier Tablet-/Beamer-Viewports                                                                   |
 | `smoke:host-music`                 | Host-Musik-/Sound-Smoke                                                                                                     |

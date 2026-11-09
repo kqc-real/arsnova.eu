@@ -1,4 +1,5 @@
 import { SessionMusicService } from '../session-music.service';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { DOCUMENT } from '@angular/common';
 import { LOCALE_ID, type Provider, signal } from '@angular/core';
@@ -974,6 +975,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       providers: [
         provideRouter([]),
         SessionMusicService,
+        SessionUnloadWarningService,
         { provide: MatDialog, useValue: { open: dialogOpenMock, closeAll: vi.fn() } },
         { provide: MatSnackBar, useValue: { open: vi.fn() } },
         { provide: QuizStoreService, useValue: quizStoreMock },
@@ -7050,83 +7052,45 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('blockiert beforeunload nur mit aktivem Schutz', async () => {
+  it('warnt während der Abstimmung und räumt den Schutz beim Widerruf auf', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
-
     const fixture = setup();
+    Object.defineProperty(TestBed.inject(SessionUnloadWarningService), 'enabled', { value: true });
     fixture.detectChanges();
     await fixture.whenStable();
-    const component = fixture.componentInstance as unknown as SpecAccess<
-      SessionHostComponent,
-      {
-        unloadWarningEnabled: boolean;
-      }
-    >;
+    fixture.detectChanges();
 
-    component.unloadWarningEnabled = true;
-    const blockedEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
-    component.onBeforeUnload(blockedEvent);
-    expect(blockedEvent.defaultPrevented).toBe(true);
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
 
-    component.unloadWarningEnabled = false;
-    const allowedEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
-    component.onBeforeUnload(allowedEvent);
-    expect(allowedEvent.defaultPrevented).toBe(false);
-
+    fixture.componentInstance.hostAccessRevoked.set(true);
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(true);
     fixture.destroy();
   });
 
-  it('warnt in der leeren Lobby nicht vor beforeunload', async () => {
-    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
-    getParticipantsQueryMock.mockResolvedValue({ participantCount: 0, participants: [] });
+  it.each([0, 3])(
+    'warnt in der Lobby mit %i Teilnehmenden nur bei belegter Lobby',
+    async (count) => {
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
+      getParticipantsQueryMock.mockResolvedValue({ participantCount: count, participants: [] });
+      const fixture = setup();
+      Object.defineProperty(TestBed.inject(SessionUnloadWarningService), 'enabled', {
+        value: true,
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.componentInstance['participantsPayload'].set({
+        participantCount: count,
+        participants: [],
+      });
+      fixture.detectChanges();
 
-    const fixture = setup();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    const component = fixture.componentInstance as unknown as SpecAccess<
-      SessionHostComponent,
-      {
-        unloadWarningEnabled: boolean;
-        participantsPayload: {
-          set(value: { participantCount: number; participants: unknown[] }): void;
-        };
-      }
-    >;
-
-    component.unloadWarningEnabled = true;
-    component.participantsPayload.set({ participantCount: 0, participants: [] });
-    const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
-    component.onBeforeUnload(event);
-    expect(event.defaultPrevented).toBe(false);
-
-    fixture.destroy();
-  });
-
-  it('warnt in der Lobby mit Teilnehmenden vor beforeunload', async () => {
-    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
-    getParticipantsQueryMock.mockResolvedValue({ participantCount: 3, participants: [] });
-
-    const fixture = setup();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    const component = fixture.componentInstance as unknown as SpecAccess<
-      SessionHostComponent,
-      {
-        unloadWarningEnabled: boolean;
-        participantsPayload: {
-          set(value: { participantCount: number; participants: unknown[] }): void;
-        };
-      }
-    >;
-
-    component.unloadWarningEnabled = true;
-    component.participantsPayload.set({ participantCount: 3, participants: [] });
-    const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
-    component.onBeforeUnload(event);
-    expect(event.defaultPrevented).toBe(true);
-
-    fixture.destroy();
-  });
+      expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(
+        count === 0,
+      );
+      fixture.destroy();
+    },
+  );
 
   it('schaltet Musik beim Preset-Wechsel sofort um', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'PLAYFUL' });
@@ -16855,7 +16819,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       activeAt: new Date(now - 25_000).toISOString(),
       currentDeadlineMs: null,
       currentKey: null,
-      nextKey: `${questionId}:1:30`,
+      nextKey: '0:1:30',
     });
     fixture.detectChanges();
     await fixture.whenStable();

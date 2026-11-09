@@ -1,4 +1,6 @@
 import { SessionMusicService } from '../session-music.service';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
+import { getSkewAdjustedNow } from '../session-server-clock';
 import { SoundService } from '../../../core/sound.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -249,6 +251,7 @@ describe('SessionPresentComponent', () => {
       imports: [SessionPresentComponent],
       providers: [
         SessionMusicService,
+        SessionUnloadWarningService,
         provideRouter([]),
         {
           provide: ActivatedRoute,
@@ -263,6 +266,117 @@ describe('SessionPresentComponent', () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('behält beim Ansichtswechsel die Tab-Warnung bis zum Ende der Abstimmung', async () => {
+    const warning = TestBed.inject(SessionUnloadWarningService);
+    Object.defineProperty(warning, 'enabled', { value: true });
+    // Die Session-Shell behält den bereits aktiven Host-Schutz bis zum Presenter-Snapshot.
+    warning.sync('ABC123', 'ACTIVE');
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+    fixture.componentInstance.session.update(
+      (session) => session && { ...session, status: 'FINISHED' },
+    );
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(true);
+    fixture.destroy();
+  });
+
+  it.each([false, true])(
+    'übernimmt den laufenden Countdown mit Gong im Host: %s',
+    async (gongInHost) => {
+      const music = TestBed.inject(SessionMusicService);
+      const sound = TestBed.inject(SoundService);
+      const play = vi.spyOn(sound, 'play').mockResolvedValue();
+      vi.spyOn(sound, 'preload').mockResolvedValue();
+      getInfoQueryMock.mockResolvedValue({
+        ...(await getInfoQueryMock()),
+        currentQuestion: 0,
+        currentRound: 1,
+        enableSoundEffects: true,
+      });
+
+      // Host und Presenter beziehen denselben Countdown von der Session-Shell.
+      music.enter('ABC123');
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      await vi.waitFor(() => expect(component['musicReady']()).toBe(true));
+      component['stopPolling']();
+      const remaining = gongInHost ? 7 : 9;
+      const startedAt = getSkewAdjustedNow() - (30.5 - remaining) * 1_000;
+      const deadline = music.resolveCountdownDeadline('ABC123', {
+        timerSeconds: 30,
+        activeAt: new Date(startedAt).toISOString(),
+        currentDeadlineMs: null,
+        currentKey: null,
+        nextKey: '0:1:30',
+        nowMs: startedAt,
+      });
+      music.tickCountdown('ABC123', deadline, remaining, true);
+      expect(play).toHaveBeenCalledTimes(gongInHost ? 1 : 0);
+
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      try {
+        component['syncCountdownFromStatus'](30, new Date(startedAt).toISOString());
+        expect(component.countdownSeconds()).toBe(remaining);
+        await vi.advanceTimersByTimeAsync(remaining * 1_000);
+        expect(component.countdownSeconds()).toBe(0);
+        expect(play.mock.calls.map(([key]) => key)).toEqual(['countdownEnd', 'sessionEnd']);
+      } finally {
+        fixture.destroy();
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it('übernimmt die Blitzlichtmusik einer Q&A-Session und stoppt sie beim Pausieren', async () => {
+    const music = TestBed.inject(SessionMusicService);
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'playMusic').mockResolvedValue();
+    const stop = vi.spyOn(sound, 'stopMusic').mockImplementation(() => {});
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const feedback = {
+      type: 'YESNO' as const,
+      locked: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    };
+    quickFeedbackResultsQueryMock.mockResolvedValue(feedback);
+    music.enter('ABC123');
+    music.quickFeedbackMusicEnabled.set(true);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(play).toHaveBeenCalledWith('LOBBY_2');
+    });
+    stop.mockClear();
+    fixture.componentInstance.quickFeedbackResult.set({ ...feedback, locked: true });
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    fixture.destroy();
   });
 
   it('folgt im Presenter der Quizphase, der Stummschaltung und dem Session-Ende', async () => {

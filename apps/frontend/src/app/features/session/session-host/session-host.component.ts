@@ -263,7 +263,8 @@ import {
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
-import { remainingCountdownSeconds } from '../session-countdown.util';
+import { remainingCountdownSeconds, sessionCountdownKey } from '../session-countdown.util';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
 import {
   SessionMusicService,
   musicPhaseForStatus,
@@ -846,7 +847,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaCompactToolbar = signal(this.isQaCompactToolbarViewport());
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
-  private unloadWarningEnabled = !this.isLocalDevSession();
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -856,6 +856,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   readonly sound = inject(SoundService);
   private readonly sessionMusic = inject(SessionMusicService);
+  private readonly unloadWarning = inject(SessionUnloadWarningService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -1204,8 +1205,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private countdownDeadlineMs: number | null = null;
   private countdownKey: string | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
-  private countdownFingerSoundPlayed = false;
-  private countdownFinalSoundPlayed = false;
   /** true ab ≤7s Rest (nach Musik-Ausblendung) → kein Countdown-Track mehr, nur SFX. */
   readonly countdownSfxPhase = signal(false);
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
@@ -4631,6 +4630,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       this.hostDisplayMode.setHostSessionActive(this.isLiveHostSurface());
     });
+    effect(() => {
+      const status = this.effectiveStatus();
+      if (this.hostAccessRevoked() || this.sessionUnavailable()) {
+        this.unloadWarning.sync(this.code, null);
+      } else if (status) {
+        this.unloadWarning.sync(this.code, status, this.participantsPayload()?.participantCount);
+      }
+    });
     // Story 5.1: Sound-Effekte bei Status-Wechsel
     effect(() => {
       const status = this.effectiveStatus();
@@ -4640,7 +4647,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const settings = this.session();
       if (!settings?.enableSoundEffects) return;
       this.sound.unlock();
-      if (status === 'ACTIVE' && prev !== 'ACTIVE') {
+      if (status === 'ACTIVE' && prev !== null && prev !== 'ACTIVE') {
         this.sound.stopAllSfx();
       } else if (status === 'FINISHED') {
         this.sound.stopAllSfx();
@@ -5703,7 +5710,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       !this.allHaveVoted() &&
       question?.timer &&
       (question.currentRound ?? 1) === 1 &&
-      this.sessionMusic.hasCountdown(this.code, `${question.questionId}:1:${question.timer}`)
+      this.sessionMusic.hasCountdown(
+        this.code,
+        sessionCountdownKey(question.order, 1, question.timer),
+      )
     ) {
       this.startCountdown(question.timer);
     }
@@ -6648,7 +6658,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.sessionMusic.sync(this.code, status, this.activeMusicTrack());
       }
     }
-    this.sound.stopAllSfx();
+    if (!keepProjection) this.sound.stopAllSfx();
     if (this.isPairedHostClient() || this.hostAccessRevoked()) {
       this.sound.setOutputEnabled(true);
     }
@@ -6660,14 +6670,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.document.removeEventListener('click', this.unlockListener);
     this.document.removeEventListener('keydown', this.unlockListener);
     this.unbindExitAnchorClearance();
-  }
-
-  /** Warnt den Host, wenn er den Tab schließt oder die Seite neu lädt. */
-  @HostListener('window:beforeunload', ['$event'])
-  onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (!this.shouldWarnOnBeforeUnload()) return;
-    event.preventDefault();
-    event.returnValue = '';
   }
 
   @HostListener('document:fullscreenchange')
@@ -7510,26 +7512,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return error instanceof Error && error.message.includes('Session ist bereits beendet.');
   }
 
-  private shouldWarnOnBeforeUnload(): boolean {
-    if (this.hostAccessRevoked()) {
-      return false;
-    }
-    if (!this.unloadWarningEnabled || !this.isSessionActive()) {
-      return false;
-    }
-
-    if (this.effectiveStatus() !== 'LOBBY') {
-      return true;
-    }
-
-    return (this.participantsPayload()?.participantCount ?? 0) > 0;
-  }
-
-  private isLocalDevSession(): boolean {
-    const hostname = this.document.location?.hostname ?? '';
-    return isDevMode() && (hostname === 'localhost' || hostname === '127.0.0.1');
-  }
-
   private clearSessionTokens(options?: { keepHostToken?: boolean }): void {
     this.qaSummaryPreviewRequestGeneration += 1;
     if (!this.code) {
@@ -8237,7 +8219,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const question = this.displayedCurrentQuestionForHost();
-    const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
+    const nextKey = sessionCountdownKey(
+      question?.order ?? this.statusUpdate()?.currentQuestion ?? this.session()?.currentQuestion,
+      question?.currentRound ?? this.statusUpdate()?.currentRound ?? this.session()?.currentRound,
+      timerSeconds,
+    );
     const nextDeadline = this.sessionMusic.resolveCountdownDeadline(this.code, {
       timerSeconds,
       activeAt,
@@ -8247,35 +8233,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
     const remainingNow = remainingCountdownSeconds(nextDeadline);
     const sameDeadline =
-      this.countdownDeadlineMs !== null && Math.abs(this.countdownDeadlineMs - nextDeadline) < 750;
+      this.countdownKey === nextKey &&
+      this.countdownDeadlineMs !== null &&
+      Math.abs(this.countdownDeadlineMs - nextDeadline) < 750;
 
-    if (sameDeadline && (this.countdownEnded() || remainingNow <= 0)) {
-      if (!this.countdownEnded()) {
+    const soundEffectsEnabled = (): boolean =>
+      this.session()?.enableSoundEffects === true && !this.isPairedHostClient();
+    if (sameDeadline) {
+      this.countdownDeadlineMs = nextDeadline;
+      if (this.countdownEnded()) return;
+      if (remainingNow <= 0) {
+        this.sessionMusic.tickCountdown(
+          this.code,
+          nextDeadline,
+          remainingNow,
+          soundEffectsEnabled(),
+        );
         this.finishRoomCountdown();
+        return;
       }
-      return;
-    }
-    if (sameDeadline && this.countdownTimer !== null) {
-      return;
+      if (this.countdownTimer !== null) return;
     }
 
-    const keepSfxState = sameDeadline;
     this.stopCountdown();
     this.countdownKey = nextKey;
     this.countdownDeadlineMs = nextDeadline;
-    if (!keepSfxState) {
-      // Reload/Reconnect in laufender Finger-/Endphase: nicht erneut anpfeifen.
-      // Frisch gestartete Kurz-Timer (Rest ≈ timerSeconds) dürfen Gong und Fade noch auslösen.
-      const restoredInFlight = remainingNow < timerSeconds - 1;
+    if (!sameDeadline) {
       this.countdownEnded.set(false);
       this.countdownSfxPhase.set(remainingNow <= 7 && remainingNow > 0);
-      this.countdownFingerSoundPlayed = remainingNow <= 7 && restoredInFlight;
-      this.countdownFinalSoundPlayed = remainingNow <= 0;
-    }
-
-    const sfxEnabled = () => !!this.session()?.enableSoundEffects && this.isPlayfulPreset();
-    if (sfxEnabled()) {
-      void this.sound.preload(['countdownEnd', 'sessionEnd']);
     }
 
     const tick = (): void => {
@@ -8286,26 +8271,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
 
-      this.sessionMusic.fadeCountdown(this.code, deadline, remaining);
+      this.sessionMusic.tickCountdown(this.code, deadline, remaining, soundEffectsEnabled());
       if (remaining <= 7 && !this.countdownSfxPhase()) {
         this.countdownSfxPhase.set(true);
       }
 
-      const sfxCountdown = sfxEnabled();
-      // Gong läutet die Fingerphase ein (ab 7s); am Ablauf einmaliger Pfiff statt Gong.
-      if (sfxCountdown && remaining <= 7 && remaining > 0 && !this.countdownFingerSoundPlayed) {
-        void this.sound.play('countdownEnd', { gain: 0.32, fadeOutSeconds: 0.55 });
-        this.countdownFingerSoundPlayed = true;
-      }
-      if (sfxCountdown && remaining === 1 && !this.countdownFinalSoundPlayed) {
-        void this.sound.play('sessionEnd', { gain: 0.4 });
-        this.countdownFinalSoundPlayed = true;
-      }
       if (remaining <= 0) {
-        if (sfxCountdown && !this.countdownFinalSoundPlayed) {
-          void this.sound.play('sessionEnd', { gain: 0.4 });
-          this.countdownFinalSoundPlayed = true;
-        }
         this.finishRoomCountdown();
       }
     };

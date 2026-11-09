@@ -35,3 +35,12 @@ export function stableCountdownDeadlineMs(input: {
   }
   return nowMs + input.timerSeconds * 1000;
 }
+
+/** Der Status kennt den Frageindex auch vor dem Fragenabruf in der neuen Ansicht. */
+export function sessionCountdownKey(
+  questionOrder: number | null | undefined,
+  round: number | null | undefined,
+  timerSeconds: number,
+): string {
+  return `${questionOrder ?? 'none'}:${round ?? 1}:${timerSeconds}`;
+}

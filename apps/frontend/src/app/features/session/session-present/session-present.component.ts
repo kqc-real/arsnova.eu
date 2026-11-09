@@ -34,8 +34,9 @@ import {
   tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
-import { remainingCountdownSeconds } from '../session-countdown.util';
+import { remainingCountdownSeconds, sessionCountdownKey } from '../session-countdown.util';
 import { musicPhaseForStatus, SessionMusicService } from '../session-music.service';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
 import { getHostSessionRole } from '../../../core/host-session-token';
 import { SoundService } from '../../../core/sound.service';
 import { scrollAppMainToTop } from '../session-auto-scroll.util';
@@ -236,6 +237,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly presentationState = inject(SessionPresentationState);
   private readonly sessionMusic = inject(SessionMusicService);
+  private readonly unloadWarning = inject(SessionUnloadWarningService);
   private readonly sound = inject(SoundService);
   private readonly musicReady = signal(false);
   private hostAccessRefreshTimer: ReturnType<typeof setInterval> | null = null;
@@ -2029,7 +2031,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly musicTrack = computed(() => {
     const session = this.session();
     if (!session || session.presenterSurface === 'ended') return null;
-    const channel = session.type === 'Q_AND_A' ? 'qa' : (session.preferredChannel ?? 'quiz');
+    const channel = session.preferredChannel ?? (session.type === 'Q_AND_A' ? 'qa' : 'quiz');
     if (channel === 'quickFeedback' && this.quickFeedbackResult()?.locked) return null;
 
     const question = this.presentedQuizQuestion();
@@ -2063,6 +2065,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.musicReady.set(!this.sessionMusic.enter(this.sessionCode));
+    effect(
+      () => {
+        const session = this.session();
+        if (this.showHomeCta() || session?.hostEnded) {
+          this.unloadWarning.sync(this.sessionCode, null);
+        } else if (session) {
+          this.unloadWarning.sync(this.sessionCode, session.status, this.lobbyParticipantCount());
+        }
+      },
+      { injector: this.injector },
+    );
     effect(
       () => {
         this.musicReady();
@@ -3636,7 +3649,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     const question = this.hostQuestion();
-    const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
+    const session = this.session();
+    const nextKey = sessionCountdownKey(
+      session?.currentQuestion ?? question?.order,
+      session?.currentRound ?? question?.currentRound,
+      timerSeconds,
+    );
     const nextDeadline = this.sessionMusic.resolveCountdownDeadline(this.sessionCode, {
       timerSeconds,
       activeAt,
@@ -3671,7 +3689,20 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
       if ((this.session()?.currentRound ?? 1) === 1) {
-        this.sessionMusic.fadeCountdown(this.sessionCode, deadline, remaining);
+        const session = this.session();
+        this.sessionMusic.tickCountdown(
+          this.sessionCode,
+          deadline,
+          remaining,
+          session?.enableSoundEffects === true &&
+            getHostSessionRole(this.sessionCode) !== 'PAIRED_HOST' &&
+            !presenterAllHaveVoted(
+              session.status,
+              this.presentedQuizQuestion(),
+              this.hostVoteProgress(),
+              this.presentedParticipantCount(),
+            ),
+        );
       }
       if (remaining <= 0 && this.countdownTimer) {
         clearInterval(this.countdownTimer);

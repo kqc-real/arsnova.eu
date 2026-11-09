@@ -3,7 +3,7 @@ import type { SessionInfoDTO, SessionLiveChannel } from '@arsnova/shared-types';
 import { SoundService } from '../../core/sound.service';
 import { ThemePresetService } from '../../core/theme-preset.service';
 import { normalizeHostSessionCode } from '../../core/host-session-token';
-import { stableCountdownDeadlineMs } from './session-countdown.util';
+import { remainingCountdownSeconds, stableCountdownDeadlineMs } from './session-countdown.util';
 
 export type HostMusicTrack =
   | 'LOBBY_0'
@@ -135,7 +135,13 @@ export class SessionMusicService implements OnDestroy {
   private readonly sound = inject(SoundService);
   private readonly themePreset = inject(ThemePresetService);
   private code: string | null = null;
-  private countdown: { key: string; deadlineMs: number } | null = null;
+  private countdown: {
+    key: string;
+    deadlineMs: number;
+    gongPlayed: boolean;
+    whistlePlayed: boolean;
+    cuesPreloaded: boolean;
+  } | null = null;
   private fadedCountdownDeadlineMs: number | null = null;
   readonly phaseTracks = signal(loadPhaseTracksFromStorage());
   readonly mutedMusicPhases = signal(loadMutedMusicPhasesFromStorage());
@@ -213,7 +219,20 @@ export class SessionMusicService implements OnDestroy {
         ? { ...options, currentDeadlineMs: saved.deadlineMs, currentKey: saved.key }
         : options,
     );
-    this.countdown = { key: options.nextKey, deadlineMs };
+    if (saved?.key === options.nextKey) {
+      saved.deadlineMs = deadlineMs;
+    } else {
+      this.clearCountdown();
+      const remaining = remainingCountdownSeconds(deadlineMs, options.nowMs);
+      this.countdown = {
+        key: options.nextKey,
+        deadlineMs,
+        // Bei einem Reload mitten in der Fingerphase den Gong nicht erneut spielen.
+        gongPlayed: remaining <= 7 && remaining < options.timerSeconds - 1,
+        whistlePlayed: remaining <= 0,
+        cuesPreloaded: false,
+      };
+    }
     return deadlineMs;
   }
 
@@ -221,9 +240,30 @@ export class SessionMusicService implements OnDestroy {
     return normalizeHostSessionCode(code) === this.code && this.countdown?.key === key;
   }
 
-  fadeCountdown(code: string, deadlineMs: number, remaining: number): void {
+  tickCountdown(code: string, deadlineMs: number, remaining: number, soundEffects: boolean): void {
+    const countdown = this.countdown;
+    if (normalizeHostSessionCode(code) !== this.code || countdown?.deadlineMs !== deadlineMs) {
+      return;
+    }
+    this.fadeCountdownMusic(deadlineMs, remaining);
+    if (!soundEffects || this.themePreset.preset() !== 'spielerisch') return;
+
+    if (!countdown.cuesPreloaded) {
+      countdown.cuesPreloaded = true;
+      void this.sound.preload(['countdownEnd', 'sessionEnd']);
+    }
+    if (remaining <= 7 && remaining > 0 && !countdown.gongPlayed) {
+      countdown.gongPlayed = true;
+      void this.sound.play('countdownEnd', { gain: 0.32, fadeOutSeconds: 0.55 });
+    }
+    if (remaining <= 1 && !countdown.whistlePlayed) {
+      countdown.whistlePlayed = true;
+      void this.sound.play('sessionEnd', { gain: 0.4 });
+    }
+  }
+
+  private fadeCountdownMusic(deadlineMs: number, remaining: number): void {
     if (
-      normalizeHostSessionCode(code) === this.code &&
       remaining <= 10 &&
       remaining > 7 &&
       this.fadedCountdownDeadlineMs !== deadlineMs &&
@@ -236,6 +276,7 @@ export class SessionMusicService implements OnDestroy {
   }
 
   private clearCountdown(): void {
+    if (this.countdown) this.sound.stopAllSfx();
     this.countdown = null;
     this.fadedCountdownDeadlineMs = null;
   }
