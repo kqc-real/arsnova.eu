@@ -17,61 +17,37 @@
     showQuizPauseProjection()
   "
 >
-  <ng-template #presenterHostReturn>
-    <div class="session-present__host-return">
+  <div class="session-present__host-return">
+    <div class="session-present__view-actions">
       <button
         matButton="text"
         type="button"
         data-testid="presenter-return-to-host"
         (click)="returnToHost()"
+        [disabled]="returnToHostPending()"
+        [disabledInteractive]="true"
+        [attr.aria-busy]="returnToHostPending()"
         i18n-aria-label="@@sessionPresent.returnToHostAria"
         aria-label="Zur Host-Ansicht zurückkehren"
       >
         <span i18n="@@sessionPresent.returnToHost">Zurück zum Host</span>
       </button>
-      @if (returnToHostError()) {
-        <p class="session-present__host-return-error" role="alert">{{ returnToHostError() }}</p>
+      @if (showFullscreenButton()) {
+        <button
+          matButton="text"
+          type="button"
+          data-testid="presenter-fullscreen-enter"
+          (click)="enterPresenterFullscreen()"
+        >
+          <mat-icon aria-hidden="true">fullscreen</mat-icon>
+          <span i18n="@@sessionPresent.enterFullscreen">Vollbild</span>
+        </button>
       }
     </div>
-  </ng-template>
-
-  @if (showFullscreenAction()) {
-    <div
-      class="session-present__fullscreen-gate"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="session-present-fullscreen-action-label"
-      data-testid="presenter-fullscreen-gate"
-      cdkTrapFocus
-      [cdkTrapFocusAutoCapture]="true"
-    >
-      <ng-container [ngTemplateOutlet]="presenterHostReturn" />
-      <button
-        matButton="filled"
-        type="button"
-        class="session-present__fullscreen-action"
-        data-testid="presenter-fullscreen-enter"
-        (click)="enterPresenterFullscreen()"
-      >
-        <span class="session-present__fullscreen-action-content">
-          <mat-icon aria-hidden="true">fullscreen</mat-icon>
-          <span
-            id="session-present-fullscreen-action-label"
-            class="session-present__fullscreen-action-label"
-            i18n="@@sessionPresent.enterFullscreen"
-            >Präsentation im Vollbild starten</span
-          >
-          <span
-            class="session-present__fullscreen-action-hint"
-            i18n="@@sessionPresent.enterFullscreenHint"
-            >Gesamten Bildschirm für die Projektion nutzen</span
-          >
-        </span>
-      </button>
-    </div>
-  } @else {
-    <ng-container [ngTemplateOutlet]="presenterHostReturn" />
-  }
+    @if (returnToHostError()) {
+      <p class="session-present__host-return-error" role="alert">{{ returnToHostError() }}</p>
+    }
+  </div>
 
   <ng-template #presenterJoinCard>
     <mat-card appearance="outlined" class="session-present__lobby-card">

@@ -1,4 +1,3 @@
-import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { DecimalPipe, DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
 import {
   Component,
@@ -35,7 +34,10 @@ import {
   tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
-import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
+import { remainingCountdownSeconds } from '../session-countdown.util';
+import { musicPhaseForStatus, SessionMusicService } from '../session-music.service';
+import { getHostSessionRole } from '../../../core/host-session-token';
+import { SoundService } from '../../../core/sound.service';
 import { scrollAppMainToTop } from '../session-auto-scroll.util';
 import {
   localizeKnownServerError,
@@ -96,12 +98,15 @@ import {
 } from '../../../core/locale-from-path';
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
 import { presenterQuestionHeading } from './session-projection-quiz.util';
-import { returnToHostWindow } from './presenter-window.util';
+import { sessionPresentationPath, SessionPresentationState } from './presenter-navigation';
+import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
 import {
+  presenterAllHaveVoted,
   presenterCanOpenFollowingQuestion,
   presenterOfferDiscussion,
   presenterQuestionMatchesSession,
   presenterTimerBlocksReveal,
+  presenterVoteProgressMatches,
 } from './presenter-quiz-controls.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -206,7 +211,6 @@ function presenterFreetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null
   standalone: true,
   imports: [
     DecimalPipe,
-    CdkTrapFocus,
     MatButton,
     MatButtonToggle,
     MatButtonToggleGroup,
@@ -230,6 +234,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private static readonly LIVE_POLL_MS = 2_000;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly presentationState = inject(SessionPresentationState);
+  private readonly sessionMusic = inject(SessionMusicService);
+  private readonly sound = inject(SoundService);
+  private readonly musicReady = signal(false);
+  private hostAccessRefreshTimer: ReturnType<typeof setInterval> | null = null;
   private readonly sanitizer = inject(DomSanitizer);
   private readonly localeId = inject(LOCALE_ID);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
@@ -268,49 +277,31 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
       this.closePresentAtDeadline();
     }
+    void renewBrowserHostAccess(this.sessionCode);
+    this.syncMusic();
     this.startPolling();
     void this.refreshSessionMeta();
     void this.refreshPresenterLiveData();
   };
-  private presenterFullscreenActive = false;
-  private suppressNextFullscreenExitReturn = false;
-  private readonly onPresenterKeydown = (event: KeyboardEvent) => {
-    if (
-      event.key === 'Escape' &&
-      !event.repeat &&
-      getDocumentFullscreenElement(this.document) !== null
-    ) {
-      this.returnToHost();
+  private readonly unlockMusic = () => {
+    if (getHostSessionRole(this.sessionCode) !== 'PAIRED_HOST') {
+      this.sound.unlock();
+      this.syncMusic();
     }
+    this.document.removeEventListener('click', this.unlockMusic);
+    this.document.removeEventListener('keydown', this.unlockMusic);
   };
+  private presenterFullscreenActive = false;
   private readonly onFullscreenChange = () => {
     const wasFullscreen = this.presenterFullscreenActive;
     this.syncFullscreenAction();
-    if (!wasFullscreen || this.presenterFullscreenActive) {
-      return;
+    if (wasFullscreen && !this.presenterFullscreenActive) {
+      void this.returnToHost();
     }
-    if (this.suppressNextFullscreenExitReturn) {
-      this.suppressNextFullscreenExitReturn = false;
-      return;
-    }
-    this.returnToHost();
-    queueMicrotask(() => {
-      if (
-        this.destroyRef.destroyed ||
-        getDocumentFullscreenElement(this.document) !== null ||
-        !this.document.hasFocus()
-      ) {
-        return;
-      }
-      void this.router.navigateByUrl(localizePath(`/session/${this.sessionCode}/host`), {
-        replaceUrl: true,
-      });
-    });
   };
   readonly localizedPath = localizePath;
 
-  /** Verbindlicher Vollbild-Einstieg statt einer versteckten Browserfunktion. */
-  readonly showFullscreenAction = signal(false);
+  readonly showFullscreenButton = signal(false);
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
@@ -345,6 +336,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   /** Der letzte Fragenabruf ist fehlgeschlagen, solange der passende Snapshot fehlt. */
   readonly quizQuestionLoadFailed = signal(false);
   readonly returnToHostError = signal('');
+  readonly returnToHostPending = signal(false);
   private readonly quizPageNavHeldContext = signal<string | null>(null);
   readonly emojiReactions = signal<PresenterEmojiReactions | null>(null);
   readonly emojiOrder = EMOJI_REACTIONS;
@@ -731,27 +723,22 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
   }
 
-  returnToHost(): void {
-    const view = this.document.defaultView;
-    if (!view) {
-      return;
-    }
+  async returnToHost(): Promise<void> {
+    if (this.returnToHostPending()) return;
+    this.returnToHostPending.set(true);
     this.returnToHostError.set('');
-    const fullscreen = getDocumentFullscreenElement(this.document) !== null;
-    const outcome = returnToHostWindow(view, this.sessionCode, {
-      fullscreen,
-      exitFullscreen: () => {
-        this.suppressNextFullscreenExitReturn = true;
-        tryExitDocumentFullscreen(this.document, () => {
-          if (getDocumentFullscreenElement(this.document) !== null) {
-            this.suppressNextFullscreenExitReturn = false;
-          }
-        });
-      },
-    });
-    if (outcome === 'blocked' && !this.destroyRef.destroyed) {
+    try {
+      if (await this.router.navigateByUrl(sessionPresentationPath(this.sessionCode, 'host'))) {
+        return;
+      }
+    } catch {
+      // Die Presenter-Ansicht bleibt bei fehlgeschlagener Navigation bedienbar.
+    } finally {
+      this.returnToHostPending.set(false);
+    }
+    if (!this.destroyRef.destroyed) {
       this.returnToHostError.set(
-        $localize`:@@sessionPresent.returnToHostBlocked:Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.`,
+        $localize`:@@sessionPresent.returnToHostError:Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.`,
       );
     }
   }
@@ -1023,21 +1010,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private quizPhaseFocusTarget(): HTMLElement | null {
     const root = this.hostElement.nativeElement;
-    const selectors = this.showFullscreenAction()
-      ? ['[data-testid="presenter-return-to-host"]', '[data-testid="presenter-fullscreen-enter"]']
-      : [
-          '[data-testid="presenter-quiz-question-retry"]',
-          '[data-testid="presenter-quiz-question-pending"]',
-          '[data-testid="presenter-quiz-resume"]',
-          '[data-testid="presenter-quiz-reveal-answers"]',
-          '[data-testid="presenter-quiz-discussion"]',
-          '[data-testid="presenter-quiz-second-round"]',
-          '[data-testid="presenter-quiz-reveal-results"]',
-          '[data-testid="presenter-quiz-next-question"]',
-          '[data-testid="presenter-quiz-finish"]',
-          '[data-testid="presenter-return-to-host"]',
-          '[data-testid="presenter-surface"]',
-        ];
+    const selectors = [
+      '[data-testid="presenter-quiz-question-retry"]',
+      '[data-testid="presenter-quiz-question-pending"]',
+      '[data-testid="presenter-quiz-resume"]',
+      '[data-testid="presenter-quiz-reveal-answers"]',
+      '[data-testid="presenter-quiz-discussion"]',
+      '[data-testid="presenter-quiz-second-round"]',
+      '[data-testid="presenter-quiz-reveal-results"]',
+      '[data-testid="presenter-quiz-next-question"]',
+      '[data-testid="presenter-quiz-finish"]',
+      '[data-testid="presenter-return-to-host"]',
+      '[data-testid="presenter-surface"]',
+    ];
     for (const selector of selectors) {
       const element = root.querySelector(selector);
       if (!(element instanceof HTMLElement)) {
@@ -2041,7 +2026,52 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     () => this.quickFeedbackResultsVisible() && (this.quickFeedbackResult()?.totalVotes ?? 0) >= 5,
   );
 
+  private readonly musicTrack = computed(() => {
+    const session = this.session();
+    if (!session || session.presenterSurface === 'ended') return null;
+    const channel = session.type === 'Q_AND_A' ? 'qa' : (session.preferredChannel ?? 'quiz');
+    if (channel === 'quickFeedback' && this.quickFeedbackResult()?.locked) return null;
+
+    const question = this.presentedQuizQuestion();
+    const progress = this.hostVoteProgress();
+    if (
+      presenterAllHaveVoted(session.status, question, progress, this.presentedParticipantCount())
+    ) {
+      return null;
+    }
+    const remaining = (session.currentRound ?? 1) === 1 ? this.countdownSeconds() : null;
+    const personalTime =
+      remaining === 0 &&
+      session.enableTimerAccommodation !== false &&
+      presenterVoteProgressMatches(question, progress) &&
+      ((progress.blockingTimerAccommodationCount ?? 0) > 0 ||
+        (progress.pendingTimerAccommodationCount ?? 0) > 0);
+    const phase = musicPhaseForStatus(session.status, personalTime);
+    if (phase === 'countdown' && remaining !== null && remaining <= 7) return null;
+    return this.sessionMusic.trackFor(phase, channel);
+  });
+
+  private syncMusic(): void {
+    if (this.destroyRef.destroyed) return;
+    const status = this.session()?.status;
+    if (getHostSessionRole(this.sessionCode) === 'PAIRED_HOST') {
+      this.sessionMusic.stop(this.sessionCode);
+    } else if (status && (this.musicReady() || musicPhaseForStatus(status, false) === null)) {
+      this.sessionMusic.sync(this.sessionCode, status, this.musicTrack());
+    }
+  }
+
   async ngOnInit(): Promise<void> {
+    this.musicReady.set(!this.sessionMusic.enter(this.sessionCode));
+    effect(
+      () => {
+        this.musicReady();
+        this.session();
+        this.musicTrack();
+        untracked(() => this.syncMusic());
+      },
+      { injector: this.injector },
+    );
     effect(
       () => {
         const page = this.session()?.presenterPage;
@@ -2086,7 +2116,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
       document.addEventListener('fullscreenchange', this.onFullscreenChange);
       document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
-      document.addEventListener('keydown', this.onPresenterKeydown, true);
+      document.addEventListener('click', this.unlockMusic);
+      document.addEventListener('keydown', this.unlockMusic);
     }
     this.syncFullscreenAction();
     if (this.code.length !== 6) {
@@ -2096,6 +2127,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
 
     this.hostDisplayMode.setHostSessionActive(true);
+    this.presentationState.markStarted(this.sessionCode);
+    if (this.document.defaultView) {
+      void renewBrowserHostAccess(this.sessionCode);
+      this.hostAccessRefreshTimer = setInterval(
+        () => void renewBrowserHostAccess(this.sessionCode),
+        HOST_ACCESS_REFRESH_INTERVAL_MS,
+      );
+    }
     await this.refreshSessionMeta();
     // Nach Navigation während des Ladens keine Subscriptions oder Intervalle mehr starten.
     if (this.destroyRef.destroyed) {
@@ -2105,6 +2144,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.destroyRef.destroyed) {
       return;
     }
+    this.musicReady.set(true);
     this.ensurePresenterSubscriptions();
     this.startPolling();
     void this.generateJoinQr();
@@ -2116,7 +2156,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
-      document.removeEventListener('keydown', this.onPresenterKeydown, true);
+      document.removeEventListener('click', this.unlockMusic);
+      document.removeEventListener('keydown', this.unlockMusic);
+      tryExitDocumentFullscreen(this.document);
+    }
+    if (this.hostAccessRefreshTimer !== null) {
+      clearInterval(this.hostAccessRefreshTimer);
     }
     this.stopPolling();
     this.stopSessionDeadlineTimer();
@@ -2134,26 +2179,23 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private projectionReportRetry: ReturnType<typeof setTimeout> | null = null;
 
   enterPresenterFullscreen(): void {
-    tryRequestDocumentFullscreen(this.document, () => this.syncFullscreenAction());
+    tryRequestDocumentFullscreen(this.document);
   }
 
   private syncFullscreenAction(): void {
-    const wasVisible = this.showFullscreenAction();
     this.presenterFullscreenActive = getDocumentFullscreenElement(this.document) !== null;
     const shouldShow =
       isDocumentFullscreenEnterAvailable(this.document) && !this.presenterFullscreenActive;
-    this.showFullscreenAction.set(shouldShow);
-    if (wasVisible && !shouldShow) {
-      queueMicrotask(() => {
-        if (this.destroyRef.destroyed) return;
-        const surface = this.hostElement.nativeElement.querySelector(
-          '[data-testid="presenter-surface"]',
-        ) as HTMLElement | null;
-        if (surface?.isConnected) {
-          surface.focus({ preventScroll: true });
-        }
-      });
+    if (!shouldShow && this.showFullscreenButton()) {
+      const root: HTMLElement = this.hostElement.nativeElement;
+      const fullscreenButton = root.querySelector('[data-testid="presenter-fullscreen-enter"]');
+      if (fullscreenButton && this.document.activeElement === fullscreenButton) {
+        root
+          .querySelector<HTMLElement>('[data-testid="presenter-surface"]')
+          ?.focus({ preventScroll: true });
+      }
     }
+    this.showFullscreenButton.set(shouldShow);
   }
 
   async reportProjectionPages(count: number): Promise<void> {
@@ -2270,6 +2312,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     await this.refreshHostVoteProgress();
     await this.refreshQuizAudience();
     await this.refreshLobbyAudience();
+    if (!this.destroyRef.destroyed) this.syncMusic();
   }
 
   teamScoreBarWidth(totalScore: number): string {
@@ -2534,6 +2577,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
+      if (this.destroyRef.destroyed || refreshEpoch !== this.presentSessionMetaRefreshEpoch) return;
       if (!this.isDefinitiveSessionError(error)) {
         this.snapshotRefreshFailed.set(true);
         this.showHomeCta.set(false);
@@ -2543,6 +2587,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       this.snapshotRefreshFailed.set(false);
+      this.sessionMusic.stop(this.sessionCode);
       this.session.set(null);
       this.showHomeCta.set(true);
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
@@ -2608,6 +2653,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private closePresentAtDeadline(): void {
     this.presentDeadlineClosed = true;
+    this.sessionMusic.stop(this.sessionCode);
     this.stopSessionDeadlineTimer();
     this.stopCountdown();
     this.stopBoardPageTimer();
@@ -3591,7 +3637,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     const question = this.hostQuestion();
     const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
-    const nextDeadline = stableCountdownDeadlineMs({
+    const nextDeadline = this.sessionMusic.resolveCountdownDeadline(this.sessionCode, {
       timerSeconds,
       activeAt,
       currentDeadlineMs: this.countdownDeadlineMs,
@@ -3624,6 +3670,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
+      if ((this.session()?.currentRound ?? 1) === 1) {
+        this.sessionMusic.fadeCountdown(this.sessionCode, deadline, remaining);
+      }
       if (remaining <= 0 && this.countdownTimer) {
         clearInterval(this.countdownTimer);
         this.countdownTimer = null;

@@ -5,6 +5,7 @@ import {
   isDocumentFullscreenEnterAvailable,
   tryAutoRequestDocumentFullscreen,
   tryExitDocumentFullscreen,
+  tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import {
@@ -66,7 +67,7 @@ import {
   clearHostToken,
   getHostSessionRole,
   hasHostToken,
-  setHostToken,
+  normalizeHostSessionCode,
 } from '../../../core/host-session-token';
 import {
   isHostAccessRevokedError,
@@ -78,7 +79,7 @@ import {
   localeIdToSupported,
   type SupportedLocale,
 } from '../../../core/locale-from-path';
-import { forceReconnectTrpcWs, refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
+import { forceReconnectTrpcWs, trpc } from '../../../core/trpc.client';
 import { WsConnectionService } from '../../../core/ws-connection.service';
 import {
   clearHostBrowserCapability,
@@ -106,10 +107,11 @@ import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
 import {
   isPresenterViewOffered,
-  openPresenterViewWindow,
   PRESENTER_VIEW_OFFERED_MEDIA,
-  pushCurrentHostTokenToPresenter,
-} from '../session-present/presenter-window.util';
+  sessionPresentationPath,
+  SessionPresentationState,
+} from '../session-present/presenter-navigation';
+import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
 import {
@@ -261,7 +263,13 @@ import {
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
-import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
+import { remainingCountdownSeconds } from '../session-countdown.util';
+import {
+  SessionMusicService,
+  musicPhaseForStatus,
+  type HostMusicTrack,
+  type MusicPhase,
+} from '../session-music.service';
 import {
   getSkewAdjustedNow,
   recordServerTimeIso,
@@ -289,10 +297,7 @@ import {
   stripMarkdownToPlainText,
 } from '../../../core/markdown-plain-text.util';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
-import {
-  SessionResultsExportService,
-  type SessionResultsPdfDisposition,
-} from '../../../core/session-results-export.service';
+import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import {
   replaceEmojiShortcodes,
   edgeEmojiMarkerPosition,
@@ -455,109 +460,6 @@ type SessionOnboardingProfile = {
   teamAssignment: TeamAssignment;
   teamNames: string[];
 };
-type HostMusicTrack =
-  | 'LOBBY_0'
-  | 'LOBBY_1'
-  | 'LOBBY_2'
-  | 'LOBBY_3'
-  | 'READING_0'
-  | 'COUNTDOWN_0'
-  | 'COUNTDOWN_1'
-  | 'COUNTDOWN_2';
-
-type MusicPhase = 'lobby' | 'reading' | 'countdown' | 'personalTime';
-
-const PHASE_TRACK_DEFAULTS: Record<MusicPhase, HostMusicTrack> = {
-  lobby: 'LOBBY_2',
-  reading: 'READING_0',
-  countdown: 'COUNTDOWN_1',
-  personalTime: 'COUNTDOWN_0',
-};
-
-const MUSIC_PHASE_STORAGE_KEY = 'arsnova-host-phase-tracks';
-const MUSIC_PHASE_IDS = ['lobby', 'reading', 'countdown', 'personalTime'] as const;
-
-const LEGACY_HOST_MUSIC_TRACKS: Record<string, HostMusicTrack> = {
-  CONNECTING_0: 'READING_0',
-  COUNTDOWN_RUNNING_0: 'COUNTDOWN_0',
-  COUNTDOWN_RUNNING_1: 'COUNTDOWN_1',
-  COUNTDOWN_RUNNING_2: 'COUNTDOWN_2',
-};
-
-function normalizeStoredHostMusicTrack(value: unknown): HostMusicTrack | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const migrated = LEGACY_HOST_MUSIC_TRACKS[value] ?? value;
-  return isValidTrack(migrated) ? migrated : null;
-}
-
-function isMusicPhaseId(value: unknown): value is MusicPhase {
-  return (
-    value === 'lobby' || value === 'reading' || value === 'countdown' || value === 'personalTime'
-  );
-}
-
-function readStoredPhaseMusicRaw(): Record<string, unknown> | null {
-  try {
-    const raw =
-      globalThis.localStorage === undefined
-        ? null
-        : globalThis.localStorage.getItem(MUSIC_PHASE_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function loadPhaseTracksFromStorage(): Record<MusicPhase, HostMusicTrack> {
-  const parsed = readStoredPhaseMusicRaw();
-  if (!parsed) return { ...PHASE_TRACK_DEFAULTS };
-  return {
-    lobby: normalizeStoredHostMusicTrack(parsed['lobby']) ?? PHASE_TRACK_DEFAULTS.lobby,
-    reading:
-      normalizeStoredHostMusicTrack(parsed['reading'] ?? parsed['connecting']) ??
-      PHASE_TRACK_DEFAULTS.reading,
-    countdown:
-      normalizeStoredHostMusicTrack(parsed['countdown'] ?? parsed['running']) ??
-      PHASE_TRACK_DEFAULTS.countdown,
-    personalTime:
-      normalizeStoredHostMusicTrack(parsed['personalTime']) ?? PHASE_TRACK_DEFAULTS.personalTime,
-  };
-}
-
-function loadMutedMusicPhasesFromStorage(): ReadonlySet<MusicPhase> {
-  const raw = readStoredPhaseMusicRaw()?.['mutedPhases'];
-  if (!Array.isArray(raw)) return new Set();
-  return new Set(raw.filter(isMusicPhaseId));
-}
-
-function persistPhaseMusicSettings(
-  tracks: Record<MusicPhase, HostMusicTrack>,
-  mutedPhases: ReadonlySet<MusicPhase>,
-): void {
-  try {
-    localStorage.setItem(
-      MUSIC_PHASE_STORAGE_KEY,
-      JSON.stringify({
-        ...tracks,
-        mutedPhases: MUSIC_PHASE_IDS.filter((phase) => mutedPhases.has(phase)),
-      }),
-    );
-  } catch {
-    /* quota */
-  }
-}
-
-function isValidTrack(v: unknown): v is HostMusicTrack {
-  return typeof v === 'string' && ALL_MUSIC_TRACK_VALUES.has(v as HostMusicTrack);
-}
-
 function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | undefined): boolean {
   return (
     type === 'SINGLE_CHOICE' ||
@@ -659,7 +561,6 @@ const ALL_MUSIC_TRACKS: ReadonlyArray<{ value: HostMusicTrack; label: string }> 
     label: $localize`:@@sessionHost.musicTrackCountdownIntense:Countdown · Intensiv`,
   },
 ];
-const ALL_MUSIC_TRACK_VALUES = new Set(ALL_MUSIC_TRACKS.map((t) => t.value));
 
 type HostSteeringCalloutState = {
   title: string;
@@ -954,6 +855,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly themePreset = inject(ThemePresetService);
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   readonly sound = inject(SoundService);
+  private readonly sessionMusic = inject(SessionMusicService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -964,12 +866,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly hostScenario = inject(HostScenarioService);
   private readonly wsConnection = inject(WsConnectionService);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
-  private presenterWindowOpenInFlight = false;
-  private presenterWindowHandle: Window | null = null;
-  readonly presenterWindowOpen = signal(false);
+  readonly presenterNavigationPending = signal(false);
+  private readonly presentationState = inject(SessionPresentationState);
+  private presenterNavigationId: number | undefined;
   private auxPollTimer: ReturnType<typeof setInterval> | null = null;
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
+  readonly presentationStarted = signal(this.presentationState.hasStarted(this.code));
+  private readonly lastHostView = this.presentationState.hostView(this.code);
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
   private readonly requestedQaCreateSetup =
     this.route.snapshot?.queryParamMap?.get('qaSetup') === '1';
@@ -1232,7 +1136,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.stopHostPolling();
       return;
     }
-    this.syncPresenterWindowOpenState();
     void this.refreshDurableHostAccess();
     this.ensureParticipantSubscription();
     this.ensureStatusSubscription();
@@ -1246,7 +1149,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   };
   private hostAccessRefreshTimer: ReturnType<typeof setInterval> | null = null;
-  private hostAccessRefreshInFlight: Promise<void> | null = null;
   private recoveryCardDialogOpened = false;
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
@@ -1304,7 +1206,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
   private countdownFingerSoundPlayed = false;
   private countdownFinalSoundPlayed = false;
-  private countdownMusicFadeStarted = false;
   /** true ab ≤7s Rest (nach Musik-Ausblendung) → kein Countdown-Track mehr, nur SFX. */
   readonly countdownSfxPhase = signal(false);
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
@@ -1929,7 +1830,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'feedback' | 'end' | null
+    'skip' | 'previous' | 'replace' | 'leave' | 'feedback' | 'end' | null
   >(null);
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
@@ -1955,9 +1856,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         break;
       case 'leave':
         void this.onLeaveHostKeepingQaOpen();
-        break;
-      case 'endPresentation':
-        void this.endPresentationView();
         break;
       case 'feedback':
         this.openHostProductFeedbackForTarget(
@@ -2000,7 +1898,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.session()?.presenterSurface === 'ended') {
       return $localize`:@@sessionHost.resumePresentationView:Live-Projektion fortsetzen`;
     }
-    if (this.presenterWindowOpen()) {
+    if (this.presentationStarted()) {
       return $localize`:@@sessionHost.switchToPresentationView:Zur Präsentationsansicht wechseln`;
     }
     return $localize`:@@sessionHost.openPresentationView:Präsentationsansicht öffnen`;
@@ -2045,30 +1943,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly musicMenuTracksForSelection = computed(() =>
     musicTracksForPhase(this.musicMenuEditPhase()),
   );
-  readonly phaseTracks = signal<Record<MusicPhase, HostMusicTrack>>(loadPhaseTracksFromStorage());
-  readonly mutedMusicPhases = signal<ReadonlySet<MusicPhase>>(loadMutedMusicPhasesFromStorage());
-  readonly musicMuted = signal(false);
-  /**
-   * Blitzlicht startet ohne Hintergrundmusik. Ein Einschalten gilt nur für diese
-   * Host-Sitzung und ändert die Quiz-Vorgabe nicht.
-   */
-  readonly quickFeedbackMusicEnabled = signal(false);
-  readonly musicSilenced = computed(() =>
-    this.activeChannel() === 'quickFeedback'
-      ? !this.quickFeedbackMusicEnabled()
-      : this.musicMuted(),
+  readonly phaseTracks = this.sessionMusic.phaseTracks;
+  readonly mutedMusicPhases = this.sessionMusic.mutedMusicPhases;
+  readonly musicMuted = this.sessionMusic.musicMuted;
+  readonly quickFeedbackMusicEnabled = this.sessionMusic.quickFeedbackMusicEnabled;
+  readonly musicSilenced = computed(() => this.sessionMusic.isMuted(this.activeChannel()));
+  private readonly musicReady = signal(false);
+  readonly currentMusicPhase = computed(() =>
+    musicPhaseForStatus(
+      this.effectiveStatus(),
+      this.personalTimeOvertimeActive() && this.countdownSeconds() === null,
+    ),
   );
-  readonly currentMusicPhase = computed<MusicPhase | null>(() => {
-    const status = this.effectiveStatus();
-    if (status === 'LOBBY') return 'lobby';
-    if (status === 'QUESTION_OPEN') return 'reading';
-    if (status === 'ACTIVE') {
-      return this.personalTimeOvertimeActive() && this.countdownSeconds() === null
-        ? 'personalTime'
-        : 'countdown';
-    }
-    return null;
-  });
   readonly isCurrentMusicPhaseMuted = computed(() => {
     const phase = this.currentMusicPhase();
     return phase !== null && this.mutedMusicPhases().has(phase);
@@ -2081,8 +1967,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       (this.blockingTimerAccommodationCount() > 0 || this.pendingTimerAccommodationCount() > 0),
   );
   readonly activeMusicTrack = computed<HostMusicTrack | null>(() => {
-    if (this.musicSilenced()) return null;
-    if (this.activeChannel() === 'qa') return null;
     if (this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult()?.locked) {
       return null;
     }
@@ -2093,8 +1977,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (phase === 'countdown' && (this.countdownSfxPhase() || this.countdownEnded())) {
       return null;
     }
-    if (this.mutedMusicPhases().has(phase)) return null;
-    return this.phaseTracks()[phase];
+    return this.sessionMusic.trackFor(phase, this.activeChannel());
   });
   readonly activeMusicLabel = computed(() => {
     const active = this.activeMusicTrack();
@@ -2804,7 +2687,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.syncWordCloudOverlayTop();
       const dialogRef = this.dialog.open(QaWordCloudDialogComponent, {
         data: {
-          projected: () => this.qaWordCloudIsProjected() && this.qaWordCloudProjectsToPresenter(),
+          projected: () => this.qaWordCloudIsProjected(),
           ownsProjection: () => this.qaWordCloudProjectsToPresenter(),
           setProjected: (projected: boolean) => this.setQaWordCloudProjected(projected),
           presenterViewActionLabel: () => this.presenterViewActionLabel(),
@@ -2897,6 +2780,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         const fromResult = Array.isArray(result)
           ? result.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
           : [];
+        if (this.destroyRef.destroyed) return;
         this.restoreQaFocusAfterWordCloudClose(fromResult.length > 0 ? fromResult : selectedIds);
         if (returnToCompass) {
           void this.returnToModerationCompass();
@@ -2961,8 +2845,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     if (projected) {
-      // Derselbe Einstieg wie das Beamer-Icon: vorhandenen Presenter-Tab aktivieren
-      // oder den abgesicherten Startdialog mit Pop-up-Hinweis öffnen.
       void this.openPresenterView(true);
     }
   }
@@ -4362,6 +4244,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private previousAllConnectedParticipantsReady = false;
   private priorLobbyForAutoJoinMenu = false;
   private priorQrReadyForJoinMenu = false;
+  private initialPresenterReturn = this.presentationStarted();
   /** Verhindert geplantes Öffnen des Join-Menüs nach ngOnDestroy (z. B. Vitest). */
   private suppressJoinMenuAutopen = false;
   /** Beitritts-Dialog (QR): volles Viewport-Overlay, mittig (Smartphone-Scanner). */
@@ -4665,8 +4548,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       untracked(() => this.syncMusic());
     });
     effect(() => {
-      const track = this.activeMusicTrack();
-      void track;
+      this.activeMusicTrack();
+      this.musicReady();
+      this.musicMuted();
+      this.effectiveStatus();
       untracked(() => this.syncMusic());
     });
     effect(() => {
@@ -4746,10 +4631,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     effect(() => {
       this.hostDisplayMode.setHostSessionActive(this.isLiveHostSurface());
     });
-    effect(() => {
-      this.musicMuted.set(this.themePreset.preset() === 'serious');
-      untracked(() => this.syncMusic());
-    });
     // Story 5.1: Sound-Effekte bei Status-Wechsel
     effect(() => {
       const status = this.effectiveStatus();
@@ -4778,8 +4659,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
       const enteredLobby = inLobby && !this.priorLobbyForAutoJoinMenu;
       const qrBecameReady = inLobby && hasQr && !this.priorQrReadyForJoinMenu;
+      const initialPresenterReturn = this.initialPresenterReturn;
+      if (status !== null && (!inLobby || hasQr)) {
+        this.initialPresenterReturn = false;
+      }
 
-      if (enteredLobby || qrBecameReady) {
+      if ((enteredLobby || qrBecameReady) && !initialPresenterReturn) {
         afterNextRender(
           () => {
             if (this.suppressJoinMenuAutopen || this.effectiveStatus() !== 'LOBBY') return;
@@ -5097,8 +4982,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.freetextWordCloud?.revealFocusedOrSelectedResponses();
   }
 
-  private closeOpenWordCloudOverlays(): void {
-    if (this.freetextWordCloudMaximized()) {
+  private closeOpenWordCloudOverlays(keepProjection = false): void {
+    if (keepProjection) {
+      this.qaWordCloudProjectsToPresenter.set(false);
+      this.clearWordCloudOverlayTop();
+    } else if (this.freetextWordCloudMaximized()) {
       this.closeFreetextWordCloudMaximize();
     }
     this.qaWordCloudDialogRef?.close?.();
@@ -5589,47 +5477,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** QR-Code als Data-URL für joinUrl (Beamer-tauglich, Story 2.1b). */
   readonly qrDataUrl = signal<string>('');
 
-  private refreshDurableHostAccess(): Promise<void> {
-    if (this.hostAccessRefreshInFlight) return this.hostAccessRefreshInFlight;
-    if (this.isPairedHostClient()) return Promise.resolve();
-    const browserCapability = getHostBrowserCapability(this.code);
-    if (!browserCapability) return Promise.resolve();
-    this.hostAccessRefreshInFlight = trpc.session.issueHostAccessToken
-      .mutate({ code: this.code, browserCapability })
-      .then((issued) => {
-        setHostToken(this.code, issued.hostToken);
-        refreshTrpcWsBinding();
-        this.pushPresenterHostToken();
-      })
-      .catch(() => {
-        // Der bestehende Token bleibt bis zu seinem eigenen Ablauf nutzbar; Reconnects bleiben fail-closed.
-      })
-      .finally(() => {
-        this.hostAccessRefreshInFlight = null;
-      });
-    return this.hostAccessRefreshInFlight;
-  }
-
-  private pushPresenterHostToken(allowLookup = false): void {
-    const presenter = pushCurrentHostTokenToPresenter(
-      this.document.defaultView,
-      this.code,
-      this.presenterWindowHandle,
-      allowLookup,
-    );
-    if (presenter) {
-      this.presenterWindowHandle = presenter;
-      this.syncPresenterWindowOpenState();
-    }
+  private refreshDurableHostAccess(): Promise<void> | null {
+    return this.isPairedHostClient() ? null : renewBrowserHostAccess(this.code);
   }
 
   private startHostAccessRefresh(): void {
     if (this.hostAccessRefreshTimer || this.isPairedHostClient()) return;
-    this.pushPresenterHostToken(true);
     void this.refreshDurableHostAccess();
     this.hostAccessRefreshTimer = setInterval(
       () => void this.refreshDurableHostAccess(),
-      10 * 60 * 1000,
+      HOST_ACCESS_REFRESH_INTERVAL_MS,
     );
   }
 
@@ -5789,6 +5646,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     void this.qaTitleUpdateBanner;
     if (this.code.length !== 6) return;
+    this.musicReady.set(!this.sessionMusic.enter(this.code));
     this.syncPairedHostManualReconnectRegistration();
     if (this.isPairedHostClient()) {
       this.sound.setOutputEnabled(false);
@@ -5797,12 +5655,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
     this.startHostAccessRefresh();
-    // Preset "Seriös/Business" startet standardmäßig ohne Musik.
-    this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
       await this.reloadSessionInfo();
     } catch {
       this.session.set(null);
+      if (!this.destroyRef.destroyed) this.sessionMusic.stop(this.code);
       return;
     }
     await this.refreshSessionLifecycle();
@@ -5837,7 +5694,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshCurrentQuestionForHost();
     await this.refreshSessionLearningObjectives();
     await this.refreshHostVoteProgress();
-    this.syncMusic();
+    if (this.destroyRef.destroyed) return;
+    const question = this.displayedCurrentQuestionForHost();
+    if (
+      !this.musicReady() &&
+      this.countdownDeadlineMs === null &&
+      this.effectiveStatus() === 'ACTIVE' &&
+      !this.allHaveVoted() &&
+      question?.timer &&
+      (question.currentRound ?? 1) === 1 &&
+      this.sessionMusic.hasCountdown(this.code, `${question.questionId}:1:${question.timer}`)
+    ) {
+      this.startCountdown(question.timer);
+    }
+    this.musicReady.set(true);
     this.startHostPolling();
     this.syncMusic();
 
@@ -6768,11 +6638,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSummaryRuntimeRequestGeneration += 1;
     this.qaSummaryPreviewRequestGeneration += 1;
     this.stopQaSummaryPolling();
-    this.sound.stopAll();
+    const keepProjection =
+      this.presenterNavigationId !== undefined &&
+      this.presenterNavigationId === this.router.currentNavigation()?.id;
+    if (this.sound.musicPreviewing()) {
+      this.sound.stopPreview();
+      const status = this.effectiveStatus();
+      if (keepProjection && status) {
+        this.sessionMusic.sync(this.code, status, this.activeMusicTrack());
+      }
+    }
+    this.sound.stopAllSfx();
     if (this.isPairedHostClient() || this.hostAccessRevoked()) {
       this.sound.setOutputEnabled(true);
     }
-    this.closeOpenWordCloudOverlays();
+    this.closeOpenWordCloudOverlays(keepProjection);
     if (this.emojiPulseTimer) {
       clearTimeout(this.emojiPulseTimer);
       this.emojiPulseTimer = null;
@@ -6832,64 +6712,95 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async openPresenterView(allowCompactViewport = false): Promise<void> {
     if (
+      !this.code ||
       (!allowCompactViewport && !this.showPresenterViewButton()) ||
-      this.presenterWindowOpenInFlight
+      this.presenterNavigationPending()
     ) {
       return;
     }
-    if (this.syncPresenterWindowOpenState()) {
-      await this.launchPresenterViewWindow();
-      return;
-    }
-    const decision = await firstValueFrom(
-      this.dialog
-        .open(PresentationStartDialogComponent, {
-          data: {
-            code: this.code.toUpperCase(),
-            phoneAlreadyConnected: this.pairedHostConnected(),
-            startPresenterView: () => this.launchPresenterViewWindow(),
-          },
-          autoFocus: 'first-tabbable',
-          restoreFocus: true,
-          panelClass: 'presentation-start-dialog-panel',
-          backdropClass: 'presentation-start-dialog-backdrop',
-        })
-        .afterClosed(),
-    );
-    void this.refreshPairedHostStatus();
-    if (decision === 'blocked') {
-      this.snackBar.open(
-        $localize`:@@sessionHost.presenterViewPopupBlocked:Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.`,
-        '',
-        { duration: 6000 },
-      );
+    this.presenterNavigationPending.set(true);
+    let requestedFullscreen = false;
+    let fullscreenRequestSettled = false;
+    let openedPresenter = false;
+    let restoreWindowed = false;
+    const requestFullscreen = (): void => {
+      if (requestedFullscreen || getDocumentFullscreenElement(this.document)) return;
+      requestedFullscreen = true;
+      tryRequestDocumentFullscreen(this.document, () => {
+        fullscreenRequestSettled = true;
+        if (restoreWindowed) tryExitDocumentFullscreen(this.document);
+      });
+    };
+    try {
+      if (!this.presentationStarted()) {
+        const decision = await firstValueFrom(
+          this.dialog
+            .open(PresentationStartDialogComponent, {
+              data: {
+                code: this.code.toUpperCase(),
+                phoneAlreadyConnected: this.pairedHostConnected(),
+                requestFullscreen,
+              },
+              autoFocus: 'first-tabbable',
+              restoreFocus: true,
+              panelClass: 'presentation-start-dialog-panel',
+              backdropClass: 'presentation-start-dialog-backdrop',
+            })
+            .afterClosed(),
+        );
+        if (decision !== 'start') return;
+      } else if (!allowCompactViewport) {
+        // Request fullscreen while the presentation button's user activation is still available.
+        requestFullscreen();
+      }
+
+      await this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
+      if (this.destroyRef.destroyed) return;
+      // Bereits ausgeblendete Sessions aus älteren Clients beim Öffnen wieder anzeigen.
+      if (this.session()?.presenterSurface === 'ended') {
+        this.presenterSurfacePending.set(true);
+        let resumed = false;
+        try {
+          await this.enqueuePresenterProjectionSync(async () => {
+            resumed = await this.mutatePresenterSurfaceNow('default');
+          });
+        } finally {
+          this.presenterSurfacePending.set(false);
+        }
+        if (!resumed) {
+          this.snackBar.open(
+            $localize`:@@sessionHost.presentationViewResumeError:Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
+            '',
+            { duration: 6000 },
+          );
+          return;
+        }
+      }
+
+      if (this.destroyRef.destroyed) return;
+      const target = sessionPresentationPath(this.code, 'present');
+      const navigated = await this.router.navigateByUrl(target);
+      openedPresenter = navigated && this.router.url === target;
+      if (!navigated) {
+        this.showPresenterNavigationError();
+      }
+    } catch {
+      this.showPresenterNavigationError();
+    } finally {
+      restoreWindowed = requestedFullscreen && !openedPresenter;
+      if (restoreWindowed && fullscreenRequestSettled) tryExitDocumentFullscreen(this.document);
+      this.presenterNavigationPending.set(false);
+      if (!this.destroyRef.destroyed) void this.refreshPairedHostStatus();
     }
   }
 
-  async endPresentationView(): Promise<void> {
-    if (
-      !this.code ||
-      this.presenterSurfacePending() ||
-      this.session()?.presenterSurface === 'ended'
-    ) {
-      return;
-    }
-    this.presenterSurfacePending.set(true);
-    let ended = false;
-    try {
-      await this.enqueuePresenterProjectionSync(async () => {
-        ended = await this.mutatePresenterSurfaceNow('ended');
-      });
-      this.snackBar.open(
-        ended
-          ? $localize`:@@sessionHost.presentationViewEnded:Live-Projektion ausgeblendet. Das Quiz läuft weiter.`
-          : $localize`:@@sessionHost.presentationViewEndError:Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.`,
-        '',
-        { duration: ended ? 4000 : 6000 },
-      );
-    } finally {
-      this.presenterSurfacePending.set(false);
-    }
+  private showPresenterNavigationError(): void {
+    if (this.destroyRef.destroyed) return;
+    this.snackBar.open(
+      $localize`:@@sessionHost.presenterViewNavigationError:Die Präsentationsansicht konnte nicht geöffnet werden. Bitte versuche es erneut.`,
+      '',
+      { duration: 6000 },
+    );
   }
 
   readonly projectionPagePending = signal(false);
@@ -6904,7 +6815,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private qaProjectionPageSyncInFlight = false;
   /**
    * Q&A-Fragenmodus für Navigator/Hero: solange der Q&A-Kanal bevorzugt ist
-   * (auch ohne laufende Projektion / nach »Live-Projektion ausblenden«).
+   * (auch ohne laufende Projektion).
    * Die sichtbare Navigator-UI bleibt auf den Q&A-Kanal-Tab beschränkt
    * (`showProjectionPageNavigation`).
    */
@@ -7086,7 +6997,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return (
       this.projectionPageDisplayCount() > 1 ||
       this.projectionControlsVisible() ||
-      this.presenterWindowOpen() ||
+      this.presentationStarted() ||
       session?.presenterSurface === 'ended'
     );
   });
@@ -7333,64 +7244,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } finally {
       this.qaProjectionPageSyncInFlight = false;
     }
-  }
-
-  private async launchPresenterViewWindow(): Promise<Window | null> {
-    if (this.presenterWindowOpenInFlight) {
-      return null;
-    }
-    this.presenterWindowOpenInFlight = true;
-    try {
-      // Sortierung vor dem Öffnen publizieren, damit presentProjection denselben Modus nutzt.
-      await this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
-      const opened = await openPresenterViewWindow(
-        this.document.defaultView,
-        this.code,
-        this.sessionTokenStorage,
-      );
-      this.presenterWindowHandle = opened;
-      this.syncPresenterWindowOpenState();
-      if (opened && this.session()?.presenterSurface === 'ended') {
-        this.presenterSurfacePending.set(true);
-        let resumed = false;
-        try {
-          await this.enqueuePresenterProjectionSync(async () => {
-            resumed = await this.mutatePresenterSurfaceNow('default');
-          });
-        } finally {
-          this.presenterSurfacePending.set(false);
-        }
-        if (!resumed) {
-          this.snackBar.open(
-            $localize`:@@sessionHost.presentationViewResumeError:Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
-            '',
-            { duration: 6000 },
-          );
-        }
-      }
-      return opened;
-    } finally {
-      this.presenterWindowOpenInFlight = false;
-    }
-  }
-
-  @HostListener('window:focus')
-  onHostWindowFocus(): void {
-    this.syncPresenterWindowOpenState();
-  }
-
-  private syncPresenterWindowOpenState(): boolean {
-    let open = false;
-    try {
-      open = this.presenterWindowHandle !== null && !this.presenterWindowHandle.closed;
-    } catch {
-      // Cross-origin/gesperrter Handle gilt als nicht mehr kontrollierbar.
-    }
-    this.presenterWindowOpen.set(open);
-    if (!open) {
-      this.presenterWindowHandle = null;
-    }
-    return open;
   }
 
   private async refreshPairedHostStatus(): Promise<void> {
@@ -7861,7 +7714,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const renewal = this.refreshDurableHostAccess();
     // Ohne Capability ist die Erneuerung ein leeres Promise. Darauf zu warten
     // würde den Export um einen Tick verzögern, obwohl sich der Zugang nicht ändert.
-    if (this.hostAccessRefreshInFlight) {
+    if (renewal) {
       await renewal;
     }
     try {
@@ -7903,7 +7756,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private openHostSteeringCalloutForExpiredHostAccess(): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutExportAccessTitle:Host-Zugang abgelaufen`,
-      body: $localize`:@@sessionHost.steeringCalloutExportAccessBody:PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.`,
+      body: $localize`:@@sessionHost.steeringCalloutExportAccessBody:PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan herunterladen«.`,
       errorRequestId: 'host.export:access-expired',
       suggestedArea: 'PDF_OR_EXPORT',
     });
@@ -8154,7 +8007,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   }
 
-  async canDeactivate(): Promise<boolean> {
+  async canDeactivate(presenterCode?: string | null): Promise<boolean> {
+    if (
+      presenterCode &&
+      normalizeHostSessionCode(presenterCode) === normalizeHostSessionCode(this.code)
+    ) {
+      this.presenterNavigationId = this.router.currentNavigation()?.id;
+      this.presentationState.rememberHostView(this.code, {
+        channel: this.activeChannel(),
+      });
+      return true;
+    }
     if (this.qaCreateAbortInFlight || this.hostAccessRevoked()) {
       return true;
     }
@@ -8366,6 +8229,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private startCountdown(timerSeconds: number | null | undefined, activeAt?: string): void {
+    if (this.destroyRef.destroyed) return;
     if (!timerSeconds || timerSeconds <= 0) {
       this.clearCountdownClock();
       this.countdownSeconds.set(null);
@@ -8374,7 +8238,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
     const question = this.displayedCurrentQuestionForHost();
     const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
-    const nextDeadline = stableCountdownDeadlineMs({
+    const nextDeadline = this.sessionMusic.resolveCountdownDeadline(this.code, {
       timerSeconds,
       activeAt,
       currentDeadlineMs: this.countdownDeadlineMs,
@@ -8407,7 +8271,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.countdownSfxPhase.set(remainingNow <= 7 && remainingNow > 0);
       this.countdownFingerSoundPlayed = remainingNow <= 7 && restoredInFlight;
       this.countdownFinalSoundPlayed = remainingNow <= 0;
-      this.countdownMusicFadeStarted = remainingNow <= 10 && restoredInFlight;
     }
 
     const sfxEnabled = () => !!this.session()?.enableSoundEffects && this.isPlayfulPreset();
@@ -8423,13 +8286,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
 
-      // Ab 10s: Musik sanft ausblenden bis zum Gong (7s). Track bleibt aktiv, damit syncMusic nicht neu startet.
-      if (remaining <= 10 && remaining > 7 && !this.countdownMusicFadeStarted) {
-        this.countdownMusicFadeStarted = true;
-        this.sound.fadeOutMusic(Math.max(0.5, remaining - 7));
-      }
+      this.sessionMusic.fadeCountdown(this.code, deadline, remaining);
       if (remaining <= 7 && !this.countdownSfxPhase()) {
-        this.countdownMusicFadeStarted = true;
         this.countdownSfxPhase.set(true);
       }
 
@@ -8506,25 +8364,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }, 5000);
   }
 
-  /** Synchronisiert Host-Hintergrundmusik phasenabhängig. */
+  /** Übergibt den aktuellen Host-Stand an die Wiedergabe der Session. */
   private syncMusic(): void {
-    if (this.isPairedHostClient() || this.hostAccessRevoked() || !this.sound.outputEnabled()) {
-      this.sound.stopMusic();
+    if (this.destroyRef.destroyed) return;
+    const status = this.effectiveStatus();
+    if (this.isPairedHostClient() || this.hostAccessRevoked() || this.sessionUnavailable()) {
+      this.sessionMusic.stop(this.code);
       return;
     }
-    if (this.sound.musicPreviewing()) return;
-    const session = this.session();
-    const track = this.activeMusicTrack();
-    if (!session || this.effectiveStatus() === 'FINISHED' || !track) {
-      this.sound.stopMusic();
-      return;
+    if (status && (this.musicReady() || this.currentMusicPhase() === null)) {
+      this.sessionMusic.sync(this.code, status, this.activeMusicTrack());
     }
-    void this.sound.playMusic(track);
   }
 
   /** Menü zu: Vorschau abbrechen, normale Musik wiederherstellen. */
   onHostMusicMenuClosed(): void {
-    this.sound.stopPreview();
+    if (this.sound.musicPreviewing()) this.sound.stopPreview();
     this.syncMusic();
   }
 
@@ -8592,7 +8447,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     nextMuted.delete(phase);
     this.phaseTracks.set(nextTracks);
     this.mutedMusicPhases.set(nextMuted);
-    persistPhaseMusicSettings(nextTracks, nextMuted);
+    this.sessionMusic.savePhaseSettings();
     if (this.activeChannel() === 'quickFeedback') {
       this.quickFeedbackMusicEnabled.set(true);
     }
@@ -8613,7 +8468,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       nextMuted.add(phase);
     }
     this.mutedMusicPhases.set(nextMuted);
-    persistPhaseMusicSettings(this.phaseTracks(), nextMuted);
+    this.sessionMusic.savePhaseSettings();
     if (this.activeChannel() === 'quickFeedback' && !nextMuted.has(phase)) {
       this.quickFeedbackMusicEnabled.set(true);
     }
@@ -12606,13 +12461,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             }
           : session,
       );
-      if (surface === 'ended') {
-        this.projectionPageError.set('');
-        // Q&A-Navigator und Hero-Rahmen bleiben als Host-Bearbeitungshilfe aktiv.
-        if (!this.projectionNavigationIsQaQuestions()) {
-          this.projectionControlsVisible.set(false);
-        }
-      }
       return true;
     } catch {
       // Die lokale Wortwolkenansicht bleibt bedienbar, auch wenn die Projektion nicht synchronisiert.
@@ -12838,8 +12686,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ...(options?.takeover ? { takeover: true } : {}),
         });
         this.publishedQaPresenterStageViewKey = stageViewKey;
-        // Refresh nicht in der Sync-Queue awaiten: sonst blockiert z. B. endPresentationView,
-        // wenn presentProjection noch hängt. Self-Heal nutzt skipStageRefresh gegen Loops.
+        // Ein laufender presentProjection-Abruf darf weitere Änderungen an der Projektion
+        // nicht blockieren. Self-Heal nutzt skipStageRefresh gegen Loops.
         if (!options?.skipStageRefresh && this.projectionNavigationIsQaQuestions()) {
           void this.refreshQaPresenterStageQuestions();
         }
@@ -13418,7 +13266,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.activeChannel.set(active);
     }
 
-    const urlTab = this.requestedInitialTab;
+    const urlTab = this.requestedInitialTab ?? this.lastHostView?.channel;
     if (
       !this.initialUrlTabApplied &&
       (urlTab === 'quiz' || urlTab === 'qa' || urlTab === 'quickFeedback')
@@ -15740,12 +15588,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   exportPdfButtonAria(): string {
     const count = this.finishedConfidenceSummary()?.priorityQuestionCount ?? 0;
     if (count === 1) {
-      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityOne:Nachbesprechungsplan als PDF ansehen – 1 Frage zur Nachbesprechung`;
+      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityOne:Nachbesprechungsplan herunterladen (PDF) – 1 Frage zur Nachbesprechung`;
     }
     if (count > 1) {
-      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityMany:Nachbesprechungsplan als PDF ansehen – ${count}:count: Fragen zur Nachbesprechung`;
+      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityMany:Nachbesprechungsplan herunterladen (PDF) – ${count}:count: Fragen zur Nachbesprechung`;
     }
-    return $localize`:@@sessionHost.exportPdfButtonAria:Nachbesprechungsplan als PDF ansehen`;
+    return $localize`:@@sessionHost.exportPdfButtonAria:Nachbesprechungsplan herunterladen (PDF)`;
   }
 
   exportPdfPriorityHint(count: number): string {
@@ -15755,46 +15603,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionHost.exportPdfPriorityHintPlural:${count}:count: Fragen zur Nachbesprechung empfohlen`;
   }
 
-  async exportSessionResultsPdf(
-    profile: SessionResultsPdfProfile = 'visual',
-    disposition: SessionResultsPdfDisposition = 'download',
-  ): Promise<void> {
+  async exportSessionResultsPdf(profile: SessionResultsPdfProfile = 'visual'): Promise<void> {
     if (!this.code || this.exportExporting()) return;
     const code = this.code;
-    // Vor jedem Await: sonst blockiert der Browser den Ansehen-Tab nach der Token-Erneuerung.
-    const viewPlaceholder =
-      disposition === 'view' ? this.sessionResultsExport.openViewPlaceholder() : undefined;
     this.exportStatus.set(null);
     this.exportExporting.set(true);
     try {
-      const result = await this.withRenewedHostAccess(() =>
-        this.sessionResultsExport.exportPdfFromSessionCode(code, {
-          profile,
-          disposition,
-          viewPlaceholder,
-          onLargeReportHint: (questionCount) => {
-            this.exportStatus.set(
-              $localize`:@@sessionHost.exportPdfGeneratingLarge:PDF wird erstellt (${questionCount} Fragen)…`,
-            );
-          },
-        }),
+      await this.withRenewedHostAccess(() =>
+        this.sessionResultsExport.exportPdfFromSessionCode(code, profile),
       );
       this.exportStatus.set(
-        result === 'pdf-view'
-          ? $localize`:@@sessionHost.exportPdfViewDone:Nachbesprechungsplan geöffnet.`
-          : result === 'pdf-download'
-            ? $localize`:@@sessionHost.exportPdfDownloadDone:Ergebnis-PDF heruntergeladen.`
-            : $localize`:@@sessionHost.exportPdfPrintDone:Ergebnis-PDF zum Speichern geöffnet.`,
+        $localize`:@@sessionHost.exportPdfDownloadDone:PDF-Download gestartet.`,
       );
       this.dismissHostSteeringCallout();
     } catch (error) {
-      if (viewPlaceholder) {
-        this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
-      }
-      this.handleHostResultsExportError(
-        error,
-        () => void this.exportSessionResultsPdf(profile, disposition),
-      );
+      this.handleHostResultsExportError(error, () => void this.exportSessionResultsPdf(profile));
     } finally {
       this.exportExporting.set(false);
     }

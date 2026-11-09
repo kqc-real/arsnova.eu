@@ -1180,32 +1180,24 @@ export class QuizListComponent implements OnInit {
     if (!sid) return;
     if (this.sessionPdfExportQuizId()) return;
 
-    // Vor jedem Await: der PDF-Worker kann das Zeitlimit reißen, und ein späteres
-    // window.open blockieren Safari und andere Popup-Regeln.
-    const viewPlaceholder = this.sessionResultsExport.openViewPlaceholder();
     this.sessionPdfExportQuizId.set(quiz.id);
     try {
       const accessProof = await this.resolveQuizHistoryAccessProof(quiz);
       if (!accessProof) {
-        this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
-        return;
+        throw new Error('Quiz history access proof unavailable');
       }
 
-      const result = await this.sessionResultsExport.exportPdfFromQuizHistory(sid, accessProof, {
-        profile,
-        viewPlaceholder,
-      });
-      const message =
-        result === 'pdf-download'
-          ? $localize`:@@quizList.exportLastSessionPdfDone:Ergebnis-PDF heruntergeladen.`
-          : $localize`:@@quizList.exportLastSessionPdfPrintDone:Ergebnis-PDF zum Speichern geöffnet.`;
-      this.snackBar.open(message, '', {
-        duration: 5000,
-        verticalPosition: 'top',
-        horizontalPosition: 'center',
-      });
+      await this.sessionResultsExport.exportPdfFromQuizHistory(sid, accessProof, profile);
+      this.snackBar.open(
+        $localize`:@@quizList.exportLastSessionPdfDone:PDF-Download gestartet.`,
+        '',
+        {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+        },
+      );
     } catch {
-      this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
       this.snackBar.open(
         $localize`:@@quizList.exportLastSessionPdfError:Ergebnis-PDF konnte nicht erstellt werden.`,
         '',
@@ -1348,7 +1340,7 @@ export class QuizListComponent implements OnInit {
         return;
       }
       // Ein fehlgeschlagener Abruf lässt die letzte erfolgreiche Verfügbarkeit stehen.
-      // Sonst verschwindet »Nachbesprechungsplan ansehen« auf Karten mit beendeter Session.
+      // Sonst verschwindet »Nachbesprechungsplan herunterladen« auf Karten mit beendeter Session.
     }
   }
 

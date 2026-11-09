@@ -16012,8 +16012,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.exportLastSessionPdf" datatype="html">
-        <source>Nachbesprechungsplan ansehen</source>
-        <target>Voir le plan de débriefing</target>
+        <source>Nachbesprechungsplan herunterladen</source>
+        <target>Télécharger le plan de débriefing</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">587</context>
@@ -16556,19 +16556,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.exportLastSessionPdfDone" datatype="html">
-        <source>Ergebnis-PDF heruntergeladen.</source>
-        <target>PDF des résultats téléchargé.</target>
+        <source>PDF-Download gestartet.</source>
+        <target>Téléchargement du PDF lancé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">987</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.exportLastSessionPdfPrintDone" datatype="html">
-        <source>Ergebnis-PDF zum Speichern geöffnet.</source>
-        <target>PDF des résultats ouvert pour enregistrement.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">988</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.exportLastSessionPdfError" datatype="html">
@@ -20694,8 +20686,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButton" datatype="html">
-        <source>Nachbesprechungsplan ansehen</source>
-        <target>Voir le plan de débriefing</target>
+        <source>Nachbesprechungsplan herunterladen</source>
+        <target>Télécharger le plan de débriefing</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">906</context>
@@ -20719,14 +20711,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">937</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfMenuVisual" datatype="html">
-        <source>Standard (mit Diagrammen)</source>
-        <target>Standard (avec schémas)</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">948</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfMenuPdfUa" datatype="html">
@@ -22789,14 +22773,6 @@
           <context context-type="linenumber">5453</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.endPresentationView" datatype="html">
-        <source>Live-Projektion ausblenden</source>
-        <target>Masquer la présentation</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5477</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionAnchor" datatype="html">
         <source>Session beenden</source>
         <target>Terminer la session</target>
@@ -24443,28 +24419,12 @@
           <context context-type="linenumber">5465</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.presenterViewPopupBlocked" datatype="html">
-        <source>Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
-        <target>La fenêtre de présentation n’a pas pu s’ouvrir. Autorise les fenêtres pop-up pour ce site et réessaie.</target>
+      <trans-unit id="sessionHost.presenterViewNavigationError" datatype="html">
+        <source>Die Präsentationsansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
+        <target>Impossible d’ouvrir la vue de présentation. Réessaie.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6047</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.presentationViewEnded" datatype="html">
-        <source>Live-Projektion ausgeblendet. Das Quiz läuft weiter.</source>
-        <target>La présentation est masquée. Le quiz continue.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6070</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.presentationViewEndError" datatype="html">
-        <source>Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.</source>
-        <target>Impossible de masquer la présentation. Réessaie.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6071</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.projectionPages" datatype="html">
@@ -24572,8 +24532,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportAccessBody" datatype="html">
-        <source>PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.</source>
-        <target>Le PDF et le CSV exigent ici un accès hôte valide. Tu trouves le plan de débriefing dans la collection via « Voir le plan de débriefing ».</target>
+        <source>PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan herunterladen«.</source>
+        <target>Le PDF et le CSV exigent ici un accès hôte valide. Dans ta collection de quiz, choisis « Télécharger le plan de débriefing ».</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">7681</context>
@@ -26634,24 +26594,24 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButtonAriaWithPriorityOne" datatype="html">
-        <source>Nachbesprechungsplan als PDF ansehen – 1 Frage zur Nachbesprechung</source>
-        <target>Voir le plan de débriefing en PDF – 1 question à débriefer</target>
+        <source>Nachbesprechungsplan herunterladen (PDF) – 1 Frage zur Nachbesprechung</source>
+        <target>Télécharger le plan de débriefing (PDF) – 1 question à débriefer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButtonAriaWithPriorityMany" datatype="html">
-        <source>Nachbesprechungsplan als PDF ansehen – <x id="count" equiv-text="count"/> Fragen zur Nachbesprechung</source>
-        <target>Voir le plan de débriefing en PDF – <x id="count" equiv-text="count"/> questions à débriefer</target>
+        <source>Nachbesprechungsplan herunterladen (PDF) – <x id="count" equiv-text="count"/> Fragen zur Nachbesprechung</source>
+        <target>Télécharger le plan de débriefing (PDF) – <x id="count" equiv-text="count"/> questions à débriefer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14267</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButtonAria" datatype="html">
-        <source>Nachbesprechungsplan als PDF ansehen</source>
-        <target>Voir le plan de débriefing en PDF</target>
+        <source>Nachbesprechungsplan herunterladen (PDF)</source>
+        <target>Télécharger le plan de débriefing (PDF)</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14269</context>
@@ -26673,36 +26633,12 @@
           <context context-type="linenumber">14276</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.exportPdfGeneratingLarge" datatype="html">
-        <source>PDF wird erstellt (<x id="PH" equiv-text="questionCount"/> Fragen)…</source>
-        <target>Le PDF est créé (<x id="PH" equiv-text="exportData.questions.length"/> questions)…</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">14288</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfViewDone" datatype="html">
-        <source>Nachbesprechungsplan geöffnet.</source>
-        <target>Plan de débriefing ouvert.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">14954</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.exportPdfDownloadDone" datatype="html">
-        <source>Ergebnis-PDF heruntergeladen.</source>
-        <target>Résultats PDF téléchargés.</target>
+        <source>PDF-Download gestartet.</source>
+        <target>Téléchargement du PDF lancé.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14294</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPrintDone" datatype="html">
-        <source>Ergebnis-PDF zum Speichern geöffnet.</source>
-        <target>Résultat PDF ouvert pour enregistrement.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">14295</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportEmpty" datatype="html">
@@ -26926,19 +26862,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.enterFullscreen" datatype="html">
-        <source>Präsentation im Vollbild starten</source>
-        <target>Démarrer la présentation en plein écran</target>
+        <source>Vollbild</source>
+        <target>Plein écran</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">43</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionPresent.enterFullscreenHint" datatype="html">
-        <source>Gesamten Bildschirm für die Projektion nutzen</source>
-        <target>Utiliser tout l’écran pour la projection</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.presentationEndedTitle" datatype="html">
@@ -36567,9 +36495,9 @@
         <source>Zur Host-Ansicht zurückkehren</source>
         <target>Revenir à la vue hôte</target>
         </trans-unit>
-      <trans-unit id="sessionPresent.returnToHostBlocked" datatype="html">
-        <source>Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
-        <target>La fenêtre hôte n’a pas pu s’ouvrir. Autorise les fenêtres pop-up pour ce site et réessaie.</target>
+      <trans-unit id="sessionPresent.returnToHostError" datatype="html">
+        <source>Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
+        <target>Impossible d’ouvrir la vue hôte. Réessaie.</target>
         </trans-unit>
       <trans-unit id="sessionPresent.quizControlError" datatype="html">
         <source>Die Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.</source>

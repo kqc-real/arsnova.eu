@@ -102,7 +102,6 @@ const SCREENSHOT_LEADERBOARD_CSS = `
 const SCREENSHOT_LIVE_CHROME_CSS = `
   ${SCREENSHOT_CHROME_CSS}
   .top-toolbar { display: none !important; }
-  .session-present__fullscreen-gate { display: none !important; }
 `;
 
 function sleep(ms) {

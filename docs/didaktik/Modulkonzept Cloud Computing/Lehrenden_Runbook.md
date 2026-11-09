@@ -319,7 +319,7 @@ LD schaltet nach genau einem kontrollierten Neuversuch auf den festgelegten Fall
 ### 10.2 Direkt nach dem Abschluss
 
 1. Falls erforderlich, lädt LD Ergebnis-PDF und Session-CSV in den geschützten Eingang.
-2. Ein fehlgeschlagener Server-PDF-Job wird nicht parallel wiederholt. Für denselben Bericht wird der dokumentierte Browser-Druckfallback verwendet.
+2. Scheitert der PDF-Download, wartet LD kurz und versucht es erneut. Falls der Fehler bleibt, sichert LD bei Bedarf die Session-CSV.
 3. Downloads werden binnen zwei Stunden neutral benannt, registriert und aus Download-, Freigabe- und Zwischenablageorten entfernt.
 4. Übernommen werden nur minimale Itemaggregate, tatsächlich verwendete Runde, Nenner, Modus und Evidenzstufe.
 5. Pseudonyme, Rang, Team, Bonus, Antwortzeit, Reaktionen, IDs, Codes, Tokens und Originalfreitexte werden nicht in Lernanalytik oder Dossier übernommen.

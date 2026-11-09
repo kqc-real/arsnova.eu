@@ -1,13 +1,8 @@
 import { Injectable } from '@angular/core';
-import { getHostToken, normalizeHostSessionCode } from '../../../core/host-session-token';
+import { normalizeHostSessionCode } from '../../../core/host-session-token';
 
 /** Eigene DB, getrennt von Yjs/`y-indexeddb` der Quiz-Sammlung. */
 export const HOST_TOKEN_INDEXED_DB_NAME = 'arsnova-host-tokens';
-/**
- * Kurzlebiger Presenter-Handoff (nicht die volle serverseitige Host-Token-TTL).
- * Begrenzt das Fenster auf geteilten Geräten nach Host-Tab-Schließung.
- */
-export const HOST_TOKEN_INDEXED_DB_TTL_MS = 30 * 60 * 1000;
 const HOST_TOKEN_STORE_NAME = 'tokens';
 const HOST_TOKEN_DB_VERSION = 1;
 
@@ -68,7 +63,7 @@ async function withHostTokenStore<T>(
 }
 
 /**
- * Origin-gebundener Host-Token-Speicher für den Presenter-Tab auf Tablets.
+ * Liest und löscht bestehende Token aus der früheren Presenter-Übergabe.
  * Nur im Session-Feature importieren — nicht in Core, Home oder app.routes.
  * Einträge haben TTL und werden nach erfolgreichem Present-Restore konsumiert.
  */
@@ -97,40 +92,12 @@ export class SessionTokenStorageService {
     }
   }
 
-  async setHostToken(sessionCode: string, token: string): Promise<void> {
-    const code = normalizeHostSessionCode(sessionCode);
-    const normalizedToken = token.trim();
-    if (!code || !normalizedToken) {
-      return;
-    }
-    await withHostTokenStore('readwrite', (store) =>
-      store.put({
-        code,
-        token: normalizedToken,
-        expiresAt: Date.now() + HOST_TOKEN_INDEXED_DB_TTL_MS,
-      } satisfies HostTokenRecord),
-    );
-  }
-
   async clearHostToken(sessionCode: string): Promise<void> {
     const code = normalizeHostSessionCode(sessionCode);
     try {
       await withHostTokenStore('readwrite', (store) => store.delete(code));
     } catch {
       // Private Mode / Quota: sessionStorage bleibt die tab-lokale Quelle.
-    }
-  }
-
-  async persistCurrentHostToken(sessionCode: string): Promise<boolean> {
-    const token = getHostToken(sessionCode);
-    if (!token) {
-      return false;
-    }
-    try {
-      await this.setHostToken(sessionCode, token);
-      return true;
-    } catch {
-      return false;
     }
   }
 }

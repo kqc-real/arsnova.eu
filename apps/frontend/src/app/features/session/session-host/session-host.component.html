@@ -301,6 +301,9 @@
               class="session-host__view-toggle session-host__view-toggle--presenter"
               data-testid="open-presenter-view"
               (click)="openPresenterView()"
+              [disabled]="presenterNavigationPending()"
+              [disabledInteractive]="true"
+              [attr.aria-busy]="presenterNavigationPending()"
               [attr.aria-label]="presenterViewActionLabel()"
               [matTooltip]="presenterViewActionLabel()"
               matTooltipTouchGestures="off"
@@ -718,6 +721,9 @@
                       class="session-host__presenter-cta"
                       data-testid="open-presenter-view"
                       (click)="openPresenterView()"
+                      [disabled]="presenterNavigationPending()"
+                      [disabledInteractive]="true"
+                      [attr.aria-busy]="presenterNavigationPending()"
                       [attr.aria-label]="presenterViewActionLabel()"
                     >
                       <app-presenter-icon matButtonIcon />
@@ -931,7 +937,7 @@
                         class="session-host__export-pdf-btn"
                         matButton="filled"
                         type="button"
-                        (click)="exportSessionResultsPdf('visual', 'view')"
+                        (click)="exportSessionResultsPdf()"
                         [disabled]="exportExporting()"
                         [disabledInteractive]="true"
                         [attr.aria-busy]="exportExporting()"
@@ -941,7 +947,7 @@
                           >psychology</mat-icon
                         >
                         <span i18n="@@sessionHost.exportPdfButton"
-                          >Nachbesprechungsplan ansehen</span
+                          >Nachbesprechungsplan herunterladen</span
                         >
                         @if (exportPdfPriorityCount > 0) {
                           <span class="session-host__export-pdf-badge" aria-hidden="true">{{
@@ -975,17 +981,6 @@
                       <span i18n>Zur Startseite</span>
                     </button>
                     <mat-menu #sessionExportMoreMenu="matMenu">
-                      <button
-                        mat-menu-item
-                        type="button"
-                        (click)="exportSessionResultsPdf('visual')"
-                        [disabled]="exportExporting()"
-                      >
-                        <mat-icon aria-hidden="true">bar_chart</mat-icon>
-                        <span i18n="@@sessionHost.exportPdfMenuVisual"
-                          >Standard (mit Diagrammen)</span
-                        >
-                      </button>
                       <button
                         mat-menu-item
                         type="button"
@@ -5490,6 +5485,9 @@
               class="session-host__presenter-cta"
               data-testid="open-presenter-view"
               (click)="openPresenterView()"
+              [disabled]="presenterNavigationPending()"
+              [disabledInteractive]="true"
+              [attr.aria-busy]="presenterNavigationPending()"
               [attr.aria-label]="presenterViewActionLabel()"
             >
               <app-presenter-icon matButtonIcon />
@@ -5590,21 +5588,6 @@
             <span i18n="@@sessionHost.frameOption">App-Rahmen</span>
           </button>
         </div>
-      }
-      @if (
-        projectionControlsOffered() &&
-        presenterWindowOpen() &&
-        session()?.presenterSurface !== 'ended'
-      ) {
-        <button
-          mat-menu-item
-          type="button"
-          (click)="pendingHostMoreAction.set('endPresentation')"
-          [disabled]="presenterSurfacePending()"
-        >
-          <mat-icon aria-hidden="true">stop_screen_share</mat-icon>
-          <span i18n="@@sessionHost.endPresentationView">Live-Projektion ausblenden</span>
-        </button>
       }
       <button
         mat-menu-item

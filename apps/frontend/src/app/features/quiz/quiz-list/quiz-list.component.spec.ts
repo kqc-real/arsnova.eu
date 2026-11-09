@@ -1706,7 +1706,7 @@ describe('QuizListComponent', () => {
     expect(pdfButton?.disabled).toBe(false);
   });
 
-  it('reserviert den Druck-Tab vor dem PDF-Job und schließt ihn nur beim endgültigen Fehler', async () => {
+  it('hält den PDF-Download bis zum Erfolg oder Fehler gesperrt und behält den Fokus', async () => {
     const quiz = {
       id: 'e31fef3f-f7b1-4705-a739-28c8ec4486bf',
       name: 'Datenbanken',
@@ -1742,10 +1742,8 @@ describe('QuizListComponent', () => {
       throw new Error('Nachbesprechungsplan-Button fehlt');
     }
     const service = TestBed.inject(SessionResultsExportService);
-    const placeholder = { closed: false, close: vi.fn() } as unknown as Window;
-    vi.spyOn(service, 'openViewPlaceholder').mockReturnValue(placeholder);
-    const closePlaceholder = vi.spyOn(service, 'closeViewPlaceholder');
-    let releaseExport!: (result: 'print-fallback') => void;
+    const open = vi.spyOn(window, 'open');
+    let releaseExport!: () => void;
     const exportPdf = vi.spyOn(service, 'exportPdfFromQuizHistory').mockImplementationOnce(
       () =>
         new Promise((resolve) => {
@@ -1754,12 +1752,23 @@ describe('QuizListComponent', () => {
     );
 
     pdfButton.focus();
-    const pending = fixture.componentInstance.exportLastSessionPdf(quiz, 'visual');
+    pdfButton.click();
+    fixture.detectChanges();
+    const standard = [...document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
+      (item) => item.textContent?.includes('Standard (mit Diagrammen)'),
+    );
+    expect(standard).toBeDefined();
+    standard!.focus();
+    standard!.click();
     fixture.detectChanges();
 
-    expect(service.openViewPlaceholder).toHaveBeenCalledOnce();
     expect(exportPdf).not.toHaveBeenCalled();
-    expect(pdfButton.disabled).toBe(true);
+    expect(pdfButton.getAttribute('aria-disabled')).toBe('true');
+    expect(pdfButton.getAttribute('aria-busy')).toBe('true');
+    expect(host.querySelector('.quiz-list-item__export-progress')?.getAttribute('role')).toBe(
+      'status',
+    );
+    await fixture.componentInstance.exportLastSessionPdf(quiz, 'pdfUa');
     expect(pdfButton.isConnected).toBe(true);
     expect(document.activeElement).toBe(pdfButton);
 
@@ -1767,18 +1776,20 @@ describe('QuizListComponent', () => {
     expect(exportPdf).toHaveBeenCalledWith(
       quiz.lastServerQuizId,
       quiz.lastServerQuizAccessProof,
-      expect.objectContaining({ profile: 'visual', viewPlaceholder: placeholder }),
+      'visual',
     );
-    releaseExport('print-fallback');
-    await pending;
+    releaseExport();
+    await vi.waitUntil(() => !fixture.componentInstance.isSessionPdfExportPending(quiz.id));
     fixture.detectChanges();
 
-    expect(closePlaceholder).not.toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
+    expect(pdfButton.getAttribute('aria-busy')).not.toBe('true');
+    expect(host.querySelector('.quiz-list-item__export-progress')).toBeNull();
     expect(pdfButton.disabled).toBe(false);
     expect(pdfButton.isConnected).toBe(true);
     expect(document.activeElement).toBe(pdfButton);
     expect(snackBarOpenMock).toHaveBeenCalledWith(
-      'Ergebnis-PDF zum Speichern geöffnet.',
+      'PDF-Download gestartet.',
       '',
       expect.objectContaining({ duration: 5000 }),
     );
@@ -1787,7 +1798,9 @@ describe('QuizListComponent', () => {
     await fixture.componentInstance.exportLastSessionPdf(quiz, 'visual');
     fixture.detectChanges();
 
-    expect(closePlaceholder).toHaveBeenCalledWith(placeholder);
+    expect(open).not.toHaveBeenCalled();
+    expect(pdfButton.getAttribute('aria-busy')).not.toBe('true');
+    expect(document.activeElement).toBe(pdfButton);
     expect(pdfButton.disabled).toBe(false);
     expect(pdfButton.isConnected).toBe(true);
     expect(snackBarOpenMock).toHaveBeenCalledWith(

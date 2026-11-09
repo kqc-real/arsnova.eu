@@ -103,12 +103,7 @@ async function check(session, host, preset, name, selector, verify = () => {}) {
               document.querySelector('.session-present');
             const clipped = Array.from(root.querySelectorAll('*'))
               .filter((el) => {
-                if (
-                  el.closest(
-                    '.projection-pages__source,.sr-only,.katex-mathml,.session-present__fullscreen-gate',
-                  )
-                )
-                  return false;
+                if (el.closest('.projection-pages__source,.sr-only,.katex-mathml')) return false;
                 const css = getComputedStyle(el),
                   r = el.getBoundingClientRect();
                 if (
