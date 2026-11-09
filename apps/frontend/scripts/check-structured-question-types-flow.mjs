@@ -1542,12 +1542,14 @@ async function finishSessionAndAssertDebriefPlan(host, hostTrpc, code, hardFailu
     .then(() => true)
     .catch(() => false);
   if (!planVisible) {
-    hardFailures.push('Host export button "Nachbesprechungsplan ansehen" missing.');
+    hardFailures.push('Host export button "Nachbesprechungsplan herunterladen" missing.');
     logStep(false, 'Host Nachbesprechungsplan-Button');
   } else {
     const label = ((await planButton.innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
     const aria = (await planButton.getAttribute('aria-label')) || '';
-    if (!/Nachbesprechungsplan ansehen|debriefing plan/i.test(`${label} ${aria}`)) {
+    if (
+      !/Nachbesprechungsplan herunterladen|download debriefing report/i.test(`${label} ${aria}`)
+    ) {
       hardFailures.push(`Nachbesprechungsplan button label unexpected: "${label}" / "${aria}"`);
       logStep(false, 'Host Nachbesprechungsplan-Button');
     } else if (!`${label} ${aria}`.includes(String(EXPECTED_DEBRIEF_PRIORITY))) {

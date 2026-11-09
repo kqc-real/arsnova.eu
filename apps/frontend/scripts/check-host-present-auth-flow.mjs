@@ -6,6 +6,7 @@
  * - Host-Route mit gespeichertem Host-Token unter lokalisiertem Pfad
  * - Presenter-Route unter lokalisiertem Pfad ohne Host-Auth-Fehler
  * - Host-Seite aktualisiert die Teilnehmerzahl nach Join live
+ * - Der Wechsel zum Presenter erhält den Schließschutz bei laufender Abstimmung
  *
  * Run:
  *   BASE_URL=http://localhost:4201/de TRPC_URL=http://localhost:3000/trpc node scripts/check-host-present-auth-flow.mjs
@@ -45,7 +46,7 @@ const QUIZ_PAYLOAD = {
     {
       text: 'Welche Route wird geprueft?',
       type: 'SINGLE_CHOICE',
-      timer: null,
+      timer: 30,
       difficulty: 'EASY',
       order: 0,
       ratingMin: undefined,
@@ -186,11 +187,12 @@ async function waitForParticipantCount(page, expected, timeout = 15_000) {
   return false;
 }
 
-function createBrowserTrpcClient() {
+function createBrowserTrpcClient(hostToken) {
   return createTRPCProxyClient({
     links: [
       httpBatchLink({
         url: TRPC_URL,
+        headers: hostToken ? { 'x-host-token': hostToken } : {},
       }),
     ],
   });
@@ -313,6 +315,34 @@ async function main() {
     logStep(updatedCount, 'Host sieht den Join live');
     if (!updatedCount) {
       failures.push('Host-Ansicht hat die Teilnehmerzahl nach Join nicht live auf 1 aktualisiert.');
+    }
+
+    if (hostJoinUiReady && updatedCount) {
+      const hostApi = createBrowserTrpcClient(hostToken);
+      const opened = await hostApi.session.nextQuestion.mutate({ code });
+      if (opened.status === 'QUESTION_OPEN') {
+        await hostApi.session.revealAnswers.mutate({ code });
+      }
+      await host.locator('.session-host__countdown').waitFor({ timeout: 15_000 });
+      const closeJoin = host.locator('.session-host__join-viewport-overlay__close');
+      if (await closeJoin.isVisible()) await closeJoin.click();
+      await host.locator('[data-testid="open-presenter-view"]:visible').click();
+      await host.getByTestId('presentation-start-open').click();
+      await waitForPathSuffix(host, `/session/${code}/present`);
+      const unloadDialog = host
+        .waitForEvent('dialog', { timeout: 5_000 })
+        .then(async (dialog) => {
+          const type = dialog.type();
+          await dialog.dismiss();
+          return type;
+        })
+        .catch(() => null);
+      await host.close({ runBeforeUnload: true });
+      const closeProtected = (await unloadDialog) === 'beforeunload' && !host.isClosed();
+      logStep(closeProtected, 'Presenter warnt vor dem Schließen des Hosts während der Abstimmung');
+      if (!closeProtected) {
+        failures.push('Der Schließversuch nach dem Wechsel zum Presenter zeigte keine Warnung.');
+      }
     }
 
     await participantContext.close();

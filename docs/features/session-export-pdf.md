@@ -8,10 +8,10 @@ Phase-1- und Phase-2-Export für Lehrende nach Session-Ende (`FINISHED`).
 
 Der PDF-Bericht nutzt **`SessionExportDTO`** — dieselbe aggregierte Quelle wie der CSV-Export, kein CSV-Parsing.
 
-| Kontext                           | tRPC                                                                | Berechtigung                 |
-| --------------------------------- | ------------------------------------------------------------------- | ---------------------------- |
-| Host direkt nach Session-Ende     | `getExportData`, `getSessionExportPdf`                              | Host-Token (`x-host-token`)  |
-| Quiz-Sammlung (letzter Durchlauf) | `getLastSessionExportDataForQuiz`, `getLastSessionExportPdfForQuiz` | Quiz-Historien-`accessProof` |
+| Kontext                           | tRPC                             | Berechtigung                 |
+| --------------------------------- | -------------------------------- | ---------------------------- |
+| Host direkt nach Session-Ende     | `getSessionExportPdf`            | Host-Token (`x-host-token`)  |
+| Quiz-Sammlung (letzter Durchlauf) | `getLastSessionExportPdfForQuiz` | Quiz-Historien-`accessProof` |
 
 Phase 2 ergänzt:
 
@@ -41,28 +41,27 @@ rekonstruiert.
 
 ### Host-Abschlussansicht (`FINISHED`)
 
-- **Primär:** **Nachbesprechungsplan ansehen** — öffnet das Server-PDF via `getSessionExportPdf` (Profil `visual`) in einem neuen Tab. Der Tab entsteht noch im Klick, vor der Erneuerung des Host-Zugangs, und bleibt bei einem einmaligen UNAUTHORIZED-Retry derselbe.
-- **Unter Exportieren:** Standard-PDF (mit Diagrammen), barrierearmes PDF/UA und Rohdaten-CSV — jeweils als Download
-- Blockiertes Ansehen-Popup fällt auf denselben Download zurück
-- Vor dem Abruf erneuert die Ansicht den Host-Zugang. Ist das nicht möglich und der Zugang abgelaufen, weist der Hinweis auf die Quizsammlung.
-
-Fallback, falls das Server-PDF scheitert: Browser-Druckdialog über dasselbe HTML (`printSessionResultsReport`) — ohne eigene Vorschau-UI. Liegt schon ein Ansehen-Tab aus dem Klick vor, wird der Druck darein geschrieben, nicht in ein neues Popup.
+- **Primär:** **Nachbesprechungsplan herunterladen** lädt das Standard-PDF mit Diagrammen über `getSessionExportPdf` herunter.
+- **Unter Exportieren:** barrierefreies PDF/UA und Rohdaten-CSV als Downloads.
+- Vor dem Abruf erneuert die Ansicht den Host-Zugang. Nach `UNAUTHORIZED` wiederholt sie den Abruf einmal, sofern der Zugang erneuert werden kann. Ist der Zugang abgelaufen und nicht erneuerbar, verweist die App auf die Quizsammlung.
 
 ### Quiz-Sammlung (Quizkarte)
 
 Nach mindestens einem beendeten Live-Durchlauf:
 
-- **Nachbesprechung** — kompakter Dialog mit Lernstand, Prioritäten und Teilnehmer-Feedback
-- **Ergebnisbericht (PDF)** — derselbe Bericht wie in der Host-Ansicht, aus der Session-Historie
+- **Nachbesprechung** — kompakter Dialog mit Lernstand, Prioritäten und Teilnehmer-Feedback.
+- **Nachbesprechungsplan herunterladen** — Auswahl zwischen Standard-PDF und PDF/UA für den letzten Live-Durchlauf.
 
-Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachweis über `accessProof`); Session-ID und Session-Code werden in der Sammlung nicht angezeigt. Der Druck-Tab entsteht im Menüklick, bevor Zugangsnachweis und PDF-Job abgewartet werden. Scheitert nur das Server-PDF, auch nach dem Zeitlimit des Workers, schreibt die Sammlung den Browser-Druck in diesen Tab und fällt nicht auf den host-only-Endpunkt `getSessionExportPdf` zurück. Eine fehlgeschlagene Verfügbarkeitsabfrage lässt den letzten erfolgreichen Stand der Karte stehen.
+Beide Aktionen nutzen wie die Bonus-Codes den Besitznachweis `accessProof`. Der PDF-Download verwendet den Historien-Endpunkt und benötigt keinen Host-Token. Eine fehlgeschlagene Verfügbarkeitsabfrage lässt den letzten erfolgreichen Stand der Karte stehen.
+
+Beide Download-Einstiege zeigen den Fortschritt in der App und laden nach erfolgreicher Serverantwort die PDF-Datei herunter. Es öffnet sich kein zusätzlicher Tab. Scheitert die PDF-Erstellung oder der Abruf, meldet die App den Fehler und der Download kann erneut versucht werden.
 
 ## Berichtsstruktur
 
 1. Deckblatt (Quiz, Code, Datum, Teilnehmende, Datenschutzhinweis)
 2. Feedback der Teilnehmenden (falls vorhanden)
 3. Lernstand und Selbsteinschätzung inkl. Prioritätsfragen, Heatmap, Verteilungsbalken
-4. Fragen im Detail — pro Frage eine Druckseite mit:
+4. Fragen im Detail mit:
    - MC/SC-Balkendiagrammen (korrekte Option grün)
    - NUMERIC-Histogrammen inkl. R1/R2-Vergleich
    - Confidence-Heatmap und Selbsteinschätzungs-Balken
@@ -71,7 +70,7 @@ Beide Aktionen nutzen dasselbe Berechtigungsmodell wie Bonus-Codes (Besitznachwe
 
 ## Technik
 
-Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Backend-PDF und Browser-Print-Fallback teilen sich die Lib `@arsnova/session-export-report`.
+Pipeline: `SessionExportDTO` → `buildSessionResultsReportHtml()` → Playwright `page.pdf()`. Der Server erzeugt das Dokument mit der Lib `@arsnova/session-export-report`.
 
 Der Backend-Pfad bettet externe Bilder ausschließlich über den
 DNS-/TOCTOU-gehärteten Loader ein. Private, lokale, reservierte oder nicht
@@ -89,9 +88,7 @@ Paketen einschließlich KaTeX-Schriften eingebettet. Details und Tests:
 Die Playwright-PDF-Erzeugung ist im einzelnen Backend-Prozess hart auf **einen aktiven
 Job** begrenzt. Das gilt gemeinsam für Host- und Historienberichte. Ein weiterer Job wird
 ohne Warteschlange mit tRPC
-`TOO_MANY_REQUESTS` (HTTP 429) abgewiesen; der Ergebnisbericht kann dann den bestehenden
-Browser-Print-Fallback nutzen. Dadurch belegen wartende PDF-Anfragen keine zusätzliche
-Serverkapazität.
+`TOO_MANY_REQUESTS` (HTTP 429) abgewiesen. Die App meldet den fehlgeschlagenen Export. Dadurch belegen wartende PDF-Anfragen keine zusätzliche Serverkapazität.
 
 Die strukturierten Log-Ereignisse `pdf:job_started` und `pdf:job_finished`
 enthalten Quelle, aktive Jobs, Cap sowie kumulative Zähler. Ablehnungen werden
@@ -111,15 +108,15 @@ verkleinert, von Metadaten/Polyglot-Anhängen bereinigt und nach WebP
 transkodiert. SVG, Animationen und fehlerhafte Bilder erhalten einen lokalen
 Platzhalter. Es gibt keinen persistenten Bildcache.
 
-| Schicht                                                     | Ort                                                                                                                                         |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Shared Report-Builder (HTML, Charts, Print-CSS)             | `libs/session-export-report/`                                                                                                               |
-| Berichtslabels DE + Locale-Resolver                         | `libs/session-export-report/src/labels-de.ts`, `labels-locale.util.ts`, `labels-i18n.generated.ts`                                          |
-| Fachglossar (Nachbesprechungsplan i18n)                     | [`session-export-pdf-i18n-glossary.md`](session-export-pdf-i18n-glossary.md)                                                                |
-| Frontend-Labels (Angular `$localize`)                       | `apps/frontend/src/app/core/session-results-report-labels.ts`                                                                               |
-| Frontend-Export-Service (Ansehen, Download, Print-Fallback) | `apps/frontend/src/app/core/session-results-export.service.ts`                                                                              |
-| Server-PDF (Playwright-Wrapper)                             | `apps/backend/src/lib/session-results-report-pdf.ts`                                                                                        |
-| tRPC                                                        | `session.getSessionExportPdf`, `session.getExportData`, `session.getLastSessionExportPdfForQuiz`, `session.getLastSessionExportDataForQuiz` |
+| Schicht                                         | Ort                                                                                                |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Shared Report-Builder (HTML, Charts, Print-CSS) | `libs/session-export-report/`                                                                      |
+| Berichtslabels DE + Locale-Resolver             | `libs/session-export-report/src/labels-de.ts`, `labels-locale.util.ts`, `labels-i18n.generated.ts` |
+| Fachglossar (Nachbesprechungsplan i18n)         | [`session-export-pdf-i18n-glossary.md`](session-export-pdf-i18n-glossary.md)                       |
+| Quelllabels für den Locale-Abgleich             | `apps/frontend/src/app/core/session-results-report-labels.ts`                                      |
+| Frontend-Export-Service (Download)              | `apps/frontend/src/app/core/session-results-export.service.ts`                                     |
+| Server-PDF (Playwright-Wrapper)                 | `apps/backend/src/lib/session-results-report-pdf.ts`                                               |
+| tRPC                                            | `session.getSessionExportPdf`, `session.getLastSessionExportPdfForQuiz`                            |
 
 Vor Tests und Backend-Build muss `@arsnova/session-export-report` gebaut sein (`npm run build:libs`).
 

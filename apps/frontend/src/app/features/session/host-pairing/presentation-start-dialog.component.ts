@@ -21,12 +21,11 @@ import {
 
 export interface PresentationStartDialogData {
   code: string;
-  /** Muss im Klick der Primäraktion `window.open` synchron anstoßen. */
-  startPresenterView?: () => Promise<Window | null>;
   phoneAlreadyConnected?: boolean;
+  requestFullscreen?: () => void;
 }
 
-export type PresentationStartDialogResult = 'start' | 'blocked' | undefined;
+export type PresentationStartDialogResult = 'start' | undefined;
 
 @Component({
   selector: 'app-presentation-start-dialog',
@@ -65,18 +64,9 @@ export class PresentationStartDialogComponent implements OnInit {
     await this.refresh();
   }
 
-  async startPresentation(): Promise<void> {
-    const start = this.data.startPresenterView;
-    if (!start) {
-      this.dialogRef.close('start');
-      return;
-    }
-    try {
-      const opened = await start();
-      this.dialogRef.close(opened ? 'start' : 'blocked');
-    } catch {
-      this.dialogRef.close('blocked');
-    }
+  startPresentation(): void {
+    this.data.requestFullscreen?.();
+    this.dialogRef.close('start');
   }
 
   openPairing(): void {
@@ -90,7 +80,8 @@ export class PresentationStartDialogComponent implements OnInit {
     >(HostPairingDialogComponent, {
       data: {
         code: this.data.code,
-        startPresenterView: this.data.startPresenterView,
+        offerPresentationStart: true,
+        requestFullscreen: this.data.requestFullscreen,
       },
       autoFocus: 'first-tabbable',
       restoreFocus: true,
@@ -98,11 +89,11 @@ export class PresentationStartDialogComponent implements OnInit {
       backdropClass: 'host-pairing-dialog-backdrop',
     });
     ref.afterClosed().subscribe((result) => {
-      void this.refresh();
-      if (!result?.connected) {
-        return;
+      if (result?.startPresentation) {
+        this.dialogRef.close('start');
+      } else {
+        void this.refresh();
       }
-      this.dialogRef.close(result.presenterOpened === false ? 'blocked' : 'start');
     });
   }
 

@@ -1,3 +1,7 @@
+import { SessionMusicService } from '../session-music.service';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
+import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
+import { SoundService } from '../../../core/sound.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { readFileSync } from 'node:fs';
@@ -149,6 +153,15 @@ vi.mock('../../../core/trpc.client', () => ({
 }));
 
 const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+const TIMED_PRESENTER_QUESTION = {
+  questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+  text: 'Was war hilfreich?',
+  type: 'SINGLE_CHOICE',
+  difficulty: 'MEDIUM',
+  order: 0,
+  currentRound: 1,
+  answers: [],
+};
 
 function wordCloudEntry(label: string, key: string, confidence: number | null = null) {
   return {
@@ -182,6 +195,7 @@ describe('SessionPresentComponent', () => {
   });
 
   beforeEach(() => {
+    getInfoQueryMock.mockClear();
     setPresenterSurfaceMutateMock.mockReset();
     setPresenterSortModeMutateMock.mockReset();
     getInfoQueryMock.mockResolvedValue({
@@ -245,6 +259,8 @@ describe('SessionPresentComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionPresentComponent],
       providers: [
+        SessionMusicService,
+        SessionUnloadWarningService,
         provideRouter([]),
         {
           provide: ActivatedRoute,
@@ -259,6 +275,198 @@ describe('SessionPresentComponent', () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('behält beim Ansichtswechsel die Tab-Warnung bis zum Ende der Abstimmung', async () => {
+    const warning = TestBed.inject(SessionUnloadWarningService);
+    Object.defineProperty(warning, 'enabled', { value: true });
+    // Die Session-Shell behält den bereits aktiven Host-Schutz bis zum Presenter-Snapshot.
+    warning.sync('ABC123', 'ACTIVE');
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+    fixture.componentInstance.session.update(
+      (session) => session && { ...session, status: 'FINISHED' },
+    );
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(true);
+    fixture.destroy();
+  });
+
+  it.each([false, true])(
+    'übernimmt den laufenden Countdown mit Gong im Host: %s',
+    async (gongInHost) => {
+      const music = TestBed.inject(SessionMusicService);
+      const sound = TestBed.inject(SoundService);
+      const play = vi.spyOn(sound, 'play').mockResolvedValue();
+      vi.spyOn(sound, 'preload').mockResolvedValue();
+      getInfoQueryMock.mockResolvedValue({
+        ...(await getInfoQueryMock()),
+        currentQuestion: 0,
+        currentRound: 1,
+        enableSoundEffects: true,
+      });
+
+      // Host und Presenter beziehen denselben Countdown von der Session-Shell.
+      music.enter('ABC123');
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      await vi.waitFor(() => expect(component['musicReady']()).toBe(true));
+      component['stopPolling']();
+      const remaining = gongInHost ? 7 : 9;
+      const startedAt = getSkewAdjustedNow() - (30.5 - remaining) * 1_000;
+      const deadline = music.resolveCountdownDeadline('ABC123', {
+        timerSeconds: 30,
+        activeAt: new Date(startedAt).toISOString(),
+        currentDeadlineMs: null,
+        currentKey: null,
+        nextKey: '0:1:30',
+        nowMs: startedAt,
+      });
+      music.tickCountdown('ABC123', deadline, remaining, true);
+      expect(play).toHaveBeenCalledTimes(gongInHost ? 1 : 0);
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        ...TIMED_PRESENTER_QUESTION,
+        timer: 30,
+      });
+
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      try {
+        await component['refreshHostQuestion']();
+        expect(component.countdownSeconds()).toBe(remaining);
+        await vi.advanceTimersByTimeAsync(remaining * 1_000);
+        expect(component.countdownSeconds()).toBe(0);
+        expect(play.mock.calls.map(([key]) => key)).toEqual(['countdownEnd', 'sessionEnd']);
+      } finally {
+        fixture.destroy();
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it('bleibt bei HTTP-Fragenabruf ohne Status-Stream stumm', async () => {
+    resetServerClockSkew();
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'play').mockResolvedValue();
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      serverTime: new Date().toISOString(),
+      currentQuestion: 0,
+      currentRound: 1,
+      enableSoundEffects: true,
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component['musicReady']()).toBe(true));
+    component['stopPolling']();
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      ...TIMED_PRESENTER_QUESTION,
+      timer: 5,
+    });
+
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    try {
+      await component['refreshHostQuestion']();
+      expect(component.countdownSeconds()).toBeGreaterThan(0);
+      await vi.advanceTimersByTimeAsync(6_000);
+      expect(component.countdownSeconds()).toBe(0);
+      expect(play).not.toHaveBeenCalled();
+
+      const expiredStart = new Date(getSkewAdjustedNow() - 10_000).toISOString();
+      component['syncCountdownFromStatus'](5, expiredStart);
+      expect(play).not.toHaveBeenCalled();
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+      resetServerClockSkew();
+    }
+  });
+
+  it('übernimmt die Blitzlichtmusik einer Q&A-Session und stoppt sie beim Pausieren', async () => {
+    const music = TestBed.inject(SessionMusicService);
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'playMusic').mockResolvedValue();
+    const stop = vi.spyOn(sound, 'stopMusic').mockImplementation(() => {});
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const feedback = {
+      type: 'YESNO' as const,
+      locked: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    };
+    quickFeedbackResultsQueryMock.mockResolvedValue(feedback);
+    music.enter('ABC123');
+    music.quickFeedbackMusicEnabled.set(true);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(play).toHaveBeenCalledWith('LOBBY_2');
+    });
+    stop.mockClear();
+    fixture.componentInstance.quickFeedbackResult.set({ ...feedback, locked: true });
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('folgt im Presenter der Quizphase, der Stummschaltung und dem Session-Ende', async () => {
+    const music = TestBed.inject(SessionMusicService);
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'playMusic').mockResolvedValue();
+    const stop = vi.spyOn(sound, 'stopMusic').mockImplementation(() => {});
+    getInfoQueryMock.mockResolvedValue({ ...(await getInfoQueryMock()), status: 'LOBBY' });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(play).toHaveBeenCalledWith('LOBBY_2');
+    });
+
+    const component = fixture.componentInstance;
+    component.session.update((session) => session && { ...session, status: 'QUESTION_OPEN' });
+    fixture.detectChanges();
+    expect(play).toHaveBeenLastCalledWith('READING_0');
+
+    stop.mockClear();
+    music.musicMuted.set(true);
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    play.mockClear();
+    component.session.update((session) => session && { ...session, status: 'ACTIVE' });
+    fixture.detectChanges();
+    expect(play).not.toHaveBeenCalled();
+
+    music.musicMuted.set(false);
+    fixture.detectChanges();
+    expect(play).toHaveBeenCalledWith('COUNTDOWN_1');
+    stop.mockClear();
+    component.session.update((session) => session && { ...session, status: 'FINISHED' });
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    fixture.destroy();
   });
 
   it('startet nach Zerstörung während des ersten Ladens weder Polling noch Subscriptions', async () => {
@@ -492,14 +700,17 @@ describe('SessionPresentComponent', () => {
     vi.useRealTimers();
   });
 
-  it('bietet Vollbild direkt im Presenter an und fordert es erst nach Klick an', async () => {
+  it('lässt den Presenter bei abgelehntem Vollbild bedienbar und erlaubt einen erneuten Versuch', async () => {
     const { DOCUMENT } = await import('@angular/common');
     const documentRef = TestBed.inject(DOCUMENT);
     const requestFullscreenSpy = vi.fn(() => Promise.resolve());
+    requestFullscreenSpy.mockRejectedValueOnce(new Error('Fullscreen denied'));
     const previousDescriptor = Object.getOwnPropertyDescriptor(
       documentRef.documentElement,
       'requestFullscreen',
     );
+    const previousEnabled = Object.getOwnPropertyDescriptor(documentRef, 'fullscreenEnabled');
+    const previousElement = Object.getOwnPropertyDescriptor(documentRef, 'fullscreenElement');
     Object.defineProperty(documentRef.documentElement, 'requestFullscreen', {
       configurable: true,
       value: requestFullscreenSpy,
@@ -520,53 +731,47 @@ describe('SessionPresentComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const fullscreenGate = fixture.nativeElement.querySelector(
-        '[data-testid="presenter-fullscreen-gate"]',
-      ) as HTMLElement | null;
-      const fullscreenAction = fullscreenGate?.querySelector(
+      const fullscreenAction = fixture.nativeElement.querySelector(
         '[data-testid="presenter-fullscreen-enter"]',
-      ) as HTMLButtonElement | null;
-      expect(fullscreenGate?.getAttribute('role')).toBe('dialog');
-      expect(fullscreenGate?.getAttribute('aria-modal')).toBe('true');
-      expect(fullscreenAction?.textContent).toContain('Präsentation im Vollbild starten');
-      expect(fullscreenAction?.textContent).toContain(
-        'Gesamten Bildschirm für die Projektion nutzen',
-      );
+      ) as HTMLButtonElement;
+      const presenterSurface = fixture.nativeElement.querySelector(
+        '[data-testid="presenter-surface"]',
+      ) as HTMLElement;
+      expect(fullscreenAction.textContent).toContain('Vollbild');
+      expect(fullscreenAction.closest('[aria-modal="true"]')).toBeNull();
       expect(requestFullscreenSpy).not.toHaveBeenCalled();
 
-      fullscreenAction?.click();
+      fullscreenAction.focus();
+      fullscreenAction.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fullscreenAction.isConnected).toBe(true);
+      expect(documentRef.activeElement).toBe(fullscreenAction);
 
+      fullscreenAction.click();
       expect(requestFullscreenSpy).toHaveBeenCalledWith({ navigationUI: 'hide' });
+      expect(requestFullscreenSpy).toHaveBeenCalledTimes(2);
       fullscreenElement = documentRef.documentElement;
       documentRef.dispatchEvent(new Event('fullscreenchange'));
       await Promise.resolve();
       fixture.detectChanges();
 
-      const presenterSurface = fixture.nativeElement.querySelector(
-        '[data-testid="presenter-surface"]',
-      ) as HTMLElement;
       expect(
-        fixture.nativeElement.querySelector('[data-testid="presenter-fullscreen-gate"]'),
+        fixture.nativeElement.querySelector('[data-testid="presenter-fullscreen-enter"]'),
       ).toBeNull();
       expect(documentRef.activeElement).toBe(presenterSurface);
 
-      const returnToHostSpy = vi
-        .spyOn(fixture.componentInstance, 'returnToHost')
-        .mockImplementation(() => undefined);
       const router = TestBed.inject(Router);
       const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-      vi.spyOn(documentRef, 'hasFocus').mockReturnValue(true);
-      documentRef.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-
-      expect(returnToHostSpy).toHaveBeenCalledOnce();
-
-      returnToHostSpy.mockClear();
+      const open = vi.spyOn(window, 'open');
       fullscreenElement = null;
       documentRef.dispatchEvent(new Event('fullscreenchange'));
+      documentRef.dispatchEvent(new Event('webkitfullscreenchange'));
       await Promise.resolve();
 
-      expect(returnToHostSpy).toHaveBeenCalledOnce();
-      expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/host', { replaceUrl: true });
+      expect(navigateByUrlSpy).toHaveBeenCalledExactlyOnceWith('/session/ABC123/host');
+      expect(open).not.toHaveBeenCalled();
+      open.mockRestore();
       fixture.destroy();
     } finally {
       if (previousDescriptor) {
@@ -574,7 +779,36 @@ describe('SessionPresentComponent', () => {
       } else {
         delete (documentRef.documentElement as Partial<HTMLElement>).requestFullscreen;
       }
+      if (previousEnabled) {
+        Object.defineProperty(documentRef, 'fullscreenEnabled', previousEnabled);
+      } else {
+        Reflect.deleteProperty(documentRef, 'fullscreenEnabled');
+      }
+      if (previousElement) {
+        Object.defineProperty(documentRef, 'fullscreenElement', previousElement);
+      } else {
+        Reflect.deleteProperty(documentRef, 'fullscreenElement');
+      }
     }
+  });
+
+  it('behält bei abgebrochener Rückkehr die Presenter-Ansicht und erlaubt einen erneuten Versuch', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const navigate = vi
+      .spyOn(TestBed.inject(Router), 'navigateByUrl')
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    await component.returnToHost();
+    expect(component.returnToHostError()).toContain('Bitte versuche es erneut.');
+    expect(component.returnToHostPending()).toBe(false);
+    await component.returnToHost();
+    expect(component.returnToHostError()).toBe('');
+    expect(navigate).toHaveBeenCalledTimes(2);
+    fixture.destroy();
   });
 
   it('rendert die Word-Cloud in der Presenter-Ansicht mit Live-Hinweis', async () => {

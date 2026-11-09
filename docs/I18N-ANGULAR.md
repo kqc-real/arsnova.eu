@@ -139,6 +139,8 @@ Hier sind `VAR_PLURAL`, `plural`, `=1`, `other` und die Platzhalter-Struktur bei
 ng extract-i18n
 ```
 
+Das Extraktionsziel erfasst über `src/main.i18n.ts` auch die Quelltexte für die serverseitigen PDF-Berichte. Der normale App-Build benötigt diesen Einstieg nicht.
+
 - Erzeugt standardmäßig `messages.xlf` (XLIFF 1.2) im Projektroot. **Angular CLI (inkl. v22):** Default-Format ist `xlf`; erlaubt sind `xlf`, `xlf2`, `xliff`, `xliff2`, `json`, `arb`, `xmb`, `legacy-migrate`. Es gibt keine explizite „Empfehlung für v22“; der Default XLIFF unterstützt alle Metadaten.
 - **Optionen (Auszug):**
   - `--format=xlf` | `xlf2` | `json` | `arb` (z. B. `--format=json` für JSON).
