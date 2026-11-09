@@ -4635,7 +4635,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (this.hostAccessRevoked() || this.sessionUnavailable()) {
         this.unloadWarning.sync(this.code, null);
       } else if (status) {
-        this.unloadWarning.sync(this.code, status, this.participantsPayload()?.participantCount);
+        this.unloadWarning.sync(
+          this.code,
+          status,
+          this.participantsPayload()?.participantCount ?? this.session()?.participantCount,
+        );
       }
     });
     // Story 5.1: Sound-Effekte bei Status-Wechsel

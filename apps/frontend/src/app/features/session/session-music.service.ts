@@ -138,6 +138,7 @@ export class SessionMusicService implements OnDestroy {
   private countdown: {
     key: string;
     deadlineMs: number;
+    confirmed: boolean;
     gongPlayed: boolean;
     whistlePlayed: boolean;
     cuesPreloaded: boolean;
@@ -213,20 +214,21 @@ export class SessionMusicService implements OnDestroy {
     options: Parameters<typeof stableCountdownDeadlineMs>[0],
   ): number {
     if (normalizeHostSessionCode(code) !== this.code) return stableCountdownDeadlineMs(options);
-    const saved = this.countdown;
+    const saved = this.countdown?.key === options.nextKey ? this.countdown : null;
     const deadlineMs = stableCountdownDeadlineMs(
-      saved?.key === options.nextKey && options.currentKey !== options.nextKey
-        ? { ...options, currentDeadlineMs: saved.deadlineMs, currentKey: saved.key }
-        : options,
+      saved ? { ...options, currentDeadlineMs: saved.deadlineMs, currentKey: saved.key } : options,
     );
-    if (saved?.key === options.nextKey) {
+    const confirmed =
+      saved?.confirmed === true || Number.isFinite(Date.parse(options.activeAt ?? ''));
+    if (saved && saved.confirmed === confirmed) {
       saved.deadlineMs = deadlineMs;
     } else {
-      this.clearCountdown();
+      if (!saved) this.clearCountdown();
       const remaining = remainingCountdownSeconds(deadlineMs, options.nowMs);
       this.countdown = {
         key: options.nextKey,
         deadlineMs,
+        confirmed,
         // Bei einem Reload mitten in der Fingerphase den Gong nicht erneut spielen.
         gongPlayed: remaining <= 7 && remaining < options.timerSeconds - 1,
         whistlePlayed: remaining <= 0,
@@ -246,7 +248,10 @@ export class SessionMusicService implements OnDestroy {
       return;
     }
     this.fadeCountdownMusic(deadlineMs, remaining);
-    if (!soundEffects || this.themePreset.preset() !== 'spielerisch') return;
+    // Ohne bestätigte Serverfrist dient der Countdown nur als Anzeige.
+    if (!countdown.confirmed || !soundEffects || this.themePreset.preset() !== 'spielerisch') {
+      return;
+    }
 
     if (!countdown.cuesPreloaded) {
       countdown.cuesPreloaded = true;

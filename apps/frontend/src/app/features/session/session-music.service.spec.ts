@@ -73,7 +73,11 @@ describe('SessionMusicService', () => {
         currentKey: null,
         nextKey: '0:1:30',
       };
-      const deadline = music.resolveCountdownDeadline('ABC123', { ...options, nowMs: 1_000 });
+      const deadline = music.resolveCountdownDeadline('ABC123', {
+        ...options,
+        activeAt: new Date(1_000).toISOString(),
+        nowMs: 1_000,
+      });
       music.tickCountdown('ABC123', deadline, 8, true);
       music.tickCountdown('ABC123', deadline, 7, true);
 
@@ -91,6 +95,36 @@ describe('SessionMusicService', () => {
     },
   );
 
+  it('spielt erst nach Bestätigung der Frist für die aktuelle Frage und Runde', () => {
+    preset = 'spielerisch';
+    const music = TestBed.inject(SessionMusicService);
+    music.enter('ABC123');
+    const options = {
+      timerSeconds: 5,
+      currentDeadlineMs: null,
+      currentKey: null,
+      nextKey: '0:1:5',
+      nowMs: 1_000,
+    };
+    const estimated = music.resolveCountdownDeadline('ABC123', options);
+    music.tickCountdown('ABC123', estimated, 5, true);
+    expect(sound.play).not.toHaveBeenCalled();
+
+    const confirmed = music.resolveCountdownDeadline('ABC123', {
+      ...options,
+      activeAt: new Date(1_000).toISOString(),
+    });
+    music.tickCountdown('ABC123', confirmed, 5, true);
+    expect(sound.play).toHaveBeenCalledExactlyOnceWith('countdownEnd', {
+      gain: 0.32,
+      fadeOutSeconds: 0.55,
+    });
+
+    const otherRound = music.resolveCountdownDeadline('ABC123', { ...options, nextKey: '0:2:5' });
+    music.tickCountdown('ABC123', otherRound, 1, true);
+    expect(sound.play).toHaveBeenCalledOnce();
+  });
+
   it('spielt bei deaktivierten Soundeffekten keine Countdown-Signale', () => {
     preset = 'spielerisch';
     const music = TestBed.inject(SessionMusicService);
@@ -100,6 +134,7 @@ describe('SessionMusicService', () => {
       currentDeadlineMs: null,
       currentKey: null,
       nextKey: '0:1:5',
+      activeAt: new Date(1_000).toISOString(),
       nowMs: 1_000,
     });
     music.tickCountdown('ABC123', deadline, 5, false);

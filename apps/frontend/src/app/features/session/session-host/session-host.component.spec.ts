@@ -7092,6 +7092,42 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     },
   );
 
+  it('behält bei Rückkehr in die gefüllte Lobby die Warnung bis zur Teilnehmerantwort', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', participantCount: 3 });
+    let resolveParticipants!: (value: { participantCount: number; participants: [] }) => void;
+    getParticipantsQueryMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveParticipants = resolve;
+      }),
+    );
+
+    const fixture = setup();
+    const warning = TestBed.inject(SessionUnloadWarningService);
+    Object.defineProperty(warning, 'enabled', { value: true });
+    warning.sync('ABC123', 'LOBBY', 3);
+    fixture.detectChanges();
+
+    try {
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.session()?.participantCount).toBe(3);
+        expect(getParticipantsQueryMock).toHaveBeenCalled();
+      });
+      expect(fixture.componentInstance.participantsPayload()).toBeNull();
+      expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+      resolveParticipants({ participantCount: 0, participants: [] });
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.participantsPayload()?.participantCount).toBe(0);
+        expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(true);
+      });
+    } finally {
+      resolveParticipants({ participantCount: 0, participants: [] });
+      fixture.destroy();
+    }
+  });
+
   it('schaltet Musik beim Preset-Wechsel sofort um', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY', preset: 'PLAYFUL' });
 

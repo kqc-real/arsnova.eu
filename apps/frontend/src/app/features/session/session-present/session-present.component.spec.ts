@@ -1,6 +1,6 @@
 import { SessionMusicService } from '../session-music.service';
 import { SessionUnloadWarningService } from '../session-unload-warning.service';
-import { getSkewAdjustedNow } from '../session-server-clock';
+import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
 import { SoundService } from '../../../core/sound.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
@@ -153,6 +153,15 @@ vi.mock('../../../core/trpc.client', () => ({
 }));
 
 const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+const TIMED_PRESENTER_QUESTION = {
+  questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+  text: 'Was war hilfreich?',
+  type: 'SINGLE_CHOICE',
+  difficulty: 'MEDIUM',
+  order: 0,
+  currentRound: 1,
+  answers: [],
+};
 
 function wordCloudEntry(label: string, key: string, confidence: number | null = null) {
   return {
@@ -323,10 +332,14 @@ describe('SessionPresentComponent', () => {
       });
       music.tickCountdown('ABC123', deadline, remaining, true);
       expect(play).toHaveBeenCalledTimes(gongInHost ? 1 : 0);
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        ...TIMED_PRESENTER_QUESTION,
+        timer: 30,
+      });
 
       vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
       try {
-        component['syncCountdownFromStatus'](30, new Date(startedAt).toISOString());
+        await component['refreshHostQuestion']();
         expect(component.countdownSeconds()).toBe(remaining);
         await vi.advanceTimersByTimeAsync(remaining * 1_000);
         expect(component.countdownSeconds()).toBe(0);
@@ -337,6 +350,45 @@ describe('SessionPresentComponent', () => {
       }
     },
   );
+
+  it('bleibt bei HTTP-Fragenabruf ohne Status-Stream stumm', async () => {
+    resetServerClockSkew();
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'play').mockResolvedValue();
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      serverTime: new Date().toISOString(),
+      currentQuestion: 0,
+      currentRound: 1,
+      enableSoundEffects: true,
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component['musicReady']()).toBe(true));
+    component['stopPolling']();
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      ...TIMED_PRESENTER_QUESTION,
+      timer: 5,
+    });
+
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    try {
+      await component['refreshHostQuestion']();
+      expect(component.countdownSeconds()).toBeGreaterThan(0);
+      await vi.advanceTimersByTimeAsync(6_000);
+      expect(component.countdownSeconds()).toBe(0);
+      expect(play).not.toHaveBeenCalled();
+
+      const expiredStart = new Date(getSkewAdjustedNow() - 10_000).toISOString();
+      component['syncCountdownFromStatus'](5, expiredStart);
+      expect(play).not.toHaveBeenCalled();
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+      resetServerClockSkew();
+    }
+  });
 
   it('übernimmt die Blitzlichtmusik einer Q&A-Session und stoppt sie beim Pausieren', async () => {
     const music = TestBed.inject(SessionMusicService);
