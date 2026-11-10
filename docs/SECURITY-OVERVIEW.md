@@ -220,9 +220,10 @@ W2.1b verlagert den Chromium-PDF-Lauf in einen separaten Worker ohne Netzwerk
 und ohne App-Secrets. Die App übergibt ausschließlich vollständig vorbereiteten
 Reportinhalt über einen `0600`-Unix-Socket, dessen Volume sie read-only mountet.
 Der Worker läuft non-root, capability-frei, mit `no-new-privileges`,
-Docker-Default-Seccomp, read-only Rootfs und begrenztem `/tmp`; Compose begrenzt
-zusätzlich auf 128 PIDs, 1 GiB RAM und eine CPU. Produktion ist fail-closed auf
-den Worker festgelegt. Chromium verwendet dort weiterhin `--no-sandbox`, liegt
+Docker-Default-Seccomp, read-only Rootfs und begrenztem `/tmp`. Compose begrenzt
+den Worker auf 256 Tasks einschließlich Chromium-Threads, 1 GiB RAM und eine CPU.
+Produktion ist fail-closed auf den Worker festgelegt. Chromium verwendet dort
+weiterhin `--no-sandbox`, liegt
 aber in einer eigenen Container-, Ressourcen- und Egress-Grenze. CI prüft diese
 Laufzeitkontrollen und einen echten Maximalbericht. Eine worker-interne
 60-Sekunden-Gesamtdeadline beendet bei hängendem Chromium den Container
