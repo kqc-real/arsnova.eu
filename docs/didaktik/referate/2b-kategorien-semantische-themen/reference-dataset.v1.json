@@ -1,0 +1,1052 @@
+{
+  "meta": {
+    "name": "Referat 2B – Referenzzuordnung Kategorien und Themen",
+    "version": "1.0.0-draft",
+    "created": "2026-10-21",
+    "status": "Entwurf – synthetisch, mit KI-Assistenz erstellt; vor jedem Modelllauf einfrieren (SHA-256 dokumentieren)",
+    "domain": "Statistik-Vorlesung, Q&A-Fragen im Hörsaal; vollständig synthetisch, keine personenbezogenen Daten",
+    "purpose": "Unabhängige Referenz für (a) 8.9b-Klassifikation content/organization/technical und (b) 1.14c-Themenmitgliedschaft (Encoder + Clustering) gegenüber Keyword- bzw. lexikalischer Baseline",
+    "notInSeed": "Kein Text darf aus apps/backend/src/lib/qaNlpSeed.ts (train/prototype) stammen; Überschneidungsprüfung siehe check-leakage.mjs",
+    "orthography": "Deutsch mit echten Umlauten (realistische Eingabe); das Seed ist transliteriert; der Unterschied ist eine Gültigkeitsgrenze",
+    "categoryRules": {
+      "content": "Bezieht sich auf den Fachinhalt: Erklärung, Beispiel, Herleitung, Literatur zum Stoff, Klausurrelevanz eines konkreten Stoffgebiets.",
+      "organization": "Bezieht sich auf Ablauf und Rahmen: Termine, Fristen, Räume, Anmeldung, Anwesenheit, erlaubte Hilfsmittel, Aufzeichnungs-/Materialbereitstellung als Regelung.",
+      "technical": "Meldet eine gerade nicht funktionierende Technik: WLAN, Ton, Beamer, App/Abstimmung, defekte Datei, Abspielfehler.",
+      "tieBreak": [
+        "Klausur + Stoffgebiet (‚Kommt X dran?‘) → content; Klausur + Rahmen (Raum, Hilfsmittel, Anmeldung) → organization.",
+        "‚Folie‘ + inhaltliche Frage → content; ‚Folie‘ + Darstellungs-/Dateifehler → technical.",
+        "Aufzeichnung als Regelung (‚wird aufgezeichnet?‘) → organization; Aufzeichnung kaputt (‚spielt nicht ab‘) → technical.",
+        "Ohne erkennbaren Bezug (Kurzfrage, Pronomen ohne Antezedens) → Tag ambiguous, expectUncertain=true, bestGuess nur informativ.",
+        "Kein Anliegen (Dank, Gruß, Lachen) → category=null, expectUncertain=true."
+      ]
+    },
+    "familyRules": {
+      "definition": "Eine Themenfamilie umfasst Fragen, die eine Lehrperson mit derselben einen Antwort oder Handlung erledigen würde.",
+      "languageIndependent": "Familien sind sprachunabhängig. Auswertung zweifach: (1) gemischtsprachiges Gesamtset, (2) je Sprache nur die Items dieser Sprache.",
+      "frame": "Gleicher Satzrahmen (‚Kurze Nachfrage: …‘) begründet keine gemeinsame Familie.",
+      "nearMiss": "Items mit lexikalischer Überschneidung, aber anderem Anliegen, sind eigene Singleton-Familien (S-*).",
+      "ambiguousAndNoise": "Mehrdeutige und Nicht-Anliegen-Items sind Singletons; korrekt ist, sie keinem Mehrfach-Thema zuzuordnen."
+    },
+    "tags": {
+      "canonical": "vollständige, eindeutige Formulierung",
+      "short": "≤ 5 Tokens",
+      "typo": "Tippfehler oder fehlende Großschreibung/Interpunktion",
+      "slang": "umgangssprachlich",
+      "code-switch": "Sprachmischung im selben Satz",
+      "ambiguous": "Kategorie aus dem Text allein nicht entscheidbar",
+      "frame": "gemeinsamer Satzrahmen mit Items anderer Familien",
+      "near-miss": "lexikalische Nähe zu einer anderen Familie",
+      "noise": "kein Moderationsanliegen"
+    },
+    "fixture456Policy": "Die Paare A/B, C/D, E/F aus #456 stehen unter contextOnly und gehen NICHT in Klassifikations- oder Clustermetriken ein."
+  },
+  "families": [
+    {
+      "id": "C-REG",
+      "category": "content",
+      "label": "Mehr Übungsbeispiele zur linearen Regression"
+    },
+    {
+      "id": "C-HYP",
+      "category": "content",
+      "label": "Klausurrelevanz der Hypothesentests (Kapitel 5)"
+    },
+    { "id": "C-PVAL", "category": "content", "label": "Bedeutung des p-Werts erneut erklären" },
+    {
+      "id": "C-OVF",
+      "category": "content",
+      "label": "Overfitting erkennen / Über- vs. Unteranpassung"
+    },
+    { "id": "C-DERIV", "category": "content", "label": "Herleitungsschritt auf Folie 17 unklar" },
+    {
+      "id": "C-BAYES",
+      "category": "content",
+      "label": "Anschauliches Beispiel zum Satz von Bayes"
+    },
+    { "id": "O-DEAD", "category": "organization", "label": "Abgabefrist Übungsblatt 2" },
+    { "id": "O-ATT", "category": "organization", "label": "Anwesenheitspflicht in der Vorlesung" },
+    { "id": "O-ROOM", "category": "organization", "label": "Ort der Nachklausur" },
+    { "id": "O-AIDS", "category": "organization", "label": "Erlaubte Hilfsmittel in der Klausur" },
+    {
+      "id": "O-CANC",
+      "category": "organization",
+      "label": "Vorlesung nächsten Donnerstag / Ausfall"
+    },
+    {
+      "id": "O-REC",
+      "category": "organization",
+      "label": "Aufzeichnung der Vorlesung und Bereitstellung"
+    },
+    { "id": "T-WIFI", "category": "technical", "label": "WLAN im Hörsaal fällt aus" },
+    { "id": "T-AUDIO", "category": "technical", "label": "Mikrofon zu leise / kein Ton" },
+    { "id": "T-BEAM", "category": "technical", "label": "Projektion der Folien fehlerhaft" },
+    { "id": "T-VOTE", "category": "technical", "label": "Abstimmung lädt nicht / kein Zutritt" },
+    { "id": "T-PDF", "category": "technical", "label": "Folien-PDF defekt / Download scheitert" }
+  ],
+  "items": [
+    {
+      "id": "R001",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Könnten wir noch ein paar Übungsbeispiele zur linearen Regression durchrechnen?"
+    },
+    {
+      "id": "R002",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "de",
+      "tags": [],
+      "text": "Bitte mehr Aufgaben zur Regression, das ging mir zu schnell."
+    },
+    {
+      "id": "R003",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "Could you walk us through another linear regression example?"
+    },
+    {
+      "id": "R004",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "fr",
+      "tags": ["canonical"],
+      "text": "Pourriez-vous faire un autre exemple de régression linéaire ?"
+    },
+    {
+      "id": "R005",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Possiamo fare altri esercizi sulla regressione lineare?"
+    },
+    {
+      "id": "R006",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "de",
+      "tags": ["short"],
+      "text": "Noch ein Regressionsbeispiel?"
+    },
+    {
+      "id": "R007",
+      "family": "C-REG",
+      "category": "content",
+      "locale": "de",
+      "tags": ["frame"],
+      "text": "Kurze Nachfrage: gibt es noch ein Beispiel zur Regression?"
+    },
+
+    {
+      "id": "R008",
+      "family": "C-HYP",
+      "category": "content",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Sind die Hypothesentests aus Kapitel 5 klausurrelevant?"
+    },
+    {
+      "id": "R009",
+      "family": "C-HYP",
+      "category": "content",
+      "locale": "de",
+      "tags": [],
+      "text": "Muss ich den t-Test für die Prüfung können?",
+      "note": "Paraphrase ohne gemeinsames Schlüsselwort: t-Test ist Teil der Hypothesentests."
+    },
+    {
+      "id": "R010",
+      "family": "C-HYP",
+      "category": "content",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "Will hypothesis testing be on the final exam?"
+    },
+    {
+      "id": "R011",
+      "family": "C-HYP",
+      "category": "content",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "¿Entran los contrastes de hipótesis en el examen?"
+    },
+    {
+      "id": "R012",
+      "family": "C-HYP",
+      "category": "content",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "I test d'ipotesi sono materia d'esame?"
+    },
+    {
+      "id": "R013",
+      "family": "C-HYP",
+      "category": "content",
+      "locale": "de",
+      "tags": ["typo", "short"],
+      "text": "kapitel 5 klausur relevant??"
+    },
+
+    {
+      "id": "R014",
+      "family": "C-PVAL",
+      "category": "content",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Können Sie nochmal erklären, was der p-Wert eigentlich aussagt?"
+    },
+    {
+      "id": "R015",
+      "family": "C-PVAL",
+      "category": "content",
+      "locale": "de",
+      "tags": ["slang"],
+      "text": "Checkt jemand den p-Wert? Ich raff das nicht."
+    },
+    {
+      "id": "R016",
+      "family": "C-PVAL",
+      "category": "content",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "What does a p-value actually tell us?"
+    },
+    {
+      "id": "R017",
+      "family": "C-PVAL",
+      "category": "content",
+      "locale": "fr",
+      "tags": [],
+      "text": "Je ne comprends pas bien l'interprétation de la valeur p."
+    },
+    {
+      "id": "R018",
+      "family": "C-PVAL",
+      "category": "content",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "¿Puede explicar otra vez qué significa el valor p?"
+    },
+    {
+      "id": "R019",
+      "family": "C-PVAL",
+      "category": "content",
+      "locale": "mixed",
+      "tags": ["code-switch"],
+      "text": "Was genau bedeutet der p-value nochmal?"
+    },
+
+    {
+      "id": "R020",
+      "family": "C-OVF",
+      "category": "content",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Wie erkenne ich Overfitting in der Praxis?"
+    },
+    {
+      "id": "R021",
+      "family": "C-OVF",
+      "category": "content",
+      "locale": "de",
+      "tags": [],
+      "text": "Woran unterscheide ich Über- von Unteranpassung?"
+    },
+    {
+      "id": "R022",
+      "family": "C-OVF",
+      "category": "content",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "How can we tell if a model is overfitting?"
+    },
+    {
+      "id": "R023",
+      "family": "C-OVF",
+      "category": "content",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Come si riconosce l'overfitting di un modello?"
+    },
+    {
+      "id": "R024",
+      "family": "C-OVF",
+      "category": "content",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "¿Cómo se detecta el sobreajuste de un modelo?"
+    },
+
+    {
+      "id": "R025",
+      "family": "C-DERIV",
+      "category": "content",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Den Schritt von Zeile 2 auf Zeile 3 in der Herleitung auf Folie 17 verstehe ich nicht."
+    },
+    {
+      "id": "R026",
+      "family": "C-DERIV",
+      "category": "content",
+      "locale": "de",
+      "tags": [],
+      "text": "Woher kommt auf Folie 17 plötzlich das Quadrat?"
+    },
+    {
+      "id": "R027",
+      "family": "C-DERIV",
+      "category": "content",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "On slide 17, how do you get from the second line to the third?"
+    },
+    {
+      "id": "R028",
+      "family": "C-DERIV",
+      "category": "content",
+      "locale": "fr",
+      "tags": [],
+      "text": "Sur la diapo 17, d'où vient le carré dans la démonstration ?"
+    },
+    {
+      "id": "R029",
+      "family": "C-DERIV",
+      "category": "content",
+      "locale": "it",
+      "tags": [],
+      "text": "Nella slide 17 non capisco il passaggio dalla seconda alla terza riga."
+    },
+
+    {
+      "id": "R030",
+      "family": "C-BAYES",
+      "category": "content",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Gibt es ein anschauliches Beispiel für den Satz von Bayes?"
+    },
+    {
+      "id": "R031",
+      "family": "C-BAYES",
+      "category": "content",
+      "locale": "de",
+      "tags": [],
+      "text": "Wie rechne ich mit Bayes bedingte Wahrscheinlichkeiten aus, an einem Beispiel?"
+    },
+    {
+      "id": "R032",
+      "family": "C-BAYES",
+      "category": "content",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "Can you give an intuitive example of Bayes' theorem?"
+    },
+    {
+      "id": "R033",
+      "family": "C-BAYES",
+      "category": "content",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Può fare un esempio concreto del teorema di Bayes?"
+    },
+    {
+      "id": "R034",
+      "family": "C-BAYES",
+      "category": "content",
+      "locale": "es",
+      "tags": ["short"],
+      "text": "Un ejemplo de Bayes, por favor."
+    },
+
+    {
+      "id": "R035",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Bis wann müssen wir das zweite Übungsblatt hochladen?"
+    },
+    {
+      "id": "R036",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "de",
+      "tags": [],
+      "text": "Gilt für Blatt 2 die Abgabe Freitag 23:59 oder Sonntag?"
+    },
+    {
+      "id": "R037",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "What's the due date for problem set two?"
+    },
+    {
+      "id": "R038",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "fr",
+      "tags": ["canonical"],
+      "text": "Quelle est la date de rendu de la deuxième feuille d'exercices ?"
+    },
+    {
+      "id": "R039",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Entro quando va consegnato il secondo foglio di esercizi?"
+    },
+    {
+      "id": "R040",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["typo", "short"],
+      "text": "blatt2 abgeben bis freitag?"
+    },
+    {
+      "id": "R041",
+      "family": "O-DEAD",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["frame"],
+      "text": "Kurze Nachfrage: bis wann ist Blatt 2 fällig?"
+    },
+
+    {
+      "id": "R042",
+      "family": "O-ATT",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Wird in der Vorlesung die Anwesenheit kontrolliert?"
+    },
+    {
+      "id": "R043",
+      "family": "O-ATT",
+      "category": "organization",
+      "locale": "de",
+      "tags": [],
+      "text": "Müssen wir zu jeder Vorlesung kommen, oder ist das freiwillig?"
+    },
+    {
+      "id": "R044",
+      "family": "O-ATT",
+      "category": "organization",
+      "locale": "en",
+      "tags": [],
+      "text": "Do we lose points if we skip lectures?"
+    },
+    {
+      "id": "R045",
+      "family": "O-ATT",
+      "category": "organization",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "¿Es obligatorio venir a todas las clases?"
+    },
+    {
+      "id": "R046",
+      "family": "O-ATT",
+      "category": "organization",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "La frequenza alle lezioni è obbligatoria?"
+    },
+    {
+      "id": "R047",
+      "family": "O-ATT",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["slang", "short"],
+      "text": "Anwesenheitspflicht oder entspannt?"
+    },
+
+    {
+      "id": "R048",
+      "family": "O-ROOM",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Wo findet die Nachklausur statt, wieder im Audimax?"
+    },
+    {
+      "id": "R049",
+      "family": "O-ROOM",
+      "category": "organization",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "Where is the resit exam being held?"
+    },
+    {
+      "id": "R050",
+      "family": "O-ROOM",
+      "category": "organization",
+      "locale": "fr",
+      "tags": ["canonical"],
+      "text": "Dans quelle salle a lieu le rattrapage ?"
+    },
+    {
+      "id": "R051",
+      "family": "O-ROOM",
+      "category": "organization",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "In che aula si svolge l'appello di recupero?"
+    },
+    {
+      "id": "R052",
+      "family": "O-ROOM",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["typo", "short"],
+      "text": "nachklasur raum??"
+    },
+
+    {
+      "id": "R053",
+      "family": "O-AIDS",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical", "near-miss"],
+      "text": "Dürfen wir in der Klausur eine Formelsammlung benutzen?",
+      "note": "Klausur-Schlüsselwort wie C-HYP, aber Rahmenregel → organization."
+    },
+    {
+      "id": "R054",
+      "family": "O-AIDS",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Ist ein Taschenrechner in der Prüfung erlaubt?"
+    },
+    {
+      "id": "R055",
+      "family": "O-AIDS",
+      "category": "organization",
+      "locale": "en",
+      "tags": [],
+      "text": "Can we bring a cheat sheet to the exam?"
+    },
+    {
+      "id": "R056",
+      "family": "O-AIDS",
+      "category": "organization",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "¿Se puede usar calculadora en el examen?"
+    },
+    {
+      "id": "R057",
+      "family": "O-AIDS",
+      "category": "organization",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "All'esame si può portare un formulario?"
+    },
+
+    {
+      "id": "R058",
+      "family": "O-CANC",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Fällt die Vorlesung am Donnerstag wegen des Feiertags aus?"
+    },
+    {
+      "id": "R059",
+      "family": "O-CANC",
+      "category": "organization",
+      "locale": "de",
+      "tags": [],
+      "text": "Findet nächsten Donnerstag überhaupt Vorlesung statt?"
+    },
+    {
+      "id": "R060",
+      "family": "O-CANC",
+      "category": "organization",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "Is there a lecture next Thursday or is it cancelled?"
+    },
+    {
+      "id": "R061",
+      "family": "O-CANC",
+      "category": "organization",
+      "locale": "fr",
+      "tags": ["short"],
+      "text": "Le cours de jeudi prochain est maintenu ?"
+    },
+    {
+      "id": "R062",
+      "family": "O-CANC",
+      "category": "organization",
+      "locale": "es",
+      "tags": ["short"],
+      "text": "¿Hay clase el próximo jueves?"
+    },
+
+    {
+      "id": "R063",
+      "family": "O-REC",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Wird die heutige Vorlesung aufgezeichnet?"
+    },
+    {
+      "id": "R064",
+      "family": "O-REC",
+      "category": "organization",
+      "locale": "de",
+      "tags": [],
+      "text": "Wann kommt die Aufzeichnung von heute ins Moodle?"
+    },
+    {
+      "id": "R065",
+      "family": "O-REC",
+      "category": "organization",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "Will the recording be uploaded afterwards?"
+    },
+    {
+      "id": "R066",
+      "family": "O-REC",
+      "category": "organization",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "La registrazione della lezione sarà disponibile?"
+    },
+    {
+      "id": "R067",
+      "family": "O-REC",
+      "category": "organization",
+      "locale": "fr",
+      "tags": ["short"],
+      "text": "Est-ce que le cours est enregistré ?"
+    },
+
+    {
+      "id": "R068",
+      "family": "T-WIFI",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Das WLAN hier im Hörsaal bricht ständig ab."
+    },
+    {
+      "id": "R069",
+      "family": "T-WIFI",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["slang"],
+      "text": "eduroam ist schon wieder komplett down"
+    },
+    {
+      "id": "R070",
+      "family": "T-WIFI",
+      "category": "technical",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "The eduroam connection keeps dropping in here."
+    },
+    {
+      "id": "R071",
+      "family": "T-WIFI",
+      "category": "technical",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "El wifi del aula se cae todo el rato."
+    },
+    {
+      "id": "R072",
+      "family": "T-WIFI",
+      "category": "technical",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Qui la rete eduroam continua a cadere."
+    },
+    {
+      "id": "R073",
+      "family": "T-WIFI",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["frame"],
+      "text": "Kurze Nachfrage: geht das WLAN bei euch auch nicht?"
+    },
+
+    {
+      "id": "R074",
+      "family": "T-AUDIO",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Hinten versteht man Sie kaum, das Mikro ist zu leise."
+    },
+    {
+      "id": "R075",
+      "family": "T-AUDIO",
+      "category": "technical",
+      "locale": "de",
+      "tags": [],
+      "text": "Kann jemand das Mikrofon lauter drehen?"
+    },
+    {
+      "id": "R076",
+      "family": "T-AUDIO",
+      "category": "technical",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "We can't hear you at the back, the mic seems off."
+    },
+    {
+      "id": "R077",
+      "family": "T-AUDIO",
+      "category": "technical",
+      "locale": "fr",
+      "tags": ["canonical"],
+      "text": "On n'entend rien au fond, le micro est trop faible."
+    },
+    {
+      "id": "R078",
+      "family": "T-AUDIO",
+      "category": "technical",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Dal fondo non si sente niente, potete alzare il microfono?"
+    },
+    {
+      "id": "R079",
+      "family": "T-AUDIO",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["short", "slang"],
+      "text": "Ton weg"
+    },
+
+    {
+      "id": "R080",
+      "family": "T-BEAM",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Der Beamer schneidet die rechte Hälfte der Folie ab."
+    },
+    {
+      "id": "R081",
+      "family": "T-BEAM",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["near-miss"],
+      "text": "Die Projektion ist so blass, dass man die Formeln nicht lesen kann.",
+      "note": "‚Formeln‘ deutet auf content, Anliegen ist aber Darstellung."
+    },
+    {
+      "id": "R082",
+      "family": "T-BEAM",
+      "category": "technical",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "The projector cuts off the bottom of the slides."
+    },
+    {
+      "id": "R083",
+      "family": "T-BEAM",
+      "category": "technical",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "El proyector no muestra bien las diapositivas."
+    },
+    {
+      "id": "R084",
+      "family": "T-BEAM",
+      "category": "technical",
+      "locale": "mixed",
+      "tags": ["code-switch", "short"],
+      "text": "Beamer flackert, slides kaum lesbar"
+    },
+
+    {
+      "id": "R085",
+      "family": "T-VOTE",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Die Abstimmung lädt bei mir seit zwei Minuten nicht."
+    },
+    {
+      "id": "R086",
+      "family": "T-VOTE",
+      "category": "technical",
+      "locale": "de",
+      "tags": [],
+      "text": "Ich komme mit dem Sitzungscode nicht in die Umfrage rein."
+    },
+    {
+      "id": "R087",
+      "family": "T-VOTE",
+      "category": "technical",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "The poll won't load on my phone."
+    },
+    {
+      "id": "R088",
+      "family": "T-VOTE",
+      "category": "technical",
+      "locale": "fr",
+      "tags": ["canonical"],
+      "text": "Le vote ne s'affiche pas sur mon téléphone."
+    },
+    {
+      "id": "R089",
+      "family": "T-VOTE",
+      "category": "technical",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Il sondaggio non si carica sul telefono."
+    },
+    {
+      "id": "R090",
+      "family": "T-VOTE",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["typo", "short"],
+      "text": "abstimung hängt"
+    },
+
+    {
+      "id": "R091",
+      "family": "T-PDF",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["canonical"],
+      "text": "Das Folien-PDF im Moodle ist beschädigt."
+    },
+    {
+      "id": "R092",
+      "family": "T-PDF",
+      "category": "technical",
+      "locale": "de",
+      "tags": [],
+      "text": "Beim Download der Vorlesungsfolien kommt nur eine Fehlermeldung."
+    },
+    {
+      "id": "R093",
+      "family": "T-PDF",
+      "category": "technical",
+      "locale": "en",
+      "tags": ["canonical"],
+      "text": "The lecture slides file on Moodle seems corrupted."
+    },
+    {
+      "id": "R094",
+      "family": "T-PDF",
+      "category": "technical",
+      "locale": "es",
+      "tags": ["canonical"],
+      "text": "El PDF de las diapositivas da error al abrirlo."
+    },
+    {
+      "id": "R095",
+      "family": "T-PDF",
+      "category": "technical",
+      "locale": "it",
+      "tags": ["canonical"],
+      "text": "Il PDF delle slide su Moodle è danneggiato."
+    },
+
+    {
+      "id": "R096",
+      "family": "S-REG-EXAM",
+      "category": "content",
+      "locale": "de",
+      "tags": ["near-miss"],
+      "text": "Kommen Regressionsaufgaben auch in der Klausur dran?",
+      "note": "Lexikalisch nah an C-REG und C-HYP, Anliegen: Klausurrelevanz Regression – eigenes Thema."
+    },
+    {
+      "id": "R097",
+      "family": "S-FORMULA-VERSION",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["near-miss"],
+      "text": "Ist die Formelsammlung im Moodle die aktuelle Version?",
+      "note": "Nah an O-AIDS und T-PDF; Frage nach Materialstand → organization."
+    },
+    {
+      "id": "R098",
+      "family": "S-SLIDE-TYPO",
+      "category": "content",
+      "locale": "de",
+      "tags": ["near-miss"],
+      "text": "Auf Folie 12 ist in der Formel ein Fehler, oder?",
+      "note": "‚Folie‘ + ‚Fehler‘ klingt technisch, gemeint ist ein inhaltlicher Fehler."
+    },
+    {
+      "id": "R099",
+      "family": "S-EXAM-WIFI",
+      "category": "organization",
+      "locale": "en",
+      "tags": ["near-miss"],
+      "text": "Will the exam room have Wi-Fi for the online part?",
+      "note": "Nah an T-WIFI und O-ROOM; Rahmenfrage, keine Störungsmeldung."
+    },
+    {
+      "id": "R100",
+      "family": "S-REC-PLAYBACK",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["near-miss"],
+      "text": "Die Aufzeichnung von letzter Woche bricht bei mir nach fünf Minuten ab.",
+      "note": "Nah an O-REC; Abspielfehler → technical."
+    },
+    {
+      "id": "R101",
+      "family": "S-CH5-ONLINE",
+      "category": "organization",
+      "locale": "it",
+      "tags": ["near-miss"],
+      "text": "Il materiale del capitolo 5 è già online?",
+      "note": "Nah an C-HYP (Kapitel 5); Bereitstellung → organization."
+    },
+    {
+      "id": "R102",
+      "family": "S-CH5-READING",
+      "category": "content",
+      "locale": "de",
+      "tags": ["near-miss"],
+      "text": "Gibt es zu Kapitel 5 weiterführende Literatur?"
+    },
+
+    {
+      "id": "R103",
+      "family": "S-AMB-1",
+      "category": "content",
+      "locale": "de",
+      "tags": ["ambiguous", "short"],
+      "text": "Gibt es dafür einen anderen Weg?",
+      "expectUncertain": true,
+      "acceptableCategories": ["content", "organization", "technical"]
+    },
+    {
+      "id": "R104",
+      "family": "S-AMB-2",
+      "category": "organization",
+      "locale": "de",
+      "tags": ["ambiguous", "short"],
+      "text": "Kann man das nochmal hochladen?",
+      "expectUncertain": true,
+      "acceptableCategories": ["organization", "technical"]
+    },
+    {
+      "id": "R105",
+      "family": "S-AMB-3",
+      "category": "content",
+      "locale": "en",
+      "tags": ["ambiguous", "short"],
+      "text": "Is this going to be on it?",
+      "expectUncertain": true,
+      "acceptableCategories": ["content"]
+    },
+    {
+      "id": "R106",
+      "family": "S-AMB-4",
+      "category": "technical",
+      "locale": "de",
+      "tags": ["ambiguous", "short"],
+      "text": "Klappt irgendwie nicht.",
+      "expectUncertain": true,
+      "acceptableCategories": ["technical", "content"]
+    },
+    {
+      "id": "R107",
+      "family": "S-AMB-5",
+      "category": "organization",
+      "locale": "fr",
+      "tags": ["ambiguous", "short"],
+      "text": "On peut décaler ?",
+      "expectUncertain": true,
+      "acceptableCategories": ["organization"]
+    },
+    {
+      "id": "R108",
+      "family": "S-AMB-6",
+      "category": "content",
+      "locale": "de",
+      "tags": ["ambiguous", "short"],
+      "text": "Folie 17?",
+      "expectUncertain": true,
+      "acceptableCategories": ["content", "technical"]
+    },
+
+    {
+      "id": "R109",
+      "family": "S-NOISE-1",
+      "category": null,
+      "locale": "de",
+      "tags": ["noise", "short"],
+      "text": "Danke, super erklärt!",
+      "expectUncertain": true
+    },
+    {
+      "id": "R110",
+      "family": "S-NOISE-2",
+      "category": null,
+      "locale": "en",
+      "tags": ["noise", "short", "slang"],
+      "text": "lol",
+      "expectUncertain": true
+    },
+    {
+      "id": "R111",
+      "family": "S-NOISE-3",
+      "category": null,
+      "locale": "de",
+      "tags": ["noise", "short"],
+      "text": "Hallo zusammen",
+      "expectUncertain": true
+    },
+    {
+      "id": "R112",
+      "family": "S-NOISE-4",
+      "category": null,
+      "locale": "es",
+      "tags": ["noise", "short"],
+      "text": "¡Gracias!",
+      "expectUncertain": true
+    }
+  ],
+  "contextOnly": {
+    "source": "docs/features/moderation-prompt-context.md §8 (#456, Abschnitt 12)",
+    "use": "Nur Kontexttests (Übernahme vorhandener Kategorien/Themen in den #456-Kontext); nicht in Metriken.",
+    "items": [
+      {
+        "id": "A",
+        "family": "FX-REG",
+        "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+      },
+      {
+        "id": "B",
+        "family": "FX-REG",
+        "text": "Gibt es ein weiteres Beispiel zur linearen Regression?"
+      },
+      { "id": "C", "family": "FX-EXAM", "text": "Ist Kapitel 4 klausurrelevant?" },
+      {
+        "id": "D",
+        "family": "FX-EXAM",
+        "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+      },
+      { "id": "E", "family": "FX-ATT", "text": "Soll die Anwesenheit verpflichtend sein?" },
+      { "id": "F", "family": "FX-ATT", "text": "Sollten wir eine Anwesenheitspflicht einführen?" }
+    ]
+  }
+}

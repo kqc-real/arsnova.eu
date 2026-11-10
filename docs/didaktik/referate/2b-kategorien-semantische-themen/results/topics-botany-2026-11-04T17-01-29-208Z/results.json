@@ -1,0 +1,2107 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-04T17:01:29.208Z",
+    "commit": "84a5614ead769da526e233e60eea7ca44560363f",
+    "describe": "v1.3.0-326-g84a5614e-dirty",
+    "wordCloudSourcesDirty": false,
+    "node": "v24.12.0",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "reference": {
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87",
+      "items": 37,
+      "itemsInFile": 723,
+      "locales": ["de", "en", "fr", "es"],
+      "domain": "botany"
+    },
+    "encoder": {
+      "modelId": "intfloat/multilingual-e5-small",
+      "modelVersion": "intfloat/multilingual-e5-small@sha256:f80102d3f2a1229f",
+      "dimensions": 384,
+      "image": "arsnova-wordcloud-encoder:e5-small sha256:245b8f96e7255b8e0ae01bef6b1daeaa5c17a7d44579df4df92097f85502eecd",
+      "imageSizeMB": 1496.828619,
+      "limits": "cpus=1000000000 mem=2147483648",
+      "transport": "loopback HTTP http://127.0.0.1:8790/embed (Labor; Produktion: Unix-Socket, network_mode none)"
+    },
+    "releaseConstants": {
+      "WORD_CLOUD_SEMANTIC_COSINE_THRESHOLD": 0.87,
+      "WORD_CLOUD_SEMANTIC_MAX_TOPICS": 12,
+      "WORD_CLOUD_SEMANTIC_LOCALES": ["de", "en"],
+      "reliableGate": "mind. 1 Cluster ≥ 2 Mitglieder und Konfidenz ≥ 0,65",
+      "readyStatus": "mind. 1 Cluster mit Konfidenz ≥ 0,85"
+    },
+    "settings": {
+      "RUNS": 10,
+      "SWEEP": [0.8, 0.82, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.92]
+    }
+  },
+  "results": {
+    "mixed": {
+      "label": "Gesamtset (de/en/fr/es), Session-Locale de",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 37,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 20,
+        "predictedMultiTopics": 13,
+        "missedSingletonRate": 0.1891891891891892,
+        "ari": 0.3174958077138066,
+        "nmi": 0.7581147990838795,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.3480051480051481,
+          "f1": 0.5163261409203743
+        },
+        "pairRecall": 0.21428571428571427,
+        "monolingualPairRecall": 0.5294117647058824,
+        "crossLingualPairRecall": 0.14814814814814814,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 12,
+          "multiMemberTopicsShown": 12,
+          "itemsInShownMultiTopics": 0.7567567567567568
+        },
+        "clusters": [
+          {
+            "label": "La caméra du microscope n'affiche rien sur l'écran.",
+            "confidence": 0.942,
+            "members": ["Q537", "Q535", "Q536"],
+            "families": ["B-MICRO"]
+          },
+          {
+            "label": "Wann ist die Exkursion in den Botanischen Garten und wo treffen wir uns?",
+            "confidence": 0.932,
+            "members": ["Q522", "Q523"],
+            "families": ["B-TRIP"]
+          },
+          {
+            "label": "Können Sie den Unterschied zwischen Lichtreaktion und Calvin-Zyklus nochmal erklären?",
+            "confidence": 0.937,
+            "members": ["Q502", "Q501", "Q503"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "Pouvez-vous réexpliquer le lien entre la phase lumineuse et le cycle de Calvin ?",
+            "confidence": 0.914,
+            "members": ["Q506", "Q507"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "Das Bild der Mikroskopkamera kommt auf der Leinwand nicht an.",
+            "confidence": 0.906,
+            "members": ["Q533", "Q534"],
+            "families": ["B-MICRO"]
+          },
+          {
+            "label": "À quelle heure est le rendez-vous pour la sortie au jardin botanique ?",
+            "confidence": 0.896,
+            "members": ["Q525", "Q526", "Q527"],
+            "families": ["B-TRIP"]
+          },
+          {
+            "label": "Ist die parallele Blattaderung wirklich das sicherste Merkmal für Einkeimblättrige?",
+            "confidence": 0.891,
+            "members": ["Q509", "Q510"],
+            "families": ["B-MONO"]
+          },
+          {
+            "label": "Bis wann müssen wir unser Herbarium abgeben?",
+            "confidence": 0.891,
+            "members": ["Q528", "Q529"],
+            "families": ["B-HERB"]
+          },
+          {
+            "label": "¿Cuándo hay que entregar el herbario?",
+            "confidence": 0.888,
+            "members": ["Q530", "Q532"],
+            "families": ["B-HERB"]
+          },
+          {
+            "label": "¿Cómo se distingue una monocotiledónea de una dicotiledónea?",
+            "confidence": 0.886,
+            "members": ["Q513", "Q514"],
+            "families": ["B-MONO"]
+          },
+          {
+            "label": "Why does the Calvin cycle need ATP and NADPH?",
+            "confidence": 0.885,
+            "members": ["Q504", "Q505"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "How does water get from the roots up to the leaves?",
+            "confidence": 0.886,
+            "members": ["Q521", "Q518", "Q520"],
+            "families": ["B-WATER"]
+          },
+          {
+            "label": "Are parallel leaf veins always a sign of a monocot?",
+            "confidence": 0.875,
+            "members": ["Q511", "Q512"],
+            "families": ["B-MONO"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 37,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 23,
+        "predictedMultiTopics": 9,
+        "missedSingletonRate": 0.3783783783783784,
+        "ari": 0.277695481959581,
+        "nmi": 0.6993910144679544,
+        "bcubed": {
+          "precision": 0.918918918918919,
+          "recall": 0.3250965250965251,
+          "f1": 0.4802791618434077
+        },
+        "pairRecall": 0.19387755102040816,
+        "monolingualPairRecall": 0.4117647058823529,
+        "crossLingualPairRecall": 0.14814814814814814,
+        "falseMergePairs": 3,
+        "falseMerges": [
+          ["Q513", "Q520"],
+          ["Q514", "Q521"],
+          ["Q527", "Q532"]
+        ],
+        "clusters": [
+          {
+            "label": "Calvin",
+            "members": ["Q507", "Q504", "Q503", "Q506", "Q505"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "Exkursion",
+            "members": ["Q524", "Q523", "Q522"],
+            "families": ["B-TRIP"]
+          },
+          {
+            "label": "Herbarium",
+            "members": ["Q528", "Q530", "Q529"],
+            "families": ["B-HERB"]
+          },
+          {
+            "label": "Comment",
+            "members": ["Q513", "Q520"],
+            "families": ["B-MONO", "B-WATER"]
+          },
+          {
+            "label": "Cómo",
+            "members": ["Q514", "Q521"],
+            "families": ["B-MONO", "B-WATER"]
+          },
+          {
+            "label": "Cuándo",
+            "members": ["Q527", "Q532"],
+            "families": ["B-TRIP", "B-HERB"]
+          },
+          {
+            "label": "does",
+            "members": ["Q518", "Q519"],
+            "families": ["B-WATER"]
+          },
+          {
+            "label": "Lichtreaktion",
+            "members": ["Q501", "Q502"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "microscope",
+            "members": ["Q536", "Q535"],
+            "families": ["B-MICRO"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.7706276482498069,
+          "bcubedF1": 0.8463251670378619,
+          "bcubedP": 1,
+          "bcubedR": 0.7335907335907335,
+          "predictedMultiTopics": 9,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.6666666666666666
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.5714686820000469,
+          "bcubedF1": 0.7056471764117942,
+          "bcubedP": 1,
+          "bcubedR": 0.5451737451737452,
+          "predictedMultiTopics": 12,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.3950617283950617
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.550947502898105,
+          "bcubedF1": 0.6903758638125738,
+          "bcubedP": 1,
+          "bcubedR": 0.5271557271557272,
+          "predictedMultiTopics": 12,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.3950617283950617
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.41755177571041086,
+          "bcubedF1": 0.5997477022887007,
+          "bcubedP": 1,
+          "bcubedR": 0.4283140283140283,
+          "predictedMultiTopics": 12,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.24691358024691357
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.3174958077138066,
+          "bcubedF1": 0.5163261409203743,
+          "bcubedP": 1,
+          "bcubedR": 0.3480051480051481,
+          "predictedMultiTopics": 13,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.14814814814814814
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.3174958077138066,
+          "bcubedF1": 0.5163261409203743,
+          "bcubedP": 1,
+          "bcubedR": 0.3480051480051481,
+          "predictedMultiTopics": 13,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.14814814814814814
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.30428028070927304,
+          "bcubedF1": 0.5077779911657384,
+          "bcubedP": 1,
+          "bcubedR": 0.3402831402831403,
+          "predictedMultiTopics": 12,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.14814814814814814
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.23562598523189243,
+          "bcubedF1": 0.4598612487611496,
+          "bcubedP": 1,
+          "bcubedR": 0.2985842985842985,
+          "predictedMultiTopics": 9,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.09876543209876543
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0.1623599359707295,
+          "bcubedF1": 0.4054996921814078,
+          "bcubedP": 1,
+          "bcubedR": 0.2543114543114543,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.06172839506172839
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0.11598938125382888,
+          "bcubedF1": 0.36970205623164076,
+          "bcubedP": 1,
+          "bcubedR": 0.22676962676962678,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.037037037037037035
+        }
+      ]
+    },
+    "de": {
+      "label": "nur Deutsch",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 16,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 10,
+        "predictedMultiTopics": 5,
+        "missedSingletonRate": 0.3125,
+        "ari": 0.6385542168674699,
+        "nmi": 0.8887004618953193,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.7083333333333333,
+          "f1": 0.8292682926829268
+        },
+        "pairRecall": 0.5,
+        "monolingualPairRecall": 0.5,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 10,
+          "multiMemberTopicsShown": 5,
+          "itemsInShownMultiTopics": 0.6875
+        },
+        "clusters": [
+          {
+            "label": "Wann ist die Exkursion in den Botanischen Garten und wo treffen wir uns?",
+            "confidence": 0.932,
+            "members": ["Q522", "Q523"],
+            "families": ["B-TRIP"]
+          },
+          {
+            "label": "Können Sie den Unterschied zwischen Lichtreaktion und Calvin-Zyklus nochmal erklären?",
+            "confidence": 0.937,
+            "members": ["Q502", "Q501", "Q503"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "Das Bild der Mikroskopkamera kommt auf der Leinwand nicht an.",
+            "confidence": 0.906,
+            "members": ["Q533", "Q534"],
+            "families": ["B-MICRO"]
+          },
+          {
+            "label": "Ist die parallele Blattaderung wirklich das sicherste Merkmal für Einkeimblättrige?",
+            "confidence": 0.891,
+            "members": ["Q509", "Q510"],
+            "families": ["B-MONO"]
+          },
+          {
+            "label": "Bis wann müssen wir unser Herbarium abgeben?",
+            "confidence": 0.891,
+            "members": ["Q528", "Q529"],
+            "families": ["B-HERB"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 16,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 11,
+        "predictedMultiTopics": 3,
+        "missedSingletonRate": 0.5,
+        "ari": 0.6385542168674699,
+        "nmi": 0.8768621815780684,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.6875,
+          "f1": 0.8148148148148148
+        },
+        "pairRecall": 0.5,
+        "monolingualPairRecall": 0.5,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "clusters": [
+          {
+            "label": "Exkursion",
+            "members": ["Q524", "Q523", "Q522"],
+            "families": ["B-TRIP"]
+          },
+          {
+            "label": "Lichtreaktion",
+            "members": ["Q501", "Q503", "Q502"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "Herbarium",
+            "members": ["Q528", "Q529"],
+            "families": ["B-HERB"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.803921568627451,
+          "bcubedF1": 0.9114285714285715,
+          "bcubedP": 0.90625,
+          "bcubedR": 0.9166666666666667,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.687964338781575,
+          "bcubedF1": 0.8495934959349593,
+          "bcubedP": 0.9166666666666667,
+          "bcubedR": 0.7916666666666666,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 2,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.6385542168674699,
+          "bcubedF1": 0.8292682926829268,
+          "bcubedP": 1,
+          "bcubedR": 0.7083333333333333,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.6385542168674699,
+          "bcubedF1": 0.8292682926829268,
+          "bcubedP": 1,
+          "bcubedR": 0.7083333333333333,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.6385542168674699,
+          "bcubedF1": 0.8292682926829268,
+          "bcubedP": 1,
+          "bcubedR": 0.7083333333333333,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.6385542168674699,
+          "bcubedF1": 0.8292682926829268,
+          "bcubedP": 1,
+          "bcubedR": 0.7083333333333333,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.6385542168674699,
+          "bcubedF1": 0.8292682926829268,
+          "bcubedP": 1,
+          "bcubedR": 0.7083333333333333,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.6385542168674699,
+          "bcubedF1": 0.8292682926829268,
+          "bcubedP": 1,
+          "bcubedR": 0.7083333333333333,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0.4953271028037384,
+          "bcubedF1": 0.7532467532467533,
+          "bcubedP": 1,
+          "bcubedR": 0.6041666666666666,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0.4140625,
+          "bcubedF1": 0.7027027027027027,
+          "bcubedP": 1,
+          "bcubedR": 0.5416666666666666,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "en": {
+      "label": "nur Englisch",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 9,
+        "goldTopics": 6,
+        "goldMultiTopics": 3,
+        "predictedTopics": 7,
+        "predictedMultiTopics": 2,
+        "missedSingletonRate": 0.3333333333333333,
+        "ari": 0.7857142857142856,
+        "nmi": 0.9574998433041189,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.8888888888888888,
+          "f1": 0.9411764705882353
+        },
+        "pairRecall": 0.6666666666666666,
+        "monolingualPairRecall": 0.6666666666666666,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 7,
+          "multiMemberTopicsShown": 2,
+          "itemsInShownMultiTopics": 0.4444444444444444
+        },
+        "clusters": [
+          {
+            "label": "Why does the Calvin cycle need ATP and NADPH?",
+            "confidence": 0.885,
+            "members": ["Q504", "Q505"],
+            "families": ["B-PHOTO"]
+          },
+          {
+            "label": "Are parallel leaf veins always a sign of a monocot?",
+            "confidence": 0.875,
+            "members": ["Q511", "Q512"],
+            "families": ["B-MONO"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 9,
+        "goldTopics": 6,
+        "goldMultiTopics": 3,
+        "predictedTopics": 8,
+        "predictedMultiTopics": 1,
+        "missedSingletonRate": 0.6666666666666666,
+        "ari": 0.47826086956521735,
+        "nmi": 0.9184649394575021,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.7777777777777778,
+          "f1": 0.8750000000000001
+        },
+        "pairRecall": 0.3333333333333333,
+        "monolingualPairRecall": 0.3333333333333333,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "clusters": [
+          {
+            "label": "Calvin cycle",
+            "members": ["Q504", "Q505"],
+            "families": ["B-PHOTO"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.17808219178082196,
+          "bcubedF1": 0.7164179104477613,
+          "bcubedP": 0.6000000000000001,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 9,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.441860465116279,
+          "bcubedF1": 0.808080808080808,
+          "bcubedP": 0.7407407407407407,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.6363636363636364,
+          "bcubedF1": 0.8888888888888888,
+          "bcubedP": 0.8888888888888888,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.6363636363636364,
+          "bcubedF1": 0.8888888888888888,
+          "bcubedP": 0.8888888888888888,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.47826086956521735,
+          "bcubedF1": 0.8750000000000001,
+          "bcubedP": 1,
+          "bcubedR": 0.7777777777777778,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 1,
+          "bcubedR": 0.6666666666666666,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 1,
+          "bcubedR": 0.6666666666666666,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 1,
+          "bcubedR": 0.6666666666666666,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "fr": {
+      "label": "nur Französisch",
+      "productRunsEncoder": false,
+      "encoder": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 6,
+        "predictedMultiTopics": 0,
+        "missedSingletonRate": 0,
+        "ari": 1,
+        "nmi": 1,
+        "bcubed": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": false,
+          "status": "fallback",
+          "topicsShown": 6,
+          "multiMemberTopicsShown": 0,
+          "itemsInShownMultiTopics": 0
+        },
+        "clusters": []
+      },
+      "lexical": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 6,
+        "predictedMultiTopics": 0,
+        "missedSingletonRate": 0,
+        "ari": 1,
+        "nmi": 1,
+        "bcubed": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "clusters": []
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0,
+          "bcubedF1": 0.5,
+          "bcubedP": 0.3333333333333333,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 10,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0,
+          "bcubedF1": 0.6666666666666666,
+          "bcubedP": 0.5,
+          "bcubedR": 1,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 4,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 0.6666666666666666,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0,
+          "bcubedF1": 0.9090909090909091,
+          "bcubedP": 0.8333333333333334,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "es": {
+      "label": "nur Spanisch",
+      "productRunsEncoder": false,
+      "encoder": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 6,
+        "predictedMultiTopics": 0,
+        "missedSingletonRate": 0,
+        "ari": 1,
+        "nmi": 1,
+        "bcubed": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": false,
+          "status": "fallback",
+          "topicsShown": 6,
+          "multiMemberTopicsShown": 0,
+          "itemsInShownMultiTopics": 0
+        },
+        "clusters": []
+      },
+      "lexical": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 6,
+        "predictedMultiTopics": 0,
+        "missedSingletonRate": 0,
+        "ari": 1,
+        "nmi": 1,
+        "bcubed": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "clusters": []
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0,
+          "bcubedF1": 0.6666666666666666,
+          "bcubedP": 0.5,
+          "bcubedR": 1,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 4,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0,
+          "bcubedF1": 0.9090909090909091,
+          "bcubedP": 0.8333333333333334,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0,
+          "bcubedF1": 0.9090909090909091,
+          "bcubedP": 0.8333333333333334,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    }
+  },
+  "stability": {
+    "_vectorDrift": {
+      "description": "1 - cos zwischen Gesamtanfrage und inkrementellen Läufen",
+      "median": 0.0027248093831566678,
+      "min": -2.220446049250313e-16,
+      "max": 0.005721301028852821
+    },
+    "mixed": {
+      "ari": {
+        "median": 0.3174958077138066,
+        "min": 0.3174958077138066,
+        "max": 0.3174958077138066
+      },
+      "bcubedF1": {
+        "median": 0.5163261409203743,
+        "min": 0.5163261409203743,
+        "max": 0.5163261409203743
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 13,
+        "min": 13,
+        "max": 13
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.7706276482498069,
+            "min": 0.7706276482498069,
+            "max": 0.7706276482498069
+          },
+          "bcubedF1": {
+            "median": 0.8463251670378619,
+            "min": 0.8463251670378619,
+            "max": 0.8463251670378619
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.6111861535291558,
+            "min": 0.5714686820000469,
+            "max": 0.7033826500684353
+          },
+          "bcubedF1": {
+            "median": 0.7437348423605498,
+            "min": 0.7056471764117942,
+            "max": 0.8018504240555129
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.550947502898105,
+            "min": 0.5405148213351096,
+            "max": 0.5612648221343873
+          },
+          "bcubedF1": {
+            "median": 0.6903758638125738,
+            "min": 0.6837201423005251,
+            "max": 0.6969646151266141
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.3934426229508197,
+            "min": 0.3934426229508197,
+            "max": 0.5085049239033125
+          },
+          "bcubedF1": {
+            "median": 0.5844416104937148,
+            "min": 0.5656267306627285,
+            "max": 0.6633407878892139
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.3174958077138066,
+            "min": 0.3174958077138066,
+            "max": 0.3174958077138066
+          },
+          "bcubedF1": {
+            "median": 0.5163261409203743,
+            "min": 0.5163261409203743,
+            "max": 0.5163261409203743
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.3174958077138066,
+            "min": 0.3174958077138066,
+            "max": 0.3174958077138066
+          },
+          "bcubedF1": {
+            "median": 0.5163261409203743,
+            "min": 0.5163261409203743,
+            "max": 0.5163261409203743
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.2908120153546365,
+            "min": 0.27734375,
+            "max": 0.30428028070927304
+          },
+          "bcubedF1": {
+            "median": 0.4990803691985677,
+            "min": 0.4903827472313969,
+            "max": 0.5077779911657384
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.2212622346793271,
+            "min": 0.20689848412676173,
+            "max": 0.2636162603401676
+          },
+          "bcubedF1": {
+            "median": 0.45090515816842314,
+            "min": 0.43441466854724964,
+            "max": 0.48153214774281805
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0.1547360415414383,
+            "min": 0.1471121471121471,
+            "max": 0.1623599359707295
+          },
+          "bcubedF1": {
+            "median": 0.3997320701502326,
+            "min": 0.39396444811905745,
+            "max": 0.4054996921814078
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0.11598938125382888,
+            "min": 0.11598938125382888,
+            "max": 0.1316567190125746
+          },
+          "bcubedF1": {
+            "median": 0.36970205623164076,
+            "min": 0.36970205623164076,
+            "max": 0.37989991659716427
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "de": {
+      "ari": {
+        "median": 0.6385542168674699,
+        "min": 0.6385542168674699,
+        "max": 0.6385542168674699
+      },
+      "bcubedF1": {
+        "median": 0.8292682926829268,
+        "min": 0.8292682926829268,
+        "max": 0.8292682926829268
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 5,
+        "min": 5,
+        "max": 5
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.803921568627451,
+            "min": 0.7574123989218329,
+            "max": 0.803921568627451
+          },
+          "bcubedF1": {
+            "median": 0.9114285714285715,
+            "min": 0.8903508771929824,
+            "max": 0.9114285714285715
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 3,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.6715683762873392,
+            "min": 0.5693779904306221,
+            "max": 0.7574123989218329
+          },
+          "bcubedF1": {
+            "median": 0.8473427602374183,
+            "min": 0.7991452991452992,
+            "max": 0.8903508771929824
+          },
+          "falseMergePairs": {
+            "median": 2,
+            "min": 2,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.6385542168674699,
+            "min": 0.6385542168674699,
+            "max": 0.6385542168674699
+          },
+          "bcubedF1": {
+            "median": 0.8292682926829268,
+            "min": 0.8292682926829268,
+            "max": 0.8292682926829268
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.6385542168674699,
+            "min": 0.6385542168674699,
+            "max": 0.6385542168674699
+          },
+          "bcubedF1": {
+            "median": 0.8292682926829268,
+            "min": 0.8292682926829268,
+            "max": 0.8292682926829268
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.6385542168674699,
+            "min": 0.6385542168674699,
+            "max": 0.6385542168674699
+          },
+          "bcubedF1": {
+            "median": 0.8292682926829268,
+            "min": 0.8292682926829268,
+            "max": 0.8292682926829268
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.6385542168674699,
+            "min": 0.6385542168674699,
+            "max": 0.6385542168674699
+          },
+          "bcubedF1": {
+            "median": 0.8292682926829268,
+            "min": 0.8292682926829268,
+            "max": 0.8292682926829268
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.6385542168674699,
+            "min": 0.6385542168674699,
+            "max": 0.6385542168674699
+          },
+          "bcubedF1": {
+            "median": 0.8292682926829268,
+            "min": 0.8292682926829268,
+            "max": 0.8292682926829268
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.6042233449928747,
+            "min": 0.5698924731182795,
+            "max": 0.6385542168674699
+          },
+          "bcubedF1": {
+            "median": 0.8146341463414635,
+            "min": 0.7848101265822784,
+            "max": 0.8292682926829268
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0.4953271028037384,
+            "min": 0.4953271028037384,
+            "max": 0.4953271028037384
+          },
+          "bcubedF1": {
+            "median": 0.7532467532467533,
+            "min": 0.7532467532467533,
+            "max": 0.7532467532467533
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0.4140625,
+            "min": 0.4140625,
+            "max": 0.4140625
+          },
+          "bcubedF1": {
+            "median": 0.7027027027027027,
+            "min": 0.7027027027027027,
+            "max": 0.7027027027027027
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "en": {
+      "ari": {
+        "median": 0.7857142857142856,
+        "min": 0.7857142857142856,
+        "max": 0.7857142857142856
+      },
+      "bcubedF1": {
+        "median": 0.9411764705882353,
+        "min": 0.9411764705882353,
+        "max": 0.9411764705882353
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.17808219178082196,
+            "min": 0.17808219178082196,
+            "max": 0.17808219178082196
+          },
+          "bcubedF1": {
+            "median": 0.7164179104477613,
+            "min": 0.7164179104477613,
+            "max": 0.7164179104477613
+          },
+          "falseMergePairs": {
+            "median": 9,
+            "min": 9,
+            "max": 9
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.441860465116279,
+            "min": 0.441860465116279,
+            "max": 0.441860465116279
+          },
+          "bcubedF1": {
+            "median": 0.808080808080808,
+            "min": 0.808080808080808,
+            "max": 0.808080808080808
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 3,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.6363636363636364,
+            "min": 0.441860465116279,
+            "max": 0.6363636363636364
+          },
+          "bcubedF1": {
+            "median": 0.8888888888888888,
+            "min": 0.808080808080808,
+            "max": 0.8888888888888888
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.6363636363636364,
+            "min": 0.6363636363636364,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.8888888888888888,
+            "min": 0.8888888888888888,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.7857142857142856,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.7857142857142856,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.47826086956521735,
+            "min": 0.47826086956521735,
+            "max": 0.47826086956521735
+          },
+          "bcubedF1": {
+            "median": 0.8750000000000001,
+            "min": 0.8750000000000001,
+            "max": 0.8750000000000001
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.23913043478260868,
+            "min": 0,
+            "max": 0.47826086956521735
+          },
+          "bcubedF1": {
+            "median": 0.8375000000000001,
+            "min": 0.8,
+            "max": 0.8750000000000001
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8,
+            "min": 0.8,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8,
+            "min": 0.8,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "fr": {
+      "ari": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "bcubedF1": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.5,
+            "min": 0.5,
+            "max": 0.6666666666666666
+          },
+          "falseMergePairs": {
+            "median": 10,
+            "min": 4,
+            "max": 10
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.7333333333333334,
+            "min": 0.6666666666666666,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 3.5,
+            "min": 3,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8545454545454545,
+            "min": 0.6666666666666666,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 2,
+            "min": 1,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9090909090909091,
+            "min": 0.9090909090909091,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 1,
+            "min": 0,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 0.9090909090909091,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "es": {
+      "ari": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "bcubedF1": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.6666666666666666,
+            "min": 0.6666666666666666,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 4,
+            "min": 1,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9090909090909091,
+            "min": 0.9090909090909091,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 0.9090909090909091,
+            "min": 0.9090909090909091,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    }
+  },
+  "similarity": {
+    "sameFamily": {
+      "n": 98,
+      "min": 0.7313373767055062,
+      "p10": 0.7742218269121919,
+      "p50": 0.8513164365044106,
+      "p90": 0.9015661524182613,
+      "max": 0.9536488146793475
+    },
+    "differentFamily": {
+      "n": 568,
+      "min": 0.6796076232797121,
+      "p10": 0.7290840315912444,
+      "p50": 0.7652930892024494,
+      "p90": 0.8054396035180564,
+      "max": 0.8685983262612756
+    },
+    "differentFamilyFramePairs": {
+      "n": 0
+    },
+    "differentFamilyAboveThreshold": 0,
+    "sameFamilyBelowThreshold": 62
+  },
+  "runtime": {
+    "coldStartToHealthyMs": 1561.0566,
+    "firstEmbedCallMs": 515.5654999999997,
+    "embedLatency": [
+      {
+        "items": 16,
+        "runs": 10,
+        "p50Ms": 296.990600000001,
+        "p95Ms": 492.4189000000006,
+        "maxMs": 492.4189000000006,
+        "msPerItemP50": 18.561912500000062
+      },
+      {
+        "items": 56,
+        "runs": 10,
+        "p50Ms": 617.9017999999996,
+        "p95Ms": 711.0583999999981,
+        "maxMs": 711.0583999999981,
+        "msPerItemP50": 11.033960714285708
+      },
+      {
+        "items": 37,
+        "runs": 10,
+        "p50Ms": 682.7431000000033,
+        "p95Ms": 702.2178000000022,
+        "maxMs": 702.2178000000022,
+        "msPerItemP50": 18.452516216216306
+      }
+    ],
+    "containerStatsAfterLoad": "472.5MiB / 2GiB|8.94%",
+    "clusterTiming": [
+      {
+        "items": 100,
+        "ms": 50.594199999999546
+      },
+      {
+        "items": 250,
+        "ms": 362.5724999999984
+      },
+      {
+        "items": 500,
+        "ms": 2050.0375999999997
+      }
+    ]
+  }
+}
