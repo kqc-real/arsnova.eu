@@ -516,10 +516,16 @@ describe('SessionProjectionQuizComponent', () => {
       reactions: { '👏': 2 },
       total: 2,
     });
+    fixture.componentRef.setInput('pageIndex', 3);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.contentPageIndex()).toBe(3);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
+    ).toBeNull();
     fixture.componentInstance.onContentPageCount(3);
     fixture.componentRef.setInput('pageIndex', 2);
     fixture.detectChanges();
-
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
     ).toBeNull();
@@ -668,8 +674,10 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'ACTIVE');
     fixture.componentRef.setInput('pageContext', 'active-question-1');
+    fixture.componentRef.setInput('pageIndex', 7);
     fixture.detectChanges();
 
+    expect(fixture.componentInstance.contentPageIndex()).toBe(7);
     expect(emittedCounts).toEqual([]);
 
     fixture.componentInstance.onContentPageCount(8);
@@ -1438,9 +1446,15 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('falsch → richtig');
     expect(text).toContain('KI-generiertes Bild');
     expect(text).toContain('Echtes Foto');
-    expect(
-      fixture.nativeElement.querySelector('.session-projection-quiz__round-comparison'),
-    ).toBeTruthy();
+    const roundComparison = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__round-comparison',
+    ) as HTMLElement;
+    const legend = roundComparison.querySelector('[data-projection-answer-legend]');
+    expect(legend?.textContent).toContain('Runde 1 (50 Stimmen)');
+    expect(legend?.textContent).toContain('Runde 2 (48 Stimmen)');
+    expect(legend?.nextElementSibling).toBe(
+      roundComparison.querySelector('[data-projection-answer-list]'),
+    );
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__opinion-shift'),
     ).toBeTruthy();
