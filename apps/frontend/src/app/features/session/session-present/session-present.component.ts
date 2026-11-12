@@ -72,7 +72,7 @@ import type {
   QaQuestionDTO,
   QaQuestionSortMode,
   QaQuestionsListDTO,
-  FreetextWordCloudPresenterProjectionDTO,
+  GetFreetextWordCloudProjectionOutput,
   QaWordCloudPresenterProjectionDTO,
   QuickFeedbackResult,
   SessionInfoDTO,
@@ -101,6 +101,7 @@ import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util
 import { presenterQuestionHeading } from './session-projection-quiz.util';
 import { sessionPresentationPath, SessionPresentationState } from './presenter-navigation';
 import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
+import { FreetextWordCloudVisibilityState } from '../freetext-word-cloud-visibility';
 import {
   presenterAllHaveVoted,
   presenterCanOpenFollowingQuestion,
@@ -1139,9 +1140,25 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly wordCloudTermLocale = computed<SupportedLocale>(() =>
     getEffectiveLocale(localeIdToSupported(this.localeId)),
   );
-  readonly freetextWordCloudProjection = signal<FreetextWordCloudPresenterProjectionDTO | null>(
-    null,
+  readonly freetextWordCloudProjection =
+    signal<GetFreetextWordCloudProjectionOutput['projection']>(null);
+  private readonly freetextVisibility = new FreetextWordCloudVisibilityState();
+  private readonly freetextVisibilityAuthorized = signal(false);
+  readonly freetextVisibilitySnapshot = computed(() => {
+    const snapshot = this.freetextVisibility.snapshot();
+    return snapshot?.questionId === this.freetextQuestionId() ? snapshot : null;
+  });
+  readonly freetextVisibilityPending = this.freetextVisibility.pending.asReadonly();
+  readonly canHideFreetextWord = computed(
+    () => this.freetextVisibilityAuthorized() && this.freetextVisibilitySnapshot() !== null,
   );
+  readonly hideFreetextWord = async (label: string): Promise<void> => {
+    const questionId = this.freetextVisibilitySnapshot()?.questionId;
+    if (!questionId || !this.canHideFreetextWord() || this.presentDeadlineClosed) {
+      throw new Error('Freitext question unavailable');
+    }
+    await this.freetextVisibility.update(this.sessionCode, questionId, label, true);
+  };
   /** Gesetzte Presenter-Ansicht bleibt bestehen, auch wenn der Host danach neu projiziert. */
   readonly presenterFreetextWordCloudModeOverride = signal<PresenterFreetextWordCloudMode | null>(
     null,
@@ -1525,7 +1542,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return null;
     }
     const projection = this.currentFreetextWordCloudProjection();
-    if (!projection || projection.entries.length === 0) {
+    if (!projection || (projection.entries.length === 0 && !projection.moderatedEmpty)) {
       return null;
     }
     return projection.entries.map((entry) => ({
@@ -2312,10 +2329,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       await this.refreshQaWordCloudProjection();
       return;
     }
-    await this.refreshLiveFreetext();
+    const gotHostProjection = await this.refreshLiveFreetext();
     // Erst nach dem Freitext-Stand: die Bühne und die Fragen-Id gibt es vorher nicht,
     // und ein früher Abruf würde die lokale Phrasenwolke stehen lassen.
-    if (this.showPresenterFreetextResultsStage()) {
+    if (!gotHostProjection && this.showPresenterFreetextResultsStage()) {
       await this.refreshFreetextWordCloudProjection();
     }
     await this.refreshQaQuestions();
@@ -2783,24 +2800,35 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshLiveFreetext(): Promise<void> {
+  private async refreshLiveFreetext(): Promise<boolean> {
     if (
       !this.session() ||
       this.presentDeadlineClosed ||
       this.session()?.presenterSurface === 'qaWordCloud' ||
       this.showFinishProjection()
     ) {
-      return;
+      return false;
     }
 
+    const visibilityRead = this.freetextVisibility.beginRead();
     try {
-      const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
-      if (this.presentDeadlineClosed) return;
+      const data = await trpc.session.getLiveFreetext.query({
+        code: this.code.toUpperCase(),
+        includeWordCloudProjection: true,
+      });
+      if (this.presentDeadlineClosed) return false;
+      const previousLanguage = this.presenterFreetextTermLocale();
+      this.freetextVisibility.applyRead(visibilityRead, data.wordCloudVisibility ?? null);
+      this.freetextVisibilityAuthorized.set(data.wordCloudVisibility !== undefined);
       if (data.questionId !== this.freetextQuestionId()) {
         this.resetPresenterFreetextWordCloudControls();
       }
       this.freetextResponses.set(data.responses);
       this.freetextQuestionId.set(data.questionId);
+      if (data.wordCloudProjection !== undefined) {
+        this.freetextWordCloudProjection.set(data.wordCloudProjection);
+        this.invalidatePresenterFreetextAfterLanguageChange(previousLanguage);
+      }
 
       if (data.questionType === 'FREETEXT') {
         this.presenterFreetextActive.set(true);
@@ -2819,8 +2847,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.currentQuestionLabel.set(null);
         this.presenterInfo.set($localize`Noch keine aktive Frage.`);
       }
-    } catch {
+      return data.wordCloudProjection !== undefined;
+    } catch (error) {
+      if (this.errorCode(error) === 'UNAUTHORIZED') {
+        this.freetextVisibilityAuthorized.set(false);
+      }
       // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
+      return false;
     }
   }
 

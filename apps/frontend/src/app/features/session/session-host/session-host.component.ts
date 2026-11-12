@@ -1,5 +1,5 @@
 import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
-import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { CdkTrapFocus, LiveAnnouncer } from '@angular/cdk/a11y';
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
@@ -112,6 +112,7 @@ import {
   SessionPresentationState,
 } from '../session-present/presenter-navigation';
 import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
+import { FreetextWordCloudVisibilityState } from '../freetext-word-cloud-visibility';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
 import {
@@ -860,6 +861,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly liveAnnouncer = inject(LiveAnnouncer);
   private readonly sessionResultsExport = inject(SessionResultsExportService);
   private readonly quizStore = inject(QuizStoreService);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
@@ -1829,13 +1831,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    'skip' | 'previous' | 'replace' | 'leave' | 'feedback' | 'end' | null
+    'skip' | 'previous' | 'replace' | 'leave' | 'feedback' | 'end' | 'restoreWord' | null
   >(null);
+  private pendingWordToRestore: { questionId: string; label: string } | null = null;
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
   runHostMoreAction(): void {
     const action = this.pendingHostMoreAction();
     this.pendingHostMoreAction.set(null);
+    const wordToRestore = this.pendingWordToRestore;
+    this.pendingWordToRestore = null;
     if (
       this.controlPending() ||
       this.sessionEndPending() ||
@@ -1864,6 +1869,55 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'end':
         void this.onSessionEndAnchorClick();
         break;
+      case 'restoreWord':
+        if (
+          wordToRestore &&
+          wordToRestore.questionId === this.freetextVisibilitySnapshot()?.questionId
+        ) {
+          void this.restoreFreetextWord(wordToRestore);
+        }
+        break;
+    }
+  }
+
+  private readonly freetextVisibility = new FreetextWordCloudVisibilityState();
+  readonly freetextVisibilitySnapshot = computed(() => {
+    const snapshot = this.freetextVisibility.snapshot();
+    return snapshot?.questionId === this.displayedCurrentQuestionForHost()?.questionId
+      ? snapshot
+      : null;
+  });
+  readonly freetextVisibilityPending = this.freetextVisibility.pending.asReadonly();
+  readonly restoreFreetextWordLabel = $localize`:@@wordCloud.restoreWord:Wort wieder einblenden`;
+  readonly hideFreetextWord = async (label: string): Promise<void> => {
+    const questionId = this.freetextVisibilitySnapshot()?.questionId;
+    if (!questionId) throw new Error('Freitext question changed');
+    await this.freetextVisibility.update(this.code, questionId, label, true);
+  };
+
+  queueFreetextWordRestore(questionId: string, label: string): void {
+    this.pendingWordToRestore = { questionId, label };
+    this.pendingHostMoreAction.set('restoreWord');
+  }
+
+  private async restoreFreetextWord({
+    questionId,
+    label,
+  }: {
+    questionId: string;
+    label: string;
+  }): Promise<void> {
+    try {
+      await this.freetextVisibility.update(this.code, questionId, label, false);
+      void this.liveAnnouncer.announce(
+        $localize`:@@wordCloud.wordRestored:Wort wieder eingeblendet.`,
+      );
+    } catch {
+      this.snackBar.open(
+        $localize`:@@wordCloud.restoreWordFailed:Das Wort konnte nicht wieder eingeblendet werden.`,
+        '',
+        { duration: 6000 },
+      );
     }
   }
   readonly pairedHostConnected = signal(false);
@@ -6444,9 +6498,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private shouldPollLiveFreetext(): boolean {
     if (this.activeChannel() !== 'quiz') {
-      return false;
-    }
-    if (this.wordCloudFrozen()) {
       return false;
     }
     return this.displayedCurrentQuestionForHost()?.type === 'FREETEXT';
@@ -15886,9 +15937,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLiveFreetext(options: { isCurrent?: () => boolean } = {}): Promise<void> {
+    const visibilityRead = this.freetextVisibility.beginRead();
+    const visibilityOnly = this.wordCloudFrozen();
     try {
-      const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
+      const data = await trpc.session.getLiveFreetext.query({
+        code: this.code.toUpperCase(),
+        ...(visibilityOnly ? { visibilityOnly: true } : {}),
+      });
       if (options.isCurrent && !options.isCurrent()) return;
+      this.freetextVisibility.applyRead(visibilityRead, data.wordCloudVisibility ?? null);
+      if (visibilityOnly) return;
       this.freetextResponses.set(data.responses);
 
       if (data.questionType === 'FREETEXT') {

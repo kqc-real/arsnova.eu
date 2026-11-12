@@ -8863,6 +8863,11 @@ $round2-color: var(--mat-sys-primary);
   background: var(--mat-sys-outline-variant);
 }
 
+.session-host__hidden-word-label {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .session-host__view-controls--labeled {
   display: flex;
   flex-direction: column;

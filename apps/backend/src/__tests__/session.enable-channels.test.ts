@@ -13,6 +13,11 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     qaQuestion: {
       count: vi.fn(),
     },
+    hiddenWordCloudEntry: {
+      findMany: vi.fn(),
+      createMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     $executeRaw: vi.fn(),
     $transaction: vi.fn(),
   },
@@ -1490,6 +1495,7 @@ trpcDodIt(
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
     prismaMock.session.findUnique.mockResolvedValue(freetextSession('ACTIVE'));
+    prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValue([]);
     await caller.setFreetextWordCloudProjection({
       code: 'ABC123',
       projection: FREETEXT_WORD_CLOUD_PROJECTION,
@@ -1503,6 +1509,11 @@ trpcDodIt(
       projection: FREETEXT_WORD_CLOUD_PROJECTION,
     });
 
+    prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValueOnce([{ label: 'ERSCHÖPFUNG' }]);
+    await expect(caller.getFreetextWordCloudProjection({ code: 'ABC123' })).resolves.toEqual({
+      projection: { ...FREETEXT_WORD_CLOUD_PROJECTION, entries: [], moderatedEmpty: true },
+    });
+
     await caller.setPresenterSurface({ code: 'ABC123', surface: 'default' });
     prismaMock.session.findUnique.mockResolvedValue(freetextSession('RESULTS'));
     await caller.setFreetextWordCloudProjection({
@@ -1514,6 +1525,108 @@ trpcDodIt(
     });
   },
 );
+
+describe('session.setFreetextWordCloudEntryVisibility', () => {
+  const input = {
+    code: 'ABC123',
+    questionId: FREETEXT_WORD_CLOUD_PROJECTION.questionId,
+    label: 'Erschöpfung',
+    hidden: true,
+  };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    prismaMock.$transaction.mockImplementation((run) => run(prismaMock));
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...freetextSession(),
+      currentQuestion: 2,
+      quiz: { questions: [{ order: 2 }] },
+    });
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.setFreetextWordCloudEntryVisibility',
+      case: 'happy',
+      mode: 'direct',
+      title: 'blendet Wörter je Freitextfrage aus und wieder ein',
+    },
+    async () => {
+      const scope = {
+        sessionId: SESSION_ID,
+        questionId: input.questionId,
+        labelKey: 'erschöpfung',
+      };
+      prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValueOnce([{ label: input.label }]);
+      await expect(caller.setFreetextWordCloudEntryVisibility(input)).resolves.toEqual({
+        questionId: input.questionId,
+        hiddenLabels: [input.label],
+      });
+      expect(prismaMock.hiddenWordCloudEntry.createMany).toHaveBeenCalledWith({
+        data: { ...scope, label: input.label },
+        skipDuplicates: true,
+      });
+
+      prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValueOnce([]);
+      await expect(
+        caller.setFreetextWordCloudEntryVisibility({ ...input, hidden: false }),
+      ).resolves.toEqual({
+        questionId: input.questionId,
+        hiddenLabels: [],
+      });
+      expect(prismaMock.hiddenWordCloudEntry.deleteMany).toHaveBeenCalledWith({
+        where: scope,
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.setFreetextWordCloudEntryVisibility',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'weist ungültige Host-Token ab',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+      await expect(caller.setFreetextWordCloudEntryVisibility(input)).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(prismaMock.hiddenWordCloudEntry.createMany).not.toHaveBeenCalled();
+    },
+  );
+
+  it('liest die Freitextfrage erst nach dem konkurrierenden Fragenwechsel unter der Sperre', async () => {
+    let releaseLock!: () => void;
+    prismaMock.$executeRaw.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        releaseLock = resolve;
+      }),
+    );
+    const update = caller
+      .setFreetextWordCloudEntryVisibility(input)
+      .catch((error: unknown) => error);
+    try {
+      await vi.waitFor(() => expect(prismaMock.$executeRaw).toHaveBeenCalledOnce());
+      expect(prismaMock.session.findUnique).toHaveBeenCalledExactlyOnceWith({
+        where: { code: 'ABC123' },
+        select: { id: true },
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...freetextSession(),
+        currentQuestion: 3,
+        quiz: { questions: [{ order: 2 }] },
+      });
+    } finally {
+      releaseLock();
+    }
+    expect(await update).toMatchObject({ code: 'BAD_REQUEST' });
+    expect(prismaMock.hiddenWordCloudEntry.createMany).not.toHaveBeenCalled();
+  });
+});
 
 trpcDodIt(
   {

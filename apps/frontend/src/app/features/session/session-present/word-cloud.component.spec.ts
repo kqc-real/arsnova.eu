@@ -39,6 +39,97 @@ describe('WordCloudComponent', () => {
     expect(component.filteredResponses().length).toBe(2);
   });
 
+  it.each([false, true])(
+    'blendet den ausgewählten Wolkeneintrag aus (Bühne: %s)',
+    async (outputOnly) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('outputOnly', outputOnly);
+      fixture.componentRef.setInput('responses', ['Gravitation', 'Gravitation', 'Orbit']);
+      const hide = vi.fn(async (label: string) => {
+        fixture.componentRef.setInput('hiddenLabels', [label]);
+      });
+      fixture.componentRef.setInput('hideEntry', hide);
+      fixture.detectChanges();
+
+      const word = Array.from(host.querySelectorAll<HTMLButtonElement>('.word-cloud__word')).find(
+        (button) => button.textContent?.trim().toLowerCase() === 'gravitation',
+      );
+      expect(word).toBeDefined();
+      word!.focus();
+      word!.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(host.querySelector('details.word-cloud__responses-panel[open]') !== null).toBe(
+        !outputOnly,
+      );
+      expect(host.querySelectorAll('.word-cloud__responses li').length).toBe(outputOnly ? 0 : 2);
+      const action = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+      expect(action.textContent).toContain('Wort ausblenden');
+      if (outputOnly) expect(document.activeElement).toBe(action);
+      action.focus();
+      action.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(hide).toHaveBeenCalledWith('gravitation');
+      expect(component.words().map(({ word }) => word.toLowerCase())).toEqual(['orbit']);
+      expect(host.querySelector('.word-cloud__hide-action')).toBeNull();
+      expect(host.querySelector('details.word-cloud__responses-panel[open]')).toBeNull();
+      expect(document.activeElement).toBe(host.querySelector('h2'));
+    },
+  );
+
+  it('behält nach einer abgelehnten Änderung Auswahl und Schaltfläche für den nächsten Versuch', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('responses', ['Gravitation']);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('hideEntry', vi.fn().mockRejectedValue(new Error('offline')));
+    fixture.detectChanges();
+
+    host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+    fixture.detectChanges();
+    const button = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+    button.focus();
+    button.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
+      'konnte nicht ausgeblendet werden',
+    );
+    expect(fixture.componentInstance.selectedWordLabel()?.toLowerCase()).toBe('gravitation');
+    expect(document.activeElement).toBe(button);
+  });
+
+  it.each([false, true])(
+    'führt den Fokus nach Ausblenden aus einem anderen Tab zur Überschrift (Bühne: %s)',
+    (outputOnly) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      fixture.componentRef.setInput('outputOnly', outputOnly);
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('responses', ['Orbit']);
+      const hide = vi.fn();
+      fixture.componentRef.setInput('hideEntry', hide);
+      fixture.detectChanges();
+
+      host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+      fixture.detectChanges();
+      host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!.focus();
+
+      fixture.componentRef.setInput('hiddenLabels', ['Orbit']);
+      fixture.detectChanges();
+
+      expect(hide).not.toHaveBeenCalled();
+      expect(host.querySelector('.word-cloud__hide-action')).toBeNull();
+      expect(document.activeElement).toBe(host.querySelector('h2'));
+    },
+  );
+
   it('zeigt Kontext-Pills neben den Zaehlern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation durch Teamarbeit']);
@@ -1738,6 +1829,43 @@ describe('WordCloudComponent', () => {
     expect(mimeType).toBe('text/csv;charset=utf-8');
     expect(component.statusMessage()).toBe('CSV exportiert.');
   });
+
+  it.each(['terms', 'analysisEntries'])(
+    'exportiert nur sichtbare Wörter als eigene CSV-Zeilen (%s)',
+    (inputName) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      fixture.componentRef.setInput(
+        inputName,
+        ['Orbit', 'Satellit'].map((label) => ({
+          key: label.toLowerCase(),
+          label,
+          score: 1,
+          documentFrequency: 1,
+          sourceCount: 1,
+          kind: 'unigram',
+          count: 1,
+          variants: [label],
+          basisLabel: null,
+          confidence: null,
+          members: [{ sourceId: 'answer-1', text: 'Orbit und Satellit', weight: 1 }],
+        })),
+      );
+      fixture.componentRef.setInput('hiddenLabels', ['ORBIT']);
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      const download = vi
+        .spyOn(component as unknown as { downloadBlob(body: string): void }, 'downloadBlob')
+        .mockImplementation(() => undefined);
+      component.exportCsv();
+      const [header, row, extraRow] = download.mock.calls[0]![0].split(/\r?\n/u);
+
+      expect(header).toMatch(/^\uFEFF?label,/u);
+      expect(row).toMatch(/^"Satellit",/u);
+      expect(row).toContain('Orbit und Satellit');
+      expect(extraRow).toBeUndefined();
+    },
+  );
 
   it('exportiert Analyse-Entries im CSV mit Basis und Mitgliedern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);

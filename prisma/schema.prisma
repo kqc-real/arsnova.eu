@@ -104,6 +104,7 @@ model Question {
   quiz                               Quiz                                @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answers                            AnswerOption[]
   votes                              Vote[]
+  hiddenWordCloudEntries             HiddenWordCloudEntry[]
   quizLearningObjectiveReferences    QuizLearningObjectiveReference[]
   sessionLearningObjectiveReferences SessionLearningObjectiveReference[] @relation("SessionLearningObjectiveQuizQuestion")
   order                              Int // Sortierung
@@ -167,6 +168,7 @@ model Session {
   participants                   Participant[]
   teams                          Team[]
   votes                          Vote[]
+  hiddenWordCloudEntries         HiddenWordCloudEntry[]
   bonusTokens                    BonusToken[] // Story 4.6: Bonus-Tokens für Top-Platzierungen
   sessionFeedbacks               SessionFeedback[] // Story 4.8: Session-Bewertungen
   qaQuestions                    QaQuestion[] // Story 8: Q&A-Fragen
@@ -207,6 +209,18 @@ model Session {
   @@index([expiresAt, id])
   @@index([legalHoldUntil])
   @@index([quizId])
+}
+
+model HiddenWordCloudEntry {
+  sessionId  String
+  questionId String
+  labelKey   String
+  label      String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, questionId, labelKey])
+  @@index([questionId])
 }
 
 // Ein Teilnehmer in einer Live-Session (Story 3.1, 3.2)

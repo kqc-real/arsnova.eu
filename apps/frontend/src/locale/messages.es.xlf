@@ -27583,6 +27583,70 @@
           <context context-type="linenumber">213</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="wordCloud.noneVisible" datatype="html">
+        <source>Keine Wörter sichtbar.</source>
+        <target>No hay palabras visibles.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">250</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hiddenWords" datatype="html">
+        <source>Ausgeblendete Wörter</source>
+        <target>Palabras ocultas</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">5514</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.restoreWord" datatype="html">
+        <source>Wort wieder einblenden</source>
+        <target>Volver a mostrar la palabra</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1891</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.wordRestored" datatype="html">
+        <source>Wort wieder eingeblendet.</source>
+        <target>Palabra visible de nuevo.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1913</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.restoreWordFailed" datatype="html">
+        <source>Das Wort konnte nicht wieder eingeblendet werden.</source>
+        <target>No se ha podido volver a mostrar la palabra.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1917</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.wordHidden" datatype="html">
+        <source>Wort ausgeblendet.</source>
+        <target>Palabra oculta.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+          <context context-type="linenumber">215</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hideWordFailed" datatype="html">
+        <source>Das Wort konnte nicht ausgeblendet werden.</source>
+        <target>No se ha podido ocultar la palabra.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+          <context context-type="linenumber">219</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hideWord" datatype="html">
+        <source>Wort ausblenden</source>
+        <target>Ocultar palabra</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">286</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="wordCloud.itemSingular" datatype="html">
         <source>Antwort</source>
         <target>Respuesta</target>

@@ -3980,6 +3980,9 @@
                         [responses]="displayedFreetextResponses()"
                         [terms]="displayedFreetextVisibleTerms()"
                         [analysisEntries]="displayedFreetextAnalysisEntries()"
+                        [hiddenLabels]="freetextVisibilitySnapshot()?.hiddenLabels ?? []"
+                        [hideEntry]="freetextVisibilitySnapshot() ? hideFreetextWord : null"
+                        [visibilityPending]="freetextVisibilityPending()"
                         [selectionScopeKey]="freetextWordCloudSelectionScope()"
                         [eyebrow]="freetextWordCloudEyebrow"
                         [wordLabelSingular]="freetextWordCloudWordLabelSingular()"
@@ -5499,6 +5502,32 @@
     }
 
     <mat-menu #hostMoreActionsMenu="matMenu">
+      @if (freetextVisibilitySnapshot(); as visibility) {
+        @if (activeChannel() === 'quiz' && visibility.hiddenLabels.length > 0) {
+          <button
+            mat-menu-item
+            type="button"
+            [matMenuTriggerFor]="hiddenFreetextWordsMenu"
+            [disabled]="freetextVisibilityPending()"
+          >
+            <mat-icon aria-hidden="true">visibility_off</mat-icon>
+            <span i18n="@@wordCloud.hiddenWords">Ausgeblendete Wörter</span>
+          </button>
+          <mat-menu #hiddenFreetextWordsMenu="matMenu">
+            @for (label of visibility.hiddenLabels; track label) {
+              <button
+                mat-menu-item
+                type="button"
+                [attr.aria-label]="restoreFreetextWordLabel + ' · ' + label"
+                (click)="queueFreetextWordRestore(visibility.questionId, label)"
+              >
+                <mat-icon aria-hidden="true">visibility</mat-icon>
+                <span class="session-host__hidden-word-label">{{ label }}</span>
+              </button>
+            }
+          </mat-menu>
+        }
+      }
       @if (
         showQuizAnchorActions() &&
         (effectiveStatus() === 'QUESTION_OPEN' || effectiveStatus() === 'ACTIVE') &&
