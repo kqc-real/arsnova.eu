@@ -1446,9 +1446,15 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('falsch → richtig');
     expect(text).toContain('KI-generiertes Bild');
     expect(text).toContain('Echtes Foto');
-    expect(
-      fixture.nativeElement.querySelector('.session-projection-quiz__round-comparison'),
-    ).toBeTruthy();
+    const roundComparison = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__round-comparison',
+    ) as HTMLElement;
+    const legend = roundComparison.querySelector('[data-projection-answer-legend]');
+    expect(legend?.textContent).toContain('Runde 1 (50 Stimmen)');
+    expect(legend?.textContent).toContain('Runde 2 (48 Stimmen)');
+    expect(legend?.nextElementSibling).toBe(
+      roundComparison.querySelector('[data-projection-answer-list]'),
+    );
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__opinion-shift'),
     ).toBeTruthy();

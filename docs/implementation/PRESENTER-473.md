@@ -15,8 +15,11 @@ jede Kategorie.
 Für Single Choice, Multiple Choice und Umfragen versucht der Presenter zuerst,
 Frage und alle Antwortoptionen gemeinsam darzustellen. Bei Platzmangel misst
 er kompaktere Karten einspaltig und bei ausreichender Breite zweispaltig.
+Beide Anordnungen werden bereits bei zwei Antwortoptionen geprüft.
 Passt nur der vollständige Antwortblock auf eine Seite, erhält er eine eigene
-Seite. Das gilt auch für Ergebnisbalken und den Vergleich zweier Abstimmungsrunden.
+Seite. Beim Vergleich zweier Abstimmungsrunden misst er die Legende mit den
+Stimmenzahlen zuerst zusammen mit den Ergebnisbalken. Erst bei weiterem
+Platzmangel setzt er die Legende auf die vorherige Seite.
 Passt der Block auch dort nicht, blättert der Presenter zwischen vollständigen
 Antwortkarten. Fortsetzungen behalten Antwortkennzeichen und Listennummern.
 Später geladene Bilder und Schriften lösen eine Neumessung aus,

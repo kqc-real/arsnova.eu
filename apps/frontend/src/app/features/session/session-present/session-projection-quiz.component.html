@@ -517,7 +517,26 @@
                 i18n-aria-label="@@sessionHost.roundComparisonPeerInstructionAria"
                 aria-label="Vorher/Nachher-Vergleich Peer Instruction"
               >
-                <div class="session-projection-quiz__round-comparison-legend">
+                @if (
+                  q.roundComparison!.round1CorrectCount !== null &&
+                  q.roundComparison!.round1CorrectCount !== undefined &&
+                  q.type !== 'SURVEY'
+                ) {
+                  <p
+                    class="session-projection-quiz__evaluation session-projection-quiz__evaluation--correct"
+                  >
+                    <mat-icon aria-hidden="true">check_circle</mat-icon>
+                    <span i18n="@@sessionHost.roundComparisonCorrectCounts"
+                      >Richtig: {{ formatCount(q.roundComparison!.round1CorrectCount) }} in Runde 1,
+                      danach {{ formatCount(q.roundComparison!.round2CorrectCount) }} in Runde
+                      2</span
+                    >
+                  </p>
+                }
+                <div
+                  class="session-projection-quiz__round-comparison-legend"
+                  data-projection-answer-legend
+                >
                   @let round1Votes = q.roundComparison!.round1Total;
                   @if (round1Votes === 1) {
                     <span
@@ -547,22 +566,6 @@
                     >
                   }
                 </div>
-                @if (
-                  q.roundComparison!.round1CorrectCount !== null &&
-                  q.roundComparison!.round1CorrectCount !== undefined &&
-                  q.type !== 'SURVEY'
-                ) {
-                  <p
-                    class="session-projection-quiz__evaluation session-projection-quiz__evaluation--correct"
-                  >
-                    <mat-icon aria-hidden="true">check_circle</mat-icon>
-                    <span i18n="@@sessionHost.roundComparisonCorrectCounts"
-                      >Richtig: {{ formatCount(q.roundComparison!.round1CorrectCount) }} in Runde 1,
-                      danach {{ formatCount(q.roundComparison!.round2CorrectCount) }} in Runde
-                      2</span
-                    >
-                  </p>
-                }
                 <ul
                   class="session-projection-quiz__answers"
                   role="list"

@@ -53,6 +53,20 @@ describe('choice answer layout', () => {
     },
   );
 
+  it('uses two columns when exactly two options only fit side by side', () => {
+    const source = choice();
+    Array.from(source.querySelectorAll(answerSelector))
+      .slice(2)
+      .forEach((card) => card.remove());
+
+    const pages = layoutProjection(source, (page) => page.classList.contains(twoColumns));
+
+    expect(pages).toHaveLength(1);
+    expect(pages[0]!.classList.contains(twoColumns)).toBe(true);
+    expect(pages[0]!.querySelectorAll(answerSelector)).toHaveLength(2);
+    expect(copy(pages)).toBe(source.textContent);
+  });
+
   it('puts the complete result list on one page between question and supplementary content', () => {
     const source = choice('Long question', 'Round comparison details');
     const pages = layoutProjection(
@@ -71,6 +85,34 @@ describe('choice answer layout', () => {
     expect(pages[2]!.textContent).toContain('Round comparison details');
     expect(copy(pages).replace(/\s+/g, '')).toBe(source.textContent!.replace(/\s+/g, ''));
   });
+
+  it.each([true, false])(
+    'keeps the round totals with the separate answer page whenever they fit (fits: %s)',
+    (legendFits) => {
+      const source = choice('Long question');
+      const legendSelector = '[data-projection-answer-legend]';
+      source
+        .querySelector('[data-projection-answer-list]')!
+        .insertAdjacentHTML(
+          'beforebegin',
+          '<div data-projection-answer-legend>Round 1: 50 votes · Round 2: 48 votes</div>',
+        );
+
+      const pages = layoutProjection(source, (page) => {
+        if (!page.querySelector(answerSelector)) return true;
+        if (page.textContent!.includes('Long question')) return false;
+        return (
+          !page.querySelector(legendSelector) || (legendFits && page.classList.contains(twoColumns))
+        );
+      });
+
+      expect(pages).toHaveLength(2);
+      expect(pages[1]!.querySelectorAll(answerSelector)).toHaveLength(4);
+      expect(!!pages[1]!.querySelector(legendSelector)).toBe(legendFits);
+      expect(pages[1]!.classList.contains(twoColumns)).toBe(legendFits);
+      expect(copy(pages).replace(/\s+/g, '')).toBe(source.textContent!.replace(/\s+/g, ''));
+    },
+  );
 
   it('falls back to ordinary pagination when the answer group itself is too tall', () => {
     const source = choice();

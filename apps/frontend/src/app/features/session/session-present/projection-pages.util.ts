@@ -152,9 +152,9 @@ export function layoutProjection(
   if (fits(full)) return [full];
 
   const compactList = full.querySelector<HTMLElement>(ANSWER_LIST)!;
-  const listBoundary = (after: boolean): ProjectionBoundary => {
-    let node = compactList;
-    // Include an enclosing card when the list is the first or last content in it.
+  const groupBoundary = (element: HTMLElement, after: boolean): ProjectionBoundary => {
+    let node = element;
+    // Include enclosing cards at the beginning or end of the group.
     // That keeps empty card fragments off neighboring pages.
     while (
       node.parentElement !== full &&
@@ -170,29 +170,34 @@ export function layoutProjection(
     };
   };
   full.classList.add('projection-source--compact-answers');
-  const columnLayouts = compactList.childElementCount > 2 ? [false, true] : [false];
+  const columnLayouts = [false, true];
   for (const twoColumns of columnLayouts) {
     full.classList.toggle('projection-source--two-column-answers', twoColumns);
     if (fits(full)) return [full];
   }
-  const start = listBoundary(false);
-  const end = listBoundary(true);
-  for (const twoColumns of columnLayouts) {
-    full.classList.toggle('projection-source--two-column-answers', twoColumns);
-    const answers = cloneProjectionRange(full, start, end);
-    if (!fits(answers)) continue;
+  const legend = compactList.parentElement?.querySelector<HTMLElement>(
+    ':scope > [data-projection-answer-legend]',
+  );
+  const end = groupBoundary(compactList, true);
+  for (const first of legend ? [legend, compactList] : [compactList]) {
+    const start = groupBoundary(first, false);
+    for (const twoColumns of columnLayouts) {
+      full.classList.toggle('projection-source--two-column-answers', twoColumns);
+      const answers = cloneProjectionRange(full, start, end);
+      if (!fits(answers)) continue;
 
-    const before = cloneProjectionRange(full, { node: full, offset: 0, semantic: true }, start);
-    const after = cloneProjectionRange(full, end, {
-      node: full,
-      offset: full.childNodes.length,
-      semantic: true,
-    });
-    return [
-      ...(hasProjectionContent(before) ? paginateProjection(before, fits) : []),
-      answers,
-      ...(hasProjectionContent(after) ? paginateProjection(after, fits) : []),
-    ];
+      const before = cloneProjectionRange(full, { node: full, offset: 0, semantic: true }, start);
+      const after = cloneProjectionRange(full, end, {
+        node: full,
+        offset: full.childNodes.length,
+        semantic: true,
+      });
+      return [
+        ...(hasProjectionContent(before) ? paginateProjection(before, fits) : []),
+        answers,
+        ...(hasProjectionContent(after) ? paginateProjection(after, fits) : []),
+      ];
+    }
   }
 
   return paginateProjection(root, fits);
