@@ -25,6 +25,10 @@ import {
   ShowQuestionResultInputSchema,
   SkipQuestionOutputSchema,
   GetLiveFreetextInputSchema,
+  GetLiveFreetextSnapshotInputSchema,
+  FreetextWordCloudVisibilitySchema,
+  SetFreetextWordCloudEntryVisibilityInputSchema,
+  freetextWordCloudVisibilityKey,
   GetActiveQuizIdsInputSchema,
   JoinSessionInputSchema,
   JoinSessionOutputSchema,
@@ -3751,6 +3755,19 @@ function assertSessionAllowsProjectionMutation(
     code: 'BAD_REQUEST',
     message: 'Beendete Sessions können nicht mehr verändert werden.',
   });
+}
+
+async function readFreetextWordCloudVisibility(
+  sessionId: string,
+  questionId: string,
+  db: Pick<Prisma.TransactionClient, 'hiddenWordCloudEntry'> = prisma,
+) {
+  const entries = await db.hiddenWordCloudEntry.findMany({
+    where: { sessionId, questionId },
+    select: { label: true },
+    orderBy: { label: 'asc' },
+  });
+  return { questionId, hiddenLabels: entries.map(({ label }) => label) };
 }
 
 function sessionAllowsUnconfiguredFollowUp(session: {
@@ -8263,6 +8280,54 @@ const sessionCoreRouter = router({
       return { projection: input.projection };
     }),
 
+  setFreetextWordCloudEntryVisibility: hostProcedure
+    .input(SetFreetextWordCloudEntryVisibilityInputSchema)
+    .output(FreetextWordCloudVisibilitySchema)
+    .mutation(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          hostEnded: true,
+          expiresAt: true,
+          currentQuestion: true,
+          quiz: {
+            select: {
+              questions: {
+                where: { id: input.questionId, type: 'FREETEXT' },
+                select: { order: true },
+              },
+            },
+          },
+        },
+      });
+      if (!session) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (
+        session.hostEnded ||
+        session.expiresAt.getTime() <= Date.now() ||
+        !session.quiz?.questions.some(({ order }) => order === session.currentQuestion)
+      ) {
+        throw new TRPCError({ code: 'BAD_REQUEST' });
+      }
+
+      const scope = {
+        sessionId: session.id,
+        questionId: input.questionId,
+        labelKey: freetextWordCloudVisibilityKey(input.label),
+      };
+      return prisma.$transaction(async (tx) => {
+        if (input.hidden) {
+          await tx.hiddenWordCloudEntry.createMany({
+            data: { ...scope, label: input.label },
+            skipDuplicates: true,
+          });
+        } else {
+          await tx.hiddenWordCloudEntry.deleteMany({ where: scope });
+        }
+        return readFreetextWordCloudVisibility(session.id, input.questionId, tx);
+      });
+    }),
+
   getFreetextWordCloudProjection: publicProcedure
     .input(GetSessionInfoInputSchema)
     .output(GetFreetextWordCloudProjectionOutputSchema)
@@ -8299,7 +8364,24 @@ const sessionCoreRouter = router({
       if (!revealed) {
         return { projection: null };
       }
-      return { projection: freetextWordCloudProjectionBySessionId.get(session.id) ?? null };
+      const projection = freetextWordCloudProjectionBySessionId.get(session.id);
+      if (!projection || projection.entries.length === 0) return { projection: projection ?? null };
+      const { hiddenLabels } = await readFreetextWordCloudVisibility(
+        session.id,
+        projection.questionId,
+      );
+      if (hiddenLabels.length === 0) return { projection };
+      const hiddenKeys = new Set(hiddenLabels.map(freetextWordCloudVisibilityKey));
+      const entries = projection.entries.filter(
+        ({ label }) => !hiddenKeys.has(freetextWordCloudVisibilityKey(label)),
+      );
+      return {
+        projection: {
+          ...projection,
+          entries,
+          ...(entries.length === 0 ? { moderatedEmpty: true } : {}),
+        },
+      };
     }),
 
   /** Presenter-Exit: Leaderboard ausblenden, Branding „Session ist beendet.“ zeigen. */
@@ -10175,7 +10257,7 @@ const sessionCoreRouter = router({
 
   /** Live-Freitextdaten der aktuell aktiven Frage (Story 1.14, polling-ready). */
   getLiveFreetext: hostProcedure
-    .input(GetLiveFreetextInputSchema)
+    .input(GetLiveFreetextSnapshotInputSchema)
     .output(LiveFreetextDTOSchema)
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
@@ -10215,19 +10297,27 @@ const sessionCoreRouter = router({
         };
       }
 
-      const votes = await prisma.vote.findMany({
-        where: {
-          sessionId: session.id,
-          questionId: question.id,
-          freeText: { not: null },
-        },
-        orderBy: { votedAt: 'asc' },
-        select: { freeText: true },
-      });
+      const [votes, wordCloudVisibility] = await Promise.all([
+        input.visibilityOnly
+          ? []
+          : prisma.vote.findMany({
+              where: {
+                sessionId: session.id,
+                questionId: question.id,
+                freeText: { not: null },
+              },
+              orderBy: { votedAt: 'asc' },
+              select: { freeText: true },
+            }),
+        readFreetextWordCloudVisibility(session.id, question.id),
+      ]);
 
       const responses = votes
         .map((vote) => vote.freeText?.trim() ?? '')
         .filter((value) => value.length > 0);
+      const projection = input.includeWordCloudProjection
+        ? freetextWordCloudProjectionBySessionId.get(session.id)
+        : undefined;
 
       return {
         sessionId: session.id,
@@ -10236,6 +10326,10 @@ const sessionCoreRouter = router({
         questionType: question.type as QuestionType,
         questionText: question.text,
         responses,
+        wordCloudVisibility,
+        ...(input.includeWordCloudProjection
+          ? { wordCloudProjection: projection?.questionId === question.id ? projection : null }
+          : {}),
         updatedAt: new Date().toISOString(),
       };
     }),

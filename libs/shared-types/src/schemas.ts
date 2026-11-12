@@ -4359,17 +4359,29 @@ export const GetLiveFreetextInputSchema = z.object({
 });
 export type GetLiveFreetextInput = z.infer<typeof GetLiveFreetextInputSchema>;
 
-/** DTO: Live-Freitextdaten für Word-Cloud (Story 1.14). */
-export const LiveFreetextDTOSchema = z.object({
-  sessionId: z.uuid(),
-  questionId: z.uuid().nullable(),
-  questionOrder: z.number().nullable(),
-  questionType: QuestionTypeEnum.nullable(),
-  questionText: z.string().nullable(),
-  responses: z.array(z.string()),
-  updatedAt: z.string(), // ISO-8601
+export const GetLiveFreetextSnapshotInputSchema = GetLiveFreetextInputSchema.extend({
+  visibilityOnly: z.literal(true).optional(),
+  includeWordCloudProjection: z.literal(true).optional(),
 });
-export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
+
+const FreetextWordCloudLabelSchema = z.string().trim().min(1).max(SHORT_TEXT_MAX_LENGTH_LIMIT);
+
+export const SetFreetextWordCloudEntryVisibilityInputSchema = GetLiveFreetextInputSchema.extend({
+  questionId: z.uuid(),
+  label: FreetextWordCloudLabelSchema,
+  hidden: z.boolean(),
+});
+
+export const FreetextWordCloudVisibilitySchema = z.object({
+  questionId: z.uuid(),
+  hiddenLabels: z.array(FreetextWordCloudLabelSchema),
+});
+export type FreetextWordCloudVisibility = z.infer<typeof FreetextWordCloudVisibilitySchema>;
+
+/** Match the displayed label across live snapshots and the compact presenter projection. */
+export function freetextWordCloudVisibilityKey(label: string): string {
+  return label.trim().slice(0, 120).normalize('NFC').toLowerCase();
+}
 
 /**
  * Analyseansicht der Host-Wortwolke für Q&A und Freitext.
@@ -4685,6 +4697,20 @@ export type FreetextWordCloudPresenterProjectionDTO = z.infer<
   typeof FreetextWordCloudPresenterProjectionDTOSchema
 >;
 
+/** Host-only live freetext and, on request, the unfiltered presenter snapshot. */
+export const LiveFreetextDTOSchema = z.object({
+  sessionId: z.uuid(),
+  questionId: z.uuid().nullable(),
+  questionOrder: z.number().nullable(),
+  questionType: QuestionTypeEnum.nullable(),
+  questionText: z.string().nullable(),
+  responses: z.array(z.string()),
+  wordCloudVisibility: FreetextWordCloudVisibilitySchema.optional(),
+  wordCloudProjection: FreetextWordCloudPresenterProjectionDTOSchema.nullable().optional(),
+  updatedAt: z.string(),
+});
+export type LiveFreetextDTO = z.infer<typeof LiveFreetextDTOSchema>;
+
 export const SetFreetextWordCloudProjectionInputSchema = GetSessionInfoInputSchema.extend({
   projection: FreetextWordCloudPresenterProjectionDTOSchema,
 });
@@ -4693,7 +4719,10 @@ export type SetFreetextWordCloudProjectionInput = z.infer<
 >;
 
 export const GetFreetextWordCloudProjectionOutputSchema = z.object({
-  projection: FreetextWordCloudPresenterProjectionDTOSchema.nullable(),
+  projection: FreetextWordCloudPresenterProjectionDTOSchema.extend({
+    /** An empty moderated projection is authoritative; do not rebuild it from responses. */
+    moderatedEmpty: z.literal(true).optional(),
+  }).nullable(),
 });
 export type GetFreetextWordCloudProjectionOutput = z.infer<
   typeof GetFreetextWordCloudProjectionOutputSchema

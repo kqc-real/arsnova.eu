@@ -189,6 +189,7 @@ const {
   searchParticipantsQueryMock,
   getTeamsQueryMock,
   getLiveFreetextQueryMock,
+  setFreetextWordCloudEntryVisibilityMock,
   getCurrentQuestionForHostQueryMock,
   getHostVoteProgressQueryMock,
   getLeaderboardQueryMock,
@@ -258,6 +259,7 @@ const {
   searchParticipantsQueryMock: vi.fn(),
   getTeamsQueryMock: vi.fn(),
   getLiveFreetextQueryMock: vi.fn(),
+  setFreetextWordCloudEntryVisibilityMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
@@ -351,6 +353,7 @@ vi.mock('../../../core/trpc.client', () => ({
       searchParticipants: { query: searchParticipantsQueryMock },
       getTeams: { query: getTeamsQueryMock },
       getLiveFreetext: { query: getLiveFreetextQueryMock },
+      setFreetextWordCloudEntryVisibility: { mutate: setFreetextWordCloudEntryVisibilityMock },
       getCurrentQuestionForHost: { query: getCurrentQuestionForHostQueryMock },
       getHostVoteProgress: { query: getHostVoteProgressQueryMock },
       getLeaderboard: { query: getLeaderboardQueryMock },
@@ -8176,6 +8179,62 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.wordCloudExpanded()).toBe(true);
     expect(scrollToSpy).toHaveBeenCalled();
     scrollToSpy.mockRestore();
+    fixture.destroy();
+  });
+
+  it('blendet ein Wort nur über Weitere Aktionen wieder ein', async () => {
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId,
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      responses: ['Gravitation', 'Orbit'],
+      wordCloudVisibility: { questionId, hiddenLabels: ['Gravitation'] },
+    });
+    setFreetextWordCloudEntryVisibilityMock.mockResolvedValue({
+      questionId,
+      hiddenLabels: [],
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.freetextVisibilitySnapshot() !== null);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Ausgeblendete Wörter');
+
+    const { menu } = await openHostMoreActions(fixture);
+    const hiddenWords = Array.from(menu.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.includes('Ausgeblendete Wörter'),
+    )!;
+    hiddenWords.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    document
+      .querySelector<HTMLButtonElement>('[aria-label="Wort wieder einblenden · Gravitation"]')!
+      .click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(setFreetextWordCloudEntryVisibilityMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        questionId,
+        label: 'Gravitation',
+        hidden: false,
+      },
+      expect.anything(),
+    );
+    expect(fixture.componentInstance.freetextVisibilitySnapshot()?.hiddenLabels).toEqual([]);
     fixture.destroy();
   });
 

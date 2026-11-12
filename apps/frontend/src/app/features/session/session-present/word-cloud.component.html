@@ -7,7 +7,7 @@
     @if (eyebrow()) {
       <p class="word-cloud__eyebrow">{{ eyebrow() }}</p>
     }
-    <h2 mat-card-title>{{ title() }}</h2>
+    <h2 #heading mat-card-title tabindex="-1" class="app-content-focus-target">{{ title() }}</h2>
     @if (description()) {
       <mat-card-subtitle class="word-cloud__description">{{ description() }}</mat-card-subtitle>
     }
@@ -101,6 +101,20 @@
         </div>
       </details>
     }
+    @if (outputOnly() && hideEntry() && selectedWordLabel()) {
+      <button
+        #stageHideButton
+        mat-button
+        type="button"
+        class="word-cloud__hide-action word-cloud__hide-action--stage"
+        [attr.aria-disabled]="visibilityPending() || null"
+        [attr.aria-busy]="visibilityPending() || null"
+        (click)="hideSelectedWord($event)"
+      >
+        <mat-icon aria-hidden="true">visibility_off</mat-icon>
+        {{ hideWordLabel }}
+      </button>
+    }
     <div
       #exportSurface
       #visualFrame
@@ -108,7 +122,7 @@
       [class.word-cloud__visual-frame--scrollable]="presentationFrameScrollable()"
     >
       @if (words().length === 0) {
-        <p class="word-cloud__empty">{{ emptyMessage() }}</p>
+        <p class="word-cloud__empty">{{ visibleEmptyMessage() }}</p>
       } @else {
         <div
           #layoutStage
@@ -126,7 +140,7 @@
         >
           @if (cloudLayoutActive()) {
             @for (entry of positionedWords(); track entry.groupKey) {
-              @if (outputOnly()) {
+              @if (outputOnly() && !hideEntry()) {
                 <span
                   class="word-cloud__word word-cloud__word--positioned word-cloud__word--output"
                   [class.word-cloud__word--top]="entry.rank < 2"
@@ -155,7 +169,8 @@
                   [style.z-index]="wordZIndex(entry.rank)"
                   [appWordCloudMarkdownTooltip]="wordTooltipBlocks(entry)"
                   [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
-                  (click)="toggleWord(entry.groupKey)"
+                  [attr.aria-disabled]="visibilityPending() || null"
+                  (click)="toggleWord(entry.groupKey, $event)"
                 >
                   {{ entry.word }}
                 </button>
@@ -163,7 +178,7 @@
             }
           } @else {
             @for (entry of displayWords(); track entry.groupKey) {
-              @if (outputOnly()) {
+              @if (outputOnly() && !hideEntry()) {
                 <span
                   class="word-cloud__word word-cloud__word--output"
                   [class.word-cloud__word--top]="entry.rank < 2"
@@ -184,7 +199,8 @@
                   [style.font-size.px]="entry.size"
                   [appWordCloudMarkdownTooltip]="wordTooltipBlocks(entry)"
                   [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
-                  (click)="toggleWord(entry.groupKey)"
+                  [attr.aria-disabled]="visibilityPending() || null"
+                  (click)="toggleWord(entry.groupKey, $event)"
                 >
                   {{ entry.word }}
                 </button>
@@ -194,6 +210,16 @@
         </div>
       }
     </div>
+    <span class="sr-only" role="status">
+      @if (visibilityFeedback() === 'hidden') {
+        <ng-container i18n="@@wordCloud.wordHidden">Wort ausgeblendet.</ng-container>
+      }
+    </span>
+    @if (visibilityFeedback() === 'failed') {
+      <p role="alert" i18n="@@wordCloud.hideWordFailed">
+        Das Wort konnte nicht ausgeblendet werden.
+      </p>
+    }
     @if (analysisSummaryHero(); as summary) {
       <section class="word-cloud__summary-hero">
         <h3 class="word-cloud__summary-hero-heading" i18n="@@wordCloud.summaryHeroHeading">
@@ -260,6 +286,19 @@
                 showResponses() ? 'expand_less' : 'expand_more'
               }}</mat-icon>
             </summary>
+            @if (hideEntry() && selectedWordLabel()) {
+              <button
+                mat-button
+                type="button"
+                class="word-cloud__hide-action"
+                [attr.aria-disabled]="visibilityPending() || null"
+                [attr.aria-busy]="visibilityPending() || null"
+                (click)="hideSelectedWord($event)"
+              >
+                <mat-icon aria-hidden="true">visibility_off</mat-icon>
+                {{ hideWordLabel }}
+              </button>
+            }
             @if (selectedEvidenceCoverage(); as evidenceCoverage) {
               <p>{{ evidenceCoverage }}</p>
             }

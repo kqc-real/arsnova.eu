@@ -39,6 +39,72 @@ describe('WordCloudComponent', () => {
     expect(component.filteredResponses().length).toBe(2);
   });
 
+  it.each([false, true])(
+    'blendet den ausgewählten Wolkeneintrag aus (Bühne: %s)',
+    async (outputOnly) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      const component = fixture.componentInstance;
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('outputOnly', outputOnly);
+      fixture.componentRef.setInput('responses', ['Gravitation', 'Gravitation', 'Orbit']);
+      const hide = vi.fn(async (label: string) => {
+        fixture.componentRef.setInput('hiddenLabels', [label]);
+      });
+      fixture.componentRef.setInput('hideEntry', hide);
+      fixture.detectChanges();
+
+      const word = Array.from(host.querySelectorAll<HTMLButtonElement>('.word-cloud__word')).find(
+        (button) => button.textContent?.trim().toLowerCase() === 'gravitation',
+      );
+      expect(word).toBeDefined();
+      word!.focus();
+      word!.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(host.querySelector('details.word-cloud__responses-panel[open]') !== null).toBe(
+        !outputOnly,
+      );
+      expect(host.querySelectorAll('.word-cloud__responses li').length).toBe(outputOnly ? 0 : 2);
+      const action = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+      expect(action.textContent).toContain('Wort ausblenden');
+      if (outputOnly) expect(document.activeElement).toBe(action);
+      action.focus();
+      action.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(hide).toHaveBeenCalledWith('gravitation');
+      expect(component.words().map(({ word }) => word.toLowerCase())).toEqual(['orbit']);
+      expect(host.querySelector('.word-cloud__hide-action')).toBeNull();
+      expect(host.querySelector('details.word-cloud__responses-panel[open]')).toBeNull();
+      expect(document.activeElement).toBe(host.querySelector('h2'));
+    },
+  );
+
+  it('behält nach einer abgelehnten Änderung Auswahl und Schaltfläche für den nächsten Versuch', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('responses', ['Gravitation']);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('hideEntry', vi.fn().mockRejectedValue(new Error('offline')));
+    fixture.detectChanges();
+
+    host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+    fixture.detectChanges();
+    const button = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+    button.focus();
+    button.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain(
+      'konnte nicht ausgeblendet werden',
+    );
+    expect(fixture.componentInstance.selectedWordLabel()?.toLowerCase()).toBe('gravitation');
+    expect(document.activeElement).toBe(button);
+  });
+
   it('zeigt Kontext-Pills neben den Zaehlern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation durch Teamarbeit']);

@@ -36,11 +36,13 @@ const {
   getReactionsQueryMock,
   getQaWordCloudProjectionQueryMock,
   getFreetextWordCloudProjectionQueryMock,
+  setFreetextWordCloudEntryVisibilityMock,
   setFreetextWordCloudProjectionMutateMock,
   analyzeWordCloudMutateMock,
   subscribeMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
+  setFreetextWordCloudEntryVisibilityMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
   revealAnswersMutateMock: vi.fn(),
   revealResultsMutateMock: vi.fn(),
@@ -103,6 +105,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getLiveFreetext: {
         query: liveQueryMock,
       },
+      setFreetextWordCloudEntryVisibility: { mutate: setFreetextWordCloudEntryVisibilityMock },
       getCurrentQuestionForHost: {
         query: getCurrentQuestionForHostQueryMock,
       },
@@ -1661,6 +1664,57 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Live-Freitext');
     expect(text).toContain('Frage 2: Was war hilfreich?');
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('blendet auf der Bühne mit Host-Zugriff ein Wort aus und hält die leere Wolke', async () => {
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    liveQueryMock.mockResolvedValue({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      questionId,
+      questionOrder: 1,
+      questionType: 'FREETEXT',
+      questionText: 'Was war hilfreich?',
+      responses: ['Praxis'],
+      wordCloudVisibility: { questionId, hiddenLabels: [] },
+      wordCloudProjection: {
+        questionId,
+        mode: 'LEXICAL',
+        locale: 'de',
+        smoothingActive: false,
+        entries: [{ key: 'praxis', label: 'Praxis', count: 1 }],
+      },
+    });
+    setFreetextWordCloudEntryVisibilityMock.mockResolvedValue({
+      questionId,
+      hiddenLabels: ['Praxis'],
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.canHideFreetextWord());
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    root.querySelector<HTMLButtonElement>('button.word-cloud__word')!.click();
+    fixture.detectChanges();
+    expect(root.querySelector('.word-cloud__responses-panel')).toBeNull();
+    root.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setFreetextWordCloudEntryVisibilityMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        questionId,
+        label: 'Praxis',
+        hidden: true,
+      },
+      expect.anything(),
+    );
+    expect(root.querySelector('.word-cloud__word')).toBeNull();
+    expect(root.textContent).toContain('Keine Wörter sichtbar.');
+    expect(root.textContent).not.toContain('Ausgeblendete Wörter');
     fixture.destroy();
   });
 

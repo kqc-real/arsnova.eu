@@ -619,7 +619,7 @@
     },
     "session.getFreetextWordCloudProjection": {
       "kind": "query",
-      "fingerprint": "sha256:25a737734daa9d0b3d1b253f5197e4c4c5854cfb9c9ecb658b23936a1a571327",
+      "fingerprint": "sha256:56efca8b336d12d52e6d221805fe81b333e2359977d2db9358055b13854a6963",
       "missing": []
     },
     "session.getHasSubmittedFeedback": {
@@ -679,7 +679,7 @@
     },
     "session.getLiveFreetext": {
       "kind": "query",
-      "fingerprint": "sha256:c6c580963391a43998a0059792c44c7e8767a76913840e35c77dcec53a11fd5d",
+      "fingerprint": "sha256:6eb2607ec343d63ade7a9820cc40c0d8fdd55fa6a994e8794ff03e19bea1b4a7",
       "missing": []
     },
     "session.getParticipantNicknames": {
@@ -890,6 +890,11 @@
     "session.searchParticipants": {
       "kind": "query",
       "fingerprint": "sha256:653ec75cd4856c7b241464bbfebfae24ba3730fd5fb07b84210bd3988d77d4c2",
+      "missing": []
+    },
+    "session.setFreetextWordCloudEntryVisibility": {
+      "kind": "mutation",
+      "fingerprint": "sha256:e6c20f3b1b6d83c00df1ae49546f24147e6b3d68f6935cb66e1da886e3e08926",
       "missing": []
     },
     "session.setFreetextWordCloudProjection": {
