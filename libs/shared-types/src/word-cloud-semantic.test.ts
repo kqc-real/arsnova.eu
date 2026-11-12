@@ -11,12 +11,13 @@ import {
 } from './word-cloud-semantic.js';
 
 describe('word-cloud-semantic', () => {
-  it('begrenzt Pflichtlocales auf de und en', () => {
-    expect(WORD_CLOUD_SEMANTIC_LOCALES).toEqual(['de', 'en']);
+  it('unterstützt alle fünf App-Locales', () => {
+    expect(WORD_CLOUD_SEMANTIC_LOCALES).toEqual(['de', 'en', 'fr', 'es', 'it']);
     expect(isWordCloudSemanticLocale('de')).toBe(true);
-    expect(isWordCloudSemanticLocale('fr')).toBe(false);
-    expect(isWordCloudSemanticLocale('it')).toBe(false);
-    expect(WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION).toBe('1.14c.2');
+    expect(isWordCloudSemanticLocale('fr')).toBe(true);
+    expect(isWordCloudSemanticLocale('it')).toBe(true);
+    expect(isWordCloudSemanticLocale('pt')).toBe(false);
+    expect(WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION).toBe('1.14c.3');
     expect(WORD_CLOUD_SEMANTIC_MAX_TOPICS).toBe(12);
     expect(WORD_CLOUD_SEMANTIC_MIN_CLUSTER_SIZE).toBe(2);
   });

@@ -35,7 +35,7 @@ Wenn das kurze Themenlabel von einer längeren repräsentativen Frage oder Antwo
 | Nicht belastbar | **Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.** |
 | Nicht verfügbar | **Themen sind hier nicht verfügbar. Nutze Wörter oder Wortgruppen.**                                                           |
 
-Die Toolbars zeigen die wirksame Analysesprache. Ohne Sprachwahl entspricht sie der Oberflächensprache. Lokale Extraktion, Stoppwörter, Glättung und Themenanalyse verwenden dieselbe Wahl. Lemma ist für DE/EN/FR/ES verfügbar. Encoder und Modellnamen sind auf DE/EN beschränkt. Italienisch verwendet lokale Extraktion. Für Q&A umfasst die lokale Analyse den sichtbaren Seitenausschnitt.
+Die Toolbars zeigen die wirksame Analysesprache. Ohne Sprachwahl entspricht sie der Oberflächensprache. Lokale Extraktion, Stoppwörter, Glättung und Themenanalyse verwenden dieselbe Wahl. Lemmatisierung, Encoder und optionale Modellbeschriftung sind für `de`, `en`, `fr`, `es` und `it` verfügbar.
 
 `mode` hält die Wahl der Toolbar fest. `effectiveMode` beschreibt die sichtbaren Einträge. `analysisStatus` beschreibt den Analysestand in der Projektion. Titel, Zähler, Beschreibungen und Themenfilter folgen den sichtbaren Einträgen. Die Ersatzansicht kann je nach Daten Wörter oder Wörter und Wortgruppen enthalten. Während einer Aktualisierung können vorherige Themen sichtbar bleiben. `THEME` bezeichnet die lexikalische Wortgruppenansicht.
 
@@ -59,8 +59,8 @@ Die Endpunkte `wordCloud.analyzeQa` und `wordCloud.analyze` setzen eine geprüft
 
 | Kanal     | Encoder-Clustering                                                                                                            | Ohne Kill-Switch / tot / Timeout                 |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Q&A       | `PINNED`/`ACTIVE`, Locale `de`/`en`, Kanal `QA`                                                                               | 2.x-Phrasen, keine leere Karte                   |
-| Freitext  | sichtbare Antworten der aktuellen Host-Frage, Locale `de`/`en`, Kanal `FREETEXT`; Mindestclustergröße 2                       | 2.x wie Stufe 0                                  |
+| Q&A       | `PINNED`/`ACTIVE`, alle fünf App-Locales, Kanal `QA`                                                                          | 2.x-Phrasen, keine leere Karte                   |
+| Freitext  | sichtbare Antworten der aktuellen Host-Frage, alle fünf App-Locales, Kanal `FREETEXT`; Mindestclustergröße 2                  | 2.x wie Stufe 0                                  |
 | Presenter | Q&A übernimmt die Host-Projektion. Freitext folgt dem kompakten Bühnen-DTO und erlaubt eigene Analysen mit Host-Berechtigung. | Host-Inhalt oder lokale Wort- und Phrasenansicht |
 
 - **Neue Fragen oder Antworten:** vorhandenes Ergebnis bleibt sichtbar, Status **veraltet**, Button **Neu analysieren** (bzw. **Themen aktualisieren**). Keine Dauerschleife während `ACTIVE`. Wechselt eine laufende Freitext-Frage auf `RESULTS` (z. B. durch vorzeitigen Klick auf **Ergebnis anzeigen**) und ist der zuvor berechnete Themenstand gegenüber den letzten eingegangenen Antworten veraltet (`stale`), zieht der Host den eingefrorenen Endstand genau einmal automatisch nach. Schlägt die Neuanalyse fehl, bleiben veraltete Cluster und der Retry-Hinweis stehen. Nach einem `ready`-Lauf bleibt **Neu analysieren** bedienbar und umgeht den Snapshot-Cache (`refresh`), verwendet aber bereits gültige Einzel-Text-Embeddings und Cluster-Labels deterministisch weiter.
@@ -138,7 +138,7 @@ Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: 
 | Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`, längensortierte 16er-Batches, bis zu 4 Intra-Op-Threads                |
 | Analyseversion        | `1.14d.2`                                                                                                                                             |
 
-Bei deaktivierter Semantik liefert die Analyse `status: disabled`, `fallbackUsed: true` und lexikalische Einträge; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, überlasteter oder bis zum Timeout langsamer Encoder: `failed` plus 2.x. Während ein aktiver oder neuester wartender Request läuft, zeigt das Frontend `pending` über der weiterhin sichtbaren lexikalischen Wolke. Backend-Aufträge in `fr`/`es`: `fallback` plus lexikalische Wolke; unter italienischer UI bleibt die Analyse lokal, solange keine unterstützte Wolkensprache gewählt ist, und sendet keinen Backendauftrag.
+Bei deaktivierter Semantik liefert die Analyse `status: disabled`, `fallbackUsed: true` und lexikalische Einträge; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, überlasteter oder bis zum Timeout langsamer Encoder: `failed` plus 2.x. Während ein aktiver oder neuester wartender Request läuft, zeigt das Frontend `pending` über der weiterhin sichtbaren lexikalischen Wolke.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md). Lizenzen: [NOTICE](../../NOTICE), [docker/wordcloud-encoder/NOTICE](../../docker/wordcloud-encoder/NOTICE).
 
@@ -210,6 +210,14 @@ Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `f
 
 ## Qualität
 
+Ein lokaler Lauf mit dem ONNX-Image (Digestkennung `f80102d3f2a1229f`) hat je Locale drei Gruppen mit je drei synthetischen Paraphrasen geprüft. Bei der Schwelle 0,87 lagen in jeder Sprache alle neun Paare derselben Gruppe darüber und alle 27 Paare verschiedener Gruppen darunter. Die Stichprobe dient als Funktionsprobe, die Qualität im Hörsaal braucht einen breiteren Korpus.
+
+Der Modelltest liegt in `docker/wordcloud-encoder/tests/test_model.py`. Er läuft mit gesetztem `WORD_CLOUD_ENCODER_MODEL_DIR` und echten ONNX-Gewichten. Ein separater Test mit der privaten Qwen-Runtime lieferte Themenbeschriftungen und Lernzielvorschläge in allen fünf angeforderten Sprachen.
+
+Am 12. November 2026 liefen im isolierten lokalen Artillery-Test 500 Joins, 500 WebSocket-Verbindungen, 500 Votes und 100 Q&A-Einreichungen erfolgreich. Ab 401 Joins liefen parallel je eine Lemmatisierung und eine semantische Freitextanalyse in jeder der fünf Sprachen. Alle zehn Aufträge erreichten den regulären Sidecar-Pfad. Der Test nutzte eine gemeinsame Loopback-Adresse und enthielt keine parallelen Qwen-Aufträge.
+
+Beim Update zuerst die Sidecar-Images mit Unterstützung für alle fünf Locales bereitstellen. Anschließend die App mit den neuen Analyseversionen ausrollen. Ein älterer Sidecar lehnt die zusätzlichen Locales ab. Bei einem Encoder-Rollback zuerst die App zurückrollen oder den Encoder per `WORD_CLOUD_SEMANTIC_ENABLED=false` deaktivieren. Für spaCy gibt es analog `NLP_ENABLED=false`.
+
 CI-Fixtures (geometrische Einheitsvektoren, kein Modell-Download): die drei Klausur-Paraphrasen zu Kapitel 4 fallen zusammen; Folien vs. Beamer-Hänger nicht. Dasselbe Seed auf Englisch (exam / slides / projector). Die Freitext-Fixtures prüfen je Sprache drei getrennte Familien — Stimmungssätze, Einwortsynonyme und lange TCP-Fachsätze — sowie fachfremde Gegenbeispiele. Echtes e5 läuft nur im gebauten Image.
 
 e5-small liegt bei deutschsprachigen Vorlesungsfragen oft schon bei Kosinus ~0,80 zwischen verschiedenen Themen; identische Satzrahmen („Kurze Nachfrage“, „Kann das jemand einordnen“) ziehen fremde Familien auf ~0,84–0,89. Average-Linkage bei 0,80 verkettet daraus ein Mega-Thema. Complete-Linkage bei 0,87 hält Paraphrasen zusammen und die Familien getrennt. Die Host-Stufe **sicher** (≥ 0,85) bleibt davon unabhängig; engere Cluster liegen typisch darüber.
@@ -230,7 +238,7 @@ Siehe [TESTING.md](../TESTING.md) und das [Abnahmeprotokoll zu #641](../implemen
 
 ## Story 1.14d (Host-Freitext-Themen)
 
-Im Repo implementiert. Derselbe Encoder, dieselbe Complete-Linkage-Schwelle 0,87, dieselbe Mindestclustergröße 2 und derselbe Kill-Switch verarbeiten den getrennten Snapshot der sichtbaren Freitextantworten der aktuellen Frage. Die frühere Sperre für `channel: 'FREETEXT'` beziehungsweise `response-{index}` ist entfernt. `de`/`en` clustern bei aktivem Encoder; `fr`/`es`, einzelne Antworten, reine Singletons, Timeout und Fehler fallen im Backend lexikalisch zurück. Italienisch bleibt bei der lokalen Extraktion. Live-Submit, Vote, Join und WebSocket bleiben frei von Inferenz. Das Produktivflag bleibt bis zur gesonderten Betriebs- und Qualitätsfreigabe aus. Die kurze Themenzeile der Stufe 2 gilt für diesen Host-Kanal genauso wie für Q&A. Der Presenter zeigt die aktivierte Host-Ansicht und kann mit Host-Berechtigung eine eigene Analyse starten. Zuschnitt: [Backlog.md](../../Backlog.md) Story 1.14d.
+Im Repo implementiert. Derselbe Encoder, dieselbe Complete-Linkage-Schwelle 0,87, dieselbe Mindestclustergröße 2 und derselbe Kill-Switch verarbeiten den getrennten Snapshot der sichtbaren Freitextantworten der aktuellen Frage. Die frühere Sperre für `channel: 'FREETEXT'` beziehungsweise `response-{index}` ist entfernt. Bei aktivem Encoder clustern alle fünf App-Locales. Einzelne Antworten, reine Singletons, Timeouts und Fehler fallen im Backend lexikalisch zurück. Live-Submit, Vote, Join und WebSocket bleiben frei von Inferenz. Das Produktivflag bleibt bis zur gesonderten Betriebs- und Qualitätsfreigabe aus. Die kurze Themenzeile der Stufe 2 gilt für diesen Host-Kanal genauso wie für Q&A. Der Presenter zeigt die aktivierte Host-Ansicht und kann mit Host-Berechtigung eine eigene Analyse starten. Zuschnitt: [Backlog.md](../../Backlog.md) Story 1.14d.
 
 ## Stufe 2 (Kurze Themennamen) und bewusste Nicht-Ziele
 

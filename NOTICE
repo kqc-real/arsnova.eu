@@ -15,6 +15,7 @@ their own licenses. The models are replaceable wheels (`requirements.txt`).
 | Package         | Version | License | Source                                    |
 | --------------- | ------- | ------- | ----------------------------------------- |
 | spaCy           | 3.8.15  | MIT     | https://github.com/explosion/spaCy        |
+| spacy-lookups-data | 1.0.5 | MIT | https://github.com/explosion/spacy-lookups-data |
 | de_core_news_sm | 3.8.0   | MIT     | https://github.com/explosion/spacy-models |
 | en_core_web_sm  | 3.8.0   | MIT     | https://github.com/explosion/spacy-models |
 | fr_core_news_sm | 3.8.0   | LGPL-LR | https://github.com/explosion/spacy-models |
@@ -30,8 +31,7 @@ Not included
 | --------------- | --------------- | ----------------------------------------- |
 | it_core_news_sm | CC BY-NC-SA 3.0 | incompatible with the distributed default |
 
-Italian lemma support in the distributed default requires a license-compatible
-alternative model, not `it_core_news_sm`.
+Italian lemmatization uses the Italian lookup table from `spacy-lookups-data`.
 
 Optional word-cloud encoder image (docker/wordcloud-encoder)
 ------------------------------------------------------------

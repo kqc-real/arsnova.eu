@@ -13,6 +13,8 @@ Included packages
 -----------------
 
 - spaCy 3.8.15 (MIT) — https://github.com/explosion/spaCy
+- spacy-lookups-data 1.0.5 (MIT) — https://github.com/explosion/spacy-lookups-data
+  The Italian lemma lookup is used by the Italian tokenizer pipeline.
 - de_core_news_sm 3.8.0 (MIT) — https://github.com/explosion/spacy-models
 - en_core_web_sm 3.8.0 (MIT) — https://github.com/explosion/spacy-models
 - fr_core_news_sm 3.8.0 (LGPL-LR) — https://github.com/explosion/spacy-models
@@ -24,5 +26,4 @@ Not included
 ------------
 
 - it_core_news_sm (CC BY-NC-SA 3.0) is incompatible with the distributed
-  default image. Italian lemma support requires a license-compatible
-  alternative model.
+  default image.

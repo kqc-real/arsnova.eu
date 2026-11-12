@@ -8565,7 +8565,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt fuer eine einzelne italienische Nonsense-Antwort den lokalen Themen-Fallback', async () => {
+  it('zeigt fuer eine einzelne italienische Nonsense-Antwort den Themen-Fallback des Backends', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -8584,6 +8584,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       responses: ['asdfgh'],
     });
 
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        locale: 'it',
+        status: 'fallback',
+        fallbackUsed: true,
+        entries: [],
+      }),
+    );
     const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -8597,18 +8606,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await component.setFreetextWordCloudMode('SEMANTIC');
     fixture.detectChanges();
 
-    expect(component.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
-    expect(component.freetextWordCloudSemanticHint()).toBe(
-      'Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.',
+    expect(component.qaWordCloudAnalysisLocale()).toBe('it');
+    await vi.waitUntil(() => component.freetextWordCloudSemanticAnalysisResult() !== null, {
+      timeout: 5000,
+      interval: 25,
+    });
+    expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('fallback');
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'SEMANTIC', locale: 'it', channel: 'FREETEXT' }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
-    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
-    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
-    expect(
-      wordCloudAnalyzeQueryMock.mock.calls.some(
-        (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
-      ),
-    ).toBe(false);
     expect(fixture.nativeElement.textContent).toContain(
       'Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.',
     );
@@ -10033,9 +10040,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('laesst die italienische Host-UI ohne Wolkensprache, bis der Host eine waehlt', () => {
+  it('verwendet Italienisch standardmäßig als Wolkensprache', () => {
     const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
-    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('it');
     fixture.destroy();
   });
 
@@ -10053,7 +10060,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('laesst Freitext lokal, wenn die Glaettung nicht verfuegbar ist', async () => {
+  it('glättet italienischen Freitext und analysiert einen Sprachwechsel erneut', async () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
       order: 5,
@@ -10080,13 +10087,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     const component = fixture.componentInstance;
-    expect(component.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
-    expect(component.freetextWordCloudSmoothingHint()).toBe('Wähle die Sprache der Beiträge');
-    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
+    expect(component.qaWordCloudAnalysisLocale()).toBe('it');
+    expect(component.freetextWordCloudSmoothingDisabled()).toBe(false);
+
+    wordCloudAnalyzeQueryMock.mockResolvedValueOnce(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        locale: 'it',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'it_lemma_lookup@1.0.5',
+      }),
+    );
     await component.toggleFreetextWordCloudSmoothing();
-    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
-    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
 
     wordCloudAnalyzeQueryMock.mockResolvedValue(
       wordCloudAnalyzeResult({
@@ -10117,6 +10130,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       interval: 25,
     });
     expect(lemmaAnalyzeCalls()).toEqual([
+      [expect.objectContaining({ locale: 'it', normalization: 'LEMMA' })],
       [expect.objectContaining({ locale: 'es', normalization: 'LEMMA' })],
     ]);
     fixture.destroy();
@@ -13735,7 +13749,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt auf Italienisch einen lokalen Q&A-Seitenausschnitt', async () => {
+  it('fordert italienische Lemmatisierung für die Q&A-Wortwolke an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -13767,86 +13781,23 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       interval: 25,
     });
 
-    hostTestAccess(fixture.componentInstance).qaHostStatusCounts.set({
-      active: 1,
-      pinned: 0,
-      pending: 3,
-      archived: 4,
-    });
-    fixture.componentInstance.qaListTotalCount.set(8);
-    expect(fixture.componentInstance.qaWordCloudAnalyzedCount()).toBe(1);
-    expect(fixture.componentInstance.qaWordCloudEligibleCount()).toBe(1);
-
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
-    await fixture.componentInstance.openQaWordCloudDialog();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('THEME');
-    expect(fixture.componentInstance.qaWordCloudTerms().length).toBeGreaterThan(0);
-    expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
-    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBe(
-      'Wähle die Sprache der Beiträge',
-    );
-    await fixture.componentInstance.toggleQaWordCloudSmoothing();
-    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
-
-    const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
-    const data = config['data'] as {
-      analysisVariant: () => string;
-      themeModeAvailable: () => boolean;
-      themeFallbackHint: () => string | null;
-      terms: () => Array<{ key: string }> | null;
-    };
-    expect(data.analysisVariant()).toBe('THEME');
-    expect(data.themeModeAvailable()).toBe(true);
-    expect(data.themeFallbackHint()).toBeNull();
-    expect(data.terms()?.length).toBeGreaterThan(0);
-    expect(Object.prototype.hasOwnProperty.call(config['data'], 'lemmaLocale')).toBe(false);
-
     wordCloudAnalyzeQueryMock.mockImplementation(
-      async (input: { normalization?: string; locale?: string }) =>
+      async (input: { mode: 'LEXICAL' | 'THEME'; normalization?: string }) =>
         wordCloudAnalyzeResult({
-          mode: input.normalization === 'LEMMA' ? 'LEXICAL' : 'THEME',
-          locale: input.locale ?? 'fr',
-          metric: 'TOP',
+          mode: input.mode,
+          locale: 'it',
           normalization: input.normalization === 'LEMMA' ? 'LEMMA' : 'NONE',
           normalizationApplied: input.normalization === 'LEMMA' ? 'LEMMA' : 'NONE',
-          modelId: 'fr_core_news_sm@3.8.0',
-          entries: [
-            {
-              key: 'domande',
-              label: 'domande',
-              count: 1,
-              basisLabel: 'domande',
-              members: [],
-              variants: ['domande'],
-              confidence: 0.9,
-            },
-          ],
+          modelId: input.normalization === 'LEMMA' ? 'it_lemma_lookup@1.0.5' : null,
         }),
     );
-    await fixture.componentInstance.setWordCloudLemmaLocale('fr');
-    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('fr');
-    await vi.waitUntil(
-      () =>
-        wordCloudAnalyzeQueryMock.mock.calls.some(
-          (call) => (call[0] as { mode?: string }).mode === 'THEME',
-        ) && lemmaAnalyzeCalls().length >= 1,
-      { timeout: 5000, interval: 25 },
-    );
-    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ mode: 'THEME', locale: 'fr', normalization: 'NONE' }),
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
-    );
-
-    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
-      timeout: 5000,
-      interval: 25,
-    });
-    expect(lemmaAnalyzeCalls()).toEqual([
-      [expect.objectContaining({ locale: 'fr', normalization: 'LEMMA', mode: 'LEXICAL' })],
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    const component = fixture.componentInstance;
+    await component.openQaWordCloudDialog();
+    expect(component.qaWordCloudAnalysisLocale()).toBe('it');
+    await vi.waitUntil(() => lemmaAnalyzeCalls().length > 0);
+    expect(lemmaAnalyzeCalls()).toContainEqual([
+      expect.objectContaining({ locale: 'it', normalization: 'LEMMA', filter: 'ALL_ELIGIBLE' }),
     ]);
     fixture.destroy();
   });

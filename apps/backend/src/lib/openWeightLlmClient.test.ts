@@ -34,7 +34,6 @@ import {
   QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   prepareModerationSummaryContextFromAnalysis,
 } from './moderationSummaryContext';
-import { canonicalModerationPromptJson } from './moderationPromptContextPacking';
 import { logger } from './logger';
 
 const SOURCE_ID = 'qa-question:11111111-1111-4111-8111-111111111111';
@@ -127,7 +126,7 @@ const defaultConfig: OpenWeightLlmConfig = {
   maxOutputTokens: { topic_label: 96, qa_summary: 640, learning_objectives: 768 },
 };
 
-function completionResponse(output: OpenWeightLlmOutput) {
+function completionResponse(output: unknown) {
   return {
     status: 200,
     body: JSON.stringify({
@@ -321,79 +320,93 @@ describe('openWeightLlmClient', () => {
     },
   );
 
-  it('serialisiert Summary V2 exakt als zwei Systemnachrichten plus kanonischen Fachkontext', async () => {
-    const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
-    const analysis = ModerationAnalysisContextV1Schema.parse({
-      schemaVersion: fixture.schemaVersion,
-      contractVersion: MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
-      assembledAt: '2026-01-15T10:05:00.000Z',
-      context: { ...fixture.context, representation: 'analysis-candidates' },
-    });
-    const prepared = prepareModerationSummaryContextFromAnalysis({
-      analysis,
-      plan: {
-        capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
-        selectedMode: 'full-context',
-        fallback: null,
-        inferenceConfigured: true,
-      },
-      packedAt: new Date('2026-01-15T10:06:00.000Z'),
-    });
-    const sourceId = prepared.request.promptContext.context.sources[0]!.id;
-    const output = {
-      schemaVersion: 2,
-      taskType: 'qa_summary',
-      outputContract: 'qa-summary-model-output-v3',
-      output: {
-        status: 'ready',
-        statements: [{ text: 'Belegt.', sourceIds: [sourceId] }],
-        suggestedNextSteps: [],
-        limitations: [],
-      },
-    } satisfies OpenWeightLlmSummaryOutputV2;
-    let translatedBody: string | null = null;
-    resetOpenWeightLlmClientForTests({
-      config: () => defaultConfig,
-      request: async (input) => {
-        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
-        translatedBody = input.body;
-        return completionResponse(output);
-      },
-    });
+  it.each([
+    { ref: '1', question: 'Wie wird die Varianz berechnet?', valid: true },
+    { ref: '99', question: 'Wie wird die Varianz berechnet?', valid: false },
+    { ref: '1', question: 'Die Varianz ist das Quadrat der Standardabweichung.', valid: false },
+  ])(
+    'prüft Kurzreferenz und Frageform der Modellantwort ($valid)',
+    async ({ ref, question, valid }) => {
+      const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
+      const analysis = ModerationAnalysisContextV1Schema.parse({
+        schemaVersion: fixture.schemaVersion,
+        contractVersion: MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
+        assembledAt: '2026-01-15T10:05:00.000Z',
+        context: { ...fixture.context, representation: 'analysis-candidates' },
+      });
+      const prepared = prepareModerationSummaryContextFromAnalysis({
+        analysis,
+        plan: {
+          capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+          selectedMode: 'full-context',
+          fallback: null,
+          inferenceConfigured: true,
+        },
+        packedAt: new Date('2026-01-15T10:06:00.000Z'),
+      });
+      const sourceId = prepared.request.promptContext.context.sources[0]!.id;
+      const topic = 'Statistische Grundlagen der Varianzberechnung';
+      const output = {
+        schemaVersion: 2,
+        taskType: 'qa_summary',
+        outputContract: 'qa-summary-model-output-v3',
+        output: {
+          status: 'ready',
+          statements: [
+            { text: `${topic}: Wie wird die Varianz berechnet?`, sourceIds: [sourceId] },
+            {
+              text: 'Stichprobe: Wie wird die Stichprobe ausgewählt?',
+              sourceIds: [sourceId],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+      } satisfies OpenWeightLlmSummaryOutputV2;
+      let translatedBody: string | null = null;
+      resetOpenWeightLlmClientForTests({
+        config: () => defaultConfig,
+        request: async (input) => {
+          if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+          translatedBody = input.body;
+          return completionResponse({
+            topics: [
+              { topic, question, refs: [ref] },
+              { topic: 'Stichprobe', question: 'Wie wird die Stichprobe ausgewählt?', refs: ['1'] },
+            ],
+          });
+        },
+      });
 
-    await expect(runOpenWeightLlmSummaryV2(prepared.request)).resolves.toMatchObject({
-      status: 'completed',
-      output,
-    });
-    const body = JSON.parse(translatedBody ?? '{}') as {
-      messages: Array<{ role: string; content: string }>;
-      response_format: { schema: { properties?: Record<string, unknown> } };
-    };
-    expect(body.messages).toEqual([
-      { role: 'system', content: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT },
-      { role: 'system', content: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT },
-      {
-        role: 'user',
-        content: canonicalModerationPromptJson(prepared.request.promptContext.context),
-      },
-    ]);
-    expect(body.messages[2]?.content).not.toContain(prepared.request.promptContext.snapshotHash);
-    expect(body.response_format.schema.properties).toHaveProperty('output');
-    const outputProp = body.response_format.schema.properties?.['output'] as {
-      properties?: {
-        statements?: {
-          minItems?: number;
-          maxItems?: number;
-          items?: { properties?: { sourceIds?: { items?: { enum?: string[] } } } };
-        };
+      await expect(runOpenWeightLlmSummaryV2(prepared.request)).resolves.toMatchObject(
+        valid ? { status: 'completed', output } : { status: 'invalid_response' },
+      );
+      const body = JSON.parse(translatedBody ?? '{}') as {
+        messages: Array<{ role: string; content: string }>;
+        response_format: { schema: { properties?: Record<string, unknown> } };
       };
-    };
-    expect(outputProp?.properties?.statements?.minItems).toBe(2);
-    expect(outputProp?.properties?.statements?.maxItems).toBe(4);
-    expect(outputProp?.properties?.statements?.items?.properties?.sourceIds?.items?.enum).toEqual(
-      prepared.request.promptContext.context.sources.map((s) => s.id),
-    );
-  });
+      expect(body.messages).toEqual([
+        { role: 'system', content: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT },
+        { role: 'system', content: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT },
+        {
+          role: 'user',
+          content: expect.any(String),
+        },
+      ]);
+      expect(body.messages[2]?.content).not.toContain(prepared.request.promptContext.snapshotHash);
+      expect(body.messages[2]?.content).not.toContain(sourceId);
+      const context = JSON.parse(body.messages[2]!.content);
+      expect(context.sources[0]).toMatchObject({ id: '1', kind: 'qa-question' });
+      expect(context.sources[0].answerState).toBe('unaddressed');
+      expect(body.response_format.schema.properties?.['topics']).toMatchObject({
+        minItems: 2,
+        maxItems: 4,
+        items: { properties: { topic: { type: 'string' }, refs: { items: { enum: ['1'] } } } },
+      });
+      const topicsSchema = body.response_format.schema.properties?.['topics'];
+      expect(topicsSchema).not.toHaveProperty('items.properties.topic.maxLength');
+    },
+  );
 
   it('zwingt learning_objectives questionIds im Wire-Schema auf die Quell-IDs statt UUID-Regex', async () => {
     let translatedBody: string | null = null;

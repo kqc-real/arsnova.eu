@@ -170,14 +170,8 @@ function buildWeightAgnosticCorpusKey(sessionKey: string, input: AnalyzeWordClou
   return `${sessionKey}:${hash}`;
 }
 
-function buildSessionItemEmbeddingKey(
-  sessionKey: string,
-  locale: string,
-  sourceText: string,
-): string {
-  const hash = createHash('sha256')
-    .update(JSON.stringify({ locale, text: sourceText }), 'utf8')
-    .digest('hex');
+function buildSessionItemEmbeddingKey(sessionKey: string, sourceText: string): string {
+  const hash = createHash('sha256').update(sourceText, 'utf8').digest('hex');
   return `${sessionKey}:${hash}`;
 }
 
@@ -395,7 +389,7 @@ async function resolveIncrementalEmbeddings(
     }
     sourceTextById.set(item.id, sourceText);
     if (useItemCache) {
-      const itemKey = buildSessionItemEmbeddingKey(sessionKey, input.locale, sourceText);
+      const itemKey = buildSessionItemEmbeddingKey(sessionKey, sourceText);
       const cachedItem = sessionItemEmbeddingsCache.get(itemKey);
       if (cachedItem && cachedItem.expiresAt > nowMs) {
         cachedVectorsById.set(item.id, cachedItem);
@@ -437,7 +431,7 @@ async function resolveIncrementalEmbeddings(
       }
       freshByText.set(sourceText, vector);
       if (canCache()) {
-        const itemKey = buildSessionItemEmbeddingKey(sessionKey, input.locale, sourceText);
+        const itemKey = buildSessionItemEmbeddingKey(sessionKey, sourceText);
         writeSessionItemEmbedding(itemKey, {
           expiresAt,
           modelId: response.modelId,
@@ -463,7 +457,7 @@ async function resolveIncrementalEmbeddings(
         const originalId = fromWordCloudSemanticSourceId(entry.id);
         const sourceText = sourceTextById.get(originalId);
         if (!sourceText) continue;
-        const itemKey = buildSessionItemEmbeddingKey(sessionKey, input.locale, sourceText);
+        const itemKey = buildSessionItemEmbeddingKey(sessionKey, sourceText);
         writeSessionItemEmbedding(itemKey, {
           expiresAt,
           modelId: fullResponse.modelId,
@@ -827,12 +821,11 @@ async function flushPrewarmBuffer(sessionId: string): Promise<void> {
   for (const text of pendingTexts) {
     buffer.texts.delete(text);
   }
-  // Die E5-Embeddings hängen nur von `"query: " + sourceText` ab (nicht von `locale`).
-  // Wir wärmen den Standard-Locale-Schlüssel ('de') vor und spiegeln ihn auf ('en'),
-  // damit unabhängig von der späteren Host-Sprache sofort ein Cache-Hit vorliegt.
+  // E5 kodiert nur `"query: " + sourceText`. Alle Analysesprachen teilen denselben
+  // sessiongebundenen Vektor; die Analyse- und Beschriftungs-Caches bleiben sprachgebunden.
   const missingTexts = pendingTexts.filter((sourceText) => {
-    const deKey = buildSessionItemEmbeddingKey(sessionKey, 'de', sourceText);
-    const hit = sessionItemEmbeddingsCache.get(deKey);
+    const key = buildSessionItemEmbeddingKey(sessionKey, sourceText);
+    const hit = sessionItemEmbeddingsCache.get(key);
     return !hit || hit.expiresAt <= now;
   });
   if (missingTexts.length === 0) {
@@ -873,15 +866,13 @@ async function flushPrewarmBuffer(sessionId: string): Promise<void> {
       const sourceText = missingTexts[idx]!;
       const vector = vectorById.get(`prewarm-${idx + 1}`);
       if (!vector) continue;
-      for (const locale of ['de', 'en'] as const) {
-        const key = buildSessionItemEmbeddingKey(sessionKey, locale, sourceText);
-        writeSessionItemEmbedding(key, {
-          expiresAt,
-          modelId: response.modelId,
-          modelVersion: response.modelVersion,
-          vector,
-        });
-      }
+      const key = buildSessionItemEmbeddingKey(sessionKey, sourceText);
+      writeSessionItemEmbedding(key, {
+        expiresAt,
+        modelId: response.modelId,
+        modelVersion: response.modelVersion,
+        vector,
+      });
     }
   } catch {
     // Stilles Pre-Warming: Fehler beeinflussen niemals den Teilnehmer-Submit oder den Circuit Breaker.
@@ -920,7 +911,7 @@ export function scheduleWordCloudSemanticEmbeddingPrewarm(input: {
   const sessionKey = sessionJobKey(trimmedSessionId);
   const now = hooks.now();
   const existing = sessionItemEmbeddingsCache.get(
-    buildSessionItemEmbeddingKey(sessionKey, 'de', sourceText),
+    buildSessionItemEmbeddingKey(sessionKey, sourceText),
   );
   if (existing && existing.expiresAt > now) {
     return;

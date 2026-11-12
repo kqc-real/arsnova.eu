@@ -2,6 +2,7 @@ import type { IncomingMessage } from 'node:http';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
+  MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1,
   MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1,
   ModerationAnalysisContextV1Schema,
   QaSummaryExecutionV2Schema,
@@ -36,6 +37,7 @@ import {
   prepareModerationSummaryContextFromAnalysis,
 } from '../lib/moderationSummaryContext';
 import { resetQaSummaryQueueForTests, waitForQaSummaryIdleForTests } from '../lib/qaSummaryQueue';
+import { createExtractiveQaSummaryOutput } from '../lib/qaSummaryExtractive';
 
 function hostCtx(token: string | null) {
   return {
@@ -121,6 +123,26 @@ describe('qa summary V2 (issue #456 slice 7)', () => {
     resetQaSummaryQueueForTests();
     vi.unstubAllEnvs();
   });
+
+  it.each([
+    ['de', 'Eine ausführliche Zusammenfassung'],
+    ['en', 'A detailed summary'],
+    ['fr', 'Un résumé détaillé'],
+    ['es', 'Esta vez no ha sido posible'],
+    ['it', 'Questa volta non è stato possibile'],
+  ] as const)(
+    'lokalisiert den extraktiven Fallback in %s und übernimmt die Quelle',
+    (locale, copy) => {
+      const fixture = MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1;
+      const fallbackContext = { ...fixture, context: { ...fixture.context, locale } };
+      const source = fallbackContext.context.sources[0]!;
+      const result = createExtractiveQaSummaryOutput(fallbackContext);
+
+      expect(result.status).toBe('ready');
+      expect(result.statements).toEqual([{ text: source.content.text, sourceIds: [source.id] }]);
+      expect(result.limitations[0]).toContain(copy);
+    },
+  );
 
   trpcDodIt(
     {

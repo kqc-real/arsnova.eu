@@ -34,11 +34,12 @@ test('--help nennt Demo-Quiz, Clean, Produktions-Build und Locales', () => {
   assert.match(result.stdout, /Ein ng serve reicht nicht/);
 });
 
-test('prueft spaCy-Modelle de/en/fr/es', () => {
+test('prueft spaCy-Modelle de/en/fr/es und italienische Lookup-Daten', () => {
   const source = readFileSync(script, 'utf8');
+  assert.match(source, /spacy_lookups_data/);
   assert.match(source, /fr_core_news_sm/);
   assert.match(source, /es_core_news_sm/);
-  assert.match(source, /Wolkensprache DE\/EN\/FR\/ES wählen/);
+  assert.match(source, /Sprachformen glätten in de\/en\/fr\/es\/it/);
   assert.match(source, /http:\/\/localhost:4200\/it\//);
 });
 

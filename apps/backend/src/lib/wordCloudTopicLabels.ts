@@ -16,6 +16,7 @@ import {
   type WordCloudAnalysisEntryDTO,
   type WordCloudLabelOrigin,
   type WordCloudLabelSettlement,
+  type WordCloudSemanticLocale,
 } from '@arsnova/shared-types';
 import {
   isOpenWeightLlmEnabled,
@@ -54,7 +55,6 @@ const TOPIC_LABEL_MAX_SOURCE_TEXT_CHARS = 240;
 const TOPIC_LABEL_COMPACT_ID_MAX_LENGTH = 20;
 const TOPIC_LABEL_CACHE_TTL_MS = 30 * 60_000;
 const TOPIC_LABEL_CACHE_MAX_ENTRIES = 512;
-const TOPIC_LABEL_LOCALES = new Set(['de', 'en']);
 const TRANSIENT_REASONS = new Set([
   'busy',
   'timeout',
@@ -343,7 +343,7 @@ type PendingBatchClusterCandidate = {
 };
 
 function packBatchRequests(
-  locale: 'de' | 'en',
+  locale: WordCloudSemanticLocale,
   candidates: readonly PendingBatchClusterCandidate[],
 ): Array<{
   readonly batchRequest: OpenWeightLlmTopicLabelBatchRequest;
@@ -445,8 +445,7 @@ export async function applyWordCloudTopicLabels(
     output.mode !== 'SEMANTIC' ||
     output.fallbackUsed ||
     (output.status !== 'ready' && output.status !== 'uncertain') ||
-    (input.channel !== 'QA' && input.channel !== 'FREETEXT') ||
-    !TOPIC_LABEL_LOCALES.has(output.locale)
+    (input.channel !== 'QA' && input.channel !== 'FREETEXT')
   ) {
     return finish(output);
   }
@@ -488,7 +487,7 @@ export async function applyWordCloudTopicLabels(
 
   // Schneller Batch-Pfad (Standard, sobald ≥ 2 unbenannte Cluster vorliegen und kein Einzel-Mock übergeben wurde):
   // fasst bis zu 12 Cluster in einem einzigen LLM-Call (<= 2.500 UTF-8-Bytes) zusammen.
-  if (labelBatch && (output.locale === 'de' || output.locale === 'en')) {
+  if (labelBatch) {
     const resolvedEntries: Array<WordCloudAnalysisEntryDTO | null> = output.entries.map(() => null);
     const pendingCandidates: PendingBatchClusterCandidate[] = [];
 

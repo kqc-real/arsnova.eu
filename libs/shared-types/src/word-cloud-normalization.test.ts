@@ -5,7 +5,6 @@ import {
   resolveWordCloudLemmaApplication,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_DEFAULT_NORMALIZATION,
-  WORD_CLOUD_LEMMA_EXCLUDED_MODELS,
   WORD_CLOUD_LEMMA_MODELS,
   WORD_CLOUD_MAX_ANALYZE_ITEMS,
   WORD_CLOUD_MAX_ITEM_TEXT_CHARS,
@@ -18,26 +17,27 @@ import {
 } from './word-cloud-normalization.js';
 
 describe('word-cloud-normalization (Story 1.14b)', () => {
-  it('begrenzt Lemma-Locales auf de/en/fr/es und haelt it ausserhalb', () => {
+  it('unterstützt die fünf App-Locales mit gepinnten Modellen', () => {
     expect(isWordCloudLemmaLocale('de')).toBe(true);
     expect(isWordCloudLemmaLocale('en')).toBe(true);
     expect(isWordCloudLemmaLocale('fr')).toBe(true);
     expect(isWordCloudLemmaLocale('es')).toBe(true);
-    expect(isWordCloudLemmaLocale('it')).toBe(false);
+    expect(isWordCloudLemmaLocale('it')).toBe(true);
+    expect(isWordCloudLemmaLocale('pt')).toBe(false);
     expect(WORD_CLOUD_LEMMA_MODELS.de.license).toBe('MIT');
     expect(WORD_CLOUD_LEMMA_MODELS.en.license).toBe('MIT');
     expect(WORD_CLOUD_LEMMA_MODELS.fr.license).toBe('LGPL-LR');
     expect(WORD_CLOUD_LEMMA_MODELS.es.license).toBe('GPL-3.0');
-    expect(WORD_CLOUD_LEMMA_EXCLUDED_MODELS.it.license).toBe('CC BY-NC-SA 3.0');
+    expect(WORD_CLOUD_LEMMA_MODELS.it.license).toBe('MIT');
     expect(wordCloudLemmaModelId('de')).toBe('de_core_news_sm@3.8.0');
     expect(wordCloudLemmaModelId('fr')).toBe('fr_core_news_sm@3.8.0');
     expect(wordCloudLemmaModelId('es')).toBe('es_core_news_sm@3.8.0');
-    expect(wordCloudLemmaModelId('it')).toBeNull();
+    expect(wordCloudLemmaModelId('it')).toBe('it_lemma_lookup@1.0.5');
   });
 
   it('pinnt Runtime und Vertragsversion für Cache-Schlüssel', () => {
     expect(WORD_CLOUD_SPACY_RUNTIME_VERSION).toBe('3.8.15');
-    expect(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION).toBe('1.14b.14');
+    expect(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION).toBe('1.14b.15');
     expect(WORD_CLOUD_DEFAULT_NORMALIZATION).toBe('NONE');
     expect(WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH).toBe(1);
     expect(WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH).toBe(3);
@@ -159,7 +159,7 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
     );
   });
 
-  it('wendet LEMMA fuer fr und es an und haelt it ausserhalb', () => {
+  it('wendet LEMMA für fr, es und it an', () => {
     expect(
       resolveWordCloudLemmaApplication({
         requested: 'LEMMA',
@@ -194,10 +194,10 @@ describe('word-cloud-normalization (Story 1.14b)', () => {
         sidecarAvailable: true,
       }),
     ).toMatchObject({
-      applied: 'NONE',
-      reason: 'LOCALE_UNSUPPORTED',
-      fallbackLocale: 'de',
-      modelId: null,
+      applied: 'LEMMA',
+      reason: null,
+      fallbackLocale: 'it',
+      modelId: 'it_lemma_lookup@1.0.5',
     });
   });
 });

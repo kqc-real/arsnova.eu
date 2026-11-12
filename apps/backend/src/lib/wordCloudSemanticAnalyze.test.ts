@@ -575,7 +575,7 @@ describe('wordCloudSemanticAnalyze', () => {
     expect(result.fallbackUsed).toBe(false);
   });
 
-  it.each(['de', 'en', 'fr', 'es'] as const)(
+  it.each(['de', 'en', 'fr', 'es', 'it'] as const)(
     'laesst eine einzelne Freitext-Nonsense-Antwort in %s ohne Encoder als fallback fallen',
     async (locale) => {
       const embed = async () => {
@@ -603,12 +603,17 @@ describe('wordCloudSemanticAnalyze', () => {
     },
   );
 
-  it.each(['fr', 'es'] as const)(
-    'laesst Freitext in %s kontrolliert lexikalisch fallen',
+  it.each(['fr', 'es', 'it'] as const)(
+    'ruft den Encoder für Freitext in %s auf',
     async (locale) => {
-      const embed = async () => {
-        throw new Error('encoder must not run');
-      };
+      const embed = vi.fn(async (input: AnalyzeWordCloudInput) => ({
+        modelId: 'intfloat/multilingual-e5-small',
+        modelVersion: 'fixture',
+        items: input.items.map((item) => ({
+          id: toWordCloudSemanticSourceId(item.id),
+          embedding: geometricEmbeddingForSeedText(item.text),
+        })),
+      }));
       resetWordCloudSemanticAnalyzeForTests({
         config: () => enabledConfig,
         embed,
@@ -624,9 +629,14 @@ describe('wordCloudSemanticAnalyze', () => {
         items: freetextItems(WORD_CLOUD_SEMANTIC_FREETEXT_DE_SEED),
       });
 
-      expect(result.status).toBe('fallback');
-      expect(result.fallbackUsed).toBe(true);
-      expect(result.modelVersion).toBeNull();
+      expect(result.status).toBe('ready');
+      expect(result.fallbackUsed).toBe(false);
+      expect(result.modelVersion).toBe('fixture');
+      expect(embed).toHaveBeenCalledWith(
+        expect.objectContaining({ locale }),
+        expect.any(String),
+        enabledConfig,
+      );
     },
   );
 
@@ -804,7 +814,7 @@ describe('wordCloudSemanticAnalyze', () => {
       const result = await runSemanticDirect({
         sessionCode: 'ABC123',
         mode: 'SEMANTIC',
-        locale: 'de',
+        locale: 'it',
         metric: 'TOP',
         channel: 'FREETEXT',
         normalization: 'NONE',

@@ -3,7 +3,7 @@
 
 Unix-socket HTTP API, analog to the PDF worker:
 - GET  /health    → 204
-- POST /normalize → lemma/POS tokens for de/en/fr/es snapshots
+- POST /normalize → lemma/POS tokens for de/en/fr/es/it snapshots
 
 The process never binds a TCP port. Request texts are not written to logs.
 """
@@ -31,6 +31,7 @@ MODEL_IDS = {
     "en": "en_core_web_sm@3.8.0",
     "fr": "fr_core_news_sm@3.8.0",
     "es": "es_core_news_sm@3.8.0",
+    "it": "it_lemma_lookup@1.0.5",
 }
 MODEL_NAMES = {
     "de": "de_core_news_sm",
@@ -74,7 +75,8 @@ def tokens_from_doc(doc: Iterable[Any]) -> list[dict[str, str | None]]:
             continue
         text = str(getattr(token, "text", "") or "")
         lemma = str(getattr(token, "lemma_", "") or text)
-        pos = str(getattr(token, "pos_", "") or "X")
+        fallback_pos = "PUNCT" if getattr(token, "is_punct", False) else "X"
+        pos = str(getattr(token, "pos_", "") or fallback_pos)
         if not text or not lemma:
             continue
         ent = str(getattr(token, "ent_type_", "") or "") or None
@@ -105,7 +107,9 @@ def parse_normalize_request(raw: bytes) -> tuple[str, list[dict[str, str]]] | st
         return "invalid"
     locale = payload.get("locale")
     texts = payload.get("texts")
-    if locale not in MODEL_IDS or not isinstance(texts, list) or len(texts) > MAX_ITEMS:
+    if not isinstance(locale, str) or locale not in MODEL_IDS:
+        return "invalid"
+    if not isinstance(texts, list) or len(texts) > MAX_ITEMS:
         return "invalid"
     normalized: list[dict[str, str]] = []
     seen: set[str] = set()
@@ -166,6 +170,10 @@ def load_models() -> dict[str, Nlp]:
     models: dict[str, Nlp] = {}
     for locale, name in MODEL_NAMES.items():
         models[locale] = spacy.load(name, exclude=list(LOAD_EXCLUDES))
+    italian = spacy.blank("it")
+    italian.add_pipe("lemmatizer", config={"mode": "lookup"})
+    italian.initialize()
+    models["it"] = italian
     return models
 
 

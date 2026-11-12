@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import sys
@@ -95,18 +96,19 @@ class ParseNormalizeRequestTests(unittest.TestCase):
         parsed = server.parse_normalize_request(raw)
         self.assertEqual(parsed, ("de", [{"id": "a", "text": "Häuser"}]))
 
-    def test_accepts_bundled_locales_and_rejects_italian(self) -> None:
-        for locale, text in (("de", "Häuser"), ("en", "houses"), ("fr", "maisons"), ("es", "casas")):
+    def test_accepts_all_app_locales_and_rejects_unknown_locale(self) -> None:
+        for locale, text in (("de", "Häuser"), ("en", "houses"), ("fr", "maisons"), ("es", "casas"), ("it", "lezioni")):
             parsed = server.parse_normalize_request(
                 json.dumps({"locale": locale, "texts": [{"id": "a", "text": text}]}).encode()
             )
             self.assertEqual(parsed, (locale, [{"id": "a", "text": text}]))
         self.assertEqual(
             server.parse_normalize_request(
-                json.dumps({"locale": "it", "texts": [{"id": "a", "text": "ciao"}]}).encode()
+                json.dumps({"locale": "pt", "texts": [{"id": "a", "text": "olá"}]}).encode()
             ),
             "invalid",
         )
+
         self.assertEqual(
             server.parse_normalize_request(
                 json.dumps(
@@ -133,6 +135,23 @@ class ParseNormalizeRequestTests(unittest.TestCase):
                 {"text": "Macht", "lemma": "Macht", "pos": "NOUN", "tag": "VVFIN", "entType": None},
             ],
         )
+
+
+@unittest.skipUnless(
+    importlib.util.find_spec("spacy_lookups_data"), "requires installed sidecar models"
+)
+class ItalianLookupTests(unittest.TestCase):
+    def test_real_lookup_keeps_names_and_groups_inflected_forms(self) -> None:
+        model = server.load_models()["it"]
+        result = server.normalize_texts(
+            "it", [{"id": "a", "text": "Per l’esame: esami, lezioni, Roma e TCP."}], model
+        )
+        tokens = {token["text"]: token for token in result["items"][0]["tokens"]}
+        self.assertEqual(result["modelId"], "it_lemma_lookup@1.0.5")
+        self.assertEqual(tokens["esami"]["lemma"], "esame")
+        self.assertEqual(tokens["lezioni"]["lemma"], "lezione")
+        self.assertEqual(tokens["Roma"]["lemma"], "Roma")
+        self.assertEqual(tokens["TCP"]["lemma"], "TCP")
 
 
 class UnixSocketApiTests(unittest.TestCase):

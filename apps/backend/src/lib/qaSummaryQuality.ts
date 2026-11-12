@@ -1,4 +1,8 @@
-import type { AppLocale, QaSummaryModelOutputV2 } from '@arsnova/shared-types';
+import {
+  QA_SUMMARY_MAX_TOPIC_LENGTH,
+  type AppLocale,
+  type QaSummaryModelOutputV2,
+} from '@arsnova/shared-types';
 
 const GENERIC_LEADS: Readonly<Record<AppLocale, ReadonlySet<string>>> = {
   de: new Set(['beispiel', 'beispiele', 'frage', 'fragen']),
@@ -17,7 +21,8 @@ function statementParts(text: string): { lead: string; body: string } | null {
       : spacedDash?.index !== undefined
         ? { index: spacedDash.index, length: spacedDash[0].length }
         : null;
-  if (!separator || separator.index <= 0 || separator.index > 48) return null;
+  if (!separator || separator.index <= 0 || separator.index > QA_SUMMARY_MAX_TOPIC_LENGTH)
+    return null;
   const lead = text
     .slice(0, separator.index)
     .normalize('NFKC')

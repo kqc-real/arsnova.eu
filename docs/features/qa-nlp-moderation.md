@@ -38,7 +38,7 @@ Teilnehmer-DTOs enthalten kein `nlp`. Host/`moderatorView` sieht `nlp`, sobald `
 
 ## Gatekeeper
 
-Der Worker nutzt zuerst ein gehashtes Zeichen-n-Gramm- plus Wort-Unigramm-Naive-Bayes (`modelVersion: gatekeeper-hash-nb-v1`) auf dem kuratierten Seed in `qaNlpSeed.ts`. Training erfolgt einmal im Prozess aus dem Train-Split. Softmax ist temperiert (`T=2`), damit Konfidenzen nicht bei 1.0 kleben. Unsichere oder kurze Texte gehen in den Level-2-k-NN (siehe unten).
+Der Worker nutzt zuerst ein gehashtes Zeichen-n-Gramm- plus Wort-Unigramm-Naive-Bayes (`modelVersion: gatekeeper-hash-nb-v3`). Training erfolgt einmal im Prozess aus dem Train-Split in `qaNlpSeed.ts`. Die Trainingsbasis umfasst `de`, `en`, `fr`, `es`, `it` und Sprachmischung. V3 verwendet 8.192 Hash-Buckets und Softmax mit `T=4`. Unsichere oder kurze Texte gehen in den Level-2-k-NN. Gespeicherte Ergebnisse behalten ihre Modellversion, bis sie ausdrücklich neu klassifiziert werden.
 
 Eine Keyword-Baseline dient nur dem Vergleich in der Evaluation, nicht dem Live-Pfad.
 
@@ -72,7 +72,7 @@ Klassifizierte Fragen erscheinen in der Karte **Häufige Themen** als Inhalt, Ab
 
 ## Level 2 (k-NN-Fallback)
 
-Wenn der Gatekeeper **nicht** early-exitet (Konfidenz ≥ `QA_NLP_MIN_CONFIDENCE`, Abstand der beiden Top-Klassen ≥ 0.22 **und** mindestens 6 Tokens), läuft ein In-Process-k-NN (`modelVersion: fallback-knn-v1`, k=5, Cosinus) im **selben gehashten n-Gramm-Raum**. Prototypen kommen aus Train-Split plus `prototype`-Beispielen (Slang, FR/ES/IT); das Gatekeeper-Train bleibt eingefroren.
+Wenn der Gatekeeper **nicht** early-exitet (Konfidenz ≥ `QA_NLP_MIN_CONFIDENCE`, Abstand der beiden Top-Klassen ≥ 0.22 **und** mindestens 6 Tokens), läuft ein In-Process-k-NN (`modelVersion: fallback-knn-v3`, k=5, Cosinus) im **selben gehashten n-Gramm-Raum**. Prototypen kommen aus Train-Split und `prototype`-Beispielen. Der Cosinus summiert nur über die belegten Merkmale der Anfrage. Eine Klassifikation braucht mindestens 0,60 Nachbarübereinstimmung und im Mittel mindestens 0,14 Ähnlichkeit für die gewählte Klasse.
 
 Das ist die evaluierte Embedding-plus-Klassifikationslogik für ADR-0032 Level 2: dichte Nachbarn im Hash-Raum, ohne Transformer-Download. `multilingual-e5-*` bleibt Qualitätskandidat für Slang und Mehrdeutigkeit, kein Hotpath-Zwang nach dem Hörsaallasttest. Uneinigkeit zwischen akzeptiertem k-NN und Gatekeeper wird `uncertain`, außer der Gatekeeper liegt unter der Konfidenzschwelle.
 
@@ -84,9 +84,22 @@ Strukturierte Logs `qa_nlp:completed`, `qa_nlp:failed`, `qa_nlp:skipped` mit Que
 
 ## Kalibrierung und Seed-Qualität
 
-Train-Split bleibt eingefroren (`gatekeeper-hash-nb-v1`). Das gelabelte Eval (ohne `ambiguous`) umfasst Tippfehler, Kurzfragen, Slang, Code-Switching, DE/EN und erweiterte FR/ES-Stichproben plus kleine IT-Stichprobe. Gold-Labels bei `ambiguous` sind Best-Effort und zählen nicht in F1.
+Die Evaluation meldet unter `localeHoldout` separat 15 synthetische Fälle pro App-Locale (fünf je Kategorie) und neun gemischtsprachige Fälle. Diese Texte fließen weder in Training noch in die Kalibrierkurve ein. Macro-F1 wertet unterlassene Klassifikationen als fehlende Treffer.
 
-Gemessen mit `npm run eval:qa-nlp -w @arsnova/backend` (2026-08-19, Seed im Repo):
+| Locale  | Korrekt / klassifiziert / Beispiele (V3) | Korrekt bezogen auf alle Beispiele |
+| ------- | ---------------------------------------- | ---------------------------------- |
+| `de`    | 13 / 15 / 15                             | 86,7 %                             |
+| `en`    | 12 / 14 / 15                             | 80,0 %                             |
+| `fr`    | 13 / 14 / 15                             | 86,7 %                             |
+| `es`    | 13 / 14 / 15                             | 86,7 %                             |
+| `it`    | 12 / 13 / 15                             | 80,0 %                             |
+| `mixed` | 7 / 9 / 9                                | 77,8 %                             |
+
+Die automatisierte Mindestquote von 80 Prozent zählt alle Prüffragen je App-Locale, einschließlich Enthaltungen. Der wiederverwendete Korpus ist ein synthetischer Regressionstest mit kleinen Stichproben. Für Aussagen über den Hörsaalbetrieb ist eine größere, unabhängig annotierte Stichprobe nötig.
+
+Im lokalen Artillery-Lauf mit V3 schlossen bei 500 Joins, 500 Stimmen und 500 WebSocket-Verbindungen alle 100 Q&A-Klassifikationsaufträge ab. Ab 400 Joins liefen parallel Host-Analysen für die Wortwolke.
+
+Historische V1-Messung mit `npm run eval:qa-nlp -w @arsnova/backend` (2026-08-19, ursprünglicher Seed):
 
 | Kenngröße an `QA_NLP_MIN_CONFIDENCE=0.55` | Gatekeeper           | Kaskade                        |
 | ----------------------------------------- | -------------------- | ------------------------------ |
