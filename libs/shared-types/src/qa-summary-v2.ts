@@ -18,7 +18,7 @@ export const QA_SUMMARY_CONTEXT_PREVIEW_CONTRACT_VERSION = 'qa-summary-context-p
 export const QA_SUMMARY_ADAPTER_CAPABILITIES_CONTRACT_VERSION =
   'qa-summary-adapter-capabilities-v1' as const;
 export const QA_SUMMARY_FALLBACK_CONTRACT_VERSION = 'qa-summary-fallback-v1' as const;
-export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v7' as const;
+export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v8' as const;
 export const QA_SUMMARY_MAX_TOPIC_LENGTH = 48;
 
 /** Short aliases for consumers that consistently call contract literals “contracts”. */
@@ -104,8 +104,8 @@ export function createQaSummaryModelWireSchema(sourceRefs: readonly string[]) {
             })
             .strict(),
         )
-        .min(2)
-        .max(4),
+        .min(1)
+        .max(Math.min(4, sourceRefs.length)),
       next: statement.optional(),
     })
     .strict();

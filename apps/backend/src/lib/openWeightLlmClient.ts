@@ -287,14 +287,22 @@ function systemInstructionFor(request: OpenWeightLlmRequest): string {
   ].join(' ');
 }
 
-function summarySources(request: OpenWeightLlmSummaryRequestV2) {
-  return request.promptContext.context.sources.filter(
-    (source) => source.kind !== 'qa-question' || source.content.state === 'included',
+function summarySourceRefs(request: OpenWeightLlmSummaryRequestV2): Map<string, string> {
+  return new Map(
+    request.promptContext.context.sources.map(({ id }, index) => [id, String(index + 1)]),
   );
 }
 
-function summarySourceRefs(request: OpenWeightLlmSummaryRequestV2): Map<string, string> {
-  return new Map(summarySources(request).map(({ id }, index) => [id, String(index + 1)]));
+function isSummaryReferenceOnly(
+  source: OpenWeightLlmSummaryRequestV2['promptContext']['context']['sources'][number],
+) {
+  return source.kind === 'qa-question' && source.content.state === 'reference-only';
+}
+
+function summaryCitableRefs(request: OpenWeightLlmSummaryRequestV2, refs: Map<string, string>) {
+  return request.promptContext.context.sources
+    .filter((source) => !isSummaryReferenceOnly(source))
+    .map(({ id }) => refs.get(id)!);
 }
 
 function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
@@ -306,8 +314,11 @@ function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
       ? questions.items.map((item) => [item.sourceId, item.answerState.state])
       : [],
   );
-  const sources = summarySources(request).map((source) => {
-    if (source.kind !== 'qa-question' || source.content.state !== 'included') return source;
+  const sources = request.promptContext.context.sources.map((source) => {
+    if (source.kind !== 'qa-question') return source;
+    if (source.content.state === 'reference-only') {
+      return { id: source.id, kind: source.kind, state: source.content.state };
+    }
     return {
       id: source.id,
       kind: source.kind,
@@ -331,7 +342,9 @@ function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
 
 function expandSummaryWireOutput(request: OpenWeightLlmSummaryRequestV2, content: unknown) {
   const refs = summarySourceRefs(request);
-  const parsed = createQaSummaryModelWireSchema([...refs.values()]).safeParse(content);
+  const parsed = createQaSummaryModelWireSchema(summaryCitableRefs(request, refs)).safeParse(
+    content,
+  );
   if (!parsed.success) return null;
 
   const idsByRef = new Map([...refs].map(([id, ref]) => [ref, id]));
@@ -359,7 +372,7 @@ function expandSummaryWireOutput(request: OpenWeightLlmSummaryRequestV2, content
 function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, unknown> {
   if (request.taskType === 'qa_summary' && request.schemaVersion === 2) {
     return z.toJSONSchema(
-      createQaSummaryModelWireSchema([...summarySourceRefs(request).values()]),
+      createQaSummaryModelWireSchema(summaryCitableRefs(request, summarySourceRefs(request))),
       {
         target: 'draft-7',
       },

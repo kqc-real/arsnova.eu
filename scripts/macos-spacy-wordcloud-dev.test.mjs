@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -103,4 +104,66 @@ test('wählt für das spaCy-venv nur Python 3.10–3.13 und ersetzt ein altes ve
   assert.match(source, /if "\$candidate" -m venv --clear "\$venv_dir"; then/);
   assert.match(source, /versuche den nächsten Interpreter/);
   assert.doesNotMatch(source, /^\s*python3 -m venv/m);
+});
+
+test('prüft Italienisch und startet nur einen verwalteten alten Sidecar neu', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'arsnova-spacy-upgrade-'));
+  try {
+    const pidFile = join(directory, 'sidecar.pid');
+    for (const scenario of ['ready', 'managed', 'external', 'busy']) {
+      writeFileSync(pidFile, '123\n');
+      const result = spawnSync(
+        'bash',
+        [
+          '-c',
+          `
+source "$1"
+scenario="$2"
+sidecar_healthy() { return 0; }
+curl() {
+  [[ "$*" == *'"locale":"it"'* && "$*" == *"$SOCKET"* ]] || return 1
+  case "$scenario" in
+    busy) printf 503 ;;
+    ready) printf 200 ;;
+    *) if [[ "$(cat "$SIDECAR_PID_FILE")" == 123 ]]; then printf 400; else printf 200; fi ;;
+  esac
+}
+ps() {
+  if [[ "$scenario" == managed ]]; then printf '%s' "python $ROOT/docker/spacy/server.py"; fi
+}
+kill() {
+  if [[ "$1" == -0 ]]; then return 1; fi
+  printf 'stopped %s\n' "$1"
+}
+nohup() { :; }
+start_sidecar python
+`,
+          'sidecar-upgrade-test',
+          script,
+          scenario,
+        ],
+        {
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            NLP_SOCKET_PATH: join(directory, 'sidecar.sock'),
+            NLP_SIDECAR_PID_FILE: pidFile,
+            NLP_SIDECAR_LOG: join(directory, 'sidecar.log'),
+          },
+        },
+      );
+      const output = result.stdout + result.stderr;
+      assert.equal(result.status, scenario === 'external' || scenario === 'busy' ? 1 : 0, output);
+      if (scenario === 'managed') {
+        assert.match(output, /stopped 123/);
+        assert.match(output, /Sidecar ist bereit und unterstützt italienische Glättung/);
+        assert.notEqual(readFileSync(pidFile, 'utf8').trim(), '123');
+      } else {
+        assert.doesNotMatch(output, /stopped|Starte Host-Sidecar/);
+        assert.equal(readFileSync(pidFile, 'utf8').trim(), '123');
+      }
+    }
+  } finally {
+    rmSync(directory, { force: true, recursive: true });
+  }
 });

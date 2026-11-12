@@ -108,8 +108,8 @@ describe('moderationSummaryContext', () => {
       analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1),
       plan,
     });
-    expect(prepared.request.instructionVersion).toBe('qa-summary-technical-handoff-v7');
-    expect(prepared.preview.instructionVersion).toBe('qa-summary-technical-handoff-v7');
+    expect(prepared.request.instructionVersion).toBe('qa-summary-technical-handoff-v8');
+    expect(prepared.preview.instructionVersion).toBe('qa-summary-technical-handoff-v8');
     expect(prepared.request.promptContext.budget).toMatchObject(counts);
     expect(
       prepared.request.promptContext.budget.packedInputTokens +

@@ -58,16 +58,17 @@ function isCompletePlainStatement(text: string, body: string): boolean {
 
 /**
  * Narrow output gate for defects that are cheaper and safer to reject than to
- * present: one-item "summaries", repeated scan labels, and generic labels that
+ * present: incomplete statements, repeated scan labels, and generic labels that
  * mirror answer-format requests embedded in untrusted questions.
  */
 export function hasAcceptableQaSummaryQuality(
   output: QaSummaryModelOutputV2,
   locale: AppLocale,
+  minimumStatements = 2,
 ): boolean {
   if (output.status === 'failed') return true;
   if (output.status === 'uncertain' && output.statements.length === 0) return true;
-  if (output.statements.length < 2) return false;
+  if (output.statements.length < minimumStatements) return false;
 
   const parts = output.statements.map(({ text }) => statementParts(text));
   if (parts.some((part) => part === null)) return false;

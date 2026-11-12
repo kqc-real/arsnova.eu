@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-10-17
-**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v7`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert. Kill-Switches im Repo standardmäßig `false`.
+**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v8`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert. Kill-Switches im Repo standardmäßig `false`.
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Kaskade), [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) (Slice-4-Runtime)
 
@@ -79,16 +79,16 @@ Das technische Profil verwendet 8.192 konservative Budgeteinheiten, 640 Antwortr
 
 ## Lokal prüfen
 
-Der private Modelladapter sendet eine kompakte Projektion der gepackten Belege. Er ersetzt kanonische IDs durch kurze Referenzen, fordert zwei offene Themen an und begrenzt die Generierung auf 192 Tokens. Überschrift und vollständige Frage werden getrennt geliefert. Der Prompt verlangt kurze Überschriften aus vollständigen Wörtern. Die Zeichenlänge der fertigen Überschrift wird nach der Generierung geprüft. Der Adapter prüft die Frageform, löst die Referenzen wieder auf und bindet das Ergebnis nach der Qualitätsprüfung in den öffentlichen V2-Vertrag ein.
+Der private Modelladapter sendet eine kompakte Projektion der gepackten Belege. Er ersetzt kanonische IDs durch kurze Referenzen, fordert bis zu zwei belegte offene Themen an und begrenzt die Generierung auf 192 Tokens. Überschrift und vollständige Frage werden getrennt geliefert. Der Prompt verlangt kurze Überschriften aus vollständigen Wörtern. Die Zeichenlänge der fertigen Überschrift wird nach der Generierung geprüft. Ein einzelnes belegtes Thema genügt für ein generatives Ergebnis. Fragen ohne freigegebenen Modelltext erhalten eine kurze Referenz ohne Text, damit die Themenbezüge auflösbar bleiben. Diese Referenzen sind vom Zitationsschema ausgeschlossen. Der Adapter prüft die Frageform, löst die Referenzen wieder auf und bindet das Ergebnis nach der Qualitätsprüfung in den öffentlichen V2-Vertrag ein.
 
-Die fünfsprachige Modellprobe verwendet die konfigurierte private Runtime und das reguläre 90-Sekunden-Limit. Sie prüft den generativen Pfad ohne Fallback, die akzeptierte Ausgabe und getrennte Belegreferenzen für beide Themen. Die verwendeten Fragen und ausgegebenen Aussagen bleiben für die sprachliche Prüfung sichtbar.
+Die fünfsprachige Modellprobe verwendet die konfigurierte private Runtime und das reguläre 90-Sekunden-Limit. Sie prüft den generativen Pfad ohne Fallback, die akzeptierte Ausgabe und getrennte Belegreferenzen für beide Themen des Prüffalls. Die verwendeten Fragen und ausgegebenen Aussagen bleiben für die sprachliche Prüfung sichtbar.
 
 ```bash
 OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
   node --env-file=.env --import tsx apps/backend/scripts/eval-qa-summary-locales.ts
 ```
 
-Am 12. November 2026 bestand je eine Zusammenfassung mit zwei Themen und vollständigen Überschriften die V7-Probe an der privaten Qwen-Runtime. Gemessen wurden 16,8 s für `de`, 9,1 s für `en`, 10,0 s für `fr`, 12,1 s für `es` und 10,4 s für `it`. Die fünf Proben prüfen kurze Q&A-Kontexte mit vier Quellen.
+Am 12. November 2026 bestand je eine Zusammenfassung mit zwei Themen und vollständigen Überschriften die V8-Probe an der privaten Qwen-Runtime. Gemessen wurden 6,9 s für `de`, 5,6 s für `en`, 6,1 s für `fr`, 8,0 s für `es` und 6,8 s für `it`. Die fünf Proben prüfen kurze Q&A-Kontexte mit vier Quellen. Eine zusätzliche deutsche Probe mit einer einzigen Frage lieferte in 4,3 s genau ein belegtes Thema ohne Fallback.
 
 Privater Loopback-Helfer (nicht Produktion, bindet nur `127.0.0.1`):
 

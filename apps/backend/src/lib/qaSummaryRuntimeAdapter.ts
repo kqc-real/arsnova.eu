@@ -134,6 +134,7 @@ export async function runPreparedQaSummary(
       hasAcceptableQaSummaryQuality(
         result.output.output,
         prepared.request.promptContext.context.locale,
+        1,
       )
     ) {
       return {

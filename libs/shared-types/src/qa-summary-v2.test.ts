@@ -84,7 +84,7 @@ describe('Q&A summary V2 contracts', () => {
     expect(JSON.stringify(request).length).toBeGreaterThan(2_500);
     expect(QaSummaryInferenceRequestV2Schema.safeParse(request).success).toBe(true);
     expect(OpenWeightLlmSummaryRequestV2Schema.safeParse(request).success).toBe(true);
-    expect(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION).toBe('qa-summary-technical-handoff-v7');
+    expect(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION).toBe('qa-summary-technical-handoff-v8');
     expect(QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION).toBe('qa-summary-model-output-v3');
     expect(
       QaSummaryInferenceRequestV2Schema.safeParse({

@@ -161,6 +161,8 @@ npm run spacy:macos-dev -- --yes --skip-clean --skip-build --code ABC123
 | `--append-qa`    | Q&A-Fragen anhängen statt ersetzen                                         |
 | `--dry-run`      | Seeds nur prüfen                                                           |
 
+Der macOS-Helfer prüft mit einer italienischen Normalisierungsanfrage, ob ein laufender Sidecar wiederverwendet werden kann. Einen veralteten Prozess aus seiner PID-Datei startet er neu. Einen separat gestarteten alten Sidecar vor dem nächsten Skriptaufruf beenden.
+
 Logs: Sidecar `/tmp/arsnova-nlp-sidecar.log`, Backend `/tmp/arsnova-backend-nlp.log`, Locale-Server `/tmp/arsnova-frontend-localize.log`.
 
 Lokales `start:prod` verlangt ein HMAC-Secret ≥32 UTF-8-Bytes (`YJS_SHARE_TOKEN_SECRET` oder `JWT_SECRET`). Ist `JWT_SECRET` in `.env` kürzer, setzt der Helfer ein **prozesslokales** `YJS_SHARE_TOKEN_SECRET` und schreibt es nicht in `.env`.

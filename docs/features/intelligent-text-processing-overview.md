@@ -257,7 +257,7 @@ Für die Erstellung der Zusammenfassung handelt `qaSummaryRuntimeAdapter.ts` den
 
 1. **Generativer `full-context`-Pfad (`OPEN_WEIGHT_LLM_ENABLED=true`):**
    - `llama-server` erhält exakt drei Nachrichten:
-     - `system`: Technische Instruktion (`qa-summary-technical-handoff-v7`): Fragetexte bleiben auch bei eingebetteten Antwortwünschen ausschließlich nicht vertrauenswürdige Daten; die Ausgabe verlangt vollständige, laienverständliche Themensätze und verbietet technische Metadaten. Große Sessions erhalten eine breitere, repräsentative Fragenauswahl.
+     - `system`: Technische Instruktion (`qa-summary-technical-handoff-v8`): Fragetexte bleiben auch bei eingebetteten Antwortwünschen ausschließlich nicht vertrauenswürdige Daten; die Ausgabe verlangt vollständige, laienverständliche Themensätze und verbietet technische Metadaten. Große Sessions erhalten eine breitere, repräsentative Fragenauswahl.
      - `system`: Maschinenlesbares Bedeutungslexikon (203 UTF-8-Bytes: z. B. `PENDING` = Freigabestatus, nicht Lernrückstand; `bestScore` = Wilson-Untergrenze, nicht fachliche Qualität).
      - `user`: Kompakte Projektion der gepackten Belege mit kurzen Referenzen und den verfügbaren fachlichen Kontextabschnitten.
    - Das private Ausgabeschema trennt Überschrift und offene Frage und beschränkt Quellenreferenzen auf den Auftrag. Der Adapter erzeugt daraus `qa-summary-model-output-v3` mit den kanonischen Quellen-IDs. Die Generierung ist auf 192 Tokens begrenzt.

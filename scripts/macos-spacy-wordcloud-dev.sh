@@ -268,6 +268,13 @@ sidecar_healthy() {
   NLP_SOCKET_PATH="$SOCKET" "$1" "$ROOT/docker/spacy/healthcheck.py" >/dev/null 2>&1
 }
 
+sidecar_italian_status() {
+  curl --silent --noproxy '*' --max-time 3 --unix-socket "$SOCKET" \
+    --header 'Content-Type: application/json' \
+    --data '{"locale":"it","texts":[{"id":"probe","text":"libri"}]}' \
+    --output /dev/null --write-out '%{http_code}' http://localhost/normalize
+}
+
 python_has_models() {
   "$1" -c 'import spacy, spacy_lookups_data; spacy.load("de_core_news_sm"); spacy.load("en_core_web_sm"); spacy.load("fr_core_news_sm"); spacy.load("es_core_news_sm")' \
     >/dev/null 2>&1
@@ -334,25 +341,41 @@ ensure_python() {
 }
 
 start_sidecar() {
-  local python_bin="$1"
+  local python_bin="$1" old_pid="" old_command="" italian_status=""
   if sidecar_healthy "$python_bin"; then
-    info "Sidecar läuft bereits ($SOCKET)."
-    return 0
+    italian_status="$(sidecar_italian_status)" || italian_status=""
+    case "$italian_status" in
+      200) info "Sidecar läuft bereits mit italienischer Glättung ($SOCKET)."; return 0 ;;
+      400) info "Laufender Sidecar unterstützt noch kein Italienisch ($SOCKET)." ;;
+      *) fail "Italienische Glättung auf $SOCKET konnte nicht geprüft werden. Bitte erneut versuchen." ;;
+    esac
+  fi
+
+  if [[ -f "$SIDECAR_PID_FILE" ]]; then
+    old_pid="$(cat "$SIDECAR_PID_FILE" 2>/dev/null || true)"
+    if [[ "$old_pid" =~ ^[1-9][0-9]*$ ]]; then
+      old_command="$(ps -p "$old_pid" -o command= 2>/dev/null || true)"
+    fi
+  fi
+
+  if [[ "$old_command" == *"$ROOT/docker/spacy/server.py" ]]; then
+    info "Starte den verwalteten Sidecar neu ($old_pid)."
+    kill "$old_pid" 2>/dev/null || true
+    local attempts=0
+    while kill -0 "$old_pid" 2>/dev/null; do
+      [[ "$attempts" -lt 10 ]] || fail "Sidecar $old_pid konnte nicht gestoppt werden."
+      sleep 1
+      attempts=$((attempts + 1))
+    done
+  elif [[ "$italian_status" == 400 ]]; then
+    fail "Bitte den separat gestarteten Sidecar auf $SOCKET beenden und das Skript erneut starten."
   fi
 
   if [[ -S "$SOCKET" ]]; then
     info "Entferne verwaisten Socket $SOCKET"
     rm -f "$SOCKET"
   fi
-  if [[ -f "$SIDECAR_PID_FILE" ]]; then
-    local old_pid
-    old_pid="$(cat "$SIDECAR_PID_FILE" 2>/dev/null || true)"
-    if [[ -n "${old_pid:-}" ]] && kill -0 "$old_pid" 2>/dev/null; then
-      kill "$old_pid" 2>/dev/null || true
-      sleep 1
-    fi
-    rm -f "$SIDECAR_PID_FILE"
-  fi
+  rm -f "$SIDECAR_PID_FILE"
 
   info "Starte Host-Sidecar auf $SOCKET …"
   : >"$SIDECAR_LOG"
@@ -363,8 +386,8 @@ start_sidecar() {
   local i
   i=0
   while [[ "$i" -lt 90 ]]; do
-    if sidecar_healthy "$python_bin"; then
-      info "Sidecar ist bereit (GET /health -> 204)."
+    if sidecar_healthy "$python_bin" && [[ "$(sidecar_italian_status)" == 200 ]]; then
+      info "Sidecar ist bereit und unterstützt italienische Glättung."
       return 0
     fi
     sleep 1
@@ -647,6 +670,10 @@ run_seeds() {
     npm run seed:moderation-compass -w @arsnova/backend -- --code "$CODE"
   fi
 }
+
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  return 0
+fi
 
 parse_args "$@"
 
