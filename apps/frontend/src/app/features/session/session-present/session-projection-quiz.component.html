@@ -1,4 +1,6 @@
 @if (question(); as q) {
+  @let groupChoiceOptions =
+    q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE' || q.type === 'SURVEY';
   <app-projection-pages
     [hidden]="showLeaderboardPage()"
     [class.projection-pages--with-reactions]="showEmojiReactions()"
@@ -561,7 +563,11 @@
                     >
                   </p>
                 }
-                <ul class="session-projection-quiz__answers" role="list">
+                <ul
+                  class="session-projection-quiz__answers"
+                  role="list"
+                  [attr.data-projection-answer-list]="groupChoiceOptions ? '' : null"
+                >
                   @for (
                     answer of q.roundComparison!.round1Distribution;
                     track answer.id;
@@ -672,7 +678,11 @@
                 }
               </div>
             } @else if (showVoteDistribution()) {
-              <ul class="session-projection-quiz__answers" role="list">
+              <ul
+                class="session-projection-quiz__answers"
+                role="list"
+                [attr.data-projection-answer-list]="groupChoiceOptions ? '' : null"
+              >
                 @for (answer of q.voteDistribution!; track answer.id; let i = $index) {
                   <li
                     class="session-projection-quiz__answer"
@@ -717,7 +727,11 @@
                 }
               </ul>
             } @else if (showChoiceAnswers()) {
-              <ul class="session-projection-quiz__answers" role="list">
+              <ul
+                class="session-projection-quiz__answers"
+                role="list"
+                [attr.data-projection-answer-list]="groupChoiceOptions ? '' : null"
+              >
                 @for (answer of q.answers; track answer.id; let i = $index) {
                   <li
                     class="session-projection-quiz__answer"

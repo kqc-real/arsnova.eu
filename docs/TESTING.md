@@ -1040,12 +1040,15 @@ BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc \
 Die Skripte erzeugen ausschließlich Test-Sessions auf der angegebenen Instanz.
 Nicht gegen Produktion ausführen. Sie prüfen 720p, 1080p und 1920 × 1200 in beiden
 Presets. Das erste prüft den vollständigen Text einschließlich Code, die
-Host-gesteuerte Navigation und Wiederherstellung nach Reload. Das zweite prüft
+Navigation per Host-Befehl und Presenter-Tastaturbedienung sowie die
+Wiederherstellung nach Reload. Zusätzlich prüft
+es acht gleichzeitig sichtbare Antwortoptionen in Abstimmung und Ergebnisansicht
+einschließlich Schriftgröße, Ergebnisbalken und Korrektheitsmarkierung. Das zweite prüft
 Lobby 0/10/200, Schätzverteilung mit Statistik, Freitext-Wortwolke, angeheftete
 Q&A-Frage mit Warteschlange, verborgenes/freigegebenes Blitzlicht und Rangliste.
 Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
 (im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
-`PROJECTION_DELAYED_MEDIA=1` hält drei Bildantworten bis nach der ersten
+`PROJECTION_DELAYED_MEDIA=1` hält drei Bilder im Fragetext bis nach der ersten
 Seitenberechnung zurück und prüft Neumessung sowie vollständige Bilddarstellung.
 `PROJECTION_THEME=dark` prüft das dunkle Theme. `PROJECTION_PRESETS` und
 `PROJECTION_SIZES` begrenzen den ersten Lauf; `PROJECTION_SCENARIOS` wählt im

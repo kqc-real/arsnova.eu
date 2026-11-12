@@ -16,6 +16,7 @@ const viewports = (process.env.PROJECTION_SIZES || '1280x720,1920x1080,1920x1200
   .split(',')
   .map((size) => size.split('x').map(Number));
 const artifacts = resolve(process.env.SMOKE_ARTIFACT_DIR || 'tmp/projection-pages');
+const compactLabels = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel'];
 const client = (token) =>
   createTRPCProxyClient({
     links: [
@@ -48,10 +49,67 @@ const question = [
     : []),
   'ENDE DER FRAGE',
 ].join('\n\n');
+
+async function checkCompactAnswers(page, session, locale, name) {
+  await page.goto(`${base}/${locale}/session/${session.code}/present`, {
+    waitUntil: 'domcontentloaded',
+  });
+  const host = client(session.hostToken);
+  const stage = page.locator('.projection-pages__page');
+  const answers = stage.locator('[data-projection-answer-list] > li');
+  for (const results of [false, true]) {
+    if (results) await host.session.revealResults.mutate({ code: session.code });
+    await page.waitForFunction((hasResults) => {
+      const list = document.querySelector('.projection-pages__page [data-projection-answer-list]');
+      return (
+        list?.children.length === 8 &&
+        !!list.querySelector('.session-projection-quiz__bar-value') === hasResults
+      );
+    }, results);
+    const cards = await answers.evaluateAll((items) => {
+      const viewport = items[0].closest('.projection-pages__viewport').getBoundingClientRect();
+      const minFont = innerHeight >= 1080 ? 30 : 28;
+      return items.map((item) => {
+        const rect = item.getBoundingClientRect();
+        const text = item.querySelector('.markdown-body p') ?? item.querySelector('.markdown-body');
+        const textStyle = getComputedStyle(text);
+        return {
+          label: text.textContent.trim(),
+          visible:
+            rect.width > 0 &&
+            rect.height > 0 &&
+            rect.top >= viewport.top - 1 &&
+            rect.bottom <= viewport.bottom + 1 &&
+            rect.left >= viewport.left - 1 &&
+            rect.right <= viewport.right + 1 &&
+            item.scrollWidth <= item.clientWidth,
+          readable:
+            parseFloat(textStyle.fontSize) >= minFont &&
+            parseFloat(textStyle.lineHeight) >= parseFloat(textStyle.fontSize) * 1.49,
+          result: !!item.querySelector('.session-projection-quiz__bar-value'),
+          correct: item.classList.contains('session-projection-quiz__answer--correct'),
+        };
+      });
+    });
+    assert.deepEqual(
+      cards.map((card) => card.label),
+      compactLabels,
+    );
+    assert.ok(cards.every((card) => card.visible && card.readable && card.result === results));
+    assert.deepEqual(
+      cards.filter((card) => card.correct).map((card) => card.label),
+      results ? ['Alpha'] : [],
+    );
+    assert.match(await stage.textContent(), /Welches Rufzeichen/);
+  }
+  await page.screenshot({ path: `${artifacts}/${name}-compact-results.png` });
+  console.log(`OK ${name}: eight readable answers on one page in voting and results`);
+}
+
 try {
   for (const preset of presets) {
     const publicApi = client();
-    const { quizId } = await publicApi.quiz.upload.mutate({
+    const quiz = {
       name: 'Projection regression',
       preset,
       showLeaderboard: true,
@@ -78,6 +136,19 @@ try {
               ` ENDE ANTWORT ${index + 1}`,
             isCorrect: index === 0,
           })),
+        },
+      ],
+    };
+    const { quizId } = await publicApi.quiz.upload.mutate(quiz);
+    const { quizId: compactQuizId } = await publicApi.quiz.upload.mutate({
+      ...quiz,
+      name: 'Compact choice projection',
+      showLeaderboard: false,
+      questions: [
+        {
+          ...quiz.questions[0],
+          text: 'Welches Rufzeichen ist korrekt?',
+          answers: compactLabels.map((text, index) => ({ text, isCorrect: index === 0 })),
         },
       ],
     });
@@ -133,10 +204,14 @@ try {
             waitUntil: 'domcontentloaded',
           });
           await page.locator('.projection-pages__page .session-projection-quiz').waitFor();
-          await page.waitForFunction(() =>
-            document
-              .querySelector('.projection-pages__indicator')
-              ?.textContent?.match(/\/\s*[2-9]/),
+          await page.waitForFunction(
+            () =>
+              Number(
+                document
+                  .querySelector('.session-present__quiz-nav-index')
+                  ?.textContent?.split('/')
+                  .at(-1),
+              ) > 1,
           );
           let info = await hostApi.session.getInfo.query({ code: session.code });
           // The status fanout is asynchronous; wait for the presenter's measured count.
@@ -149,7 +224,9 @@ try {
             await page.evaluate(() => document.fonts.ready);
             await page.waitForTimeout(350);
             const beforeCount = Number(
-              (await page.locator('.projection-pages__indicator').textContent()).split('/').at(-1),
+              (await page.locator('.session-present__quiz-nav-index').textContent())
+                .split('/')
+                .at(-1),
             );
             assert.equal(
               await page.locator('.projection-pages__page img').count(),
@@ -161,7 +238,7 @@ try {
               (count) =>
                 Number(
                   document
-                    .querySelector('.projection-pages__indicator')
+                    .querySelector('.session-present__quiz-nav-index')
                     ?.textContent?.split('/')
                     .at(-1),
                 ) > count,
@@ -189,8 +266,9 @@ try {
             await page.waitForFunction(
               (n) =>
                 document
-                  .querySelector('.projection-pages__indicator')
-                  ?.textContent?.match(new RegExp(`(?:Seite|Page|Página|Pagina)\\s+${n + 1}\\s*/`)),
+                  .querySelector('.session-present__quiz-nav-index')
+                  ?.textContent?.trim()
+                  .startsWith(`${n + 1} /`),
               index,
             );
             const result = await page
@@ -265,56 +343,65 @@ try {
           console.log(`Measured ${name}: ${info.presenterPage.count} complete pages`);
           const before = await hostApi.session.getInfo.query({ code: session.code });
           await page.reload({ waitUntil: 'domcontentloaded' });
-          await page.locator('.projection-pages__page .session-projection-quiz').waitFor();
+          await page
+            .locator('.projection-pages__page')
+            .getByText(/ENDE ANTWORT 6/)
+            .waitFor();
           assert.equal(
             (await hostApi.session.getInfo.query({ code: session.code })).presenterPage.index,
             before.presenterPage.index,
           );
           assert.equal(before.status, 'ACTIVE');
           if (preset === 'SERIOUS' && locale === 'de' && width === 1280) {
+            const previous = page.getByTestId('presenter-quiz-previous-page');
+            const next = page.getByTestId('presenter-quiz-next-page');
+            await previous.focus();
+            await previous.press('Enter');
+            await page.waitForFunction(
+              (n) =>
+                document
+                  .querySelector('.session-present__quiz-nav-index')
+                  ?.textContent?.trim()
+                  .startsWith(`${n} /`),
+              before.presenterPage.index,
+            );
+            assert.equal(
+              await previous.evaluate((button) => button === document.activeElement),
+              true,
+            );
+            await next.focus();
+            await next.press('Enter');
+            await page.waitForFunction(
+              (n) =>
+                document
+                  .querySelector('.session-present__quiz-nav-index')
+                  ?.textContent?.trim()
+                  .startsWith(`${n + 1} /`),
+              before.presenterPage.index,
+            );
+            assert.equal(await next.evaluate((button) => button === document.activeElement), true);
+
             const hostPage = await context.newPage();
             await hostPage.setViewportSize({ width: 320, height: 800 });
             await hostPage.goto(`${base}/${locale}/session/${session.code}/host`);
-            const controls = hostPage.locator('.session-host__projection-pages');
-            await controls.waitFor();
-            await controls.scrollIntoViewIfNeeded();
-            const position = await controls.evaluate(
-              (element) => getComputedStyle(element).position,
-            );
-            assert.equal(position, 'sticky', 'Host controls stay pinned in presentation mode');
-            await hostPage.locator('.app-main').evaluate((main) => {
-              main.scrollTop = main.scrollHeight;
-            });
-            await hostPage.waitForTimeout(100);
-            const bounds = await controls.boundingBox();
-            assert.ok(
-              bounds &&
-                bounds.x >= 0 &&
-                bounds.x + bounds.width <= 321 &&
-                bounds.y >= 0 &&
-                bounds.y + bounds.height <= 801,
-              'Pinned host controls remain visible and reflow at 320px after scrolling',
-            );
-            await controls.getByRole('button', { name: 'Vorherige Seite' }).click();
-            await page.waitForFunction(
-              (n) =>
-                document
-                  .querySelector('.projection-pages__indicator')
-                  ?.textContent?.includes(`${n} /`),
-              before.presenterPage.index,
-            );
-            await controls.getByRole('button', { name: 'Nächste Seite' }).click();
-            await page.waitForFunction(
-              (n) =>
-                document
-                  .querySelector('.projection-pages__indicator')
-                  ?.textContent?.includes(`${n + 1} /`),
-              before.presenterPage.index,
-            );
-            await hostPage.screenshot({ path: `${artifacts}/host-pages-mobile.png` });
+            await hostPage.locator('.session-host').waitFor();
+            assert.equal(await hostPage.locator('.session-host__projection-pages').count(), 0);
             await hostPage.close();
           }
 
+          if (width >= 1280 && height >= 720) {
+            const compactSession = await publicApi.session.create.mutate({
+              quizId: compactQuizId,
+              type: 'QUIZ',
+            });
+            await client(compactSession.hostToken).session.nextQuestion.mutate({
+              code: compactSession.code,
+            });
+            await context.addInitScript(({ code, hostToken }) => {
+              sessionStorage.setItem(`arsnova-host-token:${code}`, hostToken);
+            }, compactSession);
+            await checkCompactAnswers(page, compactSession, locale, name);
+          }
           assert.deepEqual(subscriptionErrors, [], 'Authenticated presenter subscriptions');
           console.log(
             `OK ${name}: ${info.presenterPage.count} pages, complete content, no clipping, reload preserved`,

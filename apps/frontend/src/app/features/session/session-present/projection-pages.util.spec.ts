@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { paginateProjection, prepareProjectionSource } from './projection-pages.util';
+import {
+  layoutProjection,
+  paginateProjection,
+  prepareProjectionSource,
+} from './projection-pages.util';
 
 function root(html: string): HTMLElement {
   const element = document.createElement('article');
@@ -7,6 +11,79 @@ function root(html: string): HTMLElement {
   return element;
 }
 const copy = (pages: HTMLElement[]): string => pages.map((page) => page.textContent).join('');
+
+describe('choice answer layout', () => {
+  const compact = 'projection-source--compact-answers';
+  const twoColumns = 'projection-source--two-column-answers';
+  const answerSelector = '[data-projection-answer-list] > li';
+  const choice = (before = 'Question', after = '') =>
+    root(
+      `<mat-card><p>${before}</p></mat-card><mat-card><div>
+        <ul data-projection-answer-list>${['Alpha', 'Beta', 'Gamma', 'Delta']
+          .map(
+            (label) => `<li class="session-projection-quiz__answer">${label}<span>25 %</span></li>`,
+          )
+          .join('')}</ul>
+        ${after ? `<p>${after}</p>` : ''}
+      </div></mat-card>`,
+    );
+
+  it('keeps the regular layout when the question and all cards fit', () => {
+    const source = choice();
+    const pages = layoutProjection(source, () => true);
+
+    expect(pages).toHaveLength(1);
+    expect(pages[0]!.classList.contains(compact)).toBe(false);
+    expect(copy(pages)).toBe(source.textContent);
+  });
+
+  it.each([false, true])(
+    'tries compact layouts before splitting the question (grid: %s)',
+    (grid) => {
+      const source = choice();
+      const pages = layoutProjection(
+        source,
+        (page) => page.classList.contains(compact) && page.classList.contains(twoColumns) === grid,
+      );
+
+      expect(pages).toHaveLength(1);
+      expect(pages[0]!.classList.contains(twoColumns)).toBe(grid);
+      expect(pages[0]!.querySelectorAll(answerSelector)).toHaveLength(4);
+      expect(copy(pages)).toBe(source.textContent);
+    },
+  );
+
+  it('puts the complete result list on one page between question and supplementary content', () => {
+    const source = choice('Long question', 'Round comparison details');
+    const pages = layoutProjection(
+      source,
+      (page) =>
+        !page.querySelector(answerSelector) ||
+        (page.classList.contains(twoColumns) &&
+          !page.textContent!.includes('Long question') &&
+          !page.textContent!.includes('Round comparison details')),
+    );
+
+    expect(pages).toHaveLength(3);
+    expect(pages[0]!.querySelectorAll('mat-card')).toHaveLength(1);
+    expect(pages[1]!.querySelectorAll(answerSelector)).toHaveLength(4);
+    expect(pages[1]!.textContent).toContain('Alpha25 %Beta25 %Gamma25 %Delta25 %');
+    expect(pages[2]!.textContent).toContain('Round comparison details');
+    expect(copy(pages).replace(/\s+/g, '')).toBe(source.textContent!.replace(/\s+/g, ''));
+  });
+
+  it('falls back to ordinary pagination when the answer group itself is too tall', () => {
+    const source = choice();
+    const fits = (page: HTMLElement) => page.querySelectorAll(answerSelector).length <= 2;
+    const pages = layoutProjection(source, fits);
+
+    expect(pages.map((page) => page.innerHTML)).toEqual(
+      paginateProjection(source, fits).map((page) => page.innerHTML),
+    );
+    expect(pages).toHaveLength(2);
+    expect(pages.every((page) => !page.classList.contains(compact))).toBe(true);
+  });
+});
 
 describe('semantic projection pages', () => {
   it('keeps complete content and order when long prose spans pages', () => {

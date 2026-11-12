@@ -12,9 +12,14 @@ Absätze und Codezeilen bilden bevorzugte Seitengrenzen; Formeln, Bilder und
 vollständige Antwortoptionen bleiben zusammen. Das gilt auch für jedes
 Zuordnungspaar, jede Reihenfolgeoption sowie jedes Kategorisierungselement und
 jede Kategorie.
-Reicht der verbleibende Platz nicht, beginnt die gesamte Option auf der
-nächsten Seite. Fortsetzungen
-behalten Antwortkennzeichen und Listennummern. Später geladene Bilder und Schriften lösen eine Neumessung aus,
+Für Single Choice, Multiple Choice und Umfragen versucht der Presenter zuerst,
+Frage und alle Antwortoptionen gemeinsam darzustellen. Bei Platzmangel misst
+er kompaktere Karten einspaltig und bei ausreichender Breite zweispaltig.
+Passt nur der vollständige Antwortblock auf eine Seite, erhält er eine eigene
+Seite. Das gilt auch für Ergebnisbalken und den Vergleich zweier Abstimmungsrunden.
+Passt der Block auch dort nicht, blättert der Presenter zwischen vollständigen
+Antwortkarten. Fortsetzungen behalten Antwortkennzeichen und Listennummern.
+Später geladene Bilder und Schriften lösen eine Neumessung aus,
 auch wenn ihre Seite gerade nicht sichtbar ist. Während sie nach einem Reload
 noch laden, begrenzt eine vorläufige Messung den gespeicherten Index nicht.
 Verteilungsmatrizen werden für die Projektion in vollständig
@@ -30,11 +35,12 @@ damit die terminale Präsentationsseite.
 
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
-Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerten
-vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
+Zeilenhöhe 1,5. Antwortblöcke werden auf jeder Seite vertikal zentriert.
+Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
 Quizphase wechselt die Lehrkraft im Presenter-Footer, einschließlich
-**Erste Frage starten** in der Lobby; der Host behält dieselben Aktionen. Eine
-neue Frage oder Runde erscheint erst, wenn ihr Snapshot zur Session passt, auch
+**Erste Frage starten** in der Lobby. Die Phasensteuerung steht auch auf dem
+Host zur Verfügung. Eine neue Frage oder Runde erscheint erst, wenn ihr
+Snapshot zur Session passt, auch
 wenn der Host die Runde oder die Frage wechselt. Bis dahin steht »Die Frage
 wird geladen«, nach einem Fehlschlag »Erneut laden«. Der Fokus wandert von
 dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
@@ -169,7 +175,7 @@ Tastaturfokus nicht verloren geht.
 Die reproduzierbaren Browserbefehle stehen unter
 [Hörsaalprojektion in TESTING.md](../TESTING.md#hörsaalprojektion-und-host-seitensteuerung-473).
 Die Tests verwenden lokale Test-Sessions und echte Browsergeometrie. Der
-Testlauf für lange Inhalte prüft zusätzlich die mobile Host-Seitensteuerung,
+Testlauf für lange Inhalte prüft zusätzlich die Tastaturbedienung der Seitensteuerung,
 Vollständigkeit von Absätzen/Code/Antworten, Zeilenhöhe und Reload. Der
 Szenarienlauf deckt drei Auflösungen, beide Presets und DE/EN/FR ab. Vollbild
 wird dort für die Geometriemessung simuliert; bestehende Dialog-, Fenster- und

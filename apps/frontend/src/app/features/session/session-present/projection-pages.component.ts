@@ -10,7 +10,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { paginateProjection, prepareProjectionSource } from './projection-pages.util';
+import { layoutProjection, prepareProjectionSource } from './projection-pages.util';
 
 @Component({
   selector: 'app-projection-pages',
@@ -130,14 +130,20 @@ export class ProjectionPagesComponent implements AfterViewInit {
     if (signature === this.signature) return;
     this.signature = signature;
     const target = this.page().nativeElement;
-    this.pages = paginateProjection(snapshot, (candidate) => {
+    this.pages = layoutProjection(snapshot, (candidate) => {
       target.replaceChildren(candidate);
       const content = target.firstElementChild as HTMLElement | null;
       if (!content) return true;
       // Leave room for fractional font/layout rounding when the fragment is cloned again.
       return (
         content.scrollHeight <= viewport.clientHeight - 8 &&
-        content.scrollWidth <= viewport.clientWidth
+        content.scrollWidth <= viewport.clientWidth &&
+        // A wide formula can spill into a neighboring card or its result bar.
+        Array.from(
+          content.querySelectorAll<HTMLElement>(
+            '.projection-source--compact-answers [data-projection-answer-list] :is(.session-projection-quiz__answer, .session-projection-quiz__answer-head)',
+          ),
+        ).every((element) => element.scrollWidth <= element.clientWidth)
       );
     });
     this.showPage();

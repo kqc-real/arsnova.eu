@@ -130,7 +130,10 @@ export class SessionProjectionQuizComponent {
       (this.leaderboard().length > 0 || this.teamLeaderboard().length > 0),
   );
   readonly showLeaderboardPage = computed(
-    () => this.hasLeaderboardPage() && this.pageIndex() >= this.currentContentPageCount(),
+    () =>
+      this.hasLeaderboardPage() &&
+      this.measuredContentPageContext() === this.pageContext() &&
+      this.pageIndex() >= this.currentContentPageCount(),
   );
   readonly showEmojiReactions = computed(
     () =>
@@ -158,7 +161,8 @@ export class SessionProjectionQuizComponent {
   }
 
   contentPageIndex(): number {
-    return Math.min(this.pageIndex(), Math.max(0, this.currentContentPageCount() - 1));
+    // The paginator needs the saved index to recognize a provisional count on reload.
+    return this.showLeaderboardPage() ? this.currentContentPageCount() - 1 : this.pageIndex();
   }
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
