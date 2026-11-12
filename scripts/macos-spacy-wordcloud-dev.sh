@@ -343,10 +343,18 @@ ensure_python() {
 start_sidecar() {
   local python_bin="$1" old_pid="" old_command="" italian_status=""
   if sidecar_healthy "$python_bin"; then
-    italian_status="$(sidecar_italian_status)" || italian_status=""
+    local probe_attempt
+    for probe_attempt in 1 2 3; do
+      italian_status="$(sidecar_italian_status)" || italian_status=""
+      if [[ "$italian_status" != 503 || "$probe_attempt" -eq 3 ]]; then
+        break
+      fi
+      sleep 1
+    done
     case "$italian_status" in
       200) info "Sidecar läuft bereits mit italienischer Glättung ($SOCKET)."; return 0 ;;
       400) info "Laufender Sidecar unterstützt noch kein Italienisch ($SOCKET)." ;;
+      503) fail "Sidecar auf $SOCKET ist weiterhin ausgelastet. Bitte erneut versuchen." ;;
       *) fail "Italienische Glättung auf $SOCKET konnte nicht geprüft werden. Bitte erneut versuchen." ;;
     esac
   fi
