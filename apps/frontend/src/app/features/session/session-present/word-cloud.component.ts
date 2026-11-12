@@ -186,7 +186,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly visualFrame = viewChild<ElementRef<HTMLElement>>('visualFrame');
   private readonly layoutStage = viewChild<ElementRef<HTMLElement>>('layoutStage');
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
-  private readonly stageHideButton = viewChild('stageHideButton', {
+  private readonly hideWordButton = viewChild('hideWordButton', {
     read: ElementRef,
   });
   private readonly activeLocale = getEffectiveLocale(localeIdToSupported(this.localeId));
@@ -963,9 +963,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         this.previousSelectionScopeKey !== undefined &&
         scopeKey !== this.previousSelectionScopeKey
       ) {
-        this.selectedGroupKey.set(null);
-        this.showResponses.set(false);
-        this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+        this.clearWordSelection();
       }
       this.previousSelectionScopeKey = scopeKey;
     });
@@ -978,9 +976,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
       const stillVisible = this.words().some((entry) => entry.groupKey === selected);
       if (!stillVisible) {
-        this.selectedGroupKey.set(null);
-        this.showResponses.set(false);
-        this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+        this.clearWordSelection();
       }
     });
 
@@ -1124,12 +1120,21 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
             (this.document.activeElement === trigger ||
               (wasFocused && this.document.activeElement === this.document.body))
           ) {
-            this.stageHideButton()?.nativeElement.focus();
+            this.hideWordButton()?.nativeElement.focus();
           }
         },
         { injector: this.injector },
       );
     }
+  }
+
+  private clearWordSelection(): void {
+    if (this.document.activeElement === this.hideWordButton()?.nativeElement) {
+      this.heading()?.nativeElement.focus();
+    }
+    this.selectedGroupKey.set(null);
+    this.showResponses.set(false);
+    this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
   }
 
   async hideSelectedWord(event: Event): Promise<void> {
@@ -1148,8 +1153,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       ) {
         this.heading()?.nativeElement.focus();
       }
-      this.selectedGroupKey.set(null);
-      this.showResponses.set(false);
+      this.clearWordSelection();
       this.visibilityFeedback.set('hidden');
     } catch {
       this.visibilityFeedback.set('failed');
@@ -1514,7 +1518,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     if (terms && terms.length > 0) {
       const rows = [
         'label,score,documentFrequency,kind,variants,members',
-        ...terms.map((term) =>
+        ...this.visibleEntries(terms).map((term) =>
           [
             this.escapeCsvField(term.label),
             String(Math.round(term.score)),
@@ -1531,8 +1535,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     const analysisEntries = this.analysisEntries();
     if (analysisEntries && analysisEntries.length > 0) {
+      const entries = this.visibleEntries(analysisEntries);
       const includeSemanticMeta = Boolean(this.analysisModelVersion());
-      const includeLabelModel = analysisEntries.some((entry) => entry.labelOrigin === 'model');
+      const includeLabelModel = entries.some((entry) => entry.labelOrigin === 'model');
       const rows = [
         [
           includeSemanticMeta
@@ -1542,7 +1547,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         ]
           .filter((column) => column.length > 0)
           .join(','),
-        ...analysisEntries.map((entry) =>
+        ...entries.map((entry) =>
           [
             this.escapeCsvField(entry.label),
             String(entry.count),

@@ -894,7 +894,7 @@
     },
     "session.setFreetextWordCloudEntryVisibility": {
       "kind": "mutation",
-      "fingerprint": "sha256:e6c20f3b1b6d83c00df1ae49546f24147e6b3d68f6935cb66e1da886e3e08926",
+      "fingerprint": "sha256:cb214facc518ddea629992ea30d8a71c779bb70c720edab784d2dfd81cebca8b",
       "missing": []
     },
     "session.setFreetextWordCloudProjection": {

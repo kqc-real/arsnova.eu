@@ -103,7 +103,7 @@
     }
     @if (outputOnly() && hideEntry() && selectedWordLabel()) {
       <button
-        #stageHideButton
+        #hideWordButton
         mat-button
         type="button"
         class="word-cloud__hide-action word-cloud__hide-action--stage"
@@ -288,6 +288,7 @@
             </summary>
             @if (hideEntry() && selectedWordLabel()) {
               <button
+                #hideWordButton
                 mat-button
                 type="button"
                 class="word-cloud__hide-action"

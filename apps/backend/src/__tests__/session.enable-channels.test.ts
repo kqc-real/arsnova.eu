@@ -1599,15 +1599,31 @@ describe('session.setFreetextWordCloudEntryVisibility', () => {
     },
   );
 
-  it('weist eine inzwischen gewechselte Freitextfrage zurück', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      ...freetextSession(),
-      currentQuestion: 3,
-      quiz: { questions: [{ order: 2 }] },
-    });
-    await expect(caller.setFreetextWordCloudEntryVisibility(input)).rejects.toMatchObject({
-      code: 'BAD_REQUEST',
-    });
+  it('liest die Freitextfrage erst nach dem konkurrierenden Fragenwechsel unter der Sperre', async () => {
+    let releaseLock!: () => void;
+    prismaMock.$executeRaw.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        releaseLock = resolve;
+      }),
+    );
+    const update = caller
+      .setFreetextWordCloudEntryVisibility(input)
+      .catch((error: unknown) => error);
+    try {
+      await vi.waitFor(() => expect(prismaMock.$executeRaw).toHaveBeenCalledOnce());
+      expect(prismaMock.session.findUnique).toHaveBeenCalledExactlyOnceWith({
+        where: { code: 'ABC123' },
+        select: { id: true },
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...freetextSession(),
+        currentQuestion: 3,
+        quiz: { questions: [{ order: 2 }] },
+      });
+    } finally {
+      releaseLock();
+    }
+    expect(await update).toMatchObject({ code: 'BAD_REQUEST' });
     expect(prismaMock.hiddenWordCloudEntry.createMany).not.toHaveBeenCalled();
   });
 });

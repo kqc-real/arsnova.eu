@@ -8284,38 +8284,44 @@ const sessionCoreRouter = router({
     .input(SetFreetextWordCloudEntryVisibilityInputSchema)
     .output(FreetextWordCloudVisibilitySchema)
     .mutation(async ({ input }) => {
-      const session = await prisma.session.findUnique({
+      const identity = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: {
-          id: true,
-          hostEnded: true,
-          expiresAt: true,
-          currentQuestion: true,
-          quiz: {
-            select: {
-              questions: {
-                where: { id: input.questionId, type: 'FREETEXT' },
-                select: { order: true },
+        select: { id: true },
+      });
+      if (!identity) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      return prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            hostEnded: true,
+            expiresAt: true,
+            currentQuestion: true,
+            quiz: {
+              select: {
+                questions: {
+                  where: { id: input.questionId, type: 'FREETEXT' },
+                  select: { order: true },
+                },
               },
             },
           },
-        },
-      });
-      if (!session) throw new TRPCError({ code: 'NOT_FOUND' });
-      if (
-        session.hostEnded ||
-        session.expiresAt.getTime() <= Date.now() ||
-        !session.quiz?.questions.some(({ order }) => order === session.currentQuestion)
-      ) {
-        throw new TRPCError({ code: 'BAD_REQUEST' });
-      }
+        });
+        if (!session) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (
+          session.hostEnded ||
+          session.expiresAt.getTime() <= Date.now() ||
+          !session.quiz?.questions.some(({ order }) => order === session.currentQuestion)
+        ) {
+          throw new TRPCError({ code: 'BAD_REQUEST' });
+        }
 
-      const scope = {
-        sessionId: session.id,
-        questionId: input.questionId,
-        labelKey: freetextWordCloudVisibilityKey(input.label),
-      };
-      return prisma.$transaction(async (tx) => {
+        const scope = {
+          sessionId: identity.id,
+          questionId: input.questionId,
+          labelKey: freetextWordCloudVisibilityKey(input.label),
+        };
         if (input.hidden) {
           await tx.hiddenWordCloudEntry.createMany({
             data: { ...scope, label: input.label },
@@ -8324,7 +8330,7 @@ const sessionCoreRouter = router({
         } else {
           await tx.hiddenWordCloudEntry.deleteMany({ where: scope });
         }
-        return readFreetextWordCloudVisibility(session.id, input.questionId, tx);
+        return readFreetextWordCloudVisibility(identity.id, input.questionId, tx);
       });
     }),
 
