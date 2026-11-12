@@ -1115,34 +1115,28 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     expect(complete.normalizationApplied).toBe('NONE');
   });
 
-  it('akzeptiert fr/es und lehnt it als Analyse-Locale ab', () => {
+  it.each(['de', 'en', 'fr', 'es', 'it'])('akzeptiert %s als Analyse-Locale', (locale) => {
     expect(
       AnalyzeWordCloudInputSchema.parse({
         sessionCode: 'ABC123',
-        mode: 'LEXICAL',
-        locale: 'fr',
+        mode: 'SEMANTIC',
+        locale,
         metric: 'TOP',
         items: [sourceItem],
       }).locale,
-    ).toBe('fr');
+    ).toBe(locale);
+  });
+
+  it('lehnt unbekannte Analyse-Locales ab', () => {
     expect(
-      AnalyzeWordCloudInputSchema.parse({
+      AnalyzeWordCloudInputSchema.safeParse({
         sessionCode: 'ABC123',
         mode: 'LEXICAL',
-        locale: 'es',
+        locale: 'pt',
         metric: 'TOP',
         items: [sourceItem],
-      }).locale,
-    ).toBe('es');
-    expect(() =>
-      AnalyzeWordCloudInputSchema.parse({
-        sessionCode: 'ABC123',
-        mode: 'LEXICAL',
-        locale: 'it',
-        metric: 'TOP',
-        items: [sourceItem],
-      }),
-    ).toThrow();
+      }).success,
+    ).toBe(false);
   });
 
   it('begrenzt Item-Textlaenge hart', () => {

@@ -2,17 +2,18 @@
  * Story 1.14b: optionale sprachliche Glättung der Wortwolke.
  *
  * spaCy liefert nur Lemma/POS-Hilfsdaten. Semantische Themen gehören zu Story 1.14c.
- * Diese Datei ist die schema-nahe Quelle für Normalisierungsmodus, Locale-/Lizenzgrenze
- * (`de`/`en` MIT, `fr` LGPL-LR, `es` GPL-3.0; `it` ausgeschlossen) und den Resolver,
+ * Diese Datei definiert Normalisierungsmodus, Modellversionen und den Resolver,
  * der entscheidet, ob LEMMA tatsächlich angewandt werden darf.
  */
+
+import { APP_LOCALES } from './app-locale';
 
 export const WORD_CLOUD_NORMALIZATION_VALUES = ['NONE', 'LEMMA'] as const;
 type WordCloudNormalization = (typeof WORD_CLOUD_NORMALIZATION_VALUES)[number];
 export const WORD_CLOUD_DEFAULT_NORMALIZATION: WordCloudNormalization = 'NONE';
 
 /** Vertragsversion der Normalisierungsachse; Cache- und Snapshot-Schlüssel müssen sie enthalten. */
-export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.14';
+export const WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION = '1.14b.15';
 
 /** Hartes Textbudget je Analyse-Item; identisch zum Sidecar-Client. */
 export const WORD_CLOUD_MAX_ITEM_TEXT_CHARS = 4_000;
@@ -43,11 +44,8 @@ export const WORD_CLOUD_TRANSIENT_NORMALIZATION_FALLBACK_REASONS = [
 /** Gepinnte spaCy-Runtime für das Sidecar (Phase 3). Patch-Updates bleiben in 3.8.x. */
 export const WORD_CLOUD_SPACY_RUNTIME_VERSION = '3.8.15';
 
-export const WORD_CLOUD_LEMMA_LOCALES = ['de', 'en', 'fr', 'es'] as const;
+export const WORD_CLOUD_LEMMA_LOCALES = APP_LOCALES;
 export type WordCloudLemmaLocale = (typeof WORD_CLOUD_LEMMA_LOCALES)[number];
-
-export const WORD_CLOUD_LEMMA_EXCLUDED_LOCALES = ['it'] as const;
-export type WordCloudLemmaExcludedLocale = (typeof WORD_CLOUD_LEMMA_EXCLUDED_LOCALES)[number];
 
 export interface WordCloudLemmaModelPin {
   readonly id: string;
@@ -60,11 +58,8 @@ export const WORD_CLOUD_LEMMA_MODELS = {
   en: { id: 'en_core_web_sm', version: '3.8.0', license: 'MIT' },
   fr: { id: 'fr_core_news_sm', version: '3.8.0', license: 'LGPL-LR' },
   es: { id: 'es_core_news_sm', version: '3.8.0', license: 'GPL-3.0' },
+  it: { id: 'it_lemma_lookup', version: '1.0.5', license: 'MIT' },
 } as const satisfies Record<WordCloudLemmaLocale, WordCloudLemmaModelPin>;
-
-export const WORD_CLOUD_LEMMA_EXCLUDED_MODELS = {
-  it: { id: 'it_core_news_sm', version: '3.8.0', license: 'CC BY-NC-SA 3.0' },
-} as const satisfies Record<WordCloudLemmaExcludedLocale, WordCloudLemmaModelPin>;
 
 export const WORD_CLOUD_NORMALIZATION_FALLBACK_REASONS = [
   'NLP_DISABLED',

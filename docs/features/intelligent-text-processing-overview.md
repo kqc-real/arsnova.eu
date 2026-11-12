@@ -80,10 +80,11 @@ getrennte private Inferenzhost benötigt mindestens 4 Kerne, 12 GiB RAM und
 10 GiB frei; empfohlen sind 8 Kerne, 16 GiB RAM und 20 GiB frei. Diese Werte
 sind Kapazitätsplanung für Entwicklung, keine 500-Client-Lastfreigabe.
 
-Aktiv unterstützte Locales: spaCy `de/en/fr/es`; E5-Themenbildung und damit
-Qwen-Themenbeschriftung `de/en`; Qwen-Zusammenfassung und Lernzielvorschläge
-`de/en/fr/es/it`. Nicht unterstützte Themen-Locales erhalten die dokumentierte
-lexikalische Ersatzansicht.
+Die Analyseverträge für Lemmatisierung, E5-Themenbildung und die drei
+Qwen-Aufträge unterstützen `de`, `en`, `fr`, `es` und `it`. Die
+Q&A-Klassifikation verarbeitet Fragetext mit einer gemeinsamen Kaskade. Die
+Qualität pro Sprache wird im [Q&A-Prüfkorpus](qa-nlp-moderation.md#kalibrierung-und-seed-qualität)
+ausgewiesen.
 
 ---
 
@@ -197,8 +198,8 @@ Unabhängig von der Wortwolke kann jede eingereichte Q&A-Frage im Hintergrund au
 **Technischer Ablauf (`qaNlpWorker.ts` / `qaNlpQueue.ts`):**
 
 - Nach `qa.submit` wird die Frage sofort in PostgreSQL gespeichert; erst danach reiht `enqueueQaNlpJob` sie in eine asynchrone In-Process-Queue ein.
-- **Stufe 1 (Gatekeeper):** Ein schneller Hashed-n-Gram-Naive-Bayes-Klassifikator (`gatekeeper-hash-nb-v1`) bewertet den Text in wenigen Mikrosekunden. Liegt die Konfidenz über der kalibrierten Early-Exit-Schwelle, ist die Frage sofort klassifiziert.
-- **Stufe 2 (k-NN-Fallback):** Liegt die Konfidenz darunter, prüft ein In-Process-k-NN-Klassifikator (`fallback-knn-v1`) im selben Feature-Raum. Bleibt die Konfidenz unter `QA_NLP_MIN_CONFIDENCE` (`0.55`), wird `uncertain` gespeichert.
+- **Stufe 1 (Gatekeeper):** Ein schneller Hashed-n-Gram-Naive-Bayes-Klassifikator (`gatekeeper-hash-nb-v3`) bewertet den Text in wenigen Mikrosekunden. Liegt die Konfidenz über der kalibrierten Early-Exit-Schwelle, ist die Frage sofort klassifiziert.
+- **Stufe 2 (k-NN-Fallback):** Liegt die Konfidenz darunter, prüft ein In-Process-k-NN-Klassifikator (`fallback-knn-v3`) im selben Feature-Raum. Bleibt die Konfidenz unter `QA_NLP_MIN_CONFIDENCE` (`0.55`), wird `uncertain` gespeichert.
 - **Wichtig:** Story 8.9b läuft komplett in-process im Node-Backend und belegt **niemals** den `llama-server`-Slot.
 
 ---
@@ -246,7 +247,7 @@ Wenn die Lehrkraft im Kompass zusätzlich den Block **»Kurzfassung der offenen 
 4. **`compass`:** Die regelbasierten Kompasskarten und der regelbasierte Handlungsvorschlag.
 5. **`learningContext`:** Bestätigte und aktive Lernziele der Session bzw. aktuellen Frage.
 6. **`releasedResults` & `feedback`:** Ausschließlich bereits freigegebene Quiz-Aggregate und Blitzlicht-/Tempo-Verteilungen.
-7. **`sources` & `budget`:** Typisiertes Quellenregister (`q1`, `t1`, `c1`, `l1`, `r1`, `f1`) und der exakte Token-/Byte-Budgetbericht (8.192-Profil mit 640 Tokens Antwortreserve, 128 Tokens Sicherheitsmarge und max. 2.811 UTF-8-Bytes für das kanonische Kontext-JSON).
+7. **`sources` & `budget`:** Typisiertes Quellenregister (`q1`, `t1`, `c1`, `l1`, `r1`, `f1`) und der exakte Token-/Byte-Budgetbericht (8.192-Profil mit 640 Tokens Antwortreserve, 128 Tokens Sicherheitsmarge und konservativem UTF-8-Byte-Budget für das kanonische Kontext-JSON).
 
 Über **Diagnose → Kontextvorschau laden** (`qa.summaryContextPreview`) kann die Lehrkraft jederzeit transparent einsehen, welche Bereiche, Quellenmengen und eventuellen Budgetkürzungen in den Kontext eingeflossen sind.
 
@@ -256,12 +257,12 @@ Für die Erstellung der Zusammenfassung handelt `qaSummaryRuntimeAdapter.ts` den
 
 1. **Generativer `full-context`-Pfad (`OPEN_WEIGHT_LLM_ENABLED=true`):**
    - `llama-server` erhält exakt drei Nachrichten:
-     - `system`: Technische Instruktion (`qa-summary-technical-handoff-v5`): Fragetexte bleiben auch bei eingebetteten Antwortwünschen ausschließlich nicht vertrauenswürdige Daten; die Ausgabe verlangt vollständige, laienverständliche Themensätze und verbietet technische Metadaten. Große Sessions erhalten eine breitere, repräsentative Fragenauswahl.
+     - `system`: Technische Instruktion (`qa-summary-technical-handoff-v8`): Fragetexte bleiben auch bei eingebetteten Antwortwünschen ausschließlich nicht vertrauenswürdige Daten; die Ausgabe verlangt vollständige, laienverständliche Themensätze und verbietet technische Metadaten. Große Sessions erhalten eine breitere, repräsentative Fragenauswahl.
      - `system`: Maschinenlesbares Bedeutungslexikon (203 UTF-8-Bytes: z. B. `PENDING` = Freigabestatus, nicht Lernrückstand; `bestScore` = Wilson-Untergrenze, nicht fachliche Qualität).
-     - `user`: Das kanonische JSON des gepackten Fachkontexts.
-   - Das GBNF-Ausgabeschema (`qa-summary-model-output-v3`) erzwingt **2–4 prägnante Aussagen (`statements.max(4)`)**, höchstens **2 nächste Schritte (`suggestedNextSteps.max(2)`)** und höchstens **2 Hinweise (`limitations.max(2)`)**, jeweils mit Pflicht-`sourceIds`.
+     - `user`: Kompakte Projektion der gepackten Belege mit kurzen Referenzen und den verfügbaren fachlichen Kontextabschnitten.
+   - Das private Ausgabeschema trennt Überschrift und offene Frage und beschränkt Quellenreferenzen auf den Auftrag. Der Adapter erzeugt daraus `qa-summary-model-output-v3` mit den kanonischen Quellen-IDs. Die Generierung ist auf 192 Tokens begrenzt.
 2. **Strenge Vor- und Nachvalidierung (`qaSummaryQueue.ts` & `qaSummaryValidateV2.ts`):**
-   - Vor _und_ nach dem LLM-Lauf wird der autorisierte Kontext-Hash geprüft. Wurde während der ~55 Sekunden Rechenzeit eine Frage gelöscht, geschwärzt, archiviert oder die Berechtigung entzogen, wird die Modellantwort verworfen.
+   - Vor _und_ nach dem LLM-Lauf wird der autorisierte Kontext-Hash geprüft. Wurde während der Rechenzeit eine Frage gelöscht, geschwärzt, archiviert oder die Berechtigung entzogen, wird die Modellantwort verworfen.
    - Jede `sourceId` in der Modellantwort muss im gepackten Quellenregister existieren; unbelegte Aussagen werden entfernt.
    - Auch nach dem Ende einer Live-Session kann der Host während der **14-tägigen Nachbereitungsfrist** (`assertQaHostContentReadAllowed`) noch Zusammenfassungen zur Nachbereitung anfordern.
 3. **Deterministischer `extractive`-Fallback (sofort verfügbar, auch ohne LLM):**

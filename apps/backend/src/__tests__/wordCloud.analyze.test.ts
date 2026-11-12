@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION } from '@arsnova/shared-types';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { SpacyClientError } from '../lib/spacyClient';
 import * as spacyClient from '../lib/spacyClient';
@@ -86,7 +87,7 @@ describe('wordCloud.analyze', () => {
       expect(result.normalizationApplied).toBe('NONE');
       expect(result.normalizationFallbackUsed).toBe(false);
       expect(result.normalizationFallbackReason).toBeNull();
-      expect(result.analysisVersion).toBe('1.14b.14');
+      expect(result.analysisVersion).toBe(WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION);
       expect(result.snapshotHash).toMatch(/^[a-f0-9]{64}$/);
       expect(result.entries).toHaveLength(2);
       expect(result.entries[0]).toMatchObject({

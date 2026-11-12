@@ -37,7 +37,7 @@
 | `npm run spacy:dev:test`                      | Hilfe-/Syntax- und Verdrahtungstests für `scripts/spacy-dev-sidecar.sh`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `npm run engines:test`                        | Node-`engines`-Vertrag: `engine-strict`, Root-`engines` im Lockfile, alle nicht optionalen Pakete ab Mindestversion installierbar (`semver` ist dafür Root-`devDependency`)                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `npm run spacy:macos-dev`                     | macOS: Clean, `build:prod` aller Locales, Host-Sidecar, `start:prod`, `serve:localize:api` auf 4200, Freitext-, Q&A- und Moderationskompass-Seed (Demo-Quiz mit Freitextfrage)                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `npm run spacy:macos-dev:test`                | Hilfe-/Syntax-Tests für `scripts/macos-spacy-wordcloud-dev.sh`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `npm run spacy:macos-dev:test`                | Hilfe, Syntax, Sidecar-Upgrade und Wiederverwendung nach vorübergehender Auslastung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `npm run qa-summary:dev`                      | Lokaler 8.9c-Inferenzhelfer auf `127.0.0.1:8787/summary` (extraktiv; optional Gemini-Key nur im Helfer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `npm run qa-summary:dev:test`                 | Vertrag-, Loopback- und Gemini-Mock-Tests für `scripts/qa-summary-dev-server.mjs`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `npm run dev:qa-summary`                      | Backend/Frontend, spaCy, Themen-Encoder und lokalen Zusammenfassungshelfer gemeinsam starten; der Starter aktiviert die Zusammenfassung und ihre Loopback-URL automatisch                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -53,10 +53,10 @@
 ### Hervorgehobener KI-Gesamtstart: `npm run dev:ai`
 
 `npm run dev:ai` ist der zentrale Entwicklungsstart für alle KI-Pfade. Er startet
-die App, Q&A-Kategorisierung, Lemmatisierung (`de/en/fr/es`), E5-Themenbildung
-(`de/en`), den lokalen extraktiven Summary-Helfer und aktiviert die privaten
-Qwen-Aufträge für Themenbeschriftung (`de/en`), Zusammenfassung und
-Lernzielvorschläge (`de/en/fr/es/it`). Die Qwen-Runtime selbst muss bereits über
+die App, Q&A-Kategorisierung, Lemmatisierung, E5-Themenbildung und den lokalen
+extraktiven Summary-Helfer. Dazu kommen die privaten Qwen-Aufträge für
+Themenbeschriftung, Zusammenfassung und Lernzielvorschläge. Die Analyseverträge
+unterstützen `de`, `en`, `fr`, `es` und `it`. Die Qwen-Runtime selbst muss bereits über
 die konfigurierte URL beziehungsweise den Maintainer-SSH-Tunnel erreichbar sein.
 
 Ressourcen: E5 ist lokal auf 1 CPU und 2 GiB RAM begrenzt. Der spaCy-Hostprozess
@@ -458,6 +458,8 @@ npm run test -w @arsnova/frontend -- \
 
 Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle, Kalibrierkurve, k-NN-Fallback und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Queue-Tests decken langsamen Worker, Timeout und Telemetrie (Early-Exit/Fallback/Unclassified) ab. Lokaler k6/Artillery-Hörsaallast 2026-08-19: 500 Joins/WS und 100 Q&A-Submits ohne Queue-Skip; Produktiv-Default bleibt aus.
 
+`eval:qa-nlp` meldet unter `localeHoldout` zusätzlich Macro-F1, Trefferquote und Anteil unsicherer Ergebnisse für jede App-Locale und für gemischtsprachige Fragen. Der Prüfkorpus ist unabhängig vom Trainingssplit.
+
 ### Optionale Moderationszusammenfassung (Story 8.9c)
 
 ```bash
@@ -481,7 +483,25 @@ npm run test -w @arsnova/frontend -- \
 npm run load:issue-456:validate
 ```
 
-Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden und ephemer. V2 handelt `full-context`/`legacy-text` ausdrücklich aus und liefert ohne Modell einen lokalen extraktiven Backend-Fallback; es gibt keinen Cloud-Fallback. `qa.summaryContextPreview` ist hostgeschützt und wird in der UI erst nach ausdrücklicher Aktion geladen. Der lokale Legacy-Helfer bleibt mit `npm run qa-summary:dev` / `npm run qa-summary:dev:test` prüfbar. `npm run load:issue-456:validate` validiert netzwerkfrei das kanonische Demo-Quiz sowie mindestens 250 Teilnahmen mit je zehn sinnvollen Fragen; der echte `npm run load:issue-456:run` ist auf Loopback beschränkt und erwartet einen separat mit `QA_SUMMARY_ENABLED=true` gestarteten Backendprozess. Sein früher Preflight bricht bei deaktiviertem Summary V2 noch vor Joins und Q&A-Last ab. Produktdoku: [qa-summary.md](features/qa-summary.md), [Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md). Ein separater interaktiver Lernziellauf mit dem vollständigen Demo-Quiz erzeugte am 12.10.2026 zehn Entwürfe; er ist kein Nachweis für den 250-Teilnahmen-Runner. Realer Summary-V2-Lauf, vollständige Lernziel-Mess-/Qualitätsdaten und das reichhaltige 4.096-Profil bleiben offen.
+Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden und ephemer. V2 handelt `full-context`/`legacy-text` ausdrücklich aus und liefert ohne Modell einen lokalen extraktiven Backend-Fallback; es gibt keinen Cloud-Fallback. `qa.summaryContextPreview` ist hostgeschützt und wird in der UI erst nach ausdrücklicher Aktion geladen. Der lokale Legacy-Helfer bleibt mit `npm run qa-summary:dev` / `npm run qa-summary:dev:test` prüfbar. `npm run load:issue-456:validate` validiert netzwerkfrei das kanonische Demo-Quiz sowie mindestens 250 Teilnahmen mit je zehn sinnvollen Fragen; der echte `npm run load:issue-456:run` ist auf Loopback beschränkt und erwartet einen separat mit `QA_SUMMARY_ENABLED=true` gestarteten Backendprozess. Sein früher Preflight bricht bei deaktiviertem Summary V2 noch vor Joins und Q&A-Last ab. Produktdoku: [qa-summary.md](features/qa-summary.md), [Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md). Ein separater interaktiver Lernziellauf mit dem vollständigen Demo-Quiz erzeugte am 12.10.2026 zehn Entwürfe; er ist kein Nachweis für den 250-Teilnahmen-Runner. Die kurze Summary-V2-Modellprobe bestand in allen fünf App-Locales. Vollständige Lernziel-Mess- und Qualitätsdaten sowie die Prefill- und RSS-Abnahme des reichhaltigen 8.192-Profils stehen aus.
+
+### Fünfsprachige NLP-Proben
+
+```bash
+node --import tsx apps/backend/scripts/eval-qa-nlp-gatekeeper.ts
+OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
+  node --env-file=.env --import tsx apps/backend/scripts/eval-qa-summary-locales.ts
+```
+
+Die Klassifikationsprobe wertet 15 synthetische Holdout-Fragen je App-Locale aus.
+Die Mindestquote von 80 % bezieht Enthaltungen ein. Die Modellprobe benötigt
+eine konfigurierte private Qwen-Runtime und verlangt pro Locale eine generative,
+quellengebundene Ausgabe mit zwei vollständigen Überschriften ohne Fallback.
+Messwerte und Grenzen stehen in der [Q&A-Klassifikation](features/qa-nlp-moderation.md)
+und der [Summary-V2-Dokumentation](features/qa-summary.md).
+Der [optionale E5-Modelltest](features/word-cloud-semantic.md) benötigt echte
+ONNX-Gewichte. Der lokale Hörsaallastlauf deckte die Klassifikationsqueue sowie
+spaCy- und Encoder-Aufträge ab. Qwen lief in separaten Einzelproben.
 
 ### Private Open-Weight-LLM-Runtime (Story 8.9d)
 

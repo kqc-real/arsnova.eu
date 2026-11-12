@@ -5,12 +5,12 @@ import { isIP } from 'node:net';
 import type { LookupAddress } from 'node:dns';
 import { z } from 'zod';
 import {
+  createQaSummaryModelWireSchema,
   hasOnlyAllowedOpenWeightLlmReferences,
   OpenWeightLlmLearningObjectivesOutputSchema,
   OpenWeightLlmOutputSchema,
   OpenWeightLlmRequestSchema,
   OpenWeightLlmSummaryOutputSchema,
-  OpenWeightLlmSummaryOutputV2Schema,
   OpenWeightLlmTopicLabelBatchOutputSchema,
   OpenWeightLlmTopicLabelOutputSchema,
   type OpenWeightLlmLearningObjectivesOutput,
@@ -28,7 +28,6 @@ import {
   type OpenWeightLlmTopicLabelOutput,
   type OpenWeightLlmTopicLabelRequest,
 } from '@arsnova/shared-types';
-import { canonicalModerationPromptJson } from './moderationPromptContextPacking';
 import { logger } from './logger';
 import {
   isBlockedOpenWeightLlmHost,
@@ -243,9 +242,7 @@ function outputSchemaFor(request: OpenWeightLlmRequest) {
         ? OpenWeightLlmTopicLabelBatchOutputSchema
         : OpenWeightLlmTopicLabelOutputSchema;
     case 'qa_summary':
-      return request.schemaVersion === 2
-        ? OpenWeightLlmSummaryOutputV2Schema
-        : OpenWeightLlmSummaryOutputSchema;
+      return OpenWeightLlmSummaryOutputSchema;
     case 'learning_objectives':
       return OpenWeightLlmLearningObjectivesOutputSchema;
   }
@@ -290,7 +287,97 @@ function systemInstructionFor(request: OpenWeightLlmRequest): string {
   ].join(' ');
 }
 
+function summarySourceRefs(request: OpenWeightLlmSummaryRequestV2): Map<string, string> {
+  return new Map(
+    request.promptContext.context.sources.map(({ id }, index) => [id, String(index + 1)]),
+  );
+}
+
+function isSummaryReferenceOnly(
+  source: OpenWeightLlmSummaryRequestV2['promptContext']['context']['sources'][number],
+) {
+  return source.kind === 'qa-question' && source.content.state === 'reference-only';
+}
+
+function summaryCitableRefs(request: OpenWeightLlmSummaryRequestV2, refs: Map<string, string>) {
+  return request.promptContext.context.sources
+    .filter((source) => !isSummaryReferenceOnly(source))
+    .map(({ id }) => refs.get(id)!);
+}
+
+function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
+  const refs = summarySourceRefs(request);
+  const { locale, questions, topics, compass, learningContext, releasedResults, feedback } =
+    request.promptContext.context;
+  const answers = new Map(
+    questions.state === 'available'
+      ? questions.items.map((item) => [item.sourceId, item.answerState.state])
+      : [],
+  );
+  const sources = request.promptContext.context.sources.map((source) => {
+    if (source.kind !== 'qa-question') return source;
+    if (source.content.state === 'reference-only') {
+      return { id: source.id, kind: source.kind, state: source.content.state };
+    }
+    return {
+      id: source.id,
+      kind: source.kind,
+      text: source.content.text,
+      answerState: answers.get(source.id),
+    };
+  });
+  return JSON.stringify(
+    {
+      locale,
+      sources,
+      topics: topics.state === 'available' ? topics : undefined,
+      compass: compass.state === 'available' ? compass : undefined,
+      learningContext: learningContext.state === 'available' ? learningContext : undefined,
+      releasedResults: releasedResults.state === 'available' ? releasedResults : undefined,
+      feedback: feedback.state === 'available' ? feedback : undefined,
+    },
+    (_key, value: unknown) => (typeof value === 'string' ? (refs.get(value) ?? value) : value),
+  );
+}
+
+function expandSummaryWireOutput(request: OpenWeightLlmSummaryRequestV2, content: unknown) {
+  const refs = summarySourceRefs(request);
+  const parsed = createQaSummaryModelWireSchema(summaryCitableRefs(request, refs)).safeParse(
+    content,
+  );
+  if (!parsed.success) return null;
+
+  const idsByRef = new Map([...refs].map(([id, ref]) => [ref, id]));
+  const sourceIds = (values: readonly string[]) => [
+    ...new Set(values.map((ref) => idsByRef.get(ref)!)),
+  ];
+  return {
+    schemaVersion: request.schemaVersion,
+    taskType: request.taskType,
+    outputContract: request.outputContract,
+    output: {
+      status: 'ready',
+      statements: parsed.data.topics.map(({ topic, question, refs: values }) => ({
+        text: `${topic}: ${question}`,
+        sourceIds: sourceIds(values),
+      })),
+      suggestedNextSteps: parsed.data.next
+        ? [{ text: parsed.data.next.sentence, sourceIds: sourceIds(parsed.data.next.refs) }]
+        : [],
+      limitations: [],
+    },
+  };
+}
+
 function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, unknown> {
+  if (request.taskType === 'qa_summary' && request.schemaVersion === 2) {
+    return z.toJSONSchema(
+      createQaSummaryModelWireSchema(summaryCitableRefs(request, summarySourceRefs(request))),
+      {
+        target: 'draft-7',
+      },
+    );
+  }
   const base = z.toJSONSchema(outputSchemaFor(request), { target: 'draft-7' }) as Record<
     string,
     unknown
@@ -327,57 +414,7 @@ function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, 
       },
     };
   }
-  if (request.taskType !== 'qa_summary' || request.schemaVersion !== 2) {
-    return base;
-  }
-  const allowedIds = request.promptContext.context.sources.map((source) => source.id);
-  const statementSchema = {
-    type: 'object',
-    properties: {
-      text: { type: 'string', minLength: 1, maxLength: 180 },
-      sourceIds: {
-        type: 'array',
-        minItems: 1,
-        maxItems: 2,
-        items:
-          allowedIds.length > 0
-            ? { type: 'string', enum: allowedIds }
-            : { type: 'string', minLength: 1, maxLength: 160 },
-      },
-    },
-    required: ['text', 'sourceIds'],
-    additionalProperties: false,
-  };
-  return {
-    ...base,
-    properties: {
-      ...(base['properties'] as Record<string, unknown>),
-      output: {
-        type: 'object',
-        properties: {
-          status: { type: 'string', enum: ['ready', 'uncertain', 'failed'] },
-          statements: {
-            type: 'array',
-            minItems: 2,
-            maxItems: 4,
-            items: statementSchema,
-          },
-          suggestedNextSteps: {
-            type: 'array',
-            maxItems: 1,
-            items: statementSchema,
-          },
-          limitations: {
-            type: 'array',
-            maxItems: 0,
-            items: { type: 'string' },
-          },
-        },
-        required: ['status', 'statements', 'suggestedNextSteps', 'limitations'],
-        additionalProperties: false,
-      },
-    },
-  };
+  return base;
 }
 
 function buildChatCompletionBody(
@@ -391,7 +428,7 @@ function buildChatCompletionBody(
           { role: 'system', content: request.definitionText },
           {
             role: 'user',
-            content: canonicalModerationPromptJson(request.promptContext.context),
+            content: compactSummaryContext(request),
           },
         ]
       : [
@@ -411,7 +448,9 @@ function buildChatCompletionBody(
     max_tokens:
       request.taskType === 'topic_label' && request.schemaVersion === 2
         ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
-        : config.maxOutputTokens[request.taskType],
+        : request.taskType === 'qa_summary' && request.schemaVersion === 2
+          ? Math.min(192, config.maxOutputTokens.qa_summary)
+          : config.maxOutputTokens[request.taskType],
     temperature: 0,
     stream: false,
     reasoning_effort: 'none',
@@ -454,6 +493,9 @@ function parseCompletion(
     content = JSON.parse(completion.data.choices[0]!.message.content) as unknown;
   } catch {
     return reject('invalid_model_json', completion.data);
+  }
+  if (request.taskType === 'qa_summary' && request.schemaVersion === 2) {
+    content = expandSummaryWireOutput(request, content);
   }
   const parsedOutput = OpenWeightLlmOutputSchema.safeParse(content);
   if (!parsedOutput.success) return reject('output_schema', completion.data);

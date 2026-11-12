@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { APP_LOCALES } from './app-locale';
 import {
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
@@ -4422,12 +4423,11 @@ export type WordCloudNormalizationFallbackReason = z.infer<
   typeof WordCloudNormalizationFallbackReasonEnum
 >;
 
-/** Analyse-Locales mit Sidecar-Modell. `it` bleibt ausserhalb (CC BY-NC-SA). */
+/** Analyse-Locales mit Sidecar-Unterstützung. */
 export const WordCloudAnalysisLocaleEnum = z.enum(WORD_CLOUD_LEMMA_LOCALES);
 export type WordCloudAnalysisLocale = z.infer<typeof WordCloudAnalysisLocaleEnum>;
 
-/** Lokale Wortextraktion unterstützt zusätzlich Italienisch. */
-export const WordCloudDisplayLocaleEnum = WordCloudAnalysisLocaleEnum.or(z.literal('it'));
+export const WordCloudDisplayLocaleEnum = WordCloudAnalysisLocaleEnum;
 
 /**
  * Darstellungsmetadaten. Bei älteren Snapshots und Projektionen können sie fehlen.
@@ -6482,7 +6482,7 @@ export const QaSummarySourceSchema = z.object({
 export type QaSummarySource = z.infer<typeof QaSummarySourceSchema>;
 
 /** Werte identisch zu AppLocaleEnum; hier vorgezogen, weil der Q&A-Vertrag davor steht. */
-export const QaSummaryLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
+export const QaSummaryLocaleEnum = z.enum(APP_LOCALES);
 export type QaSummaryLocale = z.infer<typeof QaSummaryLocaleEnum>;
 
 export const QaSummaryResultSchema = z
@@ -7187,7 +7187,7 @@ export type GetLastSessionExportPdfForQuizInput = z.infer<
 // ─── MOTD / Plattform-Kommunikation (Epic 10) ───────────────────────────────
 
 /** UI-Locales (ADR-0008) — synchron mit Angular-Builds */
-export const AppLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
+export const AppLocaleEnum = z.enum(APP_LOCALES);
 export type AppLocale = z.infer<typeof AppLocaleEnum>;
 
 /** Fallback-Kette wenn Übersetzung fehlt: angefragte Locale → de → en → rest */

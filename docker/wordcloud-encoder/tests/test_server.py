@@ -62,6 +62,13 @@ class EncoderServerTests(unittest.TestCase):
     def test_health_is_204(self) -> None:
         self.assertEqual(healthcheck.probe_health(self.socket_path), 204)
 
+    def test_accepts_all_app_locales(self) -> None:
+        for locale in ("de", "en", "fr", "es", "it", "pt"):
+            with self.subTest(locale=locale):
+                payload = {"locale": locale, "snapshotHash": "a" * 64, "items": [{"id": "q1", "text": "Test"}]}
+                parsed = server.parse_embed_request(json.dumps(payload).encode())
+                self.assertEqual(parsed, "invalid" if locale == "pt" else payload)
+
     def test_embed_returns_vectors_without_extra_fields(self) -> None:
         payload = {
             "locale": "de",

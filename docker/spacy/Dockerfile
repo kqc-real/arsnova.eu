@@ -3,7 +3,7 @@
 #
 # Separates Python-Image, nicht der Node-App-Container.
 # Standard-Modelle: de/en (MIT), fr (LGPL-LR), es (GPL-3.0), jeweils 3.8.0.
-# it_core_news_sm (CC BY-NC-SA 3.0) gehört nicht in dieses Default-Image.
+# Italienisch: Lookup-Tabelle aus spacy-lookups-data (MIT).
 # Lizenztexte: licenses/LGPL-LR.txt, licenses/GPL-3.0.txt. Image ist kein reines MIT.
 #
 # Basisimage: Multi-Arch-Index python:3.12-slim-bookworm, geprüft 2026-08-15 via

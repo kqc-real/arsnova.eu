@@ -408,7 +408,7 @@ function readWordCloudLemmaLocaleOverride(sessionCode: string): SupportedLocale 
 
   try {
     const raw = sessionStorage.getItem(wordCloudLemmaLocaleStorageKey(sessionCode));
-    return raw && (isWordCloudLemmaLocale(raw) || raw === 'it') ? raw : null;
+    return raw && isWordCloudLemmaLocale(raw) ? raw : null;
   } catch {
     return null;
   }
@@ -4958,7 +4958,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async setWordCloudLemmaLocale(locale: string): Promise<void> {
-    if (this.wordCloudLocaleLocked() || (!isWordCloudLemmaLocale(locale) && locale !== 'it')) {
+    if (this.wordCloudLocaleLocked() || !isWordCloudLemmaLocale(locale)) {
       return;
     }
 
