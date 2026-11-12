@@ -369,8 +369,9 @@ Der Host sieht zusätzlich:
   Kategorien in der Karte **Häufige Themen**, Gatekeeper, Seed-Kalibrierung,
   k-NN-Fallback, lokaler Hörsaallast). **8.9c** hat Summary V2,
   hostautorisierten Kontext, Hostvorschau, private Runtimeübergabe und lokalen
-  extraktiven Backend-Fallback; Kill-Switch default aus. Reale Consumer-/CPU-Abnahme
-  und reichhaltiges 4.096-Profil bleiben offen. Kanonisch: [moderation-compass.md](features/moderation-compass.md),
+  extraktiven Backend-Fallback. Klassifikation und Zusammenfassung unterstützen alle
+  fünf App-Locales. Die kurze Modellprobe bestand ohne Fallback im 90-Sekunden-Limit.
+  Die formale CPU-/Prefill-/RSS-Abnahme des reichhaltigen 8.192-Profils bleibt offen. Kanonisch: [moderation-compass.md](features/moderation-compass.md),
   [qa-nlp-moderation.md](features/qa-nlp-moderation.md),
   [qa-summary.md](features/qa-summary.md).
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der

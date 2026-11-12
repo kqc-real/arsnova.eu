@@ -29,12 +29,12 @@ npm run load:issue-456:run
 
 Er prüft lokal den Ablauf Demo-Quiz, bestätigtes manuelles quiz-weites Lernziel, Join, Q&A,
 Quiz, Blitzlicht, Kontextvorschau und versionierten Summary-Auftrag. Er darf nicht gegen
-Produktion laufen und ersetzt keine
-produktive Kapazitätsmessung. Insbesondere standen für den integrierten Head keine reale
-Summary-/Lernziel-Runtime und keine vorgesehene Zielhardware zur Verfügung. Das feste
-4.096-Profil degradiert den zu großen reichhaltigen Kontext kontrolliert auf die ausgewiesene
-Q&A-Textbaseline. CPU-/Prefill-/RSS-Abnahme und reichhaltiges Vollkontextbudget bleiben offen;
-siehe [Issue #456 – Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md).
+Produktion laufen. Die [fünfsprachige Modellprobe](features/qa-summary.md) prüft kurze
+Q&A-Kontexte separat an der privaten Runtime. Das feste 8.192-Profil degradiert einen
+zu großen Kontext kontrolliert auf die Q&A-Textbaseline oder Force-Fit-Mindestbelege.
+CPU-/Prefill-/RSS-Abnahme und Messungen mit reichhaltigem Vollkontext bleiben Teil der
+[Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md).
+
 Das Summary-Flag gehört zum separat gestarteten Backend, nicht zum Lastgenerator. Ein früher
 Preflight stoppt bei deaktiviertem Summary V2 noch vor Joins und Q&A-Last; bei späteren Fehlern
 beendet der Runner seine neu erstellte Demo-Session idempotent.
