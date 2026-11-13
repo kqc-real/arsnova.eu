@@ -198,7 +198,7 @@ Die folgenden Ansichten und Interaktionsflächen sind aus dem Produktcode für d
 - Frageneditor mit Panel **„Neue Frage“**, Feld **„Fragetext“**, Auswahl **„Fragetyp“**, Antwortoptionen, Korrekt-Markierung, **„Antwort hinzufügen“**, **„Gesamtvorschau“**, **„Speichern“** und **„Vorschau“**
 - Markdown-Editor mit Toolbar für Überschrift, Fett/Kursiv, Liste, Zitat, Inline-Code, Formel, Link, Bild, Codeblock, Block-Formel, Kurzhilfe und Vorschau
 - Vorschau mit Fragen-Navigation, **„Bearbeiten“** und **„Starten“**
-- Host-Ansicht mit Session-Code, **„Beitritt“**/QR-Code/Session-Link, Lobby, **„Erste Frage starten“**, **„Antwortoptionen freigeben“**, **„Ergebnis zeigen“**, **„Nächste Frage“** und Abschluss-/Ergebnisansicht
+- Host-Ansicht mit Session-Code, **„Beitritt“**/QR-Code/Session-Link, Lobby, **„Erste Frage starten“**, **»Antwortphase starten«**, **„Ergebnis zeigen“**, **„Nächste Frage“** und Abschluss-/Ergebnisansicht
 
 **Quizteilnehmer/in**
 

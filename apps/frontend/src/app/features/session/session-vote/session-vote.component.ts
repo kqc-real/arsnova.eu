@@ -50,6 +50,7 @@ import {
   showQuestionTypeIndicator,
 } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
+import { questionReadingHint } from '../../../shared/question-reading-hint';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getAnonymousClientId } from '../../../core/anonymous-client-id';
@@ -490,6 +491,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaQuestionTextWarnLength = Math.floor(QA_QUESTION_TEXT_MAX_CODE_POINTS * 0.9);
   /** Preset-abhängige Teilnehmer-Texte (Template: vpc.*) */
   readonly vpc = vpc;
+  readonly questionReadingHint = questionReadingHint;
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -4461,7 +4463,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.resetForSecondRoundStart();
             this.pullParticipantToQuizChannel();
           } else if (data.status === 'ACTIVE' && prevStatus === 'QUESTION_OPEN') {
-            // Host: »Antwortoptionen freigeben« – gleiche Frage, neue Abstimmungsphase.
+            // Host: »Antwortphase starten« – gleiche Frage, neue Abstimmungsphase.
             this.pullParticipantToQuizChannel();
           }
           if (data.status === 'ACTIVE') {
@@ -5031,7 +5033,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /**
    * Quiz-Startsignale: Override löschen und in den Quiz-Kanal ziehen.
-   * Auslöser: neue Frage (nach Initial-Hydration), Antwortoptionen freigeben
+   * Auslöser: neue Frage (nach Initial-Hydration), Antwortphase starten
    * (QUESTION_OPEN→ACTIVE), PI-Runde 2. Dazwischen freie Kanalwahl (ADR-0009).
    */
   private pullParticipantToQuizChannel(): void {

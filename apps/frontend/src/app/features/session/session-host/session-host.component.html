@@ -1849,7 +1849,7 @@
                           class="session-host__reading-banner-hint"
                           i18n="@@sessionHost.readingBannerHint"
                         >
-                          Antwortoptionen folgen gleich.
+                          Gib den Teilnehmenden Zeit zum Lesen.
                         </p>
                         @if (allConnectedParticipantsReady()) {
                           <p class="session-host__all-voted" role="status" aria-live="polite">
@@ -5750,12 +5750,12 @@
             [disabled]="controlPending()"
             (click)="revealAnswers()"
             i18n-aria-label="@@sessionHost.revealAnswerOptionsAria"
-            aria-label="Antwortoptionen freigeben"
+            aria-label="Antwortphase starten"
           >
             <span
               class="session-host__exit-anchor-label session-host__exit-anchor-label--reveal-options-full"
               i18n="@@sessionHost.revealAnswerOptions"
-              >Antwortoptionen freigeben</span
+              >Antwortphase starten</span
             >
           </button>
         }

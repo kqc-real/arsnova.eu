@@ -1879,6 +1879,72 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt im Finale geteilte Goldplätze auch auf der nächsten Seite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Quiz',
+      participantCount: 10,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 10 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Person ${index + 1}`,
+        totalScore: index < 9 ? 2000 : 1000,
+        correctCount: 1,
+        totalQuestions: 1,
+        totalResponseTimeMs: 1000 + index,
+      })),
+    );
+    getTeamLeaderboardQueryMock.mockResolvedValue(
+      ['A', 'B'].map((teamName, index) => ({
+        rank: index + 1,
+        teamName,
+        teamColor: '#3366ff',
+        totalScore: 2000,
+        memberCount: 5,
+        averageScore: 2000,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const presenter = fixture.nativeElement as HTMLElement;
+    expect(presenter.querySelector('.session-present__finish-hero')).toBeNull();
+    expect(presenter.querySelectorAll('.session-present__board-medal--gold')).toHaveLength(8);
+    expect(
+      Array.from(presenter.querySelectorAll('.session-present__team-board-rank .sr-only'), (rank) =>
+        rank.textContent?.trim(),
+      ),
+    ).toEqual(['1', '1']);
+
+    presenter
+      .querySelector<HTMLButtonElement>('[data-testid="presenter-personal-board-next"]')
+      ?.click();
+    fixture.detectChanges();
+    expect(presenter.querySelectorAll('.session-present__board-medal--gold')).toHaveLength(1);
+    expect(
+      presenter.querySelectorAll(
+        '.session-present__board-medal--silver, .session-present__board-medal--bronze',
+      ),
+    ).toHaveLength(0);
+    expect(
+      Array.from(presenter.querySelectorAll('.session-present__board-rank'), (rank) =>
+        (rank.querySelector('.sr-only') ?? rank).textContent?.trim(),
+      ),
+    ).toEqual(['1', '10']);
+    fixture.destroy();
+  });
+
   it('zeigt bei 0 Punkten das Team-Leaderboard statt der Endseite', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',

@@ -9,11 +9,8 @@
   </span>
 </h2>
 
-<mat-dialog-content class="presentation-start-dialog">
-  <p class="presentation-start-dialog__hint" i18n="@@presentationStart.screenHint">
-    Öffne die Präsentation auf dem Projektionsbildschirm.
-  </p>
-  @if (!pairingAdminLoading() && (pairingAdmin() || phoneConnected())) {
+@if (!pairingAdminLoading() && (pairingAdmin() || phoneConnected())) {
+  <mat-dialog-content class="presentation-start-dialog">
     <details class="presentation-start-dialog__phone" data-testid="presentation-start-phone">
       <summary class="presentation-start-dialog__phone-summary">
         <span i18n="@@presentationStart.phoneTitle">Mit Smartphone steuern</span>
@@ -111,8 +108,8 @@
         }
       </div>
     </details>
-  }
-</mat-dialog-content>
+  </mat-dialog-content>
+}
 
 <mat-dialog-actions align="end" class="presentation-start-dialog__actions">
   <button matButton="text" type="button" mat-dialog-close i18n="@@presentationStart.cancel">

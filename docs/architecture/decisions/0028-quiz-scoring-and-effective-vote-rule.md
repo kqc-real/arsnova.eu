@@ -214,6 +214,11 @@ Bei Punktgleichheit entscheidet die Summe der gewerteten Antwortzeiten aufsteige
 
 Bei exakt gleicher Punktzahl und exakt gleicher gewerteter Antwortzeit bleibt ein echter Gleichstand fachlich bestehen. Die UI darf Eintraege trotzdem in einer stabilen technischen Reihenfolge anzeigen, darf daraus aber keine zusaetzliche fachliche Ueberlegenheit ableiten.
 
+Der Presenter vergibt die angezeigten Plätze und Medaillen nach Punktzahl. Die
+serverseitige Sortierung nach Antwortzeit bestimmt die Reihenfolge innerhalb
+einer punktgleichen Gruppe. Die Bonus-Code-Vergabe verwendet weiterhin ihre
+serverseitige Rangfolge.
+
 ### 7. Teamwertung
 
 Die Teamwertung nutzt dieselben Effective Votes wie die Einzelwertung.

@@ -815,7 +815,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
       - **enableMotivationMessages** — Motivationsmeldungen (ja/nein).
       - **enableEmojiReactions** — Emoji-Reaktionen (ja/nein).
       - **anonymousMode** — Anonymer Modus (keine Nickname-Auswahl, automatische IDs) (ja/nein).
-      - **readingPhaseEnabled** — Lesephase: Frage zuerst lesen, dann „Antworten freigeben" (Story 2.6) (ja/nein).
+      - **readingPhaseEnabled** — Lesephase: Frage zuerst lesen, dann »Antwortphase starten« (Story 2.6) (ja/nein).
       - **nicknameTheme** — Thema für vordefinierte Nicknames, z. B. Nobelpreisträger, Tiere (Story 3.2) (Auswahl).
       - **teamMode** — Team-Modus: Teilnehmende in Teams (Story 7.1) (ja/nein).
       - **teamCount** — Anzahl Teams bei Team-Modus (2–8, nur bei teamMode=true).
@@ -1087,7 +1087,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Die Zahl der Teilnehmenden wird live aktualisiert.
 - **Story 2.3 (Präsentations-Steuerung):** 🔴 Als Lehrperson möchte ich den Ablauf steuern (Frage öffnen, Antworten freigeben, Ergebnisse auflösen).
   - **Akzeptanzkriterien:**
-    - Buttons: "Nächste Frage" → "Antworten freigeben" → "Ergebnis zeigen".
+    - Buttons: "Nächste Frage" → »Antwortphase starten« → "Ergebnis zeigen".
     - Session-Status-Wechsel: `LOBBY → QUESTION_OPEN → ACTIVE → RESULTS → QUESTION_OPEN → …` (Details siehe Story 2.6).
     - Wenn `readingPhaseEnabled=false`: Der Status `QUESTION_OPEN` wird übersprungen — "Nächste Frage" wechselt direkt zu `ACTIVE` (bisheriges Verhalten).
     - Während `QUESTION_OPEN` oder `ACTIVE` kann der Host das Quiz pausieren und fortsetzen. `PAUSED` ist dabei ausschließlich ein unterbrechender Zustand derselben Frage, kein regulärer Zwischenzustand vor der nächsten Frage.
@@ -1123,11 +1123,11 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - **Phase 1 (`QUESTION_OPEN`):**
       - Auf Beamer und Teilnehmenden-Geräten wird **nur der Fragenstamm** angezeigt (Markdown/KaTeX gerendert), ohne Antwortoptionen.
       - Kein Countdown läuft. Abstimmung ist nicht möglich.
-      - Beamer: Frage großformatig zentriert, dezenter Hinweis „Gleich geht's los…".
-      - Teilnehmenden-Gerät: Frage wird angezeigt, Hinweis „Lies die Frage — Antwortoptionen folgen gleich.“
+      - Beamer: Frage großformatig zentriert, dazu ein zur Antwortform passender Lesehinweis.
+      - Teilnehmenden-Gerät: Frage wird mit einem zur Antwortform passenden Lesehinweis angezeigt.
       - Neues DTO `QuestionPreviewDTO` wird gesendet (enthält `id`, `text`, `type`, `difficulty`, `order` — **keine** `answers`).
     - **Phase 2 (Übergang zu `ACTIVE`):**
-      - Die Lehrperson klickt den Button „Antworten freigeben“ (Story 2.3).
+      - Die Lehrperson klickt den Button »Antwortphase starten« (Story 2.3).
       - Backend wechselt Status von `QUESTION_OPEN` → `ACTIVE`.
       - tRPC-Subscription `session.onAnswersRevealed` pusht die Antwortoptionen (`QuestionStudentDTO` ohne `isCorrect`).
       - Auf Beamer und Teilnehmenden-Geräten erscheinen die Antwort-Buttons mit Einblende-Animation (Slide-Up, 200 ms).
@@ -1490,7 +1490,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
 - **Story 3.3a (Frage empfangen):** 🔴 Als Teilnehmende:r möchte ich die aktuell freigegebene Frage auf meinem Gerät in Echtzeit sehen.
   - **Akzeptanzkriterien:**
     - tRPC-Subscription `session.onQuestionRevealed` pusht die aktuelle Frage.
-    - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur der Fragenstamm wird angezeigt (`QuestionPreviewDTO`, ohne Antwortoptionen). Antwort-Buttons und Countdown sind ausgeblendet. Hinweistext: „Lies die Frage — Antwortoptionen folgen gleich."
+    - **Lesephase (`QUESTION_OPEN`, Story 2.6):** Nur der Fragenstamm wird angezeigt (`QuestionPreviewDTO`, ohne Antwortoptionen). Antwort-Buttons und Countdown sind ausgeblendet. Der Lesehinweis kündigt die zum Fragetyp passende Antwortform an.
     - **Antwortphase (`ACTIVE`):** Die Antwortoptionen werden eingeblendet, der Countdown startet. Die vollständige Frage wird als `QuestionStudentDTO` (ohne `isCorrect`) angezeigt.
     - Wenn `readingPhaseEnabled=false`: Die Lesephase entfällt — die Frage wird sofort mit Antwortoptionen angezeigt (bisheriges Verhalten).
     - Fragenstamm und Antwortoptionen werden mit Markdown & KaTeX korrekt gerendert (siehe Story 1.7).

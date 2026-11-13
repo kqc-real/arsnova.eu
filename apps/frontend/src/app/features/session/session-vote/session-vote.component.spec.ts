@@ -1400,7 +1400,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     currentQuestionQueryMock.mockResolvedValue({
       id: 'aaaaaaaa-1111-4111-8111-111111111111',
       text: 'Lies zuerst die Frage.',
-      type: 'SINGLE_CHOICE',
+      type: 'NUMERIC_ESTIMATE',
       difficulty: 'MEDIUM' as const,
       order: 0,
       participantReady: false,
@@ -1421,6 +1421,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       button = (fixture.nativeElement as HTMLElement).querySelector('.vote-reading-banner__cta');
     }
     expect(button).toBeTruthy();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.vote-reading-banner__hint')
+        ?.textContent,
+    ).toContain('Gleich gibst du deinen Schätzwert ein.');
 
     button?.click();
     let textContent = '';

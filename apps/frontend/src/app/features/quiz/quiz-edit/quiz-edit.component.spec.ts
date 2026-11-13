@@ -186,6 +186,48 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     );
   });
 
+  it.each([
+    'Lange Beschreibung. '.repeat(30),
+    Array.from({ length: 9 }, (_, index) => `- Punkt ${index + 1}`).join('\n'),
+  ])('startet mit eingeklappter langer Beschreibung und lässt sie bearbeiten', (description) => {
+    quiz.description = description;
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const header = host.querySelector<HTMLElement>(
+      '.quiz-edit__meta-expansion-panel mat-expansion-panel-header',
+    )!;
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+
+    header.click();
+    fixture.detectChanges();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+    const editor = host.querySelector<HTMLTextAreaElement>('#quiz-edit-description')!;
+    expect(editor.value).toBe(description);
+    editor.value += '\nErgänzung';
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.componentInstance.metadataForm.controls.description.value).toBe(editor.value);
+
+    header.click();
+    fixture.detectChanges();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).not.toBe(editor);
+  });
+
+  it('zeigt eine kurze Beschreibung beim Öffnen direkt an', () => {
+    quiz.description = 'Kurze Beschreibung';
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const header = (fixture.nativeElement as HTMLElement).querySelector(
+      '.quiz-edit__meta-expansion-panel mat-expansion-panel-header',
+    );
+    expect(header?.getAttribute('aria-expanded')).toBe('true');
+  });
+
   it('hält Einstellungsänderungen lokal, bis global gespeichert wird', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
@@ -2044,6 +2086,27 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
     expect(mockStore.updateQuizMetadata).not.toHaveBeenCalled();
     expect(focusSpy).toHaveBeenCalled();
+  });
+
+  it('wartet bei eingeklappten Metadaten mit dem Fehlerfokus bis nach dem Aufklappen', async () => {
+    quiz.description = 'Lange Beschreibung. '.repeat(30);
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const nameInput = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '.quiz-edit__meta-expansion-panel input[formcontrolname="name"]',
+    )!;
+    const focusSpy = vi.spyOn(nameInput, 'focus');
+
+    component.metadataForm.controls.name.setValue('');
+    component.saveAll();
+
+    expect(component.metadataPanelExpanded()).toBe(true);
+    expect(focusSpy).not.toHaveBeenCalled();
+    fixture.detectChanges();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    expect(focusSpy).toHaveBeenCalledOnce();
+    expect(mockStore.updateQuizMetadata).not.toHaveBeenCalled();
   });
 
   it('fokussiert bei ungültigen Einstellungen das erste Fehlerfeld', () => {
