@@ -897,11 +897,18 @@
                 @for (entry of teamLeaderboardPreview(); track entry.rank + ':' + entry.teamName) {
                   <li
                     class="session-projection-quiz__leaderboard-item"
-                    [class.session-projection-quiz__leaderboard-item--lead]="entry.place === 1"
+                    [class.session-projection-quiz__leaderboard-item--lead]="
+                      teamScoreboardHasPoints() && entry.place === 1
+                    "
                   >
                     <div class="session-projection-quiz__leaderboard-row">
-                      <strong class="session-projection-quiz__leaderboard-rank">
-                        @if (entry.place === 1) {
+                      <strong
+                        class="session-projection-quiz__leaderboard-rank"
+                        [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
+                      >
+                        @if (!teamScoreboardHasPoints()) {
+                          —
+                        } @else if (entry.place === 1) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
                             aria-hidden="true"

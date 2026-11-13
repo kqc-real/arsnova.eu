@@ -1979,6 +1979,7 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Apfel');
     expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-team-winner"]')).toBeNull();
     fixture.destroy();
   });
 

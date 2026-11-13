@@ -683,6 +683,54 @@ describe('SessionProjectionQuizComponent', () => {
     },
   );
 
+  it('zeigt die Teamplatzierung im Zwischenleaderboard erst bei positiven Punkten', () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.componentRef.setInput('pageIndex', 1);
+    const teams = ['Team Blau', 'Team Rot'].map((teamName, index) => ({
+      rank: index + 1,
+      teamName,
+      teamColor: '#1565c0',
+      memberCount: 2,
+      totalScore: 0,
+      averageScore: 0,
+    }));
+    fixture.componentRef.setInput('teamLeaderboard', teams);
+    fixture.componentInstance.onContentPageCount(1);
+    fixture.detectChanges();
+
+    const leaderboard = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-results-leaderboard"]',
+    ) as HTMLElement;
+    const rankSelector = '.session-projection-quiz__leaderboard-rank';
+    const scoreSelector = '.session-projection-quiz__leaderboard-score';
+    const medalSelector = '.session-projection-quiz__leaderboard-medal';
+    const leadSelector = '.session-projection-quiz__leaderboard-item--lead';
+    const ranks = () => Array.from(leaderboard.querySelectorAll(rankSelector));
+    expect(leaderboard.textContent).toContain('Team Blau');
+    expect(leaderboard.textContent).toContain('Team Rot');
+    expect(
+      Array.from(leaderboard.querySelectorAll(scoreSelector), (score) => score.textContent?.trim()),
+    ).toEqual(['0', '0']);
+    expect(ranks().map((rank) => rank.textContent?.trim())).toEqual(['—', '—']);
+    expect(ranks().map((rank) => rank.getAttribute('aria-hidden'))).toEqual(['true', 'true']);
+    expect(leaderboard.querySelector(medalSelector)).toBeNull();
+    expect(leaderboard.querySelector(leadSelector)).toBeNull();
+
+    fixture.componentRef.setInput('teamLeaderboard', [
+      { ...teams[0], totalScore: 100, averageScore: 100 },
+      teams[1],
+    ]);
+    fixture.detectChanges();
+
+    expect(ranks().map((rank) => rank.querySelector('.sr-only')?.textContent)).toEqual(['1', '2']);
+    expect(ranks().map((rank) => rank.getAttribute('aria-hidden'))).toEqual([null, null]);
+    expect(
+      Array.from(leaderboard.querySelectorAll(medalSelector), (medal) => medal.textContent?.trim()),
+    ).toEqual(['🥇', '🥈']);
+    expect(leaderboard.querySelectorAll(leadSelector)).toHaveLength(1);
+  });
+
   it('zeigt im Zwischenleaderboard nur die Top 5 und nennt die Kappung', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'RESULTS');

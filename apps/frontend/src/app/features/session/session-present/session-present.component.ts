@@ -1,5 +1,5 @@
 import { DecimalPipe, DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
-import { withPresenterPlaces } from './presenter-leaderboard.util';
+import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import {
   Component,
   DestroyRef,
@@ -1933,17 +1933,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   });
   readonly winningTeam = computed(() => {
     const [first, second] = this.teamLeaderboardPlaces();
-    return second?.place === 1 ? null : (first ?? null);
+    return this.teamScoreboardHasPoints() && second?.place !== 1 ? first : null;
   });
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
-  readonly teamLeaderboardTopScore = computed(() => {
-    const board = this.teamLeaderboard();
-    if (board.length === 0) return 0;
-    return Math.max(...board.map((e) => e.totalScore));
-  });
-  readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
+  readonly teamScoreboardHasPoints = computed(() => leaderboardHasPoints(this.teamLeaderboard()));
   readonly teamPodiumMedals = ['🥇', '🥈', '🥉'] as const;
   /** Ab dieser Länge wird die Boardliste mehrspaltig, damit alle Einträge auf der Projektion bleiben. */
   private static readonly BOARD_OVERFLOW_COUNT = 8;

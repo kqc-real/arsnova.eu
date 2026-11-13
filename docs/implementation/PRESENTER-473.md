@@ -66,6 +66,8 @@ belegten Platz. Danach folgt die nächste freie Position, etwa 1, 1, 3. Die
 serverseitige Sortierung innerhalb gleicher Punktzahlen bleibt erhalten.
 Bei einem geteilten ersten Platz entfällt die einzelne Siegerkarte für diese
 Wertung.
+Solange alle Teams bei null Punkten stehen, zeigt der Presenter die Teamwerte
+ohne Plätze, Medaillen oder Hervorhebung der Führung.
 
 In der Quiz-Statuszeile stehen der Lesefortschritt (»x von y bereit«) und
 **Alle sind bereit**, sobald alle Teilnehmenden der Session bereit sind. Während

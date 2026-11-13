@@ -8,3 +8,7 @@ export function withPresenterPlaces<T extends { totalScore: number }>(entries: r
     return { ...entry, place };
   });
 }
+
+export function leaderboardHasPoints(entries: readonly { totalScore: number }[]): boolean {
+  return entries.some((entry) => entry.totalScore > 0);
+}
