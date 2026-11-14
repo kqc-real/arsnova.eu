@@ -664,7 +664,7 @@
     },
     "session.getLeaderboard": {
       "kind": "query",
-      "fingerprint": "sha256:753491de106173217f9278830e05c1e297589a269d2aef88039f66f8ff082d40",
+      "fingerprint": "sha256:aa16416cefe115a9f4bdb43a59584f995eb9837e57eddf625cd94ff3af8072d2",
       "missing": []
     },
     "session.getLearningObjectives": {
@@ -689,7 +689,7 @@
     },
     "session.getParticipantSelf": {
       "kind": "query",
-      "fingerprint": "sha256:026e6803ddf5309b89bec1630ec4e1d2a29dfe510caa85b17704e5ece22a9d47",
+      "fingerprint": "sha256:a4657f112603c6debb26785d03899bb12b7438844d117243795bc311d63f18f9",
       "missing": []
     },
     "session.getParticipantSummary": {
@@ -774,7 +774,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:e5f3be8da4280e4a516c15fa71a6a195ffe94b305c1d3d2a6df8f7ee2c7cc582",
+      "fingerprint": "sha256:b0496aa2d636d8840588e48897859205745754b48d8c8b9e50c85e225e145574",
       "missing": []
     },
     "session.listPairedHosts": {
@@ -894,7 +894,7 @@
     },
     "session.searchParticipants": {
       "kind": "query",
-      "fingerprint": "sha256:653ec75cd4856c7b241464bbfebfae24ba3730fd5fb07b84210bd3988d77d4c2",
+      "fingerprint": "sha256:6b6c299363d94b47af91b740140ddc9753d307b119fd09116ec37b69941b9f7e",
       "missing": []
     },
     "session.setFreetextWordCloudEntryVisibility": {
