@@ -9676,11 +9676,14 @@ const sessionCoreRouter = router({
         target.type === 'FREETEXT' ? readFreetextWordCloudVisibility(session.id, target.id) : null,
       ]);
       if (!question) return null;
+      // The live projection can hide phrases or themes that a newly generated word cloud
+      // would expand into different labels. Historical projections have no saved layout.
+      const wordCloudUnavailable = (visibility?.hiddenLabels.length ?? 0) > 0;
       return {
-        question,
+        question: wordCloudUnavailable ? { ...question, freeTextResponses: undefined } : question,
         hasPrevious: position > 0,
         hasNext: position < indices.length - 1,
-        hiddenWordCloudLabels: visibility?.hiddenLabels ?? [],
+        wordCloudUnavailable,
       };
     }),
 

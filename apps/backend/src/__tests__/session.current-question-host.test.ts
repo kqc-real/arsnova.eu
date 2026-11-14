@@ -15,6 +15,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     participant: {
       groupBy: vi.fn(),
     },
+    hiddenWordCloudEntry: {
+      findMany: vi.fn(),
+    },
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -170,6 +173,32 @@ describe('session.getPresenterQuizResult', () => {
     await expect(caller.getPresenterQuizResult(input)).resolves.toMatchObject({
       question: { questionId: questionIds[1], currentRound: 1 },
     });
+  });
+
+  it('liefert für eine moderierte Freitext-Wortwolke keine Rohantworten im Rückblick', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...active,
+      quiz: {
+        questions: active.quiz.questions.map((question) =>
+          question.id === questionIds[2] ? { ...question, type: 'FREETEXT' } : question,
+        ),
+      },
+    });
+    prismaMock.vote.findFirst.mockResolvedValue(null);
+    prismaMock.vote.findMany.mockResolvedValue([{ freeText: 'Vertrauliche Beispielphrase' }]);
+    prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValue([
+      { label: 'Vertrauliche Beispielphrase' },
+    ]);
+
+    const result = await caller.getPresenterQuizResult(input);
+    expect(result).toMatchObject({
+      question: { questionId: questionIds[2], type: 'FREETEXT' },
+      wordCloudUnavailable: true,
+    });
+    expect(result?.question.freeTextResponses).toBeUndefined();
+    expect(prismaMock.hiddenWordCloudEntry.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { sessionId: active.id, questionId: questionIds[2] } }),
+    );
   });
 });
 

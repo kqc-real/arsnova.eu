@@ -32728,6 +32728,9 @@
           <context context-type="linenumber">1653,1655</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.historyModeratedWordCloud" datatype="html">
+        <source>Die moderierte Wortwolke ist im Rückblick nicht verfügbar.</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

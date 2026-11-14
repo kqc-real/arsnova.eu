@@ -719,7 +719,7 @@
     },
     "session.getPresenterQuizResult": {
       "kind": "query",
-      "fingerprint": "sha256:3b8f86ba4d8613fcc4265eb660ae1acc080c66740e184c0f7eefca1f929d8232",
+      "fingerprint": "sha256:1064aea9aa8f2c9855e5b5597693bdd48d05695b7d3c50d6a7c406adeb3b02eb",
       "missing": []
     },
     "session.getQaWordCloudProjection": {

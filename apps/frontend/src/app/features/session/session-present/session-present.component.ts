@@ -2274,7 +2274,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.musicReady.set(!this.sessionMusic.enter(this.sessionCode));
     effect(
       () => {
-        if (this.quizHistory() && !this.earlierQuizResult()) this.quizHistory.set(null);
+        if (!this.quizHistory() || this.earlierQuizResult()) return;
+        const active = this.quizActionTrigger();
+        this.quizHistory.set(null);
+        if (active?.closest('[data-testid="presenter-quiz-controls"]')) {
+          this.scheduleQuizControlFocus(active);
+        }
       },
       { injector: this.injector },
     );

@@ -306,7 +306,7 @@ describe('SessionPresentComponent', () => {
       },
       hasPrevious: false,
       hasNext: false,
-      hiddenWordCloudLabels: [],
+      wordCloudUnavailable: false,
     });
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
@@ -396,6 +396,77 @@ describe('SessionPresentComponent', () => {
     expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
     expect(revealResultsMutateMock).not.toHaveBeenCalled();
     expect(nextQuestionMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('unterdrückt moderierte Wortwolken im Rückblick und übergibt bei einem Host-Wechsel den Fokus', async () => {
+    const liveQuestion = { ...TIMED_PRESENTER_QUESTION, order: 1, hasEarlierPresenterResult: true };
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      status: 'RESULTS',
+      currentQuestion: 1,
+      currentRound: 1,
+      preferredChannel: 'quiz',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(liveQuestion);
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: {
+        ...TIMED_PRESENTER_QUESTION,
+        questionId: 'previous',
+        type: 'FREETEXT',
+        freeTextResponses: ['Vertrauliche Beispielphrase'],
+      },
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: true,
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    const root = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(component.presentedQuizQuestion()?.questionId).toBe(liveQuestion.questionId);
+    });
+    const status = subscribeMock.mock.calls.find(
+      ([input]) => typeof input === 'object' && input !== null && 'anonymousClientId' in input,
+    )?.[1] as unknown as { onData(data: unknown): void };
+    await component.stepQuizHistory('previous');
+    fixture.detectChanges();
+    expect(root.textContent).toContain(
+      'Die moderierte Wortwolke ist im Rückblick nicht verfügbar.',
+    );
+    expect(root.textContent).not.toContain('Beispielphrase');
+    expect(root.querySelector('app-word-cloud')).toBeNull();
+
+    const backToLive = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-history-next"]',
+    );
+    backToLive?.focus();
+    expect(document.activeElement).toBe(backToLive);
+    status.onData({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 2,
+      currentRound: 1,
+      serverTime: MOCK_SERVER_TIME,
+    });
+    fixture.detectChanges();
+    expect(root.querySelector('[data-testid="presenter-quiz-history-status"]')).toBeNull();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      ...liveQuestion,
+      questionId: 'new',
+      order: 2,
+    });
+    await component.retryPresenterQuestion();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
     fixture.destroy();
   });
 

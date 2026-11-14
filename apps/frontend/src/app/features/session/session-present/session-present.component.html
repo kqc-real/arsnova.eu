@@ -902,11 +902,20 @@
     }
 
     @if (earlierQuizResult(); as history) {
-      @if (history.question.type === 'FREETEXT') {
+      @if (history.wordCloudUnavailable) {
+        <section class="session-present__quiz-pending">
+          <h2>{{ historyWordCloudTitle() }}</h2>
+          <p
+            class="session-present__quiz-pending-text"
+            i18n="@@sessionPresent.historyModeratedWordCloud"
+          >
+            Die moderierte Wortwolke ist im Rückblick nicht verfügbar.
+          </p>
+        </section>
+      } @else if (history.question.type === 'FREETEXT') {
         <app-word-cloud
           class="session-present__word-cloud-stage"
           [terms]="historyWordCloudTerms()"
-          [hiddenLabels]="history.hiddenWordCloudLabels"
           [title]="historyWordCloudTitle()"
           [selectionScopeKey]="history.question.questionId"
           [presentationMode]="true"

@@ -3930,7 +3930,7 @@ export const PresenterQuizResultSchema = z.object({
   question: HostCurrentQuestionDTOSchema,
   hasPrevious: z.boolean(),
   hasNext: z.boolean(),
-  hiddenWordCloudLabels: z.array(z.string()),
+  wordCloudUnavailable: z.boolean(),
 });
 export type PresenterQuizResult = z.infer<typeof PresenterQuizResultSchema>;
 

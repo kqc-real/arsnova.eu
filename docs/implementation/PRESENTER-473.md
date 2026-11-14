@@ -76,6 +76,9 @@ lädt die Ergebnisse per Host-geschützter Leseabfrage. Seitenposition und
 Ergebnisauswahl werden nur in diesem Presenter-Fenster gehalten. Die Abstimmung
 und die Live-Updates laufen weiter. Beim Wechsel der Live-Frage oder der
 Projektionsfläche endet der Rückblick.
+Wurden Begriffe in einer Freitext-Wortwolke ausgeblendet, zeigt der Rückblick
+die Frage und einen Hinweis. So erscheinen ausgeblendete Phrasen oder Themen
+auch bei abweichender Wortbildung nicht erneut auf der Bühne.
 
 Im Q&A wechseln **← / →** die Bühnenfrage und **↑ / ↓** scrollen die
 Warteschlange. In der Gesamtauswertung blättern **← / →** die einzige
