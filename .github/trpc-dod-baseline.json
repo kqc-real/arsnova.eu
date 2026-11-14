@@ -717,6 +717,11 @@
       "fingerprint": "sha256:afa486f36e8c85f33d36b9f399ae5df0b9588e69d2353fe0412b170244a471b0",
       "missing": []
     },
+    "session.getPresenterQuizResult": {
+      "kind": "query",
+      "fingerprint": "sha256:3b8f86ba4d8613fcc4265eb660ae1acc080c66740e184c0f7eefca1f929d8232",
+      "missing": []
+    },
     "session.getQaWordCloudProjection": {
       "kind": "query",
       "fingerprint": "sha256:4a552ddadfd80fd6f16ea0c7b61b9a4c4e2ab58ed578cf4b17031c6a73f22191",

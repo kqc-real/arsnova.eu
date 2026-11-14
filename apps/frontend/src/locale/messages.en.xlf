@@ -37112,6 +37112,38 @@
           <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.earlierResult" datatype="html">
+        <source>Früheres Ergebnis</source>
+        <target>Earlier result</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1582,1583</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.previousResult" datatype="html">
+        <source>Vorheriges Ergebnis</source>
+        <target>Previous result</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1636,1637</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.nextResult" datatype="html">
+        <source>Nächstes Ergebnis</source>
+        <target>Next result</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1651,1653</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToLiveQuiz" datatype="html">
+        <source>Zurück zur Live-Ansicht</source>
+        <target>Back to live view</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1653,1655</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

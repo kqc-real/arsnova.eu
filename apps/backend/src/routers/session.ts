@@ -17,7 +17,9 @@ import {
   ConfigureSessionParticipationInputSchema,
   EndSessionOutputSchema,
   GetCurrentQuestionForStudentInputSchema,
+  GetPresenterQuizResultInputSchema,
   GetSessionInfoInputSchema,
+  PresenterQuizResultSchema,
   PublicSessionCodeLookupInputSchema,
   HostSteeringWithTimerOverrideInputSchema,
   NextQuestionInputSchema,
@@ -4536,6 +4538,20 @@ function buildNumericRoundComparisonFromVotes(
   };
 }
 
+function earlierPresenterResultIndices(
+  session: HostCurrentQuestionSession,
+  liveIndex: number,
+  progress = parseSessionQuestionProgress(session.questionProgress),
+): number[] {
+  return (session.quiz?.questions ?? []).flatMap(({ id }, index) => {
+    if (index >= liveIndex) return [];
+    const state = progress[id]?.state;
+    return state === 'COMPLETED' || (state === undefined && !session.questionProgressComplete)
+      ? [index]
+      : [];
+  });
+}
+
 async function buildHostCurrentQuestionDto(
   session: HostCurrentQuestionSession | null,
 ): Promise<z.infer<typeof HostCurrentQuestionDTOSchema> | null> {
@@ -4582,6 +4598,7 @@ async function buildHostCurrentQuestionDto(
     order: question.order,
     totalQuestions: questions.length,
     canShowPreviousResult,
+    hasEarlierPresenterResult: earlierPresenterResultIndices(session, idx, progress).length > 0,
     hasNextQuestion,
     hasUnopenedFollowingQuestion,
     text: question.text,
@@ -5019,12 +5036,9 @@ export function buildHostCurrentQuestionSubscriptionKey(
   return JSON.stringify(stablePayload);
 }
 
-async function fetchHostCurrentQuestionEnvelope(
-  code: string,
-): Promise<HostCurrentQuestionEnvelope> {
-  const normalizedCode = code.toUpperCase();
-  const session = await prisma.session.findUnique({
-    where: { code: normalizedCode },
+function loadHostQuestionSession(code: string) {
+  return prisma.session.findUnique({
+    where: { code: code.toUpperCase() },
     select: {
       id: true,
       code: true,
@@ -5100,6 +5114,12 @@ async function fetchHostCurrentQuestionEnvelope(
       },
     },
   });
+}
+
+async function fetchHostCurrentQuestionEnvelope(
+  code: string,
+): Promise<HostCurrentQuestionEnvelope> {
+  const session = await loadHostQuestionSession(code);
   if (session && isSessionEffectivelyFinished(session, new Date())) {
     return { status: 'FINISHED', payload: null };
   }
@@ -9610,6 +9630,59 @@ const sessionCoreRouter = router({
     .input(GetSessionInfoInputSchema)
     .output(HostCurrentQuestionDTOSchema.nullable())
     .query(async ({ input }) => fetchHostCurrentQuestion(input.code)),
+
+  getPresenterQuizResult: hostProcedure
+    .input(GetPresenterQuizResultInputSchema)
+    .output(PresenterQuizResultSchema.nullable())
+    .query(async ({ input }) => {
+      const session = await loadHostQuestionSession(input.code);
+      if (
+        !session?.quiz ||
+        session.currentQuestion === null ||
+        isSessionEffectivelyFinished(session, new Date()) ||
+        !['QUESTION_OPEN', 'ACTIVE', 'DISCUSSION', 'RESULTS'].includes(session.status)
+      ) {
+        return null;
+      }
+      const { questions } = session.quiz;
+      const liveIndex = session.currentQuestion;
+      if (questions[liveIndex]?.id !== input.liveQuestionId) return null;
+      const indices = earlierPresenterResultIndices(session, liveIndex);
+      const cursor =
+        input.fromQuestionId === undefined
+          ? indices.length
+          : indices.findIndex((index) => questions[index].id === input.fromQuestionId);
+      if (cursor < 0) return null;
+      const position = cursor + (input.direction === 'previous' ? -1 : 1);
+      const index = indices[position];
+      if (index === undefined) return null;
+
+      const target = questions[index];
+      const latestVote = await prisma.vote.findFirst({
+        where: { sessionId: session.id, questionId: target.id },
+        orderBy: { round: 'desc' },
+        select: { round: true },
+      });
+      const currentRound = resolveEffectiveAggregationRound(
+        latestVote ? [latestVote] : [],
+      ).effectiveRound;
+      const [question, visibility] = await Promise.all([
+        buildHostCurrentQuestionDto({
+          ...session,
+          status: 'RESULTS',
+          currentQuestion: index,
+          currentRound,
+        }),
+        target.type === 'FREETEXT' ? readFreetextWordCloudVisibility(session.id, target.id) : null,
+      ]);
+      if (!question) return null;
+      return {
+        question,
+        hasPrevious: position > 0,
+        hasNext: position < indices.length - 1,
+        hiddenWordCloudLabels: visibility?.hiddenLabels ?? [],
+      };
+    }),
 
   getHostVoteProgress: hostProcedure
     .input(GetSessionInfoInputSchema)

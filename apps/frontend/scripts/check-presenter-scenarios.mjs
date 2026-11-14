@@ -63,16 +63,16 @@ async function check(session, host, preset, name, selector, verify = () => {}) {
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(350);
         let info = await host.session.getInfo.query({ code: session.code });
-        if (await page.locator('.projection-pages__indicator').count()) {
+        const quizPageIndex = page.locator('.session-present__quiz-nav-index');
+        if (await page.locator('app-projection-pages').count()) {
           await page.waitForFunction(() =>
             document.querySelector('.projection-pages__page')?.textContent?.trim(),
           );
           for (let attempt = 0; attempt < 30; attempt++) {
             info = await host.session.getInfo.query({ code: session.code });
-            const count = Number(
-              (await page.locator('.projection-pages__indicator').textContent()).split('/').at(-1),
-            );
-            if (info.presenterPage.count === count) break;
+            const label = await quizPageIndex.textContent({ timeout: 100 }).catch(() => null);
+            const count = label === null ? 1 : Number(label.split('/').at(-1));
+            if (info.presenterPage?.count === count && count > 1) break;
             await page.waitForTimeout(100);
           }
           while (info.presenterPage.index > 0)
@@ -84,23 +84,18 @@ async function check(session, host, preset, name, selector, verify = () => {}) {
               })),
             };
         }
-        const count = (await page.locator('.projection-pages__indicator').count())
-          ? info.presenterPage.count
-          : 1;
+        const count = (await quizPageIndex.count()) ? info.presenterPage.count : 1;
         const allText = [];
         for (let index = 0; index < count; index++) {
           if (count > 1)
-            await page.waitForFunction(
-              (n) =>
-                document
-                  .querySelector('.projection-pages__indicator')
-                  ?.textContent?.includes(`${n + 1} /`),
-              index,
-            );
+            await quizPageIndex
+              .filter({ hasText: new RegExp(`^\\s*${index + 1} / ${count}\\s*$`) })
+              .waitFor();
           const metrics = await page.evaluate(() => {
             const root =
-              document.querySelector('.projection-pages__page') ||
-              document.querySelector('.session-present');
+              document.querySelector(
+                'app-projection-pages:not([hidden]) .projection-pages__page',
+              ) || document.querySelector('.session-present');
             const clipped = Array.from(root.querySelectorAll('*'))
               .filter((el) => {
                 if (el.closest('.projection-pages__source,.sr-only,.katex-mathml')) return false;
@@ -113,10 +108,11 @@ async function check(session, host, preset, name, selector, verify = () => {}) {
                   r.height === 0
                 )
                   return false;
+                const scrollStage = el.closest('.session-present__qa-stage');
                 return (
                   r.right > innerWidth + 2 ||
-                  r.bottom > innerHeight + 2 ||
-                  (['auto', 'scroll', 'hidden'].includes(css.overflowY) &&
+                  ((!scrollStage || scrollStage === el) && r.bottom > innerHeight + 2) ||
+                  (css.overflowY === 'hidden' &&
                     el.scrollHeight > el.clientHeight + 2 &&
                     el.textContent.trim() &&
                     !el.matches('mat-icon'))
@@ -143,7 +139,7 @@ async function check(session, host, preset, name, selector, verify = () => {}) {
               page: { context: info.presenterPage.context, delta: 1 },
             });
         }
-        await verify(page, allText.join(''));
+        await verify(page, allText.join('\n'));
         console.log(`OK ${file}: ${count} page(s)`);
       } catch (error) {
         await page.screenshot({ path: `${artifacts}/${file}-failure.png`, fullPage: true });
@@ -260,7 +256,7 @@ try {
       'numeric-results',
       '.session-projection-quiz__histogram',
       async (_page, text) => {
-        assert.ok(text.includes('n=10'));
+        assert.ok(text.includes('n=10'), `Stichprobengröße fehlt in der Projektion: ${text}`);
         assert.ok(text.includes('100'));
       },
     );
@@ -327,39 +323,30 @@ try {
         freeText: `${words[i]} ${words[(i + 30) % words.length]}`,
       });
     await host.session.revealResults.mutate({ code: session.code });
-    await check(
-      session,
-      host,
-      preset,
-      'freetext-results',
-      '.word-cloud__word--output',
-      async (page) => {
-        await page.waitForTimeout(500);
-        const boxes = await page.locator('.word-cloud__word--output').evaluateAll((nodes) =>
-          nodes.map((el) => {
-            const r = el.getBoundingClientRect();
-            return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
-          }),
-        );
-        for (let i = 0; i < boxes.length; i++)
-          for (let j = i + 1; j < boxes.length; j++) {
-            const a = boxes[i],
-              b = boxes[j];
-            assert.ok(
-              !(a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top),
-              'Word cloud terms overlap',
-            );
-          }
-        const sizes = await page
-          .locator('.word-cloud__word--output')
-          .evaluateAll((nodes) =>
-            nodes.map((el) =>
-              parseFloat(el.ownerDocument.defaultView.getComputedStyle(el).fontSize),
-            ),
+    await check(session, host, preset, 'freetext-results', '.word-cloud__word', async (page) => {
+      await page.waitForTimeout(500);
+      const boxes = await page.locator('.word-cloud__word').evaluateAll((nodes) =>
+        nodes.map((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+        }),
+      );
+      for (let i = 0; i < boxes.length; i++)
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i],
+            b = boxes[j];
+          assert.ok(
+            !(a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top),
+            'Word cloud terms overlap',
           );
-        assert.ok(sizes.length > 0 && sizes.every((size) => size >= 30));
-      },
-    );
+        }
+      const sizes = await page
+        .locator('.word-cloud__word')
+        .evaluateAll((nodes) =>
+          nodes.map((el) => parseFloat(el.ownerDocument.defaultView.getComputedStyle(el).fontSize)),
+        );
+      assert.ok(sizes.length > 0 && sizes.every((size) => size >= 30));
+    });
     const qaSelection = {
       code: session.code,
       mode: 'INITIAL',
@@ -396,17 +383,21 @@ try {
           action: 'PIN',
         });
     }
-    await check(
-      session,
-      host,
-      preset,
-      'qa-pinned',
-      '.session-present__qa-text',
-      async (_page, text) => {
-        assert.ok(text.includes('Frage 1'));
-        assert.ok(text.includes('+ 5'));
-      },
-    );
+    await check(session, host, preset, 'qa-pinned', '.session-present__qa-text', async (page) => {
+      assert.match(await page.locator('.session-present__qa-text').textContent(), /^Frage 1:/);
+      assert.equal(await page.locator('.session-present__qa-list-item').count(), 7);
+      const last = page.locator('.session-present__qa-list-item').last();
+      await last.scrollIntoViewIfNeeded();
+      assert.ok(
+        await last.evaluate((item) => {
+          const stage = item.closest('.session-present__qa-stage');
+          return (
+            stage.scrollTop > 0 &&
+            item.getBoundingClientRect().bottom <= stage.getBoundingClientRect().bottom + 2
+          );
+        }),
+      );
+    });
     await host.quickFeedback.create.mutate({
       sessionCode: session.code,
       type: 'ABCD',
@@ -416,12 +407,16 @@ try {
       code: session.code,
       channel: 'quickFeedback',
     });
-    for (let i = 0; i < 8; i++)
-      await publicApi.quickFeedback.vote.mutate({
+    for (let i = 0; i < 8; i++) {
+      const participant = participants[i];
+      await client({
+        'x-participant-capability': participant.rejoinToken,
+      }).quickFeedback.vote.mutate({
         sessionCode: session.code,
-        voterId: crypto.randomUUID(),
+        voterId: participant.participantId,
         value: ['A', 'B', 'C', 'D'][i % 4],
       });
+    }
     await check(
       session,
       host,
@@ -443,6 +438,84 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 1100));
     await host.session.nextQuestion.mutate({ code: session.code });
     q = await host.session.getCurrentQuestionForHost.query({ code: session.code });
+    await check(
+      session,
+      host,
+      preset,
+      'quiz-history-live-vote',
+      '[data-testid=presenter-quiz-history-previous]',
+      async (page) => {
+        const { code, sessionId } = session;
+        const history = page.getByTestId('presenter-quiz-history-status');
+        const previous = page.getByTestId('presenter-quiz-history-previous');
+        assert.equal(await previous.getAttribute('aria-keyshortcuts'), 'ArrowLeft');
+        await previous.scrollIntoViewIfNeeded();
+        await previous.focus();
+        const before = await host.session.getInfo.query({ code });
+        const assertLive = async () => {
+          const info = await host.session.getInfo.query({ code });
+          assert.equal(info.status, 'ACTIVE');
+          assert.equal(info.currentQuestion, before.currentQuestion);
+          assert.equal(info.currentRound, before.currentRound);
+          const live = await publicApi.session.getCurrentQuestionForStudent.query({ code });
+          assert.equal(live.id, q.questionId);
+          assert.ok(live.answers.every((answer) => !Object.hasOwn(answer, 'isCorrect')));
+        };
+
+        await page.keyboard.press('ArrowLeft');
+        await history.waitFor({ state: 'visible' });
+        await page.locator('app-word-cloud').waitFor({ state: 'attached' });
+        const next = page.getByTestId('presenter-quiz-history-next');
+        const viewport = page.viewportSize();
+        for (const [width, height] of [
+          [840, 600],
+          [600, 500],
+          [320, 568],
+        ]) {
+          await page.setViewportSize({ width, height });
+          await page.locator('[data-testid=presenter-quiz-history-next]').scrollIntoViewIfNeeded();
+          const bounds = await next.boundingBox();
+          assert.ok(
+            bounds &&
+              bounds.x >= 0 &&
+              bounds.x + bounds.width <= width + 1 &&
+              bounds.y >= 0 &&
+              bounds.y + bounds.height <= height + 1,
+            `Rückblick-Button bei ${width}×${height}: ${JSON.stringify(bounds)}`,
+          );
+          assert.ok(await next.evaluate((button) => button.scrollWidth <= button.clientWidth + 1));
+        }
+        await page.setViewportSize(viewport);
+        await page.keyboard.press('ArrowLeft');
+        await page
+          .locator('.session-projection-quiz__histogram')
+          .first()
+          .waitFor({ state: 'attached' });
+        await assertLive();
+
+        // One vote per browser scenario, leaving the final-score fixtures free to vote later.
+        const participant = await publicApi.session.join.mutate({
+          code,
+          nickname: `Rückblick ${crypto.randomUUID().slice(0, 8)}`,
+          anonymousClientId: crypto.randomUUID(),
+          joinIdempotencyKey: crypto.randomUUID(),
+        });
+        await client({ 'x-participant-capability': participant.rejoinToken }).vote.submit.mutate({
+          sessionId,
+          participantId: participant.participantId,
+          questionId: q.questionId,
+          answerIds: [q.answers.find((answer) => answer.isCorrect).id],
+        });
+
+        await page.keyboard.press('ArrowRight');
+        await page.locator('app-word-cloud').waitFor({ state: 'attached' });
+        await next.focus();
+        await page.keyboard.press('ArrowRight');
+        await history.waitFor({ state: 'detached' });
+        await page.locator('[data-testid=presenter-quiz-reveal-results]:focus').waitFor();
+        await assertLive();
+      },
+    );
     for (let i = 0; i < 30; i++)
       await client({ 'x-participant-capability': participants[i].rejoinToken }).vote.submit.mutate({
         sessionId: session.sessionId,
@@ -457,6 +530,7 @@ try {
       assert.equal(await page.locator('.session-present__board-page').count(), 1);
     });
     await host.session.end.mutate({ code: session.code });
+    await host.session.dismissFinishProjection.mutate({ code: session.code });
     await check(session, host, preset, 'ended', '[data-testid=presenter-finish-idle]');
   }
 } finally {

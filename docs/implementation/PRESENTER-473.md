@@ -60,6 +60,33 @@ Seite** blättern von Hand, **Automatisch** setzt den Wechsel fort. Voting,
 Timer, Ergebnisfreigabe und effektive Wertungsrunde
 bleiben unabhängig von der Seite.
 
+### Tastenkürzel
+
+Die Aktionsknöpfe zeigen die jeweils verfügbare Pfeiltaste. Im Live-Quiz
+startet **→** die erste Frage oder die Antwortphase, zeigt nach abgeschlossener
+Abstimmung das freigabefähige Ergebnis und öffnet danach die nächste Frage
+oder die Gesamtauswertung. Bei laufender Abstimmung, laufenden persönlichen
+Zeitfenstern, der Wahl zur Peer Instruction und einer Quizpause bleiben diese
+Phasenaktionen bei den ausdrücklich beschrifteten Knöpfen. **↑ / ↓** blättern
+durch mehrseitige Quizinhalte.
+
+**←** öffnet das vorherige abgeschlossene Ergebnis. **→** blättert im
+Rückblick vorwärts und kehrt am Ende zur Live-Ansicht zurück. Der Rückblick
+lädt die Ergebnisse per Host-geschützter Leseabfrage. Seitenposition und
+Ergebnisauswahl werden nur in diesem Presenter-Fenster gehalten. Die Abstimmung
+und die Live-Updates laufen weiter. Beim Wechsel der Live-Frage oder der
+Projektionsfläche endet der Rückblick.
+
+Im Q&A wechseln **← / →** die Bühnenfrage und **↑ / ↓** scrollen die
+Warteschlange. In der Gesamtauswertung blättern **← / →** die einzige
+mehrseitige Rangliste oder die Rangliste mit fokussierter Seitensteuerung.
+Manuelles Blättern hält den automatischen Wechsel an. In der Lobby, der
+Gesamtauswertung, der Q&A-Wortwolke und im Blitzlicht scrollen **↑ / ↓** bei
+überlaufendem Inhalt. Dialoge, Eingabefelder und Auswahlelemente behalten ihre
+Pfeiltastenbedienung.
+
+### Quizstatus
+
 Zwischen- und Abschlussleaderboard vergeben Plätze und Medaillen nach den
 angezeigten Punkten. Punktgleiche Einträge teilen sich den besten von ihnen
 belegten Platz. Danach folgt die nächste freie Position, etwa 1, 1, 3. Die
