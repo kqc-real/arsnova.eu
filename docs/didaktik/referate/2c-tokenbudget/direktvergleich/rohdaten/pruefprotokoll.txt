@@ -1,0 +1,5 @@
+0.00.810.881 I llama_prepare_model_devices: using device ROCm0 (AMD Radeon RX 9070 XT) (0000:2f:00.0) - 14026 MiB free
+0.00.975.334 I load_tensors: offloaded 37/37 layers to GPU
+Test Files  1 passed (1)
+Tests  1 passed (1)
+Duration  48.00s (transform 912ms, setup 0ms, import 1.66s, tests 46.24s, environment 0ms)

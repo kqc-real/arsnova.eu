@@ -1,0 +1,100 @@
+{
+  "methode": "Quellenvergleich nach vorab festgelegtem Versuchsplan. Vorläufige inhaltliche Einzelbewertung mit KI-Unterstützung (Codex), ohne unabhängige Zweitbewertung. Ausgewertet werden die Aussagen; Handlungsvorschläge separat. Ein Thema gilt als offen erhalten, wenn der Text den unerfüllten Wunsch oder die ungeklärte Frage erkennen lässt. Sichtbar, erwähnt und als offen erhalten beziehen sich auf zwei offene Referenzanliegen im gesamten Snapshot.",
+  "bewertungen": {
+    "auswahl": {
+      "sichtbareOffeneAnliegen": ["Rechenbeispiel"],
+      "erwaehnteOffeneAnliegen": ["Rechenbeispiel"],
+      "alsOffenErhalten": [],
+      "zugangshuerdeErklaert": false,
+      "frist": "bestätigt, Tag und Uhrzeit korrekt",
+      "statements": [
+        {
+          "belegtOderPassenderVorschlag": false,
+          "begruendung": "01 wünscht eine gemeinsame Rechnung. Eine bereits durchgeführte Rechnung ist unbelegt.",
+          "thematischPassendeEndziffern": [1],
+          "text": "Konfidenzintervall-Berechnung im Tutorium: Gemeinsam Schritt für Schritt durchgeführt.",
+          "sourceIds": ["qa-question:dddddddd-dddd-4ddd-8ddd-000000000001"]
+        },
+        {
+          "belegtOderPassenderVorschlag": true,
+          "begruendung": "02 benennt die Abgabe. Erst der ausdrückliche Nachtrag in 03 belegt Freitag um 18 Uhr.",
+          "thematischPassendeEndziffern": [2, 3],
+          "text": "Abgabe des Übungsblatts: Verbindliche Frist ist Freitag um 18 Uhr.",
+          "sourceIds": [
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [
+        {
+          "belegtOderPassenderVorschlag": true,
+          "begruendung": "Die Aufforderung ist als Vorschlag gekennzeichnet und passt zum Wunsch in 01. Als nächster Schritt widerspricht sie allerdings der Behauptung, die Rechnung sei bereits erfolgt.",
+          "thematischPassendeEndziffern": [1],
+          "text": "Beginnen Sie mit der Schritt-für-Schritt-Berechnung des Konfidenzintervalls im Tutorium.",
+          "sourceIds": ["qa-question:dddddddd-dddd-4ddd-8ddd-000000000001"]
+        }
+      ],
+      "rawSha256": "77c5844bf486bf1c4318839cec6eb11878d6865ac6504dd60738bbfbe944c4c7"
+    },
+    "alle": {
+      "sichtbareOffeneAnliegen": ["Rechenbeispiel", "Untertitel"],
+      "erwaehnteOffeneAnliegen": ["Rechenbeispiel", "Untertitel"],
+      "alsOffenErhalten": ["Untertitel"],
+      "zugangshuerdeErklaert": false,
+      "frist": "bestätigt, Tag und Uhrzeit korrekt",
+      "statements": [
+        {
+          "belegtOderPassenderVorschlag": false,
+          "begruendung": "01 und 04 wünschen ein Beispiel. Keine der Quellen bestätigt eine Erklärung. Messwerte und Grenzen stehen ausdrücklich in 06, die hier nicht zitiert ist.",
+          "thematischPassendeEndziffern": [1, 4],
+          "text": "Konfidenzintervall: Anhand eines konkreten Beispiels wird der Rechenweg von den Messwerten zu den Grenzen schrittweise erklärt.",
+          "sourceIds": [
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000004"
+          ]
+        },
+        {
+          "belegtOderPassenderVorschlag": true,
+          "begruendung": "02 benennt das Thema. 03 belegt sowohl Freitag als auch 18 Uhr.",
+          "thematischPassendeEndziffern": [2, 3],
+          "text": "Abgabe des Übungsblatts: Die Frist ist verbindlich am Freitag um 18 Uhr.",
+          "sourceIds": [
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003"
+          ]
+        },
+        {
+          "belegtOderPassenderVorschlag": false,
+          "begruendung": "05 und 07 fragen nach einer Beispielrechnung. Weder Durchführung noch Zusage sind belegt. Das Thema steht bereits in Aussage 1.",
+          "thematischPassendeEndziffern": [5, 7],
+          "text": "Rechenbeispiel: Ein vollständiges Zahlenbeispiel wird im Tutorium gemeinsam durchgerechnet, um den Prozess des Konfidenzintervalls zu verdeutlichen.",
+          "sourceIds": [
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000005",
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000007"
+          ]
+        },
+        {
+          "belegtOderPassenderVorschlag": true,
+          "begruendung": "12 stellt eine offene Frage. Das Modell gibt den fehlenden Nachweis einer Zusage richtig wieder. Den genannten Grund für die Frage lässt es weg.",
+          "thematischPassendeEndziffern": [12],
+          "text": "Untertitel für Vorlesungsaufzeichnungen: Es wird keine Bestätigung gegeben, ob Untertitel bereitgestellt werden.",
+          "sourceIds": ["qa-question:dddddddd-dddd-4ddd-8ddd-000000000012"]
+        }
+      ],
+      "suggestedNextSteps": [
+        {
+          "belegtOderPassenderVorschlag": true,
+          "begruendung": "Die vorgeschlagene Beispielrechnung greift den Wunsch aus 01 und 04 auf. Beispiele aus dem Unterricht sind hier ein Vorschlag, keine belegpflichtige Behauptung über vergangenes Handeln.",
+          "thematischPassendeEndziffern": [1, 4],
+          "text": "Berechnung eines konkreten Konfidenzintervalls mit Beispielen aus dem Unterricht.",
+          "sourceIds": [
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+            "qa-question:dddddddd-dddd-4ddd-8ddd-000000000004"
+          ]
+        }
+      ],
+      "rawSha256": "30b056b97264b4b2b061f70f33eac4a76c7ec2596986535ba0684fce8f28ee44"
+    }
+  }
+}
