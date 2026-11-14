@@ -74,13 +74,13 @@ export function lobbyTextGridLayout(
   longestLineWidth: number,
   minimumFontSize: number,
 ): { columns: number; fontSize: number; minColumnWidth: number } {
-  const minColumnWidth = Math.ceil((longestLineWidth * minimumFontSize) / 0.8);
+  const requestedMinColumnWidth = Math.ceil((longestLineWidth * minimumFontSize) / 0.8);
   let best = { columns: 1, fontSize: 0 };
   let bestFitsRows = false;
   for (let columns = 1; columns <= count; columns++) {
     const rows = Math.ceil(count / columns);
     const columnWidth = (width - (columns - 1) * columnGap) / columns;
-    if (columns > 1 && columnWidth < minColumnWidth) break;
+    if (columns > 1 && columnWidth < requestedMinColumnWidth) break;
     const rowHeight = (height - (rows - 1) * rowGap) / rows;
     const fitsRows = rowHeight >= 2.65 * minimumFontSize;
     const fontSize = Math.min((columnWidth * 0.8) / longestLineWidth, (rowHeight * 0.85) / 1.2);
@@ -92,6 +92,6 @@ export function lobbyTextGridLayout(
   return {
     columns: best.columns,
     fontSize: Math.max(minimumFontSize, best.fontSize),
-    minColumnWidth,
+    minColumnWidth: best.columns === 1 ? 0 : requestedMinColumnWidth,
   };
 }

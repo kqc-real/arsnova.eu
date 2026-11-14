@@ -253,9 +253,11 @@ export class JoinComponent implements OnInit, OnDestroy {
   nicknameOptionAriaLabel(option: string): string | null {
     if (!this.isKindergartenNicknameTheme()) return null;
     const animal = this.kindergartenOptions.get(option);
-    return animal
-      ? (KINDERGARTEN_NICKNAMES_BY_ID[this.locale][animal.animalId] ?? animal.name)
-      : option;
+    if (!animal) return option;
+    const visibleName = animal.name;
+    const motifName = KINDERGARTEN_NICKNAMES_BY_ID[this.locale][animal.animalId] ?? visibleName;
+    const description = motifName === visibleName ? visibleName : `${visibleName}, ${motifName}`;
+    return this.isTaken(option) ? `${description} ${this.takenSuffix()}` : description;
   }
 
   /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */

@@ -1059,6 +1059,10 @@ app-session-projection-quiz,
 .session-present__lobby-text-name {
   display: block;
   width: 90%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--mat-sys-on-surface);
   font-size: var(--lobby-name-size, 1rem);
   font-weight: 650;

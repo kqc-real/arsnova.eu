@@ -150,6 +150,36 @@ describe('prepareParticipantJoin', () => {
     },
   );
 
+  it('normalisiert einen farbigen Namen des gecachten Vorgänger-Pickers', async () => {
+    const tx = createTx();
+    tx.participant.create.mockImplementation(async ({ data }) => ({
+      id: PARTICIPANT_ID,
+      ...data,
+      teamId: null,
+      timerAccommodation: 'DEFAULT',
+      team: null,
+    }));
+
+    const result = await prepareParticipantJoin({
+      tx: tx as never,
+      sessionId: SESSION_ID,
+      requestedNickname: 'Roter Drache',
+      profile: {
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+      },
+      joinIdempotencyKey: 'join-key-legacy-picker-abcdefghijklmnopqrstuvwxyz',
+    });
+
+    expect(result).toMatchObject({ nickname: 'Drache 1', kindergartenAnimalId: 0 });
+    expect(tx.participant.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ nickname: 'Drache 1', kindergartenAnimalId: 0 }),
+      }),
+    );
+  });
+
   it('speichert das gewählte Walbild und zählt beide Motive gemeinsam', async () => {
     const tx = createTx();
     tx.participant.create.mockImplementation(async ({ data }) => ({

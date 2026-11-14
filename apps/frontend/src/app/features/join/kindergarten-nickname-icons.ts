@@ -1,9 +1,12 @@
 /**
  * Emoji je persistierter Tier-ID, einschließlich historischer Motive.
  */
-import { getKindergartenAnimalId, KINDERGARTEN_NICKNAMES_BY_ID } from '@arsnova/shared-types';
+import {
+  getKindergartenAnimalId,
+  KINDERGARTEN_NICKNAMES_BY_ID,
+  LEGACY_KINDERGARTEN_NICKNAMES,
+} from '@arsnova/shared-types';
 import { getEffectiveLocale, type SupportedLocale } from '../../core/locale-from-path';
-import { LEGACY_KINDERGARTEN_NICKNAMES } from './legacy-kindergarten-nicknames';
 
 /** Parallel zu `KINDERGARTEN_NICKNAMES_BY_ID`. */
 export const KINDERGARTEN_NICKNAME_EMOJIS: readonly string[] = [

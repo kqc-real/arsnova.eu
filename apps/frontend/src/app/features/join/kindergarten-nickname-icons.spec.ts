@@ -7,12 +7,12 @@ import {
   kindergartenNicknameSequence,
   KINDERGARTEN_NICKNAME_EMOJIS,
 } from './kindergarten-nickname-icons';
-import { LEGACY_KINDERGARTEN_NICKNAMES } from './legacy-kindergarten-nicknames';
 import { NICKNAME_LISTS, NICKNAME_LISTS_BY_LOCALE } from './nickname-themes';
 import {
   getKindergartenAnimalId,
   KINDERGARTEN_ANIMALS,
   KINDERGARTEN_NICKNAMES_BY_ID,
+  LEGACY_KINDERGARTEN_NICKNAMES,
 } from '@arsnova/shared-types';
 import type { SupportedLocale } from '../../core/locale-from-path';
 

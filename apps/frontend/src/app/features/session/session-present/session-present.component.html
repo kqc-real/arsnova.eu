@@ -757,9 +757,11 @@
                             "
                           >
                             @if (lobbyGridMode() === 'text') {
-                              <span class="session-present__lobby-text-name">{{
-                                member.nickname
-                              }}</span>
+                              <span
+                                class="session-present__lobby-text-name"
+                                [attr.title]="member.nickname"
+                                >{{ member.nickname }}</span
+                              >
                             } @else if (
                               packedLobbyIdentity(member, lobbyAudienceIsPacked(team.memberCount));
                               as identity
@@ -864,7 +866,11 @@
                   >
                     <p class="session-present__lobby-person">
                       @if (lobbyGridMode() === 'text') {
-                        <span class="session-present__lobby-text-name">{{ person.nickname }}</span>
+                        <span
+                          class="session-present__lobby-text-name"
+                          [attr.title]="person.nickname"
+                          >{{ person.nickname }}</span
+                        >
                       } @else if (
                         packedLobbyIdentity(person, lobbyAudienceIsPacked(lobbyParticipantCount()));
                         as identity

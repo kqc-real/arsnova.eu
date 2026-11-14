@@ -655,6 +655,15 @@ describe('JoinComponent', () => {
       '🐋',
       '🐳',
     ]);
+    expect(whaleOptions.map((option) => comp.nicknameOptionAriaLabel(option))).toEqual([
+      'Wal',
+      'Wal, Wal mit Fontäne',
+    ]);
+    const sauropod = comp
+      .nicknameOptions()
+      .find((option) => comp.nicknameOptionLabel(option) === 'Sauropode');
+    expect(sauropod).toBeDefined();
+    expect(comp.nicknameOptionAriaLabel(sauropod!)).toBe('Sauropode, Langhals-Dino');
     const loader = TestbedHarnessEnvironment.loader(fixture);
     const select = await vi.waitFor(async () => loader.getHarness(MatSelectHarness));
     await select.open();

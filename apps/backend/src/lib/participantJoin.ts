@@ -3,6 +3,7 @@ import {
   getKindergartenAnimalId,
   getKindergartenAnimalNames,
   getKindergartenCounterId,
+  getLegacyKindergartenAnimal,
   INVALID_KINDERGARTEN_NICKNAME_MESSAGE,
   type NicknameTheme,
 } from '@arsnova/shared-types';
@@ -381,9 +382,14 @@ export async function prepareParticipantJoin(params: {
     nickname = anonymousNickname(nickname, participantNumber);
   } else if (!params.profile.allowCustomNicknames) {
     const presetNickname = nickname.replace(/\s+\d+$/, '').trim() || 'User';
+    const legacyAnimal =
+      params.profile.nicknameTheme === 'KINDERGARTEN' && params.kindergartenAnimalId === undefined
+        ? getLegacyKindergartenAnimal(presetNickname)
+        : undefined;
     kindergartenAnimalId =
       params.profile.nicknameTheme === 'KINDERGARTEN'
-        ? getKindergartenAnimalId(presetNickname, params.kindergartenAnimalId)
+        ? (getKindergartenAnimalId(presetNickname, params.kindergartenAnimalId) ??
+          legacyAnimal?.animalId)
         : undefined;
     if (params.profile.nicknameTheme === 'KINDERGARTEN' && kindergartenAnimalId === undefined) {
       throw new TRPCError({ code: 'BAD_REQUEST', message: INVALID_KINDERGARTEN_NICKNAME_MESSAGE });
@@ -395,7 +401,7 @@ export async function prepareParticipantJoin(params: {
             params.tx,
             params.sessionId,
             kindergartenAnimalId,
-            presetNickname,
+            legacyAnimal?.name ?? presetNickname,
           );
   }
 

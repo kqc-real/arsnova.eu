@@ -1,4 +1,5 @@
 import { APP_LOCALES } from './app-locale.js';
+import { LEGACY_KINDERGARTEN_NICKNAMES } from './legacy-kindergarten-nicknames.js';
 import type { AppLocale } from './schemas.js';
 
 /** Die Position ist die persistierte Tier-ID. Neue Tiere nur am Ende ergänzen. */
@@ -705,12 +706,30 @@ for (const animals of Object.values(KINDERGARTEN_ANIMALS)) {
   }
 }
 
+const legacyAnimalsByName = new Map<string, { animalId: number; name: string }>();
+for (const locale of APP_LOCALES) {
+  const languageIndex = APP_LOCALES.indexOf(locale);
+  for (const [animalId, legacyName] of LEGACY_KINDERGARTEN_NICKNAMES[locale].entries()) {
+    const currentName =
+      updatedNames[animalId]?.[languageIndex] ?? KINDERGARTEN_NICKNAMES_BY_ID[locale][animalId];
+    if (currentName && !legacyAnimalsByName.has(legacyName)) {
+      legacyAnimalsByName.set(legacyName, { animalId, name: currentName });
+    }
+  }
+}
+
 export function getKindergartenAnimalId(name: string, selectedId?: number): number | undefined {
   const defaultId = animalIdsByName.get(name);
   if (selectedId === undefined) return defaultId;
   return defaultId !== undefined && getKindergartenCounterId(selectedId) === defaultId
     ? selectedId
     : undefined;
+}
+
+export function getLegacyKindergartenAnimal(
+  name: string,
+): { animalId: number; name: string } | undefined {
+  return legacyAnimalsByName.get(name);
 }
 
 export function getKindergartenAnimalNames(counterId: number): readonly string[] {

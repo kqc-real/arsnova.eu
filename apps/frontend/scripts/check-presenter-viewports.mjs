@@ -166,6 +166,9 @@ function createTrpcClient() {
 }
 
 function participantNickname(index) {
+  if (EXPECT_TEXT && index === 0) {
+    return 'W'.repeat(30);
+  }
   if (NICKNAME_THEME === 'NOBEL_LAUREATES') {
     const base = NOBEL_LAUREATE_NICKNAMES[index % NOBEL_LAUREATE_NICKNAMES.length];
     const cycle = Math.floor(index / NOBEL_LAUREATE_NICKNAMES.length);
@@ -342,7 +345,7 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
         ['Lobby-Bühne', stage],
         ['Publikumsfläche', audience],
       ];
-      if (people && !expectText) {
+      if (people) {
         overflowElements.push(['Packed-Publikum', people]);
       }
       for (const [label, element] of overflowElements) {

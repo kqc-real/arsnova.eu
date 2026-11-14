@@ -1,7 +1,7 @@
-import type { SupportedLocale } from '../../core/locale-from-path';
+import type { AppLocale } from './schemas.js';
 
 /** Gespeicherte Pseudonyme aus dem früheren Tiernamen-Pool, in der Reihenfolge der Emoji-Liste. */
-export const LEGACY_KINDERGARTEN_NICKNAMES: Record<SupportedLocale, readonly string[]> = {
+export const LEGACY_KINDERGARTEN_NICKNAMES: Record<AppLocale, readonly string[]> = {
   de: [
     'Roter Drache',
     'Grüner Frosch',
