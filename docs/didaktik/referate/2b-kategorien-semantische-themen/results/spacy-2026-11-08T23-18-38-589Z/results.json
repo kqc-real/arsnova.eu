@@ -1,0 +1,1824 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-08T23:18:38.589Z",
+    "commit": "74091b0a646868b81e300edbde7a2da7c36a5e57",
+    "describe": "v1.3.0-364-g74091b0a-dirty",
+    "node": "v24.22.2",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "reference": {
+      "path": "referat-2b/reference-dataset.v2.2.json",
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87"
+    },
+    "spacy": {
+      "sidecarMode": "exec",
+      "runtime": "3.8.15",
+      "models": {
+        "de": {
+          "id": "de_core_news_sm",
+          "version": "3.8.0",
+          "license": "MIT"
+        },
+        "en": {
+          "id": "en_core_web_sm",
+          "version": "3.8.0",
+          "license": "MIT"
+        },
+        "fr": {
+          "id": "fr_core_news_sm",
+          "version": "3.8.0",
+          "license": "LGPL-LR"
+        },
+        "es": {
+          "id": "es_core_news_sm",
+          "version": "3.8.0",
+          "license": "GPL-3.0"
+        }
+      },
+      "container": "arsnova-spacy:3.8.15 sha256:a8b25df4357922ba654655d714f05a3e1e60f514f5a0adbf93d7bbcef9390469",
+      "resources": {
+        "memoryAfterLoad": "467.5MiB / 2GiB",
+        "imageSize": "751MB"
+      }
+    },
+    "normalizationVersion": "1.14b.14"
+  },
+  "subjects": {
+    "statistics": {
+      "n": 201,
+      "locale": "de",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "ready",
+      "newLemmaLabels": ["Hörsaal", "Kapitel", "Konfidenzintervall", "Nachklausur"],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 13,
+              "purity": 0.23076923076923078
+            },
+            {
+              "label": "Vorlesung",
+              "n": 12,
+              "purity": 0.3333333333333333
+            },
+            {
+              "label": "Folie",
+              "n": 9,
+              "purity": 0.5555555555555556
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1691542288557214,
+          "top12Labels": [
+            "Klausur",
+            "Vorlesung",
+            "Folie",
+            "Moodle",
+            "Bayes",
+            "Sprechstunde",
+            "Beispiel",
+            "Hinten",
+            "p-Wert",
+            "Aufzeichnung",
+            "haengen",
+            "heute"
+          ],
+          "top12Coverage": 0.35323383084577115,
+          "top12Pairs": 272,
+          "top12PairPrecision": 0.23897058823529413
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "Vorlesung",
+              "n": 13,
+              "purity": 0.3076923076923077
+            },
+            {
+              "label": "Folie",
+              "n": 12,
+              "purity": 0.4166666666666667
+            },
+            {
+              "label": "Klausur",
+              "n": 12,
+              "purity": 0.25
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1791044776119403,
+          "top12Labels": [
+            "Vorlesung",
+            "Folie",
+            "Klausur",
+            "Moodle",
+            "Bayes",
+            "Sprechstunde",
+            "Beispiel",
+            "Aufzeichnung",
+            "Hörsaal",
+            "Kapitel",
+            "Konfidenzintervall",
+            "Nachklausur"
+          ],
+          "top12Coverage": 0.36318407960199006,
+          "top12Pairs": 295,
+          "top12PairPrecision": 0.20677966101694914
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 13,
+              "purity": 0.23076923076923078
+            },
+            {
+              "label": "Vorlesung",
+              "n": 12,
+              "purity": 0.3333333333333333
+            },
+            {
+              "label": "Folie",
+              "n": 9,
+              "purity": 0.5555555555555556
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1691542288557214,
+          "top12Labels": [
+            "Klausur",
+            "Vorlesung",
+            "Folie",
+            "Moodle",
+            "Sprechstunde",
+            "Bayes",
+            "Hinten",
+            "p-Wert",
+            "haengen",
+            "Konfidenzintervall",
+            "Nachklausur",
+            "Aufzeichnung"
+          ],
+          "top12Coverage": 0.38308457711442784,
+          "top12Pairs": 267,
+          "top12PairPrecision": 0.2546816479400749
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "Vorlesung",
+              "n": 13,
+              "purity": 0.3076923076923077
+            },
+            {
+              "label": "Folie",
+              "n": 12,
+              "purity": 0.4166666666666667
+            },
+            {
+              "label": "Klausur",
+              "n": 12,
+              "purity": 0.25
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1791044776119403,
+          "top12Labels": [
+            "Vorlesung",
+            "Folie",
+            "Klausur",
+            "Moodle",
+            "Bayes",
+            "Sprechstunde",
+            "Beispiel",
+            "Aufzeichnung",
+            "Hörsaal",
+            "Kapitel",
+            "Konfidenzintervall",
+            "Nachklausur"
+          ],
+          "top12Coverage": 0.36318407960199006,
+          "top12Pairs": 295,
+          "top12PairPrecision": 0.20677966101694914
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+              "n": 8,
+              "purity": 0.5
+            },
+            {
+              "label": "Wann ist Ihre Sprechstunde?",
+              "n": 5,
+              "purity": 1
+            },
+            {
+              "label": "Noch ein Regressionsbeispiel?",
+              "n": 5,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 2,
+          "termVisible": 3,
+          "reachableShare": 0.08955223880597014,
+          "top12Labels": [
+            "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+            "Wann ist Ihre Sprechstunde?",
+            "Noch ein Regressionsbeispiel?",
+            "Ist die Frist für Übungsblatt 2 diesen Freitag?",
+            "Hinten kommt kein Ton an.",
+            "Stichprobengröße berechnen – wie?",
+            "Wie interpretiere ich das Konfidenzintervall aus der Übung?",
+            "Gibt es ein anschauliches Beispiel für den Satz von Bayes?",
+            "Bis wann muss man sich zur Klausur anmelden?",
+            "Ich komme mit dem Sitzungscode nicht in die Umfrage rein.",
+            "Woher kommt auf Folie 17 plötzlich das Quadrat?",
+            "Das WLAN verbindet sich hier gar nicht."
+          ],
+          "top12Coverage": 0.27860696517412936,
+          "top12Pairs": 110,
+          "top12PairPrecision": 0.6636363636363637
+        }
+      }
+    },
+    "botany": {
+      "n": 16,
+      "locale": "de",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "ready",
+      "newLemmaLabels": [],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "Exkursion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Lichtreaktion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "botanische",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.375,
+          "top12Labels": [
+            "Exkursion",
+            "Lichtreaktion",
+            "botanische",
+            "Calvin-Zyklus",
+            "eigentlich",
+            "Garten",
+            "Herbarium"
+          ],
+          "top12Coverage": 0.5625,
+          "top12Pairs": 8,
+          "top12PairPrecision": 0.875
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "Exkursion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Lichtreaktion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Calvin-Zyklus",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.375,
+          "top12Labels": ["Exkursion", "Lichtreaktion", "Calvin-Zyklus", "Garten", "Herbarium"],
+          "top12Coverage": 0.5,
+          "top12Pairs": 7,
+          "top12PairPrecision": 1
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "Exkursion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Lichtreaktion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Herbarium",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.5,
+          "top12Labels": ["Exkursion", "Lichtreaktion", "Herbarium", "eigentlich"],
+          "top12Coverage": 0.5625,
+          "top12Pairs": 7,
+          "top12PairPrecision": 1
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "Exkursion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Lichtreaktion",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Calvin-Zyklus",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.375,
+          "top12Labels": ["Exkursion", "Lichtreaktion", "Calvin-Zyklus", "Garten", "Herbarium"],
+          "top12Coverage": 0.5,
+          "top12Pairs": 7,
+          "top12PairPrecision": 1
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "Können Sie den Unterschied zwischen Lichtreaktion und Calvin-Zyklus nochmal erklären?",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Wann ist die Exkursion in den Botanischen Garten und wo treffen wir uns?",
+              "n": 2,
+              "purity": 1
+            },
+            {
+              "label": "Die Übertragung vom Mikroskop ist nur noch schwarz.",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.4375,
+          "top12Labels": [
+            "Können Sie den Unterschied zwischen Lichtreaktion und Calvin-Zyklus nochmal erklären?",
+            "Wann ist die Exkursion in den Botanischen Garten und wo treffen wir uns?",
+            "Die Übertragung vom Mikroskop ist nur noch schwarz.",
+            "Bis wann müssen wir unser Herbarium abgeben?",
+            "Einkeimblättrig oder zweikeimblättrig – wie bestimmen?",
+            "Woran erkenne ich, ob eine Pflanze monokotyl oder dikotyl ist?",
+            "Wie kommt das Wasser eigentlich von der Wurzel bis in die Blätter?",
+            "Welche Rolle spielt der Caspary-Streifen bei der Wasseraufnahme?",
+            "Reicht der Transpirationssog allein für den Wassertransport aus?",
+            "Brauchen wir für die Exkursion feste Schuhe oder eine Lupe?"
+          ],
+          "top12Coverage": 1,
+          "top12Pairs": 7,
+          "top12PairPrecision": 1
+        }
+      }
+    },
+    "history": {
+      "n": 15,
+      "locale": "de",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "ready",
+      "newLemmaLabels": [],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "Frieden",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Westfälische",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Hausarbeit",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.3333333333333333,
+          "top12Labels": [
+            "Frieden",
+            "Westfälische",
+            "Hausarbeit",
+            "Primär-",
+            "Republik",
+            "Sekundärquelle"
+          ],
+          "top12Coverage": 0.6,
+          "top12Pairs": 6,
+          "top12PairPrecision": 1
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "Frieden",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Hausarbeit",
+              "n": 2,
+              "purity": 1
+            },
+            {
+              "label": "Primär-",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.4666666666666667,
+          "top12Labels": ["Frieden", "Hausarbeit", "Primär-", "Republik"],
+          "top12Coverage": 0.6,
+          "top12Pairs": 6,
+          "top12PairPrecision": 1
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "Westfälische Frieden",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Hausarbeit",
+              "n": 2,
+              "purity": 1
+            },
+            {
+              "label": "Primär- Sekundärquelle",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.4666666666666667,
+          "top12Labels": [
+            "Westfälische Frieden",
+            "Hausarbeit",
+            "Primär- Sekundärquelle",
+            "Republik",
+            "Zeitzeugeninterview 1990"
+          ],
+          "top12Coverage": 0.6666666666666666,
+          "top12Pairs": 6,
+          "top12PairPrecision": 1
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "Frieden",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Westfälische Frieden",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Hausarbeit",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.3333333333333333,
+          "top12Labels": [
+            "Frieden",
+            "Westfälische Frieden",
+            "Hausarbeit",
+            "Primär-",
+            "Primär- Sekundärquelle",
+            "Republik",
+            "Zeitzeugeninterview 1990"
+          ],
+          "top12Coverage": 0.6666666666666666,
+          "top12Pairs": 6,
+          "top12PairPrecision": 1
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "Warum gilt der Westfälische Frieden als Beginn des modernen Staatensystems?",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+              "n": 2,
+              "purity": 1
+            },
+            {
+              "label": "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite.",
+              "n": 2,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 3,
+          "termVisible": 3,
+          "reachableShare": 0.4666666666666667,
+          "top12Labels": [
+            "Warum gilt der Westfälische Frieden als Beginn des modernen Staatensystems?",
+            "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+            "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite.",
+            "Um wie viel Uhr treffen wir uns vor dem Stadtarchiv?",
+            "Welche Gründe waren für das Scheitern der Weimarer Republik am wichtigsten?",
+            "Lag das Ende von Weimar eher an der Verfassung oder an der Wirtschaftskrise?",
+            "Welche Rolle spielte Artikel 48 beim Ende der Republik?",
+            "Zählt ein Zeitzeugeninterview von 1990 als Primärquelle?",
+            "Wie viele Seiten soll die Hausarbeit haben und bis wann ist sie fällig?",
+            "Sollen wir in der Hausarbeit mit Fußnoten zitieren?"
+          ],
+          "top12Coverage": 1,
+          "top12Pairs": 6,
+          "top12PairPrecision": 1
+        }
+      }
+    },
+    "police": {
+      "n": 90,
+      "locale": "de",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "ready",
+      "newLemmaLabels": ["Person", "Schusswaffengebrauch", "Tatort"],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 5,
+              "purity": 0.6
+            },
+            {
+              "label": "Praktikum",
+              "n": 5,
+              "purity": 0.8
+            },
+            {
+              "label": "Sporttest",
+              "n": 5,
+              "purity": 0.8
+            }
+          ],
+          "termCoherent": 2,
+          "termVisible": 3,
+          "reachableShare": 0.16666666666666666,
+          "top12Labels": [
+            "Klausur",
+            "Praktikum",
+            "Sporttest",
+            "Einsatztraining",
+            "Schießtraining",
+            "Vorgangsbearbeitung",
+            "Dienststelle",
+            "Festnahme",
+            "genau",
+            "Gilt",
+            "morgen",
+            "Notwehr"
+          ],
+          "top12Coverage": 0.4444444444444444,
+          "top12Pairs": 65,
+          "top12PairPrecision": 0.4
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 5,
+              "purity": 0.6
+            },
+            {
+              "label": "Person",
+              "n": 5,
+              "purity": 0.4
+            },
+            {
+              "label": "Praktikum",
+              "n": 5,
+              "purity": 0.8
+            }
+          ],
+          "termCoherent": 1,
+          "termVisible": 3,
+          "reachableShare": 0.16666666666666666,
+          "top12Labels": [
+            "Klausur",
+            "Person",
+            "Praktikum",
+            "Sporttest",
+            "Einsatztraining",
+            "Vorgangsbearbeitung",
+            "Festnahme",
+            "Schießtraining",
+            "Schusswaffengebrauch",
+            "Tatort"
+          ],
+          "top12Coverage": 0.43333333333333335,
+          "top12Pairs": 64,
+          "top12PairPrecision": 0.46875
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 5,
+              "purity": 0.6
+            },
+            {
+              "label": "Praktikum",
+              "n": 5,
+              "purity": 0.8
+            },
+            {
+              "label": "Sporttest",
+              "n": 5,
+              "purity": 0.8
+            }
+          ],
+          "termCoherent": 2,
+          "termVisible": 3,
+          "reachableShare": 0.16666666666666666,
+          "top12Labels": [
+            "Klausur",
+            "Praktikum",
+            "Sporttest",
+            "Einsatztraining",
+            "Schießtraining",
+            "Vorgangsbearbeitung",
+            "Festnahme",
+            "genau",
+            "Gilt",
+            "Person",
+            "Schusswaffengebrauch",
+            "Tatort"
+          ],
+          "top12Coverage": 0.5,
+          "top12Pairs": 66,
+          "top12PairPrecision": 0.48484848484848486
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 5,
+              "purity": 0.6
+            },
+            {
+              "label": "Person",
+              "n": 5,
+              "purity": 0.4
+            },
+            {
+              "label": "Praktikum",
+              "n": 5,
+              "purity": 0.8
+            }
+          ],
+          "termCoherent": 1,
+          "termVisible": 3,
+          "reachableShare": 0.16666666666666666,
+          "top12Labels": [
+            "Klausur",
+            "Person",
+            "Praktikum",
+            "Sporttest",
+            "Einsatztraining",
+            "Vorgangsbearbeitung",
+            "Festnahme",
+            "Schießtraining",
+            "Schusswaffengebrauch",
+            "Tatort"
+          ],
+          "top12Coverage": 0.43333333333333335,
+          "top12Pairs": 64,
+          "top12PairPrecision": 0.46875
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "Im Simulator ist das Bild so verzerrt, dass man die Waffe des Gegenübers nicht erkennt.",
+              "n": 4,
+              "purity": 0.75
+            },
+            {
+              "label": "In welcher Reihenfolge werden Spuren am Tatort gesichert?",
+              "n": 3,
+              "purity": 1
+            },
+            {
+              "label": "Kann man sich die Dienststelle für das Praktikum wünschen?",
+              "n": 3,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 2,
+          "termVisible": 3,
+          "reachableShare": 0.1111111111111111,
+          "top12Labels": [
+            "Im Simulator ist das Bild so verzerrt, dass man die Waffe des Gegenübers nicht erkennt.",
+            "In welcher Reihenfolge werden Spuren am Tatort gesichert?",
+            "Kann man sich die Dienststelle für das Praktikum wünschen?",
+            "Welche Voraussetzungen müssen für den Schusswaffengebrauch gegen Personen vorliegen?",
+            "vorgangsbearbeitung schulung login geht nicht",
+            "notwehr oder notstand was is der unterschied",
+            "Fällt das Schießtraining am Freitag wegen der Prüfungswoche aus?",
+            "Wie fit muss man für den Sporttest wirklich sein?",
+            "Zählt das?",
+            "Das Funkgerät zeigt nur »kein Netz« an, obwohl wir im Übungsgelände sind.",
+            "Das Lernvideo zur Eigensicherung bleibt nach zwei Minuten hängen.",
+            "Ist ein Kommentar zum Polizeigesetz in der Klausur erlaubt?"
+          ],
+          "top12Coverage": 0.36666666666666664,
+          "top12Pairs": 31,
+          "top12PairPrecision": 0.7096774193548387
+        }
+      }
+    }
+  },
+  "languages": {
+    "de": {
+      "n": 201,
+      "locale": "de",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "ready",
+      "newLemmaLabels": ["Hörsaal", "Kapitel", "Konfidenzintervall", "Nachklausur"],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 13,
+              "purity": 0.23076923076923078
+            },
+            {
+              "label": "Vorlesung",
+              "n": 12,
+              "purity": 0.3333333333333333
+            },
+            {
+              "label": "Folie",
+              "n": 9,
+              "purity": 0.5555555555555556
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1691542288557214,
+          "top12Labels": [
+            "Klausur",
+            "Vorlesung",
+            "Folie",
+            "Moodle",
+            "Bayes",
+            "Sprechstunde",
+            "Beispiel",
+            "Hinten",
+            "p-Wert",
+            "Aufzeichnung",
+            "haengen",
+            "heute"
+          ],
+          "top12Coverage": 0.35323383084577115,
+          "top12Pairs": 272,
+          "top12PairPrecision": 0.23897058823529413
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "Vorlesung",
+              "n": 13,
+              "purity": 0.3076923076923077
+            },
+            {
+              "label": "Folie",
+              "n": 12,
+              "purity": 0.4166666666666667
+            },
+            {
+              "label": "Klausur",
+              "n": 12,
+              "purity": 0.25
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1791044776119403,
+          "top12Labels": [
+            "Vorlesung",
+            "Folie",
+            "Klausur",
+            "Moodle",
+            "Bayes",
+            "Sprechstunde",
+            "Beispiel",
+            "Aufzeichnung",
+            "Hörsaal",
+            "Kapitel",
+            "Konfidenzintervall",
+            "Nachklausur"
+          ],
+          "top12Coverage": 0.36318407960199006,
+          "top12Pairs": 295,
+          "top12PairPrecision": 0.20677966101694914
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "Klausur",
+              "n": 13,
+              "purity": 0.23076923076923078
+            },
+            {
+              "label": "Vorlesung",
+              "n": 12,
+              "purity": 0.3333333333333333
+            },
+            {
+              "label": "Folie",
+              "n": 9,
+              "purity": 0.5555555555555556
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1691542288557214,
+          "top12Labels": [
+            "Klausur",
+            "Vorlesung",
+            "Folie",
+            "Moodle",
+            "Sprechstunde",
+            "Bayes",
+            "Hinten",
+            "p-Wert",
+            "haengen",
+            "Konfidenzintervall",
+            "Nachklausur",
+            "Aufzeichnung"
+          ],
+          "top12Coverage": 0.38308457711442784,
+          "top12Pairs": 267,
+          "top12PairPrecision": 0.2546816479400749
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "Vorlesung",
+              "n": 13,
+              "purity": 0.3076923076923077
+            },
+            {
+              "label": "Folie",
+              "n": 12,
+              "purity": 0.4166666666666667
+            },
+            {
+              "label": "Klausur",
+              "n": 12,
+              "purity": 0.25
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1791044776119403,
+          "top12Labels": [
+            "Vorlesung",
+            "Folie",
+            "Klausur",
+            "Moodle",
+            "Bayes",
+            "Sprechstunde",
+            "Beispiel",
+            "Aufzeichnung",
+            "Hörsaal",
+            "Kapitel",
+            "Konfidenzintervall",
+            "Nachklausur"
+          ],
+          "top12Coverage": 0.36318407960199006,
+          "top12Pairs": 295,
+          "top12PairPrecision": 0.20677966101694914
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+              "n": 8,
+              "purity": 0.5
+            },
+            {
+              "label": "Wann ist Ihre Sprechstunde?",
+              "n": 5,
+              "purity": 1
+            },
+            {
+              "label": "Noch ein Regressionsbeispiel?",
+              "n": 5,
+              "purity": 1
+            }
+          ],
+          "termCoherent": 2,
+          "termVisible": 3,
+          "reachableShare": 0.08955223880597014,
+          "top12Labels": [
+            "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+            "Wann ist Ihre Sprechstunde?",
+            "Noch ein Regressionsbeispiel?",
+            "Ist die Frist für Übungsblatt 2 diesen Freitag?",
+            "Hinten kommt kein Ton an.",
+            "Stichprobengröße berechnen – wie?",
+            "Wie interpretiere ich das Konfidenzintervall aus der Übung?",
+            "Gibt es ein anschauliches Beispiel für den Satz von Bayes?",
+            "Bis wann muss man sich zur Klausur anmelden?",
+            "Ich komme mit dem Sitzungscode nicht in die Umfrage rein.",
+            "Woher kommt auf Folie 17 plötzlich das Quadrat?",
+            "Das WLAN verbindet sich hier gar nicht."
+          ],
+          "top12Coverage": 0.27860696517412936,
+          "top12Pairs": 110,
+          "top12PairPrecision": 0.6636363636363637
+        }
+      }
+    },
+    "en": {
+      "n": 120,
+      "locale": "en",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "ready",
+      "newLemmaLabels": ["slide", "test", "hour", "office", "regression"],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "exam",
+              "n": 12,
+              "purity": 0.25
+            },
+            {
+              "label": "Will",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "example",
+              "n": 6,
+              "purity": 0.5
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.19166666666666668,
+          "top12Labels": [
+            "exam",
+            "Will",
+            "example",
+            "lecture",
+            "won",
+            "back",
+            "sheet",
+            "slides",
+            "code",
+            "hours",
+            "hypothesis",
+            "keeps"
+          ],
+          "top12Coverage": 0.4666666666666667,
+          "top12Pairs": 194,
+          "top12PairPrecision": 0.13402061855670103
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "exam",
+              "n": 12,
+              "purity": 0.25
+            },
+            {
+              "label": "lecture",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "slide",
+              "n": 8,
+              "purity": 0.375
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.225,
+          "top12Labels": [
+            "exam",
+            "lecture",
+            "slide",
+            "example",
+            "sheet",
+            "test",
+            "back",
+            "code",
+            "hour",
+            "hypothesis",
+            "office",
+            "regression"
+          ],
+          "top12Coverage": 0.45,
+          "top12Pairs": 202,
+          "top12PairPrecision": 0.1485148514851485
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "exam",
+              "n": 12,
+              "purity": 0.25
+            },
+            {
+              "label": "example",
+              "n": 6,
+              "purity": 0.5
+            },
+            {
+              "label": "back",
+              "n": 5,
+              "purity": 0.4
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.19166666666666668,
+          "top12Labels": [
+            "exam",
+            "example",
+            "back",
+            "lecture",
+            "Will",
+            "sheet",
+            "slide",
+            "code",
+            "hypothesis",
+            "interval",
+            "keeps",
+            "office hours"
+          ],
+          "top12Coverage": 0.4666666666666667,
+          "top12Pairs": 138,
+          "top12PairPrecision": 0.18840579710144928
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "exam",
+              "n": 12,
+              "purity": 0.25
+            },
+            {
+              "label": "lecture",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "slide",
+              "n": 8,
+              "purity": 0.375
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.225,
+          "top12Labels": [
+            "exam",
+            "lecture",
+            "slide",
+            "example",
+            "sheet",
+            "test",
+            "back",
+            "code",
+            "hour",
+            "hypothesis",
+            "office",
+            "regression"
+          ],
+          "top12Coverage": 0.45,
+          "top12Pairs": 202,
+          "top12PairPrecision": 0.1485148514851485
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "Is this going to be on it?",
+              "n": 5,
+              "purity": 0.2
+            },
+            {
+              "label": "When are your office hours?",
+              "n": 4,
+              "purity": 0.75
+            },
+            {
+              "label": "Does correlation imply causation here?",
+              "n": 3,
+              "purity": 0.6666666666666666
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.1,
+          "top12Labels": [
+            "Is this going to be on it?",
+            "When are your office hours?",
+            "Does correlation imply causation here?",
+            "How can we tell if a model is overfitting?",
+            "Can I switch to a different tutorial group?",
+            "I can't vote, the button doesn't respond.",
+            "The lecture slides file on Moodle seems corrupted.",
+            "How do we calculate the required sample size?",
+            "Can you give an intuitive example of Bayes' theorem?",
+            "Could you walk us through another linear regression example?",
+            "What's the deadline to sign up for the exam?",
+            "eduroam won't connect at all here."
+          ],
+          "top12Coverage": 0.31666666666666665,
+          "top12Pairs": 44,
+          "top12PairPrecision": 0.6590909090909091
+        }
+      }
+    },
+    "fr": {
+      "n": 82,
+      "locale": "fr",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "fallback",
+      "newLemmaLabels": ["exercice", "ligne", "Moodle", "permanence", "rattrapage"],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "cours",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "Bayes",
+              "n": 3,
+              "purity": 0.6666666666666666
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.23170731707317074,
+          "top12Labels": [
+            "examen",
+            "cours",
+            "Bayes",
+            "ça",
+            "causalité",
+            "corrélation",
+            "diapo",
+            "diapos",
+            "Est-ce",
+            "exemple",
+            "Faut-il",
+            "fond"
+          ],
+          "top12Coverage": 0.43902439024390244,
+          "top12Pairs": 82,
+          "top12PairPrecision": 0.0975609756097561
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "cours",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "Bayes",
+              "n": 3,
+              "purity": 0.6666666666666666
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.23170731707317074,
+          "top12Labels": [
+            "examen",
+            "cours",
+            "Bayes",
+            "causalité",
+            "diapo",
+            "exemple",
+            "exercice",
+            "fond",
+            "ligne",
+            "Moodle",
+            "permanence",
+            "rattrapage"
+          ],
+          "top12Coverage": 0.47560975609756095,
+          "top12Pairs": 86,
+          "top12PairPrecision": 0.10465116279069768
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "cours",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "diapo",
+              "n": 3,
+              "purity": 0.6666666666666666
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.23170731707317074,
+          "top12Labels": [
+            "examen",
+            "cours",
+            "diapo",
+            "fond",
+            "permanence",
+            "régression",
+            "corrélation",
+            "diapos",
+            "exemple",
+            "faut-il",
+            "prises",
+            "probabilité"
+          ],
+          "top12Coverage": 0.4878048780487805,
+          "top12Pairs": 75,
+          "top12PairPrecision": 0.14666666666666667
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "cours",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "Bayes",
+              "n": 3,
+              "purity": 0.6666666666666666
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.23170731707317074,
+          "top12Labels": [
+            "examen",
+            "cours",
+            "Bayes",
+            "causalité",
+            "diapo",
+            "exemple",
+            "exercice",
+            "fond",
+            "ligne",
+            "Moodle",
+            "permanence",
+            "rattrapage"
+          ],
+          "top12Coverage": 0.47560975609756095,
+          "top12Pairs": 86,
+          "top12PairPrecision": 0.10465116279069768
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 9,
+              "purity": 0.2222222222222222
+            },
+            {
+              "label": "cours",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "diapo",
+              "n": 3,
+              "purity": 0.6666666666666666
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.23170731707317074,
+          "top12Labels": [
+            "examen",
+            "cours",
+            "diapo",
+            "fond",
+            "permanence",
+            "régression",
+            "corrélation",
+            "diapos",
+            "exemple",
+            "faut-il",
+            "prises",
+            "probabilité"
+          ],
+          "top12Coverage": 0.4878048780487805,
+          "top12Pairs": 75,
+          "top12PairPrecision": 0.14666666666666667
+        }
+      }
+    },
+    "es": {
+      "n": 81,
+      "locale": "es",
+      "spacy": {
+        "applied": "LEMMA",
+        "fallback": null
+      },
+      "encoderStatus": "fallback",
+      "newLemmaLabels": ["diapositiva", "ejemplo", "grupo", "hoja", "horario"],
+      "variants": {
+        "L0": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 8,
+              "purity": 0.25
+            },
+            {
+              "label": "hay",
+              "n": 8,
+              "purity": 0.125
+            },
+            {
+              "label": "puedo",
+              "n": 7,
+              "purity": 0.2857142857142857
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.25925925925925924,
+          "top12Labels": [
+            "examen",
+            "hay",
+            "puedo",
+            "es",
+            "clase",
+            "diapositivas",
+            "Moodle",
+            "atención",
+            "aula",
+            "Bayes",
+            "calcula",
+            "correlación"
+          ],
+          "top12Coverage": 0.5432098765432098,
+          "top12Pairs": 126,
+          "top12PairPrecision": 0.07936507936507936
+        },
+        "L1": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 8,
+              "purity": 0.25
+            },
+            {
+              "label": "diapositiva",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "clase",
+              "n": 6,
+              "purity": 0.3333333333333333
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.25925925925925924,
+          "top12Labels": [
+            "examen",
+            "diapositiva",
+            "clase",
+            "Moodle",
+            "atención",
+            "aula",
+            "Bayes",
+            "correlación",
+            "ejemplo",
+            "grupo",
+            "hoja",
+            "horario"
+          ],
+          "top12Coverage": 0.49382716049382713,
+          "top12Pairs": 90,
+          "top12PairPrecision": 0.14444444444444443
+        },
+        "T0": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 8,
+              "purity": 0.25
+            },
+            {
+              "label": "puedo",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "clase",
+              "n": 5,
+              "purity": 0.4
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.24691358024691357,
+          "top12Labels": [
+            "examen",
+            "puedo",
+            "clase",
+            "calcula",
+            "diapositiva",
+            "diapositivas",
+            "recuperación",
+            "todo rato",
+            "aula",
+            "Bayes",
+            "código",
+            "correlación"
+          ],
+          "top12Coverage": 0.5308641975308642,
+          "top12Pairs": 78,
+          "top12PairPrecision": 0.1282051282051282
+        },
+        "T1": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 8,
+              "purity": 0.25
+            },
+            {
+              "label": "diapositiva",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "clase",
+              "n": 6,
+              "purity": 0.3333333333333333
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.25925925925925924,
+          "top12Labels": [
+            "examen",
+            "diapositiva",
+            "clase",
+            "Moodle",
+            "atención",
+            "aula",
+            "Bayes",
+            "correlación",
+            "ejemplo",
+            "grupo",
+            "hoja",
+            "horario"
+          ],
+          "top12Coverage": 0.49382716049382713,
+          "top12Pairs": 90,
+          "top12PairPrecision": 0.14444444444444443
+        },
+        "S": {
+          "visible": [
+            {
+              "label": "examen",
+              "n": 8,
+              "purity": 0.25
+            },
+            {
+              "label": "puedo",
+              "n": 7,
+              "purity": 0.2857142857142857
+            },
+            {
+              "label": "clase",
+              "n": 5,
+              "purity": 0.4
+            }
+          ],
+          "termCoherent": 0,
+          "termVisible": 3,
+          "reachableShare": 0.24691358024691357,
+          "top12Labels": [
+            "examen",
+            "puedo",
+            "clase",
+            "calcula",
+            "diapositiva",
+            "diapositivas",
+            "recuperación",
+            "todo rato",
+            "aula",
+            "Bayes",
+            "código",
+            "correlación"
+          ],
+          "top12Coverage": 0.5308641975308642,
+          "top12Pairs": 78,
+          "top12PairPrecision": 0.1282051282051282
+        }
+      }
+    }
+  },
+  "scenario": {
+    "n": 6,
+    "locale": "de",
+    "spacy": {
+      "applied": "LEMMA",
+      "fallback": null
+    },
+    "encoderStatus": "ready",
+    "newLemmaLabels": ["Prüfung"],
+    "variants": {
+      "L0": {
+        "visible": [
+          {
+            "label": "lineare",
+            "n": 2,
+            "purity": 1
+          },
+          {
+            "label": "Regression",
+            "n": 2,
+            "purity": 1
+          }
+        ],
+        "termCoherent": 2,
+        "termVisible": 2,
+        "reachableShare": 0.3333333333333333,
+        "top12Labels": [
+          "lineare",
+          "Regression",
+          "Abschnitt",
+          "Anwesenheit",
+          "Anwesenheitspflicht",
+          "bearbeiten",
+          "Beispiel",
+          "Beispiele",
+          "einführen",
+          "Kapitel",
+          "klausurrelevant",
+          "lernen"
+        ],
+        "top12Coverage": 1,
+        "top12Pairs": 1,
+        "top12PairPrecision": 1
+      },
+      "L1": {
+        "visible": [
+          {
+            "label": "Beispiel",
+            "n": 2,
+            "purity": 1
+          },
+          {
+            "label": "Regression",
+            "n": 2,
+            "purity": 1
+          }
+        ],
+        "termCoherent": 2,
+        "termVisible": 2,
+        "reachableShare": 0.3333333333333333,
+        "top12Labels": [
+          "Beispiel",
+          "Regression",
+          "Abschnitt",
+          "Anwesenheit",
+          "Anwesenheitspflicht",
+          "Kapitel",
+          "Prüfung"
+        ],
+        "top12Coverage": 1,
+        "top12Pairs": 1,
+        "top12PairPrecision": 1
+      },
+      "T0": {
+        "visible": [
+          {
+            "label": "lineare Regression",
+            "n": 2,
+            "purity": 1
+          }
+        ],
+        "termCoherent": 1,
+        "termVisible": 1,
+        "reachableShare": 0.3333333333333333,
+        "top12Labels": ["lineare Regression", "Kapitel 4"],
+        "top12Coverage": 0.5,
+        "top12Pairs": 1,
+        "top12PairPrecision": 1
+      },
+      "T1": {
+        "visible": [
+          {
+            "label": "Beispiel",
+            "n": 2,
+            "purity": 1
+          },
+          {
+            "label": "lineare Regression",
+            "n": 2,
+            "purity": 1
+          },
+          {
+            "label": "Regression",
+            "n": 2,
+            "purity": 1
+          }
+        ],
+        "termCoherent": 3,
+        "termVisible": 3,
+        "reachableShare": 0.3333333333333333,
+        "top12Labels": [
+          "Beispiel",
+          "lineare Regression",
+          "Regression",
+          "Abschnitt",
+          "Anwesenheit",
+          "Anwesenheitspflicht",
+          "Kapitel",
+          "Kapitel 4",
+          "Prüfung"
+        ],
+        "top12Coverage": 1,
+        "top12Pairs": 1,
+        "top12PairPrecision": 1
+      },
+      "S": {
+        "visible": [
+          {
+            "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+            "n": 2,
+            "purity": 1
+          },
+          {
+            "label": "Sollten wir eine Anwesenheitspflicht einführen?",
+            "n": 2,
+            "purity": 1
+          }
+        ],
+        "termCoherent": 2,
+        "termVisible": 2,
+        "reachableShare": 0.6666666666666666,
+        "top12Labels": [
+          "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "Sollten wir eine Anwesenheitspflicht einführen?",
+          "Ist Kapitel 4 klausurrelevant?",
+          "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+        ],
+        "top12Coverage": 1,
+        "top12Pairs": 2,
+        "top12PairPrecision": 1
+      }
+    }
+  },
+  "sidecarCalls": [
+    {
+      "locale": "de",
+      "texts": 200,
+      "ms": 314.3
+    },
+    {
+      "locale": "de",
+      "texts": 16,
+      "ms": 16.4
+    },
+    {
+      "locale": "de",
+      "texts": 15,
+      "ms": 15.8
+    },
+    {
+      "locale": "de",
+      "texts": 90,
+      "ms": 80.8
+    },
+    {
+      "locale": "de",
+      "texts": 200,
+      "ms": 141
+    },
+    {
+      "locale": "en",
+      "texts": 120,
+      "ms": 156.4
+    },
+    {
+      "locale": "fr",
+      "texts": 82,
+      "ms": 112.1
+    },
+    {
+      "locale": "es",
+      "texts": 81,
+      "ms": 107.3
+    },
+    {
+      "locale": "de",
+      "texts": 6,
+      "ms": 7.2
+    }
+  ]
+}

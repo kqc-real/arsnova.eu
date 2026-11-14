@@ -1,0 +1,2121 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-08T23:15:10.133Z",
+    "commit": "74091b0a646868b81e300edbde7a2da7c36a5e57",
+    "describe": "v1.3.0-364-g74091b0a-dirty",
+    "wordCloudSourcesDirty": false,
+    "node": "v24.22.2",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "reference": {
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87",
+      "items": 36,
+      "itemsInFile": 723,
+      "locales": ["de", "en", "fr", "es"],
+      "domain": "history"
+    },
+    "encoder": {
+      "modelId": "intfloat/multilingual-e5-small",
+      "modelVersion": "intfloat/multilingual-e5-small@sha256:f80102d3f2a1229f",
+      "dimensions": 384,
+      "image": "arsnova-wordcloud-encoder:e5-small sha256:245b8f96e7255b8e0ae01bef6b1daeaa5c17a7d44579df4df92097f85502eecd",
+      "imageSizeMB": 1496.828619,
+      "limits": "cpus=1000000000 mem=2147483648",
+      "transport": "loopback HTTP http://127.0.0.1:8790/embed (Labor; Produktion: Unix-Socket, network_mode none)"
+    },
+    "releaseConstants": {
+      "WORD_CLOUD_SEMANTIC_COSINE_THRESHOLD": 0.87,
+      "WORD_CLOUD_SEMANTIC_MAX_TOPICS": 12,
+      "WORD_CLOUD_SEMANTIC_LOCALES": ["de", "en"],
+      "reliableGate": "mind. 1 Cluster ≥ 2 Mitglieder und Konfidenz ≥ 0,65",
+      "readyStatus": "mind. 1 Cluster mit Konfidenz ≥ 0,85"
+    },
+    "settings": {
+      "RUNS": 10,
+      "SWEEP": [0.8, 0.82, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.92]
+    }
+  },
+  "results": {
+    "mixed": {
+      "label": "Gesamtset (de/en/fr/es), Session-Locale de",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 36,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 20,
+        "predictedMultiTopics": 11,
+        "missedSingletonRate": 0.25,
+        "ari": 0.33209647495361777,
+        "nmi": 0.7609621513452929,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.3587301587301586,
+          "f1": 0.52803738317757
+        },
+        "pairRecall": 0.22580645161290322,
+        "monolingualPairRecall": 0.2,
+        "crossLingualPairRecall": 0.23076923076923078,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 12,
+          "multiMemberTopicsShown": 11,
+          "itemsInShownMultiTopics": 0.75
+        },
+        "clusters": [
+          {
+            "label": "Pourquoi la république de Weimar a-t-elle échoué ?",
+            "confidence": 0.906,
+            "members": ["Q541", "Q543", "Q544"],
+            "families": ["H-WEIMAR"]
+          },
+          {
+            "label": "Qu'a changé concrètement la paix de Westphalie ?",
+            "confidence": 0.91,
+            "members": ["Q558", "Q555", "Q557"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "¿Hay que inscribirse antes de la visita al archivo?",
+            "confidence": 0.907,
+            "members": ["Q559", "Q562", "Q563"],
+            "families": ["H-ARCH"]
+          },
+          {
+            "label": "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite.",
+            "confidence": 0.892,
+            "members": ["Q569", "Q570"],
+            "families": ["H-DB"]
+          },
+          {
+            "label": "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+            "confidence": 0.891,
+            "members": ["Q545", "Q547"],
+            "families": ["H-SOURCE"]
+          },
+          {
+            "label": "How long should the term paper be, and when is it due?",
+            "confidence": 0.89,
+            "members": ["Q566", "Q567"],
+            "families": ["H-ESSAY"]
+          },
+          {
+            "label": "Warum gilt der Westfälische Frieden als Beginn des modernen Staatensystems?",
+            "confidence": 0.888,
+            "members": ["Q553", "Q556"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "Was hat der Westfälische Frieden von 1648 konkret verändert?",
+            "confidence": 0.881,
+            "members": ["Q552", "Q554"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "La base de données de presse ne s'ouvre pas.",
+            "confidence": 0.906,
+            "members": ["Q573", "Q571", "Q572"],
+            "families": ["H-DB"]
+          },
+          {
+            "label": "Was Article 48 the main reason Weimar collapsed?",
+            "confidence": 0.878,
+            "members": ["Q540", "Q542"],
+            "families": ["H-WEIMAR"]
+          },
+          {
+            "label": "What's the difference between a primary and a secondary source?",
+            "confidence": 0.891,
+            "members": ["Q551", "Q548", "Q550"],
+            "families": ["H-SOURCE"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 36,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 21,
+        "predictedMultiTopics": 9,
+        "missedSingletonRate": 0.3333333333333333,
+        "ari": 0.3358461138549519,
+        "nmi": 0.7385619118294678,
+        "bcubed": {
+          "precision": 0.9629629629629631,
+          "recall": 0.3507936507936507,
+          "f1": 0.5142524723676555
+        },
+        "pairRecall": 0.23655913978494625,
+        "monolingualPairRecall": 0.6,
+        "crossLingualPairRecall": 0.16666666666666666,
+        "falseMergePairs": 2,
+        "falseMerges": [
+          ["Q561", "Q571"],
+          ["Q562", "Q571"]
+        ],
+        "clusters": [
+          {
+            "label": "Weimar",
+            "members": ["Q544", "Q539", "Q543", "Q542", "Q541"],
+            "families": ["H-WEIMAR"]
+          },
+          {
+            "label": "archive",
+            "members": ["Q562", "Q561", "Q571"],
+            "families": ["H-ARCH", "H-DB"]
+          },
+          {
+            "label": "source",
+            "members": ["Q549", "Q550", "Q548"],
+            "families": ["H-SOURCE"]
+          },
+          {
+            "label": "Westfälische Frieden",
+            "members": ["Q553", "Q552", "Q554"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "base",
+            "members": ["Q573", "Q572"],
+            "families": ["H-DB"]
+          },
+          {
+            "label": "Hausarbeit",
+            "members": ["Q565", "Q564"],
+            "families": ["H-ESSAY"]
+          },
+          {
+            "label": "Primär- Sekundärquelle",
+            "members": ["Q547", "Q545"],
+            "families": ["H-SOURCE"]
+          },
+          {
+            "label": "Republik",
+            "members": ["Q538", "Q540"],
+            "families": ["H-WEIMAR"]
+          },
+          {
+            "label": "Westphalia",
+            "members": ["Q555", "Q556"],
+            "families": ["H-WESTF"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.6451903581887812,
+          "bcubedF1": 0.7586206896551725,
+          "bcubedP": 1,
+          "bcubedR": 0.6111111111111112,
+          "predictedMultiTopics": 10,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.5256410256410257
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.6451903581887812,
+          "bcubedF1": 0.7586206896551725,
+          "bcubedP": 1,
+          "bcubedR": 0.6111111111111112,
+          "predictedMultiTopics": 10,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.5256410256410257
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.562671905697446,
+          "bcubedF1": 0.702368692070031,
+          "bcubedP": 1,
+          "bcubedR": 0.5412698412698415,
+          "predictedMultiTopics": 11,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.4230769230769231
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.423418095801301,
+          "bcubedF1": 0.5984427141268076,
+          "bcubedP": 1,
+          "bcubedR": 0.426984126984127,
+          "predictedMultiTopics": 12,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.3076923076923077
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.34565083823400333,
+          "bcubedF1": 0.5399768250289686,
+          "bcubedP": 1,
+          "bcubedR": 0.3698412698412698,
+          "predictedMultiTopics": 12,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.23076923076923078
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.33209647495361777,
+          "bcubedF1": 0.52803738317757,
+          "bcubedP": 1,
+          "bcubedR": 0.3587301587301586,
+          "predictedMultiTopics": 11,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.23076923076923078
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.26157639967120283,
+          "bcubedF1": 0.47642079806529625,
+          "bcubedP": 1,
+          "bcubedR": 0.3126984126984127,
+          "predictedMultiTopics": 10,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.16666666666666666
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.2320155541153597,
+          "bcubedF1": 0.4577723378212974,
+          "bcubedP": 1,
+          "bcubedR": 0.2968253968253968,
+          "predictedMultiTopics": 8,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.15384615384615385
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0.08830784410458807,
+          "bcubedF1": 0.35078534031413616,
+          "bcubedP": 1,
+          "bcubedR": 0.21269841269841275,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.0641025641025641
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0.05376990087113247,
+          "bcubedF1": 0.3289124668435014,
+          "bcubedP": 1,
+          "bcubedR": 0.1968253968253969,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": 0.038461538461538464
+        }
+      ]
+    },
+    "de": {
+      "label": "nur Deutsch",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 15,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 10,
+        "predictedMultiTopics": 4,
+        "missedSingletonRate": 0.4,
+        "ari": 0.6391752577319587,
+        "nmi": 0.889661358639626,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.711111111111111,
+          "f1": 0.8311688311688311
+        },
+        "pairRecall": 0.5,
+        "monolingualPairRecall": 0.5,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 10,
+          "multiMemberTopicsShown": 4,
+          "itemsInShownMultiTopics": 0.6
+        },
+        "clusters": [
+          {
+            "label": "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite.",
+            "confidence": 0.892,
+            "members": ["Q569", "Q570"],
+            "families": ["H-DB"]
+          },
+          {
+            "label": "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+            "confidence": 0.891,
+            "members": ["Q545", "Q547"],
+            "families": ["H-SOURCE"]
+          },
+          {
+            "label": "Warum gilt der Westfälische Frieden als Beginn des modernen Staatensystems?",
+            "confidence": 0.882,
+            "members": ["Q552", "Q553", "Q554"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "Um wie viel Uhr treffen wir uns vor dem Stadtarchiv?",
+            "confidence": 0.876,
+            "members": ["Q559", "Q560"],
+            "families": ["H-ARCH"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 15,
+        "goldTopics": 6,
+        "goldMultiTopics": 6,
+        "predictedTopics": 10,
+        "predictedMultiTopics": 4,
+        "missedSingletonRate": 0.4,
+        "ari": 0.6391752577319587,
+        "nmi": 0.8896613586396259,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.6888888888888888,
+          "f1": 0.8157894736842105
+        },
+        "pairRecall": 0.5,
+        "monolingualPairRecall": 0.5,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "clusters": [
+          {
+            "label": "Westfälische Frieden",
+            "members": ["Q553", "Q552", "Q554"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "Hausarbeit",
+            "members": ["Q565", "Q564"],
+            "families": ["H-ESSAY"]
+          },
+          {
+            "label": "Primär- Sekundärquelle",
+            "members": ["Q547", "Q545"],
+            "families": ["H-SOURCE"]
+          },
+          {
+            "label": "Republik",
+            "members": ["Q538", "Q540"],
+            "families": ["H-WEIMAR"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.8356807511737089,
+          "bcubedF1": 0.9285714285714286,
+          "bcubedP": 0.8666666666666667,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 4,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.8985507246376812,
+          "bcubedF1": 0.9534883720930233,
+          "bcubedP": 1,
+          "bcubedR": 0.9111111111111111,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.7126436781609197,
+          "bcubedF1": 0.8750000000000001,
+          "bcubedP": 1,
+          "bcubedR": 0.7777777777777778,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.7126436781609197,
+          "bcubedF1": 0.8750000000000001,
+          "bcubedP": 1,
+          "bcubedR": 0.7777777777777778,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.6391752577319587,
+          "bcubedF1": 0.8311688311688311,
+          "bcubedP": 1,
+          "bcubedR": 0.711111111111111,
+          "predictedMultiTopics": 4,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.5585585585585586,
+          "bcubedF1": 0.7837837837837838,
+          "bcubedP": 1,
+          "bcubedR": 0.6444444444444444,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.26160337552742613,
+          "bcubedF1": 0.6764705882352943,
+          "bcubedP": 1,
+          "bcubedR": 0.5111111111111112,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0,
+          "bcubedF1": 0.5714285714285715,
+          "bcubedP": 1,
+          "bcubedR": 0.4,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0,
+          "bcubedF1": 0.5714285714285715,
+          "bcubedP": 1,
+          "bcubedR": 0.4,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "en": {
+      "label": "nur Englisch",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 9,
+        "goldTopics": 6,
+        "goldMultiTopics": 3,
+        "predictedTopics": 7,
+        "predictedMultiTopics": 2,
+        "missedSingletonRate": 0.3333333333333333,
+        "ari": 0.7857142857142856,
+        "nmi": 0.9574998433041189,
+        "bcubed": {
+          "precision": 1,
+          "recall": 0.8888888888888888,
+          "f1": 0.9411764705882353
+        },
+        "pairRecall": 0.6666666666666666,
+        "monolingualPairRecall": 0.6666666666666666,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 7,
+          "multiMemberTopicsShown": 2,
+          "itemsInShownMultiTopics": 0.4444444444444444
+        },
+        "clusters": [
+          {
+            "label": "What did the Peace of Westphalia actually change?",
+            "confidence": 0.917,
+            "members": ["Q555", "Q556"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "Was Article 48 the main reason Weimar collapsed?",
+            "confidence": 0.892,
+            "members": ["Q541", "Q542"],
+            "families": ["H-WEIMAR"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 9,
+        "goldTopics": 6,
+        "goldMultiTopics": 3,
+        "predictedTopics": 5,
+        "predictedMultiTopics": 4,
+        "missedSingletonRate": 0,
+        "ari": 0.8421052631578947,
+        "nmi": 0.9535517254072267,
+        "bcubed": {
+          "precision": 0.8888888888888888,
+          "recall": 1,
+          "f1": 0.9411764705882353
+        },
+        "pairRecall": 1,
+        "monolingualPairRecall": 1,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 1,
+        "falseMerges": [["Q561", "Q571"]],
+        "clusters": [
+          {
+            "label": "archive",
+            "members": ["Q561", "Q571"],
+            "families": ["H-ARCH", "H-DB"]
+          },
+          {
+            "label": "Peace Westphalia",
+            "members": ["Q555", "Q556"],
+            "families": ["H-WESTF"]
+          },
+          {
+            "label": "primary",
+            "members": ["Q549", "Q548"],
+            "families": ["H-SOURCE"]
+          },
+          {
+            "label": "Weimar",
+            "members": ["Q542", "Q541"],
+            "families": ["H-WEIMAR"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.8421052631578947,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 0.8888888888888888,
+          "bcubedR": 1,
+          "predictedMultiTopics": 4,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.8421052631578947,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 0.8888888888888888,
+          "bcubedR": 1,
+          "predictedMultiTopics": 4,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.8421052631578947,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 0.8888888888888888,
+          "bcubedR": 1,
+          "predictedMultiTopics": 4,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.7857142857142856,
+          "bcubedF1": 0.9411764705882353,
+          "bcubedP": 1,
+          "bcubedR": 0.8888888888888888,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0.47826086956521735,
+          "bcubedF1": 0.8750000000000001,
+          "bcubedP": 1,
+          "bcubedR": 0.7777777777777778,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 1,
+          "bcubedR": 0.6666666666666666,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "fr": {
+      "label": "nur Französisch",
+      "productRunsEncoder": false,
+      "encoder": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 5,
+        "predictedMultiTopics": 1,
+        "missedSingletonRate": 0,
+        "ari": 0,
+        "nmi": 0.9310809437291903,
+        "bcubed": {
+          "precision": 0.8333333333333334,
+          "recall": 1,
+          "f1": 0.9090909090909091
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 1,
+        "falseMerges": [["Q562", "Q567"]],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 5,
+          "multiMemberTopicsShown": 1,
+          "itemsInShownMultiTopics": 0.3333333333333333
+        },
+        "clusters": [
+          {
+            "label": "Faut-il s'inscrire avant la visite aux archives ?",
+            "confidence": 0.88,
+            "members": ["Q562", "Q567"],
+            "families": ["H-ARCH", "H-ESSAY"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 6,
+        "predictedMultiTopics": 0,
+        "missedSingletonRate": 0,
+        "ari": 1,
+        "nmi": 1,
+        "bcubed": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "clusters": []
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0,
+          "bcubedF1": 0.6666666666666669,
+          "bcubedP": 0.5000000000000001,
+          "bcubedR": 1,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 4,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 0.6666666666666666,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 0.6666666666666666,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 0.6666666666666666,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0,
+          "bcubedF1": 0.9090909090909091,
+          "bcubedP": 0.8333333333333334,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0,
+          "bcubedF1": 0.9090909090909091,
+          "bcubedP": 0.8333333333333334,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0,
+          "bcubedF1": 0.9090909090909091,
+          "bcubedP": 0.8333333333333334,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "es": {
+      "label": "nur Spanisch",
+      "productRunsEncoder": false,
+      "encoder": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 6,
+        "predictedMultiTopics": 0,
+        "missedSingletonRate": 0,
+        "ari": 1,
+        "nmi": 1,
+        "bcubed": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 0,
+        "falseMerges": [],
+        "product": {
+          "reliableGatePassed": false,
+          "status": "fallback",
+          "topicsShown": 6,
+          "multiMemberTopicsShown": 0,
+          "itemsInShownMultiTopics": 0
+        },
+        "clusters": []
+      },
+      "lexical": {
+        "n": 6,
+        "goldTopics": 6,
+        "goldMultiTopics": 0,
+        "predictedTopics": 5,
+        "predictedMultiTopics": 1,
+        "missedSingletonRate": 0,
+        "ari": 0,
+        "nmi": 0.9310809437291901,
+        "bcubed": {
+          "precision": 0.8333333333333334,
+          "recall": 1,
+          "f1": 0.9090909090909091
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 1,
+        "falseMerges": [["Q551", "Q563"]],
+        "clusters": [
+          {
+            "label": "hay",
+            "members": ["Q563", "Q551"],
+            "families": ["H-ARCH", "H-SOURCE"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 0.6666666666666666,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0,
+          "bcubedF1": 0.8,
+          "bcubedP": 0.6666666666666666,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    }
+  },
+  "stability": {
+    "_vectorDrift": {
+      "description": "1 - cos zwischen Gesamtanfrage und inkrementellen Läufen",
+      "median": 0.0031821200065174082,
+      "min": 1.1102230246251565e-16,
+      "max": 0.006451094897082066
+    },
+    "mixed": {
+      "ari": {
+        "median": 0.34565083823400333,
+        "min": 0.33209647495361777,
+        "max": 0.359030260748234
+      },
+      "bcubedF1": {
+        "median": 0.5382810954413135,
+        "min": 0.52803738317757,
+        "max": 0.5483870967741935
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 11,
+        "min": 10,
+        "max": 12
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.6352233209426706,
+            "min": 0.6252562836965601,
+            "max": 0.7385644163050437
+          },
+          "bcubedF1": {
+            "median": 0.7524446731857952,
+            "min": 0.746268656716418,
+            "max": 0.8169014084507042
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.6252562836965601,
+            "min": 0.6252562836965601,
+            "max": 0.6451903581887812
+          },
+          "bcubedF1": {
+            "median": 0.746268656716418,
+            "min": 0.746268656716418,
+            "max": 0.7586206896551725
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.562671905697446,
+            "min": 0.4601542416452442,
+            "max": 0.6048690576760618
+          },
+          "bcubedF1": {
+            "median": 0.702368692070031,
+            "min": 0.6214442013129104,
+            "max": 0.7285570131180628
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.423418095801301,
+            "min": 0.38527765820060267,
+            "max": 0.4358156326085131
+          },
+          "bcubedF1": {
+            "median": 0.5984427141268076,
+            "min": 0.574660633484163,
+            "max": 0.6061946902654868
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.34565083823400333,
+            "min": 0.34565083823400333,
+            "max": 0.359030260748234
+          },
+          "bcubedF1": {
+            "median": 0.5399768250289686,
+            "min": 0.5399768250289686,
+            "max": 0.5483870967741935
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.34565083823400333,
+            "min": 0.33209647495361777,
+            "max": 0.359030260748234
+          },
+          "bcubedF1": {
+            "median": 0.5382810954413135,
+            "min": 0.52803738317757,
+            "max": 0.5483870967741935
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.26157639967120283,
+            "min": 0.2320155541153597,
+            "max": 0.29034874290348744
+          },
+          "bcubedF1": {
+            "median": 0.47642079806529625,
+            "min": 0.4577723378212974,
+            "max": 0.5017835909631391
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.22447239903959465,
+            "min": 0.20163334272036046,
+            "max": 0.2320155541153597
+          },
+          "bcubedF1": {
+            "median": 0.45113179606515763,
+            "min": 0.43478260869565205,
+            "max": 0.4577723378212974
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0.13005778789127403,
+            "min": 0.10520129297678518,
+            "max": 0.15444348576358932
+          },
+          "bcubedF1": {
+            "median": 0.3815022225448881,
+            "min": 0.36575875486381326,
+            "max": 0.4010152284263959
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0.03611419348330475,
+            "min": 0.01819290578310804,
+            "max": 0.05376990087113247
+          },
+          "bcubedF1": {
+            "median": 0.3132530120481929,
+            "min": 0.30188679245283023,
+            "max": 0.3289124668435014
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "de": {
+      "ari": {
+        "median": 0.6391752577319587,
+        "min": 0.5585585585585586,
+        "max": 0.7126436781609197
+      },
+      "bcubedF1": {
+        "median": 0.8311688311688311,
+        "min": 0.7837837837837838,
+        "max": 0.8750000000000001
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 4,
+        "min": 3,
+        "max": 5
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.8356807511737089,
+            "min": 0.8356807511737089,
+            "max": 0.8356807511737089
+          },
+          "bcubedF1": {
+            "median": 0.9285714285714286,
+            "min": 0.9285714285714286,
+            "max": 0.9285714285714286
+          },
+          "falseMergePairs": {
+            "median": 4,
+            "min": 4,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.8985507246376812,
+            "min": 0.8985507246376812,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 0.9534883720930233,
+            "min": 0.9534883720930233,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.8985507246376812,
+            "min": 0.8416289592760181,
+            "max": 0.8985507246376812
+          },
+          "bcubedF1": {
+            "median": 0.9534883720930233,
+            "min": 0.9285714285714286,
+            "max": 0.9534883720930233
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.7126436781609197,
+            "min": 0.7126436781609197,
+            "max": 0.8416289592760181
+          },
+          "bcubedF1": {
+            "median": 0.8750000000000001,
+            "min": 0.8750000000000001,
+            "max": 0.9285714285714286
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.7126436781609197,
+            "min": 0.7126436781609197,
+            "max": 0.7126436781609197
+          },
+          "bcubedF1": {
+            "median": 0.8750000000000001,
+            "min": 0.8750000000000001,
+            "max": 0.8750000000000001
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.6391752577319587,
+            "min": 0.5585585585585586,
+            "max": 0.7126436781609197
+          },
+          "bcubedF1": {
+            "median": 0.8311688311688311,
+            "min": 0.7837837837837838,
+            "max": 0.8750000000000001
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.3712574850299401,
+            "min": 0.3712574850299401,
+            "max": 0.5585585585585586
+          },
+          "bcubedF1": {
+            "median": 0.7142857142857143,
+            "min": 0.7142857142857143,
+            "max": 0.7837837837837838
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.20015291818876899,
+            "min": 0.13870246085011184,
+            "max": 0.26160337552742613
+          },
+          "bcubedF1": {
+            "median": 0.6465400271370421,
+            "min": 0.6153846153846154,
+            "max": 0.6764705882352943
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.5714285714285715,
+            "min": 0.5714285714285715,
+            "max": 0.5714285714285715
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.5714285714285715,
+            "min": 0.5714285714285715,
+            "max": 0.5714285714285715
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "en": {
+      "ari": {
+        "median": 0.7857142857142856,
+        "min": 0.7857142857142856,
+        "max": 0.7857142857142856
+      },
+      "bcubedF1": {
+        "median": 0.9411764705882353,
+        "min": 0.9411764705882353,
+        "max": 0.9411764705882353
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 2,
+        "min": 2,
+        "max": 2
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.625,
+            "min": 0.625,
+            "max": 0.8421052631578947
+          },
+          "bcubedF1": {
+            "median": 0.851063829787234,
+            "min": 0.851063829787234,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 1,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.8421052631578947,
+            "min": 0.8421052631578947,
+            "max": 0.8421052631578947
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 1,
+            "min": 0.6363636363636364,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 0.8888888888888888,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.7857142857142856,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.7857142857142856,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.7857142857142856,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.7857142857142856,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.9411764705882353,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.7857142857142856,
+            "min": 0.47826086956521735,
+            "max": 0.7857142857142856
+          },
+          "bcubedF1": {
+            "median": 0.9411764705882353,
+            "min": 0.8750000000000001,
+            "max": 0.9411764705882353
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0.47826086956521735,
+            "min": 0.47826086956521735,
+            "max": 0.47826086956521735
+          },
+          "bcubedF1": {
+            "median": 0.8750000000000001,
+            "min": 0.8750000000000001,
+            "max": 0.8750000000000001
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8,
+            "min": 0.8,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "fr": {
+      "ari": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "bcubedF1": {
+        "median": 0.9090909090909091,
+        "min": 0.9090909090909091,
+        "max": 0.9090909090909091
+      },
+      "falseMergePairs": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "predictedMultiTopics": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.6666666666666669,
+            "min": 0.6666666666666669,
+            "max": 0.6666666666666669
+          },
+          "falseMergePairs": {
+            "median": 4,
+            "min": 4,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.7333333333333334,
+            "min": 0.6666666666666669,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 3.5,
+            "min": 3,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8,
+            "min": 0.8,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 3,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8,
+            "min": 0.8,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 3,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9090909090909091,
+            "min": 0.9090909090909091,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9090909090909091,
+            "min": 0.9090909090909091,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 1,
+            "min": 0,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 0.9090909090909091,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "es": {
+      "ari": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "bcubedF1": {
+        "median": 1,
+        "min": 1,
+        "max": 1
+      },
+      "falseMergePairs": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "predictedMultiTopics": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.6666666666666669,
+            "min": 0.6666666666666666,
+            "max": 0.8
+          },
+          "falseMergePairs": {
+            "median": 4,
+            "min": 3,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8,
+            "min": 0.8,
+            "max": 0.9090909090909091
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 1,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    }
+  },
+  "similarity": {
+    "sameFamily": {
+      "n": 93,
+      "min": 0.7366797955273935,
+      "p10": 0.7775571989244633,
+      "p50": 0.8481103884538973,
+      "p90": 0.9083818674119065,
+      "max": 0.9216606873359078
+    },
+    "differentFamily": {
+      "n": 537,
+      "min": 0.6736680744130951,
+      "p10": 0.7093744017171633,
+      "p50": 0.7529618079441788,
+      "p90": 0.7998135959748899,
+      "max": 0.8803002787482556
+    },
+    "differentFamilyFramePairs": {
+      "n": 0
+    },
+    "differentFamilyAboveThreshold": 1,
+    "sameFamilyBelowThreshold": 65
+  },
+  "runtime": {
+    "coldStartToHealthyMs": 1694.2481,
+    "firstEmbedCallMs": 579.3103999999998,
+    "embedLatency": [
+      {
+        "items": 16,
+        "runs": 10,
+        "p50Ms": 302.01890000000094,
+        "p95Ms": 390.6705000000002,
+        "maxMs": 390.6705000000002,
+        "msPerItemP50": 18.87618125000006
+      },
+      {
+        "items": 56,
+        "runs": 10,
+        "p50Ms": 687.0361999999986,
+        "p95Ms": 698.8032999999996,
+        "maxMs": 698.8032999999996,
+        "msPerItemP50": 12.268503571428548
+      },
+      {
+        "items": 36,
+        "runs": 10,
+        "p50Ms": 683.5038999999997,
+        "p95Ms": 700.7669999999998,
+        "maxMs": 700.7669999999998,
+        "msPerItemP50": 18.986219444444437
+      }
+    ],
+    "containerStatsAfterLoad": "473.7MiB / 2GiB|8.66%",
+    "clusterTiming": [
+      {
+        "items": 100,
+        "ms": 50.10649999999805
+      },
+      {
+        "items": 250,
+        "ms": 362.35249999999724
+      },
+      {
+        "items": 500,
+        "ms": 2054.4604000000036
+      }
+    ]
+  }
+}

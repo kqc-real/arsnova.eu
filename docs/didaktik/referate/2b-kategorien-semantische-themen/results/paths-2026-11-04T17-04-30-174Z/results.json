@@ -1,0 +1,449 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-04T17:04:30.174Z",
+    "commit": "84a5614ead769da526e233e60eea7ca44560363f",
+    "describe": "v1.3.0-326-g84a5614e-dirty",
+    "sourcesDirty": false,
+    "node": "v24.12.0",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "reference": {
+      "path": "referat-2b/reference-dataset.v2.2.json",
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87"
+    },
+    "releaseConstants": {
+      "QA_NLP_TIMEOUT_DEFAULT_MS": 2000,
+      "QA_NLP_QUEUE_LIMIT_DEFAULT": 100,
+      "QA_NLP_CONCURRENCY_DEFAULT": 1,
+      "QA_NLP_MIN_CONFIDENCE_DEFAULT": 0.55,
+      "WORD_CLOUD_ENCODER_TIMEOUT_DEFAULT_MS": 8000,
+      "WORD_CLOUD_ENCODER_CIRCUIT_FAILURE_THRESHOLD": 3,
+      "WORD_CLOUD_ENCODER_CIRCUIT_OPEN_MS": 30000
+    },
+    "adapters": [
+      "In-Memory-Writer statt Prisma (A1–A5)",
+      "verzögerter Processor (A4)",
+      "CPU-blockierender Processor (A5)",
+      "TCP-Server ohne Antwort (B3)",
+      "docker stop/start (B2)"
+    ]
+  },
+  "A": {
+    "classificationCpuMs": {
+      "n": 201,
+      "p50": 0.064,
+      "p95": 2.369,
+      "max": 7.17
+    },
+    "a1": {
+      "n": 201,
+      "enqueueResult": {
+        "queued": 201
+      },
+      "enqueueCallMs": {
+        "p50": 0.765,
+        "max": 5.022
+      },
+      "wholeBurstEnqueueMs": 397.5,
+      "persisted": 201,
+      "statuses": {
+        "classified": 163,
+        "uncertain": 38
+      },
+      "resultLatencyMs": {
+        "p50": 1.3,
+        "p95": 2.1,
+        "max": 6
+      },
+      "eventLoopGapMs": {
+        "p99": 9.4,
+        "max": 15.9
+      },
+      "metrics": {
+        "queueLength": 0,
+        "running": 0,
+        "enqueued": 201,
+        "skipped": 0,
+        "completed": 201,
+        "failed": 0,
+        "unclassified": 38,
+        "earlyExit": 127,
+        "fallback": 74,
+        "lastLatencyMs": 1,
+        "earlyExitRate": 0.6318407960199005,
+        "fallbackRate": 0.3681592039800995,
+        "unclassifiedRate": 0.1890547263681592
+      }
+    },
+    "a1Network": {
+      "http": 0,
+      "https": 0,
+      "fetch": 0,
+      "socket": 0
+    },
+    "a2": {
+      "n": 20,
+      "enqueueResult": {
+        "disabled": 20
+      },
+      "enqueueCallMs": {
+        "p50": 0.386,
+        "max": 0.489
+      },
+      "wholeBurstEnqueueMs": 8.1,
+      "persisted": 0,
+      "statuses": {},
+      "resultLatencyMs": null,
+      "eventLoopGapMs": {
+        "p99": 15.5,
+        "max": 15.5
+      },
+      "metrics": {
+        "queueLength": 0,
+        "running": 0,
+        "enqueued": 0,
+        "skipped": 0,
+        "completed": 0,
+        "failed": 0,
+        "unclassified": 0,
+        "earlyExit": 0,
+        "fallback": 0,
+        "lastLatencyMs": null,
+        "earlyExitRate": 0,
+        "fallbackRate": 0,
+        "unclassifiedRate": 0
+      }
+    },
+    "a3": {
+      "n": 150,
+      "enqueueResult": {
+        "queued": 100,
+        "skipped": 50
+      },
+      "enqueueCallMs": {
+        "p50": 0.758,
+        "max": 3.656
+      },
+      "wholeBurstEnqueueMs": 109,
+      "persisted": 150,
+      "statuses": {
+        "classified": 95,
+        "failed": 50,
+        "uncertain": 5
+      },
+      "resultLatencyMs": {
+        "p50": 115.4,
+        "p95": 164,
+        "max": 171.1
+      },
+      "eventLoopGapMs": {
+        "p99": 15.6,
+        "max": 110.8
+      },
+      "metrics": {
+        "queueLength": 0,
+        "running": 0,
+        "enqueued": 100,
+        "skipped": 50,
+        "completed": 100,
+        "failed": 0,
+        "unclassified": 5,
+        "earlyExit": 87,
+        "fallback": 13,
+        "lastLatencyMs": 1,
+        "earlyExitRate": 0.87,
+        "fallbackRate": 0.13,
+        "unclassifiedRate": 0.05
+      }
+    },
+    "a4": {
+      "n": 3,
+      "enqueueResult": {
+        "queued": 3
+      },
+      "enqueueCallMs": {
+        "p50": 0.816,
+        "max": 0.947
+      },
+      "wholeBurstEnqueueMs": 2.6,
+      "persisted": 3,
+      "statuses": {
+        "failed": 3
+      },
+      "resultLatencyMs": {
+        "p50": 4026.1,
+        "p95": 6038.3,
+        "max": 6038.3
+      },
+      "eventLoopGapMs": {
+        "p99": 16.1,
+        "max": 16.5
+      },
+      "metrics": {
+        "queueLength": 0,
+        "running": 0,
+        "enqueued": 3,
+        "skipped": 0,
+        "completed": 0,
+        "failed": 3,
+        "unclassified": 3,
+        "earlyExit": 0,
+        "fallback": 0,
+        "lastLatencyMs": 2012,
+        "earlyExitRate": 0,
+        "fallbackRate": 0,
+        "unclassifiedRate": 1
+      }
+    },
+    "a5": {
+      "n": 1,
+      "enqueueResult": {
+        "queued": 1
+      },
+      "enqueueCallMs": {
+        "p50": 1.044,
+        "max": 1.044
+      },
+      "wholeBurstEnqueueMs": 1,
+      "persisted": 1,
+      "statuses": {
+        "classified": 1
+      },
+      "resultLatencyMs": {
+        "p50": 2502.2,
+        "p95": 2502.2,
+        "max": 2502.2
+      },
+      "eventLoopGapMs": {
+        "p99": 2502.7,
+        "max": 2502.7
+      },
+      "metrics": {
+        "queueLength": 0,
+        "running": 0,
+        "enqueued": 1,
+        "skipped": 0,
+        "completed": 1,
+        "failed": 0,
+        "unclassified": 0,
+        "earlyExit": 1,
+        "fallback": 0,
+        "lastLatencyMs": 2501,
+        "earlyExitRate": 1,
+        "fallbackRate": 0,
+        "unclassifiedRate": 0
+      }
+    },
+    "a6": {
+      "sessionMode": "classified",
+      "classified": 163,
+      "uncertain": 38,
+      "uncertainInCompassCategorySources": 0,
+      "classifiedButWrongCategory": 34,
+      "classifiedAlthoughAmbiguousOrNoise": 12,
+      "scenarios": {
+        "allUncertain": "uncertain",
+        "oneClassifiedRestUncertain": "classified",
+        "oneFailedRestClassified": "failed",
+        "onePending": "pending"
+      }
+    }
+  },
+  "B": {
+    "b1": {
+      "ms": 1347.5,
+      "status": "ready",
+      "fallbackUsed": false,
+      "modelVersion": "intfloat/multilingual-e5-small@sha256:f80102d3f2a1229f",
+      "entries": 12
+    },
+    "b2": {
+      "ms": 7.8,
+      "status": "failed",
+      "fallbackUsed": true,
+      "modelVersion": null,
+      "entries": 29
+    },
+    "b3": {
+      "ms": 8007.2,
+      "status": "failed",
+      "fallbackUsed": true,
+      "modelVersion": null,
+      "entries": 29
+    },
+    "b4": [
+      {
+        "call": 1,
+        "ms": 8015.9,
+        "status": "failed"
+      },
+      {
+        "call": 2,
+        "ms": 8010,
+        "status": "failed"
+      },
+      {
+        "call": 3,
+        "ms": 8017.6,
+        "status": "failed"
+      },
+      {
+        "call": 4,
+        "ms": 2.5,
+        "status": "failed"
+      },
+      {
+        "call": 5,
+        "ms": 2.6,
+        "status": "failed"
+      }
+    ],
+    "encoderRestartMs": 1670.4
+  },
+  "C": {
+    "topicsShown": 12,
+    "multiMemberTopics": 12,
+    "topicsWithMixedPredictedCategory": 6,
+    "topics": [
+      {
+        "label": "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+        "confidence": 0.899918292671564,
+        "size": 8,
+        "families": ["O-CANC", "O-ATT", "O-REC"],
+        "goldCategories": ["organization"],
+        "predictedCategories": {
+          "uncertain(organization)": 2,
+          "organization": 6
+        },
+        "example": "Do. Vorlesung oder nicht?"
+      },
+      {
+        "label": "Noch ein Regressionsbeispiel?",
+        "confidence": 0.9054677498863283,
+        "size": 5,
+        "families": ["C-REG"],
+        "goldCategories": ["content"],
+        "predictedCategories": {
+          "content": 5
+        },
+        "example": "Bitte mehr Aufgaben zur Regression, das ging mir zu schnell."
+      },
+      {
+        "label": "Ist die Frist für Übungsblatt 2 diesen Freitag?",
+        "confidence": 0.9017980382986233,
+        "size": 5,
+        "families": ["O-DEAD"],
+        "goldCategories": ["organization"],
+        "predictedCategories": {
+          "organization": 5
+        },
+        "example": "Bis wann müssen wir das zweite Übungsblatt hochladen?"
+      },
+      {
+        "label": "Ich hab den Satz von Bayes noch nicht verstanden, gibt es ein Beispiel aus dem Alltag?",
+        "confidence": 0.9244089414052795,
+        "size": 4,
+        "families": ["C-BAYES"],
+        "goldCategories": ["content"],
+        "predictedCategories": {
+          "content": 3,
+          "uncertain(content)": 1
+        },
+        "example": "Gibt es ein anschauliches Beispiel für den Satz von Bayes?"
+      },
+      {
+        "label": "Können Sie nochmal erklären, was der p-Wert eigentlich aussagt?",
+        "confidence": 0.9217604879000137,
+        "size": 4,
+        "families": ["C-PVAL"],
+        "goldCategories": ["content"],
+        "predictedCategories": {
+          "content": 3,
+          "technical": 1
+        },
+        "example": "Können Sie nochmal erklären, was der p-Wert eigentlich aussagt?"
+      },
+      {
+        "label": "Ich komme mit dem Sitzungscode nicht in die Umfrage rein.",
+        "confidence": 0.900135305221441,
+        "size": 4,
+        "families": ["T-VOTE"],
+        "goldCategories": ["technical"],
+        "predictedCategories": {
+          "technical": 4
+        },
+        "example": "Ich komme mit dem Sitzungscode nicht in die Umfrage rein."
+      },
+      {
+        "label": "Woher kommt auf Folie 17 plötzlich das Quadrat?",
+        "confidence": 0.9028616118651773,
+        "size": 3,
+        "families": ["C-DERIV"],
+        "goldCategories": ["content"],
+        "predictedCategories": {
+          "content": 3
+        },
+        "example": "Könnten Sie die Umformung auf Folie 17 langsamer zeigen?"
+      },
+      {
+        "label": "Wo findet die Nachklausur statt, wieder im Audimax?",
+        "confidence": 0.8991880447548439,
+        "size": 3,
+        "families": ["O-ROOM"],
+        "goldCategories": ["organization"],
+        "predictedCategories": {
+          "organization": 3
+        },
+        "example": "Wo ist der Nachtermin für die Klausur?"
+      },
+      {
+        "label": "Wie erkenne ich Overfitting in der Praxis?",
+        "confidence": 0.8948033937967151,
+        "size": 3,
+        "families": ["C-OVF"],
+        "goldCategories": ["content"],
+        "predictedCategories": {
+          "technical": 1,
+          "content": 2
+        },
+        "example": "Overfitting?? check ich nicht"
+      },
+      {
+        "label": "Die Projektion ist so blass, dass man die Formeln nicht lesen kann.",
+        "confidence": 0.8923554100720161,
+        "size": 3,
+        "families": ["T-BEAM"],
+        "goldCategories": ["technical"],
+        "predictedCategories": {
+          "technical": 2,
+          "content": 1
+        },
+        "example": "Das Bild vom Projektor flackert die ganze Zeit."
+      },
+      {
+        "label": "Das Mikrofon rauscht und man versteht nichts.",
+        "confidence": 0.8893309992511983,
+        "size": 3,
+        "families": ["T-AUDIO"],
+        "goldCategories": ["technical"],
+        "predictedCategories": {
+          "uncertain(content)": 1,
+          "content": 1,
+          "technical": 1
+        },
+        "example": "Hinten kommt kein Ton an."
+      },
+      {
+        "label": "Gibt es eine Anwesenheitsliste in der Vorlesung?",
+        "confidence": 0.9398969931256832,
+        "size": 2,
+        "families": ["O-ATT"],
+        "goldCategories": ["organization"],
+        "predictedCategories": {
+          "organization": 2
+        },
+        "example": "Wird in der Vorlesung die Anwesenheit kontrolliert?"
+      }
+    ]
+  }
+}
