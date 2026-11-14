@@ -1,3 +1,4 @@
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
 import { CdkTrapFocus, LiveAnnouncer } from '@angular/cdk/a11y';
 import {
@@ -307,7 +308,7 @@ import {
   stripEdgeEmojiMarker,
 } from '../../../shared/emoji-shortcode.util';
 import {
-  findKindergartenNicknameBadgeLabel,
+  findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
 } from '../../join/kindergarten-nickname-icons';
 import {
@@ -4124,7 +4125,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const participants = this.participantsPayload()?.participants ?? [];
     const showNames = this.session()?.anonymousMode !== true;
     const hiddenParticipantIds = this.hiddenLobbyParticipantIds();
-    const participantMap = new Map<string, Array<{ id: string; nickname: string }>>();
+    const participantMap = new Map<
+      string,
+      Array<SessionParticipantsPayload['participants'][number]>
+    >();
     const teamMemberCounts = new Map<string, number>();
 
     for (const participant of participants) {
@@ -4134,7 +4138,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       teamMemberCounts.set(participant.teamId, (teamMemberCounts.get(participant.teamId) ?? 0) + 1);
       const names = participantMap.get(participant.teamId) ?? [];
       if (showNames && !hiddenParticipantIds.has(participant.id)) {
-        names.unshift({ id: participant.id, nickname: participant.nickname });
+        names.unshift(participant);
       }
       participantMap.set(participant.teamId, names);
     }
@@ -8636,12 +8640,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   /** Kindergarten-Preset: großes Tier-Emoji vor dem gespeicherten Nickname (Lobby). */
-  lobbyKindergartenEmoji(nickname: string): string | null {
+  readonly animalIconUrl = animalIconUrl;
+
+  lobbyKindergartenEmoji(nickname: string, animalId?: number): string | null {
     const s = this.session();
     if (!s || s.nicknameTheme !== 'KINDERGARTEN' || s.anonymousMode === true) {
       return null;
     }
-    return findKindergartenNicknameEmoji(nickname);
+    return findKindergartenNicknameEmoji(nickname, undefined, animalId);
   }
 
   foyerArrivalChipsForTeam(teamId: string): readonly FoyerEntranceChip[] {
@@ -8919,7 +8925,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): FoyerEntranceChip {
     const session = this.session();
     const sequence = this.foyerArrivalSequence++;
-    const kindergartenEmoji = this.lobbyKindergartenEmoji(participant.nickname);
+    const kindergartenEmoji = this.lobbyKindergartenEmoji(
+      participant.nickname,
+      participant.kindergartenAnimalId,
+    );
     const label = buildFoyerChipLabel({
       nickname: participant.nickname,
       anonymousMode: session?.anonymousMode === true,
@@ -8946,6 +8955,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         participant.teamId !== null && participant.teamId !== undefined,
       ),
       ...label,
+      ...(kindergartenEmoji ? { emojiImageUrl: animalIconUrl(kindergartenEmoji) } : {}),
     } satisfies FoyerEntranceChip;
   }
 
@@ -9843,6 +9853,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       participants: participants.map((participant) => ({
         id: participant.id,
         nickname: participant.nickname,
+        kindergartenAnimalId: participant.kindergartenAnimalId,
         teamId: participant.teamId ?? null,
         teamName: participant.teamName ?? null,
       })),
@@ -10948,12 +10959,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  qaAuthorKindergartenBadgeLabel(question: QaQuestionDTO): string | null {
+  qaAuthorKindergartenBadge(question: QaQuestionDTO) {
     const nickname = this.qaQuestionAuthorNickname(question);
     if (!nickname || this.session()?.nicknameTheme !== 'KINDERGARTEN') {
       return null;
     }
-    return findKindergartenNicknameBadgeLabel(nickname);
+    return findKindergartenNicknameBadge(nickname, undefined, question.authorKindergartenAnimalId);
   }
 
   qaAuthorKindergartenAriaLabel(question: QaQuestionDTO): string {

@@ -274,23 +274,25 @@
 }
 
 .vote-player-badge--kindergarten .vote-player-badge__emoji {
-  font-size: 1.55rem;
-  line-height: 1;
+  inline-size: 1.55rem;
+  block-size: 1.55rem;
 }
 
 .vote-player-badge__emoji {
-  font-size: 1.85rem;
-  line-height: 1;
+  inline-size: 1.85rem;
+  block-size: 1.85rem;
   flex-shrink: 0;
 }
 
 @media (min-width: 600px) {
   .vote-player-badge__emoji {
-    font-size: 2.15rem;
+    inline-size: 2.15rem;
+    block-size: 2.15rem;
   }
 
   .vote-player-badge--kindergarten .vote-player-badge__emoji {
-    font-size: 1.75rem;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
   }
 }
 
@@ -770,7 +772,8 @@
 }
 
 .vote-page--with-channel-tabs .vote-lobby__kita-emoji {
-  font-size: clamp(3.5rem, 16vw, 5rem);
+  inline-size: clamp(3.5rem, 16vw, 5rem);
+  block-size: clamp(3.5rem, 16vw, 5rem);
 }
 
 .vote-page--with-channel-tabs .vote-lobby__kita-identity {
@@ -1267,6 +1270,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
   min-width: 2.35rem;
   min-height: 2rem;
   padding: 0.1rem 0.5rem;
@@ -1283,6 +1287,12 @@
     color 180ms,
     box-shadow 180ms,
     opacity 180ms;
+}
+
+.session-qa-card__author-animal {
+  inline-size: 1rem;
+  block-size: 1rem;
+  flex-shrink: 0;
 }
 
 .session-qa-card__author-icon--button {
@@ -1761,12 +1771,12 @@
   margin: 0 0 0.25rem;
 }
 
-/* Kita-Lobby: großes Tier-Emoji zentriert (wie ursprünglich), darunter Name · Team – ohne Rahmen */
+/* Kita-Lobby: großes Tierbild zentriert (wie ursprünglich), darunter Name · Team – ohne Rahmen */
 .vote-lobby__kita-emoji {
   display: block;
   margin: 0 auto;
-  font-size: clamp(4.25rem, 20vw, 8rem);
-  line-height: 1;
+  inline-size: clamp(4.25rem, 20vw, 8rem);
+  block-size: clamp(4.25rem, 20vw, 8rem);
 }
 
 .vote-lobby__kita-identity {
@@ -4729,8 +4739,8 @@
 }
 
 .vote-finished-winner__emoji {
-  font-size: clamp(2.6rem, 9vw, 4rem);
-  line-height: 1;
+  inline-size: clamp(2.6rem, 9vw, 4rem);
+  block-size: clamp(2.6rem, 9vw, 4rem);
 }
 
 .vote-finished-winner__meta {
@@ -4822,8 +4832,8 @@
 }
 
 .vote-finished-leaderboard__emoji {
-  font-size: 1.45rem;
-  line-height: 1;
+  inline-size: 1.45rem;
+  block-size: 1.45rem;
 }
 
 .vote-finished-leaderboard__tail {

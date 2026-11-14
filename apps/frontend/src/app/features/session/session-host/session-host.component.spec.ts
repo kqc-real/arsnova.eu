@@ -1893,7 +1893,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('hält in einer reinen Q&A-Lobby die Zugangskarte über dem Beitritts-Overlay und bietet Format hinzufügen an', async () => {
+  it('hält in einer reinen Q&A-Lobby die Zugangskarte über dem Beitritts-Overlay und bietet »Session erweitern« an', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -2819,7 +2819,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     expect(list).not.toBeNull();
-    expect(icons.map((icon) => icon.textContent?.trim())).toEqual(['🦎', '🐬']);
+    expect(
+      icons.map((icon) => icon.querySelector('img')?.getAttribute('src')?.split('/').at(-1)),
+    ).toEqual(['emoji_u1f98e.svg', 'emoji_u1f42c.svg']);
     expect(srOnlyLabels).toEqual(['Mintgrüne Eidechse', 'Lila Delfin']);
     fixture.destroy();
   });
@@ -2863,9 +2865,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
         '.session-lobby__nick-emoji--host-lobby',
       ),
-      (el) => (el.textContent ?? '').trim(),
+      (el) => el.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
     );
-    expect(icons).toEqual(['🦎', '🐬']);
+    expect(icons).toEqual(['emoji_u1f98e.svg', 'emoji_u1f42c.svg']);
     fixture.destroy();
   });
 
@@ -3926,7 +3928,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     vi.unstubAllGlobals();
   });
 
-  it('zeigt bei einem aktivierten Kanal keine Tabs und inaktive Formate nur im Hinzufügen-Menü', async () => {
+  it('zeigt bei einem aktivierten Kanal keine Tabs und inaktive Formate nur im Menü »Session erweitern«', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       channels: {
@@ -3947,11 +3949,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.showChannelTabs()).toBe(false);
     expect(host.querySelector('.session-channel-tabs')).toBeNull();
     const trigger = host.querySelector<HTMLButtonElement>('[data-testid="add-channel-trigger"]');
-    expect(trigger?.textContent).toContain('Format hinzufügen');
+    expect(trigger?.textContent).toContain('Session erweitern');
     trigger!.click();
     fixture.detectChanges();
     await fixture.whenStable();
 
+    const addMenu = document.querySelector('[role="menu"].session-host__add-channel-menu');
+    expect(addMenu).not.toBeNull();
     expect(document.querySelector('[data-testid="add-channel-quiz"]')).toBeNull();
     expect(document.querySelector('[data-testid="add-channel-qa"]')?.textContent).toContain('Q&A');
     expect(
@@ -4122,6 +4126,44 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="add-channel-trigger"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('führt beim Quizabschluss den Fokus vom Präsentationsbutton zur Abschlussüberschrift', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const presenter = host.querySelector<HTMLButtonElement>('[data-testid="open-presenter-view"]');
+    expect(presenter).not.toBeNull();
+    presenter!.focus();
+    expect(document.activeElement).toBe(presenter);
+
+    const component = fixture.componentInstance;
+    component.statusUpdate.set({ status: 'FINISHED', currentQuestion: null });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const heading = host.querySelector('#session-finished-heading');
+    expect(heading?.textContent?.trim()).toBe('Quiz beendet');
+    expect(host.querySelector('.session-host__quiz-tools')).toBeNull();
+    expect(document.activeElement).toBe(heading);
+
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    expect(host.querySelector('[data-testid="open-presenter-view"]')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -4178,6 +4220,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const host = fixture.nativeElement as HTMLElement;
       const heading = host.querySelector<HTMLHeadingElement>('h1#session-finished-heading');
       expect(heading).not.toBeNull();
+      expect(host.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
       expect(heading?.textContent?.trim()).toBe(title);
       expect(heading?.tabIndex).toBe(-1);
       expect(heading?.classList.contains('app-content-focus-target')).toBe(true);
@@ -4976,7 +5019,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('fügt den Q&A-Tab nach bestätigter Einrichtung über Format hinzufügen hinzu', async () => {
+  it('fügt den Q&A-Tab nach bestätigter Einrichtung über »Session erweitern« hinzu', async () => {
     getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -5894,7 +5937,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('öffnet über Format hinzufügen die Sammlung, lädt das Quiz hoch und hängt es an die Session', async () => {
+  it('öffnet über »Session erweitern« die Sammlung, lädt das Quiz hoch und hängt es an die Session', async () => {
     getInfoQueryMock
       .mockResolvedValueOnce({
         ...defaultSession,
@@ -10369,7 +10412,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       '.session-qa-card__author-icon',
     ) as HTMLElement | null;
 
-    expect(badge?.textContent?.trim()).toBe('🐉 2');
+    expect(badge?.querySelector('img')?.getAttribute('src')).toMatch(/emoji_u1f409\.svg$/);
+    expect(badge?.textContent?.trim()).toBe('2');
     expect(badge?.getAttribute('title')).toBe('Roter Drache 2');
     fixture.destroy();
   });
@@ -24573,6 +24617,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('Bei Punktgleichheit entscheidet die schnellere Antwortzeit.');
     expect(text).toMatch(/Mit 9[.,]400 Punkten/);
     expect(winnerEmoji?.getAttribute('title')).toBe('Lila Delfin');
+    expect(winnerEmoji?.getAttribute('src')).toMatch(/emoji_u1f42c\.svg$/);
     expect(
       fixture.nativeElement
         .querySelector(
@@ -24946,6 +24991,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       'Lagunenblaue Qualle',
     ]);
     expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle']);
+    expect(interimEmojis.map((image) => image.getAttribute('src')?.split('/').at(-1))).toEqual([
+      'emoji_u1f42c.svg',
+      'emoji_u1fabc.svg',
+    ]);
     expect(fixture.nativeElement.textContent ?? '').toContain('Team Apfel');
     expect(fixture.nativeElement.textContent ?? '').toContain('Gleichstand: Antwortzeit zählt.');
     fixture.destroy();
@@ -25616,9 +25665,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
-          (node) => (node.textContent ?? '').trim(),
+          (node) => node.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
         ),
-      ).toEqual(['🐻']);
+      ).toEqual(['emoji_u1f43b.svg']);
 
       participantJoinedHandler?.({
         participantCount: 2,
@@ -25632,17 +25681,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
-          (node) => (node.textContent ?? '').trim(),
+          (node) => node.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
         ),
-      ).toEqual(['🐻']);
+      ).toEqual(['emoji_u1f43b.svg']);
       const overlayChip = fixture.nativeElement.querySelector(
         '.session-lobby__foyer-stage--overlay .foyer-entrance-layer__chip--emoji-only',
       ) as HTMLElement | null;
       expect(overlayChip).not.toBeNull();
       expect(overlayChip?.querySelector('.foyer-entrance-layer__chip-text')).toBeNull();
       expect(
-        overlayChip?.querySelector('.foyer-entrance-layer__chip-emoji')?.textContent?.trim().length,
-      ).toBeGreaterThan(0);
+        overlayChip?.querySelector('img.foyer-entrance-layer__chip-emoji')?.getAttribute('src'),
+      ).toMatch(/emoji_u1f981\.svg$/);
       expect(fixture.nativeElement.querySelector('.foyer-entrance-layer--overlay')).not.toBeNull();
 
       await vi.advanceTimersByTimeAsync(5200);
@@ -25650,9 +25699,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
-          (node) => (node.textContent ?? '').trim(),
+          (node) => node.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
         ),
-      ).toEqual(['🦁', '🐻']);
+      ).toEqual(['emoji_u1f981.svg', 'emoji_u1f43b.svg']);
       fixture.destroy();
     } finally {
       vi.useRealTimers();
@@ -25722,8 +25771,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(overlayChip).not.toBeNull();
       expect(overlayChip?.className).toContain('foyer-entrance-layer__chip--emoji-only');
       expect(
-        overlayChip?.querySelector('.foyer-entrance-layer__chip-emoji')?.textContent?.trim().length,
-      ).toBeGreaterThan(0);
+        overlayChip?.querySelector('img.foyer-entrance-layer__chip-emoji')?.getAttribute('src'),
+      ).toMatch(/emoji_u1f981\.svg$/);
       expect(overlayChip?.querySelector('.foyer-entrance-layer__chip-text')).toBeNull();
       expect(overlayBadge?.textContent?.trim()).toBe('Gelber Löwe');
       fixture.destroy();

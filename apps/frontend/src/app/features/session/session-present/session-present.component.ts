@@ -127,10 +127,12 @@ import {
   type FoyerEntranceChip,
 } from '../session-host/foyer-entrance-layer.component';
 import { buildFoyerChipLabel } from '../session-host/foyer-chip-label.util';
+import { LobbyAudienceGridDirective } from './lobby-audience-grid.directive';
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import {
+  LOBBY_AUDIENCE_MAX_INDIVIDUALS,
   lobbyAudienceIsCrowd,
   lobbyAudienceIsPacked,
-  lobbyFitColumnCount,
 } from './lobby-audience-density.util';
 import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
 import {
@@ -148,6 +150,7 @@ import {
 type LobbyParticipant = {
   id: string;
   nickname: string;
+  kindergartenAnimalId?: number;
   teamId: string | null;
 };
 
@@ -231,6 +234,7 @@ function presenterFreetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null
     SessionProjectionQuizComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
+    LobbyAudienceGridDirective,
   ],
   templateUrl: './session-present.component.html',
   styleUrl: './session-present.component.scss',
@@ -432,6 +436,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return {
         ...team,
         members,
+        nicknames: members.map((member) => member.nickname),
         placeholders: Array.from({ length: placeholderCount }, (_, index) => index),
       };
     });
@@ -453,6 +458,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly isKindergartenLobby = computed(() => {
     const session = this.session();
     return session?.nicknameTheme === 'KINDERGARTEN' && session.anonymousMode !== true;
+  });
+  readonly lobbyPeopleNames = computed(() => this.lobbyPeople().map((person) => person.nickname));
+  readonly lobbyGridMode = computed(() => {
+    if (this.session()?.anonymousMode === true) return 'count';
+    return this.isKindergartenLobby() ? 'animals' : 'text';
+  });
+  readonly showLobbyAudienceSummary = computed(() => {
+    const count = this.lobbyParticipantCount();
+    return this.lobbyGridMode() === 'count'
+      ? lobbyAudienceIsCrowd(count)
+      : count > LOBBY_AUDIENCE_MAX_INDIVIDUALS;
   });
   readonly canShowLobbyFoyer = computed(() => {
     const session = this.session();
@@ -2554,7 +2570,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   readonly lobbyAudienceIsCrowd = lobbyAudienceIsCrowd;
   readonly lobbyAudienceIsPacked = lobbyAudienceIsPacked;
-  readonly lobbyFitColumnCount = lobbyFitColumnCount;
 
   teamMemberLabel(count: number): string {
     return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
@@ -2569,13 +2584,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionPresent.lobbyAudienceCountMany:${formatted}:count: Teilnehmende`;
   }
 
-  lobbyNicknameBadge(nickname: string): KindergartenNicknameBadge | null {
+  lobbyNicknameBadge(nickname: string, animalId?: number): KindergartenNicknameBadge | null {
     const session = this.session();
     if (session?.nicknameTheme !== 'KINDERGARTEN' || session.anonymousMode === true) {
       return null;
     }
-    return findKindergartenNicknameBadge(nickname);
+    return findKindergartenNicknameBadge(nickname, undefined, animalId);
   }
+
+  readonly animalIconUrl = animalIconUrl;
 
   packedLobbyIdentity(participant: LobbyParticipant, packed: boolean): PackedLobbyIdentity | null {
     if (!packed) {
@@ -2643,8 +2660,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return $localize`${entry.teamName} gewinnt mit ${formatLocaleCount(entry.totalScore, this.localeId)}:totalScore: Punkten!`;
   }
 
-  leaderboardKindergartenEmoji(nickname: string): string | null {
-    return findKindergartenNicknameEmoji(nickname);
+  leaderboardKindergartenEmoji(nickname: string, animalId?: number): string | null {
+    return findKindergartenNicknameEmoji(nickname, undefined, animalId);
   }
 
   teamNameEmojiMarker(teamName: string | null | undefined): string | null {
@@ -4003,6 +4020,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         payload.recentArrivals.map((participant) => ({
           id: participant.id,
           nickname: participant.nickname,
+          kindergartenAnimalId: participant.kindergartenAnimalId,
           teamId: participant.teamId ?? null,
         })),
       );
@@ -4101,7 +4119,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const sequence = this.lobbyFoyerSequence++;
     const kindergartenEmoji =
       session?.nicknameTheme === 'KINDERGARTEN' && session.anonymousMode !== true
-        ? findKindergartenNicknameEmoji(participant.nickname)
+        ? findKindergartenNicknameEmoji(
+            participant.nickname,
+            undefined,
+            participant.kindergartenAnimalId,
+          )
         : null;
     const label = buildFoyerChipLabel({
       nickname: participant.nickname,
@@ -4119,6 +4141,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
     return {
       ...label,
+      ...(kindergartenEmoji ? { emojiImageUrl: this.animalIconUrl(kindergartenEmoji) } : {}),
       id: `${participant.id}-${sequence}`,
       participantId: participant.id,
       teamId: participant.teamId,

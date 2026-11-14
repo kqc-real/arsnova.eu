@@ -123,6 +123,89 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
     expect(afterRollback.nextParticipantNumber).toBe(beforeRollback.nextParticipantNumber);
   }, 30_000);
 
+  it('vergibt Tiernummern je Raum und Tier, auch sprachübergreifend und bei parallelen Joins', async () => {
+    const [firstRoom, secondRoom] = await Promise.all(
+      ['K', 'T'].map((prefix) =>
+        prisma.session.create({
+          data: { id: randomUUID(), code: sessionCode(prefix), type: 'Q_AND_A', status: 'ACTIVE' },
+        }),
+      ),
+    );
+    sessionIds.push(firstRoom!.id, secondRoom!.id);
+
+    const join = (
+      requestedNickname: string,
+      {
+        sessionId = firstRoom!.id,
+        joinIdempotencyKey = createOpaqueCapability(),
+        rejoinCapability,
+        kindergartenAnimalId,
+        rollback = false,
+      }: {
+        sessionId?: string;
+        joinIdempotencyKey?: string;
+        rejoinCapability?: string;
+        kindergartenAnimalId?: number;
+        rollback?: boolean;
+      } = {},
+    ) =>
+      prisma.$transaction(async (tx) => {
+        const result = await prepareParticipantJoin({
+          tx,
+          sessionId,
+          requestedNickname,
+          kindergartenAnimalId,
+          profile: {
+            allowCustomNicknames: false,
+            anonymousMode: false,
+            nicknameTheme: 'KINDERGARTEN',
+          },
+          joinIdempotencyKey,
+          rejoinCapability,
+        });
+        if (rollback) throw new Error('ROLLBACK_EXPECTED');
+        return result;
+      });
+
+    const joinIdempotencyKey = createOpaqueCapability();
+    const first = await join('Schwan', { joinIdempotencyKey });
+    expect(first).toMatchObject({ nickname: 'Schwan 1', participantNumber: 1 });
+    expect(await join('Marienkäfer')).toMatchObject({
+      nickname: 'Marienkäfer 1',
+      participantNumber: 2,
+    });
+    expect(await join('Schwan', { joinIdempotencyKey })).toEqual({ ...first, rejoined: true });
+    expect(await join('Swan', { rejoinCapability: first.rejoinCapability })).toEqual({
+      ...first,
+      productFeedbackClaimToken: null,
+      rejoined: true,
+    });
+    expect(await join('Schwan')).toMatchObject({ nickname: 'Schwan 2', participantNumber: 3 });
+    await expect(join('Swan', { rollback: true })).rejects.toThrow('ROLLBACK_EXPECTED');
+    await prisma.participant.delete({ where: { id: first.participantId } });
+
+    const parallel = await Promise.all([join('Schwan'), join('Swan')]);
+    expect(parallel.map(({ nickname }) => Number(nickname.split(' ').at(-1))).sort()).toEqual([
+      3, 4,
+    ]);
+    expect(await join('Swan', { sessionId: secondRoom!.id })).toMatchObject({
+      nickname: 'Swan 1',
+      participantNumber: 1,
+    });
+
+    const firstWhale = await join('Wal', { kindergartenAnimalId: 34 });
+    expect(firstWhale).toMatchObject({ nickname: 'Wal 1', kindergartenAnimalId: 34 });
+    expect(await join('Wal', { kindergartenAnimalId: 6 })).toMatchObject({
+      nickname: 'Wal 2',
+      kindergartenAnimalId: 6,
+    });
+    expect(await join('Wal', { rejoinCapability: firstWhale.rejoinCapability })).toMatchObject({
+      nickname: 'Wal 1',
+      kindergartenAnimalId: 34,
+      rejoined: true,
+    });
+  }, 30_000);
+
   it('replayed einen Commit exakt, lehnt abgelaufene Schlüssel ab und bindet Rejoin an die Session', async () => {
     const sessionA = await prisma.session.create({
       data: {

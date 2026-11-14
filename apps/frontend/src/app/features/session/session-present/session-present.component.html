@@ -212,12 +212,16 @@
                     </p>
                   </div>
                   <p class="session-present__winner-name session-present__winner-name--champion">
-                    @if (leaderboardKindergartenEmoji(winner.nickname); as emoji) {
-                      <span
-                        class="session-present__winner-emoji session-present__winner-emoji--hero"
+                    @if (
+                      leaderboardKindergartenEmoji(winner.nickname, winner.kindergartenAnimalId);
+                      as emoji
+                    ) {
+                      <img
+                        class="session-present__animal-icon session-present__winner-emoji session-present__winner-emoji--hero"
+                        [src]="animalIconUrl(emoji)"
+                        alt=""
                         aria-hidden="true"
-                        >{{ emoji }}</span
-                      >
+                      />
                     }
                     <span class="session-present__winner-identity">
                       <span>{{ winner.nickname }}</span>
@@ -406,10 +410,16 @@
                           {{ entry.place }}
                         }
                       </span>
-                      @if (leaderboardKindergartenEmoji(entry.nickname); as emoji) {
-                        <span class="session-present__board-emoji" aria-hidden="true">{{
-                          emoji
-                        }}</span>
+                      @if (
+                        leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
+                        as emoji
+                      ) {
+                        <img
+                          class="session-present__animal-icon session-present__board-emoji"
+                          [src]="animalIconUrl(emoji)"
+                          alt=""
+                          aria-hidden="true"
+                        />
                       }
                     </span>
                     <span class="session-present__board-name">{{ entry.nickname }}</span>
@@ -667,6 +677,7 @@
               lobbyAudienceIsPacked(lobbyParticipantCount())
             "
             [class.session-present__lobby-audience--kindergarten]="isKindergartenLobby()"
+            [class.session-present__lobby-audience--text]="lobbyGridMode() === 'text'"
             aria-labelledby="session-present-lobby-audience"
           >
             @if (showLobbyFoyerOverlay() && lobbyFoyerOverlayChips().length > 0) {
@@ -680,7 +691,7 @@
                 lobbyAudienceCountLabel()
               }}</span>
             </h2>
-            @if (lobbyAudienceIsCrowd(lobbyParticipantCount())) {
+            @if (showLobbyAudienceSummary()) {
               <div
                 class="session-present__audience-summary"
                 data-testid="presenter-audience-summary"
@@ -695,9 +706,7 @@
             } @else if (lobbyTeamsView().length > 0) {
               <div
                 class="session-present__lobby-teams-grid"
-                [style.grid-template-columns]="
-                  'repeat(' + lobbyTeamsView().length + ', minmax(0, 1fr))'
-                "
+                [style.--lobby-team-count]="lobbyTeamsView().length"
                 tabindex="0"
                 role="region"
                 aria-labelledby="session-present-lobby-audience"
@@ -715,7 +724,9 @@
                   >
                     <header class="session-present__lobby-team-head">
                       <span class="session-present__lobby-team-dot" aria-hidden="true"></span>
-                      <h3 class="session-present__lobby-team-name">{{ team.name }}</h3>
+                      <h3 class="session-present__lobby-team-name" [id]="'lobby-team-' + team.id">
+                        {{ team.name }}
+                      </h3>
                       <span class="session-present__lobby-team-count">{{
                         teamMemberLabel(team.memberCount)
                       }}</span>
@@ -733,9 +744,11 @@
                       <ul
                         class="session-present__lobby-team-members"
                         role="list"
-                        [style.grid-template-columns]="
-                          'repeat(' + lobbyFitColumnCount(team.memberCount) + ', minmax(0, 1fr))'
-                        "
+                        [attr.tabindex]="lobbyGridMode() === 'text' ? 0 : null"
+                        [attr.aria-labelledby]="'lobby-team-' + team.id"
+                        [appLobbyAudienceGrid]="lobbyGridMode()"
+                        [participantCount]="team.memberCount"
+                        [names]="team.nicknames"
                       >
                         @for (member of team.members; track member.id) {
                           <li
@@ -743,7 +756,13 @@
                               isLandedLobbyParticipant(member.id)
                             "
                           >
-                            @if (
+                            @if (lobbyGridMode() === 'text') {
+                              <span
+                                class="session-present__lobby-text-name"
+                                [attr.title]="member.nickname"
+                                >{{ member.nickname }}</span
+                              >
+                            } @else if (
                               packedLobbyIdentity(member, lobbyAudienceIsPacked(team.memberCount));
                               as identity
                             ) {
@@ -771,12 +790,16 @@
                                 class="session-present__lobby-nick"
                                 [attr.title]="member.nickname"
                               >
-                                @if (lobbyNicknameBadge(member.nickname); as badge) {
-                                  <span
-                                    class="session-present__lobby-nick-icon"
+                                @if (
+                                  lobbyNicknameBadge(member.nickname, member.kindergartenAnimalId);
+                                  as badge
+                                ) {
+                                  <img
+                                    class="session-present__animal-icon session-present__lobby-nick-icon"
+                                    [src]="animalIconUrl(badge.emoji)"
+                                    alt=""
                                     aria-hidden="true"
-                                    >{{ badge.emoji }}</span
-                                  >
+                                  />
                                   @if (badge.sequence) {
                                     <span
                                       class="session-present__lobby-nick-seq"
@@ -804,7 +827,7 @@
                         }
                         @for (slot of team.placeholders; track slot) {
                           <li class="session-present__lobby-placeholder" aria-hidden="true">
-                            @if (!isKindergartenLobby()) {
+                            @if (lobbyGridMode() === 'count') {
                               <mat-icon
                                 class="session-present__lobby-nick-mat-icon"
                                 aria-hidden="true"
@@ -827,9 +850,9 @@
                 [class.session-present__lobby-people-cols--packed]="
                   lobbyAudienceIsPacked(lobbyParticipantCount())
                 "
-                [style.grid-template-columns]="
-                  'repeat(' + lobbyFitColumnCount(lobbyParticipantCount()) + ', minmax(0, 1fr))'
-                "
+                [appLobbyAudienceGrid]="lobbyGridMode()"
+                [participantCount]="lobbyParticipantCount()"
+                [names]="lobbyPeopleNames()"
                 tabindex="0"
                 role="region"
                 aria-labelledby="session-present-lobby-audience"
@@ -842,7 +865,13 @@
                     "
                   >
                     <p class="session-present__lobby-person">
-                      @if (
+                      @if (lobbyGridMode() === 'text') {
+                        <span
+                          class="session-present__lobby-text-name"
+                          [attr.title]="person.nickname"
+                          >{{ person.nickname }}</span
+                        >
+                      } @else if (
                         packedLobbyIdentity(person, lobbyAudienceIsPacked(lobbyParticipantCount()));
                         as identity
                       ) {
@@ -865,10 +894,16 @@
                         ?
                       } @else {
                         <span class="session-present__lobby-nick" [attr.title]="person.nickname">
-                          @if (lobbyNicknameBadge(person.nickname); as badge) {
-                            <span class="session-present__lobby-nick-icon" aria-hidden="true">{{
-                              badge.emoji
-                            }}</span>
+                          @if (
+                            lobbyNicknameBadge(person.nickname, person.kindergartenAnimalId);
+                            as badge
+                          ) {
+                            <img
+                              class="session-present__animal-icon session-present__lobby-nick-icon"
+                              [src]="animalIconUrl(badge.emoji)"
+                              alt=""
+                              aria-hidden="true"
+                            />
                             @if (badge.sequence) {
                               <span class="session-present__lobby-nick-seq" aria-hidden="true">{{
                                 badge.sequence

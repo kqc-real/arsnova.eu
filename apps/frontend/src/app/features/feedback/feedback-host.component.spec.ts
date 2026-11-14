@@ -182,7 +182,7 @@ describe('FeedbackHostComponent', () => {
     const primary = fixture.nativeElement.querySelector(
       '.feedback-host__round-primary',
     ) as HTMLElement;
-    expect(trigger.textContent).toContain('Weitere Formate');
+    expect(trigger.textContent).toContain('Blitzlicht-Einstellungen');
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(settings.hidden).toBe(true);
     expect(settings.querySelector('[data-testid="feedback-compare-round"]')).toBeNull();

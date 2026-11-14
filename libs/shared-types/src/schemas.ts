@@ -3950,10 +3950,13 @@ export const HostVoteProgressDTOSchema = z.object({
 });
 export type HostVoteProgressDTO = z.infer<typeof HostVoteProgressDTOSchema>;
 
+const KindergartenAnimalIdSchema = z.number().int().nonnegative().optional();
+
 /** Input: Einer Session beitreten (Story 3.1) */
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().trim().min(1).max(30),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   /**
    * Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder
    * Besitznachweis. Während des Service-Worker-Rollouts optional für gecachte
@@ -4346,6 +4349,7 @@ export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
   participantNumber: z.number().int().positive(),
   participantNickname: z.string().min(1).max(30),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   rejoinToken: OpaqueCapabilitySchema,
   /** Nur beim neuen Join oder bei nachgewiesenem Rejoin zurückgegeben. */
   productFeedbackClaimToken: z.string().min(32).max(128).nullable().optional(),
@@ -4774,6 +4778,7 @@ export type GetActiveQuizIdsInput = z.infer<typeof GetActiveQuizIdsInputSchema>;
 export const ParticipantDTOSchema = z.object({
   id: z.uuid(),
   nickname: z.string(),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   teamId: z.uuid().nullable().optional(),
   teamName: z.string().nullable().optional(),
 });
@@ -4905,6 +4910,7 @@ export type SessionTeamsPayload = z.infer<typeof SessionTeamsPayloadSchema>;
 export const LeaderboardEntryDTOSchema = z.object({
   rank: z.number(),
   nickname: z.string(),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   totalScore: z.number(), // Gesamtpunkte (Schwierigkeit × Zeitbonus)
   correctCount: z.number(), // Anzahl richtiger Antworten
   totalQuestions: z.number(), // Gesamtanzahl Fragen
@@ -6591,6 +6597,7 @@ export const QaQuestionDTOSchema = z.object({
    */
   passagesRedactedAt: z.string().datetime().optional(),
   authorNickname: z.string().min(1).max(30).optional(),
+  authorKindergartenAnimalId: KindergartenAnimalIdSchema,
   authorTeamName: z.string().trim().min(1).max(40).optional(),
   positiveVoteCount: z.number().int().min(0).optional(),
   negativeVoteCount: z.number().int().min(0).optional(),

@@ -399,7 +399,7 @@
         }
         @if (playerKindergartenEmoji(); as kEmoji) {
           <span class="vote-player-badge__kita-id">
-            <span class="vote-player-badge__emoji" aria-hidden="true">{{ kEmoji }}</span>
+            <img class="vote-player-badge__emoji" [src]="animalIconUrl(kEmoji)" alt="" />
             <span
               class="vote-player-badge__name vote-player-badge__name--kita"
               [attr.title]="playerNickname()"
@@ -528,7 +528,7 @@
           role="group"
           [attr.aria-label]="playerBadgeAriaLabel()"
         >
-          <span class="vote-lobby__kita-emoji" aria-hidden="true">{{ kitaEmoji }}</span>
+          <img class="vote-lobby__kita-emoji" [src]="animalIconUrl(kitaEmoji)" alt="" />
           <p class="vote-lobby__kita-identity">
             <span class="vote-lobby__kita-nick" [attr.title]="playerNickname()">{{
               playerNickname()
@@ -712,8 +712,11 @@
                     <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
                   </p>
                   <p class="vote-finished-winner__name">
-                    @if (leaderboardKindergartenEmoji(winner.nickname); as em) {
-                      <span class="vote-finished-winner__emoji" aria-hidden="true">{{ em }}</span>
+                    @if (
+                      leaderboardKindergartenEmoji(winner.nickname, winner.kindergartenAnimalId);
+                      as em
+                    ) {
+                      <img class="vote-finished-winner__emoji" [src]="animalIconUrl(em)" alt="" />
                     }
                     <span>{{ winner.nickname }}</span>
                     @if (winner.teamName; as teamName) {
@@ -769,10 +772,15 @@
                           {{ entry.rank }}
                         }
                       </span>
-                      @if (leaderboardKindergartenEmoji(entry.nickname); as em) {
-                        <span class="vote-finished-leaderboard__emoji" aria-hidden="true">{{
-                          em
-                        }}</span>
+                      @if (
+                        leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
+                        as em
+                      ) {
+                        <img
+                          class="vote-finished-leaderboard__emoji"
+                          [src]="animalIconUrl(em)"
+                          alt=""
+                        />
                       }
                     </span>
                     <span class="vote-finished-leaderboard__name">{{ entry.nickname }}</span>
@@ -2993,7 +3001,7 @@
                   }
                   <div class="session-qa-card__body">
                     <div class="session-qa-card__status-row">
-                      @if (qaAuthorKindergartenBadgeLabel(question); as authorBadge) {
+                      @if (qaAuthorKindergartenBadge(question); as authorBadge) {
                         <button
                           type="button"
                           class="session-qa-card__author-icon session-qa-card__author-icon--button"
@@ -3005,7 +3013,14 @@
                           [attr.title]="qaQuestionAuthorNickname(question)"
                           (click)="toggleQaAuthorSelection(qaQuestionAuthorNickname(question))"
                         >
-                          <span aria-hidden="true">{{ authorBadge }}</span>
+                          <img
+                            class="session-qa-card__author-animal"
+                            [src]="animalIconUrl(authorBadge.emoji)"
+                            alt=""
+                          />
+                          @if (authorBadge.sequence; as sequence) {
+                            <span aria-hidden="true">{{ sequence }}</span>
+                          }
                         </button>
                       } @else if (qaQuestionAuthorNickname(question); as authorNickname) {
                         <button

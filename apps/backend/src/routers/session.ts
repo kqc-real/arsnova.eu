@@ -1828,6 +1828,7 @@ const sessionParticipantsQuerySelect = Prisma.validator<Prisma.SessionSelect>()(
     select: {
       id: true,
       nickname: true,
+      kindergartenAnimalId: true,
       teamId: true,
       joinedAt: true,
       team: { select: { name: true } },
@@ -1921,6 +1922,7 @@ async function buildSessionParticipantsPayload(
         : session.participants.map((p) => ({
             id: p.id,
             nickname: p.nickname,
+            kindergartenAnimalId: p.kindergartenAnimalId ?? undefined,
             teamId: p.teamId ?? null,
             teamName: p.team?.name ?? null,
           })),
@@ -1967,6 +1969,7 @@ async function buildSessionParticipantSummary(
         : session.participants.slice(0, SESSION_LOBBY_RECENT_ARRIVALS_MAX).map((participant) => ({
             id: participant.id,
             nickname: participant.nickname,
+            kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
             teamId: participant.teamId ?? null,
             teamName: participant.team?.name ?? null,
             joinedAt: participant.joinedAt.toISOString(),
@@ -7477,6 +7480,7 @@ const sessionCoreRouter = router({
           select: {
             id: true,
             nickname: true,
+            kindergartenAnimalId: true,
             teamId: true,
             joinedAt: true,
             team: { select: { name: true } },
@@ -7502,6 +7506,7 @@ const sessionCoreRouter = router({
         participants: pageRows.map((participant) => ({
           id: participant.id,
           nickname: participant.nickname,
+          kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
           teamId: participant.teamId ?? null,
           teamName: participant.team?.name ?? null,
           joinedAt: participant.joinedAt.toISOString(),
@@ -7657,6 +7662,7 @@ const sessionCoreRouter = router({
         select: {
           id: true,
           nickname: true,
+          kindergartenAnimalId: true,
           teamId: true,
           timerAccommodation: true,
           team: { select: { name: true } },
@@ -7673,6 +7679,7 @@ const sessionCoreRouter = router({
       return {
         id: participant.id,
         nickname: participant.nickname,
+        kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
         teamId: participant.teamId ?? null,
         teamName: participant.team?.name ?? null,
         timerAccommodation,
@@ -10583,6 +10590,7 @@ const sessionCoreRouter = router({
             tx,
             sessionId: session.id,
             requestedNickname: trimmedNickname,
+            kindergartenAnimalId: input.kindergartenAnimalId,
             assignedTeamId: selectedTeamId,
             autoTeamIds,
             requireAssignedTeamForNew,
@@ -10666,6 +10674,7 @@ const sessionCoreRouter = router({
         participantId,
         participantNumber: preparedJoin.participantNumber,
         participantNickname: preparedJoin.nickname,
+        kindergartenAnimalId: preparedJoin.kindergartenAnimalId,
         rejoinToken: preparedJoin.rejoinCapability,
         productFeedbackClaimToken,
         teamId: assignedTeamId ?? null,
@@ -10696,6 +10705,7 @@ const sessionCoreRouter = router({
             select: {
               id: true,
               nickname: true,
+              kindergartenAnimalId: true,
               team: { select: { name: true, color: true } },
             },
           },
@@ -10780,6 +10790,7 @@ const sessionCoreRouter = router({
           p.id,
           {
             nickname: p.nickname,
+            kindergartenAnimalId: p.kindergartenAnimalId ?? undefined,
             teamName: p.team?.name ?? null,
             teamColor: p.team?.color ?? null,
           },
@@ -10792,6 +10803,7 @@ const sessionCoreRouter = router({
           return {
             rank: 0,
             nickname: meta?.nickname ?? '?',
+            kindergartenAnimalId: meta?.kindergartenAnimalId,
             totalScore: Number(s.totalScore) || 0,
             correctCount: s.correctCount,
             totalQuestions: totalScoredQuestions,

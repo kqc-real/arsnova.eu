@@ -320,13 +320,11 @@
     ),
     color-mix(in srgb, var(--mat-sys-surface-container-high) 88%, transparent);
   box-shadow: 0 0.65rem 1.4rem color-mix(in srgb, black 12%, transparent);
-  font-size: clamp(4rem, 13vw, 6.15rem);
-  line-height: 1;
 }
 
 .feedback-vote__context-kita-emoji {
-  font-size: inherit;
-  line-height: 1;
+  inline-size: clamp(4rem, 13vw, 6.15rem);
+  block-size: clamp(4rem, 13vw, 6.15rem);
 }
 
 .feedback-vote__context-kita-sequence {

@@ -6919,7 +6919,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Weitere Formate</source>
+        <source>Blitzlicht-Einstellungen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -18198,7 +18198,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.addChannel" datatype="html">
-        <source>Format hinzufügen</source>
+        <source>Session erweitern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">258</context>
@@ -18212,7 +18212,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.addChannelPending" datatype="html">
-        <source>Format wird vorbereitet …</source>
+        <source>Session wird erweitert …</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">315</context>

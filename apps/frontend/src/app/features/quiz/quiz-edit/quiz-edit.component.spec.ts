@@ -200,9 +200,11 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     )!;
     expect(header.getAttribute('aria-expanded')).toBe('false');
 
-    header.click();
+    header.focus();
+    header.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 }));
     fixture.detectChanges();
     expect(header.getAttribute('aria-expanded')).toBe('true');
+    expect(document.activeElement).toBe(header);
     const editor = host.querySelector<HTMLTextAreaElement>('#quiz-edit-description')!;
     expect(editor.value).toBe(description);
     editor.value += '\nErgänzung';

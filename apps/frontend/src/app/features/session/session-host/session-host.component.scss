@@ -2566,6 +2566,7 @@
 
 .session-qa-card__author-icon {
   display: inline-flex;
+  gap: 0.25rem;
   align-items: center;
   justify-content: center;
   min-width: 2.35rem;
@@ -2585,6 +2586,12 @@
     color 180ms,
     box-shadow 180ms,
     opacity 180ms;
+}
+
+.session-qa-card__author-animal {
+  inline-size: 1rem;
+  block-size: 1rem;
+  flex-shrink: 0;
 }
 
 .session-qa-card__author-icon--button {
@@ -3402,21 +3409,29 @@
   z-index: 1;
 }
 
-.session-lobby__team-member--landed-echo .session-lobby__nick-emoji--host-lobby {
+.session-lobby__nick-emoji--host-lobby {
   position: relative;
+  display: block;
+  inline-size: 3.75rem;
+  block-size: 3.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
 }
 
-.session-lobby__team-member--landed-echo .session-lobby__nick-emoji--host-lobby::after {
-  content: attr(data-echo-emoji);
+.session-lobby__animal-image {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.session-lobby__animal-echo {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
   opacity: 0.48;
   transform: translate(0.42rem, 0.16rem) scale(0.92);
   filter: blur(0.02rem);
   pointer-events: none;
-  color: color-mix(in srgb, var(--mat-sys-primary) 54%, transparent);
 
   @media (prefers-reduced-motion: no-preference) {
     animation: session-lobby-landed-echo-fade 420ms ease-out both;
@@ -3427,30 +3442,10 @@
   }
 }
 
-.session-lobby__nick-emoji {
-  font-size: 1.45rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-@media (min-width: 600px) {
-  .session-lobby__nick-emoji {
-    font-size: 1.65rem;
-  }
-}
-
-/* Kita: sehr große Symbole in der Host-Lobby (Teamliste / flache Liste). */
-.session-lobby__nick-emoji--host-lobby {
-  font-size: 3.75rem;
-  line-height: 1;
-  flex-shrink: 0;
-  cursor: pointer;
-  user-select: none;
-}
-
 @media (min-width: 600px) {
   .session-lobby__nick-emoji--host-lobby {
-    font-size: 5.25rem;
+    inline-size: 5.25rem;
+    block-size: 5.25rem;
   }
 }
 
@@ -4609,7 +4604,6 @@
 }
 
 .session-host__kindergarten-emoji {
-  line-height: 1;
   display: inline-block;
   flex-shrink: 0;
 }
@@ -4641,16 +4635,19 @@
 }
 
 .session-host__kindergarten-emoji--winner {
-  font-size: clamp(3.25rem, 9vw, 5.5rem);
+  inline-size: clamp(3.25rem, 9vw, 5.5rem);
+  block-size: clamp(3.25rem, 9vw, 5.5rem);
 }
 
 .session-host__kindergarten-emoji--table {
-  font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  inline-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  block-size: clamp(1.65rem, 3.5vw, 2.25rem);
   vertical-align: middle;
 }
 
 .session-host__kindergarten-emoji--interim {
-  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  inline-size: clamp(1.75rem, 4vw, 2.4rem);
+  block-size: clamp(1.75rem, 4vw, 2.4rem);
   vertical-align: middle;
 }
 

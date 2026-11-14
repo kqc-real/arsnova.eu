@@ -7826,8 +7826,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Weitere Formate</source>
-        <target>Altri formati</target>
+        <source>Blitzlicht-Einstellungen</source>
+        <target>Impostazioni del sondaggio rapido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -20482,8 +20482,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.addChannel" datatype="html">
-        <source>Format hinzufügen</source>
-        <target>Aggiungi formato</target>
+        <source>Session erweitern</source>
+        <target>Amplia la sessione</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">258</context>
@@ -20498,8 +20498,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.addChannelPending" datatype="html">
-        <source>Format wird vorbereitet …</source>
-        <target>Preparazione del formato…</target>
+        <source>Session wird erweitert …</source>
+        <target>Ampliamento della sessione…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">315</context>

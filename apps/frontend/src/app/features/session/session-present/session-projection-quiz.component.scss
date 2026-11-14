@@ -1773,6 +1773,12 @@ mat-icon.session-projection-quiz__rating-pole-icon {
   line-height: 1;
 }
 
+img.session-projection-quiz__leaderboard-emoji {
+  flex: 0 0 auto;
+  inline-size: clamp(2.05rem, 4.2vmin, 3.25rem);
+  block-size: clamp(2.05rem, 4.2vmin, 3.25rem);
+}
+
 .session-projection-quiz__leaderboard-name {
   flex: 1 1 auto;
   min-width: 0;
@@ -1870,6 +1876,11 @@ mat-icon.session-projection-quiz__rating-pole-icon {
   .session-projection-quiz__leaderboard-medal--bronze,
   .session-projection-quiz__leaderboard-emoji {
     font-size: 1.25rem;
+  }
+
+  img.session-projection-quiz__leaderboard-emoji {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
   }
 
   .session-projection-quiz__leaderboard-rank,

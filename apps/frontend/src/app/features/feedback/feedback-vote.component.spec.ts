@@ -215,7 +215,7 @@ describe('FeedbackVoteComponent', () => {
     const emoji = avatar?.querySelector('.feedback-vote__context-kita-emoji');
     const sequence = avatar?.querySelector('.feedback-vote__context-kita-sequence');
     expect(avatar?.classList.contains('feedback-vote__context-kita-avatar--numbered')).toBe(true);
-    expect(emoji?.textContent?.trim()).toBe('🦫');
+    expect(emoji?.getAttribute('src')).toMatch(/emoji_u1f9ab\.svg$/);
     expect(sequence?.textContent?.trim()).toBe('6');
     fixture.destroy();
   });
