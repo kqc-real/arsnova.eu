@@ -706,15 +706,37 @@ for (const animals of Object.values(KINDERGARTEN_ANIMALS)) {
   }
 }
 
+const LEGACY_PICKER_NICKNAME_MAX_LENGTH = 30;
 const legacyAnimalsByName = new Map<string, { animalId: number; name: string }>();
+const ambiguousLegacyNames = new Set<string>();
+
+function registerLegacyAnimal(
+  legacyName: string,
+  animal: { animalId: number; name: string },
+): void {
+  if (ambiguousLegacyNames.has(legacyName)) return;
+  const existing = legacyAnimalsByName.get(legacyName);
+  if (existing && existing.animalId !== animal.animalId) {
+    legacyAnimalsByName.delete(legacyName);
+    ambiguousLegacyNames.add(legacyName);
+    return;
+  }
+  if (!existing) legacyAnimalsByName.set(legacyName, animal);
+}
+
 for (const locale of APP_LOCALES) {
   const languageIndex = APP_LOCALES.indexOf(locale);
   for (const [animalId, legacyName] of LEGACY_KINDERGARTEN_NICKNAMES[locale].entries()) {
     const currentName =
       updatedNames[animalId]?.[languageIndex] ?? KINDERGARTEN_NICKNAMES_BY_ID[locale][animalId];
-    if (currentName && !legacyAnimalsByName.has(legacyName)) {
-      legacyAnimalsByName.set(legacyName, { animalId, name: currentName });
-    }
+    if (!currentName) continue;
+    const animal = { animalId, name: currentName };
+    registerLegacyAnimal(legacyName, animal);
+    // Der Vorgänger-Client kürzte den ausgewählten Picker-Namen vor dem Join auf 30 Zeichen.
+    registerLegacyAnimal(
+      legacyName.trim().slice(0, LEGACY_PICKER_NICKNAME_MAX_LENGTH).trim(),
+      animal,
+    );
   }
 }
 

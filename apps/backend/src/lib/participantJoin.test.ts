@@ -180,6 +180,39 @@ describe('prepareParticipantJoin', () => {
     );
   });
 
+  it('normalisiert einen vom gecachten Vorgänger-Picker gekürzten Namen', async () => {
+    const tx = createTx();
+    tx.participant.create.mockImplementation(async ({ data }) => ({
+      id: PARTICIPANT_ID,
+      ...data,
+      teamId: null,
+      timerAccommodation: 'DEFAULT',
+      team: null,
+    }));
+
+    const result = await prepareParticipantJoin({
+      tx: tx as never,
+      sessionId: SESSION_ID,
+      requestedNickname: 'Chameau de Bactriane couleur d',
+      profile: {
+        allowCustomNicknames: false,
+        anonymousMode: false,
+        nicknameTheme: 'KINDERGARTEN',
+      },
+      joinIdempotencyKey: 'join-key-truncated-legacy-picker-abcdefghijklmnop',
+    });
+
+    expect(result).toMatchObject({ nickname: 'Chameau de Bactriane 1', kindergartenAnimalId: 90 });
+    expect(tx.participant.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          nickname: 'Chameau de Bactriane 1',
+          kindergartenAnimalId: 90,
+        }),
+      }),
+    );
+  });
+
   it('speichert das gewählte Walbild und zählt beide Motive gemeinsam', async () => {
     const tx = createTx();
     tx.participant.create.mockImplementation(async ({ data }) => ({
