@@ -1,4 +1,5 @@
 import { DecimalPipe, DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
+import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import {
   Component,
   DestroyRef,
@@ -1920,17 +1921,25 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly quizCanOpenFollowingQuestion = computed(() =>
     presenterCanOpenFollowingQuestion(this.presentedQuizQuestion()),
   );
-  readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
-  readonly winningTeam = computed(() => this.teamLeaderboard()[0] ?? null);
+  private readonly personalLeaderboardPlaces = computed(() =>
+    withPresenterPlaces(this.personalLeaderboard()),
+  );
+  private readonly teamLeaderboardPlaces = computed(() =>
+    withPresenterPlaces(this.teamLeaderboard()),
+  );
+  readonly personalLeaderboardWinner = computed(() => {
+    const [first, second] = this.personalLeaderboardPlaces();
+    return second?.place === 1 ? null : (first ?? null);
+  });
+  readonly winningTeam = computed(() => {
+    const [first, second] = this.teamLeaderboardPlaces();
+    return this.teamScoreboardHasPoints() && second?.place !== 1 ? first : null;
+  });
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
-  readonly teamLeaderboardTopScore = computed(() => {
-    const board = this.teamLeaderboard();
-    if (board.length === 0) return 0;
-    return Math.max(...board.map((e) => e.totalScore));
-  });
-  readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
+  readonly teamScoreboardHasPoints = computed(() => leaderboardHasPoints(this.teamLeaderboard()));
+  readonly teamPodiumMedals = ['🥇', '🥈', '🥉'] as const;
   /** Ab dieser Länge wird die Boardliste mehrspaltig, damit alle Einträge auf der Projektion bleiben. */
   private static readonly BOARD_OVERFLOW_COUNT = 8;
   readonly personalBoardOverflows = computed(
@@ -1971,10 +1980,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   readonly visiblePersonalLeaderboard = computed(() =>
-    SessionPresentComponent.pageSlice(this.personalLeaderboard(), this.personalBoardPageIndex()),
+    SessionPresentComponent.pageSlice(
+      this.personalLeaderboardPlaces(),
+      this.personalBoardPageIndex(),
+    ),
   );
   readonly visibleTeamLeaderboard = computed(() =>
-    SessionPresentComponent.pageSlice(this.teamLeaderboard(), this.teamBoardPageIndex()),
+    SessionPresentComponent.pageSlice(this.teamLeaderboardPlaces(), this.teamBoardPageIndex()),
   );
   readonly personalBoardPageCount = computed(() =>
     SessionPresentComponent.pageCountForTotal(this.personalLeaderboard().length),

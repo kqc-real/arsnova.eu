@@ -172,10 +172,12 @@
           </div>
         </div>
       } @else {
-        @if (personalLeaderboardWinner() || showTeamFinish()) {
+        @if (personalLeaderboardWinner() || (showTeamFinish() && winningTeam())) {
           <div
             class="session-present__finish-hero"
-            [class.session-present__finish-hero--with-teams]="showTeamFinish()"
+            [class.session-present__finish-hero--with-teams]="
+              personalLeaderboardWinner() && showTeamFinish() && winningTeam()
+            "
           >
             @if (personalLeaderboardWinner(); as winner) {
               <mat-card
@@ -306,12 +308,6 @@
               >
                 Leaderboard
               </h2>
-              <p class="session-present__board-hint">
-                <mat-icon aria-hidden="true">timer</mat-icon>
-                <span i18n="@@sessionHost.leaderboardTiebreakHint"
-                  >Bei Punktgleichheit entscheidet die schnellere Antwortzeit.</span
-                >
-              </p>
               @if (personalBoardPageCount() > 1) {
                 <div
                   class="session-present__board-page-controls"
@@ -366,35 +362,35 @@
                 ) {
                   <li
                     class="session-present__board-item"
-                    [class.session-present__board-item--champion]="entry.rank === 1"
-                    [class.session-present__board-item--silver]="entry.rank === 2"
-                    [class.session-present__board-item--bronze]="entry.rank === 3"
+                    [class.session-present__board-item--champion]="entry.place === 1"
+                    [class.session-present__board-item--silver]="entry.place === 2"
+                    [class.session-present__board-item--bronze]="entry.place === 3"
                   >
                     <span class="session-present__board-lead">
                       <span class="session-present__board-rank">
-                        @if (entry.rank === 1) {
+                        @if (entry.place === 1) {
                           <span
                             class="session-present__board-medal session-present__board-medal--gold"
                             aria-hidden="true"
                             >🥇</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 2) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 2) {
                           <span
                             class="session-present__board-medal session-present__board-medal--silver"
                             aria-hidden="true"
                             >🥈</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 3) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 3) {
                           <span
                             class="session-present__board-medal session-present__board-medal--bronze"
                             aria-hidden="true"
                             >🥉</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
+                          <span class="sr-only">{{ entry.place }}</span>
                         } @else {
-                          {{ entry.rank }}
+                          {{ entry.place }}
                         }
                       </span>
                       @if (leaderboardKindergartenEmoji(entry.nickname); as emoji) {
@@ -497,15 +493,21 @@
                   <li
                     class="session-present__team-board-item"
                     [class.session-present__team-board-item--winner]="
-                      teamScoreboardHasPoints() && entry.rank === 1
+                      teamScoreboardHasPoints() && entry.place === 1
                     "
                   >
                     <div class="session-present__team-board-head">
                       <span
                         class="session-present__team-board-rank"
                         [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
-                        >{{ teamLeaderboardRankDisplay(entry.rank) }}</span
                       >
+                        @if (teamScoreboardHasPoints() && entry.place <= 3) {
+                          <span aria-hidden="true">{{ teamPodiumMedals[entry.place - 1] }}</span>
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else {
+                          {{ teamLeaderboardRankDisplay(entry.place) }}
+                        }
+                      </span>
                       <span class="session-present__team-board-name">
                         @if (teamNameEmojiMarker(entry.teamName); as teamEmoji) {
                           <span class="session-present__team-board-emoji" aria-hidden="true">{{
@@ -1599,9 +1601,9 @@
               [disabledInteractive]="true"
               (click)="revealPresenterAnswers()"
               i18n-aria-label="@@sessionHost.revealAnswerOptionsAria"
-              aria-label="Antwortoptionen freigeben"
+              aria-label="Antwortphase starten"
             >
-              <span i18n="@@sessionHost.revealAnswerOptions">Antwortoptionen freigeben</span>
+              <span i18n="@@sessionHost.revealAnswerOptions">Antwortphase starten</span>
             </button>
           }
           @if (session()?.status === 'ACTIVE' && quizOfferDiscussion()) {

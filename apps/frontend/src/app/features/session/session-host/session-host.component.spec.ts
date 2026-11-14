@@ -17622,7 +17622,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Lies die Frage zuerst.');
     expect(el.textContent).toContain('Lesephase');
-    expect(el.textContent).toContain('Antwortoptionen freigeben');
+    expect(el.textContent).toContain('Antwortphase starten');
     const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
       exitAnchorButtonLabel(button),
@@ -17631,7 +17631,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       1,
     );
-    expect(buttonTexts).toEqual(['Antwortoptionen freigeben', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Antwortphase starten', 'Weitere Aktionen']);
     expect(
       exitAnchor.querySelector('.session-host__exit-anchor-label--reveal-options-compact')
         ?.textContent,
@@ -17640,7 +17640,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       exitAnchor
         .querySelector('.session-host__exit-anchor-button--reveal-options')
         ?.getAttribute('aria-label'),
-    ).toBe('Antwortoptionen freigeben');
+    ).toBe('Antwortphase starten');
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();
   });
@@ -17677,7 +17677,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.textContent).toContain('Antwortoptionen freigeben');
+    expect(host.textContent).toContain('Antwortphase starten');
     const { menu } = await openHostMoreActions(fixture);
     expect(menu.textContent).toContain('Frage auslassen');
     fixture.debugElement
@@ -17696,7 +17696,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(buttonTexts).toContain('Zur Startseite');
-    expect(host.textContent).not.toContain('Antwortoptionen freigeben');
+    expect(host.textContent).not.toContain('Antwortphase starten');
     expect(host.textContent).not.toContain('Frage auslassen');
     expect(host.textContent).not.toContain('Nächste Frage');
     expect(host.textContent).not.toContain('Letztes Ergebnis');
@@ -17716,7 +17716,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.componentInstance.selectChannel('quiz');
     fixture.detectChanges();
 
-    expect(host.textContent).toContain('Antwortoptionen freigeben');
+    expect(host.textContent).toContain('Antwortphase starten');
     const reopened = await openHostMoreActions(fixture);
     expect(reopened.menu.textContent).toContain('Frage auslassen');
     fixture.destroy();
@@ -17770,7 +17770,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('2 von 2 bereit');
     expect(el.textContent).toContain(
-      'Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
+      'Alle Teilnehmenden sind bereit. Du kannst die Antwortphase starten.',
     );
 
     fixture.destroy();
@@ -20166,7 +20166,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('1 von 1 verbunden bereit');
     expect(text).toContain('501 insgesamt');
     expect(text).toContain(
-      'Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
+      'Alle verbundenen Teilnehmenden sind bereit. Du kannst die Antwortphase starten.',
     );
     fixture.destroy();
   });
@@ -22226,7 +22226,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const revealButtonWhilePending = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
-    ).find((button) => (button.textContent ?? '').includes('Antwortoptionen freigeben'));
+    ).find((button) => (button.textContent ?? '').includes('Antwortphase starten'));
     expect(component.controlPending()).toBe(false);
     expect(component.quizStartQuestionPending()).toBe(true);
     expect(revealButtonWhilePending).toBeUndefined();
@@ -22238,7 +22238,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const revealButton = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
-    ).find((button) => (button.textContent ?? '').includes('Antwortoptionen freigeben'));
+    ).find((button) => (button.textContent ?? '').includes('Antwortphase starten'));
     expect(component.quizStartQuestionPending()).toBe(false);
     expect(revealButton).toBeTruthy();
     expect(revealButton?.disabled).toBe(false);

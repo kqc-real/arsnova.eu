@@ -165,6 +165,8 @@ Jedes Quiz kann folgende Metadaten besitzen:
 - optionales Motivbild per URL oder Asset-Pfad inkl. optionalem Bildnachweis
 
 Die Beschreibung und Fragetexte unterstützen **Markdown** und **KaTeX**.
+Im Quiz-Editor ist **Titel & Beschreibung** bei langen Beschreibungen zunächst
+eingeklappt. Zum Bearbeiten lässt sich der Bereich jederzeit öffnen.
 
 ### 3.4 Unterstützte Fragetypen
 
@@ -346,6 +348,7 @@ Der Host sieht zusätzlich:
 - Emoji-Reaktionen
 - Rangliste
 - Team-Rangliste
+- In der Presenter-Ergebnisansicht sind richtige Antwortoptionen grün hinterlegt und mit einem Häkchen markiert.
 - Presenter-Reihenfolge: In jeder Ergebnisphase folgt die Rangliste als eigene letzte
   Projektionsseite auf alle fachlichen Ergebnisfolien; das Abschluss-Leaderboard ist
   nach dem Sessionende die terminale Präsentationsseite.

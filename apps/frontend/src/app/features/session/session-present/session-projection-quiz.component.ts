@@ -1,4 +1,5 @@
 import { ProjectionPagesComponent } from './projection-pages.component';
+import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import { DecimalPipe } from '@angular/common';
 import {
   Component,
@@ -34,6 +35,7 @@ import { extractEdgeEmoji, stripEdgeEmojiMarker } from '../../../shared/emoji-sh
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
 import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
+import { questionReadingHint } from '../../../shared/question-reading-hint';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import {
   categorizationCorrectColumns,
@@ -558,6 +560,13 @@ export class SessionProjectionQuizComponent {
     return $localize`:@@sessionPresent.numericMaxDecimalPlaces:maximal ${maxDecimalPlaces}:maxDecimalPlaces: Nachkommastellen.`;
   });
 
+  readonly readingHint = computed(() => {
+    const type = this.question()?.type;
+    return type
+      ? $localize`:@@sessionPresent.quizReadingHint:Lesephase – ${questionReadingHint(type)}:hint:`
+      : '';
+  });
+
   phaseLabel(): string {
     const status = this.status();
     if (status === 'QUESTION_OPEN') {
@@ -828,6 +837,13 @@ export class SessionProjectionQuizComponent {
 
   /** Podium nach einer Frage. Der Rest steht im Abschluss-Leaderboard. */
   readonly leaderboardPreviewLimit = 5;
+  readonly leaderboardPreview = computed(() =>
+    withPresenterPlaces(this.leaderboard().slice(0, this.leaderboardPreviewLimit)),
+  );
+  readonly teamLeaderboardPreview = computed(() =>
+    withPresenterPlaces(this.teamLeaderboard().slice(0, this.leaderboardPreviewLimit)),
+  );
+  readonly teamScoreboardHasPoints = computed(() => leaderboardHasPoints(this.teamLeaderboard()));
 
   leaderboardTopSliceLabel(total: number): string {
     const limit = this.leaderboardPreviewLimit;

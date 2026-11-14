@@ -2,10 +2,10 @@
 
 ## Verhalten und Verträge
 
-Die bestehende Host-Aktion öffnet weiterhin den geschützten Presenter. Der
-Startdialog erklärt den Projektionsbildschirm und die getrennte Host-Steuerung;
-Smartphone-Kopplung bleibt optional. Das Vollbild-Overlay lässt den aktuellen
-Inhalt als Kontext erkennen.
+Die bestehende Host-Aktion öffnet den geschützten Presenter. Der Startdialog
+bietet neben dem direkten Start die optionale Smartphone-Kopplung unter
+**Mit Smartphone steuern** an. Das Vollbild-Overlay lässt den aktuellen Inhalt
+als Kontext erkennen.
 
 `app-projection-pages` misst gerenderten Inhalt auf der tatsächlichen Fläche.
 Absätze und Codezeilen bilden bevorzugte Seitengrenzen; Formeln, Bilder und
@@ -60,6 +60,15 @@ Seite** blättern von Hand, **Automatisch** setzt den Wechsel fort. Voting,
 Timer, Ergebnisfreigabe und effektive Wertungsrunde
 bleiben unabhängig von der Seite.
 
+Zwischen- und Abschlussleaderboard vergeben Plätze und Medaillen nach den
+angezeigten Punkten. Punktgleiche Einträge teilen sich den besten von ihnen
+belegten Platz. Danach folgt die nächste freie Position, etwa 1, 1, 3. Die
+serverseitige Sortierung innerhalb gleicher Punktzahlen bleibt erhalten.
+Bei einem geteilten ersten Platz entfällt die einzelne Siegerkarte für diese
+Wertung.
+Solange alle Teams bei null Punkten stehen, zeigt der Presenter die Teamwerte
+ohne Plätze, Medaillen oder Hervorhebung der Führung.
+
 In der Quiz-Statuszeile stehen der Lesefortschritt (»x von y bereit«) und
 **Alle sind bereit**, sobald alle Teilnehmenden der Session bereit sind. Während
 der Abstimmung bleiben Prozent und »n / m«. **Alle haben abgestimmt** erscheint
@@ -69,8 +78,9 @@ noch aussteht. Persönliche Zeitfenster, deren Anzahl und **Trotzdem freigeben**
 bleiben auf dem Host. Die betroffenen Presenter-Knöpfe sind dann deaktiviert
 und der Presenter sagt, dass die Fenster noch laufen und der Host sie schließt.
 
-Der Footer zeigt je Phase genau die nächste Aktion: **Antwortoptionen
-freigeben**, **Ergebnis zeigen**, bei Peer-Instruction-Empfehlung zusätzlich
+In der Lesephase kündigt der Hinweis die zum Fragetyp passende Antwortform an.
+Der Footer zeigt je Phase genau die nächste Aktion: **Antwortphase
+starten**, **Ergebnis zeigen**, bei Peer-Instruction-Empfehlung zusätzlich
 **Diskussionsphase**, in der Diskussion **Zweite Abstimmung** und den
 ausdrücklich beschrifteten Weg ohne zweite Abstimmung, danach **Nächste Frage**
 oder **Zur Gesamtauswertung**. **Quiz pausieren** steht daneben in Lese- und

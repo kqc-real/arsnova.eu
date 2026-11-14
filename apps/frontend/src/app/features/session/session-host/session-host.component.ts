@@ -9899,9 +9899,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   readingReadyReleaseHint(connectedCount: number, totalParticipantCount: number): string {
     if (connectedCount >= totalParticipantCount) {
-      return $localize`:@@sessionHost.readingReadyReleaseHintAll:Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.`;
+      return $localize`:@@sessionHost.readingReadyReleaseHintAll:Alle Teilnehmenden sind bereit. Du kannst die Antwortphase starten.`;
     }
-    return $localize`:@@sessionHost.readingReadyReleaseHintConnected:Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.`;
+    return $localize`:@@sessionHost.readingReadyReleaseHintConnected:Alle verbundenen Teilnehmenden sind bereit. Du kannst die Antwortphase starten.`;
   }
 
   effectiveCurrentQuestion(): number | null {

@@ -17619,14 +17619,6 @@
           <context context-type="linenumber">326</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="presentationStart.screenHint" datatype="html">
-        <source> Öffne die Präsentation auf dem Projektionsbildschirm.</source>
-        <target>Apri la presentazione sullo schermo di proiezione.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
-          <context context-type="linenumber">13,16</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="presentationStart.loadingAdmin" datatype="html">
         <source> Verbindungsmöglichkeiten werden geladen …</source>
         <target>Caricamento delle opzioni di connessione…</target>
@@ -21150,11 +21142,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingBannerHint" datatype="html">
-        <source> Antwortoptionen folgen gleich.</source>
-        <target>Le opzioni di risposta arrivano tra un attimo.</target>
+        <source> Gib den Teilnehmenden Zeit zum Lesen. </source>
+        <target>Lascia il tempo di leggere la domanda.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1784,1786</context>
+          <context context-type="linenumber">1852,1853</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.ratingScaleAria" datatype="html">
@@ -22822,19 +22814,27 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.revealAnswerOptionsAria" datatype="html">
-        <source>Antwortoptionen freigeben</source>
-        <target>Mostra opzioni di risposta</target>
+        <source>Antwortphase starten</source>
+        <target>Avvia la fase di risposta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5612</context>
+          <context context-type="linenumber">5753,5756</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1602,1604</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.revealAnswerOptions" datatype="html">
-        <source>Antwortoptionen freigeben</source>
-        <target>Mostra opzioni di risposta</target>
+        <source>Antwortphase starten</source>
+        <target>Avvia la fase di risposta</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5617</context>
+          <context context-type="linenumber">5758,5761</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1604,1607</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.startDiscussionPhaseAria" datatype="html">
@@ -25120,19 +25120,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingReadyReleaseHintAll" datatype="html">
-        <source>Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.</source>
-        <target>Tutte le persone partecipanti sono pronte: le opzioni di risposta possono essere mostrate.</target>
+        <source>Alle Teilnehmenden sind bereit. Du kannst die Antwortphase starten.</source>
+        <target>Tutti sono pronti. Puoi avviare la fase di risposta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8996</context>
+          <context context-type="linenumber">9902</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingReadyReleaseHintConnected" datatype="html">
-        <source>Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.</source>
-        <target>Tutte le persone partecipanti collegate sono pronte: le opzioni di risposta possono essere mostrate.</target>
+        <source>Alle verbundenen Teilnehmenden sind bereit. Du kannst die Antwortphase starten.</source>
+        <target>Tutte le persone collegate sono pronte. Puoi avviare la fase di risposta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8998</context>
+          <context context-type="linenumber">9904</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.countdownAriaOne" datatype="html">
@@ -27276,15 +27276,11 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizReadingHint" datatype="html">
-        <source>Lesephase – Antwortoptionen folgen gleich.</source>
-        <target> Fase di lettura: le opzioni di risposta arrivano subito dopo. </target>
+        <source>Lesephase – <x id="hint" equiv-text="questionReadingHint(type)"/></source>
+        <target>Fase di lettura – <x id="hint" equiv-text="questionReadingHint(type)"/></target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
-          <context context-type="linenumber">113</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
-          <context context-type="linenumber">135</context>
+          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.ts</context>
+          <context context-type="linenumber">565</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizRatingWaiting" datatype="html">
@@ -28612,8 +28608,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingTitlePlayful" datatype="html">
-        <source>Erst lesen, dann abstimmen</source>
-        <target>Prima leggi, poi vota</target>
+        <source>Erst lesen, dann antworten</source>
+        <target>Prima leggi, poi rispondi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">265</context>
@@ -28625,22 +28621,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">267</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionVote.readingHintPlayful" datatype="html">
-        <source>Nimm dir einen Moment – die Antwortoptionen kommen gleich.</source>
-        <target>Prenditi un momento: le opzioni di risposta arrivano presto.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">272</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionVote.readingHintSerious" datatype="html">
-        <source>Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.</source>
-        <target>Leggi attentamente la domanda: le opzioni di risposta seguiranno a breve.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingReadyCtaPlayful" datatype="html">
@@ -36996,6 +36976,86 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">300</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.singleChoice" datatype="html">
+        <source>Gleich wählst du eine Antwort aus.</source>
+        <target>Tra poco sceglierai una risposta.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.multipleChoice" datatype="html">
+        <source>Gleich wählst du alle zutreffenden Antworten aus.</source>
+        <target>Tra poco selezionerai tutte le risposte pertinenti.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.survey" datatype="html">
+        <source>Gleich kannst du deine Auswahl treffen.</source>
+        <target>Tra poco potrai fare la tua scelta.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.rating" datatype="html">
+        <source>Gleich wählst du einen Wert auf der Skala.</source>
+        <target>Tra poco sceglierai un valore sulla scala.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.numericEstimate" datatype="html">
+        <source>Gleich gibst du deinen Schätzwert ein.</source>
+        <target>Tra poco inserirai la tua stima.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.shortText" datatype="html">
+        <source>Gleich gibst du eine kurze Antwort ein.</source>
+        <target>Tra poco inserirai una risposta breve.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.freeText" datatype="html">
+        <source>Gleich kannst du deine Antwort frei formulieren.</source>
+        <target>Tra poco potrai rispondere con parole tue.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.matching" datatype="html">
+        <source>Gleich ordnest du zusammengehörige Elemente einander zu.</source>
+        <target>Tra poco abbinerai gli elementi che vanno insieme.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.ordering" datatype="html">
+        <source>Gleich bringst du die Elemente in die richtige Reihenfolge.</source>
+        <target>Tra poco metterai gli elementi nell’ordine corretto.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.categorization" datatype="html">
+        <source>Gleich ordnest du jedes Element einer Kategorie zu.</source>
+        <target>Tra poco assegnerai ogni elemento a una categoria.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
     </body>

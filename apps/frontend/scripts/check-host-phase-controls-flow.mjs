@@ -35,35 +35,35 @@ const CASES = [
 ];
 const LABELS = {
   de: [
-    'Antwortoptionen freigeben',
+    'Antwortphase starten',
     'Zur Gesamtauswertung',
     'Vollbild',
     'App-Rahmen',
     'Weitere Aktionen',
   ],
   en: [
-    'Reveal answer options',
+    'Start accepting answers',
     'To the overall results',
     'Full screen',
     'App frame',
     'More actions',
   ],
   fr: [
-    'Afficher les options de réponse',
+    'Lancer la phase de réponse',
     'Vers le bilan',
     'Plein écran',
     'Cadre de l’application',
     'Autres actions',
   ],
   es: [
-    'Mostrar opciones de respuesta',
+    'Iniciar la fase de respuesta',
     'Ir al resumen general',
     'Pantalla completa',
     'Marco de la aplicación',
     'Más acciones',
   ],
   it: [
-    'Mostra opzioni di risposta',
+    'Avvia la fase di risposta',
     'Vai alla sintesi',
     'Schermo intero',
     'Cornice dell’app',

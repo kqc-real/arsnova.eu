@@ -139,9 +139,7 @@
                 <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"
                   >menu_book</mat-icon
                 >
-                <span i18n="@@sessionPresent.quizReadingHint"
-                  >Lesephase – Antwortoptionen folgen gleich.</span
-                >
+                <span>{{ readingHint() }}</span>
               </p>
             }
           </div>
@@ -161,9 +159,7 @@
                 <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"
                   >menu_book</mat-icon
                 >
-                <span i18n="@@sessionPresent.quizReadingHint"
-                  >Lesephase – Antwortoptionen folgen gleich.</span
-                >
+                <span>{{ readingHint() }}</span>
               </p>
             } @else if (q.type === 'RATING') {
               <div class="session-projection-quiz__rating">
@@ -810,39 +806,36 @@
                 </p>
               }
               <ol class="session-projection-quiz__leaderboard-list">
-                @for (
-                  entry of leaderboard().slice(0, leaderboardPreviewLimit);
-                  track entry.rank + ':' + entry.nickname
-                ) {
+                @for (entry of leaderboardPreview(); track entry.rank + ':' + entry.nickname) {
                   <li
                     class="session-projection-quiz__leaderboard-item"
-                    [class.session-projection-quiz__leaderboard-item--lead]="entry.rank === 1"
+                    [class.session-projection-quiz__leaderboard-item--lead]="entry.place === 1"
                   >
                     <div class="session-projection-quiz__leaderboard-row">
                       <strong class="session-projection-quiz__leaderboard-rank">
-                        @if (entry.rank === 1) {
+                        @if (entry.place === 1) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
                             aria-hidden="true"
                             >🥇</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 2) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 2) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--silver"
                             aria-hidden="true"
                             >🥈</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 3) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 3) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--bronze"
                             aria-hidden="true"
                             >🥉</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
+                          <span class="sr-only">{{ entry.place }}</span>
                         } @else {
-                          {{ entry.rank }}
+                          {{ entry.place }}
                         }
                       </strong>
                       @if (leaderboardNicknameEmoji(entry.nickname); as emoji) {
@@ -901,39 +894,43 @@
                 </p>
               }
               <ol class="session-projection-quiz__leaderboard-list">
-                @for (
-                  entry of teamLeaderboard().slice(0, leaderboardPreviewLimit);
-                  track entry.rank + ':' + entry.teamName
-                ) {
+                @for (entry of teamLeaderboardPreview(); track entry.rank + ':' + entry.teamName) {
                   <li
                     class="session-projection-quiz__leaderboard-item"
-                    [class.session-projection-quiz__leaderboard-item--lead]="entry.rank === 1"
+                    [class.session-projection-quiz__leaderboard-item--lead]="
+                      teamScoreboardHasPoints() && entry.place === 1
+                    "
                   >
                     <div class="session-projection-quiz__leaderboard-row">
-                      <strong class="session-projection-quiz__leaderboard-rank">
-                        @if (entry.rank === 1) {
+                      <strong
+                        class="session-projection-quiz__leaderboard-rank"
+                        [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
+                      >
+                        @if (!teamScoreboardHasPoints()) {
+                          —
+                        } @else if (entry.place === 1) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
                             aria-hidden="true"
                             >🥇</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 2) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 2) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--silver"
                             aria-hidden="true"
                             >🥈</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 3) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 3) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--bronze"
                             aria-hidden="true"
                             >🥉</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
+                          <span class="sr-only">{{ entry.place }}</span>
                         } @else {
-                          {{ entry.rank }}
+                          {{ entry.place }}
                         }
                       </strong>
                       @if (teamNameEmoji(entry.teamName); as teamEmoji) {

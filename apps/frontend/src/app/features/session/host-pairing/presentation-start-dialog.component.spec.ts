@@ -116,6 +116,9 @@ describe('PresentationStartDialogComponent', () => {
       current.nativeElement.querySelector('.dialog-title-header app-presenter-icon'),
     ).not.toBeNull();
     expect(current.nativeElement.textContent).toContain('Mit Smartphone steuern');
+    expect(current.nativeElement.textContent).not.toContain(
+      'Öffne die Präsentation auf dem Projektionsbildschirm.',
+    );
     const phone = current.nativeElement.querySelector(
       '[data-testid="presentation-start-phone"]',
     ) as HTMLDetailsElement | null;
@@ -226,6 +229,7 @@ describe('PresentationStartDialogComponent', () => {
   it('lässt den Start zu, wenn Pairing nicht verfügbar ist', async () => {
     listPairedHostsMock.mockRejectedValue(new Error('FORBIDDEN'));
     const current = await render();
+    expect(current.nativeElement.querySelector('mat-dialog-content')).toBeNull();
     expect(
       current.nativeElement.querySelector('[data-testid="presentation-start-connect"]'),
     ).toBeNull();

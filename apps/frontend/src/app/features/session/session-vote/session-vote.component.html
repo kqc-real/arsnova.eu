@@ -1163,7 +1163,7 @@
               <p class="vote-reading-banner__title">
                 {{ vpc.voteReadingTitle(isPlayfulPreset()) }}
               </p>
-              <p class="vote-reading-banner__hint">{{ vpc.voteReadingHint(isPlayfulPreset()) }}</p>
+              <p class="vote-reading-banner__hint">{{ questionReadingHint(q.type) }}</p>
               @if (readingReadyConfirmed()) {
                 <p class="vote-reading-banner__ready vote-reading-banner__ready--done">
                   <mat-icon aria-hidden="true">check_circle</mat-icon>

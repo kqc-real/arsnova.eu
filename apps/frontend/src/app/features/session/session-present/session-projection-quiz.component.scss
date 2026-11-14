@@ -693,7 +693,11 @@ mat-icon.session-projection-quiz__reading-icon {
 }
 
 .session-projection-quiz__answer--correct {
-  outline: none;
+  background: light-dark(
+    color-mix(in srgb, var(--arsnova-bar-correct) 22%, var(--mat-sys-surface-container-lowest)),
+    color-mix(in srgb, var(--arsnova-bar-correct) 46%, var(--mat-sys-surface-container-lowest))
+  );
+  color: var(--mat-sys-on-surface);
 }
 
 .session-projection-quiz__answer-correct-icon {
@@ -875,6 +879,11 @@ mat-icon.session-projection-quiz__reading-icon {
 .session-projection-quiz__round-bar-label--r2,
 .session-projection-quiz__round-bar-pct--r2 {
   color: var(--mat-sys-primary);
+}
+
+.session-projection-quiz__answer--correct
+  :is(.session-projection-quiz__round-bar-label, .session-projection-quiz__round-bar-pct) {
+  color: inherit;
 }
 
 .session-projection-quiz__bar-fill--r1 {
@@ -1083,6 +1092,14 @@ mat-icon.session-projection-quiz__rating-pole-icon {
   text-shadow:
     0 1px 2px var(--mat-sys-surface),
     0 0 0.25rem var(--mat-sys-surface);
+}
+
+.session-projection-quiz__answer--correct .session-projection-quiz__bar-value {
+  place-self: center;
+  padding: 0.1em 0.4em;
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-lowest);
+  text-shadow: none;
 }
 
 .session-projection-quiz__histogram {
