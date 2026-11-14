@@ -1,24 +1,32 @@
--- Entwurf für die Ankündigung der neuen Presenter-Steuerung.
--- Die feste ID übernimmt einen bereits lokal angelegten Entwurf ohne Duplikat.
+-- Die Presenter-Ankündigung erscheint für sieben Tage ab der Auslieferung.
+-- Ein vorhandener Entwurf wird mit seinen vorhandenen Texten veröffentlicht.
 
 BEGIN;
 
-WITH draft AS (
+WITH publication AS (
+  SELECT CURRENT_TIMESTAMP AT TIME ZONE 'UTC' AS starts_at
+), published AS (
   INSERT INTO "Motd" (
     "id", "status", "priority", "startsAt", "endsAt", "visibleInArchive",
     "contentVersion", "templateId", "createdAt", "updatedAt"
-  ) VALUES (
-    '138b06dd-5b1f-4f49-8516-19abc962a8d6', 'DRAFT', 0,
-    '2026-11-14 10:07:37.361'::timestamp(3),
-    '2026-11-21 10:07:37.361'::timestamp(3),
-    false, 1, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
   )
-  ON CONFLICT ("id") DO NOTHING
+  SELECT
+    '138b06dd-5b1f-4f49-8516-19abc962a8d6', 'PUBLISHED'::"MotdStatus", 130,
+    starts_at, starts_at + INTERVAL '7 days',
+    false, 1, NULL, starts_at, starts_at
+  FROM publication
+  ON CONFLICT ("id") DO UPDATE SET
+    "status" = EXCLUDED."status",
+    "priority" = EXCLUDED."priority",
+    "startsAt" = EXCLUDED."startsAt",
+    "endsAt" = EXCLUDED."endsAt",
+    "updatedAt" = EXCLUDED."updatedAt"
+  WHERE "Motd"."status" = 'DRAFT'
   RETURNING "id"
 )
 INSERT INTO "MotdLocale" ("id", "motdId", "locale", "markdown")
-SELECT gen_random_uuid()::text, draft."id", content.locale, content.markdown
-FROM draft
+SELECT gen_random_uuid()::text, published."id", content.locale, content.markdown
+FROM published
 CROSS JOIN (VALUES
   ('de', $mdde$## Neu auf der Bühne
 
@@ -65,6 +73,7 @@ Stai preparando un quiz per la prossima lezione o per il tuo prossimo intervento
 - **Riconosci a colpo d’occhio le risposte corrette.** Quando mostri i risultati, le opzioni corrette vengono evidenziate in verde.
 
 Avvia la presentazione dalla tua sessione e prova queste novità al prossimo quiz.$mdit$)
-) AS content(locale, markdown);
+) AS content(locale, markdown)
+ON CONFLICT ("motdId", "locale") DO NOTHING;
 
 COMMIT;
