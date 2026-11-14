@@ -20,12 +20,10 @@ describe('lobbyTextGridLayout', () => {
     expect(lobbyTextGridLayout(8, 240, 540, 6, 6, 4, 16).fontSize).toBeGreaterThan(team.fontSize);
   });
 
-  it('keeps a single column inside the available width for an overlong name', () => {
-    expect(lobbyTextGridLayout(50, 100, 150, 6, 6, 10, 20)).toEqual({
-      columns: 1,
-      fontSize: 20,
-      minColumnWidth: 0,
-    });
+  it('verdichtet lange Namen auf genügend Spalten und hält sie innerhalb der Breite', () => {
+    const packed = lobbyTextGridLayout(50, 641, 426, 4, 4, 30, 16);
+    expect(packed.columns).toBeGreaterThanOrEqual(5);
+    expect(packed).toMatchObject({ fontSize: 16, minColumnWidth: 0 });
     expect(lobbyTextGridLayout(1, 320, 500, 6, 6, 30, 16)).toMatchObject({
       columns: 1,
       minColumnWidth: 0,
