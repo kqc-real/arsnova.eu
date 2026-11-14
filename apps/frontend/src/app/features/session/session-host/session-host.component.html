@@ -257,7 +257,7 @@
               [disabledInteractive]="true"
             >
               <mat-icon aria-hidden="true">add</mat-icon>
-              <span i18n="@@sessionHost.addChannel">Format hinzufügen</span>
+              <span i18n="@@sessionHost.addChannel">Session erweitern</span>
             </button>
           }
           @if (activeChannelVisibilityActionLabel(); as visibilityActionLabel) {
@@ -317,10 +317,10 @@
 
     <p class="session-host__channel-status" role="status">
       @if (channelNavigationBusy()) {
-        <span i18n="@@sessionHost.addChannelPending">Format wird vorbereitet …</span>
+        <span i18n="@@sessionHost.addChannelPending">Session wird erweitert …</span>
       }
     </p>
-    <mat-menu #addChannelMenu="matMenu">
+    <mat-menu #addChannelMenu="matMenu" class="session-host__add-channel-menu">
       @for (channel of addableChannels(); track channel) {
         <button
           mat-menu-item
@@ -842,20 +842,31 @@
                             track participant.id;
                             let isFirst = $first
                           ) {
-                            <li
-                              class="session-lobby__team-member"
-                              [class.session-lobby__team-member--landed-echo]="
-                                isFirst && teamLandingEchoActive(team.id)
-                              "
-                            >
-                              @if (lobbyKindergartenEmoji(participant.nickname); as em) {
+                            <li class="session-lobby__team-member">
+                              @if (
+                                lobbyKindergartenEmoji(
+                                  participant.nickname,
+                                  participant.kindergartenAnimalId
+                                );
+                                as em
+                              ) {
                                 <span
                                   class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
-                                  [attr.data-echo-emoji]="em"
                                   [attr.title]="participant.nickname"
                                   aria-hidden="true"
-                                  >{{ em }}</span
-                                >
+                                  ><img
+                                    class="session-lobby__animal-image"
+                                    [src]="animalIconUrl(em)"
+                                    alt=""
+                                  />
+                                  @if (isFirst && teamLandingEchoActive(team.id)) {
+                                    <img
+                                      class="session-lobby__animal-image session-lobby__animal-echo"
+                                      [src]="animalIconUrl(em)"
+                                      alt=""
+                                    />
+                                  }
+                                </span>
                                 <span class="sr-only">{{ participant.nickname }}</span>
                               } @else {
                                 <span>{{ participant.nickname }}</span>
@@ -884,13 +895,13 @@
               >
                 @for (p of lobbyParticipantsNewestFirst(); track p.id) {
                   <li class="session-lobby__list-item session-lobby__list-item--chip">
-                    @if (lobbyKindergartenEmoji(p.nickname); as em) {
+                    @if (lobbyKindergartenEmoji(p.nickname, p.kindergartenAnimalId); as em) {
                       <span
                         class="session-lobby__nick-emoji session-lobby__nick-emoji--host-lobby"
                         [attr.title]="p.nickname"
                         aria-hidden="true"
-                        >{{ em }}</span
-                      >
+                        ><img class="session-lobby__animal-image" [src]="animalIconUrl(em)" alt=""
+                      /></span>
                       <span class="sr-only">{{ p.nickname }}</span>
                     } @else {
                       <span>{{ p.nickname }}</span>
@@ -1296,16 +1307,19 @@
                         </p>
                         <p class="session-host__leaderboard-winner-name">
                           <span class="session-host__leaderboard-winner-name-line">
-                            @if (lobbyKindergartenEmoji(leader.nickname); as em) {
+                            @if (
+                              lobbyKindergartenEmoji(leader.nickname, leader.kindergartenAnimalId);
+                              as em
+                            ) {
                               <span
                                 class="session-host__kindergarten-entry session-host__kindergarten-entry--winner"
                               >
-                                <span
+                                <img
                                   class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
                                   [attr.title]="leader.nickname"
-                                  aria-hidden="true"
-                                  >{{ em }}</span
-                                >
+                                  [src]="animalIconUrl(em)"
+                                  alt=""
+                                />
                                 <span class="session-host__kindergarten-label">{{
                                   leader.nickname
                                 }}</span>
@@ -1395,16 +1409,22 @@
                               <td class="session-host__lb-col--name">
                                 <span class="session-host__lb-name-line">
                                   <span class="session-host__lb-name-main">
-                                    @if (lobbyKindergartenEmoji(entry.nickname); as em) {
+                                    @if (
+                                      lobbyKindergartenEmoji(
+                                        entry.nickname,
+                                        entry.kindergartenAnimalId
+                                      );
+                                      as em
+                                    ) {
                                       <span
                                         class="session-host__kindergarten-entry session-host__kindergarten-entry--table"
                                       >
-                                        <span
+                                        <img
                                           class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
                                           [attr.title]="entry.nickname"
-                                          aria-hidden="true"
-                                          >{{ em }}</span
-                                        >
+                                          [src]="animalIconUrl(em)"
+                                          alt=""
+                                        />
                                         <span class="session-host__kindergarten-label">{{
                                           entry.nickname
                                         }}</span>
@@ -3624,16 +3644,19 @@
                         <span class="session-host__interim-name">
                           <span class="session-host__interim-name-line">
                             <span class="session-host__interim-name-main">
-                              @if (lobbyKindergartenEmoji(entry.nickname); as em) {
+                              @if (
+                                lobbyKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
+                                as em
+                              ) {
                                 <span
                                   class="session-host__kindergarten-entry session-host__kindergarten-entry--interim"
                                 >
-                                  <span
+                                  <img
                                     class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
                                     [attr.title]="entry.nickname"
-                                    aria-hidden="true"
-                                    >{{ em }}</span
-                                  >
+                                    [src]="animalIconUrl(em)"
+                                    alt=""
+                                  />
                                   <span class="session-host__kindergarten-label">{{
                                     entry.nickname
                                   }}</span>
@@ -5106,7 +5129,7 @@
                       >
                         <div class="session-qa-card__head">
                           <div class="session-qa-card__head-main">
-                            @if (qaAuthorKindergartenBadgeLabel(question); as authorBadge) {
+                            @if (qaAuthorKindergartenBadge(question); as authorBadge) {
                               <button
                                 type="button"
                                 class="session-qa-card__author-icon session-qa-card__author-icon--button"
@@ -5120,7 +5143,14 @@
                                   toggleQaAuthorSelection(qaQuestionAuthorNickname(question))
                                 "
                               >
-                                <span aria-hidden="true">{{ authorBadge }}</span>
+                                <img
+                                  class="session-qa-card__author-animal"
+                                  [src]="animalIconUrl(authorBadge.emoji)"
+                                  alt=""
+                                />
+                                @if (authorBadge.sequence; as sequence) {
+                                  <span aria-hidden="true">{{ sequence }}</span>
+                                }
                               </button>
                             } @else if (qaQuestionAuthorNickname(question); as authorNickname) {
                               <button
@@ -5474,7 +5504,12 @@
         </div>
       }
     </div>
-    @if (showHostViewControls() && activeChannel() === 'quiz' && projectionControlsOffered()) {
+    @if (
+      activeChannel() === 'quiz' &&
+      effectiveStatus() !== 'FINISHED' &&
+      showHostViewControls() &&
+      projectionControlsOffered()
+    ) {
       <div class="session-host__quiz-tools">
         <section
           class="session-host__display-tools"

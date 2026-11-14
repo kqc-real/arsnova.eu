@@ -1,3 +1,4 @@
+import { animalIconUrl } from '../../shared/animal-icon-url';
 import {
   Component,
   ElementRef,
@@ -18,8 +19,15 @@ import { MatInput } from '@angular/material/input';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatOption } from '@angular/material/core';
 import { refreshTrpcWsBinding, trpc } from '../../core/trpc.client';
-import { isQaOpenForParticipants, type SessionInfoDTO, type TeamDTO } from '@arsnova/shared-types';
-import type { NicknameTheme } from '@arsnova/shared-types';
+import {
+  getKindergartenAnimalId,
+  isQaOpenForParticipants,
+  KINDERGARTEN_ANIMALS,
+  KINDERGARTEN_NICKNAMES_BY_ID,
+  type NicknameTheme,
+  type SessionInfoDTO,
+  type TeamDTO,
+} from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../core/locale-from-path';
 import { formatLocaleCount } from '../../core/locale-number.util';
 import {
@@ -34,10 +42,7 @@ import {
   getGeneratedNicknameFallbackList,
   getNicknameList,
 } from './nickname-themes';
-import {
-  findKindergartenNicknameEmoji,
-  kindergartenEmojiAtIndex,
-} from './kindergarten-nickname-icons';
+import { findKindergartenNicknameEmoji } from './kindergarten-nickname-icons';
 import {
   UpdateBannerSuppressionService,
   bindUpdateBannerSuppression,
@@ -61,6 +66,7 @@ import {
   clearJoinIdempotencyKey,
   getOrCreateJoinIdempotencyKey,
   getParticipantCapability,
+  storeParticipantAnimalId,
   storeParticipantCapability,
 } from '../../core/participant-session-access';
 
@@ -104,6 +110,8 @@ function toParticipantNicknameKey(value: string): string {
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './join.component.scss'],
 })
 export class JoinComponent implements OnInit, OnDestroy {
+  readonly animalIconUrl = animalIconUrl;
+
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -166,14 +174,27 @@ export class JoinComponent implements OnInit, OnDestroy {
     const s = this.session();
     if (!s) return false;
     const theme = (s.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
-    return areOriginalNicknamesExhausted(theme, this.locale, this.takenNicknames());
+    return (
+      theme !== 'KINDERGARTEN' &&
+      areOriginalNicknamesExhausted(theme, this.locale, this.takenNicknames())
+    );
   });
+
+  private readonly kindergartenOptions = new Map(
+    KINDERGARTEN_ANIMALS[this.locale].map((animal) => [
+      animal.animalId === getKindergartenAnimalId(animal.name)
+        ? animal.name
+        : `animal-${animal.animalId}`,
+      animal,
+    ]),
+  );
 
   /** Reserve-Pool erst dann, wenn die Ursprungsliste vollständig erschöpft ist. */
   readonly nicknameOptions = computed(() => {
     const s = this.session();
     if (!s) return [];
     const theme = (s.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
+    if (theme === 'KINDERGARTEN') return [...this.kindergartenOptions.keys()];
     if (!this.nicknameFallbackActive()) {
       return this.originalNicknameOptions();
     }
@@ -210,33 +231,31 @@ export class JoinComponent implements OnInit, OnDestroy {
 
   readonly kindergartenEmojiForSelected = computed((): string | null => {
     if (!this.isKindergartenNicknameTheme()) return null;
-    const nick = this.selectedNickname().trim();
-    return nick ? findKindergartenNicknameEmoji(nick) : null;
+    return this.kindergartenEmojiForOption(this.selectedNickname());
   });
 
   readonly nicknameSelectPanelClass = computed((): string[] =>
     this.isKindergartenNicknameTheme() ? ['join-nickname-select-panel'] : [],
   );
 
-  kindergartenEmojiForOptionIndex(index: number): string {
-    if (!this.isKindergartenNicknameTheme()) return '';
-    return kindergartenEmojiAtIndex(index) ?? '';
+  kindergartenEmojiForOption(option: string): string | null {
+    if (!this.isKindergartenNicknameTheme()) return null;
+    const animal = this.kindergartenOptions.get(option);
+    return animal ? findKindergartenNicknameEmoji(animal.name, this.locale, animal.animalId) : null;
   }
 
-  kindergartenEmojiForOption(option: string, index: number): string {
-    if (!this.isKindergartenNicknameTheme()) return '';
-    return findKindergartenNicknameEmoji(option) ?? this.kindergartenEmojiForOptionIndex(index);
+  nicknameOptionLabel(option: string): string {
+    return this.isKindergartenNicknameTheme()
+      ? (this.kindergartenOptions.get(option)?.name ?? option)
+      : option;
   }
 
-  /** Barrierefreie Beschriftung der Option (bei Kita inkl. Emoji-Info für Screenreader). */
-  nicknameOptionAriaLabel(option: string, index: number): string {
-    const taken = this.isTaken(option) ? ` ${this.takenSuffix()}` : '';
-    if (!this.isKindergartenNicknameTheme()) {
-      return `${option}${taken}`;
-    }
-    const em = this.kindergartenEmojiForOption(option, index);
-    const prefix = em ? `${em} ` : '';
-    return `${prefix}${option}${taken}`;
+  nicknameOptionAriaLabel(option: string): string | null {
+    if (!this.isKindergartenNicknameTheme()) return null;
+    const animal = this.kindergartenOptions.get(option);
+    return animal
+      ? (KINDERGARTEN_NICKNAMES_BY_ID[this.locale][animal.animalId] ?? animal.name)
+      : option;
   }
 
   /** Eigenes Namensfeld nur wenn der Host eigene Nicks erlaubt (Preset: eigener Name). */
@@ -298,7 +317,7 @@ export class JoinComponent implements OnInit, OnDestroy {
     }
     const custom = toParticipantNickname(this.customNickname());
     if (custom.length > 0) return custom;
-    return toParticipantNickname(this.selectedNickname());
+    return toParticipantNickname(this.nicknameOptionLabel(this.selectedNickname()));
   });
 
   anonymousNickname(position: number): string {
@@ -532,7 +551,10 @@ export class JoinComponent implements OnInit, OnDestroy {
   }
 
   isTaken(nickname: string): boolean {
-    return this.takenNicknames().has(toParticipantNicknameKey(nickname));
+    return (
+      !this.isKindergartenNicknameTheme() &&
+      this.takenNicknames().has(toParticipantNicknameKey(nickname))
+    );
   }
 
   selectTeam(teamId: string): void {
@@ -607,6 +629,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, result.participantNickname);
         storeParticipantCapability(this.code, result.rejoinToken);
+        storeParticipantAnimalId(this.code, result.kindergartenAnimalId);
         clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, result.productFeedbackClaimToken);
         refreshTrpcWsBinding();
@@ -644,6 +667,9 @@ export class JoinComponent implements OnInit, OnDestroy {
       const result = await trpc.session.join.mutate({
         code: this.code,
         nickname,
+        ...(this.isKindergartenNicknameTheme() && {
+          kindergartenAnimalId: this.kindergartenOptions.get(this.selectedNickname())?.animalId,
+        }),
         anonymousClientId: getAnonymousClientId(),
         teamId: this.selectedTeamId().trim() || undefined,
         rejoinToken: this.getStoredRejoinToken(nickname),
@@ -655,6 +681,7 @@ export class JoinComponent implements OnInit, OnDestroy {
         localStorage.setItem(`${PARTICIPANT_STORAGE_KEY}-${this.code}`, result.participantId);
         localStorage.setItem(`${NICKNAME_STORAGE_KEY}-${this.code}`, result.participantNickname);
         storeParticipantCapability(this.code, result.rejoinToken);
+        storeParticipantAnimalId(this.code, result.kindergartenAnimalId);
         clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, result.productFeedbackClaimToken);
         refreshTrpcWsBinding();

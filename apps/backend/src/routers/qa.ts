@@ -112,6 +112,7 @@ type QaQuestionRecord = {
   nlpAnalyzedAt?: Date | null;
   participant?: {
     nickname?: string | null;
+    kindergartenAnimalId?: number | null;
     teamName?: string | null;
   } | null;
   authorNickname?: string | null;
@@ -542,7 +543,10 @@ function mapQaQuestion(
         }
       : {}),
     ...(question.participant?.nickname?.trim()
-      ? { authorNickname: question.participant.nickname.trim() }
+      ? {
+          authorNickname: question.participant.nickname.trim(),
+          authorKindergartenAnimalId: question.participant.kindergartenAnimalId ?? undefined,
+        }
       : {}),
     ...(question.participant?.teamName?.trim()
       ? { authorTeamName: question.participant.teamName.trim() }
@@ -566,6 +570,7 @@ type QaPageCursor = {
 
 type RankedQaQuestionRow = QaQuestionRecord & {
   authorNickname: string | null;
+  authorKindergartenAnimalId?: number | null;
   authorTeamName: string | null;
   myVote: 'UP' | 'DOWN' | null;
   positiveVoteCount: number;
@@ -1114,6 +1119,7 @@ async function buildQaQuestionPayloadFromDb(options: {
     SELECT
       question.*,
       participant."nickname" AS "authorNickname",
+      participant."kindergartenAnimalId" AS "authorKindergartenAnimalId",
       author_team."name" AS "authorTeamName",
       ${myVoteSelect} AS "myVote",
       page.status_bucket,
@@ -1209,7 +1215,11 @@ async function buildQaQuestionPayloadFromDb(options: {
         upvoteCount: Number(row.upvoteCount),
         participant:
           options.includeAuthorNickname && (row.authorNickname || row.authorTeamName)
-            ? { nickname: row.authorNickname, teamName: row.authorTeamName }
+            ? {
+                nickname: row.authorNickname,
+                kindergartenAnimalId: row.authorKindergartenAnimalId,
+                teamName: row.authorTeamName,
+              }
             : undefined,
         upvotes:
           options.participantId && row.myVote

@@ -202,32 +202,38 @@
                   @if (selectedNickname()) {
                     <span class="join-card__nick-option join-card__nick-option--trigger">
                       @if (isKindergartenNicknameTheme() && kindergartenEmojiForSelected(); as em) {
-                        <span
+                        <img
                           class="join-card__nick-emoji join-card__nick-emoji--trigger"
-                          aria-hidden="true"
-                          >{{ em }}</span
-                        >
+                          [src]="animalIconUrl(em)"
+                          alt=""
+                        />
                       }
-                      <span class="join-card__nick-option-text">{{ selectedNickname() }}</span>
+                      <span class="join-card__nick-option-text">{{
+                        nicknameOptionLabel(selectedNickname())
+                      }}</span>
                     </span>
                   }
                 </mat-select-trigger>
                 <mat-option value="" i18n>— Bitte wählen —</mat-option>
-                @for (opt of nicknameOptions(); track opt; let idx = $index) {
+                @for (opt of nicknameOptions(); track opt) {
                   <mat-option
                     [value]="opt"
+                    [attr.aria-label]="nicknameOptionAriaLabel(opt)"
                     [disabled]="isTaken(opt)"
                     [class.join-card__option--taken]="isTaken(opt)"
-                    [attr.aria-label]="nicknameOptionAriaLabel(opt, idx)"
                   >
                     <span class="join-card__nick-option">
-                      @if (isKindergartenNicknameTheme()) {
-                        <span class="join-card__nick-emoji" aria-hidden="true">{{
-                          kindergartenEmojiForOption(opt, idx)
-                        }}</span>
+                      @if (kindergartenEmojiForOption(opt); as emoji) {
+                        <img
+                          class="join-card__nick-emoji"
+                          [src]="animalIconUrl(emoji)"
+                          alt=""
+                          loading="lazy"
+                        />
                       }
                       <span class="join-card__nick-option-text"
-                        >{{ opt }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
+                        >{{ nicknameOptionLabel(opt)
+                        }}{{ isTaken(opt) ? ' ' + takenSuffix() : '' }}</span
                       >
                     </span>
                   </mat-option>

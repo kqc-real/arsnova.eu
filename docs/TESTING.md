@@ -132,7 +132,8 @@ RUN_PG_QA_MIGRATION_TESTS=1 \
   --run scripts/qa-scale-migration.test.ts
 ```
 
-Die Capability-Suite prüft atomare Teilnahme-Kennungen, Join-Replay,
+Die Capability-Suite prüft atomare Teilnahme-Kennungen, Tiernummern je
+Raum und Tier bei parallelen Beitritten, Join-Replay,
 sessiongebundenen Wiederbeitritt, Host-Credential-Rotation, Wiederherstellung
 nach Redis-Verlust und auditierten Widerruf. Die Q&A-Suite prüft die parallelen
 10./11.- und 25.000./25.001.-Grenzen, idempotenten Retry, physisches Delete,

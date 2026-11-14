@@ -406,13 +406,14 @@
   }
 
   &__nick-emoji {
-    font-size: 1.85rem;
-    line-height: 1;
+    inline-size: 1.85rem;
+    block-size: 1.85rem;
     flex-shrink: 0;
   }
 
   &__nick-emoji--trigger {
-    font-size: 1.55rem;
+    inline-size: 1.55rem;
+    block-size: 1.55rem;
     margin-inline-end: 0.35rem;
   }
 
@@ -493,11 +494,13 @@
 
 @media (min-width: 600px) {
   .join-card__nick-emoji {
-    font-size: 2.15rem;
+    inline-size: 2.15rem;
+    block-size: 2.15rem;
   }
 
   .join-card__nick-emoji--trigger {
-    font-size: 1.75rem;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
   }
 }
 

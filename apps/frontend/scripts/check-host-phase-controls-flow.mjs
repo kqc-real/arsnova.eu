@@ -435,6 +435,10 @@ async function runCase(browser, publicApi, quizId, sample) {
     await page.locator(PRIMARY).click();
     await waitForStatus(hostApi, code, 'FINISHED');
     await page.locator('#session-finished-heading').waitFor();
+    ensure(
+      (await page.getByTestId('open-presenter-view').count()) === 0,
+      'Finished quiz still offers the presenter entry.',
+    );
     await page.locator('.session-host__export-pdf-btn').waitFor();
     await page.locator('.session-host__leaderboard-card').first().waitFor();
     ensure(

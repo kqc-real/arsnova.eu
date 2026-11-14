@@ -11,6 +11,19 @@ import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
 import { NICKNAME_LISTS } from '../../join/nickname-themes';
+import { KINDERGARTEN_NICKNAME_EMOJIS } from '../../join/kindergarten-nickname-icons';
+import { animalIconUrl } from '../../../shared/animal-icon-url';
+
+it('liefert für jedes Tier-Pseudonym eine lokal gebündelte Vektorgrafik', () => {
+  for (const emoji of KINDERGARTEN_NICKNAME_EMOJIS) {
+    const assetPath = new URL(animalIconUrl(emoji), 'http://localhost').pathname.split(
+      '/assets/',
+    )[1]!;
+    const svg = readFileSync(resolve(process.cwd(), 'src/assets', assetPath), 'utf8');
+    expect(svg).toMatch(/<svg[\s\S]*?viewBox=/);
+    expect(svg).not.toMatch(/<(image|text)\b/);
+  }
+});
 
 const {
   liveQueryMock,
@@ -5121,9 +5134,9 @@ describe('SessionPresentComponent', () => {
     ].map((el) => (el.textContent ?? '').trim());
     expect(teamCounts.every((label) => label.includes('Mitglied'))).toBe(true);
     expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
-    ).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name').length).toBe(
+      2,
+    );
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team--crowd')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team--packed')).toBeNull();
     const sparseMembers = fixture.nativeElement.querySelector(
@@ -5182,17 +5195,14 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-audience--kindergarten[\s\S]*?\.session-present__lobby-team:not\(\.session-present__lobby-team--packed\)[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
+      /\.session-present__lobby-audience--kindergarten\s+:is\(\.session-present__lobby-team,\s*\.session-present__lobby-person-col\)\s+\.session-present__lobby-nick-icon \{\s*font-size:\s*min\(92cqh,\s*92cqw\)/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-person-col \{[\s\S]*?border:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?container-type:\s*size;/,
     );
-    expect(styles).toMatch(
-      /\.session-present__lobby-audience--kindergarten:not\(\.session-present__lobby-audience--packed\)[\s\S]*?\.session-present__lobby-person-col[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
-    );
   });
 
-  it('packt volle Teamspalten ohne Scroll und haelt Namen nur fuer den Screenreader', async () => {
+  it('zeigt Textpseudonyme auch bei größeren Teams sichtbar an', async () => {
     const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const participants = Array.from({ length: 30 }, (_, index) => ({
       id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
@@ -5234,16 +5244,15 @@ describe('SessionPresentComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const summary = fixture.nativeElement.querySelector(
-      '[data-testid="presenter-audience-summary"]',
-    );
-    expect(summary).not.toBeNull();
-    expect(summary.textContent).toContain('30');
     expect(
-      fixture.nativeElement.querySelector(
-        '.session-present__lobby-person-col, .session-present__lobby-team-members',
-      ),
+      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]'),
     ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name'),
+    ).toHaveLength(20);
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-text-name')?.textContent,
+    ).toContain('Person');
     fixture.destroy();
   });
 
@@ -5307,31 +5316,9 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it.each([
-    {
-      label: 'Mittelstufe',
-      nicknameTheme: 'MIDDLE_SCHOOL' as const,
-      anonymousMode: false,
-      icon: 'school',
-      themeClass: 'session-present__lobby-packed-identity--middle-school',
-    },
-    {
-      label: 'Oberstufe',
-      nicknameTheme: 'HIGH_SCHOOL' as const,
-      anonymousMode: false,
-      icon: 'school',
-      themeClass: 'session-present__lobby-packed-identity--high-school',
-    },
-    {
-      label: 'Nobelpreis',
-      nicknameTheme: 'NOBEL_LAUREATES' as const,
-      anonymousMode: false,
-      icon: 'military_tech',
-      themeClass: 'session-present__lobby-packed-identity--nobel',
-    },
-  ])(
-    'zeigt im Packed-Modus fuer $label höchstens 20 Theme-Icons mit stabilen Eingangsnummern',
-    async ({ nicknameTheme, anonymousMode }) => {
+  it.each(['PRIMARY_SCHOOL', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'NOBEL_LAUREATES'] as const)(
+    'zeigt die Textpseudonyme für %s bei 26 Teilnehmenden',
+    async (nicknameTheme) => {
       const participants = Array.from({ length: 26 }, (_, index) => ({
         id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
         nickname: `Person ${index + 1}`,
@@ -5348,12 +5335,12 @@ describe('SessionPresentComponent', () => {
         title: null,
         participantCount: participants.length,
         teamMode: false,
-        anonymousMode,
+        anonymousMode: false,
         nicknameTheme,
       });
       getParticipantSummaryQueryMock.mockResolvedValue({
         participantCount: participants.length,
-        recentArrivals: [...participants.slice(-20)].reverse(),
+        recentArrivals: [...participants].reverse(),
       });
       getTeamsQueryMock.mockResolvedValue({ teamCount: 0, teams: [] });
 
@@ -5367,9 +5354,11 @@ describe('SessionPresentComponent', () => {
         fixture.nativeElement.querySelector('.session-present__lobby-packed-identity'),
       ).toBeNull();
       expect(
-        fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]')
-          ?.textContent,
-      ).toContain('26');
+        fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]'),
+      ).toBeNull();
+      expect(
+        fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name'),
+      ).toHaveLength(26);
       fixture.destroy();
     },
   );
@@ -5465,12 +5454,12 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const icons = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLImageElement>(
         '.session-present__lobby-nick-icon',
       ),
-      (el) => (el.textContent ?? '').trim(),
+      (el) => el.src,
     );
-    expect(icons).toEqual(['🐉', '🐸']);
+    expect(icons).toEqual(['🐉', '🐸'].map(animalIconUrl));
     expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-mat-icon')).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.session-present__lobby-audience--kindergarten'),
@@ -5551,12 +5540,12 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.showLobbyProjection()).toBe(true);
     const icons = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLImageElement>(
         '.session-present__lobby-nick-icon',
       ),
-      (el) => (el.textContent ?? '').trim(),
+      (el) => el.src,
     );
-    expect(icons).toEqual(['🐉', '🐸']);
+    expect(icons).toEqual(['🐉', '🐸'].map(animalIconUrl));
     fixture.destroy();
   });
 
@@ -5653,39 +5642,46 @@ describe('SessionPresentComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
-    const summary = fixture.nativeElement.querySelector(
-      '[data-testid="presenter-audience-summary"]',
-    );
-    expect(summary).not.toBeNull();
-    expect(summary.textContent).toContain('20');
     expect(
-      fixture.nativeElement.querySelector(
-        '.session-present__lobby-person-col, .session-present__lobby-team-members',
-      ),
+      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]'),
     ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+    ).toHaveLength(2);
+    const placeholders = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder'),
+    ) as HTMLElement[];
+    expect(placeholders).toHaveLength(18);
+    expect(
+      placeholders.every(
+        (slot) => slot.getAttribute('aria-hidden') === 'true' && slot.childElementCount === 0,
+      ),
+    ).toBe(true);
     fixture.destroy();
   });
 
-  it('zeigt alle Kita-Tiere der Ankunftsliste statt nur 20 Icons', async () => {
+  it.each([31, 50, 51])('zeigt Tier-Icons bis 50 Teilnehmende (%i)', async (count) => {
     const teamA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const teamB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-    const names = NICKNAME_LISTS.KINDERGARTEN.slice(0, 40);
+    const names = NICKNAME_LISTS.KINDERGARTEN.slice(0, 25);
     const arrivals = [
       ...names.map((nickname, index) => ({
         id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
-        nickname: `${nickname} ${index + 1}`,
+        nickname: index === 0 ? 'Wal 1' : `${nickname} ${index + 1}`,
+        ...(index === 0 && { kindergartenAnimalId: 34 }),
         teamId: teamA,
         teamName: 'Äpfel',
       })),
       ...names.map((nickname, index) => ({
         id: `22222222-2222-4222-8222-${String(index + 1).padStart(12, '0')}`,
-        nickname: `${nickname} ${index + 41}`,
+        nickname: `${nickname} ${index + 1}`,
         teamId: teamB,
         teamName: 'Birnen',
       })),
       {
-        id: '11111111-1111-4111-8111-000000000041',
-        nickname: 'Roter Drache 81',
+        id: '11111111-1111-4111-8111-000000000026',
+        nickname: 'Wal 2',
+        kindergartenAnimalId: 34,
         teamId: teamA,
         teamName: 'Äpfel',
       },
@@ -5695,10 +5691,10 @@ describe('SessionPresentComponent', () => {
       serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
-      status: 'ACTIVE',
+      status: 'LOBBY',
       quizName: 'Team-Quiz',
       title: null,
-      participantCount: 81,
+      participantCount: count,
       teamMode: true,
       anonymousMode: false,
       nicknameTheme: 'KINDERGARTEN',
@@ -5706,14 +5702,14 @@ describe('SessionPresentComponent', () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     liveQueryMock.mockRejectedValue(new Error('no live freetext'));
     getParticipantSummaryQueryMock.mockResolvedValue({
-      participantCount: 81,
-      recentArrivals: arrivals,
+      participantCount: count,
+      recentArrivals: arrivals.slice(0, count),
     });
     getTeamsQueryMock.mockResolvedValue({
       teamCount: 2,
       teams: [
-        { id: teamA, name: 'Äpfel', color: '#c62828', memberCount: 41 },
-        { id: teamB, name: 'Birnen', color: '#1565c0', memberCount: 40 },
+        { id: teamA, name: 'Äpfel', color: '#c62828', memberCount: count === 51 ? 26 : 25 },
+        { id: teamB, name: 'Birnen', color: '#1565c0', memberCount: Math.min(25, count - 25) },
       ],
     });
 
@@ -5724,12 +5720,20 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon').length).toBe(
-      0,
+      count <= 50 ? count : 0,
     );
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]')
-        ?.textContent,
-    ).toContain('81');
+    expect(!!fixture.nativeElement.querySelector('img[src$="emoji_u1f433.svg"]')).toBe(count <= 50);
+    const summary = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-audience-summary"]',
+    );
+    if (count <= 50) {
+      expect(summary).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('.session-present__lobby-nick[title="Drache 1"]'),
+      ).not.toBeNull();
+    } else {
+      expect(summary?.textContent).toContain('51');
+    }
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
     ).toBe(0);
@@ -5831,9 +5835,9 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-person-col').length,
     ).toBe(2);
-    expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
-    ).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name').length).toBe(
+      2,
+    );
     expect(
       fixture.nativeElement.querySelector('.session-present__lobby-stage--solo-join'),
     ).toBeNull();
@@ -5903,7 +5907,7 @@ describe('SessionPresentComponent', () => {
     ]);
     expect(fixture.nativeElement.textContent).toContain('Luna');
     expect(
-      fixture.nativeElement.querySelector('.session-present__lobby-nick-text')?.textContent,
+      fixture.nativeElement.querySelector('.session-present__lobby-text-name')?.textContent,
     ).not.toContain('Milo');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-foyer')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeTruthy();
@@ -5917,7 +5921,7 @@ describe('SessionPresentComponent', () => {
       'Luna',
     ]);
     expect(
-      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text')].map((node) =>
+      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name')].map((node) =>
         (node.textContent ?? '').trim(),
       ),
     ).toEqual(['Milo', 'Luna']);
@@ -5982,6 +5986,10 @@ describe('SessionPresentComponent', () => {
     expect(chip?.kind).toBe('emoji-only');
     expect(chip?.text).toBe('');
     expect(chip?.emoji).toBeTruthy();
+    expect(chip?.emojiImageUrl).toBe(animalIconUrl('🐸'));
+    expect(
+      fixture.nativeElement.querySelector('.foyer-entrance-layer__chip-emoji-image')?.src,
+    ).toBe(animalIconUrl('🐸'));
     expect(chip?.fullLabel).toBe('Grüner Frosch 1');
     expect(
       fixture.nativeElement.querySelector('.foyer-entrance-layer__chip--emoji-only'),
@@ -6075,7 +6083,7 @@ describe('SessionPresentComponent', () => {
       fixture.componentInstance.lobbyTeamsView()[0]?.members.map((member) => member.nickname),
     ).toEqual(['Luna']);
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team-foyer')).toBeTruthy();
-    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text').length).toBe(
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name').length).toBe(
       1,
     );
 
@@ -6087,7 +6095,7 @@ describe('SessionPresentComponent', () => {
       fixture.componentInstance.lobbyTeamsView()[0]?.members.map((member) => member.nickname),
     ).toEqual(['Milo', 'Luna']);
     expect(
-      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text')].map((node) =>
+      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name')].map((node) =>
         (node.textContent ?? '').trim(),
       ),
     ).toEqual(['Milo', 'Luna']);

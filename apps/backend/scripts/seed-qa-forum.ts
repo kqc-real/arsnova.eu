@@ -30,6 +30,7 @@ import { randomUUID } from 'crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { format } from 'node:util';
+import { KINDERGARTEN_NICKNAMES } from '@arsnova/shared-types';
 import { promptChoice, resolveSessionCode } from './lib/prompt-session-code';
 import {
   buildSemanticQaQuestionTexts,
@@ -90,113 +91,7 @@ const DEFAULT_PARTICIPANT_COUNT = SPACY_WORDCLOUD_SEED_PARTICIPANT_COUNT;
 const PARTICIPANT_PREFIX = 'QA Seed';
 const MAX_QUESTION_COUNT = 500;
 const MAX_PARTICIPANT_COUNT = 250;
-const KINDERGARTEN_SEED_NICKNAMES = [
-  'Roter Drache',
-  'Grüner Frosch',
-  'Gelber Löwe',
-  'Lila Delfin',
-  'Oranger Fuchs',
-  'Rosa Schmetterling',
-  'Türkiser Wal',
-  'Brauner Bär',
-  'Schwarzer Panther',
-  'Weißer Hase',
-  'Grauer Wolf',
-  'Goldene Auster',
-  'Silberner Dodo',
-  'Bunter Papagei',
-  'Hellblauer Schwan',
-  'Dunkelgrüne Schlange',
-  'Zitronengelbe Biene',
-  'Pfirsichfarbenes Pferd',
-  'Mintgrüne Eidechse',
-  'Korallenroter Krebs',
-  'Himmelblauer Marienkäfer',
-  'Olivgrüne Maus',
-  'Beiger Igel',
-  'Lachsfarbener Flamingo',
-  'Lavendelblaue Eule',
-  'Senfgelber Hahn',
-  'Tannengrüner Biber',
-  'Apfelgrüne Raupe',
-  'Maulwurfsgrauer Hamster',
-  'Kastanienbrauner Pavian',
-  'Salbeigrünes Krokodil',
-  'Terrakottafarbener Dachs',
-  'Smaragdgrüne Libelle',
-  'Safrangelber Vogel',
-  'Indigoblauer Wal',
-  'Magenta Schildkröte',
-  'Petrolfarbener Fisch',
-  'Vanillefarbenes Lamm',
-  'Türkisfarbener Hund',
-  'Korallenfarbene Katze',
-  'Himmelblaue Giraffe',
-  'Zitronengrünes Zebra',
-  'Kupferfarbener Tiger',
-  'Moosgrüner Koala',
-  'Kirschroter Waschbär',
-  'Saphirblaues Nilpferd',
-  'Sandfarbenes Nashorn',
-  'Jadegrünes Lama',
-  'Sonnengelbe Ziege',
-  'Nebelgrauer Widder',
-  'Brombeerfarbene Kuh',
-  'Tannengrünes Schwein',
-  'Honigfarbener Eber',
-  'Petrolblaue Ente',
-  'Cremefarbene Taube',
-  'Rubinfarbener Adler',
-  'Mitternachtsblaue Fledermaus',
-  'Pistaziengrüner Pfau',
-  'Aprikosenfarbener Pinguin',
-  'Malvenfarbener Truthahn',
-  'Bernsteinfarbene Robbe',
-  'Karamellfarbener Hai',
-  'Eisblauer Kugelfisch',
-  'Rosenholzfarbener Oktopus',
-  'Mintfarbener Tintenfisch',
-  'Safrangerote Garnele',
-  'Lavendelfarbener Hummer',
-  'Honiggelbe Schnecke',
-  'Silbergraue Ameise',
-  'Kastanienrote Spinne',
-  'Olivfarbener Skorpion',
-  'Türkisfarbene Mücke',
-  'Sonnorange Fliege',
-  'Pflaumenfarbener Käfer',
-  'Karamellfarbene Schabe',
-  'Regenbogenfarbiger Wurm',
-  'Wolkengraue Ratte',
-  'Meeresgrünes Eichhörnchen',
-  'Kirschrosa Affe',
-  'Azurfarbener Orang-Utan',
-  'Waldgrüner Gorilla',
-  'Perlmuttfarbener Bison',
-  'Silberbraunes Reh',
-  'Korallenfarbenes Känguru',
-  'Nebelgraues Faultier',
-  'Seegrüner Otter',
-  'Veilchenfarbenes Stinktier',
-  'Blauer Elefant',
-  'Mahagonifarbener Wasserbüffel',
-  'Sandbeiges Kamel',
-  'Dünenfarbenes Trampeltier',
-  'Schiefergrauer Esel',
-  'Moosbrauner Elch',
-  'Schneeweiße Gans',
-  'Lagunenblaue Qualle',
-  'Bernsteinfarbener Langhals',
-  'Kirschroter T-Rex',
-  'Stahlgrauer Ochse',
-  'Honiggelbe Henne',
-  'Schwarze Katze',
-  'Goldgelbes Küken',
-  'Silbernes Schlüpfküken',
-  'Türkiser Assistenzhund',
-  'Kobaltblauer Rabe',
-  'Korallenfarbener Drachenkopf',
-] as const;
+const KINDERGARTEN_SEED_NICKNAMES = KINDERGARTEN_NICKNAMES.de;
 
 function printUsage(): void {
   log(`
@@ -379,8 +274,7 @@ function buildKindergartenNicknames(
   let attempts = 0;
 
   while (generated.length < count) {
-    const base =
-      KINDERGARTEN_SEED_NICKNAMES[cursor % KINDERGARTEN_SEED_NICKNAMES.length] ?? 'Gelber Löwe';
+    const base = KINDERGARTEN_SEED_NICKNAMES[cursor % KINDERGARTEN_SEED_NICKNAMES.length]!;
     const cycle = Math.floor(cursor / KINDERGARTEN_SEED_NICKNAMES.length);
     const candidate = cycle > 0 ? `${base} ${cycle + 1}` : base;
     cursor += 1;

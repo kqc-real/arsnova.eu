@@ -24,5 +24,6 @@ export * from './moderation-compass-rules';
 export * from './moderation-prompt-context';
 export * from './moderation-prompt-context-fixtures';
 export * from './open-weight-llm';
+export * from './kindergarten-nicknames';
 // Display rewriter stays off this barrel so the Angular initial bundle
 // does not pull it into every @arsnova/shared-types import.

@@ -406,6 +406,16 @@ html {
   );
 }
 
+.quiz-edit__meta-expansion-panel {
+  @include mat.expansion-overrides(
+    (
+      container-elevation-shadow: none,
+      container-background-color: transparent,
+      container-shape: var(--mat-card-outlined-container-shape, var(--mat-sys-corner-medium)),
+    )
+  );
+}
+
 /* MDC blendet den nativen Kalender-Indikator aus; Desktop braucht ihn zum Öffnen. */
 html .mdc-text-field__input[type='date']::-webkit-calendar-picker-indicator,
 html .mdc-text-field__input[type='time']::-webkit-calendar-picker-indicator,
@@ -2758,6 +2768,19 @@ html.preset-playful
   width: 100% !important;
   height: var(--mat-button-text-touch-target-size, 2.75rem) !important;
   transform: translateY(-50%) !important;
+}
+
+.session-host__add-channel-menu {
+  @include mat.menu-overrides(
+    (
+      container-color: var(--mat-sys-surface-container-high),
+      container-shape: var(--mat-sys-corner-medium),
+      container-elevation-shadow: var(--mat-sys-level3),
+      item-label-text-color: var(--mat-sys-on-surface),
+    )
+  );
+
+  border: 1px solid var(--mat-sys-outline);
 }
 
 /*

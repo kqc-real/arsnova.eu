@@ -17,6 +17,10 @@ function createTx() {
     session: {
       update: vi.fn().mockResolvedValue({ nextParticipantNumber: 7 }),
     },
+    kindergartenNicknameCounter: {
+      upsert: vi.fn().mockResolvedValue({ lastNumber: 1 }),
+      update: vi.fn().mockResolvedValue({ lastNumber: 2 }),
+    },
     participant: {
       findFirst: vi.fn().mockResolvedValue(null),
       create: vi.fn().mockResolvedValue({
@@ -79,6 +83,120 @@ describe('prepareParticipantJoin', () => {
       }),
     );
     expect(JSON.stringify(tx.participant.create.mock.calls)).not.toContain(result.rejoinCapability);
+  });
+
+  it.each([
+    ['Schwan', 'Swan'],
+    ['Hund', 'Full-body dog'],
+  ])(
+    'überspringt belegte Tiernummern und ignoriert die Client-Nummer für %s',
+    async (animal, english) => {
+      const tx = createTx();
+      tx.participant.findFirst.mockResolvedValueOnce({ id: 'existing-animal' });
+      tx.participant.create.mockImplementation(async ({ data }) => ({
+        id: PARTICIPANT_ID,
+        ...data,
+        teamId: null,
+        timerAccommodation: 'DEFAULT',
+        team: null,
+      }));
+
+      const result = await prepareParticipantJoin({
+        tx: tx as never,
+        sessionId: SESSION_ID,
+        requestedNickname: `${animal} 99`,
+        profile: {
+          allowCustomNicknames: false,
+          anonymousMode: false,
+          nicknameTheme: 'KINDERGARTEN',
+        },
+        joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
+      });
+
+      expect(tx.participant.findFirst).toHaveBeenCalledWith({
+        where: {
+          sessionId: SESSION_ID,
+          nickname: { in: expect.arrayContaining([`${english} 1`]) },
+        },
+        select: { id: true },
+      });
+      expect(tx.kindergartenNicknameCounter.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { lastNumber: 2 } }),
+      );
+      expect(result).toMatchObject({ nickname: `${animal} 2`, participantNumber: 7 });
+    },
+  );
+
+  it.each(['Frosch', 'Küken im Ei', 'Hund mit Körper'])(
+    'weist »%s« bei neuem Join ab',
+    async (name) => {
+      const tx = createTx();
+
+      await expect(
+        prepareParticipantJoin({
+          tx: tx as never,
+          sessionId: SESSION_ID,
+          requestedNickname: name,
+          profile: {
+            allowCustomNicknames: false,
+            anonymousMode: false,
+            nicknameTheme: 'KINDERGARTEN',
+          },
+          joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
+        }),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      expect(tx.kindergartenNicknameCounter.upsert).not.toHaveBeenCalled();
+      expect(tx.participant.create).not.toHaveBeenCalled();
+    },
+  );
+
+  it('speichert das gewählte Walbild und zählt beide Motive gemeinsam', async () => {
+    const tx = createTx();
+    tx.participant.create.mockImplementation(async ({ data }) => ({
+      id: PARTICIPANT_ID,
+      ...data,
+      teamId: null,
+      timerAccommodation: 'DEFAULT',
+      team: null,
+    }));
+
+    const result = await prepareParticipantJoin({
+      tx: tx as never,
+      sessionId: SESSION_ID,
+      requestedNickname: 'Wal',
+      kindergartenAnimalId: 34,
+      profile: { allowCustomNicknames: false, anonymousMode: false, nicknameTheme: 'KINDERGARTEN' },
+      joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
+    });
+
+    expect(result).toMatchObject({ nickname: 'Wal 1', kindergartenAnimalId: 34 });
+    expect(tx.kindergartenNicknameCounter.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { sessionId_animalId: { sessionId: SESSION_ID, animalId: 6 } },
+      }),
+    );
+    expect(tx.participant.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ kindergartenAnimalId: 34 }) }),
+    );
+  });
+
+  it('weist eine Motiv-ID für einen anderen Tiernamen ab', async () => {
+    const tx = createTx();
+    await expect(
+      prepareParticipantJoin({
+        tx: tx as never,
+        sessionId: SESSION_ID,
+        requestedNickname: 'Katze',
+        kindergartenAnimalId: 34,
+        profile: {
+          allowCustomNicknames: false,
+          anonymousMode: false,
+          nicknameTheme: 'KINDERGARTEN',
+        },
+        joinIdempotencyKey: 'join-key-abcdefghijklmnopqrstuvwxyz0123456789',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(tx.participant.create).not.toHaveBeenCalled();
   });
 
   it('liefert einen bestätigten Join mit demselben Schlüssel aus dem geschützten Replay', async () => {

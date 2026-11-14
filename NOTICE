@@ -64,3 +64,10 @@ Operators obtain the separately versioned model artifact and mount it read-only.
 Exact image, file, size and SHA-256 pins are recorded in
 `docker/open-weight-llm/model-manifest.json`. Mounting the optional model does
 not relicense it or arsnova.eu.
+
+Presenter animal icons
+----------------------
+
+The Presenter includes 124 unmodified Noto Emoji SVGs by Google, Inc. under
+the Apache License, Version 2.0. The attribution, source revision and license
+are available in `apps/frontend/src/assets/presenter-animals/`.

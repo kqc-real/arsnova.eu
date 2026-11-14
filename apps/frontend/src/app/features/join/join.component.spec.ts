@@ -3,6 +3,8 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { LOCALE_ID } from '@angular/core';
 import { provideRouter, ActivatedRoute, Router } from '@angular/router';
 import { JoinComponent } from './join.component';
@@ -572,11 +574,11 @@ describe('JoinComponent', () => {
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
 
-    comp.selectedNickname.set('Roter Drache');
+    comp.selectedNickname.set('Drache');
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(comp.selectedNickname()).toBe('Roter Drache');
+    expect(comp.selectedNickname()).toBe('Drache');
     expect(comp.kindergartenEmojiForSelected()).toBe('🐉');
   });
 
@@ -586,7 +588,7 @@ describe('JoinComponent', () => {
     fixture.detectChanges();
     expect(suppression.active()).toBe(false);
 
-    comp.selectedNickname.set('Roter Drache');
+    comp.selectedNickname.set('Drache');
     fixture.detectChanges();
     expect(suppression.active()).toBe(true);
 
@@ -597,11 +599,19 @@ describe('JoinComponent', () => {
     fixture.destroy();
   });
 
-  it('behaelt im Kita-Reserve-Pool das passende Tier-Emoji', async () => {
+  it('lässt bereits gewählte Tiere erneut auswählen und speichert die zugeteilte Nummer', async () => {
     vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
       ...mockSession,
       nicknameTheme: 'KINDERGARTEN',
       allowCustomNicknames: false,
+    });
+    vi.mocked(trpc.session.join.mutate).mockResolvedValueOnce({
+      ...mockSession,
+      participantNumber: 7,
+      participantNickname: 'Schwan 2',
+      timerAccommodation: 'DEFAULT',
+      participantId: participantIds.current,
+      rejoinToken: participantIds.current,
     });
     const { fixture, comp } = createWithCode('ABC123');
     setTakenNicknames(comp, NICKNAME_LISTS.KINDERGARTEN);
@@ -609,13 +619,67 @@ describe('JoinComponent', () => {
     await fixture.whenStable();
     await new Promise((r) => setTimeout(r, 80));
 
-    comp.selectedNickname.set('Roter Drache 2');
+    comp.selectNickname('Schwan');
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(comp.nicknameFallbackActive()).toBe(true);
-    expect(comp.kindergartenEmojiForSelected()).toBe('🐉');
-    expect(comp.kindergartenEmojiForOption('Roter Drache 2', 0)).toBe('🐉');
+    expect(comp.nicknameFallbackActive()).toBe(false);
+    expect(comp.nicknameOptions()).toContain('Schwan');
+    expect(comp.nicknameOptions()).toHaveLength(100);
+    expect(comp.nicknameOptions()).toContain('Hund');
+    expect(comp.nicknameOptions()).not.toContain('Hund mit Körper');
+    expect(comp.kindergartenEmojiForOption('Hund')).toBe('🐕');
+    expect(comp.nicknameOptions()).not.toContain('Schwan 2');
+    expect(comp.isTaken('Schwan')).toBe(false);
+    expect(comp.kindergartenEmojiForSelected()).toBe('🦢');
+    await comp.submitJoin();
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ nickname: 'Schwan' }),
+    );
+    expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Schwan 2');
+  });
+
+  it('sendet den kurzen Tiernamen und das gewählte Bild separat', async () => {
+    vi.mocked(trpc.session.getInfo.query).mockResolvedValue({
+      ...mockSession,
+      nicknameTheme: 'KINDERGARTEN',
+      allowCustomNicknames: false,
+    });
+    const { fixture, comp } = createWithCode('ABC123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const whaleOptions = comp
+      .nicknameOptions()
+      .filter((option) => comp.nicknameOptionLabel(option) === 'Wal');
+    expect(whaleOptions.map((option) => comp.kindergartenEmojiForOption(option))).toEqual([
+      '🐋',
+      '🐳',
+    ]);
+    const loader = TestbedHarnessEnvironment.loader(fixture);
+    const select = await vi.waitFor(async () => loader.getHarness(MatSelectHarness));
+    await select.open();
+    const images = document.querySelectorAll('[role="listbox"] img.join-card__nick-emoji');
+    expect(images).toHaveLength(100);
+    expect(
+      Array.from(images).some((image) => image.getAttribute('src')?.endsWith('emoji_u1f40b.svg')),
+    ).toBe(true);
+    const whales = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).filter(
+      (option) => option.textContent?.trim() === 'Wal',
+    );
+    expect(whales).toHaveLength(2);
+    whales[1]!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(comp.kindergartenEmojiForSelected()).toBe('🐳');
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('img.join-card__nick-emoji--trigger')?.getAttribute('src')).toMatch(
+      /emoji_u1f433\.svg$/,
+    );
+
+    await comp.submitJoin();
+    expect(trpc.session.join.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ nickname: 'Wal', kindergartenAnimalId: 34 }),
+    );
   });
 
   it('ruft join mit Code und Nickname auf und navigiert zu vote (Story 3.2)', async () => {

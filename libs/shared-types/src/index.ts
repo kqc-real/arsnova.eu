@@ -26,3 +26,4 @@ export * from './moderation-compass-rules.js';
 export * from './moderation-prompt-context.js';
 export * from './moderation-prompt-context-fixtures.js';
 export * from './open-weight-llm.js';
+export * from './kindergarten-nicknames.js';

@@ -4722,6 +4722,62 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     reloadFixture.destroy();
   });
 
+  it('zeigt Gewinner und Rangliste mit der gewählten Noto-Grafik', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Tier-Quiz',
+      title: null,
+      participantCount: 2,
+      quizStarted: true,
+      hostEnded: false,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      nicknameTheme: 'KINDERGARTEN',
+      showLeaderboard: true,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    const entries = [
+      {
+        rank: 1,
+        nickname: 'Wal 1',
+        kindergartenAnimalId: 34,
+        totalScore: 20,
+        correctCount: 2,
+        totalQuestions: 2,
+        totalResponseTimeMs: 200,
+      },
+      {
+        rank: 2,
+        nickname: 'Wal 2',
+        kindergartenAnimalId: 6,
+        totalScore: 10,
+        correctCount: 1,
+        totalQuestions: 2,
+        totalResponseTimeMs: 300,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 80);
+    fixture.componentInstance.showSessionEndGate.set(false);
+    fixture.componentInstance.personalLeaderboard.set(entries);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('img.vote-finished-winner__emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f433\.svg$/,
+    );
+    const images = host.querySelectorAll('img.vote-finished-leaderboard__emoji');
+    expect(Array.from(images, (img) => img.getAttribute('src')?.split('/').at(-1))).toEqual([
+      'emoji_u1f433.svg',
+      'emoji_u1f40b.svg',
+    ]);
+  });
+
   it('zeigt im Session-End-Gate Bonus und Startseite im Aktionsanker; Bewertung absenden in der Karte', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -4878,7 +4934,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       host.querySelector('.vote-page__bottom-actions .session-qa-form__submit'),
     ).not.toBeNull();
     expect(host.querySelector('.session-qa-form__identity')).toBeNull();
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🐉');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f409\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Roter Drache 2',
     );
@@ -5358,7 +5416,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
 
     expect(
-      fixture.componentInstance.qaAuthorKindergartenBadgeLabel({
+      fixture.componentInstance.qaAuthorKindergartenBadge({
         passagesRedacted: false,
         id: 'question-1',
         text: 'Wie viel Stoff ist klausurrelevant?',
@@ -5370,7 +5428,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         isOwn: false,
         hasUpvoted: false,
       }),
-    ).toBe('🐉 2');
+    ).toEqual({ emoji: '🐉', sequence: '2' });
     fixture.destroy();
   });
 
@@ -5517,7 +5575,6 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(fixture.componentInstance.playerKindergartenEmoji()).toBe('🦫');
     expect(fixture.componentInstance.playerKindergartenSequence()).toBe('6');
-    expect(fixture.componentInstance.playerKindergartenBadgeLabel()).toBe('🦫 6');
     expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBe('🦫');
 
     fixture.componentInstance.status.set('ACTIVE');
@@ -5567,7 +5624,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(host.querySelector('.vote-player-badge')).toBeNull();
     expect(host.querySelector('.vote-player-badge__self-prefix')).toBeNull();
     expect(host.querySelector('.vote-lobby__kita-hero')).not.toBeNull();
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🐃');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f403\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Mahagonifarbener Wasserbüffe 3',
     );
@@ -5608,7 +5667,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🦫');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f9ab\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Tannengrüner Biber 6',
     );
@@ -5670,7 +5731,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🦫');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f9ab\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Tannengrüner Biber 6',
     );
@@ -5711,13 +5774,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
     currentQuestionQueryMock.mockResolvedValue(null);
     getParticipantNicknamesQueryMock.mockResolvedValue({
-      nicknames: [...NICKNAME_LISTS.KINDERGARTEN, 'Roter Drache 2'],
+      nicknames: [...NICKNAME_LISTS.KINDERGARTEN, 'Drache 2'],
       participantCount: NICKNAME_LISTS.KINDERGARTEN.length + 1,
     });
     joinMutateMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '33333333-3333-4333-8333-333333333333',
-      participantNickname: 'Grüner Frosch 2',
+      participantNickname: 'Delfin 2',
       rejoinToken: 'participant-capability-abcdefghijklmnopqrstuvwxyz',
     });
 
@@ -5734,7 +5797,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(joinMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
-      nickname: 'Grüner Frosch',
+      nickname: 'Delfin',
       anonymousClientId: expect.stringMatching(
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       ),
@@ -5743,7 +5806,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       productFeedbackClaimToken: undefined,
     });
     expect(getParticipantNicknamesQueryMock).not.toHaveBeenCalled();
-    expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Grüner Frosch 2');
+    expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Delfin 2');
     expect(qaSubmitMutateMock).toHaveBeenCalledWith({
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '33333333-3333-4333-8333-333333333333',
@@ -5854,6 +5917,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       'Positivbewertung zurücknehmen',
     );
     const badges = host.querySelectorAll('.session-qa-card__author-icon');
+    expect(badges[0]?.querySelector('img')?.getAttribute('src')).toMatch(/emoji_u1f409\.svg$/);
+    expect(badges[0]?.textContent?.trim()).toBe('2');
     (badges[0] as HTMLButtonElement).click();
     fixture.detectChanges();
 

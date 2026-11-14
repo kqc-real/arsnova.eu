@@ -1,3 +1,4 @@
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import { ProjectionPagesComponent } from './projection-pages.component';
 import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import { DecimalPipe } from '@angular/common';
@@ -98,6 +99,8 @@ function countStoredFractionDigits(value: number): number {
   encapsulation: ViewEncapsulation.None,
 })
 export class SessionProjectionQuizComponent {
+  readonly animalIconUrl = animalIconUrl;
+
   private readonly sanitizer = inject(DomSanitizer);
   private readonly themePreset = inject(ThemePresetService);
   private readonly localeId = inject(LOCALE_ID);
@@ -822,8 +825,8 @@ export class SessionProjectionQuizComponent {
     return formatLocaleCount(value ?? 0, this.localeId);
   }
 
-  leaderboardNicknameEmoji(nickname: string): string | null {
-    return findKindergartenNicknameEmoji(nickname);
+  leaderboardNicknameEmoji(nickname: string, animalId?: number): string | null {
+    return findKindergartenNicknameEmoji(nickname, undefined, animalId);
   }
 
   teamNameEmoji(teamName: string | null | undefined): string | null {

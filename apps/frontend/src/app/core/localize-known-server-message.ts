@@ -1,3 +1,5 @@
+import { INVALID_KINDERGARTEN_NICKNAME_MESSAGE } from '@arsnova/shared-types';
+
 /**
  * TRPC-Fehlermeldungen kommen vom Server auf Deutsch.
  * Bekannte Texte werden für die aktuelle UI-Locale übersetzt.
@@ -119,6 +121,9 @@ export function localizeKnownServerMessage(message: string): string {
   }
   if (normalized === SESSION_NICKNAME_CONFLICT_DE) {
     return $localize`:@@join.nicknameConflict:Dieser Name ist in dieser Session bereits vergeben.`;
+  }
+  if (normalized === INVALID_KINDERGARTEN_NICKNAME_MESSAGE) {
+    return $localize`:@@join.chooseNicknameHint:Wähle ein Pseudonym aus der Liste.`;
   }
   if (normalized === 'Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.') {
     return $localize`:@@admin.hostResetOperationClosed:Diese Operation ist abgeschlossen. Das Ergebnis ist nicht mehr abrufbar.`;

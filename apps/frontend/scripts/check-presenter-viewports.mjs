@@ -42,13 +42,7 @@ const MOTIF_IMAGE_PATHNAME = MOTIF_IMAGE_URL
   : null;
 const MOTIF_IMAGE_FILE = process.env.PRESENTER_MOTIF_IMAGE_FILE?.trim() || null;
 const MOTIF_IMAGE_BODY = MOTIF_IMAGE_FILE ? await readFile(MOTIF_IMAGE_FILE) : null;
-const EXPECTED_PACKED_ICON = ANONYMOUS_MODE
-  ? null
-  : NICKNAME_THEME === 'MIDDLE_SCHOOL' || NICKNAME_THEME === 'HIGH_SCHOOL'
-    ? 'school'
-    : NICKNAME_THEME === 'NOBEL_LAUREATES'
-      ? 'military_tech'
-      : null;
+const EXPECT_TEXT = NICKNAME_THEME !== 'KINDERGARTEN' && !ANONYMOUS_MODE;
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const requestedParticipantCount = Number(process.env.PRESENTER_PARTICIPANT_COUNT || 50);
 if (
@@ -59,7 +53,8 @@ if (
   throw new Error('PRESENTER_PARTICIPANT_COUNT muss eine ganze Zahl zwischen 1 und 500 sein.');
 }
 const PARTICIPANT_COUNT = requestedParticipantCount;
-const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE || PARTICIPANT_COUNT > 12 ? 0 : PARTICIPANT_COUNT;
+const EXPECT_SUMMARY = PARTICIPANT_COUNT > (ANONYMOUS_MODE ? 12 : 50);
+const EXPECTED_DISPLAY_COUNT = ANONYMOUS_MODE || EXPECT_SUMMARY ? 0 : PARTICIPANT_COUNT;
 const GEOMETRY_TOLERANCE_PX = 1.5;
 const NOBEL_LAUREATE_NICKNAMES = [
   'Marie Curie',
@@ -221,7 +216,14 @@ function formatFailures(viewport, failures) {
 
 async function inspectPresenterGeometry(page, expectedDisplayCount) {
   return page.evaluate(
-    ({ expectedDisplayCount, expectedTotal, expectedMotif, expectedPackedIcon, tolerance }) => {
+    ({
+      expectedDisplayCount,
+      expectedTotal,
+      expectedMotif,
+      expectText,
+      expectSummary,
+      tolerance,
+    }) => {
       const rect = (element) => {
         const value = element.getBoundingClientRect();
         return {
@@ -262,7 +264,7 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
       const cards = [...document.querySelectorAll('.session-present__lobby-person-col')];
       const icons = [
         ...document.querySelectorAll(
-          '.session-present__lobby-nick-icon, .session-present__lobby-nick-mat-icon',
+          '.session-present__lobby-nick-icon, .session-present__lobby-text-name',
         ),
       ];
       const requiredElements = [
@@ -283,8 +285,9 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
       }
 
       const failures = [];
-      if (expectedTotal > 12 && (!summary || !summary.textContent.includes(String(expectedTotal))))
+      if (expectSummary && (!summary || !summary.textContent.includes(String(expectedTotal))))
         failures.push('Lesbare Publikumsübersicht fehlt');
+      if (!expectSummary && summary) failures.push('Publikumsübersicht ersetzt das Badge-Raster');
       const viewport = {
         top: 0,
         left: 0,
@@ -310,31 +313,8 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
           failures.push('Quiz-Motiv ist unsichtbar oder liegt außerhalb des Viewports');
         }
       }
-      if (expectedPackedIcon && expectedDisplayCount > 12) {
-        const packedIcons = [...document.querySelectorAll('.session-present__lobby-packed-icon')];
-        const packedNumbers = [
-          ...document.querySelectorAll('.session-present__lobby-packed-number'),
-        ];
-        const expectedNumbers = Array.from({ length: expectedDisplayCount }, (_, index) =>
-          String(expectedDisplayCount - index).padStart(2, '0'),
-        );
-        if (
-          packedIcons.length !== expectedDisplayCount ||
-          packedIcons.some((element) => element.textContent?.trim() !== expectedPackedIcon)
-        ) {
-          failures.push(
-            `erwartet ${expectedDisplayCount} Packed-Icons "${expectedPackedIcon}", ` +
-              `gefunden ${packedIcons.length}`,
-          );
-        }
-        if (
-          packedNumbers.length !== expectedDisplayCount ||
-          packedNumbers.some(
-            (element, index) => element.textContent?.trim() !== expectedNumbers[index],
-          )
-        ) {
-          failures.push('Packed-Eingangsnummern sind unvollständig oder nicht stabil sortiert');
-        }
+      if (expectText && icons.some((name) => !name.textContent?.trim())) {
+        failures.push('Ein Textpseudonym ist leer');
       }
 
       const visibleElements = [
@@ -362,7 +342,7 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
         ['Lobby-Bühne', stage],
         ['Publikumsfläche', audience],
       ];
-      if (people) {
+      if (people && !expectText) {
         overflowElements.push(['Packed-Publikum', people]);
       }
       for (const [label, element] of overflowElements) {
@@ -396,7 +376,8 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
         .map((card, index) => ({ index, bounds: rect(card), visible: visible(card) }))
         .filter(
           ({ bounds, visible: isVisible }) =>
-            !isVisible || !within(bounds, peopleRect) || !within(bounds, viewport),
+            !isVisible ||
+            (!expectText && (!within(bounds, peopleRect) || !within(bounds, viewport))),
         );
       if (escapedCards.length > 0) {
         failures.push(
@@ -434,7 +415,8 @@ async function inspectPresenterGeometry(page, expectedDisplayCount) {
       expectedTotal: PARTICIPANT_COUNT,
       expectedMotif: Boolean(MOTIF_IMAGE_URL),
       expectedDisplayCount,
-      expectedPackedIcon: EXPECTED_PACKED_ICON,
+      expectText: EXPECT_TEXT,
+      expectSummary: EXPECT_SUMMARY,
       tolerance: GEOMETRY_TOLERANCE_PX,
     },
   );

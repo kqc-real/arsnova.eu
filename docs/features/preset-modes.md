@@ -157,12 +157,17 @@ Im Modus **Nicks** wählt der Dozent eine Altersgruppe, die den Nickname-Pool be
 | Theme            | Icon            | Beschreibung                                                    |
 | ---------------- | --------------- | --------------------------------------------------------------- |
 | Nobelpreisträger | `military_tech` | Namen berühmter Nobelpreisträger (häufige Wahl im Preset-Toast) |
-| Tier-Icons       | `child_care`    | Kindgerechte, einfache Tiernamen o.Ä.                           |
+| Tier-Icons       | `child_care`    | Passende Emojis mit Tiernamen ohne Farbadjektive                |
 | Grundschule      | `abc`           | Altersgerechte Fantasienamen                                    |
 | Mittelstufe      | `calculate`     | Wissenschaftliche Begriffe                                      |
 | Oberstufe        | `school`        | Komplexere, akademische Pseudonyme                              |
 
 Die Themes sind als Zod-Enum `NicknameThemeEnum` in `libs/shared-types/src/schemas.ts` definiert und werden sowohl im Frontend als auch im Backend validiert.
+
+Ein Motiv kann von mehreren Personen ausgewählt werden. Beim Beitritt vergibt der Server je Raum und Tier eine Nummer ab 1, etwa »Schwan 1«, »Marienkäfer 1«, »Schwan 2«. Übersetzungen und unterschiedliche Motive mit demselben Tiernamen teilen den Zähler. Der Server speichert das ausgewählte Motiv mit der Teilnahme, damit zum Beispiel »Wal 1« und »Wal 2« unterschiedliche Bilder zeigen können. Für ältere Ergebnisse ohne gespeichertes Motiv bestimmt der Name das Bild. In der Präsentationslobby bleiben bei bis zu 50 Teilnehmenden die Tier-Icons sichtbar. Bei größeren Gruppen erscheint eine Zusammenfassung mit der Gesamtzahl.
+
+Bei bis zu 50 Teilnehmenden passt der Presenter die Spalten und die Schriftgröße der Textpseudonyme an den verfügbaren Platz an. Jeder Name bleibt einzeilig. Bei sehr wenig Platz lässt sich das Raster scrollen. Tier-Icons nutzen ebenfalls ein an Breite und Höhe angepasstes Raster. Im Teammodus berechnet der Presenter das Raster für jede Teamkarte einzeln.
+Die Auswahl enthält 100 Ganzkörpermotive, darunter auch Fabeltiere. Die Pseudonyme verwenden kurze Tiernamen wie »Hund«, »Tiger« und »Pferd«. Die Varianten eines Tiers tragen denselben Namen, etwa »Wal«, »Katze«, »Küken«, »Hund« oder »Fisch«. Die Auswahl, die Teilnehmeransicht, die Host-Ansicht und der Presenter verwenden dafür dieselben lokal eingebundenen SVGs von [Noto Emoji](https://github.com/googlefonts/noto-emoji).
 
 ## Persistenz (localStorage)
 

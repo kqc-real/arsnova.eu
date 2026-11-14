@@ -11,9 +11,11 @@ Server sperrt die Sessionzeile und erhöht `nextParticipantNumber` innerhalb
 derselben Transaktion, in der Participant, gehashte Rejoin-Capability und
 Replaydatensatz entstehen.
 
-Vorgegebene und anonyme Nicknames erhalten immer eine sichtbare, monotone
-Nummer. Bei Kindergarten-Pseudonymen wird dadurch in Lobby, Teilnahme,
-Präsentation und Q&A das vorhandene Emoji zusammen mit der Nummer angezeigt.
+Vorgegebene und anonyme Nicknames erhalten eine sichtbare, monotone Nummer.
+Tier-Pseudonyme haben dafür je Raum und Tier einen eigenen Zähler, der bei 1
+beginnt und die lokalisierten Namen desselben Tiers zusammenfasst.
+Lobby, Teilnahme, Präsentation und Q&A zeigen das Tier-Emoji mit dieser Nummer.
+Die Vergabe läuft in derselben Transaktion wie der interne Raumzähler.
 Frei gewählte Nicknames behalten ihre Schreibweise und führen bei einem echten
 Unique-Konflikt zu einer verständlichen Fehlermeldung.
 

@@ -838,12 +838,15 @@
                           {{ entry.place }}
                         }
                       </strong>
-                      @if (leaderboardNicknameEmoji(entry.nickname); as emoji) {
-                        <span
+                      @if (
+                        leaderboardNicknameEmoji(entry.nickname, entry.kindergartenAnimalId);
+                        as emoji
+                      ) {
+                        <img
                           class="session-projection-quiz__leaderboard-emoji"
-                          aria-hidden="true"
-                          >{{ emoji }}</span
-                        >
+                          [src]="animalIconUrl(emoji)"
+                          alt=""
+                        />
                       }
                       <span class="session-projection-quiz__leaderboard-name">{{
                         entry.nickname

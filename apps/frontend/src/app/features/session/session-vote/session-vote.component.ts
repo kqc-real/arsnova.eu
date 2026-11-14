@@ -1,3 +1,4 @@
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import {
   ChangeDetectorRef,
   Component,
@@ -140,7 +141,7 @@ import {
   peekConfirmedParticipantTeam,
 } from '../../../core/participant-team-confirmation';
 import {
-  findKindergartenNicknameBadgeLabel,
+  findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
   kindergartenNicknameSequence,
 } from '../../join/kindergarten-nickname-icons';
@@ -170,6 +171,8 @@ import {
   getOrCreateJoinIdempotencyKey,
   getParticipantCapability,
   storeParticipantCapability,
+  readParticipantAnimalId,
+  storeParticipantAnimalId,
 } from '../../../core/participant-session-access';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
@@ -485,6 +488,8 @@ export function getNumericEstimateMotivation(input: {
   ],
 })
 export class SessionVoteComponent implements OnInit, OnDestroy {
+  readonly animalIconUrl = animalIconUrl;
+
   readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
   /** Einreichungslimit inkl. Markdown/KaTeX-Syntax (shared-types). */
   readonly qaQuestionTextMaxLength = QA_QUESTION_TEXT_MAX_CODE_POINTS;
@@ -736,6 +741,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () => this.personalResultLoaded() && !this.finishedHeroIsCelebration(),
   );
   readonly playerNickname = signal<string | null>(null);
+  readonly playerAnimalId = signal<number | undefined>(undefined);
   readonly participantTeam = signal<ParticipantDTO | null>(null);
   readonly sessionTeams = signal<TeamDTO[]>([]);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
@@ -777,20 +783,14 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly playerKindergartenEmoji = computed((): string | null => {
     if (!this.usesKindergartenNicknames()) return null;
     const nick = this.playerNickname()?.trim();
-    return nick ? findKindergartenNicknameEmoji(nick) : null;
+    return nick ? findKindergartenNicknameEmoji(nick, undefined, this.playerAnimalId()) : null;
   });
 
-  leaderboardKindergartenEmoji(nickname: string): string | null {
+  leaderboardKindergartenEmoji(nickname: string, animalId?: number): string | null {
     if (!this.usesKindergartenNicknames()) return null;
     const nick = nickname.trim();
-    return nick ? findKindergartenNicknameEmoji(nick) : null;
+    return nick ? findKindergartenNicknameEmoji(nick, undefined, animalId) : null;
   }
-
-  readonly playerKindergartenBadgeLabel = computed((): string | null => {
-    if (!this.usesKindergartenNicknames()) return null;
-    const nick = this.playerNickname()?.trim();
-    return nick ? findKindergartenNicknameBadgeLabel(nick) : null;
-  });
 
   readonly playerKindergartenSequence = computed((): string | null => {
     if (!this.usesKindergartenNicknames()) return null;
@@ -853,12 +853,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return this.qaAuthorTeamByNickname().get(nickname) ?? null;
   }
 
-  qaAuthorKindergartenBadgeLabel(question: QaQuestionDTO): string | null {
+  qaAuthorKindergartenBadge(question: QaQuestionDTO) {
     if (!this.usesKindergartenNicknames()) {
       return null;
     }
     const trimmedNickname = this.qaQuestionAuthorNickname(question);
-    return trimmedNickname ? findKindergartenNicknameBadgeLabel(trimmedNickname) : null;
+    return trimmedNickname
+      ? findKindergartenNicknameBadge(
+          trimmedNickname,
+          undefined,
+          question.authorKindergartenAnimalId,
+        )
+      : null;
   }
 
   qaAuthorKindergartenAriaLabel(question: QaQuestionDTO): string {
@@ -952,6 +958,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const theme = (session.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
     const locale = getEffectiveLocale();
     const originalCandidates = getNicknameList(theme, locale);
+    if (theme === 'KINDERGARTEN') {
+      const startIndex = participantCountHint % originalCandidates.length;
+      return [
+        ...originalCandidates.slice(startIndex),
+        ...originalCandidates.slice(0, startIndex),
+      ].slice(0, AUTO_JOIN_NICKNAME_CANDIDATE_LIMIT);
+    }
     if (originalCandidates.length === 0) {
       return this.buildGenericAutoJoinNicknameCandidates(takenNicknames, participantCountHint);
     }
@@ -1021,6 +1034,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           this.applyTimerAccommodation(join.timerAccommodation, { restartCountdown: false });
         }
         storeParticipantCapability(this.code, join.rejoinToken);
+        storeParticipantAnimalId(this.code, join.kindergartenAnimalId);
+        this.playerAnimalId.set(join.kindergartenAnimalId);
         clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, join.productFeedbackClaimToken);
         return {
@@ -4034,6 +4049,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (typeof localStorage !== 'undefined') {
       this.participantId.set(this.readStoredParticipantId());
       this.playerNickname.set(localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`) ?? null);
+      this.playerAnimalId.set(readParticipantAnimalId(this.code));
       this.liveScorePreviewVisible.set(
         localStorage.getItem(LIVE_SCORE_PREVIEW_STORAGE_KEY) !== 'false',
       );
