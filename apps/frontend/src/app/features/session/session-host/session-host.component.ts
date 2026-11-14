@@ -3092,7 +3092,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         '.session-host__live-actions button',
       ].join(', '),
     );
-    const connected = [...candidates].filter(
+    const connected = Array.from(candidates).filter(
       (candidate) =>
         candidate !== excluded &&
         !candidate.closest('[data-testid="host-moderation-compass"]') &&
