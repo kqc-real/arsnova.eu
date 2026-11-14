@@ -37058,6 +37058,42 @@
           <context context-type="linenumber">24</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionPresent.earlierResult" datatype="html">
+        <source>Früheres Ergebnis</source>
+        <target>Resultado anterior</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1582,1583</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.previousResult" datatype="html">
+        <source>Vorheriges Ergebnis</source>
+        <target>Resultado previo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1636,1637</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.nextResult" datatype="html">
+        <source>Nächstes Ergebnis</source>
+        <target>Resultado siguiente</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1651,1653</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToLiveQuiz" datatype="html">
+        <source>Zurück zur Live-Ansicht</source>
+        <target>Volver a la vista en directo</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1653,1655</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.historyModeratedWordCloud" datatype="html">
+        <source>Die moderierte Wortwolke ist im Rückblick nicht verfügbar.</source>
+        <target>La nube de palabras moderada no está disponible en el historial de resultados.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

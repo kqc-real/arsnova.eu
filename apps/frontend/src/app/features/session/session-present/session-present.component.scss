@@ -1281,9 +1281,30 @@ app-session-projection-quiz,
   line-height: 1.4;
 }
 
+.session-present__shortcut {
+  margin-inline-start: 0.4em;
+  padding-inline: 0.3em;
+  border: 1px solid currentColor;
+  border-radius: var(--mat-sys-corner-extra-small);
+  font: inherit;
+  white-space: nowrap;
+}
+
+.session-present__history-status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-medium);
+  text-align: center;
+}
+
 .session-present--feedback .session-present__feedback-card {
   width: min(100%, 88rem);
   margin: auto;
+}
+
+.session-present--feedback {
+  overflow-y: auto;
+  justify-content: flex-start;
 }
 
 .session-present--feedback .session-present__feedback-card mat-card-content {
@@ -1826,7 +1847,7 @@ app-session-projection-quiz,
   max-width: none;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .session-present__finish:not(:has(.session-present__finish-hero)) {

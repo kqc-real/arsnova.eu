@@ -3820,6 +3820,8 @@ export const HostCurrentQuestionDTOSchema = z.object({
    * zurückblättern kann. Unabhängig von Musterlösung (Umfrage, Freitext, Reihenfolge).
    */
   canShowPreviousResult: z.boolean().optional(),
+  /** Ob im Presenter ein abgeschlossenes Ergebnis vor der Live-Frage verfügbar ist. */
+  hasEarlierPresenterResult: z.boolean().optional(),
   /** Ob nach der aktuellen Frage noch eine nicht ausgelassene Frage folgt. */
   hasNextQuestion: z.boolean().optional(),
   /**
@@ -3917,6 +3919,20 @@ export const HostCurrentQuestionDTOSchema = z.object({
   categorizationStats: CategorizationStatsDTOSchema.optional(),
 });
 export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema>;
+
+export const GetPresenterQuizResultInputSchema = GetSessionInfoInputSchema.extend({
+  liveQuestionId: z.uuid(),
+  fromQuestionId: z.uuid().optional(),
+  direction: z.enum(['previous', 'next']),
+});
+
+export const PresenterQuizResultSchema = z.object({
+  question: HostCurrentQuestionDTOSchema,
+  hasPrevious: z.boolean(),
+  hasNext: z.boolean(),
+  wordCloudUnavailable: z.boolean(),
+});
+export type PresenterQuizResult = z.infer<typeof PresenterQuizResultSchema>;
 
 /** DTO: Leichter Live-Fortschritt fuer die Host-Ansicht waehrend ACTIVE. */
 export const HostVoteProgressDTOSchema = z.object({

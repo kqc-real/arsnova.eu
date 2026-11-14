@@ -1058,6 +1058,8 @@ BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc \
 ```
 
 Die Skripte erzeugen ausschließlich Test-Sessions auf der angegebenen Instanz.
+Der Browser und die Test-API müssen über HTTP und tRPC-WebSocket dieselbe
+Backend-Instanz erreichen, damit Projektionsseiten denselben Kontext verwenden.
 Nicht gegen Produktion ausführen. Sie prüfen 720p, 1080p und 1920 × 1200 in beiden
 Presets. Das erste prüft den vollständigen Text einschließlich Code, die
 Navigation per Host-Befehl und Presenter-Tastaturbedienung sowie die
@@ -1066,6 +1068,12 @@ es acht gleichzeitig sichtbare Antwortoptionen in Abstimmung und Ergebnisansicht
 einschließlich Schriftgröße, Ergebnisbalken und Korrektheitsmarkierung. Das zweite prüft
 Lobby 0/10/200, Schätzverteilung mit Statistik, Freitext-Wortwolke, angeheftete
 Q&A-Frage mit Warteschlange, verborgenes/freigegebenes Blitzlicht und Rangliste.
+Für Schätzfragen liest es die sichtbaren Projektionsseiten über die
+Seitenanzeige im Quiz-Footer aus. Es prüft dabei auch die Stichprobengröße
+der Statistik, die bei wenig Platz auf einer späteren Seite steht.
+Der Fall `quiz-history-live-vote` prüft die Pfeiltasten für den Ergebnisrückblick
+und die Rückkehr zur Live-Ansicht. Während der Presenter ein früheres Ergebnis
+zeigt, nimmt das Backend eine Stimme für die unveränderte Live-Frage an.
 Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
 (im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
 `PROJECTION_DELAYED_MEDIA=1` hält drei Bilder im Fragetext bis nach der ersten

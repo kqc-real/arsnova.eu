@@ -8611,6 +8611,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       timeout: 5000,
       interval: 25,
     });
+    fixture.detectChanges();
     expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('fallback');
     expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({ mode: 'SEMANTIC', locale: 'it', channel: 'FREETEXT' }),

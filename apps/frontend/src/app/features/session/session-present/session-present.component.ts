@@ -24,6 +24,7 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { selectFreetextLemmaDisplayEntries } from '../session-host/qa-word-cloud-theme-merge';
 import { WordCloudComponent } from './word-cloud.component';
 import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
@@ -67,6 +68,7 @@ import type {
   AnalyzeWordCloudInput,
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
+  PresenterQuizResult,
   LeaderboardEntryDTO,
   ReadingReadyStatusDTO,
   SessionStatusUpdate,
@@ -109,6 +111,7 @@ import {
   presenterOfferDiscussion,
   presenterQuestionMatchesSession,
   presenterTimerBlocksReveal,
+  presenterVotingClosed,
   presenterVoteProgressMatches,
 } from './presenter-quiz-controls.util';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
@@ -231,6 +234,7 @@ function presenterFreetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null
   ],
   templateUrl: './session-present.component.html',
   styleUrl: './session-present.component.scss',
+  host: { '(document:keydown)': 'onPresenterKeydown($event)' },
 })
 export class SessionPresentComponent implements OnInit, OnDestroy {
   private static readonly META_POLL_MS = 10_000;
@@ -249,6 +253,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly themePreset = inject(ThemePresetService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly document = inject(DOCUMENT);
+  private readonly dialog = inject(MatDialog);
   private readonly hostElement = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
@@ -342,6 +347,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly returnToHostError = signal('');
   readonly returnToHostPending = signal(false);
   private readonly quizPageNavHeldContext = signal<string | null>(null);
+  private readonly quizHistory = signal<{
+    liveQuestionId: string;
+    result: PresenterQuizResult;
+  } | null>(null);
+  readonly historyPage = signal({ index: 0, count: 1 });
   readonly emojiReactions = signal<PresenterEmojiReactions | null>(null);
   readonly emojiOrder = EMOJI_REACTIONS;
   private emojiReactionScope: string | null = null;
@@ -761,6 +771,124 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     });
   }
 
+  onPresenterKeydown(event: KeyboardEvent): void {
+    const { key, target } = event;
+    if (
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(key) ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      this.dialog.openDialogs.length > 0
+    )
+      return;
+
+    const root: HTMLElement = this.hostElement.nativeElement;
+    if (target instanceof Element && target !== this.document.body) {
+      if (
+        !root.contains(target) ||
+        target.closest(
+          'input, textarea, select, [contenteditable], [role="dialog"], [role="combobox"], ' +
+            '[role="listbox"], [role="menu"], [role="radiogroup"], [role="tablist"], ' +
+            '[role="slider"], [role="spinbutton"], [role="toolbar"]',
+        )
+      )
+        return;
+    }
+
+    const vertical = key === 'ArrowUp' || key === 'ArrowDown';
+    let scope: HTMLElement = root;
+    if (this.showFinishProjection() && !vertical) {
+      const boards = root.querySelectorAll<HTMLElement>('.session-present__board-page-controls');
+      const board =
+        boards.length === 1
+          ? boards[0]
+          : Array.from(boards).find(
+              (controls) => target instanceof Node && controls.contains(target),
+            );
+      if (!board) return;
+      scope = board;
+    }
+
+    const action = scope.querySelector<HTMLButtonElement>(`button[aria-keyshortcuts="${key}"]`);
+    if (action) {
+      event.preventDefault();
+      if (!event.repeat && !action.disabled && action.getAttribute('aria-disabled') !== 'true') {
+        action.click();
+      }
+      return;
+    }
+
+    if (
+      !vertical ||
+      !(
+        this.showQaProjection() ||
+        this.showQaWordCloud() ||
+        this.showQuickFeedbackCard() ||
+        this.showLobbyProjection() ||
+        this.showFinishProjection()
+      )
+    ) {
+      return;
+    }
+    const stage = this.qaStage()?.nativeElement;
+    const surface = root.querySelector<HTMLElement>('.session-present');
+    const finish = root.querySelector<HTMLElement>('.session-present__finish');
+    const scroller = [stage, finish, surface].find(
+      (element) => element && element.scrollHeight > element.clientHeight,
+    );
+    if (scroller) {
+      event.preventDefault();
+      scroller.scrollBy({ top: key === 'ArrowUp' ? -48 : 48, behavior: 'instant' });
+    }
+  }
+
+  async stepQuizHistory(direction: 'previous' | 'next'): Promise<void> {
+    const live = this.presentedQuizQuestion();
+    const current = this.earlierQuizResult();
+    if (!live || !this.showQuizControlFooter() || this.quizControlPending()) return;
+    if (direction === 'previous' && !(current?.hasPrevious ?? live.hasEarlierPresenterResult)) {
+      return;
+    }
+    if (direction === 'next' && !current) return;
+
+    await this.runQuizAction(async () => {
+      if (direction === 'next' && !current?.hasNext) {
+        this.quizHistory.set(null);
+        return;
+      }
+      const result = await trpc.session.getPresenterQuizResult.query(
+        {
+          code: this.sessionCode,
+          liveQuestionId: live.questionId,
+          fromQuestionId: current?.question.questionId,
+          direction,
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (
+        this.destroyRef.destroyed ||
+        !this.showQuizControlFooter() ||
+        this.presentedQuizQuestion()?.questionId !== live.questionId
+      )
+        return;
+      if (!result) throw new Error('Presenter result unavailable');
+      this.historyPage.set({ index: 0, count: 1 });
+      this.quizHistory.set({ liveQuestionId: live.questionId, result });
+    });
+  }
+
+  reportHistoryPages(count: number): void {
+    if (!this.earlierQuizResult()) return;
+    const pageCount = Math.max(1, count);
+    this.historyPage.update(({ index }) => ({
+      index: Math.min(index, pageCount - 1),
+      count: pageCount,
+    }));
+  }
+
   async revealPresenterAnswers(): Promise<void> {
     if (!this.presentedQuizQuestion()) {
       return;
@@ -878,8 +1006,16 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async changeQuizProjectionPage(delta: -1 | 1): Promise<void> {
+    if (this.quizControlPending()) return;
+    if (this.earlierQuizResult()) {
+      this.historyPage.update((page) => ({
+        ...page,
+        index: Math.max(0, Math.min(page.index + delta, page.count - 1)),
+      }));
+      return;
+    }
     const page = this.session()?.presenterPage;
-    if (!page || this.quizControlPending() || !this.showQuizControlFooter()) {
+    if (!page || !this.showQuizControlFooter()) {
       return;
     }
     const count = Math.max(1, page.count);
@@ -963,6 +1099,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         if (this.destroyRef.destroyed || trigger.isConnected) {
           return;
         }
+        const active = this.document.activeElement;
+        if (active && active !== this.document.body && active.isConnected) return;
         this.quizPhaseFocusTarget()?.focus({ preventScroll: true });
       },
       { injector: this.injector },
@@ -1024,6 +1162,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       '[data-testid="presenter-quiz-reveal-results"]',
       '[data-testid="presenter-quiz-next-question"]',
       '[data-testid="presenter-quiz-finish"]',
+      '[data-testid="presenter-quiz-history-previous"]',
       '[data-testid="presenter-return-to-host"]',
       '[data-testid="presenter-surface"]',
     ];
@@ -1035,6 +1174,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       if (element.hasAttribute('disabled') || element.getAttribute('aria-disabled') === 'true') {
         continue;
       }
+      if (element.closest('[hidden], [inert]')) continue;
       return element;
     }
     return null;
@@ -1901,6 +2041,44 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     return page.count > 1 || this.quizPageNavHeldContext() === page.context;
   });
+  readonly earlierQuizResult = computed(() => {
+    const history = this.quizHistory();
+    return history &&
+      this.showQuizControlFooter() &&
+      this.presentedQuizQuestion()?.questionId === history.liveQuestionId
+      ? history.result
+      : null;
+  });
+  readonly historyWordCloudTerms = computed(() => {
+    const responses = this.earlierQuizResult()?.question.freeTextResponses ?? [];
+    return this.wordCloudTermExtractor.extractTerms(
+      responses.map((body, index) => ({ id: `response-${index}`, body })),
+      {
+        locale: this.presenterFreetextTermLocale(),
+        maxEntries: 80,
+        maxNgramLength: WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
+      },
+    );
+  });
+  readonly historyWordCloudTitle = computed(() =>
+    stripMarkdownToPlainText(this.earlierQuizResult()?.question.text ?? ''),
+  );
+  readonly displayedQuizPage = computed(() => {
+    if (this.earlierQuizResult()) return this.historyPage().count > 1 ? this.historyPage() : null;
+    return this.showQuizPageNav() ? (this.session()?.presenterPage ?? null) : null;
+  });
+  readonly quizRevealShortcut = computed(
+    () =>
+      !this.quizTimerBlocksReveal() &&
+      !this.quizOfferDiscussion() &&
+      presenterVotingClosed(
+        this.session()?.status ?? null,
+        this.presentedQuizQuestion(),
+        this.hostVoteProgress(),
+        this.presentedParticipantCount(),
+        this.countdownSeconds(),
+      ),
+  );
   readonly quizTimerBlocksReveal = computed(() =>
     presenterTimerBlocksReveal(
       this.session()?.status ?? null,
@@ -2094,6 +2272,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.musicReady.set(!this.sessionMusic.enter(this.sessionCode));
+    effect(
+      () => {
+        if (!this.quizHistory() || this.earlierQuizResult()) return;
+        const active = this.quizActionTrigger();
+        this.quizHistory.set(null);
+        if (active?.closest('[data-testid="presenter-quiz-controls"]')) {
+          this.scheduleQuizControlFocus(active);
+        }
+      },
+      { injector: this.injector },
+    );
     effect(
       () => {
         const session = this.session();

@@ -7,9 +7,18 @@
   [class.session-present--team-finale]="showTeamFinish()"
   [class.session-present--lobby]="showLobbyProjection()"
   [class.session-present--quiz]="showQuizProjection()"
-  [class.session-present--freetext]="showPresenterFreetextResultsStage()"
+  [class.session-present--freetext]="
+    earlierQuizResult()
+      ? earlierQuizResult()?.question?.type === 'FREETEXT'
+      : showPresenterFreetextResultsStage()
+  "
   [class.session-present--qa]="showQaProjection() || showQaWordCloud()"
-  [class.session-present--word-cloud]="showQaWordCloud() || showPresenterFreetextResultsStage()"
+  [class.session-present--word-cloud]="
+    showQaWordCloud() ||
+    (earlierQuizResult()
+      ? earlierQuizResult()?.question?.type === 'FREETEXT'
+      : showPresenterFreetextResultsStage())
+  "
   [class.session-present--feedback]="showQuickFeedbackCard()"
   [class.session-present--standby]="
     showPresentationEndedProjection() ||
@@ -319,9 +328,11 @@
                     matButton="outlined"
                     type="button"
                     data-testid="presenter-personal-board-previous"
+                    aria-keyshortcuts="ArrowLeft"
                     (click)="stepBoardPage('personal', -1)"
                   >
                     <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+                    <kbd class="session-present__shortcut" aria-hidden="true">←</kbd>
                   </button>
                   <p class="session-present__board-page" aria-live="polite">
                     {{ personalBoardPageLabel() }}
@@ -345,9 +356,11 @@
                     matButton="outlined"
                     type="button"
                     data-testid="presenter-personal-board-next"
+                    aria-keyshortcuts="ArrowRight"
                     (click)="stepBoardPage('personal', 1)"
                   >
                     <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+                    <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
                   </button>
                 </div>
               }
@@ -453,9 +466,11 @@
                     matButton="outlined"
                     type="button"
                     data-testid="presenter-team-board-previous"
+                    aria-keyshortcuts="ArrowLeft"
                     (click)="stepBoardPage('team', -1)"
                   >
                     <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+                    <kbd class="session-present__shortcut" aria-hidden="true">←</kbd>
                   </button>
                   <p class="session-present__board-page" aria-live="polite">
                     {{ teamBoardPageLabel() }}
@@ -479,9 +494,11 @@
                     matButton="outlined"
                     type="button"
                     data-testid="presenter-team-board-next"
+                    aria-keyshortcuts="ArrowRight"
                     (click)="stepBoardPage('team', 1)"
                   >
                     <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+                    <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
                   </button>
                 </div>
               }
@@ -623,12 +640,16 @@
                 matButton="filled"
                 type="button"
                 data-testid="presenter-quiz-start"
+                [attr.aria-keyshortcuts]="session()?.status === 'LOBBY' ? 'ArrowRight' : null"
                 [disabled]="quizControlPending()"
                 [disabledInteractive]="true"
                 [attr.aria-busy]="quizControlPending()"
                 (click)="startPresenterQuiz()"
               >
                 <span i18n="@@7506202845535656842">Erste Frage starten</span>
+                @if (session()?.status === 'LOBBY') {
+                  <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
+                }
               </button>
               @if (quizControlError()) {
                 <p class="session-present__quiz-error" role="alert">{{ quizControlError() }}</p>
@@ -880,7 +901,36 @@
       </div>
     }
 
-    @if (showQuizProjection() && !showPresenterFreetextResultsStage()) {
+    @if (earlierQuizResult(); as history) {
+      @if (history.wordCloudUnavailable) {
+        <section class="session-present__quiz-pending">
+          <h2>{{ historyWordCloudTitle() }}</h2>
+          <p
+            class="session-present__quiz-pending-text"
+            i18n="@@sessionPresent.historyModeratedWordCloud"
+          >
+            Die moderierte Wortwolke ist im Rückblick nicht verfügbar.
+          </p>
+        </section>
+      } @else if (history.question.type === 'FREETEXT') {
+        <app-word-cloud
+          class="session-present__word-cloud-stage"
+          [terms]="historyWordCloudTerms()"
+          [title]="historyWordCloudTitle()"
+          [selectionScopeKey]="history.question.questionId"
+          [presentationMode]="true"
+          [outputOnly]="true"
+        />
+      } @else {
+        <app-session-projection-quiz
+          [pageContext]="history.question.questionId"
+          [pageIndex]="historyPage().index"
+          (pageCount)="reportHistoryPages($event)"
+          [question]="history.question"
+          status="RESULTS"
+        />
+      }
+    } @else if (showQuizProjection() && !showPresenterFreetextResultsStage()) {
       <app-session-projection-quiz
         [pageContext]="session()?.presenterPage?.context ?? ''"
         [pageIndex]="session()?.presenterPage?.index ?? 0"
@@ -1170,11 +1220,13 @@
               matButton="outlined"
               type="button"
               data-testid="presenter-qa-previous"
+              aria-keyshortcuts="ArrowLeft"
               [disabledInteractive]="true"
               [disabled]="qaNavPending() || qaSortPending() || qaQueuePageIndex() === 0"
               (click)="changeQaProjectionPage(-1)"
             >
               <span i18n="@@sessionHost.projectionQaPrevious">Vorherige Frage</span>
+              <kbd class="session-present__shortcut" aria-hidden="true">←</kbd>
             </button>
             <span class="session-present__qa-nav-index" aria-live="polite"
               >{{ qaQueuePageIndex() + 1 }} / {{ qaQueuePageCount() }}</span
@@ -1183,6 +1235,7 @@
               matButton="outlined"
               type="button"
               data-testid="presenter-qa-next"
+              aria-keyshortcuts="ArrowRight"
               [disabledInteractive]="true"
               [disabled]="
                 qaNavPending() || qaSortPending() || qaQueuePageIndex() >= qaQueuePageCount() - 1
@@ -1190,6 +1243,7 @@
               (click)="changeQaProjectionPage(1)"
             >
               <span i18n="@@sessionHost.projectionQaNext">Nächste Frage</span>
+              <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
             </button>
             @if (qaNavError()) {
               <p class="session-present__qa-nav-error" role="alert">{{ qaNavError() }}</p>
@@ -1344,7 +1398,7 @@
       </mat-card>
     }
 
-    @if (showPresenterFreetextResultsStage()) {
+    @if (showPresenterFreetextResultsStage() && !earlierQuizResult()) {
       <div class="session-present__word-cloud-layout">
         <div
           class="session-present__word-cloud-toolbar"
@@ -1537,7 +1591,23 @@
         data-testid="presenter-quiz-controls"
         [attr.aria-busy]="quizControlPending()"
       >
-        @if (showQuizPageNav() && session()?.presenterPage; as page) {
+        @if (earlierQuizResult(); as history) {
+          <p
+            class="session-present__history-status"
+            role="status"
+            data-testid="presenter-quiz-history-status"
+          >
+            <span i18n="@@sessionPresent.earlierResult">Früheres Ergebnis</span>
+            @if (history.question.totalQuestions) {
+              ·
+              <span i18n="@@sessionPresent.quizCounter"
+                >Frage {{ history.question.order + 1 }} /
+                {{ history.question.totalQuestions }}</span
+              >
+            }
+          </p>
+        }
+        @if (displayedQuizPage(); as page) {
           <nav
             class="session-present__quiz-nav"
             data-testid="presenter-quiz-pages"
@@ -1548,11 +1618,13 @@
               matButton="outlined"
               type="button"
               data-testid="presenter-quiz-previous-page"
+              aria-keyshortcuts="ArrowUp"
               [disabledInteractive]="true"
               [disabled]="quizControlPending() || page.index <= 0"
               (click)="changeQuizProjectionPage(-1)"
             >
               <span i18n="@@sessionHost.projectionPrevious">Vorherige Seite</span>
+              <kbd class="session-present__shortcut" aria-hidden="true">↑</kbd>
             </button>
             <span class="session-present__quiz-nav-index" aria-live="polite"
               >{{ page.index + 1 }} / {{ page.count }}</span
@@ -1561,155 +1633,199 @@
               matButton="outlined"
               type="button"
               data-testid="presenter-quiz-next-page"
+              aria-keyshortcuts="ArrowDown"
               [disabledInteractive]="true"
               [disabled]="quizControlPending() || page.index >= page.count - 1"
               (click)="changeQuizProjectionPage(1)"
             >
               <span i18n="@@sessionHost.projectionNext">Nächste Seite</span>
+              <kbd class="session-present__shortcut" aria-hidden="true">↓</kbd>
             </button>
           </nav>
         }
         <div class="session-present__quiz-actions">
-          @if (quizTimerBlocksReveal()) {
-            <p
-              class="session-present__quiz-note"
-              data-testid="presenter-timer-accommodation"
-              i18n="@@sessionPresent.timerAccommodationBlocks"
-            >
-              Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu
-              schließen.
-            </p>
-          }
-          @if (session()?.status === 'QUESTION_OPEN' || session()?.status === 'ACTIVE') {
+          @if (earlierQuizResult() || presentedQuizQuestion()?.hasEarlierPresenterResult) {
             <button
-              matButton="tonal"
+              matButton="outlined"
               type="button"
-              data-testid="presenter-quiz-pause"
+              data-testid="presenter-quiz-history-previous"
+              aria-keyshortcuts="ArrowLeft"
+              [disabled]="quizControlPending() || earlierQuizResult()?.hasPrevious === false"
+              [disabledInteractive]="true"
+              (click)="stepQuizHistory('previous')"
+            >
+              <span i18n="@@sessionPresent.previousResult">Vorheriges Ergebnis</span>
+              <kbd class="session-present__shortcut" aria-hidden="true">←</kbd>
+            </button>
+          }
+          @if (earlierQuizResult(); as history) {
+            <button
+              matButton="filled"
+              type="button"
+              data-testid="presenter-quiz-history-next"
+              aria-keyshortcuts="ArrowRight"
               [disabled]="quizControlPending()"
               [disabledInteractive]="true"
-              (click)="pausePresenterQuiz()"
+              (click)="stepQuizHistory('next')"
             >
-              <span i18n="@@sessionHost.pauseQuiz">Quiz pausieren</span>
+              @if (history.hasNext) {
+                <span i18n="@@sessionPresent.nextResult">Nächstes Ergebnis</span>
+              } @else {
+                <span i18n="@@sessionPresent.returnToLiveQuiz">Zurück zur Live-Ansicht</span>
+              }
+              <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
             </button>
-          }
-          @if (session()?.status === 'QUESTION_OPEN') {
-            <button
-              matButton="filled"
-              type="button"
-              data-testid="presenter-quiz-reveal-answers"
-              [disabled]="quizControlPending()"
-              [disabledInteractive]="true"
-              (click)="revealPresenterAnswers()"
-              i18n-aria-label="@@sessionHost.revealAnswerOptionsAria"
-              aria-label="Antwortphase starten"
-            >
-              <span i18n="@@sessionHost.revealAnswerOptions">Antwortphase starten</span>
-            </button>
-          }
-          @if (session()?.status === 'ACTIVE' && quizOfferDiscussion()) {
-            <button
-              matButton="tonal"
-              type="button"
-              data-testid="presenter-quiz-reveal-results"
-              [disabled]="quizControlPending() || quizTimerBlocksReveal()"
-              [disabledInteractive]="true"
-              (click)="revealPresenterResults()"
-            >
-              <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
-            </button>
-            <button
-              matButton="filled"
-              type="button"
-              data-testid="presenter-quiz-discussion"
-              [disabled]="quizControlPending() || quizTimerBlocksReveal()"
-              [disabledInteractive]="true"
-              (click)="startPresenterDiscussion()"
-              i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
-              aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
-            >
-              <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
-            </button>
-          } @else if (session()?.status === 'ACTIVE') {
-            <button
-              matButton="filled"
-              type="button"
-              data-testid="presenter-quiz-reveal-results"
-              [disabled]="quizControlPending() || quizTimerBlocksReveal()"
-              [disabledInteractive]="true"
-              (click)="revealPresenterResults()"
-            >
-              <span i18n="@@sessionHost.revealResultsAnchor">Ergebnis zeigen</span>
-            </button>
-          }
-          @if (session()?.status === 'DISCUSSION') {
-            @if (quizCanOpenFollowingQuestion()) {
+          } @else {
+            @if (quizTimerBlocksReveal()) {
+              <p
+                class="session-present__quiz-note"
+                data-testid="presenter-timer-accommodation"
+                i18n="@@sessionPresent.timerAccommodationBlocks"
+              >
+                Persönliche Zeitfenster laufen noch. Warte, oder wechsle zum Host, um sie zu
+                schließen.
+              </p>
+            }
+            @if (session()?.status === 'QUESTION_OPEN' || session()?.status === 'ACTIVE') {
               <button
                 matButton="tonal"
                 type="button"
-                data-testid="presenter-quiz-skip-discussion"
+                data-testid="presenter-quiz-pause"
                 [disabled]="quizControlPending()"
                 [disabledInteractive]="true"
-                (click)="advancePresenterQuiz()"
-                i18n-aria-label="@@sessionHost.skipDiscussionNextQuestionAria"
-                aria-label="Zur nächsten Frage ohne zweite Abstimmung"
+                (click)="pausePresenterQuiz()"
               >
-                <span i18n="@@sessionHost.skipDiscussionNextQuestion"
-                  >Zur nächsten Frage ohne zweite Abstimmung</span
-                >
-              </button>
-            } @else {
-              <button
-                matButton="tonal"
-                type="button"
-                data-testid="presenter-quiz-skip-discussion"
-                [disabled]="quizControlPending()"
-                [disabledInteractive]="true"
-                (click)="advancePresenterQuiz()"
-                i18n-aria-label="@@sessionHost.skipDiscussionFinishEvaluationAria"
-                aria-label="Zur Gesamtauswertung ohne zweite Abstimmung"
-              >
-                <span i18n="@@sessionHost.skipDiscussionFinishEvaluation"
-                  >Zur Gesamtauswertung ohne zweite Abstimmung</span
-                >
+                <span i18n="@@sessionHost.pauseQuiz">Quiz pausieren</span>
               </button>
             }
-            <button
-              matButton="filled"
-              type="button"
-              data-testid="presenter-quiz-second-round"
-              [disabled]="quizControlPending()"
-              [disabledInteractive]="true"
-              (click)="startPresenterSecondRound()"
-            >
-              <span i18n="@@sessionPresent.secondRound">Zweite Abstimmung</span>
-            </button>
-          }
-          @if (session()?.status === 'RESULTS' && quizCanOpenFollowingQuestion()) {
-            <button
-              matButton="filled"
-              type="button"
-              data-testid="presenter-quiz-next-question"
-              [disabled]="quizControlPending()"
-              [disabledInteractive]="true"
-              (click)="advancePresenterQuiz()"
-              i18n="@@sessionHost.nextQuestionAnchor"
-            >
-              Nächste Frage
-            </button>
-          }
-          @if (session()?.status === 'RESULTS' && !quizCanOpenFollowingQuestion()) {
-            <button
-              matButton="filled"
-              type="button"
-              data-testid="presenter-quiz-finish"
-              [disabled]="quizControlPending()"
-              [disabledInteractive]="true"
-              (click)="advancePresenterQuiz()"
-              i18n-aria-label="@@sessionHost.finishEvaluationAnchorAria"
-              aria-label="Zur Gesamtauswertung"
-            >
-              <span i18n="@@sessionHost.finishEvaluationAnchor">Zur Gesamtauswertung</span>
-            </button>
+            @if (session()?.status === 'QUESTION_OPEN') {
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-reveal-answers"
+                aria-keyshortcuts="ArrowRight"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="revealPresenterAnswers()"
+                i18n-aria-label="@@sessionHost.revealAnswerOptionsAria"
+                aria-label="Antwortphase starten"
+              >
+                <span i18n="@@sessionHost.revealAnswerOptions">Antwortphase starten</span>
+                <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
+              </button>
+            }
+            @if (session()?.status === 'ACTIVE' && quizOfferDiscussion()) {
+              <button
+                matButton="tonal"
+                type="button"
+                data-testid="presenter-quiz-reveal-results"
+                [disabled]="quizControlPending() || quizTimerBlocksReveal()"
+                [disabledInteractive]="true"
+                (click)="revealPresenterResults()"
+              >
+                <span i18n="@@sessionHost.revealResults">Ergebnis zeigen</span>
+              </button>
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-discussion"
+                [disabled]="quizControlPending() || quizTimerBlocksReveal()"
+                [disabledInteractive]="true"
+                (click)="startPresenterDiscussion()"
+                i18n-aria-label="@@sessionHost.startDiscussionPhaseAria"
+                aria-label="Diskussionsphase starten – Austausch vor zweiter Abstimmung"
+              >
+                <span i18n="@@sessionHost.discussionPhaseButton">Diskussionsphase</span>
+              </button>
+            } @else if (session()?.status === 'ACTIVE') {
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-reveal-results"
+                [attr.aria-keyshortcuts]="quizRevealShortcut() ? 'ArrowRight' : null"
+                [disabled]="quizControlPending() || quizTimerBlocksReveal()"
+                [disabledInteractive]="true"
+                (click)="revealPresenterResults()"
+              >
+                <span i18n="@@sessionHost.revealResultsAnchor">Ergebnis zeigen</span>
+                @if (quizRevealShortcut()) {
+                  <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
+                }
+              </button>
+            }
+            @if (session()?.status === 'DISCUSSION') {
+              @if (quizCanOpenFollowingQuestion()) {
+                <button
+                  matButton="tonal"
+                  type="button"
+                  data-testid="presenter-quiz-skip-discussion"
+                  [disabled]="quizControlPending()"
+                  [disabledInteractive]="true"
+                  (click)="advancePresenterQuiz()"
+                  i18n-aria-label="@@sessionHost.skipDiscussionNextQuestionAria"
+                  aria-label="Zur nächsten Frage ohne zweite Abstimmung"
+                >
+                  <span i18n="@@sessionHost.skipDiscussionNextQuestion"
+                    >Zur nächsten Frage ohne zweite Abstimmung</span
+                  >
+                </button>
+              } @else {
+                <button
+                  matButton="tonal"
+                  type="button"
+                  data-testid="presenter-quiz-skip-discussion"
+                  [disabled]="quizControlPending()"
+                  [disabledInteractive]="true"
+                  (click)="advancePresenterQuiz()"
+                  i18n-aria-label="@@sessionHost.skipDiscussionFinishEvaluationAria"
+                  aria-label="Zur Gesamtauswertung ohne zweite Abstimmung"
+                >
+                  <span i18n="@@sessionHost.skipDiscussionFinishEvaluation"
+                    >Zur Gesamtauswertung ohne zweite Abstimmung</span
+                  >
+                </button>
+              }
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-second-round"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="startPresenterSecondRound()"
+              >
+                <span i18n="@@sessionPresent.secondRound">Zweite Abstimmung</span>
+              </button>
+            }
+            @if (session()?.status === 'RESULTS' && quizCanOpenFollowingQuestion()) {
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-next-question"
+                aria-keyshortcuts="ArrowRight"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="advancePresenterQuiz()"
+              >
+                <span i18n="@@sessionHost.nextQuestionAnchor">Nächste Frage</span>
+                <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
+              </button>
+            }
+            @if (session()?.status === 'RESULTS' && !quizCanOpenFollowingQuestion()) {
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="presenter-quiz-finish"
+                aria-keyshortcuts="ArrowRight"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="advancePresenterQuiz()"
+                i18n-aria-label="@@sessionHost.finishEvaluationAnchorAria"
+                aria-label="Zur Gesamtauswertung"
+              >
+                <span i18n="@@sessionHost.finishEvaluationAnchor">Zur Gesamtauswertung</span>
+                <kbd class="session-present__shortcut" aria-hidden="true">→</kbd>
+              </button>
+            }
           }
         </div>
         @if (quizControlError()) {
