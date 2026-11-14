@@ -1,0 +1,664 @@
+{
+  "env": {
+    "commit": "efd71b44d4fd32d711cd483606ce5eefd1e9af5b",
+    "commitShort": "efd71b44",
+    "workingTreeClean": true,
+    "rulesVersion": "moderation-compass-rules-v1",
+    "node": "v24.18.0",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700F @ 2.50GHz",
+    "cpuCount": 4,
+    "memoryGb": 8,
+    "platform": "linux 6.6.87.2-microsoft-standard-WSL2",
+    "timestamp": "2026-11-08T14:29:34.290Z"
+  },
+  "rows": [
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["friction", "clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["friction", "topics"],
+      "actionRecommendation": "controversy",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["topics"],
+      "actionRecommendation": "topics",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": ["clarification"],
+      "actionRecommendation": "pending-qa",
+      "buttonVisible": true
+    }
+  ]
+}

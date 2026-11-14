@@ -1,0 +1,12 @@
+
+> @arsnova/frontend@0.1.0 test
+> vitest run moderation-compass
+
+
+ RUN  v4.1.10 <repo>/apps/frontend
+
+
+ Test Files  2 passed (2)
+      Tests  93 passed (93)
+   Start at  14:03:43
+   Duration  13.82s (transform 10.51s, setup 9.77s, import 7.98s, tests 768ms, environment 7.89s)

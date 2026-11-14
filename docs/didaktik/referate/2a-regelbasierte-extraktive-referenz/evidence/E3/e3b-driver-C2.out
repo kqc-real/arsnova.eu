@@ -1,0 +1,21 @@
+[C2] setup ok session=Y3ZG84 {"createMs":121,"joinMs":6580,"submitMs":124,"voteMs":2338}
+[C2] burst-01: extractive/unavailable enq=122.1ms term=417.3ms polls=5 server=196 immediate=false
+[C2] burst-02: extractive/unavailable enq=99.4ms term=355.4ms polls=5 server=169 immediate=false
+[C2] burst-03: extractive/unavailable enq=85.9ms term=337.3ms polls=5 server=161 immediate=false
+[C2] burst-04: extractive/circuit_open enq=85ms term=336ms polls=5 server=162 immediate=false
+[C2] burst-05: extractive/circuit_open enq=81.5ms term=480.3ms polls=6 server=256 immediate=false
+[C2] burst-06: extractive/circuit_open enq=159.5ms term=520.6ms polls=6 server=243 immediate=false
+[C2] burst-07: extractive/circuit_open enq=94.4ms term=466.7ms polls=6 server=226 immediate=false
+[C2] burst-08: extractive/circuit_open enq=97.6ms term=470.2ms polls=6 server=256 immediate=false
+[C2] burst-09: extractive/circuit_open enq=78.6ms term=322.6ms polls=5 server=147 immediate=false
+[C2] burst-10: extractive/circuit_open enq=87.4ms term=304.7ms polls=4 server=143 immediate=false
+[C2] spaced-01: extractive/unavailable enq=90.8ms term=292.6ms polls=4 server=134 immediate=false
+[C2] spaced-02: extractive/unavailable enq=80.7ms term=279.7ms polls=4 server=137 immediate=false
+[C2] spaced-03: extractive/unavailable enq=77.5ms term=317ms polls=5 server=170 immediate=false
+[C2] spaced-04: extractive/circuit_open enq=107.1ms term=372.2ms polls=5 server=186 immediate=false
+[C2] spaced-05: extractive/unavailable enq=95.9ms term=316.3ms polls=4 server=155 immediate=false
+[C2] spaced-06: extractive/unavailable enq=78.7ms term=283.1ms polls=4 server=134 immediate=false
+[C2] spaced-07: extractive/unavailable enq=73.4ms term=319.9ms polls=5 server=154 immediate=false
+[C2] spaced-08: extractive/circuit_open enq=73.1ms term=277.2ms polls=4 server=128 immediate=false
+[C2] spaced-09: extractive/unavailable enq=95.6ms term=338.7ms polls=4 server=159 immediate=false
+[C2] wrote <referat-2a>/evidence/E3/e3b-raw-C2.json

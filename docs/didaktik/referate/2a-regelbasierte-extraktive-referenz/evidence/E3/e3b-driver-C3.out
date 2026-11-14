@@ -1,0 +1,12 @@
+[C3] setup ok session=ZXEXMG {"createMs":130,"joinMs":5896,"submitMs":115,"voteMs":2332}
+[C3] burst-01: extractive/timeout enq=100.5ms term=1341.2ms polls=32 server=1165 immediate=false
+[C3] burst-02: extractive/timeout enq=75.6ms term=1351.4ms polls=34 server=1189 immediate=false
+[C3] burst-03: extractive/timeout enq=77ms term=1314.3ms polls=32 server=1142 immediate=false
+[C3] burst-04: extractive/timeout enq=90.2ms term=1313.1ms polls=33 server=1151 immediate=false
+[C3] burst-05: extractive/timeout enq=67.9ms term=1290.2ms polls=33 server=1131 immediate=false
+[C3] burst-06: extractive/timeout enq=82.2ms term=1315.6ms polls=33 server=1132 immediate=false
+[C3] burst-07: extractive/timeout enq=80.6ms term=1321.8ms polls=33 server=1151 immediate=false
+[C3] burst-08: extractive/timeout enq=67.8ms term=1335.3ms polls=33 server=1161 immediate=false
+[C3] burst-09: extractive/timeout enq=69.2ms term=1282.8ms polls=32 server=1144 immediate=false
+[C3] burst-10: extractive/timeout enq=72.8ms term=1293.2ms polls=33 server=1154 immediate=false
+[C3] wrote <referat-2a>/evidence/E3/e3b-raw-C3.json

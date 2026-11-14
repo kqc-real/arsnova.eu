@@ -1,0 +1,107 @@
+{
+  "env": {
+    "commit": "a657798e4ab5b3c9f1214fe32baf4d562c1bc003",
+    "commitShort": "a657798e",
+    "workingTreeClean": true,
+    "rulesVersion": "moderation-compass-rules-v1",
+    "node": "v24.13.1",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700F @ 2.50GHz",
+    "cpuCount": 4,
+    "memoryGb": 8,
+    "platform": "linux 6.6.87.2-microsoft-standard-WSL2",
+    "timestamp": "2026-10-21T12:08:38.026Z"
+  },
+  "inputSourceCount": 12,
+  "inputSources": [
+    {
+      "id": "qa-question:11111111-1111-4111-8111-111111111111",
+      "kind": "qa-question",
+      "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+      "state": "included"
+    },
+    {
+      "id": "qa-question:22222222-2222-4222-8222-222222222222",
+      "kind": "qa-question",
+      "label": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+      "state": "included"
+    },
+    {
+      "id": "qa-question:33333333-3333-4333-8333-333333333333",
+      "kind": "qa-question",
+      "label": "Ist Kapitel 4 klausurrelevant?",
+      "state": "included"
+    },
+    {
+      "id": "qa-question:44444444-4444-4444-8444-444444444444",
+      "kind": "qa-question",
+      "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+      "state": "included"
+    },
+    {
+      "id": "qa-question:55555555-5555-4555-8555-555555555555",
+      "kind": "qa-question",
+      "label": "Soll die Anwesenheit verpflichtend sein?",
+      "state": "included"
+    },
+    {
+      "id": "qa-question:66666666-6666-4666-8666-666666666666",
+      "kind": "qa-question",
+      "label": "Sollten wir eine Anwesenheitspflicht einführen?",
+      "state": "included"
+    },
+    {
+      "id": "semantic-topic:linear-regression-examples",
+      "kind": "semantic-topic",
+      "label": "Beispiele zur linearen Regression"
+    },
+    {
+      "id": "semantic-topic:exam-scope",
+      "kind": "semantic-topic",
+      "label": "Prüfungsumfang"
+    },
+    {
+      "id": "semantic-topic:attendance-policy",
+      "kind": "semantic-topic",
+      "label": "Anwesenheitspflicht"
+    },
+    {
+      "id": "compass-signal:highest-best-score",
+      "kind": "compass-signal",
+      "label": "Höchster Best-Score im Auswahlkorpus"
+    },
+    {
+      "id": "compass-signal:highest-controversy",
+      "kind": "compass-signal",
+      "label": "Höchste Kontroversität im Auswahlkorpus"
+    },
+    {
+      "id": "learning-objective:linear-regression-application",
+      "kind": "learning-objective",
+      "label": "Die Studierenden können lineare Regressionsmodelle anwenden."
+    }
+  ],
+  "output": {
+    "status": "ready",
+    "statements": [
+      {
+        "text": "Hervorgehobener Beleg: »Anwesenheitspflicht«",
+        "sourceIds": ["semantic-topic:attendance-policy"]
+      },
+      {
+        "text": "Hervorgehobener Beleg: »Prüfungsumfang«",
+        "sourceIds": ["semantic-topic:exam-scope"]
+      },
+      {
+        "text": "Hervorgehobener Beleg: »Beispiele zur linearen Regression«",
+        "sourceIds": ["semantic-topic:linear-regression-examples"]
+      },
+      {
+        "text": "Hervorgehobener Beleg: »Können wir mehr Beispiele zur linearen Regression bearbeiten?«",
+        "sourceIds": ["qa-question:11111111-1111-4111-8111-111111111111"]
+      }
+    ],
+    "suggestedNextSteps": [],
+    "limitations": ["Extraktive Kurzfassung ohne generative Interpretation."],
+    "modelVersion": "extractive-v2"
+  }
+}

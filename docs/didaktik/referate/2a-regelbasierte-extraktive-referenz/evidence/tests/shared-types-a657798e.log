@@ -1,0 +1,12 @@
+
+> @arsnova/shared-types@0.1.0 test
+> vitest run moderation-compass-rules moderation-prompt-context qa-summary-v2
+
+
+ RUN  v4.1.10 <repo>/libs/shared-types
+
+
+ Test Files  3 passed (3)
+      Tests  83 passed (83)
+   Start at  14:02:38
+   Duration  1.57s (transform 1.60s, setup 0ms, import 3.23s, tests 272ms, environment 0ms)
