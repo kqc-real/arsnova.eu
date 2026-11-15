@@ -50,8 +50,16 @@ Jeder Aufruf außer `pruefen` (der schreibt den Bericht) legt ein Log `%USERPROF
 | `-LabTag`                                        | leer                                        | Name des Laufs, nur `a–z`, `0–9`, `-`; Präfix `dev` oder `probe`: Ergebnis kommt nicht nach `messung/`                                              |
 | `-LabTimeoutMs`                                  | 0 (aus der Kalibrierung von heute)          | 90000 oder 300000; für den ersten Lauf ohne Kalibrierung Pflicht                                                                                    |
 | `-LabRuntimeAus`                                 | aus                                         | nur `lauf`: Aufträge bei gestoppter Runtime (B0)                                                                                                    |
+| `-LabStoerung`                                   | `normal`                                    | nur `lauf`: `normal`, `l1`, `l2`, `l3`, `f1`, `f2`, `busy`, `race`; vorher jede Störung freigeben                                                   |
+| `-LabAuftrag`                                    | `summary`                                   | nur `lauf`: `summary`, `label`, `breaker-summary`; Label aktiviert zusätzlich den Encoder                                                           |
+| `-LabLive`                                       | aus                                         | nur `lauf`: Live-Fenster und App-CPU/RSS je Auftrag; nicht mit `breaker-summary`                                                                    |
 | `-Commit`                                        | leer (HEAD)                                 | 40-stelliger Commit, den alle Modi mit Repo-Übertragung in die VMs bringen; setzt `labor-wsl.sh --arbeitsstand`                                     |
 | `-OutDir`                                        | `%USERPROFILE%\labor-1b`                    | Bericht, Logs, Rohdaten                                                                                                                             |
+
+_Ergänzt 2026-11-15:_ Die drei neuen Experimentparameter sind lokal getestet,
+auf den VMs noch nicht verifiziert. Sie benötigen einen eigenen `-LabTag`.
+Ablauf, Rücknahme, Messgrenzen und die einmalige Encoder-Einrichtung stehen im
+[Runbook, Abschnitt 8](../runbook.md#8-übergabe-an-niklas-schritte-34).
 
 Die Messmodi und ihre Reihenfolge sind dieselben wie unter Linux ([Runbook, Abschnitt 3](../runbook.md#3-lauf)), etwa Schritt 1 als `-Mode lauf -LabN 1 -LabTag dev-body -LabTimeoutMs 300000`, B0 als `-Mode lauf -LabRuntimeAus -LabTag b0`. Die Ergebnisse kopiert `labor.ps1` nach `messung/`.
 

@@ -109,6 +109,59 @@ Mitschnitte enthalten den Runtime-Token im `Authorization`-Header und bleiben in
 
 Stand für Störversuche und Betriebsaufwand auf dem eigenen Rechner. Auftrag: Issue [#9](https://github.com/NiklasSkulll/arsnova.eu/issues/9). Schritt-für-Schritt unter Windows, auch mit Codex in WSL: [WINDOWS.md](vm/WINDOWS.md). Für Codex: [`AGENTS.md`, Abschnitt 1B-Labor für Agenten](../../AGENTS.md#1b-labor-für-agenten-codex-claude).
 
+_Ergänzt 2026-11-15 (Schritte 3–4):_ Die unten beschriebenen fehlenden
+Haken und manuellen Störbefehle sind der historische Übergabestand. Die neue
+Implementierung ersetzt diese Vorschläge; **auf den VMs noch nicht verifiziert**.
+Design, Schwellen und datierte Abweichungen stehen in der
+[Planung](../../1B-3u4-Planung.md).
+
+- Windows/WSL: `-LabStoerung normal|l1|l2|l3|f1|f2|busy|race`,
+  `-LabAuftrag summary|label|breaker-summary`, optional `-LabLive`.
+  Neue Experimentparameter verlangen `-LabTag` und gelten nur bei `lauf`.
+  Aus WSL ausschließlich `labor-wsl.sh`, Entwicklung mit `--arbeitsstand` und
+  `-LabTag dev-…`. Jeder Lauf und jede Störung braucht vorher Niklas' Zustimmung.
+- `l1`/`l2`: 50/500 ms zusätzliche Verzögerung nur für Antworten von Port 8080
+  zum app-host. `l3`: Fake mit Antwortverzögerung über dem Summary-Budget und dem
+  Label-Phasenbudget; `f1`: Runtime gestoppt; `f2`: ufw-DROP nur für
+  app-host → llm-host:8080. `busy`: Slots-API meldet 503 ohne Completion;
+  `race`: Slots frei, Completion antwortet 503. Der Fake ist keine Normalbaseline.
+- `fault-vm.mjs` reserviert ein Lease unter `~/labor-1b/stoerung-lease` im
+  llm-host und schreibt `stoerung-journal.jsonl`. Vorhandene fremde qdiscs werden
+  abgelehnt. `lauf.sh` übernimmt Rücknahme auch beim Abbruch und führt danach
+  `pruefen.sh` auf beiden VMs aus. Bei fehlgeschlagener Rücknahme/Prüfung:
+  **nicht weiter messen**, Journal und Lease prüfen; kein bestandener Abschluss.
+  SIGKILL/Stromausfall kann keinen EXIT-Trap ausführen: vorhandenes Lease erst
+  nach gesonderter Zustimmung über den Wrapper zurücknehmen und `pruefen` ausführen.
+- `-LabLive` erzeugt pro Auftrag ein separates Live-Szenario mit 500 Ankünften,
+  90-s-Rampe, Ergebnisfreigabe bei 270 s, Fenster 330 s. Das ist die
+  Ankunftswelle aus 1A mit verlängertem Fenster, keine dauerhaft konstante
+  Konkurrenz von 500 Personen. CPU kommt aus cgroup-Deltas; RSS aus der Summe
+  der Prozess-RSS (`docker top arsnova-v3-app -eo pid,rss`), die gemeinsame Seiten mehrfach zählen kann.
+- Label-Läufe aktivieren den bestehenden Encoder über `label-setup.sh` im
+  app-host. Beim ersten Mal wird dessen Image gebaut (Download, zusätzliche
+  Zeit und Speicher); CPU-Limit entspricht den VM-vCPUs. Encoder und SEMANTIC
+  bleiben anschließend aktiv. Für vergleichbare Baselines dieselbe Konfiguration
+  verwenden; Image-ID wird erfasst. Je Label-Auftrag eine neue Session gegen
+  den sessionspezifischen Label-Cache. Fehlender Label-Pfad ist ein Fehler.
+- `breaker-summary` legt unterschiedliche Summary-Sessions vorab an und ruft sie
+  ohne Cooldown nacheinander ab; Kombination mit Live-Fenstern wird abgelehnt.
+  Der Breaker ist nur indirekt über Zeit und beobachtete Netzversuche sichtbar.
+- `experiment.json` enthält Jobs, Transportbeobachtungen und Live-Fenster;
+  `treiber.json` enthält zusätzlich Ressourcenproben. `rssError` kennzeichnet
+  RSS-Erfassungsfehler; fehlende RSS-Werte verhindern vollständige Messfenster. Fehlende Timings bleiben
+  `null`. Labels stellen weder internen Fallback-Grund noch Job-Zeit bereit;
+  diese Hypothese ist damit noch nicht vollständig messbar. TCP/HTTP-Felder
+  enthalten keine Header, die PCAPs enthalten weiterhin den Token und bleiben lokal.
+- Vergleich lokal, ohne VM-Zugriff:
+  `node docs/referat-thema-1/evidenz/1B/vergleichen.mjs BASIS/ergebnis.json VARIANTE/ergebnis.json`.
+  Verglichen werden nur passende Manifeste und vollständige Live-Fenster.
+  Live-p95 höchstens 110 % der sauberen Baseline, keine zusätzlichen Fehler;
+  F2/F1-Medianverhältnis über 10 nur für tatsächlich beobachtete Netzversuche.
+  `null` bedeutet nicht beurteilbar. L1/L2-Verzögerung muss zusätzlich anhand
+  Journal und Mitschnitt geprüft werden; ein konfigurierter Wert allein beweist sie nicht.
+
+Historischer Übergabestand:
+
 - **Branch:** Eigene Arbeit frisch von `main` abzweigen, etwa `git fetch origin && git switch -c <eigener-branch> origin/main`. Der in #9 genannte Branch `feature-1B-private-inference-3-4` stammt vom 2026-10-23 und enthält das Labor nicht; ob er ersetzt oder ein neuer Name genutzt wird, entscheidet Niklas.
 - **Begriffe und Vergleichswerte:** gemeinsame Zeitbegriffe (T_host … T_transport) in [ADR 1B-011](../../adr/1B-011-zeitbegriffe-und-leitfrage.md); Werte aus Schritt 2 (normaler Dienst, kalt und warm, C0, B0) im [1B-Ergebnis](../../1B-ergebnis.md), Rohdaten unter `messung/`. Absolute Zeiten anderer Rechner sind damit nicht vergleichbar, nur Verhältnisse; der normale Dienst wird deshalb auf dem eigenen Rechner neu gemessen.
 - **Wiederverwendbar:** `lauf.sh` (Mitschnitt auf beiden Hosts, Speicher-CSV der Runtime, Zeitzerlegung), `pruefen.sh` (Limits, Flags, Bind), der Treiber `treiber.mjs` und der Ausfall B0. **B0 entspricht F1 aus #9** (Container gestoppt, schneller Fehler); Vergleichswert H_B0 im 1B-Ergebnis. S1 (Same-Host) ist in Schritt 2 nicht gemessen; wer S1 für Schritt 4 braucht, misst es selbst.

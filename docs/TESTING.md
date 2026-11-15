@@ -1269,3 +1269,18 @@ Vorlauf mit einer neuen Datei durchgeführt wurde. Jede zusätzliche Reihe brauc
 neuen Evidenzordner. Definition und Nachtrag werden über ihre Quellenhashes gebunden.
 Die abgeschlossene Reihe und ihre Ergebnisdokumentation sind im
 [A1-Evidenzindex](referat-thema-1/evidenz/1A/README.md) verlinkt.
+
+## 1B-Laborskripte für Störversuche
+
+Die lokalen Tests verwenden Attrappen oder Loopback-Testserver, keine Labor-VMs.
+Sie prüfen Fake-HTTP-Vertrag, Token-Prüfung, Störungs-Lease und Rücknahme,
+Abbruchpfade, vollständige Live-/Ressourcenfenster sowie Vergleichsgrenzen:
+
+```bash
+node --test docs/referat-thema-1/evidenz/1B/*.test.mjs docs/referat-thema-1/evidenz/1B/messung/*.test.mjs
+node --test scripts/load/resource-isolation-live.test.mjs scripts/load/lib/artillery-live-messungen.test.mjs scripts/load/lib/container-metrics.test.mjs
+pwsh -NoProfile -Command "Invoke-Pester -Path docs/referat-thema-1/evidenz/1B -Output Detailed"
+```
+
+Diese Tests ersetzen keinen Entwicklungslauf auf Hyper-V. Regeln und Grenzen
+stehen im [1B-Runbook, Abschnitt 8](referat-thema-1/evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34).

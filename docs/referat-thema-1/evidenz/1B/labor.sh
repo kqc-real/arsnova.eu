@@ -286,8 +286,8 @@ im_app_host() { # modus: lauf.sh im app-host mit Hülle (Ruhezustand gesperrt, E
     echo "Timeout $timeout ms aus $kal"
   fi
   local rechner; rechner="$(lscpu | sed -n 's/^Model name: *//p'), $(nproc) Threads, $(free -g | awk '/^Mem:/ {print $2}') GiB"
-  local env; env="$(printf 'LAB_N=%q LAB_TAG=%q LAB_TIMEOUT_MS=%q LAB_PROFIL_IST=%q LAB_RECHNER=%q LAB_RUNTIME_AUS=%q' \
-    "${LAB_N:-10}" "${LAB_TAG:-}" "$timeout" "$ist" "$rechner" "${LAB_RUNTIME_AUS:-}")"
+  local env; env="$(printf 'LAB_N=%q LAB_TAG=%q LAB_TIMEOUT_MS=%q LAB_PROFIL_IST=%q LAB_RECHNER=%q LAB_RUNTIME_AUS=%q LAB_STOERUNG=%q LAB_AUFTRAG=%q LAB_LIVE=%q' \
+    "${LAB_N:-10}" "${LAB_TAG:-}" "$timeout" "$ist" "$rechner" "${LAB_RUNTIME_AUS:-}" "${LAB_STOERUNG:-normal}" "${LAB_AUFTRAG:-summary}" "${LAB_LIVE:-0}")"
   local ausgabe
   local rc=0
   ausgabe="$("${huelle[@]}" "${SSH[@]}" "labor@$APP" "$env bash arsnova.eu/$EV/lauf.sh $1" | tee -a /dev/stderr)" || rc=$?

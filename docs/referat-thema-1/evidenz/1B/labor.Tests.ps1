@@ -100,6 +100,18 @@ Describe 'Invoke-VmScript' {
 }
 
 Describe 'Get-LaufEnv' {
+  It 'reicht Variante, Consumer und Live-Fenster an den Gast weiter' {
+    $e = Get-LaufEnv -N 1 -Tag 'dev-l3' -TimeoutMs 300000 -Profil 'x' -Rechner 'y' -RuntimeAus $false -Variante 'l3' -Auftrag 'summary' -Live $true
+    $e | Should -Match 'LAB_STOERUNG=l3'
+    $e | Should -Match 'LAB_AUFTRAG=summary'
+    $e | Should -Match 'LAB_LIVE=1'
+  }
+  It 'behaelt fuer bestehende Aufrufe den normalen Summary-Pfad ohne Live-Last' {
+    $e = Get-LaufEnv -N 1 -Tag 'dev-body' -TimeoutMs 300000 -Profil 'x' -Rechner 'y' -RuntimeAus $false
+    $e | Should -Match 'LAB_STOERUNG=normal'
+    $e | Should -Match 'LAB_AUFTRAG=summary'
+    $e | Should -Match 'LAB_LIVE=0'
+  }
   It 'gibt B0 an lauf.sh weiter, wenn -LabRuntimeAus gesetzt ist (Runtime gestoppt, Nachtrag M3)' {
     $e = Get-LaufEnv -N 10 -Tag 'b0' -TimeoutMs 300000 -Profil 'Ausbalanciert' -Rechner 'i7, 16 Threads, 32 GB' -RuntimeAus $true
     $e | Should -Match "(^| )LAB_RUNTIME_AUS=1( |$)"

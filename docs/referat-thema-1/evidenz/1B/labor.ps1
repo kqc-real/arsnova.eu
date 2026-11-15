@@ -46,6 +46,9 @@ param(
   [ValidatePattern('^[a-z0-9-]*$')][string]$LabTag = '',
   [ValidateSet(0, 90000, 300000)][int]$LabTimeoutMs = 0,
   [switch]$LabRuntimeAus,   # nur -Mode lauf: Auftraege bei gestoppter Runtime (B0, Ausfall), wie LAB_RUNTIME_AUS=1
+  [ValidateSet('normal', 'l1', 'l2', 'l3', 'f1', 'f2', 'busy', 'race')][string]$LabStoerung = 'normal',
+  [ValidateSet('summary', 'label', 'breaker-summary')][string]$LabAuftrag = 'summary',
+  [switch]$LabLive,
   [ValidateRange(0, 64)][int]$LlmCpus = 0,
   [ValidateRange(0, 512)][int]$LlmRamGB = 0,
   [ValidateRange(0, 64)][int]$AppCpus = 0,
@@ -443,9 +446,12 @@ function Add-LaborUmgebung([string]$Datei) {
 
 function Get-LaufEnv {
   # Umgebung fuer lauf.sh im app-host, wie im_app_host in labor.sh.
-  param([int]$N, [string]$Tag, [int]$TimeoutMs, [string]$Profil, [string]$Rechner, [bool]$RuntimeAus)
+  param([int]$N, [string]$Tag, [int]$TimeoutMs, [string]$Profil, [string]$Rechner, [bool]$RuntimeAus,
+    [ValidateSet('normal', 'l1', 'l2', 'l3', 'f1', 'f2', 'busy', 'race')][string]$Variante = 'normal',
+    [ValidateSet('summary', 'label', 'breaker-summary')][string]$Auftrag = 'summary', [bool]$Live = $false)
   $aus = if ($RuntimeAus) { '1' } else { "''" }
-  return "LAB_N=$N LAB_TAG='$Tag' LAB_TIMEOUT_MS=$TimeoutMs LAB_PROFIL_IST='$Profil' LAB_RECHNER='$Rechner' LAB_RUNTIME_AUS=$aus"
+  $liveWert = if ($Live) { 1 } else { 0 }
+  return "LAB_N=$N LAB_TAG='$Tag' LAB_TIMEOUT_MS=$TimeoutMs LAB_PROFIL_IST='$Profil' LAB_RECHNER='$Rechner' LAB_RUNTIME_AUS=$aus LAB_STOERUNG=$Variante LAB_AUFTRAG=$Auftrag LAB_LIVE=$liveWert"
 }
 
 function Get-MessungZiel {
@@ -458,6 +464,10 @@ function Get-MessungZiel {
 }
 
 function Invoke-ImAppHost([string]$LaufMode) {
+  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and $LaufMode -ne 'lauf') { throw 'Experimentparameter nur bei lauf verwenden.' }
+  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and -not $LabTag) { throw 'Experimente brauchen einen eigenen LabTag.' }
+  if ($LabLive -and $LabAuftrag -eq 'breaker-summary') { throw 'Breaker-Folge separat ohne Live-Messfenster ausfuehren.' }
+  if ($LabRuntimeAus -and $LabStoerung -notin @('normal', 'f1')) { throw 'LabRuntimeAus widerspricht der gewaehlten Stoerung.' }
   # PowerShell 5.1 gibt eingebettete " ungeschuetzt an ssh.exe weiter; daher -N '' (im String '''').
   Invoke-VmScript $null 'sync'
   $o = Get-SshArg
@@ -479,7 +489,7 @@ function Invoke-ImAppHost([string]$LaufMode) {
     $timeout = [int]$k.timeoutMs
     Write-Host "Timeout $timeout ms aus $($kal.Name)"
   }
-  $envText = Get-LaufEnv -N $LabN -Tag $LabTag -TimeoutMs $timeout -Profil $profil -Rechner $rechner -RuntimeAus ($LaufMode -eq 'lauf' -and $LabRuntimeAus.IsPresent)
+  $envText = Get-LaufEnv -N $LabN -Tag $LabTag -TimeoutMs $timeout -Profil $profil -Rechner $rechner -RuntimeAus ($LaufMode -eq 'lauf' -and $LabRuntimeAus.IsPresent) -Variante $LabStoerung -Auftrag $LabAuftrag -Live $LabLive.IsPresent
   $ausgabe = @(& ssh.exe @o "labor@$AppIp" "$envText bash arsnova.eu/$Ev/lauf.sh $LaufMode")
   $ausgabe | Out-Host
   if ($LASTEXITCODE -ne 0) { throw "lauf.sh $LaufMode fehlgeschlagen ($LASTEXITCODE)" }
@@ -548,6 +558,7 @@ if ($MyInvocation.InvocationName -ne '.') {
   if ($mitLog) { Start-Transcript -Path $log | Out-Null }
   $code = 0
   try {
+  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and $Mode -ne 'lauf') { throw 'Experimentparameter nur bei lauf verwenden.' }
   # Vor vorpruefung und up den Speicherort waehlen (Empfehlung: Laufwerk mit dem meisten Platz) und merken.
   Resolve-LaborVmDir ($Mode -in @('up', 'vorpruefung'))
   if ($Mode -eq 'vorpruefung') { Save-LaborVmDir }
