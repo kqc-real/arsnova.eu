@@ -1,26 +1,12 @@
 # A1 – Neue Messreihe auf main a19ca70f ausführen
 
-Stand: 14.11.2026. Diese Anleitung bereitet eine **neue** Messreihe vor;
-sie behauptet keine bereits auf der neuen Baseline gemessenen Ergebnisse.
-Verbindlich sind der [Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md)
-und seine [Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
-
-## Bereits erledigt und verbleibende Grenze
-
-Nach dem Merge wurden laut den vom Bearbeiter mitgeteilten Terminalausgaben
-Node 24.18.0, Installation, Prisma-Generierung, Typecheck, Lint und
-Produktionsbuild erfolgreich geprüft. Alle 99 bisherigen A1-Werkzeugtests
-bestanden. Fünf spaCy-Unit- und zwei Compose-Vertragstests bestanden ebenfalls.
-Der vollständige Frontend-Lauf meldete 2872 bestandene Tests und genau einen
-Fehler: die ursprüngliche Erwartung »viel Zustimmung« im Korpustest von
-`session-host.component.spec.ts`. Dieser sachfremde Test bleibt ausdrücklich
-unverändert; ein vollständig grüner Gesamttest wird nicht behauptet.
-
-Diese Angaben stammen aus den mitgeteilten Läufen und ersetzen kein neues
-Quellenhash-Protokoll. Die alten Protokolle unter `evidenz/1A/auswertung/`,
-`nacharbeit/` und `bereinigung/` bleiben historische Nachweise ihrer jeweiligen
-Arbeitsstände. Neue numerische A1-Ergebnisse entstehen erst durch die Schritte
-unten. Keine alten Rohdaten oder Ergebnisse überschreiben.
+Stand: 15.11.2026. Diese Anleitung beschreibt das reproduzierbare Vorgehen.
+Die aktuelle vollständige Messung liegt unter [reihe-main-a19ca70f-20261115-122547](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
+Befunde stehen in der [Auswertung](./1A-auswertung.md), technische Prüfungen im
+[Prüfstand](./1A-pruefstand.md). Verbindlich sind der unveränderte
+[Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und seine
+[Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
+Für zusätzliche Messungen stets einen neuen Evidenzordner verwenden.
 
 ## Voraussetzungen
 
@@ -28,8 +14,7 @@ Alle folgenden Blöcke im Repository-Wurzelverzeichnis und im selben Terminal
 mit Node 24.18.0 ausführen. `nvm use` ist nur bei einem neuen Terminal erneut
 nötig. Die Änderungen an den Messwerkzeugen vor dem Vorlauf prüfen und selbst
 committen; während Vorlauf und Hauptreihe die Werkzeuge und Reihendefinition
-nicht ändern. Der vorhandene lokale Dokumentationsentwurf wird nicht automatisch
-in einen Commit aufgenommen.
+nicht ändern.
 
 Docker Engine und Compose müssen erreichbar sein. Der Messrunner verwendet
 explizit `unix:///var/run/docker.sock`, einen Linux-Dockerhost mit cgroup v2 und
@@ -63,7 +48,7 @@ Kontrollierte Voraussetzungshinweise werden ohne rohe Docker-Ausgaben
 angezeigt; Dateifehler enthalten nur einen freigegebenen Fehlercode.
 
 Jeden Block nur fortsetzen, wenn die vorhergehenden Befehle erfolgreich waren.
-Die bekannte Frontend-Testabweichung ist gesondert dokumentiert; sie wird nicht
+Die bekannte Frontend-Testabweichung ist im Prüfstand dokumentiert; sie wird nicht
 als Leistungsbefund der neuen Reihe behandelt. Während der mindestens
 150 Minuten langen Hauptreihe keine weiteren Tests, Builds oder Lastversuche
 auf dem Rechner ausführen. Vorlauf und Start-/Rückwegzeiten kommen hinzu.
@@ -87,11 +72,8 @@ und einen `seriesDefinitionSha256` ausgeben. Docker muss `linux 2` melden.
 Die automatisierten Prüfungen wurden bei der Vorbereitung bereits ausgeführt;
 für die eigene erneute Prüfung sind die Befehle hier dokumentiert.
 
-Bei der Vorbereitung am 14.11.2026 bestanden alle sechs A1-Werkzeugsuiten
-mit insgesamt 106 Tests sowie `npm run lint`. Die echte Compose-Auflösung
-mit `docker compose config --format json` wurde für V0–V4 geprüft, einschließlich
-Bereinigung und Manifestabgleich; dabei wurden keine Messcontainer gestartet.
-Das bestätigt die Vorbereitung der Werkzeuge, noch keine neue Messreihe.
+Die aktuell ausgeführten Prüfungen und ihre Ergebnisse stehen im
+[Prüfstand](./1A-pruefstand.md).
 
 ## 2 Sauberen Anwendungsstand exportieren und neue Images bauen
 
@@ -215,11 +197,15 @@ Ergebnisse stehen neu unter `$a1_nachweise/auswertung/`:
 und die Reihendefinition werden mit der Reihe gespeichert; pro Lauf liegen
 zusätzlich `compose-aufwaermung.json` und `compose-messung.json` vor.
 
-## 7 Anschließend dokumentieren
+## 7 Dokumente aus der aktuellen eingefrorenen Auswertung bauen
 
-Erst nach erfolgreicher Erfassung und Auswertung werden Befunde, Entscheidung,
-Gesamtübersicht, Handout und Folien anhand der neuen Ergebnisse überarbeitet.
-`load:resource-isolation:documents` liest weiterhin die alte versionierte
-Auswertung und darf deshalb nicht als Dokumentbau für diese neue Reihe
-verwendet werden. Die frühere Compose-Rekonstruktion bleibt ebenfalls ein
-historisches Werkzeug; für die neue Reihe liegen Originalaufnahmen vor.
+```bash
+npm run load:resource-isolation:documents
+```
+
+Der Dokumentbau verwendet die unter dieser Anleitung verlinkte aktuelle Reihe.
+Er prüft den zum Text passenden Befund und erzeugt HTML, PDFs, Grafiken und Manifest.
+Eine weitere neue Messreihe muss fachlich bewertet und als Dokumentquelle ausgewählt
+werden; bloßes Umbenennen von Dateien ersetzt diese Prüfung nicht.
+Persönliche Freigabe und gemeinsamer Abgleich stehen in der
+[Übergabeunterlage](./1A-abschluss-und-uebergabe.md).

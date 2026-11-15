@@ -10,7 +10,7 @@ import { ladeReihendefinition } from './lib/resource-isolation-series.mjs';
 import { leseVersuchsreihe, werteVersuchsreiheAus } from './evaluate-resource-isolation.mjs';
 
 const exec = promisify(execFile);
-const quelle = resolve('docs/referat-thema-1/evidenz/1A/reihe-2026-11-12');
+const quelle = resolve('docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547');
 
 test('wertet ausschließlich die 25 vollständigen gepaarten Läufe aus und bewahrt Grenzverletzungen', async () => {
   const daten = await leseVersuchsreihe(quelle);
@@ -19,7 +19,7 @@ test('wertet ausschließlich die 25 vollständigen gepaarten Läufe aus und bewa
   assert.equal(auswertung.comparisons.length, 80);
   assert.equal(auswertung.hypotheses.H1.passed, false);
   assert.equal(auswertung.hypotheses.H2.passed, false);
-  assert.equal(auswertung.hypotheses.H1.failedComparisons, 4);
+  assert.equal(auswertung.hypotheses.H1.failedComparisons, 1);
   assert.equal(auswertung.hypotheses.H2.failedComparisons, 6);
   assert.equal(
     auswertung.runs.every((lauf) => lauf.live.vote.voteTargetPassed),
@@ -29,12 +29,12 @@ test('wertet ausschließlich die 25 vollständigen gepaarten Läufe aus und bewa
     auswertung.runs.every((lauf) => lauf.resources.every((c) => c.oomPassed)),
     true,
   );
-  const blockEins = auswertung.comparisons.find(
-    (x) => x.variant === 'V2' && x.block === 1 && x.action === 'join',
+  const qaBlockVier = auswertung.comparisons.find(
+    (x) => x.variant === 'V2' && x.block === 4 && x.action === 'qaSubmit',
   );
-  assert.equal(blockEins.relativePassed, false);
-  assert.equal(blockEins.absolutePassed, true);
-  assert.ok(blockEins.candidate.p95Ms > blockEins.baseline.p95Ms * 2);
+  assert.equal(qaBlockVier.relativePassed, false);
+  assert.equal(qaBlockVier.absolutePassed, true);
+  assert.ok(qaBlockVier.candidate.p95Ms > qaBlockVier.baseline.p95Ms * 1.1);
 });
 
 test('verwirft unvollständige Reihen vor dem Lesen einzelner Nachweise', async (t) => {
@@ -109,58 +109,12 @@ test('CLI schreibt JSON, CSV und Markdown und überschreibt keine bestehenden Au
 const definitionsdatei = 'docs/referat-thema-1/specs/2026-11-14-1a-messreihe-main-a19ca70f.json';
 const hash = (daten) => createHash('sha256').update(daten).digest('hex');
 
-// Ausschließlich temporäre Testdaten: keine neue reale Messung behaupten.
+// Negative Prüfungen verändern ausschließlich temporäre Kopien der aktuellen Reihe.
 async function neueTestreihe(t) {
-  const ordner = await mkdtemp(join(tmpdir(), 'a1-neue-testreihe-'));
+  const ordner = await mkdtemp(join(tmpdir(), 'a1-aktuelle-testreihe-'));
   t.after(() => rm(ordner, { recursive: true, force: true }));
   await cp(quelle, ordner, { recursive: true });
-  const reihe = await ladeReihendefinition(definitionsdatei);
-  await cp(definitionsdatei, join(ordner, 'reihendefinition.json'));
-  await cp(reihe.addendumFile, join(ordner, 'vorabnachtrag.md'));
-  const abschluss = JSON.parse(await readFile(join(ordner, 'abschluss.json'), 'utf8'));
-  Object.assign(abschluss, {
-    baselineCommit: reihe.baselineCommit,
-    seriesDefinitionSha256: reihe.definitionSha256,
-  });
-  await writeFile(join(ordner, 'abschluss.json'), JSON.stringify(abschluss));
-  const plan = JSON.parse(await readFile(join(ordner, 'plan.json'), 'utf8'));
-  for (const lauf of plan.runs) {
-    const dir = join(ordner, lauf.variant, lauf.run);
-    const nachweis = JSON.parse(await readFile(join(dir, 'lauf.json'), 'utf8'));
-    for (const [phase, file] of [
-      [nachweis, 'compose-messung.json'],
-      [nachweis.warmup, 'compose-aufwaermung.json'],
-    ]) {
-      const m = phase.manifest;
-      Object.assign(m, {
-        baselineCommit: reihe.baselineCommit,
-        seriesDefinitionSha256: reihe.definitionSha256,
-      });
-      m.services['pdf-worker'].pidsLimit = 256;
-      const compose = {
-        services: Object.fromEntries(
-          Object.entries(m.services).map(([name, d]) => [
-            name,
-            {
-              image: d.imageId,
-              cpus: d.cpuLimit ?? undefined,
-              mem_limit: d.memoryLimitBytes ?? undefined,
-              pids_limit: d.pidsLimit ?? undefined,
-              environment: d.flags ?? {},
-            },
-          ]),
-        ),
-      };
-      const bytes = JSON.stringify(compose);
-      await writeFile(join(dir, file), bytes);
-      m.resolvedCompose = { file, sha256: hash(bytes), mediaType: 'application/json' };
-    }
-    await writeFile(join(dir, 'lauf.json'), JSON.stringify(nachweis));
-    const report = JSON.parse(await readFile(join(dir, 'report.json'), 'utf8'));
-    report.metrics.manifest = nachweis.manifest;
-    await writeFile(join(dir, 'report.json'), JSON.stringify(report));
-  }
-  return { ordner, reihe };
+  return { ordner, reihe: await ladeReihendefinition(definitionsdatei) };
 }
 
 test('wertet eine ausdrücklich gewählte neue Baseline mit 256 PDF-Prozessen und 50 Compose-Belegen aus', async (t) => {
@@ -186,7 +140,10 @@ test('wertet eine ausdrücklich gewählte neue Baseline mit 256 PDF-Prozessen un
   const ergebnis = JSON.parse(await readFile(join(ausgabe, 'auswertung.json'), 'utf8'));
   assert.equal(ergebnis.source.identity.baselineCommit, reihe.baselineCommit);
   assert.equal(ergebnis.source.identity.seriesDefinitionSha256, reihe.definitionSha256);
-  await assert.rejects(() => leseVersuchsreihe(ordner), /Baseline/);
+  await assert.rejects(
+    () => leseVersuchsreihe(ordner, { ...reihe, baselineCommit: 'a'.repeat(40) }),
+    /Baseline/,
+  );
 });
 
 test('CLI validiert die neue Reihendefinition statt weiterhin die alte Baseline auszugeben', async () => {

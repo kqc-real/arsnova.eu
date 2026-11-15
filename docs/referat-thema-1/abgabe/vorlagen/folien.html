@@ -95,12 +95,12 @@
   </head>
   <body>
     <section class="folie" data-page>
-      <p>Aufgabe 1A · Niklas · 12.11.2026</p>
+      <p>Aufgabe 1A · Niklas · 15.11.2026</p>
       <h1>Wie viel optionale Analyse verträgt der Anwendungshost?</h1>
       <p>spaCy als kontrollierter Vergleich für Ressourcenisolation.</p>
       <p class="kernsatz">
-        Niedrige absolute Latenzen genügen nicht, wenn die vorab festgelegten relativen Regeln
-        verfehlt werden.
+        Relative Live-Grenzen werden verletzt; CPU-Drosselung führt zusätzlich zu absoluten
+        Verletzungen.
       </p>
       <footer class="fuss">
         1 / 9 · Abgabeentwurf · Persönliche Gegenprüfung und formale Vorgaben noch bestätigen.
@@ -135,7 +135,7 @@
         bestätigt keine LLM-Tragfähigkeit.
       </p>
       <footer class="fuss">
-        2 / 9 · Quellen: geprüfte Baseline 8f91e0417bc5; ADR-0035; A1-Versuchsvertrag.
+        2 / 9 · Quellen: geprüfte Baseline a19ca70ff37d; ADR-0035; A1-Versuchsvertrag.
       </footer>
     </section>
     <section class="folie" data-page>
@@ -168,7 +168,7 @@
         festgehaltenem main, Version 1.4.0.
       </p>
       <footer class="fuss">
-        3 / 9 · Quellen: Laufplan und 25 Manifeste; vollständige Reihe vom 12.11.2026.
+        3 / 9 · Quellen: Laufplan und 25 Manifeste; vollständige Reihe vom 15.11.2026.
       </footer>
     </section>
     <section class="folie" data-page>
@@ -191,7 +191,7 @@
       <img
         class="grafik"
         src="{{LIVE_GRAFIK}}"
-        alt="Quiz-p95 aller Varianten über fünf Blöcke, mit besonders niedrigem V1-Wert in Block 1."
+        alt="Quiz-p95 aller Varianten über fünf Blöcke, mit erhöhtem V3-Wert in Block 5."
       />
       <p class="klein">
         Höchster Lauf-p95: {{VOTE_MAX}} ms bei Ziel ≤ 1000 ms. {{LIVE_ERFOLG}} / {{LIVE_GEPLANT}}
@@ -207,24 +207,26 @@
       <table>
         <tr>
           <th>H1: V2 gegen V1</th>
-          <td>{{H1_FEHLER}} / 20 Aktionsvergleiche verfehlen die relative Grenze.</td>
+          <td>{{H1_FEHLER}} / 20 Aktionsvergleiche verfehlen die relative Regel.</td>
         </tr>
         <tr>
           <th>H2: V3/V4 gegen V1</th>
-          <td>{{H2_FEHLER}} / 40 Aktionsvergleiche verfehlen die relative Grenze.</td>
+          <td>
+            {{H2_FEHLER}} / 40 Aktionsvergleiche verfehlen die relative Regel; drei auch die
+            absolute.
+          </td>
         </tr>
       </table>
       <ul>
         <li>
-          Block 1, Beitritt: {{B1_BASIS}} → {{B1_KANDIDAT}} ms; +{{B1_MS}} ms, aber +{{B1_PROZENT}}
-          %.
+          Block 4, Q&amp;A: {{BEISPIEL_BASIS}} → {{BEISPIEL_KANDIDAT}} ms; +{{BEISPIEL_MS}} ms,
+          +{{BEISPIEL_PROZENT}} %.
         </li>
-        <li>Block 5, V2-Q&amp;A: +{{B5_MS}} ms, aber +{{B5_PROZENT}} %.</li>
-        <li>V1 in Block 1 bleibt erhalten; Ursache nicht zugeordnet.</li>
+        <li>V3, Block 5: drei absolute 50-ms-Verletzungen bei Beitritt, Quiz und Q&amp;A.</li>
+        <li>Alle Blöcke bleiben erhalten; einzelne Ursache nicht zugeordnet.</li>
       </ul>
       <p class="klein">
-        Alle absoluten 50-ms-Grenzen bestehen. Auch V0→V1 zeigt drei relative Verletzungen; kein
-        isolierter Kausalbeweis für spaCy.
+        Auch V0→V1 zeigt vier relative Verletzungen; kein isolierter Kausalbeweis für spaCy.
       </p>
       <footer class="fuss">
         6 / 9 · Quelle: 80 gepaarte Aktionsvergleiche in auswertung.json / live-vergleiche.csv.
@@ -247,11 +249,11 @@
       </footer>
     </section>
     <section class="folie" data-page>
-      <h2>Störungen treffen vor allem die Analyse</h2>
+      <h2>Drosselung trifft Analyse und Live-Signale</h2>
       <ul>
         <li>
           <strong>V3:</strong> {{V3_THROTTLE}} % gedrosselte Perioden; Analyse-p95 {{V3_ANALYSE}}
-          ms; {{V3_ERFOLG}} / 750 im Fenster erfolgreich.
+          ms; {{V3_ERFOLG}} / 750 erfolgreich, {{V3_ERSATZ}} Fallbacks, {{V3_OFFEN}} offen.
         </li>
         <li>
           <strong>V4:</strong> {{V4_ERSATZ}} Fallbacks, {{V4_OFFEN}} offene Analysen am Fensterende;
@@ -277,15 +279,14 @@
         <li>Grenzen: gemeinsamer WSL2-Host, Beitrittswelle, kein Rendering-/LLM-Nachweis.</li>
       </ul>
       <p class="klein">
-        Diskussion: Welche Kontrolle könnte die niedrige V1-Baseline erklären? Welche Aussage
-        erlaubt ein Containerlimit wirklich? Welchen Nutzen müsste Glättung gegenüber zusätzlichem
-        Betrieb liefern?
+        Diskussion: Wie lässt sich der erhöhte V3-Block 5 gegenprüfen? Welche Aussage erlaubt ein
+        Containerlimit wirklich? Welchen Nutzen müsste Glättung gegenüber zusätzlichem Betrieb
+        liefern?
       </p>
       <p class="klein">
-        Compose-Nachtrag: Rekonstruktion, keine damalige Aufnahme. KI: Umsetzung, Messausführung,
-        Auswertung und Entwurf mit OpenAI Codex (GPT-6 laut Agentenumgebung). Niklas verantwortet
-        persönliche Gegenprüfung und fachliche Freigabe. Belege im Handout; Auswertungsquelle
-        {{QUELLE_SHA}}.
+        Compose: 50 zeitgenössische bereinigte Aufnahmen. KI: Umsetzung, Auswertung und Entwurf mit
+        OpenAI Codex; reale Messung durch Niklas nach Anleitung. Niklas verantwortet persönliche
+        Gegenprüfung und fachliche Freigabe. Belege im Handout; Auswertungsquelle {{QUELLE_SHA}}.
       </p>
       <footer class="fuss">
         9 / 9 · Abgabeentwurf · Formale Zitation, KI-Zulassung und persönliche Gegenprüfung vor

@@ -3,8 +3,9 @@
 Schritt 5 des [Umsetzungsplans](1A-umsetzungsplan.md) ergänzt eine lesende
 Ressourcenerfassung und einen Unix-Socket-Proxy für die Laborvariante V4.
 Produktions-Compose, Anwendung und Sidecar bleiben unverändert. Die gemeinsame
-Orchestrierung der Varianten folgt in Schritt 6. Diese Werkzeuge liefern noch
-keine Ergebnisse eines realen A1-Versuchs.
+Orchestrierung ist in der [Versuchsreihe](./1A-versuchsreihe.md) dokumentiert.
+Die aktuellen realen Ergebnisse stehen in der [Auswertung](./1A-auswertung.md);
+diese Unterlage beschreibt die Messwerkzeuge und ihre Grenzen.
 
 ## Ohne Labor nachvollziehen
 

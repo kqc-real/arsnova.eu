@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="resource-isolation-experiment" tests="1" failures="1" errors="0" timestamp="2026-11-11T19:43:58.845Z">
-  <testcase classname="resource-isolation-experiment" name="failure-1">
-    <failure message="Versuch unvollständig.">Versuch unvollständig.</failure>
-  </testcase>
-</testsuite>

@@ -4,8 +4,12 @@
       "image": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
       "restart": "no",
       "read_only": true,
-      "cap_drop": ["ALL"],
-      "security_opt": ["no-new-privileges:true"],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
       "depends_on": {
         "pdf-worker": {
           "condition": "service_healthy",
@@ -33,7 +37,9 @@
         "RATE_LIMIT_SESSION_CREATE_PER_HOUR": "480",
         "WORD_CLOUD_SEMANTIC_ENABLED": "false"
       },
-      "networks": ["app"],
+      "networks": [
+        "app"
+      ],
       "healthcheck": {
         "interval": "30s",
         "timeout": "10s",
@@ -80,8 +86,12 @@
       "restart": "no",
       "init": true,
       "read_only": true,
-      "cap_drop": ["ALL"],
-      "security_opt": ["no-new-privileges:true"],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
       "network_mode": "none",
       "cpus": 1,
       "mem_limit": "1073741824",
@@ -113,7 +123,9 @@
         "RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR": "2400",
         "RATE_LIMIT_SESSION_CREATE_PER_HOUR": "480"
       },
-      "networks": ["app"],
+      "networks": [
+        "app"
+      ],
       "healthcheck": {
         "interval": "5s",
         "timeout": "5s",
@@ -132,7 +144,9 @@
       "image": "sha256:bb8953020f6597e47d5d699a9910a25d77a69608dbd58e0f722940598ed85fc0",
       "restart": "no",
       "environment": {},
-      "networks": ["app"],
+      "networks": [
+        "app"
+      ],
       "healthcheck": {
         "interval": "5s",
         "timeout": "5s",
@@ -149,12 +163,18 @@
     },
     "spacy": {
       "image": "sha256:fffa3dcad336590f195cb9fe137d294b50b17f670ec2f8776f35a5ce41d68654",
-      "profiles": ["nlp"],
+      "profiles": [
+        "nlp"
+      ],
       "restart": "no",
       "init": true,
       "read_only": true,
-      "cap_drop": ["ALL"],
-      "security_opt": ["no-new-privileges:true"],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
       "network_mode": "none",
       "cpus": 1,
       "mem_limit": "1073741824",

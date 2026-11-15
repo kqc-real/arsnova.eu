@@ -1,7 +1,0 @@
-{
-  "complete": false,
-  "stage": "PREFLIGHT",
-  "errorCode": "PREEXISTING_LAB_CONTAINER",
-  "baselineCommit": "8f91e0417bc5aace461c3644a0b6b26c9284035b",
-  "reason": "Der gestoppte spaCy-Container aus der Kalibrierung wurde bei der Sicherheitsprüfung erkannt; es wurden keine Messungen begonnen."
-}

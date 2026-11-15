@@ -1,251 +1,161 @@
 # A1-Auswertung und Betriebsentscheidung
 
-**Stand:** 12.11.2026. **Auftrag:** [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6).
-Maßgeblich sind der unveränderte [Versuchsvertrag, Version 2](./1A-experiment-contract.md)
-und die [vollständige Reihe vom 12.11.2026](./evidenz/1A/reihe-2026-11-12/).
+Stand: 15.11.2026. Auftrag: [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6).
+Maßgeblich ist ausschließlich die [vollständige aktuelle Reihe](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
+Der [Versuchsvertrag](./1A-experiment-contract.md) legt die Methodik fest;
+[Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und
+[Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json) binden die aktuelle Baseline.
 
 ## Entscheidung
 
-**Für die untersuchte Freigabe bleibt `NLP_ENABLED=false` die begründete Gegenalternative.**
-Der normale spaCy-Pfad erfüllt Analyse-, Drosselungs-, Speicher- und OOM-Regeln,
-aber die relativen Live-Grenzen werden nicht in allen fünf Wiederholungen
-eingehalten. Deshalb sind H1 und H2 nach dem vorab vereinbarten Vertrag nicht
-bestätigt. Niedrige absolute Latenzen rechtfertigen keine nachträgliche Änderung
-der Regeln.
-
-Das ist eine Entscheidung für dieses Lastprofil und Labor, kein Nachweis einer
-generellen spaCy-Unverträglichkeit. Insbesondere ist die Ursache der sehr
-niedrigen V1-Baseline in Block 1 nicht zugeordnet.
+**Für dieses Lastprofil bleibt `NLP_ENABLED=false` die begründete Gegenalternative.**
+H1 und H2 werden nach den vorab festgelegten Regeln nicht bestätigt.
+V2 erfüllt Analyseverfügbarkeit, Drosselungs-, Speicher- und OOM-Regeln,
+verfehlt aber einen relativen Live-Vergleich. Unter CPU-Drosselung V3 werden
+in Block 5 zusätzlich drei absolute 50-ms-Grenzen verletzt.
+Eine nachträgliche Lockerung der Kriterien oder Entfernung dieses Blocks ist nicht zulässig.
+Das Ergebnis ist keine allgemeine Aussage gegen spaCy und keine Freigabe zusätzlicher LLM-Last.
 
 ## Nachweiskette und Reproduktion
 
-1. **Anwendung:** unveränderter Fork-`main`-Commit
-   `8f91e0417bc5aace461c3644a0b6b26c9284035b`, Version 1.4.0; Freigabe des
-   eigenen Rechners und des aktuellen `main` gemäß Issue #6, Stand 10.11.2026.
-2. **Vorabentscheidung:** Hypothesen und Schwellen im Versuchsvertrag; dessen
-   SHA-256 steht unverändert in allen Laufmanifesten.
-3. **Eingaben:** gemeinsame Fixture mit Seed `438314513`, Hash
-   `da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded`;
-   fünf getrennte Analysesessions mit je 500 zulässigen Fragen, drei
-   Ausschlusskontrollen und 200 Bezugsteilnehmenden.
-4. **Ausführung:** fünf randomisierte Blöcke mit jeweils V0–V4; 25 vollständige
-   Läufe, je 60 Sekunden Aufwärmung und 300 Sekunden Messfenster. Die vorher
-   abgebrochene Reihe und die Vorläufe werden nicht eingemischt.
-5. **Messwerte:** je Aktion erfolgreiche und fehlgeschlagene Roh-Laufzeiten,
-   geplante Arbeit, Analyse-Einzelaufrufe und 50 komprimierte Ressourcenartefakte.
-6. **Auswertung:** [JSON](./evidenz/1A/auswertung/auswertung.json),
-   [vollständige Tabellen](./evidenz/1A/auswertung/auswertung.md) und
-   [80 Aktionsvergleiche als CSV](./evidenz/1A/auswertung/live-vergleiche.csv).
-   Eingabeprüfsummen und Auswertungscode-Hash sind im JSON enthalten.
-
-Mit Node aus `.nvmrc` und installierten Projektabhängigkeiten:
+- **Anwendung:** unveränderter Fork-main-Commit `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`, Version 1.4.0.
+- **Werkzeuge:** im Manifest gespeicherter Werkzeug-HEAD `e3b27b328ffc94c148e4a35b2645396786f26bd9`
+  und gesonderter Quellenhash `99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0`.
+  Der Anwendungscommit, der Werkzeug-HEAD und spätere Dokumentationscommits sind verschiedene Größen.
+- **Eingaben:** Fixture-Seed `438314513`; Vertrags-, Definitions-, Fixture- und Image-Identitäten im
+  [Abschluss](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/abschluss.json). Fünf Analysesessions mit je 500 zulässigen Fragen,
+  drei Ausschlusskontrollen und 200 Bezugsteilnehmenden; getrennte Live-Session.
+- **Ausführung:** fünf randomisierte Blöcke V0–V4, 25 vollständige Läufe;
+  je 60 Sekunden Aufwärmung und 300 Sekunden Messfenster. Eigener erfolgreicher Vorlauf unter `vorlauf/`.
+- **Aufnahmen:** 50 Ressourcenartefakte mit 151 Mess- beziehungsweise 31 Aufwärmstichproben
+  und 50 tatsächlich aufgelöste, bereinigte Compose-Dateien für die Hauptreihe.
+  Je Phase stehen Dateiname und SHA-256 im Manifest; die Auswertung prüft zusätzlich Images, Limits und Flags.
+- **Ausgabe:** [JSON](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json),
+  [vollständige Tabellen](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.md),
+  [80 Aktionsvergleiche als CSV](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/live-vergleiche.csv).
 
 ```bash
-nvm use
 npm run load:resource-isolation:evaluate -- --validate
 npm run load:resource-isolation:evaluation:test
 npm run load:resource-isolation:evaluate -- \
   --run \
-  --evidence-root docs/referat-thema-1/evidenz/1A/reihe-2026-11-12 \
-  --output-dir /tmp/arsnova-1a-auswertung-neu
+  --evidence-root docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547 \
+  --output-dir /tmp/arsnova-1a-auswertung-gegenpruefung
 ```
 
-Der Ausgabeordner muss neu sein. Der Evaluator liest ausschließlich Nachweise,
-prüft beide Phasen jedes Laufs einschließlich gzip-Prüfsummen, Identitäten,
-Schaltern, Lastprofil, Containergenerationen und Korpusnachweisen und startet
-weder Docker noch Last. Ungültige oder unvollständige Eingaben führen zu
-Exitcode 1; gültig erfasste Grenzverletzungen bleiben dagegen ein reguläres
-Auswertungsergebnis mit Exitcode 0. Die Ausgabedateien werden mit der
-Projektformatierung geschrieben.
-
-## Nachtrag zur Compose-Nachweiskette
-
-Bei der Abschlussreview wurde festgestellt, dass die ursprünglichen Manifeste
-nur ausgewählte wirksame Einstellungen und den Hash der Baseline-Compose-Datei
-enthalten. Eine während der Messung gespeicherte aufgelöste Compose-Ausgabe
-fehlt. Der [Nachtrag vom 13.11.2026](./evidenz/1A/compose-rekonstruktion/README.md)
-rekonstruiert fünf Varianten aus eingefrorener Baseline, Aufbauhelfer und
-Image-IDs, löst sie mit der heute verfügbaren Compose-Version auf und gleicht
-aufgezeichnete Einstellungen gegen alle 25 Laufmanifeste ab.
-
-Die Rekonstruktion ist keine damalige Aufnahme; nicht aufgezeichnete
-Einstellungen werden dadurch nicht rückwirkend bestätigt. Dieser verbleibende
-Nachweisunterschied ist vor einer vollständigen Abnahme ausdrücklich zu
-bewerten. Die Messdaten und die folgenden Ergebnisse bleiben unverändert.
+Der Ausgabeordner muss neu sein. Der Evaluator arbeitet lesend und startet keine Last.
+Er verwendet standardmäßig die aktuelle Reihendefinition; `--series-file` kann als letztes
+Argumentpaar ausdrücklich dieselbe Definition angeben. Eingabefehler liefern Exitcode 1;
+ordnungsgemäß erfasste Grenzverletzungen sind reguläre Ergebnisse mit Exitcode 0.
+Ändert sich nur Auswertungscode, ändert sich dessen Quellenhash; die eingefrorene Ausgabe wird nicht überschrieben.
 
 ## Systemgrenzen und Labor
 
-| Bestandteil             | Einordnung im untersuchten Aufbau                                                                                     |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Anwendung               | Backend und ausgelieferte SPA; unter anderem Datenzugriff, Wortwolkenaggregation und Kontextaufbau im Backend-Prozess |
-| PostgreSQL und Redis    | Datenhaltung beziehungsweise Cache-/Koordinationsdienst; eigene Container ohne zusätzliche CPU-/RAM-/PID-Limits       |
-| PDF-Worker              | Separater Dienst, im Labor aktiv; 1 CPU, 1 GiB, 128 PIDs; keine PDF-Last während der Messungen                        |
-| spaCy                   | Eigener Unix-Socket-Sidecar zur Lemmatisierung; regulär 1 CPU, 1 GiB, 64 PIDs, kein eigenes Netzwerk                  |
-| Q&A-Klassifikation 8.9b | In-Process-Klassifikationspfad im Backend, hier mit `QA_NLP_ENABLED=false` abgeschaltet                               |
-| Encoder                 | Eigener Embedding-Sidecar; im Vergleich nicht gestartet                                                               |
-| Generative Inferenz     | Nach ADR-0035 eigene private Serverrolle; nicht Gegenstand dieses spaCy-Versuchs                                      |
+| Bestandteil             | Einordnung im untersuchten Aufbau                                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| App                     | Backend mit Datenzugriff, Aggregation und Kontextaufbau; keine zusätzlichen CPU-/RAM-/PID-Limits                                  |
+| PostgreSQL / Redis      | Eigene Container; keine zusätzlichen CPU-/RAM-/PID-Limits                                                                         |
+| PDF-Worker              | Aktiv, 1 CPU, 1 GiB, **256 PIDs**; keine gezielte PDF-Last                                                                        |
+| spaCy                   | Unix-Socket-Sidecar, kein eigenes Netzwerk; regulär 1 CPU, 1 GiB, 64 PIDs                                                         |
+| 8.9b                    | In-Process-Klassifikation; `QA_NLP_ENABLED=false`                                                                                 |
+| Encoder / Summary / LLM | Im Versuch abgeschaltet beziehungsweise nicht gestartet; generative Inferenz bleibt eine eigene private Serverrolle nach ADR-0035 |
 
-Der Dockerhost meldete Ubuntu 24.04.5 LTS unter WSL2, 16 logische CPUs,
-16.720.453.632 Byte RAM, Docker 29.9.2 und cgroup v2. Der Node-24.18.0-Generator
-lief auf demselben Rechner außerhalb der Container. Ressourcen wurden unter
-dem eigenen Compose-Projekt `arsnova-1a` mit eigenen Volumes und Netzwerken
-angelegt; Anwendungsports waren nur lokal erreichbar. Der
-[Laboraufbau](./1A-versuchsreihe.md) beschreibt Images, konstante Schalter,
-Vorbereitung und überprüften Rückweg.
-
-Ein CPU-Limit ist eine Obergrenze des Sidecars und reserviert keine CPU-Zeit
-für die unbegrenzte App. Ebenso ist ein RAM-Limit keine zugesicherte freie
-Hostreserve. Die Messung kann Rückwirkungen zeigen, aber eine Latenzänderung
-nicht allein einem einzelnen Prozess zuordnen.
+Hardware laut Manifest: Ubuntu 24.04.5 LTS unter WSL2,
+Kernel `6.18.58.1-microsoft-standard-WSL2`, 16 logische CPUs,
+16.720.453.632 Byte RAM, Docker **29.9.3**, cgroup v2 und Node **24.18.0**.
+Generator und Container teilen denselben Rechner. Ports sind an Loopback gebunden;
+Projektname, Volumes und Netzwerk gehören zum isolierten Labor `arsnova-1a`.
+Ein Containerlimit reserviert weder CPU-Zeit für die App noch freie Hostkapazität.
 
 ## Live-Aktionen und Hypothesen
 
-Alle 40.000 geplanten Live-Aktionen wurden im Messfenster erfolgreich erfasst:
-je 12.500 Beitritte, Quiz- und Tempostimmen sowie 2.500 Q&A-Einreichungen.
-Es gab keine fehlgeschlagenen Versuche oder fehlenden geplanten Aktionen.
-Der größte Quiz-p95 eines einzelnen Laufs beträgt rund 48,07 ms und liegt
-unter dem absoluten Versuchsziel von 1000 ms.
+Alle **40.000 geplanten Live-Aktionen** wurden im Messfenster erfolgreich erfasst:
+je 12.500 Beitritte, Quiz- und Tempostimmen und 2.500 Q&A-Einreichungen.
+Es gab keine fehlgeschlagenen Versuche oder fehlende geplante Arbeit.
+Der höchste Quiz-p95 beträgt **167,37 ms** und liegt unter dem 1000-ms-Ziel.
 
-| Vergleich               | Aktionsvergleiche | Verfehlungen | Betroffene Fälle                                    |
-| ----------------------- | ----------------- | ------------ | --------------------------------------------------- |
-| V0 → V1                 | 20                | 3            | Q&A in Block 1 und 2, Tempo in Block 3              |
-| V1 → V2, H1             | 20                | 4            | Beitritt, Quiz und Tempo in Block 1; Q&A in Block 5 |
-| V1 → V3 und V1 → V4, H2 | 40                | 6            | Je Beitritt, Quiz und Tempo in Block 1              |
+| Vergleich               | Vergleiche | Verfehlungen | Betroffene Fälle                                    |
+| ----------------------- | ---------- | ------------ | --------------------------------------------------- |
+| V0 → V1                 | 20         | 4            | Beitritt Block 2 und 4; Q&A und Tempo Block 3       |
+| V1 → V2, H1             | 20         | **1**        | Q&A Block 4                                         |
+| V1 → V3 und V1 → V4, H2 | 40         | **6**        | V3 alle vier Aktionen Block 5; V4 Q&A Block 4 und 5 |
 
-Alle 13 Verfehlungen betreffen die relative 10-%-Grenze; sämtliche absoluten
-50-ms-Grenzen bestehen. Die jeweiligen Fehler- und Abdeckungsregeln bestehen
-ebenfalls. Die Prüfung erfolgt vor Rundung für Tabellen und PDFs.
+Alle elf Verfehlungen verletzen die relative 10-%-Regel.
+**Drei verletzen zugleich die absolute 50-ms-Regel:** V3 in Block 5 bei
+Beitritt (+164,54 ms), Quiz (+119,75 ms) und Q&A (+214,45 ms).
+Die Fehler- und Abdeckungsregeln bestehen. Grenzwerte werden vor Rundung geprüft.
 
-Beispiel Beitritt in Block 1: V1 hat p95 rund 24,57 ms, V2 rund 52,38 ms.
-Die Differenz von rund 27,80 ms entspricht rund 113,15 % und verfehlt somit
-die relative Regel. In Block 5 beträgt der zusätzliche V2-Q&A-p95 rund
-5,50 ms beziehungsweise 26,18 %. Der H1-Befund hängt daher nicht ausschließlich
-an Block 1.
-
-Die besonders niedrigen V1-Werte im ersten Block werden nicht als Ausreißer
-entfernt. Auch die V0→V1-Ergebnisse liefern keinen Beleg für einen konstanten
-kausalen Aufschlag durch Analysearbeit. Die fünf Einzelwiederholungen und
-ihre Spannweite bleiben maßgeblich; weder Mittelwerte von p95-Werten noch
-ein einzelner gepoolter p95 ersetzen die gepaarten Regeln.
+H1-Beispiel: Q&A in Block 4 steigt von **18,97 ms** in V1 auf **22,95 ms**
+in V2, also um **3,98 ms beziehungsweise 20,96 %**. Die absolute Regel besteht,
+die relative nicht. Auch die V0→V1-Schwankungen und der auffällige V3-Block 5
+bleiben vollständig erhalten. Weder die einzelne Ursache einer Latenzdifferenz
+noch ein bestimmter störender Hostprozess ist durch die Messung identifiziert.
 
 ## Analyseverfügbarkeit und Störungsinterpretation
 
-Verfügbarkeit meint hier einen erfolgreichen **LEMMA-Abschluss innerhalb des
-Messfensters**. Eine korrekte lexikalische Fallbackantwort ist keine
-Lemmatisierung, kann aber weiterhin eine nutzbare Wortwolke liefern.
+Verfügbarkeit bedeutet erfolgreicher LEMMA-Abschluss **im Messfenster**.
+Ein lexikalischer Fallback kann weiterhin eine nutzbare Wortwolke liefern,
+gilt aber nicht als erfolgreiche Lemmatisierung.
 
-| Variante | Geplant | LEMMA-Erfolg | Fallback | Am Fensterende offen | p95-Spannweite abgeschlossener Antworten |
-| -------- | ------- | ------------ | -------- | -------------------- | ---------------------------------------- |
-| V1       | 750     | 0            | 750      | 0                    | Lexikalisch: 39,32–44,88 ms              |
-| V2       | 750     | 750          | 0        | 0                    | LEMMA: 489,09–510,51 ms                  |
-| V3       | 750     | 749          | 0        | 1                    | LEMMA: 2382,32–3185,24 ms                |
-| V4       | 750     | 0            | 745      | 5                    | Fallback: 5048,95–5058,46 ms             |
+| Variante | Geplant | LEMMA-Erfolg | Fallback | Am Ende offen | p95-Spannweite              |
+| -------- | ------- | ------------ | -------- | ------------- | --------------------------- |
+| V1       | 750     | 0            | 750      | 0             | Fallback 37,27–43,45 ms     |
+| V2       | 750     | 750          | 0        | 0             | Erfolg 463,91–498,38 ms     |
+| V3       | 750     | **741**      | **6**    | **3**         | Erfolg 2202,60–3178,87 ms   |
+| V4       | 750     | 0            | 745      | 5             | Fallback 5044,01–5063,11 ms |
 
-V2 erfüllt die höchstens 1 % unverfügbaren geplanten Analysen in allen fünf
-Wiederholungen. Offene Aufrufe bleiben auch bei einem späteren Erfolg im
-Auslauf unverfügbar. V3/V4 werden als Störungen gesondert interpretiert;
-eine unbrauchbar gewordene Analyse wird nicht mit guter Live-Isolation
-gleichgesetzt.
+V2 hält höchstens 1 % unverfügbare geplante Analysen in jeder Wiederholung ein.
+V3-Fallbacks bestehen aus drei `TIMEOUT` und drei `SIDECAR_UNAVAILABLE`;
+ihr p95 im betroffenen Lauf beträgt 5182,38 ms.
+V4-Fallbacks bestehen aus 495 `TIMEOUT` und 250 `SIDECAR_UNAVAILABLE`.
+Späte Abschlüsse machen `IN_FLIGHT_AT_END` nicht rückwirkend verfügbar.
 
-V4 verzögert die **Weiterleitung**, nicht eine schon laufende Berechnung.
-Alle fünf Proxy-Lebenszeitzähler zeigen `forwarded: 0`; ankommende
-Normalisierungsanfragen wurden vor Ablauf der 6000 ms abgebrochen. Die
-Zähler umfassen jeweils auch die Aufwärmung und sind keine ausschließlich
-auf das Messfenster beschränkten Mengen.
-
-Die 745 V4-Fallbacks zerfallen in 495 `TIMEOUT` und 250
-`SIDECAR_UNAVAILABLE`. Der geprüfte Client begrenzt gleichzeitig laufende
-Sidecar-Anfragen auf zwei; sein Fehler `BACKPRESSURE` wird im Normalisierer
-ebenfalls auf `SIDECAR_UNAVAILABLE` abgebildet. Der Fallbackgrund allein
-belegt daher keinen Sidecar-Ausfall. Der Backend-Zähler `sidecarCalls`
-belegt auch keine entsprechende Zahl tatsächlich weitergeleiteter Inferenzaufträge.
-V4 untersucht Timeout, Rückstau und Ersatzpfad, nicht eine ressourcenintensive
-langsame spaCy-Berechnung.
+V4 verzögert die **Weiterleitung** um 6000 ms bei 5000 ms Client-Timeout.
+Alle fünf Proxy-Lebenszeitzähler melden `forwarded: 0`; sie umfassen die Aufwärmung.
+Damit untersucht V4 Timeout, Rückstau und Ersatzpfad, keine tatsächlich langsam
+rechnende spaCy-Inferenz. `SIDECAR_UNAVAILABLE` kann im geprüften Client auch
+Rückstau an seiner Zwei-Anfragen-Grenze bedeuten und beweist keinen Sidecar-Ausfall.
 
 ## Ressourcenbudget
 
-| spaCy-Messwert                                     | V2, normal    | V3, 0,25 CPU  | V4, Verzögerung |
-| -------------------------------------------------- | ------------- | ------------- | --------------- |
-| Mittlere CPU-Nutzung im Fenster, % einer CPU       | 18,67–19,11   | 23,27–24,06   | 0,52–0,55       |
-| Gedrosselte Perioden, Anteil in %                  | 0,68–0,89     | 91,35–96,34   | 0               |
-| Lebenszeit-RAM-Peak, MiB einschließlich Aufwärmung | 479,87–480,89 | 491,14–493,21 | 463,59–784,80   |
-| OOM-Zuwachs                                        | 0             | 0             | 0               |
+| spaCy-Messwert            | V2 normal     | V3 0,25 CPU   | V4 Verzögerung |
+| ------------------------- | ------------- | ------------- | -------------- |
+| Mittlere CPU, % einer CPU | 18,29–18,63   | 20,03–24,01   | 0,53–0,55      |
+| Gedrosselte Perioden, %   | 0,53–0,84     | 88,47–95,88   | 0              |
+| Lebenszeit-RAM-Peak, MiB  | 479,53–480,53 | 490,04–505,11 | 463,21–464,27  |
+| OOM-Zuwachs               | 0             | 0             | 0              |
 
-CPU-Werte sind zeitbezogene Zählerdifferenzen über das Fenster; sie sind keine
-Spitzenwerte einzelner Abtastpunkte. Drosselungsanteile verwenden den Zuwachs
-von `nr_throttled` geteilt durch den positiven Zuwachs von `nr_periods`.
-Speicherpeaks werden nicht subtrahiert; das abgetastete Fenstermaximum und der
-Lebenszeit-Peak bleiben im JSON getrennt.
-
-Das V2-Budget von höchstens 819,20 MiB beziehungsweise 80 % des wirksamen
-1-GiB-Limits besteht in allen fünf Läufen; ebenso die höchstens 5 % gedrosselten
-Perioden. Kein gemessener Dienst weist einen OOM-Kill-Zuwachs auf.
-
-Die übrigen Container wurden ebenfalls erfasst; beispielhaft die V0/V1/V2-Spannweiten:
-
-| Dienst     | Mittlere CPU V0 / V1 / V2, % einer CPU | Lebenszeit-RAM-Peak V0 / V1 / V2, MiB         |
-| ---------- | -------------------------------------- | --------------------------------------------- |
-| App        | 10,81–11,42 / 9,76–11,52 / 11,98–12,58 | 329,40–427,36 / 479,00–561,54 / 372,25–476,07 |
-| PostgreSQL | 4,75–4,98 / 4,71–5,81 / 5,40–5,60      | 184,02–184,88 / 222,11–250,41 / 222,16–223,43 |
-| Redis      | 1,55–1,64 / 1,37–1,66 / 1,52–1,57      | 11,10–11,88 / 11,49–11,90 / 11,60–11,91       |
-| PDF-Worker | 1,30–1,33 / 1,29–1,32 / 1,26–1,30      | 142,38–143,97 / 142,24–287,22 / 142,00–144,27 |
-
-Weitere Werte für V3/V4 stehen vollständig im JSON. Lebenszeit-Peaks
-verschiedener Dienste müssen nicht gleichzeitig auftreten und werden nicht
-als gemessene gemeinsame Hostspitze addiert. Das kleinste abgetastete
-`MemAvailable` des Collector-Hosts lag bei rund 9,75 GiB; auch dies ist ein
-beobachteter Zustand, keine garantierte Kapazität für zusätzliche Dienste.
+V2 hält das Budget von 819,20 MiB (80 % von 1 GiB) und höchstens 5 %
+gedrosselten Perioden ein. Kein gemessener Dienst weist einen OOM-Zuwachs auf.
+CPU und Drosselung sind Zählerdifferenzen derselben Generation im Messfenster.
+`memory.peak` ist ein Lebenszeitwert einschließlich Aufwärmung; er wird nicht subtrahiert.
+Die vollständigen Ressourcenwerte aller Dienste und der Aufwärmung stehen im JSON.
+Dienstpeaks werden nicht als gleichzeitig gemessene Hostspitze addiert.
 
 ## Einsatzgrenze, Aufwand und Rückweg
 
-- **Aktivierung:** Für diese Freigaberegel bleibt die Lemmatisierung aus.
-  Die lexikalische Wortwolke vermeidet den Sidecar-Betrieb und bleibt die
-  ernsthafte Alternative; sie führt Flexionsformen nicht im selben Umfang zusammen.
-- **Budget weiterer Laborversuche:** 1 CPU, 1 GiB und 64 PIDs sind die
-  untersuchte reguläre Konfiguration. Die 0,25-CPU-Variante ist wegen hoher
-  Drosselung und längerer Analysezeiten keine belegte gleichwertige Einsparung.
-  Ein kleineres RAM-Limit wurde nicht getestet und wird nicht freigegeben.
-- **Betriebsaufwand:** Images und Modelle pflegen, Modellstart und Healthcheck
-  berücksichtigen, Unix-Sockets zuordnen, Limits, Timeouts, Fallbacks und
-  Ressourcen beobachten. Preisbeträge und Nutzen je Euro wurden nicht gemessen.
-- **Rückweg im Labor:** Last beenden, Proxy schließen, direkten Socket und
-  spaCy-CPU-Limit wiederherstellen, `NLP_ENABLED=false` setzen und App neu
-  erzeugen, spaCy stoppen, Basisdienste, lexikalischen Pfad und Live-Beitritt
-  prüfen; anschließend ausschließlich eigene Laborressourcen entfernen.
+- **Aktivierung:** Lexikalische Alternative beibehalten; keine Änderung der Produktionsflags durch A1.
+- **Weiteres Laborbudget:** Untersucht sind 1 CPU, 1 GiB und 64 PIDs.
+  0,25 CPU verursacht hohe Drosselung, schlechtere Analyseverfügbarkeit und
+  Live-Grenzverletzungen; keine belegte gleichwertige Einsparung.
+  Ein kleineres RAM-Limit wurde nicht getestet.
+- **Aufwand:** Image-/Modellpflege, Start, Healthchecks, Socket-Zuordnung,
+  Limits sowie Überwachung von Timeouts, Fallbacks und Ressourcen.
+  Deaktivierung spart Sidecar-Betrieb, verzichtet aber auf Zusammenführung von Flexionsformen.
+  Eurokosten und didaktischer Nutzen wurden nicht gemessen.
+- **Rückweg:** Last und Proxy beenden, direkten Socket und spaCy-Limit wiederherstellen,
+  `NLP_ENABLED=false`, App neu erzeugen, spaCy stoppen, Basisdienste,
+  lexikalischen Pfad und Live-Beitritt prüfen; anschließend eigenes Labor entfernen.
 
-## Gültigkeitsgrenzen und sinnvolle Gegenprüfung
+## Gültigkeitsgrenzen und Abschluss
 
-- Ein Generator auf demselben WSL2-Rechner konkurriert mit den Diensten.
-  Die Ergebnisse sind kein Nachweis für einen 8-vCPU-Produktionshost.
-- Die Last ist eine Beitrittswelle mit später ruhiger Phase, kein durchgehend
-  gleichbleibender Live-Verkehr. Gemessene WebSocket-Verläufe bleiben im Laufnachweis.
-- API-Antwortzeiten und Signalzustellung messen weder Browser-Rendering noch
-  die vollständige Zeit bis zur sichtbaren Moderationskarte oder didaktischen Nutzen.
-- Die Fixture enthält 500 unterschiedliche Rohtexte, aber einen bewusst
-  kleinen, wiederholten deutschen Wortschatz; keine allgemeine Modellgüte ist geprüft.
-- Limits verhindern nicht jede Konkurrenz um Hostressourcen oder Arbeit im
-  Backend. Der Versuch isoliert keine einzelne Ursache einer Latenzdifferenz.
-- Eine zusätzliche LLM-Rolle, generative Qualität, breite Sprachvielfalt und
-  Produktions-SLOs bei anderer Last oder längeren Fehlerfenstern sind nicht belegt.
+Generator und Dienste konkurrieren auf demselben WSL2-Rechner. Die Beitrittswelle
+belegt weder dauerhaft 500 aktive Clients noch Browser-Rendering, vollständige
+Kompassaktualität, allgemeine Modellgüte, eine 8-vCPU-Produktionskapazität oder zusätzliche LLM-Tragfähigkeit.
+Die Fixture enthält unterschiedliche Rohtexte mit bewusst kleinem wiederholtem Wortschatz.
+Eine neue Untersuchung mit externem Generator und dokumentierter Zielhardware
+wäre eine eigene Reihe, kein Ersatz einzelner ungünstiger Blöcke.
 
-Ein zusätzlicher Versuch mit externer Lasterzeugung und dokumentierter
-Zielhardware könnte insbesondere die niedrige V1-Baseline gegenprüfen.
-Das wäre eine neue, gesondert gekennzeichnete Reihe, keine nachträgliche
-Entfernung oder Ersetzung der vorliegenden Ergebnisse.
-
-## Abschlussunterlagen
-
-- [Handout und Folien als PDF sowie Quellen](./abgabe/README.md).
-- [Eigenanteil und Anforderungsabgleich](./1A-eigenanteil.md).
-- [Historisches Prüfprotokoll](./evidenz/1A/auswertung/pruefungen.json) und
-  [historischer Nacharbeitsstand](./evidenz/1A/nacharbeit/pruefungen.json);
-  nach dem Verwerfen sachfremder Korrekturen gilt die
-  [Bereinigungsprüfung](./evidenz/1A/bereinigung/README.md).
-- [Vorbereitete vollständige PR-Beschreibung](./1A-pr-beschreibung.md).
-- [Persönliche Gegenprüfung, KI-Aufträge und Übergabe](./1A-abschluss-und-uebergabe.md).
-- [Technische Abschlussnacharbeit](./evidenz/1A/nacharbeit/README.md).
-
-Die PDFs sind ausdrücklich Abgabeentwürfe. Persönliche Gegenprüfung,
-fachliche Freigabe, institutionelle Zitierregeln, erlaubter KI-Umfang und
-Abgabeformalitäten müssen durch Niklas bestätigt werden. Commit, Push und
-PR-Merge werden durch diesen Schritt nicht ausgeführt.
+[Abgabeentwürfe](./abgabe/README.md), [Eigenanteil](./1A-eigenanteil.md),
+[Prüfungen](./1A-pruefstand.md) und [Übergabe](./1A-abschluss-und-uebergabe.md)
+trennen technische Befunde von persönlicher Abgabe und GitHub-Abschluss.

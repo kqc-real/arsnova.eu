@@ -14,12 +14,16 @@ import {
   fasseRessourcenZusammen,
 } from './lib/resource-isolation-evaluation.mjs';
 
-import { HISTORISCHE_REIHE, ladeReihendefinition } from './lib/resource-isolation-series.mjs';
+import { ladeReihendefinition } from './lib/resource-isolation-series.mjs';
 import { pruefeManifestAbgleich } from './lib/resource-isolation-compose.mjs';
 
 const sha256 = (daten) => createHash('sha256').update(daten).digest('hex');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const vertragSha = 'f7d3eba4b82a3f3a47c914665ac8a7be4988b9061deff6b857a79d2fcf766ab7';
+const standardDefinition = join(
+  root,
+  'docs/referat-thema-1/specs/2026-11-14-1a-messreihe-main-a19ca70f.json',
+);
 
 const aktionszahlen = { join: 500, vote: 500, qaSubmit: 100, blitzlicht: 500 };
 const varianten = ['V0', 'V1', 'V2', 'V3', 'V4'];
@@ -36,7 +40,8 @@ const fordere = (bedingung, text) => {
 };
 
 /** Ausschließlich vollständige, unverändert identifizierte V2-Vertragsdaten lesen. */
-export async function leseVersuchsreihe(ordner, reihe = HISTORISCHE_REIHE) {
+export async function leseVersuchsreihe(ordner, reihe) {
+  reihe ??= await ladeReihendefinition(standardDefinition);
   const files = [];
   const json = async (pfad) => {
     const daten = await readFile(join(ordner, pfad));
@@ -447,7 +452,7 @@ export function erstelleAuswertungsMarkdown(auswertung) {
 }
 
 async function main(args) {
-  let reihe = HISTORISCHE_REIHE;
+  let reihe = await ladeReihendefinition(standardDefinition);
   const position = args.indexOf('--series-file');
   if (position !== -1) {
     fordere(

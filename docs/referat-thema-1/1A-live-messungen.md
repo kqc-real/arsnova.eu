@@ -1,9 +1,10 @@
 # A1: Live-Messungen mit Artillery
 
-Schritt 3 des [Umsetzungsplans](1A-umsetzungsplan.md) ergänzt die Messung der
-Live-Aktionen. Die automatisierte A1-Versuchsreihe folgt in Schritt 6. Diese
-Änderung liefert noch keinen Nachweis für Ressourcenisolation oder für
-dauerhaft 500 gleichzeitig aktive Clients.
+Diese Unterlage beschreibt die in Schritt 3 ergänzte Live-Instrumentierung.
+Die vollständige automatisierte Messung ist inzwischen durchgeführt;
+[Versuchsreihe](./1A-versuchsreihe.md) und [Auswertung](./1A-auswertung.md)
+ordnen die aktuellen Ergebnisse zu. Die Beitrittswelle belegt keine dauerhaft
+500 gleichzeitig aktiven Clients.
 
 ## Lastprofil und Messgrenze
 
@@ -20,9 +21,9 @@ Der Report beschreibt dieses Profil unter `workload` als `join-wave`, mit
 `qaEveryNthParticipant: 5`. `continuousConcurrencyVerified: false` verhindert
 eine Verwechslung mit einer konstanten Parallelität. `ARTILLERY_ARRIVAL_RATE`
 steuert diese YAML-Phase nicht; maßgeblich sind Ankunftszahl und Rampendauer.
-Die vorhandene Ergebnisfreigabe orientiert sich weiterhin am Laufzustand.
-Der feste Zeitplan aus dem [Versuchsvertrag](1A-experiment-contract.md) ist
-damit noch nicht umgesetzt.
+Im eigenständigen YAML-Szenario orientiert sich die Ergebnisfreigabe am Laufzustand.
+Der feste Zeitplan der abgeschlossenen A1-Reihe wird durch
+`run-resource-isolation.mjs` und `resource-isolation-live.mjs` umgesetzt.
 
 Gemessen wird im Lastgenerator mit `performance.now()`, vom Start der Aktion
 bis zur verarbeiteten Antwort oder zum Fehler. Enthalten sind Clientarbeit,

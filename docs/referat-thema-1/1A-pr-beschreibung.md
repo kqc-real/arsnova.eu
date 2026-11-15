@@ -1,6 +1,6 @@
 ## Zusammenfassung
 
-**Vorbereiteter Entwurf für den gesamten A1-Branch; unabhängig technisch geprüft. Persönliche Abgabefreigabe und GitHub-Veröffentlichung werden gesondert dokumentiert.**
+**Lokaler Entwurf für den gesamten A1-Branch, aktualisiert 15.11.2026. Endgültige unabhängige Gesamtprüfung, persönliche Freigabe und Merge bleiben gesondert.**
 
 <!-- Problem und Lösung in wenigen Sätzen beschreiben. -->
 
@@ -19,7 +19,7 @@
 
 **Maßgebliche Quelle und relevante Invarianten:**
 
-Verbindlich sind Issue #6, der unveränderte A1-Versuchsvertrag Version 2 und die eingefrorene Fixture. Relative und absolute p95-Grenzen gelten gleichzeitig, einschließlich Gleichheit, je Aktion und Block; alle fünf Wiederholungen bleiben erhalten. Fehlende Aktionen und Analysen werden mitgezählt. Die gemessenen Images stammen aus dem unveränderten Fork-`main` `8f91e0417bc5aace461c3644a0b6b26c9284035b`. Host-Token, minimale Teilnehmerpayloads und effektive Stimmen werden nicht verändert.
+Verbindlich sind Issue #6, der unveränderte A1-Versuchsvertrag Version 2 und die eingefrorene Fixture. Relative und absolute p95-Grenzen gelten gleichzeitig, einschließlich Gleichheit, je Aktion und Block; alle fünf Wiederholungen bleiben erhalten. Fehlende Aktionen und Analysen werden mitgezählt. Die gemessenen Images stammen aus dem unveränderten Fork-`main` `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`. Host-Token, minimale Teilnehmerpayloads und effektive Stimmen werden nicht verändert.
 
 **Betroffene externe Verträge:**
 
@@ -30,11 +30,12 @@ Bestehende tRPC-/WebSocket-Verträge werden von Lastwerkzeugen genutzt, nicht er
 <!-- Die wichtigsten Änderungen knapp und fachlich beschreiben. -->
 
 - Schritte 1–6: deterministische gemeinsame Fixture, Instrumentierung erfolgreicher und fehlgeschlagener Live-Aktionen, getrennte hostautorisierte Analysen, Ressourcen-Collector, Verzögerungsproxy und automatisierter isolierter Laborablauf mit überprüftem Rückweg.
-- Schritt 7: Eingabeintegrität und Rohperzentile erneut prüfen, 80 gepaarte Vergleiche und Ressourcenbudget auswerten; 13 relative Grenzverletzungen unverändert dokumentieren.
+- Schritt 7: Eingabeintegrität und Rohperzentile erneut prüfen, 80 gepaarte Vergleiche und Ressourcenbudget auswerten; elf relative Grenzverletzungen, davon drei zugleich absolut, dokumentieren.
 - Hotpfadtest um Quick Feedback einschließlich Negativprobe erweitern; A1-npm-Befehle und Testintegration ergänzen.
-- Zwischenzeitliche Compilerkorrekturen und die sachfremde Frontend-Testkorrektur wurden verworfen; diese Dateien entsprechen HEAD. Keine Anwendungs-Laufzeitlogik geändert.
+- Zwischenzeitliche Compilerkorrekturen und die sachfremde Frontend-Testkorrektur wurden verworfen; diese Dateien sind nicht Bestandteil der A1-Produktionsänderungen. Keine Anwendungs-Laufzeitlogik geändert.
 - Auswertung, PDF-Abgabeentwürfe mit bearbeitbaren Vorlagen, Eigenanteils-/KI-Nachweis, Gesamtübersicht und Prüfprotokoll ergänzen.
-- Compose nachträglich mit dem eingefrorenen Aufbauhelfer und den Image-IDs auflösen, per Positivliste bereinigen und gegen 25 Manifeste prüfen; ausdrücklich keine damalige Aufnahme behaupten.
+- Vor jeder Phase tatsächlich aufgelöstes Compose bereinigt speichern; 50 Aufnahmen der Hauptreihe über Hashes und Dienstmanifeste prüfen. Alte Reihen und das überholte Rekonstruktionswerkzeug entfernen.
+- Hashgebundene Roh-JSON-Dateien von Prettier ausnehmen; umformatierte Dateien nur anhand bereits vorhandener passender SHA-256 in ihre belegten Originalbytes zurücksetzen.
 - Freigabestand in Rahmen/Aufteilung synchronisieren sowie persönliche Prüfliste und gemeinsame Übergabeunterlage erstellen.
 
 ## Verhaltens- und Abdeckungsprüfung
@@ -77,23 +78,17 @@ Bestehende tRPC-/WebSocket-Verträge werden von Lastwerkzeugen genutzt, nicht er
 
 ### Ausgeführte Prüfungen und Ergebnisse
 
-Die älteren Protokolle unter `auswertung/` und `nacharbeit/` sind historische
-Nachweise eines größeren Änderungsumfangs einschließlich inzwischen verworfener
-Compiler- und Frontend-Testkorrekturen. Deren Erfolge werden nicht auf den
-bereinigten Stand übertragen. Aktuelle Befehle, Resultate und Quellenidentitäten
-stehen unter `evidenz/1A/bereinigung/`.
+Die aktuelle [Prüfunterlage](./1A-pruefstand.md) nennt Befehle, Ergebnisse und
+Abgrenzung zu den vom Bearbeiter mitgeteilten allgemeinen Projektchecks.
+Alte Prüfprotokolle wurden entfernt und werden nicht als Nachweis dieses Stands verwendet.
 
-| Prüfung/Befehl                                                                          | Ergebnis im bereinigten Stand                                                                                                                                             |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Alle sechs A1-Werkzeugtestsuiten                                                        | Exit 0; alle 99 Tests bestanden (9/12/20/22/14/22), durchgehend unter Node 24.18.0.                                                                                       |
-| `npm run test -w @arsnova/backend -- src/__tests__/wordCloud.hotpath-isolation.test.ts` | 4 Tests bestanden; Negativprobe zuvor ohne Quick-Feedback-Abdeckung gezielt fehlgeschlagen.                                                                               |
-| `npm run typecheck`                                                                     | Exit 2: vorhandene Kombination CommonJS/bundler im unveränderten Backend verursacht TS5095.                                                                               |
-| `npm run typecheck -w @arsnova/frontend`                                                | Exit 2: TS2488 bei vorhandener NodeList-Iteration; ursprüngliche Compilerkonfiguration unverändert.                                                                       |
-| Gezielter unveränderter Frontend-Korpustest                                             | Exit 1: veraltete Wording-Erwartung »viel Zustimmung«; 1 fehlgeschlagen, 514 nicht ausgewählt. Sachfremde Korrektur nicht Bestandteil von A1.                             |
-| `npm test` und `npm run build:prod`                                                     | Nach der Bereinigung nicht vollständig erneut ausgeführt. Der nachgewiesene Backend-Compilerfehler blockiert den Produktionsbuild; vollständiger Gesamttest bleibt offen. |
-| `npm run lint`, gezieltes Werkzeug-ESLint, Prettier und `git diff --check`              | Aktuelle Ergebnisse im Bereinigungsprotokoll.                                                                                                                             |
-| Messauswertung, Dokumentbau und Compose-Rekonstruktion                                  | Historische Ausführungen dokumentiert; Rohdaten, Auswertung, PDF-Artefakte und eingefrorene Messwerkzeuge bei der Bereinigung unverändert.                                |
-| PR-Vorlagenprüfung                                                                      | Aktueller Stand bewusst nicht reviewbereit: erneute unabhängige Diffprüfung und Reviewfreigabe bleiben unbestätigt.                                                       |
+| Prüfung/Befehl                                   | Ergebnis                                                                                                                               |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Aktuelle Messreihe und Neuauswertung             | 25 vollständige Läufe, 50 Ressourcen- und 50 Compose-Artefakte; gespeicherte Rechnung vor Werkzeuganpassung byteidentisch reproduziert |
+| Aktuelle A1-Werkzeugtests, Lint und Formatierung | Konkrete Abschlussergebnisse siehe [Prüfstand](./1A-pruefstand.md)                                                                     |
+| Dokumentbau                                      | Aktuelle Messquelle; vier Handoutseiten und neun Folien, mit Quellenmanifest geprüft                                                   |
+| Allgemeine Projektchecks nach main-Merge         | Laut Nutzer Typecheck, Lint und Produktionsbuild erfolgreich; kein neuer vollständiger Projektlauf bei dieser Bereinigung              |
+| Vollständiger Frontend-Testlauf laut Nutzer      | 2872 bestanden, ein ursprünglicher Wording-Test fehlgeschlagen; unverändert, kein grüner Gesamttest behauptet                          |
 
 <!-- Keine Prüfung als erfolgreich angeben, wenn sie nicht ausgeführt wurde. -->
 
@@ -132,21 +127,16 @@ stehen unter `evidenz/1A/bereinigung/`.
 
 ## Nachweise
 
-<!-- CI-Lauf, Testreport, Screenshots, Messungen oder manuelle Prüfungen verlinken. -->
-
-- [Gesamtübersicht](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/1A-komplette-Aufgabe-fertig.md), [Vertrag](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/1A-experiment-contract.md), [Versuchsanleitung](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/1A-versuchsreihe.md).
-- [Vollständige Messreihe](https://github.com/NiklasSkulll/arsnova.eu/tree/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/reihe-2026-11-12/), [Auswertung und Betriebsentscheidung](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/1A-auswertung.md), [JSON](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/auswertung/auswertung.json), [80 CSV-Vergleiche](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/auswertung/live-vergleiche.csv).
-- [Prüfprotokoll](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/auswertung/pruefungen.json), [PDFs und Quellenmanifest](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/abgabe/README.md), [Eigenanteil und Anforderungsabgleich](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/1A-eigenanteil.md).
-- [Aktuelle Bereinigungsprüfung](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/bereinigung/README.md).
-- [Historische unabhängige Review und Nacharbeit](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/nacharbeit/README.md), [Compose-Rekonstruktion](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/evidenz/1A/compose-rekonstruktion/README.md), [persönliche Prüfung und Übergabe](https://github.com/NiklasSkulll/arsnova.eu/blob/feature-1A-resource-isolation/docs/referat-thema-1/1A-abschluss-und-uebergabe.md).
-- Die Repositorylinks beziehen sich auf den A1-Branch und sind nach deinem Commit und Push erreichbar. Diese Datei kann unverändert als `--body-file` für die Fork-PR verwendet werden. Es wird kein neuer CI-Lauf behauptet.
+- [Aktuelle Messreihe](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/), [JSON](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json) und [CSV](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/live-vergleiche.csv).
+- [Betriebsentscheidung](./1A-auswertung.md), [Prüfstand](./1A-pruefstand.md), [Gesamtübersicht](./1A-komplette-Aufgabe-fertig.md).
+- [Abgabeentwürfe und Manifest](./abgabe/README.md), [Eigenanteil](./1A-eigenanteil.md), [persönliche Prüfung und Übergabe](./1A-abschluss-und-uebergabe.md).
 
 ## Nicht zutreffend und verbleibende Risiken
 
 <!-- Jeden nicht ausgeführten, aber naheliegenden Prüfpunkt konkret begründen. -->
 
 - **Nicht zutreffende Prüfungen:** Keine geänderten API-Schemas, UI-Texte, Templates, Styles oder Fokusabläufe; daher keine neuen manuellen UI-/WCAG-Prüfungen oder Übersetzungen. Keine Migration, Tokenrotation oder Wiederherstellungsfunktion der Anwendung geändert. Für die Werkzeuge sind Abbruch, verspäteter Abschluss, Überlappung, temporäre Sidecar-Nichtverfügbarkeit und isolierter Rückweg durch Tests abgedeckt. V5 war optional und wurde nicht ausgeführt. Keine ESM-Migration vorgenommen.
-- **Verbleibende Risiken:** H1/H2 verfehlen die vorab gesetzten relativen Grenzen; keine Aktivierungsfreigabe. Gemeinsamer Generator-/Dockerhost mit 16 logischen CPUs, Beitrittswelle und synthetischem Wortschatz begrenzen Übertragbarkeit und Kausalität. V4 leitet tatsächlich keine spaCy-Berechnung weiter. Unabhängige technische Abschlussreview am damaligen Stand durchgeführt; nach der späteren Bereinigung steht die erneute unabhängige Prüfung des aktuellen vollständigen Diffs aus. Vorhandene Compilerfehler werden durch A1 nicht behoben, ein aktueller erfolgreicher Gesamttest oder Produktionsbuild wird nicht behauptet. Die nachträgliche Compose-Rekonstruktion ersetzt keine fehlende damalige Aufnahme; diese Nachweisgrenze bleibt vor vollständiger Aufgabenabnahme zu bewerten. Persönliche fachliche Gegenprüfung, erlaubter KI-Umfang, formale Abgabe, Abstimmung mit 1B/1C sowie Commit, Push, PR und Merge bleiben durch Niklas zu erledigen. Ein Frontend-Dialogtest scheiterte im ersten Gesamtlauf und bestand isoliert unverändert; Ursache nicht zugeordnet, die vollständige Wiederholung bestand ebenfalls unverändert und wird getrennt dokumentiert. Technische Review und PR-Vorlagengate ersetzen weder die persönliche Abgabefreigabe noch die Anerkennung der verbleibenden Nachweisgrenze.
+- **Verbleibende Risiken:** H1/H2 nicht bestätigt; keine Aktivierungsfreigabe. Gemeinsamer WSL2-Rechner, Beitrittswelle und synthetischer Wortschatz begrenzen Kausalität und Übertragbarkeit. V3 verletzt in Block 5 relative und absolute Live-Grenzen; V4 belegt keine tatsächlich weitergeleitete spaCy-Berechnung. Der ursprüngliche Frontend-Wording-Test bleibt fehlgeschlagen und unverändert. Ein neuer grüner Gesamttest oder CI-Lauf wird nicht behauptet. Persönliche Gegenprüfung, erlaubter KI-Umfang, institutionelle Abgabe, Abstimmung mit 1B/1C sowie unabhängige Prüfung des endgültigen Gesamtdiffs und tatsächlicher Merge bleiben separat.
 
 ## Selbstreview
 

@@ -111,8 +111,10 @@ Baseline** mit dem Prüfer geklärt; die E-Mail ist dort mit dem 04.11.2026
 vermerkt. Die E-Mail selbst liegt hier nicht vor. Die Freigabe wird deshalb
 auf das Issue zurückgeführt, nicht auf eine selbst geprüfte E-Mail.
 
-Für die A1-Reihe wurde der Commit
-`8f91e0417bc5aace461c3644a0b6b26c9284035b` (Version 1.4.0) eingefroren.
+Für die aktuelle A1-Reihe vom 15.11.2026 wurde der Commit
+`a19ca70ff37dcb5510a77ab2745c06b70ccc3565` (Version 1.4.0) eingefroren.
+Die ältere Methodenfestlegung bleibt unverändert; die neue Baseline wird durch
+den [Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) gebunden.
 Aufbau, Image-IDs und tatsächliche WSL2-Hardware mit 16 logischen CPUs stehen
 in der [Versuchsanleitung](./1A-versuchsreihe.md) und den Laufmanifesten.
 Die Messung ist keine Kapazitätsfreigabe für den 8-vCPU-Produktionshost.

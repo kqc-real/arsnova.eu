@@ -108,11 +108,11 @@
   <body>
     <section class="seite" data-page>
       <h1>Ressourcenisolation auf dem Anwendungshost</h1>
-      <p><strong>Aufgabe 1A · Niklas · 12.11.2026 · Abgabeentwurf</strong></p>
+      <p><strong>Aufgabe 1A · Niklas · 15.11.2026 · Abgabeentwurf</strong></p>
       <div class="befund">
         <strong>Entscheidung:</strong> spaCy für das untersuchte Freigabekriterium deaktiviert
-        lassen. Ressourcen und absolute Live-Latenzen sind unauffällig; die vorab festgelegten
-        relativen Grenzen werden jedoch nicht in allen Wiederholungen eingehalten.
+        lassen. V2 hält das Ressourcenbudget ein; relative Live-Grenzen werden verletzt. Unter
+        CPU-Drosselung entstehen zusätzlich absolute Verletzungen.
       </div>
       <h2>1 Fragestellung und Systemgrenze</h2>
       <p>
@@ -152,7 +152,7 @@
       <h3>Kontrollierter Vergleich</h3>
       <p>
         Gemessen wurde der unveränderte Fork-<code>main</code> vom Commit
-        <code>8f91e0417bc5aace461c3644a0b6b26c9284035b</code> (Version 1.4.0), gemäß dokumentierter
+        <code>a19ca70ff37dcb5510a77ab2745c06b70ccc3565</code> (Version 1.4.0), gemäß dokumentierter
         Freigabe statt des ursprünglichen 1.3-Tags. Fünf deterministisch randomisierte Blöcke
         enthalten jede Variante einmal; keine Messung wird nach ihrem Ergebnis ausgeschlossen [2,
         4].
@@ -184,7 +184,7 @@
         </tr>
       </table>
       <p class="klein">
-        Labor: Ubuntu 24.04.5 unter WSL2, Docker 29.9.2, cgroup v2, 16 logische CPUs, rund 15,57 GiB
+        Labor: Ubuntu 24.04.5 unter WSL2, Docker 29.9.3, cgroup v2, 16 logische CPUs, rund 15,57 GiB
         RAM. Anwendung, PostgreSQL, Redis, PDF-Worker und Lastgenerator teilen den Rechner; nur
         V2–V4 starten spaCy. Andere NLP-/Encoder-/LLM-Funktionen bleiben aus.
       </p>
@@ -250,14 +250,13 @@
         </tr>
       </table>
       <p>
-        Beispiel Block 1, Beitritt: V1 rund {{B1_BASIS}} ms, V2 rund {{B1_KANDIDAT}} ms. Der Anstieg
-        von {{B1_MS}} ms besteht die absolute, aber mit rund {{B1_PROZENT}} % nicht die relative
-        Grenze. Zusätzlich verfehlt V2 in Block 5 bei Q&amp;A die relative Grenze um rund
-        {{B5_PROZENT}} % bei nur {{B5_MS}} ms absolutem Anstieg. Die auffällig niedrige V1-Baseline
-        in Block 1 bleibt im Ergebnis; ihre Ursache ist nicht zugeordnet.
+        Beispiel Block 4, Q&amp;A: V1 {{BEISPIEL_BASIS}} ms, V2 {{BEISPIEL_KANDIDAT}} ms. Der
+        Anstieg um {{BEISPIEL_MS}} ms beziehungsweise {{BEISPIEL_PROZENT}} % verfehlt die relative
+        Regel. V3 verletzt in Block 5 bei Beitritt, Quiz und Q&amp;A zusätzlich die absolute
+        50-ms-Regel. Kein Block wird entfernt; die einzelne Ursache ist nicht zugeordnet.
       </p>
       <p>
-        Auch V0→V1 verfehlt in drei Aktionsvergleichen die relative Grenze. Der Versuch liefert
+        Auch V0→V1 verfehlt in vier Aktionsvergleichen die relative Grenze. Der Versuch liefert
         daher keine saubere Ursachenzuordnung zu einer einzelnen Backendfunktion und keinen Beleg,
         dass spaCy allein die beobachteten Unterschiede verursacht.
       </p>
@@ -307,7 +306,7 @@
       <figure>
         <img
           src="{{THROTTLE_GRAFIK}}"
-          alt="V3 drosselt in über 90 Prozent der CPU-Perioden; V2 bleibt unter einem Prozent und V4 bei null."
+          alt="V3 drosselt in rund 88 bis 96 Prozent der CPU-Perioden; V2 bleibt unter einem Prozent und V4 bei null."
         />
         <figcaption>
           Abb. 2: Zuwachs gedrosselter Perioden geteilt durch Zuwachs aller Perioden; keine
@@ -316,9 +315,9 @@
       </figure>
       <p>
         V3 mit 0,25 CPU erreicht {{V3_THROTTLE}} % gedrosselte Perioden. Der Erfolgs-p95 steigt auf
-        {{V3_ANALYSE}} ms; {{V3_ERFOLG}} von 750 Analysen enden erfolgreich im Fenster, {{V3_OFFEN}}
-        bleibt am Fensterende offen. Damit ist die kleinere CPU-Zuteilung keine belegte
-        gleichwertige Ersatzkonfiguration.
+        {{V3_ANALYSE}} ms; {{V3_ERFOLG}} von 750 Analysen enden erfolgreich im Fenster,
+        {{V3_ERSATZ}} liefern Fallbacks, {{V3_OFFEN}} bleiben am Fensterende offen. Damit ist die
+        kleinere CPU-Zuteilung keine belegte gleichwertige Ersatzkonfiguration.
       </p>
       <p>
         V4 liefert {{V4_ERSATZ}} Fallbackantworten und {{V4_OFFEN}} am Fensterende offene Analysen,
@@ -337,8 +336,8 @@
       <h2>4 Betriebsentscheidung und Gültigkeitsgrenzen</h2>
       <div class="befund">
         <strong>Gegenalternative beibehalten:</strong> <code>NLP_ENABLED=false</code>. Die vorab
-        vereinbarte Freigabe ist trotz niedriger absoluter Live-Latenzen nicht vollständig belegt.
-        Sprachliche Glättung rechtfertigt hier keine Aufweichung der Kriterien.
+        vereinbarte Freigabe ist durch die Live-Grenzverletzungen nicht gedeckt. Sprachliche
+        Glättung rechtfertigt hier keine Aufweichung der Kriterien.
       </div>
       <p>
         Für einen weiteren isolierten Versuch bleiben 1 CPU, 1 GiB RAM und 64 PIDs das untersuchte
@@ -365,27 +364,29 @@
       <h3>Nachvollziehbarkeit</h3>
       <p>
         Die vollständige Reihe umfasst 25 Läufe unter
-        <code>docs/referat-thema-1/evidenz/1A/reihe-2026-11-12/</code>. JSON, CSV und Tabellen unter
-        <code>evidenz/1A/auswertung/</code> enthalten alle gepaarten Einzelvergleiche und
-        Ressourcenwerte. SHA-256-Prüfsummen binden die Auswertung an ihre Eingaben; Dokumentquelle:
-        <code>{{QUELLE_SHA}}</code>. Die vorher abgebrochene Reihe und die Vorläufe sind gesondert
-        erhalten und nicht eingemischt.
+        <code>docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/</code>. JSON, CSV
+        und Tabellen unter
+        <code>evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/</code> enthalten alle
+        gepaarten Einzelvergleiche und Ressourcenwerte. SHA-256-Prüfsummen binden die Auswertung an
+        ihre Eingaben; Dokumentquelle: <code>{{QUELLE_SHA}}</code>. Der passende Vorlauf ist
+        gesondert erhalten; alte und abgebrochene Reihen wurden entfernt und werden nicht
+        eingemischt.
       </p>
       <p class="klein">
-        Nachtrag 13.11.2026: Die aufgelöste Compose-Ausgabe wurde damals nicht gespeichert. Fünf
-        heutige Rekonstruktionen wurden gegen die 25 Manifeste abgeglichen; sie ersetzen keine
-        damalige Aufnahme. Dieser Nachweisunterschied bleibt vor vollständiger Abnahme zu bewerten.
+        Vor jeder Phase wurde die tatsächlich aufgelöste Compose-Konfiguration bereinigt
+        gespeichert. Die 50 Aufnahmen sind per SHA-256 im Manifest gebunden und gegen die
+        aufgezeichneten Dienste geprüft. Eine nachträgliche Rekonstruktion ist nicht nötig.
       </p>
       <h3>Eigenanteil und KI-Unterstützung</h3>
       <p>
         Auftrag, schrittweise Freigaben, Laborbereitstellung und Git-Übernahmen sind Niklas
-        zugeordnet. Implementierung, Tests, Messausführung, Berechnung und dieser Text wurden mit
-        OpenAI Codex (GPT-6 laut Agentenumgebung) erstellt. Die persönliche Gegenprüfung der Zahlen,
-        Betriebsentscheidung und fachliche Vertretung müssen durch Niklas erfolgen; dieser Entwurf
-        ersetzt keine Eigenständigkeitserklärung. Wesentliche KI-Aufträge und die persönliche
-        Prüfliste stehen in <code>1A-abschluss-und-uebergabe.md</code>. Formale Zitation und
-        erlaubter KI-Umfang sind vor Abgabe anhand des Prüfungsauftrags beziehungsweise myCampus zu
-        bestätigen.
+        zugeordnet. Implementierung, Tests, Berechnung und dieser Text wurden mit OpenAI Codex
+        agentengestützt erstellt; die aktuelle reale Messung führte Niklas anhand der Anleitung aus.
+        Die persönliche Gegenprüfung der Zahlen, Betriebsentscheidung und fachliche Vertretung
+        müssen durch Niklas erfolgen; dieser Entwurf ersetzt keine Eigenständigkeitserklärung.
+        Wesentliche KI-Aufträge und die persönliche Prüfliste stehen in
+        <code>1A-abschluss-und-uebergabe.md</code>. Formale Zitation und erlaubter KI-Umfang sind
+        vor Abgabe anhand des Prüfungsauftrags beziehungsweise myCampus zu bestätigen.
       </p>
       <h3>Quellen und Belege</h3>
       <ol class="klein">
@@ -403,16 +404,18 @@
           <a
             href="../../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md"
             >ADR-0035</a
-          >; geprüfte Anwendung: Commit 8f91e0417bc5aace461c3644a0b6b26c9284035b.
+          >; geprüfte Anwendung: Commit a19ca70ff37dcb5510a77ab2745c06b70ccc3565.
         </li>
         <li>
-          <a href="../evidenz/1A/reihe-2026-11-12/abschluss.json"
-            >Eigene Laborreihe vom 12.11.2026</a
+          <a href="../evidenz/1A/reihe-main-a19ca70f-20261115-122547/abschluss.json"
+            >Eigene Laborreihe vom 15.11.2026</a
           >, Laufmanifeste und komprimierte Ressourcenzeitreihen; Aufbau in 1A-versuchsreihe.md.
         </li>
         <li>
-          <a href="../evidenz/1A/auswertung/auswertung.json">Reproduzierbare Auswertung</a> durch
-          scripts/load/evaluate-resource-isolation.mjs; ungerundete Prüfwerte in JSON und CSV.
+          <a href="../evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json"
+            >Reproduzierbare Auswertung</a
+          >
+          durch scripts/load/evaluate-resource-isolation.mjs; ungerundete Prüfwerte in JSON und CSV.
         </li>
       </ol>
       <footer class="fuss">

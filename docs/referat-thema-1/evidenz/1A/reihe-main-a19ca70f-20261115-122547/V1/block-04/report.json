@@ -25,7 +25,11 @@
           "participants": 200,
           "storedQuestions": 503,
           "eligibleQuestions": 500,
-          "exclusionControls": ["PENDING", "ARCHIVED", "DELETED"]
+          "exclusionControls": [
+            "PENDING",
+            "ARCHIVED",
+            "DELETED"
+          ]
         }
       },
       "orderSeed": 438314513,

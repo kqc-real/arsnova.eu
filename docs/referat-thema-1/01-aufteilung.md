@@ -207,5 +207,6 @@ was 1B zeigt.
 2. Die Aufteilung schriftlich festhalten: je Person Titel, Hypothese,
    Gegenalternative, eigener Test und Anteil an gemeinsamen Artefakten. Die Zuordnung ist
    wie oben dokumentiert geklärt; offene gemeinsame Artefakte werden abgestimmt.
-3. **A1 verfügbar:** Laboraufbau, Fixture und Live-Messwerkzeuge sind dokumentiert.
+3. **A1 verfügbar, Stand 15.11.2026:** [Aktuelle Messreihe und Auswertung](./1A-auswertung.md),
+   Laboraufbau, Fixture und Live-Messwerkzeuge sind dokumentiert.
    Die gemeinsame Übernahme sowie die private Runtime für 1B/1C gesondert abgleichen.

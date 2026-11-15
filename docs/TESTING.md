@@ -988,49 +988,26 @@ npm run load:resource-isolation:evaluate -- --validate
 npm run load:resource-isolation:evaluation:test
 npm run load:resource-isolation:evaluate -- \
   --run \
-  --evidence-root docs/referat-thema-1/evidenz/1A/reihe-2026-11-12 \
+  --evidence-root docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547 \
   --output-dir /tmp/arsnova-1a-auswertung-neu
 npm run load:resource-isolation:documents
 ```
 
-Der Ausgabeordner der Auswertung muss neu sein. Der Evaluator arbeitet lesend
-auf der vollständigen versionierten Reihe, prüft beide Phasen aller 25 Läufe
-und deren Ressourcen-Prüfsummen und schreibt JSON, CSV und Markdown. Relative
-und absolute Live-Regeln gelten gleichzeitig und inklusiv; ungültige Daten
-führen zum Fehler, gültig gemessene Grenzverletzungen bleiben Ergebnisse.
+Der Ausgabeordner muss neu sein. Der Evaluator verwendet standardmäßig die aktuelle
+[Reihendefinition](referat-thema-1/specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
+Er prüft beide Phasen aller 25 Läufe, Ressourcen-Prüfsummen und 50 Originalaufnahmen
+des bereinigten aufgelösten Compose. Relative und absolute Regeln gelten gleichzeitig;
+Grenzverletzungen sind Ergebnisse, fehlende oder widersprüchliche Daten Fehler.
+Ein gesondertes historisches Rekonstruktionswerkzeug ist nicht mehr vorhanden.
+Die Bereinigung/Manifestprüfung wird in `scripts/load/resource-isolation-compose.test.mjs` getestet.
 
-Die Auswertungs-/Vorlagentests gehören zu `npm test` und `test:coverage`,
-benötigen aber keine Container oder Browser. Der gesonderte Dokumentbau
-benötigt das vorhandene Playwright-Chromium und liest die versionierte
-Auswertung unter `evidenz/1A/auswertung/`; er verwendet nicht automatisch
-die oben als Gegenprüfung neu berechnete `/tmp`-Ausgabe. Er erzeugt drei
-Chart.js-Grafiken, HTML, vier A4-Handoutseiten und neun PDF-Folien und prüft
-Überläufe, echte PDF-Seitenzahl und Handout-Wortumfang mit pdf-parse.
-
-Die [Auswertung](referat-thema-1/1A-auswertung.md) und die
-[Abgabeanleitung](referat-thema-1/abgabe/README.md) dokumentieren Befunde,
-Reproduzierbarkeit und persönliche Freigaben. Die zwischenzeitlichen Änderungen
-an Backend-/Frontend-Compilerkonfiguration und dem sachfremden Frontend-Test
-wurden verworfen. Frühere erfolgreiche Gesamtprüfungen gelten deshalb nur für
-ihren damaligen Stand. Die [Bereinigungsprüfung](referat-thema-1/evidenz/1A/bereinigung/README.md)
-dokumentiert den aktuellen Umfang und verbleibende Projektfehler; diese werden
-nicht innerhalb des A1-Messauftrags korrigiert.
-
-### A1-Compose-Rekonstruktion nach der Messung
-
-```bash
-npm run load:resource-isolation:compose:reconstruct -- \
-  --output-dir /tmp/arsnova-1a-compose-rekonstruktion-neu
-npm run load:resource-isolation:evaluation:test
-```
-
-Die reine Konfigurationsauflösung startet keine Container. Docker Compose wird
-benötigt; die Ausgabe ist ein bereinigter Positivlisten-Auszug und ausdrücklich
-als nachträgliche Rekonstruktion gekennzeichnet. Images, Limits und aufgezeichnete
-Flags werden gegen alle 25 ursprünglichen Laufmanifeste geprüft. Eine fehlende
-Aufnahme zum damaligen Messzeitpunkt wird dadurch nicht ersetzt. Die neuen
-Negativtests der Bereinigung und des Abgleichs gehören zu `npm test` und kommen
-ohne Docker aus. [Nachtrag und Grenzen](referat-thema-1/evidenz/1A/compose-rekonstruktion/README.md).
+Die [Auswertung](referat-thema-1/1A-auswertung.md) enthält die fachliche Interpretation.
+Der Dokumentbau liest ausschließlich die aktuelle versionierte Auswertung und erzeugt
+HTML, PDFs und Grafiken samt Manifest. Seitenzahlen, Textumfang und Überlauf werden geprüft.
+[Rohdaten](referat-thema-1/evidenz/1A/README.md) sind hashgebunden und von Prettier ausgenommen;
+Formatierung darf gespeicherte Prüfsummen nicht entwerten.
+Der [Prüfstand](referat-thema-1/1A-pruefstand.md) nennt aktuelle Werkzeugchecks und den
+unveränderten ursprünglichen Frontend-Wording-Testfehler, ohne einen grünen Gesamtlauf zu behaupten.
 
 ### Artillery-Lasttest (Realtime, bis 500 TN)
 
@@ -1285,24 +1262,10 @@ Die reale HDMI-Probe aus der letzten Reihe bleibt eine zusätzliche manuelle Abn
 
 ### A1-Messreihe auf main a19ca70f
 
-Für eine neue Messung mit dem nach dem Merge übernommenen Anwendungsstand gilt
-[die neue Versuchsanleitung](referat-thema-1/1A-neue-messreihe.md). Sie trennt
-bereits ausgeführte Projektprüfungen von neuem Imagebau, Vorlauf, vollständiger
-25-Läufe-Reihe und deren Auswertung. Der sachfremde ursprüngliche Frontend-Test
-zur Formulierung »viel Zustimmung« bleibt unverändert und als Fehler dokumentiert.
-
-```bash
-npm run load:resource-isolation:evaluation:test
-npm run load:resource-isolation:experiment:test
-npm run load:resource-isolation:evaluate -- --validate \
-  --series-file docs/referat-thema-1/specs/2026-11-14-1a-messreihe-main-a19ca70f.json
-```
-
-`--series-file` muss bei der neuen Auswertung als letztes Argumentpaar stehen.
-Die private Laborzuordnung verwendet denselben absoluten Pfad im Feld
-`seriesDefinitionFile` und einen neuen `evidenceRoot`. Definition und Nachtrag
-werden mit ihrem Hash gebunden; die Auswertung verlangt 50 tatsächlich vor den
-Phasen aufgelöste, bereinigte Compose-Aufnahmen. Der Standardaufruf ohne
-Reihendefinition bleibt auf die alte Baseline begrenzt. Historische Rohdaten,
-Vertrag und Berichte werden nicht überschrieben. Die alten PDF-Vorlagen und
-Compose-Rekonstruktion bleiben auf ihre bisherigen Quellen begrenzt.
+Die [aktuelle Anleitung](referat-thema-1/1A-neue-messreihe.md) beschreibt Imagebau,
+privates Labor, passenden Vorlauf und Hauptreihe. Beide müssen dieselbe Konfigurationsdatei
+verwenden. Bei einem Neustart nicht wieder die alte `labor.json` auswählen, wenn der
+Vorlauf mit einer neuen Datei durchgeführt wurde. Jede zusätzliche Reihe braucht einen
+neuen Evidenzordner. Definition und Nachtrag werden über ihre Quellenhashes gebunden.
+Die abgeschlossene Reihe und ihre Ergebnisdokumentation sind im
+[A1-Evidenzindex](referat-thema-1/evidenz/1A/README.md) verlinkt.

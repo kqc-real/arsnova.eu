@@ -44,7 +44,10 @@ async function main(args) {
     );
   const ordner = join(root, 'docs/referat-thema-1/abgabe');
   const daten = await readFile(
-    join(root, 'docs/referat-thema-1/evidenz/1A/auswertung/auswertung.json'),
+    join(
+      root,
+      'docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json',
+    ),
   );
   const auswertung = JSON.parse(daten);
   if (
@@ -137,6 +140,7 @@ async function main(args) {
       V4_FALLBACK: spanne(nachVariante('V4').map((r) => r.analysis.fallbackLatency.p95Ms)),
       V2_ERFOLG: nachVariante('V2').reduce((s, r) => s + (r.analysis.outcomes.SUCCESS ?? 0), 0),
       V3_ERFOLG: nachVariante('V3').reduce((s, r) => s + (r.analysis.outcomes.SUCCESS ?? 0), 0),
+      V3_ERSATZ: nachVariante('V3').reduce((s, r) => s + (r.analysis.outcomes.FALLBACK ?? 0), 0),
       V4_ERSATZ: nachVariante('V4').reduce((s, r) => s + (r.analysis.outcomes.FALLBACK ?? 0), 0),
       V4_WEITERGELEITET: nachVariante('V4').reduce((s, r) => s + r.proxy.forwarded, 0),
       V3_OFFEN: nachVariante('V3').reduce(
@@ -150,20 +154,22 @@ async function main(args) {
       QUELLE_SHA: sha256(daten).slice(0, 16),
     };
     const beispiel = auswertung.comparisons.find(
-      (x) => x.block === 1 && x.variant === 'V2' && x.action === 'join',
-    );
-    const qaBeispiel = auswertung.comparisons.find(
-      (x) => x.block === 5 && x.variant === 'V2' && x.action === 'qaSubmit',
+      (x) => x.block === 4 && x.variant === 'V2' && x.action === 'qaSubmit',
     );
     Object.assign(werte, {
-      B1_BASIS: format(beispiel.baseline.p95Ms),
-      B1_KANDIDAT: format(beispiel.candidate.p95Ms),
-      B1_MS: format(beispiel.absoluteChangeMs),
-      B1_PROZENT: format(beispiel.relativeChange * 100),
-      B5_MS: format(qaBeispiel.absoluteChangeMs),
-      B5_PROZENT: format(qaBeispiel.relativeChange * 100),
+      BEISPIEL_BASIS: format(beispiel.baseline.p95Ms),
+      BEISPIEL_KANDIDAT: format(beispiel.candidate.p95Ms),
+      BEISPIEL_MS: format(beispiel.absoluteChangeMs),
+      BEISPIEL_PROZENT: format(beispiel.relativeChange * 100),
     });
     if (
+      auswertung.source.identity.baselineCommit !== 'a19ca70ff37dcb5510a77ab2745c06b70ccc3565' ||
+      auswertung.hypotheses.H1.failedComparisons !== 1 ||
+      auswertung.hypotheses.H2.failedComparisons !== 6 ||
+      auswertung.comparisons.filter((x) => !x.absolutePassed).length !== 3 ||
+      werte.V3_ERFOLG !== 741 ||
+      werte.V3_ERSATZ !== 6 ||
+      werte.V3_OFFEN !== 3 ||
       auswertung.activationSupported ||
       auswertung.hypotheses.H1.passed ||
       auswertung.hypotheses.H2.passed ||
@@ -184,7 +190,7 @@ async function main(args) {
         borderColor: farben[i],
         pointStyle: ['circle', 'rect', 'triangle', 'rectRot', 'crossRot'][i],
       })),
-      60,
+      Math.ceil(Math.max(...auswertung.runs.map((r) => r.live.vote.p95Ms)) / 50) * 50,
     );
     werte.RAM_GRAFIK = await zeichne(
       'spacy-speicher.png',

@@ -1,81 +1,49 @@
 # A1-Messnachweise
 
-Die vollständige bestätigende Reihe liegt unter
-[`reihe-2026-11-12/`](./reihe-2026-11-12/). Sie enthält fünf randomisierte
-Blöcke mit je einer Messung der Varianten V0–V4. Für Schritt 7 ausschließlich
-diese 25 Läufe gemeinsam vergleichen.
+Stand: 15.11.2026. Ausschließlich die aktuelle vollständige Reihe
+[reihe-main-a19ca70f-20261115-122547](./reihe-main-a19ca70f-20261115-122547/) bleibt im Arbeitsbaum.
+Alte Reihen, abgebrochene Anläufe, Rekonstruktionen und alte Prüf-/Auswertungsordner
+wurden auf Wunsch des Bearbeiters entfernt. Frühere Fassungen sind über Git erreichbar.
+Andere Aufträge 1B/1C sind davon nicht betroffen.
 
-| Nachweis                                                              | Bedeutung                                                                                 |
-| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [plan.json](./reihe-2026-11-12/plan.json)                             | Festgelegte Reihenfolge und identisches Lastprofil                                        |
-| [abschluss.json](./reihe-2026-11-12/abschluss.json)                   | Vollständiger Abschluss mit Baseline-, Image-, Werkzeug-, Vertrags- und Fixture-Identität |
-| [erfassungspruefung.json](./reihe-2026-11-12/erfassungspruefung.json) | Nachprüfung der 25 Laufnachweise und 50 komprimierten Ressourcenartefakte                 |
-| [herkunft.json](./reihe-2026-11-12/herkunft.json)                     | Begründung des erneuten Beginns und Herkunft des übernommenen Vorlaufs                    |
-| `reihe-2026-11-12/V*/block-*/lauf.json`                               | Manifest, Live-Stichproben, Analyseergebnisse, Diagnosen und Rückwegprüfung je Lauf       |
-| `reihe-2026-11-12/V*/block-*/*.json.gz`                               | Vollständige Ressourcenzeitreihen, getrennt für Messung und Aufwärmung                    |
-| `reihe-2026-11-12/V*/block-*/report.json` und `report.xml`            | Maschinenlesbarer Erfassungsstatus                                                        |
+## Aktuelle Belege
 
-Die erste Reihe vom 2026-11-11 bleibt im Wurzelverzeichnis erhalten:
-`V0`–`V4/block-01` und `V4/block-02` sind vollständig, `V1/block-02` wurde auf
-Wunsch des Bearbeiters während der Aufwärmung abgebrochen. Diese Reihe hat
-keinen Gesamtabschluss und wird nicht mit der vollständigen Reihe vermischt.
-`vorlauf/` enthält die fünf verkürzten Vorläufe; dieselben Dateien liegen nach
-Identitätsprüfung unverändert auch in der neuen Reihe. Der ursprüngliche
-fehlgeschlagene Labor-Vorabcheck bleibt unter
-`vorlauf-vorpruefung-abgebrochen/` dokumentiert. Diese Vorabdaten sind keine
-bestätigenden Wiederholungen.
+| Datei innerhalb der Reihe                                            | Inhalt                                                              |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `abschluss.json`, `plan.json`                                        | Vollständige 25 Läufe und vorgegebene Blockreihenfolge              |
+| `reihendefinition.json`, `vorabnachtrag.md`                          | Unveränderte Vorabfestlegung der aktuellen Baseline                 |
+| `V*/block-*/lauf.json`                                               | Manifest, Roh-Laufzeiten, Analysen, Diagnosen und geprüfter Rückweg |
+| `V*/block-*/compose-aufwaermung.json`, `compose-messung.json`        | 50 zeitgenössische bereinigte Compose-Aufnahmen                     |
+| `V*/block-*/aufwaermung-ressourcen.json.gz`, `ressourcen.json.gz`    | 50 Ressourcenartefakte; 31 beziehungsweise 151 Stichproben          |
+| `V*/block-*/report.json`, `report.xml`                               | Erfassungsstatus je Lauf                                            |
+| `vorlauf/`                                                           | Erfolgreicher passender Vorlauf mit fünf verkürzten Varianten       |
+| `auswertung/auswertung.json`, `auswertung.md`, `live-vergleiche.csv` | Reproduzierbare Rechnung mit 80 Vergleichen                         |
 
-Die Reihen basieren auf dem unveränderten Anwendungscommit
-`8f91e0417bc5aace461c3644a0b6b26c9284035b`. Werkzeuge und Versuchsvertrag
-sind durch eigene SHA-256-Werte identifiziert. Die Anwendung und der
-Lastgenerator liefen auf demselben WSL2-Rechner mit 16 logischen CPUs.
-Ergebnisse gelten zunächst für dieses Labor.
+Anwendungsbaseline: `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`.
+Rechner und Image-/Werkzeugidentitäten sind im JSON und den Laufmanifesten belegt.
+[Auswertung und Entscheidung](../../1A-auswertung.md) enthalten die fachliche Interpretation.
+[Durchführung](../../1A-neue-messreihe.md) beschreibt neue Messungen;
+[Prüfstand](../../1A-pruefstand.md) dokumentiert die aktuelle Bereinigung.
 
-Die Ressourcen lassen sich mit `gzip -dc ressourcen.json.gz` lesen. Zum
-Nachvollziehen der Dateiintegrität aus dem Repository-Wurzelverzeichnis:
+## Dateiintegrität
+
+Die Roh-JSON-Dateien sind von Prettier ausgenommen. Bei der Bereinigung wurden
+105 umformatierte Dateien ausschließlich dann in die ursprüngliche JSON-Schreibweise
+zurückgesetzt, wenn deren SHA-256 exakt dem bereits vorliegenden Nachweis entsprach.
+95 Dateien gehören zur Hauptreihe, zehn Compose-Aufnahmen zum Vorlauf.
+Es wurden keine Messwerte oder Manifestprüfsummen geändert.
+Die unabhängige Neuauswertung vor weiteren Werkzeuganpassungen ergab wieder
+byteidentisch die gespeicherte `auswertung.json`.
+Der Vorabvertrag und Nachtrag bleiben trotz älterem Erstellungsdatum unverändert:
+Sie sind hashgebundene Eingaben der aktuellen Messung, keine alten Ergebnisberichte.
 
 ```bash
-python3 - <<'PY'
-from pathlib import Path
-import gzip, hashlib, json
-
-wurzel = Path('docs/referat-thema-1/evidenz/1A/reihe-2026-11-12')
-plan = json.loads((wurzel / 'plan.json').read_text())
-assert len(plan['runs']) == 25
-for lauf in plan['runs']:
-    ordner = wurzel / lauf['variant'] / lauf['run']
-    bericht = json.loads((ordner / 'lauf.json').read_text())
-    assert bericht['complete'] and bericht['rollback']['verified']
-    for phase, anzahl in [(bericht, 151), (bericht['warmup'], 31)]:
-        artefakt = phase['resources']['artifact']
-        daten = (ordner / artefakt['file']).read_bytes()
-        assert hashlib.sha256(daten).hexdigest() == artefakt['sha256']
-        ressourcen = json.loads(gzip.decompress(daten))
-        assert len(ressourcen['snapshots']) == anzahl
-print('25 Laufnachweise und 50 Ressourcenartefakte geprüft.')
-PY
+npm run load:resource-isolation:evaluate -- \
+  --run \
+  --evidence-root docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547 \
+  --output-dir /tmp/arsnova-1a-integritaetspruefung
 ```
 
-`complete` bestätigt Erfassung und Rückweg, keine bestandenen Leistungsgrenzen.
-Die in Schritt 7 ergänzte [Auswertung](./auswertung/auswertung.md),
-[JSON-Ausgabe](./auswertung/auswertung.json) und
-[CSV-Tabelle](./auswertung/live-vergleiche.csv) prüfen alle gepaarten
-Wiederholungen. Die [Betriebsentscheidung](../../1A-auswertung.md) erläutert
-die nicht bestätigten Hypothesen und die Gültigkeitsgrenzen; das
-[Prüfprotokoll](./auswertung/pruefungen.json) hält die Abschlussprüfungen fest.
-Aufbau und Erfassungsnachweise stehen in der [Versuchsreihe](../../1A-versuchsreihe.md).
-
-## Abschlussnacharbeit
-
-Die [Compose-Rekonstruktion](./compose-rekonstruktion/README.md) ist eine
-nachträgliche Ergänzung und wird nicht in die Originalmessungen eingemischt.
-[Nacharbeitsprüfungen und Review](./nacharbeit/README.md) ergänzen das ursprüngliche
-Prüfprotokoll. Der Unterschied zwischen fehlender damaliger Compose-Aufnahme
-und heutiger Rekonstruktion bleibt ausdrücklich sichtbar.
-
-## Bereinigter Abschlussstand
-
-Die [Bereinigungsprüfung](./bereinigung/README.md) gilt nach dem Verwerfen
-der sachfremden Compiler- und Frontend-Testkorrekturen. Die älteren Protokolle
-unter `auswertung/` und `nacharbeit/` bleiben unveränderte historische Nachweise
-und belegen keine erfolgreichen Gesamtprüfungen des aktuellen Stands.
+Der Ausgabeordner muss neu sein. `complete` bestätigt Erfassung und Rückweg,
+keine bestandenen Leistungsgrenzen. Aufwärmung und Vorlauf sind keine zusätzlichen
+bestätigenden Wiederholungen und werden nicht in die 25 Messfenster eingemischt.

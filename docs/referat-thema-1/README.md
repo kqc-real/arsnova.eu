@@ -21,7 +21,7 @@ gehört **nicht** in die PR an kqc-real.
 | [diagrams/](./diagrams/)                                                     | Mermaid-Quellen (`.mmd`) mit gerenderten SVGs (hell und dunkel), `render.sh` und Regeln in [diagrams/README.md](./diagrams/README.md)                                                                                                 |
 | [specs/](./specs/)                                                           | Vorab festgelegte Designs und Pläne der 1C-Tests und -Messungen (Teil 1 bis 3, Labor-Design, Design und Plan der Abschlussdokumentation, Nachlauf-Design vom 2026-11-06)                                                              |
 | [evidenz/1C/](./evidenz/1C/)                                                 | Testprotokolle, Mutationsproben, Messrohdaten und Auswertung zu 1C                                                                                                                                                                    |
-| [1A-ressourcenisolation-app-host.md](./1A-ressourcenisolation-app-host.md)   | Code-Landkarte, Messwerkzeuge, Versuchsvorschlag, Lücken für 1A                                                                                                                                                                       |
+| [1A-ressourcenisolation-app-host.md](./1A-ressourcenisolation-app-host.md)   | Aktueller A1-Auftrag, bearbeiteter Umfang und Verweise auf Ergebnisse und Nachweise                                                                                                                                                   |
 | [1B-private-inferenz-zweiter-host.md](./1B-private-inferenz-zweiter-host.md) | Zwei-Host-Deployment, LLM-Client, Messbarkeit, Lücken für 1B                                                                                                                                                                          |
 | [AGENTS.md](./AGENTS.md), [CLAUDE.md](./CLAUDE.md)                           | Anweisungen für KI-Agenten in diesem Ordner (Karte, „Ein Fakt, ein Ort“, Regeln); `CLAUDE.md` bindet nur `AGENTS.md` ein                                                                                                              |
 | [final-prompt-for-git-diff.md](./final-prompt-for-git-diff.md)               | von Niklas: Prompt, mit dem nach dem Merge der eigene Beitrag dokumentiert wird                                                                                                                                                       |
@@ -38,27 +38,18 @@ gehört **nicht** in die PR an kqc-real.
 | [1A-abschluss-und-uebergabe.md](./1A-abschluss-und-uebergabe.md)             | Persönliche Prüfaufgaben, gemeinsame Artefakte, KI-Aufträge und tatsächlicher Übergabestand                                                                                                                                           |
 | [abgabe/README.md](./abgabe/README.md)                                       | Vierseitiger Handoutentwurf, neun PDF-Folien, Diagramme und reproduzierbarer Dokumentbau                                                                                                                                              |
 
-**Neue A1-Messung vorbereitet (14.11.2026):**
-[Anleitung für main a19ca70f](./1A-neue-messreihe.md) mit
-[Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und
-[Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
-Neue Messwerte liegen dadurch noch nicht vor; die nachfolgenden Angaben
-beschreiben weiterhin die ursprüngliche Reihe.
+[A1-Umsetzungsplan](./1A-umsetzungsplan.md), [Ausführungsanleitung](./1A-neue-messreihe.md)
+und [aktueller Prüfstand](./1A-pruefstand.md) ergänzen die Dateiübersicht.
 
-Unter `evidenz/1A/` liegen die A1-Messnachweise mit synthetischen Daten.
-Die erste Reihe bleibt nach ihrem angeforderten Abbruch erhalten; der erneute
-vollständige Durchlauf liegt getrennt unter `evidenz/1A/reihe-2026-11-12/`.
-Ablauf und Zuordnung beschreibt die [Versuchsreihe](./1A-versuchsreihe.md).
-Die [Auswertung](./1A-auswertung.md) trifft daraus die begründete Entscheidung;
-Der [Compose-Nachtrag](./evidenz/1A/compose-rekonstruktion/README.md) ist ausdrücklich
-eine Rekonstruktion. [Abschluss und Übergabe](./1A-abschluss-und-uebergabe.md) sowie
-[Nacharbeitsprüfungen](./evidenz/1A/nacharbeit/README.md) weisen persönliche und
-formale Freigaben getrennt von technischen Ergebnissen aus.
-
-Der [bereinigte Abschlussstand](./evidenz/1A/bereinigung/README.md) trennt die
-wiederhergestellten A1-npm-Befehle und den Quick-Feedback-Isolationstest von
-verworfenen Compiler- und Frontend-Testkorrekturen. Frühere Gesamtprüfungen
-belegen ausschließlich ihren damaligen Umfang.
+**A1, aktueller Stand 15.11.2026:** Die vollständige Messreihe liegt ausschließlich unter
+[`evidenz/1A/reihe-main-a19ca70f-20261115-122547/`](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
+[Evidenzindex](./evidenz/1A/README.md), [Auswertung](./1A-auswertung.md),
+[Ausführungsanleitung](./1A-neue-messreihe.md) und [Prüfstand](./1A-pruefstand.md)
+sind die aktuellen Einstiegspunkte. Alte A1-Reihen und abgebrochene Anläufe wurden entfernt;
+Vertrag und Vorabnachtrag bleiben als hashgebundene Quellen erhalten.
+[Abgabeentwürfe](./abgabe/README.md) verwenden die aktuelle Auswertung.
+Persönliche Freigabe, gemeinsame Abstimmung und tatsächlicher Merge stehen getrennt in
+[Abschluss und Übergabe](./1A-abschluss-und-uebergabe.md).
 
 ### Landkarte der 1C-Dateien
 
@@ -202,7 +193,8 @@ Stand der Recherche: 2026-10-16. Spätere Ergebnisse stehen in `evidenz/`.
     (Quellenlöschung) und E6b (langsamer Empfänger) in Teil 2 sowie E11
     (volle Queue) in Teil 3.
 
-Alle Dossiers enthalten Code-Stellen (Datei:Zeile), Versuchsideen und Lücken.
+Die historischen Dossiers zu 1B/1C enthalten Code-Stellen, Versuchsideen und Lücken.
+Das A1-Dokument verweist auf die aktuelle vollständige Ausarbeitung.
 
 ## Qualitätsanspruch an PRs
 

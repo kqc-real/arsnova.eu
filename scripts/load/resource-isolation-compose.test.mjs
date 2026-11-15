@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  bereinigeCompose,
-  pruefeManifestAbgleich,
-} from './reconstruct-resource-isolation-compose.mjs';
+import { bereinigeCompose, pruefeManifestAbgleich } from './lib/resource-isolation-compose.mjs';
 
 const image = `sha256:${'a'.repeat(64)}`;
 

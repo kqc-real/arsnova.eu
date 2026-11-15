@@ -23,7 +23,7 @@ nvm use
 npm run load:resource-isolation:documents
 ```
 
-Der Befehl liest `evidenz/1A/auswertung/auswertung.json`, ersetzt belegte Werte
+Der Befehl liest `evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json`, ersetzt belegte Werte
 in den Vorlagen, baut Grafiken, HTML und PDFs und aktualisiert `manifest.json`.
 Die erzeugten Dateien dieses Ordners werden dabei bewusst erneuert; die
 Rohmessungen bleiben unverändert. Fehlende Belege, Seitenüberläufe, falsche
@@ -49,14 +49,14 @@ Versuchsvertrag, ADR-0035 und eigene Messnachweise. Die
 der [Eigenanteilsnachweis](../1A-eigenanteil.md) grenzt menschlichen Auftrag,
 gemeinsame Artefakte und agentengestützte Ausführung ab.
 
-## Nachtrag zur Evidenz und persönliche Prüfliste
+## Aktuelle Evidenz und persönliche Prüfliste
 
-Die PDFs benennen jetzt die fehlende damalige Compose-Ausgabe und die
-[gekennzeichnete Rekonstruktion](../evidenz/1A/compose-rekonstruktion/README.md).
-Die [Abschluss-/Übergabeunterlage](../1A-abschluss-und-uebergabe.md) enthält
-wesentliche KI-Aufträge, konkrete persönliche Gegenprüfungen sowie die an
-1B/1C zu übergebenden Artefakte. Eine tatsächliche Abstimmung oder individuelle
-Freigabe wird nicht durch das Erstellen dieser Unterlagen vorweggenommen.
+Die Vorlagen und erzeugten Dateien verwenden ausschließlich die Messung vom
+15.11.2026. Sie berücksichtigen die absoluten Verletzungen in V3/Block 5 und
+zeitgenössische Compose-Aufnahmen. Das Diagramm zeigt sämtliche Quiz-p95-Werte,
+einschließlich des erhöhten V3-Werts, ohne Abschneiden bei der früheren Skala.
+Die [Abschluss-/Übergabeunterlage](../1A-abschluss-und-uebergabe.md) trennt
+persönliche Freigabe und gemeinsame Abstimmung von technischen Nachweisen.
 
 ## Vor persönlicher Abgabe
 

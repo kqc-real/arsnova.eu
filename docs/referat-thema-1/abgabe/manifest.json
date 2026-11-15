@@ -1,41 +1,41 @@
 {
   "schemaVersion": 1,
-  "evaluationSha256": "89d7d53b035e4ef8c433493c035dd6c09840884c9086c50bcfd0252f3f40792c",
-  "rendererSha256": "6667a5d6cef0c12f9af735157b6b8b5ed92420af110aaf209be38fad1b8bc9cc",
+  "evaluationSha256": "a3bebdf236cfb3b6ae993049ebd96dbd72e2bde908e63fd5f6a6e99a9df8b82a",
+  "rendererSha256": "7a57db261907614ed1678aa4e58569d06a126c42110ad65af50cb637cf76c69d",
   "artifacts": [
     {
       "file": "grafiken/live-p95.png",
-      "sha256": "35a090c455445e41274af88f1ff5bf5915b985d848bcb6dff26087e6c6fbac46"
+      "sha256": "f0d453ba841714ca79e5bac6fc0820ac317595805476f2507bf5ee339f147e7f"
     },
     {
       "file": "grafiken/spacy-speicher.png",
-      "sha256": "6d9c788c8229799deb82d6b36681ad3e6cf1fd33460c64d0af2cacca1092200c"
+      "sha256": "e438938f811a0973545e4b552ba0634a26265442ffa23be8d600961c4a3db23c"
     },
     {
       "file": "grafiken/spacy-drosselung.png",
-      "sha256": "4f73e45107fce81c6edb898e28c66b8e07ddd9b5673aa9e2144585b837402f65"
+      "sha256": "81ef46db9fe03fd253bfaa7391a8ee10ee30f3c17389fd335fe38bb2a95caeef"
     },
     {
       "file": "1A-handout.html",
-      "sha256": "f9ce6636453555414585d3be927e3011b248ead0f0715a2b0c3efc47d1c25983"
+      "sha256": "f2570a6b0dc4627dae29aa847ef786c5a8eb6fff18ff340def5fb6a889bec52c"
     },
     {
       "file": "1A-handout.pdf",
-      "sha256": "3d17e063bd92ffe2103eb1b8b307a6afd2c47e6a1c6780907d22eaf0d8bdb89e",
+      "sha256": "5a68403bf0296ae1264b45c3eb1dc873d780fafa83d0d7d5ba11ff9697c0b8db",
       "pages": 4,
-      "words": 1185,
-      "templateSha256": "7878cc5c638cd5ffd47bbc2e9c9b405565bddc3137c99ee283835ec7b7670541"
+      "words": 1179,
+      "templateSha256": "72bfc6780372f54e4cf9e107067c0d32298c1b7083e8ebc75273402ca9f6f56d"
     },
     {
       "file": "1A-folien.html",
-      "sha256": "a5e439f38ebd1bdeae5f624ad4a167387488016a026cbeafd03f342c0c8b7548"
+      "sha256": "dd44d6c8c4a41de2f2adb5c37e54e03235b6db26025936c2e18f405134ebedbc"
     },
     {
       "file": "1A-folien.pdf",
-      "sha256": "5cff03e569de4351758f3e9adaf06883ae15543e2b0329bc559c685acf2d01ff",
+      "sha256": "8db5e854dee4df3cf64acc7eface52c5524571b98eb5a515ebf3a556cbfe32b7",
       "pages": 9,
-      "words": 613,
-      "templateSha256": "e3b5b7872ec1af0bf7865fce13e91b7940973b63b8a8031826ca0b0199269504"
+      "words": 615,
+      "templateSha256": "47005616c46a9a7621c6106889d1461f4e297245e0e2e6be1f75797dee747239"
     }
   ]
 }

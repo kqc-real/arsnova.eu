@@ -1,27 +1,18 @@
 # A1 – Abschlussprüfung und Übergabe
 
-Stand: 14.11.2026. Diese Unterlage trennt ausgeführte technische Prüfungen von
+Stand: 15.11.2026. Diese Unterlage trennt ausgeführte technische Prüfungen von
 persönlicher Freigabe und tatsächlicher Abstimmung. Offene Felder sind keine
 Behauptung einer bereits erfolgten Bestätigung.
 
-## Technischer Nachweis und verbleibende Grenze
+## Technischer Nachweis
 
-- Messreihe: [25 unveränderte Läufe](./evidenz/1A/reihe-2026-11-12/),
-  fünf Blöcke mit V0–V4, eigene unveränderte Baseline.
-- Ergebnis: [Auswertung und Entscheidung](./1A-auswertung.md), 80 Vergleiche,
-  H1/H2 nicht bestätigt; `NLP_ENABLED=false` beibehalten.
-- Prüfungen: [ursprünglicher Abschlussstand](./evidenz/1A/auswertung/pruefungen.json)
-  und [Nacharbeit](./evidenz/1A/nacharbeit/README.md) sind historisch;
-  der aktuelle Umfang nach dem Verwerfen sachfremder Korrekturen steht in der
-  [Bereinigungsprüfung](./evidenz/1A/bereinigung/README.md).
-- Compose: [gekennzeichnete Rekonstruktion](./evidenz/1A/compose-rekonstruktion/README.md)
-  aus Baseline, unverändertem Aufbauhelfer und Image-IDs, mit Abgleich der
-  aufgezeichneten Manifestfelder. **Die damals nicht gespeicherte aufgelöste
-  Compose-Ausgabe bleibt als zeitgenössischer Nachweis fehlend.** Die
-  Rekonstruktion ist eine transparente Ergänzung; eine ausdrückliche Forderung
-  nach damaliger Aufnahme kann nur durch Anerkennung dieser Ergänzung oder
-  eine neue, gesonderte Messreihe erfüllt werden. Rohmessungen und Vertrag
-  werden dafür nicht nachträglich umgeschrieben.
+- [Aktuelle Reihe](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/): vollständiger Vorlauf und 25 Messläufe auf main `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`.
+- [Auswertung](./1A-auswertung.md): alle 80 Vergleiche und begründete Entscheidung.
+- Compose: 50 tatsächlich vor den Phasen aufgelöste bereinigte Aufnahmen für die Hauptreihe;
+  keine verbleibende Rekonstruktionslücke dieser Reihe.
+- [Prüfstand](./1A-pruefstand.md): aktuelle technische Prüfungen und bekannte Projektgrenzen.
+- Alte A1-Reihen und Prüfprotokolle wurden auf ausdrücklichen Wunsch entfernt;
+  sie werden nicht als Nachweis dieses Arbeitsstands zitiert.
 
 ## Persönliche fachliche Gegenprüfung
 
@@ -32,8 +23,8 @@ diese persönliche Prüfung nicht.
 - [ ] Einen Vergleich in `live-vergleiche.csv` anhand der Rohstichproben
       nachvollzogen: aufsteigend sortieren, Rang `ceil(0.95 × n)`, anschließend
       relative **und** absolute Grenze vor Rundung prüfen.
-- [ ] Erklärt, warum 4/20 H1- und 6/40 H2-Verletzungen trotz niedriger absoluter
-      Latenzen keine Freigabe nach dem vorab festgelegten Vertrag ergeben.
+- [ ] Erklärt, warum die [aktuellen Grenzverletzungen](./1A-auswertung.md#live-aktionen-und-hypothesen)
+      H1 und H2 nicht bestätigen, einschließlich der absoluten V3-Verletzungen.
 - [ ] Erklärt, warum V4 mit `forwarded: 0` Timeout/Rückstau/Fallback untersucht
       und keine langsam rechnende spaCy-Inferenz nachweist.
 - [ ] CPU-Limit als Obergrenze, nicht als Reservierung erklärt; RAM-Lebenszeitpeak
@@ -53,7 +44,7 @@ diese persönliche Prüfung nicht.
 | Gemeinsame Fixture | `scripts/load/fixtures/resource-isolation-v1.manifest.json`; Seed `438314513`, SHA-256 `da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded` | Sechs Referenzfragen plus Gegenfälle; Originalzustand und A1-Analyseprojektion gemäß [Fixture-Dokumentation](./1A-fixture.md) unterscheiden.   |
 | Live-Messung       | `scripts/load/artillery/processor.mjs`, `scripts/load/lib/artillery-live-messungen.mjs`; [Messvertrag](./1A-live-messungen.md)                            | Roh-Laufzeiten, p50/p95/p99, Fehler und geplante Arbeit für Beitritt, Quiz, Q&A und Tempo; keine dauerhafte 500-Client-Parallelität behaupten. |
 | Analyse-Last       | `scripts/load/host-analyze-loop.mjs`; [Anleitung](./1A-analyse-last.md)                                                                                   | Reguläre Host-Autorisierung, getrennte Sessions und konstanter Korpus; keine Tokens in Übergabeunterlagen.                                     |
-| A1-Ergebnisse      | Baseline `8f91e0417bc5aace461c3644a0b6b26c9284035b`, [Auswertung](./1A-auswertung.md)                                                                     | Als A1-Nachweis zitieren; keine Messung der privaten LLM-Rolle oder des vollständigen 1C-Kontextpfads.                                         |
+| A1-Ergebnisse      | Baseline `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`, [Auswertung](./1A-auswertung.md)                                                                     | Als A1-Nachweis zitieren; keine Messung der privaten LLM-Rolle oder des vollständigen 1C-Kontextpfads.                                         |
 
 - [ ] Jonas hat die benötigten Artefakte erhalten und die tatsächlich verwendete
       Version beziehungsweise den Commit festgehalten.
@@ -69,11 +60,10 @@ Diese Datei wurde nicht an andere Personen versendet.
 
 ## KI- und Quellenkennzeichnung
 
-OpenAI Codex hat Implementierung, Tests, Messausführung, Berechnung und
-Dokumententwürfe agentengestützt erstellt. Die Modellbezeichnung wurde in den
-Entwürfen als »GPT-6 laut Agentenumgebung« offengelegt; ein externes
-Modellprotokoll wird damit nicht behauptet. Frühere Recherchedossiers sind
-bereits als mit Claude Code erstellt gekennzeichnet.
+OpenAI Codex unterstützte Implementierung, Tests, Berechnung und Dokumententwürfe.
+Die aktuelle reale Messreihe führte Niklas anhand der bereitgestellten Befehle aus.
+Die genutzten Projektquellen und gemeinsamen Artefakte sind im Eigenanteil offengelegt;
+eine ausschließlich manuelle Umsetzung wird nicht behauptet.
 
 Wesentliche Aufträge aus diesem Chat, **sinngemäß zusammengefasst**:
 
@@ -82,11 +72,13 @@ Wesentliche Aufträge aus diesem Chat, **sinngemäß zusammengefasst**:
 2. Sieben Schritte einzeln umsetzen, Änderungen erklären, Nachprüfbarkeit und
    deutsche Conventional-Commit-Nachrichten liefern.
 3. Vollständige reale Messreihe nach Unterbrechung sauber neu beginnen und
-   bestehende abgebrochene Nachweise getrennt erhalten.
+   bestehende abgebrochene Nachweise zunächst getrennt erhalten.
 4. Ergebnisse nach unveränderten Kriterien auswerten, Gesamtübersicht,
    Abgabeentwürfe und Eigenanteil dokumentieren.
 5. Produktionsbezug und offene Anforderungen erneut auditieren sowie Compose-
    Nachweis, Dokumentation, Review und Übergabe vervollständigen.
+6. Nach dem main-Merge auf aktueller Baseline neu messen; anschließend alte A1-Nachweise
+   entfernen und lebende Dokumentation sowie Abgabeentwürfe auf die neue Reihe umstellen.
 
 Substanziell übernommene Beiträge und Git-Prüfgrundlage stehen im
 [Eigenanteilsnachweis](./1A-eigenanteil.md). Keine ausschließlich manuelle
@@ -100,33 +92,15 @@ Erstellung durch Niklas wird behauptet.
 
 ## GitHub-Abschluss
 
-Die [vorbereitete PR-Beschreibung](./1A-pr-beschreibung.md) folgt dem vollständigen
-Repositorytemplate. Der unabhängige Reviewstand wird im Nacharbeitsnachweis
-festgehalten; für den bereinigten Diff steht eine erneute unabhängige Prüfung
-noch aus. Die lokale PR-Vorlage lässt diese Freigabe bewusst offen. Ein Review
-durch einen Agenten ist keine persönliche
-Abgabefreigabe und kein institutioneller Prüfbescheid.
+Die [lokale PR-Beschreibung](./1A-pr-beschreibung.md) folgt dem Repositorytemplate.
+Niklas hat Commit und Push der aktuellen Messung im Chat bestätigt.
+Die anschließende Bereinigung wurde hier weder committet noch gepusht oder gemergt.
+Ein früherer Reviewstand ersetzt keine unabhängige Prüfung des endgültigen Gesamtdiffs.
 
-- [ ] Abschlussänderungen von Niklas geprüft und committet/gepusht.
-- [ ] PR gegen Fork-`main` erstellt, Vorlagengate und erforderliche Checks geprüft.
-- [ ] Verbleibende Nachweisgrenze der Compose-Rekonstruktion ausdrücklich bewertet.
-- [ ] PR tatsächlich gemergt; erst dann Merge-Akzeptanzkriterium als erfüllt ausweisen.
+- [ ] Bereinigten Gesamtstand von Niklas geprüft, committet und gepusht.
+- [ ] Unabhängige Gesamtprüfung sowie PR-Vorlagengate und CI-Status geprüft.
+- [ ] PR gegen Fork-main tatsächlich gemergt; erst dann Merge-Kriterium erfüllt.
 
-**PR / Abschlusscommit / Merge:** noch offen.
-
-Am 13.11.2026 im Chat bestätigt: Niklas übernimmt Commit und Push selbst;
-die PR wird hier ausschließlich lokal vorbereitet. Persönliche Gegenprüfung,
-KI-/Abgabevorgaben und Abstimmung mit Jonas sind noch nicht erfolgt.
-
-Nach eigenem Commit und Push kann Niklas die vorbereitete Datei direkt verwenden:
-
-```bash
-gh pr create --repo NiklasSkulll/arsnova.eu \
-  --base main --head feature-1A-resource-isolation \
-  --title "feat(load): A1-Ressourcenisolation auswerten und dokumentieren" \
-  --body-file docs/referat-thema-1/1A-pr-beschreibung.md
-```
-
-Diesen Befehl hat der Agent nicht ausgeführt. `Closes #6` ist bereits im Text
-enthalten. Vor einem Merge sind CI-Status, verbleibende Nachweisgrenze und die
-persönlichen beziehungsweise institutionellen Freigaben ausdrücklich zu prüfen.
+**PR / Merge:** hier nicht ausgeführt oder als erfolgt bestätigt.
+Persönliche Gegenprüfung, erlaubter KI-Umfang und Abstimmung mit Jonas bleiben offen,
+solange Niklas sie nicht ausdrücklich bestätigt. Es wurden keine Nachrichten versendet.
