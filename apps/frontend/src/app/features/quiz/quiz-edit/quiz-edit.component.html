@@ -389,6 +389,20 @@
 
             <fieldset class="quiz-edit-form__fieldset">
               <legend class="quiz-edit-form__legend" i18n>Ablauf &amp; Zeit</legend>
+              <mat-checkbox
+                formControlName="shuffleAnswerOptions"
+                i18n="@@quizSettings.shuffleAnswerOptions"
+              >
+                Antwortoptionen auf den Geräten der Teilnehmenden mischen
+              </mat-checkbox>
+              <p
+                class="quiz-edit-form__fieldset-hint"
+                i18n="@@quizSettings.shuffleAnswerOptionsHint"
+              >
+                Ausgeschaltet bleibt die Reihenfolge aus dem Editor für alle Single-Choice-,
+                Multiple-Choice- und Umfragefragen erhalten. Host und Präsentation verwenden immer
+                diese Reihenfolge.
+              </p>
               <mat-checkbox formControlName="readingPhaseEnabled" i18n>
                 Lesephase vor dem Antworten
               </mat-checkbox>
@@ -1634,19 +1648,6 @@
         @if (hasAnswerOptions()) {
           @if (isShortTextType()) {
             <p class="quiz-edit-form__fieldset-hint">{{ shortTextSolutionsHint() }}</p>
-          }
-          @if (shufflesParticipantChoiceAnswers()) {
-            <mat-checkbox
-              formControlName="shuffleAnswerOptions"
-              (change)="onLivePreviewInput()"
-              i18n="@@quizEdit.shuffleAnswerOptions"
-            >
-              Antwortoptionen auf den Geräten der Teilnehmenden mischen
-            </mat-checkbox>
-            <p class="quiz-edit-form__fieldset-hint" i18n="@@quizEdit.shuffleAnswerOptionsHint">
-              Host und Präsentation zeigen immer die Reihenfolge aus dem Editor. Ohne Mischen gilt
-              dieselbe Reihenfolge auch für Teilnehmende.
-            </p>
           }
           <div formArrayName="answers" class="quiz-edit-answers l-stack l-stack--md">
             @for (answer of answersArray.controls; track $index; let i = $index) {

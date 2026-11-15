@@ -104,6 +104,39 @@ describe('quiz.upload (Story 2.1a)', () => {
     },
   );
 
+  it('wendet die globale Antwortreihenfolge auf alle Wahlfragen an', async () => {
+    await caller.upload({
+      name: 'Quiz mit Autorenreihenfolge',
+      showLeaderboard: true,
+      allowCustomNicknames: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'NOBEL_LAUREATES',
+      shuffleAnswerOptions: false,
+      questions: [
+        {
+          text: 'Wahlfrage',
+          type: 'SINGLE_CHOICE',
+          difficulty: 'EASY',
+          order: 0,
+          shuffleAnswerOptions: true,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    });
+
+    const createCall = prismaMock.quiz.create.mock.calls.at(-1)![0];
+    expect(createCall.data.questions.create[0].shuffleAnswerOptions).toBe(false);
+  });
+
   it('stages source identities and objective references atomically with the quiz upload', async () => {
     await caller.upload({
       name: 'Quiz mit Lernzielen',

@@ -43,6 +43,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: false,
+      shuffleAnswerOptions: false,
       preset: 'PLAYFUL',
     },
     questions: [],
@@ -100,6 +101,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: false,
+      shuffleAnswerOptions: false,
       preset: 'PLAYFUL',
     };
     quiz.questions = [];
@@ -729,7 +731,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       confidenceEnabled: true,
       confidenceLabelLow: 'sehr unsicher',
       confidenceLabelHigh: 'absolut sicher',
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'Antwort A', isCorrect: false },
         { text: 'Antwort B', isCorrect: true },
@@ -1333,7 +1335,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'Zu schnell', isCorrect: false },
         { text: 'Passend', isCorrect: false },
@@ -1412,7 +1414,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       timer: null,
       skipReadingPhase: false,
       confidenceEnabled: false,
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'Neu A', isCorrect: false },
         { text: 'Neu B', isCorrect: true },
@@ -1897,7 +1899,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       confidenceEnabled: true,
       confidenceLabelLow: 'sehr unsicher',
       confidenceLabelHigh: 'absolut sicher',
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },
@@ -1942,6 +1944,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: 5,
       readingPhaseEnabled: true,
+      shuffleAnswerOptions: false,
       preset: 'SERIOUS',
     });
     const fixture = TestBed.createComponent(QuizEditComponent);
@@ -2640,11 +2643,10 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('speichert abgeschaltetes Mischen der Wahloptionen für Teilnehmende', () => {
+  it('übernimmt die globale Antwortreihenfolge in neue Wahlfragen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
     component.form.controls.text.setValue('Welche Aussage stimmt?');
-    component.form.controls.shuffleAnswerOptions.setValue(false);
     component.answersArray.at(0).controls.text.setValue('Erste');
     component.answersArray.at(1).controls.text.setValue('Zweite');
 
@@ -2660,6 +2662,25 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
           { text: 'Zweite', isCorrect: false },
         ],
       }),
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt die Antwortreihenfolge nur global in den Quiz-Einstellungen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('[formcontrolname="shuffleAnswerOptions"]')).toBeNull();
+
+    fixture.componentInstance.showSettings.set(true);
+    fixture.detectChanges();
+
+    const controls = host.querySelectorAll('[formcontrolname="shuffleAnswerOptions"]');
+    expect(controls).toHaveLength(1);
+    expect(fixture.componentInstance.settingsForm.controls.shuffleAnswerOptions.value).toBe(false);
+    expect(host.textContent).toContain(
+      'Ausgeschaltet bleibt die Reihenfolge aus dem Editor für alle Single-Choice-',
     );
     fixture.destroy();
   });

@@ -4,7 +4,8 @@
 
 Die bestehende Host-Aktion öffnet den geschützten Presenter. Der Startdialog
 bietet neben dem direkten Start die optionale Smartphone-Kopplung unter
-**Mit Smartphone steuern** an. Das Vollbild-Overlay lässt den aktuellen Inhalt
+**Mit Smartphone steuern** an. Nach dem Start bleibt sie ausschließlich im Host
+unter **Weitere Aktionen** erreichbar. Das Vollbild-Overlay lässt den aktuellen Inhalt
 als Kontext erkennen.
 
 `app-projection-pages` misst gerenderten Inhalt auf der tatsächlichen Fläche.
@@ -67,8 +68,11 @@ startet **→** die erste Frage oder die Antwortphase, zeigt nach abgeschlossene
 Abstimmung das freigabefähige Ergebnis und öffnet danach die nächste Frage
 oder die Gesamtauswertung. Bei laufender Abstimmung, laufenden persönlichen
 Zeitfenstern, der Wahl zur Peer Instruction und einer Quizpause bleiben diese
-Phasenaktionen bei den ausdrücklich beschrifteten Knöpfen. **↑ / ↓** blättern
-durch mehrseitige Quizinhalte.
+Phasenaktionen bei den ausdrücklich beschrifteten Knöpfen. In Lese- und
+Abstimmungsphase lässt **S** die aktuelle Frage nach Bestätigung aus; die
+sichtbare Aktion steht im Host und Presenter ohne zusätzliches Icon bereit.
+Der bestätigende CTA erhält den Fokus. **↑ / ↓** blättern durch mehrseitige
+Quizinhalte.
 
 **←** öffnet das vorherige abgeschlossene Ergebnis. **→** blättert im
 Rückblick vorwärts und kehrt am Ende zur Live-Ansicht zurück. Der Rückblick

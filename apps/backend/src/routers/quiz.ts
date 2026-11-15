@@ -469,7 +469,7 @@ export const quizRouter = router({
                 categorizationShuffleItems:
                   q.type === 'CATEGORIZATION' ? (q.categorizationShuffleItems ?? true) : true,
                 shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(q.type)
-                  ? (q.shuffleAnswerOptions ?? true)
+                  ? (input.shuffleAnswerOptions ?? q.shuffleAnswerOptions ?? true)
                   : true,
                 answers: {
                   create: q.answers.map((a, index) => ({

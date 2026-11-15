@@ -13299,13 +13299,13 @@
           <context context-type="linenumber">566,568</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizEdit.shuffleAnswerOptions" datatype="html">
+      <trans-unit id="quizSettings.shuffleAnswerOptions" datatype="html">
         <source>Antwortoptionen auf den Geräten der Teilnehmenden mischen</source>
         <target>Mezclar las opciones de respuesta en los dispositivos de quienes participan</target>
         </trans-unit>
-      <trans-unit id="quizEdit.shuffleAnswerOptionsHint" datatype="html">
-        <source>Host und Präsentation zeigen immer die Reihenfolge aus dem Editor. Ohne Mischen gilt dieselbe Reihenfolge auch für Teilnehmende.</source>
-        <target>Quien modera y la presentación muestran siempre el orden del editor. Sin mezclar, quienes participan ven el mismo orden.</target>
+      <trans-unit id="quizSettings.shuffleAnswerOptionsHint" datatype="html">
+        <source>Ausgeschaltet bleibt die Reihenfolge aus dem Editor für alle Single-Choice-, Multiple-Choice- und Umfragefragen erhalten. Host und Präsentation verwenden immer diese Reihenfolge.</source>
+        <target>Si está desactivado, se conserva el orden del editor en todas las preguntas de opción única, opción múltiple y encuesta. Quien modera y la presentación siempre usan este orden.</target>
         </trans-unit>
       <trans-unit id="quizEdit.matchingShuffleRight" datatype="html">
         <source> Rechte Begriffe für jede teilnehmende Person mischen</source>
@@ -17691,6 +17691,10 @@
           <context context-type="linenumber">117,119</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="hostPairing.remoteAction" datatype="html">
+        <source>Smartphone als Fernbedienung</source>
+        <target>Usar el móvil como mando a distancia</target>
+      </trans-unit>
       <trans-unit id="presentationStart.cancel" datatype="html">
         <source> Abbrechen</source>
         <target>Cancelar</target>
@@ -21142,7 +21146,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingBannerHint" datatype="html">
-        <source> Gib den Teilnehmenden Zeit zum Lesen. </source>
+        <source> Gib den Teilnehmenden Zeit zum Lesen.</source>
         <target>Da tiempo para leer la pregunta.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -23503,6 +23507,22 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1889</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presenterStartOfferTitle" datatype="html">
+        <source>Quiz gestartet</source>
+        <target>Quiz iniciado</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1812</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presenterStartOfferDismiss" datatype="html">
+        <source>Im Host bleiben</source>
+        <target>Seguir en la vista del anfitrión</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1842</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">
@@ -36839,7 +36859,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.noSearchResults" datatype="html">
-        <source> Keine passenden Quizze. Ändere oder lösche deinen Suchtext. </source>
+        <source> Keine passenden Quizze. Ändere oder lösche deinen Suchtext.</source>
         <target>No hay coincidencias. Cambia o borra tu búsqueda.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
@@ -37093,7 +37113,7 @@
       <trans-unit id="sessionPresent.historyModeratedWordCloud" datatype="html">
         <source>Die moderierte Wortwolke ist im Rückblick nicht verfügbar.</source>
         <target>La nube de palabras moderada no está disponible en el historial de resultados.</target>
-      </trans-unit>
+        </trans-unit>
     </body>
   </file>
 </xliff>

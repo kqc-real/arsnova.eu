@@ -650,6 +650,7 @@ describe('öffentliche Contract-Schemas', () => {
     expect(isTimerAccommodationEnabled(true)).toBe(true);
     expect(isTimerAccommodationEnabled(false)).toBe(false);
     expect(CreateQuizInputSchema.parse({ name: 'Quiz' }).enableTimerAccommodation).toBe(false);
+    expect(CreateQuizInputSchema.parse({ name: 'Quiz' }).shuffleAnswerOptions).toBe(false);
     expect(
       QuizUploadInputSchema.parse({
         ...quizUploadBase,

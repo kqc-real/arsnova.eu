@@ -1402,6 +1402,8 @@ export const CreateQuizInputSchema = z.object({
   nicknameTheme: NicknameThemeEnum.optional().default('HIGH_SCHOOL'),
   bonusTokenCount: z.number().int().min(1).max(50).nullable().optional().default(null), // Story 4.6
   readingPhaseEnabled: z.boolean().optional().default(true),
+  /** Global für SC/MC/Umfrage; neue Quizze behalten die Autorenreihenfolge bei. */
+  shuffleAnswerOptions: z.boolean().optional().default(false),
   preset: QuizPresetEnum.optional().default('PLAYFUL'),
 });
 export type CreateQuizInput = z.infer<typeof CreateQuizInputSchema>;
@@ -2586,6 +2588,8 @@ export const QuizUploadInputSchema = z
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(),
+    /** Globaler Override; fehlt nur bei älteren Upload-Clients mit Fragewerten. */
+    shuffleAnswerOptions: z.boolean().optional(),
     preset: QuizPresetEnum.optional(),
     /** Versionierter Sidecar-Snapshot; enthält keine Antwort-/Lösungsdaten. */
     learningObjectives: QuizLearningObjectiveBundleV1Schema.optional(),
@@ -2760,6 +2764,7 @@ type QuizHistoryAccessMaterial = {
   nicknameTheme: NicknameTheme;
   bonusTokenCount: number | null;
   readingPhaseEnabled: boolean;
+  shuffleAnswerOptions?: boolean;
   preset: QuizPreset;
   questions: Array<{
     text: string;
@@ -2844,6 +2849,9 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     nicknameTheme: parsed.nicknameTheme,
     bonusTokenCount: parsed.bonusTokenCount ?? null,
     readingPhaseEnabled: parsed.readingPhaseEnabled ?? true,
+    ...(parsed.shuffleAnswerOptions !== undefined
+      ? { shuffleAnswerOptions: parsed.shuffleAnswerOptions }
+      : {}),
     preset: parsed.preset ?? 'PLAYFUL',
     questions: [...parsed.questions]
       .sort((left, right) => left.order - right.order)
@@ -5734,6 +5742,7 @@ const ExportedQuizMetadataSchema = z
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(), // Story 2.6: Lesephase
+    shuffleAnswerOptions: z.boolean().optional(),
   })
   .strict();
 

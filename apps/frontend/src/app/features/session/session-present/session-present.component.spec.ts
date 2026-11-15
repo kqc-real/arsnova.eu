@@ -4,6 +4,8 @@ import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-cloc
 import { SoundService } from '../../../core/sound.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
@@ -33,6 +35,7 @@ const {
   startDiscussionMutateMock,
   startSecondRoundMutateMock,
   nextQuestionMutateMock,
+  skipQuestionMutateMock,
   pauseQuizMutateMock,
   resumeQuizMutateMock,
   getInfoQueryMock,
@@ -54,6 +57,7 @@ const {
   setFreetextWordCloudProjectionMutateMock,
   analyzeWordCloudMutateMock,
   subscribeMock,
+  presenterDialogOpenMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
   setFreetextWordCloudEntryVisibilityMock: vi.fn(),
@@ -63,6 +67,7 @@ const {
   startDiscussionMutateMock: vi.fn(),
   startSecondRoundMutateMock: vi.fn(),
   nextQuestionMutateMock: vi.fn(),
+  skipQuestionMutateMock: vi.fn(),
   pauseQuizMutateMock: vi.fn(),
   resumeQuizMutateMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
@@ -83,6 +88,7 @@ const {
   setFreetextWordCloudProjectionMutateMock: vi.fn(),
   analyzeWordCloudMutateMock: vi.fn(),
   subscribeMock: vi.fn((_input: never, _opts: never) => ({ unsubscribe: vi.fn() })),
+  presenterDialogOpenMock: vi.fn(),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
@@ -94,6 +100,7 @@ vi.mock('../../../core/trpc.client', () => ({
       startDiscussion: { mutate: startDiscussionMutateMock },
       startSecondRound: { mutate: startSecondRoundMutateMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
+      skipQuestion: { mutate: skipQuestionMutateMock },
       pauseQuiz: { mutate: pauseQuizMutateMock },
       resumeQuiz: { mutate: resumeQuizMutateMock },
       getInfo: {
@@ -218,6 +225,9 @@ describe('SessionPresentComponent', () => {
   beforeEach(() => {
     getInfoQueryMock.mockClear();
     setPresenterSurfaceMutateMock.mockReset();
+    skipQuestionMutateMock.mockReset();
+    presenterDialogOpenMock.mockReset();
+    presenterDialogOpenMock.mockReturnValue({ afterClosed: () => of(false) });
     setPresenterSortModeMutateMock.mockReset();
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -285,6 +295,10 @@ describe('SessionPresentComponent', () => {
         SessionUnloadWarningService,
         provideRouter([]),
         {
+          provide: MatDialog,
+          useValue: { openDialogs: [], open: presenterDialogOpenMock },
+        },
+        {
           provide: ActivatedRoute,
           useValue: {
             parent: {
@@ -297,6 +311,82 @@ describe('SessionPresentComponent', () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('zeigt Frage auslassen ohne redundantes Icon und löst S nur nach Bestätigung aus', async () => {
+    const question = {
+      ...TIMED_PRESENTER_QUESTION,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: true,
+      totalVotes: 2,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      preferredChannel: 'quiz',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(question);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.componentInstance.presentedQuizQuestion()?.questionId).toBe(
+        question.questionId,
+      );
+    });
+
+    const root = fixture.nativeElement as HTMLElement;
+    const skip = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-skip-question"]',
+    );
+    expect(skip?.getAttribute('aria-keyshortcuts')).toBe('S');
+    expect(skip?.querySelector('mat-icon')).toBeNull();
+    expect(skip?.querySelector('kbd')?.textContent).toBe('S');
+
+    const input = document.createElement('input');
+    root.append(input);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 's', bubbles: true, repeat: true }),
+    );
+    expect(presenterDialogOpenMock).not.toHaveBeenCalled();
+
+    skip?.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    await fixture.whenStable();
+    expect(presenterDialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        autoFocus: '.confirm-leave__confirm',
+        data: expect.objectContaining({
+          message:
+            'Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.',
+          consequences: ['Bereits abgegebene Antworten werden nicht ausgewertet.'],
+        }),
+      }),
+    );
+    expect(skipQuestionMutateMock).not.toHaveBeenCalled();
+
+    presenterDialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(true) });
+    skipQuestionMutateMock.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'S', bubbles: true }));
+    await fixture.whenStable();
+
+    expect(skipQuestionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123', questionId: question.questionId },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    fixture.destroy();
   });
 
   it('blättert während der Abstimmung lokal zurück und kehrt ohne Phasenwechsel live zurück', async () => {
@@ -6336,7 +6426,7 @@ describe('SessionPresentComponent', () => {
     expect(root.textContent).toContain('Ergebnis zeigen');
     expect(root.querySelector('button[aria-keyshortcuts="ArrowRight"]')).toBeNull();
     expect(root.textContent).not.toContain('Trotzdem freigeben');
-    expect(root.textContent).not.toContain('Frage auslassen');
+    expect(root.textContent).toContain('Frage auslassen');
 
     root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
     await fixture.whenStable();
