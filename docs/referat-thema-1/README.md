@@ -21,7 +21,7 @@ gehört **nicht** in die PR an kqc-real.
 | [diagrams/](./diagrams/)                                                                         | Mermaid-Quellen (`.mmd`) mit gerenderten SVGs (hell und dunkel), `render.sh` und Regeln in [diagrams/README.md](./diagrams/README.md)                                                                                                 |
 | [specs/](./specs/)                                                                               | Vorab festgelegte Designs und Pläne der 1C- und 1B-Tests und -Messungen (1C: Teil 1 bis 3, Labor-Design, Design und Plan der Abschlussdokumentation, Nachlauf-Design vom 2026-11-06; 1B: Zeile unten)                                 |
 | [evidenz/1C/](./evidenz/1C/)                                                                     | Testprotokolle, Mutationsproben, Messrohdaten und Auswertung zu 1C                                                                                                                                                                    |
-| [1A-ressourcenisolation-app-host.md](./1A-ressourcenisolation-app-host.md)                       | Code-Landkarte, Messwerkzeuge, Versuchsvorschlag, Lücken für 1A                                                                                                                                                                       |
+| [1A-ressourcenisolation-app-host.md](./1A-ressourcenisolation-app-host.md)                       | Aktueller A1-Auftrag, bearbeiteter Umfang und Verweise auf Ergebnisse und Nachweise                                                                                                                                                   |
 | [1B-private-inferenz-zweiter-host.md](./1B-private-inferenz-zweiter-host.md)                     | Zwei-Host-Deployment, LLM-Client, Messbarkeit, Lücken für 1B                                                                                                                                                                          |
 | [specs/2026-11-12-1b-zwei-host-design.md](./specs/2026-11-12-1b-zwei-host-design.md)             | Design 1B Schritte 1–2 (zwei VMs, Summary-Auftrag, Zeitzerlegung), mit [Plan](./specs/2026-11-12-1b-zwei-host-plan.md)                                                                                                                |
 | [evidenz/1B/](./evidenz/1B/)                                                                     | Skripte, Messauswertung und Protokolle zu 1B                                                                                                                                                                                          |
@@ -43,6 +43,30 @@ gehört **nicht** in die PR an kqc-real.
 | [AGENTS.md](./AGENTS.md), [CLAUDE.md](./CLAUDE.md)                                               | Anweisungen für KI-Agenten in diesem Ordner (Karte, „Ein Fakt, ein Ort“, Regeln); `CLAUDE.md` bindet nur `AGENTS.md` ein                                                                                                              |
 | [final-prompt-for-git-diff.md](./final-prompt-for-git-diff.md)                                   | von Niklas: Prompt, mit dem nach dem Merge der eigene Beitrag dokumentiert wird                                                                                                                                                       |
 | [1C-kontext-und-adapterpfad.md](./1C-kontext-und-adapterpfad.md)                                 | Überholter Recherche-Stand (`27966e75`): #456-Kontext, Verträge, Snapshot/Hash, Async-Pfad, Testlücken für 1C; maßgeblich sind [1C-ergebnis.md](./1C-ergebnis.md), die [ADRs](./adr/README.md) und [1C-diagrams.md](./1C-diagrams.md) |
+| [1A-experiment-contract.md](./1A-experiment-contract.md)                                         | Vorab festgelegte A1-Hypothesen, Lastprofil, Varianten, Grenzwerte und Nachweisanforderungen                                                                                                                                          |
+| [1A-fixture.md](./1A-fixture.md)                                                                 | Gemeinsame deterministische Fixture mit Referenz- und Gegenfällen, A1-Projektion und Hashprüfung                                                                                                                                      |
+| [1A-live-messungen.md](./1A-live-messungen.md)                                                   | Artillery-Messfelder, Fehlerzählung, Gates, Lastprofil und lokale Prüfung für Schritt 3                                                                                                                                               |
+| [1A-analyse-last.md](./1A-analyse-last.md)                                                       | Hostautorisierte Analyse-Last mit festem Korpus, Zeitplan, Ergebniszählung und lokaler Prüfung                                                                                                                                        |
+| [1A-container-metriken-und-proxy.md](./1A-container-metriken-und-proxy.md)                       | Lesende Container-Erfassung, cgroup-Auswertung und kontrollierter Unix-Socket-Verzögerungsproxy                                                                                                                                       |
+| [1A-versuchsreihe.md](./1A-versuchsreihe.md)                                                     | Isolierter Laboraufbau, randomisierte V0–V4-Blöcke, Vorlauf, Messung und geprüfter Rollback                                                                                                                                           |
+| [1A-auswertung.md](./1A-auswertung.md)                                                           | Gepaarte Auswertung, nicht bestätigte Hypothesen, Ressourcenbudget und Betriebsentscheidung                                                                                                                                           |
+| [1A-komplette-Aufgabe-fertig.md](./1A-komplette-Aufgabe-fertig.md)                               | Übersicht aller sieben Schritte mit Dateien, Befehlen und aktuellem Abschlussstand                                                                                                                                                    |
+| [1A-eigenanteil.md](./1A-eigenanteil.md)                                                         | Anforderungsabgleich, Git-Prüfgrundlage und transparente Abgrenzung agentengestützter Beiträge                                                                                                                                        |
+| [1A-abschluss-und-uebergabe.md](./1A-abschluss-und-uebergabe.md)                                 | Persönliche Prüfaufgaben, gemeinsame Artefakte, KI-Aufträge und tatsächlicher Übergabestand                                                                                                                                           |
+| [abgabe/README.md](./abgabe/README.md)                                                           | Vierseitiger Handoutentwurf, neun PDF-Folien, Diagramme und reproduzierbarer Dokumentbau                                                                                                                                              |
+
+[A1-Umsetzungsplan](./1A-umsetzungsplan.md), [Ausführungsanleitung](./1A-neue-messreihe.md)
+und [aktueller Prüfstand](./1A-pruefstand.md) ergänzen die Dateiübersicht.
+
+**A1, aktueller Stand 15.11.2026:** Die vollständige Messreihe liegt ausschließlich unter
+[`evidenz/1A/reihe-main-a19ca70f-20261115-122547/`](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
+[Evidenzindex](./evidenz/1A/README.md), [Auswertung](./1A-auswertung.md),
+[Ausführungsanleitung](./1A-neue-messreihe.md) und [Prüfstand](./1A-pruefstand.md)
+sind die aktuellen Einstiegspunkte. Alte A1-Reihen und abgebrochene Anläufe wurden entfernt;
+Vertrag und Vorabnachtrag bleiben als hashgebundene Quellen erhalten.
+[Abgabeentwürfe](./abgabe/README.md) verwenden die aktuelle Auswertung.
+Persönliche Freigabe, gemeinsame Abstimmung und tatsächlicher Merge stehen getrennt in
+[Abschluss und Übergabe](./1A-abschluss-und-uebergabe.md).
 
 ### Landkarte der 1C-Dateien
 
@@ -165,7 +189,8 @@ Stand der Recherche: 2026-10-16. Spätere Ergebnisse stehen in `evidenz/`.
 - **1A, Ressourcen auf dem App-Host:**
   - Nur die Sidecars haben Limits. App, Postgres und Redis haben keine.
   - spaCy bearbeitet immer nur eine Anfrage gleichzeitig.
-  - Kein vorhandenes Lastskript belastet spaCy.
+  - Die ursprünglichen Lastskripte belasteten spaCy nicht. Die A1-Werkzeuge
+    ergänzen dafür hostautorisierte Analyseanfragen und Ressourcenmessungen.
 - **1B, zweiter Host für die private Inferenz:**
   - Wie das Zwei-Host-Deployment und der LLM-Client aufgebaut sind.
   - Gemessen wird bisher nur die Gesamtzeit. Die Detailzeiten von llama.cpp
@@ -185,7 +210,8 @@ Stand der Recherche: 2026-10-16. Spätere Ergebnisse stehen in `evidenz/`.
     (Quellenlöschung) und E6b (langsamer Empfänger) in Teil 2 sowie E11
     (volle Queue) in Teil 3.
 
-Alle Dossiers enthalten Code-Stellen (Datei:Zeile), Versuchsideen und Lücken.
+Die historischen Dossiers zu 1B/1C enthalten Code-Stellen, Versuchsideen und Lücken.
+Das A1-Dokument verweist auf die aktuelle vollständige Ausarbeitung.
 
 ## Qualitätsanspruch an PRs
 
@@ -205,10 +231,12 @@ Alle Dossiers enthalten Code-Stellen (Datei:Zeile), Versuchsideen und Lücken.
 > unten bleiben als ursprünglicher Stand stehen.
 
 - Fragen an den Prüfer klären (siehe
-  [00-rahmen-und-pruefung.md](./00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)),
+  [00-rahmen-und-pruefung.md](./00-rahmen-und-pruefung.md#klärungsstand-der-fragen-an-den-prüfer)),
   vor allem diese:
-  - Darf der aktuelle `main` die Baseline sein statt `v1.3.0`?
-  - Was ist beim zweiten Host bereitgestellt, und wie bekommen wir Zugang?
+  - Für 1A geklärt: aktueller `main` als Baseline und eigener Rechner als Labor
+    gemäß [Issue #6, Stand 2026-11-10](https://github.com/NiklasSkulll/arsnova.eu/issues/6).
+  - Für 1B offen: Wie wird der zweite Host auf eigener Hardware reproduziert
+    (siehe [Issue #8](https://github.com/NiklasSkulll/arsnova.eu/issues/8))?
 - **Aufteilung 1A/1B/1C:** Am 2026-10-23 festgelegt (Option 1). Niklas ist X
   (1A und 1B Schritte 3–4), Jonas ist Y (1C und 1B Schritte 1–2). Eine
   Abstimmung mit dem Prüfer ist nicht nötig (mündliche Ansage in der

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="resource-isolation-experiment" tests="1" failures="0" errors="0" timestamp="2026-11-15T11:29:29.448Z">
+  <testcase classname="resource-isolation-experiment" name="scenario"/>
+</testsuite>

@@ -1,0 +1,2652 @@
+{
+  "complete": true,
+  "manifest": {
+    "kind": "measurement",
+    "seriesDefinitionSha256": "ffefa36867a91e915638a840f9327f385b9350c7eeb4d7f949d0638c74006b57",
+    "labAlias": "eigener-rechner",
+    "baselineCommit": "a19ca70ff37dcb5510a77ab2745c06b70ccc3565",
+    "toolsCommit": "e3b27b328ffc94c148e4a35b2645396786f26bd9",
+    "toolsSha256": "99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0",
+    "toolsSha256After": "99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0",
+    "contractVersion": 2,
+    "contractSha256": "f7d3eba4b82a3f3a47c914665ac8a7be4988b9061deff6b857a79d2fcf766ab7",
+    "toolsDirty": true,
+    "fixtureSha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded",
+    "fixtureImport": {
+      "sqlAssertionsVerified": true,
+      "analysisSessions": 5,
+      "perSession": {
+        "participants": 200,
+        "storedQuestions": 503,
+        "eligibleQuestions": 500,
+        "exclusionControls": ["PENDING", "ARCHIVED", "DELETED"]
+      }
+    },
+    "orderSeed": 438314513,
+    "block": 1,
+    "position": 3,
+    "variant": "V2",
+    "run": "block-01",
+    "profile": {
+      "participants": 30,
+      "warmupMs": 10000,
+      "durationMs": 30000,
+      "rampMs": 5000,
+      "revealAtMs": 25000
+    },
+    "startAt": "2026-11-15T11:30:34.130Z",
+    "generatorLocation": "same-host",
+    "hardware": {
+      "cpus": 16,
+      "memoryBytes": 16720453632,
+      "os": "Ubuntu 24.04.5 LTS",
+      "kernel": "6.18.58.1-microsoft-standard-WSL2",
+      "cgroupVersion": "2",
+      "dockerVersion": "29.9.3",
+      "generatorNodeVersion": "v24.18.0"
+    },
+    "services": {
+      "app": {
+        "imageId": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
+        "containerPseudonym": "8b5bfe72891ff93f",
+        "cpuLimit": null,
+        "memoryLimitBytes": null,
+        "pidsLimit": null,
+        "flags": {
+          "NLP_ENABLED": "true",
+          "QA_NLP_ENABLED": "false",
+          "QA_SUMMARY_ENABLED": "false",
+          "WORD_CLOUD_SEMANTIC_ENABLED": "false",
+          "OPEN_WEIGHT_LLM_ENABLED": "false",
+          "NLP_TIMEOUT_MS": "5000",
+          "NLP_CACHE_TTL_SECONDS": "1800",
+          "RATE_LIMIT_SESSION_CREATE_PER_HOUR": "480",
+          "RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR": "2400"
+        }
+      },
+      "postgres": {
+        "imageId": "sha256:3cbd775daa28461ef484ed88ca1e5a5a72ff126e196deeebce6fec764edf1200",
+        "containerPseudonym": "f46911d7df974ebc",
+        "cpuLimit": null,
+        "memoryLimitBytes": null,
+        "pidsLimit": null
+      },
+      "redis": {
+        "imageId": "sha256:bb8953020f6597e47d5d699a9910a25d77a69608dbd58e0f722940598ed85fc0",
+        "containerPseudonym": "ac26a266fe2042fa",
+        "cpuLimit": null,
+        "memoryLimitBytes": null,
+        "pidsLimit": null
+      },
+      "pdf-worker": {
+        "imageId": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
+        "containerPseudonym": "78244dcbe70b516e",
+        "cpuLimit": 1,
+        "memoryLimitBytes": 1073741824,
+        "pidsLimit": 256
+      },
+      "spacy": {
+        "imageId": "sha256:fffa3dcad336590f195cb9fe137d294b50b17f670ec2f8776f35a5ce41d68654",
+        "containerPseudonym": "e2b62744475f20f4",
+        "cpuLimit": 1,
+        "memoryLimitBytes": 1073741824,
+        "pidsLimit": 64
+      }
+    },
+    "composeSha256": "d78180487edaffbffee11bce33534733c66dc44aa4ce8a6947972670c8b407d8",
+    "socketMode": "direct",
+    "workload": "join-wave-single-process-existing-artillery-functions",
+    "continuousConcurrencyVerified": false,
+    "resolvedCompose": {
+      "file": "compose-messung.json",
+      "sha256": "f9be93bcf55405fee33c7f73f16bc0c9da0ceaf5468267a8e93b77d93b79cf72",
+      "mediaType": "application/json"
+    }
+  },
+  "live": {
+    "lifecycle": {
+      "startedScenarios": 30,
+      "completedScenarios": 30,
+      "failedScenarios": 0,
+      "interrupted": false,
+      "arrivals": [
+        {
+          "scheduledAtMs": 0,
+          "startedAtMs": 4.2218440000433475
+        },
+        {
+          "scheduledAtMs": 166,
+          "startedAtMs": 169.67431600019336
+        },
+        {
+          "scheduledAtMs": 333,
+          "startedAtMs": 342.57837900007144
+        },
+        {
+          "scheduledAtMs": 500,
+          "startedAtMs": 502.7338530002162
+        },
+        {
+          "scheduledAtMs": 666,
+          "startedAtMs": 667.62384200003
+        },
+        {
+          "scheduledAtMs": 833,
+          "startedAtMs": 842.3478469999973
+        },
+        {
+          "scheduledAtMs": 1000,
+          "startedAtMs": 1003.9584950001445
+        },
+        {
+          "scheduledAtMs": 1166,
+          "startedAtMs": 1168.5605270001106
+        },
+        {
+          "scheduledAtMs": 1333,
+          "startedAtMs": 1336.6574890001211
+        },
+        {
+          "scheduledAtMs": 1500,
+          "startedAtMs": 1504.3296640000772
+        },
+        {
+          "scheduledAtMs": 1666,
+          "startedAtMs": 1666.0505990001839
+        },
+        {
+          "scheduledAtMs": 1833,
+          "startedAtMs": 1834.3525330000557
+        },
+        {
+          "scheduledAtMs": 2000,
+          "startedAtMs": 2003.5932020000182
+        },
+        {
+          "scheduledAtMs": 2166,
+          "startedAtMs": 2168.2004339999985
+        },
+        {
+          "scheduledAtMs": 2333,
+          "startedAtMs": 2334.626958000008
+        },
+        {
+          "scheduledAtMs": 2500,
+          "startedAtMs": 2500.982845999999
+        },
+        {
+          "scheduledAtMs": 2666,
+          "startedAtMs": 2666.8625970000867
+        },
+        {
+          "scheduledAtMs": 2833,
+          "startedAtMs": 2834.7114690002054
+        },
+        {
+          "scheduledAtMs": 3000,
+          "startedAtMs": 3002.913300000131
+        },
+        {
+          "scheduledAtMs": 3166,
+          "startedAtMs": 3168.912437000079
+        },
+        {
+          "scheduledAtMs": 3333,
+          "startedAtMs": 3336.3409640002064
+        },
+        {
+          "scheduledAtMs": 3500,
+          "startedAtMs": 3506.108690000139
+        },
+        {
+          "scheduledAtMs": 3666,
+          "startedAtMs": 3671.891262000194
+        },
+        {
+          "scheduledAtMs": 3833,
+          "startedAtMs": 3836.144125000108
+        },
+        {
+          "scheduledAtMs": 4000,
+          "startedAtMs": 4001.5052700000815
+        },
+        {
+          "scheduledAtMs": 4166,
+          "startedAtMs": 4172.651467000134
+        },
+        {
+          "scheduledAtMs": 4333,
+          "startedAtMs": 4338.406414000085
+        },
+        {
+          "scheduledAtMs": 4500,
+          "startedAtMs": 4502.549857000122
+        },
+        {
+          "scheduledAtMs": 4666,
+          "startedAtMs": 4668.493093000026
+        },
+        {
+          "scheduledAtMs": 4833,
+          "startedAtMs": 4838.923187000211
+        }
+      ],
+      "maxActiveWebSocketConnections": 30,
+      "activeWebSocketConnectionsAtEnd": 0,
+      "webSocketTimeline": [
+        {
+          "atMs": 92.07688500010408,
+          "active": 1
+        },
+        {
+          "atMs": 210.75102000008337,
+          "active": 2
+        },
+        {
+          "atMs": 369.51372100017034,
+          "active": 3
+        },
+        {
+          "atMs": 600.7675280000549,
+          "active": 4
+        },
+        {
+          "atMs": 694.092147000134,
+          "active": 5
+        },
+        {
+          "atMs": 907.7284040001687,
+          "active": 6
+        },
+        {
+          "atMs": 1080.5147050002124,
+          "active": 7
+        },
+        {
+          "atMs": 1252.5097180001903,
+          "active": 8
+        },
+        {
+          "atMs": 1450.445003000088,
+          "active": 9
+        },
+        {
+          "atMs": 1569.0974700001534,
+          "active": 10
+        },
+        {
+          "atMs": 1687.2958990000188,
+          "active": 11
+        },
+        {
+          "atMs": 1859.4928510000464,
+          "active": 12
+        },
+        {
+          "atMs": 2038.8898360000458,
+          "active": 13
+        },
+        {
+          "atMs": 2192.240703999996,
+          "active": 14
+        },
+        {
+          "atMs": 2361.637811000226,
+          "active": 15
+        },
+        {
+          "atMs": 2522.9549760001246,
+          "active": 16
+        },
+        {
+          "atMs": 2690.193155000219,
+          "active": 17
+        },
+        {
+          "atMs": 2856.4254320000764,
+          "active": 18
+        },
+        {
+          "atMs": 3040.6312520001084,
+          "active": 19
+        },
+        {
+          "atMs": 3191.4947170000523,
+          "active": 20
+        },
+        {
+          "atMs": 3361.2907180001494,
+          "active": 21
+        },
+        {
+          "atMs": 3528.3113590001594,
+          "active": 22
+        },
+        {
+          "atMs": 3696.7857650001533,
+          "active": 23
+        },
+        {
+          "atMs": 3867.2191090001725,
+          "active": 24
+        },
+        {
+          "atMs": 4043.1667730000336,
+          "active": 25
+        },
+        {
+          "atMs": 4198.413960000034,
+          "active": 26
+        },
+        {
+          "atMs": 4362.542562000221,
+          "active": 27
+        },
+        {
+          "atMs": 4538.811768000014,
+          "active": 28
+        },
+        {
+          "atMs": 4690.855450000148,
+          "active": 29
+        },
+        {
+          "atMs": 4902.326388000045,
+          "active": 30
+        },
+        {
+          "atMs": 28096.016038000118,
+          "active": 29
+        },
+        {
+          "atMs": 28096.613838000223,
+          "active": 28
+        },
+        {
+          "atMs": 28097.186612000223,
+          "active": 27
+        },
+        {
+          "atMs": 28097.631224000128,
+          "active": 26
+        },
+        {
+          "atMs": 28100.322408000007,
+          "active": 25
+        },
+        {
+          "atMs": 28103.21813000017,
+          "active": 24
+        },
+        {
+          "atMs": 28103.54541400005,
+          "active": 23
+        },
+        {
+          "atMs": 28104.72433100012,
+          "active": 22
+        },
+        {
+          "atMs": 28136.338720000116,
+          "active": 21
+        },
+        {
+          "atMs": 28136.982563000172,
+          "active": 20
+        },
+        {
+          "atMs": 28137.291322000092,
+          "active": 19
+        },
+        {
+          "atMs": 28137.831812000135,
+          "active": 18
+        },
+        {
+          "atMs": 28138.53827300016,
+          "active": 17
+        },
+        {
+          "atMs": 28142.84345200006,
+          "active": 16
+        },
+        {
+          "atMs": 28143.16824400006,
+          "active": 15
+        },
+        {
+          "atMs": 28143.415034000063,
+          "active": 14
+        },
+        {
+          "atMs": 28143.65922500007,
+          "active": 13
+        },
+        {
+          "atMs": 28143.931691000005,
+          "active": 12
+        },
+        {
+          "atMs": 28145.218076000223,
+          "active": 11
+        },
+        {
+          "atMs": 28146.493845000165,
+          "active": 10
+        },
+        {
+          "atMs": 28146.831638000207,
+          "active": 9
+        },
+        {
+          "atMs": 28147.089262000052,
+          "active": 8
+        },
+        {
+          "atMs": 28147.340061000083,
+          "active": 7
+        },
+        {
+          "atMs": 28147.63928600005,
+          "active": 6
+        },
+        {
+          "atMs": 28147.93157700007,
+          "active": 5
+        },
+        {
+          "atMs": 28148.17869200022,
+          "active": 4
+        },
+        {
+          "atMs": 28148.47130900016,
+          "active": 3
+        },
+        {
+          "atMs": 28148.81332700001,
+          "active": 2
+        },
+        {
+          "atMs": 28149.104318000143,
+          "active": 1
+        },
+        {
+          "atMs": 28149.42347700009,
+          "active": 0
+        }
+      ],
+      "reveal": {
+        "scheduledAtMs": 25000,
+        "startedAtMs": 25002.975209000055,
+        "succeeded": true
+      }
+    },
+    "host": {
+      "progressMessages": 25,
+      "progressMaxTotalVotes": 30,
+      "statusMessages": 4,
+      "lastStatus": "RESULTS",
+      "resultsSeenAt": 1794742256679,
+      "revealRequestedAt": 1794742256650,
+      "subscriptionErrors": 0,
+      "revealed": true
+    },
+    "windowClosedAtMs": 30009.096298000077,
+    "actions": {
+      "join": {
+        "label": "Beitritt",
+        "applicable": true,
+        "planned": 30,
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            80.1131089999999, 35.59347600000001, 21.942661999999473, 88.87177799999972,
+            22.258245999999417, 60.945050000000265, 67.46884799999953, 79.09073799999987,
+            105.75946500000009, 60.571288999999524, 17.51354700000047, 20.803938000000016,
+            30.896662000000106, 19.864661999999953, 22.60102099999949, 17.939958000000843,
+            18.981071000000156, 17.892290999998295, 34.51401199999964, 18.397354999999152,
+            20.901982999999746, 17.751452999998946, 17.98210100000142, 26.90284199999951,
+            34.994808999999805, 20.65530100000069, 19.368157000000792, 31.612223000000085,
+            17.902799999999843, 60.01790700000129
+          ],
+          "p50Ms": 22.258245999999417,
+          "p95Ms": 88.87177799999972,
+          "p99Ms": 105.75946500000009,
+          "maxMs": 105.75946500000009
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      },
+      "vote": {
+        "label": "Quizstimme",
+        "applicable": true,
+        "planned": 30,
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            17.230247000000418, 59.06541399999969, 43.2363890000006, 16.915530000000217,
+            14.59312299999965, 14.367458999999144, 43.3761429999995, 13.54670299999998,
+            44.54671699999926, 14.47709500000019, 12.885308999999324, 13.514742999999726,
+            13.35299699999996, 13.235018999999738, 12.181990000000951, 15.535650000001624,
+            16.425632999998925, 13.117582999999286, 13.630662999999913, 11.348775000000387,
+            22.442526000000726, 20.975760000001173, 19.616138999999748, 14.40819300000112,
+            15.376179000000775, 13.298396000000139, 46.538048000000344, 14.176787000000331,
+            14.049815999998827, 16.376664999999775
+          ],
+          "p50Ms": 14.47709500000019,
+          "p95Ms": 46.538048000000344,
+          "p99Ms": 59.06541399999969,
+          "maxMs": 59.06541399999969
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      },
+      "qaSubmit": {
+        "label": "Q&A-Einreichung",
+        "applicable": true,
+        "planned": 6,
+        "attempted": 6,
+        "succeeded": 6,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 6,
+          "durationSamplesMs": [
+            13.204142999999931, 12.706446000000142, 11.469137000000046, 9.773997999998755,
+            12.43073000000004, 20.96817700000065
+          ],
+          "p50Ms": 12.43073000000004,
+          "p95Ms": 20.96817700000065,
+          "p99Ms": 20.96817700000065,
+          "maxMs": 20.96817700000065
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      },
+      "blitzlicht": {
+        "label": "Blitzlicht",
+        "applicable": true,
+        "planned": 30,
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            7.279552999999396, 7.727523999999903, 7.76641600000039, 7.730015999999523,
+            7.972147000000405, 6.4916229999998905, 8.00291500000094, 6.930168000000776,
+            9.629151999999522, 6.822265000000698, 6.756722000000082, 7.7349990000002435,
+            6.633434999999736, 7.780934000000343, 6.148846999998568, 8.288813999999547,
+            7.426348000000871, 6.119269999999233, 7.061472000001231, 6.45435499999985,
+            7.404031000000032, 8.53852999999981, 5.549204999999347, 7.20902599999863,
+            6.585225999999238, 6.420662000000448, 7.674222000001464, 7.55353599999944,
+            7.041105000000243, 7.734457000000475
+          ],
+          "p50Ms": 7.279552999999396,
+          "p95Ms": 8.53852999999981,
+          "p99Ms": 9.629151999999522,
+          "maxMs": 9.629151999999522
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      }
+    },
+    "websocket": {
+      "connections": 30,
+      "errors": 0,
+      "statusEvents": 120,
+      "connectLatency": {
+        "available": true,
+        "samples": 30,
+        "durationSamplesMs": [
+          6.685435999999754, 5.401758999999402, 4.895612000000256, 8.953891999999541,
+          4.089914000000135, 3.9327180000000226, 8.89788099999987, 4.765933000000587,
+          7.760457999999744, 4.040837999999894, 3.683111000000281, 4.276469000000361,
+          4.315687000000253, 4.124581999999464, 4.344828999999663, 3.9614279999987048,
+          4.307128999998895, 3.7580789999992703, 3.1276710000001913, 4.130215999999564,
+          3.9868869999991148, 4.399972000001071, 6.848265999999057, 4.046470999999656,
+          6.583274999999048, 5.049340999999913, 4.693997000000309, 4.586527000001297,
+          4.394446999998763, 3.249331999999413
+        ],
+        "p50Ms": 4.315687000000253,
+        "p95Ms": 8.89788099999987,
+        "p99Ms": 8.953891999999541,
+        "maxMs": 8.953891999999541
+      },
+      "statusFanoutLatency": {
+        "available": true,
+        "samples": 30,
+        "durationSamplesMs": [
+          29, 29, 30, 30, 30, 30, 30, 30, 31, 31, 31, 31, 32, 32, 32, 32, 32, 32, 32, 33, 33, 33,
+          33, 33, 33, 33, 33, 33, 33, 33
+        ],
+        "p50Ms": 32,
+        "p95Ms": 33,
+        "p99Ms": 33,
+        "maxMs": 33
+      }
+    },
+    "afterDrainActions": {
+      "join": {
+        "label": "Beitritt",
+        "applicable": true,
+        "planned": 30,
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            80.1131089999999, 35.59347600000001, 21.942661999999473, 88.87177799999972,
+            22.258245999999417, 60.945050000000265, 67.46884799999953, 79.09073799999987,
+            105.75946500000009, 60.571288999999524, 17.51354700000047, 20.803938000000016,
+            30.896662000000106, 19.864661999999953, 22.60102099999949, 17.939958000000843,
+            18.981071000000156, 17.892290999998295, 34.51401199999964, 18.397354999999152,
+            20.901982999999746, 17.751452999998946, 17.98210100000142, 26.90284199999951,
+            34.994808999999805, 20.65530100000069, 19.368157000000792, 31.612223000000085,
+            17.902799999999843, 60.01790700000129
+          ],
+          "p50Ms": 22.258245999999417,
+          "p95Ms": 88.87177799999972,
+          "p99Ms": 105.75946500000009,
+          "maxMs": 105.75946500000009
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      },
+      "vote": {
+        "label": "Quizstimme",
+        "applicable": true,
+        "planned": 30,
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            17.230247000000418, 59.06541399999969, 43.2363890000006, 16.915530000000217,
+            14.59312299999965, 14.367458999999144, 43.3761429999995, 13.54670299999998,
+            44.54671699999926, 14.47709500000019, 12.885308999999324, 13.514742999999726,
+            13.35299699999996, 13.235018999999738, 12.181990000000951, 15.535650000001624,
+            16.425632999998925, 13.117582999999286, 13.630662999999913, 11.348775000000387,
+            22.442526000000726, 20.975760000001173, 19.616138999999748, 14.40819300000112,
+            15.376179000000775, 13.298396000000139, 46.538048000000344, 14.176787000000331,
+            14.049815999998827, 16.376664999999775
+          ],
+          "p50Ms": 14.47709500000019,
+          "p95Ms": 46.538048000000344,
+          "p99Ms": 59.06541399999969,
+          "maxMs": 59.06541399999969
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      },
+      "qaSubmit": {
+        "label": "Q&A-Einreichung",
+        "applicable": true,
+        "planned": 6,
+        "attempted": 6,
+        "succeeded": 6,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 6,
+          "durationSamplesMs": [
+            13.204142999999931, 12.706446000000142, 11.469137000000046, 9.773997999998755,
+            12.43073000000004, 20.96817700000065
+          ],
+          "p50Ms": 12.43073000000004,
+          "p95Ms": 20.96817700000065,
+          "p99Ms": 20.96817700000065,
+          "maxMs": 20.96817700000065
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      },
+      "blitzlicht": {
+        "label": "Blitzlicht",
+        "applicable": true,
+        "planned": 30,
+        "attempted": 30,
+        "succeeded": 30,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "notAttempted": 0,
+        "accountingValid": true,
+        "errorRate": 0,
+        "scheduledFailureRate": 0,
+        "latency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            7.279552999999396, 7.727523999999903, 7.76641600000039, 7.730015999999523,
+            7.972147000000405, 6.4916229999998905, 8.00291500000094, 6.930168000000776,
+            9.629151999999522, 6.822265000000698, 6.756722000000082, 7.7349990000002435,
+            6.633434999999736, 7.780934000000343, 6.148846999998568, 8.288813999999547,
+            7.426348000000871, 6.119269999999233, 7.061472000001231, 6.45435499999985,
+            7.404031000000032, 8.53852999999981, 5.549204999999347, 7.20902599999863,
+            6.585225999999238, 6.420662000000448, 7.674222000001464, 7.55353599999944,
+            7.041105000000243, 7.734457000000475
+          ],
+          "p50Ms": 7.279552999999396,
+          "p95Ms": 8.53852999999981,
+          "p99Ms": 9.629151999999522,
+          "maxMs": 9.629151999999522
+        },
+        "failureLatency": {
+          "available": false,
+          "samples": 0,
+          "durationSamplesMs": [],
+          "p50Ms": null,
+          "p95Ms": null,
+          "p99Ms": null,
+          "maxMs": null
+        },
+        "errorCodes": {}
+      }
+    }
+  },
+  "analysis": {
+    "fixture": {
+      "version": "resource-isolation-fixture-v1",
+      "seed": 438314513,
+      "sha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded"
+    },
+    "workload": {
+      "hosts": 5,
+      "durationMs": 30000,
+      "intervalMs": 10000,
+      "offsetsMs": [0, 2000, 4000, 6000, 8000],
+      "drainMs": 60000,
+      "requestTimeoutMs": 60000,
+      "input": {
+        "mode": "LEXICAL",
+        "locale": "de",
+        "metric": "TOP",
+        "normalization": "LEMMA",
+        "limit": 500,
+        "refresh": true
+      }
+    },
+    "corpus": {
+      "verifiedBefore": true,
+      "verifiedAfter": true,
+      "unchanged": true,
+      "checks": [
+        {
+          "host": "host-1",
+          "phase": "after",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-2",
+          "phase": "after",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-3",
+          "phase": "after",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-4",
+          "phase": "after",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-5",
+          "phase": "after",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-1",
+          "phase": "before",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-2",
+          "phase": "before",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-3",
+          "phase": "before",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-4",
+          "phase": "before",
+          "valid": true,
+          "errorCode": null
+        },
+        {
+          "host": "host-5",
+          "phase": "before",
+          "valid": true,
+          "errorCode": null
+        }
+      ]
+    },
+    "analysis": {
+      "planned": 15,
+      "started": 15,
+      "counts": {
+        "SUCCESS": 15
+      },
+      "interrupted": false,
+      "durationMs": 30000,
+      "observedDurationMs": 30007.91640700004,
+      "drainDurationMs": 0.6808939999900758,
+      "unavailableRate": 0,
+      "fallbackRateOfResponses": 0,
+      "latency": {
+        "available": true,
+        "samples": 15,
+        "durationSamplesMs": [
+          467.8354869999457, 446.61401999997906, 446.3192370000761, 427.31476500001736,
+          436.4858709999826, 427.3680670000613, 413.94530100002885, 422.776446999982,
+          426.0139709999785, 430.30918200011365, 423.741507000057, 414.8146999999881,
+          420.755974000087, 450.0837079999037, 424.3464579998981
+        ],
+        "p50Ms": 427.31476500001736,
+        "p95Ms": 467.8354869999457,
+        "p99Ms": 467.8354869999457,
+        "maxMs": 467.8354869999457
+      },
+      "calls": [
+        {
+          "hostIndex": 0,
+          "host": "host-1",
+          "scheduledAtMs": 0,
+          "outcome": "SUCCESS",
+          "startedAtMs": 10.07016500015743,
+          "scheduleDelayMs": 10.054998000152409,
+          "durationMs": 467.8354869999457,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 1,
+          "host": "host-2",
+          "scheduledAtMs": 2000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 2007.6384820002131,
+          "scheduleDelayMs": 7.6087980000302196,
+          "durationMs": 446.61401999997906,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 2,
+          "host": "host-3",
+          "scheduledAtMs": 4000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 4001.292172000045,
+          "scheduleDelayMs": 1.2791720000095665,
+          "durationMs": 446.3192370000761,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 3,
+          "host": "host-4",
+          "scheduledAtMs": 6000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 6005.553075000178,
+          "scheduleDelayMs": 5.511149000143632,
+          "durationMs": 427.31476500001736,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 4,
+          "host": "host-5",
+          "scheduledAtMs": 8000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 8005.288876000093,
+          "scheduleDelayMs": 5.228316000197083,
+          "durationMs": 436.4858709999826,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 0,
+          "host": "host-1",
+          "scheduledAtMs": 10000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 10006.96086500003,
+          "scheduleDelayMs": 6.948082000017166,
+          "durationMs": 427.3680670000613,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 1,
+          "host": "host-2",
+          "scheduledAtMs": 12000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 12018.252906000009,
+          "scheduleDelayMs": 18.210221000015736,
+          "durationMs": 413.94530100002885,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 2,
+          "host": "host-3",
+          "scheduledAtMs": 14000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 14026.279797000112,
+          "scheduleDelayMs": 26.24372100015171,
+          "durationMs": 422.776446999982,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 3,
+          "host": "host-4",
+          "scheduledAtMs": 16000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 16005.865578000201,
+          "scheduleDelayMs": 5.754317000042647,
+          "durationMs": 426.0139709999785,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 4,
+          "host": "host-5",
+          "scheduledAtMs": 18000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 18000.528313999996,
+          "scheduleDelayMs": 0.49169600009918213,
+          "durationMs": 430.30918200011365,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 0,
+          "host": "host-1",
+          "scheduledAtMs": 20000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 20002.626497999998,
+          "scheduleDelayMs": 2.590855000074953,
+          "durationMs": 423.741507000057,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 1,
+          "host": "host-2",
+          "scheduledAtMs": 22000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 22004.25970200007,
+          "scheduleDelayMs": 4.247244000202045,
+          "durationMs": 414.8146999999881,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 2,
+          "host": "host-3",
+          "scheduledAtMs": 24000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 24000.95396100008,
+          "scheduleDelayMs": 0.9189680002164096,
+          "durationMs": 420.755974000087,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 3,
+          "host": "host-4",
+          "scheduledAtMs": 26000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 26014.97369400016,
+          "scheduleDelayMs": 14.859074000036344,
+          "durationMs": 450.0837079999037,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        },
+        {
+          "hostIndex": 4,
+          "host": "host-5",
+          "scheduledAtMs": 28000,
+          "outcome": "SUCCESS",
+          "startedAtMs": 28000.573226000182,
+          "scheduleDelayMs": 0.5000990000553429,
+          "durationMs": 424.3464579998981,
+          "normalizationApplied": "LEMMA",
+          "normalizationFallbackReason": null,
+          "errorCode": null,
+          "cleanupOutcome": null,
+          "cleanupErrorCode": null,
+          "cleanupDurationMs": null,
+          "cleanupNormalizationApplied": null,
+          "cleanupNormalizationFallbackReason": null
+        }
+      ]
+    }
+  },
+  "resources": {
+    "containers": [
+      {
+        "alias": "app",
+        "generations": [
+          {
+            "generation": 1,
+            "samples": 16,
+            "sampledPeakMemoryBytes": 262737920,
+            "lifetimePeakMemoryBytes": 330129408,
+            "peakScope": "container-lifetime-including-warmup"
+          }
+        ]
+      },
+      {
+        "alias": "postgres",
+        "generations": [
+          {
+            "generation": 1,
+            "samples": 16,
+            "sampledPeakMemoryBytes": 210165760,
+            "lifetimePeakMemoryBytes": 212774912,
+            "peakScope": "container-lifetime-including-warmup"
+          }
+        ]
+      },
+      {
+        "alias": "redis",
+        "generations": [
+          {
+            "generation": 1,
+            "samples": 16,
+            "sampledPeakMemoryBytes": 9191424,
+            "lifetimePeakMemoryBytes": 11804672,
+            "peakScope": "container-lifetime-including-warmup"
+          }
+        ]
+      },
+      {
+        "alias": "pdf-worker",
+        "generations": [
+          {
+            "generation": 1,
+            "samples": 16,
+            "sampledPeakMemoryBytes": 130203648,
+            "lifetimePeakMemoryBytes": 149012480,
+            "peakScope": "container-lifetime-including-warmup"
+          }
+        ]
+      },
+      {
+        "alias": "spacy",
+        "generations": [
+          {
+            "generation": 1,
+            "samples": 16,
+            "sampledPeakMemoryBytes": 489676800,
+            "lifetimePeakMemoryBytes": 503017472,
+            "peakScope": "container-lifetime-including-warmup"
+          }
+        ]
+      }
+    ],
+    "interrupted": false,
+    "durationMs": 30000,
+    "intervalMs": 2000,
+    "observedDurationMs": 30036.435085000005,
+    "plannedSamples": 16,
+    "skippedSamples": [],
+    "sampleCount": 16,
+    "artifact": {
+      "file": "ressourcen.json.gz",
+      "sha256": "03e7b3cdcd662e5e62cbb19c8e77ee553b855ab12c9f434c0a49715496f90c3f",
+      "encoding": "gzip",
+      "mediaType": "application/json"
+    }
+  },
+  "diagnostics": [
+    {
+      "phase": "BEFORE",
+      "atMs": -4992.200323999859,
+      "qaWordCloud": {
+        "snapshotHits": 0,
+        "snapshotMisses": 5,
+        "textHits": 0,
+        "textMisses": 2500,
+        "sidecarCalls": 5,
+        "timeouts": 0,
+        "fallbacks": 0,
+        "inFlight": 0,
+        "lastLatencyMs": 406
+      },
+      "qaNlp": {
+        "queueLength": 0,
+        "running": 0,
+        "completed": 0,
+        "failed": 0,
+        "fallback": 0,
+        "lastLatencyMs": null
+      },
+      "websocket": {
+        "trpcWebSocketConnectionsActive": 0,
+        "trpcWebSocketBoundConnectionsActive": 0,
+        "trpcWebSocketRejectedUpgradesLastMinute": 0
+      },
+      "server": {
+        "activeSessions": 0,
+        "totalParticipants": 0
+      }
+    },
+    {
+      "phase": "DURING",
+      "atMs": 15038.435153000057,
+      "qaWordCloud": {
+        "snapshotHits": 0,
+        "snapshotMisses": 13,
+        "textHits": 0,
+        "textMisses": 6500,
+        "sidecarCalls": 13,
+        "timeouts": 0,
+        "fallbacks": 0,
+        "inFlight": 0,
+        "lastLatencyMs": 404
+      },
+      "qaNlp": {
+        "queueLength": 0,
+        "running": 0,
+        "completed": 0,
+        "failed": 0,
+        "fallback": 0,
+        "lastLatencyMs": null
+      },
+      "websocket": {
+        "trpcWebSocketConnectionsActive": 31,
+        "trpcWebSocketBoundConnectionsActive": 31,
+        "trpcWebSocketRejectedUpgradesLastMinute": 0
+      },
+      "server": {
+        "activeSessions": 2,
+        "totalParticipants": 60
+      }
+    },
+    {
+      "phase": "AFTER",
+      "atMs": 30029.698514000047,
+      "qaWordCloud": {
+        "snapshotHits": 0,
+        "snapshotMisses": 20,
+        "textHits": 0,
+        "textMisses": 10000,
+        "sidecarCalls": 20,
+        "timeouts": 0,
+        "fallbacks": 0,
+        "inFlight": 0,
+        "lastLatencyMs": 406
+      },
+      "qaNlp": {
+        "queueLength": 0,
+        "running": 0,
+        "completed": 0,
+        "failed": 0,
+        "fallback": 0,
+        "lastLatencyMs": null
+      },
+      "websocket": {
+        "trpcWebSocketConnectionsActive": 0,
+        "trpcWebSocketBoundConnectionsActive": 0,
+        "trpcWebSocketRejectedUpgradesLastMinute": 0
+      },
+      "server": {
+        "activeSessions": 2,
+        "totalParticipants": 60
+      }
+    }
+  ],
+  "sidecarCallsInWindow": 15,
+  "proxy": null,
+  "warmup": {
+    "complete": true,
+    "manifest": {
+      "kind": "warmup",
+      "seriesDefinitionSha256": "ffefa36867a91e915638a840f9327f385b9350c7eeb4d7f949d0638c74006b57",
+      "labAlias": "eigener-rechner",
+      "baselineCommit": "a19ca70ff37dcb5510a77ab2745c06b70ccc3565",
+      "toolsCommit": "e3b27b328ffc94c148e4a35b2645396786f26bd9",
+      "toolsSha256": "99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0",
+      "toolsSha256After": "99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0",
+      "contractVersion": 2,
+      "contractSha256": "f7d3eba4b82a3f3a47c914665ac8a7be4988b9061deff6b857a79d2fcf766ab7",
+      "toolsDirty": true,
+      "fixtureSha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded",
+      "fixtureImport": {
+        "sqlAssertionsVerified": true,
+        "analysisSessions": 5,
+        "perSession": {
+          "participants": 200,
+          "storedQuestions": 503,
+          "eligibleQuestions": 500,
+          "exclusionControls": ["PENDING", "ARCHIVED", "DELETED"]
+        }
+      },
+      "orderSeed": 438314513,
+      "block": 1,
+      "position": 3,
+      "variant": "V2",
+      "run": "block-01",
+      "profile": {
+        "participants": 30,
+        "durationMs": 10000,
+        "rampMs": 2500,
+        "revealAtMs": 6000
+      },
+      "startAt": "2026-11-15T11:30:06.477Z",
+      "generatorLocation": "same-host",
+      "hardware": {
+        "cpus": 16,
+        "memoryBytes": 16720453632,
+        "os": "Ubuntu 24.04.5 LTS",
+        "kernel": "6.18.58.1-microsoft-standard-WSL2",
+        "cgroupVersion": "2",
+        "dockerVersion": "29.9.3",
+        "generatorNodeVersion": "v24.18.0"
+      },
+      "services": {
+        "app": {
+          "imageId": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
+          "containerPseudonym": "8b5bfe72891ff93f",
+          "cpuLimit": null,
+          "memoryLimitBytes": null,
+          "pidsLimit": null,
+          "flags": {
+            "NLP_ENABLED": "true",
+            "QA_NLP_ENABLED": "false",
+            "QA_SUMMARY_ENABLED": "false",
+            "WORD_CLOUD_SEMANTIC_ENABLED": "false",
+            "OPEN_WEIGHT_LLM_ENABLED": "false",
+            "NLP_TIMEOUT_MS": "5000",
+            "NLP_CACHE_TTL_SECONDS": "1800",
+            "RATE_LIMIT_SESSION_CREATE_PER_HOUR": "480",
+            "RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR": "2400"
+          }
+        },
+        "postgres": {
+          "imageId": "sha256:3cbd775daa28461ef484ed88ca1e5a5a72ff126e196deeebce6fec764edf1200",
+          "containerPseudonym": "f46911d7df974ebc",
+          "cpuLimit": null,
+          "memoryLimitBytes": null,
+          "pidsLimit": null
+        },
+        "redis": {
+          "imageId": "sha256:bb8953020f6597e47d5d699a9910a25d77a69608dbd58e0f722940598ed85fc0",
+          "containerPseudonym": "ac26a266fe2042fa",
+          "cpuLimit": null,
+          "memoryLimitBytes": null,
+          "pidsLimit": null
+        },
+        "pdf-worker": {
+          "imageId": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
+          "containerPseudonym": "78244dcbe70b516e",
+          "cpuLimit": 1,
+          "memoryLimitBytes": 1073741824,
+          "pidsLimit": 256
+        },
+        "spacy": {
+          "imageId": "sha256:fffa3dcad336590f195cb9fe137d294b50b17f670ec2f8776f35a5ce41d68654",
+          "containerPseudonym": "e2b62744475f20f4",
+          "cpuLimit": 1,
+          "memoryLimitBytes": 1073741824,
+          "pidsLimit": 64
+        }
+      },
+      "composeSha256": "d78180487edaffbffee11bce33534733c66dc44aa4ce8a6947972670c8b407d8",
+      "socketMode": "direct",
+      "workload": "join-wave-single-process-existing-artillery-functions",
+      "continuousConcurrencyVerified": false,
+      "resolvedCompose": {
+        "file": "compose-aufwaermung.json",
+        "sha256": "f9be93bcf55405fee33c7f73f16bc0c9da0ceaf5468267a8e93b77d93b79cf72",
+        "mediaType": "application/json"
+      }
+    },
+    "live": {
+      "lifecycle": {
+        "startedScenarios": 30,
+        "completedScenarios": 30,
+        "failedScenarios": 0,
+        "interrupted": false,
+        "arrivals": [
+          {
+            "scheduledAtMs": 0,
+            "startedAtMs": 12.214142000069842
+          },
+          {
+            "scheduledAtMs": 83,
+            "startedAtMs": 83.95945900003426
+          },
+          {
+            "scheduledAtMs": 166,
+            "startedAtMs": 168.07462100009434
+          },
+          {
+            "scheduledAtMs": 250,
+            "startedAtMs": 251.02971799997613
+          },
+          {
+            "scheduledAtMs": 333,
+            "startedAtMs": 336.8765279999934
+          },
+          {
+            "scheduledAtMs": 416,
+            "startedAtMs": 418.8256129999645
+          },
+          {
+            "scheduledAtMs": 500,
+            "startedAtMs": 502.59507400006987
+          },
+          {
+            "scheduledAtMs": 583,
+            "startedAtMs": 583.937692000065
+          },
+          {
+            "scheduledAtMs": 666,
+            "startedAtMs": 668.5406930001918
+          },
+          {
+            "scheduledAtMs": 750,
+            "startedAtMs": 752.7710160000715
+          },
+          {
+            "scheduledAtMs": 833,
+            "startedAtMs": 835.0487940001767
+          },
+          {
+            "scheduledAtMs": 916,
+            "startedAtMs": 916.9388360001612
+          },
+          {
+            "scheduledAtMs": 1000,
+            "startedAtMs": 1002.4652950000018
+          },
+          {
+            "scheduledAtMs": 1083,
+            "startedAtMs": 1083.6187579999678
+          },
+          {
+            "scheduledAtMs": 1166,
+            "startedAtMs": 1166.944039999973
+          },
+          {
+            "scheduledAtMs": 1250,
+            "startedAtMs": 1253.0985260000452
+          },
+          {
+            "scheduledAtMs": 1333,
+            "startedAtMs": 1334.021665000124
+          },
+          {
+            "scheduledAtMs": 1416,
+            "startedAtMs": 1418.3667170000263
+          },
+          {
+            "scheduledAtMs": 1500,
+            "startedAtMs": 1501.5888630000409
+          },
+          {
+            "scheduledAtMs": 1583,
+            "startedAtMs": 1583.2764240000397
+          },
+          {
+            "scheduledAtMs": 1666,
+            "startedAtMs": 1668.5765690000262
+          },
+          {
+            "scheduledAtMs": 1750,
+            "startedAtMs": 1750.7069010001142
+          },
+          {
+            "scheduledAtMs": 1833,
+            "startedAtMs": 1833.935655000154
+          },
+          {
+            "scheduledAtMs": 1916,
+            "startedAtMs": 1916.6562030001078
+          },
+          {
+            "scheduledAtMs": 2000,
+            "startedAtMs": 2000.815350000048
+          },
+          {
+            "scheduledAtMs": 2083,
+            "startedAtMs": 2084.5680180001073
+          },
+          {
+            "scheduledAtMs": 2166,
+            "startedAtMs": 2166.624139999971
+          },
+          {
+            "scheduledAtMs": 2250,
+            "startedAtMs": 2251.3109930001665
+          },
+          {
+            "scheduledAtMs": 2333,
+            "startedAtMs": 2334.7231600000523
+          },
+          {
+            "scheduledAtMs": 2416,
+            "startedAtMs": 2418.147028000094
+          }
+        ],
+        "maxActiveWebSocketConnections": 30,
+        "activeWebSocketConnectionsAtEnd": 0,
+        "webSocketTimeline": [
+          {
+            "atMs": 141.95895100012422,
+            "active": 1
+          },
+          {
+            "atMs": 157.76295000012033,
+            "active": 2
+          },
+          {
+            "atMs": 198.5137780001387,
+            "active": 3
+          },
+          {
+            "atMs": 284.653312999988,
+            "active": 4
+          },
+          {
+            "atMs": 364.9821200000588,
+            "active": 5
+          },
+          {
+            "atMs": 445.747955000028,
+            "active": 6
+          },
+          {
+            "atMs": 580.4109100000933,
+            "active": 7
+          },
+          {
+            "atMs": 622.6217869999819,
+            "active": 8
+          },
+          {
+            "atMs": 701.1183009999804,
+            "active": 9
+          },
+          {
+            "atMs": 793.0876319999807,
+            "active": 10
+          },
+          {
+            "atMs": 862.6890810001642,
+            "active": 11
+          },
+          {
+            "atMs": 942.731880000094,
+            "active": 12
+          },
+          {
+            "atMs": 1045.787053000182,
+            "active": 13
+          },
+          {
+            "atMs": 1132.4317610000726,
+            "active": 14
+          },
+          {
+            "atMs": 1196.3018920000177,
+            "active": 15
+          },
+          {
+            "atMs": 1275.9854470000137,
+            "active": 16
+          },
+          {
+            "atMs": 1356.2793690001126,
+            "active": 17
+          },
+          {
+            "atMs": 1442.7493300000206,
+            "active": 18
+          },
+          {
+            "atMs": 1525.3159330000635,
+            "active": 19
+          },
+          {
+            "atMs": 1624.9450770001858,
+            "active": 20
+          },
+          {
+            "atMs": 1698.6394740000833,
+            "active": 21
+          },
+          {
+            "atMs": 1773.7675940000918,
+            "active": 22
+          },
+          {
+            "atMs": 1865.2443190000486,
+            "active": 23
+          },
+          {
+            "atMs": 1937.5982700001914,
+            "active": 24
+          },
+          {
+            "atMs": 2034.2911750001367,
+            "active": 25
+          },
+          {
+            "atMs": 2109.9589180001058,
+            "active": 26
+          },
+          {
+            "atMs": 2188.549251000164,
+            "active": 27
+          },
+          {
+            "atMs": 2277.9068090000656,
+            "active": 28
+          },
+          {
+            "atMs": 2369.6606590000447,
+            "active": 29
+          },
+          {
+            "atMs": 2483.336262000026,
+            "active": 30
+          },
+          {
+            "atMs": 9100.432155000046,
+            "active": 29
+          },
+          {
+            "atMs": 9116.52822800004,
+            "active": 28
+          },
+          {
+            "atMs": 9120.19118900015,
+            "active": 27
+          },
+          {
+            "atMs": 9124.096823000116,
+            "active": 26
+          },
+          {
+            "atMs": 9125.719593000133,
+            "active": 25
+          },
+          {
+            "atMs": 9128.9706590001,
+            "active": 24
+          },
+          {
+            "atMs": 9130.067131000105,
+            "active": 23
+          },
+          {
+            "atMs": 9131.587847999996,
+            "active": 22
+          },
+          {
+            "atMs": 9133.382657000097,
+            "active": 21
+          },
+          {
+            "atMs": 9134.361584000057,
+            "active": 20
+          },
+          {
+            "atMs": 9135.037278000033,
+            "active": 19
+          },
+          {
+            "atMs": 9135.681121000089,
+            "active": 18
+          },
+          {
+            "atMs": 9136.505560000194,
+            "active": 17
+          },
+          {
+            "atMs": 9137.768004000187,
+            "active": 16
+          },
+          {
+            "atMs": 9138.40968000004,
+            "active": 15
+          },
+          {
+            "atMs": 9139.011055000126,
+            "active": 14
+          },
+          {
+            "atMs": 9140.280432000058,
+            "active": 13
+          },
+          {
+            "atMs": 9142.671632000012,
+            "active": 12
+          },
+          {
+            "atMs": 9143.293483000016,
+            "active": 11
+          },
+          {
+            "atMs": 9143.543414999964,
+            "active": 10
+          },
+          {
+            "atMs": 9143.742320999969,
+            "active": 9
+          },
+          {
+            "atMs": 9143.937650999986,
+            "active": 8
+          },
+          {
+            "atMs": 9144.26071000006,
+            "active": 7
+          },
+          {
+            "atMs": 9144.605436000042,
+            "active": 6
+          },
+          {
+            "atMs": 9144.913328000112,
+            "active": 5
+          },
+          {
+            "atMs": 9145.21342000016,
+            "active": 4
+          },
+          {
+            "atMs": 9145.498236000072,
+            "active": 3
+          },
+          {
+            "atMs": 9145.781536000082,
+            "active": 2
+          },
+          {
+            "atMs": 9146.163205000106,
+            "active": 1
+          },
+          {
+            "atMs": 9146.454846000066,
+            "active": 0
+          }
+        ],
+        "reveal": {
+          "scheduledAtMs": 6000,
+          "startedAtMs": 6003.011828999966,
+          "succeeded": true
+        }
+      },
+      "host": {
+        "progressMessages": 15,
+        "progressMaxTotalVotes": 30,
+        "statusMessages": 3,
+        "lastStatus": "RESULTS",
+        "resultsSeenAt": 1794742212543,
+        "revealRequestedAt": 1794742212480,
+        "subscriptionErrors": 0,
+        "revealed": true
+      },
+      "windowClosedAtMs": 10002.955237000016,
+      "actions": {
+        "join": {
+          "label": "Beitritt",
+          "applicable": true,
+          "planned": 30,
+          "attempted": 30,
+          "succeeded": 30,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 30,
+            "durationSamplesMs": [
+              115.16327799999999, 68.22839499999918, 25.269995999999992, 28.255854,
+              23.324924999999894, 21.74689800000033, 71.94530599999962, 34.15910199999962,
+              28.21067799999946, 37.344192000000476, 23.515379999999823, 20.97987699999976,
+              38.538274999999885, 20.2059220000001, 24.7925580000001, 19.00003000000015,
+              18.205925000000207, 19.138484000000062, 19.401957999999468, 21.304126999999426,
+              22.410783000000265, 18.94900400000006, 28.16582699999981, 17.132526999999754,
+              29.163604999999734, 20.511539000000084, 17.831622000000607, 21.950246000000334,
+              29.19870499999979, 58.47573899999952
+            ],
+            "p50Ms": 23.324924999999894,
+            "p95Ms": 71.94530599999962,
+            "p99Ms": 115.16327799999999,
+            "maxMs": 115.16327799999999
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        },
+        "vote": {
+          "label": "Quizstimme",
+          "applicable": true,
+          "planned": 30,
+          "attempted": 30,
+          "succeeded": 30,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 30,
+            "durationSamplesMs": [
+              35.52966600000036, 37.68826799999988, 27.88480200000049, 15.20511500000066,
+              13.55168599999979, 13.542910999999549, 15.270550999999614, 15.57562599999983,
+              14.746203000000605, 14.235830000000533, 13.70812399999977, 25.546904000000723,
+              19.013789000000543, 16.449251000000004, 13.879079000000274, 15.152356000000509,
+              18.51901700000053, 20.387494000000515, 13.071214999999938, 16.000303999999232,
+              24.62745399999949, 18.56365100000039, 11.645074000000022, 15.267841999999291,
+              12.260317000000214, 17.542472000001, 16.776318000000174, 13.592420999999376,
+              12.814457999998922, 19.4914430000008
+            ],
+            "p50Ms": 15.270550999999614,
+            "p95Ms": 35.52966600000036,
+            "p99Ms": 37.68826799999988,
+            "maxMs": 37.68826799999988
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        },
+        "qaSubmit": {
+          "label": "Q&A-Einreichung",
+          "applicable": true,
+          "planned": 6,
+          "attempted": 6,
+          "succeeded": 6,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 6,
+            "durationSamplesMs": [
+              13.787317999999686, 17.326991000000817, 12.994512000001123, 19.67637300000024,
+              10.144616000001406, 14.25803900000028
+            ],
+            "p50Ms": 13.787317999999686,
+            "p95Ms": 19.67637300000024,
+            "p99Ms": 19.67637300000024,
+            "maxMs": 19.67637300000024
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        },
+        "blitzlicht": {
+          "label": "Blitzlicht",
+          "applicable": true,
+          "planned": 30,
+          "attempted": 30,
+          "succeeded": 30,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 30,
+            "durationSamplesMs": [
+              14.512195999999676, 13.449524999999994, 8.61555700000008, 7.337403999999879,
+              8.000206000000617, 6.849890999999843, 6.996577999999317, 9.232099000000744,
+              9.239357000000382, 8.110818000000108, 7.154640999999174, 7.1810749999986,
+              7.482899999999063, 6.701470999998492, 6.692478999999366, 7.217043000000558,
+              6.55857400000059, 7.1083810000000085, 7.583220000000438, 6.913375999998607,
+              7.376189000000522, 6.488263999999617, 6.731372000000192, 6.882283000000825,
+              6.164445999998861, 6.204748000000109, 6.7100289999998495, 6.969820000000254,
+              5.948099999999613, 7.237735000000612
+            ],
+            "p50Ms": 7.1083810000000085,
+            "p95Ms": 13.449524999999994,
+            "p99Ms": 14.512195999999676,
+            "maxMs": 14.512195999999676
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        }
+      },
+      "websocket": {
+        "connections": 30,
+        "errors": 0,
+        "statusEvents": 60,
+        "connectLatency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            11.81321299999945, 5.486910999999964, 5.0853079999997135, 5.276196999999229,
+            4.690747000000556, 5.070466000000124, 5.782344000000194, 4.480250000000524,
+            4.284485999999561, 2.8831550000004427, 4.021553999999924, 4.747949999999946,
+            4.711548000000221, 28.48682800000006, 4.489241999999649, 3.8245990000004895,
+            3.99837000000025, 5.173710999999457, 4.259352000000035, 20.323574999999437,
+            7.598928999999771, 4.067055999999866, 3.0827110000000175, 3.758295999999973,
+            4.260110000000168, 4.808618000000024, 4.054487999999765, 4.5871780000006765,
+            5.674007999999958, 6.6685360000010405
+          ],
+          "p50Ms": 4.690747000000556,
+          "p95Ms": 20.323574999999437,
+          "p99Ms": 28.48682800000006,
+          "maxMs": 28.48682800000006
+        },
+        "statusFanoutLatency": {
+          "available": true,
+          "samples": 30,
+          "durationSamplesMs": [
+            43, 43, 43, 44, 61, 61, 61, 61, 61, 61, 61, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62, 62,
+            62, 62, 63, 63, 63, 63, 63, 63
+          ],
+          "p50Ms": 62,
+          "p95Ms": 63,
+          "p99Ms": 63,
+          "maxMs": 63
+        }
+      },
+      "afterDrainActions": {
+        "join": {
+          "label": "Beitritt",
+          "applicable": true,
+          "planned": 30,
+          "attempted": 30,
+          "succeeded": 30,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 30,
+            "durationSamplesMs": [
+              115.16327799999999, 68.22839499999918, 25.269995999999992, 28.255854,
+              23.324924999999894, 21.74689800000033, 71.94530599999962, 34.15910199999962,
+              28.21067799999946, 37.344192000000476, 23.515379999999823, 20.97987699999976,
+              38.538274999999885, 20.2059220000001, 24.7925580000001, 19.00003000000015,
+              18.205925000000207, 19.138484000000062, 19.401957999999468, 21.304126999999426,
+              22.410783000000265, 18.94900400000006, 28.16582699999981, 17.132526999999754,
+              29.163604999999734, 20.511539000000084, 17.831622000000607, 21.950246000000334,
+              29.19870499999979, 58.47573899999952
+            ],
+            "p50Ms": 23.324924999999894,
+            "p95Ms": 71.94530599999962,
+            "p99Ms": 115.16327799999999,
+            "maxMs": 115.16327799999999
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        },
+        "vote": {
+          "label": "Quizstimme",
+          "applicable": true,
+          "planned": 30,
+          "attempted": 30,
+          "succeeded": 30,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 30,
+            "durationSamplesMs": [
+              35.52966600000036, 37.68826799999988, 27.88480200000049, 15.20511500000066,
+              13.55168599999979, 13.542910999999549, 15.270550999999614, 15.57562599999983,
+              14.746203000000605, 14.235830000000533, 13.70812399999977, 25.546904000000723,
+              19.013789000000543, 16.449251000000004, 13.879079000000274, 15.152356000000509,
+              18.51901700000053, 20.387494000000515, 13.071214999999938, 16.000303999999232,
+              24.62745399999949, 18.56365100000039, 11.645074000000022, 15.267841999999291,
+              12.260317000000214, 17.542472000001, 16.776318000000174, 13.592420999999376,
+              12.814457999998922, 19.4914430000008
+            ],
+            "p50Ms": 15.270550999999614,
+            "p95Ms": 35.52966600000036,
+            "p99Ms": 37.68826799999988,
+            "maxMs": 37.68826799999988
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        },
+        "qaSubmit": {
+          "label": "Q&A-Einreichung",
+          "applicable": true,
+          "planned": 6,
+          "attempted": 6,
+          "succeeded": 6,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 6,
+            "durationSamplesMs": [
+              13.787317999999686, 17.326991000000817, 12.994512000001123, 19.67637300000024,
+              10.144616000001406, 14.25803900000028
+            ],
+            "p50Ms": 13.787317999999686,
+            "p95Ms": 19.67637300000024,
+            "p99Ms": 19.67637300000024,
+            "maxMs": 19.67637300000024
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        },
+        "blitzlicht": {
+          "label": "Blitzlicht",
+          "applicable": true,
+          "planned": 30,
+          "attempted": 30,
+          "succeeded": 30,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "notAttempted": 0,
+          "accountingValid": true,
+          "errorRate": 0,
+          "scheduledFailureRate": 0,
+          "latency": {
+            "available": true,
+            "samples": 30,
+            "durationSamplesMs": [
+              14.512195999999676, 13.449524999999994, 8.61555700000008, 7.337403999999879,
+              8.000206000000617, 6.849890999999843, 6.996577999999317, 9.232099000000744,
+              9.239357000000382, 8.110818000000108, 7.154640999999174, 7.1810749999986,
+              7.482899999999063, 6.701470999998492, 6.692478999999366, 7.217043000000558,
+              6.55857400000059, 7.1083810000000085, 7.583220000000438, 6.913375999998607,
+              7.376189000000522, 6.488263999999617, 6.731372000000192, 6.882283000000825,
+              6.164445999998861, 6.204748000000109, 6.7100289999998495, 6.969820000000254,
+              5.948099999999613, 7.237735000000612
+            ],
+            "p50Ms": 7.1083810000000085,
+            "p95Ms": 13.449524999999994,
+            "p99Ms": 14.512195999999676,
+            "maxMs": 14.512195999999676
+          },
+          "failureLatency": {
+            "available": false,
+            "samples": 0,
+            "durationSamplesMs": [],
+            "p50Ms": null,
+            "p95Ms": null,
+            "p99Ms": null,
+            "maxMs": null
+          },
+          "errorCodes": {}
+        }
+      }
+    },
+    "analysis": {
+      "fixture": {
+        "version": "resource-isolation-fixture-v1",
+        "seed": 438314513,
+        "sha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded"
+      },
+      "workload": {
+        "hosts": 5,
+        "durationMs": 10000,
+        "intervalMs": 10000,
+        "offsetsMs": [0, 2000, 4000, 6000, 8000],
+        "drainMs": 60000,
+        "requestTimeoutMs": 60000,
+        "input": {
+          "mode": "LEXICAL",
+          "locale": "de",
+          "metric": "TOP",
+          "normalization": "LEMMA",
+          "limit": 500,
+          "refresh": true
+        }
+      },
+      "corpus": {
+        "verifiedBefore": true,
+        "verifiedAfter": true,
+        "unchanged": true,
+        "checks": [
+          {
+            "host": "host-1",
+            "phase": "after",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-2",
+            "phase": "after",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-3",
+            "phase": "after",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-4",
+            "phase": "after",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-5",
+            "phase": "after",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-1",
+            "phase": "before",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-2",
+            "phase": "before",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-3",
+            "phase": "before",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-4",
+            "phase": "before",
+            "valid": true,
+            "errorCode": null
+          },
+          {
+            "host": "host-5",
+            "phase": "before",
+            "valid": true,
+            "errorCode": null
+          }
+        ]
+      },
+      "analysis": {
+        "planned": 5,
+        "started": 5,
+        "counts": {
+          "SUCCESS": 5
+        },
+        "interrupted": false,
+        "durationMs": 10000,
+        "observedDurationMs": 10009.211445000023,
+        "drainDurationMs": 0.9544430000241846,
+        "unavailableRate": 0,
+        "fallbackRateOfResponses": 0,
+        "latency": {
+          "available": true,
+          "samples": 5,
+          "durationSamplesMs": [
+            571.0230469999369, 467.26942900009453, 520.0957520001102, 428.3144930000417,
+            427.99706800002605
+          ],
+          "p50Ms": 467.26942900009453,
+          "p95Ms": 571.0230469999369,
+          "p99Ms": 571.0230469999369,
+          "maxMs": 571.0230469999369
+        },
+        "calls": [
+          {
+            "hostIndex": 0,
+            "host": "host-1",
+            "scheduledAtMs": 0,
+            "outcome": "SUCCESS",
+            "startedAtMs": 7.031656000064686,
+            "scheduleDelayMs": 6.939245000015944,
+            "durationMs": 571.0230469999369,
+            "normalizationApplied": "LEMMA",
+            "normalizationFallbackReason": null,
+            "errorCode": null,
+            "cleanupOutcome": null,
+            "cleanupErrorCode": null,
+            "cleanupDurationMs": null,
+            "cleanupNormalizationApplied": null,
+            "cleanupNormalizationFallbackReason": null
+          },
+          {
+            "hostIndex": 1,
+            "host": "host-2",
+            "scheduledAtMs": 2000,
+            "outcome": "SUCCESS",
+            "startedAtMs": 2000.6650870000012,
+            "scheduleDelayMs": 0.6374610001221299,
+            "durationMs": 467.26942900009453,
+            "normalizationApplied": "LEMMA",
+            "normalizationFallbackReason": null,
+            "errorCode": null,
+            "cleanupOutcome": null,
+            "cleanupErrorCode": null,
+            "cleanupDurationMs": null,
+            "cleanupNormalizationApplied": null,
+            "cleanupNormalizationFallbackReason": null
+          },
+          {
+            "hostIndex": 2,
+            "host": "host-3",
+            "scheduledAtMs": 4000,
+            "outcome": "SUCCESS",
+            "startedAtMs": 4002.0091419999953,
+            "scheduleDelayMs": 1.9741490001324564,
+            "durationMs": 520.0957520001102,
+            "normalizationApplied": "LEMMA",
+            "normalizationFallbackReason": null,
+            "errorCode": null,
+            "cleanupOutcome": null,
+            "cleanupErrorCode": null,
+            "cleanupDurationMs": null,
+            "cleanupNormalizationApplied": null,
+            "cleanupNormalizationFallbackReason": null
+          },
+          {
+            "hostIndex": 3,
+            "host": "host-4",
+            "scheduledAtMs": 6000,
+            "outcome": "SUCCESS",
+            "startedAtMs": 6034.8577340000775,
+            "scheduleDelayMs": 34.82349900016561,
+            "durationMs": 428.3144930000417,
+            "normalizationApplied": "LEMMA",
+            "normalizationFallbackReason": null,
+            "errorCode": null,
+            "cleanupOutcome": null,
+            "cleanupErrorCode": null,
+            "cleanupDurationMs": null,
+            "cleanupNormalizationApplied": null,
+            "cleanupNormalizationFallbackReason": null
+          },
+          {
+            "hostIndex": 4,
+            "host": "host-5",
+            "scheduledAtMs": 8000,
+            "outcome": "SUCCESS",
+            "startedAtMs": 8003.136991000036,
+            "scheduleDelayMs": 3.020420999964699,
+            "durationMs": 427.99706800002605,
+            "normalizationApplied": "LEMMA",
+            "normalizationFallbackReason": null,
+            "errorCode": null,
+            "cleanupOutcome": null,
+            "cleanupErrorCode": null,
+            "cleanupDurationMs": null,
+            "cleanupNormalizationApplied": null,
+            "cleanupNormalizationFallbackReason": null
+          }
+        ]
+      }
+    },
+    "resources": {
+      "containers": [
+        {
+          "alias": "app",
+          "generations": [
+            {
+              "generation": 1,
+              "samples": 6,
+              "sampledPeakMemoryBytes": 278712320,
+              "lifetimePeakMemoryBytes": 330129408,
+              "peakScope": "container-lifetime-including-warmup"
+            }
+          ]
+        },
+        {
+          "alias": "postgres",
+          "generations": [
+            {
+              "generation": 1,
+              "samples": 6,
+              "sampledPeakMemoryBytes": 185171968,
+              "lifetimePeakMemoryBytes": 188518400,
+              "peakScope": "container-lifetime-including-warmup"
+            }
+          ]
+        },
+        {
+          "alias": "redis",
+          "generations": [
+            {
+              "generation": 1,
+              "samples": 6,
+              "sampledPeakMemoryBytes": 6578176,
+              "lifetimePeakMemoryBytes": 11649024,
+              "peakScope": "container-lifetime-including-warmup"
+            }
+          ]
+        },
+        {
+          "alias": "pdf-worker",
+          "generations": [
+            {
+              "generation": 1,
+              "samples": 6,
+              "sampledPeakMemoryBytes": 129515520,
+              "lifetimePeakMemoryBytes": 148619264,
+              "peakScope": "container-lifetime-including-warmup"
+            }
+          ]
+        },
+        {
+          "alias": "spacy",
+          "generations": [
+            {
+              "generation": 1,
+              "samples": 6,
+              "sampledPeakMemoryBytes": 487657472,
+              "lifetimePeakMemoryBytes": 500412416,
+              "peakScope": "container-lifetime-including-warmup"
+            }
+          ]
+        }
+      ],
+      "interrupted": false,
+      "durationMs": 10000,
+      "intervalMs": 2000,
+      "observedDurationMs": 10037.802384000039,
+      "plannedSamples": 6,
+      "skippedSamples": [],
+      "sampleCount": 6,
+      "artifact": {
+        "file": "aufwaermung-ressourcen.json.gz",
+        "sha256": "e9442c362d2c835027a8702a8e25b26a419d8efe786f773f4e8125ffc1b43487",
+        "encoding": "gzip",
+        "mediaType": "application/json"
+      }
+    },
+    "diagnostics": [
+      {
+        "phase": "BEFORE",
+        "atMs": -4921.531437000027,
+        "qaWordCloud": {
+          "snapshotHits": 0,
+          "snapshotMisses": 0,
+          "textHits": 0,
+          "textMisses": 0,
+          "sidecarCalls": 0,
+          "timeouts": 0,
+          "fallbacks": 0,
+          "inFlight": 0,
+          "lastLatencyMs": null
+        },
+        "qaNlp": {
+          "queueLength": 0,
+          "running": 0,
+          "completed": 0,
+          "failed": 0,
+          "fallback": 0,
+          "lastLatencyMs": null
+        },
+        "websocket": {
+          "trpcWebSocketConnectionsActive": 0,
+          "trpcWebSocketBoundConnectionsActive": 0,
+          "trpcWebSocketRejectedUpgradesLastMinute": 0
+        },
+        "server": {
+          "activeSessions": 0,
+          "totalParticipants": 0
+        }
+      },
+      {
+        "phase": "DURING",
+        "atMs": 5050.137909000041,
+        "qaWordCloud": {
+          "snapshotHits": 0,
+          "snapshotMisses": 3,
+          "textHits": 0,
+          "textMisses": 1500,
+          "sidecarCalls": 3,
+          "timeouts": 0,
+          "fallbacks": 0,
+          "inFlight": 0,
+          "lastLatencyMs": 499
+        },
+        "qaNlp": {
+          "queueLength": 0,
+          "running": 0,
+          "completed": 0,
+          "failed": 0,
+          "fallback": 0,
+          "lastLatencyMs": null
+        },
+        "websocket": {
+          "trpcWebSocketConnectionsActive": 31,
+          "trpcWebSocketBoundConnectionsActive": 31,
+          "trpcWebSocketRejectedUpgradesLastMinute": 0
+        },
+        "server": {
+          "activeSessions": 0,
+          "totalParticipants": 0
+        }
+      },
+      {
+        "phase": "AFTER",
+        "atMs": 10035.99056600011,
+        "qaWordCloud": {
+          "snapshotHits": 0,
+          "snapshotMisses": 5,
+          "textHits": 0,
+          "textMisses": 2500,
+          "sidecarCalls": 5,
+          "timeouts": 0,
+          "fallbacks": 0,
+          "inFlight": 0,
+          "lastLatencyMs": 406
+        },
+        "qaNlp": {
+          "queueLength": 0,
+          "running": 0,
+          "completed": 0,
+          "failed": 0,
+          "fallback": 0,
+          "lastLatencyMs": null
+        },
+        "websocket": {
+          "trpcWebSocketConnectionsActive": 0,
+          "trpcWebSocketBoundConnectionsActive": 0,
+          "trpcWebSocketRejectedUpgradesLastMinute": 0
+        },
+        "server": {
+          "activeSessions": 0,
+          "totalParticipants": 0
+        }
+      }
+    ],
+    "sidecarCallsInWindow": 5,
+    "proxy": null
+  },
+  "rollback": {
+    "verified": true,
+    "state": "NLP_DISABLED",
+    "liveJoinVerified": true
+  }
+}
