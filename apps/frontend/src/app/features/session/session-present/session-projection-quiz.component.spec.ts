@@ -287,6 +287,10 @@ describe('SessionProjectionQuizComponent', () => {
         ?.textContent,
     ).toContain('how_to_vote');
     expect(text).not.toContain('check_circle');
+    expect(text).not.toContain('cancel');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__answer-result-icon'),
+    ).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__answer--correct'),
     ).toBeNull();
@@ -468,12 +472,20 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('40');
     expect(text).toContain('60');
     expect(text).toContain('check_circle');
+    expect(text).toContain('cancel');
     const answers = fixture.nativeElement.querySelectorAll(
       '.session-projection-quiz__answer',
     ) as NodeListOf<HTMLElement>;
     expect(answers[0].classList.contains('session-projection-quiz__answer--wrong')).toBe(true);
     expect(answers[1].classList.contains('session-projection-quiz__answer--correct')).toBe(true);
+    expect(
+      answers[0].querySelector('.session-projection-quiz__answer-wrong-icon mat-icon')?.textContent,
+    ).toContain('cancel');
     expect(answers[1].querySelector('.session-projection-quiz__answer-correct-icon')).toBeTruthy();
+    expect(
+      answers[1].querySelector('.session-projection-quiz__answer-correct-icon mat-icon')
+        ?.textContent,
+    ).toContain('check_circle');
     const projectionStyles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
       'utf8',
@@ -482,7 +494,10 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__answer--correct\s*\{[^}]*background:\s*light-dark\(\s*color-mix\(in srgb, var\(--arsnova-bar-correct\) 22%,[^\n]*\n\s*color-mix\(in srgb, var\(--arsnova-bar-correct\) 46%,[^}]*color:\s*var\(--mat-sys-on-surface\)/s,
     );
     expect(projectionStyles).toMatch(
-      /\.session-projection-quiz__answer-correct-icon\s*\{[^}]*--arsnova-bar-correct/s,
+      /\.session-projection-quiz__answer-correct-icon\s*\{[^}]*background:\s*var\(--arsnova-bar-correct\)[^}]*color:\s*var\(--arsnova-bar-correct-on\)/s,
+    );
+    expect(projectionStyles).toMatch(
+      /\.session-projection-quiz__answer-wrong-icon\s*\{[^}]*background:\s*var\(--arsnova-bar-wrong\)[^}]*color:\s*#fff/s,
     );
     expect(projectionStyles).not.toMatch(
       /\.session-projection-quiz__answer--(?:correct|wrong)\s*\{[^}]*box-shadow:/s,
@@ -506,11 +521,11 @@ describe('SessionProjectionQuizComponent', () => {
   });
 
   it.each([
-    { type: 'SINGLE_CHOICE', expectedCorrect: 1 },
-    { type: 'SURVEY', expectedCorrect: 0 },
+    { type: 'SINGLE_CHOICE', expectedCorrect: 1, expectedWrong: 1 },
+    { type: 'SURVEY', expectedCorrect: 0, expectedWrong: 0 },
   ] as const)(
-    'markiert bei $type ohne Stimmverteilung $expectedCorrect richtige Optionen',
-    ({ type, expectedCorrect }) => {
+    'markiert bei $type ohne Stimmverteilung $expectedCorrect richtige und $expectedWrong falsche Optionen',
+    ({ type, expectedCorrect, expectedWrong }) => {
       fixture.componentRef.setInput('question', choiceQuestion({ type }));
       fixture.componentRef.setInput('status', 'RESULTS');
       fixture.detectChanges();
@@ -525,6 +540,14 @@ describe('SessionProjectionQuizComponent', () => {
           '.session-projection-quiz__answer--correct .session-projection-quiz__answer-correct-icon',
         ),
       ).toHaveLength(expectedCorrect);
+      expect(
+        answers?.querySelectorAll(
+          '.session-projection-quiz__answer--wrong .session-projection-quiz__answer-wrong-icon',
+        ),
+      ).toHaveLength(expectedWrong);
+      expect(
+        answers?.querySelectorAll('.session-projection-quiz__answer-result-icon'),
+      ).toHaveLength(expectedCorrect + expectedWrong);
     },
   );
 
@@ -1601,6 +1624,12 @@ describe('SessionProjectionQuizComponent', () => {
     expect(
       correctAnswer?.querySelector('.session-projection-quiz__answer-correct-icon'),
     ).toBeTruthy();
+    const wrongAnswer = roundComparison.querySelector('.session-projection-quiz__answer--wrong');
+    expect(wrongAnswer?.textContent).toContain('KI-generiertes Bild');
+    expect(
+      wrongAnswer?.querySelector('.session-projection-quiz__answer-wrong-icon mat-icon')
+        ?.textContent,
+    ).toContain('cancel');
     const legend = roundComparison.querySelector('[data-projection-answer-legend]');
     expect(legend?.textContent).toContain('Runde 1 (50 Stimmen)');
     expect(legend?.textContent).toContain('Runde 2 (48 Stimmen)');

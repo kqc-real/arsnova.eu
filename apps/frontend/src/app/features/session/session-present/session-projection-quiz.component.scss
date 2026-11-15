@@ -700,9 +700,30 @@ mat-icon.session-projection-quiz__reading-icon {
   color: var(--mat-sys-on-surface);
 }
 
-.session-projection-quiz__answer-correct-icon {
+.session-projection-quiz__answer-result-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  color: var(--arsnova-bar-correct);
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 0.32em;
+
+  mat-icon {
+    width: 0.95em;
+    height: 0.95em;
+    font-size: 0.95em;
+  }
+}
+
+.session-projection-quiz__answer-correct-icon {
+  background: var(--arsnova-bar-correct);
+  color: var(--arsnova-bar-correct-on);
+}
+
+.session-projection-quiz__answer-wrong-icon {
+  background: var(--arsnova-bar-wrong);
+  color: #fff;
 }
 
 .session-projection-quiz__answer--wrong {

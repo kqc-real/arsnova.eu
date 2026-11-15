@@ -592,12 +592,16 @@
                           class="markdown-body"
                           [innerHTML]="renderAnswerMarkdown(answer.text)"
                         ></span>
-                        @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                          <mat-icon
-                            class="session-projection-quiz__answer-correct-icon"
-                            aria-hidden="true"
-                            >check_circle</mat-icon
+                        @if (revealCorrectness() && q.type !== 'SURVEY') {
+                          <span
+                            class="session-projection-quiz__answer-result-icon"
+                            [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                            [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                           >
+                            <mat-icon aria-hidden="true">{{
+                              answer.isCorrect ? 'check_circle' : 'cancel'
+                            }}</mat-icon>
+                          </span>
                         }
                       </div>
                       <div class="session-projection-quiz__round-bars">
@@ -702,12 +706,16 @@
                         class="markdown-body"
                         [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
-                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                        <mat-icon
-                          class="session-projection-quiz__answer-correct-icon"
-                          aria-hidden="true"
-                          >check_circle</mat-icon
+                      @if (revealCorrectness() && q.type !== 'SURVEY') {
+                        <span
+                          class="session-projection-quiz__answer-result-icon"
+                          [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                          [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                         >
+                          <mat-icon aria-hidden="true">{{
+                            answer.isCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                        </span>
                       }
                     </div>
                     <div class="session-projection-quiz__bar-track">
@@ -751,12 +759,16 @@
                         class="markdown-body"
                         [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
-                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                        <mat-icon
-                          class="session-projection-quiz__answer-correct-icon"
-                          aria-hidden="true"
-                          >check_circle</mat-icon
+                      @if (revealCorrectness() && q.type !== 'SURVEY') {
+                        <span
+                          class="session-projection-quiz__answer-result-icon"
+                          [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                          [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                         >
+                          <mat-icon aria-hidden="true">{{
+                            answer.isCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                        </span>
                       }
                     </div>
                   </li>

@@ -7,6 +7,7 @@
  * - Presenter-Route unter lokalisiertem Pfad ohne Host-Auth-Fehler
  * - Host-Seite aktualisiert die Teilnehmerzahl nach Join live
  * - Pfeiltasten funktionieren direkt nach Host-/Presenter-Routenwechseln
+ * - Host zeigt nach dem Presenter-Rueckweg beim Zurueckblaettern das fruehere Ergebnis
  * - Der Wechsel zum Presenter erhält den Schließschutz bei laufender Abstimmung
  *
  * Run:
@@ -379,6 +380,29 @@ async function main() {
       await presenterReveal.waitFor({ timeout: 15_000 });
       await host.getByTestId('presenter-return-to-host').click();
       await waitForPathSuffix(host, `/session/${code}/host`);
+      const previousResult = host.getByTestId('host-quiz-history-previous');
+      await previousResult.waitFor({ timeout: 15_000 });
+      assert.equal(await previousResult.getAttribute('aria-keyshortcuts'), 'ArrowLeft');
+      await host.keyboard.press('ArrowLeft');
+      const historyStage = host.getByTestId('host-quiz-history-stage');
+      await historyStage.waitFor({ timeout: 15_000 });
+      const visibleHistoryPage = historyStage.locator('.projection-pages__page');
+      assert.match(await visibleHistoryPage.innerText(), /Welche Route wird geprueft\?/);
+      assert.equal(
+        await visibleHistoryPage.locator('.session-projection-quiz__bar-value').count(),
+        2,
+      );
+      assert.equal(
+        await visibleHistoryPage.locator('.session-projection-quiz__answer-correct-icon').count(),
+        1,
+      );
+      assert.equal(
+        await visibleHistoryPage.locator('.session-projection-quiz__answer-wrong-icon').count(),
+        1,
+      );
+      logStep(true, 'Host zeigt nach Presenter → Host das vorherige Ergebnis');
+      await host.keyboard.press('ArrowRight');
+      await host.getByTestId('host-quiz-reveal-answers').waitFor({ timeout: 15_000 });
       const hostReveal = host.getByTestId('host-quiz-reveal-answers');
       await hostReveal.waitFor({ timeout: 15_000 });
       assert.equal(await hostReveal.getAttribute('aria-keyshortcuts'), 'ArrowRight');

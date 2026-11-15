@@ -23199,6 +23199,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(prevQuestionMutateMock).not.toHaveBeenCalled();
     expect(nextQuestionMutateMock).not.toHaveBeenCalled();
     expect(revealResultsMutateMock).not.toHaveBeenCalled();
+    expect(
+      host
+        .querySelector('.session-host__history-projection')
+        ?.classList.contains('session-present'),
+    ).toBe(true);
+    const { readFileSync } = await import('node:fs');
+    const historyStyles = readFileSync(`${__dirname}/session-host.component.scss`, 'utf8');
+    expect(historyStyles).toMatch(
+      /\.session-host__history-projection\s*\{[^}]*height:\s*clamp\(40rem, 90dvh, 90rem\)/s,
+    );
     expect(host.querySelector('[data-testid="host-quiz-history-next"] kbd')?.textContent).toBe('→');
 
     component.reportHistoryPages(3);

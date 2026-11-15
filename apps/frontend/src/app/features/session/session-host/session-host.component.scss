@@ -369,6 +369,10 @@
   min-width: 0;
 }
 
+.session-host__history-projection {
+  height: clamp(40rem, 90dvh, 90rem);
+}
+
 .session-host__exit-anchor-button--primary {
   box-shadow: var(--mat-sys-level2);
 }
