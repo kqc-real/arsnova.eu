@@ -1727,6 +1727,22 @@
               <button
                 matButton="tonal"
                 type="button"
+                data-testid="presenter-quiz-skip-question"
+                aria-keyshortcuts="S"
+                [disabled]="quizControlPending()"
+                [disabledInteractive]="true"
+                (click)="skipPresenterQuestion()"
+                aria-label="Aktuelle Frage auslassen"
+                i18n-aria-label="@@sessionHost.skipQuestionAria"
+              >
+                <span i18n="@@sessionHost.skipQuestion">Frage auslassen</span>
+                <kbd class="session-present__shortcut" aria-hidden="true">S</kbd>
+              </button>
+            }
+            @if (session()?.status === 'QUESTION_OPEN' || session()?.status === 'ACTIVE') {
+              <button
+                matButton="tonal"
+                type="button"
                 data-testid="presenter-quiz-pause"
                 [disabled]="quizControlPending()"
                 [disabledInteractive]="true"

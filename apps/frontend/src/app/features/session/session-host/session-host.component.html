@@ -1793,6 +1793,53 @@
                   }
                 </section>
               } @else if (displayedCurrentQuestionForHost(); as q) {
+                @if (showPresenterStartOffer()) {
+                  <section
+                    class="session-host__presenter-start-offer"
+                    data-testid="host-presenter-start-offer"
+                    role="status"
+                    aria-live="polite"
+                    aria-labelledby="host-presenter-start-offer-title"
+                  >
+                    <app-presenter-icon
+                      class="session-host__presenter-start-offer-icon"
+                      aria-hidden="true"
+                    />
+                    <div class="session-host__presenter-start-offer-body">
+                      <h2
+                        id="host-presenter-start-offer-title"
+                        class="session-host__presenter-start-offer-title"
+                        i18n="@@sessionHost.presenterStartOfferTitle"
+                      >
+                        Quiz gestartet
+                      </h2>
+                    </div>
+                    <div class="session-host__presenter-start-offer-actions">
+                      <button
+                        mat-flat-button
+                        type="button"
+                        class="session-host__presenter-cta"
+                        data-testid="host-presenter-start-offer-open"
+                        [disabled]="presenterNavigationPending()"
+                        [disabledInteractive]="true"
+                        [attr.aria-busy]="presenterNavigationPending()"
+                        (click)="openPresenterViewFromStartOffer()"
+                      >
+                        <app-presenter-icon matButtonIcon />
+                        <span>{{ presenterViewActionLabel() }}</span>
+                      </button>
+                      <button
+                        mat-button
+                        type="button"
+                        data-testid="host-presenter-start-offer-dismiss"
+                        (click)="dismissPresenterStartOffer()"
+                        i18n="@@sessionHost.presenterStartOfferDismiss"
+                      >
+                        Im Host bleiben
+                      </button>
+                    </div>
+                  </section>
+                }
                 <mat-card
                   appearance="outlined"
                   class="session-host__question-card"
@@ -5678,7 +5725,8 @@
       activeChannel() === 'quiz' &&
       effectiveStatus() !== 'FINISHED' &&
       showHostViewControls() &&
-      projectionControlsOffered()
+      projectionControlsOffered() &&
+      !showPresenterStartOffer()
     ) {
       <div class="session-host__quiz-tools">
         <section
@@ -5733,39 +5781,6 @@
           </mat-menu>
         }
       }
-      @if (
-        showQuizAnchorActions() &&
-        (effectiveStatus() === 'QUESTION_OPEN' || effectiveStatus() === 'ACTIVE') &&
-        !quizStartQuestionPending() &&
-        hasCurrentQuizQuestionForHost()
-      ) {
-        <button
-          mat-menu-item
-          type="button"
-          (click)="pendingHostMoreAction.set('skip')"
-          [disabled]="controlPending()"
-          aria-label="Aktuelle Frage auslassen"
-          i18n-aria-label="@@sessionHost.skipQuestionAria"
-        >
-          <mat-icon aria-hidden="true">skip_next</mat-icon>
-          <span i18n="@@sessionHost.skipQuestion">Frage auslassen</span>
-        </button>
-      }
-      @if (
-        showQuizAnchorActions() &&
-        ['QUESTION_OPEN', 'ACTIVE', 'RESULTS', 'DISCUSSION'].includes(effectiveStatus() ?? '') &&
-        canShowPreviousResultAnchor()
-      ) {
-        <button
-          mat-menu-item
-          type="button"
-          (click)="pendingHostMoreAction.set('previous')"
-          [disabled]="controlPending()"
-        >
-          <mat-icon aria-hidden="true">arrow_back</mat-icon>
-          <span i18n="@@sessionHost.prevQuestionAnchor">Letztes Ergebnis erneut anzeigen</span>
-        </button>
-      }
       @if (canReplaceQuizBeforeStart()) {
         <button
           mat-menu-item
@@ -5775,6 +5790,17 @@
         >
           <mat-icon aria-hidden="true">quiz</mat-icon>
           <span i18n="@@sessionHost.replaceQuizBeforeStart">Quiz wechseln</span>
+        </button>
+      }
+      @if (canManagePairedHosts()) {
+        <button
+          mat-menu-item
+          type="button"
+          data-testid="host-smartphone-remote-action"
+          (click)="pendingHostMoreAction.set('smartphoneRemote')"
+        >
+          <mat-icon aria-hidden="true">devices</mat-icon>
+          <span i18n="@@hostPairing.remoteAction">Smartphone als Fernbedienung</span>
         </button>
       }
       @if (keepQaOpenOnHostLeave()) {
@@ -6030,6 +6056,29 @@
               </p>
             }
           </div>
+        }
+        @if (
+          showQuizAnchorActions() &&
+          !earlierQuizResult() &&
+          (effectiveStatus() === 'QUESTION_OPEN' || effectiveStatus() === 'ACTIVE') &&
+          !quizStartQuestionPending() &&
+          hasCurrentQuizQuestionForHost()
+        ) {
+          <button
+            matButton="tonal"
+            type="button"
+            class="session-host__exit-anchor-button"
+            data-testid="host-quiz-skip-question"
+            aria-keyshortcuts="S"
+            [disabled]="controlPending()"
+            [disabledInteractive]="true"
+            (click)="skipQuestion()"
+            aria-label="Aktuelle Frage auslassen"
+            i18n-aria-label="@@sessionHost.skipQuestionAria"
+          >
+            <span i18n="@@sessionHost.skipQuestion">Frage auslassen</span>
+            <kbd class="session-host__shortcut" aria-hidden="true">S</kbd>
+          </button>
         }
         @if (
           showQuizAnchorActions() &&

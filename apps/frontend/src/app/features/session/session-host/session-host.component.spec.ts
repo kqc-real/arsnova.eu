@@ -33,6 +33,7 @@ import {
 } from '../../../core/host-recovery-access';
 import { ConfirmLeaveDialogComponent } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
+import { HostPairingDialogComponent } from '../host-pairing/host-pairing-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -3602,6 +3603,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       PresentationStartDialogComponent,
       expect.objectContaining({
+        autoFocus: '.presentation-start-dialog__primary',
         panelClass: 'presentation-start-dialog-panel',
         backdropClass: 'presentation-start-dialog-backdrop',
         data: expect.objectContaining({
@@ -3611,6 +3613,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     expect(fixture.nativeElement.querySelector('[data-testid="connect-smartphone"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('öffnet den Presenter aus dem Startangebot direkt ohne zweiten Dialog', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    dialogOpenMock.mockClear();
+
+    await component.openPresenterViewFromStartOffer();
+
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledExactlyOnceWith('/session/ABC123/present');
+    expect(component.presenterNavigationPending()).toBe(false);
     fixture.destroy();
   });
 
@@ -16988,6 +17006,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       1,
     );
     expect(buttonTexts).toEqual([
+      'Frage auslassenS',
       'Diskussionsphase',
       'Ergebnis trotzdem zeigen',
       'Weitere Aktionen',
@@ -17879,7 +17898,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       1,
     );
-    expect(buttonTexts).toEqual(['Antwortphase starten', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Frage auslassenS', 'Antwortphase starten', 'Weitere Aktionen']);
     expect(
       exitAnchor.querySelector('.session-host__exit-anchor-label--reveal-options-compact')
         ?.textContent,
@@ -17926,8 +17945,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Antwortphase starten');
+    expect(host.querySelector('[data-testid="host-quiz-skip-question"]')).not.toBeNull();
     const { menu } = await openHostMoreActions(fixture);
-    expect(menu.textContent).toContain('Frage auslassen');
+    expect(menu.textContent).not.toContain('Frage auslassen');
     fixture.debugElement
       .query(By.css('[data-testid="host-more-actions"]'))
       .injector.get(MatMenuTrigger)
@@ -17965,8 +17985,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     expect(host.textContent).toContain('Antwortphase starten');
-    const reopened = await openHostMoreActions(fixture);
-    expect(reopened.menu.textContent).toContain('Frage auslassen');
+    expect(host.querySelector('[data-testid="host-quiz-skip-question"]')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -18066,27 +18085,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
-    const { trigger, menu } = await openHostMoreActions(fixture);
-    const skipButton = menu.querySelector<HTMLButtonElement>(
-      'button[aria-label="Aktuelle Frage auslassen"]',
+    const host = fixture.nativeElement as HTMLElement;
+    const skipButton = host.querySelector<HTMLButtonElement>(
+      '[data-testid="host-quiz-skip-question"]',
     );
     expect(skipButton).not.toBeNull();
+    expect(skipButton?.getAttribute('aria-keyshortcuts')).toBe('S');
+    expect(skipButton?.querySelector('mat-icon')).toBeNull();
+    expect(skipButton?.querySelector('kbd')?.textContent).toBe('S');
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(false) });
     skipButton!.focus();
-    skipButton!.click();
+    const input = document.createElement('input');
+    host.append(input);
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 's', bubbles: true, repeat: true }),
+    );
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    const otherAction = document.createElement('button');
+    host.append(otherAction);
+    otherAction.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    skipButton!.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    await vi.waitUntil(
-      () => document.querySelector('.cdk-overlay-container [role="menu"]') === null,
-      {
-        timeout: 1000,
-        interval: 10,
-      },
-    );
-    expect(document.activeElement).toBe(trigger);
-    expect(trigger.isConnected).toBe(true);
-    expect(getComputedStyle(trigger).display).not.toBe('none');
+    expect(document.activeElement).toBe(skipButton);
+    expect(skipButton?.isConnected).toBe(true);
+    expect(getComputedStyle(skipButton!).display).not.toBe('none');
     expect(skipQuestionMutateMock).not.toHaveBeenCalled();
 
     await fixture.componentInstance.skipQuestion();
@@ -18097,6 +18126,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
+        autoFocus: '.confirm-leave__confirm',
         restoreFocus: false,
         data: expect.objectContaining({
           message:
@@ -18112,10 +18142,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(questionCard?.getAttribute('tabindex')).toBe('-1');
 
     skipQuestionMutateMock.mockRejectedValueOnce(new Error('offline'));
-    const retryMenu = await openHostMoreActions(fixture);
-    retryMenu.menu
-      .querySelector<HTMLButtonElement>('button[aria-label="Aktuelle Frage auslassen"]')!
-      .click();
+    host.querySelector<HTMLButtonElement>('[data-testid="host-quiz-skip-question"]')!.click();
     await vi.waitUntil(() => fixture.componentInstance.hostSteeringCallout() !== null, {
       timeout: 1000,
       interval: 10,
@@ -18154,6 +18181,34 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(skipQuestionMutateMock).not.toHaveBeenCalled();
     expect(prevQuestionMutateMock).not.toHaveBeenCalled();
     expect(endMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('öffnet die Smartphone-Fernbedienung über Weitere Aktionen', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const { menu } = await openHostMoreActions(fixture);
+    const action = menu.querySelector<HTMLButtonElement>(
+      '[data-testid="host-smartphone-remote-action"]',
+    );
+    expect(action?.textContent).toContain('Smartphone als Fernbedienung');
+    expect(action?.querySelector('mat-icon')?.textContent?.trim()).toBe('devices');
+
+    action!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      HostPairingDialogComponent,
+      expect.objectContaining({
+        data: { code: 'ABC123', screenVisibility: 'PROJECTED' },
+        autoFocus: 'first-tabbable',
+        restoreFocus: true,
+      }),
+    );
     fixture.destroy();
   });
 
@@ -20241,18 +20296,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       trigger!.click();
       fixture.detectChanges();
       expect(document.querySelector('.cdk-overlay-container [role="menu"]')).toBeNull();
-      const skip = vi.spyOn(component, 'skipQuestion').mockResolvedValue(undefined);
-      const previous = vi.spyOn(component, 'prevQuestion').mockResolvedValue(undefined);
       const replace = vi.spyOn(component, 'replaceQuizBeforeStart').mockResolvedValue(undefined);
       const leave = vi.spyOn(component, 'onLeaveHostKeepingQaOpen').mockResolvedValue(undefined);
       const end = vi.spyOn(component, 'onSessionEndAnchorClick').mockResolvedValue(undefined);
-      for (const action of ['skip', 'previous', 'replace', 'leave', 'end'] as const) {
+      for (const action of ['replace', 'leave', 'end'] as const) {
         component.pendingHostMoreAction.set(action);
         component.runHostMoreAction();
         expect(component.pendingHostMoreAction()).toBeNull();
       }
-      expect(skip).not.toHaveBeenCalled();
-      expect(previous).not.toHaveBeenCalled();
       expect(replace).not.toHaveBeenCalled();
       expect(leave).not.toHaveBeenCalled();
       expect(end).not.toHaveBeenCalled();
@@ -20649,7 +20700,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       1,
     );
-    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Frage auslassenS', 'Ergebnis zeigen', 'Weitere Aktionen']);
     expect(exitAnchor.querySelector('.session-host__exit-anchor-button--skip')).toBeNull();
     expect(exitAnchor.querySelector('[data-testid="host-more-actions"]')).not.toBeNull();
     expect(exitAnchor.querySelector('.session-host__exit-anchor-button--primary')).not.toBeNull();
@@ -21106,7 +21157,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
 
     expect(text).not.toContain('Peer Instruction empfohlen');
-    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Frage auslassenS', 'Ergebnis zeigen', 'Weitere Aktionen']);
     fixture.destroy();
   });
 
@@ -22487,11 +22538,93 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const revealButton = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
     ).find((button) => (button.textContent ?? '').includes('Antwortphase starten'));
+    const presenterOffer = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '[data-testid="host-presenter-start-offer"]',
+    );
+    const presenterOfferCta = presenterOffer?.querySelector<HTMLButtonElement>(
+      '[data-testid="host-presenter-start-offer-open"]',
+    );
     expect(component.quizStartQuestionPending()).toBe(false);
     expect(revealButton).toBeTruthy();
     expect(revealButton?.disabled).toBe(false);
+    expect(presenterOffer?.textContent).toContain('Quiz gestartet');
+    expect(presenterOffer?.textContent).not.toContain('Möchtest du');
+    expect(presenterOfferCta?.textContent).toContain('Präsentationsansicht öffnen');
+    expect(presenterOfferCta?.querySelector('app-presenter-icon')).not.toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="open-presenter-view"]'),
+    ).toBeNull();
+    expect(document.activeElement).toBe(presenterOfferCta);
+
+    const openFromOffer = vi
+      .spyOn(component, 'openPresenterViewFromStartOffer')
+      .mockResolvedValue();
+    presenterOfferCta?.click();
+    expect(openFromOffer).toHaveBeenCalledOnce();
+    openFromOffer.mockRestore();
+
+    presenterOffer
+      ?.querySelector<HTMLButtonElement>('[data-testid="host-presenter-start-offer-dismiss"]')
+      ?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="host-presenter-start-offer"]',
+      ),
+    ).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="open-presenter-view"]'),
+    ).not.toBeNull();
+    expect(document.activeElement).toBe(revealButton);
     fixture.destroy();
   });
+
+  it.each(['bereits gestartet', 'kompakter Viewport'] as const)(
+    'bietet den Presenter nach Quizstart nicht an: %s',
+    async (reason) => {
+      const loadedQuestion = {
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 1,
+        text: 'Welche Antwort ist richtig?',
+        type: 'SINGLE_CHOICE' as const,
+        currentRound: 1,
+        timer: null,
+        answers: [],
+        totalVotes: 0,
+      };
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
+      nextQuestionMutateMock.mockResolvedValue({
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        currentRound: 1,
+      });
+      getCurrentQuestionForHostQueryMock.mockResolvedValue(loadedQuestion);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      if (reason === 'bereits gestartet') {
+        fixture.componentInstance.presentationStarted.set(true);
+      } else {
+        fixture.componentInstance.showPresenterViewButton.set(false);
+      }
+
+      await fixture.componentInstance.nextQuestion();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector(
+          '[data-testid="host-presenter-start-offer"]',
+        ),
+      ).toBeNull();
+      fixture.destroy();
+    },
+  );
 
   it('haelt die Lobby-Teamkarten stabil, waehrend eine spaetere Startfrage nachlaedt', async () => {
     const loadedQuestion = {
@@ -22899,12 +23032,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await Promise.resolve();
       await fixture.whenStable();
       fixture.detectChanges();
+      await Promise.resolve();
 
       const hostAfterRetry = fixture.nativeElement as HTMLElement;
-      expect(getCurrentQuestionForHostQueryMock).toHaveBeenCalledTimes(refreshCallsBeforeStart + 2);
+      const presenterOfferCta = hostAfterRetry.querySelector<HTMLButtonElement>(
+        '[data-testid="host-presenter-start-offer-open"]',
+      );
+      expect(getCurrentQuestionForHostQueryMock.mock.calls.length).toBeGreaterThanOrEqual(
+        refreshCallsBeforeStart + 2,
+      );
       expect(component.quizStartQuestionPending()).toBe(false);
       expect(component.showLobbyStage()).toBe(false);
       expect(hostAfterRetry.textContent ?? '').toContain('Welche Antwort ist richtig?');
+      expect(presenterOfferCta).not.toBeNull();
+      expect(document.activeElement).toBe(presenterOfferCta);
     } finally {
       fixture.destroy();
       vi.useRealTimers();
@@ -22958,7 +23099,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('ordnet beim Ergebnis Rückblick und Sessionende im Menü neben Nächste Frage ein', async () => {
+  it('zeigt beim Ergebnis den Rückblick direkt und nicht zusätzlich im Menü', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'RESULTS',
@@ -23027,12 +23168,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(buttonTexts).toEqual(['Vorheriges Ergebnis', 'Nächste Frage', 'Weitere Aktionen']);
 
     const { menu } = await openHostMoreActions(fixture);
-    const previousButton = Array.from(menu.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Letztes Ergebnis erneut anzeigen'),
-    );
-    expect(previousButton?.getAttribute('role')).toBe('menuitem');
-    expect(previousButton?.textContent).toContain('Letztes Ergebnis erneut anzeigen');
     expect(menu.textContent).toContain('Session beenden');
+    expect(menu.textContent).not.toContain('Letztes Ergebnis');
     expect(menu.textContent).not.toContain('Frage auslassen');
     fixture.destroy();
   });
@@ -23204,7 +23341,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt über das Host-Menü ein früheres Ergebnis lokal, ohne die laufende Session umzuschalten', async () => {
+  it('zeigt über den direkten Host-Button ein früheres Ergebnis lokal, ohne die laufende Session umzuschalten', async () => {
     const freetextQuestion = {
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 1,
@@ -23267,11 +23404,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
-    const initialMenu = await openHostMoreActions(fixture);
-    expect(initialMenu.menu.textContent).toContain('Letztes Ergebnis erneut anzeigen');
-    const previousItem = Array.from(initialMenu.menu.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Letztes Ergebnis erneut anzeigen'),
+    const previousItem = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '[data-testid="host-quiz-history-previous"]',
     );
+    expect(previousItem?.textContent).toContain('Vorheriges Ergebnis');
     previousItem!.click();
     await fixture.whenStable();
     fixture.detectChanges();

@@ -130,6 +130,11 @@ import {
 } from './qa-channel-configuration-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
 import {
+  HostPairingDialogComponent,
+  type HostPairingDialogData,
+  type HostPairingDialogResult,
+} from '../host-pairing/host-pairing-dialog.component';
+import {
   collectModerationFeedbackDecision,
   createQuizHistoryAccessProof,
   resolveNumericEstimateToleranceMode,
@@ -881,6 +886,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
   readonly presentationStarted = signal(this.presentationState.hasStarted(this.code));
+  private readonly presenterStartOfferRequested = signal(false);
+  private readonly presenterStartOfferDismissed = signal(
+    this.presentationState.hasDismissedStartOffer(this.code),
+  );
   private readonly lastHostView = this.presentationState.hostView(this.code);
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
   private readonly requestedQaCreateSetup =
@@ -1874,7 +1883,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    'skip' | 'previous' | 'replace' | 'leave' | 'feedback' | 'end' | 'restoreWord' | null
+    'replace' | 'leave' | 'feedback' | 'end' | 'restoreWord' | 'smartphoneRemote' | null
   >(null);
   private pendingWordToRestore: { questionId: string; label: string } | null = null;
 
@@ -1892,12 +1901,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     )
       return;
     switch (action) {
-      case 'skip':
-        void this.skipQuestion();
-        break;
-      case 'previous':
-        void this.stepQuizHistory('previous');
-        break;
       case 'replace':
         void this.replaceQuizBeforeStart();
         break;
@@ -1912,6 +1915,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'end':
         void this.onSessionEndAnchorClick();
         break;
+      case 'smartphoneRemote':
+        this.openSmartphoneRemote();
+        break;
       case 'restoreWord':
         if (
           wordToRestore &&
@@ -1921,6 +1927,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         }
         break;
     }
+  }
+
+  private openSmartphoneRemote(): void {
+    if (!this.canManagePairedHosts()) return;
+    const ref = this.dialog.open<
+      HostPairingDialogComponent,
+      HostPairingDialogData,
+      HostPairingDialogResult
+    >(HostPairingDialogComponent, {
+      data: {
+        code: this.code.toUpperCase(),
+        screenVisibility: 'PROJECTED',
+      },
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      panelClass: 'host-pairing-dialog-panel',
+      backdropClass: 'host-pairing-dialog-backdrop',
+    });
+    ref.afterClosed().subscribe(() => void this.refreshPairedHostStatus());
   }
 
   private readonly freetextVisibility = new FreetextWordCloudVisibilityState();
@@ -2008,6 +2033,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * damit SSR/Hydration denselben DOM behalten. Tablets und Desktop bleiben sichtbar.
    */
   readonly showPresenterViewButton = signal(true);
+  readonly showPresenterStartOffer = computed(
+    () =>
+      this.presenterStartOfferRequested() &&
+      !this.presenterStartOfferDismissed() &&
+      !this.presentationStarted() &&
+      this.showPresenterViewButton() &&
+      this.activeChannel() === 'quiz' &&
+      !this.quizStartQuestionPending() &&
+      this.displayedCurrentQuestionForHost() !== null &&
+      (this.effectiveStatus() === 'QUESTION_OPEN' || this.effectiveStatus() === 'ACTIVE'),
+  );
   /** Technische Projektionsaktionen werden nur ab Tabletgröße angeboten. */
   readonly projectionControlsOffered = computed(() => this.showPresenterViewButton());
   private presenterDesktopMediaQuery: MediaQueryList | null = null;
@@ -4388,6 +4424,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    let presenterStartOfferFocusScheduled = false;
+    effect(() => {
+      if (!this.showPresenterStartOffer()) {
+        presenterStartOfferFocusScheduled = false;
+        return;
+      }
+      if (presenterStartOfferFocusScheduled) return;
+      presenterStartOfferFocusScheduled = true;
+      untracked(() => this.focusPresenterStartOfferAfterRender());
+    });
     let historyPhaseWasAvailable = false;
     effect(() => {
       const historyPhaseAvailable = this.quizHistoryPhaseAvailable();
@@ -5647,8 +5693,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   onDocumentArrowKeydown(event: KeyboardEvent): void {
     const { key, target } = event;
+    const shortcutKey = key.length === 1 ? key.toUpperCase() : key;
     if (
-      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(key) ||
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'S'].includes(shortcutKey) ||
       event.defaultPrevented ||
       event.isComposing ||
       event.altKey ||
@@ -5662,8 +5709,25 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const root = this.hostElement.nativeElement;
+    if (shortcutKey === 'S') {
+      const action = root.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="S"]');
+      if (
+        !action ||
+        this.document.activeElement !== action ||
+        event.repeat ||
+        action.disabled ||
+        action.getAttribute('aria-disabled') === 'true' ||
+        action.closest('[inert]')
+      ) {
+        return;
+      }
+      event.preventDefault();
+      action.click();
+      return;
+    }
     const historyPageArrow =
-      (key === 'ArrowUp' || key === 'ArrowDown') && this.earlierQuizResult() !== null;
+      (shortcutKey === 'ArrowUp' || shortcutKey === 'ArrowDown') &&
+      this.earlierQuizResult() !== null;
     if (target instanceof Element && target !== this.document.body) {
       if (
         target.closest(
@@ -5682,12 +5746,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (historyPageArrow && this.historyPage().count > 1) {
       event.preventDefault();
       if (!event.repeat) {
-        this.changeHistoryPage(key === 'ArrowUp' ? -1 : 1);
+        this.changeHistoryPage(shortcutKey === 'ArrowUp' ? -1 : 1);
       }
       return;
     }
 
-    const action = root.querySelector<HTMLButtonElement>(`button[aria-keyshortcuts="${key}"]`);
+    const action = root.querySelector<HTMLButtonElement>(
+      `button[aria-keyshortcuts="${shortcutKey}"]`,
+    );
     if (action) {
       event.preventDefault();
       if (
@@ -5705,7 +5771,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (key !== 'ArrowUp' && key !== 'ArrowDown') {
+    if (shortcutKey !== 'ArrowUp' && shortcutKey !== 'ArrowDown') {
       return;
     }
     const scroller = [
@@ -5718,7 +5784,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (!scroller) return;
     event.preventDefault();
     scroller.scrollBy({
-      top: key === 'ArrowUp' ? -48 : 48,
+      top: shortcutKey === 'ArrowUp' ? -48 : 48,
       behavior: 'instant',
     });
   }
@@ -6967,6 +7033,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async openPresenterView(allowCompactViewport = false): Promise<void> {
+    await this.navigateToPresenter({ allowCompactViewport, confirmStart: true });
+  }
+
+  async openPresenterViewFromStartOffer(): Promise<void> {
+    await this.navigateToPresenter({ allowCompactViewport: false, confirmStart: false });
+  }
+
+  private async navigateToPresenter(options: {
+    allowCompactViewport: boolean;
+    confirmStart: boolean;
+  }): Promise<void> {
+    const { allowCompactViewport, confirmStart } = options;
     if (
       !this.code ||
       (!allowCompactViewport && !this.showPresenterViewButton()) ||
@@ -6988,7 +7066,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
     };
     try {
-      if (!this.presentationStarted()) {
+      if (!this.presentationStarted() && confirmStart) {
         const decision = await firstValueFrom(
           this.dialog
             .open(PresentationStartDialogComponent, {
@@ -6997,7 +7075,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
                 phoneAlreadyConnected: this.pairedHostConnected(),
                 requestFullscreen,
               },
-              autoFocus: 'first-tabbable',
+              autoFocus: '.presentation-start-dialog__primary',
               restoreFocus: true,
               panelClass: 'presentation-start-dialog-panel',
               backdropClass: 'presentation-start-dialog-backdrop',
@@ -7006,7 +7084,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         );
         if (decision !== 'start') return;
       } else if (!allowCompactViewport) {
-        // Request fullscreen while the presentation button's user activation is still available.
+        // Request fullscreen while the explicit presentation action still has user activation.
         requestFullscreen();
       }
 
@@ -7048,6 +7126,39 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.presenterNavigationPending.set(false);
       if (!this.destroyRef.destroyed) void this.refreshPairedHostStatus();
     }
+  }
+
+  dismissPresenterStartOffer(): void {
+    this.presentationState.dismissStartOffer(this.code);
+    this.presenterStartOfferDismissed.set(true);
+    this.presenterStartOfferRequested.set(false);
+    afterNextRender(() => this.focusHostQuizPhaseAction(), { injector: this.injector });
+  }
+
+  private offerPresenterAfterQuizStart(): boolean {
+    if (
+      this.presentationStarted() ||
+      this.presenterStartOfferDismissed() ||
+      !this.showPresenterViewButton()
+    ) {
+      return false;
+    }
+    this.presenterStartOfferRequested.set(true);
+    return this.showPresenterStartOffer();
+  }
+
+  private focusPresenterStartOfferAfterRender(): void {
+    queueMicrotask(() => {
+      if (this.destroyRef.destroyed || !this.showPresenterStartOffer()) return;
+      const root = this.hostElement.nativeElement;
+      const offer = root.querySelector<HTMLElement>('[data-testid="host-presenter-start-offer"]');
+      const cta = root.querySelector<HTMLButtonElement>(
+        '[data-testid="host-presenter-start-offer-open"]',
+      );
+      if (!offer?.isConnected || !cta?.isConnected) return;
+      scrollIntoAppMain(offer, { block: 'nearest' });
+      cta.focus({ preventScroll: true });
+    });
   }
 
   private showPresenterNavigationError(): void {
@@ -13366,9 +13477,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.startCountdown(refreshedTimer ?? result.timer, result.activeAt);
         }
       }
+      const presenterOffered = startingQuizFromLobby && this.offerPresenterAfterQuizStart();
       if (result.status === 'FINISHED') {
         this.scrollHostFinishedIntoView();
-      } else {
+      } else if (!presenterOffered) {
         this.scrollHostTargetIntoView(this.hostQuestionCardRef);
       }
     } catch {
@@ -13415,7 +13527,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       } satisfies ConfirmLeaveDialogData,
       width: 'min(26rem, calc(100vw - 1.5rem))',
       maxWidth: '100vw',
-      autoFocus: 'dialog',
+      autoFocus: '.confirm-leave__confirm',
       restoreFocus: false,
     });
     if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {

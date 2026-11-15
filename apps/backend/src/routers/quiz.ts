@@ -469,7 +469,7 @@ export const quizRouter = router({
                 categorizationShuffleItems:
                   q.type === 'CATEGORIZATION' ? (q.categorizationShuffleItems ?? true) : true,
                 shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(q.type)
-                  ? (q.shuffleAnswerOptions ?? true)
+                  ? (input.shuffleAnswerOptions ?? q.shuffleAnswerOptions ?? true)
                   : true,
                 answers: {
                   create: q.answers.map((a, index) => ({
@@ -498,6 +498,12 @@ export const quizRouter = router({
 
       if (historyScopeId) {
         const legacyAccessProof = await createLegacyQuizHistoryAccessProof(input);
+        const { shuffleAnswerOptions: _globalShuffleAnswerOptions, ...legacyQuestionSettings } =
+          input;
+        const legacyQuestionSettingsAccessProof =
+          _globalShuffleAnswerOptions === undefined
+            ? legacyAccessProof
+            : await createLegacyQuizHistoryAccessProof(legacyQuestionSettings);
         const legacyCandidates = await prisma.quiz.findMany({
           where: {
             name: input.name,
@@ -589,7 +595,10 @@ export const quizRouter = router({
           const candidateProof = await createLegacyQuizHistoryAccessProof(
             buildQuizUploadPayloadFromStoredQuiz(candidate),
           );
-          if (candidateProof === legacyAccessProof) {
+          if (
+            candidateProof === legacyAccessProof ||
+            candidateProof === legacyQuestionSettingsAccessProof
+          ) {
             matchingLegacyQuizIds.push(candidate.id);
           }
         }

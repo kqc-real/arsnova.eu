@@ -323,6 +323,7 @@ type QuizSettingsFormGroup = FormGroup<{
   showQuestionTypeIndicators: FormControl<boolean>;
   anonymousMode: FormControl<boolean>;
   readingPhaseEnabled: FormControl<boolean>;
+  shuffleAnswerOptions: FormControl<boolean>;
   teamMode: FormControl<boolean>;
   teamCount: FormControl<number | null>;
   teamAssignment: FormControl<TeamAssignment>;
@@ -734,7 +735,7 @@ export class QuizEditComponent implements OnDestroy {
     }),
     matchingPairs: this.formBuilder.array<MatchingPairFormGroup>([]),
     matchingShuffleRight: this.formBuilder.control(true),
-    shuffleAnswerOptions: this.formBuilder.control(true),
+    shuffleAnswerOptions: this.formBuilder.control(false),
     orderingItems: this.formBuilder.array<OrderingItemFormGroup>([]),
     categories: this.formBuilder.array<CategorizationCategoryFormGroup>([]),
     categorizationItems: this.formBuilder.array<CategorizationItemFormGroup>([]),
@@ -756,6 +757,7 @@ export class QuizEditComponent implements OnDestroy {
     showQuestionTypeIndicators: this.formBuilder.control(true),
     anonymousMode: this.formBuilder.control(false),
     readingPhaseEnabled: this.formBuilder.control(false),
+    shuffleAnswerOptions: this.formBuilder.control(false),
     teamMode: this.formBuilder.control(false),
     teamCount: this.formBuilder.control<number | null>(DEFAULT_TEAM_COUNT, {
       validators: [Validators.min(2), Validators.max(8)],
@@ -2969,6 +2971,7 @@ export class QuizEditComponent implements OnDestroy {
         enableEmojiReactions: settings.enableEmojiReactions,
         showQuestionTypeIndicators: settings.showQuestionTypeIndicators,
         readingPhaseEnabled: settings.readingPhaseEnabled,
+        shuffleAnswerOptions: settings.shuffleAnswerOptions,
         teamMode: settings.teamMode,
         teamCount: settings.teamCount ?? DEFAULT_TEAM_COUNT,
         teamAssignment: settings.teamAssignment,
@@ -3011,6 +3014,7 @@ export class QuizEditComponent implements OnDestroy {
         ? (this.settingsForm.controls.bonusTokenCount.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
       readingPhaseEnabled: this.settingsForm.controls.readingPhaseEnabled.value,
+      shuffleAnswerOptions: this.settingsForm.controls.shuffleAnswerOptions.value,
       preset: this.settingsForm.controls.preset.value,
     };
   }
@@ -3083,6 +3087,7 @@ export class QuizEditComponent implements OnDestroy {
           ? settings.bonusTokenCount
           : null,
       readingPhaseEnabled: settings.readingPhaseEnabled ?? true,
+      shuffleAnswerOptions: settings.shuffleAnswerOptions ?? false,
       preset: settings.preset ?? 'PLAYFUL',
     };
   }
@@ -3556,7 +3561,7 @@ export class QuizEditComponent implements OnDestroy {
           }
         : {}),
       ...(this.shufflesParticipantChoiceAnswers()
-        ? { shuffleAnswerOptions: this.form.controls.shuffleAnswerOptions.value }
+        ? { shuffleAnswerOptions: this.settingsForm.controls.shuffleAnswerOptions.value }
         : {}),
       ...(this.isMatchingType()
         ? {
@@ -3719,7 +3724,7 @@ export class QuizEditComponent implements OnDestroy {
           }
         : {}),
       ...(questionShufflesParticipantChoiceAnswers(question.type)
-        ? { shuffleAnswerOptions: question.shuffleAnswerOptions ?? true }
+        ? { shuffleAnswerOptions: this.settingsForm.controls.shuffleAnswerOptions.value }
         : {}),
     };
   }
@@ -3734,7 +3739,9 @@ export class QuizEditComponent implements OnDestroy {
       this.createMatchingPairArray(question.matchingPairs ?? []),
     );
     this.form.controls.matchingShuffleRight.setValue(question.matchingShuffleRight ?? true);
-    this.form.controls.shuffleAnswerOptions.setValue(question.shuffleAnswerOptions ?? true);
+    this.form.controls.shuffleAnswerOptions.setValue(
+      this.settingsForm.controls.shuffleAnswerOptions.value,
+    );
     this.form.setControl(
       'orderingItems',
       this.createOrderingItemArray(question.orderingItems ?? []),
@@ -3880,7 +3887,7 @@ export class QuizEditComponent implements OnDestroy {
       matchingShuffleRight:
         draft.type === 'MATCHING' ? (draft.matchingShuffleRight ?? true) : undefined,
       shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(draft.type)
-        ? (draft.shuffleAnswerOptions ?? true)
+        ? this.settingsForm.controls.shuffleAnswerOptions.value
         : undefined,
       orderingItems: draft.type === 'ORDERING' ? (draft.orderingItems ?? undefined) : undefined,
       categories: draft.type === 'CATEGORIZATION' ? (draft.categories ?? undefined) : undefined,
@@ -3900,7 +3907,9 @@ export class QuizEditComponent implements OnDestroy {
     this.form.setControl('answers', this.createAnswerArrayForType(type));
     this.resetStructuredFieldsForType(type);
     this.form.controls.matchingShuffleRight.reset(true);
-    this.form.controls.shuffleAnswerOptions.reset(true);
+    this.form.controls.shuffleAnswerOptions.reset(
+      this.settingsForm.controls.shuffleAnswerOptions.value,
+    );
     this.form.controls.categorizationShuffleItems.reset(true);
     this.form.controls.ratingMin.reset(1);
     this.form.controls.ratingMax.reset(5);

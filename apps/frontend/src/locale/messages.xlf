@@ -11817,11 +11817,11 @@
           <context context-type="linenumber">566,568</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizEdit.shuffleAnswerOptions" datatype="html">
+      <trans-unit id="quizSettings.shuffleAnswerOptions" datatype="html">
         <source>Antwortoptionen auf den Geräten der Teilnehmenden mischen</source>
       </trans-unit>
-      <trans-unit id="quizEdit.shuffleAnswerOptionsHint" datatype="html">
-        <source>Host und Präsentation zeigen immer die Reihenfolge aus dem Editor. Ohne Mischen gilt dieselbe Reihenfolge auch für Teilnehmende.</source>
+      <trans-unit id="quizSettings.shuffleAnswerOptionsHint" datatype="html">
+        <source>Ausgeschaltet bleibt die Reihenfolge aus dem Editor für alle Single-Choice-, Multiple-Choice- und Umfragefragen erhalten. Host und Präsentation verwenden immer diese Reihenfolge.</source>
       </trans-unit>
       <trans-unit id="quizEdit.matchingShuffleRight" datatype="html">
         <source> Rechte Begriffe für jede teilnehmende Person mischen</source>
@@ -15712,6 +15712,9 @@
           <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
           <context context-type="linenumber">117,119</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostPairing.remoteAction" datatype="html">
+        <source>Smartphone als Fernbedienung</source>
       </trans-unit>
       <trans-unit id="presentationStart.cancel" datatype="html">
         <source> Abbrechen</source>
@@ -20913,6 +20916,20 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1889</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presenterStartOfferTitle" datatype="html">
+        <source>Quiz gestartet</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1812</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presenterStartOfferDismiss" datatype="html">
+        <source>Im Host bleiben</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1842</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">

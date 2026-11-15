@@ -25,6 +25,7 @@ import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import { selectFreetextLemmaDisplayEntries } from '../session-host/qa-word-cloud-theme-merge';
 import { WordCloudComponent } from './word-cloud.component';
 import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
@@ -106,6 +107,7 @@ import { sessionPresentationPath, SessionPresentationState } from './presenter-n
 import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
 import { FreetextWordCloudVisibilityState } from '../freetext-word-cloud-visibility';
 import {
+  presenterLiveVoteCount,
   presenterAllHaveVoted,
   presenterCanOpenFollowingQuestion,
   presenterOfferDiscussion,
@@ -114,6 +116,10 @@ import {
   presenterVotingClosed,
   presenterVoteProgressMatches,
 } from './presenter-quiz-controls.util';
+import {
+  ConfirmLeaveDialogComponent,
+  type ConfirmLeaveDialogData,
+} from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
@@ -789,8 +795,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   onPresenterKeydown(event: KeyboardEvent): void {
     const { key, target } = event;
+    const shortcutKey = key.length === 1 ? key.toUpperCase() : key;
     if (
-      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(key) ||
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'S'].includes(shortcutKey) ||
       event.defaultPrevented ||
       event.isComposing ||
       event.altKey ||
@@ -802,6 +809,21 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
 
     const root: HTMLElement = this.hostElement.nativeElement;
+    if (shortcutKey === 'S') {
+      const action = root.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="S"]');
+      if (
+        !action ||
+        this.document.activeElement !== action ||
+        event.repeat ||
+        action.disabled ||
+        action.getAttribute('aria-disabled') === 'true'
+      ) {
+        return;
+      }
+      event.preventDefault();
+      action.click();
+      return;
+    }
     if (target instanceof Element && target !== this.document.body) {
       if (
         target.closest(
@@ -813,7 +835,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
     }
 
-    const vertical = key === 'ArrowUp' || key === 'ArrowDown';
+    const vertical = shortcutKey === 'ArrowUp' || shortcutKey === 'ArrowDown';
     let scope: HTMLElement = root;
     if (this.showFinishProjection() && !vertical) {
       const boards = root.querySelectorAll<HTMLElement>('.session-present__board-page-controls');
@@ -827,7 +849,9 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       scope = board;
     }
 
-    const action = scope.querySelector<HTMLButtonElement>(`button[aria-keyshortcuts="${key}"]`);
+    const action = scope.querySelector<HTMLButtonElement>(
+      `button[aria-keyshortcuts="${shortcutKey}"]`,
+    );
     if (action) {
       event.preventDefault();
       if (!event.repeat && !action.disabled && action.getAttribute('aria-disabled') !== 'true') {
@@ -860,7 +884,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
     if (scroller) {
       event.preventDefault();
-      scroller.scrollBy({ top: key === 'ArrowUp' ? -48 : 48, behavior: 'instant' });
+      scroller.scrollBy({
+        top: shortcutKey === 'ArrowUp' ? -48 : 48,
+        behavior: 'instant',
+      });
     }
   }
 
@@ -919,6 +946,63 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       );
       this.adoptPresenterStatus(result);
       void this.refreshHostQuestion();
+    });
+  }
+
+  async skipPresenterQuestion(): Promise<void> {
+    const question = this.presentedQuizQuestion();
+    const status = this.session()?.status;
+    if (
+      !question?.questionId ||
+      (status !== 'QUESTION_OPEN' && status !== 'ACTIVE') ||
+      this.quizControlPending()
+    ) {
+      return;
+    }
+
+    const consequences: string[] = [];
+    if (presenterLiveVoteCount(question, this.hostVoteProgress()) > 0) {
+      consequences.push(
+        $localize`:@@sessionHost.skipQuestionDialogVotes:Bereits abgegebene Antworten werden nicht ausgewertet.`,
+      );
+    }
+    if (!this.quizCanOpenFollowingQuestion()) {
+      consequences.push(
+        $localize`:@@sessionHost.skipQuestionDialogEndsSession:Es folgt keine weitere Frage. Die Session wird beendet.`,
+      );
+    }
+
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@sessionHost.skipQuestionDialogTitle:Frage auslassen?`,
+        message: $localize`:@@sessionHost.skipQuestionDialogMessage:Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.`,
+        consequences,
+        confirmLabel: $localize`:@@sessionHost.skipQuestionConfirm:Frage auslassen`,
+        cancelLabel: $localize`:@@sessionHost.skipQuestionCancel:Frage behalten`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: '.confirm-leave__confirm',
+    });
+    if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
+      return;
+    }
+
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.skipQuestion.mutate(
+        { code: this.sessionCode, questionId: question.questionId },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+      if (result.status === 'FINISHED') {
+        this.finishBoardsResolved.set(false);
+        void this.loadPresenterLeaderboards().finally(() => {
+          if (!this.destroyRef.destroyed) {
+            this.finishBoardsResolved.set(true);
+          }
+        });
+      }
     });
   }
 

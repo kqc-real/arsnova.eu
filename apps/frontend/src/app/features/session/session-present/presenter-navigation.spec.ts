@@ -19,9 +19,12 @@ describe('Navigation zwischen Host und Presenter', () => {
     } as const;
     state.rememberHostView('abc123', preferences);
     state.markStarted('abc123');
+    state.dismissStartOffer('abc123');
     expect(state.hasStarted('ABC123')).toBe(true);
+    expect(state.hasDismissedStartOffer('ABC123')).toBe(true);
     expect(state.hostView('ABC123')).toEqual(preferences);
     expect(state.hasStarted('XYZ789')).toBe(false);
+    expect(state.hasDismissedStartOffer('XYZ789')).toBe(false);
     expect(state.hostView('XYZ789')).toBeUndefined();
   });
 
