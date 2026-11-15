@@ -48,3 +48,34 @@ test('Label bekommt ohne entsprechende Telemetrie keine erfundene Job- oder Infe
   assert.equal(r.jobs[0].jobMs, null);
   assert.equal(r.fallbackWithinBudget, null);
 });
+
+test('TCP-Flags aus tshark werden als 1/0 und True/False gleich ausgewertet', () => {
+  for (const [yes, no] of [
+    ['1', '0'],
+    ['True', 'False'],
+  ]) {
+    for (const variant of ['f1', 'f2']) {
+      const syn = `1794736800.1\t1\t192.168.150.10\t0\t\t\t\t${yes}\t${no}\n`;
+      const rst = `1794736800.2\t1\t192.168.150.20\t0\t\t\t\t${no}\t${yes}\n`;
+      const result = buildExperimentResult({
+        config: { variant, timeoutMs: 300000 },
+        driver: { auftraege: [request] },
+        log,
+        transport: syn + (variant === 'f1' ? rst : ''),
+      });
+      assert.equal(result.jobs[0].transport.connections, 1);
+      assert.equal(result.jobs[0].transport.resets, variant === 'f1' ? 1 : 0);
+      assert.equal(result.jobs[0].faultObserved, true);
+      if (variant === 'f2')
+        assert.equal(
+          buildExperimentResult({
+            config: { variant, timeoutMs: 300000 },
+            driver: { auftraege: [request] },
+            log,
+            transport: syn + rst,
+          }).jobs[0].faultObserved,
+          false,
+        );
+    }
+  }
+});

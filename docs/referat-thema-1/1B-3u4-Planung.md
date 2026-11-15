@@ -388,3 +388,108 @@ Der Server-Timer liegt dabei weit außerhalb der Testfrist, sodass normales
 Antwortende die erfolgreiche Bereinigung nicht vortäuschen kann. Auch der
 Shutdown-Test hat jetzt eine begrenzte Wartefrist. Keine neue Messreihe gestartet;
 die VM-Zugriffe dieser Korrektur waren ausschließlich lesende Prozesslisten.
+
+## Nachtrag 2026-11-15: Normalreihe vollständig, TCP-Flag-Auswertung korrigiert
+
+Die gewertete Summary-Normalreihe auf `5e758d0a` ist vollständig; Beobachtungen,
+Qualitätsgrenze und Quellen stehen im
+[Normalreihenprotokoll](evidenz/1B/2026-11-15-lauf-normal-summary.md).
+Das vorangegangene `dev-live-rss`-Ergebnis bestätigt die korrigierte RSS-Erfassung
+über das ganze Fenster. Die Normalreihe liefert die erste Referenz bei laufender
+echter Inferenz; B0/F1 und die Störreihen bleiben offen.
+
+Bei der Rohdatenprüfung fiel das `True`/`False`-Format der TCP-Flags auf.
+Die Auswertung akzeptiert jetzt zusätzlich dieses Format; Regressionstest
+zunächst rot, danach grün. Historische Rohdaten werden nicht überschrieben.
+Die normale Live-/Ressourcenmessung muss deshalb nicht wiederholt werden.
+Vor F1/F2 ist stets die korrigierte Transportauswertung lokal auf die Rohdaten
+anzuwenden; ihr Commit ist getrennt vom Ausführungscommit zu dokumentieren.
+
+Designentscheidung für die weiteren Vergleichsreihen: Ausführungsstand auf
+`5e758d0a870bc38441b60c541a6ff6f3d0662ee2` fixieren, damit identischer Treiber,
+Sampler und Störungshelfer mit der vorliegenden Normalreihe verglichen werden.
+Die TCP-Flag-Korrektur betrifft nur nachträgliche Analyse. Ein gesonderter
+Commit für Korrektur und Protokolle ersetzt den Ausführungsstand nicht;
+kommende Läufe bekommen diesen ausdrücklich als `-Commit`.
+Zunächst F1 mit einem Auftrag als Entwicklung, nur nach gesonderter Zustimmung
+zum Lauf und zum Stoppen der Runtime als Störung. Gewertete F1-Reihe erst nach
+erfolgreicher Rücknahme-/Prüfkontrolle und plausibler Transportauswertung.
+
+Verifikation der TCP-Flag-Korrektur: kombinierte Node-Labor-/Lasthelfer-Suite
+142/142 bestanden; Prettier für betroffene Skripte und Dokumente sowie
+`git diff --check` bestanden. Der Regressionstest erfasst beide Flag-Formate
+und verhindert die Einstufung eines beobachteten RST als DROP.
+Eine lokale Neuberechnung bestätigt die Verbindungserkennung in allen Aufträgen
+der Normalreihe. Es wurde kein weiterer Laborlauf und keine Störung gestartet.
+
+## Nachtrag 2026-11-15: F1-Entwicklungslauf geprüft
+
+Der von Niklas ausgeführte F1-Entwicklungslauf ist im
+[Protokoll](evidenz/1B/2026-11-15-lauf-dev-f1-summary.md) dokumentiert:
+RST und schneller extraktiver Fallback beobachtet, Messfenster vollständig,
+Containerstopp und Rücknahme im Journal, Wiederherstellung und Nachprüfungen
+bestanden. Die korrigierte TCP-Flag-Auswertung wurde ausschließlich lokal auf
+die vorhandenen Rohdaten angewendet; Originaldaten unverändert.
+
+Ein vorläufiger Vergleich des Entwicklungsfensters mit der Normalreihe zeigt
+bei Quizstimmen eine Überschreitung der 10-%-p95-Schwelle. Das wird ausdrücklich
+nicht als bestanden ausgegeben; Schwelle bleibt unverändert. Der einzelne
+Entwicklungslauf ist keine gewertete F1-Reihe und kein belastbarer Nachweis einer
+Ursache. Nächster gesondert freizugebender Lauf: F1 Summary mit zehn Aufträgen
+und Live-Fenstern auf dem fixierten Ausführungsstand `5e758d0a`, mit protokolliertem
+Containerstopp, automatischer Rücknahme und anschließenden Prüfungen.
+
+## Nachtrag 2026-11-16: Gewertete F1-Reihe vom Vortag ausgewertet
+
+Die F1-Summary-Reihe und damit die B0/F1-Referenz für folgende Störvarianten
+liegt vollständig vor. Messwerte, Quellen, Journal-Zuordnung und Urteile stehen
+im [F1-Protokoll](evidenz/1B/2026-11-15-lauf-f1-summary.md).
+H-F1 und Fallback-Frist erfüllt; Live-Fehlerfreiheit beobachtet. Beim getrennten
+Vergleich zur Normalreihe überschreitet Quizstimmen-p95 die 10-%-Schwelle.
+Das wird als Abweichung dokumentiert, ohne kausale Zuschreibung und ohne
+nachträgliche Änderung der Schwelle. H2-Vergleiche der folgenden Varianten
+verwenden zusätzlich die vorab vorgesehene B0/F1-Referenz.
+
+Nächster Versuch: F2 Summary als Entwicklung mit einem Auftrag und Live-Fenster,
+Ausführungsstand unverändert `5e758d0a`. Vorher ausdrückliche Freigabe für Lauf
+und ufw-DROP in der llm-host-VM erfragen. Die Regel betrifft ausschließlich
+app-host → llm-host:8080; SSH bleibt erreichbar. Rücknahme und Prüfungen sind
+Teil dieses Versuchs. Kein neuer Versuch wurde bei dieser Auswertung gestartet.
+
+Datumswechsel auf 2026-11-16: Vor der nächsten gewerteten Reihe wird eine neue
+Tageskalibrierung benötigt. Die F2-Entwicklungsprobe darf mit dem ausdrücklich
+angegebenen bisherigen Budget stattfinden; sie ersetzt keine Tageskalibrierung
+und wird nicht gewertet. Eine Kalibrierung ist ein eigener, vorher freizugebender Lauf.
+
+## Nachtrag 2026-11-16: F2-Entwicklungsstörung unwirksam, Korrektur nötig
+
+Der [F2-Entwicklungslauf](evidenz/1B/2026-11-16-lauf-dev-f2-summary.md) ist kein
+DROP-Nachweis: HTTP 200 und echte Inferenz beobachtet. Die Ursache wurde lesend
+und durch ufw-Trockenläufe belegt. Der Helfer akzeptierte einen erfolgreichen
+Exitcode, obwohl ufw die eingefügte Regel wegen einer bestehenden gleich
+adressierten Regel übersprang. Keine nachträgliche Umdeutung als bestandener
+F2-Versuch oder als F2/F1-Zeitverhältnis.
+
+Lokale Korrektur: Schnittstelle im Regelvertrag ergänzen, vorrangigen DROP im
+Kernel vor Treiberstart bestätigen, ufw-Ausgabe und Verifikation protokollieren,
+Rücknahme auch nach übersprungener Regel wiederholbar halten. Regressionstests
+für No-op, fehlende Kernelwirkung, erfolgreiche Rücknahme und alte Leases.
+Keine neue Störung aktiviert; zusätzliche VM-Befehle waren lesend oder `--dry-run`.
+
+Die bisherige Entscheidung, alle Versuche auf `5e758d0a` festzuhalten, wird für
+F2 durch diesen datierten Nachtrag ergänzt: Vor einer Wiederholung ist ein neuer
+committeter F2-Injektionsstand nötig. Produktionscode, Treiber, Sampler und
+Laufskript bleiben unverändert; bisherige Normal-/F1-Daten werden nicht verworfen.
+Vor einem gewerteten Vergleich ist die konkrete Versionsabweichung offenzulegen
+und die Kompatibilität zu prüfen. Der automatische Commit-Abgleich bleibt aktiv;
+ein abweichender Commit darf nicht stillschweigend als identisch behandelt werden.
+Als nächster Schritt muss Niklas die Korrektur und vorhandenen Protokolle sichern.
+Danach erneut Freigabe für eine F2-Entwicklungsprobe und ufw-Störung erfragen.
+
+Lokaler Abschlusscheck der F2-Korrektur: kombinierte Node-Labor-/Lasthelfer-Suite
+148/148 bestanden; Prettier für betroffene Skripte und Dokumente sowie
+`git diff --check` bestanden. Der Vergleich gegen `5e758d0a` zeigt unveränderte
+Dateien `lauf.sh`, `treiber.mjs`, `messfenster.mjs`, `auftraege.mjs` sowie die
+Produktions-Compose-Dateien. Änderungen betreffen F2-Injektion/-Prüfung,
+Transportauswertung, zugehörige Tests und Dokumentation. Die tatsächliche
+DROP-Wirkung des korrigierten Helfers auf der VM ist noch offen.

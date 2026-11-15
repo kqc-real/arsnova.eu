@@ -21,8 +21,8 @@ export function buildExperimentResult({ config, driver, log, transport }) {
         method,
         uri,
         status: Number(status),
-        syn: syn === '1',
-        reset: reset === '1',
+        syn: /^(1|true)$/i.test(syn ?? ''),
+        reset: /^(1|true)$/i.test(reset ?? ''),
       };
     });
   const requests = driver.auftraege ?? [];

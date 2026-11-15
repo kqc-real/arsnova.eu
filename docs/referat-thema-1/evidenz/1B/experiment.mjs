@@ -60,7 +60,7 @@ export function experimentConfig({
   };
 }
 
-export function faultCommands(variant, iface) {
+export function faultCommands(variant, iface, { f2InterfaceScoped = true } = {}) {
   if (!/^[a-zA-Z0-9_.-]{1,15}$/.test(iface)) throw new Error('Ungültige Schnittstelle.');
   if (['l1', 'l2'].includes(variant))
     return {
@@ -126,6 +126,7 @@ export function faultCommands(variant, iface) {
   if (variant === 'f2') {
     const rule = [
       'deny',
+      ...(f2InterfaceScoped ? ['in', 'on', iface] : []),
       'proto',
       'tcp',
       'from',

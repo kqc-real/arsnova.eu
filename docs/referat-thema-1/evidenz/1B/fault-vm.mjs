@@ -21,6 +21,26 @@ async function journal(dir, event) {
   );
 }
 
+function matchesF2Drop(line, iface) {
+  const args = line.trim().split(/\s+/);
+  const value = (flag) => args[args.indexOf(flag) + 1];
+  return (
+    args[0] === '-A' &&
+    args[1] === 'ufw-user-input' &&
+    !args.includes('!') &&
+    value('-i') === iface &&
+    value('-p') === 'tcp' &&
+    value('--dport') === '8080' &&
+    ['192.168.150.10', '192.168.150.10/32'].includes(value('-s')) &&
+    ['192.168.150.20', '192.168.150.20/32'].includes(value('-d')) &&
+    value('-j') === 'DROP'
+  );
+}
+const kernelInputRules = async (run) =>
+  (await run(['sudo', 'iptables', '-S', 'ufw-user-input']))
+    .split('\n')
+    .filter((line) => line.startsWith('-A ufw-user-input '));
+
 export async function applyFault({
   variant,
   delayMs = 0,
@@ -41,7 +61,15 @@ export async function applyFault({
   const plan = faultCommands(variant, iface);
   await mkdir(dirname(stateDir), { recursive: true, mode: 0o700 });
   await mkdir(stateDir, { mode: 0o700 }); // Ein vorhandenes Lease nie überschreiben.
-  const state = { version: 1, variant, iface, undoArmed: false, restoreRuntime: false, fake: null };
+  const state = {
+    version: 1,
+    variant,
+    iface,
+    undoArmed: false,
+    restoreRuntime: false,
+    fake: null,
+    ...(variant === 'f2' ? { f2RuleVersion: 2 } : {}),
+  };
   const context = { stateDir, iface, run, ensureVm, startFake, stopFake };
   await save(stateDir, state);
   try {
@@ -59,6 +87,8 @@ export async function applyFault({
       const status = await run(['sudo', 'ufw', 'status']);
       if (!status.includes('Status: active') || status.includes('arsnova-1b-experiment'))
         throw new Error('Firewall inaktiv oder eigene Regel bereits vorhanden.');
+      if ((await kernelInputRules(run)).some((line) => matchesF2Drop(line, iface)))
+        throw new Error('Vorhandene DROP-Regel wird nicht übernommen.');
     }
     if (['f1', 'l3', 'busy', 'race'].includes(variant)) {
       if ((await run(['docker', 'inspect', '-f', '{{.State.Running}}', runtime])).trim() !== 'true')
@@ -81,7 +111,21 @@ export async function applyFault({
       state.undoArmed = true;
       await save(stateDir, state);
       await journal(stateDir, { phase: 'apply', command });
-      await run(command);
+      const output = await run(command);
+      if (variant === 'f2')
+        await journal(stateDir, { phase: 'apply-result', command, output: output.trim() });
+    }
+    if (variant === 'f2') {
+      const status = await run(['sudo', 'ufw', 'status']);
+      const rules = await kernelInputRules(run);
+      if (!status.includes('arsnova-1b-experiment') || !matchesF2Drop(rules[0] ?? '', iface))
+        throw new Error('Aktive vorrangige DROP-Regel nicht bestätigt.');
+      await journal(stateDir, {
+        phase: 'verified',
+        variant,
+        kernelRule: rules[0],
+        ufwStatus: status,
+      });
     }
     await journal(stateDir, { phase: 'active', variant });
     return state;
@@ -109,7 +153,11 @@ export async function undoFault({ stateDir, run, ensureVm, stopFake }) {
     !['l1', 'l2', 'l3', 'f1', 'f2', 'busy', 'race'].includes(state.variant)
   )
     throw new Error('Ungültiges Störungs-Lease.');
-  const plan = faultCommands(state.variant, state.iface);
+  if (state.variant === 'f2' && state.f2RuleVersion !== undefined && state.f2RuleVersion !== 2)
+    throw new Error('Unbekannte F2-Regelversion.');
+  const plan = faultCommands(state.variant, state.iface, {
+    f2InterfaceScoped: state.f2RuleVersion === 2,
+  });
   if (state.fake) await stopFake(state.fake);
   if (state.undoArmed) {
     for (const command of plan.undo) {
@@ -118,6 +166,12 @@ export async function undoFault({ stateDir, run, ensureVm, stopFake }) {
       if (
         ['l1', 'l2'].includes(state.variant) &&
         !(await run(['sudo', 'tc', 'qdisc', 'show', 'dev', state.iface])).includes('1b00:')
+      )
+        continue;
+      // ufw kann insert trotz Exitcode 0 überspringen. Ohne eigene Regel nichts löschen.
+      if (
+        state.variant === 'f2' &&
+        !(await run(['sudo', 'ufw', 'status'])).includes('arsnova-1b-experiment')
       )
         continue;
       await run(command);
@@ -129,6 +183,12 @@ export async function undoFault({ stateDir, run, ensureVm, stopFake }) {
     );
     if (after.includes(state.variant === 'f2' ? 'arsnova-1b-experiment' : '1b00:'))
       throw new Error('Rücknahme nicht bestätigt.');
+    if (
+      state.variant === 'f2' &&
+      state.f2RuleVersion === 2 &&
+      (await kernelInputRules(run)).some((line) => matchesF2Drop(line, state.iface))
+    )
+      throw new Error('DROP-Regel im Kernel noch vorhanden.');
   }
   if (state.restoreRuntime) {
     await journal(stateDir, { phase: 'undo', command: ['docker', 'start', runtime] });

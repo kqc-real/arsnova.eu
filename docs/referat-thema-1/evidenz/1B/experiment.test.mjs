@@ -66,7 +66,7 @@ test('tc betrifft nur Antworten von Runtime-Port 8080 zum App-Host', () => {
   assert.throws(() => faultCommands('l2', 'eth0; reboot'));
 });
 
-test('DROP und seine Rücknahme verwenden dieselbe private Quelle und Ziel-IP', () => {
+test('DROP ist an die Eingangsschnittstelle gebunden und hat eine identische Rücknahme', () => {
   const p = faultCommands('f2', 'eth0');
   assert.deepEqual(p.apply, [
     [
@@ -75,6 +75,9 @@ test('DROP und seine Rücknahme verwenden dieselbe private Quelle und Ziel-IP', 
       'insert',
       '1',
       'deny',
+      'in',
+      'on',
+      'eth0',
       'proto',
       'tcp',
       'from',

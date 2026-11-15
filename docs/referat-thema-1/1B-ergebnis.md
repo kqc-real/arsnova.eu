@@ -64,13 +64,36 @@ H_B1–H_B3 erfüllt, daher nach der Regel aus [Design Abschnitt 6](specs/2026-1
 
 ## Schritte 3–4 (Niklas)
 
-_Gliederung, Inhalt folgt von Niklas._ Übergabe und Befehle: [Runbook, Abschnitt 8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34).
+_Aktualisiert 2026-11-16: Zwischenergebnis, Schritte 3–4 noch offen._ Übergabe und Befehle: [Runbook, Abschnitt 8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34).
 
 ### Störversuche
 
+Auf dem i7-10700K unter Hyper-V, Ausführungscommit `5e758d0a`, liegen die
+[Normalreihe](evidenz/1B/2026-11-15-lauf-normal-summary.md) und die gewertete
+[F1-/B0-Reihe](evidenz/1B/2026-11-15-lauf-f1-summary.md) für Summary vor.
+Die F1-Reihe bestätigt RST und schnellen extraktiven Fallback; Rücknahme und
+Nachprüfungen sind belegt. Die Normalreihe verwirft weiterhin sämtliche
+Modellzusammenfassungen am Qualitätstor. Weitere Störvarianten, Label-Reihen
+und der gerichtete Queue-/Breaker-Nachweis stehen aus.
+
+_Ergänzt 2026-11-16:_ Die erste
+[F2-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-f2-summary.md) ist kein
+DROP-Nachweis: ufw übersprang die Regel, die Inferenz blieb erreichbar.
+Die Aktivierungsprüfung wurde lokal korrigiert; eine wirksame F2-Reihe fehlt weiterhin.
+
 ### Rückwirkung auf den App-Host
 
+Live-Fenster und CPU/RSS sind in beiden Reihen vollständig, ohne Live-Fehler.
+Der getrennte Normal-zu-F1-Vergleich überschreitet bei Quizstimmen die
+festgelegte p95-Schwelle. Messwerte und Gültigkeitsgrenzen stehen im
+[F1-Protokoll](evidenz/1B/2026-11-15-lauf-f1-summary.md#live-last-und-app-ressourcen).
+Ein allgemeiner Isolationsgewinn ist damit noch nicht nachgewiesen; die weiteren
+Varianten werden gegen die vorab vorgesehene B0/F1-Referenz geprüft.
+
 ### Betriebsaufwand
+
+Bewertung folgt nach den Störreihen. Noch keine abschließende Entscheidung
+zum Verhältnis von Isolationsgewinn und Aufwand der zweiten Serverrolle.
 
 ## Gemeinsames Kurzfazit
 

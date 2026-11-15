@@ -160,6 +160,17 @@ Design, Schwellen und datierte Abweichungen stehen in der
   `null` bedeutet nicht beurteilbar. L1/L2-Verzögerung muss zusätzlich anhand
   Journal und Mitschnitt geprüft werden; ein konfigurierter Wert allein beweist sie nicht.
 
+_Korrigiert 2026-11-16 (F2):_ Ein ufw-Exitcode 0 bestätigt keine gesetzte
+DROP-Regel. Im ersten F2-Entwicklungstest wurde die bisherige Regel wegen einer
+bereits vorhandenen gleich adressierten Regel übersprungen; die Inferenz lief
+durch. Der korrigierte Helfer verwendet zusätzlich `in on <VM-Schnittstelle>`
+und bestätigt vor dem Treiberstart den ufw-Eintrag sowie den vorrangigen DROP in
+`ufw-user-input`. Rücknahme prüft auch die Kernelregeln. Die Korrektur ist lokal
+getestet, aber noch nicht in einem neuen Störversuch auf der VM bestätigt.
+Details und Daten im [F2-Protokoll](2026-11-16-lauf-dev-f2-summary.md).
+Für diese Korrektur ist ein neuer Ausführungscommit erforderlich; den alten
+Stand `5e758d0a` nicht erneut als wirksame F2-Störung verwenden.
+
 Historischer Übergabestand:
 
 - **Branch:** Eigene Arbeit frisch von `main` abzweigen, etwa `git fetch origin && git switch -c <eigener-branch> origin/main`. Der in #9 genannte Branch `feature-1B-private-inference-3-4` stammt vom 2026-10-23 und enthält das Labor nicht; ob er ersetzt oder ein neuer Name genutzt wird, entscheidet Niklas.
