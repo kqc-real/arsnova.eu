@@ -211,6 +211,76 @@ describe('quiz.upload (Story 2.1a)', () => {
     });
   });
 
+  it('übernimmt den Sitzungsverlauf eines Legacy-Quiz mit gemischten Fragewerten', async () => {
+    const historyScopeId = '77777777-7777-4777-8777-777777777777';
+    const legacyQuizId = '88888888-8888-4888-8888-888888888888';
+    const legacyQuestions = [
+      {
+        text: 'Gemischte Wahlfrage 1',
+        type: 'SINGLE_CHOICE' as const,
+        difficulty: 'EASY' as const,
+        order: 0,
+        shuffleAnswerOptions: true,
+        answers: [
+          { text: 'A', isCorrect: true },
+          { text: 'B', isCorrect: false },
+        ],
+      },
+      {
+        text: 'Gemischte Wahlfrage 2',
+        type: 'MULTIPLE_CHOICE' as const,
+        difficulty: 'MEDIUM' as const,
+        order: 1,
+        shuffleAnswerOptions: false,
+        answers: [
+          { text: 'C', isCorrect: true },
+          { text: 'D', isCorrect: false },
+        ],
+      },
+    ];
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: legacyQuizId,
+        historyScopeId: null,
+        name: 'Gemischtes Legacy-Quiz',
+        showLeaderboard: true,
+        allowCustomNicknames: false,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        anonymousMode: false,
+        teamMode: false,
+        teamNames: [],
+        nicknameTheme: 'HIGH_SCHOOL',
+        questions: legacyQuestions,
+      },
+    ] as never);
+    prismaMock.quiz.updateMany.mockResolvedValue({ count: 1 });
+
+    await caller.upload({
+      historyScopeId,
+      name: 'Gemischtes Legacy-Quiz',
+      showLeaderboard: true,
+      allowCustomNicknames: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'HIGH_SCHOOL',
+      shuffleAnswerOptions: false,
+      questions: legacyQuestions,
+    });
+
+    expect(prismaMock.quiz.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [legacyQuizId] }, historyScopeId: null },
+      data: { historyScopeId },
+    });
+  });
+
   it('stages source identities and objective references atomically with the quiz upload', async () => {
     await caller.upload({
       name: 'Quiz mit Lernzielen',
