@@ -6393,6 +6393,9 @@ describe('SessionPresentComponent', () => {
       peerInstructionSuggestion: undefined,
     };
 
+    const previousHostAction = document.createElement('button');
+    document.body.append(previousHostAction);
+    previousHostAction.focus();
     const fixture = TestBed.createComponent(SessionPresentComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -6407,7 +6410,8 @@ describe('SessionPresentComponent', () => {
         new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, repeat }),
       );
     expect(start).not.toBeNull();
-    start?.focus();
+    expect(root.contains(document.activeElement)).toBe(true);
+    previousHostAction.focus();
 
     let releaseQuestion: (value: unknown) => void = () => undefined;
     getCurrentQuestionForHostQueryMock.mockImplementation(
@@ -6421,7 +6425,8 @@ describe('SessionPresentComponent', () => {
       currentQuestion: 0,
       currentRound: 1,
     });
-    right(start);
+    right(previousHostAction);
+    previousHostAction.remove();
     await fixture.whenStable();
     fixture.detectChanges();
 

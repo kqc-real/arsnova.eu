@@ -27284,8 +27284,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizRatingWaiting" datatype="html">
-        <source> Die Verteilung erscheint mit dem Ergebnis.</source>
-        <target>La distribuzione appare con il risultato.</target>
+        <source> Auf der nächsten Seite siehst du die Verteilung live.</source>
+        <target>Visualizza la distribuzione in tempo reale nella pagina successiva.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
           <context context-type="linenumber">182,184</context>

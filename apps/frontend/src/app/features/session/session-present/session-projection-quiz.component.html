@@ -17,6 +17,9 @@
       [class.session-projection-quiz--code]="hasQuestionCode()"
       [class.session-projection-quiz--with-visual]="!!questionVisual()"
       [class.session-projection-quiz--results]="isResults()"
+      [class.session-projection-quiz--rating-overview]="
+        q.type === 'RATING' && (isResults() || showLiveRatingDistribution())
+      "
       [class.session-projection-quiz--discussion]="isDiscussion()"
       [class.session-projection-quiz--dense-answers]="hasDenseAnswerCopy()"
     >
@@ -162,7 +165,11 @@
                 <span>{{ readingHint() }}</span>
               </p>
             } @else if (q.type === 'RATING') {
-              <div class="session-projection-quiz__rating">
+              <div
+                class="session-projection-quiz__rating"
+                [class.session-projection-quiz__rating--with-statistics]="showRatingStatistics()"
+                [class.session-projection-quiz__rating--dense]="ratingValues().length > 5"
+              >
                 @if (q.ratingLabelMin || q.ratingLabelMax) {
                   <p class="session-projection-quiz__rating-labels">
                     <mat-icon
@@ -186,27 +193,57 @@
                     >
                   </p>
                 }
-                @for (value of ratingValues(); track value) {
-                  <div class="session-projection-quiz__bar">
-                    <span>{{ value }}</span>
-                    <div class="session-projection-quiz__bar-track">
-                      <div
-                        class="session-projection-quiz__bar-fill"
-                        [style.width.%]="isResults() ? ratingBarPercent(value) : 0"
-                      ></div>
+                @if (isResults() || showLiveRatingDistribution()) {
+                  @for (value of ratingValues(); track value) {
+                    <div class="session-projection-quiz__bar">
+                      <span>{{ value }}</span>
+                      <div class="session-projection-quiz__bar-track">
+                        <div
+                          class="session-projection-quiz__bar-fill"
+                          [style.width.%]="ratingBarPercent(value)"
+                        ></div>
+                      </div>
+                      <span>{{ ratingCount(value) }}</span>
                     </div>
-                    <span>{{ isResults() ? ratingCount(value) : '·' }}</span>
+                  }
+                  @if (showRatingStatistics()) {
+                    <dl class="session-projection-quiz__rating-statistics" aria-live="polite">
+                      <div>
+                        <dt i18n="@@sessionPresent.quickFeedbackVotes">Stimmen</dt>
+                        <dd>{{ displayedRatingCount() }}</dd>
+                      </div>
+                      <div>
+                        <dt i18n="@@sessionReport.numericComparisonMean">Mittelwert</dt>
+                        <dd>{{ formatRatingStatistic(displayedRatingAverage()) }}</dd>
+                      </div>
+                      <div>
+                        <dt i18n="@@sessionReport.numericComparisonMedian">Median</dt>
+                        <dd>{{ formatRatingStatistic(displayedRatingMedian()) }}</dd>
+                      </div>
+                      <div>
+                        <dt i18n="@@sessionReport.numericComparisonStdDev">Standardabweichung</dt>
+                        <dd>{{ formatRatingStatistic(displayedRatingStdDev()) }}</dd>
+                      </div>
+                    </dl>
+                  }
+                } @else {
+                  <div
+                    class="session-projection-quiz__rating-scale"
+                    role="list"
+                    i18n-aria-label="@@sessionHost.ratingScaleAria"
+                    aria-label="Bewertungsskala"
+                  >
+                    @for (value of ratingValues(); track value) {
+                      <span class="session-projection-quiz__rating-scale-value" role="listitem">{{
+                        value
+                      }}</span>
+                    }
                   </div>
-                }
-                @if (isResults() && q.ratingAvg != null) {
-                  <p class="session-projection-quiz__stat">∅ {{ q.ratingAvg | number: '1.1-1' }}</p>
-                }
-                @if (!isResults()) {
                   <p
                     class="session-projection-quiz__waiting"
                     i18n="@@sessionPresent.quizRatingWaiting"
                   >
-                    Die Verteilung erscheint mit dem Ergebnis.
+                    Auf der nächsten Seite siehst du die Verteilung live.
                   </p>
                 }
               </div>
@@ -592,12 +629,16 @@
                           class="markdown-body"
                           [innerHTML]="renderAnswerMarkdown(answer.text)"
                         ></span>
-                        @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                          <mat-icon
-                            class="session-projection-quiz__answer-correct-icon"
-                            aria-hidden="true"
-                            >check_circle</mat-icon
+                        @if (revealCorrectness() && q.type !== 'SURVEY') {
+                          <span
+                            class="session-projection-quiz__answer-result-icon"
+                            [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                            [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                           >
+                            <mat-icon aria-hidden="true">{{
+                              answer.isCorrect ? 'check_circle' : 'cancel'
+                            }}</mat-icon>
+                          </span>
                         }
                       </div>
                       <div class="session-projection-quiz__round-bars">
@@ -702,12 +743,16 @@
                         class="markdown-body"
                         [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
-                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                        <mat-icon
-                          class="session-projection-quiz__answer-correct-icon"
-                          aria-hidden="true"
-                          >check_circle</mat-icon
+                      @if (revealCorrectness() && q.type !== 'SURVEY') {
+                        <span
+                          class="session-projection-quiz__answer-result-icon"
+                          [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                          [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                         >
+                          <mat-icon aria-hidden="true">{{
+                            answer.isCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                        </span>
                       }
                     </div>
                     <div class="session-projection-quiz__bar-track">
@@ -751,12 +796,16 @@
                         class="markdown-body"
                         [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
-                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                        <mat-icon
-                          class="session-projection-quiz__answer-correct-icon"
-                          aria-hidden="true"
-                          >check_circle</mat-icon
+                      @if (revealCorrectness() && q.type !== 'SURVEY') {
+                        <span
+                          class="session-projection-quiz__answer-result-icon"
+                          [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                          [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                         >
+                          <mat-icon aria-hidden="true">{{
+                            answer.isCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                        </span>
                       }
                     </div>
                   </li>

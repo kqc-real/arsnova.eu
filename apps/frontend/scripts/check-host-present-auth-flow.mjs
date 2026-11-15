@@ -6,11 +6,14 @@
  * - Host-Route mit gespeichertem Host-Token unter lokalisiertem Pfad
  * - Presenter-Route unter lokalisiertem Pfad ohne Host-Auth-Fehler
  * - Host-Seite aktualisiert die Teilnehmerzahl nach Join live
+ * - Pfeiltasten funktionieren direkt nach Host-/Presenter-Routenwechseln
+ * - Host zeigt nach dem Presenter-Rueckweg beim Zurueckblaettern das fruehere Ergebnis
  * - Der Wechsel zum Presenter erhält den Schließschutz bei laufender Abstimmung
  *
  * Run:
  *   BASE_URL=http://localhost:4201/de TRPC_URL=http://localhost:3000/trpc node scripts/check-host-present-auth-flow.mjs
  */
+import assert from 'node:assert/strict';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { chromium, webkit } from 'playwright';
 
@@ -56,6 +59,36 @@ const QUIZ_PAYLOAD = {
       answers: [
         { text: 'Host und Present', isCorrect: true },
         { text: 'Nur Join', isCorrect: false },
+      ],
+    },
+    {
+      text: 'Funktioniert der Rueckweg ebenfalls?',
+      type: 'SINGLE_CHOICE',
+      timer: 30,
+      difficulty: 'EASY',
+      order: 1,
+      ratingMin: undefined,
+      ratingMax: undefined,
+      ratingLabelMin: undefined,
+      ratingLabelMax: undefined,
+      answers: [
+        { text: 'Ja', isCorrect: true },
+        { text: 'Nein', isCorrect: false },
+      ],
+    },
+    {
+      text: 'Funktioniert auch der erneute Hinweg?',
+      type: 'SINGLE_CHOICE',
+      timer: 30,
+      difficulty: 'EASY',
+      order: 2,
+      ratingMin: undefined,
+      ratingMax: undefined,
+      ratingLabelMin: undefined,
+      ratingLabelMax: undefined,
+      answers: [
+        { text: 'Ja', isCorrect: true },
+        { text: 'Nein', isCorrect: false },
       ],
     },
   ],
@@ -185,6 +218,16 @@ async function waitForParticipantCount(page, expected, timeout = 15_000) {
     await page.waitForTimeout(250);
   }
   return false;
+}
+
+async function waitForSessionStatus(hostApi, code, expected, timeout = 15_000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeout) {
+    const info = await hostApi.session.getInfo.query({ code });
+    if (info.status === expected) return info;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return null;
 }
 
 function createBrowserTrpcClient(hostToken) {
@@ -320,15 +363,66 @@ async function main() {
     if (hostJoinUiReady && updatedCount) {
       const hostApi = createBrowserTrpcClient(hostToken);
       const opened = await hostApi.session.nextQuestion.mutate({ code });
-      if (opened.status === 'QUESTION_OPEN') {
-        await hostApi.session.revealAnswers.mutate({ code });
-      }
+      assert.equal(opened.status, 'QUESTION_OPEN');
+      await hostApi.session.revealAnswers.mutate({ code });
       await host.locator('.session-host__countdown').waitFor({ timeout: 15_000 });
       const closeJoin = host.locator('.session-host__join-viewport-overlay__close');
       if (await closeJoin.isVisible()) await closeJoin.click();
       await host.locator('[data-testid="open-presenter-view"]:visible').click();
       await host.getByTestId('presentation-start-open').click();
       await waitForPathSuffix(host, `/session/${code}/present`);
+      await host.getByTestId('presenter-quiz-reveal-results').waitFor({ timeout: 15_000 });
+
+      await hostApi.session.revealResults.mutate({ code });
+      const secondQuestion = await hostApi.session.nextQuestion.mutate({ code });
+      assert.equal(secondQuestion.status, 'QUESTION_OPEN');
+      const presenterReveal = host.getByTestId('presenter-quiz-reveal-answers');
+      await presenterReveal.waitFor({ timeout: 15_000 });
+      await host.getByTestId('presenter-return-to-host').click();
+      await waitForPathSuffix(host, `/session/${code}/host`);
+      const previousResult = host.getByTestId('host-quiz-history-previous');
+      await previousResult.waitFor({ timeout: 15_000 });
+      assert.equal(await previousResult.getAttribute('aria-keyshortcuts'), 'ArrowLeft');
+      await host.keyboard.press('ArrowLeft');
+      const historyStage = host.getByTestId('host-quiz-history-stage');
+      await historyStage.waitFor({ timeout: 15_000 });
+      const visibleHistoryPage = historyStage.locator('.projection-pages__page');
+      assert.match(await visibleHistoryPage.innerText(), /Welche Route wird geprueft\?/);
+      assert.equal(
+        await visibleHistoryPage.locator('.session-projection-quiz__bar-value').count(),
+        2,
+      );
+      assert.equal(
+        await visibleHistoryPage.locator('.session-projection-quiz__answer-correct-icon').count(),
+        1,
+      );
+      assert.equal(
+        await visibleHistoryPage.locator('.session-projection-quiz__answer-wrong-icon').count(),
+        1,
+      );
+      logStep(true, 'Host zeigt nach Presenter → Host das vorherige Ergebnis');
+      await host.keyboard.press('ArrowRight');
+      await host.getByTestId('host-quiz-reveal-answers').waitFor({ timeout: 15_000 });
+      const hostReveal = host.getByTestId('host-quiz-reveal-answers');
+      await hostReveal.waitFor({ timeout: 15_000 });
+      assert.equal(await hostReveal.getAttribute('aria-keyshortcuts'), 'ArrowRight');
+      assert.equal((await hostReveal.locator('kbd').textContent())?.trim(), '→');
+      await host.keyboard.press('ArrowRight');
+      assert.ok(await waitForSessionStatus(hostApi, code, 'ACTIVE'));
+      logStep(true, 'Erster Pfeildruck funktioniert direkt nach Presenter → Host');
+
+      await hostApi.session.revealResults.mutate({ code });
+      const thirdQuestion = await hostApi.session.nextQuestion.mutate({ code });
+      assert.equal(thirdQuestion.status, 'QUESTION_OPEN');
+      await host.locator('[data-testid="open-presenter-view"]:visible').click();
+      await waitForPathSuffix(host, `/session/${code}/present`);
+      await presenterReveal.waitFor({ timeout: 15_000 });
+      assert.equal(await presenterReveal.getAttribute('aria-keyshortcuts'), 'ArrowRight');
+      assert.equal((await presenterReveal.locator('kbd').textContent())?.trim(), '→');
+      await host.keyboard.press('ArrowRight');
+      assert.ok(await waitForSessionStatus(hostApi, code, 'ACTIVE'));
+      logStep(true, 'Erster Pfeildruck funktioniert direkt nach Host → Presenter');
+
       const unloadDialog = host
         .waitForEvent('dialog', { timeout: 5_000 })
         .then(async (dialog) => {

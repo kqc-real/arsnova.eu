@@ -231,3 +231,7 @@ Der Optionsblock bleibt auf jeder Projektionsseite vertikal zentriert.
 Die zugehörige Host-Seitennavigation nutzt als angepinnte obere Surface
 `surface-container-high`, `outline-variant`, `corner-extra-large` und Elevation
 `level2`; ihre Breite folgt `--app-toolbar-max-width` und reflowt bei 320 px.
+Der lokale Ergebnisrückblick im Host übernimmt den Presenter-Projektionsvertrag
+und stellt dafür eine begrenzte, viewportabhängige Messfläche bereit. So startet
+die Seiteneinteilung nie mit Höhe 0; lange Inhalte bleiben über die vorhandene
+Seitennavigation erreichbar.

@@ -348,7 +348,9 @@ Der Host sieht zusätzlich:
 - Emoji-Reaktionen
 - Rangliste
 - Team-Rangliste
-- In der Presenter-Ergebnisansicht sind richtige Antwortoptionen grün hinterlegt und mit einem Häkchen markiert.
+- In der Presenter-Ergebnisansicht sind richtige Antwortoptionen grün und falsche rot
+  hinterlegt; wie in der Host-Ansicht kennzeichnet zusätzlich ein Häkchen- bzw.
+  Kreuz-Icon auf farbigem Hintergrund die Auswertung.
 - Presenter-Reihenfolge: In jeder Ergebnisphase folgt die Rangliste als eigene letzte
   Projektionsseite auf alle fachlichen Ergebnisfolien; das Abschluss-Leaderboard ist
   nach dem Sessionende die terminale Präsentationsseite.
