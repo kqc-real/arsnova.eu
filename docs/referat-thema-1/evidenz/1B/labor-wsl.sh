@@ -13,6 +13,7 @@
 #
 # Ohne Admin brauchen status/start/stop/Läufe die Gruppe Hyper-V-Administratoren (setzt das erste up).
 set -euo pipefail
+shopt -s inherit_errexit   # Fehler in $(…) brechen ab, statt still eine leere Ausgabe zu liefern
 HERE="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 REPO="${LAB_REPO:-$(git -C "$HERE" rev-parse --show-toplevel 2>/dev/null || true)}"   # LAB_REPO nur für Tests
 
@@ -38,8 +39,13 @@ arbeitsstand() { # legt refs/labor/arbeitsstand an und gibt den Commit aus (auch
   if [[ "$tree" == "$(git -C "$REPO" rev-parse 'HEAD^{tree}')" ]]; then
     sha="$(git -C "$REPO" rev-parse HEAD)"
   else
-    sha="$(git -C "$REPO" commit-tree "$tree" -p HEAD -m "Arbeitsstand $(date --iso-8601=seconds) (Entwicklung, nicht werten)")"
+    # Ohne eingerichtete Git-Identität (frisches WSL, CI) scheitert commit-tree; der Arbeitsstand ist
+    # ein lokaler Hilfscommit, daher reicht dann eine feste Laboridentität.
+    local wer=()
+    git -C "$REPO" config user.email >/dev/null 2>&1 || wer=(-c user.name=labor -c user.email=labor@localhost)
+    sha="$(git "${wer[@]}" -C "$REPO" commit-tree "$tree" -p HEAD -m "Arbeitsstand $(date --iso-8601=seconds) (Entwicklung, nicht werten)")"
   fi
+  [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Arbeitsstand: kein Commit angelegt" >&2; exit 2; }
   git -C "$REPO" update-ref refs/labor/arbeitsstand "$sha"
   echo "$sha"
 }
@@ -66,7 +72,7 @@ fi
 args=()
 for a in "$@"; do
   if [[ "$a" == --arbeitsstand ]]; then
-    sha="$(arbeitsstand)"
+    sha="$(arbeitsstand)" || exit 2
     echo "Arbeitsstand $sha (refs/labor/arbeitsstand) geht in die VMs." >&2
     args+=(-Commit "$sha")
   else
