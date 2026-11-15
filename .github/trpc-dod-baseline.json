@@ -469,7 +469,7 @@
     },
     "quiz.upload": {
       "kind": "mutation",
-      "fingerprint": "sha256:61e8fab688a430e46edd015d7d39b654a5e93176b0c1cb3751bc21fb314d953b",
+      "fingerprint": "sha256:b173fee79624a59080d9ce6795a7ae59794e3efef6f3e0c9d85764ddef90a49d",
       "missing": []
     },
     "quizSync.createShare": {
