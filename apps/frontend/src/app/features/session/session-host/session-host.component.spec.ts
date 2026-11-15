@@ -17474,6 +17474,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.countdownSeconds.set(5);
     fixture.detectChanges();
     expect(component.showFingerCountdown()).toBe(true);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.session-host__finger-countdown img')).toBeTruthy();
+    // Die Media Query blendet auf schmalen Ansichten nur die Finger aus.
+    const countdown = host.querySelector('.session-host__countdown[role="timer"]');
+    expect(countdown?.textContent?.trim()).toBe('5');
+    expect(countdown?.getAttribute('aria-label')).toBe('5 Sekunden verbleibend');
     expect(component.personalTimeOvertimeActive()).toBe(false);
     expect(component.currentMusicPhase()).toBe('countdown');
     expect(component.activeMusicTrack()).toBeNull();

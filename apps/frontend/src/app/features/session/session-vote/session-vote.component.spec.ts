@@ -1118,10 +1118,19 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.liveScorePreviewInOvertime()).toBe(true);
     expect(component.liveScorePreviewCaption()).toBe('Nachlaufzeit · richtige Antwort');
     expect(component.liveScorePreviewFormattedPoints()).toBe('200');
+    component.countdownSeconds.set(6);
     fixture.detectChanges();
-    const floatingPreview = fixture.nativeElement.querySelector(
-      '.vote-countdown-floating .vote-score-preview',
-    ) as HTMLElement | null;
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-countdown')?.textContent?.trim()).toBe('6');
+    expect(host.querySelector('app-countdown-fingers')).toBeNull();
+
+    component.countdownSeconds.set(5);
+    fixture.detectChanges();
+    expect(host.querySelector('.vote-countdown')).toBeNull();
+    expect(
+      host.querySelector('app-countdown-fingers [role="img"]')?.getAttribute('aria-label'),
+    ).toBe('5 Sekunden, durch Finger dargestellt');
+    const floatingPreview = host.querySelector('.vote-countdown-floating .vote-score-preview');
     expect(floatingPreview?.querySelector('.vote-score-preview__label')?.textContent).toContain(
       'Nachlaufzeit · richtige Antwort',
     );

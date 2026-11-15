@@ -10,7 +10,7 @@
   margin-top: 0.125rem;
   box-sizing: border-box;
   border-radius: var(--mat-sys-corner-medium);
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  border: var(--app-icon-tile-border);
   background: transparent;
   color: var(--mat-sys-primary);
 

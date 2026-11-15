@@ -444,12 +444,12 @@
       </div>
     }
 
-    @if ((countdownSeconds() !== null && isActive()) || liveScorePreviewAvailable()) {
+    @if (showNumericCountdown() || liveScorePreviewAvailable()) {
       <div
         class="vote-countdown-floating"
         [class.vote-countdown-floating--with-tabs]="showChannelTabs()"
       >
-        @if (countdownSeconds() !== null && isActive()) {
+        @if (showNumericCountdown()) {
           <span
             class="vote-countdown"
             [class.vote-countdown--urgent]="countdownSeconds()! <= 5"

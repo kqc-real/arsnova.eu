@@ -895,7 +895,7 @@
   .app-preset-snackbar__icon-wrap,
   .app-install-snackbar__icon-wrap {
     background: transparent;
-    border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 36%, var(--mat-sys-outline-variant));
+    border: var(--app-icon-tile-border);
     color: var(--mat-sys-primary);
   }
 

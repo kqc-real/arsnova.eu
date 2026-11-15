@@ -46,7 +46,7 @@
 .session-quiz-picker__profile-icon {
   color: var(--mat-sys-primary);
   background: transparent;
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  border: var(--app-icon-tile-border);
 }
 
 .session-quiz-picker__profile-copy,
@@ -165,7 +165,7 @@
   width: 2.5rem;
   height: 2.5rem;
   margin-left: auto;
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  border: var(--app-icon-tile-border);
   border-radius: var(--mat-sys-corner-medium);
   color: var(--mat-sys-primary);
 }

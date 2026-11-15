@@ -103,7 +103,7 @@
                 >Alle haben abgestimmt</span
               >
             }
-            @if (countdownSeconds() !== null && isActive()) {
+            @if (countdownSeconds() !== null && isActive() && !showFingerCountdown()) {
               <span
                 class="session-projection-quiz__countdown"
                 [class.session-projection-quiz__countdown--urgent]="countdownSeconds()! <= 5"
@@ -355,7 +355,7 @@
                       <li>{{ modeLabel }}</li>
                     }
                     @if (numericMaxDecimalPlacesHint(); as maxPlacesHint) {
-                      <li class="session-projection-quiz__numeric-facts-stack">
+                      <li>
                         <span i18n="@@sessionPresent.numericFormatDecimalLead"
                           >Komma oder Punkt möglich,</span
                         >

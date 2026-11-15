@@ -81,6 +81,8 @@ classDiagram
 | Plausibilitätsgrenzen  | optional `min`, `max` | Eingaben außerhalb werden client- und serverseitig abgewiesen.                                |
 | Zwei Runden            | an / aus              | Ohne zweite Runde läuft die Frage wie eine einfache Schätzrunde.                              |
 
+In der Präsentation stehen die Texte für Eingabetyp, Format und Bereich vertikal mittig in ihren Hinweiskapseln. Bei wenig Platz dürfen die Hinweise umbrechen.
+
 ## Ablauf
 
 ```mermaid

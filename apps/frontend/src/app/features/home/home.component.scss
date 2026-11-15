@@ -287,7 +287,7 @@
   width: 3.5rem;
   height: 3.5rem;
   border-radius: var(--mat-sys-corner-medium);
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  border: var(--app-icon-tile-border);
   background: transparent;
   color: var(--mat-sys-primary);
   box-shadow: none;
@@ -1897,14 +1897,7 @@
     box-shadow: var(--mat-sys-level1);
   }
 
-  .home-card--stage-main#participant-entry .home-card__icon-wrap,
-  .home-card.home-card--live.home-card--stage-side .home-card__icon-wrap,
-  .home-card.home-card--feedback.home-card--stage-side .home-card__icon-wrap {
-    border-color: color-mix(in srgb, var(--mat-sys-outline) 58%, var(--mat-sys-primary) 42%);
-  }
-
   .home-card.home-card--create.home-card--stage-side .home-card__icon-wrap {
-    border-color: color-mix(in srgb, var(--mat-sys-outline) 52%, var(--mat-sys-tertiary) 48%);
     color: var(--mat-sys-tertiary);
   }
 

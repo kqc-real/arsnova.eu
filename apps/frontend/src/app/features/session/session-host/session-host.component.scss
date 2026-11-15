@@ -242,6 +242,7 @@
   --session-host-float-top: 0.75rem;
   --session-host-exit-bottom-base: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem));
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: var(--session-host-zone-gap);
   padding-bottom: 0;
@@ -334,6 +335,7 @@
   max-width: 100%;
   min-width: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: var(--session-host-zone-gap);
 }
