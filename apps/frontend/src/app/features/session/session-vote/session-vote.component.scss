@@ -2187,6 +2187,10 @@
   }
 }
 
+.vote-page:has(app-countdown-fingers.countdown-fingers-host--loaded) .vote-countdown {
+  display: none;
+}
+
 .vote-countdown-floating {
   position: fixed;
   top: 6.9rem;

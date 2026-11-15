@@ -6572,7 +6572,10 @@ button.session-host__btn-discussion {
     line-height: 0;
   }
 
-  .session-host:has(.session-host__finger-countdown) .session-host__countdown {
+  .session-host:has(
+      .session-host__finger-countdown app-countdown-fingers.countdown-fingers-host--loaded
+    )
+    .session-host__countdown {
     display: none;
   }
 }

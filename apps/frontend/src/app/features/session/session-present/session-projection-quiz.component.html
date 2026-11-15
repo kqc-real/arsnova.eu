@@ -103,7 +103,7 @@
                 >Alle haben abgestimmt</span
               >
             }
-            @if (countdownSeconds() !== null && isActive() && !showFingerCountdown()) {
+            @if (countdownSeconds() !== null && isActive()) {
               <span
                 class="session-projection-quiz__countdown"
                 [class.session-projection-quiz__countdown--urgent]="countdownSeconds()! <= 5"

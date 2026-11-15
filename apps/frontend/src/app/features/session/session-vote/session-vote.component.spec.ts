@@ -1126,10 +1126,27 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     component.countdownSeconds.set(5);
     fixture.detectChanges();
-    expect(host.querySelector('.vote-countdown')).toBeNull();
-    expect(
-      host.querySelector('app-countdown-fingers [role="img"]')?.getAttribute('aria-label'),
-    ).toBe('5 Sekunden, durch Finger dargestellt');
+    expect(host.querySelector('.vote-countdown')?.textContent?.trim()).toBe('5');
+    const fingerHost = host.querySelector('app-countdown-fingers') as HTMLElement;
+    const fingerImage = fingerHost.querySelector('img') as HTMLImageElement;
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    expect(fingerHost.querySelector('[role="img"]')).toBeNull();
+    fingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    expect(fingerHost.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe(
+      '5 Sekunden, durch Finger dargestellt',
+    );
+    fingerImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    const voteStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
+      'utf8',
+    );
+    expect(voteStyles).toMatch(
+      /:has\(app-countdown-fingers\.countdown-fingers-host--loaded\)[\s\S]*?\.vote-countdown\s*\{[\s\S]*?display:\s*none/,
+    );
     const floatingPreview = host.querySelector('.vote-countdown-floating .vote-score-preview');
     expect(floatingPreview?.querySelector('.vote-score-preview__label')?.textContent).toContain(
       'Nachlaufzeit · richtige Antwort',

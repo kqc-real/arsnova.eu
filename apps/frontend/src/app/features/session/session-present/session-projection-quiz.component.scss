@@ -559,6 +559,11 @@ mat-icon.session-projection-quiz__reading-icon {
   color: var(--mat-sys-error);
 }
 
+.session-projection-quiz:has(app-countdown-fingers.countdown-fingers-host--loaded)
+  .session-projection-quiz__countdown {
+  display: none;
+}
+
 .session-projection-quiz__title {
   margin: 0;
   min-height: 0;

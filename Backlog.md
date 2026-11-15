@@ -1532,7 +1532,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Falls kein Timer gesetzt ist, wird kein Countdown angezeigt (offene Antwortphase, die Lehrperson beendet manuell).
 - **Story 3.5a (Countdown Finger-Anzeige, letzte 6 Sekunden):** 🟡 Als Lehrperson oder Teilnehmende:r möchte ich in den letzten 6 Sekunden des Countdowns die animierte Finger-Countdown-Anzeige (5 → 0) sehen, damit der Zeitablauf spielerisch und einheitlich sichtbar ist.
   - **Akzeptanzkriterien:**
-    - Sobald die Finger-Countdown-Animation (wie im Preset-Toast „Spielerisch“) eingeblendet wird, ersetzt sie den numerischen Countdown-Zähler.
+    - Sobald der aktuelle Frame der Finger-Countdown-Animation (wie im Preset-Toast „Spielerisch“) geladen und sichtbar ist, ersetzt er den numerischen Countdown-Zähler. Während des Ladens und bei einem Bildfehler bleibt die Zahl als Fallback sichtbar.
     - In der Host-Ansicht erscheinen die Finger erst ab 1200 px Breite. Bei schmaleren Ansichten bleibt der numerische Zähler auch in den letzten Sekunden sichtbar.
     - **Beamer-Ansicht (Story 2.5):** Die Animation wird in **Vollansicht** (groß, zentral oder prominent) angezeigt, sodass sie im Saal gut erkennbar ist.
     - **Client-Geräte (Teilnehmende):** Die Animation wird **klein** (wie auf dem Preset-Toast) in der **unteren linken Ecke** angezeigt, ohne die Antwort-Buttons zu überdecken.

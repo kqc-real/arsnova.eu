@@ -1493,7 +1493,18 @@ describe('SessionProjectionQuizComponent', () => {
     ) as HTMLElement | null;
     expect(overlay).toBeTruthy();
     expect(overlay?.querySelector('.countdown-fingers--present')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.session-projection-quiz__countdown')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('4');
+    const fingerHost = overlay?.querySelector('app-countdown-fingers') as HTMLElement;
+    const fingerImage = fingerHost.querySelector('img') as HTMLImageElement;
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    fingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    fingerImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__status-fingers'),
     ).toBeNull();
@@ -1517,6 +1528,9 @@ describe('SessionProjectionQuizComponent', () => {
     );
     expect(styles).toMatch(
       /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?app-countdown-fingers\s*\{[\s\S]*?align-self:\s*end/,
+    );
+    expect(styles).toMatch(
+      /:has\(app-countdown-fingers\.countdown-fingers-host--loaded\)[\s\S]*?\.session-projection-quiz__countdown\s*\{[\s\S]*?display:\s*none/,
     );
   });
 

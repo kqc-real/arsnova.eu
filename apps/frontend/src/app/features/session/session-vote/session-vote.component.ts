@@ -1341,7 +1341,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   });
 
   readonly showNumericCountdown = computed(
-    () => this.countdownSeconds() !== null && this.isActive() && !this.showFingerCountdown(),
+    () => this.countdownSeconds() !== null && this.isActive(),
   );
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');

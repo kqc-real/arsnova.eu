@@ -17475,7 +17475,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     expect(component.showFingerCountdown()).toBe(true);
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.session-host__finger-countdown img')).toBeTruthy();
+    const fingerHost = host.querySelector('app-countdown-fingers') as HTMLElement;
+    const fingerImage = fingerHost.querySelector('img') as HTMLImageElement;
+    expect(fingerImage).toBeTruthy();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    fingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    fingerImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
     // Die Media Query blendet auf schmalen Ansichten nur die Finger aus.
     const countdown = host.querySelector('.session-host__countdown[role="timer"]');
     expect(countdown?.textContent?.trim()).toBe('5');
