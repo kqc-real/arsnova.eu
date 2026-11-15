@@ -3473,7 +3473,8 @@ export const SetPresenterSurfaceInputSchema = z
         context: z.string().max(200),
         delta: z.union([z.literal(-1), z.literal(1)]).optional(),
         count: z.number().int().min(1).max(10000).optional(),
-        sectionStarts: PresenterPageSectionStartsSchema.optional(),
+        /** `null` entfernt zuvor gemeldete semantische Abschnitte. */
+        sectionStarts: PresenterPageSectionStartsSchema.nullable().optional(),
         /** Absoluter Seitenindex (z. B. Q&A-Navigator springt in der Bühnenliste). */
         index: z.number().int().min(0).max(9999).optional(),
       })

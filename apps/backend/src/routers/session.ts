@@ -8243,7 +8243,10 @@ const sessionCoreRouter = router({
             ? input.page.index
             : currentPage.index + (input.page.delta ?? 0);
         const index = Math.max(0, Math.min(count - 1, rawIndex));
-        const requestedSectionStarts = input.page.sectionStarts ?? currentPage.sectionStarts;
+        const requestedSectionStarts =
+          input.page.sectionStarts === undefined
+            ? currentPage.sectionStarts
+            : (input.page.sectionStarts ?? undefined);
         const sectionStarts = requestedSectionStarts?.filter((start) => start < count);
         const { sectionStarts: _currentSectionStarts, ...currentPageWithoutSections } = currentPage;
         const presenterPage = {

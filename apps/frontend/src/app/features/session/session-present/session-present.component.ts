@@ -2447,7 +2447,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private measuredProjectionPage: {
     context: string;
     count: number;
-    sectionStarts?: number[];
+    sectionStarts?: number[] | null;
   } | null = null;
   private reportingProjectionPage = false;
   private projectionReportRetry: ReturnType<typeof setTimeout> | null = null;
@@ -2473,7 +2473,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async reportProjectionPages(
-    layout: number | { count: number; sectionStarts?: number[] },
+    layout: number | { count: number; sectionStarts?: number[] | null },
   ): Promise<void> {
     const page = this.session()?.presenterPage;
     if (!page || this.destroyRef.destroyed) return;
@@ -2489,7 +2489,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           !measured ||
           measured.context !== current?.context ||
           (measured.count === current.count &&
-            JSON.stringify(measured.sectionStarts) === JSON.stringify(current.sectionStarts))
+            JSON.stringify(measured.sectionStarts ?? undefined) ===
+              JSON.stringify(current.sectionStarts))
         )
           break;
         const result = await trpc.session.setPresenterSurface.mutate(

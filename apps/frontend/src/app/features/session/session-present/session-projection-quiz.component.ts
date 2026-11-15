@@ -110,7 +110,7 @@ export class SessionProjectionQuizComponent {
   readonly reportedPageCount = input(1);
   readonly pageSectionStarts = input<number[] | undefined>(undefined);
   readonly pageCount = output<number>();
-  readonly pageLayout = output<{ count: number; sectionStarts?: number[] }>();
+  readonly pageLayout = output<{ count: number; sectionStarts: number[] | null }>();
   readonly question = input<HostCurrentQuestionDTO | null>(null);
   readonly status = input<SessionInfoDTO['status'] | null>(null);
   readonly voteProgress = input<HostVoteProgressDTO | null>(null);
@@ -175,7 +175,7 @@ export class SessionProjectionQuizComponent {
       if (signature === this.emittedPageCount) return;
       this.emittedPageCount = signature;
       this.pageCount.emit(total);
-      this.pageLayout.emit({ count: total, ...(sectionStarts ? { sectionStarts } : {}) });
+      this.pageLayout.emit({ count: total, sectionStarts: sectionStarts ?? null });
     });
   }
 

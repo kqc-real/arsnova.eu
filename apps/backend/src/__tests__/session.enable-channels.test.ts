@@ -1213,6 +1213,11 @@ describe('session.enable channel mutations', () => {
       page: { context, count: 2 },
     });
     expect(resized.presenterPage).toMatchObject({ index: 1, count: 2, sectionStarts: [0] });
+    const cleared = await caller.setPresenterSurface({
+      code: 'ABC123',
+      page: { context, count: 1, sectionStarts: null },
+    });
+    expect(cleared.presenterPage).toEqual({ context, index: 0, count: 1 });
     question = 1;
     await expect(
       caller.setPresenterSurface({ code: 'ABC123', page: { context, delta: 1 } }),
