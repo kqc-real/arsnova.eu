@@ -1532,9 +1532,10 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
     - Falls kein Timer gesetzt ist, wird kein Countdown angezeigt (offene Antwortphase, die Lehrperson beendet manuell).
 - **Story 3.5a (Countdown Finger-Anzeige, letzte 6 Sekunden):** 🟡 Als Lehrperson oder Teilnehmende:r möchte ich in den letzten 6 Sekunden des Countdowns die animierte Finger-Countdown-Anzeige (5 → 0) sehen, damit der Zeitablauf spielerisch und einheitlich sichtbar ist.
   - **Akzeptanzkriterien:**
-    - Sobald der Countdown die letzten 6 Sekunden erreicht, wird die Finger-Countdown-Animation (wie im Preset-Toast „Spielerisch“) eingeblendet.
+    - Sobald der aktuelle Frame der Finger-Countdown-Animation (wie im Preset-Toast „Spielerisch“) geladen und sichtbar ist, ersetzt er den numerischen Countdown-Zähler. Während des Ladens und bei einem Bildfehler bleibt die Zahl als Fallback sichtbar.
+    - In der Host-Ansicht erscheinen die Finger erst ab 1200 px Breite. Bei schmaleren Ansichten bleibt der numerische Zähler auch in den letzten Sekunden sichtbar.
     - **Beamer-Ansicht (Story 2.5):** Die Animation wird in **Vollansicht** (groß, zentral oder prominent) angezeigt, sodass sie im Saal gut erkennbar ist.
-    - **Client-Geräte (Teilnehmende):** Die Animation wird **klein** (wie auf dem Preset-Toast) in der **unteren linken Ecke** angezeigt, ohne die Antwort-Buttons oder den restlichen Countdown zu überdecken.
+    - **Client-Geräte (Teilnehmende):** Die Animation wird **klein** (wie auf dem Preset-Toast) in der **unteren linken Ecke** angezeigt, ohne die Antwort-Buttons zu überdecken.
     - Dauer der Animation: exakt 6 Sekunden (1 Sekunde pro Frame 5 → 4 → 3 → 2 → 1 → 0), synchron mit dem restlichen Countdown.
     - Nur anzeigen, wenn ein Timer gesetzt ist und das Preset „Spielerisch“ aktiv ist (oder eine optionale Einstellung „Finger-Countdown“ an).
     - Bei `prefers-reduced-motion` kann die Animation durch einen statischen Zähler oder dezente Anzeige ersetzt werden.

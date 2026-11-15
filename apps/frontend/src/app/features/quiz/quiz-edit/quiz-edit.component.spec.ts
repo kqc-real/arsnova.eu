@@ -149,6 +149,22 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.isNewQuestionFormPanelExpanded()).toBe(false);
   });
 
+  it('verwendet in allen drei aufklappbaren Kartenköpfen die kompakte dekorative Icon-Kachel', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    for (const selector of [
+      '.quiz-edit__meta-panel-title',
+      '.learning-objectives__panel-title',
+      '.quiz-edit__new-question-panel-title',
+    ]) {
+      const tile = host.querySelector(
+        `${selector} .dialog-title-header__icon.dialog-title-header__icon--compact`,
+      );
+      expect(tile?.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
   it('klappt die Metadaten-Karte nach Neuanlage (from=new) zu und entfernt den Query-Parameter', async () => {
     quiz.questions = [];
     TestBed.resetTestingModule();

@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, effect, input, signal } from '@angular/core';
 
 const FINGER_IMAGES: Record<number, string> = {
   5: 'assets/countdown-fingers/countdown_poster_clean_5.png',
@@ -15,6 +15,7 @@ const FINGER_IMAGES: Record<number, string> = {
   host: {
     '[class.countdown-fingers-host--viewport]': 'size() === "small"',
     '[class.countdown-fingers-host--present]': 'size() === "present"',
+    '[class.countdown-fingers-host--loaded]': 'imageLoaded()',
   },
   template: `
     @if (imageSrc()) {
@@ -23,10 +24,18 @@ const FINGER_IMAGES: Record<number, string> = {
         [class.countdown-fingers--large]="size() === 'large'"
         [class.countdown-fingers--small]="size() === 'small'"
         [class.countdown-fingers--present]="size() === 'present'"
-        role="img"
-        [attr.aria-label]="ariaLabel()"
+        [attr.role]="imageLoaded() ? 'img' : null"
+        [attr.aria-label]="imageLoaded() ? ariaLabel() : null"
+        [attr.aria-hidden]="imageLoaded() ? null : 'true'"
       >
-        <img [src]="imageSrc()" alt="" aria-hidden="true" class="countdown-fingers__img" />
+        <img
+          [src]="imageSrc()"
+          alt=""
+          aria-hidden="true"
+          class="countdown-fingers__img"
+          (load)="onImageLoad()"
+          (error)="onImageError()"
+        />
       </div>
     }
   `,
@@ -157,11 +166,27 @@ const FINGER_IMAGES: Record<number, string> = {
 export class CountdownFingersComponent {
   readonly seconds = input.required<number>();
   readonly size = input<'small' | 'large' | 'present'>('small');
+  readonly imageLoaded = signal(false);
 
   readonly imageSrc = computed(() => {
     const s = this.seconds();
     return s >= 0 && s <= 5 ? (FINGER_IMAGES[s] ?? null) : null;
   });
+
+  constructor() {
+    effect(() => {
+      this.imageSrc();
+      this.imageLoaded.set(false);
+    });
+  }
+
+  onImageLoad(): void {
+    this.imageLoaded.set(true);
+  }
+
+  onImageError(): void {
+    this.imageLoaded.set(false);
+  }
 
   ariaLabel(): string {
     const seconds = this.seconds();

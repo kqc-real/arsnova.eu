@@ -582,6 +582,8 @@ html .mdc-text-field__input[type='month']::-webkit-calendar-picker-indicator {
 
   --app-bg-root: var(--mat-sys-surface);
   --app-shadow-accent: none;
+  --app-icon-tile-border: 1.5px solid
+    color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
   --app-toolbar-max-width: 56rem;
   --app-live-channel-max-width: 36rem;
   --app-live-channel-inline: 1rem;
@@ -1025,22 +1027,6 @@ html {
   color: var(--mat-sys-on-surface);
   outline: 1px solid var(--mat-sys-outline);
   box-shadow: var(--mat-sys-level3);
-}
-
-.cdk-overlay-pane.host-pairing-dialog-panel .dialog-title-header__icon,
-.cdk-overlay-pane.presentation-start-dialog-panel .dialog-title-header__icon,
-.cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon,
-.cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon {
-  background: transparent;
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
-  color: var(--mat-sys-primary);
-}
-
-.cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon--warn,
-.cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon--warn {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--mat-sys-outline) 48%, var(--mat-sys-error) 52%);
-  color: var(--mat-sys-error);
 }
 
 .cdk-overlay-backdrop.host-pairing-dialog-backdrop,

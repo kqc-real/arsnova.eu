@@ -24,10 +24,16 @@ describe('CountdownFingersComponent', () => {
     fixture.componentRef.setInput('seconds', 3);
     fixture.detectChanges();
 
-    const graphic = fixture.nativeElement.querySelector('[role="img"]') as HTMLElement;
+    const graphic = fixture.nativeElement.querySelector('.countdown-fingers') as HTMLElement;
     const image = graphic.querySelector('img') as HTMLImageElement;
 
+    expect(graphic.getAttribute('role')).toBeNull();
+    expect(graphic.getAttribute('aria-hidden')).toBe('true');
+    image.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
     expect(graphic.getAttribute('aria-label')).toBe('3 Sekunden, durch Finger dargestellt');
+    expect(graphic.getAttribute('role')).toBe('img');
+    expect(graphic.getAttribute('aria-hidden')).toBeNull();
     expect(image.alt).toBe('');
     expect(image.getAttribute('aria-hidden')).toBe('true');
   });
@@ -46,9 +52,40 @@ describe('CountdownFingersComponent', () => {
     fixture.componentRef.setInput('seconds', 1);
     fixture.detectChanges();
 
+    (fixture.nativeElement.querySelector('img') as HTMLImageElement).dispatchEvent(
+      new Event('load'),
+    );
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="img"]').getAttribute('aria-label')).toBe(
       '1 Sekunde, durch einen Finger dargestellt',
     );
+  });
+
+  it('markiert nur einen geladenen Frame als sichtbar und setzt den Zustand beim Wechsel zurück', () => {
+    const fixture = TestBed.createComponent(CountdownFingersComponent);
+    fixture.componentRef.setInput('seconds', 5);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const firstImage = host.querySelector('img') as HTMLImageElement;
+    expect(host.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+
+    firstImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(host.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+
+    fixture.componentRef.setInput('seconds', 4);
+    fixture.detectChanges();
+    expect(host.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+
+    const nextImage = host.querySelector('img') as HTMLImageElement;
+    nextImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(host.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+
+    nextImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(host.classList.contains('countdown-fingers-host--loaded')).toBe(false);
   });
 
   it('hält Vote-Fingers transparent, bündig unten links', () => {

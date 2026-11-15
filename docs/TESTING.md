@@ -614,7 +614,7 @@ Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`, 
 | `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                                                           |
 | `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                                                        |
 | `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                                                     |
-| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                                                       |
+| `e2e:motd-focus`                   | MOTD-Fokusrücksprung und Tab-Reihenfolge, außerdem Titelzeile und Escape im News-Archiv-Dialog bei 1440 und 320 px          |
 | `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                                                    |
 | `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                                                       |
 | `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                                                          |

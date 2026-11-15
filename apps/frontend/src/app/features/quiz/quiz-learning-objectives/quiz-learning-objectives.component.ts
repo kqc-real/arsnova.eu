@@ -179,7 +179,10 @@ export function mapQuestionForLearningObjectiveDerivation(
     MatProgressSpinner,
   ],
   templateUrl: './quiz-learning-objectives.component.html',
-  styleUrl: './quiz-learning-objectives.component.scss',
+  styleUrls: [
+    '../../../shared/styles/dialog-title-header.scss',
+    './quiz-learning-objectives.component.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuizLearningObjectivesComponent {

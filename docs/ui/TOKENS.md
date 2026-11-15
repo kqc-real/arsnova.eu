@@ -53,6 +53,7 @@ Aktuell globale Tokens in `styles.scss`:
 | `--app-shadow-card-playful`    | Zusatzschatten für Spielerisch-Karten                     | nur `html.preset-playful`                                            |
 | `--app-shadow-cta-glow`        | dezenter Glow für Spielerisch-CTA (Token, Home ungenutzt) | nur `html.preset-playful`                                            |
 | `--app-corner-playful`         | stärker gerundete Spielerisch-Flächen                     | nur `html.preset-playful`                                            |
+| `--app-icon-tile-border`       | gemeinsamer Rahmen für umrandete Icon-Kacheln             | 1,5 px, Mischung aus `--mat-sys-outline` und `--mat-sys-primary`     |
 | `--app-toolbar-max-width`      | maximale Toolbar-/Shell-Breite                            | Layout-Konstante, derzeit `56rem`                                    |
 | `--app-live-channel-max-width` | maximale Breite von Host-/Vote-/Feedback-Live-Kanälen     | Layout-Konstante, derzeit `36rem`                                    |
 | `--app-live-channel-inline`    | Inline-Padding für Live-Kanäle                            | Layout-Konstante                                                     |

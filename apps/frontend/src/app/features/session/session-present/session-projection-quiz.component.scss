@@ -559,6 +559,11 @@ mat-icon.session-projection-quiz__reading-icon {
   color: var(--mat-sys-error);
 }
 
+:host:has(app-countdown-fingers.countdown-fingers-host--loaded)
+  .session-projection-quiz__countdown {
+  display: none;
+}
+
 .session-projection-quiz__title {
   margin: 0;
   min-height: 0;
@@ -1306,6 +1311,9 @@ mat-icon.session-projection-quiz__rating-pole-icon {
 }
 
 .session-projection-quiz__numeric-facts li {
+  display: grid;
+  align-content: center;
+  box-sizing: border-box;
   max-width: 100%;
   padding: 0.7rem 1.05rem;
   border-radius: var(--mat-sys-corner-full);
@@ -1313,16 +1321,7 @@ mat-icon.session-projection-quiz__rating-pole-icon {
   font-size: clamp(1.25rem, 2.8vmin, 1.85rem);
   font-weight: 650;
   line-height: 1.4;
-}
-
-.session-projection-quiz__numeric-facts-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.session-projection-quiz__numeric-facts-stack span:last-child {
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .session-projection-quiz__option-board {
