@@ -1165,6 +1165,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     readonly liveQuestionId: string;
     readonly result: PresenterQuizResult;
   } | null>(null);
+  private quizHistoryRequestEpoch = 0;
   readonly historyPage = signal({ index: 0, count: 1 });
   private readonly moderationQuizSourceCache = signal<
     readonly ModerationCompassQuizSourceCacheEntry[]
@@ -4352,6 +4353,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    let historyPhaseWasAvailable = false;
+    effect(() => {
+      const historyPhaseAvailable = this.quizHistoryPhaseAvailable();
+      if (historyPhaseWasAvailable && !historyPhaseAvailable) {
+        untracked(() => {
+          this.quizHistoryRequestEpoch += 1;
+          this.quizHistory.set(null);
+        });
+      }
+      historyPhaseWasAvailable = historyPhaseAvailable;
+    });
     let historyWasVisible = false;
     effect(() => {
       const historyVisible = this.earlierQuizResult() !== null;
@@ -5603,22 +5615,40 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const root = this.hostElement.nativeElement;
+    const historyPageArrow =
+      (key === 'ArrowUp' || key === 'ArrowDown') && this.earlierQuizResult() !== null;
     if (target instanceof Element && target !== this.document.body) {
       if (
         target.closest(
           'input, textarea, select, [contenteditable], [role="combobox"], [role="listbox"], ' +
             '[role="menu"], [role="radiogroup"], [role="tablist"], [role="slider"], ' +
-            '[role="spinbutton"], [role="toolbar"]',
+            '[role="spinbutton"], [role="dialog"]',
         )
       ) {
         return;
       }
+      // Host-owned history controls may retain focus after ←. Their surrounding toolbar must not
+      // swallow ↑/↓, while unrelated toolbars keep their native arrow-key behavior.
+      if (!historyPageArrow && target.closest('[role="toolbar"]')) return;
+    }
+
+    if (historyPageArrow && this.historyPage().count > 1) {
+      event.preventDefault();
+      if (!event.repeat) {
+        this.changeHistoryPage(key === 'ArrowUp' ? -1 : 1);
+      }
+      return;
     }
 
     const action = root.querySelector<HTMLButtonElement>(`button[aria-keyshortcuts="${key}"]`);
     if (action) {
       event.preventDefault();
-      if (!event.repeat && !action.disabled && action.getAttribute('aria-disabled') !== 'true') {
+      if (
+        !event.repeat &&
+        !action.disabled &&
+        action.getAttribute('aria-disabled') !== 'true' &&
+        !action.closest('[inert]')
+      ) {
         const active = this.document.activeElement;
         if (!(active instanceof Element) || !root.contains(active)) {
           action.focus({ preventScroll: true });
@@ -5631,15 +5661,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (key !== 'ArrowUp' && key !== 'ArrowDown') {
       return;
     }
-    const scroller =
-      this.document.querySelector<HTMLElement>('.app-main__content') ??
-      (this.document.scrollingElement as HTMLElement | null);
-    if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
-      return;
-    }
+    const scroller = [
+      root.querySelector<HTMLElement>('.session-host__history-projection'),
+      root.querySelector<HTMLElement>('.session-host__history-word-cloud'),
+      this.document.querySelector<HTMLElement>('.app-main'),
+      this.document.querySelector<HTMLElement>('.app-main__content'),
+      this.document.scrollingElement as HTMLElement | null,
+    ].find((candidate) => candidate && candidate.scrollHeight > candidate.clientHeight);
+    if (!scroller) return;
     event.preventDefault();
     scroller.scrollBy({
-      top: (key === 'ArrowUp' ? -1 : 1) * Math.max(160, scroller.clientHeight * 0.75),
+      top: key === 'ArrowUp' ? -48 : 48,
       behavior: 'instant',
     });
   }
@@ -13393,6 +13425,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (direction === 'next' && !current) return;
 
     this.controlPending.set(true);
+    const requestEpoch = this.quizHistoryRequestEpoch;
     try {
       if (direction === 'next' && !current?.hasNext) {
         this.quizHistory.set(null);
@@ -13411,6 +13444,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (
         !result ||
         this.destroyRef.destroyed ||
+        requestEpoch !== this.quizHistoryRequestEpoch ||
+        !this.quizHistoryPhaseAvailable() ||
         this.activeChannel() !== 'quiz' ||
         this.displayedCurrentQuestionForHost()?.questionId !== live.questionId
       ) {
@@ -13475,6 +13510,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         ) {
           return;
         }
+        const active = this.document.activeElement;
+        if (active && active !== this.document.body && active.isConnected) return;
         this.focusHostQuizPhaseAction();
       },
       { injector: this.injector },

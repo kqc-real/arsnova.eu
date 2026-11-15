@@ -23214,6 +23214,31 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(host.querySelector('[data-testid="host-quiz-history-next"] kbd')?.textContent).toBe('→');
 
+    const historyProjection = host.querySelector<HTMLElement>('.session-host__history-projection');
+    expect(historyProjection).not.toBeNull();
+    Object.defineProperties(historyProjection!, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 400 },
+    });
+    const appMain = document.createElement('main');
+    appMain.className = 'app-main';
+    Object.defineProperties(appMain, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 1000 },
+    });
+    const historyScrollBy = vi.fn();
+    appMain.scrollBy = historyScrollBy;
+    document.body.append(appMain);
+    const focusedHistoryControl = host.querySelector<HTMLElement>(
+      '[data-testid="host-quiz-history-next"]',
+    );
+    expect(document.activeElement).toBe(focusedHistoryControl);
+    focusedHistoryControl!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
+    );
+    expect(historyScrollBy).toHaveBeenCalledWith({ top: 48, behavior: 'instant' });
+    appMain.remove();
+
     component.reportHistoryPages(3);
     fixture.detectChanges();
     expect(
@@ -23232,14 +23257,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(host.querySelector('[data-testid="host-quiz-history-next-page"] kbd')?.textContent).toBe(
       '↓',
     );
-    document.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
-    );
+    const down = new KeyboardEvent('keydown', {
+      key: 'ArrowDown',
+      bubbles: true,
+      cancelable: true,
+    });
+    focusedHistoryControl!.dispatchEvent(down);
+    expect(down.defaultPrevented).toBe(true);
     expect(component.historyPage().index).toBe(1);
     fixture.detectChanges();
-    document.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true, cancelable: true }),
-    );
+    const up = new KeyboardEvent('keydown', {
+      key: 'ArrowUp',
+      bubbles: true,
+      cancelable: true,
+    });
+    focusedHistoryControl!.dispatchEvent(up);
+    expect(up.defaultPrevented).toBe(true);
     expect(component.historyPage().index).toBe(0);
 
     const input = document.createElement('input');
@@ -23258,6 +23291,40 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.effectiveStatus()).toBe('ACTIVE');
     expect(component.displayedCurrentQuestionForHost()?.questionId).toBe(liveQuestion.questionId);
     expect(getPresenterQuizResultQueryMock).toHaveBeenCalledTimes(1);
+
+    type HistoryResult = {
+      question: typeof earlierQuestion;
+      hasPrevious: boolean;
+      hasNext: boolean;
+      wordCloudUnavailable: boolean;
+    };
+    let resolvePendingResult!: (value: HistoryResult) => void;
+    const pendingResult = new Promise<HistoryResult>((resolve) => {
+      resolvePendingResult = resolve;
+    });
+    getPresenterQuizResultQueryMock.mockImplementationOnce(() => pendingResult);
+    const previousResultButton = host.querySelector<HTMLButtonElement>(
+      '[data-testid="host-quiz-history-previous"]',
+    );
+    const moreActionsButton = host.querySelector<HTMLButtonElement>(
+      '[data-testid="host-more-actions"]',
+    );
+    expect(previousResultButton).not.toBeNull();
+    expect(moreActionsButton).not.toBeNull();
+    previousResultButton!.focus();
+    const pendingStep = component.stepQuizHistory('previous');
+    await vi.waitUntil(() => getPresenterQuizResultQueryMock.mock.calls.length === 2);
+    moreActionsButton!.focus();
+    resolvePendingResult({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+    await pendingStep;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(moreActionsButton);
     fixture.destroy();
   });
 
@@ -23343,6 +23410,34 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     statusHandler?.({ status: 'ACTIVE', currentQuestion: 1 });
     fixture.detectChanges();
     expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
+
+    type HistoryResult = {
+      question: typeof earlierQuestion;
+      hasPrevious: boolean;
+      hasNext: boolean;
+      wordCloudUnavailable: boolean;
+    };
+    let resolvePendingResult!: (value: HistoryResult) => void;
+    const pendingResult = new Promise<HistoryResult>((resolve) => {
+      resolvePendingResult = resolve;
+    });
+    getPresenterQuizResultQueryMock.mockImplementationOnce(() => pendingResult);
+    const pendingStep = fixture.componentInstance.stepQuizHistory('previous');
+    await vi.waitUntil(() => getPresenterQuizResultQueryMock.mock.calls.length === 1);
+    statusHandler?.({ status: 'PAUSED', currentQuestion: 1 });
+    fixture.detectChanges();
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 1 });
+    fixture.detectChanges();
+    resolvePendingResult({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+    await pendingStep;
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
     fixture.destroy();
   });
 
@@ -23372,6 +23467,39 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     closeButton!.dispatchEvent(right);
 
+    expect(clickSpy).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('ignoriert globale Pfeiltasten in Inline-Dialogen und auf inerten Aktionen', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const host = fixture.nativeElement as HTMLElement;
+    const inertSurface = document.createElement('div');
+    inertSurface.setAttribute('inert', '');
+    const shortcut = document.createElement('button');
+    shortcut.setAttribute('aria-keyshortcuts', 'ArrowRight');
+    const clickSpy = vi.fn();
+    shortcut.addEventListener('click', clickSpy);
+    inertSurface.append(shortcut);
+    host.prepend(inertSurface);
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
+    expect(clickSpy).not.toHaveBeenCalled();
+
+    inertSurface.removeAttribute('inert');
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    const closeButton = document.createElement('button');
+    dialog.append(closeButton);
+    host.prepend(dialog);
+    closeButton.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
     expect(clickSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
