@@ -1,0 +1,327 @@
+{
+  "lauf": "20261113T173724-b0",
+  "tag": "b0",
+  "n": 10,
+  "auswertung": "b0",
+  "b0": {
+    "auftraege": [
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 80
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 164
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 76
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 87
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 90
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 94
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 107
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 82
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 110
+      },
+      {
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "latencyMs": 85
+      }
+    ],
+    "kennzahlen": {
+      "n": 10,
+      "medianJobMs": 88.5,
+      "alleUnavailable": true,
+      "hB0": true
+    }
+  },
+  "timeoutMs": 300000,
+  "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed",
+  "rechner": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz, 8 Threads, 31 GiB",
+  "energieprofil": "performance",
+  "appHost": {
+    "vcpu": 2,
+    "image": "127.0.0.1:5000/arsnova@sha256:895ab0995640deeb09de5e31a84adbdcb53d7613383c63cb8b8d5a3e29ce2b05"
+  },
+  "llmHost": {
+    "info": "\"127.0.0.1:5000/arsnova-open-weight-llm@sha256:2e039518a014229ef1adfd3335706d26ad30f7c66ec5430974107deb8993b3d1\" []\n4\n11",
+    "modellSha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+  },
+  "treiber": {
+    "startedAt": "2026-11-13T17:39:00.082Z",
+    "teilnehmer": 200,
+    "fragen": 6,
+    "stimmen": 282,
+    "pauseMs": 31000,
+    "locale": "de",
+    "auftraege": [
+      {
+        "index": 1,
+        "requestedAt": "2026-11-13T17:39:29.997Z",
+        "finishedAt": "2026-11-13T17:39:31.112Z",
+        "hostReturnMs": 70,
+        "clientWaitMs": 1115,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 2,
+        "requestedAt": "2026-11-13T17:40:02.141Z",
+        "finishedAt": "2026-11-13T17:40:03.239Z",
+        "hostReturnMs": 56,
+        "clientWaitMs": 1098,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 3,
+        "requestedAt": "2026-11-13T17:40:34.268Z",
+        "finishedAt": "2026-11-13T17:40:35.384Z",
+        "hostReturnMs": 75,
+        "clientWaitMs": 1116,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 4,
+        "requestedAt": "2026-11-13T17:41:06.413Z",
+        "finishedAt": "2026-11-13T17:41:07.513Z",
+        "hostReturnMs": 53,
+        "clientWaitMs": 1100,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 5,
+        "requestedAt": "2026-11-13T17:41:38.541Z",
+        "finishedAt": "2026-11-13T17:41:39.648Z",
+        "hostReturnMs": 60,
+        "clientWaitMs": 1107,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 6,
+        "requestedAt": "2026-11-13T17:42:10.677Z",
+        "finishedAt": "2026-11-13T17:42:11.796Z",
+        "hostReturnMs": 72,
+        "clientWaitMs": 1119,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 7,
+        "requestedAt": "2026-11-13T17:42:42.823Z",
+        "finishedAt": "2026-11-13T17:42:43.959Z",
+        "hostReturnMs": 71,
+        "clientWaitMs": 1136,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 8,
+        "requestedAt": "2026-11-13T17:43:14.987Z",
+        "finishedAt": "2026-11-13T17:43:16.108Z",
+        "hostReturnMs": 73,
+        "clientWaitMs": 1121,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 9,
+        "requestedAt": "2026-11-13T17:43:47.136Z",
+        "finishedAt": "2026-11-13T17:43:48.270Z",
+        "hostReturnMs": 75,
+        "clientWaitMs": 1134,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 10,
+        "requestedAt": "2026-11-13T17:44:19.298Z",
+        "finishedAt": "2026-11-13T17:44:20.405Z",
+        "hostReturnMs": 58,
+        "clientWaitMs": 1107,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "27cd726513505880a7486066b2d837d28c1a8ba8e73052db0fb323a4886fd38e",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      }
+    ]
+  },
+  "zerlegung": {
+    "hinweis": "B0: Runtime aus, keine Zeitzerlegung"
+  },
+  "kontrolleC0": {
+    "curl": "",
+    "hinweis": "time_starttransfer time_total http_code; frische Runtime",
+    "timings": null
+  },
+  "speicher": {
+    "proben": 0,
+    "maxBytes": null,
+    "restartsMax": null,
+    "oomKilled": false
+  },
+  "umgebung": {
+    "schema": "1b-umgebung-1",
+    "erfasstAm": "2026-11-13T18:45:08+01:00",
+    "rechner": {
+      "plattform": "linux",
+      "cpu": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+      "kerne": 4,
+      "threads": 8,
+      "maxMHz": 3600,
+      "ramGib": 31.0,
+      "os": "Omarchy",
+      "kernel": "7.2.15-1-omarchy",
+      "energieprofil": "performance",
+      "cpuGovernor": "powersave",
+      "cpufreqTreiber": "intel_pstate",
+      "netzteil": true,
+      "speicherort": {
+        "pfad": "/var/lib/libvirt/images/arsnova-1b",
+        "dateisystem": "btrfs",
+        "medium": "SSD"
+      }
+    },
+    "hypervisor": {
+      "name": "KVM/QEMU (libvirt)",
+      "version": "QEMU 11.1.2",
+      "libvirt": "libvirt 12.8.0",
+      "nested": "Y",
+      "pinning": true
+    },
+    "vms": [
+      {
+        "name": "arsnova-1b-app",
+        "ip": "192.168.150.10",
+        "zustand": "running",
+        "vcpu": 2,
+        "ramGib": 6,
+        "cpuset": "4 5",
+        "cpuModell": "host-passthrough",
+        "plattenMaxGib": 25,
+        "gast": {
+          "host": "arsnova-1b-app",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+          "cpus": 2,
+          "ramGib": 5.8,
+          "docker": "29.9.3",
+          "virtualisierung": "kvm"
+        }
+      },
+      {
+        "name": "arsnova-1b-llm",
+        "ip": "192.168.150.20",
+        "zustand": "running",
+        "vcpu": 4,
+        "ramGib": 12,
+        "cpuset": "0 1 2 3",
+        "cpuModell": "host-passthrough",
+        "plattenMaxGib": 20,
+        "gast": {
+          "host": "arsnova-1b-llm",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+          "cpus": 4,
+          "ramGib": 11.7,
+          "docker": "29.9.3",
+          "virtualisierung": "kvm"
+        }
+      }
+    ],
+    "laborStand": {
+      "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed"
+    }
+  }
+}

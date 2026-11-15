@@ -178,7 +178,10 @@ Historie und die Dossier-Zeilen beziehen sich weiterhin auf den damaligen Stand.
    1C-Lauf nutzt den lokalen Laborpfad `npm run docker:up:llm:http`
    ([1C-Labor-Design, Abschnitt 3.1](./specs/2026-10-25-1c-labor-design.md#31-topologie)).
    Was das für die Zwei-Host-Reproduktion in 1B bedeutet, ist damit nicht
-   ausdrücklich beantwortet. Ursprünglich lautete die Frage: Laut Material
+   ausdrücklich beantwortet. _Ergänzt 2026-11-13:_ Für 1B gelöst ohne erneute
+   Rückfrage: zwei VMs in einem privaten virtuellen Netz auf dem eigenen Rechner
+   ([ADR 1B-002](./adr/1B-002-topologie-zwei-vms-ein-rechner.md),
+   [ADR 1B-003](./adr/1B-003-laborregel-virtuelles-netz.md)). Ursprünglich lautete die Frage: Laut Material
    stellt die Lehrperson die Laborinstanz einschließlich echter privater
    Runtime bereit (siehe
    [Recherche unten](#laborinstanz-und-zweiter-host-recherche-2026-10-24)).

@@ -1,0 +1,46 @@
+#cloud-config
+# 1B app-host (ADR 1B-002): Docker und Node 22 wie Zweit-Host-Runbook §4.2/§4.3,
+# dazu Mitschnittwerkzeuge. Der Repo-Stand kommt danach per vm-linux.sh (git bundle).
+# Platzhalter __SSH_KEY__ setzt vm-linux.sh ein. Keine Secrets in dieser Datei.
+hostname: arsnova-1b-app
+users:
+  - name: labor
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: 'ALL=(ALL) NOPASSWD:ALL'
+    ssh_authorized_keys:
+      - __SSH_KEY__
+ssh_pwauth: false
+package_update: true
+packages: [ca-certificates, curl, gnupg, git, tcpdump, tshark, chrony, jq]
+write_files:
+  - path: /usr/local/sbin/labor-basis.sh
+    permissions: '0755'
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      . /etc/os-release
+      install -m 0755 -d /etc/apt/keyrings
+      curl -fsSL "https://download.docker.com/linux/ubuntu/gpg" -o /etc/apt/keyrings/docker.asc
+      chmod a+r /etc/apt/keyrings/docker.asc
+      printf 'Types: deb\nURIs: https://download.docker.com/linux/ubuntu\nSuites: %s\nComponents: stable\nSigned-By: /etc/apt/keyrings/docker.asc\n' \
+        "${UBUNTU_CODENAME:-$VERSION_CODENAME}" > /etc/apt/sources.list.d/docker.sources
+      curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+        | gpg --dearmor --yes -o /usr/share/keyrings/nodesource.gpg
+      chmod a+r /usr/share/keyrings/nodesource.gpg
+      printf 'Types: deb\nURIs: https://deb.nodesource.com/node_22.x\nSuites: nodistro\nComponents: main\nSigned-By: /usr/share/keyrings/nodesource.gpg\n' \
+        > /etc/apt/sources.list.d/nodesource.sources
+      apt-get update
+      DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin nodejs
+      systemctl enable --now docker
+      usermod -aG docker labor
+      # Messruhe (Lauf 2026-11-13: apt-daily-upgrade lief mitten im gewerteten Lauf):
+      # keine Updates, Firmware- oder Index-Downloads im Hintergrund.
+      for u in apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service fwupd-refresh.timer \
+        update-notifier-download.timer man-db.timer motd-news.timer; do
+        systemctl disable --now "$u" 2>/dev/null || true
+      done
+      touch /var/lib/labor-basis.done
+runcmd:
+  - [bash, /usr/local/sbin/labor-basis.sh]

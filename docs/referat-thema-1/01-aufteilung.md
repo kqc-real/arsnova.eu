@@ -201,6 +201,15 @@ was 1B zeigt.
   [Rahmendokument](./00-rahmen-und-pruefung.md#leistungsbestandteile-und-bewertung)),
   wer Einstieg und Gruppensynthese übernimmt, gemeinsames Foliendesign.
 
+## 1B: zwei PRs nacheinander (Vorschlag, mit Niklas abzustimmen)
+
+_Ergänzt 2026-11-12._ Vorschlag von Jonas, mit Niklas noch nicht abgestimmt:
+
+- **Reihenfolge:** Jonas' PR mit den Schritten 1–2 zuerst. Niklas zweigt nach deren Merge von Fork-`main` für die Schritte 3–4 ab.
+- **Gemeinsames Hauptdokument:** `1B-ergebnis.md` mit je einem Abschnitt zu den Schritten 1–2 und 3–4 und einem gemeinsamen Kurzfazit. Eigenanteil je Person.
+- **ADR-Nummern:** `1B-001`–`1B-019` Jonas, `1B-020`–`1B-039` Niklas ([ADR-Index](adr/README.md#adrs-zu-1b)).
+- **Aufbau:** zwei VMs auf einem Rechner ([ADR 1B-002](adr/1B-002-topologie-zwei-vms-ein-rechner.md)). Niklas nutzt die Dateien, nicht die Geräte von Jonas; der Windows-Weg steht in `evidenz/1B/vm/WINDOWS.md` ([ADR 1B-009](adr/1B-009-portabilitaet-linux-windows.md)). Sein eigener Lauf auf eigener Hardware ist zugleich der Wiederholbarkeitsnachweis aus Schritt 3.
+
 ## Nächste Schritte
 
 1. **Erledigt:** Option 1 gewählt und X/Y zugeordnet (Tabelle oben).

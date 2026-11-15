@@ -1,0 +1,13 @@
+== 2026-11-12T18:36:26+00:00 app-host commit 5de1e1182
+== 11 Host-Shell
+{"status":"ok"}
+App-Host erreicht mit Token genau einen Slot.
+== 11 aus dem App-Container (Docker-NAT)
+{"status":"ok"}
+== Container-Netz
+172.18.0.0/16
+enp1s0 In  IP 192.168.150.10.58088 > 192.168.150.20.8080: Flags [S], seq 3477595314, win 64240, options [mss 1460,sackOK,TS val 934048019 ecr 0,nop,wscale 7], length 0
+enp1s0 In  IP 192.168.150.10.58102 > 192.168.150.20.8080: Flags [S], seq 2387160426, win 64240, options [mss 1460,sackOK,TS val 934048030 ecr 0,nop,wscale 7], length 0
+enp1s0 In  IP 192.168.150.10.56074 > 192.168.150.20.8080: Flags [S], seq 681292689, win 64240, options [mss 1460,sackOK,TS val 4129396498 ecr 0,nop,wscale 7], length 0
+lo    In  IP 192.168.150.20.41956 > 192.168.150.20.8080: Flags [S], seq 4214218081, win 65495, options [mss 65495,sackOK,TS val 3025580220 ecr 0,nop,wscale 7], length 0
+lo    In  IP 192.168.150.20.52206 > 192.168.150.20.8080: Flags [S], seq 2796330292, win 65495, options [mss 65495,sackOK,TS val 3025595286 ecr 0,nop,wscale 7], length 0

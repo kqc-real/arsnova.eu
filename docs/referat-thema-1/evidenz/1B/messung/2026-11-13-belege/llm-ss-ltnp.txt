@@ -1,0 +1,7 @@
+State  Recv-Q Send-Q  Local Address:Port Peer Address:PortProcess
+LISTEN 0      4096        127.0.0.1:5000      0.0.0.0:*    users:(("docker-proxy",pid=9235,fd=8))
+LISTEN 0      4096          0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=7425,fd=3),("systemd",pid=1,fd=118))
+LISTEN 0      4096       127.0.0.54:53        0.0.0.0:*    users:(("systemd-resolve",pid=578,fd=17))
+LISTEN 0      4096    127.0.0.53%lo:53        0.0.0.0:*    users:(("systemd-resolve",pid=578,fd=15))
+LISTEN 0      512    192.168.150.20:8080      0.0.0.0:*    users:(("llama-server",pid=16714,fd=3))
+LISTEN 0      4096             [::]:22           [::]:*    users:(("sshd",pid=7425,fd=4),("systemd",pid=1,fd=119))

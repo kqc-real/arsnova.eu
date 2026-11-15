@@ -1,0 +1,10 @@
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp (OpenSSH)           ALLOW IN    Anywhere
+192.168.150.20 8080/tcp    ALLOW IN    192.168.150.10
+22/tcp (OpenSSH (v6))      ALLOW IN    Anywhere (v6)

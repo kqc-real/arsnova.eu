@@ -46,7 +46,10 @@ ihn zu wiederholen.
 - `AGENTS.md` im Wurzelverzeichnis und `.serena/` gehören upstream; für das
   Referat nicht ändern. Produktionscode bleibt unverändert; Tests, Testhelfer, ihre
   CI-Schritte und ihre Doku in `docs/TESTING.md` sind erlaubt.
-- Laborinstanzen nur auf `127.0.0.1`.
+- Laborinstanzen nur auf `127.0.0.1` oder in einem privaten virtuellen Netz
+  zwischen Labor-VMs auf demselben Rechner, das von außen nicht erreichbar ist
+  (keine Portweiterleitung, kein Bridging); ausgehendes NAT für die Einrichtung
+  ist erlaubt ([ADR 1B-003](adr/1B-003-laborregel-virtuelles-netz.md)).
 - Markdown prüfen: `npx prettier --check <dateien>` und `git diff --check`.
 
 ## Wiederverwendbar aus 1C
@@ -60,3 +63,43 @@ ihn zu wiederholen.
   Ausfall der Runtime in Vitest (im Testprozess, kein eigenständiger Server)
 - `apps/backend/src/__tests__/lib/recording-proxy.ts`: aufzeichnender Proxy
   vor der echten Runtime
+
+## 1B-Labor für Agenten (Codex, Claude)
+
+Zwei VMs (app-host `192.168.150.10`, llm-host `192.168.150.20`) für 1B; Aufbau,
+Messmodi und Regeln im [Runbook](evidenz/1B/runbook.md), Übergabe für die
+Schritte 3–4 in dessen [Abschnitt 8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34),
+Windows-Anleitung und Parameter in [`vm/WINDOWS.md`](evidenz/1B/vm/WINDOWS.md).
+
+- **Steuern:** unter Windows aus WSL nur über
+  `docs/referat-thema-1/evidenz/1B/labor-wsl.sh` (ruft `labor.ps1` und
+  `ssh.exe` unter Windows auf; ob WSL die VMs direkt erreicht, ist offen und
+  wird nicht gebraucht). Nie `labor.sh` in WSL; das ist der Linux-Weg.
+  - Hilfe: `labor-wsl.sh` ohne Argumente. Zustand: `labor-wsl.sh status`;
+    VMs an/aus: `start`, `stop`.
+  - Befehl in einer VM: `labor-wsl.sh vm llm 'docker ps'` bzw. `vm app '…'`.
+  - Eigene Änderungen testen, ohne zu committen: `--arbeitsstand` anhängen
+    (wirkt bei allen Modi, die den Repo-Stand in die VMs bringen), nie bei
+    `kontrolle` und `belege`.
+  - Messungen und ihre Reihenfolge: [Runbook, Abschnitt 3](evidenz/1B/runbook.md#3-lauf).
+    Auf einem frischen Labor zuerst Schritt 1 dort (mit `-LabTimeoutMs 300000`).
+  - `up`, `destroy` und `vorpruefung` brauchen Admin-Rechte; nur auf
+    ausdrücklichen Wunsch des Menschen. Lange Läufe (ab `kalibrierung`) startet
+    besser der Mensch in einem eigenen Terminal; danach Log und Ergebnis lesen.
+- **Vor jedem Lauf** (auch zur Entwicklung) den Menschen fragen; Läufe belegen
+  den Rechner für Minuten bis Stunden. Vor jedem gewerteten Lauf zusätzlich
+  Hypothese, Messgröße und Schwelle aufschreiben (Design oder datierter
+  Nachtrag) und auf einem committeten Stand ohne `--arbeitsstand` laufen lassen.
+- **Entwicklungsläufe:** `-LabTag dev-…` (kommen nicht nach `messung/`);
+  Läufe mit `--arbeitsstand` immer als Entwicklung, nie werten. `kontrolle`
+  und `belege` schreiben immer nach `messung/`.
+- **Störungen** (`tc netem`, ufw-`deny`, Runtime stoppen) nur in den Labor-VMs
+  und nur nach Rückfrage; jeden Befehl samt Rücknahme protokollieren, nach dem
+  Lauf zurücknehmen und mit `pruefen` bestätigen
+  ([Runbook, Abschnitt 8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34)).
+- **Nie:** Tokens, `.env`-Inhalte oder Mitschnitte (`*.pcap`, enthalten den
+  Token) ins Repo ([Datenregeln](evidenz/1B/runbook.md#7-datenregeln)); nichts
+  an Produktionscode ändern; Labornetz nicht nach außen öffnen (ADR 1B-003).
+- **Ergebnisse:** jedes Ergebnis-JSON enthält `umgebung` (Rechner,
+  Hypervisor, VMs); Zahlen nur mit dieser Angabe und dem Commit zitieren.
+- **Tests der Laborskripte:** [Runbook, Abschnitt 9](evidenz/1B/runbook.md#9-tests).
