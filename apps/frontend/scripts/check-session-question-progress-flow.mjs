@@ -360,16 +360,14 @@ async function main() {
     await waitForHostVote(host);
     logStep('Teilnehmer stimmt auf Frage 2 ab und Host sieht die Stimme');
 
-    const moreActions = host.getByTestId('host-more-actions');
-    await moreActions.click();
-    const skipButton = host.getByRole('menuitem', {
+    const skipButton = host.getByRole('button', {
       name: 'Aktuelle Frage auslassen',
       exact: true,
     });
     await skipButton.waitFor({ state: 'visible', timeout: 10_000 });
     ensure(
-      (await skipButton.getAttribute('role')) === 'menuitem',
-      'Die Skip-Aktion ist nicht im Menü Weitere Aktionen erreichbar.',
+      (await skipButton.getAttribute('aria-keyshortcuts')) === 'S',
+      'Die direkte Skip-Aktion weist den fokussierten S-Shortcut nicht aus.',
     );
     await skipButton.click();
     const dialog = host.locator('.cdk-overlay-container').first();
