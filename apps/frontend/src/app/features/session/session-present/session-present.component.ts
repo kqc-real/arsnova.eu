@@ -2444,7 +2444,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.hostDisplayMode.setHostSessionActive(false);
   }
 
-  private measuredProjectionPage: { context: string; count: number } | null = null;
+  private measuredProjectionPage: {
+    context: string;
+    count: number;
+    sectionStarts?: number[] | null;
+  } | null = null;
   private reportingProjectionPage = false;
   private projectionReportRetry: ReturnType<typeof setTimeout> | null = null;
 
@@ -2468,17 +2472,26 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.showFullscreenButton.set(shouldShow);
   }
 
-  async reportProjectionPages(count: number): Promise<void> {
+  async reportProjectionPages(
+    layout: number | { count: number; sectionStarts?: number[] | null },
+  ): Promise<void> {
     const page = this.session()?.presenterPage;
     if (!page || this.destroyRef.destroyed) return;
-    this.measuredProjectionPage = { context: page.context, count };
+    const measuredLayout = typeof layout === 'number' ? { count: layout } : layout;
+    this.measuredProjectionPage = { context: page.context, ...measuredLayout };
     if (this.reportingProjectionPage) return;
     this.reportingProjectionPage = true;
     try {
       while (!this.destroyRef.destroyed) {
         const measured = this.measuredProjectionPage;
         const current = this.session()?.presenterPage;
-        if (!measured || measured.context !== current?.context || measured.count === current.count)
+        if (
+          !measured ||
+          measured.context !== current?.context ||
+          (measured.count === current.count &&
+            JSON.stringify(measured.sectionStarts ?? undefined) ===
+              JSON.stringify(current.sectionStarts))
+        )
           break;
         const result = await trpc.session.setPresenterSurface.mutate(
           {
@@ -2500,7 +2513,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.projectionReportRetry = setTimeout(() => {
           const measured = this.measuredProjectionPage;
           if (measured?.context === this.session()?.presenterPage?.context) {
-            void this.reportProjectionPages(measured!.count);
+            void this.reportProjectionPages(measured!);
           }
         }, 2000);
       }

@@ -969,7 +969,9 @@
       <app-session-projection-quiz
         [pageContext]="session()?.presenterPage?.context ?? ''"
         [pageIndex]="session()?.presenterPage?.index ?? 0"
-        (pageCount)="reportProjectionPages($event)"
+        [reportedPageCount]="session()?.presenterPage?.count ?? 1"
+        [pageSectionStarts]="session()?.presenterPage?.sectionStarts"
+        (pageLayout)="reportProjectionPages($event)"
         [question]="presentedQuizQuestion()"
         [status]="session()?.status ?? null"
         [voteProgress]="hostVoteProgress()"

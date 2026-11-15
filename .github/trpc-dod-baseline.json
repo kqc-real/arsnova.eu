@@ -914,7 +914,7 @@
     },
     "session.setPresenterSurface": {
       "kind": "mutation",
-      "fingerprint": "sha256:c1ce67adf78ba28a37077a4d4f93b2a399c6a31f19f7b0409702c499429dbec0",
+      "fingerprint": "sha256:2b11ddb219adc22e7c51b4d438e294e9ac5f9ba8e15e5086a03b85bf5ff2b33f",
       "missing": []
     },
     "session.setQaWordCloudProjection": {

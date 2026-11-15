@@ -100,6 +100,24 @@ describe('öffentliche Contract-Schemas', () => {
         page: { context: 'qa-questions', delta: 1, index: 2 },
       }).success,
     ).toBe(false);
+    expect(
+      SetPresenterSurfaceInputSchema.parse({
+        code: 'ABC123',
+        page: { context: 'rating', count: 5, sectionStarts: [0, 3] },
+      }).page,
+    ).toEqual({ context: 'rating', count: 5, sectionStarts: [0, 3] });
+    expect(
+      SetPresenterSurfaceInputSchema.safeParse({
+        code: 'ABC123',
+        page: { context: 'rating', count: 3, sectionStarts: [0, 3] },
+      }).success,
+    ).toBe(false);
+    expect(
+      SetPresenterSurfaceInputSchema.parse({
+        code: 'ABC123',
+        page: { context: 'rating', count: 1, sectionStarts: null },
+      }).page,
+    ).toEqual({ context: 'rating', count: 1, sectionStarts: null });
   });
 
   it('begrenzt Q&A-Fragetext auf Unicode-Codepunkte (nicht UTF-16-Units)', () => {

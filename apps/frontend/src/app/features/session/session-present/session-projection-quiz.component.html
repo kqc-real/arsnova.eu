@@ -4,7 +4,7 @@
   <app-projection-pages
     [hidden]="showLeaderboardPage()"
     [class.projection-pages--with-reactions]="showEmojiReactions()"
-    [pageContext]="pageContext()"
+    [pageContext]="projectionPageContext()"
     [pageIndex]="contentPageIndex()"
     (pageCount)="onContentPageCount($event)"
   >

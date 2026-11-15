@@ -821,6 +821,37 @@ describe('SessionPresentComponent', () => {
     }
   });
 
+  it('clears rating section boundaries once the results use a single layout', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    const session = await getInfoQueryMock();
+    component.session.set({
+      ...session,
+      presenterPage: { context: 'rating', index: 1, count: 2, sectionStarts: [0, 1] },
+    });
+    setPresenterSurfaceMutateMock.mockResolvedValueOnce({
+      presenterSurface: 'default',
+      presenterPage: { context: 'rating', index: 0, count: 1 },
+    });
+
+    await component.reportProjectionPages({ count: 1, sectionStarts: null });
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(1);
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        page: { context: 'rating', count: 1, sectionStarts: null },
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(component.session()?.presenterPage).toEqual({
+      context: 'rating',
+      index: 0,
+      count: 1,
+    });
+    fixture.destroy();
+  });
+
   it('zeigt nach beendetem Presenter einen eindeutigen Standby mit Sessioncode statt Quizinhalt', async () => {
     const endedSession = {
       ...(await getInfoQueryMock()),
