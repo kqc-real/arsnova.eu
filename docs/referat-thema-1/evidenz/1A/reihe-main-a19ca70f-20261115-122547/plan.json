@@ -1,0 +1,162 @@
+{
+  "kind": "confirmatory",
+  "profile": {
+    "participants": 500,
+    "warmupMs": 60000,
+    "durationMs": 300000,
+    "rampMs": 90000,
+    "revealAtMs": 270000
+  },
+  "runs": [
+    {
+      "block": 1,
+      "position": 1,
+      "variant": "V1",
+      "run": "block-01"
+    },
+    {
+      "block": 1,
+      "position": 2,
+      "variant": "V4",
+      "run": "block-01"
+    },
+    {
+      "block": 1,
+      "position": 3,
+      "variant": "V2",
+      "run": "block-01"
+    },
+    {
+      "block": 1,
+      "position": 4,
+      "variant": "V3",
+      "run": "block-01"
+    },
+    {
+      "block": 1,
+      "position": 5,
+      "variant": "V0",
+      "run": "block-01"
+    },
+    {
+      "block": 2,
+      "position": 1,
+      "variant": "V4",
+      "run": "block-02"
+    },
+    {
+      "block": 2,
+      "position": 2,
+      "variant": "V1",
+      "run": "block-02"
+    },
+    {
+      "block": 2,
+      "position": 3,
+      "variant": "V3",
+      "run": "block-02"
+    },
+    {
+      "block": 2,
+      "position": 4,
+      "variant": "V0",
+      "run": "block-02"
+    },
+    {
+      "block": 2,
+      "position": 5,
+      "variant": "V2",
+      "run": "block-02"
+    },
+    {
+      "block": 3,
+      "position": 1,
+      "variant": "V4",
+      "run": "block-03"
+    },
+    {
+      "block": 3,
+      "position": 2,
+      "variant": "V3",
+      "run": "block-03"
+    },
+    {
+      "block": 3,
+      "position": 3,
+      "variant": "V1",
+      "run": "block-03"
+    },
+    {
+      "block": 3,
+      "position": 4,
+      "variant": "V0",
+      "run": "block-03"
+    },
+    {
+      "block": 3,
+      "position": 5,
+      "variant": "V2",
+      "run": "block-03"
+    },
+    {
+      "block": 4,
+      "position": 1,
+      "variant": "V3",
+      "run": "block-04"
+    },
+    {
+      "block": 4,
+      "position": 2,
+      "variant": "V4",
+      "run": "block-04"
+    },
+    {
+      "block": 4,
+      "position": 3,
+      "variant": "V0",
+      "run": "block-04"
+    },
+    {
+      "block": 4,
+      "position": 4,
+      "variant": "V2",
+      "run": "block-04"
+    },
+    {
+      "block": 4,
+      "position": 5,
+      "variant": "V1",
+      "run": "block-04"
+    },
+    {
+      "block": 5,
+      "position": 1,
+      "variant": "V2",
+      "run": "block-05"
+    },
+    {
+      "block": 5,
+      "position": 2,
+      "variant": "V4",
+      "run": "block-05"
+    },
+    {
+      "block": 5,
+      "position": 3,
+      "variant": "V0",
+      "run": "block-05"
+    },
+    {
+      "block": 5,
+      "position": 4,
+      "variant": "V1",
+      "run": "block-05"
+    },
+    {
+      "block": 5,
+      "position": 5,
+      "variant": "V3",
+      "run": "block-05"
+    }
+  ]
+}

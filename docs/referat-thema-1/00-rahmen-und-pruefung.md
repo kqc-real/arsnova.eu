@@ -1,6 +1,6 @@
 # Rahmen und Prüfung: Referat Thema 1
 
-Stand: 2026-10-16. Quellen: [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
+Stand: 2026-11-13; ursprüngliche Recherche vom 2026-10-16. Quellen: [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
 (kanonische Repo-Fassung, Abschnitte 2–6 und 4.3) sowie die Kursunterlagen aus
 „Woche 1“ (lokal, nicht im Repo): `3. Referatsprufung-Cloud-Computing.pdf` (49
 Folien) und `2. Cloud_Architecture_Dossier.pdf` (15 Folien).
@@ -81,8 +81,10 @@ Repo-Fassung nicht verlangt.
 
 ## KI-Nutzung
 
-Erlaubt und erwünscht, aber offenzulegen: Agenten, Modelle, zentrale Prompts,
-übernommene Beiträge. Jede Mess-, Preis-, Quellen- und Systemaussage muss gegen
+Agentengestütztes Lernen ist möglich; Art und Umfang der zulässigen Nutzung
+für die formale Abgabe müssen nach der kanonischen Prüfungsspezifikation und
+dem tatsächlichen Prüfungsauftrag bestätigt werden. Bei erlaubter Nutzung sind
+Agenten, Modelle, wesentliche Aufträge und übernommene Beiträge offenzulegen. Jede Mess-, Preis-, Quellen- und Systemaussage muss gegen
 Primärquelle oder reproduzierbare Evidenz geprüft sein. Keine Secrets, Tokens
 oder personenbezogenen Daten in Prompts. Bei Täuschung (z. B. erfundene
 Quellen): 0 Punkte.
@@ -101,7 +103,27 @@ erstellt (Claude Code mit Serena und codebase-memory). Jede Zeilenangabe vor
 | PR als Abgabe | Nicht erwähnt                              | Nicht erwähnt; Produktivpatch nicht verlangt | Umfang der PR schriftlich geben lassen       |
 | Poster-Format | DIN A0                                     | Mindestens DIN A3                            | Handout wählen oder Format klären            |
 
-## Baseline: Tag `v1.3.0` oder aktueller `main`?
+## Geklärte A1-Baseline und Laborumgebung
+
+Laut [Issue #6, Stand 10.11.2026](https://github.com/NiklasSkulll/arsnova.eu/issues/6)
+wurden der **eigene Rechner als Labor** und der **aktuelle Fork-`main` als
+Baseline** mit dem Prüfer geklärt; die E-Mail ist dort mit dem 04.11.2026
+vermerkt. Die E-Mail selbst liegt hier nicht vor. Die Freigabe wird deshalb
+auf das Issue zurückgeführt, nicht auf eine selbst geprüfte E-Mail.
+
+Für die aktuelle A1-Reihe vom 15.11.2026 wurde der Commit
+`a19ca70ff37dcb5510a77ab2745c06b70ccc3565` (Version 1.4.0) eingefroren.
+Die ältere Methodenfestlegung bleibt unverändert; die neue Baseline wird durch
+den [Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) gebunden.
+Aufbau, Image-IDs und tatsächliche WSL2-Hardware mit 16 logischen CPUs stehen
+in der [Versuchsanleitung](./1A-versuchsreihe.md) und den Laufmanifesten.
+Die Messung ist keine Kapazitätsfreigabe für den 8-vCPU-Produktionshost.
+Ein Produktivpatch ist laut Issue nicht gefordert. Die Fork-PR soll gegen
+`main` gehen und `Closes #6` enthalten; eine Upstream-PR ist davon getrennt.
+Die konkrete Zweier-Aufteilung und die übrigen Abgabeformalitäten gelten
+hierdurch nicht automatisch als genehmigt.
+
+## Historische Ausgangsfrage: Tag `v1.3.0` oder aktueller `main`?
 
 Im Repo existiert der Tag `v1.3.0` (`87c39334`, 2026-10-08). Der Stand, auf dem
 diese Dossiers erstellt wurden (`27966e75`, 2026-10-16), liegt 131 Commits
@@ -121,10 +143,12 @@ Alle Werte selbst geprüft mit `git show v1.3.0:<pfad>` gegen HEAD
 `apps/backend/src/lib/qaSummaryConfig.ts`, `openWeightLlmConfig.ts`,
 `openWeightLlmRuntimeProbe.ts`, `wordCloudTopicLabels.ts`). Die
 Repo-Fassung verlangt, dass die Lehrperson den **produktiv eingesetzten**
-Release-Tag und Commit fixiert. Welcher Stand gilt, muss vor dem ersten
-Baselinelauf geklärt sein. Die Dossiers zitieren Zeilen auf HEAD.
+Release-Tag und Commit fixiert. Für A1 ist diese Frage inzwischen wie oben beschrieben geklärt. Die folgende
+Historie und die Dossier-Zeilen beziehen sich weiterhin auf den damaligen Stand.
 
-## Offene Fragen an den Prüfer
+<a id="offene-fragen-an-den-prüfer"></a>
+
+## Klärungsstand der Fragen an den Prüfer
 
 1. ~~Wir sind zu zweit und bearbeiten alle drei Aufträge 1A, 1B und 1C. Wie
    wird der dritte Auftrag zugeordnet und bewertet?~~ **Geklärt (mündliche
@@ -138,6 +162,8 @@ Baselinelauf geklärt sein. Die Dossiers zitieren Zeilen auf HEAD.
    Auswertung / Untersuchung.“ Wir messen deshalb gegen den aktuellen `main`
    und weisen die Abweichungen zum Stand der modellfreien Tests (`248029dc`)
    aus ([1C-Labor-Design, Abschnitt 3.4](./specs/2026-10-25-1c-labor-design.md#34-abweichungen-des-referenzstands-gegenüber-248029dc)).
+   Für A1 gelten zusätzlich die konkrete Baseline und Laborfreigabe aus
+   [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6); Messrevision siehe oben.
    Ursprüngliche Gründe:
    - In `v1.3.0` fehlen die späteren Fixes. Die Test-Suite läuft deutlich
      länger, Setup-Fixes fehlen, und einige Tests sind dort noch flaky.
@@ -149,7 +175,7 @@ Baselinelauf geklärt sein. Die Dossiers zitieren Zeilen auf HEAD.
 4. **Laborinstanz und zweiter Host:** **Geklärt (E-Mail des Prüfers, notiert
    2026-11-04):** „Die Laborinstanz ist Ihr eigener Rechner.“ Es gibt also
    keine bereitgestellten VMs; Modell und Runtime-Image laden wir selbst, der
-   Lauf nutzt den lokalen Laborpfad `npm run docker:up:llm:http`
+   1C-Lauf nutzt den lokalen Laborpfad `npm run docker:up:llm:http`
    ([1C-Labor-Design, Abschnitt 3.1](./specs/2026-10-25-1c-labor-design.md#31-topologie)).
    Was das für die Zwei-Host-Reproduktion in 1B bedeutet, ist damit nicht
    ausdrücklich beantwortet. Ursprünglich lautete die Frage: Laut Material
@@ -224,3 +250,11 @@ Für das Aufsetzen eines zweiten Hosts gibt es ein vollständiges Runbook:
 [OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md](../operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md)
 (Sizing Z. 44–51: mindestens 4 Kerne / 12 GiB, empfohlen 8 Kerne / 16 GiB;
 Firewall §5; Abnahme §17).
+
+## Abschlussstand A1
+
+Auswertung, Abgabeentwürfe, nachträgliche Compose-Rekonstruktion und
+[Prüf-/Übergabeunterlage](./1A-abschluss-und-uebergabe.md) sind getrennt
+nachgewiesen. Die Rekonstruktion ersetzt keine während der Messung gespeicherte
+Compose-Ausgabe. Persönliche Abgabefreigabe, Abstimmung mit 1B/1C und der
+GitHub-Merge werden nur nach tatsächlicher Durchführung als erledigt markiert.

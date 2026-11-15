@@ -28,11 +28,12 @@ import {
   createArtillery500Session,
 } from './artillery/setup-session.mjs';
 import { startHostMonitor } from './artillery/host-monitor.mjs';
+import { violatesExclusiveRate, violatesExclusiveUpperBound } from './lib/percentiles.mjs';
 import {
-  summarizeDurations,
-  violatesExclusiveRate,
-  violatesExclusiveUpperBound,
-} from './lib/percentiles.mjs';
+  fasseLiveMessungenZusammen,
+  fasseLaufzeitenZusammen,
+  pruefeLiveMessungen,
+} from './lib/artillery-live-messungen.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTILLERY_DIR = resolve(__dirname, 'artillery');
@@ -97,7 +98,7 @@ function runArtillery() {
       ARTILLERY_ARRIVAL_RATE: String(ARRIVAL_RATE),
       ARTILLERY_MAX_VUS: String(PARTICIPANTS),
       ARTILLERY_RESULTS_WAIT_MS: String(RESULTS_WAIT_MS),
-      // Early VUs must outlive the join ramp; host reveal starts only after joins stabilize.
+      // Frühe Clients müssen die Beitrittswelle bis zur stabilen Ergebnisfreigabe überstehen.
       ARTILLERY_RESULTS_PHASE_TIMEOUT_MS: String(RAMP_SECONDS * 1_000 + RESULTS_WAIT_MS),
       ARTILLERY_RESULTS_READY_FILE: RESULTS_READY_FILE,
       ARTILLERY_REVEAL_TIMESTAMP_FILE: REVEAL_TIMESTAMP_FILE,
@@ -263,9 +264,13 @@ async function main() {
   const runtime = readState();
   const publicHttp = createHttpTrpc(TRPC_URL);
   const statusSnapshot = await publicHttp.session.getInfo.query({ code: session.code });
-  const joinLatency = summarizeDurations(runtime.joinDurationMs ?? []);
-  const wsConnectLatency = summarizeDurations(runtime.wsConnectDurationMs ?? []);
-  const statusFanoutLatency = summarizeDurations(runtime.statusFanoutDurationMs ?? []);
+  const liveActions = fasseLiveMessungenZusammen(runtime, {
+    participants: PARTICIPANTS,
+    votesEnabled: !skipVoteAndFanoutGates,
+  });
+  const joinLatency = liveActions.join.latency;
+  const wsConnectLatency = fasseLaufzeitenZusammen(runtime.wsConnectDurationMs ?? []);
+  const statusFanoutLatency = fasseLaufzeitenZusammen(runtime.statusFanoutDurationMs ?? []);
 
   hostMonitor.stop();
 
@@ -273,14 +278,27 @@ async function main() {
     scenario: 'artillery-500-live-session',
     participantsTarget: PARTICIPANTS,
     sessionCode: session.code,
+    workload: {
+      kind: 'join-wave',
+      arrivalMode: 'arrivalCount',
+      plannedArrivals: PARTICIPANTS,
+      rampSeconds: RAMP_SECONDS,
+      qaEveryNthParticipant: 5,
+      continuousConcurrencyVerified: false,
+    },
     layers: {
+      liveActions,
       http: {
         joins: runtime.joins ?? 0,
         joinErrors: runtime.joinErrors ?? 0,
         votes: runtime.votes ?? 0,
         voteErrors: runtime.voteErrors ?? 0,
         qaSubmits: runtime.qaSubmits ?? 0,
+        qaSubmitErrors: runtime.qaSubmitErrors ?? 0,
         blitzVotes: runtime.blitzVotes ?? 0,
+        blitzVoteErrors: runtime.blitzVoteErrors ?? 0,
+        voteSkippedInactive: runtime.voteSkippedInactive ?? 0,
+        voteRejectedInactive: runtime.voteRejectedInactive ?? 0,
         infoPolls: runtime.infoPolls ?? 0,
         questionReads: runtime.questionReads ?? 0,
       },
@@ -297,6 +315,9 @@ async function main() {
       },
       latency: {
         join: { samples: runtime.joinDurationMs?.length ?? 0, ...joinLatency },
+        vote: liveActions.vote.latency,
+        qaSubmit: liveActions.qaSubmit.latency,
+        blitzlicht: liveActions.blitzlicht.latency,
         wsConnect: { samples: runtime.wsConnectDurationMs?.length ?? 0, ...wsConnectLatency },
         statusFanout: {
           samples: runtime.statusFanoutDurationMs?.length ?? 0,
@@ -315,22 +336,15 @@ async function main() {
 
   console.log(JSON.stringify(summary, null, 2));
 
-  const failures = [];
-  if ((runtime.joins ?? 0) < PARTICIPANTS * MIN_JOIN_RATIO) {
-    failures.push(`Joins: ${runtime.joins ?? 0}/${PARTICIPANTS}`);
-  }
-  const effectiveVotes = Math.max(runtime.votes ?? 0, hostMonitor.state.progressMaxTotalVotes);
-  if (!skipVoteAndFanoutGates && effectiveVotes < PARTICIPANTS * MIN_VOTE_RATIO) {
-    failures.push(`Votes: ${effectiveVotes}/${PARTICIPANTS}`);
-  }
-  const expectedQaSubmits = Math.floor(PARTICIPANTS / 5);
-  if (
-    !skipVoteAndFanoutGates &&
-    expectedQaSubmits > 0 &&
-    (runtime.qaSubmits ?? 0) < expectedQaSubmits * MIN_VOTE_RATIO
-  ) {
-    failures.push(`Q&A-Submits: ${runtime.qaSubmits ?? 0}/${expectedQaSubmits}`);
-  }
+  const failures = pruefeLiveMessungen(liveActions, {
+    errorRateLimit: LIVE_ERROR_RATE_LIMIT,
+    minSuccessRatio: {
+      join: MIN_JOIN_RATIO,
+      vote: MIN_VOTE_RATIO,
+      qaSubmit: MIN_VOTE_RATIO,
+      blitzlicht: MIN_VOTE_RATIO,
+    },
+  });
   if ((runtime.wsConnections ?? 0) < PARTICIPANTS * MIN_WS_RATIO) {
     failures.push(`WS-Verbindungen: ${runtime.wsConnections ?? 0}/${PARTICIPANTS}`);
   }
@@ -352,7 +366,7 @@ async function main() {
   }
   if (
     !skipVoteAndFanoutGates &&
-    (runtime.statusFanoutDurationMs?.length ?? 0) < PARTICIPANTS * MIN_WS_RATIO
+    (!statusFanoutLatency.available || statusFanoutLatency.samples < PARTICIPANTS * MIN_WS_RATIO)
   ) {
     failures.push(
       `Status-Fan-out-Samples: ${runtime.statusFanoutDurationMs?.length ?? 0}/${PARTICIPANTS}`,

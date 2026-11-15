@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "scenario": "resource-isolation-experiment",
+  "timestamp": "2026-11-15T13:33:04.330Z",
+  "environment": {},
+  "metrics": {
+    "complete": true,
+    "errorCode": null,
+    "manifest": {
+      "kind": "measurement",
+      "seriesDefinitionSha256": "ffefa36867a91e915638a840f9327f385b9350c7eeb4d7f949d0638c74006b57",
+      "labAlias": "eigener-rechner",
+      "baselineCommit": "a19ca70ff37dcb5510a77ab2745c06b70ccc3565",
+      "toolsCommit": "e3b27b328ffc94c148e4a35b2645396786f26bd9",
+      "toolsSha256": "99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0",
+      "toolsSha256After": "99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0",
+      "contractVersion": 2,
+      "contractSha256": "f7d3eba4b82a3f3a47c914665ac8a7be4988b9061deff6b857a79d2fcf766ab7",
+      "toolsDirty": true,
+      "fixtureSha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded",
+      "fixtureImport": {
+        "sqlAssertionsVerified": true,
+        "analysisSessions": 5,
+        "perSession": {
+          "participants": 200,
+          "storedQuestions": 503,
+          "eligibleQuestions": 500,
+          "exclusionControls": [
+            "PENDING",
+            "ARCHIVED",
+            "DELETED"
+          ]
+        }
+      },
+      "orderSeed": 438314513,
+      "block": 4,
+      "position": 2,
+      "variant": "V4",
+      "run": "block-04",
+      "profile": {
+        "participants": 500,
+        "warmupMs": 60000,
+        "durationMs": 300000,
+        "rampMs": 90000,
+        "revealAtMs": 270000
+      },
+      "startAt": "2026-11-15T13:28:11.429Z",
+      "generatorLocation": "same-host",
+      "hardware": {
+        "cpus": 16,
+        "memoryBytes": 16720453632,
+        "os": "Ubuntu 24.04.5 LTS",
+        "kernel": "6.18.58.1-microsoft-standard-WSL2",
+        "cgroupVersion": "2",
+        "dockerVersion": "29.9.3",
+        "generatorNodeVersion": "v24.18.0"
+      },
+      "services": {
+        "app": {
+          "imageId": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
+          "containerPseudonym": "033afc154b5be598",
+          "cpuLimit": null,
+          "memoryLimitBytes": null,
+          "pidsLimit": null,
+          "flags": {
+            "NLP_ENABLED": "true",
+            "QA_NLP_ENABLED": "false",
+            "QA_SUMMARY_ENABLED": "false",
+            "WORD_CLOUD_SEMANTIC_ENABLED": "false",
+            "OPEN_WEIGHT_LLM_ENABLED": "false",
+            "NLP_TIMEOUT_MS": "5000",
+            "NLP_CACHE_TTL_SECONDS": "1800",
+            "RATE_LIMIT_SESSION_CREATE_PER_HOUR": "480",
+            "RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR": "2400"
+          }
+        },
+        "postgres": {
+          "imageId": "sha256:3cbd775daa28461ef484ed88ca1e5a5a72ff126e196deeebce6fec764edf1200",
+          "containerPseudonym": "01d1fd5187f7e5d8",
+          "cpuLimit": null,
+          "memoryLimitBytes": null,
+          "pidsLimit": null
+        },
+        "redis": {
+          "imageId": "sha256:bb8953020f6597e47d5d699a9910a25d77a69608dbd58e0f722940598ed85fc0",
+          "containerPseudonym": "1bde9262a4ae48f4",
+          "cpuLimit": null,
+          "memoryLimitBytes": null,
+          "pidsLimit": null
+        },
+        "pdf-worker": {
+          "imageId": "sha256:c126018b9a88061511926e3fc09eb7f208a4aef6db4548bc425972e770606c9d",
+          "containerPseudonym": "0e3983729644af69",
+          "cpuLimit": 1,
+          "memoryLimitBytes": 1073741824,
+          "pidsLimit": 256
+        },
+        "spacy": {
+          "imageId": "sha256:fffa3dcad336590f195cb9fe137d294b50b17f670ec2f8776f35a5ce41d68654",
+          "containerPseudonym": "d2806dcd5da6750d",
+          "cpuLimit": 1,
+          "memoryLimitBytes": 1073741824,
+          "pidsLimit": 64
+        }
+      },
+      "composeSha256": "d78180487edaffbffee11bce33534733c66dc44aa4ce8a6947972670c8b407d8",
+      "socketMode": "delay-proxy-6000ms",
+      "workload": "join-wave-single-process-existing-artillery-functions",
+      "continuousConcurrencyVerified": false,
+      "resolvedCompose": {
+        "file": "compose-messung.json",
+        "sha256": "444b925bed5d66eb03c937eb9efb591733982295f1a8f20000bea5b9747f7d44",
+        "mediaType": "application/json"
+      }
+    },
+    "rollback": {
+      "verified": true,
+      "state": "NLP_DISABLED",
+      "liveJoinVerified": true
+    }
+  },
+  "assertions": [
+    {
+      "name": "scenario",
+      "passed": true
+    }
+  ]
+}
