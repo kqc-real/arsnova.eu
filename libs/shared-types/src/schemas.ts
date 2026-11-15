@@ -3442,11 +3442,27 @@ export const SessionPresenterSurfaceSchema = z.enum([
 export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
 
 /** Ephemeral projection state; context rejects delayed requests for an earlier question. */
-export const PresenterPageSchema = z.object({
-  context: z.string().max(200),
-  index: z.number().int().min(0).max(9999),
-  count: z.number().int().min(1).max(10000),
-});
+const PresenterPageSectionStartsSchema = z
+  .array(z.number().int().min(0).max(9999))
+  .min(1)
+  .max(16)
+  .refine(
+    (starts) =>
+      starts[0] === 0 && starts.every((start, index) => index === 0 || start > starts[index - 1]!),
+    'Projektionsabschnitte müssen bei 0 beginnen und streng aufsteigend sein.',
+  );
+export const PresenterPageSchema = z
+  .object({
+    context: z.string().max(200),
+    index: z.number().int().min(0).max(9999),
+    count: z.number().int().min(1).max(10000),
+    /** Startindizes semantischer Ansichten innerhalb der physischen Projektionsseiten. */
+    sectionStarts: PresenterPageSectionStartsSchema.optional(),
+  })
+  .refine(
+    (page) => page.sectionStarts?.every((start) => start < page.count) ?? true,
+    'Projektionsabschnitte müssen innerhalb der Seitenzahl liegen.',
+  );
 export type PresenterPage = z.infer<typeof PresenterPageSchema>;
 export const SetPresenterSurfaceInputSchema = z
   .object({
@@ -3457,6 +3473,7 @@ export const SetPresenterSurfaceInputSchema = z
         context: z.string().max(200),
         delta: z.union([z.literal(-1), z.literal(1)]).optional(),
         count: z.number().int().min(1).max(10000).optional(),
+        sectionStarts: PresenterPageSectionStartsSchema.optional(),
         /** Absoluter Seitenindex (z. B. Q&A-Navigator springt in der Bühnenliste). */
         index: z.number().int().min(0).max(9999).optional(),
       })
@@ -3464,8 +3481,13 @@ export const SetPresenterSurfaceInputSchema = z
         const hasDelta = value.delta !== undefined;
         const hasCount = value.count !== undefined;
         const hasIndex = value.index !== undefined;
+        if (
+          value.sectionStarts?.some((start) => value.count === undefined || start >= value.count)
+        ) {
+          return false;
+        }
         if (hasDelta) {
-          return !hasCount && !hasIndex;
+          return !hasCount && !hasIndex && value.sectionStarts === undefined;
         }
         if (hasIndex) {
           return !hasDelta;

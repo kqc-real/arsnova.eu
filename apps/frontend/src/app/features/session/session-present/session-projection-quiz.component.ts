@@ -107,7 +107,10 @@ export class SessionProjectionQuizComponent {
 
   readonly pageIndex = input(0);
   readonly pageContext = input('');
+  readonly reportedPageCount = input(1);
+  readonly pageSectionStarts = input<number[] | undefined>(undefined);
   readonly pageCount = output<number>();
+  readonly pageLayout = output<{ count: number; sectionStarts?: number[] }>();
   readonly question = input<HostCurrentQuestionDTO | null>(null);
   readonly status = input<SessionInfoDTO['status'] | null>(null);
   readonly voteProgress = input<HostVoteProgressDTO | null>(null);
@@ -120,13 +123,19 @@ export class SessionProjectionQuizComponent {
   readonly emojiOrder = EMOJI_REACTIONS;
   readonly contentPageCount = signal(1);
   private readonly measuredContentPageContext = signal<string | null>(null);
+  private readonly measuredRatingPages = signal<{
+    context: string;
+    scale: number;
+    distribution: number;
+  } | null>(null);
   private emittedPageCount = '';
   readonly hasLiveRatingPages = computed(
     () => this.question()?.type === 'RATING' && this.status() === 'ACTIVE',
   );
   readonly currentContentPageCount = computed(() => {
     if (this.hasLiveRatingPages()) {
-      return 2;
+      const pages = this.ratingPageCounts();
+      return pages.scale + pages.distribution;
     }
     return this.measuredContentPageContext() === this.pageContext() ? this.contentPageCount() : 1;
   });
@@ -159,30 +168,67 @@ export class SessionProjectionQuizComponent {
     effect(() => {
       if (this.measuredContentPageContext() !== this.pageContext()) return;
       const total = this.currentContentPageCount() + (this.hasLeaderboardPage() ? 1 : 0);
-      const signature = `${this.pageContext()}:${total}`;
+      const sectionStarts = this.hasLiveRatingPages()
+        ? [0, this.ratingPageCounts().scale]
+        : undefined;
+      const signature = `${this.pageContext()}:${total}:${sectionStarts?.join(',') ?? ''}`;
       if (signature === this.emittedPageCount) return;
       this.emittedPageCount = signature;
       this.pageCount.emit(total);
+      this.pageLayout.emit({ count: total, ...(sectionStarts ? { sectionStarts } : {}) });
     });
   }
 
   onContentPageCount(count: number): void {
     this.measuredContentPageContext.set(this.pageContext());
-    this.contentPageCount.set(Math.max(1, count));
+    const normalized = Math.max(1, count);
+    if (this.hasLiveRatingPages()) {
+      const current = this.ratingPageCounts();
+      this.measuredRatingPages.set({
+        context: this.pageContext(),
+        scale: this.ratingSectionIndex() === 0 ? normalized : current.scale,
+        distribution: this.ratingSectionIndex() === 1 ? normalized : current.distribution,
+      });
+      return;
+    }
+    this.contentPageCount.set(normalized);
   }
 
   contentPageIndex(): number {
-    // Bewertungsfragen verwenden zwei semantische Ansichten innerhalb derselben DOM-Seite.
     if (this.hasLiveRatingPages()) {
-      return 0;
+      const pages = this.ratingPageCounts();
+      return this.ratingSectionIndex() === 0
+        ? this.pageIndex()
+        : Math.max(0, this.pageIndex() - pages.scale);
     }
     // The paginator needs the saved index to recognize a provisional count on reload.
     return this.showLeaderboardPage() ? this.currentContentPageCount() - 1 : this.pageIndex();
   }
 
   readonly showLiveRatingDistribution = computed(
-    () => this.hasLiveRatingPages() && this.pageIndex() === 1,
+    () => this.hasLiveRatingPages() && this.ratingSectionIndex() === 1,
   );
+
+  readonly projectionPageContext = computed(() =>
+    this.hasLiveRatingPages()
+      ? `${this.pageContext()}:rating-${this.ratingSectionIndex()}`
+      : this.pageContext(),
+  );
+
+  private ratingPageCounts(): { scale: number; distribution: number } {
+    const measured = this.measuredRatingPages();
+    if (measured?.context === this.pageContext()) {
+      return measured;
+    }
+    const total = Math.max(2, this.reportedPageCount());
+    const savedStart = this.pageSectionStarts()?.[1];
+    const scale = Math.max(1, Math.min(total - 1, savedStart ?? 1));
+    return { scale, distribution: Math.max(1, total - scale) };
+  }
+
+  private ratingSectionIndex(): 0 | 1 {
+    return this.pageIndex() < this.ratingPageCounts().scale ? 0 : 1;
+  }
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
   readonly isActive = computed(() => this.status() === 'ACTIVE');

@@ -786,7 +786,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     setPresenterSurfaceMutateMock.mockImplementation(
       async (input: {
         surface?: 'default' | 'qaWordCloud' | 'freetextWordCloud' | 'ended';
-        page?: { context: string; index?: number; count?: number; delta?: number };
+        page?: {
+          context: string;
+          index?: number;
+          count?: number;
+          delta?: number;
+          sectionStarts?: number[];
+        };
       }) => {
         if (input.page) {
           const count = input.page.count ?? 1;
@@ -795,7 +801,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           const index = Math.max(0, Math.min(count - 1, rawIndex));
           return {
             presenterSurface: input.surface ?? 'default',
-            presenterPage: { context: input.page.context, index, count },
+            presenterPage: {
+              context: input.page.context,
+              index,
+              count,
+              ...(input.page.sectionStarts ? { sectionStarts: input.page.sectionStarts } : {}),
+            },
           };
         }
         return {
@@ -3254,6 +3265,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       timeout: 5000,
       interval: 25,
     });
+    fixture.componentInstance.session.update((session) => ({
+      ...session!,
+      presenterPage: {
+        context: 'quiz-rating',
+        index: 0,
+        count: 5,
+        sectionStarts: [0, 3],
+      },
+    }));
     fixture.detectChanges();
 
     const liveButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
@@ -3267,7 +3287,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
       {
         code: 'ABC123',
-        page: { context: 'quiz-rating', index: 1, count: 2 },
+        page: { context: 'quiz-rating', index: 3, count: 5 },
       },
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );

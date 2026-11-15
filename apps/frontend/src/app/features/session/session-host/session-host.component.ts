@@ -4464,7 +4464,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       const page = this.session()?.presenterPage;
-      if (!page || page.count === 2) {
+      if (!page || page.count >= 2) {
         return;
       }
       untracked(() => {
@@ -7074,9 +7074,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   );
   readonly ratingProjectionPageIndex = computed(() =>
     this.showRatingProjectionNavigation()
-      ? Math.max(0, Math.min(1, this.session()?.presenterPage?.index ?? 0))
+      ? (this.session()?.presenterPage?.index ?? 0) >= this.ratingDistributionPageStart()
+        ? 1
+        : 0
       : 0,
   );
+  private readonly ratingDistributionPageStart = computed(() => {
+    const page = this.session()?.presenterPage;
+    return Math.max(1, Math.min((page?.count ?? 2) - 1, page?.sectionStarts?.[1] ?? 1));
+  });
   private static readonly QA_PROJECTION_QUEUE_VISIBLE = 2;
   /** Entspricht `qa.presentProjection`-Cap (Forum-Seitenmaximum). */
   private static readonly QA_PROJECTION_MAX_ACTIVE =
@@ -7489,10 +7495,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async setRatingProjectionPage(index: 0 | 1): Promise<void> {
     const page = this.session()?.presenterPage;
+    const targetIndex = index === 0 ? 0 : this.ratingDistributionPageStart();
     if (
       !page ||
       !this.showRatingProjectionNavigation() ||
-      page.index === index ||
+      page.index === targetIndex ||
       this.projectionPagePending()
     ) {
       return;
@@ -7503,7 +7510,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const result = await trpc.session.setPresenterSurface.mutate(
         {
           code: this.code,
-          page: { context: page.context, index, count: 2 },
+          page: { context: page.context, index: targetIndex, count: page.count },
         },
         { signal: AbortSignal.timeout(10000) },
       );

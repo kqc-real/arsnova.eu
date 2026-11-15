@@ -415,7 +415,20 @@ describe('SessionProjectionQuizComponent', () => {
     ).toHaveLength(5);
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__bar-fill')).toBeNull();
 
-    fixture.componentRef.setInput('pageIndex', 1);
+    fixture.componentInstance.onContentPageCount(3);
+    expect(fixture.componentInstance.currentContentPageCount()).toBe(4);
+    fixture.componentRef.setInput('pageIndex', 2);
+    expect(fixture.componentInstance.contentPageIndex()).toBe(2);
+    expect(fixture.componentInstance.showLiveRatingDistribution()).toBe(false);
+    fixture.componentRef.setInput('pageIndex', 3);
+    expect(fixture.componentInstance.contentPageIndex()).toBe(0);
+    expect(fixture.componentInstance.showLiveRatingDistribution()).toBe(true);
+    fixture.componentInstance.onContentPageCount(2);
+    expect(fixture.componentInstance.currentContentPageCount()).toBe(5);
+    fixture.componentRef.setInput('pageIndex', 4);
+    expect(fixture.componentInstance.contentPageIndex()).toBe(1);
+
+    fixture.componentRef.setInput('pageIndex', 3);
     fixture.componentRef.setInput('voteProgress', {
       questionId: '11111111-1111-4111-8111-111111111111',
       questionOrder: 0,
