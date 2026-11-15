@@ -407,7 +407,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
     expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
     expect(fixture.nativeElement.textContent).toContain(
-      'Die Verteilung erscheint mit dem Ergebnis.',
+      'Auf der nächsten Seite siehst du die Verteilung live.',
     );
     expect(fixture.componentInstance.currentContentPageCount()).toBe(2);
     expect(

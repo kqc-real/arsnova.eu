@@ -157,6 +157,7 @@ import {
   qaQuestionTextVersion,
   qaRedactionDialogTextIsCurrent,
   type QaListPageSize,
+  type PresenterPage,
   type ProductFeedbackInAppArea,
 } from '@arsnova/shared-types';
 import {
@@ -4463,7 +4464,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       const page = this.session()?.presenterPage;
-      if (!page || page.count === 2 || this.projectionPageCountSyncInFlight()) {
+      if (!page || page.count === 2) {
         return;
       }
       untracked(() => {
@@ -4492,7 +4493,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       const page = this.session()?.presenterPage;
       const count = this.qaProjectionFullStagePageCount();
-      if (!page || page.count === count || this.projectionPageCountSyncInFlight()) {
+      if (!page || page.count === count) {
         return;
       }
       untracked(() => {
@@ -7081,6 +7082,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private static readonly QA_PROJECTION_MAX_ACTIVE =
     QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1]!;
   private readonly projectionPageCountSyncInFlight = signal(false);
+  private projectionPageCountSyncAttempt: { page: PresenterPage; count: number } | null = null;
   /**
    * Q&A-Fragenmodus für Navigator/Hero: solange der Q&A-Kanal bevorzugt ist
    * (auch ohne laufende Projektion).
@@ -7522,9 +7524,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async syncProjectionPageCount(count: number): Promise<void> {
     const page = this.session()?.presenterPage;
-    if (!page || !this.code || page.count === count || this.projectionPageCountSyncInFlight()) {
+    if (
+      !page ||
+      !this.code ||
+      page.count === count ||
+      this.projectionPageCountSyncInFlight() ||
+      (this.projectionPageCountSyncAttempt?.page === page &&
+        this.projectionPageCountSyncAttempt.count === count)
+    ) {
       return;
     }
+    this.projectionPageCountSyncAttempt = { page, count };
     this.projectionPageCountSyncInFlight.set(true);
     try {
       const result = await trpc.session.setPresenterSurface.mutate(

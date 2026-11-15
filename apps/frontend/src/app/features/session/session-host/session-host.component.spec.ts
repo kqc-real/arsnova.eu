@@ -3320,6 +3320,113 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('wiederholt abgelehnte Rating- und Q&A-Seitensynchronisierungen erst nach einem neuen Session-Snapshot', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterPage: { context: 'quiz-rating', index: 0, count: 1 },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Wie sicher fühlst du dich?',
+      type: 'RATING',
+      timer: 30,
+      answers: [],
+      ratingMin: 1,
+      ratingMax: 5,
+      ratingLabelMin: 'Unsicher',
+      ratingLabelMax: 'Sicher',
+      currentRound: 1,
+      ratingCount: 0,
+      totalVotes: 0,
+    });
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 1);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(1);
+
+    const session = fixture.componentInstance.session();
+    expect(session).not.toBeNull();
+    fixture.componentInstance.session.set({
+      ...session!,
+      presenterPage: { ...session!.presenterPage! },
+    });
+    fixture.detectChanges();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 2);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(2);
+
+    const qaQuestions = [
+      {
+        id: 'qa-1',
+        text: 'Erste Frage',
+        upvoteCount: 3,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-11-15T09:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'qa-2',
+        text: 'Zweite Frage',
+        upvoteCount: 2,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-11-15T09:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ];
+    seedQaPresenterStage(fixture.componentInstance, qaQuestions);
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.componentInstance.session.set({
+      ...fixture.componentInstance.session()!,
+      preferredChannel: 'qa',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    fixture.detectChanges();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 3);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(3);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(1);
+
+    const qaSession = fixture.componentInstance.session()!;
+    fixture.componentInstance.session.set({
+      ...qaSession,
+      presenterPage: { ...qaSession.presenterPage! },
+    });
+    fixture.detectChanges();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 4);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(2);
+    fixture.destroy();
+  });
+
   it('blendet bei aktiven SHORT_TEXT-Fragen die Musterlösungen in der Host-Ansicht aus', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
