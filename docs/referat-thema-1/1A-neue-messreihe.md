@@ -38,6 +38,30 @@ UID 1000; der Messprozess und die Container benötigen Zugriff auf die privaten
 Socket-Verzeichnisse. Bereits bestehende Container des Projekts `arsnova-1a`
 führen zum Abbruch und werden nicht ungeprüft gelöscht.
 
+Auch gestoppte Laborcontainer zählen als vorhanden. Bei diesem Abbruch nennt
+der Runner die bestehenden A1-Laborcontainer ausdrücklich als Ursache. Ihren
+Zustand zunächst ausschließlich lesend prüfen:
+
+```bash
+docker --host unix:///var/run/docker.sock ps -a \
+  --filter label=com.docker.compose.project=arsnova-1a \
+  --format '{{.ID}} {{.Names}} {{.Status}}'
+```
+
+Nur geprüfte, nicht mehr benötigte Laborcontainer gezielt entfernen; keine
+fremden Container oder Volumes löschen. Für ein frisches Labor auch die
+ausschließlich diesem Projekt zugeordneten Daten-/Socket-Volumes entfernen:
+Der Runner erzeugt neue Laborpasswörter, die nicht zum bestehenden
+PostgreSQL-Datenverzeichnis passen. Dabei gehen die alten synthetischen
+Labordaten verloren; gespeicherte Messnachweise bleiben erhalten.
+Für den nächsten Vorlauf einen neuen
+Evidenzordner in der privaten `labor.json` setzen. Bereits angelegte
+Definitions- und Plandateien werden absichtlich nicht überschrieben.
+`vorlauf/abschluss.json` entsteht ausschließlich nach erfolgreichem Vorlauf;
+ein anschließendes `ENOENT` beim Lesen dieser Datei ist eine Folge des Abbruchs.
+Kontrollierte Voraussetzungshinweise werden ohne rohe Docker-Ausgaben
+angezeigt; Dateifehler enthalten nur einen freigegebenen Fehlercode.
+
 Jeden Block nur fortsetzen, wenn die vorhergehenden Befehle erfolgreich waren.
 Die bekannte Frontend-Testabweichung ist gesondert dokumentiert; sie wird nicht
 als Leistungsbefund der neuen Reihe behandelt. Während der mindestens

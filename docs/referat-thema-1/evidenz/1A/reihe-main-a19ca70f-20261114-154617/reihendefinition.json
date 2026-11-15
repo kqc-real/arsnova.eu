@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "seriesId": "1a-main-a19ca70f-2026-11-14",
+  "baselineCommit": "a19ca70ff37dcb5510a77ab2745c06b70ccc3565",
+  "contractSha256": "f7d3eba4b82a3f3a47c914665ac8a7be4988b9061deff6b857a79d2fcf766ab7",
+  "fixtureSha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded",
+  "orderSeed": 438314513,
+  "pdfWorkerPidsLimit": 256,
+  "requiresResolvedCompose": true,
+  "addendumFile": "docs/referat-thema-1/specs/2026-11-14-1a-messreihe-main-a19ca70f.md",
+  "addendumSha256": "916deb5f1a5f2fe25ea3727bed4ca63012abab39fc10ac107ba117d3a19d4941"
+}

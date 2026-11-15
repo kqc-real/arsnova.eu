@@ -56,6 +56,9 @@ const vorlaufprofil = {
 const sha256 = (daten) => createHash('sha256').update(daten).digest('hex');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 
+// Nur kontrollierte Hinweise aus diesem Werkzeug dürfen unverändert ins Terminal.
+class Versuchsfehler extends Error {}
+
 export function pruefeVorlaufNachweis(nachweis, identitaet) {
   if (
     !nachweis?.complete ||
@@ -238,10 +241,14 @@ async function erstelleLabor(config, evidenceRoot, reihe) {
     await exec('git', ['show', `${config.baselineCommit}:docker-compose.prod.yml`], { cwd: root })
   ).stdout;
   if (baselineCompose !== erwartet)
-    throw new Error('Baseline-Compose stimmt nicht mit dem festgehaltenen Commit überein.');
+    throw new Versuchsfehler(
+      'Baseline-Compose stimmt nicht mit dem festgehaltenen Commit überein.',
+    );
   const prod = parse(baselineCompose);
   if (reihe && Number(prod.services['pdf-worker'].pids_limit) !== reihe.pdfWorkerPidsLimit)
-    throw new Error('PDF-Prozesslimit der Baseline stimmt nicht mit der Reihendefinition überein.');
+    throw new Versuchsfehler(
+      'PDF-Prozesslimit der Baseline stimmt nicht mit der Reihendefinition überein.',
+    );
   const revision = (await exec('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
   const toolsSha256 = await werkzeugHash();
   const contractSha256 = sha256(
@@ -249,16 +256,18 @@ async function erstelleLabor(config, evidenceRoot, reihe) {
   );
   const daemon = JSON.parse(await docker(['info', '--format', '{{json .}}']));
   if (daemon.OSType !== 'linux' || daemon.CgroupVersion !== '2')
-    throw new Error('Linux-Dockerhost mit cgroup v2 erforderlich.');
+    throw new Versuchsfehler('Linux-Dockerhost mit cgroup v2 erforderlich.');
   if (await docker(['ps', '-aq', '--filter', `label=com.docker.compose.project=${projekt}`]))
-    throw new Error(
+    throw new Versuchsfehler(
       'Es existieren bereits A1-Laborcontainer; vor einem neuen Versuch ihren Zustand prüfen.',
     );
   const images = { app: config.applicationImage, spacy: config.spacyImage };
   for (const [name, image] of Object.entries(images)) {
     const info = JSON.parse(await docker(['image', 'inspect', image]));
     if (info[0]?.Config?.Labels?.['org.opencontainers.image.revision'] !== config.baselineCommit)
-      throw new Error(`Image-Provenienz für ${name} stimmt nicht mit der Baseline überein.`);
+      throw new Versuchsfehler(
+        `Image-Provenienz für ${name} stimmt nicht mit der Baseline überein.`,
+      );
   }
   for (const name of ['postgres', 'redis'])
     images[name] = await docker([
@@ -871,10 +880,15 @@ async function main(args) {
 if (await istDirekterAufruf(new URL(import.meta.url))) {
   try {
     await main(process.argv.slice(2));
-  } catch {
-    process.stderr.write(
-      'A1-Versuch nicht vollständig. Voraussetzungen und bereinigte Laufnachweise prüfen; keine Messwerte ergänzen.\n',
-    );
+  } catch (fehler) {
+    const dateicodes = ['ENOENT', 'EACCES', 'EPERM', 'EEXIST', 'ENOSPC'];
+    const grund =
+      fehler instanceof Versuchsfehler
+        ? fehler.message
+        : dateicodes.includes(fehler?.code)
+          ? `Datei-/Zugriffsfehler (${fehler.code}); Laborpfade und Berechtigungen prüfen.`
+          : 'Kein freigegebener Detailhinweis verfügbar; bereinigte Laufnachweise prüfen.';
+    process.stderr.write(`A1-Versuch nicht vollständig. ${grund} Keine Messwerte ergänzen.\n`);
     process.exitCode = 1;
   }
 }

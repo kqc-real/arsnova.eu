@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
@@ -54,6 +54,76 @@ test('weist veränderliche Images, fehlende Baseline und unklare Generatorzuordn
     { generatorLocation: 'separate-host' },
   ])
     assert.throws(() => pruefeVersuchsKonfiguration({ ...config, ...aenderung }));
+});
+
+test('nennt vorhandene Laborcontainer als Abbruchgrund ohne Docker-Ausgaben oder Secrets offenzulegen', async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), 'a1-abbruch-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const baseline = join(dir, 'baseline');
+  await mkdir(baseline);
+  const { stdout } = await exec('git', [
+    'show',
+    'a19ca70ff37dcb5510a77ab2745c06b70ccc3565:docker-compose.prod.yml',
+  ]);
+  await writeFile(join(baseline, 'docker-compose.prod.yml'), stdout);
+  const docker = join(dir, 'docker');
+  await writeFile(
+    docker,
+    `#!/bin/sh
+case "$3" in
+  info) printf '%s\\n' '{"OSType":"linux","CgroupVersion":"2"}' ;;
+  ps) printf '%s\\n' 'vertraulicher-containerwert' ;;
+  *) exit 99 ;;
+esac
+`,
+  );
+  await chmod(docker, 0o700);
+  const file = join(dir, 'labor.json');
+  const evidenceRoot = join(dir, 'nachweise');
+  await writeFile(
+    file,
+    JSON.stringify({
+      ...config,
+      baselineCommit: 'a19ca70ff37dcb5510a77ab2745c06b70ccc3565',
+      baselineDirectory: baseline,
+      evidenceRoot,
+    }),
+  );
+  await assert.rejects(
+    () =>
+      exec(
+        process.execPath,
+        ['scripts/load/run-resource-isolation.mjs', '--pilot', '--config-file', file],
+        { env: { ...process.env, PATH: `${dir}:${process.env.PATH}` }, timeout: 15000 },
+      ),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /Es existieren bereits A1-Laborcontainer/);
+      assert.doesNotMatch(error.stderr, /vertraulicher-containerwert|sha256:|stack|at main/);
+      return true;
+    },
+  );
+  await assert.rejects(() => readFile(join(evidenceRoot, 'vorlauf/abschluss.json')), {
+    code: 'ENOENT',
+  });
+});
+
+test('meldet Dateifehler mit Fehlercode ohne private Dateipfade zu veröffentlichen', async () => {
+  await assert.rejects(
+    () =>
+      exec(process.execPath, [
+        'scripts/load/run-resource-isolation.mjs',
+        '--pilot',
+        '--config-file',
+        '/nicht-vorhanden/privater-pfad/labor.json',
+      ]),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /ENOENT/);
+      assert.doesNotMatch(error.stderr, /privater-pfad|readFile|at main/);
+      return true;
+    },
+  );
 });
 
 test('übernimmt aus Betriebsdiagnosen ausschließlich freigegebene numerische Felder', () => {
