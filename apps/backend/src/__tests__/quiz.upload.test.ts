@@ -6,6 +6,8 @@ const { prismaMock, checkQuizUploadAttemptRateMock, checkQuizUploadStorageRateMo
     prismaMock: {
       quiz: {
         create: vi.fn(),
+        findMany: vi.fn(),
+        updateMany: vi.fn(),
       },
       quizLearningObjectiveBundle: {
         create: vi.fn(),
@@ -38,6 +40,8 @@ describe('quiz.upload (Story 2.1a)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prismaMock.quiz.create.mockResolvedValue({ id: QUIZ_ID });
+    prismaMock.quiz.findMany.mockResolvedValue([]);
+    prismaMock.quiz.updateMany.mockResolvedValue({ count: 0 });
     prismaMock.$transaction.mockImplementation(async (fn: (tx: typeof prismaMock) => unknown) =>
       fn(prismaMock),
     );
@@ -135,6 +139,76 @@ describe('quiz.upload (Story 2.1a)', () => {
 
     const createCall = prismaMock.quiz.create.mock.calls.at(-1)![0];
     expect(createCall.data.questions.create[0].shuffleAnswerOptions).toBe(false);
+  });
+
+  it('übernimmt beim erneuten Upload den Sitzungsverlauf eines Legacy-Quiz trotz globaler Antwortreihenfolge', async () => {
+    const historyScopeId = '55555555-5555-4555-8555-555555555555';
+    const legacyQuizId = '66666666-6666-4666-8666-666666666666';
+    prismaMock.quiz.findMany.mockResolvedValue([
+      {
+        id: legacyQuizId,
+        historyScopeId: null,
+        name: 'Legacy-Quiz',
+        showLeaderboard: true,
+        allowCustomNicknames: false,
+        enableSoundEffects: true,
+        enableRewardEffects: true,
+        enableMotivationMessages: true,
+        enableEmojiReactions: true,
+        anonymousMode: false,
+        teamMode: false,
+        teamNames: [],
+        nicknameTheme: 'HIGH_SCHOOL',
+        questions: [
+          {
+            text: 'Wahlfrage',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'EASY',
+            order: 0,
+            shuffleAnswerOptions: false,
+            answers: [
+              { text: 'A', isCorrect: true },
+              { text: 'B', isCorrect: false },
+            ],
+          },
+        ],
+      },
+    ] as never);
+    prismaMock.quiz.updateMany.mockResolvedValue({ count: 1 });
+
+    await caller.upload({
+      historyScopeId,
+      name: 'Legacy-Quiz',
+      showLeaderboard: true,
+      allowCustomNicknames: false,
+      enableSoundEffects: true,
+      enableRewardEffects: true,
+      enableMotivationMessages: true,
+      enableEmojiReactions: true,
+      anonymousMode: false,
+      teamMode: false,
+      teamNames: [],
+      nicknameTheme: 'HIGH_SCHOOL',
+      shuffleAnswerOptions: false,
+      questions: [
+        {
+          text: 'Wahlfrage',
+          type: 'SINGLE_CHOICE',
+          difficulty: 'EASY',
+          order: 0,
+          shuffleAnswerOptions: true,
+          answers: [
+            { text: 'A', isCorrect: true },
+            { text: 'B', isCorrect: false },
+          ],
+        },
+      ],
+    });
+
+    expect(prismaMock.quiz.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [legacyQuizId] }, historyScopeId: null },
+      data: { historyScopeId },
+    });
   });
 
   it('stages source identities and objective references atomically with the quiz upload', async () => {

@@ -5709,6 +5709,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const root = this.hostElement.nativeElement;
+    if (shortcutKey === 'S') {
+      const action = root.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="S"]');
+      if (
+        !action ||
+        this.document.activeElement !== action ||
+        event.repeat ||
+        action.disabled ||
+        action.getAttribute('aria-disabled') === 'true' ||
+        action.closest('[inert]')
+      ) {
+        return;
+      }
+      event.preventDefault();
+      action.click();
+      return;
+    }
     const historyPageArrow =
       (shortcutKey === 'ArrowUp' || shortcutKey === 'ArrowDown') &&
       this.earlierQuizResult() !== null;

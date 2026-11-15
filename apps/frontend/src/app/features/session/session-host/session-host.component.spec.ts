@@ -18097,11 +18097,18 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     skipButton!.focus();
     const input = document.createElement('input');
     host.append(input);
+    input.focus();
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
     document.body.dispatchEvent(
       new KeyboardEvent('keydown', { key: 's', bubbles: true, repeat: true }),
     );
     expect(dialogOpenMock).not.toHaveBeenCalled();
+    const otherAction = document.createElement('button');
+    host.append(otherAction);
+    otherAction.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    skipButton!.focus();
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
     fixture.detectChanges();
     await fixture.whenStable();

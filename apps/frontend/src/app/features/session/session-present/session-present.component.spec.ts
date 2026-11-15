@@ -351,10 +351,17 @@ describe('SessionPresentComponent', () => {
 
     const input = document.createElement('input');
     root.append(input);
+    input.focus();
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
     document.body.dispatchEvent(
       new KeyboardEvent('keydown', { key: 's', bubbles: true, repeat: true }),
     );
+    expect(presenterDialogOpenMock).not.toHaveBeenCalled();
+
+    const otherAction = document.createElement('button');
+    root.append(otherAction);
+    otherAction.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
     expect(presenterDialogOpenMock).not.toHaveBeenCalled();
 
     skip?.focus();

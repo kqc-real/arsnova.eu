@@ -720,6 +720,20 @@ describe('öffentliche Contract-Schemas', () => {
     expect(historyShuffleOff).toContain('"shuffleAnswerOptions":false');
     expect(historyShuffleOff).not.toBe(historyWithoutFlag);
 
+    const historyGlobalShuffleOff = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      shuffleAnswerOptions: false,
+      questions: [{ ...historyQuestion, shuffleAnswerOptions: true }],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    const historyGlobalShuffleOn = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      shuffleAnswerOptions: true,
+      questions: [{ ...historyQuestion, shuffleAnswerOptions: false }],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    expect(historyGlobalShuffleOff).toBe(historyShuffleOff);
+    expect(historyGlobalShuffleOn).toBe(historyWithoutFlag);
+    expect(JSON.parse(historyGlobalShuffleOff)).not.toHaveProperty('shuffleAnswerOptions');
+
     const parsed = QuestionStudentDTOSchema.parse({
       id: questionId,
       text: 'Frage',

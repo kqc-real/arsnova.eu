@@ -809,6 +809,21 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
 
     const root: HTMLElement = this.hostElement.nativeElement;
+    if (shortcutKey === 'S') {
+      const action = root.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="S"]');
+      if (
+        !action ||
+        this.document.activeElement !== action ||
+        event.repeat ||
+        action.disabled ||
+        action.getAttribute('aria-disabled') === 'true'
+      ) {
+        return;
+      }
+      event.preventDefault();
+      action.click();
+      return;
+    }
     if (target instanceof Element && target !== this.document.body) {
       if (
         target.closest(

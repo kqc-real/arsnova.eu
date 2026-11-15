@@ -33,13 +33,15 @@ Der Server bestimmt `channels`, `preferredChannel`, Fristen und Berechtigungen. 
 
 ### Quiz
 
+Der einzelne druckbare Shortcut **S** ist gemäß WCAG 2.2 SC 2.1.4 auf die fokussierte Aktion **Frage auslassen** begrenzt. Bei Fokus auf dem Dokumentkörper oder einer anderen Aktion löst er nichts aus.
+
 Pro Phase hat die Quizführung eine visuell dominante nächste Aktion. Fachlich zulässige Alternativen bleiben ausdrücklich beschriftet. Persönliche Timer und Nachteilsausgleich behalten ihre Sperren, Hinweise und Bestätigungen. Die Aufgabe ändert weder Quizregeln noch die Effective-Vote-Regel für Peer Instruction, Ranglisten, Bonuscodes, Analyse oder Export.
 
 | Quizphase                                  | Nächste Aktion                                                      | Zusätzlicher Kontext                                                                                                  |
 | ------------------------------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `LOBBY` oder `isQuizAwaitingFirstQuestion` | »Erste Frage starten«                                               | Titel, Code/QR und Teilnehmendenzahl; kein Ergebnis-CTA ohne aktuelle Frage.                                          |
-| `QUESTION_OPEN`                            | »Antwortphase starten«                                              | Lesestatus; »Frage auslassen« mit **S** bleibt als sichtbare, bestätigte Nebenaktion erreichbar.                      |
-| `ACTIVE`                                   | »Ergebnis zeigen«; bei bestehender PI-Empfehlung »Diskussionsphase« | Ergebnis bleibt bei PI eine beschriftete Alternative; »Frage auslassen« mit **S** und Zeitbedingungen gelten weiter.  |
+| `QUESTION_OPEN`                            | »Antwortphase starten«                                              | Lesestatus; »Frage auslassen« bleibt direkt erreichbar; **S** gilt bei Fokus auf dieser Aktion.                       |
+| `ACTIVE`                                   | »Ergebnis zeigen«; bei bestehender PI-Empfehlung »Diskussionsphase« | Ergebnis bleibt bei PI eine Alternative; fokussiertes **S** und Zeitbedingungen gelten weiter.                        |
 | `DISCUSSION`                               | »Zweite Abstimmung«                                                 | Beschrifteter Weg ohne zweite Abstimmung zur nächsten Frage beziehungsweise Gesamtauswertung.                         |
 | `RESULTS`                                  | »Nächste Frage« beziehungsweise »Zur Gesamtauswertung«              | Voriges Ergebnis als direkte Aktion, soweit tatsächlich vorhanden und zulässig.                                       |
 | `FINISHED`                                 | »Nachbesprechungsplan herunterladen«                                | Abschlusskarte vor Details; Primäraktion lädt das Standard-PDF; »Exportieren« lädt PDF/UA oder CSV; »Zur Startseite«. |

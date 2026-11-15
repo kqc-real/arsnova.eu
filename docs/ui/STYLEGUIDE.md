@@ -138,6 +138,8 @@ Regeln:
 
 ## Accessibility und Interaktion
 
+- Der einzelne druckbare Shortcut **S** ist gemäß WCAG 2.2 SC 2.1.4 auf die fokussierte Aktion **Frage auslassen** begrenzt. Bei Fokus auf dem Dokumentkörper oder einer anderen Aktion löst er nichts aus.
+
 - Kontrast und Lesbarkeit müssen in Light und Dark erfüllt sein.
 - Fokuszustand muss klar sichtbar sein (bei Bedarf `mat.strong-focus-indicators()`).
 - Programmatisch fokussierte Überschriften (`tabindex="-1"`) verwenden

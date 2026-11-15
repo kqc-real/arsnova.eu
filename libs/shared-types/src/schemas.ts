@@ -2849,9 +2849,6 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
     nicknameTheme: parsed.nicknameTheme,
     bonusTokenCount: parsed.bonusTokenCount ?? null,
     readingPhaseEnabled: parsed.readingPhaseEnabled ?? true,
-    ...(parsed.shuffleAnswerOptions !== undefined
-      ? { shuffleAnswerOptions: parsed.shuffleAnswerOptions }
-      : {}),
     preset: parsed.preset ?? 'PLAYFUL',
     questions: [...parsed.questions]
       .sort((left, right) => left.order - right.order)
@@ -2964,7 +2961,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
             ? (question.categorizationShuffleItems ?? true)
             : false,
         ...(questionShufflesParticipantChoiceAnswers(question.type) &&
-        question.shuffleAnswerOptions === false
+        (parsed.shuffleAnswerOptions ?? question.shuffleAnswerOptions ?? true) === false
           ? { shuffleAnswerOptions: false as const }
           : {}),
         answers: [...question.answers]
