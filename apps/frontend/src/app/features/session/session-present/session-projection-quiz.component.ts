@@ -121,9 +121,15 @@ export class SessionProjectionQuizComponent {
   readonly contentPageCount = signal(1);
   private readonly measuredContentPageContext = signal<string | null>(null);
   private emittedPageCount = '';
-  readonly currentContentPageCount = computed(() =>
-    this.measuredContentPageContext() === this.pageContext() ? this.contentPageCount() : 1,
+  readonly hasLiveRatingPages = computed(
+    () => this.question()?.type === 'RATING' && this.status() === 'ACTIVE',
   );
+  readonly currentContentPageCount = computed(() => {
+    if (this.hasLiveRatingPages()) {
+      return 2;
+    }
+    return this.measuredContentPageContext() === this.pageContext() ? this.contentPageCount() : 1;
+  });
   readonly questionSupportsLeaderboard = computed(() => {
     const type = this.question()?.type;
     return type !== undefined && type !== 'SURVEY' && type !== 'RATING' && type !== 'FREETEXT';
@@ -166,9 +172,17 @@ export class SessionProjectionQuizComponent {
   }
 
   contentPageIndex(): number {
+    // Bewertungsfragen verwenden zwei semantische Ansichten innerhalb derselben DOM-Seite.
+    if (this.hasLiveRatingPages()) {
+      return 0;
+    }
     // The paginator needs the saved index to recognize a provisional count on reload.
     return this.showLeaderboardPage() ? this.currentContentPageCount() - 1 : this.pageIndex();
   }
+
+  readonly showLiveRatingDistribution = computed(
+    () => this.hasLiveRatingPages() && this.pageIndex() === 1,
+  );
 
   readonly isReadingPhase = computed(() => this.status() === 'QUESTION_OPEN');
   readonly isActive = computed(() => this.status() === 'ACTIVE');
@@ -294,6 +308,81 @@ export class SessionProjectionQuizComponent {
   readonly ratingValues = computed(() => {
     const question = this.question();
     return question ? ratingScaleValues(question) : [];
+  });
+
+  private readonly matchingRatingProgress = computed(() => {
+    const question = this.question();
+    const progress = this.voteProgress();
+    return question?.type === 'RATING' &&
+      progress?.questionId === question.questionId &&
+      progress.questionOrder === question.order &&
+      progress.round === (question.currentRound ?? 1)
+      ? progress
+      : null;
+  });
+
+  private readonly ratingResultStatistics = computed(() => {
+    const question = this.question();
+    if (question?.type !== 'RATING' || !this.isResults()) {
+      return null;
+    }
+    const distribution = question.ratingDistribution ?? {};
+    const values = this.ratingValues()
+      .map((value) => ({ value, count: distribution[String(value)] ?? 0 }))
+      .filter((entry) => entry.count > 0);
+    const total = values.reduce((sum, entry) => sum + entry.count, 0);
+    if (total <= 0) {
+      return null;
+    }
+    const sum = values.reduce((result, entry) => result + entry.value * entry.count, 0);
+    const average = sum / total;
+    const valueAt = (position: number): number => {
+      let offset = 0;
+      for (const entry of values) {
+        offset += entry.count;
+        if (position < offset) return entry.value;
+      }
+      return values.at(-1)?.value ?? 0;
+    };
+    const median = (valueAt(Math.floor((total - 1) / 2)) + valueAt(Math.floor(total / 2))) / 2;
+    const variance =
+      values.reduce(
+        (result, entry) => result + entry.count * Math.pow(entry.value - average, 2),
+        0,
+      ) / total;
+    return { average, median, stdDev: Math.sqrt(variance) };
+  });
+
+  readonly displayedRatingAverage = computed(() => {
+    if (this.isResults()) {
+      return this.ratingResultStatistics()?.average ?? this.question()?.ratingAvg ?? null;
+    }
+    return this.matchingRatingProgress()?.ratingAvg ?? null;
+  });
+
+  readonly displayedRatingMedian = computed(
+    () =>
+      this.ratingResultStatistics()?.median ?? this.matchingRatingProgress()?.ratingMedian ?? null,
+  );
+
+  readonly displayedRatingStdDev = computed(
+    () =>
+      this.ratingResultStatistics()?.stdDev ?? this.matchingRatingProgress()?.ratingStdDev ?? null,
+  );
+
+  readonly showRatingStatistics = computed(
+    () =>
+      this.isResults() ||
+      (this.showLiveRatingDistribution() &&
+        this.countdownSeconds() === 0 &&
+        this.displayedRatingCount() > 0),
+  );
+
+  readonly displayedRatingCount = computed(() => {
+    if (this.isResults()) {
+      return this.question()?.ratingCount ?? 0;
+    }
+    return this.matchingRatingProgress()?.totalVotes ?? 0;
   });
 
   readonly matchingRows = computed(() => {
@@ -624,15 +713,27 @@ export class SessionProjectionQuizComponent {
   }
 
   ratingCount(value: number): number {
-    return this.question()?.ratingDistribution?.[String(value)] ?? 0;
+    if (this.isResults()) {
+      return this.question()?.ratingDistribution?.[String(value)] ?? 0;
+    }
+    return this.matchingRatingProgress()?.ratingDistribution?.[String(value)] ?? 0;
   }
 
   ratingBarPercent(value: number): number {
-    const total = this.question()?.ratingCount ?? 0;
+    const total = this.displayedRatingCount();
     if (total <= 0) {
       return 0;
     }
     return Math.round((this.ratingCount(value) / total) * 100);
+  }
+
+  formatRatingStatistic(value: number | null): string {
+    return value === null
+      ? '–'
+      : formatLocaleNumber(value, this.localeId, {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        });
   }
 
   histogramBarPercent(count: number): number {

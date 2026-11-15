@@ -4235,6 +4235,37 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.getVoteCountForCurrentQuestion(q);
   }
 
+  ratingLiveAverage(q: HostCurrentQuestionDTO): number | null {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q) ? (progress.ratingAvg ?? null) : null;
+  }
+
+  ratingLiveMedian(q: HostCurrentQuestionDTO): number | null {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q)
+      ? (progress.ratingMedian ?? null)
+      : null;
+  }
+
+  ratingLiveStdDev(q: HostCurrentQuestionDTO): number | null {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q)
+      ? (progress.ratingStdDev ?? null)
+      : null;
+  }
+
+  ratingLiveCount(q: HostCurrentQuestionDTO, value: number): number {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q)
+      ? (progress.ratingDistribution?.[String(value)] ?? 0)
+      : 0;
+  }
+
+  ratingLiveBarPercent(q: HostCurrentQuestionDTO, value: number): number {
+    const total = this.hostVoteCount(q);
+    return total > 0 ? Math.round((this.ratingLiveCount(q, value) / total) * 100) : 0;
+  }
+
   private hostVoteProgressMatchesQuestion(
     progress: HostVoteProgressDTO | null,
     q: HostCurrentQuestionDTO | null,
@@ -4283,6 +4314,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const votes = this.getVoteCountForCurrentQuestion(this.displayedCurrentQuestionForHost());
     return votes >= participants;
   });
+  readonly ratingStatisticsVisible = computed(
+    () => this.effectiveStatus() === 'RESULTS' || this.countdownEnded(),
+  );
   readonly timerAccommodationEnabled = computed(
     () => this.session()?.enableTimerAccommodation !== false,
   );
@@ -4425,6 +4459,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
     });
     effect(() => {
+      if (!this.showRatingProjectionNavigation()) {
+        return;
+      }
+      const page = this.session()?.presenterPage;
+      if (!page || page.count === 2 || this.projectionPageCountSyncInFlight()) {
+        return;
+      }
+      untracked(() => {
+        void this.syncProjectionPageCount(2);
+      });
+    });
+    effect(() => {
       if (this.activeChannel() !== 'qa' || !this.projectionNavigationIsQaQuestions()) {
         this.projectionControlsVisible.set(false);
         return;
@@ -4446,11 +4492,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
       const page = this.session()?.presenterPage;
       const count = this.qaProjectionFullStagePageCount();
-      if (!page || page.count === count) {
+      if (!page || page.count === count || this.projectionPageCountSyncInFlight()) {
         return;
       }
       untracked(() => {
-        void this.syncQaProjectionPageCount(count);
+        void this.syncProjectionPageCount(count);
       });
     });
     effect(() => {
@@ -7017,11 +7063,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly projectionPageError = signal('');
   readonly projectionPagesAriaLabel = $localize`:@@sessionHost.projectionPages:Projektionsseiten`;
   readonly projectionQaQuestionsAriaLabel = $localize`:@@sessionHost.projectionQaQuestions:Projektionsfragen`;
+  readonly showRatingProjectionNavigation = computed(
+    () =>
+      this.activeChannel() === 'quiz' &&
+      this.effectiveStatus() === 'ACTIVE' &&
+      this.earlierQuizResult() === null &&
+      this.displayedCurrentQuestionForHost()?.type === 'RATING' &&
+      this.session()?.presenterPage !== undefined,
+  );
+  readonly ratingProjectionPageIndex = computed(() =>
+    this.showRatingProjectionNavigation()
+      ? Math.max(0, Math.min(1, this.session()?.presenterPage?.index ?? 0))
+      : 0,
+  );
   private static readonly QA_PROJECTION_QUEUE_VISIBLE = 2;
   /** Entspricht `qa.presentProjection`-Cap (Forum-Seitenmaximum). */
   private static readonly QA_PROJECTION_MAX_ACTIVE =
     QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1]!;
-  private qaProjectionPageSyncInFlight = false;
+  private readonly projectionPageCountSyncInFlight = signal(false);
   /**
    * Q&A-Fragenmodus für Navigator/Hero: solange der Q&A-Kanal bevorzugt ist
    * (auch ohne laufende Projektion).
@@ -7282,7 +7341,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const fullCount = Math.max(page.count, this.qaProjectionFullStagePageCount(), stageIndex + 1);
       if (page.count < fullCount) {
-        await this.syncQaProjectionPageCount(fullCount);
+        await this.syncProjectionPageCount(fullCount);
       }
       const current = this.session()?.presenterPage;
       if (!current) {
@@ -7426,12 +7485,47 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async syncQaProjectionPageCount(count: number): Promise<void> {
+  async setRatingProjectionPage(index: 0 | 1): Promise<void> {
     const page = this.session()?.presenterPage;
-    if (!page || !this.code || page.count === count || this.qaProjectionPageSyncInFlight) {
+    if (
+      !page ||
+      !this.showRatingProjectionNavigation() ||
+      page.index === index ||
+      this.projectionPagePending()
+    ) {
       return;
     }
-    this.qaProjectionPageSyncInFlight = true;
+    this.projectionPagePending.set(true);
+    this.projectionPageError.set('');
+    try {
+      const result = await trpc.session.setPresenterSurface.mutate(
+        {
+          code: this.code,
+          page: { context: page.context, index, count: 2 },
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.session.update((session) =>
+        session?.presenterPage?.context === page.context
+          ? { ...session, presenterPage: result.presenterPage }
+          : session,
+      );
+      this.projectionControlsVisible.set(true);
+    } catch {
+      this.projectionPageError.set(
+        $localize`:@@sessionHost.projectionPageError:Seite konnte nicht gewechselt werden. Bitte erneut versuchen.`,
+      );
+    } finally {
+      this.projectionPagePending.set(false);
+    }
+  }
+
+  private async syncProjectionPageCount(count: number): Promise<void> {
+    const page = this.session()?.presenterPage;
+    if (!page || !this.code || page.count === count || this.projectionPageCountSyncInFlight()) {
+      return;
+    }
+    this.projectionPageCountSyncInFlight.set(true);
     try {
       const result = await trpc.session.setPresenterSurface.mutate(
         {
@@ -7451,7 +7545,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch {
       // Presenter-Poll und erneuter Host-Sync holen die Seitenzahl nach.
     } finally {
-      this.qaProjectionPageSyncInFlight = false;
+      this.projectionPageCountSyncInFlight.set(false);
     }
   }
 
@@ -9685,6 +9779,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         (right.blockingTimerAccommodationCount ?? 0) &&
       (left.correctVoterCount ?? null) === (right.correctVoterCount ?? null) &&
       (left.incorrectVoterCount ?? null) === (right.incorrectVoterCount ?? null) &&
+      (left.ratingAvg ?? null) === (right.ratingAvg ?? null) &&
+      (left.ratingMedian ?? null) === (right.ratingMedian ?? null) &&
+      (left.ratingStdDev ?? null) === (right.ratingStdDev ?? null) &&
+      sameNumberRecord(left.ratingDistribution, right.ratingDistribution) &&
       JSON.stringify(left.peerInstructionSuggestion ?? null) ===
         JSON.stringify(right.peerInstructionSuggestion ?? null)
     );

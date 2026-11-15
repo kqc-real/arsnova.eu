@@ -3940,6 +3940,11 @@ export const HostVoteProgressDTOSchema = z.object({
   questionOrder: z.number().int().min(0),
   round: z.number().int().min(1).max(2),
   totalVotes: z.number().int().min(0),
+  /** Host-only live distribution for rating projection; never part of participant payloads. */
+  ratingDistribution: z.record(z.string(), z.number().int().min(0)).optional(),
+  ratingAvg: z.number().nullable().optional(),
+  ratingMedian: z.number().nullable().optional(),
+  ratingStdDev: z.number().nullable().optional(),
   /** Personen mit persönlicher Zeitanpassung, die in dieser Runde noch nicht geantwortet haben. */
   pendingTimerAccommodationCount: z.number().int().min(0).optional(),
   /** Davon Personen, deren garantiertes 10×-Zeitfenster noch läuft. */

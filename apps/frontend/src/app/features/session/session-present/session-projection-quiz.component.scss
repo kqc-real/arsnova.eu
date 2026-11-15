@@ -1065,6 +1065,67 @@ mat-icon.session-projection-quiz__rating-pole-icon {
   text-align: end;
 }
 
+.session-projection-quiz__rating-scale {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.5vmin, 1rem);
+}
+
+.session-projection-quiz__rating-scale-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(2.75rem, 6vmin, 4.25rem);
+  padding: clamp(0.4rem, 1vmin, 0.75rem);
+  border-radius: var(--mat-sys-corner-large);
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, transparent);
+  color: var(--mat-sys-on-surface);
+  font-size: clamp(1.25rem, 3vmin, 2rem);
+  font-weight: 650;
+}
+
+.session-projection-quiz__rating-statistics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.5vmin, 1rem);
+  margin: 0;
+}
+
+.session-projection-quiz__rating-statistics > div {
+  min-width: 0;
+  padding: clamp(0.55rem, 1.5vmin, 0.9rem);
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-high);
+  text-align: center;
+}
+
+.session-projection-quiz__rating-statistics dt {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: clamp(0.75rem, 1.8vmin, 1rem);
+  line-height: 1.25;
+}
+
+.session-projection-quiz__rating-statistics dd {
+  margin: 0.25rem 0 0;
+  font-size: clamp(1.2rem, 3vmin, 2rem);
+  font-weight: 700;
+}
+
+@media (min-width: 1200px) and (min-height: 700px) {
+  .session-projection-quiz__rating--with-statistics {
+    row-gap: clamp(0.55rem, 1.4vmin, 0.9rem);
+    padding-block: 0;
+  }
+
+  .session-projection-quiz__rating--with-statistics .session-projection-quiz__bar {
+    font-size: clamp(1.1rem, 2.4vmin, 1.65rem);
+  }
+
+  .session-projection-quiz__rating--with-statistics .session-projection-quiz__bar-track {
+    height: clamp(1rem, 2.2vmin, 1.4rem);
+  }
+}
+
 .session-projection-quiz__bar {
   font-size: clamp(1.45rem, 3.4vmin, 2.2rem);
   font-weight: 700;

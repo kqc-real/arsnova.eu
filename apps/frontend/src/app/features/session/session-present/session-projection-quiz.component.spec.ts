@@ -375,7 +375,7 @@ describe('SessionProjectionQuizComponent', () => {
     );
   });
 
-  it('kennzeichnet die beiden Pole einer Bewertungsskala wie in der Hostansicht', () => {
+  it('zeigt Bewertungsskala und laufende Verteilung auf zwei synchronisierten Seiten', () => {
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
@@ -409,9 +409,56 @@ describe('SessionProjectionQuizComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Die Verteilung erscheint mit dem Ergebnis.',
     );
+    expect(fixture.componentInstance.currentContentPageCount()).toBe(2);
     expect(
-      fixture.nativeElement.querySelector('.session-projection-quiz__bar-fill')?.style.width,
-    ).toBe('0%');
+      fixture.nativeElement.querySelectorAll('.session-projection-quiz__rating-scale-value'),
+    ).toHaveLength(5);
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__bar-fill')).toBeNull();
+
+    fixture.componentRef.setInput('pageIndex', 1);
+    fixture.componentRef.setInput('voteProgress', {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      ratingDistribution: { '1': 1, '5': 2 },
+      ratingAvg: 3.7,
+      ratingMedian: 5,
+      ratingStdDev: 1.9,
+    });
+    fixture.detectChanges();
+
+    const bars = fixture.nativeElement.querySelectorAll('.session-projection-quiz__bar-fill');
+    expect(bars).toHaveLength(5);
+    expect(bars[0]?.style.width).toBe('33%');
+    expect(bars[4]?.style.width).toBe('67%');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__rating-statistics'),
+    ).toBeNull();
+
+    fixture.componentRef.setInput('voteProgress', {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 4,
+      ratingDistribution: { '1': 1, '5': 3 },
+      ratingAvg: 4,
+      ratingMedian: 5,
+      ratingStdDev: 1.7,
+    });
+    fixture.componentRef.setInput('countdownSeconds', 0);
+    fixture.detectChanges();
+    expect(bars[4]?.style.width).toBe('75%');
+    const statistics = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__rating-statistics',
+    ) as HTMLElement | null;
+    expect(statistics?.textContent).toContain('Stimmen');
+    expect(statistics?.textContent).toContain('Mittelwert');
+    expect(statistics?.textContent).toContain('Median');
+    expect(statistics?.textContent).toContain('Standardabweichung');
+    expect(statistics?.textContent).toContain('4,0');
+    expect(statistics?.textContent).toContain('5,0');
+    expect(statistics?.textContent).toContain('1,7');
 
     const styles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
@@ -440,6 +487,38 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__bar,\s*\.session-projection-quiz__rating-labels\s*\{[^}]*grid-template-columns:\s*subgrid/s,
     );
     expect(styles).toMatch(/\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*2/s);
+  });
+
+  it('hält Bewertungsfrage, Ergebnis und Statistik in der breiten Ergebnisübersicht zusammen', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'RATING',
+        answers: [],
+        ratingMin: 1,
+        ratingMax: 10,
+        ratingCount: 4,
+        ratingDistribution: { '1': 1, '5': 1, '9': 2 },
+        ratingAvg: 6,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz--rating-overview'),
+    ).not.toBeNull();
+    expect(fixture.componentInstance.displayedRatingAverage()).toBe(6);
+    expect(fixture.componentInstance.displayedRatingMedian()).toBe(7);
+    expect(fixture.componentInstance.displayedRatingStdDev()).toBeCloseTo(3.32, 2);
+
+    const paginationStyles = readFileSync(
+      resolve(__dirname, 'projection-pages.component.scss'),
+      'utf8',
+    );
+    expect(paginationStyles).toMatch(
+      /\.session-projection-quiz--rating-overview\s*\{[^}]*grid-template-areas:\s*'question stage'/s,
+    );
   });
 
   it('zeigt nach der Freigabe Verteilung und richtige Antwort', () => {

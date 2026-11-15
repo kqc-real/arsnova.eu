@@ -1960,6 +1960,56 @@
                       <mat-card-content>
                         @if (q.type === 'RATING') {
                           <div class="session-host__rating">
+                            @if (showRatingProjectionNavigation()) {
+                              <nav
+                                class="session-host__rating-pages"
+                                [attr.aria-label]="projectionPagesAriaLabel"
+                                [attr.aria-busy]="projectionPagePending()"
+                              >
+                                <button
+                                  matButton="outlined"
+                                  type="button"
+                                  aria-keyshortcuts="ArrowUp"
+                                  [attr.aria-current]="
+                                    ratingProjectionPageIndex() === 0 ? 'page' : null
+                                  "
+                                  [disabledInteractive]="true"
+                                  [disabled]="
+                                    projectionPagePending() || ratingProjectionPageIndex() === 0
+                                  "
+                                  (click)="setRatingProjectionPage(0)"
+                                >
+                                  <span i18n="@@sessionHost.ratingScaleAria">Bewertungsskala</span>
+                                  <kbd class="session-host__shortcut" aria-hidden="true">↑</kbd>
+                                </button>
+                                <span aria-live="polite"
+                                  >{{ ratingProjectionPageIndex() + 1 }} / 2</span
+                                >
+                                <button
+                                  matButton="outlined"
+                                  type="button"
+                                  aria-keyshortcuts="ArrowDown"
+                                  [attr.aria-current]="
+                                    ratingProjectionPageIndex() === 1 ? 'page' : null
+                                  "
+                                  [disabledInteractive]="true"
+                                  [disabled]="
+                                    projectionPagePending() || ratingProjectionPageIndex() === 1
+                                  "
+                                  (click)="setRatingProjectionPage(1)"
+                                >
+                                  <span i18n="@@sessionHost.ratingDistributionAria"
+                                    >Bewertungsverteilung</span
+                                  >
+                                  <kbd class="session-host__shortcut" aria-hidden="true">↓</kbd>
+                                </button>
+                              </nav>
+                              @if (projectionPageError()) {
+                                <p class="session-host__projection-pages-error" role="alert">
+                                  {{ projectionPageError() }}
+                                </p>
+                              }
+                            }
                             @if (q.ratingLabelMin || q.ratingLabelMax) {
                               <div class="session-host__rating-labels">
                                 <span class="session-host__rating-pole">
@@ -1982,23 +2032,23 @@
                                 </span>
                               </div>
                             }
-                            <div
-                              class="session-host__rating-scale"
-                              role="list"
-                              i18n-aria-label="@@sessionHost.ratingScaleAria"
-                              aria-label="Bewertungsskala"
-                            >
-                              @for (val of ratingBarRange(q); track val) {
-                                <span class="session-host__rating-scale-value" role="listitem">
-                                  {{ val }}
-                                </span>
-                              }
-                            </div>
                             @if (
                               effectiveStatus() === 'RESULTS' &&
                               q.ratingAvg !== null &&
                               q.ratingAvg !== undefined
                             ) {
+                              <div
+                                class="session-host__rating-scale"
+                                role="list"
+                                i18n-aria-label="@@sessionHost.ratingScaleAria"
+                                aria-label="Bewertungsskala"
+                              >
+                                @for (val of ratingBarRange(q); track val) {
+                                  <span class="session-host__rating-scale-value" role="listitem">
+                                    {{ val }}
+                                  </span>
+                                }
+                              </div>
                               <div class="session-host__rating-result">
                                 <span class="session-host__rating-avg"
                                   >∅ {{ formatDecimal(q.ratingAvg) }}</span
@@ -2034,7 +2084,65 @@
                                   </div>
                                 }
                               </div>
+                            } @else if (
+                              effectiveStatus() === 'ACTIVE' && ratingProjectionPageIndex() === 1
+                            ) {
+                              <div
+                                class="session-host__rating-bars"
+                                role="img"
+                                i18n-aria-label="@@sessionHost.ratingDistributionAria"
+                                aria-label="Bewertungsverteilung"
+                              >
+                                @for (val of ratingBarRange(q); track val) {
+                                  <div class="session-host__rating-bar">
+                                    <span class="session-host__rating-bar-label">{{ val }}</span>
+                                    <div class="session-host__rating-bar-track">
+                                      <div
+                                        class="session-host__rating-bar-fill"
+                                        [style.width.%]="ratingLiveBarPercent(q, val)"
+                                      ></div>
+                                    </div>
+                                    <span class="session-host__rating-bar-count">{{
+                                      formatCount(ratingLiveCount(q, val))
+                                    }}</span>
+                                  </div>
+                                }
+                              </div>
+                              @if (ratingStatisticsVisible() && hostVoteCount(q) > 0) {
+                                <dl class="session-host__rating-statistics" aria-live="polite">
+                                  <div>
+                                    <dt i18n="@@sessionPresent.quickFeedbackVotes">Stimmen</dt>
+                                    <dd>{{ formatCount(hostVoteCount(q)) }}</dd>
+                                  </div>
+                                  <div>
+                                    <dt i18n="@@sessionReport.numericComparisonMean">Mittelwert</dt>
+                                    <dd>{{ formatDecimal(ratingLiveAverage(q) ?? 0) }}</dd>
+                                  </div>
+                                  <div>
+                                    <dt i18n="@@sessionReport.numericComparisonMedian">Median</dt>
+                                    <dd>{{ formatDecimal(ratingLiveMedian(q) ?? 0) }}</dd>
+                                  </div>
+                                  <div>
+                                    <dt i18n="@@sessionReport.numericComparisonStdDev">
+                                      Standardabweichung
+                                    </dt>
+                                    <dd>{{ formatDecimal(ratingLiveStdDev(q) ?? 0) }}</dd>
+                                  </div>
+                                </dl>
+                              }
                             } @else {
+                              <div
+                                class="session-host__rating-scale"
+                                role="list"
+                                i18n-aria-label="@@sessionHost.ratingScaleAria"
+                                aria-label="Bewertungsskala"
+                              >
+                                @for (val of ratingBarRange(q); track val) {
+                                  <span class="session-host__rating-scale-value" role="listitem">
+                                    {{ val }}
+                                  </span>
+                                }
+                              </div>
                               <p class="session-host__rating-waiting">{{ ratingWaitingText() }}</p>
                             }
                           </div>

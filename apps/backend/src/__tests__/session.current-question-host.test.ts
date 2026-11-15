@@ -11,6 +11,7 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
+      groupBy: vi.fn(),
     },
     participant: {
       groupBy: vi.fn(),
@@ -128,6 +129,54 @@ describe('session.getPresenterQuizResult', () => {
       expect(active).toEqual(before);
     },
   );
+
+  it('liefert die laufende Bewertungsverteilung ausschließlich im Host-Fortschritt', async () => {
+    const questionId = 'dddddddd-3333-4333-8333-333333333333';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: CODE,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      quiz: {
+        questions: [
+          {
+            id: questionId,
+            order: 0,
+            type: 'RATING',
+            answers: [],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.groupBy.mockResolvedValue([
+      { ratingValue: 2, _count: { _all: 1 } },
+      { ratingValue: 4, _count: { _all: 2 } },
+    ]);
+
+    const result = await caller.getHostVoteProgress({ code: CODE });
+
+    expect(result).toEqual({
+      questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      ratingDistribution: { '2': 1, '4': 2 },
+      ratingAvg: 3.3,
+      ratingMedian: 4,
+      ratingStdDev: 0.9,
+    });
+    expect(prismaMock.vote.groupBy).toHaveBeenCalledWith({
+      by: ['ratingValue'],
+      where: {
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        questionId,
+        round: 1,
+        ratingValue: { not: null },
+      },
+      _count: { _all: true },
+    });
+  });
 
   trpcDodIt(
     {

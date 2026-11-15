@@ -452,6 +452,14 @@ const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
 const participantTimerAccommodationCache = new Map<string, CacheEntry<CachedTimerAccommodation>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
+type RatingVoteProgress = {
+  totalVotes: number;
+  ratingDistribution: Record<string, number>;
+  ratingAvg: number | null;
+  ratingMedian: number | null;
+  ratingStdDev: number | null;
+};
+const ratingVoteProgressCache = new Map<string, CacheEntry<RatingVoteProgress>>();
 const presenterSurfaceBySessionId = new Map<
   string,
   z.infer<typeof SessionPresenterSurfaceSchema>
@@ -512,6 +520,7 @@ const participantMembershipInFlight = new Map<string, Promise<boolean>>();
 const participantTimerAccommodationInFlight = new Map<string, Promise<CachedTimerAccommodation>>();
 const voteCountInFlight = new Map<string, Promise<number>>();
 const voteSummaryInFlight = new Map<string, Promise<VoteSummary>>();
+const ratingVoteProgressInFlight = new Map<string, Promise<RatingVoteProgress>>();
 const sessionStatusEvents = new EventEmitter();
 const sessionStatusVersions = new Map<string, number>();
 const sessionParticipantEvents = new EventEmitter();
@@ -596,6 +605,7 @@ function clearSessionReadCaches(code?: string): void {
     participantTimerAccommodationCache.clear();
     voteCountCache.clear();
     voteSummaryCache.clear();
+    ratingVoteProgressCache.clear();
     invalidateSessionRankingCache();
     sessionInfoInFlight.clear();
     statusSnapshotInFlight.clear();
@@ -610,6 +620,7 @@ function clearSessionReadCaches(code?: string): void {
     participantTimerAccommodationInFlight.clear();
     voteCountInFlight.clear();
     voteSummaryInFlight.clear();
+    ratingVoteProgressInFlight.clear();
     for (const timer of sessionVoteProgressTimers.values()) {
       clearTimeout(timer);
     }
@@ -714,6 +725,16 @@ function clearVoteCaches(code: string): void {
   for (const key of voteSummaryInFlight.keys()) {
     if (key.startsWith(`${code}:`)) {
       voteSummaryInFlight.delete(key);
+    }
+  }
+  for (const key of ratingVoteProgressCache.keys()) {
+    if (key.startsWith(`${code}:`)) {
+      ratingVoteProgressCache.delete(key);
+    }
+  }
+  for (const key of ratingVoteProgressInFlight.keys()) {
+    if (key.startsWith(`${code}:`)) {
+      ratingVoteProgressInFlight.delete(key);
     }
   }
 }
@@ -1172,8 +1193,10 @@ export function invalidateHostVoteProgressForCode(code: string): void {
 export function resetVoteAggregationCachesForTests(): void {
   voteCountCache.clear();
   voteSummaryCache.clear();
+  ratingVoteProgressCache.clear();
   voteCountInFlight.clear();
   voteSummaryInFlight.clear();
+  ratingVoteProgressInFlight.clear();
   currentQuestionCache.clear();
   currentQuestionInFlight.clear();
   studentQuestionSessionCache.clear();
@@ -1205,6 +1228,71 @@ async function getVoteCountCached(
         round,
       },
     }),
+  );
+}
+
+async function getRatingVoteProgressCached(
+  code: string,
+  sessionId: string,
+  questionId: string,
+  round: number,
+): Promise<RatingVoteProgress> {
+  const key = voteCacheKey(code, questionId, round);
+  return getOrComputeCached(
+    ratingVoteProgressCache,
+    ratingVoteProgressInFlight,
+    key,
+    VOTE_COUNT_CACHE_TTL_MS,
+    async () => {
+      const groups = await prisma.vote.groupBy({
+        by: ['ratingValue'],
+        where: { sessionId, questionId, round, ratingValue: { not: null } },
+        _count: { _all: true },
+      });
+      const ratingDistribution: Record<string, number> = {};
+      let totalVotes = 0;
+      let sum = 0;
+      for (const group of groups) {
+        if (group.ratingValue === null) continue;
+        const count = group._count._all;
+        ratingDistribution[String(group.ratingValue)] = count;
+        totalVotes += count;
+        sum += group.ratingValue * count;
+      }
+      const average = totalVotes > 0 ? sum / totalVotes : null;
+      const sortedGroups = groups
+        .filter(
+          (group): group is typeof group & { ratingValue: number } => group.ratingValue !== null,
+        )
+        .sort((left, right) => left.ratingValue - right.ratingValue);
+      const valueAt = (position: number): number | null => {
+        let offset = 0;
+        for (const group of sortedGroups) {
+          offset += group._count._all;
+          if (position < offset) return group.ratingValue;
+        }
+        return null;
+      };
+      const lowerMedian = totalVotes > 0 ? valueAt(Math.floor((totalVotes - 1) / 2)) : null;
+      const upperMedian = totalVotes > 0 ? valueAt(Math.floor(totalVotes / 2)) : null;
+      const median =
+        lowerMedian !== null && upperMedian !== null ? (lowerMedian + upperMedian) / 2 : null;
+      const variance =
+        average === null
+          ? null
+          : sortedGroups.reduce(
+              (total, group) =>
+                total + group._count._all * Math.pow(group.ratingValue - average, 2),
+              0,
+            ) / totalVotes;
+      return {
+        totalVotes,
+        ratingDistribution,
+        ratingAvg: average === null ? null : Math.round(average * 10) / 10,
+        ratingMedian: median,
+        ratingStdDev: variance === null ? null : Math.round(Math.sqrt(variance) * 10) / 10,
+      };
+    },
   );
 }
 
@@ -1661,6 +1749,8 @@ export function recordVoteCachesForCode(
     }
     setCachedValue(voteSummaryCache, key, nextSummary, VOTE_SUMMARY_CACHE_TTL_MS);
   }
+  ratingVoteProgressCache.delete(key);
+  ratingVoteProgressInFlight.delete(key);
 }
 
 function participantMembershipCacheKey(code: string, participantId: string): string {
@@ -5454,6 +5544,13 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
       totalVotes: voteSummary.totalVotes,
       correctVoterCount: voteSummary.correctVoteCount,
       incorrectVoterCount: voteSummary.incorrectVoteCount,
+    };
+  }
+
+  if (questionType === 'RATING') {
+    return {
+      ...base,
+      ...(await getRatingVoteProgressCached(session.code, session.id, question.id, round)),
     };
   }
 

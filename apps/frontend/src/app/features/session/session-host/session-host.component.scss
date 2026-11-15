@@ -6532,6 +6532,19 @@ button.session-host__btn-discussion {
   padding: 0.5rem 0;
 }
 
+.session-host__rating-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.session-host__rating-pages button {
+  max-width: 100%;
+}
+
 .session-host__rating-labels {
   display: flex;
   justify-content: space-between;
@@ -6603,6 +6616,39 @@ button.session-host__btn-discussion {
 .session-host__rating-count {
   font: var(--mat-sys-body-large);
   color: var(--mat-sys-on-surface-variant);
+}
+
+.session-host__rating-statistics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}
+
+.session-host__rating-statistics > div {
+  min-width: 0;
+  padding: 0.65rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container-high);
+  text-align: center;
+}
+
+.session-host__rating-statistics dt {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  overflow-wrap: anywhere;
+}
+
+.session-host__rating-statistics dd {
+  margin: 0.2rem 0 0;
+  font: var(--mat-sys-title-medium);
+  font-weight: 700;
+}
+
+@media (max-width: 599px) {
+  .session-host__rating-statistics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .session-host__rating-bars {

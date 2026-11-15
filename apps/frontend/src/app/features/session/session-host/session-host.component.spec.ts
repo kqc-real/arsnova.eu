@@ -3200,8 +3200,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt bei Rating-Fragen auf dem Host die komplette Skala', async () => {
-    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+  it('synchronisiert Bewertungsskala und Live-Verteilung mit der Presenter-Seite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterPage: { context: 'quiz-rating', index: 0, count: 1 },
+    });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         opts.onData({ status: 'ACTIVE', currentQuestion: 6 });
@@ -3245,6 +3250,73 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ).map((node) => node.textContent?.trim());
 
     expect(scaleValues).toEqual(['1', '2', '3', '4', '5']);
+    await vi.waitUntil(() => fixture.componentInstance.session()?.presenterPage?.count === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+
+    const liveButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '.session-host__rating-pages button[aria-keyshortcuts="ArrowDown"]',
+    );
+    expect(liveButton).not.toBeNull();
+    liveButton!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        page: { context: 'quiz-rating', index: 1, count: 2 },
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fixture.componentInstance.ratingProjectionPageIndex()).toBe(1);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value'),
+    ).toHaveLength(0);
+
+    fixture.componentInstance.hostVoteProgress.set({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 6,
+      round: 1,
+      totalVotes: 3,
+      ratingDistribution: { '1': 1, '5': 2 },
+      ratingAvg: 3.7,
+      ratingMedian: 5,
+      ratingStdDev: 1.9,
+    });
+    fixture.detectChanges();
+
+    const bars = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+      '.session-host__rating-bar-fill',
+    );
+    expect(bars).toHaveLength(5);
+    expect(bars[0]?.style.width).toBe('33%');
+    expect(bars[4]?.style.width).toBe('67%');
+    expect(fixture.nativeElement.querySelector('.session-host__rating-statistics')).toBeNull();
+
+    fixture.componentInstance.hostVoteProgress.set({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 6,
+      round: 1,
+      totalVotes: 4,
+      ratingDistribution: { '1': 1, '5': 3 },
+      ratingAvg: 4,
+      ratingMedian: 5,
+      ratingStdDev: 1.7,
+    });
+    fixture.componentInstance.countdownEnded.set(true);
+    fixture.detectChanges();
+    const statistics = fixture.nativeElement.querySelector(
+      '.session-host__rating-statistics',
+    ) as HTMLElement | null;
+    expect(statistics?.textContent).toContain('Stimmen');
+    expect(statistics?.textContent).toContain('Mittelwert');
+    expect(statistics?.textContent).toContain('Median');
+    expect(statistics?.textContent).toContain('Standardabweichung');
+    expect(statistics?.textContent).toMatch(/1[,.]7/);
+    expect(revealResultsMutateMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
