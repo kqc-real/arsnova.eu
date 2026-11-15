@@ -6058,9 +6058,8 @@
             aria-keyshortcuts="ArrowRight"
             [disabled]="controlPending()"
             (click)="nextQuestion()"
-            i18n="@@sessionHost.nextQuestionAnchor"
           >
-            Nächste Frage
+            <span i18n="@@sessionHost.nextQuestionAnchor">Nächste Frage</span>
             <kbd class="session-host__shortcut" aria-hidden="true">→</kbd>
           </button>
         }

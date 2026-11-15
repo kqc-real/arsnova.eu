@@ -23196,6 +23196,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.effectiveStatus()).toBe('ACTIVE');
     expect(component.displayedCurrentQuestionForHost()?.questionId).toBe(liveQuestion.questionId);
     expect(component.earlierQuizResult()?.question.questionId).toBe(earlierQuestion.questionId);
+    expect(document.activeElement).toBe(
+      host.querySelector('[data-testid="host-quiz-history-next"]'),
+    );
     expect(prevQuestionMutateMock).not.toHaveBeenCalled();
     expect(nextQuestionMutateMock).not.toHaveBeenCalled();
     expect(revealResultsMutateMock).not.toHaveBeenCalled();
@@ -23255,6 +23258,121 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.effectiveStatus()).toBe('ACTIVE');
     expect(component.displayedCurrentQuestionForHost()?.questionId).toBe(liveQuestion.questionId);
     expect(getPresenterQuizResultQueryMock).toHaveBeenCalledTimes(1);
+    fixture.destroy();
+  });
+
+  it('beendet den Host-Rückblick bei externer Pause und öffnet ihn nach dem Fortsetzen nicht erneut', async () => {
+    const liveQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 3,
+      text: 'Aktuelle Abstimmung',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      hasEarlierPresenterResult: true,
+      answers: [{ id: 'bbbbbbbb-1111-4111-8111-111111111111', text: 'Live', isCorrect: true }],
+      totalVotes: 1,
+    };
+    const earlierQuestion = {
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Früheres Ergebnis',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      answers: [{ id: 'aaaaaaaa-2222-4222-8222-222222222222', text: 'Früher', isCorrect: true }],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-2222-4222-8222-222222222222',
+          text: 'Früher',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 100,
+        },
+      ],
+      totalVotes: 1,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 1, currentRound: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(liveQuestion);
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await fixture.componentInstance.stepQuizHistory('previous');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.earlierQuizResult()).not.toBeNull();
+
+    const statusHandler = (
+      onStatusChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        { onData?: (data: { status: string; currentQuestion: number | null }) => void } | undefined
+    )?.onData;
+    expect(statusHandler).toBeTypeOf('function');
+    statusHandler?.({ status: 'PAUSED', currentQuestion: 1 });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="host-quiz-history-stage"]',
+      ),
+    ).toBeNull();
+    getPresenterQuizResultQueryMock.mockClear();
+    await fixture.componentInstance.stepQuizHistory('previous');
+    await fixture.componentInstance.stepQuizHistory('next');
+    expect(getPresenterQuizResultQueryMock).not.toHaveBeenCalled();
+
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 1 });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('ignoriert globale Pfeiltasten, solange der Beitrittsdialog geöffnet ist', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const host = fixture.nativeElement as HTMLElement;
+    const shortcut = document.createElement('button');
+    shortcut.setAttribute('aria-keyshortcuts', 'ArrowRight');
+    const clickSpy = vi.fn();
+    shortcut.addEventListener('click', clickSpy);
+    host.prepend(shortcut);
+    fixture.componentInstance.joinInfoPopoverOpen.set(true);
+    fixture.detectChanges();
+    const closeButton = host.querySelector<HTMLButtonElement>(
+      '.session-host__join-viewport-overlay__close',
+    );
+    expect(closeButton).not.toBeNull();
+    closeButton!.focus();
+
+    const right = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true,
+    });
+    closeButton!.dispatchEvent(right);
+
+    expect(clickSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
 

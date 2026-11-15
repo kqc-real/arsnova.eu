@@ -1178,9 +1178,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (currentQuestion === null) return null;
     return currentQuestion === question.order ? question : null;
   });
+  private readonly quizHistoryPhaseAvailable = computed(() => {
+    const status = this.effectiveStatus();
+    return (
+      status === 'QUESTION_OPEN' ||
+      status === 'ACTIVE' ||
+      status === 'DISCUSSION' ||
+      status === 'RESULTS'
+    );
+  });
   readonly earlierQuizResult = computed(() => {
     const history = this.quizHistory();
     return history &&
+      this.quizHistoryPhaseAvailable() &&
       this.activeChannel() === 'quiz' &&
       this.displayedCurrentQuestionForHost()?.questionId === history.liveQuestionId
       ? history.result
@@ -4348,9 +4358,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const active = this.document.activeElement;
       const historyControlFocused =
         active instanceof Element && active.closest('[data-testid^="host-quiz-history-"]') !== null;
-      if (historyWasVisible && !historyVisible && historyControlFocused) {
+      if (historyWasVisible && !historyVisible) {
         untracked(() => {
-          afterNextRender(() => this.focusHostQuizPhaseAction(), { injector: this.injector });
+          this.quizHistory.set(null);
+          if (historyControlFocused) {
+            afterNextRender(() => this.focusHostQuizPhaseAction(), { injector: this.injector });
+          }
         });
       }
       historyWasVisible = historyVisible;
@@ -5583,6 +5596,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       event.ctrlKey ||
       event.metaKey ||
       event.shiftKey ||
+      this.joinInfoPopoverOpen() ||
       (this.dialog.openDialogs?.length ?? 0) > 0
     ) {
       return;
@@ -13357,7 +13371,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async stepQuizHistory(direction: 'previous' | 'next'): Promise<void> {
     const live = this.displayedCurrentQuestionForHost();
     const current = this.earlierQuizResult();
-    if (!live || this.activeChannel() !== 'quiz' || this.controlPending()) return;
+    if (
+      !live ||
+      !this.quizHistoryPhaseAvailable() ||
+      this.activeChannel() !== 'quiz' ||
+      this.controlPending()
+    )
+      return;
+    const active = this.document.activeElement;
+    const focusedHistoryControl =
+      active instanceof HTMLElement &&
+      active.closest('[data-testid^="host-quiz-history-"]') !== null
+        ? active
+        : null;
     if (
       direction === 'previous' &&
       !(current?.hasPrevious ?? live.hasEarlierPresenterResult ?? live.canShowPreviousResult)
@@ -13400,6 +13426,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       );
     } finally {
       this.controlPending.set(false);
+      this.restoreQuizHistoryControlFocus(focusedHistoryControl);
     }
   }
 
@@ -13434,6 +13461,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     ) {
       target.focus({ preventScroll: true });
     }
+  }
+
+  private restoreQuizHistoryControlFocus(previousControl: HTMLElement | null): void {
+    if (!previousControl) return;
+    afterNextRender(
+      () => {
+        if (
+          previousControl.isConnected &&
+          !previousControl.closest('[hidden], [inert]') &&
+          !previousControl.hasAttribute('disabled') &&
+          previousControl.getAttribute('aria-disabled') !== 'true'
+        ) {
+          return;
+        }
+        this.focusHostQuizPhaseAction();
+      },
+      { injector: this.injector },
+    );
   }
 
   /** Übernimmt nach dem Routenwechsel den Fokus vom entfernten Presenter-Auslöser. */
