@@ -96,8 +96,11 @@ test('--arbeitsstand legt refs/labor/arbeitsstand mit nicht committeten Änderun
     `git init -q ${r} && cd ${r} && echo a > a.txt && git add a.txt && git -c user.name=t -c user.email=t@t commit -qm a && echo neu > b.txt`,
   ]);
   writeFileSync(protokoll, '');
+  // Aufruf außerhalb des Repos: der Index muss über LAB_REPO gefunden werden, nicht über das
+  // aktuelle Verzeichnis (git-path ist relativ; in einem Worktree ist .git eine Datei).
   execFileSync('bash', [join(here, 'labor-wsl.sh'), 'lauf', '-LabTag', 'dev-x', '--arbeitsstand'], {
     encoding: 'utf8',
+    cwd: t,
     env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, LAB_WSL_TEST: '1', LAB_REPO: r },
   });
   const sha = execFileSync('git', ['-C', r, 'rev-parse', 'refs/labor/arbeitsstand'], {

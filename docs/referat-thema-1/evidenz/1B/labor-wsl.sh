@@ -31,7 +31,7 @@ arbeitsstand() { # legt refs/labor/arbeitsstand an und gibt den Commit aus (auch
   [[ -n "$REPO" ]] || { echo "kein Git-Repo" >&2; exit 2; }
   local idx tree sha
   idx="$(mktemp)"
-  cp "$(git -C "$REPO" rev-parse --git-path index)" "$idx"
+  cp "$(git -C "$REPO" rev-parse --path-format=absolute --git-path index)" "$idx"
   GIT_INDEX_FILE="$idx" git -C "$REPO" add -A
   tree="$(GIT_INDEX_FILE="$idx" git -C "$REPO" write-tree)"
   rm -f "$idx"
