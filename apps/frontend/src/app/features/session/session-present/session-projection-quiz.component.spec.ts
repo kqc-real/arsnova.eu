@@ -1530,7 +1530,7 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?app-countdown-fingers\s*\{[\s\S]*?align-self:\s*end/,
     );
     expect(styles).toMatch(
-      /:has\(app-countdown-fingers\.countdown-fingers-host--loaded\)[\s\S]*?\.session-projection-quiz__countdown\s*\{[\s\S]*?display:\s*none/,
+      /:host:has\(app-countdown-fingers\.countdown-fingers-host--loaded\)[\s\S]*?\.session-projection-quiz__countdown\s*\{[\s\S]*?display:\s*none/,
     );
   });
 
