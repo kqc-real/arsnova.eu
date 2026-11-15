@@ -804,11 +804,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const root: HTMLElement = this.hostElement.nativeElement;
     if (target instanceof Element && target !== this.document.body) {
       if (
-        !root.contains(target) ||
         target.closest(
-          'input, textarea, select, [contenteditable], [role="dialog"], [role="combobox"], ' +
-            '[role="listbox"], [role="menu"], [role="radiogroup"], [role="tablist"], ' +
-            '[role="slider"], [role="spinbutton"], [role="toolbar"]',
+          'input, textarea, select, [contenteditable], [role="combobox"], [role="listbox"], ' +
+            '[role="menu"], [role="radiogroup"], [role="tablist"], [role="slider"], ' +
+            '[role="spinbutton"], [role="toolbar"]',
         )
       )
         return;
@@ -832,6 +831,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (action) {
       event.preventDefault();
       if (!event.repeat && !action.disabled && action.getAttribute('aria-disabled') !== 'true') {
+        const active = this.document.activeElement;
+        if (!(active instanceof Element) || !root.contains(active)) {
+          action.focus({ preventScroll: true });
+        }
         action.click();
       }
       return;
@@ -1171,6 +1174,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const selectors = [
       '[data-testid="presenter-quiz-question-retry"]',
       '[data-testid="presenter-quiz-question-pending"]',
+      '[data-testid="presenter-quiz-start"]',
       '[data-testid="presenter-quiz-resume"]',
       '[data-testid="presenter-quiz-reveal-answers"]',
       '[data-testid="presenter-quiz-discussion"]',
@@ -1194,6 +1198,24 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return element;
     }
     return null;
+  }
+
+  /** Übernimmt nach dem Routenwechsel den Fokus vom entfernten Host-/Dialog-Auslöser. */
+  private focusPresenterAfterNavigation(): void {
+    let adoptedTarget: HTMLElement | null = null;
+    const focus = (): void => {
+      if (this.destroyRef.destroyed || this.dialog.openDialogs.length > 0) return;
+      const root = this.hostElement.nativeElement;
+      const active = this.document.activeElement;
+      if (active instanceof HTMLElement && root.contains(active) && active !== adoptedTarget)
+        return;
+      const target = this.quizPhaseFocusTarget();
+      if (!target || target === active) return;
+      target.focus({ preventScroll: true });
+      adoptedTarget = target;
+    };
+    focus();
+    afterNextRender(focus, { injector: this.injector });
   }
 
   private adoptPresenterStatus(update: SessionStatusUpdate): void {
@@ -2391,6 +2413,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.destroyRef.destroyed) {
       return;
     }
+    this.focusPresenterAfterNavigation();
     this.musicReady.set(true);
     this.ensurePresenterSubscriptions();
     this.startPolling();

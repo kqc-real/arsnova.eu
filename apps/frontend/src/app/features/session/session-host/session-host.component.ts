@@ -203,6 +203,7 @@ import {
   SessionStatusUpdate,
   TeamDTO,
   TeamLeaderboardEntryDTO,
+  PresenterQuizResult,
   FreetextWordCloudPresenterProjectionDTO,
   QaWordCloudPresenterProjectionDTO,
   WordCloudAnalysisEntryDTO,
@@ -229,6 +230,7 @@ import {
   WORD_CLOUD_SEMANTIC_WAIT_HINT_AFTER_MS,
 } from './word-cloud-semantic-pending';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
+import { SessionProjectionQuizComponent } from '../session-present/session-projection-quiz.component';
 import { qaWordCloudReadingHint } from '../session-present/word-cloud-labels';
 import { getQaWordCloudQuestionWeight } from '../session-present/word-cloud-weight.util';
 import {
@@ -618,6 +620,7 @@ function musicTracksForPhase(
     MatSlideToggle,
     MatTooltip,
     WordCloudComponent,
+    SessionProjectionQuizComponent,
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
     ModerationCompassIconComponent,
@@ -1158,6 +1161,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
+  private readonly quizHistory = signal<{
+    readonly liveQuestionId: string;
+    readonly result: PresenterQuizResult;
+  } | null>(null);
+  readonly historyPage = signal({ index: 0, count: 1 });
   private readonly moderationQuizSourceCache = signal<
     readonly ModerationCompassQuizSourceCacheEntry[]
   >([]);
@@ -1170,6 +1178,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (currentQuestion === null) return null;
     return currentQuestion === question.order ? question : null;
   });
+  readonly earlierQuizResult = computed(() => {
+    const history = this.quizHistory();
+    return history &&
+      this.activeChannel() === 'quiz' &&
+      this.displayedCurrentQuestionForHost()?.questionId === history.liveQuestionId
+      ? history.result
+      : null;
+  });
+  readonly historyWordCloudTerms = computed(() => {
+    const responses = this.earlierQuizResult()?.question.freeTextResponses ?? [];
+    return this.wordCloudTermExtractor.extractTerms(
+      responses.map((body, index) => ({ id: `history-response-${index}`, body })),
+      {
+        locale: this.wordCloudTermLocale(),
+        maxEntries: 80,
+        maxNgramLength: WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
+      },
+    );
+  });
+  readonly historyWordCloudTitle = computed(() =>
+    stripMarkdownToPlainText(this.earlierQuizResult()?.question.text ?? ''),
+  );
   readonly hasCurrentQuizQuestionForHost = computed(() => {
     if (this.displayedCurrentQuestionForHost() !== null) return true;
     return typeof this.effectiveCurrentQuestionState() === 'number';
@@ -1854,7 +1884,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         void this.skipQuestion();
         break;
       case 'previous':
-        void this.prevQuestion();
+        void this.stepQuizHistory('previous');
         break;
       case 'replace':
         void this.replaceQuizBeforeStart();
@@ -4312,6 +4342,19 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    let historyWasVisible = false;
+    effect(() => {
+      const historyVisible = this.earlierQuizResult() !== null;
+      const active = this.document.activeElement;
+      const historyControlFocused =
+        active instanceof Element && active.closest('[data-testid^="host-quiz-history-"]') !== null;
+      if (historyWasVisible && !historyVisible && historyControlFocused) {
+        untracked(() => {
+          afterNextRender(() => this.focusHostQuizPhaseAction(), { injector: this.injector });
+        });
+      }
+      historyWasVisible = historyVisible;
+    });
     effect(() => {
       const dialogOpen = this.moderationCompassDialogOpen();
       const focused = this.moderationCompassTriggerFocused();
@@ -5505,6 +5548,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownCloseJoinPopover(ev: KeyboardEvent): void {
     if (ev.key !== 'Escape') {
+      this.onDocumentArrowKeydown(ev);
       return;
     }
     if ((this.dialog.openDialogs?.length ?? 0) > 0) {
@@ -5527,6 +5571,63 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     void this.clearQaAuthorFilter();
+  }
+
+  onDocumentArrowKeydown(event: KeyboardEvent): void {
+    const { key, target } = event;
+    if (
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(key) ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      (this.dialog.openDialogs?.length ?? 0) > 0
+    ) {
+      return;
+    }
+
+    const root = this.hostElement.nativeElement;
+    if (target instanceof Element && target !== this.document.body) {
+      if (
+        target.closest(
+          'input, textarea, select, [contenteditable], [role="combobox"], [role="listbox"], ' +
+            '[role="menu"], [role="radiogroup"], [role="tablist"], [role="slider"], ' +
+            '[role="spinbutton"], [role="toolbar"]',
+        )
+      ) {
+        return;
+      }
+    }
+
+    const action = root.querySelector<HTMLButtonElement>(`button[aria-keyshortcuts="${key}"]`);
+    if (action) {
+      event.preventDefault();
+      if (!event.repeat && !action.disabled && action.getAttribute('aria-disabled') !== 'true') {
+        const active = this.document.activeElement;
+        if (!(active instanceof Element) || !root.contains(active)) {
+          action.focus({ preventScroll: true });
+        }
+        action.click();
+      }
+      return;
+    }
+
+    if (key !== 'ArrowUp' && key !== 'ArrowDown') {
+      return;
+    }
+    const scroller =
+      this.document.querySelector<HTMLElement>('.app-main__content') ??
+      (this.document.scrollingElement as HTMLElement | null);
+    if (!scroller || scroller.scrollHeight <= scroller.clientHeight) {
+      return;
+    }
+    event.preventDefault();
+    scroller.scrollBy({
+      top: (key === 'ArrowUp' ? -1 : 1) * Math.max(160, scroller.clientHeight * 0.75),
+      behavior: 'instant',
+    });
   }
 
   /** Host der Beitritts-URL ohne Schema und ohne Pfad (Hostname, ggf. Port), für das Join-Menü. */
@@ -5794,6 +5895,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     await this.openRequestedQuizPicker();
+    if (!this.destroyRef.destroyed) this.focusHostAfterNavigation();
   }
 
   private async openRequestedQuizPicker(): Promise<void> {
@@ -9939,9 +10041,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * zurückblättern kann. Unabhängig von Musterlösung; ohne Frage-DTO unsichtbar.
    */
   canShowPreviousResultAnchor(): boolean {
-    if (this.steppedBackToPreviousResult()) return false;
+    const history = this.earlierQuizResult();
+    if (history) return history.hasPrevious;
     const q = this.displayedCurrentQuestionForHost();
     if (!q) return false;
+    if (typeof q.hasEarlierPresenterResult === 'boolean') {
+      return q.hasEarlierPresenterResult;
+    }
+    if (this.steppedBackToPreviousResult()) return false;
     if (typeof q.canShowPreviousResult === 'boolean') {
       return q.canShowPreviousResult;
     }
@@ -13245,6 +13352,101 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       },
       { injector: this.injector },
     );
+  }
+
+  async stepQuizHistory(direction: 'previous' | 'next'): Promise<void> {
+    const live = this.displayedCurrentQuestionForHost();
+    const current = this.earlierQuizResult();
+    if (!live || this.activeChannel() !== 'quiz' || this.controlPending()) return;
+    if (
+      direction === 'previous' &&
+      !(current?.hasPrevious ?? live.hasEarlierPresenterResult ?? live.canShowPreviousResult)
+    ) {
+      return;
+    }
+    if (direction === 'next' && !current) return;
+
+    this.controlPending.set(true);
+    try {
+      if (direction === 'next' && !current?.hasNext) {
+        this.quizHistory.set(null);
+        this.dismissHostSteeringCallout();
+        return;
+      }
+      const result = await trpc.session.getPresenterQuizResult.query(
+        {
+          code: this.code.toUpperCase(),
+          liveQuestionId: live.questionId,
+          fromQuestionId: current?.question.questionId,
+          direction,
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (
+        !result ||
+        this.destroyRef.destroyed ||
+        this.activeChannel() !== 'quiz' ||
+        this.displayedCurrentQuestionForHost()?.questionId !== live.questionId
+      ) {
+        return;
+      }
+      this.historyPage.set({ index: 0, count: 1 });
+      this.quizHistory.set({ liveQuestionId: live.questionId, result });
+      this.dismissHostSteeringCallout();
+    } catch (error) {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.stepQuizHistory(direction),
+        error,
+      );
+    } finally {
+      this.controlPending.set(false);
+    }
+  }
+
+  reportHistoryPages(count: number): void {
+    if (!this.earlierQuizResult()) return;
+    const pageCount = Math.max(1, count);
+    this.historyPage.update(({ index }) => ({
+      index: Math.min(index, pageCount - 1),
+      count: pageCount,
+    }));
+  }
+
+  changeHistoryPage(delta: -1 | 1): void {
+    if (this.controlPending() || !this.earlierQuizResult()) return;
+    this.historyPage.update(({ index, count }) => ({
+      index: Math.max(0, Math.min(count - 1, index + delta)),
+      count,
+    }));
+  }
+
+  private focusHostQuizPhaseAction(): void {
+    const root = this.hostElement.nativeElement;
+    const target =
+      root.querySelector<HTMLElement>('button[aria-keyshortcuts="ArrowRight"]') ??
+      root.querySelector<HTMLElement>('button[aria-keyshortcuts="ArrowLeft"]') ??
+      this.hostQuestionCardRef?.nativeElement;
+    if (
+      target?.isConnected &&
+      !target.closest('[hidden], [inert]') &&
+      !target.hasAttribute('disabled') &&
+      target.getAttribute('aria-disabled') !== 'true'
+    ) {
+      target.focus({ preventScroll: true });
+    }
+  }
+
+  /** Übernimmt nach dem Routenwechsel den Fokus vom entfernten Presenter-Auslöser. */
+  private focusHostAfterNavigation(): void {
+    const focus = (): void => {
+      if (this.destroyRef.destroyed || (this.dialog.openDialogs?.length ?? 0) > 0) return;
+      const root = this.hostElement.nativeElement;
+      const active = this.document.activeElement;
+      if (active instanceof HTMLElement && root.contains(active)) return;
+      this.focusHostQuizPhaseAction();
+    };
+    focus();
+    afterNextRender(focus, { injector: this.injector });
   }
 
   async prevQuestion(): Promise<void> {

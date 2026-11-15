@@ -1074,7 +1074,10 @@ Seitenanzeige im Quiz-Footer aus. Es prüft dabei auch die Stichprobengröße
 der Statistik, die bei wenig Platz auf einer späteren Seite steht.
 Der Fall `quiz-history-live-vote` prüft die Pfeiltasten für den Ergebnisrückblick
 und die Rückkehr zur Live-Ansicht. Während der Presenter ein früheres Ergebnis
-zeigt, nimmt das Backend eine Stimme für die unveränderte Live-Frage an.
+zeigt, nimmt das Backend eine Stimme für die unveränderte Live-Frage an. Der
+Komponenten-Regressionsfall deckt zusätzlich dieselben eingeblendeten Symbole,
+die Host-Seitensteuerung und den lokalen Host-Rückblick bei unveränderter
+laufender Abstimmung ab.
 Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
 (im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
 `PROJECTION_DELAYED_MEDIA=1` hält drei Bilder im Fragetext bis nach der ersten

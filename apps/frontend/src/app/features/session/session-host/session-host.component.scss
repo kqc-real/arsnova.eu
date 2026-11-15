@@ -319,6 +319,56 @@
   line-height: 1.2;
 }
 
+.session-host__shortcut {
+  margin-inline-start: 0.4em;
+  padding-inline: 0.3em;
+  border: 1px solid currentColor;
+  border-radius: var(--mat-sys-corner-extra-small);
+  font: inherit;
+  white-space: nowrap;
+}
+
+.session-host__history-page-index {
+  pointer-events: auto;
+  min-width: 4.5rem;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.session-host__history-stage {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.session-host__history-heading {
+  text-align: center;
+}
+
+.session-host__history-status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-medium);
+}
+
+.session-host__history-notice {
+  width: min(100%, 48rem);
+  margin-inline: auto;
+}
+
+.session-host__history-notice p {
+  line-height: 1.5;
+}
+
+.session-host__history-word-cloud,
+.session-host__history-projection {
+  display: block;
+  min-width: 0;
+}
+
 .session-host__exit-anchor-button--primary {
   box-shadow: var(--mat-sys-level2);
 }
