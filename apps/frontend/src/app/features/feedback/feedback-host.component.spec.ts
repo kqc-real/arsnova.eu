@@ -231,6 +231,7 @@ describe('FeedbackHostComponent', () => {
       '.feedback-host__round-primary',
     ) as HTMLElement;
     expect(trigger.textContent).toContain('Blitzlicht-Formate');
+    expect(trigger.hasAttribute('mat-button')).toBe(true);
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(settings.hidden).toBe(true);
     expect(settings.querySelector('[data-testid="feedback-compare-round"]')).toBeNull();
