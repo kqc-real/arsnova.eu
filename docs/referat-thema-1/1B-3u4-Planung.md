@@ -710,3 +710,368 @@ höchstens zehn der geplanten 30 Aufträge separat freigeben. Konfiguration,
 Encoder, Korpus und Node-Versionen für alle Label-Varianten beibehalten.
 Noch keine neue Baseline erhoben; interne Label-Fallback-Zeit bleibt nicht
 direkt beobachtbar. Keine weiteren Node-Upgrades vor der Baseline erforderlich.
+
+## Nachtrag 2026-11-16: erste gewertete Label-Teilreihe vollständig
+
+Die [Label-Normalreihe Teil 1](evidenz/1B/2026-11-16-lauf-normal-label-01.md)
+auf `7c64dd6a` ist vollständig erhoben und ausgewertet: zehn tatsächliche
+Runtime-Anfragen mit übernommener Label-Antwort, vollständige Live-/Ressourcen-
+messung und bestandene Dienstprüfungen. Die korrigierte Manifest-Erfassung ist
+damit erstmals im VM-Lauf bestätigt. Zahlen und Grenzen im Protokoll.
+Zehn von 30 Normalaufträgen; noch keine passende Label-B0/F1-Referenz für H2.
+
+Nächster vorgeschlagener Lauf: Teil 2 mit zehn Label-Normalaufträgen,
+`-LabTag normal-label-02`, `-LabAuftrag label`, `-LabStoerung normal`,
+`-LabLive`, `-LabTimeoutMs 300000`, Ausführungscommit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Hypothesen, Schwellen, Korpus, Encoder und Node-Versionen bleiben wie festgelegt;
+H2-Latenz erst gegen die passende Label-B0/F1-Referenz bewerten, fehlende interne
+Label-Zeiten nicht als bestandenen Fallback-Nachweis behandeln. Teil 2 noch
+nicht freigegeben oder gestartet.
+
+## Nachtrag 2026-11-16: zweite gewertete Label-Teilreihe vollständig
+
+Die [Label-Normalreihe Teil 2](evidenz/1B/2026-11-16-lauf-normal-label-02.md)
+auf `7c64dd6a` ist vollständig erhoben und ausgewertet. Manifest mit Teil 1
+kompatibel, Messfenster vollständig, Dienstprüfungen bestanden. Messwerte und
+gemeinsame Einordnung stehen im Protokoll. Damit sind 20 von 30 Normalaufträgen
+erhoben; die passende Label-B0/F1-Referenz und das H2-Latenzurteil bleiben offen.
+
+Nächster vorgeschlagener Lauf: Teil 3 mit zehn Label-Normalaufträgen,
+`-LabTag normal-label-03`, `-LabAuftrag label`, `-LabStoerung normal`,
+`-LabLive`, `-LabTimeoutMs 300000`, Ausführungscommit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Hypothesen und Schwellen bleiben wie festgelegt; Korpus, Encoder, Node-Versionen
+und Settings unverändert. Fehlende interne Label-Zeiten bleiben nicht bewertbar.
+Teil 3 noch nicht freigegeben oder gestartet.
+
+## Nachtrag 2026-11-16: Label-Normalreihe vollständig, eigene F1/B0-Referenz als Nächstes
+
+[Teil 3 und Gesamtauswertung](evidenz/1B/2026-11-16-lauf-normal-label-03.md)
+schließen die geplanten 30 Normalaufträge auf `7c64dd6a` ab. Manifeste aller
+Teile kompatibel, Messfenster vollständig, Dienstprüfungen bestanden.
+Messwerte und Grenzen im Protokoll. Schritt 3 insgesamt bleibt offen.
+
+Nächster vorgeschlagener Lauf: zehn Label-Aufträge als eigene F1/B0-Referenz,
+`-LabTag f1-label`, `-LabAuftrag label`, `-LabStoerung f1`, `-LabLive`,
+`-LabTimeoutMs 300000`, Ausführungscommit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Encoder, Korpus, Settings, Node-Versionen und Live-Profil bleiben unverändert.
+Störung auf llm-host: `docker stop arsnova-open-weight-llm`; Rücknahme
+`docker start arsnova-open-weight-llm`, danach frischer Runtime-Start und
+Prüfungen beider VMs durch den bestehenden Ablauf. Journal und Wiederherstellung
+prüfen. Kein tc oder ufw für F1.
+
+Hypothesen und Schwellen unverändert: keine zusätzlichen Live-Fehler,
+Normal-p95 je Aktion höchstens 110 % der F1/B0-Referenz. Tatsächliche
+Netzversuche/RST von rein lokalen Breaker-Antworten unterscheiden.
+Client-Wartezeit, Label-Settlement, Modellübernahme und CPU/RSS ausweisen.
+H-F1 (interne Job-Zeit höchstens 2 s mit Grund `unavailable`) und die interne
+Fallback-Frist sind für Labels mangels API-Feldern nicht vollständig bewertbar;
+Client-Zeit nicht stillschweigend als Ersatz verwenden. SEMANTIC kann trotz
+fehlender LLM-Labels bestehen bleiben, da der Encoder weiterläuft.
+
+Lauf und Runtime-Stopp sind noch nicht freigegeben oder ausgeführt.
+
+## Nachtrag 2026-11-16: eigene F1/B0-Label-Referenz ausgewertet
+
+Die [F1/B0-Label-Reihe und der Normalvergleich](evidenz/1B/2026-11-16-lauf-f1-label.md)
+auf `7c64dd6a` liegen vollständig vor. Tatsächliche RST-Netzversuche,
+transiente Labels bei weiter verfügbarem Encoder, vollständige Messfenster
+und bestandene Wiederherstellung. Alle Normalteile sind manifestkompatibel.
+H2-Fehler ohne zusätzliche Fehler beobachtet, H2-Latenz im Vergleich nicht
+erfüllt. Zahlen, Teilreihenabweichungen und Kausalitätsgrenzen im Protokoll.
+Die Schwelle bleibt unverändert; fehlende interne Label-Zeiten bleiben offen.
+
+Nächster vorgeschlagener Lauf ist eine Entwicklungsprobe L1/Label mit einem
+Auftrag und Live-Fenster: `-LabN 1`, `-LabTag dev-l1-label`, `-LabAuftrag label`,
+`-LabStoerung l1`, `-LabTimeoutMs 300000`, `-LabLive`, regulärer Commit
+`7c64dd6a0352df1e51981ab16300532eb849f712`. Kein `--arbeitsstand` nötig;
+wegen Entwicklungszweck und dev-Tag dennoch nicht als gewertete Reihe zählen.
+
+L1 setzt auf llm-host eine reservierte prio-qdisc `1b00:` und netem `1b30:`
+mit 50 ms Verzögerung; Filter nur Ziel `192.168.150.10/32`, Quellport 8080,
+SSH ausgenommen. Befehle aus `faultCommands('l1', iface)` in `experiment.mjs`
+werden journalisiert. Rücknahme: `sudo tc qdisc del dev <iface> root handle 1b00:`;
+danach frischer Runtime-Start und beide VM-Prüfungen. Keine ufw-Störung.
+
+Entwicklungsziel: tatsächlicher Label-POST und HTTP-Antworten, passende
+Filterwirkung anhand beider Mitschnitte (zusätzlich zum Journal), vollständiges
+Live-/Ressourcenfenster und erfolgreiche Rücknahme. Aus Client-Wartezeit allein
+keine genaue 50-ms-Wirkung ableiten. Erst nach erfolgreicher Wirkungsprüfung
+gewertete L1-Reihe freigeben, weiterhin gegen dieselbe B0/F1-Referenz und
+unveränderte H2-Schwellen. Lauf und tc-Störung noch nicht freigegeben/ausgeführt.
+
+## Nachtrag 2026-11-16: L1-Entwicklungsprobe bestätigt
+
+Die [L1-Label-Probe](evidenz/1B/2026-11-16-lauf-dev-l1-label.md) auf `7c64dd6a`
+zeigt die Verzögerung anhand der Transportmitschnitte, tatsächliche Label-
+Inferenz, vollständiges Messfenster und bestandene Rücknahme/VM-Prüfungen.
+Zahlen und Wirkungsgrenzen im Protokoll. Entwicklung zählt nicht zu den
+geplanten 20 L1-Aufträgen; kein Codefix aus dieser Probe erforderlich.
+
+Nächster vorgeschlagener Lauf: erste zehn gewertete L1-Label-Aufträge,
+`-LabN 10`, `-LabTag l1-label-01`, `-LabAuftrag label`, `-LabStoerung l1`,
+`-LabTimeoutMs 300000`, `-LabLive`, Commit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Korpus, Encoder, Settings, Node-Versionen und Live-Profil unverändert.
+Störung und Rücknahme wie in der erfolgreichen Entwicklungsprobe;
+Wirkung auch für den gewerteten Lauf im Mitschnitt prüfen.
+
+Unveränderte Hypothesen/Schwellen: keine zusätzlichen Live-Fehler, p95 je
+Aktion höchstens 110 % der eigenen F1/B0-Label-Referenz. App-CPU/RSS als
+Verlauf ausweisen, tatsächlich übernommene Label-Antwort und HTTP-/TCP-Pfad
+prüfen, interne fehlende Label-Zeiten nicht ersetzen. Erste und folgende
+Aufträge getrennt berichten. Danach zweite Teilreihe mit zehn Aufträgen nur
+nach eigener Freigabe. Dieser erste gewertete Lauf und seine tc-Störung sind
+noch nicht freigegeben oder gestartet.
+
+## Nachtrag 2026-11-16: erste gewertete L1-Label-Teilreihe ausgewertet
+
+[L1/Label Teil 1](evidenz/1B/2026-11-16-lauf-l1-label-01.md) ist vollständig
+und manifestkompatibel mit der eigenen F1/B0-Referenz. Verzögerung in allen
+Verbindungsaufbauten sichtbar, Label-Antworten übernommen, Messfenster
+vollständig, Rücknahme/VM-Prüfungen bestanden. H2-Fehler ohne zusätzliche
+Fehler beobachtet; H2-Latenz im Teilvergleich nicht erfüllt. Zahlen und Grenzen
+im Protokoll; gültige Reihe trotz Schwellenüberschreitung.
+
+Nächster vorgeschlagener Lauf: zweite Hälfte der 20 L1-Label-Aufträge,
+`-LabN 10`, `-LabTag l1-label-02`, `-LabAuftrag label`, `-LabStoerung l1`,
+`-LabTimeoutMs 300000`, `-LabLive`, Ausführungscommit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Korpus, Encoder, Settings, Node-Versionen, Live-Profil, Störung und Rücknahme
+unverändert. Weiterhin keine zusätzlichen Live-Fehler und p95 je Aktion
+höchstens 110 % der eigenen Label-B0/F1-Referenz als Schwellen. CPU/RSS,
+Label-/Transportpfad und tatsächliche Verzögerung prüfen. Beide L1-Teile
+anschließend aus Einzelzeiten gemeinsam auswerten; Teilabweichungen erhalten.
+Lauf und tc-Störung noch nicht freigegeben oder gestartet.
+
+## Nachtrag 2026-11-16: L1 abgeschlossen, Restumfang auf Pflichtnachweise begrenzt
+
+[L1 Teil 2 und Gesamtvergleich](evidenz/1B/2026-11-16-lauf-l1-label-02.md)
+liegen vollständig vor. Beide Teile bleiben gewertet: Teil 2 besteht die
+Live-Schwellen, der Gesamtvergleich nicht. Zahlen und Grenzen im Protokoll.
+L1 ist abgeschlossen und wird nicht zusätzlich wiederholt.
+
+Niklas verlangt nach diesem Lauf ausdrücklich, optionale Arbeiten zu streichen
+und nur 1B Schritte 3–4 zu erfüllen. Dieser Nachtrag ersetzt die noch offenen
+Umfangsvorschläge früherer Nachträge; frühere Daten, Hypothesen und Schwellen
+bleiben unverändert. Grundlage: Issue #9, insbesondere Aufgaben und
+Akzeptanzkriterien; Dossier §10.3 bezeichnet die Wiederholungszahlen als
+Vorschlag, nicht als fest vorgeschriebene Abnahmemenge.
+
+### Gekürzter Restplan vor weiteren Messungen
+
+- [ ] L2/Label: drei Aufträge mit +500 ms und vollständiger Live-/Ressourcen-
+      messung statt der bisher geplanten 20. Derselbe getestete tc-Pfad wie L1;
+      keine separate Entwicklungsreihe, Wirkung im jeweiligen Mitschnitt prüfen.
+      Bei fehlender Wirkung oder unvollständiger Messung nicht werten und erst
+      gezielt korrigieren. Unverändert gegen eigene F1/B0-Label-Referenz vergleichen.
+- [ ] L3/Label: drei statt zehn Aufträge. Der Label-Fall steht in der
+      Variantenmatrix; vorhandene Summary-L3-Ergebnisse werden nicht als Label-
+      Nachweis umgedeutet. Fake über wirksamem Label-Timeout, gleicher Live-Test.
+- [ ] F2/Label: drei statt fünf Aufträge. Dossier verlangt Label und Summary;
+      bestehende Summary-F1/F2-Auswertung bleibt erhalten. Tatsächlichen DROP
+      nachweisen, interne fehlende Label-Zeiten weiterhin nicht erfinden.
+- [ ] Gerichteter Queue-/Breaker-Nachweis mit Kontrollfolge. Nicht durch die
+      langen Live-Fenster ersetzen. Zunächst vorhandene Tests/Rohdaten und den
+      implementierten Treiber prüfen; nur die notwendige gezielte Folge starten,
+      jede Störung/Lauffreigabe separat. Kein pauschaler mehrstündiger Lastblock.
+- [ ] Transportanteil aus vorhandenen Quellen soweit möglich auswerten.
+      Nur bei konkret verbleibender Pflichtlücke eine kleine gezielte Messung
+      entwerfen; keine zusätzliche 30-plus-30-C0-Reihe als Selbstzweck. Ohne
+      ausreichenden Nachweis keine Aussage „Transportanteil unter 5 %“.
+- [ ] Schritt 4: S1-Same-Host-Laborvergleich Label und Summary vorbereiten,
+      je drei Aufträge statt der vorgeschlagenen 30/10; gleiche Live-Last und
+      dokumentierte Vergleichsgrenzen. Erforderliche Topologieänderungen erst
+      konkret vorbereiten und separat freigeben. Kein Produktionsumbau.
+- [ ] Betriebsaufwand (Deployment, Updates, Monitoring, Token-Rotation, TLS)
+      gegen die Ergebnisse abwägen, Entscheidung mit Risiko/Kosten/Betriebsfolge,
+      Eigenanteil/KI, Autorenprüfung und vollständige PR-Abnahme dokumentieren.
+
+Entfällt: optionale Race-Variante, zusätzliche Slot-belegt-Label-Reihe
+(dieser in Issue #9 nicht verbraucherspezifisch geforderte Fehlerfall ist mit
+Summary bereits geprüft), Wiederholung abgeschlossener Baselines und
+zusätzliche Robustheits-/Qualitätsstudien. Keine zusätzlichen Varianten ohne
+konkrete Pflichtlücke. Es bleiben neun statt 45 geplanter Label-Aufträge aus
+den offenen L2/L3/F2/Slot-Reihen nach L1; gerichteter Nachweis und S1 separat.
+
+Drei Wiederholungen sind eine kleine Fallprüfung, keine belastbare Schätzung
+seltener Ausfälle oder stabiler Tail-Latenz. p95 weiterhin aus den vollständigen
+Live-Aktionszeiten, gleicher Referenz und unveränderten Schwellen; reduzierte
+Anzahl und geringere Aussagekraft in jedem neuen Protokoll ausdrücklich nennen.
+Reduktion erfolgt vor neuen Daten, nicht als Reaktion auf deren Ergebnisse.
+
+### Nächster einzeln freizugebender Lauf
+
+L2/Label, `-LabN 3`, `-LabTag l2-label`, `-LabAuftrag label`,
+`-LabStoerung l2`, `-LabTimeoutMs 300000`, `-LabLive`, Commit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Korpus, Settings, Encoder, Node-Versionen und Schwellen unverändert.
+Störung wie L1 mit `netem delay 500ms` anstelle von 50 ms; Filter nur
+Runtime-Quellport 8080 zum app-host. Rücknahme der reservierten qdisc,
+frischer Runtime-Start, beide VM-Prüfungen. Noch keine Freigabe oder Ausführung.
+
+## Nachtrag 2026-11-16: L2 abgeschlossen, L3/Label als Nächstes
+
+Die [L2-Label-Reihe](evidenz/1B/2026-11-16-lauf-l2-label.md) ist mit dem
+vorab auf drei Aufträge gekürzten Umfang vollständig. Verzögerung sichtbar,
+Modellantworten übernommen, vollständige Messfenster, H2-Fehler/Latenz in
+dieser Reihe erfüllt und Wiederherstellung bestanden. Zahlen und Grenzen
+im Protokoll; kein Überschreiben der Normal-/L1-Befunde.
+
+Nächster einzeln freizugebender Lauf: `-LabN 3`, `-LabTag l3-label`,
+`-LabAuftrag label`, `-LabStoerung l3`, `-LabTimeoutMs 300000`, `-LabLive`,
+Commit `7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Bestehender Fake mit Standardverzögerung 310 000 ms, größer als der effektive
+Label-Timeout von 30 000 ms. Label- und Summary-/Laborbudget nicht verwechseln.
+Korpus, Encoder, Settings, Node-Versionen und Live-Profil unverändert.
+
+Runtime-Stopp und verzögerten Fake auf llm-host über den vorhandenen
+L3-Ablauf journalisieren; tatsächliche Slot-/POST-Anfragen und Ergebnis-
+Settlement prüfen. Rücknahme stoppt den Fake, startet Runtime wieder und
+prüft nach frischem Start beide VMs. Keine tc-/ufw-Störung für L3.
+Unverändert keine zusätzlichen Live-Fehler und p95 höchstens 110 % der eigenen
+Label-B0/F1-Referenz. Client-Wartezeit berichten; interne Label-Frist und
+Fallback-Grund mangels API-Feldern weiterhin nicht vollständig bewertbar.
+Nicht drei Client-Zeiten als Beweis seltener Fehler oder interner Laufzeit
+umdeuten. Noch keine Freigabe/Ausführung. Danach im gekürzten Label-Programm
+nur F2 mit drei Aufträgen; gerichteter Queue-/Breaker-Nachweis und Schritt 4
+bleiben separat offen.
+
+## Nachtrag 2026-11-16: L3/Label abgeschlossen, F2/Label als Nächstes
+
+Die [L3-Label-Reihe](evidenz/1B/2026-11-16-lauf-l3-label.md) ist vollständig
+mit dem vorab reduzierten Umfang. Tatsächliche verzögerte POST-Anfragen,
+transiente Labels nach zum Label-Budget passenden Client-Zeiten, vollständige
+Messfenster, H2-Fehler/Latenz in dieser Reihe erfüllt. Wiederherstellung und
+VM-Prüfungen bestanden. Zahlen und Messgrenzen im Protokoll.
+
+Letzter Lauf des gekürzten Label-Programms: `-LabN 3`, `-LabTag f2-label`,
+`-LabAuftrag label`, `-LabStoerung f2`, `-LabTimeoutMs 300000`, `-LabLive`,
+Commit `7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Korpus, Settings, Encoder, Node-Versionen und Live-Profil unverändert.
+
+Bestehender F2-Helfer setzt auf llm-host die interfacegebundene ufw-DROP-Regel
+für app-host `192.168.150.10` nach llm-host `192.168.150.20:8080`;
+Kernel-Regel vor Treiberstart prüfen. Exakte Regel und Rücknahme aus
+`faultCommands('f2', iface)` in `experiment.mjs` journalisieren. Nur diese
+reservierte Regel zurücknehmen, danach frischer Runtime-Start und beide
+VM-Prüfungen. Keine tc-Störung und kein Fake für F2.
+
+Hypothesen/Schwellen unverändert: tatsächliche Netzversuche statt lokaler
+Breaker-Antworten, keine zusätzlichen Live-Fehler, p95 höchstens 110 % der
+eigenen Label-B0/F1-Referenz; TCP-/HTTP-Verhalten und Label-Settlement prüfen,
+Client-Zeiten und CPU/RSS berichten. Interne Label-Zeiten fehlen: H-F1F2
+nicht durch ein Client-Zeitverhältnis als intern bestanden ausgeben.
+Drei Wiederholungen begrenzen die Aussagekraft. Noch nicht freigegeben oder
+ausgeführt. Danach keine weiteren optionalen Label-Varianten; gerichteter
+Queue-/Breaker-Nachweis und Schritt 4 bleiben verpflichtend offen.
+
+## Nachtrag 2026-11-16: F2/Label abgeschlossen, gerichteter Breaker-Nachweis
+
+Die [F2-Label-Reihe](evidenz/1B/2026-11-16-lauf-f2-label.md) ist vollständig.
+Kernel-DROP und Netzversuche bestätigt, vollständige Messfenster und bestandene
+Wiederherstellung. Keine zusätzlichen Live-Fehler, Latenzschwellen teilweise
+überschritten. Zahlen und Grenzen im Protokoll. Damit sind alle Reihen des
+gekürzten Label-Programms abgeschlossen; kein weiteres optionales Label-Labor.
+
+Nächster Pflichtnachweis ist H-Queue. Codeprüfung: `openWeightLlmConfig.ts`
+setzt den Fehler-Schwellwert auf drei und die Öffnungszeit auf 30 s.
+`openWeightLlmClient.ts` zählt `timeout`, `unavailable`, `invalid_response`,
+aber nicht `aborted`; `qaSummaryQueue.ts` bricht den Caller beim Queue-Budget
+ab. Gleiche Queue-/Client-Budgets können konkurrieren: aus dem Code allein
+keinen sicheren Ausgang eines konkreten Laufs behaupten.
+
+Zwei kurze gerichtete Folgen ohne `-LabLive`, je vier vorab angelegte
+unterschiedliche Sessions, `-LabAuftrag breaker-summary`, kein 31-s-Cooldown:
+
+1. Zuerst zählende Kontrollfolge F1: `-LabN 4`, `-LabTag breaker-f1-summary`,
+   `-LabStoerung f1`, `-LabTimeoutMs 90000`, Commit
+   `7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+   Erwartung: erste drei Aufträge mit tatsächlichem RST-Netzversuch,
+   vierter innerhalb des 30-s-Fensters ohne Netzversuch und mit passendem
+   Circuit-Fallback. Ergebnisstatus/Grund und Zeit zusammen mit Mitschnitt
+   prüfen; fehlender Netzverkehr allein beweist keinen geöffneten Breaker.
+2. Erst nach Auswertung und neuer Freigabe Queue-Timeout-Folge L3:
+   ebenfalls vier Sessions ohne Cooldown, Budget 90 000 ms. Die bestehende
+   Fake-Verzögerung übersteigt dieses Budget. H-Queue stützt sich auf den
+   Vergleich mit der Kontrollfolge: bei nicht zählenden Abbrüchen weiterhin
+   Netzversuche im vierten Auftrag, bei zählenden Timeouts lokaler Circuit-
+   Fallback nach dem dritten. Interner `aborted`-Status nur bei direktem
+   Beleg behaupten; sonst indirekten Befund mit Codezuordnung und Grenze
+   ausweisen. Die Folge dauert ungefähr sechs Minuten zuzüglich Vorbereitung.
+
+F1 benötigt Runtime-Stopp und automatische Rücknahme/Prüfung, L3 verzögerten
+Fake und dieselbe Wiederherstellung. Für jede Folge und Störung eigene
+Freigabe. Keine neuen Live-Latenz-/CPU-Isolationsaussagen aus diesen Folgen;
+dafür liegen separate Reihen vor. Kontrollfolge noch nicht freigegeben oder
+gestartet. Falls die Kontrolle nicht den erwarteten Mechanismus erreicht,
+erst Ursache prüfen, keine längere Timeout-Folge auf Verdacht starten.
+
+## Nachtrag 2026-11-16: Breaker-Kontrolle bestätigt, Timeout-Folge bereit
+
+Die [gerichtete F1-Kontrolle](evidenz/1B/2026-11-16-lauf-breaker-f1-summary.md)
+zeigt nach drei tatsächlichen RST-Fehlern im vierten Auftrag `circuit_open`
+ohne neuen Netzversuch. Unterschiedliche vorbereitete Szenarien, kein Cooldown;
+Wiederherstellung und VM-Prüfungen bestanden. Kontrollziel erreicht.
+
+Jetzt die bereits vorab geplante H-Queue-Folge separat freigeben:
+`-LabN 4`, `-LabTag breaker-l3-summary`, `-LabAuftrag breaker-summary`,
+`-LabStoerung l3`, `-LabTimeoutMs 90000`, ohne `-LabLive`, Commit
+`7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
+Standard-Fake-Verzögerung bei diesem Budget 130 000 ms; überschreitet die
+90 000 ms Queue-/Client-Budgets. Korpus und Konfiguration ansonsten wie in
+der Kontrolle, abgesehen von der gezielt geänderten Störungsvariante.
+
+Unveränderte Vorhersage: H-Queue wird durch erneute echte Netzversuche und
+Timeout im vierten Auftrag gegenüber der bestätigten F1-Kontrolle gestützt;
+`circuit_open` ohne Netzversuch nach drei Timeouts spricht gegen diese
+Vorhersage für den beobachteten Ablauf. Interne Ursache `aborted` nur so weit
+belegen, wie Code und Laufdaten es erlauben. Keine internen Zähler erfinden.
+Ergebnisse, Zeitabstände, tatsächliche Slot-/POST-Anfragen und Rücknahme
+prüfen. Keine Live-Isolationsschwellen auf diese Folge anwenden.
+
+Runtime-Stopp und verzögerter Fake, automatische Rücknahme und beide
+VM-Prüfungen wie beim bestehenden L3-Helfer. Noch kein neuer Lauf oder neue
+Störung freigegeben/gestartet. Laufzeit bei vier Timeouts etwa sechs Minuten
+zuzüglich Szenariovorbereitung und Wiederherstellung.
+
+## Nachtrag 2026-11-16: gerichtete H-Queue-Folge ausgewertet
+
+Die [Timeout-Folge mit Kontrollvergleich](evidenz/1B/2026-11-16-lauf-breaker-l3-summary.md)
+ist vollständig: alle vier Aufträge mit tatsächlichem POST und Timeout,
+kein `circuit_open` im vierten Auftrag, während die F1-Kontrolle dort den
+Breaker zeigt. H-Queue-Verhaltensvorhersage gestützt; Erklärung über
+nicht zählenden Caller-Abbruch durch Code gestützt, interne Klassifikation
+im Lauf nicht direkt ausgelesen. Wiederherstellung/VM-Prüfungen bestanden.
+Zahlen und Grenzen im Protokoll. Kein weiteres optionales Breaker-Labor.
+
+Nächste Pflichtarbeit ohne neuen Lauf: vorhandene Transport-Rohdaten und
+Zeitzerlegung auswerten, Aussagegrenzen dokumentieren; danach den reduzierten
+S1-Same-Host-Vergleich technisch vorbereiten. Bestehende Summary-Normaldaten
+enthalten bereits `zerlegung.json` und `timings.json`; Label-Experimentdaten
+enthalten keine vollständige Inferenzzeitzerlegung. Keine neue 30-plus-30-
+Reihe und kein erfundener Label-Transportanteil. Falls eine konkrete Lücke
+neue Messung verlangt, erst kleinsten geeigneten Nachweis vorbereiten.
+Neue Laborbefehle, Topologieänderungen und Läufe jeweils erst nach Freigabe.
+Schritt 4 mit Betriebsbewertung und Entscheidung sowie Autorenprüfung,
+Eigenanteil/KI und PR-Abschluss bleibt offen.
+
+## Nachtrag 2026-11-16: Transport offline ausgewertet, Schritt 3 inhaltlich bearbeitet
+
+Die [Transportauswertung](evidenz/1B/2026-11-16-transportauswertung.md) nutzt
+vorhandene Mitschnitte und Runtime-Timings, ohne neuen Laborlauf. Für alle
+Label-Normalaufträge sind tatsächliche Inferenzzeiten aus den Antwortdaten
+und Drahtzeiten zugeordnet; die zuvor offene reine Transportbetrachtung ist
+damit ergänzt. Eigene Summary-Zerlegung reproduziert. Zahlen, Definitionen
+und Messgrenzen im Protokoll, Originaldaten unverändert.
+
+Der vereinbarte, vorab gekürzte Schritt-3-Umfang ist damit inhaltlich bearbeitet:
+Normal-/Störreihen, App-Rückwirkung, F1/F2, gerichteter Queue-/Breaker-Nachweis
+und Transportkosten. Kein pauschal bestandenes H2-Latenzkriterium; negative
+Befunde und eingeschränkt beobachtbare interne Zustände bleiben erhalten.
+Keine weiteren optionalen Experimente. Autorenprüfung und formaler Abschluss
+offen. Nächste fachliche Arbeit wäre Schritt 4 mit S1 und Betriebsentscheidung;
+diese wird durch den jetzigen Auftrag, Schritt 3 abzuschließen und eine
+Commit-Message zu liefern, noch nicht als neuer Laborlauf freigegeben.

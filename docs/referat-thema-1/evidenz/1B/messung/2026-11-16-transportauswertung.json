@@ -1,0 +1,589 @@
+{
+  "analysisCommit": "7c64dd6a0352df1e51981ab16300532eb849f712",
+  "label": {
+    "runs": [
+      {
+        "runId": "20261116T104243-normal-label-01",
+        "sourceSha256": {
+          "app.pcap": "5b1101553132512347a893e7e9c4fda1821a3a724db4ed89473df7fff9fbfb9c",
+          "app.tsv": "8a5d1a25c9ca4bbe7cb2839c602ae15c36a462cfe5759aba3c4eb2d9481fa3f2",
+          "srv.tsv": "52cad75d3763986e635b089362639af34952395a4c8e9b9eec3c9e10ae0ecc65",
+          "ergebnis.json": "27cbdddaf4e80d30c0dfef4711ec89bb84ff2bfad1ebfd4ce6e1ece7d51c31d9"
+        },
+        "timings": [
+          {
+            "prompt_ms": 2416.201,
+            "predicted_ms": 3453.765,
+            "cache_n": 0
+          },
+          {
+            "prompt_ms": 93.657,
+            "predicted_ms": 3360.22,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.767,
+            "predicted_ms": 3373.387,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 97.612,
+            "predicted_ms": 3336.911,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.797,
+            "predicted_ms": 3354.555,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.728,
+            "predicted_ms": 3320.241,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.704,
+            "predicted_ms": 3362.394,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 99.65,
+            "predicted_ms": 3335.183,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 95.626,
+            "predicted_ms": 3341.582,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 109.595,
+            "predicted_ms": 3374.573,
+            "cache_n": 173
+          }
+        ],
+        "jobs": [
+          {
+            "index": 1,
+            "clientWaitMs": 5931,
+            "appSlotMs": 0.8220672607421875,
+            "appPostMs": 5877.891063690186,
+            "srvSlotMs": 0.4591941833496094,
+            "srvPostMs": 5877.3088455200195,
+            "inferMs": 5869.966,
+            "networkMs": 0.9450912475585938,
+            "transportMs": 8.747130950927385,
+            "transportOverClientPercent": 0.14748155371652985
+          },
+          {
+            "index": 2,
+            "clientWaitMs": 3526,
+            "appSlotMs": 0.8029937744140625,
+            "appPostMs": 3475.6040573120117,
+            "srvSlotMs": 0.4799365997314453,
+            "srvPostMs": 3475.2161502838135,
+            "inferMs": 3453.877,
+            "networkMs": 0.7109642028808594,
+            "transportMs": 22.53005108642583,
+            "transportOverClientPercent": 0.638969117595741
+          },
+          {
+            "index": 3,
+            "clientWaitMs": 3515,
+            "appSlotMs": 1.1560916900634766,
+            "appPostMs": 3478.166103363037,
+            "srvSlotMs": 0.5078315734863281,
+            "srvPostMs": 3477.752923965454,
+            "inferMs": 3470.154,
+            "networkMs": 1.0614395141601562,
+            "transportMs": 9.16819505310059,
+            "transportOverClientPercent": 0.2608305847254791
+          },
+          {
+            "index": 4,
+            "clientWaitMs": 3487,
+            "appSlotMs": 0.5290508270263672,
+            "appPostMs": 3442.4309730529785,
+            "srvSlotMs": 0.33593177795410156,
+            "srvPostMs": 3441.8509006500244,
+            "inferMs": 3434.523,
+            "networkMs": 0.7731914520263672,
+            "transportMs": 8.437023880004745,
+            "transportOverClientPercent": 0.2419565207916474
+          },
+          {
+            "index": 5,
+            "clientWaitMs": 3499,
+            "appSlotMs": 0.8039474487304688,
+            "appPostMs": 3459.3889713287354,
+            "srvSlotMs": 0.5478858947753906,
+            "srvPostMs": 3459.141969680786,
+            "inferMs": 3451.352,
+            "networkMs": 0.5030632019042969,
+            "transportMs": 8.840918777465959,
+            "transportOverClientPercent": 0.2526698707478125
+          },
+          {
+            "index": 6,
+            "clientWaitMs": 3469,
+            "appSlotMs": 0.61798095703125,
+            "appPostMs": 3424.8452186584473,
+            "srvSlotMs": 0.4658699035644531,
+            "srvPostMs": 3424.422025680542,
+            "inferMs": 3416.969,
+            "networkMs": 0.5753040313720703,
+            "transportMs": 8.494199615478465,
+            "transportOverClientPercent": 0.24486017917205144
+          },
+          {
+            "index": 7,
+            "clientWaitMs": 3510,
+            "appSlotMs": 0.5559921264648438,
+            "appPostMs": 3466.6950702667236,
+            "srvSlotMs": 0.43702125549316406,
+            "srvPostMs": 3466.2749767303467,
+            "inferMs": 3459.098,
+            "networkMs": 0.5390644073486328,
+            "transportMs": 8.15306239318852,
+            "transportOverClientPercent": 0.23228097986292082
+          },
+          {
+            "index": 8,
+            "clientWaitMs": 3483,
+            "appSlotMs": 0.6229877471923828,
+            "appPostMs": 3443.0418014526367,
+            "srvSlotMs": 0.43010711669921875,
+            "srvPostMs": 3442.7199363708496,
+            "inferMs": 3434.833,
+            "networkMs": 0.5147457122802734,
+            "transportMs": 8.831789199829018,
+            "transportOverClientPercent": 0.2535684524785822
+          },
+          {
+            "index": 9,
+            "clientWaitMs": 3489,
+            "appSlotMs": 0.5230903625488281,
+            "appPostMs": 3444.5888996124268,
+            "srvSlotMs": 0.4379749298095703,
+            "srvPostMs": 3444.185972213745,
+            "inferMs": 3437.208,
+            "networkMs": 0.48804283142089844,
+            "transportMs": 7.903989974975502,
+            "transportOverClientPercent": 0.22654026870093155
+          },
+          {
+            "index": 10,
+            "clientWaitMs": 3533,
+            "appSlotMs": 0.6730556488037109,
+            "appPostMs": 3492.9938316345215,
+            "srvSlotMs": 0.5052089691162109,
+            "srvPostMs": 3492.603063583374,
+            "inferMs": 3484.1679999999997,
+            "networkMs": 0.5586147308349609,
+            "transportMs": 9.49888728332553,
+            "transportOverClientPercent": 0.26886179686740813
+          }
+        ]
+      },
+      {
+        "runId": "20261116T120236-normal-label-02",
+        "sourceSha256": {
+          "app.pcap": "d8569ad5c2aeab09d211a3cac118c55d9d878e4f3e21264a09d0a2236325c773",
+          "app.tsv": "5cbae628c9fbe8e522b7ed6ec9b8461156b9256be114c2ec0ed540e4f2b5ccfe",
+          "srv.tsv": "ab9a03432dd1913e4708e46181f20276afef8c26b8e719ec06b8d1f302bfc26b",
+          "ergebnis.json": "7983397bc18c2fb5ed88cf710c7bc3ffd8b709cd7227a89cdc1ed0911057800d"
+        },
+        "timings": [
+          {
+            "prompt_ms": 2407.451,
+            "predicted_ms": 3383.847,
+            "cache_n": 0
+          },
+          {
+            "prompt_ms": 98.597,
+            "predicted_ms": 3337.145,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 97.395,
+            "predicted_ms": 3382.759,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 98.165,
+            "predicted_ms": 3345.058,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.619,
+            "predicted_ms": 3363.575,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 94.48,
+            "predicted_ms": 3394.702,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 97.28,
+            "predicted_ms": 3322.502,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.697,
+            "predicted_ms": 3379.923,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 97.111,
+            "predicted_ms": 3334.262,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 94.532,
+            "predicted_ms": 3367.36,
+            "cache_n": 173
+          }
+        ],
+        "jobs": [
+          {
+            "index": 1,
+            "clientWaitMs": 5845,
+            "appSlotMs": 0.5819797515869141,
+            "appPostMs": 5799.166917800903,
+            "srvSlotMs": 0.43082237243652344,
+            "srvPostMs": 5798.910856246948,
+            "inferMs": 5791.298000000001,
+            "networkMs": 0.40721893310546875,
+            "transportMs": 8.45089755248955,
+            "transportOverClientPercent": 0.14458336274575792
+          },
+          {
+            "index": 2,
+            "clientWaitMs": 3490,
+            "appSlotMs": 0.7300376892089844,
+            "appPostMs": 3450.8581161499023,
+            "srvSlotMs": 0.37980079650878906,
+            "srvPostMs": 3450.340986251831,
+            "inferMs": 3435.742,
+            "networkMs": 0.8673667907714844,
+            "transportMs": 15.846153839111139,
+            "transportOverClientPercent": 0.4540445226106343
+          },
+          {
+            "index": 3,
+            "clientWaitMs": 3526,
+            "appSlotMs": 0.7200241088867188,
+            "appPostMs": 3488.115072250366,
+            "srvSlotMs": 0.5719661712646484,
+            "srvPostMs": 3487.596035003662,
+            "inferMs": 3480.154,
+            "networkMs": 0.6670951843261719,
+            "transportMs": 8.681096359252933,
+            "transportOverClientPercent": 0.24620239249157497
+          },
+          {
+            "index": 4,
+            "clientWaitMs": 3488,
+            "appSlotMs": 0.8199214935302734,
+            "appPostMs": 3450.9871006011963,
+            "srvSlotMs": 0.2598762512207031,
+            "srvPostMs": 3450.5038261413574,
+            "inferMs": 3443.223,
+            "networkMs": 1.0433197021484375,
+            "transportMs": 8.584022094726606,
+            "transportOverClientPercent": 0.24610155088092334
+          },
+          {
+            "index": 5,
+            "clientWaitMs": 3518,
+            "appSlotMs": 0.90789794921875,
+            "appPostMs": 3468.0469036102295,
+            "srvSlotMs": 0.42700767517089844,
+            "srvPostMs": 3467.5068855285645,
+            "inferMs": 3460.194,
+            "networkMs": 1.0209083557128906,
+            "transportMs": 8.760801559448282,
+            "transportOverClientPercent": 0.24902790106447648
+          },
+          {
+            "index": 6,
+            "clientWaitMs": 3539,
+            "appSlotMs": 0.7281303405761719,
+            "appPostMs": 3497.0669746398926,
+            "srvSlotMs": 0.3571510314941406,
+            "srvPostMs": 3496.809959411621,
+            "inferMs": 3489.1820000000002,
+            "networkMs": 0.6279945373535156,
+            "transportMs": 8.613104980468506,
+            "transportOverClientPercent": 0.24337680080442234
+          },
+          {
+            "index": 7,
+            "clientWaitMs": 3465,
+            "appSlotMs": 0.4630088806152344,
+            "appPostMs": 3427.988052368164,
+            "srvSlotMs": 0.2970695495605469,
+            "srvPostMs": 3427.4818897247314,
+            "inferMs": 3419.782,
+            "networkMs": 0.6721019744873047,
+            "transportMs": 8.669061248779144,
+            "transportOverClientPercent": 0.25018935782912394
+          },
+          {
+            "index": 8,
+            "clientWaitMs": 3521,
+            "appSlotMs": 0.6818771362304688,
+            "appPostMs": 3484.8427772521973,
+            "srvSlotMs": 0.5490779876708984,
+            "srvPostMs": 3484.4090938568115,
+            "inferMs": 3476.62,
+            "networkMs": 0.5664825439453125,
+            "transportMs": 8.904654388427844,
+            "transportOverClientPercent": 0.25290128907775755
+          },
+          {
+            "index": 9,
+            "clientWaitMs": 3476,
+            "appSlotMs": 0.6930828094482422,
+            "appPostMs": 3439.281940460205,
+            "srvSlotMs": 0.5838871002197266,
+            "srvPostMs": 3438.853979110718,
+            "inferMs": 3431.373,
+            "networkMs": 0.5371570587158203,
+            "transportMs": 8.602023269653273,
+            "transportOverClientPercent": 0.24746902386804584
+          },
+          {
+            "index": 10,
+            "clientWaitMs": 3527,
+            "appSlotMs": 0.6949901580810547,
+            "appPostMs": 3469.4859981536865,
+            "srvSlotMs": 0.3440380096435547,
+            "srvPostMs": 3469.106912612915,
+            "inferMs": 3461.8920000000003,
+            "networkMs": 0.7300376892089844,
+            "transportMs": 8.288988311767298,
+            "transportOverClientPercent": 0.23501526259618083
+          }
+        ]
+      },
+      {
+        "runId": "20261116T131108-normal-label-03",
+        "sourceSha256": {
+          "app.pcap": "1f49e40c8e479d0de0945d34c066ed37dbacfe6d040533f2b022e2a284f6cda0",
+          "app.tsv": "088427c515f1e986216bf3181ff14aa0b9ddfe895caea513d28ec4ccd2108ba3",
+          "srv.tsv": "6de6751cec8a695237f12347ee503729c5fca49282f080274e29d24d2efa0e46",
+          "ergebnis.json": "5827b7eaeabe40d8606a9f732b4b90d1922d75270acd2d90700f3a1008a355da"
+        },
+        "timings": [
+          {
+            "prompt_ms": 2431.388,
+            "predicted_ms": 3421.586,
+            "cache_n": 0
+          },
+          {
+            "prompt_ms": 98.256,
+            "predicted_ms": 3319.437,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 98.605,
+            "predicted_ms": 3385.15,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.824,
+            "predicted_ms": 3337.471,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 98.121,
+            "predicted_ms": 3366.646,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 98.536,
+            "predicted_ms": 3336.804,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 98.073,
+            "predicted_ms": 3330.431,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 96.711,
+            "predicted_ms": 3329.548,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 97.63,
+            "predicted_ms": 3362.999,
+            "cache_n": 173
+          },
+          {
+            "prompt_ms": 99.033,
+            "predicted_ms": 3402.813,
+            "cache_n": 173
+          }
+        ],
+        "jobs": [
+          {
+            "index": 1,
+            "clientWaitMs": 5909,
+            "appSlotMs": 0.49591064453125,
+            "appPostMs": 5861.250162124634,
+            "srvSlotMs": 0.3371238708496094,
+            "srvPostMs": 5860.786199569702,
+            "inferMs": 5852.974,
+            "networkMs": 0.6227493286132812,
+            "transportMs": 8.772072769164879,
+            "transportOverClientPercent": 0.14845274613580772
+          },
+          {
+            "index": 2,
+            "clientWaitMs": 3484,
+            "appSlotMs": 0.720977783203125,
+            "appPostMs": 3439.1231536865234,
+            "srvSlotMs": 0.42700767517089844,
+            "srvPostMs": 3438.74192237854,
+            "inferMs": 3417.6929999999998,
+            "networkMs": 0.675201416015625,
+            "transportMs": 22.151131469726806,
+            "transportOverClientPercent": 0.6357959664100691
+          },
+          {
+            "index": 3,
+            "clientWaitMs": 3532,
+            "appSlotMs": 0.6098747253417969,
+            "appPostMs": 3492.219924926758,
+            "srvSlotMs": 0.36907196044921875,
+            "srvPostMs": 3491.820812225342,
+            "inferMs": 3483.755,
+            "networkMs": 0.6399154663085938,
+            "transportMs": 9.0747996520995,
+            "transportOverClientPercent": 0.25693090747733577
+          },
+          {
+            "index": 4,
+            "clientWaitMs": 3490,
+            "appSlotMs": 0.6802082061767578,
+            "appPostMs": 3441.9338703155518,
+            "srvSlotMs": 0.39196014404296875,
+            "srvPostMs": 3441.4851665496826,
+            "inferMs": 3434.295,
+            "networkMs": 0.7369518280029297,
+            "transportMs": 8.319078521728443,
+            "transportOverClientPercent": 0.23836901208390954
+          },
+          {
+            "index": 5,
+            "clientWaitMs": 3518,
+            "appSlotMs": 0.6041526794433594,
+            "appPostMs": 3473.92201423645,
+            "srvSlotMs": 0.3490447998046875,
+            "srvPostMs": 3473.4389781951904,
+            "inferMs": 3464.7670000000003,
+            "networkMs": 0.7381439208984375,
+            "transportMs": 9.759166915893275,
+            "transportOverClientPercent": 0.27740667754102544
+          },
+          {
+            "index": 6,
+            "clientWaitMs": 3487,
+            "appSlotMs": 0.6918907165527344,
+            "appPostMs": 3444.2949295043945,
+            "srvSlotMs": 0.43392181396484375,
+            "srvPostMs": 3443.6798095703125,
+            "inferMs": 3435.34,
+            "networkMs": 0.8730888366699219,
+            "transportMs": 9.64682022094712,
+            "transportOverClientPercent": 0.2766509957254695
+          },
+          {
+            "index": 7,
+            "clientWaitMs": 3472,
+            "appSlotMs": 0.5080699920654297,
+            "appPostMs": 3436.1720085144043,
+            "srvSlotMs": 0.39005279541015625,
+            "srvPostMs": 3435.6260299682617,
+            "inferMs": 3428.504,
+            "networkMs": 0.6639957427978516,
+            "transportMs": 8.176078506469821,
+            "transportOverClientPercent": 0.23548613209878516
+          },
+          {
+            "index": 8,
+            "clientWaitMs": 3475,
+            "appSlotMs": 0.5669593811035156,
+            "appPostMs": 3434.041976928711,
+            "srvSlotMs": 0.4088878631591797,
+            "srvPostMs": 3433.670997619629,
+            "inferMs": 3426.2589999999996,
+            "networkMs": 0.5290508270263672,
+            "transportMs": 8.349936309814893,
+            "transportOverClientPercent": 0.24028593697309045
+          },
+          {
+            "index": 9,
+            "clientWaitMs": 3514,
+            "appSlotMs": 0.5099773406982422,
+            "appPostMs": 3468.358039855957,
+            "srvSlotMs": 0.2541542053222656,
+            "srvPostMs": 3467.9830074310303,
+            "inferMs": 3460.629,
+            "networkMs": 0.6308555603027344,
+            "transportMs": 8.239017196655368,
+            "transportOverClientPercent": 0.23446264076993079
+          },
+          {
+            "index": 10,
+            "clientWaitMs": 3554,
+            "appSlotMs": 0.7069110870361328,
+            "appPostMs": 3510.4708671569824,
+            "srvSlotMs": 0.34689903259277344,
+            "srvPostMs": 3510.209083557129,
+            "inferMs": 3501.846,
+            "networkMs": 0.621795654296875,
+            "transportMs": 9.331778244018551,
+            "transportOverClientPercent": 0.2625711379858906
+          }
+        ]
+      }
+    ],
+    "stats": {
+      "n": 30,
+      "networkMedianMs": 0.6519556045532227,
+      "transportMedianMs": 8.71411365509016,
+      "transportOverClientMedianPercent": 0.2468357081798104,
+      "transportOverClientMaxPercent": 0.638969117595741,
+      "minTransportMs": 7.903989974975502
+    },
+    "warm": {
+      "n": 27,
+      "networkMedianMs": 0.6639957427978516,
+      "transportMedianMs": 8.681096359252933,
+      "transportOverClientMedianPercent": 0.24902790106447648,
+      "transportOverClientMaxPercent": 0.638969117595741,
+      "minTransportMs": 7.903989974975502
+    }
+  },
+  "summary": {
+    "runId": "20261115T202740-normal-summary",
+    "executionCommit": "5e758d0a870bc38441b60c541a6ff6f3d0662ee2",
+    "sourceSha256": {
+      "app.tsv": "759744d65c21b76b38ea2061d36077edb9f0e14480f316a7bca1f5e1aac4750b",
+      "srv.tsv": "5dd5c6bdf584cadbb6a4184987d3bd868e42d67804e858fa2778680e72d0d6a0",
+      "app.log": "6541872eede6c34d6dd5b254bb216ed7b2247dd61c765a7b42150102f9c85970",
+      "timings.json": "a1ffc154116cbea5c2bb2b44959e9ee1763916217ac8f4f31230e3e65e1ce190",
+      "zerlegung.json": "7848e617b350c19adb2cdc4cd1e2e10b25fdc6309a20e279cc30df38cccd3ad8"
+    },
+    "stats": {
+      "n": 10,
+      "networkMedianMs": 0.6051063537597656,
+      "transportMedianMs": 11.597491020198504,
+      "transportOverJobMedianPercent": 0.016980733924779244
+    }
+  }
+}
