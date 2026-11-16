@@ -172,18 +172,35 @@
         </button>
       }
     </div>
-    <div class="feedback-host__presentation-setting">
+    @if (!embeddedInSession()) {
+      <ng-container *ngTemplateOutlet="feedbackLiveSyncControl" />
+    }
+  </ng-template>
+
+  <ng-template #feedbackLiveSyncControl>
+    <div
+      class="feedback-host__presentation-setting"
+      [class.feedback-host__presentation-setting--action]="embeddedInSession()"
+    >
       <mat-slide-toggle
         [checked]="showLiveResults()"
         [disabled]="liveResultsPending() || (embeddedInSession() && roundActionBusy())"
         [disabledInteractive]="embeddedInSession()"
         data-testid="feedback-live-results"
+        aria-describedby="feedback-live-results-hint"
         (change)="setLiveResults($event.checked)"
-        i18n="@@feedback.showLiveResults"
       >
-        Ergebnisse während der Runde live zeigen
+        @if (embeddedInSession()) {
+          <span i18n="@@feedback.showLiveSync">Live-Sync</span>
+        } @else {
+          <span i18n="@@feedback.showLiveResults">Ergebnisse während der Runde live zeigen</span>
+        }
       </mat-slide-toggle>
-      <p class="feedback-host__presentation-setting-hint">
+      <p
+        id="feedback-live-results-hint"
+        class="feedback-host__presentation-setting-hint"
+        [class.sr-only]="embeddedInSession()"
+      >
         @if (showLiveResults()) {
           <span i18n="@@feedback.showLiveResultsHintLive">
             Die Verteilung wird während der Abstimmung im Presenter angezeigt.
@@ -390,38 +407,6 @@
                 </div>
               </div>
             }
-            <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
-          </div>
-        </section>
-      }
-
-      @if (embeddedInSession()) {
-        <section class="feedback-host__round-settings">
-          <button
-            #roundSettingsTrigger
-            mat-stroked-button
-            type="button"
-            class="feedback-host__round-settings-trigger"
-            data-testid="feedback-round-settings-trigger"
-            id="feedback-round-settings-trigger"
-            aria-controls="feedback-round-settings"
-            [attr.aria-expanded]="roundSettingsOpen()"
-            (click)="toggleRoundSettings()"
-          >
-            <mat-icon aria-hidden="true">{{
-              roundSettingsOpen() ? 'expand_less' : 'expand_more'
-            }}</mat-icon>
-            <span i18n="@@feedbackHost.roundSettings">Blitzlicht-Formate</span>
-          </button>
-          <div
-            #roundSettingsContent
-            id="feedback-round-settings"
-            data-testid="feedback-round-settings"
-            class="feedback-host__round-settings-content"
-            role="region"
-            aria-labelledby="feedback-round-settings-trigger"
-            [hidden]="!roundSettingsOpen()"
-          >
             <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
           </div>
         </section>
@@ -921,7 +906,65 @@
           <ng-container *ngTemplateOutlet="tempoViewToggle" />
           <ng-container *ngTemplateOutlet="feedbackRoundTransition" />
           <ng-container *ngTemplateOutlet="feedbackResetAction" />
-          <ng-content select="[feedbackRoundControl]" />
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="feedback-host__round-control"
+            data-testid="feedback-primary-round-control"
+            aria-keyshortcuts="ArrowRight"
+            [disabled]="roundActionBusy()"
+            [disabledInteractive]="true"
+            (click)="!roundActionBusy() && roundLockRequested.emit()"
+          >
+            <mat-icon aria-hidden="true">{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+            <span>{{ lockToggleLabel() }}</span>
+            <kbd class="feedback-host__shortcut" aria-hidden="true">→</kbd>
+          </button>
+          @if (presenterActionOffered()) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="feedback-host__presenter-control"
+              data-testid="open-presenter-view"
+              (click)="presenterRequested.emit()"
+              [disabled]="presenterActionPending()"
+              [disabledInteractive]="true"
+              [attr.aria-busy]="presenterActionPending()"
+              [attr.aria-label]="presenterActionLabel()"
+            >
+              <app-presenter-icon matButtonIcon />
+              <span>{{ presenterActionLabel() }}</span>
+            </button>
+          }
+          <ng-container *ngTemplateOutlet="feedbackLiveSyncControl" />
+          <button
+            #roundSettingsTrigger
+            mat-stroked-button
+            type="button"
+            class="feedback-host__round-settings-trigger"
+            data-testid="feedback-round-settings-trigger"
+            id="feedback-round-settings-trigger"
+            aria-controls="feedback-round-settings"
+            [attr.aria-expanded]="roundSettingsOpen()"
+            (click)="toggleRoundSettings()"
+          >
+            <mat-icon aria-hidden="true">{{
+              roundSettingsOpen() ? 'expand_less' : 'expand_more'
+            }}</mat-icon>
+            <span i18n="@@feedbackHost.roundSettings">Blitzlicht-Formate</span>
+          </button>
+        </div>
+        <div
+          #roundSettingsContent
+          id="feedback-round-settings"
+          data-testid="feedback-round-settings"
+          class="feedback-host__round-settings-content"
+          role="region"
+          aria-labelledby="feedback-round-settings-trigger"
+          [hidden]="!roundSettingsOpen()"
+        >
+          <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
         </div>
       }
     </div>

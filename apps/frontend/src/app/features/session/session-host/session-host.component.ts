@@ -11163,16 +11163,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
   }
 
-  showQuickFeedbackAnchorAction(): boolean {
-    return this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult() !== null;
-  }
-
-  quickFeedbackAnchorActionLabel(): string {
-    return this.quickFeedbackResult()?.locked ? $localize`Fortsetzen` : $localize`Stopp`;
-  }
-
-  quickFeedbackAnchorActionIcon(): string {
-    return this.quickFeedbackResult()?.locked ? 'play_arrow' : 'stop';
+  onEmbeddedQuickFeedbackResult(result: QuickFeedbackResult | null): void {
+    this.quickFeedbackResult.set(result);
   }
 
   async toggleQuickFeedbackRoundLock(): Promise<void> {

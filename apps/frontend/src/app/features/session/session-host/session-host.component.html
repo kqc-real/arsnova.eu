@@ -301,7 +301,12 @@
           }
         </div>
 
-        @if (showHostViewControls() && activeChannel() !== 'quiz' && projectionControlsOffered()) {
+        @if (
+          showHostViewControls() &&
+          activeChannel() !== 'quiz' &&
+          (activeChannel() !== 'quickFeedback' || quickFeedbackResult() === null) &&
+          projectionControlsOffered()
+        ) {
           <div class="session-host__view-controls session-host__view-controls--inline">
             <button
               mat-icon-button
@@ -5694,29 +5699,16 @@
       } @else if (activeChannel() === 'quickFeedback') {
         <div class="session-host__channel-panel session-host__channel-panel--feedback">
           <app-feedback-host
-            #feedbackHostWorkspace
             [sessionCode]="code"
             [embeddedInSession]="true"
             [roundControlPending]="quickFeedbackActionPending() || channelNavigationBusy()"
+            [presenterActionOffered]="showHostViewControls() && projectionControlsOffered()"
+            [presenterActionLabel]="presenterViewActionLabel()"
+            [presenterActionPending]="presenterNavigationPending()"
+            (hostResultChange)="onEmbeddedQuickFeedbackResult($event)"
+            (roundLockRequested)="toggleQuickFeedbackRoundLock()"
+            (presenterRequested)="openPresenterView()"
           >
-            @if (showQuickFeedbackAnchorAction()) {
-              <button
-                feedbackRoundControl
-                mat-flat-button
-                color="primary"
-                type="button"
-                class="session-host__feedback-round-control"
-                data-testid="feedback-primary-round-control"
-                aria-keyshortcuts="ArrowRight"
-                [disabled]="feedbackHostWorkspace.roundActionBusy()"
-                [disabledInteractive]="true"
-                (click)="!feedbackHostWorkspace.roundActionBusy() && toggleQuickFeedbackRoundLock()"
-              >
-                <mat-icon aria-hidden="true">{{ quickFeedbackAnchorActionIcon() }}</mat-icon>
-                <span>{{ quickFeedbackAnchorActionLabel() }}</span>
-                <kbd class="session-host__shortcut" aria-hidden="true">→</kbd>
-              </button>
-            }
           </app-feedback-host>
         </div>
       }

@@ -3788,7 +3788,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Presenter-Ansicht in einem reinen aktiven Blitzlicht-Kanal an', async () => {
+  it('setzt die Presenter-Ansicht im aktiven Blitzlicht in die Aktionszeile', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -3804,12 +3804,36 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
+    const feedbackResult = {
+      type: 'MOOD' as const,
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+    };
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
+    feedbackHost.result.set(feedbackResult);
+    feedbackHost.hostResultChange.emit(feedbackResult);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+    expect(fixture.componentInstance.showHostViewControls()).toBe(true);
+    expect(fixture.componentInstance.projectionControlsOffered()).toBe(true);
+    const primary = fixture.nativeElement.querySelector('.feedback-host__round-primary');
+    expect(primary).not.toBeNull();
+    const presenter = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    expect(presenter).not.toBeNull();
+    expect(primary?.contains(presenter)).toBe(true);
+    expect(presenter?.textContent).toContain('Präsentationsansicht öffnen');
     expect(
-      fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
-    ).not.toBeNull();
+      fixture.nativeElement.querySelector(
+        '.session-host__view-controls [data-testid="open-presenter-view"]',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 

@@ -122,6 +122,50 @@ describe('FeedbackHostComponent', () => {
     distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 0 },
   };
 
+  it('meldet den tatsächlich angezeigten Rundenzustand an den eingebetteten Host', () => {
+    const { fixture, comp, applyResult } = createEmbeddedFixture();
+    const received: Array<QuickFeedbackResult | null> = [];
+    const subscription = comp.hostResultChange.subscribe((result) => received.push(result));
+
+    applyResult(moodRound);
+
+    expect(received).toEqual([moodRound]);
+    subscription.unsubscribe();
+    fixture.destroy();
+  });
+
+  it('zeigt Stopp und Präsentationsansicht gemeinsam in der Aktionszeile', () => {
+    const { fixture, comp } = createEmbeddedFixture(moodRound);
+    fixture.componentRef.setInput('presenterActionOffered', true);
+    fixture.componentRef.setInput('presenterActionLabel', 'Zur Präsentationsansicht wechseln');
+    const roundLockRequested = vi.fn();
+    const presenterRequested = vi.fn();
+    const lockSubscription = comp.roundLockRequested.subscribe(roundLockRequested);
+    const presenterSubscription = comp.presenterRequested.subscribe(presenterRequested);
+    fixture.detectChanges();
+
+    const actions = fixture.nativeElement.querySelector('.feedback-host__round-primary');
+    const stop = actions.querySelector(
+      '[data-testid="feedback-primary-round-control"]',
+    ) as HTMLButtonElement;
+    const presenter = actions.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement;
+    const liveSync = actions.querySelector('[data-testid="feedback-live-results"]') as HTMLElement;
+    expect(stop.textContent).toContain('Stopp');
+    expect(presenter.textContent).toContain('Zur Präsentationsansicht wechseln');
+    expect(liveSync.textContent).toContain('Live-Sync');
+
+    stop.click();
+    presenter.click();
+
+    expect(roundLockRequested).toHaveBeenCalledOnce();
+    expect(presenterRequested).toHaveBeenCalledOnce();
+    lockSubscription.unsubscribe();
+    presenterSubscription.unsubscribe();
+    fixture.destroy();
+  });
+
   it('bietet leer Tempo empfohlen und kompakte benannte Formate ohne weiteren Dialog', async () => {
     const { trpc } = await import('../../core/trpc.client');
     const { fixture, comp } = createEmbeddedFixture();
@@ -190,19 +234,20 @@ describe('FeedbackHostComponent', () => {
     expect(settings.textContent).not.toContain('Link kopieren');
     expect(primary.querySelector('[data-testid="feedback-compare-round"]')).not.toBeNull();
     expect(primary.querySelector('[data-testid="feedback-reset-round"]')).not.toBeNull();
-    expect(settings.querySelector('[data-testid="feedback-live-results"]')).not.toBeNull();
+    expect(settings.querySelector('[data-testid="feedback-live-results"]')).toBeNull();
+    const liveResults = primary.querySelector(
+      '[data-testid="feedback-live-results"]',
+    ) as HTMLElement;
+    expect(liveResults.textContent).toContain('Live-Sync');
+    expect(primary.contains(trigger)).toBe(true);
     expect(
-      settings.compareDocumentPosition(
-        fixture.nativeElement.querySelector('.feedback-host__results'),
-      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      primary.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     trigger.click();
     fixture.detectChanges();
     expect(settings.hidden).toBe(false);
-    const liveResults = settings.querySelector(
-      '[data-testid="feedback-live-results"] button',
-    ) as HTMLButtonElement;
-    liveResults.focus();
+    const format = settings.querySelector('[data-feedback-type="YESNO"]') as HTMLButtonElement;
+    format.focus();
     comp.toggleRoundSettings();
     expect(document.activeElement).toBe(trigger);
     fixture.detectChanges();
@@ -1086,6 +1131,20 @@ describe('FeedbackHostComponent', () => {
     );
   });
 
+  it('hält den Live-Sync-Container in der Aktionszeile transparent', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { dirname, join } = await import('node:path');
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'feedback-host.component.scss'),
+      'utf8',
+    );
+
+    expect(styles).toMatch(
+      /\.feedback-host__presentation-setting--action\s*\{[^}]*border-color:\s*transparent;[^}]*background:\s*transparent;/,
+    );
+  });
+
   it('hält den Verbessern-Link unter der floating App-Bar', async () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
@@ -1156,7 +1215,7 @@ describe('FeedbackHostComponent', () => {
     expect(primary.textContent).toContain('Details');
     expect(primary.textContent).toContain('Tendenz');
     expect(
-      settings.compareDocumentPosition(primary) & Node.DOCUMENT_POSITION_FOLLOWING,
+      primary.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     fixture.destroy();
   });

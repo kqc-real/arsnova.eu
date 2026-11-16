@@ -77,7 +77,7 @@
   gap: 1rem;
 }
 
-/* Embedded content follows its visual order in the DOM: formats, results, primary control. */
+/* Embedded content follows its visual order in the DOM: results, primary controls, formats. */
 .feedback-host--embedded .feedback-host__results {
   width: 100%;
   max-width: none;
@@ -801,6 +801,16 @@
   border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-large, 1rem);
   background: var(--mat-sys-surface-container-low);
+}
+
+.feedback-host__presentation-setting--action {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.45rem 0.25rem;
+  border-color: transparent;
+  background: transparent;
 }
 
 .feedback-host__presentation-setting-hint {
@@ -2478,17 +2488,22 @@ $round2-color: var(--mat-sys-primary);
   flex: 1 1 12rem;
 }
 
-.feedback-host__round-settings {
-  display: grid;
-  gap: 0.75rem;
-  width: 100%;
-  min-width: 0;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
-  padding-bottom: 0.75rem;
+.feedback-host__round-control,
+.feedback-host__presenter-control {
+  align-self: center;
+  max-width: 100%;
+  height: auto;
+  min-height: 2.75rem;
+  padding-block: 0.65rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.feedback-host__shortcut {
+  margin-inline-start: 0.35rem;
 }
 
 .feedback-host__round-settings-trigger {
-  justify-self: center;
   height: auto;
   min-height: 2.75rem;
   max-width: 100%;
@@ -2499,7 +2514,10 @@ $round2-color: var(--mat-sys-primary);
 .feedback-host__round-settings-content:not([hidden]) {
   display: grid;
   gap: 1rem;
+  width: 100%;
   min-width: 0;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 0.75rem;
 }
 
 .feedback-host__round-settings-content[hidden] {

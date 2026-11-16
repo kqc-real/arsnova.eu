@@ -7659,6 +7659,14 @@
           <context context-type="linenumber">268,270</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="feedback.showLiveSync" datatype="html">
+        <source>Live-Sync</source>
+        <target>Synchronisation en direct</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
+          <context context-type="linenumber">190</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="feedback.showLiveResultsHintLive" datatype="html">
         <source> Die Verteilung wird während der Abstimmung im Presenter angezeigt.</source>
         <target>La répartition des votes s’affiche dans la vue de présentation pendant le vote.</target>
