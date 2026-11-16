@@ -811,7 +811,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly presenterCompactActionLabel = $localize`:@@sessionHost.presentationViewLabel:Präsentationsansicht`;
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
-  private readonly quickFeedbackConfirmedLock = signal<{
+  private readonly quickFeedbackAcceptedLock = signal<{
     locked: boolean;
     lockVersion: number;
   } | null>(null);
@@ -11169,25 +11169,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   onEmbeddedQuickFeedbackResult(result: QuickFeedbackResult | null): void {
+    this.applyQuickFeedbackResultSnapshot(result);
+  }
+
+  private applyQuickFeedbackResultSnapshot(result: QuickFeedbackResult | null): void {
     if (!result) {
-      this.quickFeedbackConfirmedLock.set(null);
+      this.quickFeedbackAcceptedLock.set(null);
       this.quickFeedbackResult.set(null);
       return;
     }
-    const confirmed = this.quickFeedbackConfirmedLock();
     const snapshotLockVersion = result.lockVersion ?? 0;
-    if (confirmed && snapshotLockVersion < confirmed.lockVersion) {
+    const accepted = this.quickFeedbackAcceptedLock();
+    if (accepted && snapshotLockVersion <= accepted.lockVersion) {
       this.quickFeedbackResult.set({
         ...result,
-        locked: confirmed.locked,
-        lockVersion: confirmed.lockVersion,
+        locked: accepted.locked,
+        lockVersion: accepted.lockVersion,
       });
       return;
     }
-    if (confirmed) {
-      this.quickFeedbackConfirmedLock.set(null);
-    }
-    this.quickFeedbackResult.set(result);
+    this.quickFeedbackAcceptedLock.set({ locked: result.locked, lockVersion: snapshotLockVersion });
+    this.quickFeedbackResult.set({ ...result, lockVersion: snapshotLockVersion });
   }
 
   async toggleQuickFeedbackRoundLock(): Promise<void> {
@@ -11206,8 +11208,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const next = await trpc.quickFeedback.toggleLock.mutate({
         sessionCode: this.code.toUpperCase(),
       });
-      const lockVersion = next.lockVersion ?? (result.lockVersion ?? 0) + 1;
-      this.quickFeedbackConfirmedLock.set({ locked: next.locked, lockVersion });
+      const { lockVersion } = next;
+      this.quickFeedbackAcceptedLock.set({ locked: next.locked, lockVersion });
       this.quickFeedbackResult.update((current) =>
         current ? { ...current, locked: next.locked, lockVersion } : current,
       );
@@ -15467,7 +15469,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     if (!this.channels().quickFeedback || this.code.length !== 6) {
       this.quickFeedbackRefreshRunId += 1;
-      this.quickFeedbackResult.set(null);
+      this.applyQuickFeedbackResultSnapshot(null);
       this.quickFeedbackSeenVoteCount.set(0);
       return;
     }
@@ -15480,7 +15482,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (runId !== this.quickFeedbackRefreshRunId || (options.isCurrent && !options.isCurrent())) {
         return;
       }
-      this.quickFeedbackResult.set(result);
+      this.applyQuickFeedbackResultSnapshot(result);
     } catch {
       // Keep the last snapshot visible during transient polling failures.
     }

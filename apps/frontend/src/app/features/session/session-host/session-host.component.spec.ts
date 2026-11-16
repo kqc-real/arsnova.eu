@@ -16,6 +16,7 @@ import type {
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
   QaSummaryRuntimeCompatibleDTO,
+  QuickFeedbackResult,
   SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
@@ -24578,6 +24579,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
     fixture.detectChanges();
 
+    let resolveStalePoll!: (value: QuickFeedbackResult) => void;
+    quickFeedbackHostResultsQueryMock.mockImplementationOnce(
+      () =>
+        new Promise<QuickFeedbackResult>((resolve) => {
+          resolveStalePoll = resolve;
+        }),
+    );
+    const stalePoll = (
+      fixture.componentInstance as unknown as {
+        refreshQuickFeedbackResult(): Promise<void>;
+      }
+    ).refreshQuickFeedbackResult();
+
     const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
     const roundControl = fixture.nativeElement.querySelector(
       '[data-testid="feedback-primary-round-control"]',
@@ -24598,17 +24612,27 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     feedbackHost.hostResultChange.emit({
       type: 'MOOD',
-      locked: false,
-      lockVersion: 0,
+      locked: true,
+      lockVersion: 1,
       totalVotes: 3,
       distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 0 },
     });
     fixture.detectChanges();
 
+    resolveStalePoll({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 4,
+      distribution: { POSITIVE: 3, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    await stalePoll;
+    fixture.detectChanges();
+
     expect(fixture.componentInstance.quickFeedbackResult()).toMatchObject({
       locked: true,
       lockVersion: 1,
-      totalVotes: 3,
+      totalVotes: 4,
     });
     expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
     expect(roundControl.textContent).toContain('Fortsetzen');
