@@ -68,4 +68,40 @@ Am 2026-11-13 hat der Autor die Ergebnisse der Schritte 1–2 geprüft (Ergebnis
 
 ## Schritte 3–4: Niklas
 
-_Folgt von Niklas._
+_Ergänzt 2026-11-16: Dokumentation aus dem Arbeitsverlauf; kein behaupteter
+prozentualer Eigenanteil und keine Zuschreibung des KI-Codes als handgeschriebener Code._
+
+### Niklas: Auftrag, Durchführung und Prüfung
+
+- Verantwortlich für Issue #9, Schritte 3–4, gemäß der [Aufteilung](01-aufteilung.md).
+  Eigener Windows-PC als Labor, Hyper-V/WSL eingerichtet und die im Dialog
+  vorgelegten Laborbefehle selbst ausgeführt; Ergebnisse zur Analyse übergeben.
+- Planung und Laufreihenfolge begleitet, Störungen/Läufe einzeln freigegeben
+  und optionale Versuche ausdrücklich aus dem Restprogramm genommen.
+- Schritt-3-Arbeit und S1-Werkzeuge selbst committed und gepusht. Daraus folgt
+  keine Behauptung, den gesamten enthaltenen Code selbst geschrieben zu haben.
+- Am 2026-11-16 bestätigt: Ergebnisse und Betriebsbewertung gelesen und geprüft.
+  Die Bestätigung ist in den eigenen Laufprotokollen vermerkt.
+
+### KI-Unterstützung und Abgrenzung
+
+- Codex entwickelte im Auftrag die Versuchswerkzeuge und Tests, Fake-/Störpfade,
+  Live-/Ressourcenmessung sowie den S1-Pfad und bereitete die Befehle vor.
+  Auswertung, Ursachenanalyse, Laufprotokolle und ADR-Entwurf entstanden
+  agentengestützt; Niklas lieferte die Laufresultate und prüfte die Ausarbeitung.
+- Hypothesen und Schwellen wurden vor den gewerteten Läufen dokumentiert,
+  nicht nachträglich aus günstigen Ergebnissen abgeleitet. Reduzierungen und
+  Messgrenzen stehen in der [Planung](1B-3u4-Planung.md).
+- Jonas' Aufbau und Zeitbegriffe aus Schritten 1–2 sowie die gemeinsame
+  Infrastruktur bleiben getrennte Vorarbeit; sie zählen nicht pauschal als
+  Niklas' neuer Beitrag. Das Live-Profil stammt aus der 1A-Arbeit.
+- Zentrale Belege: [Ergebnis](1B-ergebnis.md),
+  [S1-Label](evidenz/1B/2026-11-16-lauf-s1-label.md),
+  [S1-Summary](evidenz/1B/2026-11-16-lauf-s1-summary.md),
+  [Entscheidung](adr/1B-020-zweite-rolle-betrieblich-begruenden.md).
+
+### Formale Abschlussgrenze
+
+Der abschließende Branch-Abgleich nach `final-prompt-for-git-diff.md`,
+aktuelle PR-Prüfungen und der Merge sind separat zu belegen. Dieser Abschnitt
+behauptet weder einen bereits erfolgten Merge noch aktuell grüne vollständige CI.

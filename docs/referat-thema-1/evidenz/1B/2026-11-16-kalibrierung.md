@@ -1,6 +1,6 @@
 # Tageskalibrierung, 2026-11-16
 
-Prüfung durch den Autor: offen.
+Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 Niklas hat die freigegebene Kalibrierung über `labor-wsl.sh kalibrierung`
 auf Ausführungscommit `2b39b9dfc13aefd763fa4e0d8440a0536fa847f7` ausgeführt.

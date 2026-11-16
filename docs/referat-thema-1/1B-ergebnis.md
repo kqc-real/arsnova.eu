@@ -313,3 +313,55 @@ bestätigt inzwischen den neuen VM-Pfad einschließlich Modellantwort,
 Messfenstern und Rücknahme beider Hostrollen. Sie ist ungewertet;
 gewertete S1-Reihen und Betriebsentscheidung stehen weiterhin aus.
 Vor diesen Reihen ist ein regulärer Commit der neuen S1-Werkzeuge nötig.
+
+_Ergänzt 2026-11-16:_ Die [gewertete S1-Label-Reihe](evidenz/1B/2026-11-16-lauf-s1-label.md)
+ist ausgewertet: Modellantworten übernommen, keine Live-Fehler, vollständige
+Messfenster und bestätigte Rücknahme. Die p95-Schwelle gegenüber der
+Zwei-Host-Normalreferenz wird bei Beitritt und Quizstimme überschritten,
+bei QA-Beitrag und Blitzlicht eingehalten. Kein pauschaler Topologievorteil;
+Kapazitäts- und Platzierungsgrenzen bleiben bestehen. S1-Summary sowie
+Betriebsbewertung und Entscheidung stehen noch aus.
+
+_Ergänzt 2026-11-16:_ Auch [S1-Summary](evidenz/1B/2026-11-16-lauf-s1-summary.md)
+ist ausgewertet: keine zusätzlichen Live-Fehler, alle p95-Schwellen
+eingehalten, vollständige Messungen und bestandene Rücknahme. Alle
+Zusammenfassungen landen wie die Zwei-Host-Normalreferenz im extraktiven
+Fallback wegen `invalid_response`; keine erfolgreiche Modellqualität
+behaupten. Der geplante S1-Messumfang ist damit abgeschlossen. Gemischte
+Label-/Summary-Befunde und Kapazitätsgrenzen erlauben keine pauschale
+Topologieempfehlung. Betriebsbewertung, Entscheidung, Autorenprüfung und
+formaler Abschluss stehen noch aus.
+
+_Ergänzt 2026-11-16:_ Die Betriebsbewertung und Empfehlung stehen in
+[ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md): zweite Rolle
+nur durch betriebliche Trennung begründen, keinen allgemeinen Leistungs-
+oder Wirtschaftlichkeitsvorteil behaupten. Deployment, Updates, Monitoring,
+Token-Rotation und TLS sind qualitativ abgewogen; keine Produktionsänderung.
+Timeouts hostbezogen kalibrieren, Qualitätsfallbacks beobachten und bei
+Queue-Timeouts nicht allein auf den Breaker vertrauen. Schritt 4 ist damit
+inhaltlich ausgearbeitet, zur Prüfung durch Niklas. Autorenprüfung, Eigenanteil,
+abschließender Branch-Abgleich und PR/Merge bleiben offen.
+
+### Abschlussstand Schritte 3–4, bestätigt am 2026-11-16
+
+Niklas hat bestätigt, die Ergebnisse und Empfehlung gelesen und geprüft zu
+haben. Die älteren Zwischenstände bleiben als Verlauf erhalten; maßgeblich
+ist folgender Abschlussstand:
+
+| Anforderung aus Issue #9                                                   | Stand / Beleg                                                                                                                                                          |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hypothesen, Schwellen, eigene Normalreferenz und ausführbare Testwerkzeuge | Bearbeitet; [Planung](1B-3u4-Planung.md) und oben verlinkte Laufprotokolle. Fake nur für Störungen.                                                                    |
+| L1/L2, L3, F1, F2 und belegter Slot; Live-p95, Fehler und App-CPU/RSS      | Im vereinbarten Umfang ausgewertet. Negative Latenzbefunde bleiben bestehen; keine optionalen Race-Versuche.                                                           |
+| F1/RST gegenüber F2/DROP; Queue-/Breaker-Verhalten und Rücknahmen          | Beobachtet und erklärt; Grenzen interner Label-Zeiten und Queue-Zustände dokumentiert.                                                                                 |
+| Transportanteil und Gesamtlatenz                                           | [Offline-Auswertung](evidenz/1B/2026-11-16-transportauswertung.md) aus vorhandenen Originaldaten.                                                                      |
+| S1 und Betriebsentscheidung                                                | [Label](evidenz/1B/2026-11-16-lauf-s1-label.md), [Summary](evidenz/1B/2026-11-16-lauf-s1-summary.md), [ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md). |
+| Autorenprüfung und Abgrenzung Eigenanteil/KI                               | Prüfung bestätigt; [Beitragsdokumentation](1B-eigenanteil.md#schritte-34-niklas) ergänzt.                                                                              |
+| Formaler Abschluss                                                         | Abschließender Branch-/Beitragsabgleich, aktuelle PR-Prüfungen und Merge offen. Issue nicht als geschlossen erklären.                                                  |
+
+Fachliche Arbeit abgeschlossen, kein weiterer Laborlauf erforderlich.
+Unvollständig beobachtbare interne Kriterien werden nicht als bestanden
+ausgegeben; ein allgemeiner Isolationsgewinn ist nicht nachgewiesen.
+
+_Ergänzt 2026-11-16:_ Der beauftragte [Laborabbau](evidenz/1B/2026-11-16-laborabbau.md)
+ist bestätigt: beide VMs, Disks, Switch und NAT entfernt; anschließend
+Image-Cache und leerer VM-Ordner entfernt. Messbelege bleiben lokal erhalten.

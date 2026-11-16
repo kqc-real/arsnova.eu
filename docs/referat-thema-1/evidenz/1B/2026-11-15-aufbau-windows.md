@@ -1,6 +1,6 @@
 # 1B: Aufbau unter Windows, 2026-11-15
 
-Arbeitsstand, noch nicht eingefroren. Prüfung durch den Autor: offen.
+Arbeitsstand, noch nicht eingefroren. Prüfung durch den Autor: 2026-11-16 (Niklas).
 Auftrag: Issue #9, Vorbereitung für Schritte 3–4. Kein gewerteter Messlauf.
 
 ## Umgebung und Aufbau

@@ -1,6 +1,6 @@
 # Gewertete F1-Reihe Summary, 2026-11-15
 
-Prüfung durch den Autor: offen.
+Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 Auswertung des Laufs vom 2026-11-15 am 2026-11-16; keine spätere Wiederholung.
 

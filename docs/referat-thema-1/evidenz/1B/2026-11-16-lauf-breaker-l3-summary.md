@@ -1,6 +1,6 @@
 # Gerichtete Queue-Timeout-Folge und Breaker-Vergleich, 2026-11-16
 
-Prüfung durch den Autor: offen.
+Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 ## Umgebung und Quellen
 

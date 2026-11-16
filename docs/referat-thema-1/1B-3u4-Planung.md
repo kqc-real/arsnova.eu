@@ -1155,3 +1155,53 @@ je drei Label-/Summary-Aufträge auf diesem Commit ohne `--arbeitsstand`.
 Beide Reihen weiterhin getrennt freigeben, einschließlich temporärer
 Firewallregel und Runtime-Neustart. Keine weitere optionale Probe geplant.
 Betriebsbewertung und Entscheidung bleiben offen.
+
+### S1-Label 2026-11-16 ausgewertet
+
+Die [gewertete Label-Reihe](evidenz/1B/2026-11-16-lauf-s1-label.md)
+auf Commit `4b135fe8468e07cff06be986f28d4d75dedf236b` ist vollständig,
+einschließlich Ressourcen, Live-Fenstern und Wiederherstellung. Gemischter
+Latenzbefund, keine zusätzlichen Live-Fehler. Keine Wiederholung geplant.
+
+Als letzter geplanter S1-Messlauf drei Summary-Aufträge auf demselben Commit,
+gleiches Live-Profil und 300 000-ms-Budget, Encoder deaktiviert.
+Beschreibender Vergleich mit der Zwei-Host-Summary-Normalreferenz:
+keine zusätzlichen Live-Fehler, p95 je Aktion höchstens 110 % der Referenz;
+Modell-/Fallback-Ergebnis sowie App-CPU/RSS erfassen. Abweichende Kapazität,
+Treiberplatzierung und Node-Versionen offenlegen. Eigene Freigabe für Lauf,
+temporäre ufw-Bridge-Regel, Runtime-Neustarts und automatische Rücknahme
+erforderlich. Danach Betriebsaufwand und Entscheidung, keine optionalen Reihen.
+
+### S1-Messumfang 2026-11-16 abgeschlossen
+
+Die [Summary-Reihe](evidenz/1B/2026-11-16-lauf-s1-summary.md)
+vervollständigt S1. Live-Fehler-/Latenzschwellen für Summary eingehalten,
+Modellantworten jedoch wie in der Referenz als `invalid_response` verworfen.
+Ressourcen und Wiederherstellung vollständig. Keine weiteren optionalen
+Messungen und keine Wiederholung zur Verbesserung negativer Befunde.
+
+Nächste Arbeit erfolgt lokal ohne Laborbefehl: Betriebsaufwand gemäß
+Issue #9 bewerten (zweite Serverrolle, Deployment, Updates, Monitoring,
+Token-Rotation und TLS), gegen die begrenzt nachgewiesene Trennung von
+Fehler-/Ressourcenbereichen und S1 abwägen und eine Entscheidung mit
+Kosten-/Risiko-/Betriebsfolgen dokumentieren. Danach Autorenprüfung,
+Eigenanteil/KI sowie PR und Merge; noch kein vollständiger Issue-Abschluss.
+
+### Betriebsbewertung 2026-11-16 ausgearbeitet
+
+[ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md) enthält die
+Bewertung und Empfehlung mit Alternativen, Kosten-/Risikogrenzen und
+Betriebsfolgen. Keine Produktionskonfiguration verändert und keine weiteren
+Läufe gestartet. Nächster menschlicher Schritt ist die Autorenprüfung der
+Befunde und Empfehlung; Eigenanteil sowie formaler Branch-/PR-Abschluss
+bleiben separat zu bearbeiten.
+
+### Autorenprüfung und Laborabbau 2026-11-16
+
+Niklas bestätigt das Lesen und Prüfen der Ausarbeitung und beauftragt den
+Abbau der Labor-VMs. Fachliche Arbeit abgeschlossen; kein weiterer Messlauf.
+Beitragsabgrenzung in `1B-eigenanteil.md` ergänzt. PR-/Merge-Nachweis bleibt
+offen. Der tatsächliche Abbauzustand wird erst nach Skriptergebnis bestätigt.
+
+_Ergänzt 2026-11-16:_ [Laborabbau bestätigt](evidenz/1B/2026-11-16-laborabbau.md),
+keine weiteren VM-Arbeiten. Wiederholung erfordert einen neuen Aufbau.

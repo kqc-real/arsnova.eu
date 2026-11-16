@@ -115,3 +115,7 @@ _Ergänzt 2026-11-12._ Nummernkreis `1B-001`–`1B-019` für Jonas (Schritte 1�
 | [1B-010](1B-010-aufbau-automatisiert-mit-groessenempfehlung.md) | Aufbau mit einem Befehl, VM-Größen aus einer Regel                 | methodisch | Methodik  |
 | [1B-011](1B-011-zeitbegriffe-und-leitfrage.md)                  | Zeitbegriffe nach Dossier 8.1 und Leitfrage der Schritte 1–2       | methodisch | Methodik  |
 | [1B-012](1B-012-windows-aufbau-ohne-wsl.md)                     | Windows-Aufbau ohne WSL, nur mit Windows-Bordmitteln               | methodisch | Methodik  |
+
+_Ergänzt 2026-11-16:_ [1B-020: Zweite Rolle betrieblich begründen](1B-020-zweite-rolle-betrieblich-begruenden.md)
+— empfohlen, Kategorie Betrieb, Autorenprüfung offen. Bewertung für Schritte 3–4
+mit S1, Kosten-/Risikogrenzen und Betriebsfolgen.

@@ -292,3 +292,13 @@ und [Compose-Override](evidenz/1B/s1.override.yml). Noch kein VM-Messnachweis.
 _Ergänzt 2026-11-16:_ [S1-Entwicklungsprobe Label](evidenz/1B/2026-11-16-lauf-dev-s1-label.md):
 VM-Pfad und Rücknahme bestätigt; gewerteter Vergleich folgt nach regulärem
 Commit der S1-Werkzeuge.
+
+_Ergänzt 2026-11-16:_ [Gewerteter S1-Label-Vergleich](evidenz/1B/2026-11-16-lauf-s1-label.md)
+mit Zwei-Host-Normalreferenz, Ressourcen und bestätigter Rücknahme.
+
+_Ergänzt 2026-11-16:_ [Gewerteter S1-Summary-Vergleich](evidenz/1B/2026-11-16-lauf-s1-summary.md):
+Live-Schwellen eingehalten, extraktiver Qualitätsfallback und Wiederherstellung
+dokumentiert. Geplanter S1-Messumfang abgeschlossen.
+
+_Ergänzt 2026-11-16:_ [Abschluss und Laborabbau](evidenz/1B/2026-11-16-laborabbau.md):
+VMs, Netz und Image-Cache entfernt; Messbelege erhalten.

@@ -1,6 +1,6 @@
 # Entwicklungslauf dev-live-normal, 2026-11-15
 
-Prüfung durch den Autor: offen.
+Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 ## Zweck und Einordnung
 

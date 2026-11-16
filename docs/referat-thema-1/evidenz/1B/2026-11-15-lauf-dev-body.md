@@ -1,6 +1,6 @@
 # 1B: Entwicklungslauf für den Prompt-Body, 2026-11-15
 
-Arbeitsstand, noch nicht eingefroren. Prüfung durch den Autor: offen.
+Arbeitsstand, noch nicht eingefroren. Prüfung durch den Autor: 2026-11-16 (Niklas).
 **Entwicklungslauf, keine gewertete Messung und kein Hypothesennachweis.**
 
 ## Zweck und Ausführung

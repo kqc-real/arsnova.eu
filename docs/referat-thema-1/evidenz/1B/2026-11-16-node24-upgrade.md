@@ -1,6 +1,6 @@
 # Node-24-Umstellung der Labor-VMs, 2026-11-16
 
-Prüfung durch den Autor: offen.
+Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 Niklas hat beide vorhandenen Labor-VMs vor dem nächsten Label-Test von
 Node 22.23.5 auf Node 24.22.3 umgestellt. Je VM über `labor-wsl.sh vm`:
