@@ -2500,7 +2500,8 @@ $round2-color: var(--mat-sys-primary);
 }
 
 .feedback-host__presenter-control {
-  --app-presenter-icon-size: 1.125rem;
+  --app-presenter-icon-size: 1.25rem;
+  --app-presenter-icon-nudge-y: 0px;
 }
 
 .feedback-host__presenter-control > app-presenter-icon {
