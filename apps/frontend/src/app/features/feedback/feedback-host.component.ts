@@ -114,6 +114,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly roundControlPending = input(false);
   readonly presenterActionOffered = input(false);
   readonly presenterActionLabel = input('');
+  readonly presenterActionAriaLabel = input('');
   readonly presenterActionPending = input(false);
   readonly hostResultChange = output<QuickFeedbackResult | null>();
   readonly roundLockRequested = output<void>();

@@ -3828,7 +3828,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLButtonElement | null;
     expect(presenter).not.toBeNull();
     expect(primary?.contains(presenter)).toBe(true);
-    expect(presenter?.textContent).toContain('Präsentationsansicht öffnen');
+    expect(presenter?.textContent).toContain('Präsentationsansicht');
+    expect(presenter?.getAttribute('aria-label')).toBe('Präsentationsansicht öffnen');
     expect(
       fixture.nativeElement.querySelector(
         '.session-host__view-controls [data-testid="open-presenter-view"]',

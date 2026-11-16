@@ -931,7 +931,7 @@
               [disabled]="presenterActionPending()"
               [disabledInteractive]="true"
               [attr.aria-busy]="presenterActionPending()"
-              [attr.aria-label]="presenterActionLabel()"
+              [attr.aria-label]="presenterActionAriaLabel() || presenterActionLabel()"
             >
               <app-presenter-icon matButtonIcon />
               <span>{{ presenterActionLabel() }}</span>

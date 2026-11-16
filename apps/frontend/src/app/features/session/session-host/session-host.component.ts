@@ -808,6 +808,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaFocusOrigin = signal<'compass' | 'word-cloud' | null>(null);
   readonly qaFocusHint = signal<string | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
+  readonly presenterCompactActionLabel = $localize`:@@sessionHost.presentationViewLabel:Präsentationsansicht`;
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
   private participantSub: Unsubscribable | null = null;

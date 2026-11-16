@@ -137,7 +137,8 @@ describe('FeedbackHostComponent', () => {
   it('zeigt Stopp und Präsentationsansicht gemeinsam in der Aktionszeile', () => {
     const { fixture, comp } = createEmbeddedFixture(moodRound);
     fixture.componentRef.setInput('presenterActionOffered', true);
-    fixture.componentRef.setInput('presenterActionLabel', 'Zur Präsentationsansicht wechseln');
+    fixture.componentRef.setInput('presenterActionLabel', 'Präsentationsansicht');
+    fixture.componentRef.setInput('presenterActionAriaLabel', 'Zur Präsentationsansicht wechseln');
     const roundLockRequested = vi.fn();
     const presenterRequested = vi.fn();
     const lockSubscription = comp.roundLockRequested.subscribe(roundLockRequested);
@@ -153,7 +154,8 @@ describe('FeedbackHostComponent', () => {
     ) as HTMLButtonElement;
     const liveSync = actions.querySelector('[data-testid="feedback-live-results"]') as HTMLElement;
     expect(stop.textContent).toContain('Stopp');
-    expect(presenter.textContent).toContain('Zur Präsentationsansicht wechseln');
+    expect(presenter.textContent).toContain('Präsentationsansicht');
+    expect(presenter.getAttribute('aria-label')).toBe('Zur Präsentationsansicht wechseln');
     expect(liveSync.textContent).toContain('Live-Sync');
 
     stop.click();
