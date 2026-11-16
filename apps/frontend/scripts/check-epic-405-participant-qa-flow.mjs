@@ -500,6 +500,7 @@ async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures
   await wordCloudButton.click();
   const cloud = page.locator('mat-dialog-container app-word-cloud').first();
   await cloud.waitFor({ state: 'visible', timeout: 15_000 });
+  await page.locator('mat-dialog-container mat-button-toggle[value="LEXICAL"]').click();
   const sizeSelect = page.getByRole('combobox', {
     name: /Größe nach Bewertungen oder Häufigkeit/i,
   });
@@ -514,13 +515,19 @@ async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures
   await page.waitForTimeout(500);
 
   let firstWordLabels = [];
-  for (const [value, label] of [
-    ['TOP', 'Stimmensaldo'],
-    ['BEST', 'Klare Zustimmung'],
-    ['CONTROVERSIAL', 'Geteilte Stimmen'],
+  for (const [label, optionIndex] of [
+    ['Stimmensaldo', 2],
+    ['Klare Zustimmung', 1],
+    ['Geteilte Stimmen', 0],
   ]) {
-    await sizeSelect.click();
-    await page.getByRole('option', { name: label, exact: true }).click();
+    await sizeSelect.press('Enter');
+    const option = page.getByRole('option', { name: label, exact: true });
+    await option.waitFor({ state: 'visible', timeout: 8_000 });
+    await sizeSelect.press('Home');
+    for (let index = 0; index < optionIndex; index++) {
+      await sizeSelect.press('ArrowDown');
+    }
+    await sizeSelect.press('Enter');
     const selectedReady = await sizeSelect
       .getByText(label, { exact: true })
       .waitFor({ state: 'visible', timeout: 8_000 })
@@ -536,7 +543,7 @@ async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures
     logStep(ok, `Wortwolke skaliert nach ${label}`);
     if (!ok) {
       failures.push(
-        `Wortwolken-Größe ${value} fehlgeschlagen (selected=${selectedReady}, words=${resizedLabels.join(', ') || 'leer'}).`,
+        `Wortwolken-Größe ${label} fehlgeschlagen (selected=${selectedReady}, words=${resizedLabels.join(', ') || 'leer'}).`,
       );
     }
   }
@@ -569,7 +576,15 @@ async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures
     );
   }
 
-  await page.locator('.qa-word-cloud-dialog__close').click({ force: true });
+  await sizeSelect.press('Enter');
+  const options = page.getByRole('listbox');
+  await options.waitFor({ state: 'visible', timeout: 8_000 });
+  await sizeSelect.press('Escape');
+  await options.waitFor({ state: 'hidden', timeout: 8_000 });
+  if (!(await cloud.isVisible())) {
+    failures.push('Escape schließt die Wortwolke bereits mit der Optionsliste.');
+  }
+  await sizeSelect.press('Escape');
   await cloud.waitFor({ state: 'hidden', timeout: 10_000 });
   if ((await qaTools.getAttribute('aria-expanded')) !== 'true') {
     failures.push('Auswertung & Werkzeuge ist nach der Rückkehr aus der Wortwolke geschlossen.');
