@@ -5287,6 +5287,12 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*auto;[\s\S]*?align-items:\s*start;[\s\S]*?justify-items:\s*start;/,
     );
     expect(styles).toMatch(
+      /\.session-present__lobby-teams-grid \{[\s\S]*?--present-lobby-team-min-width:\s*18rem;[\s\S]*?grid-template-columns:\s*repeat\(\s*auto-fit,\s*minmax\(min\(100%,\s*var\(--present-lobby-team-min-width\)\),\s*1fr\)\s*\);/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-name \{[\s\S]*?overflow:\s*hidden;[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/,
+    );
+    expect(styles).toMatch(
       /\.session-present__lobby-team-members li \{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;/,
     );
     expect(styles).not.toMatch(
