@@ -7,7 +7,7 @@
 
 Eine einfache Differenz (Upvotes minus Downvotes) rutscht bei **ausgeglichener Polarität** nach unten: z. B. 50 Up- und 50 Downvotes ergeben Differenz 0, obwohl die Frage für die Diskussion im Raum zentral sein kann.
 
-Live-Events haben eine **begrenzte Teilnehmerzahl** (typisch 10–200). Gesucht ist ein Score, der **„Reibung“** (hohe, ausgeglichene Up-/Down-Beteiligung) misst und sich **an die Raumgröße anpasst**, damit vereinzelte Gegenstimmen in großen Räumen nicht als künstliche Kontroverse gelten.
+Der Score misst, wie geteilt die Stimmen zu einer Frage sind. Ein fester Zuschlag im Nenner dämpft kleine Stimmzahlen. Identische Stimmenverteilungen ergeben denselben Score in jeder Session.
 
 ## Produktionsabgleich (Stand 2026-05-15)
 
@@ -51,22 +51,10 @@ Für jede Frage (Post) wird ein `controversy_score` berechnet. Wertebereich: **0
 ### Formel
 
 $$
-S = \frac{2 \cdot \min(U, D)}{U + D + C}
+S = \frac{2 \cdot \min(U, D)}{U + D + 4}
 $$
 
-| Symbol | Bedeutung                                                                                                                                                    |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| U      | Anzahl Upvotes                                                                                                                                               |
-| D      | Anzahl Downvotes                                                                                                                                             |
-| N      | Zahl der persistierten Teilnehmerdatensätze der Session (`session-participant-record-count`); weder aktuelle Onlinezahl noch konfigurierte Maximalkapazität. |
-| C      | Ganzzahliger Glättungs-/Prior-Term im Nenner: `max(1, ceil(0.1 * N))` (siehe technische Regeln).                                                             |
-
-Der Term \(C\) wirkt wie ein **Prior**: wenige Stimmen in einem großen Raum erhöhen den Score nur moderat; viele ausgeglichene Stimmen erhöhen ihn stark.
-
-### Technische Regeln
-
-1. **Gleitkomma:** Der Score wird als Float/Decimal berechnet (keine Ganzzahl-Division).
-2. **Untergrenze für C:** \(C = \max(1,\, \lceil 0.1 \cdot N \rceil)\) verhindert einen Nenner von 0, stabilisiert den Fall \(N = 0\) und entspricht der implementierten ganzzahligen Mindeststimmenzahl.
+\(U\) steht für die Dafür-Stimmen und \(D\) für die Dagegen-Stimmen dieser Frage. Der Zuschlag 4 verhindert eine Division durch null. Der Score steigt bei gleichem Stimmenverhältnis mit der Zahl der abgegebenen Stimmen. Ohne Stimmen oder bei einer einseitigen Verteilung ist der Score 0.
 
 ## Sortierung (Tie-Breaker)
 
@@ -91,7 +79,9 @@ Für Story 8.6 ist eine bloße Umsortierung ohne sichtbare Erklärung im heutige
 Anzeige nur wenn **beides** gilt:
 
 - `controversy_score > 0.5`
-- \((U + D) \geq C\) (genug Gesamtstimmen im Verhältnis zur Raumgröße)
+- \((U + D) \geq 6\)
+
+Bei weniger als sechs Stimmen zeigt die Karte »Zu wenige Stimmen«.
 
 **Deutsche Referenzbegriffe** für Labels (Übersetzungen nach ADR-0008 in alle UI-Sprachen): z. B. „Umstritten“, „Polarisierend“, „Diskussionslage“ — keine festen englischen UI-Strings in der Produktions-UI.
 
@@ -119,9 +109,9 @@ Die Host-Q&A-Wortwolke nutzt denselben Modus: `Stimmensaldo` gewichtet nach dem 
 ## Akzeptanzkriterien
 
 - [x] **AC 1:** Sortierung bevorzugt stark **ausgeglichene** Up-/Down-Beteiligung gegenüber einseitiger Zustimmung.
-- [x] **AC 2:** \(C\) wird **pro Event/Session** aus der gewählten Definition von \(N\) abgeleitet (kleinerer Raum → kleineres \(C\) als bei großem Raum, bei gleicher Formel).
+- [x] **AC 2:** Gleiche Stimmenzahlen ergeben sessionübergreifend denselben Score. Der feste Zuschlag 4 dämpft kleine Stimmzahlen.
 - [x] **AC 3:** Gleicher Score → eindeutige Reihenfolge über `U`, dann Netto-Score, dann `created_at`, dann `id`.
-- [x] **AC 4:** Kein Absturz bei 0 Stimmen oder \(N = 0\); keine Division durch Null.
+- [x] **AC 4:** Ohne Stimmen ergibt sich Score 0.
 - [x] **AC 5:** Fragen oberhalb der Badge-Schwellen werden in der Host-Ansicht sichtbar als kontrovers/umstritten gekennzeichnet (siehe Abschnitt UI).
 - [x] **AC 6:** `PINNED`-Fragen bleiben sichtbar markiert und stehen in allen Sortiermodi zuerst (Host: vor `PENDING` und `ACTIVE`); innerhalb der Statusgruppe gilt die gewählte Metrik.
 - [x] **AC 7:** Teilnehmende behalten die Standardsortierung; Story 8.6 ist kein globaler Default-Wechsel.
@@ -152,7 +142,7 @@ SELECT
     downvotes,
     created_at,
     (2.0 * LEAST(upvotes, downvotes))
-    / (upvotes + downvotes + GREATEST(1.0, CEIL(0.1 * :N))) AS controversy_score
+    / (upvotes + downvotes + 4) AS controversy_score
 FROM vote_counts
 ORDER BY
     controversy_score DESC,
@@ -163,10 +153,6 @@ ORDER BY
 
 ## Testfälle und QA
 
-### Voraussetzungen (Szenario 1–3)
-
-\(N = 100\) → \(C = \max(1, 10) = 10\).
-
 ### 1. Keine Interaktion / einseitige Stimmung
 
 | Post | U   | D   | Erwarteter Score | Kurz           |
@@ -175,33 +161,33 @@ ORDER BY
 | B    | 50  | 0   | 0,000            | Nur Zustimmung |
 | C    | 0   | 50  | 0,000            | Nur Ablehnung  |
 
-### 2. Einfluss von C (kleine vs. große ausgeglichene Masse)
+### 2. Verschiedene Stimmzahlen bei gleichem Verhältnis
 
-| Post | U   | D   | Erwarteter Score | Kurz                          |
-| ---- | --- | --- | ---------------- | ----------------------------- |
-| D    | 1   | 1   | 0,166            | 2/(2+10) — stark gedämpft     |
-| E    | 40  | 40  | 0,888            | 80/(80+10) — hohe Kontroverse |
+| Post | U   | D   | Erwarteter Score | Kurz      |
+| ---- | --- | --- | ---------------- | --------- |
+| D    | 1   | 1   | 0,333            | 2/(2+4)   |
+| E    | 40  | 40  | 0,952            | 80/(80+4) |
 
 Reihenfolge: E vor D (gleiche Balance, mehr Masse → höherer Score).
 
 ### 3. Tie-Breaker
 
-| Post | U   | D   | Zeit  | Score        |
-| ---- | --- | --- | ----- | ------------ |
-| F    | 2   | 1   | 10:00 | 2/13 ≈ 0,153 |
-| G    | 1   | 2   | 10:05 | 2/13 ≈ 0,153 |
-| H    | 2   | 1   | 10:10 | 2/13 ≈ 0,153 |
+| Post | U   | D   | Zeit  | Score       |
+| ---- | --- | --- | ----- | ----------- |
+| F    | 2   | 1   | 10:00 | 2/7 ≈ 0,286 |
+| G    | 1   | 2   | 10:05 | 2/7 ≈ 0,286 |
+| H    | 2   | 1   | 10:10 | 2/7 ≈ 0,286 |
 
 Erwartete Reihenfolge: F, dann H, dann G — zuerst mehr Upvotes als G; bei F vs. H gewinnt die ältere Frage für ein stabileres Live-Ranking.
 
-### 4. Randfälle N
+### 4. Kennzeichnung an der Stimmgrenze
 
-| N   | U   | D   | C    | Erwarteter Score | Kurz                                       |
-| --- | --- | --- | ---- | ---------------- | ------------------------------------------ |
-| 0   | 1   | 1   | 1,0  | 0,666            | Fallback max(1, …)                         |
-| 10  | 2   | 2   | 1,0  | 0,800            | kleiner Raum                               |
-| 11  | 1   | 1   | 2,0  | 0,500            | Aufrundung der ganzzahligen Mindeststimmen |
-| 200 | 2   | 2   | 20,0 | 0,166            | großer Raum, wenige Stimmen = wenig Signal |
+| U   | D   | Score | Kennzeichnung     |
+| --- | --- | ----- | ----------------- |
+| 2   | 2   | 0,50  | Zu wenige Stimmen |
+| 3   | 2   | 0,44  | Zu wenige Stimmen |
+| 3   | 3   | 0,60  | Umstritten        |
+| 5   | 1   | 0,20  | Einseitig         |
 
 ---
 

@@ -184,7 +184,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(hint?.textContent).toBe(`Lesephase – ${readingHints[type]}`);
   });
 
-  it('zeigt den Lesefortschritt und Alle sind bereit nur für die ganze Session', () => {
+  it('zeigt den Lesefortschritt und Alle sind bereit nur für die ganze Session', async () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');
     fixture.componentRef.setInput('participantCount', 4);
@@ -194,9 +194,12 @@ describe('SessionProjectionQuizComponent', () => {
       allConnectedReady: false,
     });
     fixture.detectChanges();
+    const status = (fixture.nativeElement as HTMLElement).querySelector(
+      '.projection-pages__status',
+    );
 
-    expect(fixture.nativeElement.textContent).toContain('2 von 4 bereit');
-    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
+    expect(status?.textContent).toContain('2 von 4 bereit');
+    expect(status?.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
 
     fixture.componentRef.setInput('readingReady', {
       readyCount: 3,
@@ -204,7 +207,8 @@ describe('SessionProjectionQuizComponent', () => {
       allConnectedReady: true,
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
+    await Promise.resolve();
+    expect(status?.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
 
     fixture.componentRef.setInput('readingReady', {
       readyCount: 4,
@@ -212,12 +216,11 @@ describe('SessionProjectionQuizComponent', () => {
       allConnectedReady: true,
     });
     fixture.detectChanges();
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')?.textContent,
-    ).toContain('Alle sind bereit');
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-reading-progress"]'),
-    ).toBeNull();
+    await Promise.resolve();
+    expect(status?.querySelector('[data-testid="presenter-all-ready"]')?.textContent).toContain(
+      'Alle sind bereit',
+    );
+    expect(status?.querySelector('[data-testid="presenter-reading-progress"]')).toBeNull();
   });
 
   it('wechselt die Phase auf Abstimmung beendet und markiert volle Abstimmung', () => {
@@ -1502,9 +1505,22 @@ describe('SessionProjectionQuizComponent', () => {
     fingerImage.dispatchEvent(new Event('load'));
     fixture.detectChanges();
     expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
-    fingerImage.dispatchEvent(new Event('error'));
+
+    fixture.componentRef.setInput('countdownSeconds', 3);
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('3');
+    const nextFingerImage = fingerHost.querySelector('img:not([hidden])') as HTMLImageElement;
+    nextFingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+
+    nextFingerImage.dispatchEvent(new Event('error'));
     fixture.detectChanges();
     expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('3');
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__status-fingers'),
     ).toBeNull();
@@ -1514,6 +1530,9 @@ describe('SessionProjectionQuizComponent', () => {
         'src/app/features/session/session-present/session-projection-quiz.component.scss',
       ),
       'utf8',
+    );
+    expect(styles).toMatch(
+      /app-session-projection-quiz:has\(\s*> \.session-projection-quiz__finger-overlay app-countdown-fingers\.countdown-fingers-host--loaded\s*\)\s*\.session-projection-quiz__countdown\s*\{\s*display: none;/,
     );
     expect(styles).toMatch(
       /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?position:\s*fixed/,
@@ -1529,9 +1548,21 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?app-countdown-fingers\s*\{[\s\S]*?align-self:\s*end/,
     );
-    expect(styles).toMatch(
-      /:host:has\(app-countdown-fingers\.countdown-fingers-host--loaded\)[\s\S]*?\.session-projection-quiz__countdown\s*\{[\s\S]*?display:\s*none/,
-    );
+  });
+
+  it('aktualisiert die sichtbare Countdown-Zahl vor der nächsten Seitenmessung', async () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.componentRef.setInput('countdownSeconds', 3);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const visibleTimer = () => host.querySelector('.projection-pages__status [role="timer"]');
+    expect(visibleTimer()?.textContent?.trim()).toBe('3');
+
+    fixture.componentRef.setInput('countdownSeconds', 2);
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(visibleTimer()?.textContent?.trim()).toBe('2');
   });
 
   it('hält die Frageschrift in Lese- und Antwortmodus gleich groß', () => {

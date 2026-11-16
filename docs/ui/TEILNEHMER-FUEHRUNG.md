@@ -62,6 +62,18 @@ Antwortdaten. Host-Fallpräferenzen gelangen nicht in Teilnehmer-Datenverträge.
 | Quiz `FINISHED`, Nebenkanal offen | Quizabschluss, erreichbare Nebenkanäle         | Kein vorzeitiges globales End-Gate                                                                |
 | Session endgültig beendet         | Bonuscode, **Zur Startseite**                  | Freiwillige Session- und Produktbewertung, keine neue Teilnahme                                   |
 
+Nach einer gültigen Antwort zeigt eine Frage mit Selbsteinschätzung den Hinweis direkt
+über »Antwort senden«. Sobald die Selbsteinschätzung gewählt ist, verschwindet der
+Hinweis und die Antwort kann gesendet werden, solange die Abstimmung noch offen ist.
+Bei Selbsteinschätzung und Bewertung heben sich nicht ausgewählte Werte durch
+einen kontrastreichen Kreisrand ab. Gewählte Werte behalten beim Überfahren
+mit der Maus ihre gefüllte Darstellung samt kontrastreicher Zahl.
+
+Bei Single Choice, Multiple Choice und Umfragen kennzeichnet »Deine Antwort«
+in der Ergebnisansicht jede abgegebene eigene Option. Bei bewerteten Fragen ist
+das Label unabhängig von der Richtig-/Falsch-Markierung. Eine nicht abgegebene
+Auswahl erhält kein Label.
+
 ## Q&A-Werkzeuge und Fokus
 
 **Fragen finden & sortieren** ist ein natives `details/summary` und zunächst

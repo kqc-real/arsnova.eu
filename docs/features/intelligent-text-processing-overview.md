@@ -241,7 +241,7 @@ Jede Karte verweist direkt auf ihre konkreten Quellen (Sprung zur Q&A-Frage, zur
 
 Wenn die Lehrkraft im Kompass zusätzlich den Block **»Kurzfassung der offenen Fragen«** öffnet und auf **»Zusammenfassung«** klickt (`qa.requestSummary`), baut das Backend (`moderationSummaryContext.ts`) einen streng kontrollierten, lösungsfreien Snapshot (`ModerationPromptContextV1`) aus zehn Bereichen auf:
 
-1. **`meta` & `scope`:** Schema-/Auswahlversionen, Kanal, Phase, Raumbezugsgröße für Kontroversität, Gesamt- vs. Analyseumfang.
+1. **`meta` & `scope`:** Schema-/Auswahlversionen, Kanal, Phase, Berechnungsversion für Kontroversität, Gesamt- vs. Analyseumfang.
 2. **`questions`:** Deterministisch priorisierte Q&A-Fragen mit echten Positiv-/Negativstimmen (getrennt vom Nettoscore), Best-Score, Kontroversität, Status (`PENDING`/`ACTIVE`/`PINNED`) und 8.9b-Kategorie.
 3. **`topics`:** Aktuelle semantische Themen-Cluster aus dem internen Latest-Themenbeleg (`qaSemanticTopicSnapshot.ts`), derentexte frisch gegen PostgreSQL revalidiert werden.
 4. **`compass`:** Die regelbasierten Kompasskarten und der regelbasierte Handlungsvorschlag.

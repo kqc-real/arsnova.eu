@@ -1,4 +1,13 @@
-import { Component, computed, effect, input, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  linkedSignal,
+  signal,
+  type OnDestroy,
+  type OnInit,
+} from '@angular/core';
+import { VOTE_FINGER_IMAGES, VOTE_FINGER_PRELOAD_INTERVAL_MS } from './countdown-fingers-preload';
 
 const FINGER_IMAGES: Record<number, string> = {
   5: 'assets/countdown-fingers/countdown_poster_clean_5.png',
@@ -18,26 +27,29 @@ const FINGER_IMAGES: Record<number, string> = {
     '[class.countdown-fingers-host--loaded]': 'imageLoaded()',
   },
   template: `
-    @if (imageSrc()) {
-      <div
-        class="countdown-fingers"
-        [class.countdown-fingers--large]="size() === 'large'"
-        [class.countdown-fingers--small]="size() === 'small'"
-        [class.countdown-fingers--present]="size() === 'present'"
-        [attr.role]="imageLoaded() ? 'img' : null"
-        [attr.aria-label]="imageLoaded() ? ariaLabel() : null"
-        [attr.aria-hidden]="imageLoaded() ? null : 'true'"
-      >
+    <div
+      class="countdown-fingers"
+      [class.countdown-fingers--large]="size() === 'large'"
+      [class.countdown-fingers--small]="size() === 'small'"
+      [class.countdown-fingers--present]="size() === 'present'"
+      [hidden]="!imageLoaded()"
+      [attr.role]="imageLoaded() ? 'img' : null"
+      [attr.aria-label]="imageLoaded() ? ariaLabel() : null"
+      [attr.aria-hidden]="imageLoaded() ? null : 'true'"
+    >
+      @for (frame of requestedFrames(); track frame) {
         <img
-          [src]="imageSrc()"
+          [src]="fingerImages()[frame]"
+          [attr.fetchpriority]="size() === 'small' ? 'low' : null"
+          [hidden]="frame !== seconds()"
           alt=""
           aria-hidden="true"
           class="countdown-fingers__img"
-          (load)="onImageLoad()"
-          (error)="onImageError()"
+          (load)="setFrameLoaded(frame, true)"
+          (error)="setFrameLoaded(frame, false)"
         />
-      </div>
-    }
+      }
+    </div>
   `,
   styles: [
     `
@@ -79,6 +91,11 @@ const FINGER_IMAGES: Record<number, string> = {
         background: transparent;
         pointer-events: none;
         user-select: none;
+        transform-origin: bottom center;
+
+        &[hidden] {
+          display: none;
+        }
       }
 
       .countdown-fingers__img {
@@ -86,7 +103,10 @@ const FINGER_IMAGES: Record<number, string> = {
         /* Assets sind einheitlich 568×1392 (Seitenverhältnis 142/348), Inhalt unten bündig. */
         object-fit: contain;
         object-position: bottom center;
-        transform-origin: bottom center;
+
+        &[hidden] {
+          display: none;
+        }
       }
 
       .countdown-fingers--large {
@@ -133,16 +153,8 @@ const FINGER_IMAGES: Record<number, string> = {
         }
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .countdown-fingers {
-          .countdown-fingers__img {
-            animation: none !important;
-          }
-        }
-      }
-
       @media (prefers-reduced-motion: no-preference) {
-        .countdown-fingers__img {
+        .countdown-fingers {
           animation: finger-pop 300ms ease-out;
         }
       }
@@ -163,29 +175,58 @@ const FINGER_IMAGES: Record<number, string> = {
     `,
   ],
 })
-export class CountdownFingersComponent {
+export class CountdownFingersComponent implements OnInit, OnDestroy {
   readonly seconds = input.required<number>();
   readonly size = input<'small' | 'large' | 'present'>('small');
-  readonly imageLoaded = signal(false);
-
-  readonly imageSrc = computed(() => {
-    const s = this.seconds();
-    return s >= 0 && s <= 5 ? (FINGER_IMAGES[s] ?? null) : null;
+  readonly fingerImages = computed(() =>
+    this.size() === 'small' ? VOTE_FINGER_IMAGES : FINGER_IMAGES,
+  );
+  private readonly loadedFrames = signal<ReadonlySet<number>>(new Set());
+  private readonly voteFrames = signal<readonly number[]>([]);
+  private votePreloadTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly stageFrames = linkedSignal({
+    source: this.seconds,
+    computation: (seconds, previous): ReadonlySet<number> => {
+      const frames = new Set(previous?.value);
+      const current = Math.min(seconds, 5);
+      // Keep loaded images mounted so changing seconds does not restart a browser image load.
+      for (const frame of [current, current - 1]) {
+        if (FINGER_IMAGES[frame]) frames.add(frame);
+      }
+      return frames;
+    },
   });
+  readonly requestedFrames = computed(() =>
+    this.size() === 'small' ? this.voteFrames() : this.stageFrames(),
+  );
+  readonly imageLoaded = computed(() => this.loadedFrames().has(this.seconds()));
 
-  constructor() {
-    effect(() => {
-      this.imageSrc();
-      this.imageLoaded.set(false);
+  ngOnInit(): void {
+    if (this.size() !== 'small') return;
+    let frame = Math.min(this.seconds(), VOTE_FINGER_IMAGES.length - 1);
+    const requestNextFrame = () => {
+      frame = Math.min(frame, this.seconds());
+      if (frame < 0) return;
+      const next = frame--;
+      this.voteFrames.update((frames) => [...frames, next]);
+      if (frame >= 0) {
+        this.votePreloadTimer = setTimeout(requestNextFrame, VOTE_FINGER_PRELOAD_INTERVAL_MS);
+      }
+    };
+    requestNextFrame();
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.votePreloadTimer);
+  }
+
+  setFrameLoaded(frame: number, loaded: boolean): void {
+    this.loadedFrames.update((current) => {
+      const frames = new Set(current);
+      if (loaded) frames.add(frame);
+      else frames.delete(frame);
+      return frames;
     });
-  }
-
-  onImageLoad(): void {
-    this.imageLoaded.set(true);
-  }
-
-  onImageError(): void {
-    this.imageLoaded.set(false);
   }
 
   ariaLabel(): string {

@@ -7,6 +7,7 @@ import {
   MODERATION_DOMAIN_CONTEXT_CONTRACT_VERSION,
   MODERATION_PROMPT_CONTEXT_SCHEMA_VERSION,
   MODERATION_PROMPT_DEFINITION_SET_VERSION,
+  QA_RANKING_VERSION,
   AppLocaleEnum,
   ModerationAnalysisContextV1Schema,
   ModerationPromptLimitationSchema,
@@ -501,7 +502,7 @@ function buildScope(
           reason: 'The authorized Q&A candidate section is not available.',
         },
     activeWeighting: hasQaQuestions
-      ? { kind: 'qa-ranking', version: 'qa-ranking-v1', sortMode: state.activeSortMode }
+      ? { kind: 'qa-ranking', version: QA_RANKING_VERSION, sortMode: state.activeSortMode }
       : { kind: 'none', reason: 'No authorized Q&A candidate ranking is available.' },
     selectionLimits: {
       questions: 200,

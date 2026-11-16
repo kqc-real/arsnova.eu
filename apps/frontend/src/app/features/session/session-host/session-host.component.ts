@@ -12111,6 +12111,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
     this.dialog.open(QaSortHelpDialogComponent, {
       panelClass: 'qa-sort-help-dialog-panel',
+      role: 'dialog',
       autoFocus: 'dialog',
       width: 'min(40rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
@@ -14820,15 +14821,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (wordCloudAnalysisRequestKey(request) !== analysis.requestKey) return true;
     if (!listRevision || !analysis.corpusRevision) return false;
 
-    const [ranking, metric, participants] = listRevision.split(':');
+    const [ranking, metric, rankingVersion] = listRevision.split(':');
     if (metric !== request.metric) return false;
-    const [analyzedRanking, analyzedParticipants] = analysis.corpusRevision.split(':');
+    const [analyzedRanking, analyzedVersion] = analysis.corpusRevision.split(':');
     return (
       Number(ranking) > Number(analyzedRanking) ||
       (ranking === analyzedRanking &&
         metric === 'CONTROVERSIAL' &&
         listRevision !== previousListRevision &&
-        participants !== analyzedParticipants)
+        rankingVersion !== analyzedVersion)
     );
   }
 

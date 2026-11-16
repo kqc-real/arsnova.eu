@@ -11915,6 +11915,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: { kind: 'BEST' },
         panelClass: 'qa-sort-help-dialog-panel',
+        role: 'dialog',
       }),
     );
     dialogOpenMock.mockClear();
@@ -11924,6 +11925,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: { kind: 'CONTROVERSIAL' },
         panelClass: 'qa-sort-help-dialog-panel',
+        role: 'dialog',
       }),
     );
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');

@@ -328,6 +328,105 @@ bereitgestellt.
 
 Der [Hotpath-Audit- und Timing-Nachlauf vom 2026-10-22](implementation/HOTPATH-AUDIT-UND-TIMING-2026-10-22.md) dokumentiert die Bündelung verbleibender uncached DB-Reads vor `currentQuestionCache` (`studentQuestionSessionCache`, `getParticipantTimerAccommodationCached`), in `getPersonalScorecard`/`getPersonalResult` (`personalScorecardSessionCache`, `personalResultSessionCache`), in `fetchHostVoteProgress` (`hostVoteProgressSessionCache`), im `vote.submit`-Capability-Pfad (`participantCapabilityCache` inkl. Join-Prewarming) und im Q&A-Realtime-/Listen-Pfad (`loadQaSubscriptionSessionSnapshot`, `loadQaParticipantCount`, `loadQaOwnQuestionQuota`) sowie die Gegenüberstellung aller 13 ausgeführten Smoke- und Lasttests mit den historischen Baselines (`ACTIVE` 600 TN `p95`: `788 ms` → **`650 ms`**, 2s-Karenz `p95`: `992 ms` → **`720 ms`**, Reject `p95`: `718 ms` → **`396 ms`**, 500 TN Host-Pairing Cap-Load `p95`: **`618 ms`** bei `0` Fehlern).
 
+### Vote-Countdown mit 500 gleichzeitigen Stimmen und kaltem Cache (2026-11-16)
+
+Das gestaffelte Vorladen senkte die Bildlast pro Countdown und 500 Geräten von
+**353,0 MB auf 18,9 MB**. In den Kontrollmessungen bei 1 Gbit/s ließ sich der
+anfangs höhere Vote-p95 nicht reproduzieren. Die Streuung der Backend-Zeiten
+war im A/A-Vergleich mit identischem Stand teilweise größer als der frühere
+Ausschlag.
+
+#### Aufbau und Varianten
+
+- Lokales Produktions-Backend auf Apple M2 Pro (macOS, Node 24.21.0) mit
+  PostgreSQL 16 und Redis 7.4 mit AOF in getrennten Testcontainern. Der
+  PostgreSQL-Pool nutzte den Standard von 40 Verbindungen.
+- Pro Lauf traten 500 Teilnehmende über tRPC mit eigenen Capabilities und
+  derselben Quelladresse bei. Der Lastgenerator sandte für eine
+  Single-Choice-Frage mit einem Neun-Sekunden-Timer 500 einzelne
+  `vote.submit`-Aufrufe in einer Welle. Die Welle war 100 ms nach Eintritt in
+  die jeweilige Restsekunde angesetzt. Der Lastgenerator forderte die sechs
+  statischen Bilder pro simuliertem Client in jedem Lauf ohne Cache an. Er
+  spielte die Abrufpläne gegen denselben Backend-Build ab.
+- Ein lokaler Reverse-Proxy begrenzte die gemeinsame Übertragung der
+  Antwortdaten auf 1 Gbit/s oder 250 Mbit/s und verteilte sie in
+  Stücken bis 8 KiB auf die offenen Antworten. Die Messung reichte vom Start
+  des Vote-Aufrufs bis zum Empfang der vollständigen Antwort über HTTP/1.1
+  mit Keepalive und ohne TLS. Die Zahlen beschreiben einen protokollnahen Vergleich
+  mit simuliertem Link. Eine Lastabnahme mit 500 Browsern, WebSocket-Fan-out
+  und einem realen Hörsaal-WLAN war nicht Teil dieser Messung.
+
+| Stand                     | Abrufplan bei einem 9-Sekunden-Timer                                                                       | Bilddaten für 500 Geräte | Größte Abrufwelle |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------- | -----------------------: | ----------------: |
+| Ursprünglich (`74608ca7`) | Ein PNG je Restsekunde von 5 bis 0                                                                         |                 353,0 MB |           74,1 MB |
+| Doppeltes Vorladen        | Zwei PNGs bei 7 Sekunden, weitere bei 5 bis 2 Sekunden                                                     |                 353,0 MB |          136,0 MB |
+| Gestaffelt                | Ab Fragenstart ein kleines WebP alle 320 ms, bei 9,00 / 8,68 / 8,36 / 8,04 / 7,72 / 7,40 Sekunden Restzeit |                  18,9 MB |            4,0 MB |
+
+Das Vorladen im Vote beginnt ab höchstens zehn Sekunden Restzeit. Die Bilder
+sind für die 48 CSS-Pixel breite Anzeige in dreifacher Auflösung ausgelegt.
+Chromium und WebKit wurden separat auf einen flackerfreien Wechsel und den
+Zahlenersatz bei einem simulierten Bildfehler geprüft. Der
+[Artillery-Live-Test](../scripts/load/artillery/500-live-session.yml) deckt
+andere Live-Pfade ab und lädt die Countdown-Bilder nicht.
+
+#### Erste Lastmessung und Wiederholung nach der Staffelung
+
+Je Messreihe liefen drei Vergleichspaare pro Absendezeitpunkt bei 1 Gbit/s und
+zwei bei 250 Mbit/s. Beide Messreihen umfassten je 20 Läufe in wechselnder
+Reihenfolge und 10.000 von 10.000 gespeicherten Stimmen. Die Tabellenwerte
+sind die zusammengefassten Perzentile p50 / p95 / p99 in Millisekunden.
+Der ursprüngliche Stand wurde in beiden Reihen erneut gemessen.
+
+| Testlink   | Restzeit | Ursprünglich, erste Messung | Doppeltes Vorladen | Ursprünglich, Wiederholung |      Gestaffelt |
+| ---------- | -------: | --------------------------: | -----------------: | -------------------------: | --------------: |
+| 1 Gbit/s   |      5 s |             375 / 491 / 511 |    411 / 561 / 588 |            336 / 451 / 477 | 346 / 526 / 550 |
+| 1 Gbit/s   |      7 s |             371 / 489 / 510 |    463 / 596 / 611 |            320 / 441 / 465 | 336 / 477 / 498 |
+| 250 Mbit/s |      5 s |             507 / 701 / 715 |    755 / 928 / 942 |            481 / 634 / 653 | 378 / 512 / 529 |
+| 250 Mbit/s |      7 s |             412 / 561 / 575 |    697 / 847 / 863 |            361 / 493 / 506 | 372 / 499 / 516 |
+
+Beim doppelten Vorladen waren bei sieben Sekunden bis zu 1.000 Bildabrufe offen.
+Bei 250 Mbit/s überlappten die Bildwellen. Bei fünf Sekunden waren noch 1.488
+bis 1.497 Abrufe offen, gegenüber 500 im ursprünglichen Stand. In der
+gestaffelten Variante waren alle sechs Bildwellen an beiden Absendezeitpunkten
+abgeschlossen. Trotzdem lag der zusammengefasste p95 bei 1 Gbit/s noch über
+dem in derselben Messreihe erfassten ursprünglichen Stand. Das war der Anlass
+für die Kontrollmessung.
+
+#### Kontrollmessung bei 1 Gbit/s
+
+Pro Absendezeitpunkt wurden sechs A/B-Paare (ursprünglich und gestaffelt) und
+vier eingestreute A/A-Paare (zweimal ursprünglich) in wechselnder Reihenfolge
+gefahren. Alle **20.000 Stimmen aus 40 Läufen** wurden gespeichert. Die Einheit
+für die mittlere p95-Differenz und das gepaarte 95-%-t-Intervall ist die
+500er-Welle. Negative Differenzen bedeuten niedrigere Latenz für den
+gestaffelten Stand gegenüber dem ursprünglichen Stand.
+
+| Restzeit | Gepoolt ursprünglich (p50 / p95 / p99) | Gepoolt gestaffelt (p50 / p95 / p99) | Mittlere p95-Differenz pro A/B-Paar |     95-%-Intervall | A/A-p95-Differenzen je Paar      |
+| -------- | -------------------------------------: | -----------------------------------: | ----------------------------------: | -----------------: | -------------------------------- |
+| 5 s      |                     383 / 494 / 517 ms |                   348 / 472 / 513 ms |                            −32,6 ms | −80,2 bis +14,9 ms | −5,2 / +27,9 / −13,1 / +176,3 ms |
+| 7 s      |                     350 / 468 / 485 ms |                   328 / 460 / 496 ms |                            −17,9 ms | −68,0 bis +32,2 ms | +54,0 / +14,2 / −66,4 / +10,7 ms |
+
+- Der gestaffelte Stand war in 10 von 12 A/B-Paaren beim Vote-p95 schneller.
+  Alle Bilder waren vor dem Absenden geladen. Bei sieben Sekunden war der
+  letzte Bildabruf mindestens 446 ms vor der Stimmabgabe abgeschlossen.
+- Der p95 der Proxy-Wartezeit (fertige Backend-Antwort bis zum ersten
+  Schreiben über den gedrosselten Link) sank bei fünf Sekunden im Mittel
+  um 28,5 ms. Bei sieben Sekunden lag er in beiden Ständen bei rund 2,2 ms.
+- Das stärkste A/A-Paar bei fünf Sekunden lag trotz identischem Stand bei
+  449 gegenüber 626 ms Vote-p95. Die Wartezeit für den PostgreSQL-Checkout
+  stieg dabei von 325 auf 485 ms (jeweils p95). Gemessen wurde die Zeit vom
+  Anfordern einer Verbindung bis zur Übergabe an die Anwendung, einschließlich
+  der Planung des Callbacks. Die Proxy-Wartezeit sank gleichzeitig von 32 auf
+  26 ms.
+
+Die Wiederholung liefert keinen Hinweis auf eine reproduzierbare
+Latenzregression durch die gestaffelten Bildabrufe. Die Backend-Streuung bei
+gleichzeitig eintreffenden Stimmen erklärt, wie der frühere Ausschlag auch
+nach Abschluss der Bildabrufe zustande kommen konnte. Kleinere Effekte bleiben
+bei diesen Stichproben offen. Über alle drei Messreihen wurden 40.000 Stimmen
+gespeichert und 240.000 Bildantworten geprüft. Die großen lokalen Rohprotokolle
+bleiben außerhalb des Repos.
+
 ## Szenarien und Kommandos
 
 Für die Node-Szenarien muss das Backend laufen (`npm run dev:backend`).

@@ -1,4 +1,6 @@
-/** Locale-keyed help copy for Q&A sort modes BEST / CONTROVERSIAL (source: Desktop MDs). */
+import { QA_CONTROVERSY_DAMPING, QA_CONTROVERSY_MIN_VOTES } from '@arsnova/shared-types';
+
+/** Locale-keyed help copy for Q&A sort modes BEST / CONTROVERSIAL. */
 
 export type QaSortHelpKind = 'BEST' | 'CONTROVERSIAL';
 
@@ -29,37 +31,37 @@ $$`;
 
 const CONTROVERSY_SCORE_FORMULA = String.raw`$$
 \operatorname{ControversyScore}=
-\min\left(1,\frac{2\cdot\min(p,n)}{p+n+T}\right)
+\frac{2\cdot\min(p,n)}{p+n+${QA_CONTROVERSY_DAMPING}}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA = String.raw`$$
 \operatorname{ControversyScore}>0{,}5
 \qquad\text{und}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_EN = String.raw`$$
 \operatorname{ControversyScore}>0.5
 \qquad\text{and}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_FR = String.raw`$$
 \operatorname{ControversyScore}>0{,}5
 \qquad\text{et}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_ES = String.raw`$$
 \operatorname{ControversyScore}>0{,}5
 \qquad\text{y}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_IT = String.raw`$$
 \operatorname{ControversyScore}>0{,}5
 \qquad\text{e}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 export const QA_SORT_HELP_COPY: Record<QaSortHelpKind, Record<QaSortHelpLocale, QaSortHelpCopy>> = {
@@ -239,161 +241,151 @@ In caso di parità vengono confrontati, nell’ordine, il numero di voti favorev
     de: {
       title: 'Kontroverse',
       markdown: `
-Diese Sortierung bevorzugt Fragen, bei denen sich Dafür- und Dagegen-Stimmen möglichst gleichmäßig verteilen. Eine zusätzliche Schwelle verhindert, dass sehr wenige Stimmen bereits als aussagekräftiger Konflikt erscheinen.
+Es zählen die abgegebenen Stimmen pro Frage. Je gleichmäßiger sie sich auf Dafür und Dagegen verteilen, desto höher ist der Score.
 
 #### Formel
 
-Zusätzlich gilt:
+- \\(p\\) · Dafür-Stimmen
+- \\(n\\) · Dagegen-Stimmen
 
-- \\(P\\): Anzahl der Teilnehmenden in der Session
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\): Schwelle in Höhe von 10 % der Teilnehmenden, mindestens jedoch 1
+Der feste Zuschlag von ${QA_CONTROVERSY_DAMPING} im Nenner dämpft den Score bei wenigen Stimmen.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Eine Frage wird ausdrücklich als **umstritten** gekennzeichnet, wenn beide Bedingungen erfüllt sind:
+Eine Frage erhält das Label »Umstritten«, wenn der Score über 0,5 liegt und mindestens ${QA_CONTROVERSY_MIN_VOTES} Stimmen abgegeben wurden.
 
 ${CONTROVERSY_LABEL_FORMULA}
 
-#### Einfach erklärt
+Unterhalb dieser Stimmenzahl zeigt die Frage »Zu wenige Stimmen«.
 
-Je ausgeglichener Zustimmung und Ablehnung sind, desto höher ist der Wert. Ein einseitiges Ergebnis ist nicht umstritten. Bei 100 Teilnehmenden beträgt die Schwelle \\(T=10\\).
+| Stimmen | Wert ungefähr |
+| --- | ---: |
+| 10 dafür, 10 dagegen | 0,83 |
+| 18 dafür, 2 dagegen | 0,17 |
+| 2 dafür, 2 dagegen | 0,50 |
+| 10 dafür, 0 dagegen | 0,00 |
 
-| Stimmen | Berechnung | Wert ungefähr |
-| --- | --- | ---: |
-| 10 dafür, 10 dagegen | \\(20/(20+10)\\) | 0,67 |
-| 18 dafür, 2 dagegen | \\(4/(20+10)\\) | 0,13 |
-| 2 dafür, 2 dagegen | \\(4/(4+10)\\) | 0,29 |
-| 10 dafür, 0 dagegen | \\(0/(10+10)\\) | 0,00 |
-
-Die erste Frage gilt in diesem Beispiel als umstritten. Die Frage mit 2 zu 2 Stimmen ist zwar ausgeglichen, hat aber noch zu wenige Stimmen für eine belastbare Kennzeichnung.
+Die Frage mit 10 zu 10 Stimmen gilt als umstritten. Die Frage mit 2 zu 2 Stimmen ist ebenso ausgeglichen, hat aber zu wenige Stimmen für diese Kennzeichnung.
 `.trim(),
     },
     en: {
       title: 'Controversy',
       markdown: `
-This ranking favors questions where votes in favor and against are distributed as evenly as possible. An additional threshold prevents a very small number of votes from appearing to represent a meaningful disagreement.
+The score uses the votes cast on each question. The more evenly votes are split for and against, the higher the score.
 
 #### Formula
 
-Additionally, let:
+- \\(p\\) · votes in favor
+- \\(n\\) · votes against
 
-- \\(P\\): number of participants in the session
-- \\(T=\\max(1, \\lceil 0.1\\cdot P\\rceil)\\): a threshold equal to 10% of participants, with a minimum of 1
+Adding a fixed ${QA_CONTROVERSY_DAMPING} to the denominator reduces the score when few votes have been cast.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-A question is explicitly labelled **controversial** only when both conditions are met:
+A question is marked “Controversial” when its score exceeds 0.5 and at least ${QA_CONTROVERSY_MIN_VOTES} votes have been cast.
 
 ${CONTROVERSY_LABEL_FORMULA_EN}
 
-#### In plain language
+Below this vote count, the question is marked “Too few votes”.
 
-The more evenly support and opposition are split, the higher the score. A one-sided result is not controversial. With 100 participants, the threshold is \\(T=10\\).
+| Votes | Approximate score |
+| --- | ---: |
+| 10 in favor, 10 against | 0.83 |
+| 18 in favor, 2 against | 0.17 |
+| 2 in favor, 2 against | 0.50 |
+| 10 in favor, 0 against | 0.00 |
 
-| Votes | Calculation | Approximate score |
-| --- | --- | ---: |
-| 10 in favor, 10 against | \\(20/(20+10)\\) | 0.67 |
-| 18 in favor, 2 against | \\(4/(20+10)\\) | 0.13 |
-| 2 in favor, 2 against | \\(4/(4+10)\\) | 0.29 |
-| 10 in favor, 0 against | \\(0/(10+10)\\) | 0.00 |
-
-In this example, the first question qualifies as controversial. The 2–2 result is evenly split, but there are not yet enough votes for a reliable label.
+The 10–10 question is marked controversial. The 2–2 question is just as evenly split, but has too few votes for that label.
 `.trim(),
     },
     fr: {
       title: 'Controverse',
       markdown: `
-Ce classement privilégie les questions pour lesquelles les votes favorables et défavorables sont répartis de la manière la plus équilibrée possible. Un seuil supplémentaire évite qu’un très petit nombre de votes soit interprété comme un désaccord significatif.
+Le score repose sur les votes exprimés pour chaque question. Plus les votes favorables et défavorables sont équilibrés, plus le score est élevé.
 
 #### Formule
 
-On note également :
+- \\(p\\) · votes favorables
+- \\(n\\) · votes défavorables
 
-- \\(P\\) : nombre de participants à la session
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\) : seuil correspondant à 10 % des participants, avec un minimum de 1
+L’ajout fixe de ${QA_CONTROVERSY_DAMPING} au dénominateur réduit le score lorsque peu de votes ont été exprimés.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Une question est explicitement signalée comme **controversée** uniquement si les deux conditions suivantes sont remplies :
+Une question est signalée comme controversée si son score dépasse 0,5 et qu’elle a reçu au moins ${QA_CONTROVERSY_MIN_VOTES} votes.
 
 ${CONTROVERSY_LABEL_FORMULA_FR}
 
-#### En termes simples
+En dessous de ce nombre, la question est signalée comme ayant reçu trop peu de votes.
 
-Plus les avis favorables et défavorables sont équilibrés, plus le score est élevé. Un résultat très nettement orienté dans un seul sens n’est pas controversé. Pour 100 participants, le seuil est \\(T=10\\).
+| Votes | Score approximatif |
+| --- | ---: |
+| 10 pour, 10 contre | 0,83 |
+| 18 pour, 2 contre | 0,17 |
+| 2 pour, 2 contre | 0,50 |
+| 10 pour, 0 contre | 0,00 |
 
-| Votes | Calcul | Score approximatif |
-| --- | --- | ---: |
-| 10 favorables, 10 défavorables | \\(20/(20+10)\\) | 0,67 |
-| 18 favorables, 2 défavorables | \\(4/(20+10)\\) | 0,13 |
-| 2 favorables, 2 défavorables | \\(4/(4+10)\\) | 0,29 |
-| 10 favorables, 0 défavorable | \\(0/(10+10)\\) | 0,00 |
-
-Dans cet exemple, la première question est considérée comme controversée. Le résultat 2 contre 2 est équilibré, mais le nombre de votes reste insuffisant pour attribuer ce qualificatif de manière fiable.
+La question qui a reçu 10 votes pour et 10 contre est signalée comme controversée. Celle qui a reçu 2 votes pour et 2 contre est tout aussi équilibrée, mais elle a reçu trop peu de votes pour cette mention.
 `.trim(),
     },
     es: {
       title: 'Controversia',
       markdown: `
-Esta ordenación da prioridad a las preguntas cuyos votos a favor y en contra están repartidos de la forma más equilibrada posible. Un umbral adicional evita que un número muy reducido de votos se interprete como un desacuerdo significativo.
+La puntuación se basa en los votos emitidos en cada pregunta. Cuanto más equilibrados estén los votos a favor y en contra, mayor será la puntuación.
 
 #### Fórmula
 
-Además:
+- \\(p\\) · votos a favor
+- \\(n\\) · votos en contra
 
-- \\(P\\): número de participantes en la sesión
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\): umbral equivalente al 10 % de los participantes, con un mínimo de 1
+Sumar ${QA_CONTROVERSY_DAMPING} al denominador reduce la puntuación cuando se han emitido pocos votos.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Una pregunta se marca expresamente como **controvertida** únicamente cuando se cumplen ambas condiciones:
+Una pregunta se marca como controvertida si su puntuación supera 0,5 y ha recibido al menos ${QA_CONTROVERSY_MIN_VOTES} votos.
 
 ${CONTROVERSY_LABEL_FORMULA_ES}
 
-#### Explicación sencilla
+Por debajo de esa cifra se indica que la pregunta tiene muy pocos votos.
 
-Cuanto más equilibrados estén el apoyo y el rechazo, mayor será la puntuación. Un resultado claramente inclinado hacia un lado no se considera controvertido. Con 100 participantes, el umbral es \\(T=10\\).
+| Votos | Puntuación aproximada |
+| --- | ---: |
+| 10 a favor, 10 en contra | 0,83 |
+| 18 a favor, 2 en contra | 0,17 |
+| 2 a favor, 2 en contra | 0,50 |
+| 10 a favor, 0 en contra | 0,00 |
 
-| Votos | Cálculo | Puntuación aproximada |
-| --- | --- | ---: |
-| 10 a favor, 10 en contra | \\(20/(20+10)\\) | 0,67 |
-| 18 a favor, 2 en contra | \\(4/(20+10)\\) | 0,13 |
-| 2 a favor, 2 en contra | \\(4/(4+10)\\) | 0,29 |
-| 10 a favor, 0 en contra | \\(0/(10+10)\\) | 0,00 |
-
-En este ejemplo, la primera pregunta se considera controvertida. El resultado de 2 votos frente a 2 está equilibrado, pero todavía no hay votos suficientes para aplicar la etiqueta con fiabilidad.
+La pregunta con 10 votos a favor y 10 en contra se marca como controvertida. La de 2 votos a favor y 2 en contra está igual de equilibrada, pero tiene muy pocos votos para recibir esa etiqueta.
 `.trim(),
     },
     it: {
       title: 'Controversia',
       markdown: `
-Questo ordinamento privilegia le domande per le quali i voti favorevoli e contrari sono distribuiti nel modo più equilibrato possibile. Una soglia aggiuntiva evita che un numero molto ridotto di voti venga interpretato come un disaccordo significativo.
+Il punteggio si basa sui voti espressi per ogni domanda. Più i voti favorevoli e contrari sono equilibrati, più alto è il punteggio.
 
 #### Formula
 
-Inoltre:
+- \\(p\\) · voti favorevoli
+- \\(n\\) · voti contrari
 
-- \\(P\\): numero di partecipanti alla sessione
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\): soglia pari al 10% dei partecipanti, con un minimo di 1
+Aggiungere ${QA_CONTROVERSY_DAMPING} al denominatore riduce il punteggio quando sono stati espressi pochi voti.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Una domanda viene contrassegnata esplicitamente come **controversa** solo quando sono soddisfatte entrambe le condizioni:
+Una domanda viene contrassegnata come controversa se il punteggio supera 0,5 e ha ricevuto almeno ${QA_CONTROVERSY_MIN_VOTES} voti.
 
 ${CONTROVERSY_LABEL_FORMULA_IT}
 
-#### In parole semplici
+Sotto questa soglia viene indicato che la domanda ha ricevuto troppo pochi voti.
 
-Più i voti favorevoli e contrari sono equilibrati, più alto è il punteggio. Un risultato chiaramente unilaterale non è controverso. Con 100 partecipanti, la soglia è \\(T=10\\).
+| Voti | Punteggio approssimativo |
+| --- | ---: |
+| 10 a favore, 10 contro | 0,83 |
+| 18 a favore, 2 contro | 0,17 |
+| 2 a favore, 2 contro | 0,50 |
+| 10 a favore, 0 contro | 0,00 |
 
-| Voti | Calcolo | Punteggio approssimativo |
-| --- | --- | ---: |
-| 10 favorevoli, 10 contrari | \\(20/(20+10)\\) | 0,67 |
-| 18 favorevoli, 2 contrari | \\(4/(20+10)\\) | 0,13 |
-| 2 favorevoli, 2 contrari | \\(4/(4+10)\\) | 0,29 |
-| 10 favorevoli, 0 contrari | \\(0/(10+10)\\) | 0,00 |
-
-In questo esempio la prima domanda è considerata controversa. Il risultato 2 a 2 è equilibrato, ma i voti non sono ancora sufficienti per attribuire l’etichetta in modo affidabile.
+La domanda con 10 voti a favore e 10 contrari è contrassegnata come controversa. Quella con 2 voti a favore e 2 contrari è altrettanto equilibrata, ma ha ricevuto troppo pochi voti per questa etichetta.
 `.trim(),
     },
   },

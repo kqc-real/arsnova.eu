@@ -29515,6 +29515,14 @@
           <context context-type="linenumber">1656</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.ownChoice" datatype="html">
+        <source>Deine Antwort</source>
+        <target>Ta réponse</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1505</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionVote.numericResultPrefix" datatype="html">
         <source>Deine Antwort:</source>
         <target>Ta réponse :</target>

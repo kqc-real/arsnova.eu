@@ -109,6 +109,7 @@ import {
   isQaOpenForParticipants,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
+import { VOTE_FINGER_PRELOAD_START_SECONDS } from '../../../shared/countdown-fingers/countdown-fingers-preload';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { focusAndScrollElement } from '../../../shared/focus-invalid-field.util';
@@ -1329,13 +1330,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   });
 
-  readonly showFingerCountdown = computed(() => {
+  readonly prepareFingerCountdown = computed(() => {
     const s = this.countdownSeconds();
     return (
       this.isActive() &&
       s !== null &&
       s >= 0 &&
-      s <= 5 &&
+      s <= VOTE_FINGER_PRELOAD_START_SECONDS &&
       this.themePreset.preset() === 'spielerisch'
     );
   });
@@ -1944,6 +1945,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () =>
       this.isConfidenceEnabled() && this.isActive() && !this.voteSent() && this.voteAnswerReady(),
   );
+  readonly showConfidenceSubmitHint = computed(
+    () =>
+      this.showConfidencePrompt() &&
+      this.confidenceValue() === null &&
+      !this.voteInteractionLocked(),
+  );
+  readonly confidenceRequiredMessage = $localize`:@@sessionVote.confidenceRequired:Gib deine Selbsteinschätzung an, bevor du absendest.`;
   readonly isFreetext = computed(() => {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'FREETEXT';
@@ -5257,6 +5265,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
     this.dialog.open(QaSortHelpDialogComponent, {
       panelClass: 'qa-sort-help-dialog-panel',
+      role: 'dialog',
       autoFocus: 'dialog',
       width: 'min(40rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
@@ -7020,9 +7029,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     if (this.isConfidenceEnabled() && confidence === undefined) {
-      this.voteError.set(
-        $localize`:@@sessionVote.confidenceRequired:Gib deine Selbsteinschätzung an, bevor du absendest.`,
-      );
+      this.voteError.set(this.confidenceRequiredMessage);
       return;
     }
 

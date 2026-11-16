@@ -294,7 +294,7 @@
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:7182e52029eab9153f76f84be240ad8dde4872dbfc90f4e40f07d8d5737b3cde",
+      "fingerprint": "sha256:1ae79b361dc862afa990617457e24dd34a0b423d475290bbd267f4bb69f35d24",
       "missing": []
     },
     "qa.moderate": {
@@ -309,7 +309,7 @@
     },
     "qa.onQuestionsUpdated": {
       "kind": "subscription",
-      "fingerprint": "sha256:0f36496337c1e599ce0ca79b0ccc8fd1fc2018f0a381ee6f79bb65391dba7cc3",
+      "fingerprint": "sha256:3f87e468343302d5f529dab3010b16079ee5eaca31b1bfa21ee6881294237122",
       "missing": []
     },
     "qa.pendingReleaseSnapshot": {
@@ -319,7 +319,7 @@
     },
     "qa.presentProjection": {
       "kind": "query",
-      "fingerprint": "sha256:c379cfb665f2e56d64d5f8454c2297bc0c53ffcc21bf0cf06fb81f487643a107",
+      "fingerprint": "sha256:32c37bfff42d534fe8820c2ad75c9a1cf46a25037058e75df2b6393d33e74cd0",
       "missing": []
     },
     "qa.redactPassages": {
@@ -979,7 +979,7 @@
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:db8833d8bbe63e67be0c03db97a55c2578f62dd071874ff6af64aac3d17a8c60",
+      "fingerprint": "sha256:e997c75433bcdf822f89d4b3797a3bce7d5655e58058a9604aa8297c0386f4b8",
       "missing": []
     }
   }

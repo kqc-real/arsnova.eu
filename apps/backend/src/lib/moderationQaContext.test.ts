@@ -4,7 +4,7 @@ import {
   MODERATION_PROMPT_DEFINITION_SET_VERSION,
   ModerationAnalysisDomainContextV1Schema,
   calculateModerationQaBestScoreV1,
-  calculateModerationQaControversyScoreV1,
+  calculateQaControversyScore,
 } from '@arsnova/shared-types';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -72,10 +72,9 @@ function row(overrides: Record<string, unknown> = {}) {
     nlpModelVersion: 'gatekeeper-hash-nb-v1',
     nlpAnalyzedAt: new Date('2026-10-04T09:00:30.000Z'),
     bestScore: calculateModerationQaBestScoreV1({ positive: 40, negative: 40 }),
-    controversyScore: calculateModerationQaControversyScoreV1({
+    controversyScore: calculateQaControversyScore({
       positive: 40,
       negative: 40,
-      participantBasis: 200,
     }),
     totalCount: 4n,
     eligibleCount: 3n,
@@ -99,13 +98,14 @@ function txWithTopicRows(candidateRows: unknown[], topicRows: unknown[]) {
 function topicSnapshot(input: {
   members: readonly { id: string; text: string }[];
   labelSourceQuestionId: string;
+  metric?: QaSemanticTopicSnapshot['metric'];
   corpusRevision?: string;
   modelLabel?: { text: string; modelId: string; modelVersion: string };
 }): QaSemanticTopicSnapshot {
   return QaSemanticTopicSnapshotSchema.parse({
     version: 'qa-semantic-topic-snapshot-v1',
     status: 'ready',
-    metric: 'BEST',
+    metric: input.metric ?? 'BEST',
     corpusRevision: input.corpusRevision ?? '17:',
     analyzedAt: '2026-10-04T10:00:00.000Z',
     analysisVersion: '1.14c.4',
@@ -148,12 +148,11 @@ describe('moderationQaContext N6', () => {
     const projection = await collectQaContextCandidates({
       tx: txWithRows([row()]),
       state: state(),
-      participantCount: 200,
     });
 
     expect(projection.questions).toMatchObject({
       state: 'available',
-      participantBasis: { value: 200 },
+      rankingVersion: 'qa-ranking-v2',
       corpus: { total: 4, eligible: 3, analyzed: 1, represented: 1 },
     });
     if (projection.questions.state !== 'available') throw new Error('questions unavailable');
@@ -163,13 +162,13 @@ describe('moderationQaContext N6', () => {
       negative: 40,
       net: 0,
       total: 80,
-      controversyScore: { state: 'available', value: 0.8 },
+      controversyScore: { state: 'available', value: 80 / 84 },
     });
     expect(projection.questions.items[0]?.answerState).toEqual({
       state: 'unavailable',
       reason: 'not-collected',
     });
-    expect(projection.revisions.questionVotes).toContain('participants:5:200');
+    expect(projection.revisions.questionVotes).toBe('qa-ranking-v2:17');
   });
 
   it('keeps a calculated zero score available', async () => {
@@ -184,7 +183,6 @@ describe('moderationQaContext N6', () => {
         }),
       ]),
       state: state(),
-      participantCount: 0,
     });
 
     if (projection.questions.state !== 'available') throw new Error('questions unavailable');
@@ -208,7 +206,6 @@ describe('moderationQaContext N6', () => {
         }),
       ]),
       state: state(),
-      participantCount: 200,
     });
 
     if (projection.questions.state !== 'available') throw new Error('questions unavailable');
@@ -220,14 +217,13 @@ describe('moderationQaContext N6', () => {
       collectQaContextCandidates({
         tx: txWithRows([row({ bestScore: 0.39 })]),
         state: state(),
-        participantCount: 200,
       }),
     ).rejects.toMatchObject({ code: 'INTERNAL_SERVER_ERROR' });
   });
 
   it('uses one bounded identity-free query with the authoritative status scope', async () => {
     const tx = txWithRows([row()]);
-    await collectQaContextCandidates({ tx, state: state(), participantCount: 200 });
+    await collectQaContextCandidates({ tx, state: state() });
 
     expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
     const sql = flattenSql(vi.mocked(tx.$queryRaw).mock.calls[0]);
@@ -245,7 +241,6 @@ describe('moderationQaContext N6', () => {
     const projection = await collectQaContextCandidates({
       tx: txWithRows([row({ text: injection })]),
       state: state(),
-      participantCount: 200,
     });
 
     const source = projection.sources[0];
@@ -283,7 +278,6 @@ describe('moderationQaContext N6', () => {
         }),
       ]),
       state: state(),
-      participantCount: 10,
     });
 
     expect(projection.questions).toMatchObject({
@@ -313,7 +307,6 @@ describe('moderationQaContext N7', () => {
         }),
       ]),
       state: state(),
-      participantCount: 200,
     });
   }
 
@@ -334,7 +327,6 @@ describe('moderationQaContext N7', () => {
     const projection = await collectQaTopicContext({
       tx,
       state: state(),
-      participantCount: 200,
       candidates: candidateProjection,
       snapshot: topicSnapshot({
         members: topicMembers,
@@ -404,12 +396,12 @@ describe('moderationQaContext N7', () => {
           analysisVersion: 'slice2-test-v1',
           selectionVersion: 'not-selected-yet',
           revisions: {
-            questionText: { state: 'available', value: 'qa-ranking-v1:17' },
+            questionText: { state: 'available', value: 'qa-ranking-v2:17' },
             questionVotes: {
               state: 'available',
-              value: 'qa-ranking-v1:17:participants:5:200',
+              value: 'qa-ranking-v2:17',
             },
-            questionStatus: { state: 'available', value: 'qa-ranking-v1:17' },
+            questionStatus: { state: 'available', value: 'qa-ranking-v2:17' },
             questionAnswerState: { state: 'unavailable', reason: 'not-collected' },
             questionNlp: { state: 'available', value: candidateProjection.nlpRevision },
             topics: projection.revision,
@@ -426,7 +418,7 @@ describe('moderationQaContext N7', () => {
             statuses: ['PENDING', 'ACTIVE', 'PINNED'],
             timeWindow: { kind: 'entire-session' },
           },
-          activeWeighting: { kind: 'qa-ranking', version: 'qa-ranking-v1', sortMode: 'BEST' },
+          activeWeighting: { kind: 'qa-ranking', version: 'qa-ranking-v2', sortMode: 'BEST' },
           selectionLimits: {
             questions: 200,
             topics: 30,
@@ -453,7 +445,6 @@ describe('moderationQaContext N7', () => {
     const projection = await collectQaTopicContext({
       tx: txWithTopicRows([], topicRows()),
       state: state(),
-      participantCount: 200,
       candidates: candidateProjection,
       snapshot: topicSnapshot({
         members: topicMembers,
@@ -487,6 +478,33 @@ describe('moderationQaContext N7', () => {
     });
   });
 
+  it.each([
+    ['17:200', 'stale'],
+    ['17:qa-ranking-v2', 'current'],
+  ] as const)(
+    'checks the controversy ranking version in semantic snapshot %s',
+    async (corpusRevision, freshness) => {
+      const candidateProjection = await candidates();
+      const projection = await collectQaTopicContext({
+        tx: txWithTopicRows([], topicRows()),
+        state: state({ activeSortMode: 'CONTROVERSIAL' }),
+        candidates: candidateProjection,
+        snapshot: topicSnapshot({
+          metric: 'CONTROVERSIAL',
+          corpusRevision,
+          members: topicMembers,
+          labelSourceQuestionId: QUESTION_B,
+        }),
+        semanticEnabled: true,
+      });
+
+      expect(projection.topics).toMatchObject({
+        state: 'available',
+        freshness: { state: freshness, analysisRevision: corpusRevision },
+      });
+    },
+  );
+
   it('omits a whole topic and marks it stale when any member changed', async () => {
     const candidateProjection = await candidates();
     const changedRows = topicRows().map((member) =>
@@ -495,7 +513,6 @@ describe('moderationQaContext N7', () => {
     const projection = await collectQaTopicContext({
       tx: txWithTopicRows([], changedRows),
       state: state(),
-      participantCount: 200,
       candidates: candidateProjection,
       snapshot: topicSnapshot({
         members: topicMembers,
@@ -526,7 +543,6 @@ describe('moderationQaContext N7', () => {
     const projection = await collectQaTopicContext({
       tx: txWithTopicRows([], [topicRows()[1]]),
       state: state(),
-      participantCount: 200,
       candidates: candidateProjection,
       snapshot: topicSnapshot({
         members: singleton,
@@ -550,7 +566,6 @@ describe('moderationQaContext N7', () => {
     const disabled = await collectQaTopicContext({
       tx,
       state: state(),
-      participantCount: 200,
       candidates: candidateProjection,
       snapshot: null,
       semanticEnabled: false,
@@ -558,7 +573,6 @@ describe('moderationQaContext N7', () => {
     const absent = await collectQaTopicContext({
       tx,
       state: state(),
-      participantCount: 200,
       candidates: candidateProjection,
       snapshot: null,
       semanticEnabled: true,
