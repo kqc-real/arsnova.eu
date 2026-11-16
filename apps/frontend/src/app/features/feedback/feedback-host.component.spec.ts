@@ -154,6 +154,7 @@ describe('FeedbackHostComponent', () => {
     ) as HTMLButtonElement;
     const liveSync = actions.querySelector('[data-testid="feedback-live-results"]') as HTMLElement;
     expect(stop.textContent).toContain('Stopp');
+    expect(presenter.hasAttribute('mat-button')).toBe(true);
     expect(presenter.textContent).toContain('Präsentationsansicht');
     expect(presenter.getAttribute('aria-label')).toBe('Zur Präsentationsansicht wechseln');
     expect(liveSync.textContent).toContain('Live-Sync');
