@@ -105,3 +105,10 @@ prozentualer Eigenanteil und keine Zuschreibung des KI-Codes als handgeschrieben
 Der abschließende Branch-Abgleich nach `final-prompt-for-git-diff.md`,
 aktuelle PR-Prüfungen und der Merge sind separat zu belegen. Dieser Abschnitt
 behauptet weder einen bereits erfolgten Merge noch aktuell grüne vollständige CI.
+
+_Ergänzt 2026-11-16:_ Der [abschließende Beitragsabgleich](1B-3u4-beitragsabgleich.md)
+ist durchgeführt und dokumentiert, einschließlich Branch-/Merge-Base,
+Anforderungszuordnung, Tests und Prüflücken. [PR-Beschreibung](1B-3u4-pr-beschreibung.md)
+nach vollständigem Template vorbereitet. Ausstehend bleiben erfolgreiche
+erforderliche PR-Prüfungen und der manuelle Merge; kein weiterer fachlicher
+Laborlauf für den vereinbarten Umfang.

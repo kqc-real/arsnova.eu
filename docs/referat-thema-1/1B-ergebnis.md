@@ -365,3 +365,10 @@ ausgegeben; ein allgemeiner Isolationsgewinn ist nicht nachgewiesen.
 _Ergänzt 2026-11-16:_ Der beauftragte [Laborabbau](evidenz/1B/2026-11-16-laborabbau.md)
 ist bestätigt: beide VMs, Disks, Switch und NAT entfernt; anschließend
 Image-Cache und leerer VM-Ordner entfernt. Messbelege bleiben lokal erhalten.
+
+_Ergänzt 2026-11-16:_ Der zuvor offene Branch-/Beitragsabgleich ist jetzt
+[dokumentiert](1B-3u4-beitragsabgleich.md); die
+[PR-Beschreibung](1B-3u4-pr-beschreibung.md) ist lokal vorbereitet. Fachlicher
+Umfang und Beitragsdokumentation sind bearbeitet, erforderliche PR-Prüfungen
+und Merge stehen aus. Der Abgleich weist die verbleibenden lokalen Prüfprobleme
+aus; keine pauschal grüne CI behaupten.

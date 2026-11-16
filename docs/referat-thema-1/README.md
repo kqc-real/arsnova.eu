@@ -302,3 +302,7 @@ dokumentiert. Geplanter S1-Messumfang abgeschlossen.
 
 _Ergänzt 2026-11-16:_ [Abschluss und Laborabbau](evidenz/1B/2026-11-16-laborabbau.md):
 VMs, Netz und Image-Cache entfernt; Messbelege erhalten.
+
+_Ergänzt 2026-11-16:_ Abschluss von 1B Schritte 3–4:
+[Beitragsabgleich](1B-3u4-beitragsabgleich.md) und
+[PR-Beschreibung nach Template](1B-3u4-pr-beschreibung.md).
