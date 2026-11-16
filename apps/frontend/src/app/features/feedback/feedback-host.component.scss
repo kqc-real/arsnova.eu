@@ -2499,6 +2499,20 @@ $round2-color: var(--mat-sys-primary);
   overflow-wrap: anywhere;
 }
 
+.feedback-host__presenter-control {
+  --app-presenter-icon-size: 1.125rem;
+}
+
+.feedback-host__presenter-control > app-presenter-icon {
+  margin-right: var(--mat-button-text-icon-spacing, 8px);
+  margin-left: var(--mat-button-text-icon-offset, -4px);
+}
+
+[dir='rtl'] .feedback-host__presenter-control > app-presenter-icon {
+  margin-right: var(--mat-button-text-icon-offset, -4px);
+  margin-left: var(--mat-button-text-icon-spacing, 8px);
+}
+
 .feedback-host__shortcut {
   margin-inline-start: 0.35rem;
 }

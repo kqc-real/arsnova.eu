@@ -157,6 +157,7 @@ describe('FeedbackHostComponent', () => {
     expect(presenter.textContent).toContain('Präsentationsansicht');
     expect(presenter.getAttribute('aria-label')).toBe('Zur Präsentationsansicht wechseln');
     expect(liveSync.textContent).toContain('Live-Sync');
+    expect(actions.firstElementChild).toBe(presenter);
 
     stop.click();
     presenter.click();

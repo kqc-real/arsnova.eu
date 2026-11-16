@@ -903,6 +903,22 @@
       </section>
       @if (embeddedInSession()) {
         <div class="feedback-host__round-primary">
+          @if (presenterActionOffered()) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="feedback-host__presenter-control"
+              data-testid="open-presenter-view"
+              (click)="presenterRequested.emit()"
+              [disabled]="presenterActionPending()"
+              [disabledInteractive]="true"
+              [attr.aria-busy]="presenterActionPending()"
+              [attr.aria-label]="presenterActionAriaLabel() || presenterActionLabel()"
+            >
+              <app-presenter-icon matButtonIcon />
+              <span>{{ presenterActionLabel() }}</span>
+            </button>
+          }
           <ng-container *ngTemplateOutlet="tempoViewToggle" />
           <ng-container *ngTemplateOutlet="feedbackRoundTransition" />
           <ng-container *ngTemplateOutlet="feedbackResetAction" />
@@ -921,22 +937,6 @@
             <span>{{ lockToggleLabel() }}</span>
             <kbd class="feedback-host__shortcut" aria-hidden="true">→</kbd>
           </button>
-          @if (presenterActionOffered()) {
-            <button
-              mat-stroked-button
-              type="button"
-              class="feedback-host__presenter-control"
-              data-testid="open-presenter-view"
-              (click)="presenterRequested.emit()"
-              [disabled]="presenterActionPending()"
-              [disabledInteractive]="true"
-              [attr.aria-busy]="presenterActionPending()"
-              [attr.aria-label]="presenterActionAriaLabel() || presenterActionLabel()"
-            >
-              <app-presenter-icon matButtonIcon />
-              <span>{{ presenterActionLabel() }}</span>
-            </button>
-          }
           <ng-container *ngTemplateOutlet="feedbackLiveSyncControl" />
           <button
             #roundSettingsTrigger
