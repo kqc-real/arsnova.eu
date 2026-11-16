@@ -64,14 +64,311 @@ H_B1–H_B3 erfüllt, daher nach der Regel aus [Design Abschnitt 6](specs/2026-1
 
 ## Schritte 3–4 (Niklas)
 
-_Gliederung, Inhalt folgt von Niklas._ Übergabe und Befehle: [Runbook, Abschnitt 8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34).
+_Aktualisiert 2026-11-16: Zwischenergebnis, Schritte 3–4 noch offen._ Übergabe und Befehle: [Runbook, Abschnitt 8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34).
 
 ### Störversuche
 
+Auf dem i7-10700K unter Hyper-V, Ausführungscommit `5e758d0a`, liegen die
+[Normalreihe](evidenz/1B/2026-11-15-lauf-normal-summary.md) und die gewertete
+[F1-/B0-Reihe](evidenz/1B/2026-11-15-lauf-f1-summary.md) für Summary vor.
+Die F1-Reihe bestätigt RST und schnellen extraktiven Fallback; Rücknahme und
+Nachprüfungen sind belegt. Die Normalreihe verwirft weiterhin sämtliche
+Modellzusammenfassungen am Qualitätstor. Weitere Störvarianten, Label-Reihen
+und der gerichtete Queue-/Breaker-Nachweis stehen aus.
+
+_Ergänzt 2026-11-16:_ Die erste
+[F2-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-f2-summary.md) ist kein
+DROP-Nachweis: ufw übersprang die Regel, die Inferenz blieb erreichbar.
+Die Aktivierungsprüfung wurde lokal korrigiert; eine wirksame F2-Reihe fehlt weiterhin.
+
+_Ergänzt 2026-11-16:_ Die
+[zweite F2-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-f2-summary-v2.md)
+bestätigt nun die DROP-Wirkung des korrigierten Helfers auf der VM sowie
+erfolgreiche Rücknahme und Nachprüfungen. Die gewertete F2-Reihe bleibt offen.
+
+_Ergänzt 2026-11-16:_ Die [gewertete F2-Summary-Reihe](evidenz/1B/2026-11-16-lauf-f2-summary.md)
+ist abgeschlossen und ausgewertet: wirksamer DROP bei allen Aufträgen,
+Fallback innerhalb des Budgets, Live-Last ohne Fehler und erfolgreiche
+Wiederherstellung. Der offengelegte versionsübergreifende Vergleich bestätigt
+den Unterschied zu F1; die Beitrittslatenz überschreitet jedoch die
+vorab festgelegte p95-Schwelle. Zahlen, Auswertungsstand und Grenzen stehen im
+Laufprotokoll. Label-F2 und weitere Störvarianten bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die
+[L3-Summary-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-l3-summary.md)
+bestätigt erstmals den verzögerten Fake auf den VMs, den Timeout-Fallback und
+die Wiederherstellung der echten Runtime. Die gewertete L3-Reihe bleibt offen;
+die Einzelprobe belegt keinen internen Breaker-Zustand.
+
+_Ergänzt 2026-11-16:_ Die [gewertete L3-Summary-Reihe](evidenz/1B/2026-11-16-lauf-l3-summary.md)
+ist erhoben und ausgewertet. Alle Aufträge erreichen den Timeout-Fallback
+innerhalb der Toleranz; Live-Fehlerkriterium und Wiederherstellung bestehen.
+Das Live-Latenzkriterium besteht wegen der Blitzlicht-p95 nicht vollständig.
+Versionsvergleich, Client-/Job-Zeitunterschied und die begrenzte
+Runtime-Ressourcenaufzeichnung sind im Protokoll offengelegt. Label-L3 und
+gerichteter Queue-/Breaker-Nachweis bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die
+[Slot-belegt-Summary-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-busy-summary.md)
+bestätigt den Busy-Fallback nach HTTP 503 bei der Slot-Abfrage, ohne
+Completion-POST. Wiederherstellung bestanden; die gewertete Busy-Reihe bleibt
+offen. Keine Aussage zum internen Circuit Breaker aus der Einzelprobe.
+
+_Ergänzt 2026-11-16:_ Die [gewertete Slot-belegt-Summary-Reihe](evidenz/1B/2026-11-16-lauf-busy-summary.md)
+ist ausgewertet. Alle Jobs zeigen den erwarteten Busy-Fallback ohne
+Completion-POST, Live-Fehlerkriterium und Wiederherstellung bestehen.
+Beitritts- und Blitzlicht-p95 überschreiten die festgelegte Latenzschwelle.
+Zahlen, Versionsprüfung und Grenzen stehen im Protokoll. Damit liegen die
+geplanten Summary-Reihen Normal, F1/B0, F2, L3 und Slot-belegt vor;
+Label-Reihen und gerichteter Queue-/Breaker-Nachweis bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die [erste Label-Normalprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label.md)
+ist nach erfolgreicher Encoder-Einrichtung am fehlenden Label-Nachweis
+abgebrochen. Kein vollständiges Messfenster und keine gewertete Baseline.
+Ursache noch offen; Labordiagnose ergänzt. Encoder und SEMANTIC bleiben aktiv,
+Dienste sind nach dem Abbruch gesund. Node-Version und effektiver
+Encoder-Timeout sind vor gewerteten Label-Reihen zusätzlich zu klären.
+
+_Ergänzt 2026-11-16:_ Die [Label-Diagnoseprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label-diagnose.md)
+zeigt den übersprungenen LLM-Pfad nach einem Semantic-Cluster-Fallback.
+Der Label-Testkorpus wurde lokal korrigiert; VM-Nachweis steht aus.
+Die App läuft bereits mit Node 24, die VM-Helfer noch mit Node 22.
+Deren Umstellung erfolgt vor dem nächsten Label-Test; keine neue gewertete
+Baseline und keine Aussage zur semantischen Modellqualität.
+
+_Ergänzt 2026-11-16:_ Die [Node-24-Umstellung beider VMs](evidenz/1B/2026-11-16-node24-upgrade.md)
+ist ausgeführt und nachgeprüft. Dienste gesund; der VM-Nachweis für den
+korrigierten Label-Korpus bleibt offen. Noch keine gewertete Label-Baseline.
+
+_Ergänzt 2026-11-16:_ Die [Label-Probe v2](evidenz/1B/2026-11-16-lauf-dev-normal-label-v2.md)
+bestätigt den korrigierten Korpus mit tatsächlicher Inferenz und übernommener
+Label-Antwort. Vollständige Live-/Ressourcenmessung und Dienstprüfungen.
+Vor der gewerteten Baseline sind die lokal korrigierte Manifest-Erfassung
+und Korpusauswahl regulär zu committen; die Probe bleibt Entwicklung.
+
+_Ergänzt 2026-11-16:_ Die [gewertete Label-Normalreihe Teil 1](evidenz/1B/2026-11-16-lauf-normal-label-01.md)
+auf `7c64dd6a` liegt vollständig vor, einschließlich bestätigter Manifest-
+Erfassung, übernommener Modellantworten und vollständiger Messfenster.
+Zehn von 30 geplanten Normalaufträgen erhoben. Passende Label-B0/F1-Referenz,
+weitere Normalaufträge und Störreihen stehen aus; noch kein Label-Isolationsurteil.
+
+_Ergänzt 2026-11-16:_ Auch die [Label-Normalreihe Teil 2](evidenz/1B/2026-11-16-lauf-normal-label-02.md)
+ist vollständig ausgewertet, mit kompatiblem Manifest zu Teil 1 und bestandenen
+Dienstprüfungen. Damit liegen 20 von 30 geplanten Label-Normalaufträgen vor.
+Teil 3 und die eigene Label-B0/F1-Referenz stehen aus; weiterhin kein
+Label-Isolationsurteil. Messwerte und gemeinsame Einordnung im Protokoll.
+
+_Ergänzt 2026-11-16:_ [Teil 3 und Gesamtauswertung der Label-Normalreihe](evidenz/1B/2026-11-16-lauf-normal-label-03.md)
+liegen vollständig vor. Damit ist die geplante Normalreihe abgeschlossen.
+Die eigene Label-B0/F1-Referenz ist der nächste Schritt; Störreihen und
+Isolationsurteil bleiben offen. Zahlen, Manifestprüfung und Messgrenzen im
+Protokoll. Schritt 3 insgesamt ist noch nicht abgeschlossen.
+
+_Ergänzt 2026-11-16:_ Die [eigene F1/B0-Label-Referenz und der Normalvergleich](evidenz/1B/2026-11-16-lauf-f1-label.md)
+liegen vor, einschließlich tatsächlicher RST-Netzversuche und bestandener
+Wiederherstellung. Normal/Label gegenüber dieser Referenz zeigt keine
+zusätzlichen Live-Fehler, überschreitet aber die vorab festgelegte
+Beitritts-p95-Schwelle. H2-Latenz ist in diesem Vergleich nicht erfüllt;
+kein allgemeiner Isolationsnachweis. Zahlen, Teilreihenabweichungen und
+Kausalitätsgrenzen im Protokoll. Weitere Störreihen bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die [L1-Entwicklungsprobe für Labels](evidenz/1B/2026-11-16-lauf-dev-l1-label.md)
+bestätigt die Verzögerung im Mitschnitt und den funktionierenden Label-Pfad.
+Vollständige Messung und erfolgreiche Rücknahme; keine gewerteten L1-Daten.
+Als Nächstes erste gewertete L1-Teilreihe nach gesonderter Freigabe.
+
+_Ergänzt 2026-11-16:_ [L1/Label Teil 1](evidenz/1B/2026-11-16-lauf-l1-label-01.md)
+ist vollständig ausgewertet. Verzögerung und Wiederherstellung bestätigt;
+keine zusätzlichen Live-Fehler, Latenzschwellen bei Beitritt und Blitzlicht
+überschritten. Zahlen und Kausalitätsgrenzen im Protokoll. Zweite Hälfte der
+L1-Reihe bleibt offen.
+
+### Aufgabenabdeckung Schritte 3–4, abgeglichen am 2026-11-16
+
+Abgleich mit [Issue #9](https://github.com/NiklasSkulll/arsnova.eu/issues/9),
+[Prüfungsrahmen](00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)
+und [Aufteilung](01-aufteilung.md#entscheidung-2026-10-23).
+Niklas bearbeitet Schritte 3–4; das übernommene Labor aus Schritten 1–2
+ist Voraussetzung, kein Ersatz für die eigene Nachweiskette.
+
+| Teil                                                                           | Stand                                                            | Beleg                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vorabplanung, Hypothesen, Schwellen                                            | dokumentiert                                                     | [Planung](1B-3u4-Planung.md)                                                                                                                                                                              |
+| Deterministischer Fake, Störungshelfer, Live-/CPU-/RSS-Erfassung und Vergleich | implementiert, lokale Tests vorhanden, mehrere VM-Pfade erprobt  | [Runbook §8–9](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34)                                                                                                                                    |
+| Normal/Summary                                                                 | erhoben und ausgewertet; Qualitätsfallback trotz echter Inferenz | [Normalprotokoll](evidenz/1B/2026-11-15-lauf-normal-summary.md)                                                                                                                                           |
+| F1, F2, L3, Slot belegt / Summary                                              | geplante Reihen erhoben und ausgewertet                          | [F1](evidenz/1B/2026-11-15-lauf-f1-summary.md), [F2](evidenz/1B/2026-11-16-lauf-f2-summary.md), [L3](evidenz/1B/2026-11-16-lauf-l3-summary.md), [Slot belegt](evidenz/1B/2026-11-16-lauf-busy-summary.md) |
+| Normal/Label                                                                   | geplante Reihe vollständig                                       | [Gesamtauswertung](evidenz/1B/2026-11-16-lauf-normal-label-03.md)                                                                                                                                         |
+| F1/B0 / Label                                                                  | eigene Referenz vollständig, Normalvergleich ausgewertet         | [F1/B0 Label](evidenz/1B/2026-11-16-lauf-f1-label.md)                                                                                                                                                     |
+| L1 / Label                                                                     | erste Hälfte vollständig, zweite Hälfte offen                    | [Teil 1](evidenz/1B/2026-11-16-lauf-l1-label-01.md)                                                                                                                                                       |
+| L2 / Label                                                                     | offen, zuerst Entwicklungsprobe mit Wirkungsnachweis             | [Planung](1B-3u4-Planung.md)                                                                                                                                                                              |
+| L3, F2, Slot belegt / Label                                                    | offen                                                            | [Planung](1B-3u4-Planung.md)                                                                                                                                                                              |
+| Gerichteter Queue-/Breaker-Nachweis                                            | offen; lange Abstände der bisherigen Reihen reichen nicht        | [Runbook](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34)                                                                                                                                         |
+| Race zwischen Slot-Sonde und POST                                              | optional, noch offen                                             | [Issue #9](https://github.com/NiklasSkulll/arsnova.eu/issues/9)                                                                                                                                           |
+| Schritt 4: S1, Betriebsaufwand, begründete Entscheidung                        | offen                                                            | [Dossier §10–11](1B-private-inferenz-zweiter-host.md#11-betriebsaufwand-bewertung)                                                                                                                        |
+| Abschluss: Autorenprüfung, eigener Anteil/KI, PR und Merge                     | offen                                                            | [Eigenanteil](1B-eigenanteil.md#schritte-34-niklas)                                                                                                                                                       |
+
+Die eigene Nachweiskette ist damit weit fortgeschritten, insgesamt aber
+unvollständig. Keine pauschale Isolationsbestätigung aus fehlenden Live-Fehlern:
+Latenzschwellen wurden mehrfach überschritten. Interne Label-Fallback-Zeiten
+und Transportanteil sind weiterhin nur eingeschränkt bzw. nicht nachgewiesen.
+Issue-Checkboxen bleiben unverändert; Tabellenstand beschreibt die lokale Evidenz.
+
+_Ergänzt 2026-11-16:_ [L1 Teil 2 und Gesamtvergleich](evidenz/1B/2026-11-16-lauf-l1-label-02.md)
+schließen die L1-Reihe ab. Teil 2 hält die Latenzschwellen ein; gemeinsam mit
+Teil 1 sind sie bei Beitritt und Blitzlicht überschritten. Keine zusätzlichen
+Live-Fehler, vollständige Messungen und bestandene Wiederherstellung.
+
+_Aktualisiert 2026-11-16 auf Wunsch von Niklas:_ Der [gekürzte Restplan](1B-3u4-Planung.md#nachtrag-2026-11-16-l1-abgeschlossen-restumfang-auf-pflichtnachweise-begrenzt)
+ersetzt die offenen Umfangsvorschläge der vorstehenden Übersicht: L1 ist
+abgeschlossen; L2, L3/Label und F2/Label erhalten jeweils drei Aufträge.
+Race und zusätzliche Slot-belegt-Label-Reihe entfallen. Pflichtnachweise zu
+Queue/Breaker, Transport, S1 und Betriebsentscheidung bleiben bestehen.
+Kleine Wiederholungszahlen begrenzen die Aussagekraft, Schwellen bleiben gleich.
+
+_Ergänzt 2026-11-16:_ [L2/Label](evidenz/1B/2026-11-16-lauf-l2-label.md)
+ist mit dem vorab reduzierten Umfang vollständig. Tatsächliche Verzögerung
+bestätigt, Label-Antworten übernommen, Messfenster vollständig und
+Wiederherstellung bestanden. H2-Fehler und H2-Latenz für diese kleine Reihe
+erfüllt; kein allgemeiner Isolationsnachweis daraus. Normal-/L1-Befunde bleiben
+erhalten. Im gekürzten Label-Programm stehen noch L3 und F2 aus.
+
+_Ergänzt 2026-11-16:_ [L3/Label](evidenz/1B/2026-11-16-lauf-l3-label.md)
+ist mit dem vorab reduzierten Umfang vollständig. Verzögerter POST-Pfad und
+transientes Label-Ergebnis beobachtet, vollständige Messfenster und bestandene
+Wiederherstellung. H2-Fehler/Latenz für diese Reihe erfüllt; interne
+Fallback-Frist bleibt wegen fehlender API-Zeiten nicht vollständig prüfbar.
+Im gekürzten Label-Programm steht nur noch F2 aus. Gerichteter Queue-/Breaker-
+Nachweis, Transportauswertung und Schritt 4 bleiben separat offen.
+
+_Ergänzt 2026-11-16:_ [F2/Label](evidenz/1B/2026-11-16-lauf-f2-label.md)
+ist vollständig ausgewertet, einschließlich bestätigtem Kernel-DROP,
+Netzversuchen und bestandener Wiederherstellung. Keine zusätzlichen Live-
+Fehler, Latenzschwellen bei Beitritt und Blitzlicht überschritten. Das
+gekürzte Label-Programm ist abgeschlossen. Schritt 3 insgesamt bleibt wegen
+gerichtetem Queue-/Breaker-Nachweis und offener Transportauswertung
+unvollständig; Schritt 4 folgt separat. Interne Label-Zeitkriterien bleiben
+mangels API-Zeiten nicht bewertbar.
+
+_Ergänzt 2026-11-16:_ Die [gerichtete F1-Breaker-Kontrolle](evidenz/1B/2026-11-16-lauf-breaker-f1-summary.md)
+ist bestätigt: drei tatsächliche RST-Fehler, danach `circuit_open` ohne neuen
+Netzversuch. Wiederherstellung bestanden. Das belegt die zählende
+Kontrollfolge, beantwortet aber noch nicht H-Queue. Als Nächstes dieselbe
+kurze Folge mit L3-Timeouts, ohne zusätzliche lange Live-Fenster.
+
+_Ergänzt 2026-11-16:_ Der [gerichtete H-Queue-Nachweis mit F1-Kontrolle](evidenz/1B/2026-11-16-lauf-breaker-l3-summary.md)
+ist ausgewertet. Anders als bei den zählenden F1-Fehlern erreicht auch der
+vierte Queue-Timeout-Auftrag erneut die Runtime. Das stützt H-Queue für den
+beobachteten Ablauf; interner `aborted`-Status nicht direkt ausgelesen,
+Codebezug und Timer-Grenzen im Protokoll. Wiederherstellung bestanden.
+Keine weiteren optionalen Breaker-Versuche geplant. Transportauswertung
+und Schritt 4 bleiben offen; kein vorschneller Gesamtabschluss von Schritt 3.
+
+_Aktualisiert 2026-11-16:_ Die [Offline-Transportauswertung](evidenz/1B/2026-11-16-transportauswertung.md)
+schließt die zuvor offene Transportbetrachtung: tatsächliche Runtime-Timings
+aller Label-Normalaufträge mit Drahtzeiten zugeordnet, eigene Summary-
+Zerlegung reproduziert. Die Label-Transportschwelle ist im beobachteten
+Normalbetrieb unterschritten; kein neuer Laborlauf. Frühere Hinweise auf
+fehlende Label-Inferenzzeiten beschreiben die API und den damaligen
+Auswertungsstand; die Normal-Inferenzzeiten konnten nun aus den vorhandenen
+Runtime-Antworten gewonnen werden. Interne Label-Fallback-Zeiten bleiben
+weiterhin nicht direkt messbar.
+
+Schritt 3 ist für den vereinbarten gekürzten Umfang inhaltlich bearbeitet.
+Die Latenzschwellen sind mehrfach nicht erfüllt, weshalb ein allgemeiner
+Isolationsgewinn nicht bestätigt wird. Autorenprüfung und Eigenanteil/KI
+bleiben offen; Schritt 4 mit S1 und Betriebsentscheidung sowie PR/Merge
+sind hiermit nicht abgeschlossen.
+
 ### Rückwirkung auf den App-Host
 
+Live-Fenster und CPU/RSS sind in beiden Reihen vollständig, ohne Live-Fehler.
+Der getrennte Normal-zu-F1-Vergleich überschreitet bei Quizstimmen die
+festgelegte p95-Schwelle. Messwerte und Gültigkeitsgrenzen stehen im
+[F1-Protokoll](evidenz/1B/2026-11-15-lauf-f1-summary.md#live-last-und-app-ressourcen).
+Ein allgemeiner Isolationsgewinn ist damit noch nicht nachgewiesen; die weiteren
+Varianten werden gegen die vorab vorgesehene B0/F1-Referenz geprüft.
+
+_Ergänzt 2026-11-16:_ Für Labels ist die eigene B0/F1-Referenz inzwischen
+vorhanden; auch hier besteht der Normalvergleich die Latenzschwelle nicht.
+Der [Label-Vergleich](evidenz/1B/2026-11-16-lauf-f1-label.md#normalreihe-gegenüber-eigener-b0f1-referenz)
+enthält die getrennte Auswertung. Der ältere Summary-Befund bleibt erhalten.
+
+_Ergänzt 2026-11-16:_ S1 für Schritt 4 ist [lokal vorbereitet](evidenz/1B/runbook.md#10-s1-same-host-vergleich-schritt-4):
+temporärer eigener App-Stack auf llm-host, gleiche Images, dokumentierte
+Kapazitätsabweichung, begrenzte ufw-Bridge-Freigabe und automatische Rücknahme.
+Lokale Tests bestanden; VM-Probe und gewerteter S1-Vergleich noch offen.
+Keine S1-Messwerte oder Betriebsentscheidung aus der Implementierung ableiten.
+
 ### Betriebsaufwand
+
+Bewertung folgt nach den Störreihen. Noch keine abschließende Entscheidung
+zum Verhältnis von Isolationsgewinn und Aufwand der zweiten Serverrolle.
 
 ## Gemeinsames Kurzfazit
 
 _Platzhalter, nach beiden Hälften gemeinsam._
+
+_Ergänzt 2026-11-16:_ Die [S1-Entwicklungsprobe Label](evidenz/1B/2026-11-16-lauf-dev-s1-label.md)
+bestätigt inzwischen den neuen VM-Pfad einschließlich Modellantwort,
+Messfenstern und Rücknahme beider Hostrollen. Sie ist ungewertet;
+gewertete S1-Reihen und Betriebsentscheidung stehen weiterhin aus.
+Vor diesen Reihen ist ein regulärer Commit der neuen S1-Werkzeuge nötig.
+
+_Ergänzt 2026-11-16:_ Die [gewertete S1-Label-Reihe](evidenz/1B/2026-11-16-lauf-s1-label.md)
+ist ausgewertet: Modellantworten übernommen, keine Live-Fehler, vollständige
+Messfenster und bestätigte Rücknahme. Die p95-Schwelle gegenüber der
+Zwei-Host-Normalreferenz wird bei Beitritt und Quizstimme überschritten,
+bei QA-Beitrag und Blitzlicht eingehalten. Kein pauschaler Topologievorteil;
+Kapazitäts- und Platzierungsgrenzen bleiben bestehen. S1-Summary sowie
+Betriebsbewertung und Entscheidung stehen noch aus.
+
+_Ergänzt 2026-11-16:_ Auch [S1-Summary](evidenz/1B/2026-11-16-lauf-s1-summary.md)
+ist ausgewertet: keine zusätzlichen Live-Fehler, alle p95-Schwellen
+eingehalten, vollständige Messungen und bestandene Rücknahme. Alle
+Zusammenfassungen landen wie die Zwei-Host-Normalreferenz im extraktiven
+Fallback wegen `invalid_response`; keine erfolgreiche Modellqualität
+behaupten. Der geplante S1-Messumfang ist damit abgeschlossen. Gemischte
+Label-/Summary-Befunde und Kapazitätsgrenzen erlauben keine pauschale
+Topologieempfehlung. Betriebsbewertung, Entscheidung, Autorenprüfung und
+formaler Abschluss stehen noch aus.
+
+_Ergänzt 2026-11-16:_ Die Betriebsbewertung und Empfehlung stehen in
+[ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md): zweite Rolle
+nur durch betriebliche Trennung begründen, keinen allgemeinen Leistungs-
+oder Wirtschaftlichkeitsvorteil behaupten. Deployment, Updates, Monitoring,
+Token-Rotation und TLS sind qualitativ abgewogen; keine Produktionsänderung.
+Timeouts hostbezogen kalibrieren, Qualitätsfallbacks beobachten und bei
+Queue-Timeouts nicht allein auf den Breaker vertrauen. Schritt 4 ist damit
+inhaltlich ausgearbeitet, zur Prüfung durch Niklas. Autorenprüfung, Eigenanteil,
+abschließender Branch-Abgleich und PR/Merge bleiben offen.
+
+### Abschlussstand Schritte 3–4, bestätigt am 2026-11-16
+
+Niklas hat bestätigt, die Ergebnisse und Empfehlung gelesen und geprüft zu
+haben. Die älteren Zwischenstände bleiben als Verlauf erhalten; maßgeblich
+ist folgender Abschlussstand:
+
+| Anforderung aus Issue #9                                                   | Stand / Beleg                                                                                                                                                          |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hypothesen, Schwellen, eigene Normalreferenz und ausführbare Testwerkzeuge | Bearbeitet; [Planung](1B-3u4-Planung.md) und oben verlinkte Laufprotokolle. Fake nur für Störungen.                                                                    |
+| L1/L2, L3, F1, F2 und belegter Slot; Live-p95, Fehler und App-CPU/RSS      | Im vereinbarten Umfang ausgewertet. Negative Latenzbefunde bleiben bestehen; keine optionalen Race-Versuche.                                                           |
+| F1/RST gegenüber F2/DROP; Queue-/Breaker-Verhalten und Rücknahmen          | Beobachtet und erklärt; Grenzen interner Label-Zeiten und Queue-Zustände dokumentiert.                                                                                 |
+| Transportanteil und Gesamtlatenz                                           | [Offline-Auswertung](evidenz/1B/2026-11-16-transportauswertung.md) aus vorhandenen Originaldaten.                                                                      |
+| S1 und Betriebsentscheidung                                                | [Label](evidenz/1B/2026-11-16-lauf-s1-label.md), [Summary](evidenz/1B/2026-11-16-lauf-s1-summary.md), [ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md). |
+| Autorenprüfung und Abgrenzung Eigenanteil/KI                               | Prüfung bestätigt; [Beitragsdokumentation](1B-eigenanteil.md#schritte-34-niklas) ergänzt.                                                                              |
+| Formaler Abschluss                                                         | Abschließender Branch-/Beitragsabgleich, aktuelle PR-Prüfungen und Merge offen. Issue nicht als geschlossen erklären.                                                  |
+
+Fachliche Arbeit abgeschlossen, kein weiterer Laborlauf erforderlich.
+Unvollständig beobachtbare interne Kriterien werden nicht als bestanden
+ausgegeben; ein allgemeiner Isolationsgewinn ist nicht nachgewiesen.
+
+_Ergänzt 2026-11-16:_ Der beauftragte [Laborabbau](evidenz/1B/2026-11-16-laborabbau.md)
+ist bestätigt: beide VMs, Disks, Switch und NAT entfernt; anschließend
+Image-Cache und leerer VM-Ordner entfernt. Messbelege bleiben lokal erhalten.
+
+_Ergänzt 2026-11-16:_ Der zuvor offene Branch-/Beitragsabgleich ist jetzt
+[dokumentiert](1B-3u4-beitragsabgleich.md); die
+[PR-Beschreibung](1B-3u4-pr-beschreibung.md) ist lokal vorbereitet. Fachlicher
+Umfang und Beitragsdokumentation sind bearbeitet, erforderliche PR-Prüfungen
+und Merge stehen aus. Der Abgleich weist die verbleibenden lokalen Prüfprobleme
+aus; keine pauschal grüne CI behaupten.

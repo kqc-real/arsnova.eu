@@ -109,6 +109,90 @@ Mitschnitte enthalten den Runtime-Token im `Authorization`-Header und bleiben in
 
 Stand für Störversuche und Betriebsaufwand auf dem eigenen Rechner. Auftrag: Issue [#9](https://github.com/NiklasSkulll/arsnova.eu/issues/9). Schritt-für-Schritt unter Windows, auch mit Codex in WSL: [WINDOWS.md](vm/WINDOWS.md). Für Codex: [`AGENTS.md`, Abschnitt 1B-Labor für Agenten](../../AGENTS.md#1b-labor-für-agenten-codex-claude).
 
+_Ergänzt 2026-11-15 (Schritte 3–4):_ Die unten beschriebenen fehlenden
+Haken und manuellen Störbefehle sind der historische Übergabestand. Die neue
+Implementierung ersetzt diese Vorschläge; **auf den VMs noch nicht verifiziert**.
+Design, Schwellen und datierte Abweichungen stehen in der
+[Planung](../../1B-3u4-Planung.md).
+
+- Windows/WSL: `-LabStoerung normal|l1|l2|l3|f1|f2|busy|race`,
+  `-LabAuftrag summary|label|breaker-summary`, optional `-LabLive`.
+  Neue Experimentparameter verlangen `-LabTag` und gelten nur bei `lauf`.
+  Aus WSL ausschließlich `labor-wsl.sh`, Entwicklung mit `--arbeitsstand` und
+  `-LabTag dev-…`. Jeder Lauf und jede Störung braucht vorher Niklas' Zustimmung.
+- `l1`/`l2`: 50/500 ms zusätzliche Verzögerung nur für Antworten von Port 8080
+  zum app-host. `l3`: Fake mit Antwortverzögerung über dem Summary-Budget und dem
+  Label-Phasenbudget; `f1`: Runtime gestoppt; `f2`: ufw-DROP nur für
+  app-host → llm-host:8080. `busy`: Slots-API meldet 503 ohne Completion;
+  `race`: Slots frei, Completion antwortet 503. Der Fake ist keine Normalbaseline.
+- `fault-vm.mjs` reserviert ein Lease unter `~/labor-1b/stoerung-lease` im
+  llm-host und schreibt `stoerung-journal.jsonl`. Vorhandene fremde qdiscs werden
+  abgelehnt. `lauf.sh` übernimmt Rücknahme auch beim Abbruch und führt danach
+  `pruefen.sh` auf beiden VMs aus. Bei fehlgeschlagener Rücknahme/Prüfung:
+  **nicht weiter messen**, Journal und Lease prüfen; kein bestandener Abschluss.
+  SIGKILL/Stromausfall kann keinen EXIT-Trap ausführen: vorhandenes Lease erst
+  nach gesonderter Zustimmung über den Wrapper zurücknehmen und `pruefen` ausführen.
+- `-LabLive` erzeugt pro Auftrag ein separates Live-Szenario mit 500 Ankünften,
+  90-s-Rampe, Ergebnisfreigabe bei 270 s, Fenster 330 s. Das ist die
+  Ankunftswelle aus 1A mit verlängertem Fenster, keine dauerhaft konstante
+  Konkurrenz von 500 Personen. CPU kommt aus cgroup-Deltas; RSS aus der Summe
+  der Prozess-RSS (`docker top arsnova-v3-app -eo pid,rss`), die gemeinsame Seiten mehrfach zählen kann.
+- Label-Läufe aktivieren den bestehenden Encoder über `label-setup.sh` im
+  app-host. Beim ersten Mal wird dessen Image gebaut (Download, zusätzliche
+  Zeit und Speicher); CPU-Limit entspricht den VM-vCPUs. Encoder und SEMANTIC
+  bleiben anschließend aktiv. Für vergleichbare Baselines dieselbe Konfiguration
+  verwenden; Image-ID wird erfasst. Je Label-Auftrag eine neue Session gegen
+  den sessionspezifischen Label-Cache. Fehlender Label-Pfad ist ein Fehler.
+- `breaker-summary` legt unterschiedliche Summary-Sessions vorab an und ruft sie
+  ohne Cooldown nacheinander ab; Kombination mit Live-Fenstern wird abgelehnt.
+  Der Breaker ist nur indirekt über Zeit und beobachtete Netzversuche sichtbar.
+- `experiment.json` enthält Jobs, Transportbeobachtungen und Live-Fenster;
+  `treiber.json` enthält zusätzlich Ressourcenproben. `rssError` kennzeichnet
+  RSS-Erfassungsfehler; fehlende RSS-Werte verhindern vollständige Messfenster. Fehlende Timings bleiben
+  `null`. Labels stellen weder internen Fallback-Grund noch Job-Zeit bereit;
+  diese Hypothese ist damit noch nicht vollständig messbar. TCP/HTTP-Felder
+  enthalten keine Header, die PCAPs enthalten weiterhin den Token und bleiben lokal.
+- Vergleich lokal, ohne VM-Zugriff:
+  `node docs/referat-thema-1/evidenz/1B/vergleichen.mjs BASIS/ergebnis.json VARIANTE/ergebnis.json`.
+  Verglichen werden nur passende Manifeste und vollständige Live-Fenster.
+  Live-p95 höchstens 110 % der sauberen Baseline, keine zusätzlichen Fehler;
+  F2/F1-Medianverhältnis über 10 nur für tatsächlich beobachtete Netzversuche.
+  `null` bedeutet nicht beurteilbar. L1/L2-Verzögerung muss zusätzlich anhand
+  Journal und Mitschnitt geprüft werden; ein konfigurierter Wert allein beweist sie nicht.
+
+_Korrigiert 2026-11-16 (F2):_ Ein ufw-Exitcode 0 bestätigt keine gesetzte
+DROP-Regel. Im ersten F2-Entwicklungstest wurde die bisherige Regel wegen einer
+bereits vorhandenen gleich adressierten Regel übersprungen; die Inferenz lief
+durch. Der korrigierte Helfer verwendet zusätzlich `in on <VM-Schnittstelle>`
+und bestätigt vor dem Treiberstart den ufw-Eintrag sowie den vorrangigen DROP in
+`ufw-user-input`. Rücknahme prüft auch die Kernelregeln. Die Korrektur ist lokal
+getestet, aber noch nicht in einem neuen Störversuch auf der VM bestätigt.
+Details und Daten im [F2-Protokoll](2026-11-16-lauf-dev-f2-summary.md).
+Für diese Korrektur ist ein neuer Ausführungscommit erforderlich; den alten
+Stand `5e758d0a` nicht erneut als wirksame F2-Störung verwenden.
+
+_Ergänzt 2026-11-16 (F2-VM-Nachweis):_ Die korrigierte Regel ist in der
+[zweiten Entwicklungsprobe](2026-11-16-lauf-dev-f2-summary-v2.md) mit
+Kernelprüfung und ausbleibenden TCP-Antworten bestätigt. Rücknahme und beide
+VM-Nachprüfungen sind bestanden. Die gewertete F2-Reihe steht noch aus.
+
+_Ergänzt 2026-11-16 (F2-Summary-Reihe):_ Die
+[gewertete F2-Summary-Reihe](2026-11-16-lauf-f2-summary.md) ist nun
+ausgewertet. Rücknahme und Nachprüfungen bestanden; das Live-Latenzkriterium
+ist wegen der Beitritte nicht vollständig erfüllt. Label-F2 bleibt offen.
+
+_Ergänzt 2026-11-16 (Label-Baseline):_ Die
+[Label-Probe v2](2026-11-16-lauf-dev-normal-label-v2.md) bestätigt den
+Korpus `label-identical-pair-v1`. Für Label verwenden neue Vergleiche nur
+Manifeste mit Node-Versionen, Korpuskennung und Settings aus dem laufenden
+App-Container. `lauf.sh` erfasst dazu `runtime-versions.json` und kennzeichnet
+`settingsSource=app-container-environment`. Der bisherige Dateiwert des
+Encoder-Timeouts wurde durch Compose überschrieben; alte Ergebnisse nicht
+nachträglich umschreiben. Lokale Regressionstests bestehen; erster VM-Lauf
+mit der neuen Erfassung steht aus. Label-Baseline erst auf regulärem Commit.
+
+Historischer Übergabestand:
+
 - **Branch:** Eigene Arbeit frisch von `main` abzweigen, etwa `git fetch origin && git switch -c <eigener-branch> origin/main`. Der in #9 genannte Branch `feature-1B-private-inference-3-4` stammt vom 2026-10-23 und enthält das Labor nicht; ob er ersetzt oder ein neuer Name genutzt wird, entscheidet Niklas.
 - **Begriffe und Vergleichswerte:** gemeinsame Zeitbegriffe (T_host … T_transport) in [ADR 1B-011](../../adr/1B-011-zeitbegriffe-und-leitfrage.md); Werte aus Schritt 2 (normaler Dienst, kalt und warm, C0, B0) im [1B-Ergebnis](../../1B-ergebnis.md), Rohdaten unter `messung/`. Absolute Zeiten anderer Rechner sind damit nicht vergleichbar, nur Verhältnisse; der normale Dienst wird deshalb auf dem eigenen Rechner neu gemessen.
 - **Wiederverwendbar:** `lauf.sh` (Mitschnitt auf beiden Hosts, Speicher-CSV der Runtime, Zeitzerlegung), `pruefen.sh` (Limits, Flags, Bind), der Treiber `treiber.mjs` und der Ausfall B0. **B0 entspricht F1 aus #9** (Container gestoppt, schneller Fehler); Vergleichswert H_B0 im 1B-Ergebnis. S1 (Same-Host) ist in Schritt 2 nicht gemessen; wer S1 für Schritt 4 braucht, misst es selbst.
@@ -136,3 +220,73 @@ pwsh -NoProfile -Command "Invoke-Pester -Path docs/referat-thema-1/evidenz/1B -O
 ```
 
 Die Pester-Tests brauchen Pester 5 (`Install-Module Pester -MinimumVersion 5`) und laufen auch unter Linux mit `pwsh`. `qualitaetstor.test.mjs` lädt das Qualitätstor der App über `tsx` aus `node_modules`; vorher einmal `npm ci` im Clone.
+
+## 10. S1-Same-Host-Vergleich (Schritt 4)
+
+_Ergänzt 2026-11-16:_ Neue Laborfunktion, lokal getestet, noch kein VM-Nachweis.
+Design und Ressourcenabweichungen im [S1-Nachtrag](../../1B-3u4-Planung.md#nachtrag-2026-11-16-s1-vorbereitung-für-schritt-4).
+Nur nach gesonderter Freigabe für jeden Lauf und die enthaltenen Neustarts.
+
+Aus WSL ausschließlich `labor-wsl.sh s1`. Erforderlich: `-LabAuftrag label`
+oder `summary`, `-LabN 1` bis `3`, Tag `s1-…` bzw. `dev-s1-…`, expliziter
+`-LabTimeoutMs` und `-LabLive`. Keine Kombination mit `-LabRuntimeAus` oder
+`-LabStoerung`. Entwicklungsprobe mit `--arbeitsstand`; gewertete Reihen erst
+nach regulärem Commit und erfolgreicher Probe.
+
+Ablauf: Repo synchronisieren, private Konfiguration über SSH übertragen,
+Image-IDs der bestehenden App-/DB-/Redis-/Worker-/Encoder-Container übernehmen
+und prüfen. Temporärer Compose-App-Stack auf llm-host, eigenes Projekt
+`arsnova-1b-s1`, eigene Volumes. Original-App auf app-host unverändert.
+Runtime bleibt die bestehende, mit frischem Start vor der Messung. HTTP zur
+privaten Adresse derselben VM, keine externe Portfreigabe. App-Ports nur Loopback.
+Keine Hyper-V-Änderung, kein `up`/`destroy` und kein neuer Modell-Download.
+
+Vorprüfung: Ziel `192.168.150.20`, acht vCPU, mindestens 9 GiB sichtbarer
+RAM und mindestens 4 GiB verfügbare RAM-/Plattenreserve. Vorhandene Container
+mit den App-Namen oder offenes Störungs-/S1-Lease führen zum Abbruch.
+Keine fremden Container übernehmen. Die eigene Bridge `br-1b-s1` nutzt
+`172.31.150.0/24`; vorhandene überlappende Docker-Netze werden abgelehnt.
+Die bestehende ufw erlaubt nur die ursprüngliche App-VM. S1 ergänzt daher
+vorübergehend diese eng begrenzte, separat freizugebende Regel:
+
+```bash
+sudo ufw insert 1 allow in on br-1b-s1 proto tcp from 172.31.150.0/24 to 192.168.150.20 port 8080 comment arsnova-1b-s1
+```
+
+Kernel-Regel vor der Messung prüfen, anschließend authentifizierte Slot-Abfrage
+aus dem tatsächlichen App-Container. Ohne beides kein Messstart. Journal
+unter `~/labor-1b/s1-journal.jsonl`, Kopie im Laufverzeichnis. Rücknahme:
+
+```bash
+sudo ufw --force delete allow in on br-1b-s1 proto tcp from 172.31.150.0/24 to 192.168.150.20 port 8080 comment arsnova-1b-s1
+```
+
+Keine Änderung der externen Schnittstelle oder der bisherigen App-VM-Regel.
+Derselbe private Postgres-Passwortbezug
+ist Voraussetzung für die Wiederverwendung eigener S1-Volumes.
+
+Jeder Auftrag nutzt das bestehende Live-/CPU-/RSS-Messfenster. Das S1-JSON
+hat absichtlich `topology=same-host-http` und ein eigenes Manifest mit
+`placement`, Quell-/Ziel-Image-IDs, Settings, Versionen, Modellhash sowie
+App-/Runtime-Neustart-/OOM-Beobachtung vor und nach der Messung. Treiber und
+Collector laufen auf llm-host. Nicht in das Zwei-Host-Manifest umetikettieren.
+Für einen beschreibenden Vergleich `evaluateLiveComparison` aus
+`experiment.mjs` auf `referenz.experiment.live` und `s1.treiber.live` anwenden;
+zusätzlich sämtliche Manifestabweichungen ausweisen. Der strikte
+`compareExperiments` wird nicht gelockert. Keine kapazitätsgleiche
+Kausalbehauptung aus 8 vCPU/10 GiB gegenüber 2+8 vCPU/4+10 GiB.
+
+Rücknahme: nur eigener Compose-Stack ohne `-v`, eigene ufw-Regel zurücknehmen, temporäre env-Datei löschen,
+Runtime frisch starten und prüfen, ursprünglichen App-Host prüfen. Erst danach
+Ergebnis exportieren. Fehlgeschlagene Rücknahme lässt `~/labor-1b/s1-lease`
+auf llm-host stehen und blockiert weitere Läufe. Bei Prozessabbruch/
+Verbindungsverlust den Zustand prüfen; Rücknahme erst separat freigeben:
+
+```bash
+bash docs/referat-thema-1/evidenz/1B/labor-wsl.sh vm llm 'cd arsnova.eu && bash docs/referat-thema-1/evidenz/1B/s1-host.sh undo'
+bash docs/referat-thema-1/evidenz/1B/labor-wsl.sh pruefen
+```
+
+Keine pauschale Löschung fremder Container/Volumes oder eines fremden Lease.
+PCAPs oder private env-Dateien werden für S1 nicht ins Repo übernommen;
+der Bericht enthält nur erlaubte Metadaten und synthetische Messwerte.

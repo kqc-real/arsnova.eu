@@ -11,13 +11,14 @@
 // Zwischen zwei Aufträgen wartet er den Cooldown ab, sonst käme das Ergebnis aus dem Cache
 // (requestQaSummary in apps/backend/src/lib/qaSummaryQueue.ts). Keine Tokens in der Ausgabe.
 import { writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { experimentConfig } from './experiment.mjs';
+import { summaryOperation, labelOperation } from './auftraege.mjs';
+import { measureOperation, LIVE_PROFILE } from './messfenster.mjs';
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
-import {
-  MODERATION_PROMPT_REFERENCE_RANKING_FIXTURE_V1 as RANKING,
-  MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1 as TEXTE,
-} from '@arsnova/shared-types';
+import { laborKorpus } from './korpus.mjs';
 import { createHttpTrpcSingle } from '../../../../scripts/load/lib/trpc-runtime.mjs';
 import { configureQaSessionIfNeeded } from '../../../../scripts/load/lib/configure-qa-if-needed.mjs';
 import { hostZugang } from './hostzugang.mjs';
@@ -41,6 +42,16 @@ const auftraege = Number(arg.auftraege);
 const teilnehmer = Number(arg.teilnehmer);
 const pauseMs = Number(arg['pause-ms']);
 const warteMaxMs = Number(arg['warte-max-ms']);
+const config = experimentConfig({
+  variant: process.env.LAB_STOERUNG || 'normal',
+  consumer: process.env.LAB_AUFTRAG || 'summary',
+  n: auftraege,
+  timeoutMs: Number(process.env.LAB_TIMEOUT_MS || 300000),
+  runtimeOff: process.env.LAB_RUNTIME_AUS === '1',
+  live: process.env.LAB_LIVE === '1',
+  tag: process.env.LAB_TAG || '',
+});
+const { id: fixtureId, texte: TEXTE, ranking: RANKING } = laborKorpus(config.consumer);
 const maxStimmen = Math.max(...RANKING.map((r) => r.positive + r.negative));
 if (teilnehmer < maxStimmen + 1) throw new Error(`mindestens ${maxStimmen + 1} Teilnehmende`);
 
@@ -181,51 +192,50 @@ async function szenarioAnlegen() {
     if (token !== aktuell.token) aktuell = { token, client: createHttpTrpcSingle(arg.trpc, token) };
     return aktuell.client;
   };
-  return { hostClient, sessionId, stimmen };
-}
-
-async function auftrag(hostClient, sessionId, index) {
-  const requestedAt = jetzt();
-  const t0 = performance.now();
-  const r0 = await (await hostClient()).qa.requestSummary.mutate({ sessionId, locale: arg.locale });
-  const hostReturnMs = Math.round(performance.now() - t0);
-  let rt = r0;
-  while (rt.result?.status === 'pending' || rt.result === null) {
-    if (performance.now() - t0 > warteMaxMs)
-      throw new Error(`Auftrag ${index}: kein Endstatus nach ${warteMaxMs} ms`);
-    await schlafe(1000);
-    rt = await (await hostClient()).qa.summaryRuntime.query({ sessionId });
-  }
-  const e = rt.result.execution;
-  return {
-    index,
-    requestedAt,
-    finishedAt: jetzt(),
-    hostReturnMs,
-    clientWaitMs: Math.round(performance.now() - t0),
-    status: rt.result.status,
-    attemptedMode: e.attemptedMode,
-    effectiveMode: e.effectiveMode,
-    fallbackReason: e.fallback?.reason ?? null,
-    fallbackRetry: e.fallback?.retry ?? null,
-    snapshotHash: rt.result.snapshotHash,
-    modelVersion: rt.result.modelVersion ?? null,
-    statements: rt.result.statements.length,
-  };
+  return { hostClient, sessionId, code, stimmen };
 }
 
 const startedAt = jetzt();
-const { hostClient, sessionId, stimmen } = await szenarioAnlegen();
-log(`Szenario fertig: ${TEXTE.length} Fragen, ${stimmen} Stimmen`);
+const firstScenario = await szenarioAnlegen();
+const { stimmen } = firstScenario;
+const breakerScenarios = [firstScenario];
+if (config.consumer === 'breaker-summary') {
+  for (let i = 1; i < auftraege; i++) breakerScenarios.push(await szenarioAnlegen());
+}
+log(`Szenario fertig: ${TEXTE.length} Fragen, ${stimmen} Stimmen, Korpus ${fixtureId}`);
 const ergebnisse = [];
 for (let i = 1; i <= auftraege; i += 1) {
-  if (i > 1) await schlafe(pauseMs);
+  if (i > 1 && config.consumer !== 'breaker-summary') await schlafe(pauseMs);
   log(`Auftrag ${i}/${auftraege}`);
-  const r = await auftrag(hostClient, sessionId, i);
+  const scenario =
+    config.consumer === 'breaker-summary'
+      ? breakerScenarios[i - 1]
+      : config.consumer === 'label' && i > 1
+        ? await szenarioAnlegen()
+        : firstScenario;
+  const execute = (signal) =>
+    (config.consumer === 'label' ? labelOperation : summaryOperation)({
+      ...scenario,
+      index: i,
+      locale: arg.locale,
+      waitMaxMs: warteMaxMs,
+      signal,
+    });
+  const measurement = config.live ? await measureOperation(execute, dirname(arg.out)) : null;
+  const r = measurement
+    ? {
+        ...measurement.result,
+        measurement: {
+          complete: measurement.complete,
+          resources: measurement.resources,
+          window: measurement.window,
+        },
+      }
+    : await execute();
   log(`  ${r.status} ${r.effectiveMode} ${r.fallbackReason ?? ''} ${r.clientWaitMs} ms`);
   ergebnisse.push(r);
   writeFileSync(
     arg.out,
-    `${JSON.stringify({ startedAt, teilnehmer, fragen: TEXTE.length, stimmen, pauseMs, locale: arg.locale, auftraege: ergebnisse }, null, 2)}\n`,
+    `${JSON.stringify({ startedAt, fixtureId, teilnehmer, fragen: TEXTE.length, stimmen, pauseMs: config.consumer === 'breaker-summary' ? 0 : pauseMs, locale: arg.locale, config, live: config.live ? { profile: LIVE_PROFILE, windows: ergebnisse.map((r) => ({ ...r.measurement.window, complete: r.measurement.complete })) } : null, auftraege: ergebnisse }, null, 2)}\n`,
   );
 }

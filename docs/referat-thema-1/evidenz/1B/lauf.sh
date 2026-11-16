@@ -23,6 +23,7 @@ OUTBASE="${LAB_OUTDIR:-$HOME/labor-1b}"
 KEY="$HOME/.ssh/labor-llm"
 LLM=(ssh -i "$KEY" -o StrictHostKeyChecking=accept-new -o BatchMode=yes -o ConnectTimeout=5 "labor@$LLM_IP")
 mkdir -p "$OUTBASE"
+source "$EV/experiment-lauf.sh"
 log() { echo "$(date --iso-8601=seconds) $*" >&2; }
 
 vorbereiten() {
@@ -31,6 +32,7 @@ vorbereiten() {
     echo "app-host erreicht den llm-host nicht per SSH; Schlüssel $KEY.pub dort eintragen (labor.sh macht das)." >&2
     exit 1
   }
+  experiment_lease_pruefen
   # Nur beim ersten Lauf; Wiederholung, weil npm am 2026-11-13 mit ETIMEDOUT abbrach.
   local i
   for i in 1 2 3 4 5; do
@@ -178,7 +180,7 @@ mitschnitt_stop() { # wo datei
 
 felder() { # pcap → tshark-Felder für zeitzerlegung.mjs
   tshark -r "$1" -T fields -E separator=/t -e frame.time_epoch -e tcp.stream -e ip.src -e tcp.len \
-    -e http.request.method -e http.request.uri -e http.response.code
+    -e http.request.method -e http.request.uri -e http.response.code -e tcp.flags.syn -e tcp.flags.reset
 }
 
 auswerten() { # Rohdatenverzeichnis eines Laufs → timings, body, zerlegung
@@ -202,8 +204,15 @@ lauf() {
     { echo "LAB_TIMEOUT_MS fehlt oder ist nicht 90000/300000 (Ergebnis der Kalibrierung, ADR 1B-005)." >&2; exit 1; }
   ((n >= 1 && n <= 10)) || { echo "LAB_N muss 1..10 sein (höchstens 10 Aufträge je frischer Runtime)." >&2; exit 1; }
   local id; id="$(date +%Y%m%dT%H%M%S)${tag:+-$tag}"
-  local out="$OUTBASE/$id"
+  out="$OUTBASE/$id"
   mkdir -p "$out"
+  node "$EV/experiment.mjs" >"$out/experiment-config.json"
+  local modern=0
+  if [[ "${LAB_STOERUNG:-normal}" != normal || "${LAB_AUFTRAG:-summary}" != summary || "${LAB_LIVE:-0}" == 1 ]]; then modern=1; fi
+  experiment_kontext "$out"
+  trap lauf_ende EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
   vorbereiten
 
   log "Timeouts auf $timeout ms, App neu starten"
@@ -212,17 +221,33 @@ lauf() {
     -e "s/^QA_SUMMARY_ENABLED=.*/QA_SUMMARY_ENABLED=true/" -e "s/^OPEN_WEIGHT_LLM_ENABLED=.*/OPEN_WEIGHT_LLM_ENABLED=true/" \
     -e "s/^OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=.*/OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=$timeout/" .env.production
   bash "$EV/app-start.sh" </dev/null >"$out/app-start.log" 2>&1
+  if [[ "${LAB_AUFTRAG:-summary}" == label ]]; then
+    bash "$EV/label-setup.sh" >"$out/label-setup.log" 2>&1
+  fi
+  node "$EV/experiment.mjs" settings >"$out/effective-settings.json"
+  jq -n --arg appHost "$(node --version)" \
+    --arg llmHost "$("${LLM[@]}" 'node --version')" \
+    --arg appContainer "$(docker exec arsnova-v3-app node --version)" \
+    '{appHost: $appHost, llmHost: $llmHost, appContainer: $appContainer}' \
+    >"$out/runtime-versions.json"
   runtime_frisch
   local aus="${LAB_RUNTIME_AUS:-}"
-  if [[ -n "$aus" ]]; then log "B0: Runtime stoppen"; "${LLM[@]}" 'docker stop arsnova-open-weight-llm' >&2; fi
+  if [[ -n "$aus" && "$modern" == 0 ]]; then
+    legacy_runtime_aus=1
+    log "B0: Runtime stoppen"; "${LLM[@]}" 'docker stop arsnova-open-weight-llm' >&2
+  fi
 
   aufraeumen
   "${LLM[@]}" 'rm -f /tmp/1b-srv.pcap /tmp/1b-mem.csv'
-  trap aufraeumen EXIT
+  # EXIT-Trap wurde bereits vor dem Start installiert.
   log "Speicherlog (15 s) und Mitschnitte starten"
   "${LLM[@]}" "c=\$(docker inspect -f '{{.Id}}' arsnova-open-weight-llm); m=/sys/fs/cgroup/system.slice/docker-\$c.scope/memory.current; echo zeit,mem_bytes,restarts,oom_killed > /tmp/1b-mem.csv; nohup bash -c \"while :; do echo \\\$(date +%s),\\\$(cat \$m),\\\$(docker inspect -f '{{.RestartCount}},{{.State.OOMKilled}}' arsnova-open-weight-llm); sleep 15; done >> /tmp/1b-mem.csv\" >/dev/null 2>&1 & echo \$! > /tmp/1b-mem.pid"
   mitschnitt_start app "$out/app.pcap"
   mitschnitt_start llm "/tmp/1b-srv.pcap"
+  if [[ "$modern" == 1 ]]; then
+    experiment_pruefen=1
+    experiment_anwenden
+  fi
   local start; start="$(date --iso-8601=seconds)"
 
   log "Treiber: $n Aufträge"
@@ -236,7 +261,18 @@ lauf() {
   docker logs --since "$start" arsnova-v3-app >"$out/app.log" 2>&1
 
   local auswertung=ok c0='' c0t=null b0='null'
-  if [[ -n "$aus" ]]; then
+  echo null >"$out/experiment.json"
+  if [[ "$modern" == 1 ]]; then
+    auswertung=experiment
+    felder "$out/app.pcap" >"$out/app.tsv"
+    felder "$out/srv.pcap" >"$out/srv.tsv"
+    node "$EV/experiment-result.mjs" "$out"
+    echo '{"hinweis":"Experiment: Netzwerk und Job-Zeiten siehe experiment; keine synthetischen Inferenzzeiten, keine C0 unter Störung"}' >"$out/zerlegung.json"
+    if [[ "${LAB_STOERUNG:-normal}" == normal && "${LAB_AUFTRAG:-summary}" == summary && -z "$aus" ]]; then
+      auswerten "$out" || echo '{"fehler":"Zeitzerlegung unvollständig; Experimentdaten separat prüfen"}' >"$out/zerlegung.json"
+    fi
+    experiment_zuruecknehmen || return 1
+  elif [[ -n "$aus" ]]; then
     # B0: ohne Runtime gibt es keine POSTs und keine timings; ausgewertet wird das App-Log.
     auswertung=b0
     b0="$(b0_auswerten "$out/app.log" | jq '{auftraege: ., kennzahlen: {n: length,
@@ -245,6 +281,7 @@ lauf() {
       | .kennzahlen.hB0 = (.kennzahlen.alleUnavailable and .kennzahlen.medianJobMs <= 2000)')"
     echo '{"hinweis":"B0: Runtime aus, keine Zeitzerlegung"}' >"$out/zerlegung.json"
     runtime_frisch
+    legacy_runtime_aus=0
   else
     auswerten "$out" || { auswertung=fehlgeschlagen; log "Auswertung fehlgeschlagen; Rohdaten bleiben, später: lauf.sh auswerten $out"; }
     [[ -f "$out/zerlegung.json" && "$auswertung" == ok ]] || echo '{"fehler":"Auswertung fehlgeschlagen"}' >"$out/zerlegung.json"
@@ -256,20 +293,25 @@ lauf() {
     jq -e 'type == "object"' >/dev/null 2>&1 <<<"$(tail -n 1 <<<"$c0")" && c0t="$(tail -n 1 <<<"$c0")"
   fi
 
-  local llm_info app_img
+  local llm_info app_img encoder_img
+  encoder_img="$(docker inspect -f '{{.Image}}' arsnova-v3-wordcloud-encoder 2>/dev/null || true)"
   llm_info="$("${LLM[@]}" "docker inspect -f '{{json .Config.Image}} {{json .Args}}' arsnova-open-weight-llm; nproc; free -g | awk '/^Mem:/ {print \$2}'")"
+  # Auch das Manifest darf den Runtime-Token nicht aus .Args übernehmen.
+  llm_info="$(sed 's/"--api-key","[^"]*"/"--api-key","(nicht ausgegeben)"/' <<<"$llm_info")"
   app_img="$(docker inspect -f '{{.Config.Image}}' arsnova-v3-app)"
   jq -n \
     --arg id "$id" --arg tag "$tag" --argjson n "$n" --argjson timeout "$timeout" \
     --arg commit "$(git rev-parse HEAD)" --arg profil "${LAB_PROFIL_IST:-unbekannt}" --arg rechner "${LAB_RECHNER:-unbekannt}" \
-    --arg appImage "$app_img" --arg llmInfo "$llm_info" --arg appVcpu "$(nproc)" \
+    --arg encoderImage "$encoder_img" --arg appImage "$app_img" --arg llmInfo "$llm_info" --arg appVcpu "$(nproc)" \
     --arg modellSha "$(jq -r .sha256 docker/open-weight-llm/model-manifest.json)" \
-    --slurpfile treiber "$out/treiber.json" --slurpfile zerlegung "$out/zerlegung.json" \
+    --slurpfile settings "$out/effective-settings.json" --slurpfile versions "$out/runtime-versions.json" \
+    --slurpfile experiment "$out/experiment.json" --slurpfile treiber "$out/treiber.json" --slurpfile zerlegung "$out/zerlegung.json" \
     --arg c0curl "$(head -n 1 <<<"$c0")" --argjson c0timings "$c0t" --arg auswertung "$auswertung" \
     --rawfile speicher "$out/speicher.csv" --argjson b0 "$b0" \
     '{lauf: $id, tag: $tag, n: $n, auswertung: $auswertung, b0: $b0, timeoutMs: $timeout, commit: $commit, rechner: $rechner, energieprofil: $profil,
       appHost: {vcpu: ($appVcpu | tonumber), image: $appImage},
       llmHost: {info: $llmInfo, modellSha256: $modellSha},
+      settings: $settings[0], runtimeVersions: $versions[0], settingsSource: "app-container-environment", encoderImage: $encoderImage, experiment: $experiment[0],
       treiber: $treiber[0], zerlegung: $zerlegung[0],
       kontrolleC0: {curl: $c0curl, hinweis: "time_starttransfer time_total http_code; frische Runtime", timings: $c0timings},
       speicher: ($speicher | split("\n") | map(select(. != "" and (startswith("zeit") | not))) | map(split(",")) | map(select(.[1] != "")) |
@@ -278,6 +320,14 @@ lauf() {
   log "fertig: $out/ergebnis.json"
   echo "$out"
 }
+
+# Eine gemeinsame Sperre für alle Modi, die dieselbe Runtime oder Rohdaten ändern.
+case "${1:-}" in
+  lauf|kalibrierung|kontrolle|belege)
+    exec 9>"$OUTBASE/labor.lock"
+    flock -n 9 || { echo "Ein anderer Labormodus läuft bereits." >&2; exit 1; }
+    ;;
+esac
 
 case "${1:-}" in
   vorbereiten) vorbereiten ;;

@@ -50,8 +50,16 @@ Jeder Aufruf außer `pruefen` (der schreibt den Bericht) legt ein Log `%USERPROF
 | `-LabTag`                                        | leer                                        | Name des Laufs, nur `a–z`, `0–9`, `-`; Präfix `dev` oder `probe`: Ergebnis kommt nicht nach `messung/`                                              |
 | `-LabTimeoutMs`                                  | 0 (aus der Kalibrierung von heute)          | 90000 oder 300000; für den ersten Lauf ohne Kalibrierung Pflicht                                                                                    |
 | `-LabRuntimeAus`                                 | aus                                         | nur `lauf`: Aufträge bei gestoppter Runtime (B0)                                                                                                    |
+| `-LabStoerung`                                   | `normal`                                    | nur `lauf`: `normal`, `l1`, `l2`, `l3`, `f1`, `f2`, `busy`, `race`; vorher jede Störung freigeben                                                   |
+| `-LabAuftrag`                                    | `summary`                                   | nur `lauf`: `summary`, `label`, `breaker-summary`; Label aktiviert zusätzlich den Encoder                                                           |
+| `-LabLive`                                       | aus                                         | nur `lauf`: Live-Fenster und App-CPU/RSS je Auftrag; nicht mit `breaker-summary`                                                                    |
 | `-Commit`                                        | leer (HEAD)                                 | 40-stelliger Commit, den alle Modi mit Repo-Übertragung in die VMs bringen; setzt `labor-wsl.sh --arbeitsstand`                                     |
 | `-OutDir`                                        | `%USERPROFILE%\labor-1b`                    | Bericht, Logs, Rohdaten                                                                                                                             |
+
+_Ergänzt 2026-11-15:_ Die drei neuen Experimentparameter sind lokal getestet,
+auf den VMs noch nicht verifiziert. Sie benötigen einen eigenen `-LabTag`.
+Ablauf, Rücknahme, Messgrenzen und die einmalige Encoder-Einrichtung stehen im
+[Runbook, Abschnitt 8](../runbook.md#8-übergabe-an-niklas-schritte-34).
 
 Die Messmodi und ihre Reihenfolge sind dieselben wie unter Linux ([Runbook, Abschnitt 3](../runbook.md#3-lauf)), etwa Schritt 1 als `-Mode lauf -LabN 1 -LabTag dev-body -LabTimeoutMs 300000`, B0 als `-Mode lauf -LabRuntimeAus -LabTag b0`. Die Ergebnisse kopiert `labor.ps1` nach `messung/`.
 
@@ -111,3 +119,24 @@ Niklas führt diese Schritte als Erster auf echter Hardware aus. Jede Abweichung
 
 - Absolute Zeiten sind zwischen Rechnern **nicht vergleichbar**; verglichen werden Verhältnisse und die Zerlegung innerhalb eines Rechners.
 - Kein CPU-Pinning (Abschnitt 9): schwächere Isolation als unter Linux; im Protokoll ausweisen.
+
+## S1-Ergänzung 2026-11-16
+
+`labor-wsl.sh s1` bzw. `labor.ps1 -Mode s1` bereitet auf der vorhandenen
+Inferenz-VM einen temporären App-Stack für den Same-Host-Laborvergleich vor.
+Kein Hyper-V-Resize. Pflichtparameter und Rücknahme im
+[Runbook Abschnitt 10](../runbook.md#10-s1-same-host-vergleich-schritt-4).
+Jeder Lauf einschließlich der temporären ufw-Freigabe auf der S1-Bridge benötigt eine eigene Freigabe; zuerst ein Entwicklungsauftrag,
+noch kein VM-Nachweis dieser Funktion. Dauer der ersten Probe einschließlich
+Image-Transfer und Live-Fenster voraussichtlich etwa 10–15 Minuten.
+
+```bash
+bash docs/referat-thema-1/evidenz/1B/labor-wsl.sh s1 \
+  -LabN 1 -LabTag dev-s1-label -LabAuftrag label \
+  -LabTimeoutMs 300000 -LabLive --arbeitsstand
+```
+
+Dieser Befehl ist eine Entwicklung, keine gewertete Messung. Die normalen
+App- und Runtime-Images werden per unveränderlicher Image-ID geprüft,
+private Konfiguration bleibt in den VMs. S1-Ressourcen sind nicht identisch
+zur Summe der beiden bisherigen VMs; diese Grenze gehört in die Bewertung.

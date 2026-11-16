@@ -1,0 +1,314 @@
+{
+  "lauf": "20261116T191719-breaker-f1-summary",
+  "tag": "breaker-f1-summary",
+  "n": 4,
+  "auswertung": "experiment",
+  "b0": null,
+  "timeoutMs": 90000,
+  "commit": "7c64dd6a0352df1e51981ab16300532eb849f712",
+  "rechner": "Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz, 16 Threads, 31 GB",
+  "energieprofil": "GUID des Energieschemas: 381b4222-f694-41f0-9685-ff5bb260df2e  (Ausbalanciert)",
+  "appHost": {
+    "vcpu": 2,
+    "image": "127.0.0.1:5000/arsnova@sha256:978dd4633244d9f3a8ff71a86410000d352b6b03a0ef8f2c5b375d146dda142f"
+  },
+  "llmHost": {
+    "info": "\"127.0.0.1:5000/arsnova-open-weight-llm@sha256:3eee870ad9f016e3c0dc90dcbe93f31781758179f717a98b28735eb5587491a0\" []\n8\n9",
+    "modellSha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+  },
+  "settings": {
+    "QA_SUMMARY_ENABLED": "true",
+    "QA_SUMMARY_TIMEOUT_MS": "90000",
+    "OPEN_WEIGHT_LLM_ENABLED": "true",
+    "OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS": "90000",
+    "OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS": "30000",
+    "WORD_CLOUD_SEMANTIC_ENABLED": "true",
+    "WORD_CLOUD_ENCODER_TIMEOUT_MS": "120000",
+    "NLP_ENABLED": "false",
+    "QA_NLP_ENABLED": "false"
+  },
+  "runtimeVersions": {
+    "appHost": "v24.22.3",
+    "llmHost": "v24.22.3",
+    "appContainer": "v24.19.0"
+  },
+  "settingsSource": "app-container-environment",
+  "encoderImage": "sha256:95385bb591cbaefa544b199b16099aa3acc4433e448ead4a920b8cf9d43d969c",
+  "experiment": {
+    "config": {
+      "variant": "f1",
+      "consumer": "breaker-summary",
+      "n": 4,
+      "timeoutMs": 90000,
+      "live": false,
+      "tag": "breaker-f1-summary",
+      "fakeDelayMs": 130000
+    },
+    "jobs": [
+      {
+        "index": 1,
+        "consumer": "summary",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "labelSettlement": null,
+        "jobMs": 53,
+        "inferMs": null,
+        "clientWaitMs": 1112,
+        "transport": {
+          "slots": 0,
+          "posts": 0,
+          "connections": 1,
+          "resets": 1,
+          "statuses": []
+        },
+        "faultObserved": true,
+        "noTransportObserved": false
+      },
+      {
+        "index": 2,
+        "consumer": "summary",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "labelSettlement": null,
+        "jobMs": 47,
+        "inferMs": null,
+        "clientWaitMs": 1079,
+        "transport": {
+          "slots": 0,
+          "posts": 0,
+          "connections": 1,
+          "resets": 1,
+          "statuses": []
+        },
+        "faultObserved": true,
+        "noTransportObserved": false
+      },
+      {
+        "index": 3,
+        "consumer": "summary",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "labelSettlement": null,
+        "jobMs": 44,
+        "inferMs": null,
+        "clientWaitMs": 1064,
+        "transport": {
+          "slots": 0,
+          "posts": 0,
+          "connections": 1,
+          "resets": 1,
+          "statuses": []
+        },
+        "faultObserved": true,
+        "noTransportObserved": false
+      },
+      {
+        "index": 4,
+        "consumer": "summary",
+        "effectiveMode": "extractive",
+        "fallbackReason": "circuit_open",
+        "labelSettlement": null,
+        "jobMs": 44,
+        "inferMs": null,
+        "clientWaitMs": 1058,
+        "transport": {
+          "slots": 0,
+          "posts": 0,
+          "connections": 0,
+          "resets": 0,
+          "statuses": []
+        },
+        "faultObserved": false,
+        "noTransportObserved": true
+      }
+    ],
+    "live": null,
+    "fallbackWithinBudget": true,
+    "f1Fast": true,
+    "medianF1JobMs": 47,
+    "breakerObservation": "indirect: compare sequential sessions, timing and transport; no internal breaker state exposed",
+    "inferenceTiming": "not synthesized; use zerlegung for real-runtime timing when complete"
+  },
+  "treiber": {
+    "startedAt": "2026-11-16T19:18:09.416Z",
+    "fixtureId": "summary-reference-v1",
+    "teilnehmer": 200,
+    "fragen": 6,
+    "stimmen": 282,
+    "pauseMs": 0,
+    "locale": "de",
+    "config": {
+      "variant": "f1",
+      "consumer": "breaker-summary",
+      "n": 4,
+      "timeoutMs": 90000,
+      "live": false,
+      "tag": "breaker-f1-summary",
+      "fakeDelayMs": 130000
+    },
+    "live": null,
+    "auftraege": [
+      {
+        "consumer": "summary",
+        "index": 1,
+        "requestedAt": "2026-11-16T19:18:42.538Z",
+        "finishedAt": "2026-11-16T19:18:43.650Z",
+        "hostReturnMs": 83,
+        "clientWaitMs": 1112,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "548b37021ec7a0b421f0a35929dee4354b4886a17c224689c13a35c07ef1b4d5",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "consumer": "summary",
+        "index": 2,
+        "requestedAt": "2026-11-16T19:18:43.651Z",
+        "finishedAt": "2026-11-16T19:18:44.730Z",
+        "hostReturnMs": 34,
+        "clientWaitMs": 1079,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "4f0908eb744868b47ba7d0a1d3523a4723d9868636bc3be528f1bd3c2da7f102",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "consumer": "summary",
+        "index": 3,
+        "requestedAt": "2026-11-16T19:18:44.731Z",
+        "finishedAt": "2026-11-16T19:18:45.795Z",
+        "hostReturnMs": 34,
+        "clientWaitMs": 1064,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "unavailable",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c98f1b3620da590b8b02dc49d272e3a50a75bac5bfa0537190abdd83fdcf86bf",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "consumer": "summary",
+        "index": 4,
+        "requestedAt": "2026-11-16T19:18:45.795Z",
+        "finishedAt": "2026-11-16T19:18:46.853Z",
+        "hostReturnMs": 29,
+        "clientWaitMs": 1058,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "circuit_open",
+        "fallbackRetry": "manual",
+        "snapshotHash": "7241c527957e17112a9c7c7ea9175c38f3ad0c2f4afd97511d942f9cbab35665",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      }
+    ]
+  },
+  "zerlegung": {
+    "hinweis": "Experiment: Netzwerk und Job-Zeiten siehe experiment; keine synthetischen Inferenzzeiten, keine C0 unter Störung"
+  },
+  "kontrolleC0": {
+    "curl": "",
+    "hinweis": "time_starttransfer time_total http_code; frische Runtime",
+    "timings": null
+  },
+  "speicher": {
+    "proben": 1,
+    "maxBytes": 3043241984,
+    "restartsMax": 0,
+    "oomKilled": false
+  },
+  "umgebung": {
+    "schema": "1b-umgebung-1",
+    "erfasstAm": "2026-11-16T20:19:37.4983397+01:00",
+    "rechner": {
+      "plattform": "windows",
+      "cpu": "Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz",
+      "kerne": 8,
+      "threads": 16,
+      "maxMHz": 3792,
+      "ramGib": 31.9,
+      "os": "Microsoft Windows 11 Pro",
+      "kernel": "10.0.26200 (Build 26200)",
+      "energieprofil": "GUID des Energieschemas: 381b4222-f694-41f0-9685-ff5bb260df2e  (Ausbalanciert)",
+      "cpuGovernor": null,
+      "cpufreqTreiber": null,
+      "netzteil": null,
+      "speicherort": {
+        "pfad": "D:\\arsnova-1b",
+        "dateisystem": "NTFS",
+        "medium": "SSD NVMe"
+      }
+    },
+    "hypervisor": {
+      "name": "Hyper-V",
+      "version": "10.0.26100.9949",
+      "libvirt": null,
+      "nested": null,
+      "pinning": false
+    },
+    "vms": [
+      {
+        "name": "arsnova-1b-app",
+        "ip": "192.168.150.10",
+        "zustand": "Running",
+        "vcpu": 2,
+        "ramGib": 4,
+        "cpuset": null,
+        "cpuReserveProzent": 0,
+        "cpuGewicht": 100,
+        "generation": 2,
+        "konfigurationsversion": "12.0",
+        "secureBoot": "On",
+        "plattenMaxGib": 25,
+        "gast": {
+          "host": "arsnova-1b-app",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz",
+          "cpus": 2,
+          "ramGib": 3.8,
+          "docker": "29.9.3",
+          "virtualisierung": "microsoft"
+        }
+      },
+      {
+        "name": "arsnova-1b-llm",
+        "ip": "192.168.150.20",
+        "zustand": "Running",
+        "vcpu": 8,
+        "ramGib": 10,
+        "cpuset": null,
+        "cpuReserveProzent": 100,
+        "cpuGewicht": 200,
+        "generation": 2,
+        "konfigurationsversion": "12.0",
+        "secureBoot": "On",
+        "plattenMaxGib": 30,
+        "gast": {
+          "host": "arsnova-1b-llm",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz",
+          "cpus": 8,
+          "ramGib": 9.7,
+          "docker": "29.9.3",
+          "virtualisierung": "microsoft"
+        }
+      }
+    ],
+    "laborStand": {
+      "commit": "7c64dd6a0352df1e51981ab16300532eb849f712"
+    }
+  }
+}

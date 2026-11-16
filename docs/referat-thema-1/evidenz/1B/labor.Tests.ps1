@@ -100,6 +100,18 @@ Describe 'Invoke-VmScript' {
 }
 
 Describe 'Get-LaufEnv' {
+  It 'reicht Variante, Consumer und Live-Fenster an den Gast weiter' {
+    $e = Get-LaufEnv -N 1 -Tag 'dev-l3' -TimeoutMs 300000 -Profil 'x' -Rechner 'y' -RuntimeAus $false -Variante 'l3' -Auftrag 'summary' -Live $true
+    $e | Should -Match 'LAB_STOERUNG=l3'
+    $e | Should -Match 'LAB_AUFTRAG=summary'
+    $e | Should -Match 'LAB_LIVE=1'
+  }
+  It 'behaelt fuer bestehende Aufrufe den normalen Summary-Pfad ohne Live-Last' {
+    $e = Get-LaufEnv -N 1 -Tag 'dev-body' -TimeoutMs 300000 -Profil 'x' -Rechner 'y' -RuntimeAus $false
+    $e | Should -Match 'LAB_STOERUNG=normal'
+    $e | Should -Match 'LAB_AUFTRAG=summary'
+    $e | Should -Match 'LAB_LIVE=0'
+  }
   It 'gibt B0 an lauf.sh weiter, wenn -LabRuntimeAus gesetzt ist (Runtime gestoppt, Nachtrag M3)' {
     $e = Get-LaufEnv -N 10 -Tag 'b0' -TimeoutMs 300000 -Profil 'Ausbalanciert' -Rechner 'i7, 16 Threads, 32 GB' -RuntimeAus $true
     $e | Should -Match "(^| )LAB_RUNTIME_AUS=1( |$)"
@@ -120,5 +132,29 @@ Describe 'Get-MessungZiel' {
     Get-MessungZiel -Ordner $d -Basis '2026-11-13-kontrolle-c0' -Endung '.json' | Should -Be (Join-Path $d '2026-11-13-kontrolle-c0-2.json')
     New-Item -ItemType Directory -Force (Join-Path $d '2026-11-13-belege') | Out-Null
     Get-MessungZiel -Ordner $d -Basis '2026-11-13-belege' -Endung '' | Should -Be (Join-Path $d '2026-11-13-belege-2')
+  }
+}
+
+
+Describe 'S1 Parameter vor VM-Aktionen' {
+  It 'lehnt zu viele Auftraege vor dem Sync ab' {
+    Mock Invoke-VmScript { throw 'UNERWARTETE VM-AKTION' }
+    $LabN = 4; $LabAuftrag = 'label'; $LabTag = 'dev-s1-label'; $LabTimeoutMs = 300000
+    $LabLive = $true; $LabRuntimeAus = $false; $LabStoerung = 'normal'
+    { Invoke-ImAppHost 's1' } | Should -Throw '*S1:*'
+    Should -Invoke Invoke-VmScript -Times 0
+  }
+  It 'lehnt S1 mit Stoerung vor dem Sync ab' {
+    Mock Invoke-VmScript { throw 'UNERWARTETE VM-AKTION' }
+    $LabN = 1; $LabAuftrag = 'label'; $LabTag = 'dev-s1-label'; $LabTimeoutMs = 300000
+    $LabLive = $true; $LabRuntimeAus = $false; $LabStoerung = 'f1'
+    { Invoke-ImAppHost 's1' } | Should -Throw '*S1:*'
+    Should -Invoke Invoke-VmScript -Times 0
+  }
+  It 'nimmt gueltige S1-Parameter an und erreicht nur den gemockten Sync' {
+    Mock Invoke-VmScript { throw 'ERWARTETER GEMOCKTER SYNC' }
+    $LabN = 1; $LabAuftrag = 'label'; $LabTag = 'dev-s1-label'; $LabTimeoutMs = 300000
+    $LabLive = $true; $LabRuntimeAus = $false; $LabStoerung = 'normal'
+    { Invoke-ImAppHost 's1' } | Should -Throw '*ERWARTETER GEMOCKTER SYNC*'
   }
 }
