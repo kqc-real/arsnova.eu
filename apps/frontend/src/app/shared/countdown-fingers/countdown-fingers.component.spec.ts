@@ -137,6 +137,50 @@ describe('CountdownFingersComponent', () => {
     }
   });
 
+  it('fordert nach einer Zeitverlängerung den aktuellen Frame sofort und weitere Frames gestaffelt an', () => {
+    vi.useFakeTimers();
+    try {
+      const fixture = TestBed.createComponent(CountdownFingersComponent);
+      fixture.componentRef.setInput('seconds', 2);
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      const frames = () =>
+        Array.from(host.querySelectorAll('img')).map((image) => image.src.split('/').at(-1));
+      expect(frames()).toEqual(['countdown_vote_2.webp']);
+
+      fixture.componentRef.setInput('seconds', 5);
+      fixture.detectChanges();
+      expect(frames()).toEqual(['countdown_vote_2.webp', 'countdown_vote_5.webp']);
+
+      vi.advanceTimersByTime(VOTE_FINGER_PRELOAD_INTERVAL_MS);
+      fixture.detectChanges();
+      expect(frames()).toEqual([
+        'countdown_vote_2.webp',
+        'countdown_vote_5.webp',
+        'countdown_vote_4.webp',
+      ]);
+
+      fixture.componentRef.setInput('seconds', 4);
+      fixture.detectChanges();
+      expect(frames()).toEqual([
+        'countdown_vote_2.webp',
+        'countdown_vote_5.webp',
+        'countdown_vote_4.webp',
+      ]);
+
+      vi.advanceTimersByTime(VOTE_FINGER_PRELOAD_INTERVAL_MS);
+      fixture.detectChanges();
+      expect(frames()).toEqual([
+        'countdown_vote_2.webp',
+        'countdown_vote_5.webp',
+        'countdown_vote_4.webp',
+        'countdown_vote_3.webp',
+      ]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('hält Vote-Fingers transparent, bündig unten links', () => {
     const fixture = TestBed.createComponent(CountdownFingersComponent);
     fixture.componentRef.setInput('seconds', 4);

@@ -6,6 +6,8 @@ import {
   signal,
   type OnDestroy,
   type OnInit,
+  type OnChanges,
+  type SimpleChanges,
 } from '@angular/core';
 import { VOTE_FINGER_IMAGES, VOTE_FINGER_PRELOAD_INTERVAL_MS } from './countdown-fingers-preload';
 
@@ -175,7 +177,7 @@ const FINGER_IMAGES: Record<number, string> = {
     `,
   ],
 })
-export class CountdownFingersComponent implements OnInit, OnDestroy {
+export class CountdownFingersComponent implements OnInit, OnChanges, OnDestroy {
   readonly seconds = input.required<number>();
   readonly size = input<'small' | 'large' | 'present'>('small');
   readonly fingerImages = computed(() =>
@@ -202,22 +204,49 @@ export class CountdownFingersComponent implements OnInit, OnDestroy {
   readonly imageLoaded = computed(() => this.loadedFrames().has(this.seconds()));
 
   ngOnInit(): void {
-    if (this.size() !== 'small') return;
-    let frame = Math.min(this.seconds(), VOTE_FINGER_IMAGES.length - 1);
-    const requestNextFrame = () => {
-      frame = Math.min(frame, this.seconds());
-      if (frame < 0) return;
-      const next = frame--;
-      this.voteFrames.update((frames) => [...frames, next]);
-      if (frame >= 0) {
-        this.votePreloadTimer = setTimeout(requestNextFrame, VOTE_FINGER_PRELOAD_INTERVAL_MS);
-      }
-    };
-    requestNextFrame();
+    this.syncVotePreload();
+  }
+
+  ngOnChanges(_changes: SimpleChanges): void {
+    this.syncVotePreload();
   }
 
   ngOnDestroy(): void {
     clearTimeout(this.votePreloadTimer);
+  }
+
+  private syncVotePreload(): void {
+    if (this.size() !== 'small') return;
+    const current = Math.min(this.seconds(), VOTE_FINGER_IMAGES.length - 1);
+    this.requestVoteFrame(current);
+    this.scheduleNextVoteFrame();
+  }
+
+  private requestVoteFrame(frame: number): void {
+    if (frame < 0 || this.voteFrames().includes(frame)) return;
+    this.voteFrames.update((frames) => [...frames, frame]);
+  }
+
+  private scheduleNextVoteFrame(): void {
+    if (this.votePreloadTimer) return;
+    const next = this.nextMissingVoteFrame();
+    if (next === undefined) return;
+    this.votePreloadTimer = setTimeout(() => {
+      this.votePreloadTimer = undefined;
+      const pending = this.nextMissingVoteFrame();
+      if (pending === undefined) return;
+      this.requestVoteFrame(pending);
+      this.scheduleNextVoteFrame();
+    }, VOTE_FINGER_PRELOAD_INTERVAL_MS);
+  }
+
+  private nextMissingVoteFrame(): number | undefined {
+    const requested = this.voteFrames();
+    const current = Math.min(this.seconds(), VOTE_FINGER_IMAGES.length - 1);
+    for (let frame = current - 1; frame >= 0; frame -= 1) {
+      if (!requested.includes(frame)) return frame;
+    }
+    return undefined;
   }
 
   setFrameLoaded(frame: number, loaded: boolean): void {
