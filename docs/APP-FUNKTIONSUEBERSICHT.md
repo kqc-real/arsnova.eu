@@ -347,7 +347,7 @@ Der Host sieht zusätzlich:
 - Live-Freitextdaten
 - Freitext-Wortwolke mit Document-Frequency-Termgewichtung, Einfrieren/Live-Fortsetzen sowie CSV-/PNG-Export
 - Wörter der Quiz-Freitextwolke lassen sich im Host über die zugehörigen Antworten und auf der Bühne mit Host-Berechtigung ausblenden. Unter **Weitere Aktionen** → **Ausgeblendete Wörter** blendet der Host sie einzeln wieder ein. Die Auswahl gilt pro Session und Frage. Die Wolke ordnet sich danach neu. Ausgeblendete Wörter entfallen auch als eigene Zeilen im Wortwolken-CSV.
-- Q&A-Wortwolke mit Host-Sortiermodi (`Meist unterstuetzt`, `Beste Fragen`, `Umstritten`), Document-Frequency-Termgewichtung, geschuetzten technischen Begriffen, Quellenanzahl im Tooltip, Freeze im Dialog und Vollansicht mit Sortiertoggle
+- Q&A-Wortwolke mit Host-Sortiermodi (`Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen`), Document-Frequency-Termgewichtung, geschuetzten technischen Begriffen, Quellenanzahl im Tooltip, Freeze im Dialog und Vollansicht mit Sortiertoggle
 - Q&A-Fragenliste
 - Blitzlicht-Ergebnisse
 - Emoji-Reaktionen
@@ -569,7 +569,7 @@ Der Q&A-Kanal kann:
 
 Q&A erscheint:
 
-- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Meist unterstuetzt` / `Beste Fragen` / `Umstritten`, Bewertungsmetriken (`Zustimmung` bzw. `Geteilte Reaktionen`) und sortierabhaengiger Q&A-Wortwolke
+- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Stimmensaldo` / `Klare Zustimmung` / `Geteilte Stimmen`, Bewertungsanzeigen (Dafür-Anteil mit Stimmenzahl bzw. Dafür- und Dagegen-Stimmen) und sortierabhaengiger Q&A-Wortwolke
 - in der Present-Ansicht als sichtbare Fragenliste, Pin-Highlight und reduzierte Q&A-Wortwolke aus denselben gewichteten Termen
 - in der Vote-Ansicht als Einreichungs- und Abstimmungsoberfläche
 

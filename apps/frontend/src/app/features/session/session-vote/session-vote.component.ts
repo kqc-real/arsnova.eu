@@ -131,6 +131,7 @@ import {
   SessionDeadlineController,
   type SessionDeadlineSnapshot,
 } from '../session-deadline';
+import { formatQaSupportLabel } from '../session-qa-support-label.util';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import { normalizeQaSearchQuery } from '../qa-search.util';
 import {
@@ -565,9 +566,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintBest:Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt zuerst die Fragen mit der höchsten Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintControversial:Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.`;
       case 'TIME':
         return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       default:
@@ -1608,12 +1609,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionQa.votesBreakdownAria:${up}:up: dafür, ${down}:down: dagegen`;
   }
 
-  formatQaPercent(value: number | undefined): string {
-    if (!Number.isFinite(value)) {
-      return '0 %';
-    }
-
-    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  formatQaSupport(question: QaQuestionDTO): string | null {
+    return formatQaSupportLabel(question, this.localeId);
   }
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {

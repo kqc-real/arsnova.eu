@@ -91,7 +91,7 @@ Hinweis: Die Darstellung bleibt produktdatenblatt-typisch verdichtet, bezieht si
 
 ## Epic 8 – Q&A
 
-- Start, Einreichen, bidirektionales Voting, Host-Sortiermodi (`Meist unterstuetzt`, `Beste Fragen`, `Umstritten`), Q&A-Wortwolke und Moderation umgesetzt.
+- Start, Einreichen, bidirektionales Voting, Host-Sortiermodi (`Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen`), Q&A-Wortwolke und Moderation umgesetzt.
 - Paired Host (2.10) ist umgesetzt und gibt Lehrenden Bewegungsfreiheit im Raum sowie die ad-hoc-Übergabe der Session-Steuerung. Offen: das echte LLM für die Moderationszusammenfassung (8.9c Slice 4). 8.9a (Host-UX), 8.9b (optionale NLP-Kaskade, Kill-Switch default aus) und 8.9c Slices 1–3 (Vertrag, Host-Button, privater Adapter, Snapshot-Ranking, Loopback-Helfer, Kill-Switch default aus) sind umgesetzt.
 
 ## Epic 9 – Admin/Recht

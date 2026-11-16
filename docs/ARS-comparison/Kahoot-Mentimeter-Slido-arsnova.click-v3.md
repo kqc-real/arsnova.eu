@@ -68,7 +68,7 @@ Slido ist der stärkste Vergleichspunkt für Q&A: anonyme Fragen, Upvoting, Mode
 arsnova.eu übernimmt die didaktisch wichtigen Teile dieses Musters, geht aber in zwei Punkten anders vor:
 
 1. Die Fragenwand ist in denselben Lehr-/Quiz-Flow integriert, nicht nur ein Event-Q&A neben dem Inhalt.
-2. Die Q&A-Wortwolke ist nicht nur eine häufigkeitsbasierte Visualisierung, sondern folgt den Moderationsmetriken: meist unterstützt, beste Fragen oder umstritten.
+2. Die Q&A-Wortwolke ist nicht nur eine häufigkeitsbasierte Visualisierung, sondern kann Wörter nach Stimmensaldo, klarer Zustimmung, geteilten Stimmen oder ihrem Vorkommen in Fragen gewichten.
 
 ## arsnova.eu: Was heute besonders ist
 
@@ -91,7 +91,7 @@ Die Q&A-Fragenwand unterstützt eine klare Moderationslogik:
 - Fragen können vor der Veröffentlichung moderiert werden.
 - Hosts können Fragen anheften, archivieren oder entfernen.
 - Teilnehmende stimmen mit **Up- und Downvotes** ab.
-- Hosts sortieren nach **meist unterstützt**, **beste Fragen** oder **umstritten**.
+- Hosts sortieren nach **Stimmensaldo**, **Klare Zustimmung**, **Geteilte Stimmen** oder **Zeit**.
 - Die Kontroversitätslogik macht Reibung sichtbar, auch wenn der Netto-Score neutral wirkt.
 
 Das ist didaktisch relevant: Nicht nur die lauteste oder früheste Frage gewinnt. Sichtbar werden auch Fragen, die den Raum spalten, Missverständnisse anzeigen oder eine Diskussion brauchen.

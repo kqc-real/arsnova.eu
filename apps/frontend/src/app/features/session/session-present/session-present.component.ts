@@ -1,4 +1,4 @@
-import { DecimalPipe, DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import {
   Component,
@@ -146,6 +146,7 @@ import {
   wordCloudTopicProgressLabel,
   wordCloudViewHint,
 } from './word-cloud.util';
+import { formatQaSupportLabel } from '../session-qa-support-label.util';
 import { qaWordCloudReadingHint } from './word-cloud-labels';
 import {
   WordCloudTermExtractorService,
@@ -611,7 +612,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'BEST':
         return $localize`:@@sessionQa.sortBest:Klare Zustimmung`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Kontroverse`;
+        return $localize`:@@sessionQa.sortControversial:Geteilte Stimmen`;
       case 'TIME':
         return $localize`:@@sessionQa.sortTime:Zeit`;
     }
@@ -1386,11 +1387,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }).format(new Date(isoDate));
   }
 
-  formatQaPercent(value: number | undefined): string {
-    if (!Number.isFinite(value)) {
-      return '0 %';
-    }
-    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  formatQaSupport(question: QaQuestionDTO): string | null {
+    return formatQaSupportLabel(question, this.localeId);
   }
 
   readonly showQaWordCloud = computed(() => {

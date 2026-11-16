@@ -41,7 +41,11 @@ Der Presenter übernimmt die Host-Projektion als Ausgangszustand. Seine Werkzeug
 
 Die **Wolkensprache** steht unter **Weitere Optionen** neben **Nach Grundform bündeln** und nur in der Ansicht, in der Glättung wirkt (Q&A und Freitext jeweils in **Wörter** und **Wortgruppen**). Sie ist unabhängig von Quiz und Participant-Browser. Standard ist die Host-UI-Sprache (`de`, `en`, `fr`, `es`, `it`). Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
 
-In der Q&A-Wolke steht **Größe nach:** (Kontroverse / Beste Fragen / Stimmensaldo / Vorkommen in Fragen) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
+In der Q&A-Wolke steht **Größe nach:** (Geteilte Stimmen / Klare Zustimmung / Stimmensaldo / Vorkommen in Fragen) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
+
+»Größe nach« nutzt ein Material-Auswahlfeld mit den Farben des aktiven Themes. Escape schließt zuerst die geöffnete Auswahlliste. Beim erneuten Drücken schließt sich die Wortwolke.
+
+Bei der Rückkehr aus der Q&A-Wortwolke ins Forum ist »Auswertung & Werkzeuge« geöffnet. Die Aktion zur Rückkehr in den Moderationskompass öffnet den Kompass.
 
 ### Wann neu geglättet wird
 
@@ -49,7 +53,7 @@ In der Q&A-Wolke steht **Größe nach:** (Kontroverse / Beste Fragen / Stimmensa
 - **Neue eingehende Daten:** Snapshot wird **veraltet** markiert; keine automatische Neuberechnung.
 - **Freitext-Ansicht wechseln** bei aktiver Glättung: dieselbe Antwortmenge mit der anderen N-Gramm-Länge neu analysieren.
 - **Wolkensprache wechseln** bei aktiver Glättung: dieselbe Datenmenge mit dem anderen Modell neu analysieren.
-- **Q&A-Sortierung** `Größe nach: Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Vorkommen in Fragen` (Forumsliste: `Kontroverse` / `Beste Fragen` / `Stimmensaldo` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Stimmensaldo` ist Stimmen dafür minus Stimmen dagegen. `Vorkommen in Fragen` zählt, in wie vielen sichtbaren Fragen ein Wort steht; jede Frage zählt einmal. Die Fragenliste bleibt nach Eingangszeit sortiert. Stimmen steuern die Wortgröße nicht.
+- **Q&A-Sortierung** `Größe nach: Geteilte Stimmen` / `Klare Zustimmung` / `Stimmensaldo` / `Vorkommen in Fragen` (Forumsliste: `Geteilte Stimmen` / `Klare Zustimmung` / `Stimmensaldo` / `Zeit`) bei aktiver Glättung: dieselbe Fragenmenge mit der neuen Metrik neu glätten. `Stimmensaldo` ist Stimmen dafür minus Stimmen dagegen. `Klare Zustimmung` gewichtet Fragen nach der Wilson-Untergrenze aus Dafür-Anteil und Stimmenzahl. `Geteilte Stimmen` gewichtet Fragen danach, wie ausgeglichen die abgegebenen Stimmen verteilt sind, und dämpft den Wert bei wenigen Stimmen. `Vorkommen in Fragen` zählt, in wie vielen sichtbaren Fragen ein Wort steht; jede Frage zählt einmal. Die Fragenliste bleibt nach Eingangszeit sortiert. In diesem Modus zählt für die Wortgröße allein das Vorkommen in Fragen.
 - **Q&A `Wortgruppen`:** Sortwechsel startet die bestehende Themenanalyse mit `normalization: NONE` und, wenn Glättung aktiv ist, danach den Lemma-Pfad nur für Unigramme (`mode: LEXICAL`). Die Session-Sperre erlaubt nur eine `analyzeQa`-Analyse gleichzeitig; der Host reiht Theme- und Lemma-Aufrufe und wiederholt `CONFLICT`. Phrasen bleiben `THEME`. `THEME + LEMMA` ist `MODE_UNSUPPORTED`.
 - **Q&A `Themen`:** Story 1.14c Stufe 1. Encoder + Clustering nur hinter `WORD_CLOUD_SEMANTIC_ENABLED`; ohne Kill-Switch `status: disabled` plus 2.x. `SEMANTIC + LEMMA` ist `MODE_UNSUPPORTED`. Die Glättung bleibt wie im Freitext ausgeblendet und wechselt nicht still auf `LEXICAL`. Kanonisch: [word-cloud-semantic.md](word-cloud-semantic.md).
 - **Freitext `Themen`:** Story 1.14d verwendet in allen fünf Locales denselben privaten Encoder- und Clusteringpfad wie Q&A. Der gemeinsame Kill-Switch bleibt default aus; eine Produktivaktivierung ist nicht belegt. Der Q&A-Presenter übernimmt die aktuelle Host-Projektion; Freitext-Presenter bleibt ohne eigenen semantischen Analysejob. `maxNgramLength` 1 beziehungsweise 3 gilt weiter für `Wörter` / `Wortgruppen`.

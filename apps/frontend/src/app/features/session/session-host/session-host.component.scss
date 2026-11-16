@@ -2983,11 +2983,6 @@
   background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
 }
 
-.session-qa-card__metric--controversial {
-  color: var(--mat-sys-secondary);
-  background: color-mix(in srgb, var(--mat-sys-secondary) 10%, transparent);
-}
-
 .session-qa-card__actions {
   display: flex;
   flex-wrap: wrap;

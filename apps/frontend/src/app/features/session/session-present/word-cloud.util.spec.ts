@@ -603,4 +603,15 @@ describe('aggregateWords', () => {
     expect(getQaWordCloudQuestionWeight(question, 'TIME')).toBe(1);
     expect(getQaWordCloudQuestionWeight({ upvoteCount: 25 }, 'BEST')).toBe(6);
   });
+
+  it('kann verschiedene Sortierwerte durch Rundung und Obergrenze gleich gewichten', () => {
+    expect(getQaWordCloudQuestionWeight({ upvoteCount: 0, bestScore: 0.5 }, 'BEST')).toBe(11);
+    expect(getQaWordCloudQuestionWeight({ upvoteCount: 0, bestScore: 0.51 }, 'BEST')).toBe(11);
+    expect(
+      getQaWordCloudQuestionWeight({ upvoteCount: 0, controversyScore: 40 / 44 }, 'CONTROVERSIAL'),
+    ).toBe(28);
+    expect(
+      getQaWordCloudQuestionWeight({ upvoteCount: 0, controversyScore: 60 / 64 }, 'CONTROVERSIAL'),
+    ).toBe(28);
+  });
 });

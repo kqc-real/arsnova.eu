@@ -14,7 +14,7 @@
 
 ## Zweck
 
-Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Kontroverse` / `Klare Zustimmung` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden zu erklärbaren Themen mit Mitgliedsliste, Konfidenz und Modellversion gruppiert.
+Der Host sieht in der Q&A- und Freitext-Wortwolke orthogonal zur Gewichtung (`Geteilte Stimmen` / `Klare Zustimmung` / `Stimmensaldo` / `Vorkommen in Fragen`) den dritten Analysemodus **Themen**. Sinngleiche Fragen, Antworten und Paraphrasen werden zu erklärbaren Themen mit Mitgliedsliste, Konfidenz und Modellversion gruppiert.
 
 Mitgliedschaft entsteht durch Embeddings plus deterministisches Clustering. Stufe 1 verbalisiert Cluster **ohne LLM** (zentraler Mitgliedstext). Eine Variante ohne Encoder bleibt Fallback und Ausfallbaseline: die lexikalische Wolke 2.x.
 

@@ -10555,11 +10555,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
       title: () => string;
+      tooltipMetricLabel: () => string | null;
       weightingHint: () => string | null;
       terms: () => Array<{ key: string }> | null;
     };
     expect(data.title()).toBe('Q&A-Wortwolke');
-    expect(data.weightingHint()).toContain('viel Zustimmung');
+    expect(data.tooltipMetricLabel()).toBe('Klare Zustimmung');
+    expect(data.weightingHint()).toContain('ein höherer Dafür-Anteil tendenziell stärker');
     expect(data.terms()).toBeNull();
     await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
       timeout: 5000,
@@ -11930,7 +11932,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.any(Object),
     );
     expect(component.qaSortMode()).toBe('BEST');
-    expect(fixture.nativeElement.textContent ?? '').toContain('Zustimmung 71 %');
+    expect(fixture.nativeElement.textContent ?? '').toMatch(/83[,.]3\s?% dafür · 6 Stimmen/);
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(21);
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
 
@@ -11956,7 +11958,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(fixture.nativeElement.textContent ?? '').toContain(
-      'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.',
+      'Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.',
     );
     expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
     expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
@@ -13439,9 +13441,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(27);
+    expect(component.qaSortHint()).toContain('Bei gleicher Stimmenzahl');
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
-    expect(text).toContain('Kontroverse');
+    expect(text).toContain('Geteilte Stimmen');
     expect(text).toContain('Zeit');
     expect(text).not.toContain('8 positiv · 8 negativ');
     const voteStats = fixture.nativeElement.querySelectorAll('.session-qa-card__vote-stat');
@@ -13451,8 +13454,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(voteStats[1]?.classList.contains('session-qa-card__vote-stat--down')).toBe(true);
     expect(voteStats[1]?.textContent).toContain('8');
     expect(voteStats[1]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_down');
-    expect(text).toContain('Umstritten');
-    expect(text).toContain('Geteilte Reaktionen 80 %');
+    expect(text).toContain('Geteilte Stimmen');
+    expect(text).not.toContain('80 %');
     fixture.destroy();
   });
 
@@ -13629,8 +13632,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(data.themeModeAvailable()).toBe(true);
       expect(data.sortMode()).toBe('CONTROVERSIAL');
       expect(data.title()).toBe('Q&A-Wortwolke');
-      expect(data.tooltipMetricLabel()).toBe('Kontroverse');
-      expect(data.weightingHint()).toContain('Dafür- und Dagegen-Stimmen');
+      expect(data.tooltipMetricLabel()).toBe('Geteilte Stimmen');
+      expect(data.weightingHint()).toContain('eine ausgewogenere Verteilung tendenziell stärker');
       expect(data.presenterViewActionLabel()).toBe('Präsentationsansicht öffnen');
     } finally {
       if (previousDescriptor) {
@@ -30425,6 +30428,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       closed$.next({ action: 'return-to-compass' });
       await vi.waitFor(() => expect(dialogOpenMock).toHaveBeenCalledTimes(2));
       expect(component.activeChannel()).toBe('quiz');
+      expect(component.qaToolsOpen()).toBe(false);
       expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
       expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
       expect(component.moderationCompassReturn()).toBeNull();
@@ -30748,11 +30752,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       });
       fixture.detectChanges();
 
+      expect(component.qaToolsOpen()).toBe(false);
       closed$.next(['11111111-1111-4111-8111-111111111111']);
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
 
+      const host = fixture.nativeElement as HTMLElement;
+      expect(
+        host.querySelector('[data-testid="qa-tools-toggle"]')?.getAttribute('aria-expanded'),
+      ).toBe('true');
+      expect(host.querySelector('#qa-tools-content')?.hasAttribute('hidden')).toBe(false);
       expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(true);
       expect(component.isQaCompassFocused('22222222-2222-4222-8222-222222222222')).toBe(true);
       const cards = [

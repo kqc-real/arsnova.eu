@@ -5232,10 +5232,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Stimmensaldo');
     expect(text).toContain('Klare Zustimmung');
-    expect(text).toContain('Kontroverse');
+    expect(text).toContain('Geteilte Stimmen');
     expect(text).toContain('Zeit');
     expect(text).toContain('Fragen durchsuchen');
-    expect(text).toContain('viel Zustimmung und genug Stimmen');
+    expect(text).toContain('der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen');
     expect(fixture.componentInstance.qaSortMode()).toBe('BEST');
     expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -8914,7 +8914,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt Zustimmung und Umstritten-Labels in der Teilnehmer-Q&A-Liste', async () => {
+  it('zeigt Stimmenanteile und Kennzeichnungen für geteilte Stimmen in der Teilnehmer-Q&A-Liste', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -8980,8 +8980,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const bestCard = fixture.nativeElement.querySelector(
       '.session-qa-card[data-qa-id="11111111-1111-4111-8111-111111111111"]',
     ) as HTMLElement | null;
-    expect(bestCard?.textContent).toContain('Zustimmung');
-    expect(bestCard?.textContent).toContain('72 %');
+    expect(bestCard?.textContent).toMatch(/88[,.]9\s?% dafür · 9 Stimmen/);
     expect(bestCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
     expect(bestCard?.querySelector('.session-qa-card__badge--controversy-pending')).toBeNull();
     expect(bestCard?.querySelector('.session-qa-card__badge--controversy-onesided')).toBeNull();
@@ -8990,7 +8989,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       '.session-qa-card[data-qa-id="22222222-2222-4222-8222-222222222222"]',
     ) as HTMLElement | null;
     expect(controversialCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
-    expect(controversialCard?.textContent).toContain('Zustimmung');
+    expect(controversialCard?.textContent).toMatch(/50\s?% dafür · 10 Stimmen/);
 
     (
       component as unknown as {
@@ -9099,13 +9098,14 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
     expect(
       polarCard?.querySelector('.session-qa-card__badge--controversial')?.textContent,
-    ).toContain('Umstritten');
+    ).toContain('Geteilte Stimmen');
 
-    expect(fewVotesCard?.textContent).not.toContain('Geteilte Reaktionen');
-    expect(onesidedCard?.textContent).not.toContain('Geteilte Reaktionen');
-    expect(weakCard?.textContent).not.toContain('Geteilte Reaktionen');
-    expect(polarCard?.textContent).toContain('Geteilte Reaktionen');
-    expect(polarCard?.textContent).toContain('71 %');
+    expect(polarCard?.textContent).not.toContain('71 %');
+    expect(component.qaSortHint()).toContain('Bei gleicher Stimmenzahl');
+    expect(polarCard?.querySelector('.session-qa-card__vote-stat--up')?.textContent).toContain('5');
+    expect(polarCard?.querySelector('.session-qa-card__vote-stat--down')?.textContent).toContain(
+      '5',
+    );
     fixture.destroy();
   });
 

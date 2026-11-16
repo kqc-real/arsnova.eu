@@ -113,7 +113,7 @@
 | 8    | 8.3   | Voting & Sortierung                                                                | 🟢   | ✅ Fertig      |
 | 8    | 8.4   | Moderation durch Lehrende                                                          | 🟢   | ✅ Fertig      |
 | 8    | 8.6   | Q&A: Kontroversitäts-Score & Sortierung                                            | 🟡   | ✅ Fertig      |
-| 8    | 8.7   | Q&A: Sortierung „Beste Fragen“ (Wilson-Score)                                      | 🟡   | ✅ Fertig      |
+| 8    | 8.7   | Q&A: Sortierung »Klare Zustimmung« (Wilson-Score)                                  | 🟡   | ✅ Fertig      |
 | 8    | 8.8   | Tempo-Blitzlicht als Host-Option                                                   | 🟡   | ✅ Fertig      |
 | 8    | 8.9a  | Deterministischer Live-Moderationskompass                                          | 🟡   | ✅ Fertig      |
 | 8    | 8.9b  | Optionale Q&A-NLP-Kaskade für Moderationssignale                                   | 🟡   | ✅ Fertig      |
@@ -971,7 +971,7 @@ Eine Story gilt als **fertig**, wenn **alle** folgenden Kriterien erfüllt sind:
   - **Umsetzungs- und Lehrabsicht:** Die Story wird als durchgehendes Studienobjekt im Cloud-Computing-Kurs demonstriert und in den Übungen schrittweise umgesetzt. Studierende erstellen technische Messungen und Wirtschaftlichkeitsanalysen, dokumentieren eine verantwortete Architekturentscheidung und vertreten diese im Referat. Eine Produktivaktivierung folgt daraus nicht automatisch, sondern erst nach den unten definierten Qualitäts-, Sicherheits-, Datenschutz-, Last- und Betriebsgates.
   - **Produktzuschnitt:**
     - Der Encoder-Rollout vom 2026-08-21 war host-first und für Q&A. Seit der Produktentscheidung vom 2026-10-13 benennt Stufe 2 Host-Q&A und Host-Freitext mit demselben Auftrag, und der Presenter zeigt beide vom Host aktivierten Wolken. Er startet keine eigene Analyse. Der ältere Satz, Presenter-Q&A bleibe bis zu einer Folgestory auf dem 2.x-Pfad, gilt nicht mehr. Quiz-Freitext-Clustering bleibt Story 1.14d.
-    - Der Host kann orthogonal zur Gewichtung zwischen `Einzelwörter`, `Begriffe & Phrasen` und `Thema` wechseln. `Stimmensaldo`, `Beste Fragen` und `Kontroverse` bleiben als Gewichtungsmodi unverändert wirksam. Die Auswahloption heißt **Thema**; der heutige Text **Themen** wird in Stufe 2 umbenannt.
+    - Der Host kann orthogonal zur Gewichtung zwischen `Einzelwörter`, `Begriffe & Phrasen` und `Thema` wechseln. `Stimmensaldo`, `Klare Zustimmung` und `Geteilte Stimmen` bleiben als Gewichtungsmodi unverändert wirksam. Die Auswahloption heißt **Thema**; der heutige Text **Themen** wird in Stufe 2 umbenannt.
     - Analysiert werden nur die im aktuellen Host-Snapshot sichtbaren `PINNED`-/`ACTIVE`-Fragen. Archivierte, nicht sichtbare oder nicht hostseitig freigegebene Inhalte gelangen nicht in den Analyseauftrag.
     - Ein Thema ist nur zulässig, wenn seine Mitgliedschaft erklärbar ist. Tooltip, Fokus-/Textalternative und CSV zeigen mindestens Label, gewichteten Wert, Metrik, Konfidenz beziehungsweise Unsicherheit, Beispiel-/Mitgliedsfragen, Modell-/Analyseversion und Erzeugungszeitpunkt.
     - Findet die semantische Pipeline keine belastbaren Cluster oder ist sie deaktiviert, überlastet, zu langsam oder fehlerhaft, bleibt die lexikalische Wolke ohne leere Zwischenkarte vollständig nutzbar.
@@ -1953,12 +1953,14 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
 - **Story 8.6 (Q&A: Kontroversitäts-Score & Sortierung):** 🟡 Als Host einer Live-Veranstaltung möchte ich Fragen im Q&A nach Kontroversität (ausgeglichene Up- und Downvotes) sortieren können, damit polarisierende Themen sichtbar werden und nicht nur durch hohe Upvote-Zahlen dominieren.
   - **Details:** Formel, Sortier-Tie-Breaker, UI-Schwellen, Testfälle und Beispiel-SQL: [`docs/features/controversy-score.md`](docs/features/controversy-score.md).
   - **Produktabgleich Stand 2026-08-25:** Umsetzung als **optionaler Sortiermodus in der Host-Ansicht**, nicht als neue globale Standardsortierung; `PINNED` bleibt oberhalb jeder Score-Sortierung, Scoring wirkt nur innerhalb sichtbarer Statusgruppen. Vertrauenswürdige Tutor:innen oder Moderator:innen erhalten den Modus als Paired Hosts aus Story 2.10.
+  - **Aktuelle Bezeichnung:** »Geteilte Stimmen« in der Sortierauswahl, der Wortwolke und auf Fragenkarten. Der Moderationskompass zeigt »Fragen mit geteilten Stimmen«.
   - **Umsetzungsstand Stand 2026-05-13:** Der Host bietet den Modus `Umstritten` inklusive sichtbarer Kennzeichnung, getrennten `UP`/`DOWN`-Metriken in der Fragenliste und einer sortierabhaengigen Q&A-Wortwolke; Teilnehmende bleiben auf der Standardsortierung.
   - **Performance-Hinweis:** Die Story ist nach [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md) beobachtungspflichtig bis performance-kritisch, weil Scoring und Resortierung im laufenden Q&A-Kanal potenziell in den Live-Pfad geraten und bei vielen Fragen/Votes nicht naiv pro Update neu berechnet werden duerfen.
-- **Story 8.7 (Q&A: Sortierung „Beste Fragen“, Wilson-Score):** 🟡 Als Host einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können („Beste Fragen“, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
-  - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte „Best Questions“ / Wilson und Entwicklernotizen).
+- **Story 8.7 (Q&A: Sortierung »Klare Zustimmung«, Wilson-Score):** 🟡 Als Host einer Live-Veranstaltung möchte ich Fragen im Q&A optional nach statistisch belastbarer Zustimmung sortieren können (»Klare Zustimmung«, untere Grenze des Wilson-Konfidenzintervalls), damit Einzelstimmen mit scheinbar 100 % nicht über Fragen mit vielen, fast einhelligen Stimmen rutschen.
+  - **Details:** Hintergrund, Wilson-Formel, Beispiel-SQL und Abgrenzung zu Story 8.6: [`docs/features/controversy-score.md`](docs/features/controversy-score.md) (Abschnitte »Klare Zustimmung und das Wilson-Intervall« und Entwicklernotizen).
   - **Hinweis:** Sortier-UI (Dropdown o. Ä.) kann mit Story 8.6 gemeinsam geplant werden; technisch eigenständiges Scoring und Tests.
   - **Produktabgleich Stand 2026-05-13:** Story 8.7 ist im heutigen Produkt der passendere erste Ausbau, weil sie das bestehende Ziel „relevante Fragen nach oben“ stärkt; Grundlage sind getrennte `UP`-/`DOWN`-Aggregationen aus dem Q&A-Voting, nicht nur das bestehende Nettofeld `upvoteCount`.
+  - **Aktuelle Bezeichnung:** »Klare Zustimmung«. Der beobachtete Dafür-Anteil erscheint zusammen mit der Stimmenzahl.
   - **Umsetzungsstand Stand 2026-05-13:** Der Host bietet den Modus `Beste Fragen` auf Basis der unteren Wilson-Grenze; Host-DTOs liefern dafuer getrennte `UP`-/`DOWN`-Aggregationen sowie `score`, `voteCount`, `bestScore` und `controversyScore`.
   - **Performance-Hinweis:** Auch diese Story faellt unter [ADR-0025](docs/architecture/decisions/0025-treat-future-extensions-as-performance-critical-until-proven-otherwise.md), weil Wilson-Score-Berechnung, Ranking und Live-Neusortierung bei hohem Q&A-Aufkommen Aggregations- und Datenbanklast erzeugen koennen.
 - **Story 8.8 (Tempo-Blitzlicht als Host-Option):** 🟡 Als Lehrperson möchte ich im bestehenden Blitzlicht ein vordefiniertes Tempo-Blitzlicht starten können, sowohl in der Session als auch im Standalone-Blitzlicht, damit Teilnehmende während eines Vortrags jederzeit anonym rückmelden können, ob sie folgen, ob es schneller gehen darf, ob es zu schnell ist oder ob sie abgehängt sind.
@@ -2001,7 +2003,7 @@ ist abgeschlossen ✅. Damit ist Epic 6 geschlossen.
     - Vertrauenswürdige Tutor:innen oder Moderator:innen erhalten den Kompass ausschließlich als vollwertige Paired Hosts gemäß Story 2.10.
     - Der Kompass kann mindestens folgende vorhandene Signale zusammenführen:
       - Q&A-Fragen, Status, Pin/Archiv-Zustand, Up-/Downvote-Aggregate, `score`, `bestScore`, `controversyScore` und aktiver Q&A-Sortiermodus.
-      - Q&A-Wortwolken-Terme und deren Gewichtungsbasis (`Stimmensaldo`, `Beste Fragen`, `Kontroverse`).
+      - Q&A-Wortwolken-Terme und deren Gewichtungsbasis (`Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen`).
       - Freitext-Wortwolken-Terme und aggregierte Antwortmengen.
       - Quiz-Ergebnisstände nach Freigabe, insbesondere Antwortverteilungen, richtige/falsche Anteile und auffällige Streuung.
       - Numerische Schätzfragen nach Ergebnisfreigabe: Referenzwert, Plausibilitäts-/Toleranzband, Anteil im Band, Statistik, Histogramm-Informationen und Rundenvergleich.
