@@ -742,6 +742,9 @@
                     @if (team.members.length > 0 || team.placeholders.length > 0) {
                       <ul
                         class="session-present__lobby-team-members"
+                        [class.session-present__lobby-team-members--visual]="
+                          lobbyGridMode() !== 'text'
+                        "
                         role="list"
                         [attr.tabindex]="lobbyGridMode() === 'text' ? 0 : null"
                         [attr.aria-labelledby]="'lobby-team-' + team.id"

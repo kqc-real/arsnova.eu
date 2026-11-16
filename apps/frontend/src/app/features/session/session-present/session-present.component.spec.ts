@@ -5302,6 +5302,15 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
     );
     expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual[\s\S]*?li \{[\s\S]*?width:\s*auto;[\s\S]*?container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual[\s\S]*?:is\(\.session-present__lobby-nick-icon,\s*\.session-present__lobby-nick-mat-icon\) \{[\s\S]*?font-size:\s*clamp\(1\.75rem,\s*min\(8vw,\s*12vh\),\s*4\.5rem\);/,
+    );
+    expect(styles).toMatch(
       /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
     );
     expect(styles).toMatch(
@@ -5332,7 +5341,7 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-audience--kindergarten\s+:is\(\.session-present__lobby-team,\s*\.session-present__lobby-person-col\)\s+\.session-present__lobby-nick-icon \{\s*font-size:\s*min\(92cqh,\s*92cqw\)/,
+      /\.session-present__lobby-audience--kindergarten\s+:is\(\.session-present__lobby-team,\s*\.session-present__lobby-person-col\)\s+:is\(\.session-present__lobby-nick-icon,\s*\.session-present__lobby-nick-mat-icon\) \{[\s\S]*?font-size:\s*clamp\(1\.75rem,\s*min\(72cqh,\s*72cqw\),\s*4\.5rem\)/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-person-col \{[\s\S]*?border:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?container-type:\s*size;/,
