@@ -658,9 +658,8 @@ app-session-projection-quiz,
   font-size: clamp(1.25rem, 2.4vw, 1.7rem);
   font-weight: 750;
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .session-present__lobby-team-count {

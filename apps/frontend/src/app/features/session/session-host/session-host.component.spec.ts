@@ -24544,6 +24544,59 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt nach bestätigtem Blitzlicht-Stopp sofort Fortsetzen ohne Abo-Update', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      totalVotes: 2,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    let confirmStop!: (value: { locked: boolean }) => void;
+    quickFeedbackToggleLockMutateMock.mockImplementationOnce(
+      () =>
+        new Promise<{ locked: boolean }>((resolve) => {
+          confirmStop = resolve;
+        }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(false);
+    });
+    fixture.detectChanges();
+
+    const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
+    const roundControl = fixture.nativeElement.querySelector(
+      '[data-testid="feedback-primary-round-control"]',
+    ) as HTMLButtonElement;
+    const togglePending = fixture.componentInstance.toggleQuickFeedbackRoundLock();
+    fixture.detectChanges();
+    expect(roundControl.getAttribute('aria-disabled')).toBe('true');
+
+    confirmStop({ locked: true });
+    await togglePending;
+    fixture.detectChanges();
+
+    expect(feedbackHost.locked()).toBe(false);
+    expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(true);
+    expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
+    expect(roundControl.textContent).toContain('Fortsetzen');
+    expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
+    fixture.destroy();
+  });
+
   it('navigiert beim Beenden aus dem Blitzlicht-Kanal direkt zur Startseite', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,

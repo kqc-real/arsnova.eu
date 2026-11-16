@@ -933,7 +933,9 @@
             [disabledInteractive]="true"
             (click)="!roundActionBusy() && roundLockRequested.emit()"
           >
-            <mat-icon aria-hidden="true">{{ locked() ? 'play_arrow' : 'stop' }}</mat-icon>
+            <mat-icon aria-hidden="true">{{
+              effectiveRoundLocked() ? 'play_arrow' : 'stop'
+            }}</mat-icon>
             <span>{{ lockToggleLabel() }}</span>
             <kbd class="feedback-host__shortcut" aria-hidden="true">→</kbd>
           </button>

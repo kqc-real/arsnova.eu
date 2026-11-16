@@ -5210,13 +5210,13 @@ describe('SessionPresentComponent', () => {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
           teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          teamName: 'Rot',
+          teamName: 'Arbeitsgruppe Digitale Bildung Nord',
         },
         {
           id: '22222222-2222-4222-8222-222222222222',
           nickname: 'Milo',
           teamId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          teamName: 'Blau',
+          teamName: 'Arbeitsgruppe Digitale Bildung Süd',
         },
       ],
     });
@@ -5225,13 +5225,13 @@ describe('SessionPresentComponent', () => {
       teams: [
         {
           id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          name: 'Rot',
+          name: 'Arbeitsgruppe Digitale Bildung Nord',
           color: '#c62828',
           memberCount: 1,
         },
         {
           id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          name: 'Blau',
+          name: 'Arbeitsgruppe Digitale Bildung Süd',
           color: '#1565c0',
           memberCount: 1,
         },
@@ -5245,8 +5245,8 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Rot');
-    expect(text).toContain('Blau');
+    expect(text).toContain('Arbeitsgruppe Digitale Bildung Nord');
+    expect(text).toContain('Arbeitsgruppe Digitale Bildung Süd');
     expect(text).toContain('Luna');
     expect(text).toContain('Milo');
     expect(text).toContain('Warten auf die anderen');
@@ -5256,7 +5256,10 @@ describe('SessionPresentComponent', () => {
     const teamNames = [
       ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-name'),
     ].map((el) => (el.textContent ?? '').trim());
-    expect(teamNames).toEqual(['Rot', 'Blau']);
+    expect(teamNames).toEqual([
+      'Arbeitsgruppe Digitale Bildung Nord',
+      'Arbeitsgruppe Digitale Bildung Süd',
+    ]);
     const teamCounts = [
       ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-count'),
     ].map((el) => (el.textContent ?? '').trim());
@@ -5290,7 +5293,7 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-teams-grid \{[\s\S]*?--present-lobby-team-min-width:\s*18rem;[\s\S]*?grid-template-columns:\s*repeat\(\s*auto-fit,\s*minmax\(min\(100%,\s*var\(--present-lobby-team-min-width\)\),\s*1fr\)\s*\);/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-team-name \{[\s\S]*?overflow:\s*hidden;[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/,
+      /\.session-present__lobby-team-name \{[\s\S]*?overflow-wrap:\s*anywhere;[\s\S]*?white-space:\s*normal;/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-team-members li \{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;/,

@@ -5702,6 +5702,7 @@
             [sessionCode]="code"
             [embeddedInSession]="true"
             [roundControlPending]="quickFeedbackActionPending() || channelNavigationBusy()"
+            [confirmedRoundLocked]="quickFeedbackResult()?.locked ?? null"
             [presenterActionOffered]="showHostViewControls() && projectionControlsOffered()"
             [presenterActionLabel]="presenterCompactActionLabel"
             [presenterActionAriaLabel]="presenterViewActionLabel()"

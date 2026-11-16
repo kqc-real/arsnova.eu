@@ -112,6 +112,8 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly sessionCode = input('');
   readonly embeddedInSession = input(false);
   readonly roundControlPending = input(false);
+  /** Vom Session-Host nach erfolgreicher Mutation bestätigter Sperrstatus. */
+  readonly confirmedRoundLocked = input<boolean | null>(null);
   readonly presenterActionOffered = input(false);
   readonly presenterActionLabel = input('');
   readonly presenterActionAriaLabel = input('');
@@ -131,6 +133,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       this.resetting() ||
       this.liveResultsPending(),
   );
+  readonly effectiveRoundLocked = computed(() => this.confirmedRoundLocked() ?? this.locked());
   private readonly embeddedHeading = viewChild<ElementRef<HTMLElement>>('embeddedHeading');
   private readonly roundSettingsTrigger = viewChild<
     ElementRef<HTMLButtonElement>,
@@ -682,11 +685,13 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   lockToggleLabel(): string {
-    return this.locked() ? $localize`Fortsetzen` : $localize`Stopp`;
+    return this.effectiveRoundLocked() ? $localize`Fortsetzen` : $localize`Stopp`;
   }
 
   lockToggleAriaLabel(): string {
-    return this.locked() ? $localize`Abstimmung fortsetzen` : $localize`Abstimmung einfrieren`;
+    return this.effectiveRoundLocked()
+      ? $localize`Abstimmung fortsetzen`
+      : $localize`Abstimmung einfrieren`;
   }
 
   standalonePrimaryActionKind(): 'second-round' | 'discussion' | 'lock-toggle' {
@@ -735,7 +740,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       case 'discussion':
         return 'forum';
       default:
-        return this.locked() ? 'play_arrow' : 'stop';
+        return this.effectiveRoundLocked() ? 'play_arrow' : 'stop';
     }
   }
 
