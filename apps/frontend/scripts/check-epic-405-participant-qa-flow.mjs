@@ -6,9 +6,9 @@
  * - Join mit eigenem Nickname in eine konfigurierte Q&A-Session
  * - Frage senden im offenen Kanal
  * - Host sieht die Frage live
- * - Host-Sortierung Meist unterstützt, Beste Fragen und Umstritten
+ * - Host-Sortierung Stimmensaldo, Klare Zustimmung und Geteilte Stimmen
  * - Favoritenfilter „Nur hervorgehobene“
- * - Q&A-Wortwolke mit Größe nach Stimmen, besten Fragen und Kontroverse
+ * - Q&A-Wortwolke mit Größe nach Stimmensaldo, klarer Zustimmung und geteilten Stimmen
  * - Nach Sessionende ist der Teilnehmer-Schreibpfad geschlossen
  *
  * Run:
@@ -336,7 +336,7 @@ async function dismissJoinOverlay(page, timeout = 3_000) {
   await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
-async function seedRankedQaBoard(hostTrpc, created) {
+async function seedRankedQaBoard(created) {
   const publicTrpc = createTrpcClient();
   const voters = [];
   for (let index = 0; index < VOTER_COUNT; index += 1) {
@@ -444,42 +444,39 @@ async function firstQaCardContains(page, snippet) {
   return texts[0]?.includes(snippet) === true;
 }
 
-async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, failures) {
+async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures) {
   await dismissJoinOverlay(page);
   const qaTools = page.getByTestId('qa-tools-toggle');
   await qaTools.waitFor({ state: 'visible', timeout: 20_000 });
   if ((await qaTools.getAttribute('aria-expanded')) !== 'true') await qaTools.click();
-  const seeded = await seedRankedQaBoard(hostTrpc, created);
   await revealLatestQaQuestions(page);
   await page.getByText(RANKED_QUESTIONS.controversial, { exact: false }).first().waitFor({
     state: 'visible',
     timeout: 15_000,
   });
 
-  await selectQaSort(page, 'Meist unterstützt');
+  await selectQaSort(page, 'Stimmensaldo');
   const topOk = await firstQaCardContains(page, 'Klausurtermine');
-  logStep(topOk, 'Host sortiert nach Meist unterstützt (Favorit)');
+  logStep(topOk, 'Host sortiert nach Stimmensaldo (Favorit)');
   if (!topOk) {
-    failures.push(
-      `Meist unterstützt zeigte nicht die Klausurfrage zuerst: ${await qaCardTexts(page)}`,
-    );
+    failures.push(`Stimmensaldo zeigte nicht die Klausurfrage zuerst: ${await qaCardTexts(page)}`);
   }
 
-  await selectQaSort(page, 'Beste Fragen');
+  await selectQaSort(page, 'Klare Zustimmung');
   const bestOk = await firstQaCardContains(page, 'Hausaufgabenfrist');
-  logStep(bestOk, 'Host sortiert nach Beste Fragen');
+  logStep(bestOk, 'Host sortiert nach Klare Zustimmung');
   if (!bestOk) {
     failures.push(
-      `Beste Fragen zeigte nicht die Hausaufgabenfrage zuerst: ${await qaCardTexts(page)}`,
+      `Klare Zustimmung zeigte nicht die Hausaufgabenfrage zuerst: ${await qaCardTexts(page)}`,
     );
   }
 
-  await selectQaSort(page, 'Umstritten');
+  await selectQaSort(page, 'Geteilte Stimmen');
   const controversialOk = await firstQaCardContains(page, 'Kontroversenregel');
-  logStep(controversialOk, 'Host sortiert nach Umstritten');
+  logStep(controversialOk, 'Host sortiert nach Geteilte Stimmen');
   if (!controversialOk) {
     failures.push(
-      `Umstritten zeigte nicht die Kontroversenfrage zuerst: ${await qaCardTexts(page)}`,
+      `Geteilte Stimmen zeigte nicht die Kontroversenfrage zuerst: ${await qaCardTexts(page)}`,
     );
   }
 
@@ -503,7 +500,9 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
   await wordCloudButton.click();
   const cloud = page.locator('mat-dialog-container app-word-cloud').first();
   await cloud.waitFor({ state: 'visible', timeout: 15_000 });
-  const sizeSelect = page.getByLabel(/Größe nach Stimmen/i);
+  const sizeSelect = page.getByRole('combobox', {
+    name: /Größe nach Bewertungen oder Häufigkeit/i,
+  });
   await sizeSelect.waitFor({ state: 'visible', timeout: 10_000 });
   const questionCountPill = page
     .locator('.word-cloud__meta-pill')
@@ -516,20 +515,15 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
 
   let firstWordLabels = [];
   for (const [value, label] of [
-    ['TOP', 'Stimmen'],
-    ['BEST', 'Beste Fragen'],
-    ['CONTROVERSIAL', 'Kontroverse'],
+    ['TOP', 'Stimmensaldo'],
+    ['BEST', 'Klare Zustimmung'],
+    ['CONTROVERSIAL', 'Geteilte Stimmen'],
   ]) {
-    await sizeSelect.selectOption(value);
-    const selectedReady = await page
-      .waitForFunction(
-        (expected) => {
-          const select = document.querySelector('.qa-word-cloud-dialog__size-select');
-          return select instanceof HTMLSelectElement && select.value === expected;
-        },
-        value,
-        { timeout: 8_000 },
-      )
+    await sizeSelect.click();
+    await page.getByRole('option', { name: label, exact: true }).click();
+    const selectedReady = await sizeSelect
+      .getByText(label, { exact: true })
+      .waitFor({ state: 'visible', timeout: 8_000 })
       .then(
         () => true,
         () => false,
@@ -576,7 +570,10 @@ async function seedRankedQaBoardAndAssertHostViews(page, hostTrpc, created, fail
   }
 
   await page.locator('.qa-word-cloud-dialog__close').click({ force: true });
-  await cloud.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => undefined);
+  await cloud.waitFor({ state: 'hidden', timeout: 10_000 });
+  if ((await qaTools.getAttribute('aria-expanded')) !== 'true') {
+    failures.push('Auswertung & Werkzeuge ist nach der Rückkehr aus der Wortwolke geschlossen.');
+  }
 }
 
 async function waitForParticipantCount(page, expected, timeout = HOST_SEES_JOIN_TIMEOUT_MS) {
@@ -701,7 +698,9 @@ async function main() {
         );
       }
 
+      const seeded = await seedRankedQaBoard(created);
       const tools = participant.locator('.session-qa-tools');
+      await tools.waitFor({ state: 'visible', timeout: QA_SURFACE_TIMEOUT_MS });
       if ((await tools.getAttribute('open')) !== null)
         failures.push('Fragenwerkzeuge müssen zunächst eingeklappt sein.');
       await participant.locator('#qa-tools-summary').press('Enter');
@@ -726,7 +725,7 @@ async function main() {
       await participant.locator('.session-qa-card').first().waitFor({ state: 'visible' });
       logStep(resetFocus, 'Suche: Tastatur, Einklappen, Persistenz und Clear-Fokus');
 
-      await seedRankedQaBoardAndAssertHostViews(host, hostTrpc, created, failures);
+      await assertRankedQaHostViews(host, hostTrpc, created, seeded, failures);
 
       await hostTrpc.session.end.mutate({ code: created.code });
       const closed = await participant

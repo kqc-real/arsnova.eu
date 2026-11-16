@@ -407,6 +407,10 @@ describe('ModerationCompassDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(button.textContent).toContain('Frage öffnen');
     expect(button.getAttribute('aria-label')).toContain('Warum diese Verteilung?');
+    expect(fixture.nativeElement.textContent).toContain('Fragen mit geteilten Stimmen');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Geh kurz auf Fragen mit geteilten Stimmen ein.',
+    );
     button.focus();
     button.click();
     fixture.detectChanges();

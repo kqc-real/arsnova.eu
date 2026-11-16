@@ -3293,12 +3293,12 @@ describe('SessionPresentComponent', () => {
       {
         id: '55555555-5555-4555-8555-555555555555',
         text: 'Queue mit Metriken',
-        upvoteCount: 4,
-        positiveVoteCount: 3,
-        negativeVoteCount: 1,
+        upvoteCount: 1,
+        positiveVoteCount: 6,
+        negativeVoteCount: 5,
         bestScore: 0.55,
-        controversyScore: 0.38,
-        isControversial: false,
+        controversyScore: 2 / 3,
+        isControversial: true,
         controversyInsufficientVotes: false,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:05:00.000Z',
@@ -3322,17 +3322,23 @@ describe('SessionPresentComponent', () => {
         fixture.nativeElement.querySelector('[data-testid="presenter-qa-hero-meta"]'),
       ).not.toBeNull();
       expect(text).toContain('vor 12\u00A0Min.');
-      expect(text).toContain('Zustimmung 71 %');
-      expect(text).toContain('Zustimmung 55 %');
-      expect(text).not.toContain('Geteilte Reaktionen');
+      expect(text).toMatch(/83[,.]3\s?% dafür · 12 Stimmen/);
+      expect(text).toMatch(/54[,.]5\s?% dafür · 11 Stimmen/);
+      expect(
+        fixture.nativeElement.querySelector('.session-present__qa-list-meta-chip--controversial'),
+      ).toBeNull();
       expect(text).not.toContain('Einseitig');
 
       fixture.componentInstance.presenterQaSortMode.set('CONTROVERSIAL');
       fixture.detectChanges();
       text = fixture.nativeElement.textContent ?? '';
       expect(text).toContain('Einseitig');
-      expect(text).not.toContain('Geteilte Reaktionen');
-      expect(text).not.toContain('Zustimmung:');
+      expect(
+        fixture.nativeElement.querySelector('.session-present__qa-list-meta-chip--controversial')
+          ?.textContent,
+      ).toContain('Geteilte Stimmen');
+      expect(text).not.toContain('67 %');
+      expect(text).not.toContain('dafür ·');
     } finally {
       fixture.destroy();
       vi.useRealTimers();
@@ -3696,7 +3702,7 @@ describe('SessionPresentComponent', () => {
       '[data-testid="presenter-qa-sort"]',
     ) as HTMLElement | null;
     const sortText = sortGroup?.textContent ?? '';
-    const controversyAt = sortText.indexOf('Kontroverse');
+    const controversyAt = sortText.indexOf('Geteilte Stimmen');
     const bestAt = sortText.indexOf('Klare Zustimmung');
     const netAt = sortText.indexOf('Stimmensaldo');
     const timeAt = sortText.indexOf('Zeit');
@@ -4524,9 +4530,9 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Stichprobengröße');
     expect(text).toContain('Inhaltlich ähnliche Fragen sind zu Themen zusammengefasst.');
     expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
-      'Größer erscheinen Begriffe',
+      'Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.',
     );
-    expect(text).toContain('Das sagt nichts über ihre fachliche Richtigkeit aus.');
+    expect(text).toContain('Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht.');
     expect(text).not.toContain('ohne Wort-Glättung');
 
     fixture.componentInstance.qaWordCloudProjection.update((projection) =>
@@ -4671,7 +4677,7 @@ describe('SessionPresentComponent', () => {
       ...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill--context'),
     ].map((el) => (el.textContent ?? '').trim());
     expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
-      'Größer erscheinen Begriffe',
+      'Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.',
     );
     expect(pills).toEqual([]);
     expect(fixture.nativeElement.textContent).toContain('Dafür- und Dagegen-Stimmen');

@@ -154,7 +154,7 @@ const en: Messages = {
       },
       {
         label: 'Topic word cloud',
-        text: 'Words and phrases are weighted by the selected sort: net votes, strong support, or controversy.',
+        text: 'Term size can be weighted by net votes, strong support, split votes, or how many questions contain each term.',
       },
       {
         label: 'Moderation compass',
@@ -168,22 +168,22 @@ const en: Messages = {
     moderationActive: 'Pre-moderation on',
     sortMostSupported: 'Net votes',
     sortBest: 'Strong support',
-    sortControversial: 'Controversy',
+    sortControversial: 'Split votes',
     questions: [
       {
-        score: '+18',
+        score: '+11',
+        title: 'How does Q&A differ from free text in the quiz?',
+        meta: '100% in favor · 11 votes',
+      },
+      {
+        score: '+12',
         title: 'When does an estimate fall within an acceptable range?',
-        meta: '15 up · 3 down · strong support',
+        meta: '83.3% in favor · 18 votes',
       },
       {
         score: '+4',
         title: 'Should we really hide results before the discussion?',
-        meta: '9 up · 5 down · controversial',
-      },
-      {
-        score: '+11',
-        title: 'How does Q&A differ from free text in the quiz?',
-        meta: '11 up · 0 down · most supported',
+        meta: '64.3% in favor · 14 votes',
       },
     ],
     wordCloud: 'Q&A word cloud',

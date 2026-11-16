@@ -155,7 +155,7 @@ const es: Messages = {
       },
       {
         label: 'Nube temática',
-        text: 'Las palabras y expresiones se ponderan según la ordenación elegida: saldo de votos, apoyo claro o controversia.',
+        text: 'El tamaño de los términos puede ponderarse según el saldo de votos, el apoyo claro, los votos divididos o el número de preguntas que contienen cada término.',
       },
       {
         label: 'Brújula de moderación',
@@ -169,22 +169,22 @@ const es: Messages = {
     moderationActive: 'Premoderación activa',
     sortMostSupported: 'Saldo de votos',
     sortBest: 'Apoyo claro',
-    sortControversial: 'Controversia',
+    sortControversial: 'Votos divididos',
     questions: [
       {
-        score: '+18',
+        score: '+11',
+        title: '¿En qué se diferencia el Q&A del texto libre en el cuestionario?',
+        meta: '100 % a favor · 11 votos',
+      },
+      {
+        score: '+12',
         title: '¿Cuándo está una estimación dentro de un intervalo aceptable?',
-        meta: '15 a favor · 3 en contra · apoyo claro',
+        meta: '83,3 % a favor · 18 votos',
       },
       {
         score: '+4',
         title: '¿Debemos ocultar realmente los resultados antes del debate?',
-        meta: '9 a favor · 5 en contra · controvertida',
-      },
-      {
-        score: '+11',
-        title: '¿En qué se diferencia el Q&A del texto libre en el cuestionario?',
-        meta: '11 a favor · 0 en contra · mayormente apoyada',
+        meta: '64,3 % a favor · 14 votos',
       },
     ],
     wordCloud: 'Nube de palabras Q&A',

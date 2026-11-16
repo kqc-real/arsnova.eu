@@ -634,7 +634,7 @@ export class ModerationCompassDialogComponent {
       case 'survey':
         return $localize`:@@sessionHost.moderationCardSurvey:Antwortverteilung`;
       case 'friction':
-        return $localize`:@@sessionHost.moderationCardFriction:Umstrittene Fragen`;
+        return $localize`:@@sessionHost.moderationCardFriction:Fragen mit geteilten Stimmen`;
       case 'tempo':
         return card.tempoStatus === 'TOO_FAST' ||
           card.tempoStatus === 'LOST' ||
@@ -682,7 +682,7 @@ export class ModerationCompassDialogComponent {
       case 'quiz-mention':
         return $localize`:@@sessionHost.moderationNextMention:Einzelne Antworten passen zu keinem häufigen Thema. Du musst sie nicht alle besprechen.`;
       case 'controversy':
-        return $localize`:@@sessionHost.moderationNextFriction:Greif die umstrittenen Fragen kurz auf.`;
+        return $localize`:@@sessionHost.moderationNextFriction:Geh kurz auf Fragen mit geteilten Stimmen ein.`;
       case 'tempo':
         return $localize`:@@sessionHost.moderationNextTempo:Geh langsamer oder frag, wer nicht mehr folgt.`;
       case 'tempo-slow':

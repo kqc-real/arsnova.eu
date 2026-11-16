@@ -287,6 +287,7 @@ import {
   recordServerTimeSample,
 } from '../session-server-clock';
 import { SessionDeadlineController } from '../session-deadline';
+import { formatQaSupportLabel } from '../session-qa-support-label.util';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import { normalizeQaSearchQuery } from '../qa-search.util';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
@@ -2339,16 +2340,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaSortMode(),
   );
   readonly qaWordCloudMetricLabel = computed(() => {
-    switch (this.qaWordCloudDisplayMetric()) {
-      case 'BEST':
-        return $localize`:@@sessionQa.wordCloudMetricBest:klare Zustimmung`;
-      case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Kontroverse`;
-      case 'TIME':
-        return $localize`:@@sessionQa.wordCloudMetricTime:Vorkommen in Fragen`;
-      default:
-        return $localize`:@@sessionQa.sortTop:Stimmensaldo`;
-    }
+    const metric = this.qaWordCloudDisplayMetric();
+    return metric === 'TIME'
+      ? $localize`:@@sessionQa.wordCloudMetricTime:Vorkommen in Fragen`
+      : this.qaSortModeLabel(metric);
   });
   readonly qaWordCloudTitle = computed(() =>
     this.qaWordCloudDisplayMode() === 'SEMANTIC'
@@ -2670,9 +2665,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintBest:Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt zuerst die Fragen mit der höchsten Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintControversial:Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.`;
       case 'TIME':
         return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       default:
@@ -2918,6 +2913,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ? result.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
           : [];
         if (this.destroyRef.destroyed) return;
+        if (!returnToCompass && this.activeChannel() === 'qa') {
+          this.qaToolsOpen.set(true);
+        }
         this.restoreQaFocusAfterWordCloudClose(fromResult.length > 0 ? fromResult : selectedIds);
         if (returnToCompass) {
           void this.returnToModerationCompass();
@@ -3603,7 +3601,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'survey':
         return $localize`:@@sessionHost.moderationCardSurvey:Antwortverteilung`;
       case 'friction':
-        return $localize`:@@sessionHost.moderationCardFriction:Umstrittene Fragen`;
+        return $localize`:@@sessionHost.moderationCardFriction:Fragen mit geteilten Stimmen`;
       case 'topics':
         return $localize`:@@sessionHost.moderationCardTopics:Häufige Themen`;
       default:
@@ -12025,12 +12023,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudFrozen.set(true);
   }
 
-  formatQaPercent(value: number | undefined): string {
-    if (!Number.isFinite(value)) {
-      return '0 %';
-    }
-
-    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  formatQaSupport(question: QaQuestionDTO): string | null {
+    return formatQaSupportLabel(question, this.localeId);
   }
 
   formatCount(value: number | null | undefined): string {
@@ -12048,7 +12042,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'BEST':
         return $localize`:@@sessionQa.sortBest:Klare Zustimmung`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Kontroverse`;
+        return $localize`:@@sessionQa.sortControversial:Geteilte Stimmen`;
       case 'TIME':
         return $localize`:@@sessionQa.sortTime:Zeit`;
     }

@@ -1047,12 +1047,13 @@
                   >
                     {{ relativeTime(pinnedQuestion.createdAt) }}
                   </time>
-                  @if (presenterQaSortMode() === 'BEST' && pinnedQuestion.bestScore !== undefined) {
-                    <span
-                      class="session-present__qa-meta-chip session-present__qa-meta-chip--best"
-                      i18n="@@sessionQa.bestMetric"
-                      >Zustimmung {{ formatQaPercent(pinnedQuestion.bestScore) }}</span
-                    >
+                  @if (
+                    presenterQaSortMode() === 'BEST' && formatQaSupport(pinnedQuestion);
+                    as support
+                  ) {
+                    <span class="session-present__qa-meta-chip session-present__qa-meta-chip--best">
+                      {{ support }}
+                    </span>
                   }
                   @if (
                     presenterQaSortMode() === 'CONTROVERSIAL' &&
@@ -1061,7 +1062,7 @@
                     <span
                       class="session-present__qa-meta-chip session-present__qa-meta-chip--controversial"
                       i18n="@@sessionQa.badgeControversial"
-                      >Umstritten</span
+                      >Geteilte Stimmen</span
                     >
                   } @else if (
                     presenterQaSortMode() === 'CONTROVERSIAL' &&
@@ -1083,24 +1084,11 @@
                     <span
                       class="session-present__qa-meta-chip session-present__qa-meta-chip--controversy-onesided"
                       i18n-title="@@sessionQa.badgeControversyOnesidedAria"
-                      title="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                      title="Die abgegebenen Stimmen tendieren zu einer Seite"
                       i18n-aria-label="@@sessionQa.badgeControversyOnesidedAria"
-                      aria-label="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                      aria-label="Die abgegebenen Stimmen tendieren zu einer Seite"
                       i18n="@@sessionQa.badgeControversyOnesided"
                       >Einseitig</span
-                    >
-                  }
-                  @if (
-                    presenterQaSortMode() === 'CONTROVERSIAL' &&
-                    pinnedQuestion.isControversial === true &&
-                    pinnedQuestion.controversyScore !== undefined &&
-                    pinnedQuestion.controversyScore > 0
-                  ) {
-                    <span
-                      class="session-present__qa-meta-chip session-present__qa-meta-chip--controversial"
-                      i18n="@@sessionQa.controversyMetric"
-                      >Geteilte Reaktionen
-                      {{ formatQaPercent(pinnedQuestion.controversyScore) }}</span
                     >
                   }
                 </div>
@@ -1181,13 +1169,14 @@
                             {{ relativeTime(question.createdAt) }}
                           </time>
                           @if (
-                            presenterQaSortMode() === 'BEST' && question.bestScore !== undefined
+                            presenterQaSortMode() === 'BEST' && formatQaSupport(question);
+                            as support
                           ) {
                             <span
                               class="session-present__qa-list-meta-chip session-present__qa-list-meta-chip--best"
-                              i18n="@@sessionQa.bestMetric"
-                              >Zustimmung {{ formatQaPercent(question.bestScore) }}</span
                             >
+                              {{ support }}
+                            </span>
                           }
                           @if (
                             presenterQaSortMode() === 'CONTROVERSIAL' &&
@@ -1196,7 +1185,7 @@
                             <span
                               class="session-present__qa-list-meta-chip session-present__qa-list-meta-chip--controversial"
                               i18n="@@sessionQa.badgeControversial"
-                              >Umstritten</span
+                              >Geteilte Stimmen</span
                             >
                           } @else if (
                             presenterQaSortMode() === 'CONTROVERSIAL' &&
@@ -1218,24 +1207,11 @@
                             <span
                               class="session-present__qa-list-meta-chip session-present__qa-list-meta-chip--controversy-onesided"
                               i18n-title="@@sessionQa.badgeControversyOnesidedAria"
-                              title="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                              title="Die abgegebenen Stimmen tendieren zu einer Seite"
                               i18n-aria-label="@@sessionQa.badgeControversyOnesidedAria"
-                              aria-label="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                              aria-label="Die abgegebenen Stimmen tendieren zu einer Seite"
                               i18n="@@sessionQa.badgeControversyOnesided"
                               >Einseitig</span
-                            >
-                          }
-                          @if (
-                            presenterQaSortMode() === 'CONTROVERSIAL' &&
-                            question.isControversial === true &&
-                            question.controversyScore !== undefined &&
-                            question.controversyScore > 0
-                          ) {
-                            <span
-                              class="session-present__qa-list-meta-chip session-present__qa-list-meta-chip--controversial"
-                              i18n="@@sessionQa.controversyMetric"
-                              >Geteilte Reaktionen
-                              {{ formatQaPercent(question.controversyScore) }}</span
                             >
                           }
                         </div>

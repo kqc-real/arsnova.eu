@@ -4787,14 +4787,14 @@
                         >
                           <mat-button-toggle value="CONTROVERSIAL">
                             <span class="session-qa-sort-toggle__label">
-                              <span i18n="@@sessionQa.sortControversial">Kontroverse</span>
+                              <span i18n="@@sessionQa.sortControversial">Geteilte Stimmen</span>
                               <span
                                 class="session-qa-sort-help"
                                 role="button"
                                 tabindex="0"
                                 data-testid="qa-sort-help-controversial"
                                 i18n-aria-label="@@sessionQa.sortHelpControversialAria"
-                                aria-label="Hilfe zu »Kontroverse«"
+                                aria-label="Hilfe zu »Geteilte Stimmen«"
                                 (click)="openQaSortHelp($event, 'CONTROVERSIAL')"
                                 (keydown.enter)="openQaSortHelp($event, 'CONTROVERSIAL')"
                                 (keydown.space)="openQaSortHelp($event, 'CONTROVERSIAL')"
@@ -4813,7 +4813,7 @@
                                 tabindex="0"
                                 data-testid="qa-sort-help-best"
                                 i18n-aria-label="@@sessionQa.sortHelpBestAria"
-                                aria-label="Hilfe zu »Beste Fragen«"
+                                aria-label="Hilfe zu »Klare Zustimmung«"
                                 (click)="openQaSortHelp($event, 'BEST')"
                                 (keydown.enter)="openQaSortHelp($event, 'BEST')"
                                 (keydown.space)="openQaSortHelp($event, 'BEST')"
@@ -4918,7 +4918,7 @@
                             <mat-icon aria-hidden="true">{{
                               qaSortMode() === 'CONTROVERSIAL' ? 'check' : 'compare_arrows'
                             }}</mat-icon>
-                            <span i18n="@@sessionQa.sortControversial">Kontroverse</span>
+                            <span i18n="@@sessionQa.sortControversial">Geteilte Stimmen</span>
                           </button>
                           <button
                             mat-menu-item
@@ -4966,7 +4966,7 @@
                             (click)="openQaSortHelp($event, 'BEST')"
                           >
                             <mat-icon aria-hidden="true">help</mat-icon>
-                            <span i18n="@@sessionQa.sortHelpBestMenu">Hilfe: Beste Fragen</span>
+                            <span i18n="@@sessionQa.sortHelpBestMenu">Hilfe: Klare Zustimmung</span>
                           </button>
                           <button
                             mat-menu-item
@@ -4976,7 +4976,7 @@
                           >
                             <mat-icon aria-hidden="true">help</mat-icon>
                             <span i18n="@@sessionQa.sortHelpControversialMenu"
-                              >Hilfe: Kontroverse</span
+                              >Hilfe: Geteilte Stimmen</span
                             >
                           </button>
                           <button
@@ -5512,7 +5512,7 @@
                             <span
                               class="session-qa-card__badge session-qa-card__badge--controversial"
                               i18n="@@sessionQa.badgeControversial"
-                              >Umstritten</span
+                              >Geteilte Stimmen</span
                             >
                           } @else if (
                             qaSortMode() === 'CONTROVERSIAL' &&
@@ -5533,32 +5533,17 @@
                             <span
                               class="session-qa-card__badge session-qa-card__badge--controversy-onesided"
                               i18n-title="@@sessionQa.badgeControversyOnesidedAria"
-                              title="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                              title="Die abgegebenen Stimmen tendieren zu einer Seite"
                               i18n-aria-label="@@sessionQa.badgeControversyOnesidedAria"
-                              aria-label="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                              aria-label="Die abgegebenen Stimmen tendieren zu einer Seite"
                               i18n="@@sessionQa.badgeControversyOnesided"
                               >Einseitig</span
                             >
                           }
-                          @if (qaSortMode() === 'BEST' && question.bestScore !== undefined) {
-                            <span
-                              class="session-qa-card__metric session-qa-card__metric--best"
-                              i18n="@@sessionQa.bestMetric"
-                              >Zustimmung {{ formatQaPercent(question.bestScore) }}</span
-                            >
-                          }
-                          @if (
-                            qaSortMode() === 'CONTROVERSIAL' &&
-                            question.isControversial === true &&
-                            question.controversyScore !== undefined &&
-                            question.controversyScore > 0
-                          ) {
-                            <span
-                              class="session-qa-card__metric session-qa-card__metric--controversial"
-                              i18n="@@sessionQa.controversyMetric"
-                              >Geteilte Reaktionen
-                              {{ formatQaPercent(question.controversyScore) }}</span
-                            >
+                          @if (qaSortMode() === 'BEST' && formatQaSupport(question); as support) {
+                            <span class="session-qa-card__metric session-qa-card__metric--best">
+                              {{ support }}
+                            </span>
                           }
                         </div>
                         <div

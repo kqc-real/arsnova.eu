@@ -1,7 +1,7 @@
 # Kontroversitäts- und Best-Score für das Q&A-Forum (Story 8.6 / 8.7)
 
 > **Zielgruppe:** Product Owner, Entwickler, QA  
-> **Verknüpfung:** User-Stories in Kurzform siehe [`Backlog.md`](../../Backlog.md) — **8.6** Kontroversitäts-Score, **8.7** „Beste Fragen“ (Wilson-Score). Dieses Dokument enthält Spezifikation **und** den aktuellen Implementierungsstand zu beiden Themen.
+> **Verknüpfung:** User-Stories in Kurzform siehe [`Backlog.md`](../../Backlog.md) — **8.6** Kontroversitäts-Score, **8.7** »Klare Zustimmung« (Wilson-Score). Dieses Dokument enthält Spezifikation **und** den aktuellen Implementierungsstand zu beiden Themen.
 
 ## Hintergrund
 
@@ -9,25 +9,24 @@ Eine einfache Differenz (Upvotes minus Downvotes) rutscht bei **ausgeglichener P
 
 Der Score misst, wie geteilt die Stimmen zu einer Frage sind. Ein fester Zuschlag im Nenner dämpft kleine Stimmzahlen. Identische Stimmenverteilungen ergeben denselben Score in jeder Session.
 
-## Produktionsabgleich (Stand 2026-05-15)
+## Produktverhalten
 
 Die aktuelle Q&A-Implementierung in arsnova.eu hat bereits **bidirektionales Voting** (`UP` / `DOWN`) und speichert pro Frage einen **Netto-Score** in `QaQuestion.upvoteCount`; die einzelnen Stimmen liegen in `QaUpvote.direction`. Daraus folgen für Story 8.6 und 8.7 verbindliche Produktentscheidungen:
 
-1. **8.6 und 8.7 sind im heutigen Produkt optionale Sortiermodi für den Host.** Vertrauenswürdige Tutor:innen oder Moderator:innen erhalten sie künftig über die vollständige Host-Ansicht eines Paired Hosts aus Story 2.10. Sie sind keine neuen globalen Standardsortierungen für alle Clients.
-2. **Teilnehmende behalten die heutige, leicht verständliche Standardsortierung**; die neuen Modi sind ein Werkzeug für Moderation, nicht das neue Default-Ranking der Teilnehmendenansicht.
-3. **Hervorgehobene Fragen bleiben Forum- und Presenter-Anker.** In allen Sortiermodi stehen `PINNED`-Fragen zuerst (Host: vor `PENDING` und `ACTIVE`); innerhalb jeder Statusgruppe gilt die gewählte Metrik. Die Host-Liste rotiert ab dem Navigator-Cursor (Position 1 = Hero, 2 = nächster Kandidat); der Hero ist nur per Primary-Rand markiert (gleiche Kartenfläche wie die übrigen Fragen). Die Hörsaalbühne zeigt zusätzlich Erstellungszeit und nur die aktive Sortier-Metrik (bei BEST Zustimmung %, bei CONTROVERSIAL geteilte Reaktionen %); `qa.presentProjection` liefert die Scores deshalb immer mit. `PENDING`, `ARCHIVED` und `DELETED` folgen als eigene Statusgruppen.
+1. **»Geteilte Stimmen« und »Klare Zustimmung« stehen als Sortiermodi in der Host- und in der Teilnehmendenansicht zur Auswahl.**
+2. **Teilnehmende starten mit »Stimmensaldo«.**
+3. **Hervorgehobene Fragen bleiben Forum- und Presenter-Anker.** In allen Sortiermodi stehen `PINNED`-Fragen zuerst (Host: vor `PENDING` und `ACTIVE`); innerhalb jeder Statusgruppe gilt die gewählte Metrik. Die Host-Liste rotiert ab dem Navigator-Cursor (Position 1 = Hero, 2 = nächster Kandidat); der Hero ist nur per Primary-Rand markiert (gleiche Kartenfläche wie die übrigen Fragen). Die Hörsaalbühne zeigt zusätzlich Erstellungszeit und nur die aktive Sortier-Metrik (bei BEST Dafür-Anteil und Stimmenzahl, bei CONTROVERSIAL die Einordnung der Stimmenverteilung); `qa.presentProjection` liefert die Scores deshalb immer mit. `PENDING`, `ARCHIVED` und `DELETED` folgen als eigene Statusgruppen.
 4. **`QaQuestion.upvoteCount` ist im Ist-Stand ein Netto-Score, nicht die Zahl der Upvotes.** Für 8.6 und 8.7 müssen `U` und `D` aus den Einzelstimmen (`QaUpvote.direction`) aggregiert werden; der Netto-Score allein reicht fachlich nicht.
-5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Stimmensaldo`, `Kontroverse`, `Beste Fragen`, `Zeit`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 nicht nachvollziehbar.
+5. **Die Q&A-UI braucht einen expliziten Sortiermodus**, z. B. `Stimmensaldo`, `Geteilte Stimmen`, `Klare Zustimmung`, `Zeit`. Ohne sichtbaren Moduswechsel wären 8.6/8.7 nicht nachvollziehbar.
 
-## Implementierungsstand (Stand 2026-05-15)
+## Implementierungsstand
 
 Der heutige Produktstand deckt die Storys 8.6 und 8.7 in der Host-Ansicht bereits ab:
 
-- Host- und Teilnehmer-Q&A-Liste bieten die Sortiermodi `Stimmensaldo`, `Beste Fragen`, `Kontroverse` und `Zeit`. `Zeit` sortiert serverseitig nach `createdAt` (neueste zuerst); die Seite bleibt eine DB-Seite, ohne Client-Neusortierung der vollen Liste. Die Teilnehmer-DTOs bleiben ohne Wilson-, Kontroversie- und Moderationsfelder; nur die Reihenfolge ändert sich.
+- Host- und Teilnehmer-Q&A-Liste bieten die Sortiermodi `Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen` und `Zeit`. `Zeit` sortiert serverseitig nach `createdAt` (neueste zuerst); die Seite bleibt eine DB-Seite, ohne Client-Neusortierung der vollen Liste. Die Teilnehmeransicht erhält die für die Sortiermodi verwendeten Stimmenaggregate und Bewertungsmetriken.
 - Die Router-/DTO-Schicht liefert neben dem bisherigen Nettofeld auch getrennte `UP`-/`DOWN`-Aggregate sowie `score`, `voteCount`, `bestScore`, `controversyScore` und `isControversial`.
 - Die Host-Liste aggregiert `QaUpvote.direction` serverseitig per DB-Gruppierung statt alle Einzelvotes in den Host-Poll zu laden; `QaQuestion.updatedAt` und ein Revisionsschluessel vermeiden volle Rebuilds, wenn sich seit dem letzten Poll nichts geaendert hat.
-- Im Host-Ranking werden `ACTIVE` und `PINNED` gemeinsam nach der gewaehlten Metrik sortiert; `PINNED` bleibt ein sichtbarer Status, aber kein globaler Sortier-Override.
-- Die Teilnehmendenansicht startet bei `Stimmensaldo` und kann dieselben vier Sortiermodi anfordern. In allen Sortiermodi stehen hervorgehobene Fragen zuerst; danach sortieren `Beste Fragen`, `Kontroverse` und `Zeit` nach Metrik bzw. Erstellungszeit. Die Fragen-Suche läuft wie beim Host entprellt (300 ms) über `qa.list` und durchsucht nicht die geladene Seite lokal. Der Host filtert in »Teilnahmen durchsuchen« eine Identität über `qa.list` (`authorNickname`) in PostgreSQL, nicht über die geladene Seite; die Liste und die Fragenkarten zeigen eine vorhandene Teamzugehörigkeit.
+- Die Teilnehmendenansicht startet bei `Stimmensaldo` und kann dieselben vier Sortiermodi anfordern. In allen Sortiermodi stehen hervorgehobene Fragen zuerst; danach sortieren `Klare Zustimmung`, `Geteilte Stimmen` und `Zeit` nach Metrik bzw. Erstellungszeit. Die Fragen-Suche läuft wie beim Host entprellt (300 ms) über `qa.list` und durchsucht nicht die geladene Seite lokal. Der Host filtert in »Teilnahmen durchsuchen« eine Identität über `qa.list` (`authorNickname`) in PostgreSQL, nicht über die geladene Seite; die Liste und die Fragenkarten zeigen eine vorhandene Teamzugehörigkeit.
 - Die Q&A-Wortwolke im Host folgt demselben Sortiermodus, kann im Dialog eingefroren werden und zeigt im Tooltip neben dem Groessenwert auch die Zahl der zugehoerigen Fragen.
 - In der maximierten Host-Vollansicht bleibt der Sortierumschalter oberhalb der Wolke sichtbar.
 
@@ -58,7 +57,7 @@ $$
 
 ## Sortierung (Tie-Breaker)
 
-Die folgenden Regeln gelten im Host-Ranking fuer `ACTIVE`- und `PINNED`-Fragen gemeinsam. `PENDING`, `ARCHIVED` und `DELETED` folgen danach als eigene Statusgruppen.
+Die gewählte Metrik sortiert innerhalb der jeweiligen Statusgruppe. Im Host-Ranking hat `PINNED` Vorrang, gefolgt von `PENDING`, `ACTIVE` und `ARCHIVED`.
 
 Bei gleichem `controversy_score` (häufig in kleinen Gruppen) gilt strikt:
 
@@ -76,35 +75,35 @@ Damit Host/Moderation **nachvollziehen**, warum eine Frage oben steht, kann ein 
 
 Für Story 8.6 ist eine bloße Umsortierung ohne sichtbare Erklärung im heutigen Produkt **nicht ausreichend**. In der Host-Ansicht muss erkennbar sein, warum eine Frage trotz mittlerem oder neutralem Netto-Score weit oben steht.
 
-Anzeige nur wenn **beides** gilt:
+Die Karte zeigt »Geteilte Stimmen«, wenn **beides** gilt:
 
 - `controversy_score > 0.5`
 - \((U + D) \geq 6\)
 
 Bei weniger als sechs Stimmen zeigt die Karte »Zu wenige Stimmen«.
 
-**Deutsche Referenzbegriffe** für Labels (Übersetzungen nach ADR-0008 in alle UI-Sprachen): z. B. „Umstritten“, „Polarisierend“, „Diskussionslage“ — keine festen englischen UI-Strings in der Produktions-UI.
+Ab sechs Stimmen zeigt die Karte »Einseitig«, wenn der Sortierwert höchstens 0,5 beträgt.
 
 **Icons** (Auswahl bei Umsetzung): z. B. Blitz, gekreuzte Schwerter, Waage — konsistent zum bestehenden Designsystem.
 
 **Visualisierung:** Falls eine Voting-Anzeige existiert, kann ein Verlauf von neutral zu „warnend“ den steigenden Score andeuten (`prefers-reduced-motion` beachten).
 
-Die aktuelle Host-UI ergänzt diese Kennzeichnung durch eine sortierabhaengige Q&A-Wortwolke. Deren Termliste basiert auf bereinigter Document-Frequency pro Frage: Ein Begriff zaehlt je Frage maximal einmal, die aktive Sortiermetrik steuert das Dokumentgewicht. Der Tooltip zeigt den Groessenwert, die Zahl der zugehoerigen Fragen, die Gewichtungsbasis (`Stimmensaldo`, `beste Fragen`, `Kontroverse`) sowie konkrete Fragen, damit Sortierung und Themenraum zusammen lesbar bleiben.
+Die aktuelle Host-UI ergänzt diese Kennzeichnung durch eine sortierabhaengige Q&A-Wortwolke. Deren Termliste basiert auf bereinigter Document-Frequency pro Frage: Ein Begriff zaehlt je Frage maximal einmal, die aktive Sortiermetrik steuert das Dokumentgewicht. Der Tooltip zeigt den Groessenwert, die Zahl der zugehoerigen Fragen, die Gewichtungsbasis (`Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen`) sowie konkrete Fragen, damit Sortierung und Themenraum zusammen lesbar bleiben.
 
 ### Sortier-UI
 
-Die Sortierauswahl sitzt in der Host-Ansicht in unmittelbarer Nähe zur Q&A-Liste, nicht in der Teilnehmeransicht. Ein Paired Host verwendet dieselbe Steuerung. Referenzoptionen:
+Die Sortierauswahl sitzt in der Host- und Teilnehmendenansicht bei der Q&A-Liste. Ein Paired Host verwendet dieselbe Steuerung.
 
 - `Stimmensaldo` — heutige Standardsortierung nach dem Saldo aus Stimmen dafür und dagegen
-- `Kontroverse` — Story 8.6, derselbe `controversyScore` in Liste und Wortwolke
-- `Beste Fragen` — Story 8.7
+- `Geteilte Stimmen` — Story 8.6, derselbe `controversyScore` in Liste und Wortwolke
+- `Klare Zustimmung` — Story 8.7
 - `Zeit` — neueste zuerst; die Datenbank sortiert nach `createdAt DESC` (Index `sessionId, status, createdAt`)
 
-Die Kartenzeile wiederholt den Sortiernamen nicht: bei `Beste Fragen` steht `Zustimmung … %` (Wilson-Score), bei `Kontroverse` die Einordnung `Umstritten` / `Zu wenige Stimmen` / `Einseitig` und nur beim Label `Umstritten` zusätzlich `Geteilte Reaktionen … %`. Der Toggle und die Wortwolke heißen beide `Kontroverse`.
+Bei `Klare Zustimmung` zeigen Host-, Teilnehmenden- und Bühnenansicht den beobachteten Dafür-Anteil (auf höchstens eine Nachkommastelle gerundet) mit der Gesamtzahl der Stimmen, etwa »100 % dafür · 1 Stimme«. Bei null Stimmen erscheint »Noch keine Stimmen«. Der Wilson-Score bestimmt die Reihenfolge. Bei `Geteilte Stimmen` bleiben die Dafür- und Dagegen-Stimmen an der Karte ablesbar. Die Einordnung lautet `Geteilte Stimmen`, `Zu wenige Stimmen` oder `Einseitig`. Die Formel und ihre Beispielwerte stehen in der Sortierhilfe.
 
 Der aktive Modus bleibt während einer Session stabil, bis ein autorisierter Host ihn bewusst ändert.
 
-Die Host-Q&A-Wortwolke nutzt denselben Modus: `Stimmensaldo` gewichtet nach dem Saldo aus Stimmen dafür und dagegen, `Beste Fragen` nach Wilson-Score und `Kontroverse` nach `controversyScore`. `Vorkommen in Fragen` zählt, in wie vielen sichtbaren Fragen ein Wort steht, jede Frage einmal; die Fragenliste bleibt nach Eingangszeit sortiert. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
+Die Host-Q&A-Wortwolke nutzt denselben Modus: `Stimmensaldo` gewichtet nach dem Saldo aus Stimmen dafür und dagegen, `Klare Zustimmung` nach Wilson-Score und `Geteilte Stimmen` nach `controversyScore`. `Vorkommen in Fragen` zählt, in wie vielen sichtbaren Fragen ein Wort steht, jede Frage einmal; die Fragenliste bleibt nach Eingangszeit sortiert. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
 
 ## Akzeptanzkriterien
 
@@ -186,7 +185,7 @@ Erwartete Reihenfolge: F, dann H, dann G — zuerst mehr Upvotes als G; bei F vs
 | --- | --- | ----- | ----------------- |
 | 2   | 2   | 0,50  | Zu wenige Stimmen |
 | 3   | 2   | 0,44  | Zu wenige Stimmen |
-| 3   | 3   | 0,60  | Umstritten        |
+| 3   | 3   | 0,60  | Geteilte Stimmen  |
 | 5   | 1   | 0,20  | Einseitig         |
 
 ---
@@ -195,9 +194,9 @@ Erwartete Reihenfolge: F, dann H, dann G — zuerst mehr Upvotes als G; bei F vs
 
 Zur Einordnung der Architekturentscheidung: Wie lösen große Plattformen (insbesondere Reddit) ähnliche Fragestellungen, und was passt zu unserem Live-Event mit begrenzter Teilnehmerzahl?
 
-### Reddits „Controversial“-Score
+### Reddits historischer »Controversial«-Score
 
-Reddit modelliert Kontroversität nicht über eine gewichtete Differenz, sondern über eine **Potenz**: Masse (Summe der Stimmen) und Balance (Verhältnis Up zu Down) werden kombiniert.
+Der Hilfedialog »Geteilte Stimmen« verweist zum Vergleich auf den historischen »Controversial«-Modus von Reddit. Dieser kombiniert die Summe der Stimmen und ihr Verhältnis über eine **Potenz**. [Archivierter Reddit-Quellcode](https://github.com/reddit-archive/reddit/blob/master/r2/r2/lib/db/_sorts.pyx)
 
 **Formel (vereinfacht notiert):**
 
@@ -205,7 +204,7 @@ $$
 S_{\text{reddit}} = (U + D)^{\left(\frac{\min(U, D)}{\max(U, D)}\right)}
 $$
 
-Wenn \(U = 0\) oder \(D = 0\), setzt Reddit den Score typischerweise auf 0, damit der Exponent nicht divergiert.
+Wenn \(U = 0\) oder \(D = 0\), setzt der historische Reddit-Code den Wert auf 0.
 
 **Eigenschaften:**
 
@@ -213,16 +212,13 @@ Wenn \(U = 0\) oder \(D = 0\), setzt Reddit den Score typischerweise auf 0, dami
 - Bei 100 Up und 100 Down ist der Exponent 1; der Wert entspricht der Stimmzahl \(200^1\).
 - Bei 100 Up und 50 Down ist der Exponent 0,5; der Wert wird gedämpft (z. B. \(150^{0,5} \approx 12{,}2\)).
 
-### Warum wir diesen Reddit-Ansatz nicht übernehmen
+### Warum arsnova.eu die Stimmenzahl dämpft
 
-Die Reddit-Formel skaliert über sehr große Stimmzahlen hinweg stabil. Für **arsnova.eu** mit **harter Obergrenze** (z. B. \(N \le 200\)) und Fokus auf **einfache, auditierbare** Berechnung im Backend gilt:
+Der Zuschlag 4 dämpft den Wert bei wenigen Stimmen. Bei größeren Stimmenzahlen nähert sich der Wert der Ausgeglichenheit der abgegebenen Stimmen an. Das Beispiel im Hilfedialog zeigt die Auswirkung auf die Reihenfolge. arsnova.eu sortiert 4:4 (0,667) vor 60:30 (0,638). Die historische Reddit-Formel gewichtet die höhere Stimmenzahl stärker und sortiert 60:30 (9,49) vor 4:4 (8,00).
 
-1. **Aufwand in SQL:** Potenzen mit nicht trivialen Exponenten sind auf Datenbankebene teurer als unsere Formel (Addition, Multiplikation, `min`).
-2. **Komplexität vs. Nutzen:** Sehr große Stimmzahlen sind bei uns nicht das Kernproblem; der dynamische Term \(C\) adressiert Kleinstichproben vorhersehbar, ohne globale Skalierungslogik aus dem Social-Web zu übernehmen.
+### Klare Zustimmung und das Wilson-Intervall
 
-### „Best Questions“ und das Wilson-Score-Intervall
-
-Sollte später ein Reiter bzw. Sortiermodus **„Beste Fragen“** ergänzt werden, reicht **nicht** die Sortierung nach \(\frac{U}{U+D}\): Ein Post mit 1 Up und 0 Down wäre „100 %“, ein Post mit 100 Up und 2 Down „nur“ 98 % — die eine Stimme würde fälschlich gewinnen.
+Die Sortierung »Klare Zustimmung« berücksichtigt den Dafür-Anteil und die Zahl der abgegebenen Stimmen. Bei einer Sortierung allein nach Anteil käme eine Frage mit 1 Dafür-Stimme (100 %) vor einer Frage mit 100 Dafür- und 2 Dagegen-Stimmen (rund 98 %).
 
 **Ansatz (wie Reddit „Best“):** Untere Grenze des **Wilson-Konfidenzintervalls** für den Anteil positiver Stimmen (Bernoulli). Intuition: _Bei gegebenen Stimmen: Wie niedrig kann der „wahre“ Up-Anteil plausibel noch sein (z. B. 95 %-Konfidenz)?_
 
@@ -284,7 +280,9 @@ $$
 
 (\(\hat{p}\): Anteil Upvotes, \(n\): Gesamtstimmen, \(z\): z. B. 1,96 für 95 %.)
 
-**Praxis:** 2/0 Stimmen messen 100 %, die untere Grenze fällt stark (Größenordnung ~20 %). 100/1 Stimmen messen hohe Zustimmung mit geringer Unsicherheit; die untere Grenze bleibt hoch (Größenordnung >90 %). Das Ranking folgt **statistisch belastbarer** Qualität, nicht nur dem rohen Prozentsatz.
+Der Hilfedialog »Klare Zustimmung« nennt die abgegebenen Stimmen als Grundlage der Sortierung und verlinkt die [NIST-Dokumentation zum Wilson-Intervall](https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/propconf.htm).
+
+**Praxis:** Bei 1 Dafür- und 0 Dagegen-Stimmen liegt der beobachtete Anteil bei 100 % und die Wilson-Untergrenze bei rund 21 %. Bei 10 Dafür- und 0 Dagegen-Stimmen liegt der beobachtete Anteil ebenfalls bei 100 %, die Wilson-Untergrenze steigt auf rund 72 %.
 
 ### Entwicklernotizen — Wilson-Score in SQL (Story 8.7)
 
@@ -341,7 +339,7 @@ ORDER BY
 
 Für das heutige Produkt ist diese Reihenfolge sinnvoll:
 
-1. **Story 8.7 zuerst:** statistisch robuste „Beste Fragen“ als optionaler Sortiermodus in der Host-Ansicht
+1. **Story 8.7 zuerst:** »Klare Zustimmung« als optionaler Sortiermodus in der Host-Ansicht
 2. **Story 8.6 danach:** Kontroversitätsmodus mit sichtbarer Kennzeichnung und klarer Erklärung
 
 Begründung:

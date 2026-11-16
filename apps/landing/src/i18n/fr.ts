@@ -155,7 +155,7 @@ const fr: Messages = {
       },
       {
         label: 'Nuage thématique',
-        text: 'La taille des mots et des groupes de mots dépend du mode de tri : solde des votes, forte adhésion ou controverse.',
+        text: 'La taille des termes peut être pondérée selon le solde des votes, la forte adhésion, les votes partagés ou le nombre de questions qui contiennent le terme.',
       },
       {
         label: 'Boussole de modération',
@@ -169,22 +169,22 @@ const fr: Messages = {
     moderationActive: 'Pré-modération active',
     sortMostSupported: 'Solde des votes',
     sortBest: 'Forte adhésion',
-    sortControversial: 'Controversées',
+    sortControversial: 'Votes partagés',
     questions: [
       {
-        score: '+18',
+        score: '+11',
+        title: 'En quoi l’espace Q&R diffère-t-il du texte libre dans un quiz ?',
+        meta: '100 % pour · 11 votes',
+      },
+      {
+        score: '+12',
         title: 'Quand une estimation reste-t-elle plausible sur le fond ?',
-        meta: '15 pour · 3 contre · forte adhésion',
+        meta: '83,3 % pour · 18 votes',
       },
       {
         score: '+4',
         title: 'Faut-il vraiment masquer les résultats avant la discussion ?',
-        meta: '9 pour · 5 contre · controversée',
-      },
-      {
-        score: '+11',
-        title: 'En quoi l’espace Q&R diffère-t-il du texte libre dans un quiz ?',
-        meta: '11 pour · 0 contre · la plus soutenue',
+        meta: '64,3 % pour · 14 votes',
       },
     ],
     wordCloud: 'Nuage de mots Q&R',

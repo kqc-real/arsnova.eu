@@ -177,7 +177,7 @@ Damit die Themen-Ansicht bei 500 Q&A-Fragen oder einer dynamischen Live-Freitext
    - Jedes berechnete Text-Embedding wird session-gescopet unter `SHA-256(locale, sourceText)` im Speicher gehalten (plus Deduplizierung identischer Antworten innerhalb eines Schubs). Kommen zu 200 Antworten noch 30 neue hinzu, werden beim Klick auf **»Themen aktualisieren«** (auch bei `refresh: true`) nur noch die 30 neuen Texte durch ONNX geschickt.
 3. **Gewichtsunabhängiger Session-Cluster-Cache (`sessionClustersCache`):**
    - Da E5-Embeddings und Complete-Linkage-Rohcluster ausschließlich von `{ id, text }` abhängen – und **nicht** von der gewählten Sortierung (`BEST`, `CONTROVERSIAL`, `TIME`, `TOP`) –, speichert `wordCloudSemanticAnalyze` die Roh-Cluster unter einem gewichtsunabhängigen Korpus-Hash.
-   - Wechselt der Host im 500-Fragen-Forum zwischen _Beste Fragen_, _Kontroverse_, _Stimmensaldo_ und _Zeit_, wird der Encoder komplett übersprungen und die Cluster werden in **< 1 ms** mit den neuen Gewichten neu sortiert.
+   - Wechselt der Host im 500-Fragen-Forum zwischen _Klare Zustimmung_, _Geteilte Stimmen_, _Stimmensaldo_ und _Zeit_, wird der Encoder komplett übersprungen und die Cluster werden in **< 1 ms** mit den neuen Gewichten neu sortiert.
 4. **Session-gescopeter Topic-Label-Cache (`clusterTopicLabelCache`):**
    - Jedes vom LLM erzeugte Cluster-Label wird unter `session:<sessionId>:<sha256(model, version, locale, sources)>` für 30 Minuten gecacht.
    - Weder ein Sortierwechsel noch ein vorheriges Teil-Timeout (`labelSettlement: 'transient'`) noch neu hinzukommende Antworten (solange die Top-6-Repräsentanten eines Clusters stabil bleiben) lösen einen erneuten LLM-Aufruf aus (**0 ms**).

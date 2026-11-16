@@ -46,6 +46,7 @@ verstehen, dann eine kurze, natürliche Formulierung wählen.
 | Nächsten Schritt vorschlagen   | **Prochaine étape** und eine konkrete Aktion                           | Wörtliche Wendungen wie **le prochain geste** als wechselndes Produktlabel                 |
 | Lernzielstatus ausdrücken      | **Proposition de l’IA** als Herkunft, **Brouillon** als Status         | Einen KI-Vorschlag allein wegen seiner Herkunft als bestätigt darstellen                   |
 | Fragen priorisieren            | **Forte adhésion** für Zustimmung                                      | Zustimmung als fachliche **Richtigkeit** oder **Qualität** der Frage ausgeben              |
+| Geteilte Stimmen im Q&R        | **Votes partagés**                                                     | **Questions controversées**, wenn die Stimmenverteilung gemeint ist                        |
 | UI-Namen zitieren              | **« Temps ×10 »**, genau wie im Bedienelement                          | Gerade Anführungszeichen, **« Temps ×10 »** oder frei erfundene Buttonnamen                |
 | Zahlen und Varianten behandeln | Singular, Plural und grammatisches Geschlecht im konkreten Satz prüfen | Ein einzelnes Wort ersetzen und den übrigen Satz ungeprüft lassen                          |
 
@@ -101,6 +102,7 @@ kein geeignetes Verfahren.
 | Q&R: freigegebene Frage        | Publiée                                  |
 | Wortwolke: Wortgruppen         | Groupes de mots                          |
 | Wortwolke: Themen              | Thèmes                                   |
+| Wortwolke: Vorkommen in Fragen | Questions contenant le terme             |
 | Passagen schwärzen             | Caviarder des passages                   |
 
 Beim Session-Beitritt **Rejoindre** und **Connexion en cours…** verwenden.

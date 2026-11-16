@@ -18814,8 +18814,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardFriction" datatype="html">
-        <source>Umstrittene Fragen</source>
-        <target>Domande controverse</target>
+        <source>Fragen mit geteilten Stimmen</source>
+        <target>Domande con voti divisi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">284</context>
@@ -18886,8 +18886,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
-        <source>Greif die umstrittenen Fragen kurz auf.</source>
-        <target>Affronta brevemente le domande su cui il gruppo è diviso.</target>
+        <source>Geh kurz auf Fragen mit geteilten Stimmen ein.</source>
+        <target>Discuti brevemente le domande con voti divisi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">324</context>
@@ -22110,7 +22110,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpBestAria" datatype="html">
-        <source>Hilfe zu »Beste Fragen«</source>
+        <source>Hilfe zu »Klare Zustimmung«</source>
         <target>Guida su «Consenso solido»</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -22122,8 +22122,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortControversial" datatype="html">
-        <source>Kontroverse</source>
-        <target>Controversia</target>
+        <source>Geteilte Stimmen</source>
+        <target>Voti divisi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4430</context>
@@ -22146,8 +22146,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpControversialAria" datatype="html">
-        <source>Hilfe zu »Kontroverse«</source>
-        <target>Guida su «Controversia»</target>
+        <source>Hilfe zu »Geteilte Stimmen«</source>
+        <target>Guida su «Voti divisi»</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4437</context>
@@ -22246,7 +22246,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpBestMenu" datatype="html">
-        <source>Hilfe: Beste Fragen</source>
+        <source>Hilfe: Klare Zustimmung</source>
         <target>Guida: Consenso solido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
@@ -22254,8 +22254,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpControversialMenu" datatype="html">
-        <source>Hilfe: Kontroverse</source>
-        <target>Guida: Controversia</target>
+        <source>Hilfe: Geteilte Stimmen</source>
+        <target>Guida: Voti divisi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4597</context>
@@ -22466,8 +22466,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.badgeControversial" datatype="html">
-        <source>Umstritten</source>
-        <target>Controversa</target>
+        <source>Geteilte Stimmen</source>
+        <target>Voti divisi</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5126</context>
@@ -22542,8 +22542,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.badgeControversyOnesidedAria" datatype="html">
-        <source>Überwiegend einseitige Bewertung — nicht als umstritten eingestuft</source>
-        <target>Valutazione prevalentemente unilaterale — non classificata come controversa</target>
+        <source>Die abgegebenen Stimmen tendieren zu einer Seite</source>
+        <target>I voti espressi tendono verso una parte</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5147</context>
@@ -22597,44 +22597,28 @@
           <context context-type="linenumber">3035</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.bestMetric" datatype="html">
-        <source>Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
-        <target>Consenso <x id="INTERPOLATION" equiv-text="formatQaPercent(question.bestScore)"/></target>
+      <trans-unit id="sessionQa.supportNoVotes" datatype="html">
+        <source>Noch keine Stimmen</source>
+        <target>Nessun voto per ora</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5158,5159</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">830,831</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">965,966</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">3042,3043</context>
+          <context context-type="sourcefile">src/app/features/session/session-qa-support-label.util.ts</context>
+          <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.controversyMetric" datatype="html">
-        <source>Geteilte Reaktionen <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.controversyScore) }}"/></source>
-        <target>Reazioni divise <x id="INTERPOLATION" equiv-text="formatQaPercent(question.controversyScore)"/></target>
+      <trans-unit id="sessionQa.supportOneVote" datatype="html">
+        <source><x id="share" equiv-text="share"/> dafür · 1 Stimme</source>
+        <target><x id="share" equiv-text="share"/> a favore · 1 voto</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5170,5172</context>
+          <context context-type="sourcefile">src/app/features/session/session-qa-support-label.util.ts</context>
+          <context context-type="linenumber">25</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.supportManyVotes" datatype="html">
+        <source><x id="share" equiv-text="share"/> dafür · <x id="count" equiv-text="count"/> Stimmen</source>
+        <target><x id="share" equiv-text="share"/> a favore · <x id="count" equiv-text="count"/> voti</target>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">878,880</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">1013,1015</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">3054,3056</context>
+          <context context-type="sourcefile">src/app/features/session/session-qa-support-label.util.ts</context>
+          <context context-type="linenumber">29</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.cardActionsAria" datatype="html">
@@ -23629,14 +23613,6 @@
           <context context-type="linenumber">2027</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
-        <source>klare Zustimmung</source>
-        <target>consenso solido</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2129</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
         <source>Themen in den Fragen</source>
         <target>Temi nelle domande</target>
@@ -23686,16 +23662,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Größer erscheinen Begriffe aus Fragen mit viel Zustimmung und ausreichend Bewertungen. Das sagt nichts über ihre fachliche Richtigkeit aus.</source>
-        <target>I termini delle domande con un consenso solido, sostenuto da un numero sufficiente di voti, appaiono più grandi. Questo non indica la correttezza dei contenuti.</target>
+        <source>Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht. Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
+        <target>I termini delle domande con un’alta quota di voti favorevoli hanno più peso. A parità di quota, pesano di più le domande con più voti espressi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Größer erscheinen Begriffe aus Fragen mit vielen, ähnlich verteilten Dafür- und Dagegen-Stimmen.</source>
-        <target>I termini delle domande con molti voti, distribuiti in modo simile tra favorevoli e contrari, appaiono più grandi.</target>
+        <source>Begriffe aus Fragen mit ähnlich vielen Dafür- und Dagegen-Stimmen erhalten mehr Gewicht. Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
+        <target>I termini delle domande con un numero simile di voti favorevoli e contrari hanno più peso. A parità di distribuzione, pesano di più le domande con più voti espressi.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
@@ -23734,8 +23710,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
-        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
-        <target>Mostra prima le domande con un consenso solido sostenuto da un numero sufficiente di voti. Le domande in evidenza precedono tutte le altre. Questo non indica la correttezza dei contenuti.</target>
+        <source>Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.</source>
+        <target>L’ordinamento tiene conto della quota di voti favorevoli e del numero totale di voti. A parità di quota, più voti danno più peso al risultato. Le domande in evidenza compaiono per prime.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2462</context>
@@ -23746,8 +23722,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Zeigt zuerst die Fragen mit der höchsten Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
-        <target>Mostra prima le domande con voti favorevoli e contrari distribuiti in modo più equilibrato. Le domande in evidenza precedono le altre.</target>
+        <source>Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.</source>
+        <target>L’ordinamento si basa sui voti espressi. Più i voti favorevoli e contrari sono equilibrati, più alto è il punteggio. A parità di distribuzione, più voti danno più peso al risultato. Le domande in evidenza compaiono per prime.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2464</context>

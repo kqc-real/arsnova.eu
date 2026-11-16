@@ -155,7 +155,7 @@ Tastaturfokus nicht verloren geht.
 
 - Crowd-Lobby: Gesamtzahl und bei höchstens acht Teams Teamzahlen ersetzen
   Nicknames; QR und Code erhalten Vorrang.
-- Q&A: oben die Bühnen-Sortierung als Auswahl (Kontroverse, Beste Fragen,
+- Q&A: oben die Bühnen-Sortierung als Auswahl (Geteilte Stimmen, Klare Zustimmung,
   Stimmensaldo, Zeit), darunter die aktuelle
   Frage dominant (hörsaaltaugliche Typografie ≥36 px bei 1080p), darunter alle
   weiteren freigegebenen Fragen untereinander (≥30 px). Die Bühne scrollt, wenn
@@ -165,10 +165,8 @@ Tastaturfokus nicht verloren geht.
   damit er beim ersten Präsentieren an der Bühne erreichbar ist; der Host behält
   dieselbe Steuerung. Keine Restzahl »weitere« und keine Seitenzeile »Seite n / m«
   auf der Bühne selbst;
-  Hero und Queue zeigen Erstellungszeit (relativ) sowie die passende Sortier-Metrik:
-  bei BEST Zustimmung (%), bei CONTROVERSIAL geteilte Reaktionen (%) – nie beides;
-  `qa.presentProjection` liefert die Scores dafür immer mit (ohne Moderator-NLP),
-  auch außerhalb von BEST/CONTROVERSIAL;
+  Hero und Queue zeigen die relative Erstellungszeit und die tatsächlichen Dafür- und Dagegen-Stimmen. Bei »Klare Zustimmung« erscheint zusätzlich der beobachtete Dafür-Anteil mit Stimmenzahl. Bei »Geteilte Stimmen« erscheint die Einordnung der Stimmenverteilung.
+  `qa.presentProjection` liefert die Scores für alle Sortiermodi mit (ohne Moderator-NLP).
   `qa.presentProjection` lädt bis zu 500 `ACTIVE`/`PINNED`-Fragen (Forum-Seitenmaximum),
   damit Presenter und Host dieselbe absolute Bühnenreihenfolge teilen;
   der Host speichert denselben ungefilterten Snapshot für die Presenter-Synchronisation;

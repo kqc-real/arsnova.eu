@@ -1612,11 +1612,6 @@
   background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
 }
 
-.session-qa-card__metric--controversial {
-  color: var(--mat-sys-secondary);
-  background: color-mix(in srgb, var(--mat-sys-secondary) 10%, transparent);
-}
-
 @media (max-width: 599px) {
   .session-channel-card__header {
     flex-direction: column;

@@ -26,6 +26,7 @@ URLs, and proper names keep their original spelling.
 | Q&A anheften                    | **Pin**, **Unpin**, **Pinned**                               | **Highlight** when the action persistently pins a question                              |
 | Q&A Stimmensaldo                | **Net votes**                                                | Calling the vote difference a rating of factual correctness                             |
 | Q&A klare Zustimmung            | **Strong support**                                           | **Best questions**, **quality**, or **correctness** for this score                      |
+| Q&A geteilte Stimmen            | **Split votes**                                              | Wording that judges the question itself                                                 |
 | Wortwolken-Wortgruppen          | **Phrases**; in explanations, **words and phrases**          | Literal **word groups** as the main label                                               |
 | Wortwolken-Themen               | **Topics**                                                   | Implying that topic grouping assesses the participants                                  |
 | Sicherheit der Gruppierung      | **Grouping reliability**                                     | Confusing it with answer confidence                                                     |
