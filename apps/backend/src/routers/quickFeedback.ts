@@ -12,6 +12,7 @@ import {
   QuickFeedbackVoteInputSchema,
   QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
+  QuickFeedbackLockStateSchema,
   QuickFeedbackResultSchema,
   MoodValueEnum,
   AbcdValueEnum,
@@ -51,6 +52,7 @@ import type { SessionCodeFailureSource } from '../lib/abuseTelemetry';
 import { rejectInvalidSessionCode } from '../lib/invalidSessionCode';
 import { isSessionEffectivelyFinished } from '../lib/sessionLifecycle';
 import { buildQuickFeedbackSessionPurgeFenceKey } from '../lib/quickFeedbackSessionPurge';
+import { advanceQuickFeedbackLockVersion } from '../lib/quickFeedbackLockVersion';
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 import { assertParticipantCapability } from '../lib/participantAuth';
 
@@ -318,6 +320,7 @@ type StoredQuickFeedbackResult = QuickFeedbackResult & {
   /** One-shot votes written after successful participant-capability validation. */
   validatedParticipantVoteCount?: number;
 };
+
 type SessionQuickFeedbackGate = {
   id: string;
   quickFeedbackEnabled: boolean;
@@ -999,6 +1002,7 @@ export const quickFeedbackRouter = router({
       const initial: StoredQuickFeedbackResult = {
         type: input.type,
         locked: false,
+        lockVersion: 0,
         showLiveResults: input.showLiveResults ?? quickFeedbackDefaultsToLiveResults(input.type),
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
@@ -1039,6 +1043,7 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.type = input.type;
       result.locked = false;
+      advanceQuickFeedbackLockVersion(result);
       result.showLiveResults = quickFeedbackDefaultsToLiveResults(input.type);
       result.totalVotes = 0;
       result.distribution = emptyDistribution(input.type);
@@ -1107,6 +1112,7 @@ export const quickFeedbackRouter = router({
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.totalVotes = 0;
       result.locked = false;
+      advanceQuickFeedbackLockVersion(result);
       result.distribution = emptyDistribution(result.type);
       result.currentRound = undefined;
       result.discussion = undefined;
@@ -1163,12 +1169,14 @@ export const quickFeedbackRouter = router({
 
   toggleLock: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .output(QuickFeedbackLockStateSchema)
     .mutation(async ({ ctx, input }) => {
       const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
       const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.locked = !result.locked;
+      const lockVersion = advanceQuickFeedbackLockVersion(result);
 
       if (result.sessionBound === true) {
         await mutateSessionBoundQuickFeedback(code, result, 'REPLACE');
@@ -1178,7 +1186,7 @@ export const quickFeedbackRouter = router({
         multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
         await multi.exec();
       }
-      return { locked: result.locked };
+      return { locked: result.locked, lockVersion };
     }),
 
   /** Diskussionsphase starten (Story 2.7): Runde 1 sichern, Abstimmung sperren. */
@@ -1197,6 +1205,7 @@ export const quickFeedbackRouter = router({
       result.round1Total = result.totalVotes;
       result.discussion = true;
       result.locked = true;
+      advanceQuickFeedbackLockVersion(result);
       result.currentRound = 1;
 
       const cKey = choicesKey(code);
@@ -1235,6 +1244,7 @@ export const quickFeedbackRouter = router({
       result.currentRound = 2;
       result.discussion = false;
       result.locked = false;
+      advanceQuickFeedbackLockVersion(result);
       result.opinionShift = undefined;
       result.roundStartedAt = new Date().toISOString();
       if (result.sessionBound === true) {

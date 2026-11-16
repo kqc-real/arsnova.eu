@@ -867,7 +867,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       quickFeedback: { enabled: true, open: true },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
-    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true });
+    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true, lockVersion: 1 });
     wordCloudAnalyzeQueryMock.mockResolvedValue({
       mode: 'THEME',
       locale: 'de',
@@ -17400,7 +17400,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     stopMusicSpy.mockClear();
     playMusicSpy.mockClear();
 
-    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true });
+    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true, lockVersion: 1 });
     await component.toggleQuickFeedbackRoundLock();
     fixture.detectChanges();
 
@@ -17409,7 +17409,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(stopMusicSpy).toHaveBeenCalled();
 
     playMusicSpy.mockClear();
-    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: false });
+    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: false, lockVersion: 2 });
     await component.toggleQuickFeedbackRoundLock();
     fixture.detectChanges();
 
@@ -24544,7 +24544,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt nach bestätigtem Blitzlicht-Stopp sofort Fortsetzen ohne Abo-Update', async () => {
+  it('behält bestätigten Blitzlicht-Stopp bei verspätetem Abo-Snapshot bei', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -24558,13 +24558,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     quickFeedbackHostResultsQueryMock.mockResolvedValue({
       type: 'MOOD',
       locked: false,
+      lockVersion: 0,
       totalVotes: 2,
       distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
     });
-    let confirmStop!: (value: { locked: boolean }) => void;
+    let confirmStop!: (value: { locked: boolean; lockVersion: number }) => void;
     quickFeedbackToggleLockMutateMock.mockImplementationOnce(
       () =>
-        new Promise<{ locked: boolean }>((resolve) => {
+        new Promise<{ locked: boolean; lockVersion: number }>((resolve) => {
           confirmStop = resolve;
         }),
     );
@@ -24585,12 +24586,30 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
     expect(roundControl.getAttribute('aria-disabled')).toBe('true');
 
-    confirmStop({ locked: true });
+    confirmStop({ locked: true, lockVersion: 1 });
     await togglePending;
     fixture.detectChanges();
 
     expect(feedbackHost.locked()).toBe(false);
     expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(true);
+    expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
+    expect(roundControl.textContent).toContain('Fortsetzen');
+    expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
+
+    feedbackHost.hostResultChange.emit({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 3,
+      distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.quickFeedbackResult()).toMatchObject({
+      locked: true,
+      lockVersion: 1,
+      totalVotes: 3,
+    });
     expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
     expect(roundControl.textContent).toContain('Fortsetzen');
     expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');

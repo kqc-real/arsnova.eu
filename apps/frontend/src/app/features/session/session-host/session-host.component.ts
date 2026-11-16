@@ -811,6 +811,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly presenterCompactActionLabel = $localize`:@@sessionHost.presentationViewLabel:Präsentationsansicht`;
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
+  private readonly quickFeedbackConfirmedLock = signal<{
+    locked: boolean;
+    lockVersion: number;
+  } | null>(null);
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
   private currentQuestionSub: Unsubscribable | null = null;
@@ -11165,6 +11169,24 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   onEmbeddedQuickFeedbackResult(result: QuickFeedbackResult | null): void {
+    if (!result) {
+      this.quickFeedbackConfirmedLock.set(null);
+      this.quickFeedbackResult.set(null);
+      return;
+    }
+    const confirmed = this.quickFeedbackConfirmedLock();
+    const snapshotLockVersion = result.lockVersion ?? 0;
+    if (confirmed && snapshotLockVersion < confirmed.lockVersion) {
+      this.quickFeedbackResult.set({
+        ...result,
+        locked: confirmed.locked,
+        lockVersion: confirmed.lockVersion,
+      });
+      return;
+    }
+    if (confirmed) {
+      this.quickFeedbackConfirmedLock.set(null);
+    }
     this.quickFeedbackResult.set(result);
   }
 
@@ -11184,8 +11206,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const next = await trpc.quickFeedback.toggleLock.mutate({
         sessionCode: this.code.toUpperCase(),
       });
+      const lockVersion = next.lockVersion ?? (result.lockVersion ?? 0) + 1;
+      this.quickFeedbackConfirmedLock.set({ locked: next.locked, lockVersion });
       this.quickFeedbackResult.update((current) =>
-        current ? { ...current, locked: next.locked } : current,
+        current ? { ...current, locked: next.locked, lockVersion } : current,
       );
       this.syncMusic();
     } catch {

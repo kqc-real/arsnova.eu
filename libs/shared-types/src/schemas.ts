@@ -7182,6 +7182,8 @@ export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOu
 export const QuickFeedbackResultSchema = z.object({
   type: QuickFeedbackTypeEnum,
   locked: z.boolean(),
+  /** Monotoner Stand aller Sperrstatus-Änderungen; schützt Clients vor verspäteten Snapshots. */
+  lockVersion: z.number().int().nonnegative().optional(),
   showLiveResults: z.boolean().optional(),
   resultsVisible: z.boolean().optional(),
   totalVotes: z.number(),
@@ -7194,6 +7196,12 @@ export const QuickFeedbackResultSchema = z.object({
   tempoTrend: TempoTrendSchema.optional(),
 });
 export type QuickFeedbackResult = z.infer<typeof QuickFeedbackResultSchema>;
+
+export const QuickFeedbackLockStateSchema = z.object({
+  locked: z.boolean(),
+  lockVersion: z.number().int().nonnegative(),
+});
+export type QuickFeedbackLockState = z.infer<typeof QuickFeedbackLockStateSchema>;
 
 // ─── Session-Bewertung (Story 4.8) ───────────────────────────────────────────
 

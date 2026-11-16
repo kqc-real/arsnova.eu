@@ -1729,7 +1729,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       const result = await caller.toggleLock({ sessionCode: 'ABC123' });
 
       expect(assertFeedbackHostAccessMock).toHaveBeenCalledWith(undefined, 'ABC123', undefined);
-      expect(result).toEqual({ locked: true });
+      expect(result).toEqual({ locked: true, lockVersion: 1 });
     },
   );
 
@@ -1754,7 +1754,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(assertFeedbackHostAccessMock).toHaveBeenCalledWith(undefined, 'ABC123', {
       'x-feedback-host-token': 'feedback-owner-token',
     });
-    expect(result).toEqual({ locked: true });
+    expect(result).toEqual({ locked: true, lockVersion: 1 });
   });
 
   trpcDodIt(
