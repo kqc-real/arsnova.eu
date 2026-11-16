@@ -808,8 +808,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaFocusOrigin = signal<'compass' | 'word-cloud' | null>(null);
   readonly qaFocusHint = signal<string | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
+  readonly presenterCompactActionLabel = $localize`:@@sessionHost.presentationViewLabel:Präsentationsansicht`;
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
+  private readonly quickFeedbackAcceptedLock = signal<{
+    locked: boolean;
+    lockVersion: number;
+  } | null>(null);
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
   private currentQuestionSub: Unsubscribable | null = null;
@@ -11163,16 +11168,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
   }
 
-  showQuickFeedbackAnchorAction(): boolean {
-    return this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult() !== null;
+  onEmbeddedQuickFeedbackResult(result: QuickFeedbackResult | null): void {
+    this.applyQuickFeedbackResultSnapshot(result);
   }
 
-  quickFeedbackAnchorActionLabel(): string {
-    return this.quickFeedbackResult()?.locked ? $localize`Fortsetzen` : $localize`Stopp`;
-  }
-
-  quickFeedbackAnchorActionIcon(): string {
-    return this.quickFeedbackResult()?.locked ? 'play_arrow' : 'stop';
+  private applyQuickFeedbackResultSnapshot(result: QuickFeedbackResult | null): void {
+    if (!result) {
+      this.quickFeedbackAcceptedLock.set(null);
+      this.quickFeedbackResult.set(null);
+      return;
+    }
+    const snapshotLockVersion = result.lockVersion ?? 0;
+    const accepted = this.quickFeedbackAcceptedLock();
+    if (accepted && snapshotLockVersion <= accepted.lockVersion) {
+      this.quickFeedbackResult.set({
+        ...result,
+        locked: accepted.locked,
+        lockVersion: accepted.lockVersion,
+      });
+      return;
+    }
+    this.quickFeedbackAcceptedLock.set({ locked: result.locked, lockVersion: snapshotLockVersion });
+    this.quickFeedbackResult.set({ ...result, lockVersion: snapshotLockVersion });
   }
 
   async toggleQuickFeedbackRoundLock(): Promise<void> {
@@ -11191,8 +11208,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const next = await trpc.quickFeedback.toggleLock.mutate({
         sessionCode: this.code.toUpperCase(),
       });
+      const { lockVersion } = next;
+      this.quickFeedbackAcceptedLock.set({ locked: next.locked, lockVersion });
       this.quickFeedbackResult.update((current) =>
-        current ? { ...current, locked: next.locked } : current,
+        current ? { ...current, locked: next.locked, lockVersion } : current,
       );
       this.syncMusic();
     } catch {
@@ -12111,6 +12130,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
     this.dialog.open(QaSortHelpDialogComponent, {
       panelClass: 'qa-sort-help-dialog-panel',
+      role: 'dialog',
       autoFocus: 'dialog',
       width: 'min(40rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
@@ -14820,15 +14840,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (wordCloudAnalysisRequestKey(request) !== analysis.requestKey) return true;
     if (!listRevision || !analysis.corpusRevision) return false;
 
-    const [ranking, metric, participants] = listRevision.split(':');
+    const [ranking, metric, rankingVersion] = listRevision.split(':');
     if (metric !== request.metric) return false;
-    const [analyzedRanking, analyzedParticipants] = analysis.corpusRevision.split(':');
+    const [analyzedRanking, analyzedVersion] = analysis.corpusRevision.split(':');
     return (
       Number(ranking) > Number(analyzedRanking) ||
       (ranking === analyzedRanking &&
         metric === 'CONTROVERSIAL' &&
         listRevision !== previousListRevision &&
-        participants !== analyzedParticipants)
+        rankingVersion !== analyzedVersion)
     );
   }
 
@@ -15449,7 +15469,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     if (!this.channels().quickFeedback || this.code.length !== 6) {
       this.quickFeedbackRefreshRunId += 1;
-      this.quickFeedbackResult.set(null);
+      this.applyQuickFeedbackResultSnapshot(null);
       this.quickFeedbackSeenVoteCount.set(0);
       return;
     }
@@ -15462,7 +15482,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (runId !== this.quickFeedbackRefreshRunId || (options.isCurrent && !options.isCurrent())) {
         return;
       }
-      this.quickFeedbackResult.set(result);
+      this.applyQuickFeedbackResultSnapshot(result);
     } catch {
       // Keep the last snapshot visible during transient polling failures.
     }

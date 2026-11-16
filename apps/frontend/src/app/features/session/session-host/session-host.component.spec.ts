@@ -16,6 +16,7 @@ import type {
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
   QaSummaryRuntimeCompatibleDTO,
+  QuickFeedbackResult,
   SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
@@ -867,7 +868,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       quickFeedback: { enabled: true, open: true },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
-    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true });
+    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true, lockVersion: 1 });
     wordCloudAnalyzeQueryMock.mockResolvedValue({
       mode: 'THEME',
       locale: 'de',
@@ -3788,7 +3789,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Presenter-Ansicht in einem reinen aktiven Blitzlicht-Kanal an', async () => {
+  it('setzt die Presenter-Ansicht im aktiven Blitzlicht in die Aktionszeile', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -3804,12 +3805,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
+    const feedbackResult = {
+      type: 'MOOD' as const,
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+    };
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
+    feedbackHost.result.set(feedbackResult);
+    feedbackHost.hostResultChange.emit(feedbackResult);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+    expect(fixture.componentInstance.showHostViewControls()).toBe(true);
+    expect(fixture.componentInstance.projectionControlsOffered()).toBe(true);
+    const primary = fixture.nativeElement.querySelector('.feedback-host__round-primary');
+    expect(primary).not.toBeNull();
+    const presenter = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    expect(presenter).not.toBeNull();
+    expect(primary?.contains(presenter)).toBe(true);
+    expect(presenter?.textContent).toContain('Präsentationsansicht');
+    expect(presenter?.getAttribute('aria-label')).toBe('Präsentationsansicht öffnen');
     expect(
-      fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
-    ).not.toBeNull();
+      fixture.nativeElement.querySelector(
+        '.session-host__view-controls [data-testid="open-presenter-view"]',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -11915,6 +11941,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: { kind: 'BEST' },
         panelClass: 'qa-sort-help-dialog-panel',
+        role: 'dialog',
       }),
     );
     dialogOpenMock.mockClear();
@@ -11924,6 +11951,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: { kind: 'CONTROVERSIAL' },
         panelClass: 'qa-sort-help-dialog-panel',
+        role: 'dialog',
       }),
     );
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
@@ -17373,7 +17401,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     stopMusicSpy.mockClear();
     playMusicSpy.mockClear();
 
-    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true });
+    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true, lockVersion: 1 });
     await component.toggleQuickFeedbackRoundLock();
     fixture.detectChanges();
 
@@ -17382,7 +17410,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(stopMusicSpy).toHaveBeenCalled();
 
     playMusicSpy.mockClear();
-    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: false });
+    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: false, lockVersion: 2 });
     await component.toggleQuickFeedbackRoundLock();
     fixture.detectChanges();
 
@@ -24514,6 +24542,101 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
 
     expect(quickFeedbackToggleLockMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    fixture.destroy();
+  });
+
+  it('behält bestätigten Blitzlicht-Stopp bei verspätetem Abo-Snapshot bei', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 2,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    let confirmStop!: (value: { locked: boolean; lockVersion: number }) => void;
+    quickFeedbackToggleLockMutateMock.mockImplementationOnce(
+      () =>
+        new Promise<{ locked: boolean; lockVersion: number }>((resolve) => {
+          confirmStop = resolve;
+        }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(false);
+    });
+    fixture.detectChanges();
+
+    let resolveStalePoll!: (value: QuickFeedbackResult) => void;
+    quickFeedbackHostResultsQueryMock.mockImplementationOnce(
+      () =>
+        new Promise<QuickFeedbackResult>((resolve) => {
+          resolveStalePoll = resolve;
+        }),
+    );
+    const stalePoll = (
+      fixture.componentInstance as unknown as {
+        refreshQuickFeedbackResult(): Promise<void>;
+      }
+    ).refreshQuickFeedbackResult();
+
+    const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
+    const roundControl = fixture.nativeElement.querySelector(
+      '[data-testid="feedback-primary-round-control"]',
+    ) as HTMLButtonElement;
+    const togglePending = fixture.componentInstance.toggleQuickFeedbackRoundLock();
+    fixture.detectChanges();
+    expect(roundControl.getAttribute('aria-disabled')).toBe('true');
+
+    confirmStop({ locked: true, lockVersion: 1 });
+    await togglePending;
+    fixture.detectChanges();
+
+    expect(feedbackHost.locked()).toBe(false);
+    expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(true);
+    expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
+    expect(roundControl.textContent).toContain('Fortsetzen');
+    expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
+
+    feedbackHost.hostResultChange.emit({
+      type: 'MOOD',
+      locked: true,
+      lockVersion: 1,
+      totalVotes: 3,
+      distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    fixture.detectChanges();
+
+    resolveStalePoll({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 4,
+      distribution: { POSITIVE: 3, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    await stalePoll;
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.quickFeedbackResult()).toMatchObject({
+      locked: true,
+      lockVersion: 1,
+      totalVotes: 4,
+    });
+    expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
+    expect(roundControl.textContent).toContain('Fortsetzen');
+    expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
     fixture.destroy();
   });
 

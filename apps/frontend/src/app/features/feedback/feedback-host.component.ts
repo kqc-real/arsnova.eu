@@ -14,6 +14,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -55,6 +56,7 @@ import {
 import type { Unsubscribable } from '@trpc/server/observable';
 import { ProductFeedbackLauncherService } from '../product-feedback/product-feedback-launcher.service';
 import { scrollAndFocusInAppMain } from '../session/session-auto-scroll.util';
+import { PresenterIconComponent } from '../session/presenter-icon.component';
 
 type StarAverageIcon = 'star' | 'star_half' | 'star_border';
 type TempoViewMode = 'details' | 'trend';
@@ -80,6 +82,7 @@ interface StarAverageSummary {
     MatSlideToggle,
     CdkTrapFocus,
     MarkdownImageLightboxDirective,
+    PresenterIconComponent,
   ],
   templateUrl: './feedback-host.component.html',
   styleUrls: ['../../shared/styles/dialog-title-header.scss', './feedback-host.component.scss'],
@@ -109,6 +112,15 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   readonly sessionCode = input('');
   readonly embeddedInSession = input(false);
   readonly roundControlPending = input(false);
+  /** Vom Session-Host nach erfolgreicher Mutation bestätigter Sperrstatus. */
+  readonly confirmedRoundLocked = input<boolean | null>(null);
+  readonly presenterActionOffered = input(false);
+  readonly presenterActionLabel = input('');
+  readonly presenterActionAriaLabel = input('');
+  readonly presenterActionPending = input(false);
+  readonly hostResultChange = output<QuickFeedbackResult | null>();
+  readonly roundLockRequested = output<void>();
+  readonly presenterRequested = output<void>();
   readonly roundSettingsOpen = signal(false);
   readonly roundActionPending = signal(false);
   /** Sichtbarer Hinweis erst nach kurzer Wartezeit, damit schnelle Aktionen die Karte nicht verschieben. */
@@ -121,6 +133,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       this.resetting() ||
       this.liveResultsPending(),
   );
+  readonly effectiveRoundLocked = computed(() => this.confirmedRoundLocked() ?? this.locked());
   private readonly embeddedHeading = viewChild<ElementRef<HTMLElement>>('embeddedHeading');
   private readonly roundSettingsTrigger = viewChild<
     ElementRef<HTMLButtonElement>,
@@ -569,6 +582,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     this.hostResultLoad = 'missing';
     this.prepareEmbeddedResultFocus(null);
     this.result.set(null);
+    this.hostResultChange.emit(null);
     this.locked.set(false);
     if (!this.embeddedInSession()) {
       clearFeedbackHostToken(code);
@@ -671,11 +685,13 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
   }
 
   lockToggleLabel(): string {
-    return this.locked() ? $localize`Fortsetzen` : $localize`Stopp`;
+    return this.effectiveRoundLocked() ? $localize`Fortsetzen` : $localize`Stopp`;
   }
 
   lockToggleAriaLabel(): string {
-    return this.locked() ? $localize`Abstimmung fortsetzen` : $localize`Abstimmung einfrieren`;
+    return this.effectiveRoundLocked()
+      ? $localize`Abstimmung fortsetzen`
+      : $localize`Abstimmung einfrieren`;
   }
 
   standalonePrimaryActionKind(): 'second-round' | 'discussion' | 'lock-toggle' {
@@ -724,7 +740,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
       case 'discussion':
         return 'forum';
       default:
-        return this.locked() ? 'play_arrow' : 'stop';
+        return this.effectiveRoundLocked() ? 'play_arrow' : 'stop';
     }
   }
 
@@ -1246,6 +1262,7 @@ export class FeedbackHostComponent implements OnInit, OnDestroy {
     const previousType = this.result()?.type ?? null;
     this.prepareEmbeddedResultFocus(data);
     this.result.set(data);
+    this.hostResultChange.emit(data);
     this.locked.set(data.locked);
     if (data.type === 'TEMPO' && previousType !== 'TEMPO') {
       this.tempoViewMode.set('trend');

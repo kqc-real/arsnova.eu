@@ -861,6 +861,10 @@ SESSION_CODE=AB12CD PARTICIPANTS=500 npm run load:artillery:500
 
 Skripte: [`scripts/load/run-artillery-500.mjs`](../scripts/load/run-artillery-500.mjs), [`scripts/load/artillery/500-live-session.yml`](../scripts/load/artillery/500-live-session.yml). CI-Job `artillery-500` (Schedule/Manuell, Standard 100 TN auf Runner).
 
+Der [lokale 500er-Vergleich mit kaltem Cache](PERFORMANCE-TESTING.md#vote-countdown-mit-500-gleichzeitigen-stimmen-und-kaltem-cache-2026-11-16)
+ist eine separate Messreihe mit echten Countdown-Bildabrufen, einer
+gleichzeitigen Stimmwelle und A/A-Kontrollläufen zur Einordnung der Latenzstreuung.
+
 ### Artillery-Reconnect-Welle (bis 500 TN)
 
 Quiz-only: Join → WS-Status subscribe → Disconnect-Welle → Reconnect-Welle → Host `revealResults` → Assert `RESULTS` bei allen TN.

@@ -163,20 +163,36 @@ describe('quickFeedback.vote und Session-Status', () => {
           return JSON.stringify({ ok: true, sessionId });
         }
 
-        if (script.includes('QUICK_FEEDBACK_MUTATE_SESSION_BOUND')) {
+        if (script.includes('QUICK_FEEDBACK_MUTATE')) {
           const [key, knownKey] = keys;
           const [sessionId, result, ttl, knownTtl, action] = args;
           const currentRaw = (await redisMock.get(key)) as string | null;
           if (!currentRaw) return JSON.stringify({ error: 'MISSING' });
-          const current = JSON.parse(currentRaw) as { sessionBound?: boolean; sessionId?: string };
+          const current = JSON.parse(currentRaw) as {
+            sessionBound?: boolean;
+            sessionId?: string;
+            lockVersion?: number;
+          };
           if (
-            current.sessionBound !== true ||
-            current.sessionId !== sessionId ||
-            (await redisMock.exists(keys[6])) === 1
+            (sessionId &&
+              (current.sessionBound !== true ||
+                current.sessionId !== sessionId ||
+                (await redisMock.exists(keys[6])) === 1)) ||
+            (!sessionId && current.sessionBound === true)
           ) {
             return JSON.stringify({ error: 'SESSION_MISMATCH' });
           }
-          if (action !== 'END') await redisMock.set(key, result, 'EX', Number(ttl));
+          if (action !== 'END') {
+            const next = JSON.parse(result) as { locked?: boolean; lockVersion?: number };
+            next.lockVersion = (current.lockVersion ?? 0) + 1;
+            await redisMock.set(key, JSON.stringify(next), 'EX', Number(ttl));
+            await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
+            return JSON.stringify({
+              ok: true,
+              locked: next.locked === true,
+              lockVersion: next.lockVersion,
+            });
+          }
           await redisMock.set(knownKey, '1', 'EX', Number(knownTtl));
           return JSON.stringify({ ok: true });
         }
@@ -757,10 +773,22 @@ describe('quickFeedback.vote und Session-Status', () => {
 
       await expect(hostCaller.end({ sessionCode: 'OLD999' })).resolves.toEqual({ ok: true });
 
-      const multi = redisMock.multi.mock.results.at(-1)?.value as {
-        set: ReturnType<typeof vi.fn>;
-      };
-      expect(multi.set).toHaveBeenCalledWith('qf:known:OLD999', '1', 'EX', 300);
+      expect(redisMock.eval).toHaveBeenCalledWith(
+        expect.stringContaining('QUICK_FEEDBACK_MUTATE'),
+        7,
+        'qf:OLD999',
+        'qf:known:OLD999',
+        'qf:voters:OLD999',
+        'qf:choices:OLD999',
+        'qf:choices:r1:OLD999',
+        'qf:tempo:buckets:OLD999',
+        'qf:purged-session:v1:standalone',
+        '',
+        expect.any(String),
+        '1800',
+        '300',
+        'END',
+      );
       expect(invalidateFeedbackHostTokenMock).toHaveBeenCalledWith('OLD999');
     },
   );
@@ -1729,7 +1757,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       const result = await caller.toggleLock({ sessionCode: 'ABC123' });
 
       expect(assertFeedbackHostAccessMock).toHaveBeenCalledWith(undefined, 'ABC123', undefined);
-      expect(result).toEqual({ locked: true });
+      expect(result).toEqual({ locked: true, lockVersion: 1 });
     },
   );
 
@@ -1754,7 +1782,57 @@ describe('quickFeedback.vote und Session-Status', () => {
     expect(assertFeedbackHostAccessMock).toHaveBeenCalledWith(undefined, 'ABC123', {
       'x-feedback-host-token': 'feedback-owner-token',
     });
-    expect(result).toEqual({ locked: true });
+    expect(result).toEqual({ locked: true, lockVersion: 1 });
+  });
+
+  it('vergibt bei parallelen Sperrmutationen atomar strikt steigende Versionen', async () => {
+    const initial = JSON.stringify({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+      sessionBound: false,
+    });
+    let stored = initial;
+    let initialReaders = 0;
+    let releaseInitialReaders!: () => void;
+    const bothLoaded = new Promise<void>((resolve) => {
+      releaseInitialReaders = resolve;
+    });
+    redisMock.get.mockImplementation(async (key: string) => {
+      if (key !== 'qf:ABC123') return null;
+      if (initialReaders < 2) {
+        initialReaders += 1;
+        if (initialReaders === 2) releaseInitialReaders();
+        await bothLoaded;
+        return initial;
+      }
+      return stored;
+    });
+    redisMock.eval.mockImplementation(
+      async (script: string, keyCount: number, ...parameters: string[]) => {
+        expect(script).toContain('QUICK_FEEDBACK_MUTATE');
+        const args = parameters.slice(keyCount);
+        const next = JSON.parse(args[1]) as { locked: boolean; lockVersion?: number };
+        const current = JSON.parse(stored) as { lockVersion?: number };
+        next.lockVersion = (current.lockVersion ?? 0) + 1;
+        stored = JSON.stringify(next);
+        return JSON.stringify({
+          ok: true,
+          locked: next.locked,
+          lockVersion: next.lockVersion,
+        });
+      },
+    );
+
+    const results = await Promise.all([
+      caller.toggleLock({ sessionCode: 'ABC123' }),
+      caller.toggleLock({ sessionCode: 'ABC123' }),
+    ]);
+
+    expect(results.map(({ lockVersion }) => lockVersion).sort()).toEqual([1, 2]);
+    expect(JSON.parse(stored)).toMatchObject({ lockVersion: 2 });
   });
 
   trpcDodIt(
@@ -1838,7 +1916,7 @@ describe('quickFeedback.vote und Session-Status', () => {
     });
 
     expect(redisMock.eval).toHaveBeenCalledWith(
-      expect.stringContaining('QUICK_FEEDBACK_MUTATE_SESSION_BOUND'),
+      expect.stringContaining('QUICK_FEEDBACK_MUTATE'),
       7,
       'qf:ABC123',
       'qf:known:ABC123',
@@ -1860,7 +1938,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       name: 'changeType',
       initial: { discussion: false },
       invoke: () => hostCaller.changeType({ sessionCode: 'ABC123', type: 'YESNO' }),
-      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      script: 'QUICK_FEEDBACK_MUTATE',
       action: 'RESET_ALL',
     },
     {
@@ -1874,35 +1952,35 @@ describe('quickFeedback.vote und Session-Status', () => {
       name: 'reset',
       initial: { discussion: false },
       invoke: () => hostCaller.reset({ sessionCode: 'ABC123' }),
-      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      script: 'QUICK_FEEDBACK_MUTATE',
       action: 'RESET_ALL',
     },
     {
       name: 'end',
       initial: { discussion: false },
       invoke: () => hostCaller.end({ sessionCode: 'ABC123' }),
-      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      script: 'QUICK_FEEDBACK_MUTATE',
       action: 'END',
     },
     {
       name: 'toggleLock',
       initial: { discussion: false },
       invoke: () => hostCaller.toggleLock({ sessionCode: 'ABC123' }),
-      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      script: 'QUICK_FEEDBACK_MUTATE',
       action: 'REPLACE',
     },
     {
       name: 'startDiscussion',
       initial: { discussion: false },
       invoke: () => hostCaller.startDiscussion({ sessionCode: 'ABC123' }),
-      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      script: 'QUICK_FEEDBACK_MUTATE',
       action: 'DISCUSSION',
     },
     {
       name: 'startSecondRound',
       initial: { discussion: true },
       invoke: () => hostCaller.startSecondRound({ sessionCode: 'ABC123' }),
-      script: 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND',
+      script: 'QUICK_FEEDBACK_MUTATE',
       action: 'SECOND_ROUND',
     },
   ])(
@@ -1940,7 +2018,7 @@ describe('quickFeedback.vote und Session-Status', () => {
       expect(evalCall).toContain(`qf:purged-session:v1:${sessionId}`);
       expect(evalCall).toContain(sessionId);
       if (action) expect(evalCall).toContain(action);
-      if (script === 'QUICK_FEEDBACK_MUTATE_SESSION_BOUND') {
+      if (script === 'QUICK_FEEDBACK_MUTATE') {
         const stored = JSON.parse(String(evalCall?.[10])) as {
           participantVotesValidated?: boolean;
           roundStartedAt?: string;
@@ -1981,11 +2059,10 @@ describe('quickFeedback.vote und Session-Status', () => {
         ok: true,
       });
 
-      const multi = redisMock.multi.mock.results.at(-1)?.value as {
-        set: ReturnType<typeof vi.fn>;
-        del: ReturnType<typeof vi.fn>;
-      };
-      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      const evalCall = redisMock.eval.mock.calls.find(([script]) =>
+        String(script).includes('QUICK_FEEDBACK_MUTATE'),
+      );
+      const saved = String(evalCall?.[10]);
       expect(JSON.parse(saved)).toMatchObject({
         type: 'YESNO',
         locked: false,
@@ -1993,7 +2070,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
         roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       });
-      expect(multi.del).toHaveBeenCalledWith('qf:choices:r1:ABC123');
+      expect(evalCall).toContain('RESET_ALL');
     },
   );
 
@@ -2119,18 +2196,17 @@ describe('quickFeedback.vote und Session-Status', () => {
 
       await expect(caller.reset({ sessionCode: 'ABC123' })).resolves.toEqual({ ok: true });
 
-      const multi = redisMock.multi.mock.results.at(-1)?.value as {
-        set: ReturnType<typeof vi.fn>;
-        del: ReturnType<typeof vi.fn>;
-      };
-      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      const evalCall = redisMock.eval.mock.calls.find(([script]) =>
+        String(script).includes('QUICK_FEEDBACK_MUTATE'),
+      );
+      const saved = String(evalCall?.[10]);
       expect(JSON.parse(saved)).toMatchObject({
         type: 'YESNO',
         locked: false,
         totalVotes: 0,
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
       });
-      expect(multi.del).toHaveBeenCalledWith('qf:voters:ABC123');
+      expect(evalCall).toContain('RESET_ALL');
     },
   );
 
@@ -2184,11 +2260,10 @@ describe('quickFeedback.vote und Session-Status', () => {
         ok: true,
       });
 
-      const multi = redisMock.multi.mock.results.at(-1)?.value as {
-        set: ReturnType<typeof vi.fn>;
-        hset: ReturnType<typeof vi.fn>;
-      };
-      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      const evalCall = redisMock.eval.mock.calls.find(([script]) =>
+        String(script).includes('QUICK_FEEDBACK_MUTATE'),
+      );
+      const saved = String(evalCall?.[10]);
       expect(JSON.parse(saved)).toMatchObject({
         locked: true,
         discussion: true,
@@ -2196,7 +2271,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         round1Total: 3,
         round1Distribution: { YES: 2, NO: 1, MAYBE: 0 },
       });
-      expect(multi.hset).toHaveBeenCalledWith('qf:choices:r1:ABC123', { [VOTER_ID]: 'YES' });
+      expect(evalCall).toContain('DISCUSSION');
     },
   );
 
@@ -2253,11 +2328,10 @@ describe('quickFeedback.vote und Session-Status', () => {
         ok: true,
       });
 
-      const multi = redisMock.multi.mock.results.at(-1)?.value as {
-        set: ReturnType<typeof vi.fn>;
-        del: ReturnType<typeof vi.fn>;
-      };
-      const saved = multi.set.mock.calls.find(([key]) => key === 'qf:ABC123')?.[1] as string;
+      const evalCall = redisMock.eval.mock.calls.find(([script]) =>
+        String(script).includes('QUICK_FEEDBACK_MUTATE'),
+      );
+      const saved = String(evalCall?.[10]);
       expect(JSON.parse(saved)).toMatchObject({
         locked: false,
         discussion: false,
@@ -2266,7 +2340,7 @@ describe('quickFeedback.vote und Session-Status', () => {
         distribution: { YES: 0, NO: 0, MAYBE: 0 },
         roundStartedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       });
-      expect(multi.del).toHaveBeenCalledWith('qf:choices:ABC123');
+      expect(evalCall).toContain('SECOND_ROUND');
     },
   );
 

@@ -101,7 +101,6 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       id: '11111111-1111-4111-8111-111111111111',
       qaRankingRevision: 17,
     });
-    prismaMock.participant.count.mockResolvedValue(2_500);
   });
 
   for (const eligibleCount of [0, 499, 500, 501, 25_000]) {
@@ -127,7 +126,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toContain(500);
       const corpusSql = flattenSql(prismaMock.$queryRaw.mock.calls[0]);
       expect(corpusSql).toContain('END AS "bestScore"');
-      expect(corpusSql).toContain('END AS "controversyScore"');
+      expect(corpusSql).toContain('AS "controversyScore"');
       expect(corpusSql).toContain('ranked."upvoteCount" DESC');
       expect(result.entries.length).toBeLessThanOrEqual(80);
       expect(
@@ -148,6 +147,24 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       }
     });
   }
+
+  it('bindet Kontroverse an die Ranking-Version ohne die Zahl der Teilnahmen abzufragen', async () => {
+    prismaMock.$queryRaw.mockResolvedValue(corpusRows(1, 1));
+
+    const result = await caller.analyzeQa({
+      sessionCode: 'ABC123',
+      mode: 'LEXICAL',
+      locale: 'de',
+      metric: 'CONTROVERSIAL',
+      normalization: 'NONE',
+    });
+
+    expect(result.corpusRevision).toBe('17:qa-ranking-v2');
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
+    expect(flattenSql(prismaMock.$queryRaw.mock.calls[0])).toContain(
+      'ranked."controversyScore" DESC',
+    );
+  });
 
   it('begrenzt den Korpus auf die Host-Forum-Seitengröße 100', async () => {
     prismaMock.$queryRaw.mockResolvedValue(corpusRows(100, 250));

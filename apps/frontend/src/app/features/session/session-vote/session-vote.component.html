@@ -494,7 +494,7 @@
       </div>
     }
 
-    @if (showFingerCountdown()) {
+    @if (prepareFingerCountdown()) {
       <app-countdown-fingers [seconds]="countdownSeconds()!" size="small" />
     }
 
@@ -1471,7 +1471,8 @@
                 @let showsCorrectness = isRevealed && questionUsesCorrectness(q.type);
                 @let isCorrect = showsCorrectness && a.isCorrect;
                 @let isWrong = showsCorrectness && isSelected && !a.isCorrect;
-                @let isResultSelected = isRevealed && isSelected && !showsCorrectness;
+                @let isResultSelected = isRevealed && isSelected;
+                @let selectionLabelId = 'vote-own-answer-' + i;
                 <li>
                   <button
                     [attr.id]="i === 0 ? 'vote-option-0' : null"
@@ -1479,11 +1480,12 @@
                     [class.vote-answer--selected]="isSelected"
                     [class.vote-answer--correct]="isCorrect"
                     [class.vote-answer--wrong]="isWrong"
-                    [class.vote-answer--result-selected]="isResultSelected"
+                    [class.vote-answer--result-selected]="isResultSelected && !showsCorrectness"
                     [class.vote-answer--disabled]="voteInteractionLocked() || !isActive()"
                     [disabled]="voteInteractionLocked() || !isActive()"
                     (click)="toggleAnswer(a.id)"
                     [attr.aria-label]="getLetter(i) + ': ' + a.text"
+                    [attr.aria-describedby]="isResultSelected ? selectionLabelId : null"
                   >
                     <app-answer-option-badge
                       class="vote-answer__badge"
@@ -1491,10 +1493,20 @@
                       [questionType]="q.type"
                       [showTypeIndicator]="q.showQuestionTypeIndicators"
                     ></app-answer-option-badge>
-                    <span
-                      class="vote-answer__text markdown-body"
-                      [innerHTML]="renderMarkdown(a.text, 4)"
-                    ></span>
+                    <span class="vote-answer__content">
+                      <span
+                        class="vote-answer__text markdown-body"
+                        [innerHTML]="renderMarkdown(a.text, 4)"
+                      ></span>
+                      @if (isResultSelected) {
+                        <span
+                          class="vote-answer__own"
+                          [id]="selectionLabelId"
+                          i18n="@@sessionVote.ownChoice"
+                          >Deine Antwort</span
+                        >
+                      }
+                    </span>
                     @if (showsCorrectness) {
                       @if (a.isCorrect) {
                         <mat-icon class="vote-answer__icon vote-answer__icon--correct"
@@ -3364,18 +3376,30 @@
         i18n-aria-label="@@sessionVote.quizActionsAria"
         aria-label="Quiz-Aktionen"
       >
-        <button
-          mat-flat-button
-          color="primary"
-          id="vote-submit"
-          type="button"
-          class="vote-page__bottom-action vote-page__bottom-action--primary"
-          [class.vote-submit--pending]="voteSending()"
-          [disabled]="voteSubmitDisabled()"
-          (click)="submitVote()"
-        >
-          <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-        </button>
+        <div class="vote-page__submit-stack">
+          <div role="status">
+            @if (showConfidenceSubmitHint()) {
+              <p class="vote-page__submit-hint" id="vote-confidence-submit-hint">
+                {{ confidenceRequiredMessage }}
+              </p>
+            }
+          </div>
+          <button
+            mat-flat-button
+            color="primary"
+            id="vote-submit"
+            type="button"
+            class="vote-page__bottom-action vote-page__bottom-action--primary"
+            [class.vote-submit--pending]="voteSending()"
+            [disabled]="voteSubmitDisabled()"
+            [attr.aria-describedby]="
+              showConfidenceSubmitHint() ? 'vote-confidence-submit-hint' : null
+            "
+            (click)="submitVote()"
+          >
+            <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
+          </button>
+        </div>
       </div>
     } @else if (showQaSubmitAction()) {
       <div

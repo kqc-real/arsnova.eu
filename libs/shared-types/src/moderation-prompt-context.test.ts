@@ -389,6 +389,29 @@ describe('moderation prompt context v1', () => {
     expectPromptIssue(mismatchedBasis, 'darf die verfügbare Teilnehmerbasis nicht übersteigen');
   });
 
+  it('validates the current controversy score from votes without a participant basis', () => {
+    const context = cloneMinimal();
+    const questions = recordAt(context, 'context', 'questions');
+    questions.rankingVersion = 'qa-ranking-v2';
+    delete questions.participantBasis;
+    const votes = recordAt(context, 'context', 'questions', 'items', 0, 'votes');
+    Object.assign(votes, {
+      positive: 3,
+      negative: 3,
+      net: 0,
+      total: 6,
+      bestScore: {
+        state: 'available',
+        value: calculateModerationQaBestScoreV1({ positive: 3, negative: 3 }),
+      },
+      controversyScore: { state: 'available', value: 0.6 },
+    });
+    expect(ModerationPromptContextV1Schema.safeParse(context).success).toBe(true);
+
+    votes.controversyScore = { state: 'available', value: 6 / 7 };
+    expectPromptIssue(context, 'Kontroversitätswert muss der qa-ranking-v2-Berechnung');
+  });
+
   it('validates available question metrics against the qa-ranking-v1 formulas', () => {
     const invalidBestScore = cloneReference();
     recordAt(invalidBestScore, 'context', 'questions', 'items', 0, 'votes', 'bestScore').value = 1;

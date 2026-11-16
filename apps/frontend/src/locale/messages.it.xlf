@@ -7659,6 +7659,14 @@
           <context context-type="linenumber">268,270</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="feedback.showLiveSync" datatype="html">
+        <source>Live-Sync</source>
+        <target>Sincronizzazione live</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
+          <context context-type="linenumber">190</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="feedback.showLiveResultsHintLive" datatype="html">
         <source> Die Verteilung wird während der Abstimmung im Presenter angezeigt.</source>
         <target>La vista presentazione mostra la distribuzione delle risposte durante la votazione.</target>
@@ -7826,8 +7834,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Blitzlicht-Einstellungen</source>
-        <target>Impostazioni del sondaggio rapido</target>
+        <source>Blitzlicht-Formate</source>
+        <target>Formati del sondaggio rapido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -17694,7 +17702,7 @@
       <trans-unit id="hostPairing.remoteAction" datatype="html">
         <source>Smartphone als Fernbedienung</source>
         <target>Usa lo smartphone come telecomando</target>
-      </trans-unit>
+        </trans-unit>
       <trans-unit id="presentationStart.cancel" datatype="html">
         <source> Abbrechen</source>
         <target>Annulla</target>
@@ -23499,6 +23507,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1887</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presentationViewLabel" datatype="html">
+        <source>Präsentationsansicht</source>
+        <target>Vista presentazione</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">811</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.openPresentationView" datatype="html">
@@ -29513,6 +29529,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1656</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.ownChoice" datatype="html">
+        <source>Deine Antwort</source>
+        <target>La tua risposta</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1505</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.numericResultPrefix" datatype="html">

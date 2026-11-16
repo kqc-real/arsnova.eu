@@ -706,7 +706,6 @@
             } @else if (lobbyTeamsView().length > 0) {
               <div
                 class="session-present__lobby-teams-grid"
-                [style.--lobby-team-count]="lobbyTeamsView().length"
                 tabindex="0"
                 role="region"
                 aria-labelledby="session-present-lobby-audience"
@@ -743,6 +742,9 @@
                     @if (team.members.length > 0 || team.placeholders.length > 0) {
                       <ul
                         class="session-present__lobby-team-members"
+                        [class.session-present__lobby-team-members--visual]="
+                          lobbyGridMode() !== 'text'
+                        "
                         role="list"
                         [attr.tabindex]="lobbyGridMode() === 'text' ? 0 : null"
                         [attr.aria-labelledby]="'lobby-team-' + team.id"

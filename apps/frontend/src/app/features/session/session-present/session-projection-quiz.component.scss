@@ -559,7 +559,10 @@ mat-icon.session-projection-quiz__reading-icon {
   color: var(--mat-sys-error);
 }
 
-:host:has(app-countdown-fingers.countdown-fingers-host--loaded)
+// Apply to the visible projection page and its measurement copy in the same frame.
+app-session-projection-quiz:has(
+    > .session-projection-quiz__finger-overlay app-countdown-fingers.countdown-fingers-host--loaded
+  )
   .session-projection-quiz__countdown {
   display: none;
 }

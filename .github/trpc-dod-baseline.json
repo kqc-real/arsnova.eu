@@ -294,7 +294,7 @@
     },
     "qa.list": {
       "kind": "query",
-      "fingerprint": "sha256:7182e52029eab9153f76f84be240ad8dde4872dbfc90f4e40f07d8d5737b3cde",
+      "fingerprint": "sha256:1ae79b361dc862afa990617457e24dd34a0b423d475290bbd267f4bb69f35d24",
       "missing": []
     },
     "qa.moderate": {
@@ -309,7 +309,7 @@
     },
     "qa.onQuestionsUpdated": {
       "kind": "subscription",
-      "fingerprint": "sha256:0f36496337c1e599ce0ca79b0ccc8fd1fc2018f0a381ee6f79bb65391dba7cc3",
+      "fingerprint": "sha256:3f87e468343302d5f529dab3010b16079ee5eaca31b1bfa21ee6881294237122",
       "missing": []
     },
     "qa.pendingReleaseSnapshot": {
@@ -319,7 +319,7 @@
     },
     "qa.presentProjection": {
       "kind": "query",
-      "fingerprint": "sha256:c379cfb665f2e56d64d5f8454c2297bc0c53ffcc21bf0cf06fb81f487643a107",
+      "fingerprint": "sha256:32c37bfff42d534fe8820c2ad75c9a1cf46a25037058e75df2b6393d33e74cd0",
       "missing": []
     },
     "qa.redactPassages": {
@@ -374,17 +374,17 @@
     },
     "quickFeedback.changeType": {
       "kind": "mutation",
-      "fingerprint": "sha256:7c6cfe95a6548c71d145ebdfefc38f629fa4d26d2b5cfd1c9206394e69b2ef0e",
+      "fingerprint": "sha256:cdd9e9ade5807d24d2a50bc31008beb1b296d19d7b6caf1ae2c8cbc54c879578",
       "missing": []
     },
     "quickFeedback.create": {
       "kind": "mutation",
-      "fingerprint": "sha256:cb50f37f73b48f94ce953856aee30b8a344355f1158f6b0679a2e1e98951604c",
+      "fingerprint": "sha256:933f9e0b97fe3f3df732a890035a4eeeb0b4dddac6f291e63a68330b7ae9679c",
       "missing": []
     },
     "quickFeedback.end": {
       "kind": "mutation",
-      "fingerprint": "sha256:a66917092f61be9c5e0fb7d939eb69f2b6854b08e9d25e3b14b0962e2ac47db7",
+      "fingerprint": "sha256:1b7eb905c454df5eb5c1bd06f98162213e34649b393b452be6049f9033f30c24",
       "missing": []
     },
     "quickFeedback.hostResults": {
@@ -419,7 +419,7 @@
     },
     "quickFeedback.reset": {
       "kind": "mutation",
-      "fingerprint": "sha256:a2f1afb6612f91a96f66e929ddf12cb81258f586df0d0c326fc0e551ee71dc63",
+      "fingerprint": "sha256:f76a48f640d4b73c2f3bb41d21db06d2a813302a17ff6e4ff3c42224ca7b8a69",
       "missing": []
     },
     "quickFeedback.results": {
@@ -434,17 +434,17 @@
     },
     "quickFeedback.startDiscussion": {
       "kind": "mutation",
-      "fingerprint": "sha256:a4defa1ccb643cb42417e2c1e2cc5d669640c856afa7963f2bdf8ff46dd6e031",
+      "fingerprint": "sha256:b7a7c9ffd1e0f0b808cc26e8372c493731de3deb2f3e2be2287b6fe5f438bd48",
       "missing": []
     },
     "quickFeedback.startSecondRound": {
       "kind": "mutation",
-      "fingerprint": "sha256:1215dc62a4d4cbe06db28cea569865ac0e9104a29090ff4b331416a1149ead12",
+      "fingerprint": "sha256:11def6e6da7e4d5126fce288ed3271717619137c04d7c49cae4138064ebe3467",
       "missing": []
     },
     "quickFeedback.toggleLock": {
       "kind": "mutation",
-      "fingerprint": "sha256:05c21591326241de62f3008fca465b05b38a00e2af42ce2f911e72fd876518e3",
+      "fingerprint": "sha256:f9b37d4b646e62d5956ceeb417c08eb33f2c85f2aa983a8e759c2eab8f69363b",
       "missing": []
     },
     "quickFeedback.vote": {
@@ -979,7 +979,7 @@
     },
     "wordCloud.analyzeQa": {
       "kind": "mutation",
-      "fingerprint": "sha256:db8833d8bbe63e67be0c03db97a55c2578f62dd071874ff6af64aac3d17a8c60",
+      "fingerprint": "sha256:e997c75433bcdf822f89d4b3797a3bce7d5655e58058a9604aa8297c0386f4b8",
       "missing": []
     }
   }

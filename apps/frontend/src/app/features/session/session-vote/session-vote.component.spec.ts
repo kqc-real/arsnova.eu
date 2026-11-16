@@ -10,6 +10,7 @@ import type { QaQuestionDTO } from '@arsnova/shared-types';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { VOTE_FINGER_PRELOAD_INTERVAL_MS } from '../../../shared/countdown-fingers/countdown-fingers-preload';
 import {
   flushComponentAfterStable,
   flushMacroTask,
@@ -1055,13 +1056,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     component['startCountdownFromSessionTimer'](30, activeAt);
     expect(component.countdownSeconds()).toBe(0);
-    expect(component.showFingerCountdown()).toBe(true);
+    expect(component.prepareFingerCountdown()).toBe(true);
 
     component['startCountdownFromSessionTimer'](30, activeAt);
     component['startCountdownFromSessionTimer'](30, activeAt);
 
     expect(component.countdownSeconds()).toBe(0);
-    expect(component.showFingerCountdown()).toBe(true);
+    expect(component.prepareFingerCountdown()).toBe(true);
     fixture.destroy();
   });
 
@@ -1118,26 +1119,39 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.liveScorePreviewInOvertime()).toBe(true);
     expect(component.liveScorePreviewCaption()).toBe('Nachlaufzeit · richtige Antwort');
     expect(component.liveScorePreviewFormattedPoints()).toBe('200');
-    component.countdownSeconds.set(6);
+    component.countdownSeconds.set(11);
     fixture.detectChanges();
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.vote-countdown')?.textContent?.trim()).toBe('6');
+    expect(host.querySelector('.vote-countdown')?.textContent?.trim()).toBe('11');
     expect(host.querySelector('app-countdown-fingers')).toBeNull();
 
-    component.countdownSeconds.set(5);
+    vi.useFakeTimers();
+    component.countdownSeconds.set(9);
     fixture.detectChanges();
-    expect(host.querySelector('.vote-countdown')?.textContent?.trim()).toBe('5');
     const fingerHost = host.querySelector('app-countdown-fingers') as HTMLElement;
-    const fingerImage = fingerHost.querySelector('img') as HTMLImageElement;
+    const firstImage = fingerHost.querySelector('img[src$="_5.webp"]') as HTMLImageElement;
+    vi.advanceTimersByTime(VOTE_FINGER_PRELOAD_INTERVAL_MS);
+    fixture.detectChanges();
+    const nextImage = fingerHost.querySelector('img[src$="_4.webp"]') as HTMLImageElement;
+    firstImage.dispatchEvent(new Event('load'));
+    nextImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
     expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
     expect(fingerHost.querySelector('[role="img"]')).toBeNull();
-    fingerImage.dispatchEvent(new Event('load'));
+
+    component.countdownSeconds.set(5);
     fixture.detectChanges();
     expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
     expect(fingerHost.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe(
       '5 Sekunden, durch Finger dargestellt',
     );
-    fingerImage.dispatchEvent(new Event('error'));
+
+    component.countdownSeconds.set(4);
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    expect(fingerHost.querySelector('img:not([hidden])')).toBe(nextImage);
+
+    nextImage.dispatchEvent(new Event('error'));
     fixture.detectChanges();
     expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
     const voteStyles = readFileSync(
@@ -2588,6 +2602,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     )?.answers?.[0];
     expect(firstAfterActive?.isCorrect).toBeUndefined();
 
+    inst.selectedAnswerIds.set(new Set(['a2']));
+    inst.voteSent.set(true);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-answer__own')).toBeNull();
+
     currentQuestionQueryMock.mockResolvedValue(revealedQ);
     inst.status.set('RESULTS');
     await (inst as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
@@ -2597,8 +2617,70 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       inst.currentQuestion() as { answers?: Array<{ isCorrect: boolean }> } | null
     )?.answers?.[0] as { isCorrect: boolean };
     expect(firstAfterResults.isCorrect).toBe(true);
+    const correctAnswer = host.querySelector('.vote-answer--correct');
+    const submittedAnswer = host.querySelector('.vote-answer--wrong');
+    const label = submittedAnswer?.querySelector('.vote-answer__own');
+    expect(correctAnswer).not.toBeNull();
+    expect(correctAnswer?.querySelector('.vote-answer__own')).toBeNull();
+    expect(label?.textContent?.trim()).toBe('Deine Antwort');
+    expect(submittedAnswer?.getAttribute('aria-describedby')).toBe(label?.id);
     fixture.destroy();
   });
+
+  it.each([
+    { sent: true, expectedChoices: ['A: Eins', 'C: Drei'] },
+    { sent: false, expectedChoices: [] },
+  ])(
+    'markiert nach Neuladen nur abgegebene Multiple-Choice-Optionen (sent=$sent)',
+    async ({ sent, expectedChoices }) => {
+      const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+      localStorage.setItem(
+        `arsnova-vote-response-ABC123-11111111-1111-4111-8111-111111111111-${questionId}-1`,
+        JSON.stringify({ answerIds: ['a1', 'a3'], sent, updatedAt: MOCK_SERVER_TIME }),
+      );
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'RESULTS',
+        quizName: 'Q',
+        title: null,
+        participantCount: 2,
+        preset: 'SERIOUS',
+      });
+      currentQuestionQueryMock.mockResolvedValue({
+        id: questionId,
+        text: 'Welche Zahlen sind ungerade?',
+        type: 'MULTIPLE_CHOICE',
+        order: 0,
+        totalQuestions: 1,
+        answers: [
+          { id: 'a1', text: 'Eins', isCorrect: true, voteCount: 1, votePercentage: 100 },
+          { id: 'a2', text: 'Zwei', isCorrect: false, voteCount: 0, votePercentage: 0 },
+          { id: 'a3', text: 'Drei', isCorrect: true, voteCount: 1, votePercentage: 100 },
+          { id: 'a4', text: 'Fünf', isCorrect: true, voteCount: 0, votePercentage: 0 },
+        ],
+        totalVotes: 1,
+      });
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelectorAll('.vote-answer')).toHaveLength(4);
+      const labels = Array.from(host.querySelectorAll('.vote-answer__own'));
+      expect(labels.map((label) => label.closest('button')?.getAttribute('aria-label'))).toEqual(
+        expectedChoices,
+      );
+      for (const label of labels) {
+        expect(label.closest('button')?.classList.contains('vote-answer--correct')).toBe(true);
+        expect(label.closest('button')?.getAttribute('aria-describedby')).toBe(label.id);
+      }
+      fixture.destroy();
+    },
+  );
 
   it('markiert Umfrage-Antworten in der Ergebnisansicht nicht als falsch', async () => {
     getInfoQueryMock.mockResolvedValue({
@@ -2820,7 +2902,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt den Sicherheitsgrad erst nach gewählter Antwort und sendet ihn mit', async () => {
+  it('erklärt den gesperrten Sende-Button bis zur Selbsteinschätzung und sendet diese mit', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -2864,18 +2946,35 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
-    expect(component.showConfidencePrompt()).toBe(false);
-    expect(fixture.nativeElement.querySelector('.vote-confidence')).toBeNull();
+    const host = fixture.nativeElement as HTMLElement;
+    const submit = host.querySelector<HTMLButtonElement>('#vote-submit')!;
+    const hint = () => host.querySelector('#vote-confidence-submit-hint');
+    expect(host.querySelector('.vote-confidence')).toBeNull();
+    expect(hint()).toBeNull();
+    expect(submit.disabled).toBe(true);
 
     component.toggleAnswer('a1');
     fixture.detectChanges();
 
-    expect(component.showConfidencePrompt()).toBe(true);
-    expect(fixture.nativeElement.querySelector('.vote-confidence')).not.toBeNull();
-    expect(component.voteSubmitDisabled()).toBe(true);
+    expect(host.querySelector('.vote-confidence')).not.toBeNull();
+    expect(hint()?.textContent?.trim()).toBe(
+      'Gib deine Selbsteinschätzung an, bevor du absendest.',
+    );
+    expect(hint()?.closest('[role="status"]')).not.toBeNull();
+    expect(submit.getAttribute('aria-describedby')).toBe(hint()?.id);
+    expect(submit.disabled).toBe(true);
+
+    component.voteClosed.set(true);
+    fixture.detectChanges();
+    expect(hint()).toBeNull();
+    expect(submit.disabled).toBe(true);
+    component.voteClosed.set(false);
+    fixture.detectChanges();
 
     component.selectConfidence(4);
-    expect(component.voteSubmitDisabled()).toBe(false);
+    expect(hint()).toBeNull();
+    expect(submit.hasAttribute('aria-describedby')).toBe(false);
+    expect(submit.disabled).toBe(false);
 
     await component.submitVote();
 
@@ -5335,6 +5434,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         expect.objectContaining({
           data: { kind: 'CONTROVERSIAL' },
           panelClass: 'qa-sort-help-dialog-panel',
+          role: 'dialog',
         }),
       );
       dialogOpen.mockRestore();
@@ -8899,11 +8999,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ).applyQaQuestionsSnapshot([
       {
         id: '33333333-3333-4333-8333-333333333333',
-        text: 'Unter T trotz Score',
+        text: 'Ausgeglichen bei vier Stimmen',
         upvoteCount: 0,
         positiveVoteCount: 2,
         negativeVoteCount: 2,
-        controversyScore: 0.8,
+        controversyScore: 0.5,
         isControversial: false,
         controversyInsufficientVotes: true,
         status: 'ACTIVE',
@@ -8915,11 +9015,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       },
       {
         id: '44444444-4444-4444-8444-444444444444',
-        text: 'Schwache Kontroverse über T',
+        text: 'Schwache Kontroverse bei zwanzig Stimmen',
         upvoteCount: 16,
         positiveVoteCount: 18,
         negativeVoteCount: 2,
-        controversyScore: 0.13,
+        controversyScore: 4 / 24,
         isControversial: false,
         controversyInsufficientVotes: false,
         status: 'ACTIVE',
@@ -8952,7 +9052,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         positiveVoteCount: 5,
         negativeVoteCount: 5,
         bestScore: 0.35,
-        controversyScore: 0.81,
+        controversyScore: 5 / 7,
         isControversial: true,
         controversyInsufficientVotes: false,
         status: 'ACTIVE',
@@ -8965,15 +9065,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ]);
     component.qaSortMode.set('CONTROVERSIAL');
     fixture.detectChanges();
-    const underTCard = fixture.nativeElement.querySelector(
+    const fewVotesCard = fixture.nativeElement.querySelector(
       '.session-qa-card[data-qa-id="33333333-3333-4333-8333-333333333333"]',
     ) as HTMLElement | null;
-    expect(underTCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
+    expect(fewVotesCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
     expect(
-      underTCard?.querySelector('.session-qa-card__badge--controversy-pending')?.textContent,
+      fewVotesCard?.querySelector('.session-qa-card__badge--controversy-pending')?.textContent,
     ).toContain('Zu wenige Stimmen');
     expect(
-      underTCard
+      fewVotesCard
         ?.querySelector('.session-qa-card__badge--controversy-pending')
         ?.getAttribute('aria-label'),
     ).toContain('belastbare Einordnung');
@@ -9001,10 +9101,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       polarCard?.querySelector('.session-qa-card__badge--controversial')?.textContent,
     ).toContain('Umstritten');
 
-    expect(underTCard?.textContent).not.toContain('Geteilte Reaktionen');
+    expect(fewVotesCard?.textContent).not.toContain('Geteilte Reaktionen');
     expect(onesidedCard?.textContent).not.toContain('Geteilte Reaktionen');
     expect(weakCard?.textContent).not.toContain('Geteilte Reaktionen');
     expect(polarCard?.textContent).toContain('Geteilte Reaktionen');
+    expect(polarCard?.textContent).toContain('71 %');
     fixture.destroy();
   });
 

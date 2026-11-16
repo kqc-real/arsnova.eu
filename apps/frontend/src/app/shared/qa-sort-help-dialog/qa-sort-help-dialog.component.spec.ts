@@ -3,9 +3,13 @@ import { LOCALE_ID } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { QaSortHelpDialogComponent } from './qa-sort-help-dialog.component';
+import type { QaSortHelpLocale } from './qa-sort-help.content';
 
 describe('QaSortHelpDialogComponent', () => {
-  async function create(kind: 'BEST' | 'CONTROVERSIAL'): Promise<{
+  async function create(
+    kind: 'BEST' | 'CONTROVERSIAL',
+    locale: QaSortHelpLocale = 'de',
+  ): Promise<{
     fixture: ComponentFixture<QaSortHelpDialogComponent>;
     el: HTMLElement;
   }> {
@@ -14,7 +18,7 @@ describe('QaSortHelpDialogComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: MAT_DIALOG_DATA, useValue: { kind } },
-        { provide: LOCALE_ID, useValue: 'de' },
+        { provide: LOCALE_ID, useValue: locale },
       ],
     }).compileComponents();
 
@@ -38,16 +42,23 @@ describe('QaSortHelpDialogComponent', () => {
     expect(body.querySelectorAll('.katex').length).toBeGreaterThanOrEqual(6);
   });
 
-  it('renders CONTROVERSIAL help with threshold explanation', async () => {
-    const { el } = await create('CONTROVERSIAL');
-    expect(el.querySelector('.dialog-title-header__heading')?.textContent?.trim()).toBe(
-      'Kontroverse',
-    );
-    expect(el.querySelector('.qa-sort-help-dialog__body')?.textContent).toContain('umstritten');
-    expect(el.querySelector('.qa-sort-help-dialog__body table')).toBeTruthy();
-    const body = el.querySelector('.qa-sort-help-dialog__body')!;
-    expect(body.querySelector('.markdown-katex-error')).toBeNull();
-    expect(body.innerHTML).not.toContain('\\(');
-    expect(body.querySelectorAll('.katex-display').length).toBeGreaterThanOrEqual(2);
-  });
+  it.each([
+    ['de', 'Kontroverse', 'mindestens 6 Stimmen', '0,83'],
+    ['en', 'Controversy', 'at least 6 votes', '0.83'],
+    ['fr', 'Controverse', 'au moins 6 votes', '0,83'],
+    ['es', 'Controversia', 'al menos 6 votos', '0,83'],
+    ['it', 'Controversia', 'almeno 6 voti', '0,83'],
+  ] as const)(
+    'renders the fixed damping and minimum vote count in %s',
+    async (locale, title, minimum, exampleScore) => {
+      const { el } = await create('CONTROVERSIAL', locale);
+      expect(el.querySelector('.dialog-title-header__heading')?.textContent?.trim()).toBe(title);
+      const body = el.querySelector('.qa-sort-help-dialog__body')!;
+      expect(body.textContent).toContain(minimum);
+      expect(body.querySelector('table')?.textContent).toContain(exampleScore);
+      expect(body.querySelector('.markdown-katex-error')).toBeNull();
+      expect(body.innerHTML).not.toContain('\\(');
+      expect(body.querySelectorAll('.katex-display').length).toBeGreaterThanOrEqual(2);
+    },
+  );
 });

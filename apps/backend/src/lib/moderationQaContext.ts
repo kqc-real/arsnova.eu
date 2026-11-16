@@ -8,18 +8,22 @@ import {
   ModerationQuestionsSectionSchema,
   ModerationTopicsSectionSchema,
   calculateModerationQaBestScoreV1,
-  calculateModerationQaControversyScoreV1,
+  calculateQaControversyScore,
+  QA_RANKING_VERSION,
   type ModerationAnalysisDomainContextV1,
   type ModerationPromptQuestion,
   type ModerationPromptSource,
   type QaQuestionSortMode,
   type SessionStatus,
-  type WordCloudWeightMetric,
 } from '@arsnova/shared-types';
 import { prisma } from '../db';
 import { assertHostSessionAccessFromContext, type HostTokenContext } from './hostAuth';
 import { resolveQaPresenterSortMode } from './qaPresenterSortMode';
-import { buildQaRankingMetricOrderSql, buildQaRankingScoreSelectSql } from './qaRankingSql';
+import {
+  buildQaRankingMetricOrderSql,
+  buildQaRankingScoreSelectSql,
+  qaRankingCorpusRevision,
+} from './qaRankingSql';
 import {
   hashQaSemanticTopicMemberText,
   type QaSemanticTopicSnapshot,
@@ -319,9 +323,8 @@ function buildNlpRevision(rows: readonly QaCandidateRow[]): string {
 async function loadQaCandidateRows(
   tx: Prisma.TransactionClient,
   state: AuthorizedModerationState,
-  participantCount: number,
 ): Promise<QaCandidateRow[]> {
-  const scoreSelect = buildQaRankingScoreSelectSql(participantCount);
+  const scoreSelect = buildQaRankingScoreSelectSql();
   const modeOrder = buildQaRankingMetricOrderSql(state.activeSortMode);
   const pageModeOrder = buildQaRankingMetricOrderSql(state.activeSortMode, 'page');
   const createdAtTie =
@@ -436,9 +439,8 @@ function validatedRankingScore(input: {
 export async function collectQaContextCandidates(input: {
   readonly tx: Prisma.TransactionClient;
   readonly state: AuthorizedModerationState;
-  readonly participantCount: number;
 }): Promise<ModerationQaCandidateProjection> {
-  const rows = await loadQaCandidateRows(input.tx, input.state, input.participantCount);
+  const rows = await loadQaCandidateRows(input.tx, input.state);
   const availableRows = rows.filter(
     (
       row,
@@ -467,11 +469,7 @@ export async function collectQaContextCandidates(input: {
     });
     const controversyScore = validatedRankingScore({
       actual: row.controversyScore,
-      expected: calculateModerationQaControversyScoreV1({
-        positive,
-        negative,
-        participantBasis: input.participantCount,
-      }),
+      expected: calculateQaControversyScore({ positive, negative }),
       metric: 'controversyScore',
     });
     return {
@@ -499,12 +497,7 @@ export async function collectQaContextCandidates(input: {
   });
   const questionSection = ModerationQuestionsSectionSchema.parse({
     state: 'available',
-    participantBasis: {
-      state: 'available',
-      kind: 'session-participant-record-count',
-      value: input.participantCount,
-      calculationVersion: 'qa-ranking-v1',
-    },
+    rankingVersion: QA_RANKING_VERSION,
     corpus: {
       total,
       eligible,
@@ -534,7 +527,7 @@ export async function collectQaContextCandidates(input: {
       },
     ]),
   );
-  const questionRevision = `qa-ranking-v1:${input.state.qaRankingRevision}`;
+  const questionRevision = `${QA_RANKING_VERSION}:${input.state.qaRankingRevision}`;
   return {
     questions: questionSection,
     sources,
@@ -543,7 +536,7 @@ export async function collectQaContextCandidates(input: {
     revisions: {
       questionText: questionRevision,
       questionStatus: questionRevision,
-      questionVotes: `${questionRevision}:participants:${input.state.participantRevision}:${input.participantCount}`,
+      questionVotes: questionRevision,
     },
   };
 }
@@ -563,15 +556,6 @@ function semanticTopicSourceId(topicId: string): string {
 function truncateTopicLabel(text: string): string | null {
   const bounded = truncateSchemaString(text, 200).text;
   return bounded || null;
-}
-
-function buildCurrentQaSemanticCorpusRevision(input: {
-  readonly state: AuthorizedModerationState;
-  readonly participantCount: number;
-  readonly metric: WordCloudWeightMetric;
-}): string {
-  const participantPart = input.metric === 'CONTROVERSIAL' ? input.participantCount : '';
-  return input.state.qaRankingRevision + ':' + participantPart;
 }
 
 function limitation(input: ModerationLimitation): ModerationLimitation {
@@ -625,7 +609,6 @@ function unavailableTopicProjection(input: {
 export async function collectQaTopicContext(input: {
   readonly tx: Prisma.TransactionClient;
   readonly state: AuthorizedModerationState;
-  readonly participantCount: number;
   readonly candidates: ModerationQaCandidateProjection;
   readonly snapshot: QaSemanticTopicSnapshot | null;
   readonly semanticEnabled?: boolean;
@@ -836,11 +819,10 @@ export async function collectQaTopicContext(input: {
     representedQuestionSourceIds.forEach((sourceId) => representedQuestionIds.add(sourceId));
   }
 
-  const currentCorpusRevision = buildCurrentQaSemanticCorpusRevision({
-    state: input.state,
-    participantCount: input.participantCount,
-    metric: input.snapshot.metric,
-  });
+  const currentCorpusRevision = qaRankingCorpusRevision(
+    input.state.qaRankingRevision,
+    input.snapshot.metric,
+  );
   const metricCurrent = input.snapshot.metric === input.state.activeSortMode;
   const revisionCurrent = input.snapshot.corpusRevision === currentCorpusRevision;
   const freshnessCurrent = metricCurrent && revisionCurrent && !invalidMembership;
@@ -1037,13 +1019,9 @@ export async function buildAuthorizedModerationQaContext(input: {
     : null;
   const collected = await prisma.$transaction(
     async (tx) => {
-      const participantCount = await tx.participant.count({
-        where: { sessionId: initial.id },
-      });
       const candidates = await collectQaContextCandidates({
         tx,
         state: initial,
-        participantCount,
       });
       if (
         candidates.questions.state === 'available' &&
@@ -1063,7 +1041,6 @@ export async function buildAuthorizedModerationQaContext(input: {
         topics: await collectQaTopicContext({
           tx,
           state: initial,
-          participantCount,
           candidates,
           snapshot,
           semanticEnabled,
@@ -1106,5 +1083,4 @@ export const moderationQaContextInternals = {
   qaSourceId,
   semanticTopicSourceId,
   truncateQuestionText,
-  buildCurrentQaSemanticCorpusRevision,
 };

@@ -120,6 +120,26 @@
   min-width: 8rem;
 }
 
+.vote-page__submit-stack {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+}
+
+.vote-page__submit-hint {
+  max-inline-size: 24rem;
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-medium);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  line-height: 1.4;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .vote-page__bottom-actions--session-end {
   position: fixed;
   left: 50%;
@@ -2422,13 +2442,13 @@
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
   }
 
-  &--result-selected#{&}--disabled {
-    opacity: 1;
-  }
-
   &--disabled {
     cursor: default;
     opacity: 0.75;
+
+    &:has(.vote-answer__own) {
+      opacity: 1;
+    }
   }
 
   &__badge {
@@ -2446,10 +2466,27 @@
     --answer-option-badge-stroke-width: 2.7;
   }
 
-  &__text {
+  &__content {
+    display: flex;
     flex: 1;
+    flex-direction: column;
     min-width: 0;
-    align-self: center;
+    gap: 0.35rem;
+  }
+
+  &__own {
+    align-self: flex-start;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: var(--mat-sys-corner-small);
+    background: var(--mat-sys-surface-container-highest);
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-label-large);
+    overflow-wrap: anywhere;
+  }
+
+  &__text {
+    min-width: 0;
     overflow: visible;
     text-overflow: clip;
     line-height: 1.4;
@@ -3692,20 +3729,19 @@
     aspect-ratio: 1 / 1;
     min-height: 2.5rem;
     border-radius: 50%;
-    border: 2px solid var(--mat-sys-outline-variant);
+    border: 2px solid var(--mat-sys-outline);
     background: var(--mat-sys-surface);
     color: var(--mat-sys-on-surface);
     font: var(--mat-sys-title-large);
     font-weight: 600;
     cursor: pointer;
     transition:
-      background 150ms,
       border-color 150ms,
       transform 150ms;
     justify-self: center;
     box-sizing: border-box;
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled, .vote-rating__btn--selected) {
       background: var(--mat-sys-primary-container);
       border-color: var(--mat-sys-primary);
     }

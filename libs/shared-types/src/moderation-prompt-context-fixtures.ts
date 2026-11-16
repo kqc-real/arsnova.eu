@@ -54,7 +54,7 @@ export const MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1 = [
 
 /**
  * Reference ranking inputs use the persisted session-participant record count
- * N=200 and the current qa-ranking-v1 formula (controversy damping C=20).
+ * N=200 and the historical qa-ranking-v1 formula (controversy damping C=20).
  */
 export const MODERATION_PROMPT_REFERENCE_RANKING_FIXTURE_V1 = [
   {

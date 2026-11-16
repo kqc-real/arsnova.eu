@@ -5210,13 +5210,13 @@ describe('SessionPresentComponent', () => {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
           teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          teamName: 'Rot',
+          teamName: 'Arbeitsgruppe Digitale Bildung Nord',
         },
         {
           id: '22222222-2222-4222-8222-222222222222',
           nickname: 'Milo',
           teamId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          teamName: 'Blau',
+          teamName: 'Arbeitsgruppe Digitale Bildung Süd',
         },
       ],
     });
@@ -5225,13 +5225,13 @@ describe('SessionPresentComponent', () => {
       teams: [
         {
           id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          name: 'Rot',
+          name: 'Arbeitsgruppe Digitale Bildung Nord',
           color: '#c62828',
           memberCount: 1,
         },
         {
           id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          name: 'Blau',
+          name: 'Arbeitsgruppe Digitale Bildung Süd',
           color: '#1565c0',
           memberCount: 1,
         },
@@ -5245,8 +5245,8 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Rot');
-    expect(text).toContain('Blau');
+    expect(text).toContain('Arbeitsgruppe Digitale Bildung Nord');
+    expect(text).toContain('Arbeitsgruppe Digitale Bildung Süd');
     expect(text).toContain('Luna');
     expect(text).toContain('Milo');
     expect(text).toContain('Warten auf die anderen');
@@ -5256,7 +5256,10 @@ describe('SessionPresentComponent', () => {
     const teamNames = [
       ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-name'),
     ].map((el) => (el.textContent ?? '').trim());
-    expect(teamNames).toEqual(['Rot', 'Blau']);
+    expect(teamNames).toEqual([
+      'Arbeitsgruppe Digitale Bildung Nord',
+      'Arbeitsgruppe Digitale Bildung Süd',
+    ]);
     const teamCounts = [
       ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-count'),
     ].map((el) => (el.textContent ?? '').trim());
@@ -5287,10 +5290,25 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*auto;[\s\S]*?align-items:\s*start;[\s\S]*?justify-items:\s*start;/,
     );
     expect(styles).toMatch(
+      /\.session-present__lobby-teams-grid \{[\s\S]*?--present-lobby-team-min-width:\s*18rem;[\s\S]*?grid-template-columns:\s*repeat\(\s*auto-fit,\s*minmax\(min\(100%,\s*var\(--present-lobby-team-min-width\)\),\s*1fr\)\s*\);/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-name \{[\s\S]*?overflow-wrap:\s*anywhere;[\s\S]*?white-space:\s*normal;/,
+    );
+    expect(styles).toMatch(
       /\.session-present__lobby-team-members li \{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;/,
     );
     expect(styles).not.toMatch(
       /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual[\s\S]*?li \{[\s\S]*?width:\s*auto;[\s\S]*?container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual[\s\S]*?:is\(\.session-present__lobby-nick-icon,\s*\.session-present__lobby-nick-mat-icon\) \{[\s\S]*?font-size:\s*clamp\(1\.75rem,\s*min\(8vw,\s*12vh\),\s*4\.5rem\);/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
@@ -5323,7 +5341,7 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-audience--kindergarten\s+:is\(\.session-present__lobby-team,\s*\.session-present__lobby-person-col\)\s+\.session-present__lobby-nick-icon \{\s*font-size:\s*min\(92cqh,\s*92cqw\)/,
+      /\.session-present__lobby-audience--kindergarten\s+:is\(\.session-present__lobby-team,\s*\.session-present__lobby-person-col\)\s+:is\(\.session-present__lobby-nick-icon,\s*\.session-present__lobby-nick-mat-icon\) \{[\s\S]*?font-size:\s*clamp\(1\.75rem,\s*min\(72cqh,\s*72cqw\),\s*4\.5rem\)/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-person-col \{[\s\S]*?border:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?container-type:\s*size;/,
