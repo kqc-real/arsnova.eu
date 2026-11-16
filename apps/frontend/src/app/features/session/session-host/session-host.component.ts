@@ -2667,7 +2667,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'BEST':
         return $localize`:@@sessionQa.sortHintBest:Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.`;
+        return $localize`:@@sessionQa.sortHintControversial:Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.`;
       case 'TIME':
         return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       default:

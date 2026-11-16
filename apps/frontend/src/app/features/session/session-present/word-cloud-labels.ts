@@ -4,9 +4,9 @@ import type { WordCloudWeightMetric } from '@arsnova/shared-types';
 export function qaWordCloudReadingHint(metric: WordCloudWeightMetric): string {
   switch (metric) {
     case 'BEST':
-      return $localize`:@@sessionQa.wordCloudHintBest:Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht. Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.`;
+      return $localize`:@@sessionQa.wordCloudHintBest:Bei gleicher Stimmenzahl zählt ein höherer Dafür-Anteil tendenziell stärker. Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.`;
     case 'CONTROVERSIAL':
-      return $localize`:@@sessionQa.wordCloudHintControversial:Begriffe aus Fragen mit ähnlich vielen Dafür- und Dagegen-Stimmen erhalten mehr Gewicht. Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.`;
+      return $localize`:@@sessionQa.wordCloudHintControversial:Bei gleicher Stimmenzahl zählt eine ausgewogenere Verteilung tendenziell stärker. Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.`;
     case 'TIME':
       return $localize`:@@sessionQa.wordCloudHintTime:Je mehr freigegebene Fragen einen Begriff enthalten, desto größer erscheint er. Pro Frage zählt er einmal.`;
     default:

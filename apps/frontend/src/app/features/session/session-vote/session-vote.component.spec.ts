@@ -9101,6 +9101,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ).toContain('Geteilte Stimmen');
 
     expect(polarCard?.textContent).not.toContain('71 %');
+    expect(component.qaSortHint()).toContain('Bei gleicher Stimmenzahl');
     expect(polarCard?.querySelector('.session-qa-card__vote-stat--up')?.textContent).toContain('5');
     expect(polarCard?.querySelector('.session-qa-card__vote-stat--down')?.textContent).toContain(
       '5',

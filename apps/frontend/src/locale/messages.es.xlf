@@ -23662,16 +23662,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht. Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>Los términos de las preguntas con una alta proporción de votos a favor tienen más peso. A igual proporción, pesan más las preguntas con más votos emitidos.</target>
+        <source>Bei gleicher Stimmenzahl zählt ein höherer Dafür-Anteil tendenziell stärker. Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>Con el mismo número de votos, una mayor proporción de votos a favor suele dar más peso. A igual proporción, más votos pueden aumentar el peso. El redondeo y el límite máximo pueden hacer que varias preguntas tengan el mismo peso.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Begriffe aus Fragen mit ähnlich vielen Dafür- und Dagegen-Stimmen erhalten mehr Gewicht. Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>Los términos de las preguntas con un número similar de votos a favor y en contra tienen más peso. A igual reparto, pesan más las preguntas con más votos emitidos.</target>
+        <source>Bei gleicher Stimmenzahl zählt eine ausgewogenere Verteilung tendenziell stärker. Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>Con el mismo número de votos, un reparto más equilibrado suele dar más peso. A igual reparto, más votos pueden aumentar el peso. El redondeo y el límite máximo pueden hacer que varias preguntas tengan el mismo peso.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
@@ -23722,8 +23722,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.</source>
-        <target>La clasificación se basa en los votos emitidos. Cuanto más equilibrados estén los votos a favor y en contra, mayor será el valor. A igual reparto, más votos dan más peso al resultado. Las preguntas fijadas aparecen primero.</target>
+        <source>Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.</source>
+        <target>Con el mismo número de votos, un reparto más equilibrado entre votos a favor y en contra da una puntuación más alta. Cuando el reparto es el mismo y hay votos en ambos sentidos, la puntuación aumenta con el número de votos. Las preguntas fijadas aparecen primero.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2464</context>

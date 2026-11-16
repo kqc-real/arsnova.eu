@@ -66,18 +66,22 @@ describe('QaSortHelpDialogComponent', () => {
   });
 
   it.each([
-    ['de', 'Geteilte Stimmen', 'mindestens 6 Stimmen', '0,83'],
-    ['en', 'Split votes', 'at least 6 votes', '0.83'],
-    ['fr', 'Votes partagés', 'au moins 6 votes', '0,83'],
-    ['es', 'Votos divididos', 'al menos 6 votos', '0,83'],
-    ['it', 'Voti divisi', 'almeno 6 voti', '0,83'],
+    ['de', 'Geteilte Stimmen', 'mindestens 6 Stimmen', '0,83', 'Bei gleicher Stimmenzahl'],
+    ['en', 'Split votes', 'at least 6 votes', '0.83', 'With the same number of votes'],
+    ['fr', 'Votes partagés', 'au moins 6 votes', '0,83', 'À nombre de votes égal'],
+    ['es', 'Votos divididos', 'al menos 6 votos', '0,83', 'Con el mismo número de votos'],
+    ['it', 'Voti divisi', 'almeno 6 voti', '0,83', 'A parità di numero di voti'],
   ] as const)(
     'renders the fixed damping and minimum vote count in %s',
-    async (locale, title, minimum, exampleScore) => {
+    async (locale, title, minimum, exampleScore, equalTotal) => {
       const { el } = await create('CONTROVERSIAL', locale);
       expect(el.querySelector('.dialog-title-header__heading')?.textContent?.trim()).toBe(title);
       const body = el.querySelector('.qa-sort-help-dialog__body')!;
       expect(body.textContent).toContain(minimum);
+      const intro = body.querySelector('p')?.textContent;
+      expect(intro).toContain(equalTotal);
+      expect(intro).toMatch(/2:2.*0[,.]50/);
+      expect(intro).toMatch(/60:30.*0[,.]64|0[,.]64.*60:30/);
       const source = body.querySelector('a');
       expect(source?.getAttribute('href')).toBe(
         'https://github.com/reddit-archive/reddit/blob/master/r2/r2/lib/db/_sorts.pyx',

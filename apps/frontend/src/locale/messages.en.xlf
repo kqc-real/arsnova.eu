@@ -23715,16 +23715,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht. Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>Terms from questions with a high share of votes in favor get more weight. When the share is the same, questions with more votes carry more weight.</target>
+        <source>Bei gleicher Stimmenzahl zählt ein höherer Dafür-Anteil tendenziell stärker. Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>With the same number of votes, a higher share in favor tends to carry more weight. With the same share, more votes can increase the weight. Rounding and the upper limit can give questions the same weight.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Begriffe aus Fragen mit ähnlich vielen Dafür- und Dagegen-Stimmen erhalten mehr Gewicht. Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>Terms from questions where the votes for and against are close carry more weight. For the same split, questions with more votes carry more weight.</target>
+        <source>Bei gleicher Stimmenzahl zählt eine ausgewogenere Verteilung tendenziell stärker. Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>With the same number of votes, a more even split tends to carry more weight. With the same split, more votes can increase the weight. Rounding and the upper limit can give questions the same weight.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
@@ -23775,8 +23775,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.</source>
-        <target>The ranking is based on the votes cast. A more even split between votes for and against gives a higher score. With the same split, more votes carry more weight. Pinned questions appear first.</target>
+        <source>Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.</source>
+        <target>With the same number of votes, a more even split between votes for and against gives a higher score. If both sides receive votes and the split stays the same, the score rises with the number of votes. Pinned questions appear first.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2464</context>

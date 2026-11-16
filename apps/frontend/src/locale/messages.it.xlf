@@ -23662,16 +23662,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht. Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>I termini delle domande con un’alta quota di voti favorevoli hanno più peso. A parità di quota, pesano di più le domande con più voti espressi.</target>
+        <source>Bei gleicher Stimmenzahl zählt ein höherer Dafür-Anteil tendenziell stärker. Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>A parità di numero di voti, una quota più alta di voti favorevoli tende a dare più peso. A parità di quota, un numero maggiore di voti può aumentare il peso. L’arrotondamento e il limite massimo possono dare lo stesso peso a più domande.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Begriffe aus Fragen mit ähnlich vielen Dafür- und Dagegen-Stimmen erhalten mehr Gewicht. Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>I termini delle domande con un numero simile di voti favorevoli e contrari hanno più peso. A parità di distribuzione, pesano di più le domande con più voti espressi.</target>
+        <source>Bei gleicher Stimmenzahl zählt eine ausgewogenere Verteilung tendenziell stärker. Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>A parità di numero di voti, una distribuzione più equilibrata tende a dare più peso. A parità di distribuzione, un numero maggiore di voti può aumentare il peso. L’arrotondamento e il limite massimo possono dare lo stesso peso a più domande.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
@@ -23722,8 +23722,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.</source>
-        <target>L’ordinamento si basa sui voti espressi. Più i voti favorevoli e contrari sono equilibrati, più alto è il punteggio. A parità di distribuzione, più voti danno più peso al risultato. Le domande in evidenza compaiono per prime.</target>
+        <source>Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.</source>
+        <target>A parità di numero di voti, una distribuzione più equilibrata tra favorevoli e contrari dà un punteggio più alto. Quando la proporzione tra i due tipi di voto resta la stessa, il punteggio aumenta con il numero di voti. Le domande in evidenza compaiono per prime.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2464</context>

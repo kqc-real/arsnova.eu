@@ -23662,16 +23662,16 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht. Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>Les termes des questions ayant une forte proportion de votes pour ont plus de poids. À proportion égale, les questions qui ont reçu plus de votes pèsent davantage.</target>
+        <source>Bei gleicher Stimmenzahl zählt ein höherer Dafür-Anteil tendenziell stärker. Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>À nombre de votes égal, une part plus élevée de votes favorables tend à peser davantage. À part égale, un plus grand nombre de votes peut augmenter le poids. L’arrondi et le plafond peuvent donner le même poids à plusieurs questions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Begriffe aus Fragen mit ähnlich vielen Dafür- und Dagegen-Stimmen erhalten mehr Gewicht. Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.</source>
-        <target>Les termes des questions où les votes pour et contre s’équilibrent ont plus de poids. À répartition égale, les questions qui ont reçu plus de votes pèsent davantage.</target>
+        <source>Bei gleicher Stimmenzahl zählt eine ausgewogenere Verteilung tendenziell stärker. Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
+        <target>À nombre de votes égal, une répartition plus équilibrée tend à peser davantage. À répartition égale, un plus grand nombre de votes peut augmenter le poids. L’arrondi et le plafond peuvent donner le même poids à plusieurs questions.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
@@ -23722,8 +23722,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Für die Sortierung zählen die abgegebenen Stimmen. Je gleichmäßiger Dafür und Dagegen verteilt sind, desto höher der Wert. Bei gleicher Verteilung zählen mehr Stimmen stärker. Hervorgehobene Fragen stehen zuerst.</source>
-        <target>Le classement repose sur les votes exprimés. Plus les votes pour et contre sont équilibrés, plus le score est élevé. À répartition égale, un plus grand nombre de votes donne plus de poids au résultat. Les questions mises en avant apparaissent en premier.</target>
+        <source>Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.</source>
+        <target>À nombre de votes égal, une répartition plus équilibrée entre les votes pour et contre donne un score plus élevé. Si les deux côtés ont reçu des votes, le score augmente avec leur nombre à répartition égale. Les questions mises en avant apparaissent en premier.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2464</context>

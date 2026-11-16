@@ -53,7 +53,7 @@ $$
 S = \frac{2 \cdot \min(U, D)}{U + D + 4}
 $$
 
-\(U\) steht für die Dafür-Stimmen und \(D\) für die Dagegen-Stimmen dieser Frage. Der Zuschlag 4 verhindert eine Division durch null. Der Score steigt bei gleichem Stimmenverhältnis mit der Zahl der abgegebenen Stimmen. Ohne Stimmen oder bei einer einseitigen Verteilung ist der Score 0.
+\(U\) steht für die Dafür-Stimmen und \(D\) für die Dagegen-Stimmen dieser Frage. Der Zuschlag 4 verhindert eine Division durch null. Bei gleicher Stimmenzahl erhöht eine ausgewogenere Verteilung den Sortierwert. Wenn beide Seiten Stimmen erhalten, steigt der Wert bei gleichem Stimmenverhältnis mit der Zahl der abgegebenen Stimmen. Ohne Stimmen oder bei einer einseitigen Verteilung ist der Sortierwert 0.
 
 ## Sortierung (Tie-Breaker)
 
@@ -104,6 +104,8 @@ Bei `Klare Zustimmung` zeigen Host-, Teilnehmenden- und Bühnenansicht den beoba
 Der aktive Modus bleibt während einer Session stabil, bis ein autorisierter Host ihn bewusst ändert.
 
 Die Host-Q&A-Wortwolke nutzt denselben Modus: `Stimmensaldo` gewichtet nach dem Saldo aus Stimmen dafür und dagegen, `Klare Zustimmung` nach Wilson-Score und `Geteilte Stimmen` nach `controversyScore`. `Vorkommen in Fragen` zählt, in wie vielen sichtbaren Fragen ein Wort steht, jede Frage einmal; die Fragenliste bleibt nach Eingangszeit sortiert. Die Visualisierung bekommt bereits gewichtete Terme und analysiert keine Rohtexte selbst. In der maximierten Vollansicht sitzt die Sortierauswahl oberhalb der Wolke, damit der Kontext beim Wechsel sichtbar bleibt; ein Freeze-Schalter haelt die aktuell dargestellte Wolke fuer die Auditoriumssituation fest.
+
+Bei »Klare Zustimmung« und »Geteilte Stimmen« wird das Wortwolkengewicht aus dem Sortierwert berechnet, gerundet und auf 28 begrenzt. Beispielsweise ergeben 20:20 und 30:30 die Sortierwerte 0,909 und 0,938. Beide erhalten das Wortwolkengewicht 28.
 
 ## Akzeptanzkriterien
 
@@ -214,7 +216,7 @@ Wenn \(U = 0\) oder \(D = 0\), setzt der historische Reddit-Code den Wert auf 0.
 
 ### Warum arsnova.eu die Stimmenzahl dämpft
 
-Der Zuschlag 4 dämpft den Wert bei wenigen Stimmen. Bei größeren Stimmenzahlen nähert sich der Wert der Ausgeglichenheit der abgegebenen Stimmen an. Das Beispiel im Hilfedialog zeigt die Auswirkung auf die Reihenfolge. arsnova.eu sortiert 4:4 (0,667) vor 60:30 (0,638). Die historische Reddit-Formel gewichtet die höhere Stimmenzahl stärker und sortiert 60:30 (9,49) vor 4:4 (8,00).
+Der Zuschlag 4 dämpft den Wert bei wenigen Stimmen. Bei größeren Stimmenzahlen nähert sich der Wert der Ausgeglichenheit der abgegebenen Stimmen an. arsnova.eu sortiert 2:2 (0,500) hinter 60:30 (0,638) und 4:4 (0,667) vor 60:30. Die historische Reddit-Formel gewichtet die höhere Stimmenzahl stärker und sortiert 60:30 (9,49) vor 4:4 (8,00).
 
 ### Klare Zustimmung und das Wilson-Intervall
 

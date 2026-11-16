@@ -4530,9 +4530,9 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Stichprobengröße');
     expect(text).toContain('Inhaltlich ähnliche Fragen sind zu Themen zusammengefasst.');
     expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
-      'Bei gleichem Dafür-Anteil zählen Fragen mit mehr abgegebenen Stimmen stärker.',
+      'Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen.',
     );
-    expect(text).toContain('Begriffe aus Fragen mit hohem Dafür-Anteil erhalten mehr Gewicht.');
+    expect(text).toContain('Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.');
     expect(text).not.toContain('ohne Wort-Glättung');
 
     fixture.componentInstance.qaWordCloudProjection.update((projection) =>
@@ -4677,10 +4677,15 @@ describe('SessionPresentComponent', () => {
       ...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill--context'),
     ].map((el) => (el.textContent ?? '').trim());
     expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
-      'Bei gleicher Verteilung zählen Fragen mit mehr abgegebenen Stimmen stärker.',
+      'Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen.',
+    );
+    expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
+      'Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.',
     );
     expect(pills).toEqual([]);
-    expect(fixture.nativeElement.textContent).toContain('Dafür- und Dagegen-Stimmen');
+    expect(fixture.nativeElement.textContent).toContain(
+      'eine ausgewogenere Verteilung tendenziell stärker',
+    );
     fixture.destroy();
   });
 

@@ -264,7 +264,7 @@ In caso di parità vengono confrontati, nell’ordine, il numero di voti favorev
     de: {
       title: 'Geteilte Stimmen',
       markdown: `
-Die Sortierung beruht auf den abgegebenen Stimmen. Je gleichmäßiger sie sich auf Dafür und Dagegen verteilen, desto höher ist der Sortierwert. Bei gleich stark geteilten Stimmen steigt der Wert mit der Stimmenzahl.
+Die Sortierung beruht auf den abgegebenen Stimmen. Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Deshalb liegt 2:2 mit 0,50 unter 60:30 mit rund 0,64.
 
 #### Formel
 
@@ -296,7 +296,7 @@ Die Frage mit 10 zu 10 Stimmen erhält die Kennzeichnung »Geteilte Stimmen«. D
     en: {
       title: 'Split votes',
       markdown: `
-The ranking is based on the votes cast. The more evenly they split for and against, the higher the ranking score. With equally split votes, the score rises as more votes are cast.
+The ranking is based on the votes cast. With the same number of votes, a more even split between votes for and against gives a higher score. If both sides receive votes and the split stays the same, the score rises with the number of votes. That is why 2:2 scores 0.50, below 60:30 at about 0.64.
 
 #### Formula
 
@@ -328,7 +328,7 @@ The 10–10 question is marked “Split votes”. The 2–2 question is just as 
     fr: {
       title: 'Votes partagés',
       markdown: `
-Le classement repose sur les votes exprimés. Plus les votes pour et contre sont équilibrés, plus le score de classement est élevé. À répartition égale des votes partagés, le score augmente avec le nombre de votes.
+Le classement repose sur les votes exprimés. À nombre de votes égal, une répartition plus équilibrée entre les votes pour et contre donne un score plus élevé. Si les deux côtés ont reçu des votes, le score augmente avec leur nombre à répartition égale. Ainsi, 2:2 donne un score de 0,50, contre environ 0,64 pour 60:30.
 
 #### Formule
 
@@ -360,7 +360,7 @@ La question qui a reçu 10 votes pour et 10 contre porte la mention « Votes p
     es: {
       title: 'Votos divididos',
       markdown: `
-La clasificación se basa en los votos emitidos. Cuanto más equilibrados estén los votos a favor y en contra, mayor será el valor de ordenación. Cuando los votos están igual de divididos, el valor aumenta con el número de votos.
+La clasificación se basa en los votos emitidos. Con el mismo número de votos, un reparto más equilibrado entre votos a favor y en contra da una puntuación más alta. Cuando el reparto es el mismo y hay votos en ambos sentidos, la puntuación aumenta con el número de votos. Por eso, 2:2 obtiene 0,50 y queda por debajo de 60:30, con aproximadamente 0,64.
 
 #### Fórmula
 
@@ -392,7 +392,7 @@ La pregunta con 10 votos a favor y 10 en contra recibe la etiqueta «Votos divid
     it: {
       title: 'Voti divisi',
       markdown: `
-L’ordinamento si basa sui voti espressi. Più i voti favorevoli e contrari sono equilibrati, più alto è il punteggio di ordinamento. A parità di distribuzione dei voti divisi, il punteggio cresce con il numero dei voti.
+L’ordinamento si basa sui voti espressi. A parità di numero di voti, una distribuzione più equilibrata tra favorevoli e contrari dà un punteggio più alto. Se ci sono voti da entrambe le parti, a parità di proporzione il punteggio aumenta con il numero di voti. Per questo 2:2 ottiene 0,50, meno di 60:30, che ottiene circa 0,64.
 
 #### Formula
 

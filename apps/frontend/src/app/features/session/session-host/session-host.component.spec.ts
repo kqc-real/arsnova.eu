@@ -10561,7 +10561,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     };
     expect(data.title()).toBe('Q&A-Wortwolke');
     expect(data.tooltipMetricLabel()).toBe('Klare Zustimmung');
-    expect(data.weightingHint()).toContain('hohem Dafür-Anteil');
+    expect(data.weightingHint()).toContain('ein höherer Dafür-Anteil tendenziell stärker');
     expect(data.terms()).toBeNull();
     await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
       timeout: 5000,
@@ -13441,6 +13441,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(27);
+    expect(component.qaSortHint()).toContain('Bei gleicher Stimmenzahl');
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(text).toContain('Geteilte Stimmen');
@@ -13632,7 +13633,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(data.sortMode()).toBe('CONTROVERSIAL');
       expect(data.title()).toBe('Q&A-Wortwolke');
       expect(data.tooltipMetricLabel()).toBe('Geteilte Stimmen');
-      expect(data.weightingHint()).toContain('Dafür- und Dagegen-Stimmen');
+      expect(data.weightingHint()).toContain('eine ausgewogenere Verteilung tendenziell stärker');
       expect(data.presenterViewActionLabel()).toBe('Präsentationsansicht öffnen');
     } finally {
       if (previousDescriptor) {
