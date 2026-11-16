@@ -7826,8 +7826,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Blitzlicht-Einstellungen</source>
-        <target>Ajustes del sondeo rápido</target>
+        <source>Blitzlicht-Formate</source>
+        <target>Formatos de sondeo rápido</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -17694,7 +17694,7 @@
       <trans-unit id="hostPairing.remoteAction" datatype="html">
         <source>Smartphone als Fernbedienung</source>
         <target>Usar el móvil como mando a distancia</target>
-      </trans-unit>
+        </trans-unit>
       <trans-unit id="presentationStart.cancel" datatype="html">
         <source> Abbrechen</source>
         <target>Cancelar</target>

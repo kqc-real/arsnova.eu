@@ -7827,8 +7827,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Blitzlicht-Einstellungen</source>
-        <target>Pulse Check settings</target>
+        <source>Blitzlicht-Formate</source>
+        <target>Pulse Check formats</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -17745,7 +17745,7 @@
       <trans-unit id="hostPairing.remoteAction" datatype="html">
         <source>Smartphone als Fernbedienung</source>
         <target>Use phone as remote</target>
-      </trans-unit>
+        </trans-unit>
       <trans-unit id="presentationStart.cancel" datatype="html">
         <source> Abbrechen</source>
         <target>Cancel</target>

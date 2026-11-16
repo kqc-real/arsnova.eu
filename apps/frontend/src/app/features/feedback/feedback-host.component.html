@@ -395,6 +395,38 @@
         </section>
       }
 
+      @if (embeddedInSession()) {
+        <section class="feedback-host__round-settings">
+          <button
+            #roundSettingsTrigger
+            mat-stroked-button
+            type="button"
+            class="feedback-host__round-settings-trigger"
+            data-testid="feedback-round-settings-trigger"
+            id="feedback-round-settings-trigger"
+            aria-controls="feedback-round-settings"
+            [attr.aria-expanded]="roundSettingsOpen()"
+            (click)="toggleRoundSettings()"
+          >
+            <mat-icon aria-hidden="true">{{
+              roundSettingsOpen() ? 'expand_less' : 'expand_more'
+            }}</mat-icon>
+            <span i18n="@@feedbackHost.roundSettings">Blitzlicht-Formate</span>
+          </button>
+          <div
+            #roundSettingsContent
+            id="feedback-round-settings"
+            data-testid="feedback-round-settings"
+            class="feedback-host__round-settings-content"
+            role="region"
+            aria-labelledby="feedback-round-settings-trigger"
+            [hidden]="!roundSettingsOpen()"
+          >
+            <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
+          </div>
+        </section>
+      }
+
       <section class="feedback-host__results">
         <div class="feedback-host__title-row">
           @if (!embeddedInSession()) {
@@ -891,35 +923,6 @@
           <ng-container *ngTemplateOutlet="feedbackResetAction" />
           <ng-content select="[feedbackRoundControl]" />
         </div>
-        <section class="feedback-host__round-settings">
-          <button
-            #roundSettingsTrigger
-            mat-button
-            type="button"
-            class="feedback-host__round-settings-trigger"
-            data-testid="feedback-round-settings-trigger"
-            id="feedback-round-settings-trigger"
-            aria-controls="feedback-round-settings"
-            [attr.aria-expanded]="roundSettingsOpen()"
-            (click)="toggleRoundSettings()"
-          >
-            <mat-icon aria-hidden="true">{{
-              roundSettingsOpen() ? 'expand_less' : 'expand_more'
-            }}</mat-icon>
-            <span i18n="@@feedbackHost.roundSettings">Blitzlicht-Einstellungen</span>
-          </button>
-          <div
-            #roundSettingsContent
-            id="feedback-round-settings"
-            data-testid="feedback-round-settings"
-            class="feedback-host__round-settings-content"
-            role="region"
-            aria-labelledby="feedback-round-settings-trigger"
-            [hidden]="!roundSettingsOpen()"
-          >
-            <ng-container *ngTemplateOutlet="feedbackHostJoinActions" />
-          </div>
-        </section>
       }
     </div>
     @if (showStandaloneBottomActionBar()) {

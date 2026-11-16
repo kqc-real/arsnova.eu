@@ -182,7 +182,7 @@ describe('FeedbackHostComponent', () => {
     const primary = fixture.nativeElement.querySelector(
       '.feedback-host__round-primary',
     ) as HTMLElement;
-    expect(trigger.textContent).toContain('Blitzlicht-Einstellungen');
+    expect(trigger.textContent).toContain('Blitzlicht-Formate');
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(settings.hidden).toBe(true);
     expect(settings.querySelector('[data-testid="feedback-compare-round"]')).toBeNull();
@@ -192,9 +192,9 @@ describe('FeedbackHostComponent', () => {
     expect(primary.querySelector('[data-testid="feedback-reset-round"]')).not.toBeNull();
     expect(settings.querySelector('[data-testid="feedback-live-results"]')).not.toBeNull();
     expect(
-      fixture.nativeElement
-        .querySelector('.feedback-host__results')
-        .compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING,
+      settings.compareDocumentPosition(
+        fixture.nativeElement.querySelector('.feedback-host__results'),
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     trigger.click();
     fixture.detectChanges();
@@ -1156,7 +1156,7 @@ describe('FeedbackHostComponent', () => {
     expect(primary.textContent).toContain('Details');
     expect(primary.textContent).toContain('Tendenz');
     expect(
-      primary.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING,
+      settings.compareDocumentPosition(primary) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     fixture.destroy();
   });
