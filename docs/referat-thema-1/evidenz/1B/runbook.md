@@ -220,3 +220,73 @@ pwsh -NoProfile -Command "Invoke-Pester -Path docs/referat-thema-1/evidenz/1B -O
 ```
 
 Die Pester-Tests brauchen Pester 5 (`Install-Module Pester -MinimumVersion 5`) und laufen auch unter Linux mit `pwsh`. `qualitaetstor.test.mjs` lädt das Qualitätstor der App über `tsx` aus `node_modules`; vorher einmal `npm ci` im Clone.
+
+## 10. S1-Same-Host-Vergleich (Schritt 4)
+
+_Ergänzt 2026-11-16:_ Neue Laborfunktion, lokal getestet, noch kein VM-Nachweis.
+Design und Ressourcenabweichungen im [S1-Nachtrag](../../1B-3u4-Planung.md#nachtrag-2026-11-16-s1-vorbereitung-für-schritt-4).
+Nur nach gesonderter Freigabe für jeden Lauf und die enthaltenen Neustarts.
+
+Aus WSL ausschließlich `labor-wsl.sh s1`. Erforderlich: `-LabAuftrag label`
+oder `summary`, `-LabN 1` bis `3`, Tag `s1-…` bzw. `dev-s1-…`, expliziter
+`-LabTimeoutMs` und `-LabLive`. Keine Kombination mit `-LabRuntimeAus` oder
+`-LabStoerung`. Entwicklungsprobe mit `--arbeitsstand`; gewertete Reihen erst
+nach regulärem Commit und erfolgreicher Probe.
+
+Ablauf: Repo synchronisieren, private Konfiguration über SSH übertragen,
+Image-IDs der bestehenden App-/DB-/Redis-/Worker-/Encoder-Container übernehmen
+und prüfen. Temporärer Compose-App-Stack auf llm-host, eigenes Projekt
+`arsnova-1b-s1`, eigene Volumes. Original-App auf app-host unverändert.
+Runtime bleibt die bestehende, mit frischem Start vor der Messung. HTTP zur
+privaten Adresse derselben VM, keine externe Portfreigabe. App-Ports nur Loopback.
+Keine Hyper-V-Änderung, kein `up`/`destroy` und kein neuer Modell-Download.
+
+Vorprüfung: Ziel `192.168.150.20`, acht vCPU, mindestens 9 GiB sichtbarer
+RAM und mindestens 4 GiB verfügbare RAM-/Plattenreserve. Vorhandene Container
+mit den App-Namen oder offenes Störungs-/S1-Lease führen zum Abbruch.
+Keine fremden Container übernehmen. Die eigene Bridge `br-1b-s1` nutzt
+`172.31.150.0/24`; vorhandene überlappende Docker-Netze werden abgelehnt.
+Die bestehende ufw erlaubt nur die ursprüngliche App-VM. S1 ergänzt daher
+vorübergehend diese eng begrenzte, separat freizugebende Regel:
+
+```bash
+sudo ufw insert 1 allow in on br-1b-s1 proto tcp from 172.31.150.0/24 to 192.168.150.20 port 8080 comment arsnova-1b-s1
+```
+
+Kernel-Regel vor der Messung prüfen, anschließend authentifizierte Slot-Abfrage
+aus dem tatsächlichen App-Container. Ohne beides kein Messstart. Journal
+unter `~/labor-1b/s1-journal.jsonl`, Kopie im Laufverzeichnis. Rücknahme:
+
+```bash
+sudo ufw --force delete allow in on br-1b-s1 proto tcp from 172.31.150.0/24 to 192.168.150.20 port 8080 comment arsnova-1b-s1
+```
+
+Keine Änderung der externen Schnittstelle oder der bisherigen App-VM-Regel.
+Derselbe private Postgres-Passwortbezug
+ist Voraussetzung für die Wiederverwendung eigener S1-Volumes.
+
+Jeder Auftrag nutzt das bestehende Live-/CPU-/RSS-Messfenster. Das S1-JSON
+hat absichtlich `topology=same-host-http` und ein eigenes Manifest mit
+`placement`, Quell-/Ziel-Image-IDs, Settings, Versionen, Modellhash sowie
+App-/Runtime-Neustart-/OOM-Beobachtung vor und nach der Messung. Treiber und
+Collector laufen auf llm-host. Nicht in das Zwei-Host-Manifest umetikettieren.
+Für einen beschreibenden Vergleich `evaluateLiveComparison` aus
+`experiment.mjs` auf `referenz.experiment.live` und `s1.treiber.live` anwenden;
+zusätzlich sämtliche Manifestabweichungen ausweisen. Der strikte
+`compareExperiments` wird nicht gelockert. Keine kapazitätsgleiche
+Kausalbehauptung aus 8 vCPU/10 GiB gegenüber 2+8 vCPU/4+10 GiB.
+
+Rücknahme: nur eigener Compose-Stack ohne `-v`, eigene ufw-Regel zurücknehmen, temporäre env-Datei löschen,
+Runtime frisch starten und prüfen, ursprünglichen App-Host prüfen. Erst danach
+Ergebnis exportieren. Fehlgeschlagene Rücknahme lässt `~/labor-1b/s1-lease`
+auf llm-host stehen und blockiert weitere Läufe. Bei Prozessabbruch/
+Verbindungsverlust den Zustand prüfen; Rücknahme erst separat freigeben:
+
+```bash
+bash docs/referat-thema-1/evidenz/1B/labor-wsl.sh vm llm 'cd arsnova.eu && bash docs/referat-thema-1/evidenz/1B/s1-host.sh undo'
+bash docs/referat-thema-1/evidenz/1B/labor-wsl.sh pruefen
+```
+
+Keine pauschale Löschung fremder Container/Volumes oder eines fremden Lease.
+PCAPs oder private env-Dateien werden für S1 nicht ins Repo übernommen;
+der Bericht enthält nur erlaubte Metadaten und synthetische Messwerte.

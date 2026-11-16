@@ -119,3 +119,24 @@ Niklas führt diese Schritte als Erster auf echter Hardware aus. Jede Abweichung
 
 - Absolute Zeiten sind zwischen Rechnern **nicht vergleichbar**; verglichen werden Verhältnisse und die Zerlegung innerhalb eines Rechners.
 - Kein CPU-Pinning (Abschnitt 9): schwächere Isolation als unter Linux; im Protokoll ausweisen.
+
+## S1-Ergänzung 2026-11-16
+
+`labor-wsl.sh s1` bzw. `labor.ps1 -Mode s1` bereitet auf der vorhandenen
+Inferenz-VM einen temporären App-Stack für den Same-Host-Laborvergleich vor.
+Kein Hyper-V-Resize. Pflichtparameter und Rücknahme im
+[Runbook Abschnitt 10](../runbook.md#10-s1-same-host-vergleich-schritt-4).
+Jeder Lauf einschließlich der temporären ufw-Freigabe auf der S1-Bridge benötigt eine eigene Freigabe; zuerst ein Entwicklungsauftrag,
+noch kein VM-Nachweis dieser Funktion. Dauer der ersten Probe einschließlich
+Image-Transfer und Live-Fenster voraussichtlich etwa 10–15 Minuten.
+
+```bash
+bash docs/referat-thema-1/evidenz/1B/labor-wsl.sh s1 \
+  -LabN 1 -LabTag dev-s1-label -LabAuftrag label \
+  -LabTimeoutMs 300000 -LabLive --arbeitsstand
+```
+
+Dieser Befehl ist eine Entwicklung, keine gewertete Messung. Die normalen
+App- und Runtime-Images werden per unveränderlicher Image-ID geprüft,
+private Konfiguration bleibt in den VMs. S1-Ressourcen sind nicht identisch
+zur Summe der beiden bisherigen VMs; diese Grenze gehört in die Bewertung.

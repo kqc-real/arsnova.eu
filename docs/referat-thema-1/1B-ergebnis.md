@@ -293,6 +293,12 @@ vorhanden; auch hier besteht der Normalvergleich die Latenzschwelle nicht.
 Der [Label-Vergleich](evidenz/1B/2026-11-16-lauf-f1-label.md#normalreihe-gegenüber-eigener-b0f1-referenz)
 enthält die getrennte Auswertung. Der ältere Summary-Befund bleibt erhalten.
 
+_Ergänzt 2026-11-16:_ S1 für Schritt 4 ist [lokal vorbereitet](evidenz/1B/runbook.md#10-s1-same-host-vergleich-schritt-4):
+temporärer eigener App-Stack auf llm-host, gleiche Images, dokumentierte
+Kapazitätsabweichung, begrenzte ufw-Bridge-Freigabe und automatische Rücknahme.
+Lokale Tests bestanden; VM-Probe und gewerteter S1-Vergleich noch offen.
+Keine S1-Messwerte oder Betriebsentscheidung aus der Implementierung ableiten.
+
 ### Betriebsaufwand
 
 Bewertung folgt nach den Störreihen. Noch keine abschließende Entscheidung
@@ -301,3 +307,9 @@ zum Verhältnis von Isolationsgewinn und Aufwand der zweiten Serverrolle.
 ## Gemeinsames Kurzfazit
 
 _Platzhalter, nach beiden Hälften gemeinsam._
+
+_Ergänzt 2026-11-16:_ Die [S1-Entwicklungsprobe Label](evidenz/1B/2026-11-16-lauf-dev-s1-label.md)
+bestätigt inzwischen den neuen VM-Pfad einschließlich Modellantwort,
+Messfenstern und Rücknahme beider Hostrollen. Sie ist ungewertet;
+gewertete S1-Reihen und Betriebsentscheidung stehen weiterhin aus.
+Vor diesen Reihen ist ein regulärer Commit der neuen S1-Werkzeuge nötig.

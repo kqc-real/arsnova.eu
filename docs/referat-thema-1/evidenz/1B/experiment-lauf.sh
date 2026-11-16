@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Bibliothek für lauf.sh; Import führt keine VM-Befehle aus.
 experiment_lease_pruefen() {
-  "${LLM[@]}" 'test ! -d ~/labor-1b/stoerung-lease' || {
-    echo 'Offenes Störungs-Lease oder SSH-Fehler: kein neuer Lauf. Rücknahme separat freigeben und prüfen.' >&2
+  "${LLM[@]}" 'test ! -d ~/labor-1b/stoerung-lease && test ! -d ~/labor-1b/s1-lease' || {
+    echo 'Offenes Störungs-/S1-Lease oder SSH-Fehler: kein neuer Lauf. Rücknahme separat freigeben und prüfen.' >&2
     return 1
   }
 }

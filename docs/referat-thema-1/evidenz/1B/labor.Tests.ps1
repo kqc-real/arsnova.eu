@@ -134,3 +134,27 @@ Describe 'Get-MessungZiel' {
     Get-MessungZiel -Ordner $d -Basis '2026-11-13-belege' -Endung '' | Should -Be (Join-Path $d '2026-11-13-belege-2')
   }
 }
+
+
+Describe 'S1 Parameter vor VM-Aktionen' {
+  It 'lehnt zu viele Auftraege vor dem Sync ab' {
+    Mock Invoke-VmScript { throw 'UNERWARTETE VM-AKTION' }
+    $LabN = 4; $LabAuftrag = 'label'; $LabTag = 'dev-s1-label'; $LabTimeoutMs = 300000
+    $LabLive = $true; $LabRuntimeAus = $false; $LabStoerung = 'normal'
+    { Invoke-ImAppHost 's1' } | Should -Throw '*S1:*'
+    Should -Invoke Invoke-VmScript -Times 0
+  }
+  It 'lehnt S1 mit Stoerung vor dem Sync ab' {
+    Mock Invoke-VmScript { throw 'UNERWARTETE VM-AKTION' }
+    $LabN = 1; $LabAuftrag = 'label'; $LabTag = 'dev-s1-label'; $LabTimeoutMs = 300000
+    $LabLive = $true; $LabRuntimeAus = $false; $LabStoerung = 'f1'
+    { Invoke-ImAppHost 's1' } | Should -Throw '*S1:*'
+    Should -Invoke Invoke-VmScript -Times 0
+  }
+  It 'nimmt gueltige S1-Parameter an und erreicht nur den gemockten Sync' {
+    Mock Invoke-VmScript { throw 'ERWARTETER GEMOCKTER SYNC' }
+    $LabN = 1; $LabAuftrag = 'label'; $LabTag = 'dev-s1-label'; $LabTimeoutMs = 300000
+    $LabLive = $true; $LabRuntimeAus = $false; $LabStoerung = 'normal'
+    { Invoke-ImAppHost 's1' } | Should -Throw '*ERWARTETER GEMOCKTER SYNC*'
+  }
+}

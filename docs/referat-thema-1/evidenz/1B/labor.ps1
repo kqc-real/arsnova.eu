@@ -39,7 +39,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '',
   Justification = 'Fehlalarm: die Skriptparameter werden in den Funktionen unten gelesen.')]
 param(
-  [ValidateSet('up', 'vorpruefung', 'umgebung', 'sync', 'groessen', 'pruefen', 'kalibrierung', 'lauf', 'kontrolle', 'belege', 'status', 'stop', 'start', 'destroy')]
+  [ValidateSet('up', 'vorpruefung', 'umgebung', 'sync', 'groessen', 'pruefen', 'kalibrierung', 'lauf', 's1', 'kontrolle', 'belege', 'status', 'stop', 'start', 'destroy')]
   [string]$Mode = 'groessen',
   [switch]$Ja,
   [ValidateRange(1, 10)][int]$LabN = 10,
@@ -464,7 +464,8 @@ function Get-MessungZiel {
 }
 
 function Invoke-ImAppHost([string]$LaufMode) {
-  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and $LaufMode -ne 'lauf') { throw 'Experimentparameter nur bei lauf verwenden.' }
+  if ($LaufMode -eq 's1' -and ($LabN -gt 3 -or $LabAuftrag -notin @('label', 'summary') -or $LabStoerung -ne 'normal' -or $LabRuntimeAus -or -not $LabLive -or $LabTimeoutMs -eq 0 -or $LabTag -notmatch '^(dev-)?s1-[a-z0-9-]+$')) { throw 'S1: 1-3 Auftraege, label/summary, eigener s1-Tag, expliziter Timeout und LabLive; keine Stoerung.' }
+  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and $LaufMode -notin @('lauf', 's1')) { throw 'Experimentparameter nur bei lauf verwenden.' }
   if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and -not $LabTag) { throw 'Experimente brauchen einen eigenen LabTag.' }
   if ($LabLive -and $LabAuftrag -eq 'breaker-summary') { throw 'Breaker-Folge separat ohne Live-Messfenster ausfuehren.' }
   if ($LabRuntimeAus -and $LabStoerung -notin @('normal', 'f1')) { throw 'LabRuntimeAus widerspricht der gewaehlten Stoerung.' }
@@ -490,7 +491,8 @@ function Invoke-ImAppHost([string]$LaufMode) {
     Write-Host "Timeout $timeout ms aus $($kal.Name)"
   }
   $envText = Get-LaufEnv -N $LabN -Tag $LabTag -TimeoutMs $timeout -Profil $profil -Rechner $rechner -RuntimeAus ($LaufMode -eq 'lauf' -and $LabRuntimeAus.IsPresent) -Variante $LabStoerung -Auftrag $LabAuftrag -Live $LabLive.IsPresent
-  $ausgabe = @(& ssh.exe @o "labor@$AppIp" "$envText bash arsnova.eu/$Ev/lauf.sh $LaufMode")
+  $remoteScript = if ($LaufMode -eq 's1') { "s1.sh" } else { "lauf.sh $LaufMode" }
+  $ausgabe = @(& ssh.exe @o "labor@$AppIp" "$envText bash arsnova.eu/$Ev/$remoteScript")
   $ausgabe | Out-Host
   if ($LASTEXITCODE -ne 0) { throw "lauf.sh $LaufMode fehlgeschlagen ($LASTEXITCODE)" }
   if ($LaufMode -eq 'kalibrierung') {
@@ -503,7 +505,7 @@ function Invoke-ImAppHost([string]$LaufMode) {
     Add-LaborUmgebung $lokal
     Write-Host "Kalibrierung: $lokal"
   }
-  if ($LaufMode -eq 'lauf') {
+  if ($LaufMode -in @('lauf', 's1')) {
     $dir = "$($ausgabe[-1])".Trim()
     New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
     Push-Location $OutDir
@@ -558,12 +560,12 @@ if ($MyInvocation.InvocationName -ne '.') {
   if ($mitLog) { Start-Transcript -Path $log | Out-Null }
   $code = 0
   try {
-  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and $Mode -ne 'lauf') { throw 'Experimentparameter nur bei lauf verwenden.' }
+  if (($LabLive -or $LabStoerung -ne 'normal' -or $LabAuftrag -ne 'summary') -and $Mode -notin @('lauf', 's1')) { throw 'Experimentparameter nur bei lauf verwenden.' }
   # Vor vorpruefung und up den Speicherort waehlen (Empfehlung: Laufwerk mit dem meisten Platz) und merken.
   Resolve-LaborVmDir ($Mode -in @('up', 'vorpruefung'))
   if ($Mode -eq 'vorpruefung') { Save-LaborVmDir }
   # Kein Ruhezustand, solange Aufbau oder Messung laeuft (endet mit diesem Fenster).
-  if ($Mode -in @('up', 'start', 'kalibrierung', 'lauf', 'kontrolle', 'belege')) { try { Set-WachHalten $true } catch { Write-Host "HINWEIS: Ruhezustand nicht gesperrt ($($_.Exception.Message))" } }
+  if ($Mode -in @('up', 'start', 'kalibrierung', 'lauf', 's1', 'kontrolle', 'belege')) { try { Set-WachHalten $true } catch { Write-Host "HINWEIS: Ruhezustand nicht gesperrt ($($_.Exception.Message))" } }
   switch ($Mode) {
     'vorpruefung' {
       Invoke-VmScript $null 'pruefen'
@@ -578,6 +580,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     'pruefen' { Invoke-Pruefen }
     'kalibrierung' { Invoke-ImAppHost 'kalibrierung' }
     'lauf' { Invoke-ImAppHost 'lauf' }
+    's1' { Invoke-ImAppHost 's1' }
     'kontrolle' { Invoke-ImAppHost 'kontrolle' }
     'belege' { Invoke-ImAppHost 'belege' }
     'status' { Invoke-VmScript $null 'status' }

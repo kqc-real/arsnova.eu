@@ -1075,3 +1075,83 @@ Keine weiteren optionalen Experimente. Autorenprüfung und formaler Abschluss
 offen. Nächste fachliche Arbeit wäre Schritt 4 mit S1 und Betriebsentscheidung;
 diese wird durch den jetzigen Auftrag, Schritt 3 abzuschließen und eine
 Commit-Message zu liefern, noch nicht als neuer Laborlauf freigegeben.
+
+## Nachtrag 2026-11-16: S1-Vorbereitung für Schritt 4
+
+Autorisiert ist die technische Vorbereitung, nicht ein VM-Umbau oder Lauf.
+Umsetzung im bestehenden Branch. Keine neuen VMs und kein Hyper-V-Resize:
+Die vorhandene llm-VM (8 vCPU/10 GiB) nimmt temporär einen eigenen Compose-
+App-Stack mit eigenen Volumes auf. Gegenalternative wäre die Vergrößerung der
+App-VM; das erfordert zusätzliche RAM-/VM-Eingriffe und wird nicht gewählt.
+Die App-VM und ihre Daten bleiben erhalten.
+
+S1 ist ein begrenzter Konsolidierungsvergleich, kein ressourcengleicher
+kausaler Topologievergleich: Zwei-Host bisher 2+8 vCPU/4+10 GiB; S1 beides
+in 8 vCPU/10 GiB. HTTP bleibt erhalten, Ziel 192.168.150.20 ist auf demselben
+Host; kein Unix-Socket-Vergleich. App-Dienste teilen sich virtuelle CPUs 0–1,
+Encoder erhält wie bisher zwei CPUs, Runtime acht. Treiber/Collector laufen
+mit dem App-Stack auf der llm-VM. Physisches CPU-Pinning weiterhin nicht gegeben.
+
+Vor jedem S1-Aufbau: Ziel-IP, VM-Ressourcen, RAM-/Plattenreserve, Lease und
+fremde Container prüfen. App-/DB-/Redis-/Worker-/Encoder-Images ausschließlich
+von den vorhandenen Containern übernehmen und per Image-ID verifizieren;
+kein neuer Build oder geändertes Modell. App-Secrets nur verschlüsselt über
+SSH in eine private temporäre env-Datei, nie in Logs/Repo. Eigenes Compose-
+Projekt und eigene synthetische Daten; vorhandene Runtime bleibt dieselbe.
+Ein Lease verhindert parallele Zwei-Host-Läufe. Rücknahme entfernt nur die
+eigenen S1-Container, behält deren Volumes, entfernt die temporäre env-Datei
+und startet/prueft die normale Runtime; danach Prüfung der ursprünglichen App.
+Fehlgeschlagene Rücknahme hinterlässt Lease und verlangt gesonderte Klärung.
+
+Laufreihenfolge: zuerst einzeln freigegebene Entwicklungsprobe Label mit einem
+Auftrag zur Validierung des neuen Pfads. Danach erst regulärer Commit und
+je drei Label-/Summary-Aufträge unter unverändertem Live-Profil. Kein neuer
+Lastprofilentwurf. Kennzahlen: Bedienbarkeit, Fehler, p95 je Live-Aktion,
+App-CPU/RSS, Ressourcen-/Image-/Versionsmanifest und Wiederherstellung.
+Bestehende 10-%-Schwelle nur beschreibend gegen die jeweilige Zwei-Host-
+Referenz prüfen; abweichende Kapazität/Versionen/Settings offenlegen, keine
+Umgehung des bisherigen strikten Manifestvergleichers. Summary mit deaktiviertem
+Encoder wie in den alten Summary-Reihen, Label mit aktivem Encoder.
+
+Implementierungsfolge (lokal):
+
+- [x] Konfigurations-, Fremdzustands- und Vollständigkeitsprüfungen zuerst testen.
+- [x] S1-Orchestrierung, privates Staging und Wiederherstellung ergänzen.
+- [x] Windows/WSL-Modus und Messmanifest anschließen, keine Produktion ändern.
+- [x] Lokale Tests/Syntax/Format prüfen, konkreten Entwicklungsbefehl vorlegen.
+
+Betriebsbewertung und Entscheidung folgen nach S1. Noch keine VM-Aktion erfolgt.
+
+### S1-Implementierungsstand 2026-11-16 vor erstem VM-Test
+
+Neue lokale Helfer `s1.sh`, `s1-host.sh`, `s1.mjs`, Compose-Override und
+Windows/WSL-Modus `s1`. Positiv-/Negativtests einschließlich gemockter
+Rücknahme: falsches Ziel und Fremdcontainer werden abgewiesen, bei
+fehlgeschlagener Runtime-Wiederherstellung bleibt Lease bestehen.
+
+Beim abschließenden Review wurde der bisher fehlende Docker-Bridge-Zugang
+durch ufw erkannt und vor einem VM-Lauf berücksichtigt. Eigene Bridge,
+Subnetzprüfung, scharfgestellte Rücknahme vor dem ufw-Eingriff, Kernelprüfung
+und authentifizierter Slot-Test im Container; exakte Regeln im Runbook §10.
+Aktives Energieschema und Rechnerbeschreibung im S1-Manifest ergänzt.
+Firewalländerung benötigt ausdrückliche Freigabe zusammen mit der Probe.
+
+Lokale Prüfung: 24 gezielte Node-Tests und 18 Pester-Tests bestanden;
+PowerShell-AST geprüft. Noch keine Aussage über erfolgreiche VM-Integration.
+Erster freizugebender Versuch: ein `dev-s1-label`-Auftrag mit `--arbeitsstand`,
+Live-Fenster, temporärer ufw-Bridge-Freigabe und automatischer Rücknahme.
+Einrichtung einschließlich Image-Transfer voraussichtlich etwa 10–15 Minuten.
+Erst danach gewertete S1-Reihen; keine neue Freigabe oder VM-Aktion erfolgt.
+
+### S1-Entwicklungsprobe 2026-11-16 abgeschlossen
+
+Die [Label-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-s1-label.md)
+bestätigt den Same-Host-Pfad mit tatsächlicher Modellantwort, vollständiger
+Live-/Ressourcenmessung und bestandener Rücknahme einschließlich Prüfung
+der ursprünglichen App. Entwicklungsstand bleibt ungewertet.
+
+Als Nächstes die S1-Werkzeuge und Dokumentation regulär committen, danach
+je drei Label-/Summary-Aufträge auf diesem Commit ohne `--arbeitsstand`.
+Beide Reihen weiterhin getrennt freigeben, einschließlich temporärer
+Firewallregel und Runtime-Neustart. Keine weitere optionale Probe geplant.
+Betriebsbewertung und Entscheidung bleiben offen.

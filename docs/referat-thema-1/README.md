@@ -283,3 +283,12 @@ Die Dossiers 1A–1C wurden am 2026-10-16 agentengestützt erstellt (Claude Code
 Modell Claude Opus 5.5, mit Serena und codebase-memory-mcp auf Commit
 `27966e75`). Zeilenangaben beziehen sich auf diesen Stand und müssen vor der
 Übernahme ins Handout gegen die festgelegte Baseline geprüft werden.
+
+_Ergänzt 2026-11-16:_ Same-Host-Labor S1: [Ablauf und Rücknahme](evidenz/1B/runbook.md#10-s1-same-host-vergleich-schritt-4),
+[Orchestrator](evidenz/1B/s1.sh), [VM-Helfer](evidenz/1B/s1-host.sh),
+[Validierung/Manifest](evidenz/1B/s1.mjs), [lokale Tests](evidenz/1B/s1.test.mjs)
+und [Compose-Override](evidenz/1B/s1.override.yml). Noch kein VM-Messnachweis.
+
+_Ergänzt 2026-11-16:_ [S1-Entwicklungsprobe Label](evidenz/1B/2026-11-16-lauf-dev-s1-label.md):
+VM-Pfad und Rücknahme bestätigt; gewerteter Vergleich folgt nach regulärem
+Commit der S1-Werkzeuge.
