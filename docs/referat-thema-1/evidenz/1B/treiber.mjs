@@ -18,10 +18,7 @@ import { measureOperation, LIVE_PROFILE } from './messfenster.mjs';
 import { execFileSync } from 'node:child_process';
 import { parseArgs } from 'node:util';
 import { randomUUID } from 'node:crypto';
-import {
-  MODERATION_PROMPT_REFERENCE_RANKING_FIXTURE_V1 as RANKING,
-  MODERATION_PROMPT_REFERENCE_TEXT_FIXTURE_V1 as TEXTE,
-} from '@arsnova/shared-types';
+import { laborKorpus } from './korpus.mjs';
 import { createHttpTrpcSingle } from '../../../../scripts/load/lib/trpc-runtime.mjs';
 import { configureQaSessionIfNeeded } from '../../../../scripts/load/lib/configure-qa-if-needed.mjs';
 import { hostZugang } from './hostzugang.mjs';
@@ -54,6 +51,7 @@ const config = experimentConfig({
   live: process.env.LAB_LIVE === '1',
   tag: process.env.LAB_TAG || '',
 });
+const { id: fixtureId, texte: TEXTE, ranking: RANKING } = laborKorpus(config.consumer);
 const maxStimmen = Math.max(...RANKING.map((r) => r.positive + r.negative));
 if (teilnehmer < maxStimmen + 1) throw new Error(`mindestens ${maxStimmen + 1} Teilnehmende`);
 
@@ -204,7 +202,7 @@ const breakerScenarios = [firstScenario];
 if (config.consumer === 'breaker-summary') {
   for (let i = 1; i < auftraege; i++) breakerScenarios.push(await szenarioAnlegen());
 }
-log(`Szenario fertig: ${TEXTE.length} Fragen, ${stimmen} Stimmen`);
+log(`Szenario fertig: ${TEXTE.length} Fragen, ${stimmen} Stimmen, Korpus ${fixtureId}`);
 const ergebnisse = [];
 for (let i = 1; i <= auftraege; i += 1) {
   if (i > 1 && config.consumer !== 'breaker-summary') await schlafe(pauseMs);
@@ -238,6 +236,6 @@ for (let i = 1; i <= auftraege; i += 1) {
   ergebnisse.push(r);
   writeFileSync(
     arg.out,
-    `${JSON.stringify({ startedAt, teilnehmer, fragen: TEXTE.length, stimmen, pauseMs: config.consumer === 'breaker-summary' ? 0 : pauseMs, locale: arg.locale, config, live: config.live ? { profile: LIVE_PROFILE, windows: ergebnisse.map((r) => ({ ...r.measurement.window, complete: r.measurement.complete })) } : null, auftraege: ergebnisse }, null, 2)}\n`,
+    `${JSON.stringify({ startedAt, fixtureId, teilnehmer, fragen: TEXTE.length, stimmen, pauseMs: config.consumer === 'breaker-summary' ? 0 : pauseMs, locale: arg.locale, config, live: config.live ? { profile: LIVE_PROFILE, windows: ergebnisse.map((r) => ({ ...r.measurement.window, complete: r.measurement.complete })) } : null, auftraege: ergebnisse }, null, 2)}\n`,
   );
 }

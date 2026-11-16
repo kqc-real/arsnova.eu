@@ -171,6 +171,26 @@ Details und Daten im [F2-Protokoll](2026-11-16-lauf-dev-f2-summary.md).
 Für diese Korrektur ist ein neuer Ausführungscommit erforderlich; den alten
 Stand `5e758d0a` nicht erneut als wirksame F2-Störung verwenden.
 
+_Ergänzt 2026-11-16 (F2-VM-Nachweis):_ Die korrigierte Regel ist in der
+[zweiten Entwicklungsprobe](2026-11-16-lauf-dev-f2-summary-v2.md) mit
+Kernelprüfung und ausbleibenden TCP-Antworten bestätigt. Rücknahme und beide
+VM-Nachprüfungen sind bestanden. Die gewertete F2-Reihe steht noch aus.
+
+_Ergänzt 2026-11-16 (F2-Summary-Reihe):_ Die
+[gewertete F2-Summary-Reihe](2026-11-16-lauf-f2-summary.md) ist nun
+ausgewertet. Rücknahme und Nachprüfungen bestanden; das Live-Latenzkriterium
+ist wegen der Beitritte nicht vollständig erfüllt. Label-F2 bleibt offen.
+
+_Ergänzt 2026-11-16 (Label-Baseline):_ Die
+[Label-Probe v2](2026-11-16-lauf-dev-normal-label-v2.md) bestätigt den
+Korpus `label-identical-pair-v1`. Für Label verwenden neue Vergleiche nur
+Manifeste mit Node-Versionen, Korpuskennung und Settings aus dem laufenden
+App-Container. `lauf.sh` erfasst dazu `runtime-versions.json` und kennzeichnet
+`settingsSource=app-container-environment`. Der bisherige Dateiwert des
+Encoder-Timeouts wurde durch Compose überschrieben; alte Ergebnisse nicht
+nachträglich umschreiben. Lokale Regressionstests bestehen; erster VM-Lauf
+mit der neuen Erfassung steht aus. Label-Baseline erst auf regulärem Commit.
+
 Historischer Übergabestand:
 
 - **Branch:** Eigene Arbeit frisch von `main` abzweigen, etwa `git fetch origin && git switch -c <eigener-branch> origin/main`. Der in #9 genannte Branch `feature-1B-private-inference-3-4` stammt vom 2026-10-23 und enthält das Labor nicht; ob er ersetzt oder ein neuer Name genutzt wird, entscheidet Niklas.

@@ -40,6 +40,8 @@ test('fehlende Metadaten, Commitwechsel und andere Consumer verhindern positive 
     (r) => (r.settings.OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS = '60000'),
     (r) => (r.commit = 'b'.repeat(40)),
     (r) => (r.experiment.config.consumer = 'label'),
+    (r) => (r.runtimeVersions = { appHost: 'v24.22.3' }),
+    (r) => (r.treiber = { fixtureId: 'different-corpus' }),
   ]) {
     const b = run(),
       c = run();
@@ -47,4 +49,19 @@ test('fehlende Metadaten, Commitwechsel und andere Consumer verhindern positive 
     assert.equal(compareExperiments(b, c).comparable, false);
     assert.equal(compareExperiments(b, c).live.passed, null);
   }
+});
+
+test('Label-Vergleiche benötigen vollständige Node-Versionen, Korpus und Container-Settings', () => {
+  const b = run(),
+    c = run();
+  for (const r of [b, c]) r.experiment.config.consumer = 'label';
+  assert.equal(compareExperiments(b, c).comparable, false);
+  for (const r of [b, c]) {
+    r.runtimeVersions = { appHost: 'v24.22.3', llmHost: 'v24.22.3', appContainer: 'v24.19.0' };
+    r.treiber = { fixtureId: 'label-identical-pair-v1' };
+    r.settingsSource = 'app-container-environment';
+  }
+  assert.equal(compareExperiments(b, c).comparable, true);
+  delete c.runtimeVersions.llmHost;
+  assert.equal(compareExperiments(b, c).comparable, false);
 });

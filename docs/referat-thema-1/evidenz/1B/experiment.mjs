@@ -1,22 +1,23 @@
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { fasseLaufzeitenZusammen } from '../../../../scripts/load/lib/artillery-live-messungen.mjs';
 
+const SETTINGS_KEYS = [
+  'QA_SUMMARY_ENABLED',
+  'QA_SUMMARY_TIMEOUT_MS',
+  'OPEN_WEIGHT_LLM_ENABLED',
+  'OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS',
+  'OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS',
+  'WORD_CLOUD_SEMANTIC_ENABLED',
+  'WORD_CLOUD_ENCODER_TIMEOUT_MS',
+  'NLP_ENABLED',
+  'QA_NLP_ENABLED',
+];
+
 export function effectiveSettings(text) {
-  const keys = [
-    'QA_SUMMARY_ENABLED',
-    'QA_SUMMARY_TIMEOUT_MS',
-    'OPEN_WEIGHT_LLM_ENABLED',
-    'OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS',
-    'OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS',
-    'WORD_CLOUD_SEMANTIC_ENABLED',
-    'WORD_CLOUD_ENCODER_TIMEOUT_MS',
-    'NLP_ENABLED',
-    'QA_NLP_ENABLED',
-  ];
   return Object.fromEntries(
-    keys.map((key) => {
+    SETTINGS_KEYS.map((key) => {
       const value = text.match(new RegExp('^' + key + '=([^\\r\\n]*)$', 'm'))?.[1]?.trim() ?? null;
       if (value !== null && !/^(true|false|[0-9]+)$/.test(value))
         throw new Error('Ungültige Vergleichskonfiguration.');
@@ -219,9 +220,15 @@ export function evaluateLiveComparison(baseline, candidate) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv[2] === 'settings') {
-    process.stdout.write(
-      JSON.stringify(effectiveSettings(readFileSync('.env.production', 'utf8'))),
-    );
+    // Nur freigegebene Parameter aus dem laufenden Container lesen. Compose
+    // kann Werte aus .env.production überschreiben; nie die gesamte Env ausgeben.
+    const script = `for (const key of ${JSON.stringify(SETTINGS_KEYS)}) {
+      if (process.env[key] !== undefined) console.log(key + '=' + process.env[key]);
+    }`;
+    const values = execFileSync('docker', ['exec', 'arsnova-v3-app', 'node', '-e', script], {
+      encoding: 'utf8',
+    });
+    process.stdout.write(JSON.stringify(effectiveSettings(values)));
   } else {
     const e = process.env;
     const config = experimentConfig({

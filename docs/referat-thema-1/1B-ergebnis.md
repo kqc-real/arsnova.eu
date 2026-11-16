@@ -81,6 +81,71 @@ _Ergänzt 2026-11-16:_ Die erste
 DROP-Nachweis: ufw übersprang die Regel, die Inferenz blieb erreichbar.
 Die Aktivierungsprüfung wurde lokal korrigiert; eine wirksame F2-Reihe fehlt weiterhin.
 
+_Ergänzt 2026-11-16:_ Die
+[zweite F2-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-f2-summary-v2.md)
+bestätigt nun die DROP-Wirkung des korrigierten Helfers auf der VM sowie
+erfolgreiche Rücknahme und Nachprüfungen. Die gewertete F2-Reihe bleibt offen.
+
+_Ergänzt 2026-11-16:_ Die [gewertete F2-Summary-Reihe](evidenz/1B/2026-11-16-lauf-f2-summary.md)
+ist abgeschlossen und ausgewertet: wirksamer DROP bei allen Aufträgen,
+Fallback innerhalb des Budgets, Live-Last ohne Fehler und erfolgreiche
+Wiederherstellung. Der offengelegte versionsübergreifende Vergleich bestätigt
+den Unterschied zu F1; die Beitrittslatenz überschreitet jedoch die
+vorab festgelegte p95-Schwelle. Zahlen, Auswertungsstand und Grenzen stehen im
+Laufprotokoll. Label-F2 und weitere Störvarianten bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die
+[L3-Summary-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-l3-summary.md)
+bestätigt erstmals den verzögerten Fake auf den VMs, den Timeout-Fallback und
+die Wiederherstellung der echten Runtime. Die gewertete L3-Reihe bleibt offen;
+die Einzelprobe belegt keinen internen Breaker-Zustand.
+
+_Ergänzt 2026-11-16:_ Die [gewertete L3-Summary-Reihe](evidenz/1B/2026-11-16-lauf-l3-summary.md)
+ist erhoben und ausgewertet. Alle Aufträge erreichen den Timeout-Fallback
+innerhalb der Toleranz; Live-Fehlerkriterium und Wiederherstellung bestehen.
+Das Live-Latenzkriterium besteht wegen der Blitzlicht-p95 nicht vollständig.
+Versionsvergleich, Client-/Job-Zeitunterschied und die begrenzte
+Runtime-Ressourcenaufzeichnung sind im Protokoll offengelegt. Label-L3 und
+gerichteter Queue-/Breaker-Nachweis bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die
+[Slot-belegt-Summary-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-busy-summary.md)
+bestätigt den Busy-Fallback nach HTTP 503 bei der Slot-Abfrage, ohne
+Completion-POST. Wiederherstellung bestanden; die gewertete Busy-Reihe bleibt
+offen. Keine Aussage zum internen Circuit Breaker aus der Einzelprobe.
+
+_Ergänzt 2026-11-16:_ Die [gewertete Slot-belegt-Summary-Reihe](evidenz/1B/2026-11-16-lauf-busy-summary.md)
+ist ausgewertet. Alle Jobs zeigen den erwarteten Busy-Fallback ohne
+Completion-POST, Live-Fehlerkriterium und Wiederherstellung bestehen.
+Beitritts- und Blitzlicht-p95 überschreiten die festgelegte Latenzschwelle.
+Zahlen, Versionsprüfung und Grenzen stehen im Protokoll. Damit liegen die
+geplanten Summary-Reihen Normal, F1/B0, F2, L3 und Slot-belegt vor;
+Label-Reihen und gerichteter Queue-/Breaker-Nachweis bleiben offen.
+
+_Ergänzt 2026-11-16:_ Die [erste Label-Normalprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label.md)
+ist nach erfolgreicher Encoder-Einrichtung am fehlenden Label-Nachweis
+abgebrochen. Kein vollständiges Messfenster und keine gewertete Baseline.
+Ursache noch offen; Labordiagnose ergänzt. Encoder und SEMANTIC bleiben aktiv,
+Dienste sind nach dem Abbruch gesund. Node-Version und effektiver
+Encoder-Timeout sind vor gewerteten Label-Reihen zusätzlich zu klären.
+
+_Ergänzt 2026-11-16:_ Die [Label-Diagnoseprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label-diagnose.md)
+zeigt den übersprungenen LLM-Pfad nach einem Semantic-Cluster-Fallback.
+Der Label-Testkorpus wurde lokal korrigiert; VM-Nachweis steht aus.
+Die App läuft bereits mit Node 24, die VM-Helfer noch mit Node 22.
+Deren Umstellung erfolgt vor dem nächsten Label-Test; keine neue gewertete
+Baseline und keine Aussage zur semantischen Modellqualität.
+
+_Ergänzt 2026-11-16:_ Die [Node-24-Umstellung beider VMs](evidenz/1B/2026-11-16-node24-upgrade.md)
+ist ausgeführt und nachgeprüft. Dienste gesund; der VM-Nachweis für den
+korrigierten Label-Korpus bleibt offen. Noch keine gewertete Label-Baseline.
+
+_Ergänzt 2026-11-16:_ Die [Label-Probe v2](evidenz/1B/2026-11-16-lauf-dev-normal-label-v2.md)
+bestätigt den korrigierten Korpus mit tatsächlicher Inferenz und übernommener
+Label-Antwort. Vollständige Live-/Ressourcenmessung und Dienstprüfungen.
+Vor der gewerteten Baseline sind die lokal korrigierte Manifest-Erfassung
+und Korpusauswahl regulär zu committen; die Probe bleibt Entwicklung.
+
 ### Rückwirkung auf den App-Host
 
 Live-Fenster und CPU/RSS sind in beiden Reihen vollständig, ohne Live-Fehler.

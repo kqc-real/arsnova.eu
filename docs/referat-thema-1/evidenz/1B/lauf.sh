@@ -225,6 +225,11 @@ lauf() {
     bash "$EV/label-setup.sh" >"$out/label-setup.log" 2>&1
   fi
   node "$EV/experiment.mjs" settings >"$out/effective-settings.json"
+  jq -n --arg appHost "$(node --version)" \
+    --arg llmHost "$("${LLM[@]}" 'node --version')" \
+    --arg appContainer "$(docker exec arsnova-v3-app node --version)" \
+    '{appHost: $appHost, llmHost: $llmHost, appContainer: $appContainer}' \
+    >"$out/runtime-versions.json"
   runtime_frisch
   local aus="${LAB_RUNTIME_AUS:-}"
   if [[ -n "$aus" && "$modern" == 0 ]]; then
@@ -299,13 +304,14 @@ lauf() {
     --arg commit "$(git rev-parse HEAD)" --arg profil "${LAB_PROFIL_IST:-unbekannt}" --arg rechner "${LAB_RECHNER:-unbekannt}" \
     --arg encoderImage "$encoder_img" --arg appImage "$app_img" --arg llmInfo "$llm_info" --arg appVcpu "$(nproc)" \
     --arg modellSha "$(jq -r .sha256 docker/open-weight-llm/model-manifest.json)" \
-    --slurpfile settings "$out/effective-settings.json" --slurpfile experiment "$out/experiment.json" --slurpfile treiber "$out/treiber.json" --slurpfile zerlegung "$out/zerlegung.json" \
+    --slurpfile settings "$out/effective-settings.json" --slurpfile versions "$out/runtime-versions.json" \
+    --slurpfile experiment "$out/experiment.json" --slurpfile treiber "$out/treiber.json" --slurpfile zerlegung "$out/zerlegung.json" \
     --arg c0curl "$(head -n 1 <<<"$c0")" --argjson c0timings "$c0t" --arg auswertung "$auswertung" \
     --rawfile speicher "$out/speicher.csv" --argjson b0 "$b0" \
     '{lauf: $id, tag: $tag, n: $n, auswertung: $auswertung, b0: $b0, timeoutMs: $timeout, commit: $commit, rechner: $rechner, energieprofil: $profil,
       appHost: {vcpu: ($appVcpu | tonumber), image: $appImage},
       llmHost: {info: $llmInfo, modellSha256: $modellSha},
-      settings: $settings[0], encoderImage: $encoderImage, experiment: $experiment[0],
+      settings: $settings[0], runtimeVersions: $versions[0], settingsSource: "app-container-environment", encoderImage: $encoderImage, experiment: $experiment[0],
       treiber: $treiber[0], zerlegung: $zerlegung[0],
       kontrolleC0: {curl: $c0curl, hinweis: "time_starttransfer time_total http_code; frische Runtime", timings: $c0timings},
       speicher: ($speicher | split("\n") | map(select(. != "" and (startswith("zeit") | not))) | map(split(",")) | map(select(.[1] != "")) |

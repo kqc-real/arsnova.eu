@@ -22,10 +22,22 @@ function manifest(r) {
     !r.experiment?.config?.consumer
   )
     return null;
+  if (
+    r.experiment.config.consumer === 'label' &&
+    (!r.runtimeVersions?.appHost ||
+      !r.runtimeVersions?.llmHost ||
+      !r.runtimeVersions?.appContainer ||
+      !r.treiber?.fixtureId ||
+      r.settingsSource !== 'app-container-environment')
+  )
+    return null;
   // Zeitstempel, Prozesszustände und freie RAM-Mengen sind keine Versuchsparameter.
   const host = r.umgebung.rechner;
   return {
     settings: r.settings,
+    settingsSource: r.settingsSource ?? null,
+    runtimeVersions: r.runtimeVersions ?? null,
+    fixtureId: r.treiber?.fixtureId ?? null,
     commit: r.commit,
     rechner: r.rechner,
     energieprofil: r.energieprofil,

@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import {
   experimentConfig,
   faultCommands,
@@ -166,4 +170,30 @@ test('Vergleichsparameter enthalten nur erlaubte numerische oder boolesche Werte
     () => effectiveSettings('OPEN_WEIGHT_LLM_LABEL_TIMEOUT_MS=secret'),
     /konfiguration/,
   );
+});
+
+test('Settings-CLI erfasst den wirksamen Containerwert statt der abweichenden env-Datei', () => {
+  const dir = mkdtempSync(join(tmpdir(), '1b-settings-'));
+  try {
+    mkdirSync(join(dir, 'bin'));
+    writeFileSync(join(dir, '.env.production'), 'WORD_CLOUD_ENCODER_TIMEOUT_MS=8000\n');
+    writeFileSync(
+      join(dir, 'bin/docker'),
+      '#!/bin/bash\n[[ "$1 $2 $3 $4" == "exec arsnova-v3-app node -e" ]] || exit 9\nexport WORD_CLOUD_ENCODER_TIMEOUT_MS=120000 OPEN_WEIGHT_LLM_TOKEN=never-print-this-token\nexec node -e "$5"\n',
+      { mode: 0o700 },
+    );
+    const output = execFileSync(
+      process.execPath,
+      [resolve('docs/referat-thema-1/evidenz/1B/experiment.mjs'), 'settings'],
+      {
+        cwd: dir,
+        env: { ...process.env, PATH: `${join(dir, 'bin')}:${process.env.PATH}` },
+        encoding: 'utf8',
+      },
+    );
+    assert.equal(JSON.parse(output).WORD_CLOUD_ENCODER_TIMEOUT_MS, '120000');
+    assert.doesNotMatch(output, /never-print-this-token|OPEN_WEIGHT_LLM_TOKEN/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

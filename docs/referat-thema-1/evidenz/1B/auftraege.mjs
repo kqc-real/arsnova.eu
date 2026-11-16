@@ -59,8 +59,21 @@ export async function labelOperation({ hostClient, code, index, locale, signal }
   ).wordCloud.analyzeQa.mutate(input, {
     signal: AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(300000)]),
   });
-  if (!result.labelSettlement || result.labelSettlement === 'disabled')
-    throw new Error('Label-Pfad nicht aktiv: Encoder und SEMANTIC-Konfiguration prüfen.');
+  if (!result.labelSettlement || result.labelSettlement === 'disabled') {
+    // Ein früher Semantic-Fallback ist nicht gleichbedeutend mit einem Kill-Switch.
+    // Nur Zustandsfelder ausgeben; keine Einträge, Quellen, IDs oder Tokens.
+    const diagnostic = {
+      status: result.status ?? null,
+      mode: result.mode ?? null,
+      effectiveMode: result.effectiveMode ?? null,
+      fallbackUsed: result.fallbackUsed ?? null,
+      labelSettlement: result.labelSettlement ?? null,
+      encoderModelPresent: Boolean(result.modelVersion),
+      analyzedQuestionCount: result.analyzedQuestionCount ?? null,
+      entries: result.entries.length,
+    };
+    throw new Error(`Label-Pfad nicht erreicht: ${JSON.stringify(diagnostic)}`);
+  }
   return {
     consumer: 'label',
     index,

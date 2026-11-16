@@ -493,3 +493,220 @@ Dateien `lauf.sh`, `treiber.mjs`, `messfenster.mjs`, `auftraege.mjs` sowie die
 Produktions-Compose-Dateien. Änderungen betreffen F2-Injektion/-Prüfung,
 Transportauswertung, zugehörige Tests und Dokumentation. Die tatsächliche
 DROP-Wirkung des korrigierten Helfers auf der VM ist noch offen.
+
+## Nachtrag 2026-11-16: korrigierter F2-Helfer auf der VM bestätigt
+
+Die freigegebene [zweite Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-f2-summary-v2.md)
+bestätigt Aktivierung, tatsächliche DROP-Wirkung, Rücknahme und Nachprüfungen
+auf dem committeten Korrekturstand `2b39b9df`. Die Einzelprobe bleibt Entwicklung;
+die geplante gewertete F2-Reihe ist weiterhin offen. Nächster separater Lauf ist
+die Tageskalibrierung nach erneuter Freigabe. Vor gewerteten Vergleichen bleibt
+die Kompatibilitätsprüfung gegenüber den bisherigen Normal-/F1-Daten erforderlich.
+
+## Nachtrag 2026-11-16: Tageskalibrierung und Vorbereitung der F2-Reihe
+
+Die [Tageskalibrierung](evidenz/1B/2026-11-16-kalibrierung.md) ist abgeschlossen.
+Für den unmittelbar folgenden Lauf wird der kalibrierte Timeout explizit
+übergeben, da UTC-Dateiname und lokales Windows-Datum an der Mitternachtsgrenze
+auseinanderfallen. Energieeinstellungen und VM-Größen unverändert lassen.
+
+Versionsprüfung `5e758d0a` → `2b39b9df`: Produktionscode, Compose-Konfiguration,
+`lauf.sh`, `treiber.mjs`, `auftraege.mjs`, `messfenster.mjs` und
+`vergleichen.mjs` unverändert. Funktionale Änderungen betreffen die F2-Regel,
+ihre Aktivierungs-/Rücknahmeprüfung und die Erkennung von TCP-Flags als
+`True`/`False` zusätzlich zu `1`. F1-Stopp und Messablauf sind unverändert.
+Eine lokale Neuauswertung der vorhandenen Normal-/F1-Rohdaten mit dem aktuellen
+`buildExperimentResult` bestätigt identische Live-Daten und Job-Zeiten; die
+Transportfelder korrigieren erwartungsgemäß die bislang im ursprünglichen
+Ergebnis-JSON nicht erkannten SYN-/RST-Flags. Für alle F1-Jobs sind jetzt
+Netzversuch und RST erkannt. Originaldateien bleiben unverändert.
+
+Damit sind Messablauf und Messgrößen für eine ausdrücklich dokumentierte
+versionsübergreifende Auswertung geeignet. Ausführungscommit und
+Auswertungsstand müssen dabei getrennt angegeben werden. Der automatische
+Vergleich bleibt wegen unterschiedlicher Commits gesperrt; kein stilles
+Umschreiben des Manifests und kein automatischer PASS aus dieser Prüfung.
+Zusätzlich müssen die konkreten Manifeste der neuen Reihe geprüft werden.
+
+Nächster vorgeschlagener, noch separat freizugebender Versuch:
+`f2-summary`, fünf Summary-Aufträge mit Live-Fenstern auf `2b39b9df`,
+ohne `--arbeitsstand`. Hypothesen und Schwellen bleiben wie oben:
+Fallback innerhalb des kalibrierten Budgets, tatsächlicher DROP je Auftrag,
+F2/F1-Medianverhältnis > 10 bei beobachteten Netzversuchen; Live-p95 höchstens
+110 % von B0/F1 und keine zusätzlichen Fehler. CPU/RSS vollständig erfassen.
+Rücknahme und beide VM-Prüfungen müssen bestehen. Diese Ankündigung ist keine
+Freigabe des Laufs oder der ufw-Störung.
+
+## Nachtrag 2026-11-16: gewertete F2-Summary-Reihe ausgewertet
+
+Die [F2-Summary-Reihe](evidenz/1B/2026-11-16-lauf-f2-summary.md) wurde nach
+Freigabe auf `2b39b9df` ausgeführt. Der geplante Summary-Umfang ist vollständig;
+H2-Fallback, H2-Fehler und H-F1F2 sind nach offengelegter Versionsprüfung
+erfüllt, H2-Latenz wegen der Beitritte nicht vollständig erfüllt. Rücknahme und
+Nachprüfungen bestanden. Zahlen und Grenzen ausschließlich im Laufprotokoll.
+
+Als nächster Versuch wird eine einzelne L3-Summary-Entwicklungsprobe mit
+Live-Fenster vorgeschlagen: `dev-l3-summary`, `-LabN 1`,
+`-LabStoerung l3`, kalibrierter Timeout 300 000 ms, Ausführungsstand `2b39b9df`.
+Sie prüft erstmals den verzögerten Fake auf den VMs, tatsächlichen
+Completion-POST, Fallback und Wiederherstellung. Kein gewerteter L3-Nachweis
+aus der Probe; danach erst die geplante Reihe vorbereiten. Der Helfer stoppt
+die echte Runtime temporär und ersetzt sie durch den Fake; diese Störung und
+der Lauf benötigen vor Ausführung eine erneute Freigabe.
+
+## Nachtrag 2026-11-16: L3-Summary-Probe bestanden
+
+Die freigegebene [L3-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-l3-summary.md)
+auf `2b39b9df` bestätigt den Completion-POST an den verzögerten Fake,
+Timeout-Fallback innerhalb der vorgesehenen Toleranz, vollständige Messung und
+erfolgreiche Wiederherstellung. Zahlen und Grenzen stehen im Protokoll.
+
+Nächster vorgeschlagener Lauf: gewertete L3-Summary-Reihe, zehn Aufträge,
+`-LabTag l3-summary`, `-LabStoerung l3`, `-LabLive`, Timeout 300 000 ms,
+Fake-Verzögerung 310 000 ms, Ausführungscommit `2b39b9df`, kein `--arbeitsstand`.
+H2-Fallback: jeder Job mit passendem Timeout-Grund innerhalb Budget + 1 s;
+H2-Fehler: keine zusätzlichen Live-Fehler; H2-Latenz: p95 je Aktion höchstens
+110 % der B0/F1-Referenz. Tatsächlichen Completion-POST je Auftrag prüfen,
+CPU/RSS vollständig erfassen und Wiederherstellung bestätigen. Vergleich zur
+älteren B0/F1-Reihe nur mit offengelegtem Versionsvergleich und erneuter
+Manifestprüfung. Entwicklungsprobe nicht in die gewertete Reihe einrechnen.
+Lauf und temporärer Runtime-Ersatz durch den Fake sind noch nicht freigegeben.
+
+## Nachtrag 2026-11-16: gewertete L3-Summary-Reihe ausgewertet
+
+Die [L3-Summary-Reihe](evidenz/1B/2026-11-16-lauf-l3-summary.md) ist nach
+Freigabe auf `2b39b9df` vollständig ausgeführt und ausgewertet. H2-Fallback
+und H2-Fehler bestehen, H2-Latenz wegen der Blitzlicht-Antworten nicht
+vollständig. Rücknahme und Nachprüfungen bestanden. Zahlen, Versionsvergleich
+und Messgrenzen ausschließlich im Protokoll. Kein Queue-/Breaker-Nachweis.
+
+Nächster vorgeschlagener Versuch: eine Slot-belegt-Summary-Entwicklungsprobe
+mit `-LabN 1`, `-LabTag dev-busy-summary`, `-LabStoerung busy`, `-LabLive`,
+Timeout 300 000 ms, Ausführungsstand `2b39b9df`, ohne `--arbeitsstand`.
+Erwartet sind eine Slots-Antwort mit HTTP 503, kein Completion-POST,
+extraktiver Fallback und vollständige Wiederherstellung. Erst danach die
+geplante gewertete Reihe vorbereiten. Runtime-Stopp, Fake und Lauf brauchen
+eine neue Freigabe; keine davon ist durch diesen Nachtrag erteilt.
+
+## Nachtrag 2026-11-16: Slot-belegt-Summary-Probe bestanden
+
+Die freigegebene [Slot-belegt-Probe](evidenz/1B/2026-11-16-lauf-dev-busy-summary.md)
+auf `2b39b9df` bestätigt HTTP 503 bei der Slot-Abfrage, keinen Completion-POST,
+den passenden Fallback und erfolgreiche Wiederherstellung. Vollständige
+Messung; Zahlen und Grenzen ausschließlich im Protokoll.
+
+Nächster vorgeschlagener Versuch: die geplante gewertete Slot-belegt-Reihe,
+zehn Summary-Aufträge, `-LabTag busy-summary`, `-LabStoerung busy`,
+`-LabLive`, Timeout 300 000 ms, Ausführungscommit `2b39b9df`, ohne
+`--arbeitsstand`. Erwartet je Auftrag HTTP 503 bei der Slot-Abfrage, kein
+Completion-POST und `extractive/busy`; H2-Fallback innerhalb Budget + 1 s,
+H2-Fehler ohne zusätzliche Live-Fehler und H2-Latenz höchstens 110 % von B0/F1.
+CPU/RSS vollständig erfassen, Versions-/Manifestprüfung offenlegen,
+Wiederherstellung bestätigen. Entwicklungsprobe nicht mitwerten.
+Lauf und temporärer Runtime-Ersatz durch den Fake benötigen erneut Freigabe.
+
+## Nachtrag 2026-11-16: Busy-Reihe ausgewertet und Zwischenstand abgeglichen
+
+Die [Slot-belegt-Summary-Reihe](evidenz/1B/2026-11-16-lauf-busy-summary.md)
+auf `2b39b9df` ist vollständig. H2-Fallback und H2-Fehler bestehen,
+H2-Latenz wegen Beitritt und Blitzlicht nicht vollständig; Wiederherstellung
+bestanden. Zahlen und Grenzen ausschließlich im Protokoll.
+
+Abgleich mit dem am 2026-11-16 per GitHub CLI gelesenen Issue #9 und den
+Dokumenten `00-rahmen-und-pruefung.md` und `01-aufteilung.md`:
+Werkzeuge, Fake mit Tests, eigene Summary-Baseline und geplante Summary-Reihen
+Normal, F1/B0, F2, L3 und Slot-belegt sind vorhanden. Das ist eigene
+Schritt-3-Evidenz, keine bloße Wiederholung des Aufbaus aus Schritten 1–2.
+Ein allgemeiner Isolationsgewinn ist wegen verfehlter p95-Kriterien nicht
+nachgewiesen. Schritt 3 insgesamt bleibt offen.
+
+Ausstehend: eigene Label-Baseline und Label-Reihen (L1/L2, L3, F1, F2,
+Slot-belegt), Nachweis der tatsächlich gesetzten Netzlatenz bei L1/L2,
+gerichtete Queue-/Breaker-Folge mit Kontrollfall und Behandlung der
+Label-Beobachtbarkeitslücke. Race bleibt optional. Schritt 4 benötigt
+Betriebsbewertung, S1-Laborvergleich und konkrete Entscheidung; Eigenanteil,
+Autorenprüfung, Abgabe-/PR-Abschluss folgen nach der Auswertung.
+
+Nächster vorgeschlagener Lauf: Label-Normalbetrieb als Entwicklungsprobe,
+`-LabN 1`, `-LabTag dev-normal-label`, `-LabAuftrag label`,
+`-LabStoerung normal`, `-LabLive`, Timeout 300 000 ms auf `2b39b9df`,
+ohne `--arbeitsstand`. Der vorhandene Helfer baut bei Bedarf den Encoder
+und aktiviert SEMANTIC; beides bleibt anschließend aktiv. Für alle folgenden
+Label-Baselines und Varianten dieselbe Konfiguration verwenden. Der Wechsel
+ist im Manifest zu erfassen; bisherige Summary-Baselines nicht ungeprüft mit
+späteren Läufen mit aktivem Encoder vergleichen. Ein `labelSettlement`-Ergebnis,
+ein tatsächlich ausgeführter Label-Pfad, vollständige Live-/Ressourcenmessung
+und gesunde Dienste sind zu prüfen. Fehlende interne Label-Job-Zeit und
+Fallback-Gründe bleiben fehlend; kein H2-Fallback-PASS daraus ableiten.
+Diese Probe und die Encoder-Einrichtung sind noch nicht freigegeben.
+
+## Nachtrag 2026-11-16: Label-Probe abgebrochen, Diagnose erforderlich
+
+Die freigegebene [Label-Normalprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label.md)
+auf `2b39b9df` bricht vor einem vollständigen Messfenster ab. Encoder und
+SEMANTIC sind eingerichtet und bleiben aktiv; gesunde Dienste nach Abbruch
+bestätigt. Label-Phase nicht nachgewiesen, Ursache des frühen Semantic-Fallbacks
+noch offen. Keine Baseline und kein gewerteter Label-Lauf.
+
+Der Labortreiber ergänzt seine bisher pauschale Abbruchmeldung um ausgewählte
+Statusfelder, ohne Nutzdaten oder Tokens. Regressionstest rot vor Änderung,
+acht ausgewählte lokale Tests danach grün. Kein Produktionspatch.
+Nächster vorgeschlagener Lauf: ein Label-Normalauftrag mit Live-Fenster,
+`-LabTag dev-normal-label-diagnose`, `--arbeitsstand`, Timeout 300 000 ms;
+Entwicklung, nicht werten. Er muss separat freigegeben werden.
+Vor gewerteten Label-Reihen außerdem Node-24-Abweichung und tatsächlich
+wirksamen Encoder-Timeout im Manifest klären; Details im Protokoll.
+
+## Nachtrag 2026-11-16: Label-Korpus korrigiert, Node-Umstellung als nächster Schritt
+
+Die [Diagnoseprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label-diagnose.md)
+belegt einen Semantic-Cluster-Fallback mit Encoder-Modellversion; die
+LLM-Labelphase wird deshalb übersprungen. Nur für Label wird nun
+`label-identical-pair-v1` verwendet: identische sichtbare Fragen B/C und ein
+Gegenbeispiel E. Summary-/Breaker-Referenz unverändert. Last-/Fehlerfixture,
+keine Aussage zur semantischen Qualität. Korpuskennung im Treiber-JSON;
+alle künftigen Label-Reihen verwenden dieselbe Fixture. Regressionstest
+vorher rot, zehn ausgewählte Tests danach grün. VM-Nachweis steht aus.
+
+Nächster Schritt ist zunächst die Umstellung beider VM-Node-Versionen auf 24,
+vor einer weiteren Label-Probe und vor jeder gewerteten Label-Baseline.
+Die App selbst läuft schon unter Node 24.19.0. Node 22 ist keine belegte
+Ursache dieses Fallbacks. Upgrade noch nicht ausgeführt; danach Versionen und
+Dienste prüfen und Freigabe für die korrigierte Entwicklungsprobe erfragen.
+Alte Summary-Daten und ihre tatsächlich verwendeten Versionen bleiben erhalten.
+Effektiven Encoder-Timeout vor gewerteten Label-Reihen klären.
+
+## Nachtrag 2026-11-16: Node 24 installiert, korrigierte Label-Probe bereit
+
+Niklas hat die [Node-24-Umstellung](evidenz/1B/2026-11-16-node24-upgrade.md)
+auf beiden VMs ausgeführt. Versionen und Dienste sind lesend nachgeprüft;
+die Node-Voraussetzung ist vor dem nächsten Label-Test erfüllt. Bestehende
+Summary-Daten und ihre Umgebungsangaben bleiben unverändert.
+
+Nächster vorgeschlagener Lauf: `dev-normal-label-v2`, ein Label-Normalauftrag
+mit Live-Fenster, Timeout 300 000 ms und `--arbeitsstand`, damit die lokal
+getestete Korpuskorrektur übertragen wird. Entwicklung, nicht werten.
+Korpuskennung `label-identical-pair-v1`, erreichter Label-Pfad,
+vollständiges Live-/Ressourcenfenster und gesunde Dienste sind zu prüfen.
+Kein neuer Lauf gestartet; Freigabe für diese einzelne Probe noch erforderlich.
+
+## Nachtrag 2026-11-16: Label-Pfad bestätigt, Manifest vor Baseline korrigiert
+
+Die freigegebene [Label-Probe v2](evidenz/1B/2026-11-16-lauf-dev-normal-label-v2.md)
+erreicht mit `label-identical-pair-v1` tatsächlich die Runtime und übernimmt
+die Label-Antwort. Vollständige Messung und Dienstprüfungen; weiterhin nur
+Entwicklung wegen `--arbeitsstand`. Zahlen und Grenzen im Protokoll.
+
+Die bekannte Manifestabweichung ist lokal korrigiert: erlaubte Settings aus
+dem laufenden App-Container statt der env-Datei, ausdrückliche Herkunft,
+Node-Versionen beider VMs und des App-Containers sowie Korpuskennung im
+Vergleich. Unvollständige Label-Manifeste bleiben nicht beurteilbar.
+Regressionstests vorher rot, 26 ausgewählte Tests danach grün; Syntax geprüft.
+Noch kein vollständiger VM-Lauf mit der neuen Manifest-Erfassung.
+
+Vor dem ersten gewerteten Label-Lauf Änderungen regulär committen und neuen
+Ausführungsstand festhalten. Danach die erste Teilreihe Normal/Label mit
+höchstens zehn der geplanten 30 Aufträge separat freigeben. Konfiguration,
+Encoder, Korpus und Node-Versionen für alle Label-Varianten beibehalten.
+Noch keine neue Baseline erhoben; interne Label-Fallback-Zeit bleibt nicht
+direkt beobachtbar. Keine weiteren Node-Upgrades vor der Baseline erforderlich.

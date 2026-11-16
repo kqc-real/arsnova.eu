@@ -89,3 +89,34 @@ test('Label ruft den echten SEMANTIC-Hostpfad mit refresh auf und meldet fehlend
     'transient',
   );
 });
+
+test('Label-Abbruch unterscheidet Analysestatus von deaktiviertem Pfad ohne Nutzdaten auszugeben', async () => {
+  const host = {
+    wordCloud: {
+      analyzeQa: {
+        mutate: async () => ({
+          status: 'failed',
+          mode: 'SEMANTIC',
+          effectiveMode: 'THEME',
+          fallbackUsed: true,
+          labelSettlement: null,
+          modelVersion: null,
+          analyzedQuestionCount: 3,
+          entries: [{ text: 'Nicht ins Fehlerprotokoll übernehmen' }],
+          hostToken: 'secret-test-token',
+        }),
+      },
+    },
+  };
+  await assert.rejects(
+    labelOperation({ hostClient: async () => host, code: 'ABC123', index: 1, locale: 'de' }),
+    (error) => {
+      assert.match(error.message, /"status":"failed"/);
+      assert.match(error.message, /"fallbackUsed":true/);
+      assert.match(error.message, /"labelSettlement":null/);
+      assert.match(error.message, /"analyzedQuestionCount":3/);
+      assert.doesNotMatch(error.message, /secret-test-token|Nicht ins Fehlerprotokoll/);
+      return true;
+    },
+  );
+});
