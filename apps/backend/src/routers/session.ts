@@ -10808,17 +10808,13 @@ const sessionCoreRouter = router({
           questionCountsTowardsTotalQuestions(q.type as QuestionType),
       );
 
-      const votes = selectEffectiveCompetitionVotes(
-        await loadSharedCompetitionVotes({
-          sessionId: session.id,
-          questionIds: [...includedQuestionIds],
-          participantRevision: session.participantRevision ?? 0,
-          includeCorrectness: true,
-          includeShortTextGrading: scoredQuestions.some(
-            (question) => question.type === 'SHORT_TEXT',
-          ),
-        }),
-      );
+      const votes = await loadSharedCompetitionVotes({
+        sessionId: session.id,
+        questionIds: [...includedQuestionIds],
+        participantRevision: session.participantRevision ?? 0,
+        includeCorrectness: true,
+        includeShortTextGrading: scoredQuestions.some((question) => question.type === 'SHORT_TEXT'),
+      });
 
       const stats = new Map<
         string,

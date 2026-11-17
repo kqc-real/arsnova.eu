@@ -96,6 +96,8 @@ Die tatsaechliche `SHORT_TEXT`-Basispunktzahl ist:
 
 Die Leaderboard-Spalte »Richtig« zählt Kurzantworten mit voller fachlicher Bewertung. Teilbewertungen fließen in die Punktesumme ein, ohne die Anzahl richtiger Antworten zu erhöhen. Die fachliche Bewertung erfolgt vor Schwierigkeit, Timer und Streak.
 
+Der Ranglisten-Cache wählt zuerst die effektiven Stimmen aus. Bei Textantworten mit Teilpunkten reicht der Vergleich der normalisierten Texte für die Entscheidung über einen Volltreffer. Ohne Teilpunkte erlaubt die gespeicherte Korrektheit auch tolerierte Volltreffer. Bei alten Stimmen ohne Korrektheitswert berechnet der Server die notwendige Distanz nacheinander und gibt den Event-Loop zwischen solchen Stimmen frei.
+
 Textuelle Kurzantworten nutzen die konfigurierte Normalisierung, Bewertungsmethode und Toleranz. Numerische Kurzantworten werden ueber geparste Zahlen bewertet; numerische Kurzantworten mit Einheiten koennen aequivalente Einheiten akzeptieren.
 
 Erst nach dieser fachlichen Kurzantwort-Bewertung werden Difficulty, Timer und Streak angewendet. Beispiel ohne Timer:

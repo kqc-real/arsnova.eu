@@ -669,7 +669,7 @@
     },
     "session.getLeaderboard": {
       "kind": "query",
-      "fingerprint": "sha256:35aa4e3ec0490b5bc5c50479831571e1c86a21388d15aa8c6b140a4f82bc941f",
+      "fingerprint": "sha256:504a88e04b5efe67f57c792a7da242b92372e7db826d5b3da0cb4f437d4adf5e",
       "missing": []
     },
     "session.getLearningObjectives": {

@@ -1,3 +1,4 @@
+import { setImmediate } from 'node:timers/promises';
 import {
   DIFFICULTY_MULTIPLIER,
   MAX_BASE_POINTS,
@@ -144,16 +145,32 @@ export function resolveShortTextQuestionConfig(config?: ShortTextQuestionConfig)
   };
 }
 
-export function isFullyCorrectShortTextVote(
+export async function isFullyCorrectShortTextVote(
   answer: string | null,
   question: ShortTextQuestionConfig & { answers: readonly { text: string; isCorrect: boolean }[] },
-): boolean {
+  storedCorrectness?: boolean | null,
+): Promise<boolean> {
   if (!answer) {
     return false;
   }
 
+  const config = resolveShortTextQuestionConfig(question);
+  if (!usesNumericShortTextEvaluation(config.shortTextEvaluationKind)) {
+    if (config.shortTextAllowPartialCredit || config.shortTextToleranceLevel === 'none') {
+      // Bei aktivierten Teilpunkten gibt es die volle Wertung nur für identische normalisierte Texte.
+      config.shortTextEvaluationMode = 'exact';
+    } else if (config.shortTextEvaluationMode !== 'exact') {
+      // Ohne Teilpunkte kennzeichnet die gespeicherte Korrektheit auch tolerierte Volltreffer.
+      if (typeof storedCorrectness === 'boolean') {
+        return storedCorrectness;
+      }
+      // Nur alte Stimmen ohne Korrektheitswert brauchen noch eine Distanzberechnung.
+      await setImmediate();
+    }
+  }
+
   const evaluation = evaluateShortTextForScoring({
-    ...resolveShortTextQuestionConfig(question),
+    ...config,
     freeText: answer,
     correctShortTextAnswers: question.answers
       .filter((option) => option.isCorrect)

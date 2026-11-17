@@ -205,21 +205,27 @@ export async function loadSharedCompetitionVotes(options: {
             selectedAnswers: { select: { answerOptionId: true } },
           },
         })
-        .then((votes) => {
+        .then(async (votes) => {
+          const effectiveVotes = selectEffectiveCompetitionVotes(votes);
           if (!includeShortTextGrading) {
-            return votes;
+            return effectiveVotes;
           }
 
-          return votes.map(({ freeText, question, ...vote }) => ({
-            ...vote,
-            // Keep only the grading decision and choice IDs in the shared cache.
-            question: {
-              type: question.type,
-              answers: question.answers.map(({ id, isCorrect }) => ({ id, isCorrect })),
-            },
-            shortTextFullyCorrect:
-              question.type === 'SHORT_TEXT' && isFullyCorrectShortTextVote(freeText, question),
-          }));
+          const gradedVotes: CompetitionVoteRow[] = [];
+          for (const { freeText, question, ...vote } of effectiveVotes) {
+            gradedVotes.push({
+              ...vote,
+              // Keep only the grading decision and choice IDs in the shared cache.
+              question: {
+                type: question.type,
+                answers: question.answers.map(({ id, isCorrect }) => ({ id, isCorrect })),
+              },
+              shortTextFullyCorrect:
+                question.type === 'SHORT_TEXT' &&
+                (await isFullyCorrectShortTextVote(freeText, question, vote.isCorrect)),
+            });
+          }
+          return gradedVotes;
         })
     : prisma.vote.findMany({
         where,
