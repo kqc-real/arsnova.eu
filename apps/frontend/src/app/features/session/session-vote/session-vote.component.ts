@@ -145,6 +145,7 @@ import {
 import {
   findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
+  scoreboardNickname,
   kindergartenNicknameSequence,
 } from '../../join/kindergarten-nickname-icons';
 import { getEffectiveLocale } from '../../../core/locale-from-path';
@@ -787,6 +788,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const nick = this.playerNickname()?.trim();
     return nick ? findKindergartenNicknameEmoji(nick, undefined, this.playerAnimalId()) : null;
   });
+
+  readonly scoreboardNickname = scoreboardNickname;
 
   leaderboardKindergartenEmoji(nickname: string, animalId?: number): string | null {
     if (!this.usesKindergartenNicknames()) return null;

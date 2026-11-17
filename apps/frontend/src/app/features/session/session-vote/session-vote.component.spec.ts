@@ -4901,6 +4901,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       'emoji_u1f433.svg',
       'emoji_u1f40b.svg',
     ]);
+    expect(host.querySelector('.vote-finished-winner__name')?.textContent?.trim()).toBe('Wal');
+    expect(
+      Array.from(host.querySelectorAll('.vote-finished-leaderboard__name'), (label) =>
+        label.textContent?.trim(),
+      ),
+    ).toEqual(['Wal', 'Wal 2']);
   });
 
   it('zeigt im Session-End-Gate Bonus und Startseite im Aktionsanker; Bewertung absenden in der Karte', async () => {

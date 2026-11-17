@@ -668,7 +668,8 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('leaderboard', [
       {
         rank: 1,
-        nickname: 'Ada',
+        nickname: 'Wal 1',
+        kindergartenAnimalId: 34,
         totalScore: 120,
         correctCount: 1,
         totalQuestions: 1,
@@ -716,7 +717,14 @@ describe('SessionProjectionQuizComponent', () => {
     const leaderboard = fixture.nativeElement.querySelector(
       '[data-testid="presenter-results-leaderboard"]',
     ) as HTMLElement | null;
-    expect(leaderboard?.textContent).toContain('Ada');
+    expect(
+      leaderboard?.querySelector('.session-projection-quiz__leaderboard-name')?.textContent?.trim(),
+    ).toBe('Wal');
+    expect(
+      leaderboard
+        ?.querySelector('img.session-projection-quiz__leaderboard-emoji')
+        ?.getAttribute('src'),
+    ).toMatch(/emoji_u1f433\.svg$/);
     expect(leaderboard?.textContent).toContain('120');
     expect(leaderboard?.textContent).toContain('Team Blau');
     expect(

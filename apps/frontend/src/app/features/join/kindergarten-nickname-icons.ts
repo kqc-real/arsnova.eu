@@ -208,6 +208,11 @@ export function kindergartenNicknameSequence(nickname: string): string | null {
   return nickname.trim().match(/\s+(\d+)$/)?.[1] ?? null;
 }
 
+/** Ranglisten zeigen das erste Tier-Pseudonym ohne die laufende Nummer. */
+export function scoreboardNickname(nickname: string, animalEmoji: string | null): string {
+  return animalEmoji ? nickname.replace(/\s+1\s*$/, '') : nickname;
+}
+
 export type KindergartenNicknameBadge = {
   readonly emoji: string;
   readonly sequence: string | null;

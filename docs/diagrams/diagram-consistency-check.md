@@ -249,7 +249,7 @@ Story 0.4: Das **ServerStatusWidget** ist in diagrams.md (App-Shell / Shared) ab
 
 ### 7.3 Team-Leaderboard-Komponente
 
-`TeamLeaderboardEntryDTO` ist in shared-types definiert; es gibt **keine** eigene `TeamLeaderboardComponent` — `session.getTeamLeaderboard` wird in **SessionHost**, **SessionPresent** und **SessionVote** genutzt (siehe [team-mode.md](../features/team-mode.md) § Team-Leaderboard in der UI).
+`TeamLeaderboardEntryDTO` ist in shared-types definiert. **SessionPresent** und **SessionVote** nutzen `session.getTeamLeaderboard`, **SessionHost** nutzt `session.getHostTeamLeaderboard` für dieselbe Rangfolge mit zusätzlichem Median pro Team. Die Ranglisten werden in den jeweiligen Session-Komponenten dargestellt (siehe [team-mode.md](../features/team-mode.md) § Darstellung in der UI).
 
 **Empfehlung:** In `diagrams.md` weiterhin optional als Vereinfachung; bei Detailfragen [team-mode.md](../features/team-mode.md) als Quelle nutzen.
 

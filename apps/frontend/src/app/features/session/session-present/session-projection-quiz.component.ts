@@ -34,7 +34,10 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { extractEdgeEmoji, stripEdgeEmojiMarker } from '../../../shared/emoji-shortcode.util';
 import { decorateLeadingAnswerEmoji } from '../../../shared/leading-answer-emoji.util';
-import { findKindergartenNicknameEmoji } from '../../join/kindergarten-nickname-icons';
+import {
+  findKindergartenNicknameEmoji,
+  scoreboardNickname,
+} from '../../join/kindergarten-nickname-icons';
 import { renderMarkdownWithKatex } from '../../../shared/markdown-katex.util';
 import { questionReadingHint } from '../../../shared/question-reading-hint';
 import { questionTypeLabel } from '../../../shared/question-type-label';
@@ -971,6 +974,8 @@ export class SessionProjectionQuizComponent {
   formatCount(value: number | null | undefined): string {
     return formatLocaleCount(value ?? 0, this.localeId);
   }
+
+  readonly scoreboardNickname = scoreboardNickname;
 
   leaderboardNicknameEmoji(nickname: string, animalId?: number): string | null {
     return findKindergartenNicknameEmoji(nickname, undefined, animalId);

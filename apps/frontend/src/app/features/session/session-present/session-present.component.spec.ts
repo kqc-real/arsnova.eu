@@ -9,6 +9,9 @@ import { of } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { MatButton } from '@angular/material/button';
+import { By } from '@angular/platform-browser';
+import { buildConfidenceResult, type HostCurrentQuestionDTO } from '@arsnova/shared-types';
 import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
@@ -2360,7 +2363,9 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('Red dragon 1');
+    expect(
+      fixture.nativeElement.querySelector('.session-present__board-name')?.textContent?.trim(),
+    ).toBe('Red dragon');
     expect(fixture.nativeElement.textContent).toContain('Team A');
     expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
     fixture.destroy();
@@ -6362,6 +6367,130 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('check_circle');
     fixture.destroy();
   });
+
+  it('zeigt Befunde als sichtbare Beschreibung derselben Rückkehraktion und hält ihren Fokus', async () => {
+    const question: HostCurrentQuestionDTO = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      text: 'Ordne die Begriffe zu.',
+      type: 'MATCHING',
+      difficulty: 'EASY',
+      showQuestionTypeIndicators: true,
+      answers: [],
+      matchingStats: {
+        totalVotes: 10,
+        fullyCorrectCount: 7,
+        pairHitRates: [],
+        selectionCounts: [],
+        commonConfusions: [
+          { leftId: 'left', left: 'Links', wrongRightId: 'right', wrongRight: 'Rechts', count: 3 },
+        ],
+      },
+      confidenceResult: buildConfidenceResult({
+        votes: [
+          { confidenceValue: 5, isCorrect: false },
+          { confidenceValue: 4, isCorrect: false },
+          { confidenceValue: 5, isCorrect: true },
+        ],
+      })!,
+    };
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.update((session) => session && { ...session, currentQuestion: 0 });
+    component.hostQuestion.set(question);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const button = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-return-to-host"]',
+    )!;
+    const hint = () => root.querySelector('#presenter-host-analysis-hints');
+    const returnAction = fixture.debugElement
+      .query(By.css('[data-testid="presenter-return-to-host"]'))
+      .injector.get(MatButton);
+    expect(hint()).toBeNull();
+    expect(returnAction.appearance).toBe('text');
+    button.focus();
+
+    component.session.update((session) => session && { ...session, status: 'RESULTS' });
+    fixture.detectChanges();
+    expect(button.getAttribute('aria-describedby')).toBe(hint()?.id);
+    expect(returnAction.appearance).toBe('filled');
+    expect(Array.from(hint()!.children, (child) => child.textContent)).toEqual([
+      'Antwortsicherheit im Detail ansehen',
+      'Zuordnungen im Detail ansehen',
+    ]);
+    expect(document.activeElement).toBe(button);
+
+    component.session.update((session) => session && { ...session, currentQuestion: 1 });
+    fixture.detectChanges();
+    expect(hint()).toBeNull();
+    expect(button.hasAttribute('aria-describedby')).toBe(false);
+    expect(returnAction.appearance).toBe('text');
+    expect(document.activeElement).toBe(button);
+  });
+
+  it.each(['ORDERING', 'CATEGORIZATION'] as const)(
+    'zeigt bei %s nur wiederkehrende Fehler mit relevantem Anteil',
+    async (type) => {
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      component.session.update(
+        (session) => session && { ...session, currentQuestion: 0, status: 'RESULTS' },
+      );
+      const setQuestion = (count: number, totalVotes: number) => {
+        component.hostQuestion.set({
+          questionId: '11111111-1111-4111-8111-111111111111',
+          order: 0,
+          text: 'Frage',
+          type,
+          difficulty: 'EASY',
+          showQuestionTypeIndicators: true,
+          answers: [],
+          ...(type === 'ORDERING'
+            ? {
+                orderingStats: {
+                  totalVotes,
+                  fullyCorrectCount: 0,
+                  positionCounts: [],
+                  commonSwaps: [
+                    { itemAId: 'a', itemAText: 'A', itemBId: 'b', itemBText: 'B', count },
+                  ],
+                },
+              }
+            : {
+                categorizationStats: {
+                  totalVotes,
+                  fullyCorrectCount: 0,
+                  itemCategoryCounts: [],
+                  commonMisclassifications: [
+                    {
+                      itemId: 'a',
+                      itemText: 'A',
+                      wrongCategoryId: 'b',
+                      wrongCategoryName: 'B',
+                      count,
+                    },
+                  ],
+                },
+              }),
+        });
+        fixture.detectChanges();
+      };
+      const hints = () => fixture.nativeElement.querySelector('#presenter-host-analysis-hints');
+      setQuestion(1, 2);
+      expect(hints()).toBeNull();
+      setQuestion(2, 10);
+      expect(hints()).toBeNull();
+      setQuestion(3, 10);
+      expect(hints()?.textContent.trim()).toBe(
+        type === 'ORDERING' ? 'Positionsverteilung ansehen' : 'Kategorienverteilung ansehen',
+      );
+    },
+  );
 
   it('nutzt die Beamer-Bühne ohne schmale Stack-Spalte', async () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);

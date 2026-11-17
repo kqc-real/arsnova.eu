@@ -261,9 +261,12 @@ Wettbewerbs-Antwortzeit aufsteigend, dann `teamName` lexikographisch.
 
 ### Darstellung in der UI
 
-Es gibt **keine** eigene `TeamLeaderboardComponent`. Die Daten kommen per
-`session.getTeamLeaderboard` und werden in **SessionHost**, **SessionPresent** und **SessionVote**
-eingebunden (Signals / Templates in den jeweiligen Session-Komponenten).
+Es gibt **keine** eigene `TeamLeaderboardComponent`. **SessionPresent** und **SessionVote**
+laden die Teamrangliste über `session.getTeamLeaderboard`. **SessionHost** lädt dieselbe
+Rangfolge über `session.getHostTeamLeaderboard` und zeigt in der Zwischen- und Abschlussauswertung
+je Team zusätzlich den Median der kumulierten Mitgliedspunkte. Mitglieder ohne gewertete Punkte
+gehen mit null ein. Bei gerader Teamgröße ist der Median der Mittelwert der beiden mittleren
+Punktestände. Für Rang und Balkenlänge gilt weiterhin das arithmetische Mittel des Teams.
 
 ### Berechnungsbeispiel
 
@@ -347,14 +350,15 @@ stateDiagram-v2
 
 ## tRPC-Endpunkte
 
-| Endpunkt                     | Typ      | Beschreibung                                |
-| ---------------------------- | -------- | ------------------------------------------- |
-| `session.create`             | Mutation | Erstellt Session + Teams (wenn teamMode)    |
-| `session.getInfo`            | Query    | Liefert teamMode, teamAssignment, teamCount |
-| `session.getTeams`           | Query    | Teams mit memberCount fuer Join/Lobby       |
-| `session.join`               | Mutation | Team-Zuweisung (AUTO/MANUAL) + Participant  |
-| `session.getParticipants`    | Query    | Teilnehmer inkl. teamId, teamName           |
-| `session.getTeamLeaderboard` | Query    | Team-Ranking nach normalisiertem Score      |
+| Endpunkt                         | Typ      | Beschreibung                                                                          |
+| -------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| `session.create`                 | Mutation | Erstellt Session + Teams (wenn teamMode)                                              |
+| `session.getInfo`                | Query    | Liefert teamMode, teamAssignment, teamCount                                           |
+| `session.getTeams`               | Query    | Teams mit memberCount fuer Join/Lobby                                                 |
+| `session.join`                   | Mutation | Team-Zuweisung (AUTO/MANUAL) + Participant                                            |
+| `session.getParticipants`        | Query    | Teilnehmer inkl. teamId, teamName                                                     |
+| `session.getTeamLeaderboard`     | Query    | Team-Ranking nach normalisiertem Score                                                |
+| `session.getHostTeamLeaderboard` | Query    | Team-Ranking mit Median je Team nach Ergebnisfreigabe oder zum Abschluss (Host-Token) |
 
 Die Host-Lobby nimmt je Team die groessere Zahl aus `getTeams.memberCount` und den
 gelieferten Ankuenften. So bleiben Quizkanal und Praesentation synchron. Die

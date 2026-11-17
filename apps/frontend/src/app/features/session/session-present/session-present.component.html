@@ -3,6 +3,7 @@
   data-testid="presenter-surface"
   tabindex="-1"
   appMarkdownImageLightbox
+  [class.session-present--host-analysis-hint]="hostAnalysisHints().length > 0"
   [class.session-present--finish]="showFinishProjection()"
   [class.session-present--team-finale]="showTeamFinish()"
   [class.session-present--lobby]="showLobbyProjection()"
@@ -29,22 +30,39 @@
   <div class="session-present__host-return">
     <div class="session-present__view-actions">
       <button
-        matButton="text"
+        [matButton]="hostAnalysisHints().length ? 'filled' : 'text'"
         type="button"
+        class="session-present__host-return-button"
         data-testid="presenter-return-to-host"
         (click)="returnToHost()"
         [disabled]="returnToHostPending()"
         [disabledInteractive]="true"
         [attr.aria-busy]="returnToHostPending()"
+        [attr.aria-describedby]="
+          hostAnalysisHints().length ? 'presenter-host-analysis-hints' : null
+        "
         i18n-aria-label="@@sessionPresent.returnToHostAria"
         aria-label="Zur Host-Ansicht zurückkehren"
       >
-        <span i18n="@@sessionPresent.returnToHost">Zurück zum Host</span>
+        @if (hostAnalysisHints().length) {
+          <mat-icon aria-hidden="true">insights</mat-icon>
+        }
+        <span class="session-present__host-return-label">
+          <span i18n="@@sessionPresent.returnToHost">Zurück zum Host</span>
+          @if (hostAnalysisHints().length) {
+            <span id="presenter-host-analysis-hints" class="session-present__host-analysis-hints">
+              @for (hint of hostAnalysisHints(); track hint) {
+                <span>{{ hint }}</span>
+              }
+            </span>
+          }
+        </span>
       </button>
       @if (showFullscreenButton()) {
         <button
           matButton="text"
           type="button"
+          class="session-present__fullscreen-button"
           data-testid="presenter-fullscreen-enter"
           (click)="enterPresenterFullscreen()"
         >
@@ -212,10 +230,9 @@
                     </p>
                   </div>
                   <p class="session-present__winner-name session-present__winner-name--champion">
-                    @if (
+                    @let emoji =
                       leaderboardKindergartenEmoji(winner.nickname, winner.kindergartenAnimalId);
-                      as emoji
-                    ) {
+                    @if (emoji) {
                       <img
                         class="session-present__animal-icon session-present__winner-emoji session-present__winner-emoji--hero"
                         [src]="animalIconUrl(emoji)"
@@ -224,7 +241,7 @@
                       />
                     }
                     <span class="session-present__winner-identity">
-                      <span>{{ winner.nickname }}</span>
+                      <span>{{ scoreboardNickname(winner.nickname, emoji) }}</span>
                       @if (winner.teamName; as teamName) {
                         <span
                           class="session-present__participant-team-icon session-present__participant-team-icon--hero"
@@ -377,6 +394,8 @@
                   entry of visiblePersonalLeaderboard();
                   track entry.rank + ':' + entry.nickname
                 ) {
+                  @let emoji =
+                    leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
                   <li
                     class="session-present__board-item"
                     [class.session-present__board-item--champion]="entry.place === 1"
@@ -410,10 +429,7 @@
                           {{ entry.place }}
                         }
                       </span>
-                      @if (
-                        leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
-                        as emoji
-                      ) {
+                      @if (emoji) {
                         <img
                           class="session-present__animal-icon session-present__board-emoji"
                           [src]="animalIconUrl(emoji)"
@@ -422,7 +438,9 @@
                         />
                       }
                     </span>
-                    <span class="session-present__board-name">{{ entry.nickname }}</span>
+                    <span class="session-present__board-name">{{
+                      scoreboardNickname(entry.nickname, emoji)
+                    }}</span>
                     <span class="session-present__board-tail">
                       @if (entry.teamName; as teamName) {
                         <span

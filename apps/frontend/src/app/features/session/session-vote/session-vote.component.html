@@ -712,13 +712,16 @@
                     <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
                   </p>
                   <p class="vote-finished-winner__name">
-                    @if (
+                    @let emoji =
                       leaderboardKindergartenEmoji(winner.nickname, winner.kindergartenAnimalId);
-                      as em
-                    ) {
-                      <img class="vote-finished-winner__emoji" [src]="animalIconUrl(em)" alt="" />
+                    @if (emoji) {
+                      <img
+                        class="vote-finished-winner__emoji"
+                        [src]="animalIconUrl(emoji)"
+                        alt=""
+                      />
                     }
-                    <span>{{ winner.nickname }}</span>
+                    <span>{{ scoreboardNickname(winner.nickname, emoji) }}</span>
                     @if (winner.teamName; as teamName) {
                       <span
                         class="vote-finished-leaderboard__team-icon vote-finished-leaderboard__team-icon--hero"
@@ -744,6 +747,8 @@
               }
               <ol class="vote-finished-leaderboard__list">
                 @for (entry of personalLeaderboard(); track entry.rank) {
+                  @let emoji =
+                    leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
                   <li
                     class="vote-finished-leaderboard__item"
                     [class.vote-finished-leaderboard__item--own]="
@@ -772,18 +777,17 @@
                           {{ entry.rank }}
                         }
                       </span>
-                      @if (
-                        leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
-                        as em
-                      ) {
+                      @if (emoji) {
                         <img
                           class="vote-finished-leaderboard__emoji"
-                          [src]="animalIconUrl(em)"
+                          [src]="animalIconUrl(emoji)"
                           alt=""
                         />
                       }
                     </span>
-                    <span class="vote-finished-leaderboard__name">{{ entry.nickname }}</span>
+                    <span class="vote-finished-leaderboard__name">{{
+                      scoreboardNickname(entry.nickname, emoji)
+                    }}</span>
                     <span class="vote-finished-leaderboard__tail">
                       @if (entry.teamName; as teamName) {
                         <span

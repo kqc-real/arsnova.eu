@@ -57,7 +57,10 @@ import {
   feedbackTitle,
 } from '../../feedback/feedback.config';
 import {
+  confidenceResultResponseCount,
   EMOJI_REACTIONS,
+  isConfidenceDebriefRecommended,
+  MODERATION_COMPASS_RULE_THRESHOLDS,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   isWordCloudLemmaLocale,
@@ -125,6 +128,7 @@ import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
+  scoreboardNickname,
   type KindergartenNicknameBadge,
 } from '../../join/kindergarten-nickname-icons';
 import { extractEdgeEmoji, stripEdgeEmojiMarker } from '../../../shared/emoji-shortcode.util';
@@ -193,6 +197,14 @@ const LOBBY_FOYER_KINDERGARTEN_DELAY_STEP_MS = 5400;
 const TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD = 100;
 const TEAM_FOYER_SUPPRESSION_BURST_THRESHOLD = 24;
 const LOBBY_FOYER_LANDED_BADGE_MS = 420;
+
+function hasRepeatedConfusion(count = 0, totalVotes = 0): boolean {
+  return (
+    count >= 2 &&
+    totalVotes > 0 &&
+    count / totalVotes >= MODERATION_COMPASS_RULE_THRESHOLDS.quiz.structuredConfusionMinimumShare
+  );
+}
 
 type LobbyFoyerMotionProfile = {
   stepMs: number;
@@ -2104,6 +2116,61 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       ? question
       : null;
   });
+  readonly hostAnalysisHints = computed(() => {
+    if (
+      this.session()?.status !== 'RESULTS' ||
+      !this.showQuizProjection() ||
+      this.earlierQuizResult() ||
+      this.showPresenterFreetextResultsStage()
+    ) {
+      return [];
+    }
+    const question = this.presentedQuizQuestion();
+    if (!question) return [];
+
+    const hints: string[] = [];
+    const result = question.confidenceResult;
+    if (
+      result &&
+      isConfidenceDebriefRecommended({
+        result,
+        responseCount: confidenceResultResponseCount(result),
+      })
+    ) {
+      hints.push(
+        $localize`:@@sessionPresent.hostAnalysisConfidence:Antwortsicherheit im Detail ansehen`,
+      );
+    }
+
+    switch (question.type) {
+      case 'MATCHING': {
+        const stats = question.matchingStats;
+        if (hasRepeatedConfusion(stats?.commonConfusions[0]?.count, stats?.totalVotes)) {
+          hints.push(
+            $localize`:@@sessionPresent.hostAnalysisMatching:Zuordnungen im Detail ansehen`,
+          );
+        }
+        break;
+      }
+      case 'ORDERING': {
+        const stats = question.orderingStats;
+        if (hasRepeatedConfusion(stats?.commonSwaps[0]?.count, stats?.totalVotes)) {
+          hints.push($localize`:@@sessionPresent.hostAnalysisOrdering:Positionsverteilung ansehen`);
+        }
+        break;
+      }
+      case 'CATEGORIZATION': {
+        const stats = question.categorizationStats;
+        if (hasRepeatedConfusion(stats?.commonMisclassifications[0]?.count, stats?.totalVotes)) {
+          hints.push(
+            $localize`:@@sessionPresent.hostAnalysisCategorization:Kategorienverteilung ansehen`,
+          );
+        }
+        break;
+      }
+    }
+    return hints;
+  });
   readonly quizQuestionAwaitingSnapshot = computed(() => {
     const session = this.session();
     if (
@@ -2777,6 +2844,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     return $localize`${entry.teamName} gewinnt mit ${formatLocaleCount(entry.totalScore, this.localeId)}:totalScore: Punkten!`;
   }
+
+  readonly scoreboardNickname = scoreboardNickname;
 
   leaderboardKindergartenEmoji(nickname: string, animalId?: number): string | null {
     return findKindergartenNicknameEmoji(nickname, undefined, animalId);

@@ -1326,17 +1326,18 @@
                               lobbyKindergartenEmoji(leader.nickname, leader.kindergartenAnimalId);
                               as em
                             ) {
+                              @let nicknameLabel = scoreboardNickname(leader.nickname, em);
                               <span
                                 class="session-host__kindergarten-entry session-host__kindergarten-entry--winner"
                               >
                                 <img
                                   class="session-host__kindergarten-emoji session-host__kindergarten-emoji--winner"
-                                  [attr.title]="leader.nickname"
+                                  [attr.title]="nicknameLabel"
                                   [src]="animalIconUrl(em)"
                                   alt=""
                                 />
                                 <span class="session-host__kindergarten-label">{{
-                                  leader.nickname
+                                  nicknameLabel
                                 }}</span>
                               </span>
                             } @else {
@@ -1431,17 +1432,18 @@
                                       );
                                       as em
                                     ) {
+                                      @let nicknameLabel = scoreboardNickname(entry.nickname, em);
                                       <span
                                         class="session-host__kindergarten-entry session-host__kindergarten-entry--table"
                                       >
                                         <img
                                           class="session-host__kindergarten-emoji session-host__kindergarten-emoji--table"
-                                          [attr.title]="entry.nickname"
+                                          [attr.title]="nicknameLabel"
                                           [src]="animalIconUrl(em)"
                                           alt=""
                                         />
                                         <span class="session-host__kindergarten-label">{{
-                                          entry.nickname
+                                          nicknameLabel
                                         }}</span>
                                       </span>
                                     } @else {
@@ -1585,6 +1587,9 @@
                             <span class="session-host__team-bar-meta">
                               {{ teamMemberLabel(entry.memberCount) }} ·
                               {{ '∅ ' + (entry.totalScore | number) }}
+                              <span class="session-host__team-median">{{
+                                teamMedianLabel(entry.medianScore)
+                              }}</span>
                             </span>
                           </div>
                           <div class="session-host__team-bar-track" aria-hidden="true">
@@ -3868,17 +3873,18 @@
                                 lobbyKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
                                 as em
                               ) {
+                                @let nicknameLabel = scoreboardNickname(entry.nickname, em);
                                 <span
                                   class="session-host__kindergarten-entry session-host__kindergarten-entry--interim"
                                 >
                                   <img
                                     class="session-host__kindergarten-emoji session-host__kindergarten-emoji--interim"
-                                    [attr.title]="entry.nickname"
+                                    [attr.title]="nicknameLabel"
                                     [src]="animalIconUrl(em)"
                                     alt=""
                                   />
                                   <span class="session-host__kindergarten-label">{{
-                                    entry.nickname
+                                    nicknameLabel
                                   }}</span>
                                 </span>
                               } @else {
@@ -3983,11 +3989,14 @@
                             <span>{{ teamNameLabelWithoutEmojiMarker(entry.teamName) }}</span>
                           }
                         </span>
-                        <span class="session-host__interim-score"
-                          >{{ teamMemberLabel(entry.memberCount) }} ·
+                        <span class="session-host__interim-score">
+                          {{ teamMemberLabel(entry.memberCount) }} ·
                           {{ '∅ ' + (entry.totalScore | number) }}
-                          <span i18n="@@sessionHost.pointsAbbr">Pkt.</span></span
-                        >
+                          <span i18n="@@sessionHost.pointsAbbr">Pkt.</span>
+                          <span class="session-host__team-median">{{
+                            teamMedianLabel(entry.medianScore)
+                          }}</span>
+                        </span>
                       </li>
                     }
                   </ol>
