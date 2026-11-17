@@ -197,7 +197,7 @@ const {
   getPresenterQuizResultQueryMock,
   getHostVoteProgressQueryMock,
   getLeaderboardQueryMock,
-  getTeamLeaderboardQueryMock,
+  getHostTeamLeaderboardQueryMock,
   getExportDataQueryMock,
   getSessionConfidenceSummaryQueryMock,
   wordCloudAnalyzeQueryMock,
@@ -268,7 +268,7 @@ const {
   getPresenterQuizResultQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
-  getTeamLeaderboardQueryMock: vi.fn(),
+  getHostTeamLeaderboardQueryMock: vi.fn(),
   getExportDataQueryMock: vi.fn(),
   getSessionConfidenceSummaryQueryMock: vi.fn(),
   wordCloudAnalyzeQueryMock: vi.fn(),
@@ -363,7 +363,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getPresenterQuizResult: { query: getPresenterQuizResultQueryMock },
       getHostVoteProgress: { query: getHostVoteProgressQueryMock },
       getLeaderboard: { query: getLeaderboardQueryMock },
-      getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
+      getHostTeamLeaderboard: { query: getHostTeamLeaderboardQueryMock },
       getExportData: { query: getExportDataQueryMock },
       getSessionConfidenceSummary: { query: getSessionConfidenceSummaryQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
@@ -719,7 +719,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     getHostVoteProgressQueryMock.mockResolvedValue(null);
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([]);
     qaListQueryMock.mockResolvedValue([]);
     // Default: kein Snapshot → Host fällt auf Forum-Liste zurück (Tests setzen oft nur qaQuestions).
     qaPresentProjectionQueryMock.mockRejectedValue(new Error('presentProjection not stubbed'));
@@ -25284,7 +25284,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     );
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([]);
 
     const fixture = setup();
     fixture.detectChanges();
@@ -25322,7 +25322,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         teamColor: '#1E88E5',
       },
     ]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: 'Team A',
@@ -25330,6 +25330,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 220,
+        medianScore: 0,
       },
       {
         rank: 2,
@@ -25338,6 +25339,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 2,
         averageScore: 220,
+        medianScore: 220,
       },
     ]);
 
@@ -25349,17 +25351,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Zur Startseite');
     expect(text).toContain('Team-Leaderboard');
+    expect(text).toContain('Median 0 Pkt.');
     expect(text).toContain('Team A');
     expect(text).toContain('Gleichstand: Antwortzeit zählt.');
     expect(
       fixture.nativeElement.querySelector('td.session-host__lb-col--name')?.textContent ?? '',
     ).toContain('Team A');
-    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        code: 'ABC123',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
-      }),
-    );
+    expect(getHostTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     fixture.destroy();
   });
 
@@ -25849,7 +25847,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
-        nickname: 'Lila Delfin',
+        nickname: 'Lila Delfin 1',
         totalScore: 500,
         correctCount: 3,
         totalQuestions: 3,
@@ -25859,7 +25857,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
       {
         rank: 2,
-        nickname: 'Lagunenblaue Qualle',
+        nickname: 'Lagunenblaue Qualle 2',
         totalScore: 500,
         correctCount: 2,
         totalQuestions: 3,
@@ -25887,9 +25885,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(interimEmojis.map((emoji) => emoji.getAttribute('title'))).toEqual([
       'Lila Delfin',
-      'Lagunenblaue Qualle',
+      'Lagunenblaue Qualle 2',
     ]);
-    expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle']);
+    expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle 2']);
     expect(interimEmojis.map((image) => image.getAttribute('src')?.split('/').at(-1))).toEqual([
       'emoji_u1f42c.svg',
       'emoji_u1fabc.svg',
@@ -25932,7 +25930,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalResponseTimeMs: 900,
       },
     ]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: ':apple: Team Apfel',
@@ -25940,6 +25938,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 600,
         memberCount: 2,
         averageScore: 600,
+        medianScore: 550.5,
       },
     ]);
 
@@ -25968,7 +25967,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     );
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: ':apple: Rot',
@@ -25976,6 +25975,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 220,
+        medianScore: 0,
       },
       {
         rank: 2,
@@ -25984,6 +25984,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 2,
         averageScore: 220,
+        medianScore: 220,
       },
     ]);
 
@@ -26031,7 +26032,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       correctVoterCount: 1,
     });
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: ':apple: Rot',
@@ -26039,6 +26040,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 220,
+        medianScore: 0,
       },
       {
         rank: 2,
@@ -26047,6 +26049,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 2,
         averageScore: 220,
+        medianScore: 220,
       },
     ]);
 
@@ -26067,6 +26070,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(interimName?.textContent ?? '').toContain('Rot');
     expect(interimScore?.textContent ?? '').toContain('3 Mitglieder');
     expect(interimScore?.textContent ?? '').toContain('∅ 220');
+    expect(interimScore?.textContent ?? '').toContain('Median 0 Pkt.');
     expect(teamInterim?.textContent ?? '').toContain('Gleichstand: Antwortzeit zählt.');
     expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
     expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');
@@ -26106,7 +26110,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       { rank: 1, nickname: 'Ada', totalScore: 120 },
       { rank: 2, nickname: 'Linus', totalScore: 100 },
     ]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: 'Rot',
@@ -26114,6 +26118,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 73.3,
+        medianScore: 0,
       },
     ]);
 

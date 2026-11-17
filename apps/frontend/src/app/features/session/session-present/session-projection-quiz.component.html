@@ -887,10 +887,9 @@
                           {{ entry.place }}
                         }
                       </strong>
-                      @if (
+                      @let emoji =
                         leaderboardNicknameEmoji(entry.nickname, entry.kindergartenAnimalId);
-                        as emoji
-                      ) {
+                      @if (emoji) {
                         <img
                           class="session-projection-quiz__leaderboard-emoji"
                           [src]="animalIconUrl(emoji)"
@@ -898,7 +897,7 @@
                         />
                       }
                       <span class="session-projection-quiz__leaderboard-name">{{
-                        entry.nickname
+                        scoreboardNickname(entry.nickname, emoji)
                       }}</span>
                       @if (entry.teamName) {
                         <span

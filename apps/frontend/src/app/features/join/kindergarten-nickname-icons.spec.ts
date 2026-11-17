@@ -6,6 +6,7 @@ import {
   findKindergartenNicknameIndex,
   kindergartenNicknameSequence,
   KINDERGARTEN_NICKNAME_EMOJIS,
+  scoreboardNickname,
 } from './kindergarten-nickname-icons';
 import { NICKNAME_LISTS, NICKNAME_LISTS_BY_LOCALE } from './nickname-themes';
 import {
@@ -17,6 +18,15 @@ import {
 import type { SupportedLocale } from '../../core/locale-from-path';
 
 describe('kindergarten-nickname-icons', () => {
+  it('blendet nur die erste Tiernummer in der Rangliste aus', () => {
+    expect(scoreboardNickname('Wal 1', '🐳')).toBe('Wal');
+    expect(scoreboardNickname('Wal 2', '🐋')).toBe('Wal 2');
+    expect(scoreboardNickname('Wal 11', '🐋')).toBe('Wal 11');
+    expect(scoreboardNickname('Wal', '🐋')).toBe('Wal');
+    expect(scoreboardNickname('Ada 1', null)).toBe('Ada 1');
+    expect(kindergartenNicknameSequence('Wal 1')).toBe('1');
+  });
+
   it('bietet genau 100 Ganzkörpermotive an und hält alle Tier-IDs auflösbar', () => {
     expect(KINDERGARTEN_ANIMALS.de).toHaveLength(100);
     expect(NICKNAME_LISTS.KINDERGARTEN).not.toContain('Frosch');

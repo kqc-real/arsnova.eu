@@ -632,6 +632,11 @@
       "fingerprint": "sha256:8ff4d32f3d27a7fb280d37fa6db1058491e373001b7a69b70cb37115882d4c85",
       "missing": []
     },
+    "session.getHostTeamLeaderboard": {
+      "kind": "query",
+      "fingerprint": "sha256:00355524aea64d84336c934a04f0232dd788512808f1218f43eee9892223ce82",
+      "missing": []
+    },
     "session.getHostVoteProgress": {
       "kind": "query",
       "fingerprint": "sha256:32f8db60154ba18e5888dcd43660f2a6aaaf615f27920f5ba35aeaff87e2e818",

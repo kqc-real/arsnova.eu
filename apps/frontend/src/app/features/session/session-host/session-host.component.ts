@@ -208,7 +208,7 @@ import {
   SessionLearningObjectiveDTO,
   SessionStatusUpdate,
   TeamDTO,
-  TeamLeaderboardEntryDTO,
+  HostTeamLeaderboardEntryDTO,
   PresenterQuizResult,
   FreetextWordCloudPresenterProjectionDTO,
   QaWordCloudPresenterProjectionDTO,
@@ -319,6 +319,7 @@ import {
 import {
   findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
+  scoreboardNickname,
 } from '../../join/kindergarten-nickname-icons';
 import {
   SessionQuizPickerDialogComponent,
@@ -1150,9 +1151,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly exportStatus = signal<string | null>(null);
   readonly exportExporting = signal(false);
   readonly leaderboard = signal<LeaderboardEntryDTO[]>([]);
-  readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  readonly teamLeaderboard = signal<HostTeamLeaderboardEntryDTO[]>([]);
   readonly lobbyTeams = signal<TeamDTO[]>([]);
-  readonly leaderboardLoading = signal(false);
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
@@ -4828,16 +4828,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.quickFeedbackSeenVoteCount.set(result.totalVotes);
       }
     });
-    effect(() => {
+    effect((onCleanup) => {
       const status = this.effectiveStatus();
       if (status !== 'FINISHED' && status !== 'RESULTS') {
         return;
       }
-      // loadLeaderboard liest und setzt leaderboardLoading synchron.
-      // Ohne untracked startet jeder Ladewechsel den Effect sofort neu.
-      untracked(() => {
-        void this.loadLeaderboard();
+      let current = true;
+      onCleanup(() => {
+        current = false;
       });
+      untracked(() => void this.loadLeaderboard(() => current));
     });
     effect(() => {
       const finished = this.effectiveStatus() === 'FINISHED';
@@ -9015,6 +9015,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Kindergarten-Preset: großes Tier-Emoji vor dem gespeicherten Nickname (Lobby). */
   readonly animalIconUrl = animalIconUrl;
 
+  readonly scoreboardNickname = scoreboardNickname;
+
   lobbyKindergartenEmoji(nickname: string, animalId?: number): string | null {
     const s = this.session();
     if (!s || s.nicknameTheme !== 'KINDERGARTEN' || s.anonymousMode === true) {
@@ -10052,6 +10054,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** #n nur wenn die Team-Wertung Punkte hat; sonst Gedankenstrich (kein fiktiver Rang bei 0). */
   teamLeaderboardRankDisplay(rank: number): string {
     return this.teamScoreboardHasPoints() ? `#${rank}` : '\u2014';
+  }
+
+  teamMedianLabel(score: number): string {
+    return $localize`:@@sessionHost.teamMedianScore:Median ${this.formatDecimal(score)}:score: Pkt.`;
   }
 
   private async refreshLobbyTeams(): Promise<void> {
@@ -15967,26 +15973,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadLeaderboard(): Promise<void> {
-    if (!this.code || this.leaderboardLoading()) return;
-    this.leaderboardLoading.set(true);
-    try {
-      const entries = await trpc.session.getLeaderboard.query({
-        code: this.code.toUpperCase(),
-        anonymousClientId: getAnonymousClientId(),
-      });
-      this.leaderboard.set(entries);
-      const teamEntries = await trpc.session.getTeamLeaderboard.query({
-        code: this.code.toUpperCase(),
-        anonymousClientId: getAnonymousClientId(),
-      });
-      this.teamLeaderboard.set(teamEntries);
-    } catch {
-      this.leaderboard.set([]);
-      this.teamLeaderboard.set([]);
-    } finally {
-      this.leaderboardLoading.set(false);
-    }
+  private async loadLeaderboard(isCurrent: () => boolean): Promise<void> {
+    if (!this.code) return;
+    const code = this.code.toUpperCase();
+    this.teamLeaderboard.set([]);
+    const entries = await trpc.session.getLeaderboard
+      .query({ code, anonymousClientId: getAnonymousClientId() })
+      .catch(() => []);
+    if (!isCurrent()) return;
+    this.leaderboard.set(entries);
+    const teamEntries = await trpc.session.getHostTeamLeaderboard.query({ code }).catch(() => []);
+    if (!isCurrent()) return;
+    this.teamLeaderboard.set(teamEntries);
     if (this.effectiveStatus() === 'FINISHED') {
       void this.loadFeedbackSummary();
     }

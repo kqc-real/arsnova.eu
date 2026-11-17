@@ -97,10 +97,47 @@
 
 .session-present__host-return button {
   min-height: 2.75rem;
+}
+
+.session-present__fullscreen-button,
+.session-present:not(.session-present--host-analysis-hint) .session-present__host-return-button {
   border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
   box-shadow: var(--mat-sys-level2);
+}
+
+.session-present--host-analysis-hint .session-present__host-return {
+  position: static;
+  flex: 0 0 auto;
+  max-width: none;
+  margin-block-end: 0.35rem;
+}
+
+.session-present--host-analysis-hint .session-present__connection-status {
+  position: static;
+  align-self: center;
+  margin-block-end: 0.35rem;
+  transform: none;
+}
+
+.session-present__host-return-label,
+.session-present__host-analysis-hints {
+  display: grid;
+  text-align: start;
+}
+
+.session-present__host-analysis-hints {
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.session-present--host-analysis-hint .session-present__host-return-button {
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  padding-block: 0.5rem;
 }
 
 .session-present__host-return-error,

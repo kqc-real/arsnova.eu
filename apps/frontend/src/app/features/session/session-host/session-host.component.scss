@@ -5027,6 +5027,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+.session-host__team-median {
+  display: block;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-small);
+  font-variant-numeric: tabular-nums;
+}
+
 .session-host__team-bar-track {
   margin-top: 0.7rem;
   height: 0.7rem;

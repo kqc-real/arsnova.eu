@@ -20985,6 +20985,10 @@
           <context context-type="linenumber">1399</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.teamMedianScore" datatype="html">
+        <source>Median <x id="score" equiv-text="this.formatDecimal(score)"/> Pkt.</source>
+        <target>Médiane <x id="score" equiv-text="this.formatDecimal(score)"/> pts</target>
+      </trans-unit>
       <trans-unit id="sessionHost.teamLeaderboardTiebreakHint" datatype="html">
         <source>Gleichstand: Antwortzeit zählt.</source>
         <target>Égalité : temps de réponse.</target>
@@ -36559,6 +36563,22 @@
         <source>Zur Host-Ansicht zurückkehren</source>
         <target>Revenir à la vue hôte</target>
         </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisConfidence" datatype="html">
+        <source>Antwortsicherheit im Detail ansehen</source>
+        <target>Voir le détail de la confiance dans les réponses</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisMatching" datatype="html">
+        <source>Zuordnungen im Detail ansehen</source>
+        <target>Voir le détail des associations</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisOrdering" datatype="html">
+        <source>Positionsverteilung ansehen</source>
+        <target>Voir la répartition par position</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisCategorization" datatype="html">
+        <source>Kategorienverteilung ansehen</source>
+        <target>Voir la répartition par catégorie</target>
+      </trans-unit>
       <trans-unit id="sessionPresent.returnToHostError" datatype="html">
         <source>Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
         <target>Impossible d’ouvrir la vue hôte. Réessaie.</target>

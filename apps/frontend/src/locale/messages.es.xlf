@@ -20985,6 +20985,10 @@
           <context context-type="linenumber">1399</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.teamMedianScore" datatype="html">
+        <source>Median <x id="score" equiv-text="this.formatDecimal(score)"/> Pkt.</source>
+        <target>Mediana <x id="score" equiv-text="this.formatDecimal(score)"/> pts</target>
+      </trans-unit>
       <trans-unit id="sessionHost.teamLeaderboardTiebreakHint" datatype="html">
         <source>Gleichstand: Antwortzeit zählt.</source>
         <target>Empate: cuenta el tiempo.</target>
@@ -36559,6 +36563,22 @@
         <source>Zur Host-Ansicht zurückkehren</source>
         <target>Volver a la vista de anfitrión</target>
         </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisConfidence" datatype="html">
+        <source>Antwortsicherheit im Detail ansehen</source>
+        <target>Ver el detalle de la seguridad al responder</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisMatching" datatype="html">
+        <source>Zuordnungen im Detail ansehen</source>
+        <target>Ver las asociaciones en detalle</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisOrdering" datatype="html">
+        <source>Positionsverteilung ansehen</source>
+        <target>Ver la distribución por posición</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisCategorization" datatype="html">
+        <source>Kategorienverteilung ansehen</source>
+        <target>Ver la distribución por categoría</target>
+      </trans-unit>
       <trans-unit id="sessionPresent.returnToHostError" datatype="html">
         <source>Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
         <target>No se ha podido abrir la vista de moderación. Inténtalo de nuevo.</target>

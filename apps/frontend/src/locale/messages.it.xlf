@@ -20985,6 +20985,10 @@
           <context context-type="linenumber">1399</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.teamMedianScore" datatype="html">
+        <source>Median <x id="score" equiv-text="this.formatDecimal(score)"/> Pkt.</source>
+        <target>Mediana <x id="score" equiv-text="this.formatDecimal(score)"/> pt</target>
+      </trans-unit>
       <trans-unit id="sessionHost.teamLeaderboardTiebreakHint" datatype="html">
         <source>Gleichstand: Antwortzeit zählt.</source>
         <target>Parità: conta il tempo.</target>
@@ -36559,6 +36563,22 @@
         <source>Zur Host-Ansicht zurückkehren</source>
         <target>Torna alla vista host</target>
         </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisConfidence" datatype="html">
+        <source>Antwortsicherheit im Detail ansehen</source>
+        <target>Vedi i dettagli sulla sicurezza delle risposte</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisMatching" datatype="html">
+        <source>Zuordnungen im Detail ansehen</source>
+        <target>Vedi gli abbinamenti nel dettaglio</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisOrdering" datatype="html">
+        <source>Positionsverteilung ansehen</source>
+        <target>Vedi la distribuzione per posizione</target>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisCategorization" datatype="html">
+        <source>Kategorienverteilung ansehen</source>
+        <target>Vedi la distribuzione per categoria</target>
+      </trans-unit>
       <trans-unit id="sessionPresent.returnToHostError" datatype="html">
         <source>Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
         <target>Impossibile aprire la vista di conduzione. Riprova.</target>

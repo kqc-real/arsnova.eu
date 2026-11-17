@@ -4994,6 +4994,11 @@ export const TeamLeaderboardEntryDTOSchema = z.object({
 });
 export type TeamLeaderboardEntryDTO = z.infer<typeof TeamLeaderboardEntryDTOSchema>;
 
+export const HostTeamLeaderboardEntryDTOSchema = TeamLeaderboardEntryDTOSchema.extend({
+  medianScore: z.number().nonnegative(),
+});
+export type HostTeamLeaderboardEntryDTO = z.infer<typeof HostTeamLeaderboardEntryDTOSchema>;
+
 /** Input: Emoji-Reaktion senden (Story 5.8). `round`: Peer Instruction – eigener Speicher pro Runde. */
 export const SendEmojiReactionInputSchema = z.object({
   sessionId: z.uuid(),

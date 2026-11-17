@@ -90,6 +90,7 @@ import {
   QuestionRevealedDTOSchema,
   LeaderboardEntryDTOSchema,
   TeamLeaderboardEntryDTOSchema,
+  HostTeamLeaderboardEntryDTOSchema,
   BonusTokenListDTOSchema,
   GetBonusTokensForQuizInputSchema,
   GetQuizCollectionHistoryAvailabilityInputSchema,
@@ -124,6 +125,7 @@ import {
   type HostCurrentQuestionDTO,
   type HostVoteProgressDTO,
   type TeamLeaderboardEntryDTO,
+  type HostTeamLeaderboardEntryDTO,
   type TeamAssignment,
   type ToleranceLevel,
   type RoundComparisonDTO,
@@ -3521,6 +3523,18 @@ async function buildSessionTeamLeaderboard(
   sessionId: string,
   requestedTeamCount: number,
   configuredTeamNames?: string[] | null,
+): Promise<TeamLeaderboardEntryDTO[]>;
+async function buildSessionTeamLeaderboard(
+  sessionId: string,
+  requestedTeamCount: number,
+  configuredTeamNames: string[] | null | undefined,
+  includeMedian: true,
+): Promise<HostTeamLeaderboardEntryDTO[]>;
+async function buildSessionTeamLeaderboard(
+  sessionId: string,
+  requestedTeamCount: number,
+  configuredTeamNames?: string[] | null,
+  includeMedian = false,
 ): Promise<TeamLeaderboardEntryDTO[]> {
   const teams = await ensureSessionTeams(sessionId, requestedTeamCount, configuredTeamNames);
   const [participants, progressSession] = await Promise.all([
@@ -3569,6 +3583,7 @@ async function buildSessionTeamLeaderboard(
       rawTotalScore: number;
       totalResponseTimeMs: number;
       memberCount: number;
+      memberScores: Map<string, number> | null;
     }
   >();
   for (const team of teams) {
@@ -3578,6 +3593,7 @@ async function buildSessionTeamLeaderboard(
       rawTotalScore: 0,
       totalResponseTimeMs: 0,
       memberCount: 0,
+      memberScores: includeMedian ? new Map() : null,
     });
   }
 
@@ -3588,6 +3604,7 @@ async function buildSessionTeamLeaderboard(
     const stats = teamStats.get(participant.teamId);
     if (stats) {
       stats.memberCount += 1;
+      stats.memberScores?.set(participant.id, 0);
     }
   }
 
@@ -3599,6 +3616,10 @@ async function buildSessionTeamLeaderboard(
     const score = Number(vote.score) || 0;
     stats.rawTotalScore += score;
     stats.totalResponseTimeMs += getCompetitionResponseTimeMs(vote);
+    const previousScore = stats.memberScores?.get(vote.participantId);
+    if (previousScore !== undefined) {
+      stats.memberScores?.set(vote.participantId, previousScore + score);
+    }
   }
 
   return [...teamStats.values()]
@@ -3606,12 +3627,8 @@ async function buildSessionTeamLeaderboard(
     .map((team) => {
       const normalizedScore = normalizeTeamLeaderboardScore(team.rawTotalScore, team.memberCount);
       return {
-        rank: 0,
-        teamName: team.teamName,
-        teamColor: team.teamColor,
+        ...team,
         totalScore: normalizedScore,
-        totalResponseTimeMs: team.totalResponseTimeMs,
-        memberCount: team.memberCount,
         averageScore: normalizedScore,
       };
     })
@@ -3621,14 +3638,23 @@ async function buildSessionTeamLeaderboard(
         a.totalResponseTimeMs - b.totalResponseTimeMs ||
         a.teamName.localeCompare(b.teamName),
     )
-    .map((team, index) => ({
-      rank: index + 1,
-      teamName: team.teamName,
-      teamColor: team.teamColor,
-      totalScore: team.totalScore,
-      memberCount: team.memberCount,
-      averageScore: team.averageScore,
-    }));
+    .map((team, index) => {
+      const entry = {
+        rank: index + 1,
+        teamName: team.teamName,
+        teamColor: team.teamColor,
+        totalScore: team.totalScore,
+        memberCount: team.memberCount,
+        averageScore: team.averageScore,
+      };
+      if (!team.memberScores) return entry;
+
+      const sorted = [...team.memberScores.values()].sort((a, b) => a - b);
+      const middle = Math.floor(sorted.length / 2);
+      const medianScore =
+        sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+      return { ...entry, medianScore };
+    });
 }
 
 async function assignAllParticipantsToTeams(
@@ -10961,6 +10987,38 @@ const sessionCoreRouter = router({
         session.id,
         session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
         session.quiz.teamNames,
+      );
+    }),
+
+  /** Ergänzt die Teamwertung um den Median der Mitgliedspunkte für die Host-Auswertung. */
+  getHostTeamLeaderboard: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(z.array(HostTeamLeaderboardEntryDTOSchema))
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          quiz: { select: { teamMode: true, teamCount: true, teamNames: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (
+        !session.quiz?.teamMode ||
+        (session.status !== 'RESULTS' && !isSessionEffectivelyFinished(session, new Date()))
+      ) {
+        return [];
+      }
+      return buildSessionTeamLeaderboard(
+        session.id,
+        session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
+        session.quiz.teamNames,
+        true,
       );
     }),
 
