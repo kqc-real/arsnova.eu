@@ -1587,9 +1587,11 @@
                             <span class="session-host__team-bar-meta">
                               {{ teamMemberLabel(entry.memberCount) }} ·
                               {{ '∅ ' + (entry.totalScore | number) }}
-                              <span class="session-host__team-median">{{
-                                teamMedianLabel(entry.medianScore)
-                              }}</span>
+                              @if (entry.memberCount >= 3) {
+                                <span class="session-host__team-median">{{
+                                  teamMedianLabel(entry.medianScore)
+                                }}</span>
+                              }
                             </span>
                           </div>
                           <div class="session-host__team-bar-track" aria-hidden="true">
@@ -3993,9 +3995,11 @@
                           {{ teamMemberLabel(entry.memberCount) }} ·
                           {{ '∅ ' + (entry.totalScore | number) }}
                           <span i18n="@@sessionHost.pointsAbbr">Pkt.</span>
-                          <span class="session-host__team-median">{{
-                            teamMedianLabel(entry.medianScore)
-                          }}</span>
+                          @if (entry.memberCount >= 3) {
+                            <span class="session-host__team-median">{{
+                              teamMedianLabel(entry.medianScore)
+                            }}</span>
+                          }
                         </span>
                       </li>
                     }

@@ -147,8 +147,6 @@ import {
   DEMO_QUIZ_HISTORY_SCOPE_ID,
   isDemoQuizHistoryScopeId,
   NicknameThemeEnum,
-  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
-  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
   createQuizHistoryAccessProof,
   createLegacyQuizHistoryAccessProof,
   evaluateNumericAnswer,
@@ -162,14 +160,11 @@ import {
   isTimerAccommodationEnabled,
   resolveEffectiveQuestionTimer,
   resolvePersonalTimerSeconds,
-  resolveNumericQuestionEvaluationSettings,
-  resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
   usesNumericShortTextEvaluation,
   usesShortTextUnitEvaluation,
   resolveNumericTolerance,
   isNumericValueInBand,
-  isNumericToleranceMode,
   resolveNumericEstimateToleranceMode,
   buildConfidenceResult,
   buildSessionConfidenceSummary,
@@ -205,6 +200,8 @@ import {
   isExactCorrectSelection,
   questionCountsTowardsTotalQuestions,
   questionAffectsStreak,
+  resolveShortTextQuestionConfig,
+  type ShortTextQuestionConfig,
 } from '../lib/quizScoring';
 import {
   invalidateSessionRankingCache,
@@ -1298,63 +1295,7 @@ async function getRatingVoteProgressCached(
   );
 }
 
-type ShortTextQuestionConfig = {
-  shortTextEvaluationKind?: string | null;
-  shortTextMaxLength?: number | null;
-  shortTextCaseSensitive?: boolean | null;
-  shortTextEvaluationMode?: string | null;
-  shortTextToleranceLevel?: string | null;
-  shortTextAllowPartialCredit?: boolean | null;
-  shortTextTrimWhitespace?: boolean | null;
-  shortTextNormalizeWhitespace?: boolean | null;
-  numericInputKind?: string | null;
-  numericToleranceMode?: string | null;
-  numericAbsoluteTolerance?: number | null;
-  numericRelativeTolerancePercent?: number | null;
-  numericUnitFamily?: string | null;
-  numericRequireUnit?: boolean | null;
-  numericAcceptEquivalentUnits?: boolean | null;
-};
-
 type ShortTextAnswerOption = { id: string; text: string; isCorrect: boolean };
-
-function resolveShortTextQuestionConfig(config?: ShortTextQuestionConfig) {
-  const numericSettings = resolveNumericQuestionEvaluationSettings({
-    numericInputKind: (config?.numericInputKind as NumericInputKind | null | undefined) ?? null,
-    numericToleranceMode: isNumericToleranceMode(config?.numericToleranceMode)
-      ? config.numericToleranceMode
-      : null,
-    numericAbsoluteTolerance: config?.numericAbsoluteTolerance ?? null,
-    numericRelativeTolerancePercent: config?.numericRelativeTolerancePercent ?? null,
-    numericUnitFamily: (config?.numericUnitFamily as NumericUnitFamily | null | undefined) ?? null,
-    numericRequireUnit: config?.numericRequireUnit ?? false,
-    numericAcceptEquivalentUnits: config?.numericAcceptEquivalentUnits ?? true,
-  });
-
-  return {
-    shortTextEvaluationKind: resolveShortTextEvaluationKind(
-      (config?.shortTextEvaluationKind as ShortTextEvaluationKind | null | undefined) ?? undefined,
-    ),
-    shortTextMaxLength: config?.shortTextMaxLength ?? null,
-    shortTextCaseSensitive: config?.shortTextCaseSensitive ?? false,
-    shortTextEvaluationMode:
-      (config?.shortTextEvaluationMode as ShortAnswerEvaluationMode | null | undefined) ??
-      SHORT_TEXT_DEFAULT_EVALUATION_MODE,
-    shortTextToleranceLevel:
-      (config?.shortTextToleranceLevel as ToleranceLevel | null | undefined) ??
-      SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
-    shortTextAllowPartialCredit: config?.shortTextAllowPartialCredit ?? true,
-    shortTextTrimWhitespace: config?.shortTextTrimWhitespace ?? true,
-    shortTextNormalizeWhitespace: config?.shortTextNormalizeWhitespace ?? true,
-    numericInputKind: numericSettings.inputKind,
-    numericToleranceMode: numericSettings.toleranceMode,
-    numericAbsoluteTolerance: numericSettings.absoluteTolerance,
-    numericRelativeTolerancePercent: numericSettings.relativeTolerancePercent,
-    numericUnitFamily: numericSettings.unitFamily,
-    numericRequireUnit: numericSettings.requireUnit,
-    numericAcceptEquivalentUnits: numericSettings.acceptEquivalentUnits,
-  };
-}
 
 function getShortTextDtoFields(
   questionType: string,
@@ -10861,20 +10802,19 @@ const sessionCoreRouter = router({
         parseSessionQuestionProgress(session.questionProgress),
         session.questionProgressComplete,
       );
-      const totalScoredQuestions = session.quiz.questions.filter(
+      const scoredQuestions = session.quiz.questions.filter(
         (q) =>
           includedQuestionIds.has(q.id) &&
           questionCountsTowardsTotalQuestions(q.type as QuestionType),
-      ).length;
-
-      const votes = selectEffectiveCompetitionVotes(
-        await loadSharedCompetitionVotes({
-          sessionId: session.id,
-          questionIds: [...includedQuestionIds],
-          participantRevision: session.participantRevision ?? 0,
-          includeCorrectness: true,
-        }),
       );
+
+      const votes = await loadSharedCompetitionVotes({
+        sessionId: session.id,
+        questionIds: [...includedQuestionIds],
+        participantRevision: session.participantRevision ?? 0,
+        includeCorrectness: true,
+        includeShortTextGrading: scoredQuestions.some((question) => question.type === 'SHORT_TEXT'),
+      });
 
       const stats = new Map<
         string,
@@ -10892,8 +10832,13 @@ const sessionCoreRouter = router({
 
         if (questionCountsTowardsTotalQuestions(v.question?.type as QuestionType)) {
           const voteQuestionType = v.question?.type as QuestionType;
+          if (voteQuestionType === 'SHORT_TEXT') {
+            if (v.shortTextFullyCorrect) {
+              s.correctCount++;
+            }
+            continue;
+          }
           if (
-            voteQuestionType === 'SHORT_TEXT' ||
             voteQuestionType === 'NUMERIC_ESTIMATE' ||
             voteQuestionType === 'MATCHING' ||
             voteQuestionType === 'ORDERING' ||
@@ -10940,7 +10885,7 @@ const sessionCoreRouter = router({
             kindergartenAnimalId: meta?.kindergartenAnimalId,
             totalScore: Number(s.totalScore) || 0,
             correctCount: s.correctCount,
-            totalQuestions: totalScoredQuestions,
+            totalQuestions: scoredQuestions.length,
             totalResponseTimeMs: s.totalResponseTimeMs,
             ...(meta?.teamName
               ? {

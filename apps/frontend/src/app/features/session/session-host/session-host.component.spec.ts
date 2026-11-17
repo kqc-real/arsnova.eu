@@ -25348,10 +25348,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.componentInstance.teamLeaderboard()).toHaveLength(2);
+    });
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Zur Startseite');
     expect(text).toContain('Team-Leaderboard');
-    expect(text).toContain('Median 0 Pkt.');
+    const teamScores = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.session-host__team-bar-meta',
+    );
+    expect(teamScores).toHaveLength(2);
+    expect(teamScores[0].querySelector('.session-host__team-median')?.textContent?.trim()).toBe(
+      'Median 0 Pkt.',
+    );
+    expect(teamScores[1].textContent).toContain('∅ 220');
+    expect(teamScores[1].querySelector('.session-host__team-median')).toBeNull();
     expect(text).toContain('Team A');
     expect(text).toContain('Gleichstand: Antwortzeit zählt.');
     expect(
@@ -26051,6 +26063,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         averageScore: 220,
         medianScore: 220,
       },
+      {
+        rank: 3,
+        teamName: 'Blau',
+        teamColor: null,
+        totalScore: 120,
+        memberCount: 1,
+        averageScore: 120,
+        medianScore: 120,
+      },
     ]);
 
     const fixture = setup();
@@ -26064,13 +26085,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const interimName = teamInterim?.querySelector(
       '.session-host__interim-name',
     ) as HTMLElement | null;
-    const interimScore = teamInterim?.querySelector(
-      '.session-host__interim-score',
-    ) as HTMLElement | null;
+    const interimScores = teamInterim!.querySelectorAll('.session-host__interim-score');
+    expect(interimScores).toHaveLength(3);
+    const interimScore = interimScores[0];
     expect(interimName?.textContent ?? '').toContain('Rot');
     expect(interimScore?.textContent ?? '').toContain('3 Mitglieder');
     expect(interimScore?.textContent ?? '').toContain('∅ 220');
-    expect(interimScore?.textContent ?? '').toContain('Median 0 Pkt.');
+    expect(interimScore.querySelector('.session-host__team-median')?.textContent?.trim()).toBe(
+      'Median 0 Pkt.',
+    );
+    expect(interimScores[1].textContent).toContain('∅ 220');
+    expect(interimScores[1].querySelector('.session-host__team-median')).toBeNull();
+    expect(interimScores[2].textContent).toContain('∅ 120');
+    expect(interimScores[2].querySelector('.session-host__team-median')).toBeNull();
     expect(teamInterim?.textContent ?? '').toContain('Gleichstand: Antwortzeit zählt.');
     expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
     expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');

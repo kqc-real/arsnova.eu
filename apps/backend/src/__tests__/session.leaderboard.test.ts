@@ -315,77 +315,104 @@ describe('session.getLeaderboard', () => {
     ]);
   });
 
-  it('zaehlt positive SHORT_TEXT-Scores als richtige Antworten im Leaderboard', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      quiz: {
-        showLeaderboard: true,
-        questions: [{ type: 'SHORT_TEXT' }],
+  it.each([
+    {
+      title: 'zählt eine exakte Kurzantwort auch ohne Punkte',
+      modelAnswer: 'Berlin',
+      freeText: 'berlin',
+      config: {},
+      score: 0,
+      correctCount: 1,
+    },
+    {
+      title: 'zählt einen Tippfehler bei Teilpunkten nicht',
+      modelAnswer: 'Berlin',
+      freeText: 'Berln',
+      config: { shortTextToleranceLevel: 'medium', shortTextAllowPartialCredit: true },
+      score: 215,
+      correctCount: 0,
+    },
+    {
+      title: 'zählt einen Tippfehler, wenn die Toleranz ihn voll akzeptiert',
+      modelAnswer: 'Berlin',
+      freeText: 'Berln',
+      config: { shortTextToleranceLevel: 'medium', shortTextAllowPartialCredit: false },
+      score: 215,
+      correctCount: 1,
+    },
+    {
+      title: 'bewertet einen tolerierten Altdaten-Treffer ohne gespeicherte Korrektheit',
+      modelAnswer: 'Berlin',
+      freeText: 'Berln',
+      config: { shortTextToleranceLevel: 'medium', shortTextAllowPartialCredit: false },
+      isCorrect: null,
+      score: 0,
+      correctCount: 1,
+    },
+    {
+      title: 'zählt einen Treffer mit fehlender Pflichteinheit nicht',
+      modelAnswer: '10 m',
+      freeText: '10',
+      config: {
+        shortTextEvaluationKind: 'numeric_unit',
+        numericUnitFamily: 'length',
+        numericRequireUnit: true,
       },
-      participants: [{ id: 'p1', nickname: 'Ada' }],
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      {
+      score: 500,
+      correctCount: 0,
+    },
+    {
+      title: 'zählt eine numerische Kurzantwort innerhalb der Toleranz',
+      modelAnswer: '10',
+      freeText: '11',
+      config: {
+        shortTextEvaluationKind: 'numeric',
+        numericToleranceMode: 'absolute',
+        numericAbsoluteTolerance: 1,
+      },
+      score: 700,
+      correctCount: 1,
+    },
+  ])(
+    '$title im Leaderboard',
+    async ({ modelAnswer, freeText, config, score, correctCount, isCorrect = true }) => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        quiz: {
+          showLeaderboard: true,
+          questions: [{ id: 'q1', order: 0, type: 'SHORT_TEXT' }],
+        },
+        participants: [{ id: 'p1', nickname: 'Ada' }],
+      });
+      const vote = {
         participantId: 'p1',
         questionId: 'q1',
-        round: 1,
-        score: 215,
+        isCorrect,
         responseTimeMs: 1800,
         question: {
           type: 'SHORT_TEXT',
-          answers: [{ id: 'a1', isCorrect: true }],
+          ...config,
+          answers: [{ id: 'a1', text: modelAnswer, isCorrect: true }],
         },
         selectedAnswers: [],
-      },
-    ]);
+      };
+      prismaMock.vote.findMany.mockResolvedValue([
+        { ...vote, round: 1, score: 1000, freeText: modelAnswer },
+        { ...vote, round: 2, score, freeText },
+      ]);
 
-    const result = await caller.getLeaderboard({ code: 'ABC123' });
+      const result = await caller.getLeaderboard({ code: 'ABC123' });
 
-    expect(result).toEqual([
-      expect.objectContaining({
-        nickname: 'Ada',
-        totalScore: 215,
-        correctCount: 1,
-        totalQuestions: 1,
-      }),
-    ]);
-  });
-
-  it('zaehlt gespeicherte fachliche Korrektheit auch bei 0 Punkten als richtig', async () => {
-    prismaMock.session.findUnique.mockResolvedValue({
-      id: 'sess-1',
-      quiz: {
-        showLeaderboard: true,
-        questions: [{ type: 'SHORT_TEXT' }],
-      },
-      participants: [{ id: 'p1', nickname: 'Ada' }],
-    });
-    prismaMock.vote.findMany.mockResolvedValue([
-      {
-        participantId: 'p1',
-        questionId: 'q1',
-        round: 1,
-        score: 0,
-        isCorrect: true,
-        responseTimeMs: 10_000,
-        question: {
-          type: 'SHORT_TEXT',
-          answers: [{ id: 'a1', isCorrect: true }],
-        },
-        selectedAnswers: [],
-      },
-    ]);
-
-    const result = await caller.getLeaderboard({ code: 'ABC123' });
-
-    expect(result).toEqual([
-      expect.objectContaining({
-        nickname: 'Ada',
-        correctCount: 1,
-        totalScore: 0,
-      }),
-    ]);
-  });
+      expect(result).toEqual([
+        expect.objectContaining({
+          nickname: 'Ada',
+          totalScore: score,
+          correctCount,
+          totalQuestions: 1,
+        }),
+      ]);
+    },
+  );
 
   it('zaehlt positive NUMERIC_ESTIMATE-Scores als richtige Antworten im Leaderboard', async () => {
     prismaMock.session.findUnique.mockResolvedValue({

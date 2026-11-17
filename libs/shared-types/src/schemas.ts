@@ -4945,7 +4945,7 @@ export const LeaderboardEntryDTOSchema = z.object({
   nickname: z.string(),
   kindergartenAnimalId: KindergartenAnimalIdSchema,
   totalScore: z.number(), // Gesamtpunkte (Schwierigkeit × Zeitbonus)
-  correctCount: z.number(), // Anzahl richtiger Antworten
+  correctCount: z.number(), // Anzahl vollständig richtig beantworteter Fragen
   totalQuestions: z.number(), // Gesamtanzahl Fragen
   totalResponseTimeMs: z.number(), // Gesamtantwortzeit positiv bewerteter Antworten in ms (Tiebreaker)
   teamName: z.string().nullable().optional(), // Teamzuordnung im Teammodus
