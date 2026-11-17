@@ -94,6 +94,8 @@ Die tatsaechliche `SHORT_TEXT`-Basispunktzahl ist:
 - kleiner als `1000` bei korrektem Zahlenwert mit falscher oder fehlender Pflicht-Einheit
 - `0`, wenn keine fachliche Uebereinstimmung vorliegt
 
+Die Leaderboard-Spalte »Richtig« zählt Kurzantworten mit voller fachlicher Bewertung. Teilbewertungen fließen in die Punktesumme ein, ohne die Anzahl richtiger Antworten zu erhöhen. Die fachliche Bewertung erfolgt vor Schwierigkeit, Timer und Streak.
+
 Textuelle Kurzantworten nutzen die konfigurierte Normalisierung, Bewertungsmethode und Toleranz. Numerische Kurzantworten werden ueber geparste Zahlen bewertet; numerische Kurzantworten mit Einheiten koennen aequivalente Einheiten akzeptieren.
 
 Erst nach dieser fachlichen Kurzantwort-Bewertung werden Difficulty, Timer und Streak angewendet. Beispiel ohne Timer:
@@ -294,7 +296,7 @@ Fuer Veranstaltungen mit 250+ Teilnehmenden ist diese Regel unkritisch, solange 
 ## Umsetzungsleitplanken
 
 - `calculateVoteScore` bleibt die Quelle fuer den Score eines einzelnen Votes vor Streak.
-- `Vote.isCorrect` ist die Quelle fuer fachliche Korrektheit in Streak, Scorecard und Korrektzaehlung. Punkte duerfen nicht als Ersatz fuer Korrektheit interpretiert werden.
+- `Vote.isCorrect` ist die Quelle für die fachliche Korrektheit in Streak und Scorecard. Das Leaderboard ermittelt bei Kurzantworten die vollständige Korrektheit aus der fachlichen Bewertung der gespeicherten Antwort.
 - `getStreakMultiplier` und `questionAffectsStreak` bleiben die Quelle fuer Streak-Regeln.
 - Wettbewerbsaggregation verwendet `selectEffectiveCompetitionVotes`.
 - Antwortzeit fuer Rankings wird ueber die gemeinsame Wettbewerbsregel bestimmt; Runde 2 liefert dafuer immer `0`.
@@ -339,7 +341,7 @@ Stand 2026-06-17:
 
 Stand 2026-06-18:
 
-- `Vote.isCorrect` speichert die fachliche Korrektheit unabhaengig von `score`. Streaks, Scorecards und Korrektzaehlungen nutzen dieses Feld mit Fallback auf `score > 0` fuer Altdaten.
+- `Vote.isCorrect` speichert die fachliche Korrektheit unabhaengig von `score`. Streaks und Scorecards nutzen dieses Feld mit Fallback auf `score > 0` für Altdaten.
 - `Session.activeQuestionStartedAt` ist die serverseitige Startzeit der aktuell abstimmbaren Frage/Runde. Sie verhindert, dass `statusChangedAt` durch Ergebnisfreigabe oder Diskussion die Antwortzeit und Deadline nachtraeglich verschiebt.
 - Korrekte bewertbare Timer-Antworten behalten am Timerende mindestens 10 % Zeitfaktor; falsche Antworten bleiben 0 Punkte.
 - Die 2-Sekunden-Karenz akzeptiert Votes nach automatischem/hostseitigem Wechsel in `RESULTS` oder `DISCUSSION` nur, wenn der Statuswechsel nach der Deadline lag. Bei vorzeitiger Ergebnisfreigabe werden weitere Votes abgelehnt.

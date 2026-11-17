@@ -263,10 +263,11 @@ Wettbewerbs-Antwortzeit aufsteigend, dann `teamName` lexikographisch.
 
 Es gibt **keine** eigene `TeamLeaderboardComponent`. **SessionPresent** und **SessionVote**
 laden die Teamrangliste über `session.getTeamLeaderboard`. **SessionHost** lädt dieselbe
-Rangfolge über `session.getHostTeamLeaderboard` und zeigt in der Zwischen- und Abschlussauswertung
-je Team zusätzlich den Median der kumulierten Mitgliedspunkte. Mitglieder ohne gewertete Punkte
-gehen mit null ein. Bei gerader Teamgröße ist der Median der Mittelwert der beiden mittleren
-Punktestände. Für Rang und Balkenlänge gilt weiterhin das arithmetische Mittel des Teams.
+Rangfolge über `session.getHostTeamLeaderboard`. In der Zwischen- und Abschlussauswertung zeigt
+der Host den Median der kumulierten Mitgliedspunkte je Team ab drei Mitgliedern. Bei einem oder
+zwei Mitgliedern entspricht er immer dem Mittelwert. Mitglieder ohne gewertete Punkte gehen mit
+null ein. Bei gerader Teamgröße ist der Median der Mittelwert der beiden mittleren Punktestände.
+Für Rang und Balkenlänge gilt weiterhin das arithmetische Mittel des Teams.
 
 ### Berechnungsbeispiel
 

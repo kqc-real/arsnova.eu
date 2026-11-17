@@ -1,4 +1,5 @@
 import { prisma } from '../db';
+import { isFullyCorrectShortTextVote } from './quizScoring';
 
 const SESSION_RANKING_CACHE_TTL_MS = 2_000;
 const SESSION_RANKING_CACHE_MAX_ENTRIES = 256;
@@ -10,6 +11,7 @@ export type CompetitionVoteRow = {
   score: number;
   responseTimeMs: number | null;
   isCorrect?: boolean | null;
+  shortTextFullyCorrect?: boolean;
   question?: {
     type: string;
     answers: { id: string; isCorrect: boolean }[];
@@ -140,12 +142,15 @@ export async function loadSharedCompetitionVotes(options: {
   questionIds: readonly string[];
   participantRevision: number;
   includeCorrectness: boolean;
+  includeShortTextGrading?: boolean;
 }): Promise<CompetitionVoteRow[]> {
   const questionKey = options.questionIds.join(',');
+  const includeShortTextGrading = options.includeShortTextGrading === true;
   const cacheKey = [
     options.sessionId,
     options.participantRevision,
     options.includeCorrectness ? 'full' : 'score',
+    includeShortTextGrading ? 'short-text' : '',
     questionKey,
   ].join(':');
   const nowMs = Date.now();
@@ -165,24 +170,57 @@ export async function loadSharedCompetitionVotes(options: {
     questionId: { in: [...options.questionIds] },
   };
   const queryPromise: Promise<CompetitionVoteRow[]> = options.includeCorrectness
-    ? prisma.vote.findMany({
-        where,
-        select: {
-          participantId: true,
-          questionId: true,
-          round: true,
-          score: true,
-          isCorrect: true,
-          responseTimeMs: true,
-          question: {
-            select: {
-              type: true,
-              answers: { select: { id: true, isCorrect: true } },
+    ? prisma.vote
+        .findMany({
+          where,
+          select: {
+            participantId: true,
+            questionId: true,
+            round: true,
+            score: true,
+            isCorrect: true,
+            responseTimeMs: true,
+            freeText: includeShortTextGrading,
+            question: {
+              select: {
+                type: true,
+                answers: { select: { id: true, isCorrect: true, text: includeShortTextGrading } },
+                shortTextEvaluationKind: includeShortTextGrading,
+                shortTextMaxLength: includeShortTextGrading,
+                shortTextCaseSensitive: includeShortTextGrading,
+                shortTextEvaluationMode: includeShortTextGrading,
+                shortTextToleranceLevel: includeShortTextGrading,
+                shortTextAllowPartialCredit: includeShortTextGrading,
+                shortTextTrimWhitespace: includeShortTextGrading,
+                shortTextNormalizeWhitespace: includeShortTextGrading,
+                numericInputKind: includeShortTextGrading,
+                numericToleranceMode: includeShortTextGrading,
+                numericAbsoluteTolerance: includeShortTextGrading,
+                numericRelativeTolerancePercent: includeShortTextGrading,
+                numericUnitFamily: includeShortTextGrading,
+                numericRequireUnit: includeShortTextGrading,
+                numericAcceptEquivalentUnits: includeShortTextGrading,
+              },
             },
+            selectedAnswers: { select: { answerOptionId: true } },
           },
-          selectedAnswers: { select: { answerOptionId: true } },
-        },
-      })
+        })
+        .then((votes) => {
+          if (!includeShortTextGrading) {
+            return votes;
+          }
+
+          return votes.map(({ freeText, question, ...vote }) => ({
+            ...vote,
+            // Keep only the grading decision and choice IDs in the shared cache.
+            question: {
+              type: question.type,
+              answers: question.answers.map(({ id, isCorrect }) => ({ id, isCorrect })),
+            },
+            shortTextFullyCorrect:
+              question.type === 'SHORT_TEXT' && isFullyCorrectShortTextVote(freeText, question),
+          }));
+        })
     : prisma.vote.findMany({
         where,
         select: {

@@ -4,8 +4,12 @@ import {
   MIN_ACCEPTED_TIME_SCORE_RATIO,
   STREAK_MULTIPLIER,
   STREAK_MULTIPLIER_MAX,
+  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
   evaluateNumericAnswer,
   evaluateShortAnswer,
+  isNumericToleranceMode,
+  resolveNumericQuestionEvaluationSettings,
   resolveShortTextEvaluationKind,
   usesNumericShortTextEvaluation,
   type Difficulty,
@@ -84,6 +88,119 @@ interface CalculateVoteScoreInput {
   numericEstimateToleranceBand?: { left: number; right: number } | null;
 }
 
+export type ShortTextQuestionConfig = {
+  shortTextEvaluationKind?: string | null;
+  shortTextMaxLength?: number | null;
+  shortTextCaseSensitive?: boolean | null;
+  shortTextEvaluationMode?: string | null;
+  shortTextToleranceLevel?: string | null;
+  shortTextAllowPartialCredit?: boolean | null;
+  shortTextTrimWhitespace?: boolean | null;
+  shortTextNormalizeWhitespace?: boolean | null;
+  numericInputKind?: string | null;
+  numericToleranceMode?: string | null;
+  numericAbsoluteTolerance?: number | null;
+  numericRelativeTolerancePercent?: number | null;
+  numericUnitFamily?: string | null;
+  numericRequireUnit?: boolean | null;
+  numericAcceptEquivalentUnits?: boolean | null;
+};
+
+export function resolveShortTextQuestionConfig(config?: ShortTextQuestionConfig) {
+  const numericSettings = resolveNumericQuestionEvaluationSettings({
+    numericInputKind: (config?.numericInputKind as NumericInputKind | null | undefined) ?? null,
+    numericToleranceMode: isNumericToleranceMode(config?.numericToleranceMode)
+      ? config.numericToleranceMode
+      : null,
+    numericAbsoluteTolerance: config?.numericAbsoluteTolerance ?? null,
+    numericRelativeTolerancePercent: config?.numericRelativeTolerancePercent ?? null,
+    numericUnitFamily: (config?.numericUnitFamily as NumericUnitFamily | null | undefined) ?? null,
+    numericRequireUnit: config?.numericRequireUnit ?? false,
+    numericAcceptEquivalentUnits: config?.numericAcceptEquivalentUnits ?? true,
+  });
+
+  return {
+    shortTextEvaluationKind: resolveShortTextEvaluationKind(
+      (config?.shortTextEvaluationKind as ShortTextEvaluationKind | null | undefined) ?? undefined,
+    ),
+    shortTextMaxLength: config?.shortTextMaxLength ?? null,
+    shortTextCaseSensitive: config?.shortTextCaseSensitive ?? false,
+    shortTextEvaluationMode:
+      (config?.shortTextEvaluationMode as ShortAnswerEvaluationMode | null | undefined) ??
+      SHORT_TEXT_DEFAULT_EVALUATION_MODE,
+    shortTextToleranceLevel:
+      (config?.shortTextToleranceLevel as ToleranceLevel | null | undefined) ??
+      SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
+    shortTextAllowPartialCredit: config?.shortTextAllowPartialCredit ?? true,
+    shortTextTrimWhitespace: config?.shortTextTrimWhitespace ?? true,
+    shortTextNormalizeWhitespace: config?.shortTextNormalizeWhitespace ?? true,
+    numericInputKind: numericSettings.inputKind,
+    numericToleranceMode: numericSettings.toleranceMode,
+    numericAbsoluteTolerance: numericSettings.absoluteTolerance,
+    numericRelativeTolerancePercent: numericSettings.relativeTolerancePercent,
+    numericUnitFamily: numericSettings.unitFamily,
+    numericRequireUnit: numericSettings.requireUnit,
+    numericAcceptEquivalentUnits: numericSettings.acceptEquivalentUnits,
+  };
+}
+
+export function isFullyCorrectShortTextVote(
+  answer: string | null,
+  question: ShortTextQuestionConfig & { answers: readonly { text: string; isCorrect: boolean }[] },
+): boolean {
+  if (!answer) {
+    return false;
+  }
+
+  const evaluation = evaluateShortTextForScoring({
+    ...resolveShortTextQuestionConfig(question),
+    freeText: answer,
+    correctShortTextAnswers: question.answers
+      .filter((option) => option.isCorrect)
+      .map((option) => option.text),
+  });
+  return evaluation.points === evaluation.maxPoints;
+}
+
+function evaluateShortTextForScoring(
+  input: Omit<
+    CalculateVoteScoreInput,
+    'type' | 'difficulty' | 'selectedAnswerIds' | 'correctAnswerIds'
+  >,
+) {
+  const evaluationKind = resolveShortTextEvaluationKind(input.shortTextEvaluationKind);
+  return usesNumericShortTextEvaluation(evaluationKind)
+    ? evaluateNumericAnswer({
+        modelAnswers: input.correctShortTextAnswers ?? [],
+        studentAnswer: input.freeText ?? '',
+        maxPoints: MAX_BASE_POINTS,
+        settings: {
+          inputKind: input.numericInputKind,
+          toleranceMode: input.numericToleranceMode,
+          absoluteTolerance: input.numericAbsoluteTolerance,
+          relativeTolerancePercent: input.numericRelativeTolerancePercent,
+          unitFamily: evaluationKind === 'numeric_unit' ? input.numericUnitFamily : 'none',
+          requireUnit: evaluationKind === 'numeric_unit' ? input.numericRequireUnit : false,
+          acceptEquivalentUnits:
+            evaluationKind === 'numeric_unit' ? input.numericAcceptEquivalentUnits : true,
+        },
+      })
+    : evaluateShortAnswer({
+        modelAnswers: input.correctShortTextAnswers ?? [],
+        studentAnswer: input.freeText ?? '',
+        maxPoints: MAX_BASE_POINTS,
+        maxLength: input.shortTextMaxLength,
+        settings: {
+          caseSensitive: input.shortTextCaseSensitive,
+          evaluationMode: input.shortTextEvaluationMode,
+          toleranceLevel: input.shortTextToleranceLevel,
+          allowPartialCredit: input.shortTextAllowPartialCredit,
+          trimWhitespace: input.shortTextTrimWhitespace,
+          normalizeWhitespace: input.shortTextNormalizeWhitespace,
+        },
+      });
+}
+
 export function isExactCorrectSelection(
   selectedAnswerIds: string[],
   correctAnswerIds: string[],
@@ -159,37 +276,7 @@ export function calculateVoteScore(input: CalculateVoteScoreInput): number {
   let basePoints = MAX_BASE_POINTS;
 
   if (input.type === 'SHORT_TEXT') {
-    const evaluationKind = resolveShortTextEvaluationKind(input.shortTextEvaluationKind);
-    const shortTextEvaluation = usesNumericShortTextEvaluation(evaluationKind)
-      ? evaluateNumericAnswer({
-          modelAnswers: input.correctShortTextAnswers ?? [],
-          studentAnswer: input.freeText ?? '',
-          maxPoints: MAX_BASE_POINTS,
-          settings: {
-            inputKind: input.numericInputKind,
-            toleranceMode: input.numericToleranceMode,
-            absoluteTolerance: input.numericAbsoluteTolerance,
-            relativeTolerancePercent: input.numericRelativeTolerancePercent,
-            unitFamily: evaluationKind === 'numeric_unit' ? input.numericUnitFamily : 'none',
-            requireUnit: evaluationKind === 'numeric_unit' ? input.numericRequireUnit : false,
-            acceptEquivalentUnits:
-              evaluationKind === 'numeric_unit' ? input.numericAcceptEquivalentUnits : true,
-          },
-        })
-      : evaluateShortAnswer({
-          modelAnswers: input.correctShortTextAnswers ?? [],
-          studentAnswer: input.freeText ?? '',
-          maxPoints: MAX_BASE_POINTS,
-          maxLength: input.shortTextMaxLength,
-          settings: {
-            caseSensitive: input.shortTextCaseSensitive,
-            evaluationMode: input.shortTextEvaluationMode,
-            toleranceLevel: input.shortTextToleranceLevel,
-            allowPartialCredit: input.shortTextAllowPartialCredit,
-            trimWhitespace: input.shortTextTrimWhitespace,
-            normalizeWhitespace: input.shortTextNormalizeWhitespace,
-          },
-        });
+    const shortTextEvaluation = evaluateShortTextForScoring(input);
 
     if (shortTextEvaluation.points <= 0) {
       return 0;
