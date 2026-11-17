@@ -1,0 +1,13 @@
+[C1] setup ok session=RMW7W9 {"createMs":133,"joinMs":7808,"submitMs":229,"voteMs":5361}
+[C1] run-01: extractive/disabled enq=104.4ms term=320.1ms polls=4 server=143 immediate=false
+[C1] cooldown-probe-immediate: extractive/disabled enq=64.2ms term=64.2ms polls=0 server=null immediate=true
+[C1] run-02: extractive/disabled enq=89.5ms term=89.6ms polls=0 server=null immediate=true
+[C1] run-03: extractive/disabled enq=85.6ms term=308.1ms polls=4 server=154 immediate=false
+[C1] run-04: extractive/disabled enq=87ms term=87ms polls=0 server=null immediate=true
+[C1] run-05: extractive/disabled enq=69.1ms term=284ms polls=4 server=143 immediate=false
+[C1] run-06: extractive/disabled enq=65.4ms term=65.4ms polls=0 server=null immediate=true
+[C1] run-07: extractive/disabled enq=51.8ms term=231.1ms polls=3 server=122 immediate=false
+[C1] run-08: extractive/disabled enq=134.2ms term=134.2ms polls=0 server=null immediate=true
+[C1] run-09: extractive/disabled enq=71.4ms term=327.4ms polls=4 server=124 immediate=false
+[C1] run-10: extractive/disabled enq=66.5ms term=66.5ms polls=0 server=null immediate=true
+[C1] wrote <evidence>/E3/e3b-raw-C1.json

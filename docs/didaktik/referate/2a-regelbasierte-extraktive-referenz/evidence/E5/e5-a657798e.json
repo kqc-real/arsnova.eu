@@ -1,0 +1,81 @@
+{
+  "env": {
+    "commit": "a657798e4ab5b3c9f1214fe32baf4d562c1bc003",
+    "commitShort": "a657798e",
+    "workingTreeClean": true,
+    "rulesVersion": "moderation-compass-rules-v1",
+    "node": "v24.13.1",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700F @ 2.50GHz",
+    "cpuCount": 4,
+    "memoryGb": 8,
+    "platform": "linux 6.6.87.2-microsoft-standard-WSL2",
+    "timestamp": "2026-10-21T12:08:08.731Z"
+  },
+  "processRssMb": 314.1,
+  "results": [
+    {
+      "n": 6,
+      "rulesOnly": {
+        "runs": 1000,
+        "medianMs": 0.0699,
+        "p95Ms": 0.2,
+        "maxMs": 0.9896
+      },
+      "fullRecompute": {
+        "runs": 1000,
+        "medianMs": 0.3305,
+        "p95Ms": 0.7936,
+        "maxMs": 1.7533
+      },
+      "heapDeltaMbAfterRuns": 12.77
+    },
+    {
+      "n": 50,
+      "rulesOnly": {
+        "runs": 1000,
+        "medianMs": 0.1804,
+        "p95Ms": 0.3268,
+        "maxMs": 1.015
+      },
+      "fullRecompute": {
+        "runs": 1000,
+        "medianMs": 0.8098,
+        "p95Ms": 1.4674,
+        "maxMs": 3.2011
+      },
+      "heapDeltaMbAfterRuns": 26.8
+    },
+    {
+      "n": 100,
+      "rulesOnly": {
+        "runs": 1000,
+        "medianMs": 0.3142,
+        "p95Ms": 0.5643,
+        "maxMs": 1.8357
+      },
+      "fullRecompute": {
+        "runs": 1000,
+        "medianMs": 1.2828,
+        "p95Ms": 2.2252,
+        "maxMs": 3.1152
+      },
+      "heapDeltaMbAfterRuns": 37.14
+    },
+    {
+      "n": 500,
+      "rulesOnly": {
+        "runs": 300,
+        "medianMs": 1.5654,
+        "p95Ms": 2.6632,
+        "maxMs": 3.1263
+      },
+      "fullRecompute": {
+        "runs": 300,
+        "medianMs": 6.4517,
+        "p95Ms": 9.7419,
+        "maxMs": 11.723
+      },
+      "heapDeltaMbAfterRuns": 22.96
+    }
+  ]
+}

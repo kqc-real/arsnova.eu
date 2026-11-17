@@ -1,0 +1,7 @@
+# Maschinell erzeugte Rohdaten der Messläufe (E1 bis E5). Sie bleiben vollständig versioniert,
+# werden in Pull-Request-Diffs aber eingeklappt. Lesbare Einstiege: BELEGE.md, README.md und die Berichte (*.md).
+evidence/**/*.json linguist-generated=true
+evidence/**/*.jsonl linguist-generated=true
+evidence/**/*.log linguist-generated=true
+evidence/**/*.out linguist-generated=true
+evidence/E3/**/*.txt linguist-generated=true
