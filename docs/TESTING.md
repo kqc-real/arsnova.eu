@@ -221,6 +221,10 @@ private Runtime oder zusätzlich mit `QA_SUMMARY_LABOR_FAKE_RUNTIME=1` als
 Trockenlauf. Ablauf und Variablen:
 [Labor-Runbook](referat-thema-1/evidenz/1C/labor-runbook.md).
 
+Die Tests der 1B-Laborskripte (`docs/referat-thema-1/evidenz/1B/**/*.test.mjs`) laufen mit
+`npm run test:referat-1b` und sind Teil von `npm test`; sie starten keine VMs
+([Runbook, Abschnitt 9](referat-thema-1/evidenz/1B/runbook.md#9-tests)).
+
 ### tRPC-DoD-Non-Regression-Gate
 
 Für jede neue Query/Mutation und jede Query/Mutation mit geändertem

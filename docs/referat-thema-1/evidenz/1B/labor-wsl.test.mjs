@@ -144,3 +144,57 @@ test('up zeigt bei Fehler das Ende des Logs und gibt den Exit-Code weiter (Admin
   assert.equal(r.status, 3);
   assert.match(r.stderr + r.stdout, /FEHLER: llm-start\.sh im llm-host fehlgeschlagen/);
 });
+
+test('--arbeitsstand ohne Git-Identität (frisches WSL, CI) legt den Commit trotzdem an', () => {
+  const r = join(t, 'repo-ohne-identitaet');
+  execFileSync('bash', [
+    '-c',
+    `git init -q ${r} && cd ${r} && echo a > a.txt && git add a.txt && git -c user.name=t -c user.email=t@t commit -qm a && echo neu > b.txt`,
+  ]);
+  writeFileSync(protokoll, '');
+  const ohneIdentitaet = {
+    ...process.env,
+    PATH: `${bin}:${process.env.PATH}`,
+    LAB_WSL_TEST: '1',
+    LAB_REPO: r,
+    GIT_CONFIG_GLOBAL: '/dev/null',
+    GIT_CONFIG_NOSYSTEM: '1',
+    EMAIL: '',
+  };
+  for (const k of [
+    'GIT_AUTHOR_NAME',
+    'GIT_AUTHOR_EMAIL',
+    'GIT_COMMITTER_NAME',
+    'GIT_COMMITTER_EMAIL',
+  ])
+    delete ohneIdentitaet[k];
+  execFileSync('bash', [join(here, 'labor-wsl.sh'), 'lauf', '-LabTag', 'dev-x', '--arbeitsstand'], {
+    encoding: 'utf8',
+    cwd: t,
+    env: ohneIdentitaet,
+  });
+  const sha = execFileSync('git', ['-C', r, 'rev-parse', 'refs/labor/arbeitsstand'], {
+    encoding: 'utf8',
+  }).trim();
+  assert.match(sha, /^[0-9a-f]{40}$/);
+  assert.match(readFileSync(protokoll, 'utf8'), new RegExp(`\\|-Commit\\|${sha}\\|`));
+});
+
+test('--arbeitsstand bricht ab, statt eine leere Commit-ID weiterzugeben', () => {
+  // Kein Git-Repo unter LAB_REPO: arbeitsstand() scheitert; das darf nicht still weiterlaufen.
+  writeFileSync(protokoll, '');
+  assert.throws(() =>
+    execFileSync('bash', [join(here, 'labor-wsl.sh'), 'lauf', '--arbeitsstand'], {
+      encoding: 'utf8',
+      cwd: t,
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        PATH: `${bin}:${process.env.PATH}`,
+        LAB_WSL_TEST: '1',
+        LAB_REPO: join(t, 'kein-repo'),
+      },
+    }),
+  );
+  assert.doesNotMatch(readFileSync(protokoll, 'utf8'), /powershell\.exe/);
+});
