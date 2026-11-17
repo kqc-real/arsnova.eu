@@ -113,6 +113,10 @@
                 }
               ]
             },
+            "translation-extraction": {
+              "browser": "src/main.i18n.ts",
+              "tsConfig": "tsconfig.i18n.json"
+            },
             "development-en": {
               "optimization": false,
               "extractLicenses": false,
@@ -150,6 +154,12 @@
             }
           },
           "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n",
+          "options": {
+            "buildTarget": "frontend:build:translation-extraction"
+          }
         },
         "serve": {
           "builder": "@angular/build:dev-server",

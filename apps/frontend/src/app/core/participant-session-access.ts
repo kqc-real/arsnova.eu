@@ -1,4 +1,5 @@
 const PARTICIPANT_CAPABILITY_PREFIX = 'arsnova-participant-capability';
+const PARTICIPANT_ANIMAL_ID_KEY = 'arsnova-kindergarten-animal-id';
 const JOIN_ATTEMPT_PREFIX = 'arsnova-join-attempt';
 const JOIN_ATTEMPT_MAX_AGE_MS = 10 * 60 * 1000;
 
@@ -32,6 +33,7 @@ export function storeParticipantCapability(code: string, capability: string): vo
 export function clearParticipantCapability(code: string): void {
   if (typeof localStorage === 'undefined') return;
   localStorage.removeItem(`${PARTICIPANT_CAPABILITY_PREFIX}-${normalizeCode(code)}`);
+  storeParticipantAnimalId(code);
 }
 
 export function getOrCreateJoinIdempotencyKey(code: string, now: number = Date.now()): string {
@@ -64,4 +66,20 @@ export function getOrCreateJoinIdempotencyKey(code: string, now: number = Date.n
 export function clearJoinIdempotencyKey(code: string): void {
   if (typeof sessionStorage === 'undefined') return;
   sessionStorage.removeItem(`${JOIN_ATTEMPT_PREFIX}-${normalizeCode(code)}`);
+}
+
+export function storeParticipantAnimalId(code: string, animalId?: number): void {
+  if (typeof localStorage === 'undefined') return;
+  const key = `${PARTICIPANT_ANIMAL_ID_KEY}-${normalizeCode(code)}`;
+  if (animalId === undefined) {
+    localStorage.removeItem(key);
+  } else {
+    localStorage.setItem(key, String(animalId));
+  }
+}
+
+export function readParticipantAnimalId(code: string): number | undefined {
+  if (typeof localStorage === 'undefined') return undefined;
+  const value = localStorage.getItem(`${PARTICIPANT_ANIMAL_ID_KEY}-${normalizeCode(code)}`);
+  return value !== null && /^\d+$/.test(value) ? Number(value) : undefined;
 }

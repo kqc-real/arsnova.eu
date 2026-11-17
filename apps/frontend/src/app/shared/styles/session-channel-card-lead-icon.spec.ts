@@ -16,7 +16,7 @@ describe('Session-Kanal Lead-Icon-Kachel', () => {
       /\.session-channel-card__header-lead-icon \{[^}]*color:\s*var\(--mat-sys-primary\)/s,
     );
     expect(styles).toMatch(
-      /\.session-channel-card__header-lead-icon \{[^}]*border:\s*1\.5px solid color-mix\(in srgb, var\(--mat-sys-outline\)/s,
+      /\.session-channel-card__header-lead-icon \{[^}]*border:\s*var\(--app-icon-tile-border\)/s,
     );
     expect(styles).not.toMatch(/primary-container/);
   });

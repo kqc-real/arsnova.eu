@@ -20,10 +20,14 @@
   padding-inline-end: 0;
 }
 
-.motd-archive__dialog-title {
+.motd-archive__dialog-title[mat-dialog-title] {
   flex: 1 1 auto;
   min-width: 0;
-  padding-inline-end: 0.25rem;
+  padding-inline: 0.75rem 0.25rem;
+}
+
+.motd-archive__dialog-title .dialog-title-header__heading {
+  overflow-wrap: anywhere;
 }
 
 .motd-archive__actions {

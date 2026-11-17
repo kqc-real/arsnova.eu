@@ -2,8 +2,8 @@
   "exportVersion": 1,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
-    "name": "Démonstration pédagogique : quiz en équipe",
-    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Démonstration pédagogique\n\nCes 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.\n\nLa démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Une fois les résultats affichés, les corrigés types et les répartitions des réponses font apparaître les hésitations et les conceptions erronées fréquentes.\n\nLes chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.",
+    "name": "Quiz démo en équipe",
+    "description": "![Démonstration pédagogique](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Quiz démo en équipe\n\nCes 13 questions te font découvrir les dix types de questions d’arsnova.eu dans une courte session en direct. Tu peux utiliser des images, Markdown et KaTeX, demander aux participants d’indiquer leur confiance dans leur réponse et proposer une estimation numérique en deux tours de vote séparés par une discussion.\n\nLa démo montre aussi comment **ordonner des étapes**, **associer des termes**, **classer des exemples** et recueillir des réponses libres dans un nuage de mots. Les corrigés et la répartition des réponses aident à repérer les hésitations et de possibles conceptions erronées.\n\nLes limites de temps, le jeu en équipe, le classement et les codes bonus donnent du rythme à la session. Rejoins-la sur un deuxième appareil, puis ouvre l’éditeur pour voir comment chaque question est construite.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
@@ -26,7 +26,7 @@
     "readingPhaseEnabled": false,
     "questions": [
       {
-        "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Clique pour agrandir.*",
+        "text": "### Comment se sent le groupe en ce moment ?\n\n![Aperçu des émotions](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Ouvre l’image pour l’agrandir.*",
         "type": "SURVEY",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -87,7 +87,7 @@
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Lesquels de ces usages conviennent à une question flash en direct ?\n\n_Plusieurs réponses possibles._",
+        "text": "### Dans quels cas une question rapide en direct est-elle utile ?\n\n_Plusieurs réponses possibles._",
         "type": "MULTIPLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -100,7 +100,7 @@
             "isCorrect": true
           },
           {
-            "text": "Faire émerger des idées fausses au milieu d’une séance",
+            "text": "Repérer de possibles conceptions erronées pendant une activité",
             "isCorrect": true
           },
           {
@@ -134,7 +134,7 @@
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Pour quel environnement de programmation créative ce sketch a-t-il été écrit ?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
+        "text": "### Dans quel environnement de programmation créative ce programme a-t-il été écrit ?\n\n```java\nfloat angle = 0;\n\nvoid setup() {\n  size(130, 130, OPENGL);\n}\n\nvoid draw() {\n  background(100);\n\n  translate(60, 40, 0);\n  rotateY(angle);\n  angle += .01;\n\n  beginShape(TRIANGLES);\n  vertex(0, 40, 0);\n  vertex(40, 40, 0);\n  vertex(20, 0, -20);\n\n  vertex(0, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n\n  vertex(40, 40, 0);\n  vertex(20, 40, -40);\n  vertex(20, 0, -20);\n  endShape();\n}\n```",
         "type": "SINGLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -191,7 +191,7 @@
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Mets dans l’ordre les étapes de l’expression des gènes dans une cellule eucaryote.\n\nMets les six étapes dans la bonne séquence.",
+        "text": "### Mets dans l’ordre les étapes de l’expression des gènes dans une cellule eucaryote.\n\nRemets les six étapes dans le bon ordre.",
         "type": "ORDERING",
         "timer": null,
         "difficulty": "HARD",
@@ -278,7 +278,7 @@
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Classe les six œuvres suivantes dans leur période littéraire.",
+        "text": "### Associe chaque œuvre au mouvement littéraire allemand auquel elle appartient.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -330,7 +330,7 @@
         "confidenceLabelHigh": "Très sûr·e"
       },
       {
-        "text": "### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?",
+        "text": "### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans une de tes activités ?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",

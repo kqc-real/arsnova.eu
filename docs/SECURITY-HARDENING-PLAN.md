@@ -241,8 +241,9 @@ die benötigten Methoden und Header. Abnahme und Rollback:
 **W2.1b** entscheidet sich nach praktischem Alpine-/Docker-Sandboxversuch für
 einen isolierten PDF-Worker. Der bestehende App-Container behält
 `no-new-privileges`, Default-Seccomp und leere Capabilities; der Worker läuft
-ohne Netzwerk und Secrets mit read-only Rootfs, 256-MiB-`/tmp`, 128 PIDs, 1 GiB
-RAM und einer CPU. Ein `0600`-Unix-Socket ersetzt einen netzwerkfähigen
+ohne Netzwerk und Secrets mit read-only Rootfs und 256-MiB-`/tmp`. Compose
+begrenzt den Worker auf 256 Tasks einschließlich Chromium-Threads, 1 GiB RAM
+und eine CPU. Ein `0600`-Unix-Socket ersetzt einen netzwerkfähigen
 Worker-Port. Details:
 [W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md](implementation/W2.1B-PDF-WORKER-ISOLATION-ABNAHME.md).
 

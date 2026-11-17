@@ -415,25 +415,25 @@ describe('HomeComponent', () => {
           'Create and manage a quiz',
           'Create and manage Q&amp;A',
           'Create and manage a Q&amp;A forum',
-          'Choose a pulse check',
+          'Choose a Pulse Check',
         ],
         'messages.fr.xlf': [
           'Créer et gérer un quiz',
-          'Créer et gérer un Q&amp;A',
-          'Créer et gérer un forum Q&amp;A',
+          'Créer et gérer un espace Q&amp;R',
+          'Créer et gérer un forum Q&amp;R',
           'Choisir un feedback express',
         ],
         'messages.es.xlf': [
-          'Crear y gestionar un quiz',
+          'Crear y gestionar un cuestionario',
           'Crear y gestionar un Q&amp;A',
           'Crear y gestionar un foro de Q&amp;A',
           'Elegir un sondeo rápido',
         ],
         'messages.it.xlf': [
-          'Creare e gestire un quiz',
-          'Creare e gestire un Q&amp;A',
-          'Creare e gestire un forum Q&amp;A',
-          'Scegliere un sondaggio rapido',
+          'Crea e gestisci un quiz',
+          'Crea e gestisci un Q&amp;A',
+          'Crea e gestisci un forum Q&amp;A',
+          'Scegli un sondaggio rapido',
         ],
       };
 

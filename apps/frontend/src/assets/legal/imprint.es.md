@@ -2,7 +2,7 @@
 
 Información conforme al artículo 5 de la Ley alemana de Servicios Digitales (Digitale-Dienste-Gesetz, DDG)
 
-## Proveedor / Prestador de servicios
+## Proveedor y prestador de servicios
 
 Prof. Dr.-Ing. habil. Klaus Quibeldey-Cirkel\
 IU Internationale Hochschule · Duales Studium\
@@ -35,6 +35,6 @@ arsnova.eu contiene enlaces a sitios web externos de terceros cuyo contenido no 
 
 Los contenidos y obras creados por quienes gestionan arsnova.eu están sujetos a la legislación alemana sobre derechos de autor. La reproducción, modificación, distribución y cualquier uso fuera de los límites legales requieren el consentimiento escrito de la persona titular de los derechos. Las descargas y copias solo están permitidas para uso privado y no comercial. Cuando los contenidos no hayan sido creados por el operador, se respetan los derechos de autor de terceros. Los contenidos de terceros se identifican como tales.
 
-## Alojamiento (operación técnica)
+## Alojamiento (gestión técnica)
 
 arsnova.eu está alojado en la Unión Europea por Hetzner Online GmbH, en Alemania. Encontrarás más información en la política de privacidad.

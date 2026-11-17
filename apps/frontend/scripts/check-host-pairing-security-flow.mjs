@@ -236,9 +236,9 @@ async function main() {
       timeout: 30_000,
     });
     await waitForPathSuffix(presenter, `/session/${code}/present`);
-    const gate = presenter.locator('[data-testid="presenter-fullscreen-enter"]').first();
-    if (await gate.isVisible().catch(() => false)) {
-      await gate.click().catch(() => undefined);
+    const fullscreen = presenter.locator('[data-testid="presenter-fullscreen-enter"]').first();
+    if (await fullscreen.isVisible().catch(() => false)) {
+      await fullscreen.click().catch(() => undefined);
       await presenter.waitForTimeout(400);
     }
     const presenterHasPairing =

@@ -6770,6 +6770,13 @@
           <context context-type="linenumber">268,270</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="feedback.showLiveSync" datatype="html">
+        <source>Live-Sync</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
+          <context context-type="linenumber">190</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="feedback.showLiveResultsHintLive" datatype="html">
         <source> Die Verteilung wird während der Abstimmung im Presenter angezeigt.</source>
         <context-group purpose="location">
@@ -6919,7 +6926,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="feedbackHost.roundSettings" datatype="html">
-        <source>Weitere Formate</source>
+        <source>Blitzlicht-Formate</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/feedback/feedback-host.component.html</context>
           <context context-type="linenumber">887</context>
@@ -11817,11 +11824,11 @@
           <context context-type="linenumber">566,568</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="quizEdit.shuffleAnswerOptions" datatype="html">
+      <trans-unit id="quizSettings.shuffleAnswerOptions" datatype="html">
         <source>Antwortoptionen auf den Geräten der Teilnehmenden mischen</source>
       </trans-unit>
-      <trans-unit id="quizEdit.shuffleAnswerOptionsHint" datatype="html">
-        <source>Host und Präsentation zeigen immer die Reihenfolge aus dem Editor. Ohne Mischen gilt dieselbe Reihenfolge auch für Teilnehmende.</source>
+      <trans-unit id="quizSettings.shuffleAnswerOptionsHint" datatype="html">
+        <source>Ausgeschaltet bleibt die Reihenfolge aus dem Editor für alle Single-Choice-, Multiple-Choice- und Umfragefragen erhalten. Host und Präsentation verwenden immer diese Reihenfolge.</source>
       </trans-unit>
       <trans-unit id="quizEdit.matchingShuffleRight" datatype="html">
         <source> Rechte Begriffe für jede teilnehmende Person mischen</source>
@@ -14229,7 +14236,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.exportLastSessionPdf" datatype="html">
-        <source>Nachbesprechungsplan ansehen</source>
+        <source>Nachbesprechungsplan herunterladen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.html</context>
           <context context-type="linenumber">587</context>
@@ -14714,17 +14721,10 @@
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.exportLastSessionPdfDone" datatype="html">
-        <source>Ergebnis-PDF heruntergeladen.</source>
+        <source>PDF-Download gestartet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
           <context context-type="linenumber">987</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="quizList.exportLastSessionPdfPrintDone" datatype="html">
-        <source>Ergebnis-PDF zum Speichern geöffnet.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/quiz/quiz-list/quiz-list.component.ts</context>
-          <context context-type="linenumber">988</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizList.exportLastSessionPdfError" datatype="html">
@@ -15657,13 +15657,6 @@
           <context context-type="linenumber">326</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="presentationStart.screenHint" datatype="html">
-        <source> Öffne die Präsentation auf dem Projektionsbildschirm.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
-          <context context-type="linenumber">13,16</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="presentationStart.loadingAdmin" datatype="html">
         <source> Verbindungsmöglichkeiten werden geladen …</source>
         <context-group purpose="location">
@@ -15726,6 +15719,9 @@
           <context context-type="sourcefile">src/app/features/session/host-pairing/presentation-start-dialog.component.html</context>
           <context context-type="linenumber">117,119</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="hostPairing.remoteAction" datatype="html">
+        <source>Smartphone als Fernbedienung</source>
       </trans-unit>
       <trans-unit id="presentationStart.cancel" datatype="html">
         <source> Abbrechen</source>
@@ -16727,7 +16723,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationCardFriction" datatype="html">
-        <source>Umstrittene Fragen</source>
+        <source>Fragen mit geteilten Stimmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">284</context>
@@ -16791,7 +16787,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationNextFriction" datatype="html">
-        <source>Greif die umstrittenen Fragen kurz auf.</source>
+        <source>Geh kurz auf Fragen mit geteilten Stimmen ein.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">324</context>
@@ -18212,7 +18208,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.addChannel" datatype="html">
-        <source>Format hinzufügen</source>
+        <source>Session erweitern</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">258</context>
@@ -18226,7 +18222,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.addChannelPending" datatype="html">
-        <source>Format wird vorbereitet …</source>
+        <source>Session wird erweitert …</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">315</context>
@@ -18385,7 +18381,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButton" datatype="html">
-        <source>Nachbesprechungsplan ansehen</source>
+        <source>Nachbesprechungsplan herunterladen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">906</context>
@@ -18407,13 +18403,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">937</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfMenuVisual" datatype="html">
-        <source>Standard (mit Diagrammen)</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">948</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfMenuPdfUa" datatype="html">
@@ -18656,6 +18645,9 @@
           <context context-type="linenumber">1399</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.teamMedianScore" datatype="html">
+        <source>Median <x id="score" equiv-text="this.formatDecimal(score)"/> Pkt.</source>
+      </trans-unit>
       <trans-unit id="sessionHost.teamLeaderboardTiebreakHint" datatype="html">
         <source>Gleichstand: Antwortzeit zählt.</source>
         <context-group purpose="location">
@@ -18806,10 +18798,10 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingBannerHint" datatype="html">
-        <source> Antwortoptionen folgen gleich.</source>
+        <source> Gib den Teilnehmenden Zeit zum Lesen. </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1784,1786</context>
+          <context context-type="linenumber">1852,1853</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.ratingScaleAria" datatype="html">
@@ -19656,7 +19648,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpBestAria" datatype="html">
-        <source>Hilfe zu »Beste Fragen«</source>
+        <source>Hilfe zu »Klare Zustimmung«</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4418</context>
@@ -19667,7 +19659,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortControversial" datatype="html">
-        <source>Kontroverse</source>
+        <source>Geteilte Stimmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4430</context>
@@ -19690,7 +19682,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpControversialAria" datatype="html">
-        <source>Hilfe zu »Kontroverse«</source>
+        <source>Hilfe zu »Geteilte Stimmen«</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4437</context>
@@ -19783,14 +19775,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpBestMenu" datatype="html">
-        <source>Hilfe: Beste Fragen</source>
+        <source>Hilfe: Klare Zustimmung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4587</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHelpControversialMenu" datatype="html">
-        <source>Hilfe: Kontroverse</source>
+        <source>Hilfe: Geteilte Stimmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">4597</context>
@@ -19979,7 +19971,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.badgeControversial" datatype="html">
-        <source>Umstritten</source>
+        <source>Geteilte Stimmen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5126</context>
@@ -20052,7 +20044,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.badgeControversyOnesidedAria" datatype="html">
-        <source>Überwiegend einseitige Bewertung — nicht als umstritten eingestuft</source>
+        <source>Die abgegebenen Stimmen tendieren zu einer Seite</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">5147</context>
@@ -20105,42 +20097,25 @@
           <context context-type="linenumber">3035</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.bestMetric" datatype="html">
-        <source>Zustimmung <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.bestScore) }}"/></source>
+      <trans-unit id="sessionQa.supportNoVotes" datatype="html">
+        <source>Noch keine Stimmen</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5158,5159</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">830,831</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">965,966</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">3042,3043</context>
+          <context context-type="sourcefile">src/app/features/session/session-qa-support-label.util.ts</context>
+          <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.controversyMetric" datatype="html">
-        <source>Geteilte Reaktionen <x id="INTERPOLATION" equiv-text="{{ formatQaPercent(question.controversyScore) }}"/></source>
+      <trans-unit id="sessionQa.supportOneVote" datatype="html">
+        <source><x id="share" equiv-text="share"/> dafür · 1 Stimme</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5170,5172</context>
+          <context context-type="sourcefile">src/app/features/session/session-qa-support-label.util.ts</context>
+          <context context-type="linenumber">25</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.supportManyVotes" datatype="html">
+        <source><x id="share" equiv-text="share"/> dafür · <x id="count" equiv-text="count"/> Stimmen</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">878,880</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">1013,1015</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
-          <context context-type="linenumber">3054,3056</context>
+          <context context-type="sourcefile">src/app/features/session/session-qa-support-label.util.ts</context>
+          <context context-type="linenumber">29</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.cardActionsAria" datatype="html">
@@ -20267,13 +20242,6 @@
           <context context-type="linenumber">5453</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.endPresentationView" datatype="html">
-        <source>Live-Projektion ausblenden</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5477</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.endGlobalSessionAnchor" datatype="html">
         <source>Session beenden</source>
         <context-group purpose="location">
@@ -20318,17 +20286,25 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.revealAnswerOptionsAria" datatype="html">
-        <source>Antwortoptionen freigeben</source>
+        <source>Antwortphase starten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5612</context>
+          <context context-type="linenumber">5753,5756</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1602,1604</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.revealAnswerOptions" datatype="html">
-        <source>Antwortoptionen freigeben</source>
+        <source>Antwortphase starten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">5617</context>
+          <context context-type="linenumber">5758,5761</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1604,1607</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.startDiscussionPhaseAria" datatype="html">
@@ -20928,11 +20904,32 @@
           <context context-type="linenumber">1887</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.presentationViewLabel" datatype="html">
+        <source>Präsentationsansicht</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">811</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="sessionHost.openPresentationView" datatype="html">
         <source>Präsentationsansicht öffnen</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1889</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presenterStartOfferTitle" datatype="html">
+        <source>Quiz gestartet</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1812</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.presenterStartOfferDismiss" datatype="html">
+        <source>Im Host bleiben</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1842</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.phaseLobbyShort" datatype="html">
@@ -21013,13 +21010,6 @@
           <context context-type="linenumber">2027</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudMetricBest" datatype="html">
-        <source>klare Zustimmung</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2129</context>
-        </context-group>
-      </trans-unit>
             <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
         <source>Themen in den Fragen</source>
         <context-group purpose="location">
@@ -21065,14 +21055,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintBest" datatype="html">
-        <source>Größer erscheinen Begriffe aus Fragen mit viel Zustimmung und ausreichend Bewertungen. Das sagt nichts über ihre fachliche Richtigkeit aus.</source>
+        <source>Bei gleicher Stimmenzahl zählt ein höherer Dafür-Anteil tendenziell stärker. Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2176</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudHintControversial" datatype="html">
-        <source>Größer erscheinen Begriffe aus Fragen mit vielen, ähnlich verteilten Dafür- und Dagegen-Stimmen.</source>
+        <source>Bei gleicher Stimmenzahl zählt eine ausgewogenere Verteilung tendenziell stärker. Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen. Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2178</context>
@@ -21107,7 +21097,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintBest" datatype="html">
-        <source>Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
+        <source>Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2462</context>
@@ -21118,7 +21108,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.sortHintControversial" datatype="html">
-        <source>Zeigt zuerst die Fragen mit der höchsten Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Hervorgehobene Fragen erscheinen zuerst und sind markiert.</source>
+        <source>Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2464</context>
@@ -21724,25 +21714,11 @@
           <context context-type="linenumber">5465</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.presenterViewPopupBlocked" datatype="html">
-        <source>Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
+      <trans-unit id="sessionHost.presenterViewNavigationError" datatype="html">
+        <source>Die Präsentationsansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">6047</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.presentationViewEnded" datatype="html">
-        <source>Live-Projektion ausgeblendet. Das Quiz läuft weiter.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6070</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.presentationViewEndError" datatype="html">
-        <source>Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">6071</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.projectionPages" datatype="html">
@@ -21837,7 +21813,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.steeringCalloutExportAccessBody" datatype="html">
-        <source>PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.</source>
+        <source>PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan herunterladen«.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">7681</context>
@@ -22358,17 +22334,17 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingReadyReleaseHintAll" datatype="html">
-        <source>Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.</source>
+        <source>Alle Teilnehmenden sind bereit. Du kannst die Antwortphase starten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8996</context>
+          <context context-type="linenumber">9902</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.readingReadyReleaseHintConnected" datatype="html">
-        <source>Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.</source>
+        <source>Alle verbundenen Teilnehmenden sind bereit. Du kannst die Antwortphase starten.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">8998</context>
+          <context context-type="linenumber">9904</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.countdownAriaOne" datatype="html">
@@ -23603,21 +23579,21 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButtonAriaWithPriorityOne" datatype="html">
-        <source>Nachbesprechungsplan als PDF ansehen – 1 Frage zur Nachbesprechung</source>
+        <source>Nachbesprechungsplan herunterladen (PDF) – 1 Frage zur Nachbesprechung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButtonAriaWithPriorityMany" datatype="html">
-        <source>Nachbesprechungsplan als PDF ansehen – <x id="count" equiv-text="count"/> Fragen zur Nachbesprechung</source>
+        <source>Nachbesprechungsplan herunterladen (PDF) – <x id="count" equiv-text="count"/> Fragen zur Nachbesprechung</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14267</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.exportPdfButtonAria" datatype="html">
-        <source>Nachbesprechungsplan als PDF ansehen</source>
+        <source>Nachbesprechungsplan herunterladen (PDF)</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14269</context>
@@ -23637,32 +23613,11 @@
           <context context-type="linenumber">14276</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.exportPdfGeneratingLarge" datatype="html">
-        <source>PDF wird erstellt (<x id="PH" equiv-text="questionCount"/> Fragen)…</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">14288</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfViewDone" datatype="html">
-        <source>Nachbesprechungsplan geöffnet.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">14954</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.exportPdfDownloadDone" datatype="html">
-        <source>Ergebnis-PDF heruntergeladen.</source>
+        <source>PDF-Download gestartet.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">14294</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.exportPdfPrintDone" datatype="html">
-        <source>Ergebnis-PDF zum Speichern geöffnet.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">14295</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.exportEmpty" datatype="html">
@@ -23861,17 +23816,10 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.enterFullscreen" datatype="html">
-        <source>Präsentation im Vollbild starten</source>
+        <source>Vollbild</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
           <context context-type="linenumber">43</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionPresent.enterFullscreenHint" datatype="html">
-        <source>Gesamten Bildschirm für die Projektion nutzen</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
-          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.presentationEndedTitle" datatype="html">
@@ -24231,18 +24179,14 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizReadingHint" datatype="html">
-        <source>Lesephase – Antwortoptionen folgen gleich.</source>
+        <source>Lesephase – <x id="hint" equiv-text="questionReadingHint(type)"/></source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
-          <context context-type="linenumber">113</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
-          <context context-type="linenumber">135</context>
+          <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.ts</context>
+          <context context-type="linenumber">565</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionPresent.quizRatingWaiting" datatype="html">
-        <source> Die Verteilung erscheint mit dem Ergebnis.</source>
+        <source> Auf der nächsten Seite siehst du die Verteilung live.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-projection-quiz.component.html</context>
           <context context-type="linenumber">182,184</context>
@@ -24504,6 +24448,62 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">213</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.noneVisible" datatype="html">
+        <source>Keine Wörter sichtbar.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">250</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hiddenWords" datatype="html">
+        <source>Ausgeblendete Wörter</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">5514</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.restoreWord" datatype="html">
+        <source>Wort wieder einblenden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1891</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.wordRestored" datatype="html">
+        <source>Wort wieder eingeblendet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1913</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.restoreWordFailed" datatype="html">
+        <source>Das Wort konnte nicht wieder eingeblendet werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1917</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.wordHidden" datatype="html">
+        <source>Wort ausgeblendet.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+          <context context-type="linenumber">215</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hideWordFailed" datatype="html">
+        <source>Das Wort konnte nicht ausgeblendet werden.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.html</context>
+          <context context-type="linenumber">219</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="wordCloud.hideWord" datatype="html">
+        <source>Wort ausblenden</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
+          <context context-type="linenumber">286</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.itemSingular" datatype="html">
@@ -25352,7 +25352,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingTitlePlayful" datatype="html">
-        <source>Erst lesen, dann abstimmen</source>
+        <source>Erst lesen, dann antworten</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">265</context>
@@ -25363,20 +25363,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
           <context context-type="linenumber">267</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionVote.readingHintPlayful" datatype="html">
-        <source>Nimm dir einen Moment – die Antwortoptionen kommen gleich.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">272</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionVote.readingHintSerious" datatype="html">
-        <source>Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote-participant-copy.ts</context>
-          <context context-type="linenumber">274</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.readingReadyCtaPlayful" datatype="html">
@@ -26140,6 +26126,13 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
           <context context-type="linenumber">1656</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionVote.ownChoice" datatype="html">
+        <source>Deine Antwort</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-vote/session-vote.component.html</context>
+          <context context-type="linenumber">1505</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionVote.numericResultPrefix" datatype="html">
@@ -32290,8 +32283,20 @@
       <trans-unit id="sessionPresent.returnToHostAria" datatype="html">
         <source>Zur Host-Ansicht zurückkehren</source>
       </trans-unit>
-      <trans-unit id="sessionPresent.returnToHostBlocked" datatype="html">
-        <source>Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.</source>
+      <trans-unit id="sessionPresent.hostAnalysisConfidence" datatype="html">
+        <source>Antwortsicherheit im Detail ansehen</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisMatching" datatype="html">
+        <source>Zuordnungen im Detail ansehen</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisOrdering" datatype="html">
+        <source>Positionsverteilung ansehen</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.hostAnalysisCategorization" datatype="html">
+        <source>Kategorienverteilung ansehen</source>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToHostError" datatype="html">
+        <source>Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.</source>
       </trans-unit>
       <trans-unit id="sessionPresent.quizControlError" datatype="html">
         <source>Die Aktion konnte nicht ausgeführt werden. Bitte erneut versuchen.</source>
@@ -32653,6 +32658,107 @@
           <context context-type="sourcefile">src/app/features/home/home.component.ts</context>
           <context context-type="linenumber">300</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.singleChoice" datatype="html">
+        <source>Gleich wählst du eine Antwort aus.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.multipleChoice" datatype="html">
+        <source>Gleich wählst du alle zutreffenden Antworten aus.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.survey" datatype="html">
+        <source>Gleich kannst du deine Auswahl treffen.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.rating" datatype="html">
+        <source>Gleich wählst du einen Wert auf der Skala.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.numericEstimate" datatype="html">
+        <source>Gleich gibst du deinen Schätzwert ein.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.shortText" datatype="html">
+        <source>Gleich gibst du eine kurze Antwort ein.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.freeText" datatype="html">
+        <source>Gleich kannst du deine Antwort frei formulieren.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.matching" datatype="html">
+        <source>Gleich ordnest du zusammengehörige Elemente einander zu.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.ordering" datatype="html">
+        <source>Gleich bringst du die Elemente in die richtige Reihenfolge.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="questionReadingHint.categorization" datatype="html">
+        <source>Gleich ordnest du jedes Element einer Kategorie zu.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/question-reading-hint.ts</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.earlierResult" datatype="html">
+        <source>Früheres Ergebnis</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1582,1583</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.previousResult" datatype="html">
+        <source>Vorheriges Ergebnis</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1636,1637</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.nextResult" datatype="html">
+        <source>Nächstes Ergebnis</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1651,1653</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.returnToLiveQuiz" datatype="html">
+        <source>Zurück zur Live-Ansicht</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.html</context>
+          <context context-type="linenumber">1653,1655</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionPresent.historyModeratedWordCloud" datatype="html">
+        <source>Die moderierte Wortwolke ist im Rückblick nicht verfügbar.</source>
       </trans-unit>
     </body>
   </file>

@@ -37,9 +37,13 @@ function l2NormalizeCounts(counts: Int32Array): Float32Array {
   return vector;
 }
 
-function cosine(left: Float32Array, right: Float32Array): number {
+function cosine(
+  left: Float32Array,
+  right: Float32Array,
+  activeFeatures: readonly number[],
+): number {
   let dot = 0;
-  for (let index = 0; index < QA_NLP_FEATURE_DIM; index += 1) {
+  for (const index of activeFeatures) {
     dot += (left[index] ?? 0) * (right[index] ?? 0);
   }
   return dot;
@@ -63,10 +67,14 @@ export function resetQaNlpFallbackModelForTests(): void {
 
 export function predictQaNlpFallbackKnn(text: string): QaNlpScoredPrediction {
   const query = l2NormalizeCounts(extractQaNlpFeatureCounts(text));
+  const activeFeatures: number[] = [];
+  for (let index = 0; index < query.length; index += 1) {
+    if (query[index]) activeFeatures.push(index);
+  }
   const neighbors = getQaNlpFallbackPrototypes()
     .map((prototype) => ({
       category: prototype.category,
-      similarity: cosine(query, prototype.vector),
+      similarity: cosine(query, prototype.vector, activeFeatures),
     }))
     .sort((left, right) => right.similarity - left.similarity)
     .slice(0, QA_NLP_FALLBACK_K);

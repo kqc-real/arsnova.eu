@@ -246,9 +246,9 @@ Unmittelbar nach der Lehrveranstaltung folgt der Export- und Datenübergabeablau
 
 ### 5.2 Nach `FINISHED`
 
-1. **Ergebnisbericht (PDF)** herunterladen.
+1. Über **Nachbesprechungsplan herunterladen** das Ergebnis-PDF laden.
 2. Unter **Mehr** den **CSV-Export** herunterladen, wenn die Wochenanalyse ihn benötigt.
-3. Scheitert der Server-PDF-Export oder wird er wegen paralleler Erzeugung abgewiesen, den Browser-Druckfallback für denselben Bericht verwenden; keine wiederholten parallelen PDF-Jobs starten.
+3. Scheitert der PDF-Download oder läuft bereits ein anderer PDF-Job, kurz warten und den Download erneut versuchen.
 4. Prüfen:
    - nie geöffnete Fragen fehlen fachlich im Bericht;
    - geöffnete Fragen ohne Antwort erscheinen als „Keine Antworten“;

@@ -181,6 +181,7 @@ describe('session participant access (Story 2.2)', () => {
             select: {
               id: true,
               nickname: true,
+              kindergartenAnimalId: true,
               teamId: true,
               joinedAt: true,
               team: { select: { name: true } },
@@ -431,6 +432,7 @@ describe('session participant access (Story 2.2)', () => {
         select: {
           id: true,
           nickname: true,
+          kindergartenAnimalId: true,
           teamId: true,
           joinedAt: true,
           team: { select: { name: true } },
@@ -786,6 +788,7 @@ describe('session participant access (Story 2.2)', () => {
         select: {
           id: true,
           nickname: true,
+          kindergartenAnimalId: true,
           teamId: true,
           timerAccommodation: true,
           team: { select: { name: true } },

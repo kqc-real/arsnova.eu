@@ -35,35 +35,35 @@ const CASES = [
 ];
 const LABELS = {
   de: [
-    'Antwortoptionen freigeben',
+    'Antwortphase starten',
     'Zur Gesamtauswertung',
     'Vollbild',
     'App-Rahmen',
     'Weitere Aktionen',
   ],
   en: [
-    'Reveal answer options',
+    'Start accepting answers',
     'To the overall results',
     'Full screen',
     'App frame',
     'More actions',
   ],
   fr: [
-    'Afficher les options de réponse',
+    'Lancer la phase de réponse',
     'Vers le bilan',
     'Plein écran',
     'Cadre de l’application',
     'Autres actions',
   ],
   es: [
-    'Mostrar opciones de respuesta',
+    'Iniciar la fase de respuesta',
     'Ir al resumen general',
     'Pantalla completa',
     'Marco de la aplicación',
     'Más acciones',
   ],
   it: [
-    'Mostra opzioni di risposta',
+    'Avvia la fase di risposta',
     'Vai alla sintesi',
     'Schermo intero',
     'Cornice dell’app',
@@ -435,6 +435,10 @@ async function runCase(browser, publicApi, quizId, sample) {
     await page.locator(PRIMARY).click();
     await waitForStatus(hostApi, code, 'FINISHED');
     await page.locator('#session-finished-heading').waitFor();
+    ensure(
+      (await page.getByTestId('open-presenter-view').count()) === 0,
+      'Finished quiz still offers the presenter entry.',
+    );
     await page.locator('.session-host__export-pdf-btn').waitFor();
     await page.locator('.session-host__leaderboard-card').first().waitFor();
     ensure(

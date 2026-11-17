@@ -54,7 +54,7 @@ Eine lokale Aufgabenpräferenz öffnet oder schließt selbst keinen Kanal, beend
 
 Slice 2 baut auf der lokalen Aufgabenzuordnung auf, leitet die Navigation aber aus dem tatsächlichen, serverbestätigten Kanalzustand ab:
 
-- `availableChannels()` in aktivierte Tabs und hinzufügbare Formate aufteilen. Bei einem aktivierten Kanal keine Tab-Leiste; inaktive Formate nur unter **Format hinzufügen**.
+- `availableChannels()` in aktivierte Tabs und hinzufügbare Formate aufteilen. Bei einem aktivierten Kanal keine Tab-Leiste; inaktive Formate nur unter **Session erweitern**.
 - Aktivierung über die bestehenden Pfade `activateQuizChannel` beziehungsweise `enableChannel` inklusive Q&A-Ersteinrichtung führen. Nach Erfolg wechseln; nach Abbruch oder Fehler weder einen falschen Tab noch einen falschen `activeChannel` übernehmen.
 - `selectChannel`, `onChannelToggleChange`, `ensureActiveChannel`, `showChannelTabs`, `channelTabMetaLabel` und `reconcilePresentedChannel` gemeinsam prüfen. Der Beides-Anschluss verwendet bereits `enableChannel` und `selectChannel` und muss dabei erhalten bleiben.
 - Reload und Reconnect aus bestätigtem Sessionzustand rekonstruieren. Ein geschlossenes, aktiviertes Format bleibt von einem noch nicht aktivierten Format unterscheidbar. `preferredChannel` bleibt serverautoritativ.

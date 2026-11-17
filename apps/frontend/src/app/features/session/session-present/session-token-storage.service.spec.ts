@@ -1,9 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { setHostToken, clearHostToken } from '../../../core/host-session-token';
 import {
   HOST_TOKEN_INDEXED_DB_NAME,
-  HOST_TOKEN_INDEXED_DB_TTL_MS,
   SessionTokenStorageService,
 } from './session-token-storage.service';
 
@@ -33,12 +31,6 @@ function createFakeIndexedDb(data: Map<string, TokenRecord>) {
           return {
             get(key: IDBValidKey) {
               const request = createIdbRequest(data.get(String(key)));
-              queueMicrotask(() => transaction.oncomplete?.());
-              return request;
-            },
-            put(record: TokenRecord) {
-              data.set(record.code, record);
-              const request = createIdbRequest(record);
               queueMicrotask(() => transaction.oncomplete?.());
               return request;
             },
@@ -82,7 +74,6 @@ describe('SessionTokenStorageService', () => {
   beforeEach(() => {
     data.clear();
     window.sessionStorage.clear();
-    clearHostToken('ABC123');
     vi.stubGlobal('indexedDB', createFakeIndexedDb(data));
     TestBed.configureTestingModule({});
   });
@@ -93,19 +84,16 @@ describe('SessionTokenStorageService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('schreibt und liest den Host-Token sessionbezogen mit TTL', async () => {
-    const now = 1_700_000_000_000;
-    vi.spyOn(Date, 'now').mockReturnValue(now);
-    const service = TestBed.inject(SessionTokenStorageService);
-
-    await service.setHostToken('abc123', ' host-token-xyz ');
-
-    expect(await service.getHostToken('ABC123')).toBe('host-token-xyz');
-    expect(data.get('ABC123')).toEqual({
+  it('liest einen gültigen Token aus der früheren Übergabe nur für seine Session', async () => {
+    data.set('ABC123', {
       code: 'ABC123',
       token: 'host-token-xyz',
-      expiresAt: now + HOST_TOKEN_INDEXED_DB_TTL_MS,
+      expiresAt: Date.now() + 60_000,
     });
+    const service = TestBed.inject(SessionTokenStorageService);
+
+    expect(await service.getHostToken('abc123')).toBe('host-token-xyz');
+    expect(await service.getHostToken('XYZ789')).toBeNull();
   });
 
   it('verwirft abgelaufene IndexedDB-Tokens', async () => {
@@ -120,26 +108,13 @@ describe('SessionTokenStorageService', () => {
     expect(data.has('ABC123')).toBe(false);
   });
 
-  it('persistiert den aktuellen sessionStorage-Token', async () => {
-    setHostToken('ABC123', 'tab-token');
-    const service = TestBed.inject(SessionTokenStorageService);
-
-    await expect(service.persistCurrentHostToken('abc123')).resolves.toBe(true);
-
-    expect(await service.getHostToken('ABC123')).toBe('tab-token');
-  });
-
-  it('meldet Persist-Fehler wenn IndexedDB fehlt', async () => {
-    setHostToken('ABC123', 'tab-token');
-    vi.stubGlobal('indexedDB', undefined);
-    const service = TestBed.inject(SessionTokenStorageService);
-
-    await expect(service.persistCurrentHostToken('ABC123')).resolves.toBe(false);
-  });
-
   it('entfernt den gespeicherten Token', async () => {
     const service = TestBed.inject(SessionTokenStorageService);
-    await service.setHostToken('ABC123', 'host-token-xyz');
+    data.set('ABC123', {
+      code: 'ABC123',
+      token: 'host-token-xyz',
+      expiresAt: Date.now() + 60_000,
+    });
 
     await service.clearHostToken('abc123');
 

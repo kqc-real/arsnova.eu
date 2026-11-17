@@ -164,9 +164,9 @@ npm run dev:ai
 
 Er umfasst Q&A-Kategorisierung, spaCy-Lemmatisierung, E5-Themenbildung, den
 lokalen Ersatz für Zusammenfassungen sowie die über Qwen laufenden
-Themenbeschriftungen, Moderationszusammenfassungen und Lernzielvorschläge. Qwen
-selbst wird dabei nicht gestartet; der Befehl verwendet die konfigurierte URL
-oder den Maintainer-SSH-Tunnel.
+Themenbeschriftungen, Moderationszusammenfassungen und Lernzielvorschläge.
+Die Pfade unterstützen `de`, `en`, `fr`, `es` und `it`. Der Befehl nutzt
+die konfigurierte Qwen-URL oder den Maintainer-SSH-Tunnel.
 
 Für den Entwicklungsrechner sind mit entferntem Qwen konservativ 4 Kerne,
 12 GiB RAM und 10 GiB freier Speicher einzuplanen; empfohlen sind 8 Kerne,

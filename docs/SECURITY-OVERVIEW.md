@@ -26,7 +26,7 @@ Kurzreferenz für **Annahmen, Grenzen und eingebaute Kontrollen**. Kein vollstä
 
 ## 3. Zugriffskontrolle (rollenbasiert, technisch)
 
-- **Host / Present:** `session.create` liefert ein **Host-Token**; das Frontend speichert es pro Session-Code in `sessionStorage`. Für die Presenter-Ansicht in einem zweiten Tab schreibt das lazy Session-Feature denselben Token zusätzlich kurzlebig (TTL) in IndexedDB, weil Tablets `sessionStorage` bei `window.open` nicht klonen; nach erfolgreichem Restore wird der IndexedDB-Eintrag konsumiert. Das ist ein UX-Handoff, kein AuthService und keine zweite Autorisierung. Host-only-Prozeduren laufen zentral über **`hostProcedure`** und erwarten `x-host-token`. Die Routen `/session/:code/host` und `/session/:code/present` sind clientseitig tokengebunden; ohne Token Redirect auf Join oder Zugriff verweigert.
+- **Host / Present:** `session.create` liefert ein **Host-Token**; das Frontend speichert es pro Session-Code in `sessionStorage`. Host und Presenter wechseln im selben Tab und verwenden dessen Host-Token. Der Present-Guard kann ältere, noch gültige IndexedDB-Übergaben einmalig einlösen. Host-only-Prozeduren laufen zentral über **`hostProcedure`** und erwarten `x-host-token`. Die Routen `/session/:code/host` und `/session/:code/present` sind clientseitig tokengebunden; ohne gültigen Zugang führt der Guard zur Host-Wiederherstellung.
 - **Paired Host (Story 2.10 Slices 1–5):** Zusätzliche Host-Geräte entstehen nur über request-and-approve. Session-Code, QR oder Invite-Secret allein sind kein Host-Recht; auch der Privat-Pfad hat keinen silent grant. Nur der ursprüngliche Host darf einladen, freigeben, auflisten oder widerrufen. Ein `PAIRED_HOST` nutzt ein eigenes, gehashtes Token über dieselben `x-host-token`-Pfade (HTTP und WebSocket), darf aber nicht weiterkoppeln. Caps: max. 3 Paired Hosts, 1 aktive Einladung, 1 Pending; Rate-Limits nur auf Pairing-Endpunkten. Widerruf beendet HTTP und bestehende Host-WebSockets sofort. DoD-Nachweise: `load:smoke:host-pairing-security`, Browser-Smoke `smoke:host-pairing-security`, Classroom-30/500-Cap-Last. Contracts: `@arsnova/shared-types` `host-pairing`.
 - **Q&A-Moderation (Lesepfade):** Host-Härtung gilt nicht nur für schreibende Moderationsaktionen, sondern auch für Moderator-Lesepfade. `qa.list` und `qa.onQuestionsUpdated` mit `moderatorView: true` prüfen serverseitig den Host-Kontext gegen den **Session-Code aus der Datenbank**; `PENDING`-/Moderationsdaten werden damit nicht mehr allein über eine frei gesetzte Input-Flag ausgeliefert.
 - **Blitzlicht-Host:** Standalone-Blitzlicht (`/feedback/:code`) nutzt ein eigenes **Feedback-Host-Token** via `x-feedback-host-token`. Session-gebundenes Blitzlicht nutzt dagegen das normale Session-Host-Token. Dadurch bleiben Session-Host und Standalone-Blitzlicht getrennte Besitzkontexte.
@@ -220,9 +220,10 @@ W2.1b verlagert den Chromium-PDF-Lauf in einen separaten Worker ohne Netzwerk
 und ohne App-Secrets. Die App übergibt ausschließlich vollständig vorbereiteten
 Reportinhalt über einen `0600`-Unix-Socket, dessen Volume sie read-only mountet.
 Der Worker läuft non-root, capability-frei, mit `no-new-privileges`,
-Docker-Default-Seccomp, read-only Rootfs und begrenztem `/tmp`; Compose begrenzt
-zusätzlich auf 128 PIDs, 1 GiB RAM und eine CPU. Produktion ist fail-closed auf
-den Worker festgelegt. Chromium verwendet dort weiterhin `--no-sandbox`, liegt
+Docker-Default-Seccomp, read-only Rootfs und begrenztem `/tmp`. Compose begrenzt
+den Worker auf 256 Tasks einschließlich Chromium-Threads, 1 GiB RAM und eine CPU.
+Produktion ist fail-closed auf den Worker festgelegt. Chromium verwendet dort
+weiterhin `--no-sandbox`, liegt
 aber in einer eigenen Container-, Ressourcen- und Egress-Grenze. CI prüft diese
 Laufzeitkontrollen und einen echten Maximalbericht. Eine worker-interne
 60-Sekunden-Gesamtdeadline beendet bei hängendem Chromium den Container
@@ -238,7 +239,8 @@ zum `node`-User), capability-frei, read-only mit begrenztem `/tmp` und ist auf
 1 CPU / 1 GiB RAM / 64 PIDs limitiert. Compose startet ihn nur über das Profil
 `nlp`; `deploy.sh` lässt ihn aus. Der Kill-Switch `NLP_ENABLED` bleibt Default
 `false`. Das Default-Image enthält `de_core_news_sm` und `en_core_web_sm`
-(MIT), `fr_core_news_sm` (LGPL-LR) und `es_core_news_sm` (GPL-3.0). Es ist
+(MIT), `fr_core_news_sm` (LGPL-LR), `es_core_news_sm` (GPL-3.0) und
+`spacy-lookups-data` (MIT) für die italienische Lookup-Lemmatisierung. Es ist
 kein reines MIT-Artefakt. `it_core_news_sm` (CC BY-NC-SA 3.0) gehört nicht
 dazu ([NOTICE](../NOTICE)).
 Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).

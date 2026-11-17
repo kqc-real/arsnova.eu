@@ -5,6 +5,7 @@
  * kuratierte Seed-Set. Kein Produktiv-Freigabeersatz (ADR-0032).
  */
 import { format } from 'node:util';
+import { QA_NLP_LOCALE_EVAL } from './lib/qa-nlp-locale-eval';
 import { classifyQaNlpCascade } from '../src/lib/qaNlpCascade';
 import {
   QA_NLP_LEVEL2_FALLBACK_BUDGET,
@@ -51,23 +52,39 @@ function summarizeCascade(examples: readonly QaNlpSeedExample[]) {
   let correct = 0;
   let fallback = 0;
   let earlyExit = 0;
+  const categoryCounts = {
+    content: { actual: 0, predicted: 0, correct: 0 },
+    organization: { actual: 0, predicted: 0, correct: 0 },
+    technical: { actual: 0, predicted: 0, correct: 0 },
+  };
   for (const example of examples) {
     const result = classifyQaNlpCascade({ text: example.text });
+    categoryCounts[example.category].actual += 1;
     if (result.usedFallback) {
       fallback += 1;
     }
     if (result.earlyExit) {
       earlyExit += 1;
     }
-    if (result.status === 'classified') {
+    if (result.status === 'classified' && result.category) {
       classified += 1;
+      categoryCounts[result.category].predicted += 1;
       if (result.category === example.category) {
         correct += 1;
+        categoryCounts[result.category].correct += 1;
       }
     }
   }
+  const categories = Object.values(categoryCounts);
+  const macroF1 =
+    categories.reduce((sum, { actual, predicted, correct }) => {
+      const total = actual + predicted;
+      return sum + (total === 0 ? 0 : (2 * correct) / total);
+    }, 0) / categories.length;
   return {
     size: examples.length,
+    macroF1,
+    uncertainRate: examples.length === 0 ? 0 : 1 - classified / examples.length,
     classifiedCount: classified,
     earlyExitRate: examples.length === 0 ? 0 : earlyExit / examples.length,
     fallbackRate: examples.length === 0 ? 0 : fallback / examples.length,
@@ -109,6 +126,11 @@ log(
           (example, locale) => example.locale === locale,
         ),
       },
+      localeHoldout: summarizeCascadeGroups(
+        QA_NLP_LOCALE_EVAL,
+        QA_NLP_SEED_LOCALES,
+        (example, locale) => example.locale === locale,
+      ),
       eval: {
         labeledSize: labeledEval.length,
         ambiguousSize: ambiguousEval.length,

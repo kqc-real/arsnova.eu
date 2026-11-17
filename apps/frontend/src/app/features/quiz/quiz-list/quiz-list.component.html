@@ -644,10 +644,12 @@
               [disabled]="
                 !hasAvailableLastSessionAnalysis(quiz) || isSessionPdfExportPending(quiz.id)
               "
-              [matMenuTriggerFor]="lastSessionPdfMenu"
+              [disabledInteractive]="hasAvailableLastSessionAnalysis(quiz)"
+              [attr.aria-busy]="isSessionPdfExportPending(quiz.id)"
+              [matMenuTriggerFor]="isSessionPdfExportPending(quiz.id) ? null : lastSessionPdfMenu"
             >
               <mat-icon aria-hidden="true">psychology</mat-icon>
-              <span i18n="@@quizList.exportLastSessionPdf">Nachbesprechungsplan ansehen</span>
+              <span i18n="@@quizList.exportLastSessionPdf">Nachbesprechungsplan herunterladen</span>
               <mat-icon aria-hidden="true" class="quiz-list-item__menu-caret">expand_more</mat-icon>
             </button>
           </span>

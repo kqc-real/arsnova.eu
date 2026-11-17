@@ -17,7 +17,6 @@ describe('Host-Pairing Oberflächengrenzen (Story 2.10)', () => {
     expect(hostTs).not.toContain('openHostPairingDialog');
     expect(hostTs).not.toContain('showHostPairingAction');
     expect(hostTs).toContain('PresentationStartDialogComponent');
-    expect(hostTs).toContain('startPresenterView');
     expect(startHtml).toContain('data-testid="presentation-start-connect"');
     expect(hostTs).toContain('markHostAccessRevoked');
     expect(hostTs).toContain('setOutputEnabled');

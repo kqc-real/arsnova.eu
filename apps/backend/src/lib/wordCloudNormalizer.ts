@@ -117,7 +117,7 @@ export class LemmaNormalizer implements WordCloudNormalizer {
       const response = await this.sidecar(this.locale, batch, this.config);
       sidecarItems.push(...response.items);
     }
-    return mergeSegmentSidecarTokens(items, segmentCounts, sidecarItems);
+    return mergeSegmentSidecarTokens(items, segmentCounts, sidecarItems, this.locale);
   }
 }
 
@@ -240,15 +240,19 @@ export function identityNormalizeWordCloudItems(
 
 export function mapSpacyTokenToWordCloud(
   token: SpacyNormalizeToken,
-  neighbors: { readonly next?: SpacyNormalizeToken } = {},
+  context: { readonly next?: SpacyNormalizeToken; readonly locale?: WordCloudLemmaLocale } = {},
 ): WordCloudRawToken {
   const entType = token.entType?.trim().toUpperCase() ?? '';
-  const nominalizedInfinitive = isNominalizedInfinitive(token, neighbors.next);
-  const effectivePos = resolveEffectiveSpacyPos(token, nominalizedInfinitive);
+  const nominalizedInfinitive = isNominalizedInfinitive(token, context.next);
+  const effectivePos =
+    context.locale === 'it' ? token.pos : resolveEffectiveSpacyPos(token, nominalizedInfinitive);
+  // Der italienische Lookup liefert Grundformen ohne Wortartbestimmung.
+  const canUseLemma =
+    LEMMA_POS_TYPES.has(effectivePos) || (context.locale === 'it' && effectivePos === 'X');
   const keepSurface =
     effectivePos === 'PROPN' ||
     NAME_ENTITY_TYPES.has(entType) ||
-    !LEMMA_POS_TYPES.has(effectivePos) ||
+    !canUseLemma ||
     nominalizedInfinitive;
   const lemma = token.lemma.trim();
   const surfaceOrLemma = keepSurface || lemma.length === 0 ? token.text : lemma;
@@ -264,12 +268,14 @@ export function mapSpacyTokenToWordCloud(
 
 function mapSidecarTokens(
   items: ReadonlyArray<{ readonly id: string; readonly tokens: readonly SpacyNormalizeToken[] }>,
+  locale: WordCloudLemmaLocale,
 ): ReadonlyMap<string, readonly WordCloudRawToken[]> {
   return new Map(
     items.map((item) => [
       item.id,
       item.tokens.map((token, index) =>
         mapSpacyTokenToWordCloud(token, {
+          locale,
           next: item.tokens[index + 1],
         }),
       ),
@@ -284,8 +290,9 @@ function mergeSegmentSidecarTokens(
     readonly id: string;
     readonly tokens: readonly SpacyNormalizeToken[];
   }>,
+  locale: WordCloudLemmaLocale,
 ): ReadonlyMap<string, readonly WordCloudRawToken[]> {
-  const byExpandedId = mapSidecarTokens(sidecarItems);
+  const byExpandedId = mapSidecarTokens(sidecarItems, locale);
   const result = new Map<string, readonly WordCloudRawToken[]>();
 
   for (const item of items) {

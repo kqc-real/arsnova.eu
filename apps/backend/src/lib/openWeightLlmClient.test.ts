@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
   MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1,
+  MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1,
   ModerationAnalysisContextV1Schema,
   OPEN_WEIGHT_LLM_SCHEMA_VERSION,
   type OpenWeightLlmLearningObjectivesOutput,
@@ -34,8 +35,8 @@ import {
   QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   prepareModerationSummaryContextFromAnalysis,
 } from './moderationSummaryContext';
-import { canonicalModerationPromptJson } from './moderationPromptContextPacking';
 import { logger } from './logger';
+import { runPreparedQaSummary } from './qaSummaryRuntimeAdapter';
 
 const SOURCE_ID = 'qa-question:11111111-1111-4111-8111-111111111111';
 const QUESTION_ID = '22222222-2222-4222-8222-222222222222';
@@ -127,7 +128,7 @@ const defaultConfig: OpenWeightLlmConfig = {
   maxOutputTokens: { topic_label: 96, qa_summary: 640, learning_objectives: 768 },
 };
 
-function completionResponse(output: OpenWeightLlmOutput) {
+function completionResponse(output: unknown) {
   return {
     status: 200,
     body: JSON.stringify({
@@ -321,13 +322,147 @@ describe('openWeightLlmClient', () => {
     },
   );
 
-  it('serialisiert Summary V2 exakt als zwei Systemnachrichten plus kanonischen Fachkontext', async () => {
-    const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
+  it.each([
+    { ref: '1', question: 'Wie wird die Varianz berechnet?', valid: true },
+    { ref: '1', question: 'Wie wird die Varianz berechnet?', extraTopic: true, valid: false },
+    { ref: '99', question: 'Wie wird die Varianz berechnet?', valid: false },
+    { ref: '1', question: 'Die Varianz ist das Quadrat der Standardabweichung.', valid: false },
+  ])(
+    'prüft Kurzreferenz, Frageform und Themenzahl für eine belegte Frage ($ref, $question, $extraTopic)',
+    async ({ ref, question, extraTopic, valid }) => {
+      const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
+      const analysis = ModerationAnalysisContextV1Schema.parse({
+        schemaVersion: fixture.schemaVersion,
+        contractVersion: MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
+        assembledAt: '2026-01-15T10:05:00.000Z',
+        context: { ...fixture.context, representation: 'analysis-candidates' },
+      });
+      const prepared = prepareModerationSummaryContextFromAnalysis({
+        analysis,
+        plan: {
+          capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+          selectedMode: 'full-context',
+          fallback: null,
+          inferenceConfigured: true,
+        },
+        packedAt: new Date('2026-01-15T10:06:00.000Z'),
+      });
+      const sourceId = prepared.request.promptContext.context.sources[0]!.id;
+      const topic = 'Statistische Grundlagen der Varianzberechnung';
+      const output = {
+        schemaVersion: 2,
+        taskType: 'qa_summary',
+        outputContract: 'qa-summary-model-output-v3',
+        output: {
+          status: 'ready',
+          statements: [
+            { text: `${topic}: Wie wird die Varianz berechnet?`, sourceIds: [sourceId] },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+      } satisfies OpenWeightLlmSummaryOutputV2;
+      let translatedBody: string | null = null;
+      resetOpenWeightLlmClientForTests({
+        config: () => defaultConfig,
+        request: async (input) => {
+          if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+          translatedBody = input.body;
+          return completionResponse({
+            topics: [
+              { topic, question, refs: [ref] },
+              ...(extraTopic
+                ? [
+                    {
+                      topic: 'Stichprobe',
+                      question: 'Wie wird die Stichprobe ausgewählt?',
+                      refs: ['1'],
+                    },
+                  ]
+                : []),
+            ],
+          });
+        },
+      });
+
+      if (valid) {
+        await expect(runPreparedQaSummary(prepared)).resolves.toMatchObject({
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'full-context',
+            fallback: null,
+          },
+          output: output.output,
+        });
+      } else {
+        await expect(runOpenWeightLlmSummaryV2(prepared.request)).resolves.toMatchObject({
+          status: 'invalid_response',
+        });
+      }
+      const body = JSON.parse(translatedBody ?? '{}') as {
+        messages: Array<{ role: string; content: string }>;
+        response_format: { schema: { properties?: Record<string, unknown> } };
+      };
+      expect(body.messages).toEqual([
+        { role: 'system', content: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT },
+        { role: 'system', content: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT },
+        {
+          role: 'user',
+          content: expect.any(String),
+        },
+      ]);
+      expect(body.messages[2]?.content).not.toContain(prepared.request.promptContext.snapshotHash);
+      expect(body.messages[2]?.content).not.toContain(sourceId);
+      const context = JSON.parse(body.messages[2]!.content);
+      expect(context.sources[0]).toMatchObject({ id: '1', kind: 'qa-question' });
+      expect(context.sources[0].answerState).toBe('unaddressed');
+      expect(body.response_format.schema.properties?.['topics']).toMatchObject({
+        minItems: 1,
+        maxItems: 1,
+        items: { properties: { topic: { type: 'string' }, refs: { items: { enum: ['1'] } } } },
+      });
+      const topicsSchema = body.response_format.schema.properties?.['topics'];
+      expect(topicsSchema).not.toHaveProperty('items.properties.topic.maxLength');
+    },
+  );
+
+  it('erhält Themenverweise auf Fragen ohne Modelltext und verbietet deren Zitation', async () => {
+    const fixture = MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1;
+    const topic = fixture.context.topics.items[0];
+    const referenceOnlyId = topic.memberQuestionSourceIds[1]!;
     const analysis = ModerationAnalysisContextV1Schema.parse({
       schemaVersion: fixture.schemaVersion,
       contractVersion: MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
       assembledAt: '2026-01-15T10:05:00.000Z',
-      context: { ...fixture.context, representation: 'analysis-candidates' },
+      context: {
+        ...fixture.context,
+        representation: 'analysis-candidates',
+        topics: {
+          ...fixture.context.topics,
+          items: [
+            { ...topic, representedQuestionSourceIds: [topic.representativeQuestionSourceId] },
+          ],
+        },
+        questions: {
+          ...fixture.context.questions,
+          items: fixture.context.questions.items.filter(
+            ({ sourceId }) => sourceId === topic.representativeQuestionSourceId,
+          ),
+          corpus: { ...fixture.context.questions.corpus, represented: 1 },
+        },
+        compass: { state: 'unavailable', reason: 'no-data' },
+        learningContext: { state: 'unavailable', reason: 'not-collected' },
+        sources: [
+          ...fixture.context.sources.filter(
+            ({ id }) => id === topic.representativeQuestionSourceId || id === topic.sourceId,
+          ),
+          {
+            id: referenceOnlyId,
+            kind: 'qa-question',
+            content: { state: 'reference-only', reason: 'deduplicated' },
+          },
+        ],
+      },
     });
     const prepared = prepareModerationSummaryContextFromAnalysis({
       analysis,
@@ -339,60 +474,49 @@ describe('openWeightLlmClient', () => {
       },
       packedAt: new Date('2026-01-15T10:06:00.000Z'),
     });
-    const sourceId = prepared.request.promptContext.context.sources[0]!.id;
-    const output = {
-      schemaVersion: 2,
-      taskType: 'qa_summary',
-      outputContract: 'qa-summary-model-output-v3',
-      output: {
-        status: 'ready',
-        statements: [{ text: 'Belegt.', sourceIds: [sourceId] }],
-        suggestedNextSteps: [],
-        limitations: [],
-      },
-    } satisfies OpenWeightLlmSummaryOutputV2;
-    let translatedBody: string | null = null;
-    resetOpenWeightLlmClientForTests({
-      config: () => defaultConfig,
-      request: async (input) => {
-        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
-        translatedBody = input.body;
-        return completionResponse(output);
-      },
+    const packedSources = prepared.request.promptContext.context.sources;
+    const excludedIndex = packedSources.findIndex(({ id }) => id === referenceOnlyId);
+    expect(packedSources[excludedIndex]).toMatchObject({
+      kind: 'qa-question',
+      content: { state: 'reference-only' },
     });
+    const excludedRef = String(excludedIndex + 1);
+    const request = vi.fn<
+      NonNullable<NonNullable<Parameters<typeof resetOpenWeightLlmClientForTests>[0]>['request']>
+    >(async (input) => {
+      if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+      return completionResponse({
+        topics: [
+          {
+            topic: 'Regression',
+            question: 'Wie funktioniert lineare Regression?',
+            refs: [excludedRef],
+          },
+        ],
+      });
+    });
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
 
     await expect(runOpenWeightLlmSummaryV2(prepared.request)).resolves.toMatchObject({
-      status: 'completed',
-      output,
+      status: 'invalid_response',
     });
-    const body = JSON.parse(translatedBody ?? '{}') as {
-      messages: Array<{ role: string; content: string }>;
-      response_format: { schema: { properties?: Record<string, unknown> } };
-    };
-    expect(body.messages).toEqual([
-      { role: 'system', content: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT },
-      { role: 'system', content: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT },
-      {
-        role: 'user',
-        content: canonicalModerationPromptJson(prepared.request.promptContext.context),
-      },
-    ]);
-    expect(body.messages[2]?.content).not.toContain(prepared.request.promptContext.snapshotHash);
-    expect(body.response_format.schema.properties).toHaveProperty('output');
-    const outputProp = body.response_format.schema.properties?.['output'] as {
-      properties?: {
-        statements?: {
-          minItems?: number;
-          maxItems?: number;
-          items?: { properties?: { sourceIds?: { items?: { enum?: string[] } } } };
-        };
-      };
-    };
-    expect(outputProp?.properties?.statements?.minItems).toBe(2);
-    expect(outputProp?.properties?.statements?.maxItems).toBe(4);
-    expect(outputProp?.properties?.statements?.items?.properties?.sourceIds?.items?.enum).toEqual(
-      prepared.request.promptContext.context.sources.map((s) => s.id),
+    const post = request.mock.calls.find(([input]) => input.method === 'POST')?.[0];
+    const body = JSON.parse(post?.body ?? '{}');
+    const context = JSON.parse(body.messages[2].content);
+    expect(body.messages[2].content).not.toContain(referenceOnlyId);
+    expect(context.sources[excludedIndex]).toEqual({
+      id: excludedRef,
+      kind: 'qa-question',
+      state: 'reference-only',
+    });
+    const modelTopic = context.topics.items.find((item: { memberQuestionSourceIds: string[] }) =>
+      item.memberQuestionSourceIds.includes(excludedRef),
     );
+    expect(modelTopic).toBeDefined();
+    expect(modelTopic.representedQuestionSourceIds).toHaveLength(1);
+    expect(
+      body.response_format.schema.properties.topics.items.properties.refs.items.enum,
+    ).not.toContain(excludedRef);
   });
 
   it('zwingt learning_objectives questionIds im Wire-Schema auf die Quell-IDs statt UUID-Regex', async () => {

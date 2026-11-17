@@ -1,5 +1,13 @@
 import { formatDate } from '@angular/common';
-import { Component, LOCALE_ID, OnDestroy, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  LOCALE_ID,
+  OnDestroy,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -28,13 +36,13 @@ import { buildHostPairingUrl } from './host-pairing-url';
 export interface HostPairingDialogData {
   code: string;
   screenVisibility?: HostPairingScreenVisibility;
-  /** Nur aus „Präsentation starten“: öffnet den Presenter im Approve-/Schließen-Klick. */
-  startPresenterView?: () => Promise<Window | null>;
+  offerPresentationStart?: boolean;
+  requestFullscreen?: () => void;
 }
 
 export type HostPairingDialogResult = {
   connected: boolean;
-  presenterOpened?: boolean;
+  startPresentation?: boolean;
 };
 
 type DialogView = 'loading' | 'invite' | 'pending' | 'manage' | 'error';
@@ -60,6 +68,7 @@ const EMPTY_CAPS: HostPairingCaps = {
 })
 export class HostPairingDialogComponent implements OnDestroy {
   readonly data = inject<HostPairingDialogData>(MAT_DIALOG_DATA);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly dialogRef =
     inject<MatDialogRef<HostPairingDialogComponent, HostPairingDialogResult>>(MatDialogRef);
   private readonly locale = inject(LOCALE_ID);
@@ -113,7 +122,7 @@ export class HostPairingDialogComponent implements OnDestroy {
   }
 
   closeLabel(): string {
-    if (this.data.startPresenterView) {
+    if (this.data.offerPresentationStart) {
       if (this.view() === 'manage' && this.devices().length > 0) {
         return $localize`:@@presentationStart.title:Präsentation starten`;
       }
@@ -125,13 +134,13 @@ export class HostPairingDialogComponent implements OnDestroy {
   }
 
   approveLabel(): string {
-    return this.data.startPresenterView
+    return this.data.offerPresentationStart
       ? $localize`:@@hostPairing.approveAndPresent:Gerät verbinden und Präsentation starten`
       : $localize`:@@hostPairing.approve:Ja, Gerät verbinden`;
   }
 
   rejectLabel(): string {
-    return this.data.startPresenterView
+    return this.data.offerPresentationStart
       ? $localize`:@@hostPairing.rejectRequest:Anfrage ablehnen`
       : $localize`:@@hostPairing.reject:Nein, ablehnen`;
   }
@@ -174,6 +183,7 @@ export class HostPairingDialogComponent implements OnDestroy {
     this.view.set('loading');
     try {
       const state = await trpc.session.listPairedHosts.query({ code: this.data.code });
+      if (this.destroyRef.destroyed) return;
       this.applyListedState(state);
       if (state.pending) {
         this.startPolling();
@@ -211,6 +221,7 @@ export class HostPairingDialogComponent implements OnDestroy {
         code: this.data.code,
         screenVisibility: this.screenVisibility,
       });
+      if (this.destroyRef.destroyed) return;
       this.inviteExpiresAt.set(invite.expiresAt);
       const url = buildHostPairingUrl(this.data.code, invite.pairingSecret);
       this.pairingUrl.set(url);
@@ -251,8 +262,7 @@ export class HostPairingDialogComponent implements OnDestroy {
 
   async approve(): Promise<void> {
     const requestId = this.pending()?.requestId;
-    if (!requestId) return;
-    const presenterOpened = await this.startPresenterIfRequested();
+    if (!requestId || this.busy()) return;
     this.busy.set(true);
     try {
       await trpc.session.approveHostPairing.mutate({
@@ -261,8 +271,8 @@ export class HostPairingDialogComponent implements OnDestroy {
       });
       this.pending.set(null);
       this.stopPolling();
-      if (this.data.startPresenterView) {
-        this.dialogRef.close({ connected: true, presenterOpened });
+      if (this.data.offerPresentationStart) {
+        this.dialogRef.close({ connected: true, startPresentation: true });
         return;
       }
       const state = await trpc.session.listPairedHosts.query({ code: this.data.code });
@@ -280,11 +290,16 @@ export class HostPairingDialogComponent implements OnDestroy {
     }
   }
 
-  async finish(): Promise<void> {
+  finish(): void {
+    const view = this.view();
+    if (view === 'pending' && this.busy()) return;
     const connected = this.devices().length > 0;
-    if (connected && this.data.startPresenterView) {
-      const presenterOpened = await this.startPresenterIfRequested();
-      this.dialogRef.close({ connected: true, presenterOpened });
+    if (
+      this.data.offerPresentationStart &&
+      ((view === 'manage' && connected) || view === 'invite' || view === 'loading')
+    ) {
+      this.data.requestFullscreen?.();
+      this.dialogRef.close({ connected, startPresentation: true });
       return;
     }
     this.dialogRef.close({ connected });
@@ -340,6 +355,7 @@ export class HostPairingDialogComponent implements OnDestroy {
   }
 
   private startPolling(): void {
+    if (this.destroyRef.destroyed) return;
     this.stopPolling();
     this.pollTimer = setInterval(() => {
       void this.refreshState();
@@ -360,18 +376,6 @@ export class HostPairingDialogComponent implements OnDestroy {
       this.applyListedState(state);
     } catch {
       /* Polling-Fehler nicht als Dialog-Abbruch zeigen. */
-    }
-  }
-
-  private async startPresenterIfRequested(): Promise<boolean | undefined> {
-    const start = this.data.startPresenterView;
-    if (!start) {
-      return undefined;
-    }
-    try {
-      return Boolean(await start());
-    } catch {
-      return false;
     }
   }
 

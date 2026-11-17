@@ -10,7 +10,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { paginateProjection, prepareProjectionSource } from './projection-pages.util';
+import { layoutProjection, prepareProjectionSource } from './projection-pages.util';
 
 @Component({
   selector: 'app-projection-pages',
@@ -55,7 +55,10 @@ export class ProjectionPagesComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     const source = this.source().nativeElement;
     const schedule = (): void => this.schedule();
-    const mutations = new MutationObserver(schedule);
+    const mutations = new MutationObserver(() => {
+      this.syncStatus();
+      schedule();
+    });
     mutations.observe(source, {
       subtree: true,
       childList: true,
@@ -108,7 +111,18 @@ export class ProjectionPagesComponent implements AfterViewInit {
       this.page().nativeElement.removeEventListener('load', visibleImageLoaded, true);
       fonts?.removeEventListener('loadingdone', remeasure);
     });
+    this.syncStatus();
     schedule();
+  }
+
+  private syncStatus(): void {
+    const status = this.source().nativeElement.querySelector('[data-projection-status]');
+    const output = this.status().nativeElement;
+    if (status && !status.isEqualNode(output.firstChild)) {
+      output.replaceChildren(status.cloneNode(true));
+    } else if (!status && output.hasChildNodes()) {
+      output.replaceChildren();
+    }
   }
 
   private schedule(): void {
@@ -122,22 +136,26 @@ export class ProjectionPagesComponent implements AfterViewInit {
     if (!root) return;
     const viewport = this.viewport().nativeElement;
     if (!viewport.clientHeight || !viewport.clientWidth) return;
-    const status = root.querySelector('[data-projection-status]');
-    this.status().nativeElement.replaceChildren(...(status ? [status.cloneNode(true)] : []));
     const snapshot = prepareProjectionSource(root);
     snapshot.querySelectorAll('[data-projection-status]').forEach((node) => node.remove());
     const signature = `${viewport.clientWidth}:${viewport.clientHeight}:${snapshot.innerHTML}`;
     if (signature === this.signature) return;
     this.signature = signature;
     const target = this.page().nativeElement;
-    this.pages = paginateProjection(snapshot, (candidate) => {
+    this.pages = layoutProjection(snapshot, (candidate) => {
       target.replaceChildren(candidate);
       const content = target.firstElementChild as HTMLElement | null;
       if (!content) return true;
       // Leave room for fractional font/layout rounding when the fragment is cloned again.
       return (
         content.scrollHeight <= viewport.clientHeight - 8 &&
-        content.scrollWidth <= viewport.clientWidth
+        content.scrollWidth <= viewport.clientWidth &&
+        // A wide formula can spill into a neighboring card or its result bar.
+        Array.from(
+          content.querySelectorAll<HTMLElement>(
+            '.projection-source--compact-answers [data-projection-answer-list] :is(.session-projection-quiz__answer, .session-projection-quiz__answer-head)',
+          ),
+        ).every((element) => element.scrollWidth <= element.clientWidth)
       );
     });
     this.showPage();

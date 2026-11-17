@@ -353,6 +353,7 @@ export class QuizNewComponent implements OnInit, OnDestroy {
         ? (this.bonusTokenCountControl.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
       readingPhaseEnabled: this.form.controls.readingPhaseEnabled.value,
+      shuffleAnswerOptions: false,
       preset: selectedPreset,
     };
   }

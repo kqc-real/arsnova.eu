@@ -107,7 +107,7 @@ Da beide Dateien als Living Documentation dienen, sollte architecture-overview.m
 - Story **1.2d NUMERIC_ESTIMATE** – umgesetzt und in Diagrammen sichtbar: Question-/Vote-Felder, Data-Stripping während ACTIVE, Runde-2-Pfad, Histogramm/Statistik/Paarvergleich nach RESULTS; Details in [numeric-estimate.md](../features/numeric-estimate.md) ✓
 - Word Cloud interaktiv + Export (1.14) – WordcloudComponent in Host- und Presenter-Ansicht; Export (CSV/PNG) in Story 1.14 spezifiziert ✓
 - Story **1.14a** (d3-cloud, Freeze, Phrasen) und **1.14b** (optionaler spaCy-Sidecar) – umgesetzt; Diagramm §1.3 und [word-cloud-spacy.md](../features/word-cloud-spacy.md) ✓
-- Story **1.14c Stufe 1** (Encoder-Sidecar + Clustering, Kill-Switch default aus) – im Repo; [word-cloud-semantic.md](../features/word-cloud-semantic.md) ✓; Stufe 2 LLM-Labels bleibt offen ⚠️ bewusst
+- Story **1.14c Stufe 1** (Encoder-Sidecar + Clustering, Kill-Switch default aus) – im Repo; [word-cloud-semantic.md](../features/word-cloud-semantic.md) ✓; Stufe 2 (optionale LLM-Labels) ist implementiert. Glättung, Encoder und Modellbeschriftung unterstützen alle fünf App-Locales.
 
 ### Epic 2: Session-Start & Steuerung
 
@@ -249,7 +249,7 @@ Story 0.4: Das **ServerStatusWidget** ist in diagrams.md (App-Shell / Shared) ab
 
 ### 7.3 Team-Leaderboard-Komponente
 
-`TeamLeaderboardEntryDTO` ist in shared-types definiert; es gibt **keine** eigene `TeamLeaderboardComponent` — `session.getTeamLeaderboard` wird in **SessionHost**, **SessionPresent** und **SessionVote** genutzt (siehe [team-mode.md](../features/team-mode.md) § Team-Leaderboard in der UI).
+`TeamLeaderboardEntryDTO` ist in shared-types definiert. **SessionPresent** und **SessionVote** nutzen `session.getTeamLeaderboard`, **SessionHost** nutzt `session.getHostTeamLeaderboard` für dieselbe Rangfolge mit zusätzlichem Median pro Team. Die Ranglisten werden in den jeweiligen Session-Komponenten dargestellt (siehe [team-mode.md](../features/team-mode.md) § Darstellung in der UI).
 
 **Empfehlung:** In `diagrams.md` weiterhin optional als Vereinfachung; bei Detailfragen [team-mode.md](../features/team-mode.md) als Quelle nutzen.
 

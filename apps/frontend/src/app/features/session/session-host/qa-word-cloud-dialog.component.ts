@@ -2,8 +2,10 @@ import { computed, Component, inject, signal, ViewChild } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatOption, MatSelect } from '@angular/material/select';
 import type {
   QaQuestionSortMode,
   WordCloudAnalysisEntryDTO,
@@ -83,13 +85,17 @@ export type QaWordCloudDialogData = {
     MatIcon,
     MatButtonToggleGroup,
     MatButtonToggle,
+    MatFormField,
+    MatLabel,
+    MatSelect,
+    MatOption,
     MatProgressBar,
     PresenterIconComponent,
     WordCloudComponent,
   ],
   templateUrl: './qa-word-cloud-dialog.component.html',
   styleUrl: './qa-word-cloud-dialog.component.scss',
-  host: { '(keydown.escape)': 'close($event)' },
+  host: { '(keydown.escape)': 'onEscape($event)' },
 })
 export class QaWordCloudDialogComponent {
   readonly data = inject<QaWordCloudDialogData>(MAT_DIALOG_DATA);
@@ -101,6 +107,7 @@ export class QaWordCloudDialogComponent {
   readonly projectionPending = signal(false);
   readonly projectionError = signal('');
   @ViewChild(WordCloudComponent) private wordCloud?: WordCloudComponent;
+  @ViewChild(MatSelect) private sizeSelect?: MatSelect;
 
   readonly responses = computed(() => this.data.responses());
   readonly responseTextsBySourceId = computed(() => this.data.responseTextsBySourceId());
@@ -234,11 +241,15 @@ export class QaWordCloudDialogComponent {
     return this.wordCloud?.selectedSourceIds() ?? [];
   }
 
-  onSizeChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement | null)?.value;
-    if (value === 'TOP' || value === 'BEST' || value === 'CONTROVERSIAL' || value === 'TIME') {
-      this.setSortMode(value);
+  onEscape(event: Event): void {
+    if (event.defaultPrevented) return;
+    if (this.sizeSelect?.panelOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.sizeSelect.close();
+      return;
     }
+    void this.close(event);
   }
 
   setSortMode(mode: QaQuestionSortMode): void {

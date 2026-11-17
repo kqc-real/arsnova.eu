@@ -1,4 +1,6 @@
-/** Locale-keyed help copy for Q&A sort modes BEST / CONTROVERSIAL (source: Desktop MDs). */
+import { QA_CONTROVERSY_DAMPING, QA_CONTROVERSY_MIN_VOTES } from '@arsnova/shared-types';
+
+/** Locale-keyed help copy for Q&A sort modes BEST / CONTROVERSIAL. */
 
 export type QaSortHelpKind = 'BEST' | 'CONTROVERSIAL';
 
@@ -17,8 +19,12 @@ export interface QaSortHelpCopy {
   markdown: string;
 }
 
-const BEST_SCORE_FORMULA = String.raw`$$
-\operatorname{BestScore}=
+const NIST_WILSON_URL =
+  'https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/propconf.htm';
+
+function wilsonLowerBoundFormula(label: string): string {
+  return String.raw`$$
+\text{${label}}=
 \frac{
 \hat{p}+\frac{z^{2}}{2N}
 -z\sqrt{\frac{\hat{p}(1-\hat{p})}{N}+\frac{z^{2}}{4N^{2}}}
@@ -26,48 +32,52 @@ const BEST_SCORE_FORMULA = String.raw`$$
 1+\frac{z^{2}}{N}
 }
 $$`;
+}
+
+const REDDIT_CONTROVERSY_URL =
+  'https://github.com/reddit-archive/reddit/blob/master/r2/r2/lib/db/_sorts.pyx';
 
 const CONTROVERSY_SCORE_FORMULA = String.raw`$$
-\operatorname{ControversyScore}=
-\min\left(1,\frac{2\cdot\min(p,n)}{p+n+T}\right)
+S=
+\frac{2\cdot\min(p,n)}{p+n+${QA_CONTROVERSY_DAMPING}}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA = String.raw`$$
-\operatorname{ControversyScore}>0{,}5
+S>0{,}5
 \qquad\text{und}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_EN = String.raw`$$
-\operatorname{ControversyScore}>0.5
+S>0.5
 \qquad\text{and}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_FR = String.raw`$$
-\operatorname{ControversyScore}>0{,}5
+S>0{,}5
 \qquad\text{et}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_ES = String.raw`$$
-\operatorname{ControversyScore}>0{,}5
+S>0{,}5
 \qquad\text{y}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 const CONTROVERSY_LABEL_FORMULA_IT = String.raw`$$
-\operatorname{ControversyScore}>0{,}5
+S>0{,}5
 \qquad\text{e}\qquad
-p+n\ge T
+p+n\ge ${QA_CONTROVERSY_MIN_VOTES}
 $$`;
 
 export const QA_SORT_HELP_COPY: Record<QaSortHelpKind, Record<QaSortHelpLocale, QaSortHelpCopy>> = {
   BEST: {
     de: {
-      title: 'Beste Fragen',
+      title: 'Klare Zustimmung',
       markdown: `
-Diese Sortierung bevorzugt Fragen, die viel Zustimmung erhalten haben und deren Bewertung durch genügend Stimmen gestützt wird. Eine einzelne positive Stimme reicht deshalb nicht automatisch für den ersten Platz.
+Die Sortierung beruht auf den abgegebenen Stimmen. Sie berücksichtigt den Dafür-Anteil und die Stimmenzahl. Die Karte zeigt beides, zum Beispiel »100 % dafür · 1 Stimme«.
 
 #### Formel
 
@@ -81,16 +91,19 @@ Es gilt:
 
 Für \\(N>0\\) wird die untere Grenze des Wilson-Konfidenzintervalls berechnet:
 
-${BEST_SCORE_FORMULA}
+${wilsonLowerBoundFormula('Wilson-Untergrenze')}
 
 Wenn noch keine Stimme abgegeben wurde, ist der Wert 0.
+
+[NIST-Dokumentation zum Wilson-Intervall](${NIST_WILSON_URL}) (Englisch)
 
 #### Einfach erklärt
 
 Der Wert betrachtet nicht nur den Anteil der Zustimmung, sondern auch, wie verlässlich dieser Anteil bereits ist. Bei wenigen Stimmen wird das Ergebnis vorsichtiger bewertet. Deshalb steht eine Frage mit 10 Dafür- und 0 Dagegen-Stimmen vor einer Frage mit 2 Dafür- und 0 Dagegen-Stimmen, obwohl beide 100 % Zustimmung haben.
 
-| Stimmen | Zustimmung | Wert ungefähr |
+| Stimmen | Dafür-Anteil | Wilson-Untergrenze (ca.) |
 | --- | ---: | ---: |
+| 1 dafür, 0 dagegen | 100 % | 0,21 |
 | 2 dafür, 0 dagegen | 100 % | 0,34 |
 | 10 dafür, 0 dagegen | 100 % | 0,72 |
 | 8 dafür, 2 dagegen | 80 % | 0,49 |
@@ -99,43 +112,46 @@ Bei gleichem Wert entscheiden nacheinander die Anzahl der Dafür-Stimmen, der we
 `.trim(),
     },
     en: {
-      title: 'Best questions',
+      title: 'Strong support',
       markdown: `
-This ranking favours questions with strong positive support backed by a meaningful number of votes. A single positive vote is therefore not enough to place a question at the top automatically.
+The ranking is based on the votes cast. It considers the share in favor and the total number of votes. The card shows both, for example “100% in favor · 1 vote”.
 
 #### Formula
 
 Let:
 
-- \\(p\\): number of votes in favour
+- \\(p\\): number of votes in favor
 - \\(n\\): number of votes against
 - \\(N=p+n\\): total number of votes
-- \\(\\hat{p}=p/N\\): proportion of votes in favour
+- \\(\\hat{p}=p/N\\): proportion of votes in favor
 - \\(z=1.96\\): value for a 95% confidence level
 
 For \\(N>0\\), the lower bound of the Wilson confidence interval is used:
 
-${BEST_SCORE_FORMULA}
+${wilsonLowerBoundFormula('Wilson lower bound')}
 
 The score is 0 when no votes have been cast.
 
+[NIST documentation on the Wilson interval](${NIST_WILSON_URL})
+
 #### In plain language
 
-The score considers both the level of support and how reliable that result is. Results based on only a few votes receive a larger confidence adjustment. A question with 10 votes in favour and none against therefore ranks above a question with 2 votes in favour and none against, even though both have 100% support.
+The score considers both the level of support and how reliable that result is. Results based on only a few votes receive a larger confidence adjustment. A question with 10 votes in favor and none against therefore ranks above a question with 2 votes in favor and none against, even though both have 100% support.
 
-| Votes | Support | Approximate score |
+| Votes | Share in favor | Wilson lower bound (approx.) |
 | --- | ---: | ---: |
-| 2 in favour, 0 against | 100% | 0.34 |
-| 10 in favour, 0 against | 100% | 0.72 |
-| 8 in favour, 2 against | 80% | 0.49 |
+| 1 in favor, 0 against | 100% | 0.21 |
+| 2 in favor, 0 against | 100% | 0.34 |
+| 10 in favor, 0 against | 100% | 0.72 |
+| 8 in favor, 2 against | 80% | 0.49 |
 
-If scores are equal, ties are resolved by the number of votes in favour, the additional vote value and finally the creation time. Highlighted questions are shown first regardless of this score.
+If scores are equal, ties are resolved by the number of votes in favor, the net vote count, and finally the creation time. Pinned questions are shown first regardless of this score.
 `.trim(),
     },
     fr: {
-      title: 'Meilleures questions',
+      title: 'Forte adhésion',
       markdown: `
-Ce classement privilégie les questions qui recueillent une forte adhésion, confirmée par un nombre suffisant de votes. Une seule voix favorable ne suffit donc pas automatiquement pour placer une question en tête.
+Le classement repose sur les votes exprimés. Il tient compte de la part de votes favorables et du nombre total de votes. La carte indique les deux, par exemple « 100 % pour · 1 vote ».
 
 #### Formule
 
@@ -149,16 +165,19 @@ On note :
 
 Pour \\(N>0\\), le système utilise la borne inférieure de l’intervalle de confiance de Wilson :
 
-${BEST_SCORE_FORMULA}
+${wilsonLowerBoundFormula('Borne inférieure de Wilson')}
 
 En l’absence de vote, la valeur est égale à 0.
+
+[Documentation du NIST sur l’intervalle de Wilson](${NIST_WILSON_URL}) (en anglais)
 
 #### En termes simples
 
 Le score tient compte à la fois du niveau d’adhésion et de la fiabilité du résultat. Une proportion calculée sur très peu de votes est évaluée avec davantage de prudence. Une question ayant reçu 10 votes favorables et aucun vote défavorable est donc classée avant une question ayant reçu 2 votes favorables et aucun vote défavorable, même si toutes deux obtiennent 100 % d’adhésion.
 
-| Votes | Adhésion | Score approximatif |
+| Votes | Part de votes favorables | Borne inférieure de Wilson (env.) |
 | --- | ---: | ---: |
+| 1 favorable, 0 défavorable | 100 % | 0,21 |
 | 2 favorables, 0 défavorable | 100 % | 0,34 |
 | 10 favorables, 0 défavorable | 100 % | 0,72 |
 | 8 favorables, 2 défavorables | 80 % | 0,49 |
@@ -167,9 +186,9 @@ En cas d’égalité, le nombre de votes favorables, la valeur de vote compléme
 `.trim(),
     },
     es: {
-      title: 'Mejores preguntas',
+      title: 'Apoyo claro',
       markdown: `
-Esta ordenación da prioridad a las preguntas que cuentan con un amplio respaldo positivo sustentado por un número suficiente de votos. Por tanto, un único voto favorable no basta para situar automáticamente una pregunta en primer lugar.
+La clasificación se basa en los votos emitidos. Tiene en cuenta la proporción de votos a favor y el número total de votos. La tarjeta muestra ambos datos, por ejemplo «100 % a favor · 1 voto».
 
 #### Fórmula
 
@@ -183,27 +202,30 @@ Se utilizan las siguientes variables:
 
 Para \\(N>0\\), se calcula el límite inferior del intervalo de confianza de Wilson:
 
-${BEST_SCORE_FORMULA}
+${wilsonLowerBoundFormula('Límite inferior de Wilson')}
 
 Si todavía no se ha emitido ningún voto, el valor es 0.
+
+[Documentación del NIST sobre el intervalo de Wilson](${NIST_WILSON_URL}) (en inglés)
 
 #### Explicación sencilla
 
 La puntuación tiene en cuenta tanto el nivel de apoyo como la fiabilidad del resultado. Cuando hay pocos votos, el resultado se valora con mayor cautela. Por eso, una pregunta con 10 votos a favor y ninguno en contra aparece antes que otra con 2 votos a favor y ninguno en contra, aunque ambas tengan un 100 % de apoyo.
 
-| Votos | Apoyo | Puntuación aproximada |
+| Votos | Proporción a favor | Límite inferior de Wilson (aprox.) |
 | --- | ---: | ---: |
+| 1 a favor, 0 en contra | 100 % | 0,21 |
 | 2 a favor, 0 en contra | 100 % | 0,34 |
 | 10 a favor, 0 en contra | 100 % | 0,72 |
 | 8 a favor, 2 en contra | 80 % | 0,49 |
 
-En caso de empate, se comparan sucesivamente el número de votos a favor, el valor adicional de los votos y, por último, la fecha de creación. Las preguntas destacadas se muestran primero con independencia de esta puntuación.
+En caso de empate, se comparan sucesivamente el número de votos a favor, el saldo de votos y, por último, la fecha de creación. Las preguntas fijadas se muestran primero con independencia de esta puntuación.
 `.trim(),
     },
     it: {
-      title: 'Domande migliori',
+      title: 'Consenso solido',
       markdown: `
-Questo ordinamento privilegia le domande che ricevono un ampio consenso positivo, sostenuto da un numero sufficiente di voti. Un solo voto favorevole, quindi, non basta per portare automaticamente una domanda al primo posto.
+L’ordinamento si basa sui voti espressi. Tiene conto della quota di voti favorevoli e del numero totale di voti. La scheda mostra entrambi i dati, per esempio «100% a favore · 1 voto».
 
 #### Formula
 
@@ -217,183 +239,186 @@ Si utilizzano le seguenti variabili:
 
 Per \\(N>0\\) viene calcolato il limite inferiore dell’intervallo di confidenza di Wilson:
 
-${BEST_SCORE_FORMULA}
+${wilsonLowerBoundFormula('Limite inferiore di Wilson')}
 
 Se non è stato espresso alcun voto, il valore è 0.
+
+[Documentazione del NIST sull’intervallo di Wilson](${NIST_WILSON_URL}) (in inglese)
 
 #### In parole semplici
 
 Il punteggio considera sia il livello di consenso sia l’affidabilità del risultato. Quando i voti sono pochi, il risultato viene valutato con maggiore prudenza. Per questo una domanda con 10 voti favorevoli e nessun voto contrario viene classificata prima di una domanda con 2 voti favorevoli e nessun voto contrario, anche se entrambe hanno il 100% di consenso.
 
-| Voti | Consenso | Punteggio approssimativo |
+| Voti | Quota a favore | Limite inferiore di Wilson (circa) |
 | --- | ---: | ---: |
+| 1 favorevole, 0 contrari | 100% | 0,21 |
 | 2 favorevoli, 0 contrari | 100% | 0,34 |
 | 10 favorevoli, 0 contrari | 100% | 0,72 |
 | 8 favorevoli, 2 contrari | 80% | 0,49 |
 
-In caso di parità vengono confrontati, nell’ordine, il numero di voti favorevoli, il valore di voto aggiuntivo e infine la data di creazione. Le domande in evidenza vengono mostrate per prime indipendentemente da questo punteggio.
+In caso di parità vengono confrontati, nell’ordine, il numero di voti favorevoli, il saldo dei voti e infine la data di creazione. Le domande in evidenza vengono mostrate per prime indipendentemente da questo punteggio.
 `.trim(),
     },
   },
   CONTROVERSIAL: {
     de: {
-      title: 'Kontroverse',
+      title: 'Geteilte Stimmen',
       markdown: `
-Diese Sortierung bevorzugt Fragen, bei denen sich Dafür- und Dagegen-Stimmen möglichst gleichmäßig verteilen. Eine zusätzliche Schwelle verhindert, dass sehr wenige Stimmen bereits als aussagekräftiger Konflikt erscheinen.
+Die Sortierung beruht auf den abgegebenen Stimmen. Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Deshalb liegt 2:2 mit 0,50 unter 60:30 mit rund 0,64.
 
 #### Formel
 
-Zusätzlich gilt:
+- \\(p\\) · Dafür-Stimmen
+- \\(n\\) · Dagegen-Stimmen
 
-- \\(P\\): Anzahl der Teilnehmenden in der Session
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\): Schwelle in Höhe von 10 % der Teilnehmenden, mindestens jedoch 1
+Der feste Zuschlag von ${QA_CONTROVERSY_DAMPING} im Nenner dämpft den Score bei wenigen Stimmen.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Eine Frage wird ausdrücklich als **umstritten** gekennzeichnet, wenn beide Bedingungen erfüllt sind:
+Die Formel gibt einer ausgeglichenen Verteilung auch bei weniger abgegebenen Stimmen Gewicht. Bei arsnova.eu steht eine Frage mit 4 Dafür- und 4 Dagegen-Stimmen (4:4) vor einer mit 60:30. Die [historische Reddit-Formel zum Modus »Controversial«](${REDDIT_CONTROVERSY_URL}) setzt 60:30 nach oben, weil dort die höhere Stimmenzahl stärker zählt.
+
+Eine Frage erhält die Kennzeichnung »Geteilte Stimmen«, wenn der Sortierwert über 0,5 liegt und mindestens ${QA_CONTROVERSY_MIN_VOTES} Stimmen abgegeben wurden.
 
 ${CONTROVERSY_LABEL_FORMULA}
 
-#### Einfach erklärt
+Unterhalb dieser Stimmenzahl zeigt die Frage »Zu wenige Stimmen«.
 
-Je ausgeglichener Zustimmung und Ablehnung sind, desto höher ist der Wert. Ein einseitiges Ergebnis ist nicht umstritten. Bei 100 Teilnehmenden beträgt die Schwelle \\(T=10\\).
+| Stimmen | Sortierwert (ca.) |
+| --- | ---: |
+| 10 dafür, 10 dagegen | 0,83 |
+| 18 dafür, 2 dagegen | 0,17 |
+| 2 dafür, 2 dagegen | 0,50 |
+| 10 dafür, 0 dagegen | 0,00 |
 
-| Stimmen | Berechnung | Wert ungefähr |
-| --- | --- | ---: |
-| 10 dafür, 10 dagegen | \\(20/(20+10)\\) | 0,67 |
-| 18 dafür, 2 dagegen | \\(4/(20+10)\\) | 0,13 |
-| 2 dafür, 2 dagegen | \\(4/(4+10)\\) | 0,29 |
-| 10 dafür, 0 dagegen | \\(0/(10+10)\\) | 0,00 |
-
-Die erste Frage gilt in diesem Beispiel als umstritten. Die Frage mit 2 zu 2 Stimmen ist zwar ausgeglichen, hat aber noch zu wenige Stimmen für eine belastbare Kennzeichnung.
+Die Frage mit 10 zu 10 Stimmen erhält die Kennzeichnung »Geteilte Stimmen«. Die Frage mit 2 zu 2 Stimmen ist ebenso ausgeglichen und hat noch zu wenige Stimmen für diese Kennzeichnung.
 `.trim(),
     },
     en: {
-      title: 'Controversy',
+      title: 'Split votes',
       markdown: `
-This ranking favours questions where votes in favour and against are distributed as evenly as possible. An additional threshold prevents a very small number of votes from appearing to represent a meaningful disagreement.
+The ranking is based on the votes cast. With the same number of votes, a more even split between votes for and against gives a higher score. If both sides receive votes and the split stays the same, the score rises with the number of votes. That is why 2:2 scores 0.50, below 60:30 at about 0.64.
 
 #### Formula
 
-Additionally, let:
+- \\(p\\) · votes in favor
+- \\(n\\) · votes against
 
-- \\(P\\): number of participants in the session
-- \\(T=\\max(1, \\lceil 0.1\\cdot P\\rceil)\\): a threshold equal to 10% of participants, with a minimum of 1
+Adding a fixed ${QA_CONTROVERSY_DAMPING} to the denominator reduces the score when few votes have been cast.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-A question is explicitly labelled **controversial** only when both conditions are met:
+This formula gives more weight to a balanced split, even with fewer votes. On arsnova.eu, a question with 4 votes in favor and 4 against (4:4) ranks ahead of one with 60:30. The [historical Reddit formula for the “Controversial” sort](${REDDIT_CONTROVERSY_URL}) puts 60:30 first because it gives more weight to the higher vote count.
+
+A question is marked “Split votes” when its ranking score exceeds 0.5 and at least ${QA_CONTROVERSY_MIN_VOTES} votes have been cast.
 
 ${CONTROVERSY_LABEL_FORMULA_EN}
 
-#### In plain language
+Below this vote count, the question is marked “Too few votes”.
 
-The more evenly support and opposition are split, the higher the score. A one-sided result is not controversial. With 100 participants, the threshold is \\(T=10\\).
+| Votes | Ranking score (approx.) |
+| --- | ---: |
+| 10 in favor, 10 against | 0.83 |
+| 18 in favor, 2 against | 0.17 |
+| 2 in favor, 2 against | 0.50 |
+| 10 in favor, 0 against | 0.00 |
 
-| Votes | Calculation | Approximate score |
-| --- | --- | ---: |
-| 10 in favour, 10 against | \\(20/(20+10)\\) | 0.67 |
-| 18 in favour, 2 against | \\(4/(20+10)\\) | 0.13 |
-| 2 in favour, 2 against | \\(4/(4+10)\\) | 0.29 |
-| 10 in favour, 0 against | \\(0/(10+10)\\) | 0.00 |
-
-In this example, the first question qualifies as controversial. The 2–2 result is evenly split, but there are not yet enough votes for a reliable label.
+The 10–10 question is marked “Split votes”. The 2–2 question is just as evenly split and has too few votes for the label.
 `.trim(),
     },
     fr: {
-      title: 'Controverse',
+      title: 'Votes partagés',
       markdown: `
-Ce classement privilégie les questions pour lesquelles les votes favorables et défavorables sont répartis de la manière la plus équilibrée possible. Un seuil supplémentaire évite qu’un très petit nombre de votes soit interprété comme un désaccord significatif.
+Le classement repose sur les votes exprimés. À nombre de votes égal, une répartition plus équilibrée entre les votes pour et contre donne un score plus élevé. Si les deux côtés ont reçu des votes, le score augmente avec leur nombre à répartition égale. Ainsi, 2:2 donne un score de 0,50, contre environ 0,64 pour 60:30.
 
 #### Formule
 
-On note également :
+- \\(p\\) · votes favorables
+- \\(n\\) · votes défavorables
 
-- \\(P\\) : nombre de participants à la session
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\) : seuil correspondant à 10 % des participants, avec un minimum de 1
+L’ajout fixe de ${QA_CONTROVERSY_DAMPING} au dénominateur réduit le score lorsque peu de votes ont été exprimés.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Une question est explicitement signalée comme **controversée** uniquement si les deux conditions suivantes sont remplies :
+La formule donne du poids à une répartition équilibrée, même avec moins de votes. Sur arsnova.eu, une question avec 4 votes pour et 4 contre (4:4) passe devant une question qui a reçu 60 votes pour et 30 contre (60:30). La [formule historique du tri « Controversial » de Reddit](${REDDIT_CONTROVERSY_URL}) place 60:30 en tête, car elle donne plus de poids au nombre de votes.
+
+Une question porte la mention « Votes partagés » si son score de classement dépasse 0,5 et qu’elle a reçu au moins ${QA_CONTROVERSY_MIN_VOTES} votes.
 
 ${CONTROVERSY_LABEL_FORMULA_FR}
 
-#### En termes simples
+En dessous de ce nombre, la question est signalée comme ayant reçu trop peu de votes.
 
-Plus les avis favorables et défavorables sont équilibrés, plus le score est élevé. Un résultat très nettement orienté dans un seul sens n’est pas controversé. Pour 100 participants, le seuil est \\(T=10\\).
+| Votes | Score de classement (env.) |
+| --- | ---: |
+| 10 pour, 10 contre | 0,83 |
+| 18 pour, 2 contre | 0,17 |
+| 2 pour, 2 contre | 0,50 |
+| 10 pour, 0 contre | 0,00 |
 
-| Votes | Calcul | Score approximatif |
-| --- | --- | ---: |
-| 10 favorables, 10 défavorables | \\(20/(20+10)\\) | 0,67 |
-| 18 favorables, 2 défavorables | \\(4/(20+10)\\) | 0,13 |
-| 2 favorables, 2 défavorables | \\(4/(4+10)\\) | 0,29 |
-| 10 favorables, 0 défavorable | \\(0/(10+10)\\) | 0,00 |
-
-Dans cet exemple, la première question est considérée comme controversée. Le résultat 2 contre 2 est équilibré, mais le nombre de votes reste insuffisant pour attribuer ce qualificatif de manière fiable.
+La question qui a reçu 10 votes pour et 10 contre porte la mention « Votes partagés ». Les votes sont aussi équilibrés avec 2 pour et 2 contre et restent trop peu nombreux pour cette mention.
 `.trim(),
     },
     es: {
-      title: 'Controversia',
+      title: 'Votos divididos',
       markdown: `
-Esta ordenación da prioridad a las preguntas cuyos votos a favor y en contra están repartidos de la forma más equilibrada posible. Un umbral adicional evita que un número muy reducido de votos se interprete como un desacuerdo significativo.
+La clasificación se basa en los votos emitidos. Con el mismo número de votos, un reparto más equilibrado entre votos a favor y en contra da una puntuación más alta. Cuando el reparto es el mismo y hay votos en ambos sentidos, la puntuación aumenta con el número de votos. Por eso, 2:2 obtiene 0,50 y queda por debajo de 60:30, con aproximadamente 0,64.
 
 #### Fórmula
 
-Además:
+- \\(p\\) · votos a favor
+- \\(n\\) · votos en contra
 
-- \\(P\\): número de participantes en la sesión
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\): umbral equivalente al 10 % de los participantes, con un mínimo de 1
+Sumar ${QA_CONTROVERSY_DAMPING} al denominador reduce la puntuación cuando se han emitido pocos votos.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Una pregunta se marca expresamente como **controvertida** únicamente cuando se cumplen ambas condiciones:
+La fórmula da peso a un reparto equilibrado incluso cuando se han emitido menos votos. En arsnova.eu, una pregunta con 4 votos a favor y 4 en contra (4:4) aparece antes que una con 60:30. La [fórmula histórica del orden «Controversial» de Reddit](${REDDIT_CONTROVERSY_URL}) sitúa 60:30 primero porque da más peso al número de votos.
+
+Una pregunta se marca como «Votos divididos» si el valor de ordenación supera 0,5 y ha recibido al menos ${QA_CONTROVERSY_MIN_VOTES} votos.
 
 ${CONTROVERSY_LABEL_FORMULA_ES}
 
-#### Explicación sencilla
+Por debajo de esa cifra se indica que la pregunta tiene muy pocos votos.
 
-Cuanto más equilibrados estén el apoyo y el rechazo, mayor será la puntuación. Un resultado claramente inclinado hacia un lado no se considera controvertido. Con 100 participantes, el umbral es \\(T=10\\).
+| Votos | Valor de ordenación (aprox.) |
+| --- | ---: |
+| 10 a favor, 10 en contra | 0,83 |
+| 18 a favor, 2 en contra | 0,17 |
+| 2 a favor, 2 en contra | 0,50 |
+| 10 a favor, 0 en contra | 0,00 |
 
-| Votos | Cálculo | Puntuación aproximada |
-| --- | --- | ---: |
-| 10 a favor, 10 en contra | \\(20/(20+10)\\) | 0,67 |
-| 18 a favor, 2 en contra | \\(4/(20+10)\\) | 0,13 |
-| 2 a favor, 2 en contra | \\(4/(4+10)\\) | 0,29 |
-| 10 a favor, 0 en contra | \\(0/(10+10)\\) | 0,00 |
-
-En este ejemplo, la primera pregunta se considera controvertida. El resultado de 2 votos frente a 2 está equilibrado, pero todavía no hay votos suficientes para aplicar la etiqueta con fiabilidad.
+La pregunta con 10 votos a favor y 10 en contra recibe la etiqueta «Votos divididos». Los votos están igual de equilibrados con 2 a favor y 2 en contra y son demasiado pocos para esa etiqueta.
 `.trim(),
     },
     it: {
-      title: 'Controversia',
+      title: 'Voti divisi',
       markdown: `
-Questo ordinamento privilegia le domande per le quali i voti favorevoli e contrari sono distribuiti nel modo più equilibrato possibile. Una soglia aggiuntiva evita che un numero molto ridotto di voti venga interpretato come un disaccordo significativo.
+L’ordinamento si basa sui voti espressi. A parità di numero di voti, una distribuzione più equilibrata tra favorevoli e contrari dà un punteggio più alto. Se ci sono voti da entrambe le parti, a parità di proporzione il punteggio aumenta con il numero di voti. Per questo 2:2 ottiene 0,50, meno di 60:30, che ottiene circa 0,64.
 
 #### Formula
 
-Inoltre:
+- \\(p\\) · voti favorevoli
+- \\(n\\) · voti contrari
 
-- \\(P\\): numero di partecipanti alla sessione
-- \\(T=\\max(1; \\lceil 0{,}1\\cdot P\\rceil)\\): soglia pari al 10% dei partecipanti, con un minimo di 1
+Aggiungere ${QA_CONTROVERSY_DAMPING} al denominatore riduce il punteggio quando sono stati espressi pochi voti.
 
 ${CONTROVERSY_SCORE_FORMULA}
 
-Una domanda viene contrassegnata esplicitamente come **controversa** solo quando sono soddisfatte entrambe le condizioni:
+La formula dà peso a una distribuzione equilibrata anche quando i voti sono meno numerosi. Su arsnova.eu, una domanda con 4 voti a favore e 4 contrari (4:4) precede una con 60:30. La [formula storica dell’ordinamento «Controversial» di Reddit](${REDDIT_CONTROVERSY_URL}) mette 60:30 al primo posto perché dà più peso al numero di voti.
+
+Una domanda riceve l’etichetta «Voti divisi» se il punteggio di ordinamento supera 0,5 e sono stati espressi almeno ${QA_CONTROVERSY_MIN_VOTES} voti.
 
 ${CONTROVERSY_LABEL_FORMULA_IT}
 
-#### In parole semplici
+Sotto questa soglia viene indicato che la domanda ha ricevuto troppo pochi voti.
 
-Più i voti favorevoli e contrari sono equilibrati, più alto è il punteggio. Un risultato chiaramente unilaterale non è controverso. Con 100 partecipanti, la soglia è \\(T=10\\).
+| Voti | Punteggio di ordinamento (circa) |
+| --- | ---: |
+| 10 a favore, 10 contro | 0,83 |
+| 18 a favore, 2 contro | 0,17 |
+| 2 a favore, 2 contro | 0,50 |
+| 10 a favore, 0 contro | 0,00 |
 
-| Voti | Calcolo | Punteggio approssimativo |
-| --- | --- | ---: |
-| 10 favorevoli, 10 contrari | \\(20/(20+10)\\) | 0,67 |
-| 18 favorevoli, 2 contrari | \\(4/(20+10)\\) | 0,13 |
-| 2 favorevoli, 2 contrari | \\(4/(4+10)\\) | 0,29 |
-| 10 favorevoli, 0 contrari | \\(0/(10+10)\\) | 0,00 |
-
-In questo esempio la prima domanda è considerata controversa. Il risultato 2 a 2 è equilibrato, ma i voti non sono ancora sufficienti per attribuire l’etichetta in modo affidabile.
+La domanda con 10 voti a favore e 10 contrari riceve l’etichetta «Voti divisi». La distribuzione di 2 voti a favore e 2 contrari è altrettanto equilibrata e ha troppo pochi voti per l’etichetta.
 `.trim(),
     },
   },

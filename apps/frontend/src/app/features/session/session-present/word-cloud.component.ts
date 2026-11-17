@@ -2,8 +2,10 @@ import { DOCUMENT } from '@angular/common';
 import {
   AfterViewInit,
   afterEveryRender,
+  afterNextRender,
   Component,
   ElementRef,
+  Injector,
   LOCALE_ID,
   OnDestroy,
   computed,
@@ -31,7 +33,10 @@ import {
   type WordCloudTooltipBlock,
 } from './word-cloud-markdown-tooltip.directive';
 import type { CloudLayout } from 'd3-cloud';
-import type { WordCloudAnalysisEntryDTO } from '@arsnova/shared-types';
+import {
+  freetextWordCloudVisibilityKey,
+  type WordCloudAnalysisEntryDTO,
+} from '@arsnova/shared-types';
 import { getEffectiveLocale, localeIdToSupported } from '../../../core/locale-from-path';
 import { formatLocaleCount } from '../../../core/locale-number.util';
 import { tryRequestDocumentFullscreen } from '../../../core/document-fullscreen.util';
@@ -172,6 +177,7 @@ interface RoundedRectStyle {
 })
 export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly tooltipMarkdownCache = new Map<string, SafeHtml>();
   private readonly dialog = inject(MatDialog, { optional: true });
@@ -179,6 +185,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly exportSurface = viewChild<ElementRef<HTMLElement>>('exportSurface');
   private readonly visualFrame = viewChild<ElementRef<HTMLElement>>('visualFrame');
   private readonly layoutStage = viewChild<ElementRef<HTMLElement>>('layoutStage');
+  private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
+  private readonly hideWordButton = viewChild('hideWordButton', {
+    read: ElementRef,
+  });
   private readonly activeLocale = getEffectiveLocale(localeIdToSupported(this.localeId));
   private readonly stopwords = getStopwordsForLocale(this.activeLocale);
   private static readonly EXPORT_WIDTH = 1400;
@@ -220,11 +230,27 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly disableCloudLayout = input(false);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
+  readonly hiddenLabels = input<readonly string[]>([]);
+  readonly hideEntry = input<((label: string) => Promise<void>) | null>(null);
+  readonly visibilityPending = input(false);
+  readonly visibilityFeedback = signal<'hidden' | 'failed' | null>(null);
+  private readonly hiddenEntryKeys = computed(
+    () => new Set(this.hiddenLabels().map(freetextWordCloudVisibilityKey)),
+  );
+  private readonly visibilitySignature = computed(() =>
+    [...this.hiddenEntryKeys()].sort().join('\u0000'),
+  );
+  private readonly renderedVisibilitySignature = signal('');
   readonly showMaximizeAction = input(true);
   readonly maximizeActionHandler = input<(() => void | Promise<void>) | null>(null);
   readonly showExportActions = input(true);
   readonly emptyMessage = input(
     $localize`:@@wordCloud.empty:Noch keine Freitext-Antworten vorhanden.`,
+  );
+  readonly visibleEmptyMessage = computed(() =>
+    this.hiddenLabels().length > 0
+      ? $localize`:@@wordCloud.noneVisible:Keine Wörter sichtbar.`
+      : this.emptyMessage(),
   );
   readonly itemLabelSingular = input($localize`:@@wordCloud.itemSingular:Antwort`);
   readonly itemLabelPlural = input($localize`:@@wordCloud.itemPlural:Antworten`);
@@ -259,6 +285,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly focusFilterPrefix = $localize`:@@wordCloud.focusFilterPrefix:Im Fokus:`;
   readonly exportCsvLabel = $localize`:@@wordCloud.exportCsv:CSV speichern`;
   readonly exportPngLabel = $localize`:@@wordCloud.exportPngOrdered:PNG speichern`;
+  readonly hideWordLabel = $localize`:@@wordCloud.hideWord:Wort ausblenden`;
   readonly confidenceFilterGroupLabel = $localize`:@@wordCloud.themeConfidenceFilter:Gruppierung`;
   readonly showActionsPanel = computed(
     () => !this.outputOnly() && (this.showMaximizeAction() || this.showExportActions()),
@@ -413,10 +440,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private readonly filteredTerms = computed(() => {
-    const terms = this.terms();
-    if (terms === null) {
+    const provided = this.terms();
+    if (provided === null) {
       return null;
     }
+    const terms = this.visibleEntries(provided);
 
     if (!terms.some((term) => this.resolveConfidenceFilterTier(term.confidence))) {
       return terms;
@@ -483,10 +511,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   );
 
   private readonly filteredAnalysisEntries = computed(() => {
-    const entries = this.analysisEntries();
-    if (!entries || entries.length === 0) {
-      return entries;
+    const provided = this.analysisEntries();
+    if (!provided || provided.length === 0) {
+      return provided;
     }
+    const entries = this.visibleEntries(provided);
 
     if (!entries.some((entry) => this.resolveConfidenceFilterTier(entry.confidence))) {
       return entries;
@@ -499,6 +528,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     return entries.filter((entry) => this.matchesConfidenceFilter(entry.confidence, filter));
   });
+
+  private visibleEntries<T extends { label: string }>(entries: T[]): T[] {
+    const hidden = this.hiddenEntryKeys();
+    return hidden.size === 0
+      ? entries
+      : entries.filter(({ label }) => !hidden.has(freetextWordCloudVisibilityKey(label)));
+  }
 
   readonly words = computed<CloudWord[]>(() => {
     const providedTerms = this.filteredTerms();
@@ -548,12 +584,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       }));
     }
 
+    const hidden = this.hiddenEntryKeys();
     const aggregated = aggregateWeightedWords(
       this.aggregationSources(),
       this.stopwords,
       this.activeLocale,
       this.analysisMode(),
-    );
+    ).filter(({ word }) => !hidden.has(freetextWordCloudVisibilityKey(word)));
     const maxCount = aggregated[0]?.count ?? 1;
     const { min: minFontSize, max: maxFontSize } = this.resolveFontSizeRange(aggregated.length);
     return aggregated.map((entry, index) => ({
@@ -653,7 +690,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly cloudLayoutActive = computed(() => {
-    if (this.positionedWords().length === 0) {
+    if (
+      this.positionedWords().length === 0 ||
+      this.renderedVisibilitySignature() !== this.visibilitySignature()
+    ) {
       return false;
     }
 
@@ -688,7 +728,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly selectedWordLabel = computed(() => this.selectedWordEntry()?.word ?? null);
 
   readonly analysisDetailEntry = computed<CloudWord | null>(() => {
-    const selected = this.selectedWordEntry();
+    const selected = this.outputOnly() ? null : this.selectedWordEntry();
     if (selected) {
       return selected;
     }
@@ -702,7 +742,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   readonly analysisDetailLabel = computed(() => this.analysisDetailEntry()?.word ?? null);
 
-  readonly showsSelectedFilterDetails = computed(() => this.selectedWordEntry() !== null);
+  readonly showsSelectedFilterDetails = computed(
+    () => !this.outputOnly() && this.selectedWordEntry() !== null,
+  );
 
   readonly analysisSummaryHero = computed(() => {
     const entry = this.analysisDetailEntry();
@@ -921,9 +963,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         this.previousSelectionScopeKey !== undefined &&
         scopeKey !== this.previousSelectionScopeKey
       ) {
-        this.selectedGroupKey.set(null);
-        this.showResponses.set(false);
-        this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+        this.clearWordSelection();
       }
       this.previousSelectionScopeKey = scopeKey;
     });
@@ -936,9 +976,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
       const stillVisible = this.words().some((entry) => entry.groupKey === selected);
       if (!stillVisible) {
-        this.selectedGroupKey.set(null);
-        this.showResponses.set(false);
-        this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+        this.clearWordSelection();
       }
     });
 
@@ -1004,6 +1042,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       const width = this.stageWidth();
       const height = this.cloudStageHeightPx();
       const signature = this.layoutInputSignature();
+      const visibilitySignature = this.visibilitySignature();
       const words = this.displayWords();
       const fontFamily = this.layoutFontFamily();
 
@@ -1029,6 +1068,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
             fontFamily,
             signature,
             contentSignature,
+            visibilitySignature,
             runId,
           ),
         debounceMs,
@@ -1066,9 +1106,58 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return count === 1 ? this.showResponsesSingularLabel() : this.showResponsesPluralLabel();
   }
 
-  toggleWord(groupKey: string): void {
+  toggleWord(groupKey: string, event?: Event): void {
+    if (this.visibilityPending()) return;
     this.selectedGroupKey.update((current) => (current === groupKey ? null : groupKey));
     if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses();
+    if (this.outputOnly() && this.hideEntry() && this.selectedGroupKey() && event) {
+      const trigger = event.currentTarget;
+      const wasFocused = this.document.activeElement === trigger;
+      afterNextRender(
+        () => {
+          if (
+            this.selectedGroupKey() === groupKey &&
+            (this.document.activeElement === trigger ||
+              (wasFocused && this.document.activeElement === this.document.body))
+          ) {
+            this.hideWordButton()?.nativeElement.focus();
+          }
+        },
+        { injector: this.injector },
+      );
+    }
+  }
+
+  private clearWordSelection(): void {
+    if (this.document.activeElement === this.hideWordButton()?.nativeElement) {
+      this.heading()?.nativeElement.focus();
+    }
+    this.selectedGroupKey.set(null);
+    this.showResponses.set(false);
+    this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+  }
+
+  async hideSelectedWord(event: Event): Promise<void> {
+    const hide = this.hideEntry();
+    const label = this.selectedWordLabel();
+    if (!hide || !label || this.visibilityPending()) return;
+
+    const button = event.currentTarget;
+    const wasFocused = this.document.activeElement === button;
+    this.visibilityFeedback.set(null);
+    try {
+      await hide(label);
+      if (
+        this.document.activeElement === button ||
+        (wasFocused && this.document.activeElement === this.document.body)
+      ) {
+        this.heading()?.nativeElement.focus();
+      }
+      this.clearWordSelection();
+      this.visibilityFeedback.set('hidden');
+    } catch {
+      this.visibilityFeedback.set('failed');
+    }
   }
 
   private pinFocusedWord(words: CloudWord[], cap: number): CloudWord[] {
@@ -1429,7 +1518,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     if (terms && terms.length > 0) {
       const rows = [
         'label,score,documentFrequency,kind,variants,members',
-        ...terms.map((term) =>
+        ...this.visibleEntries(terms).map((term) =>
           [
             this.escapeCsvField(term.label),
             String(Math.round(term.score)),
@@ -1446,8 +1535,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     const analysisEntries = this.analysisEntries();
     if (analysisEntries && analysisEntries.length > 0) {
+      const entries = this.visibleEntries(analysisEntries);
       const includeSemanticMeta = Boolean(this.analysisModelVersion());
-      const includeLabelModel = analysisEntries.some((entry) => entry.labelOrigin === 'model');
+      const includeLabelModel = entries.some((entry) => entry.labelOrigin === 'model');
       const rows = [
         [
           includeSemanticMeta
@@ -1457,7 +1547,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         ]
           .filter((column) => column.length > 0)
           .join(','),
-        ...analysisEntries.map((entry) =>
+        ...entries.map((entry) =>
           [
             this.escapeCsvField(entry.label),
             String(entry.count),
@@ -1954,6 +2044,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     fontFamily: string,
     signature: string,
     contentSignature: string,
+    visibilitySignature: string,
     runId: number,
   ): Promise<void> {
     this.layoutTimer = null;
@@ -2018,7 +2109,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         const visible = this.outputOnly() ? contained.filter((word) => word.size >= 30) : contained;
         const scope = this.selectionScopeKey();
         const previous =
-          this.presentationMode() && this.renderedLayoutScope === scope
+          this.presentationMode() &&
+          this.renderedLayoutScope === scope &&
+          this.renderedVisibilitySignature() === visibilitySignature
             ? this.positionedWords()
             : [];
         const pills = this.outputOnly() ? keepWordCloudSizesOnRelabel(visible, previous) : visible;
@@ -2026,6 +2119,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           retainWordCloudPillPositions(pills, previous, stageWidth, stageHeight, this.outputOnly()),
         );
         this.renderedLayoutScope = scope;
+        this.renderedVisibilitySignature.set(visibilitySignature);
         this.renderedCloudStageWidth.set(Math.round(stageWidth));
         this.renderedCloudStageHeight.set(Math.round(stageHeight));
         this.activeLayoutSignature.set(contained.length > 0 ? signature : '');

@@ -17,7 +17,9 @@ import {
   ConfigureSessionParticipationInputSchema,
   EndSessionOutputSchema,
   GetCurrentQuestionForStudentInputSchema,
+  GetPresenterQuizResultInputSchema,
   GetSessionInfoInputSchema,
+  PresenterQuizResultSchema,
   PublicSessionCodeLookupInputSchema,
   HostSteeringWithTimerOverrideInputSchema,
   NextQuestionInputSchema,
@@ -25,6 +27,10 @@ import {
   ShowQuestionResultInputSchema,
   SkipQuestionOutputSchema,
   GetLiveFreetextInputSchema,
+  GetLiveFreetextSnapshotInputSchema,
+  FreetextWordCloudVisibilitySchema,
+  SetFreetextWordCloudEntryVisibilityInputSchema,
+  freetextWordCloudVisibilityKey,
   GetActiveQuizIdsInputSchema,
   JoinSessionInputSchema,
   JoinSessionOutputSchema,
@@ -84,6 +90,7 @@ import {
   QuestionRevealedDTOSchema,
   LeaderboardEntryDTOSchema,
   TeamLeaderboardEntryDTOSchema,
+  HostTeamLeaderboardEntryDTOSchema,
   BonusTokenListDTOSchema,
   GetBonusTokensForQuizInputSchema,
   GetQuizCollectionHistoryAvailabilityInputSchema,
@@ -118,6 +125,7 @@ import {
   type HostCurrentQuestionDTO,
   type HostVoteProgressDTO,
   type TeamLeaderboardEntryDTO,
+  type HostTeamLeaderboardEntryDTO,
   type TeamAssignment,
   type ToleranceLevel,
   type RoundComparisonDTO,
@@ -139,8 +147,6 @@ import {
   DEMO_QUIZ_HISTORY_SCOPE_ID,
   isDemoQuizHistoryScopeId,
   NicknameThemeEnum,
-  SHORT_TEXT_DEFAULT_EVALUATION_MODE,
-  SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
   createQuizHistoryAccessProof,
   createLegacyQuizHistoryAccessProof,
   evaluateNumericAnswer,
@@ -154,14 +160,11 @@ import {
   isTimerAccommodationEnabled,
   resolveEffectiveQuestionTimer,
   resolvePersonalTimerSeconds,
-  resolveNumericQuestionEvaluationSettings,
-  resolveShortTextEvaluationKind,
   resolveShortTextMaxLength,
   usesNumericShortTextEvaluation,
   usesShortTextUnitEvaluation,
   resolveNumericTolerance,
   isNumericValueInBand,
-  isNumericToleranceMode,
   resolveNumericEstimateToleranceMode,
   buildConfidenceResult,
   buildSessionConfidenceSummary,
@@ -197,6 +200,8 @@ import {
   isExactCorrectSelection,
   questionCountsTowardsTotalQuestions,
   questionAffectsStreak,
+  resolveShortTextQuestionConfig,
+  type ShortTextQuestionConfig,
 } from '../lib/quizScoring';
 import {
   invalidateSessionRankingCache,
@@ -446,6 +451,14 @@ const participantMembershipCache = new Map<string, CacheEntry<boolean>>();
 const participantTimerAccommodationCache = new Map<string, CacheEntry<CachedTimerAccommodation>>();
 const voteCountCache = new Map<string, CacheEntry<number>>();
 const voteSummaryCache = new Map<string, CacheEntry<VoteSummary>>();
+type RatingVoteProgress = {
+  totalVotes: number;
+  ratingDistribution: Record<string, number>;
+  ratingAvg: number | null;
+  ratingMedian: number | null;
+  ratingStdDev: number | null;
+};
+const ratingVoteProgressCache = new Map<string, CacheEntry<RatingVoteProgress>>();
 const presenterSurfaceBySessionId = new Map<
   string,
   z.infer<typeof SessionPresenterSurfaceSchema>
@@ -506,6 +519,7 @@ const participantMembershipInFlight = new Map<string, Promise<boolean>>();
 const participantTimerAccommodationInFlight = new Map<string, Promise<CachedTimerAccommodation>>();
 const voteCountInFlight = new Map<string, Promise<number>>();
 const voteSummaryInFlight = new Map<string, Promise<VoteSummary>>();
+const ratingVoteProgressInFlight = new Map<string, Promise<RatingVoteProgress>>();
 const sessionStatusEvents = new EventEmitter();
 const sessionStatusVersions = new Map<string, number>();
 const sessionParticipantEvents = new EventEmitter();
@@ -590,6 +604,7 @@ function clearSessionReadCaches(code?: string): void {
     participantTimerAccommodationCache.clear();
     voteCountCache.clear();
     voteSummaryCache.clear();
+    ratingVoteProgressCache.clear();
     invalidateSessionRankingCache();
     sessionInfoInFlight.clear();
     statusSnapshotInFlight.clear();
@@ -604,6 +619,7 @@ function clearSessionReadCaches(code?: string): void {
     participantTimerAccommodationInFlight.clear();
     voteCountInFlight.clear();
     voteSummaryInFlight.clear();
+    ratingVoteProgressInFlight.clear();
     for (const timer of sessionVoteProgressTimers.values()) {
       clearTimeout(timer);
     }
@@ -708,6 +724,16 @@ function clearVoteCaches(code: string): void {
   for (const key of voteSummaryInFlight.keys()) {
     if (key.startsWith(`${code}:`)) {
       voteSummaryInFlight.delete(key);
+    }
+  }
+  for (const key of ratingVoteProgressCache.keys()) {
+    if (key.startsWith(`${code}:`)) {
+      ratingVoteProgressCache.delete(key);
+    }
+  }
+  for (const key of ratingVoteProgressInFlight.keys()) {
+    if (key.startsWith(`${code}:`)) {
+      ratingVoteProgressInFlight.delete(key);
     }
   }
 }
@@ -1166,8 +1192,10 @@ export function invalidateHostVoteProgressForCode(code: string): void {
 export function resetVoteAggregationCachesForTests(): void {
   voteCountCache.clear();
   voteSummaryCache.clear();
+  ratingVoteProgressCache.clear();
   voteCountInFlight.clear();
   voteSummaryInFlight.clear();
+  ratingVoteProgressInFlight.clear();
   currentQuestionCache.clear();
   currentQuestionInFlight.clear();
   studentQuestionSessionCache.clear();
@@ -1202,63 +1230,72 @@ async function getVoteCountCached(
   );
 }
 
-type ShortTextQuestionConfig = {
-  shortTextEvaluationKind?: string | null;
-  shortTextMaxLength?: number | null;
-  shortTextCaseSensitive?: boolean | null;
-  shortTextEvaluationMode?: string | null;
-  shortTextToleranceLevel?: string | null;
-  shortTextAllowPartialCredit?: boolean | null;
-  shortTextTrimWhitespace?: boolean | null;
-  shortTextNormalizeWhitespace?: boolean | null;
-  numericInputKind?: string | null;
-  numericToleranceMode?: string | null;
-  numericAbsoluteTolerance?: number | null;
-  numericRelativeTolerancePercent?: number | null;
-  numericUnitFamily?: string | null;
-  numericRequireUnit?: boolean | null;
-  numericAcceptEquivalentUnits?: boolean | null;
-};
+async function getRatingVoteProgressCached(
+  code: string,
+  sessionId: string,
+  questionId: string,
+  round: number,
+): Promise<RatingVoteProgress> {
+  const key = voteCacheKey(code, questionId, round);
+  return getOrComputeCached(
+    ratingVoteProgressCache,
+    ratingVoteProgressInFlight,
+    key,
+    VOTE_COUNT_CACHE_TTL_MS,
+    async () => {
+      const groups = await prisma.vote.groupBy({
+        by: ['ratingValue'],
+        where: { sessionId, questionId, round, ratingValue: { not: null } },
+        _count: { _all: true },
+      });
+      const ratingDistribution: Record<string, number> = {};
+      let totalVotes = 0;
+      let sum = 0;
+      for (const group of groups) {
+        if (group.ratingValue === null) continue;
+        const count = group._count._all;
+        ratingDistribution[String(group.ratingValue)] = count;
+        totalVotes += count;
+        sum += group.ratingValue * count;
+      }
+      const average = totalVotes > 0 ? sum / totalVotes : null;
+      const sortedGroups = groups
+        .filter(
+          (group): group is typeof group & { ratingValue: number } => group.ratingValue !== null,
+        )
+        .sort((left, right) => left.ratingValue - right.ratingValue);
+      const valueAt = (position: number): number | null => {
+        let offset = 0;
+        for (const group of sortedGroups) {
+          offset += group._count._all;
+          if (position < offset) return group.ratingValue;
+        }
+        return null;
+      };
+      const lowerMedian = totalVotes > 0 ? valueAt(Math.floor((totalVotes - 1) / 2)) : null;
+      const upperMedian = totalVotes > 0 ? valueAt(Math.floor(totalVotes / 2)) : null;
+      const median =
+        lowerMedian !== null && upperMedian !== null ? (lowerMedian + upperMedian) / 2 : null;
+      const variance =
+        average === null
+          ? null
+          : sortedGroups.reduce(
+              (total, group) =>
+                total + group._count._all * Math.pow(group.ratingValue - average, 2),
+              0,
+            ) / totalVotes;
+      return {
+        totalVotes,
+        ratingDistribution,
+        ratingAvg: average === null ? null : Math.round(average * 10) / 10,
+        ratingMedian: median,
+        ratingStdDev: variance === null ? null : Math.round(Math.sqrt(variance) * 10) / 10,
+      };
+    },
+  );
+}
 
 type ShortTextAnswerOption = { id: string; text: string; isCorrect: boolean };
-
-function resolveShortTextQuestionConfig(config?: ShortTextQuestionConfig) {
-  const numericSettings = resolveNumericQuestionEvaluationSettings({
-    numericInputKind: (config?.numericInputKind as NumericInputKind | null | undefined) ?? null,
-    numericToleranceMode: isNumericToleranceMode(config?.numericToleranceMode)
-      ? config.numericToleranceMode
-      : null,
-    numericAbsoluteTolerance: config?.numericAbsoluteTolerance ?? null,
-    numericRelativeTolerancePercent: config?.numericRelativeTolerancePercent ?? null,
-    numericUnitFamily: (config?.numericUnitFamily as NumericUnitFamily | null | undefined) ?? null,
-    numericRequireUnit: config?.numericRequireUnit ?? false,
-    numericAcceptEquivalentUnits: config?.numericAcceptEquivalentUnits ?? true,
-  });
-
-  return {
-    shortTextEvaluationKind: resolveShortTextEvaluationKind(
-      (config?.shortTextEvaluationKind as ShortTextEvaluationKind | null | undefined) ?? undefined,
-    ),
-    shortTextMaxLength: config?.shortTextMaxLength ?? null,
-    shortTextCaseSensitive: config?.shortTextCaseSensitive ?? false,
-    shortTextEvaluationMode:
-      (config?.shortTextEvaluationMode as ShortAnswerEvaluationMode | null | undefined) ??
-      SHORT_TEXT_DEFAULT_EVALUATION_MODE,
-    shortTextToleranceLevel:
-      (config?.shortTextToleranceLevel as ToleranceLevel | null | undefined) ??
-      SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
-    shortTextAllowPartialCredit: config?.shortTextAllowPartialCredit ?? true,
-    shortTextTrimWhitespace: config?.shortTextTrimWhitespace ?? true,
-    shortTextNormalizeWhitespace: config?.shortTextNormalizeWhitespace ?? true,
-    numericInputKind: numericSettings.inputKind,
-    numericToleranceMode: numericSettings.toleranceMode,
-    numericAbsoluteTolerance: numericSettings.absoluteTolerance,
-    numericRelativeTolerancePercent: numericSettings.relativeTolerancePercent,
-    numericUnitFamily: numericSettings.unitFamily,
-    numericRequireUnit: numericSettings.requireUnit,
-    numericAcceptEquivalentUnits: numericSettings.acceptEquivalentUnits,
-  };
-}
 
 function getShortTextDtoFields(
   questionType: string,
@@ -1655,6 +1692,8 @@ export function recordVoteCachesForCode(
     }
     setCachedValue(voteSummaryCache, key, nextSummary, VOTE_SUMMARY_CACHE_TTL_MS);
   }
+  ratingVoteProgressCache.delete(key);
+  ratingVoteProgressInFlight.delete(key);
 }
 
 function participantMembershipCacheKey(code: string, participantId: string): string {
@@ -1822,6 +1861,7 @@ const sessionParticipantsQuerySelect = Prisma.validator<Prisma.SessionSelect>()(
     select: {
       id: true,
       nickname: true,
+      kindergartenAnimalId: true,
       teamId: true,
       joinedAt: true,
       team: { select: { name: true } },
@@ -1915,6 +1955,7 @@ async function buildSessionParticipantsPayload(
         : session.participants.map((p) => ({
             id: p.id,
             nickname: p.nickname,
+            kindergartenAnimalId: p.kindergartenAnimalId ?? undefined,
             teamId: p.teamId ?? null,
             teamName: p.team?.name ?? null,
           })),
@@ -1961,6 +2002,7 @@ async function buildSessionParticipantSummary(
         : session.participants.slice(0, SESSION_LOBBY_RECENT_ARRIVALS_MAX).map((participant) => ({
             id: participant.id,
             nickname: participant.nickname,
+            kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
             teamId: participant.teamId ?? null,
             teamName: participant.team?.name ?? null,
             joinedAt: participant.joinedAt.toISOString(),
@@ -3422,6 +3464,18 @@ async function buildSessionTeamLeaderboard(
   sessionId: string,
   requestedTeamCount: number,
   configuredTeamNames?: string[] | null,
+): Promise<TeamLeaderboardEntryDTO[]>;
+async function buildSessionTeamLeaderboard(
+  sessionId: string,
+  requestedTeamCount: number,
+  configuredTeamNames: string[] | null | undefined,
+  includeMedian: true,
+): Promise<HostTeamLeaderboardEntryDTO[]>;
+async function buildSessionTeamLeaderboard(
+  sessionId: string,
+  requestedTeamCount: number,
+  configuredTeamNames?: string[] | null,
+  includeMedian = false,
 ): Promise<TeamLeaderboardEntryDTO[]> {
   const teams = await ensureSessionTeams(sessionId, requestedTeamCount, configuredTeamNames);
   const [participants, progressSession] = await Promise.all([
@@ -3470,6 +3524,7 @@ async function buildSessionTeamLeaderboard(
       rawTotalScore: number;
       totalResponseTimeMs: number;
       memberCount: number;
+      memberScores: Map<string, number> | null;
     }
   >();
   for (const team of teams) {
@@ -3479,6 +3534,7 @@ async function buildSessionTeamLeaderboard(
       rawTotalScore: 0,
       totalResponseTimeMs: 0,
       memberCount: 0,
+      memberScores: includeMedian ? new Map() : null,
     });
   }
 
@@ -3489,6 +3545,7 @@ async function buildSessionTeamLeaderboard(
     const stats = teamStats.get(participant.teamId);
     if (stats) {
       stats.memberCount += 1;
+      stats.memberScores?.set(participant.id, 0);
     }
   }
 
@@ -3500,6 +3557,10 @@ async function buildSessionTeamLeaderboard(
     const score = Number(vote.score) || 0;
     stats.rawTotalScore += score;
     stats.totalResponseTimeMs += getCompetitionResponseTimeMs(vote);
+    const previousScore = stats.memberScores?.get(vote.participantId);
+    if (previousScore !== undefined) {
+      stats.memberScores?.set(vote.participantId, previousScore + score);
+    }
   }
 
   return [...teamStats.values()]
@@ -3507,12 +3568,8 @@ async function buildSessionTeamLeaderboard(
     .map((team) => {
       const normalizedScore = normalizeTeamLeaderboardScore(team.rawTotalScore, team.memberCount);
       return {
-        rank: 0,
-        teamName: team.teamName,
-        teamColor: team.teamColor,
+        ...team,
         totalScore: normalizedScore,
-        totalResponseTimeMs: team.totalResponseTimeMs,
-        memberCount: team.memberCount,
         averageScore: normalizedScore,
       };
     })
@@ -3522,14 +3579,23 @@ async function buildSessionTeamLeaderboard(
         a.totalResponseTimeMs - b.totalResponseTimeMs ||
         a.teamName.localeCompare(b.teamName),
     )
-    .map((team, index) => ({
-      rank: index + 1,
-      teamName: team.teamName,
-      teamColor: team.teamColor,
-      totalScore: team.totalScore,
-      memberCount: team.memberCount,
-      averageScore: team.averageScore,
-    }));
+    .map((team, index) => {
+      const entry = {
+        rank: index + 1,
+        teamName: team.teamName,
+        teamColor: team.teamColor,
+        totalScore: team.totalScore,
+        memberCount: team.memberCount,
+        averageScore: team.averageScore,
+      };
+      if (!team.memberScores) return entry;
+
+      const sorted = [...team.memberScores.values()].sort((a, b) => a - b);
+      const middle = Math.floor(sorted.length / 2);
+      const medianScore =
+        sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+      return { ...entry, medianScore };
+    });
 }
 
 async function assignAllParticipantsToTeams(
@@ -3751,6 +3817,19 @@ function assertSessionAllowsProjectionMutation(
     code: 'BAD_REQUEST',
     message: 'Beendete Sessions können nicht mehr verändert werden.',
   });
+}
+
+async function readFreetextWordCloudVisibility(
+  sessionId: string,
+  questionId: string,
+  db: Pick<Prisma.TransactionClient, 'hiddenWordCloudEntry'> = prisma,
+) {
+  const entries = await db.hiddenWordCloudEntry.findMany({
+    where: { sessionId, questionId },
+    select: { label: true },
+    orderBy: { label: 'asc' },
+  });
+  return { questionId, hiddenLabels: entries.map(({ label }) => label) };
 }
 
 function sessionAllowsUnconfiguredFollowUp(session: {
@@ -4519,6 +4598,20 @@ function buildNumericRoundComparisonFromVotes(
   };
 }
 
+function earlierPresenterResultIndices(
+  session: HostCurrentQuestionSession,
+  liveIndex: number,
+  progress = parseSessionQuestionProgress(session.questionProgress),
+): number[] {
+  return (session.quiz?.questions ?? []).flatMap(({ id }, index) => {
+    if (index >= liveIndex) return [];
+    const state = progress[id]?.state;
+    return state === 'COMPLETED' || (state === undefined && !session.questionProgressComplete)
+      ? [index]
+      : [];
+  });
+}
+
 async function buildHostCurrentQuestionDto(
   session: HostCurrentQuestionSession | null,
 ): Promise<z.infer<typeof HostCurrentQuestionDTOSchema> | null> {
@@ -4565,6 +4658,7 @@ async function buildHostCurrentQuestionDto(
     order: question.order,
     totalQuestions: questions.length,
     canShowPreviousResult,
+    hasEarlierPresenterResult: earlierPresenterResultIndices(session, idx, progress).length > 0,
     hasNextQuestion,
     hasUnopenedFollowingQuestion,
     text: question.text,
@@ -5002,12 +5096,9 @@ export function buildHostCurrentQuestionSubscriptionKey(
   return JSON.stringify(stablePayload);
 }
 
-async function fetchHostCurrentQuestionEnvelope(
-  code: string,
-): Promise<HostCurrentQuestionEnvelope> {
-  const normalizedCode = code.toUpperCase();
-  const session = await prisma.session.findUnique({
-    where: { code: normalizedCode },
+function loadHostQuestionSession(code: string) {
+  return prisma.session.findUnique({
+    where: { code: code.toUpperCase() },
     select: {
       id: true,
       code: true,
@@ -5083,6 +5174,12 @@ async function fetchHostCurrentQuestionEnvelope(
       },
     },
   });
+}
+
+async function fetchHostCurrentQuestionEnvelope(
+  code: string,
+): Promise<HostCurrentQuestionEnvelope> {
+  const session = await loadHostQuestionSession(code);
   if (session && isSessionEffectivelyFinished(session, new Date())) {
     return { status: 'FINISHED', payload: null };
   }
@@ -5414,6 +5511,13 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
       totalVotes: voteSummary.totalVotes,
       correctVoterCount: voteSummary.correctVoteCount,
       incorrectVoterCount: voteSummary.incorrectVoteCount,
+    };
+  }
+
+  if (questionType === 'RATING') {
+    return {
+      ...base,
+      ...(await getRatingVoteProgressCached(session.code, session.id, question.id, round)),
     };
   }
 
@@ -7440,6 +7544,7 @@ const sessionCoreRouter = router({
           select: {
             id: true,
             nickname: true,
+            kindergartenAnimalId: true,
             teamId: true,
             joinedAt: true,
             team: { select: { name: true } },
@@ -7465,6 +7570,7 @@ const sessionCoreRouter = router({
         participants: pageRows.map((participant) => ({
           id: participant.id,
           nickname: participant.nickname,
+          kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
           teamId: participant.teamId ?? null,
           teamName: participant.team?.name ?? null,
           joinedAt: participant.joinedAt.toISOString(),
@@ -7620,6 +7726,7 @@ const sessionCoreRouter = router({
         select: {
           id: true,
           nickname: true,
+          kindergartenAnimalId: true,
           teamId: true,
           timerAccommodation: true,
           team: { select: { name: true } },
@@ -7636,6 +7743,7 @@ const sessionCoreRouter = router({
       return {
         id: participant.id,
         nickname: participant.nickname,
+        kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
         teamId: participant.teamId ?? null,
         teamName: participant.team?.name ?? null,
         timerAccommodation,
@@ -8102,7 +8210,18 @@ const sessionCoreRouter = router({
             ? input.page.index
             : currentPage.index + (input.page.delta ?? 0);
         const index = Math.max(0, Math.min(count - 1, rawIndex));
-        const presenterPage = { ...currentPage, count, index };
+        const requestedSectionStarts =
+          input.page.sectionStarts === undefined
+            ? currentPage.sectionStarts
+            : (input.page.sectionStarts ?? undefined);
+        const sectionStarts = requestedSectionStarts?.filter((start) => start < count);
+        const { sectionStarts: _currentSectionStarts, ...currentPageWithoutSections } = currentPage;
+        const presenterPage = {
+          ...currentPageWithoutSections,
+          count,
+          index,
+          ...(sectionStarts?.length ? { sectionStarts } : {}),
+        };
         presenterPageBySessionId.set(session.id, presenterPage);
         clearSessionInfoCache(code);
         clearStatusSnapshotCache(code);
@@ -8263,6 +8382,60 @@ const sessionCoreRouter = router({
       return { projection: input.projection };
     }),
 
+  setFreetextWordCloudEntryVisibility: hostProcedure
+    .input(SetFreetextWordCloudEntryVisibilityInputSchema)
+    .output(FreetextWordCloudVisibilitySchema)
+    .mutation(async ({ input }) => {
+      const identity = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: { id: true },
+      });
+      if (!identity) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      return prisma.$transaction(async (tx) => {
+        await lockSessionRow(tx, identity.id);
+        const session = await tx.session.findUnique({
+          where: { id: identity.id },
+          select: {
+            hostEnded: true,
+            expiresAt: true,
+            currentQuestion: true,
+            quiz: {
+              select: {
+                questions: {
+                  where: { id: input.questionId, type: 'FREETEXT' },
+                  select: { order: true },
+                },
+              },
+            },
+          },
+        });
+        if (!session) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (
+          session.hostEnded ||
+          session.expiresAt.getTime() <= Date.now() ||
+          !session.quiz?.questions.some(({ order }) => order === session.currentQuestion)
+        ) {
+          throw new TRPCError({ code: 'BAD_REQUEST' });
+        }
+
+        const scope = {
+          sessionId: identity.id,
+          questionId: input.questionId,
+          labelKey: freetextWordCloudVisibilityKey(input.label),
+        };
+        if (input.hidden) {
+          await tx.hiddenWordCloudEntry.createMany({
+            data: { ...scope, label: input.label },
+            skipDuplicates: true,
+          });
+        } else {
+          await tx.hiddenWordCloudEntry.deleteMany({ where: scope });
+        }
+        return readFreetextWordCloudVisibility(identity.id, input.questionId, tx);
+      });
+    }),
+
   getFreetextWordCloudProjection: publicProcedure
     .input(GetSessionInfoInputSchema)
     .output(GetFreetextWordCloudProjectionOutputSchema)
@@ -8299,7 +8472,24 @@ const sessionCoreRouter = router({
       if (!revealed) {
         return { projection: null };
       }
-      return { projection: freetextWordCloudProjectionBySessionId.get(session.id) ?? null };
+      const projection = freetextWordCloudProjectionBySessionId.get(session.id);
+      if (!projection || projection.entries.length === 0) return { projection: projection ?? null };
+      const { hiddenLabels } = await readFreetextWordCloudVisibility(
+        session.id,
+        projection.questionId,
+      );
+      if (hiddenLabels.length === 0) return { projection };
+      const hiddenKeys = new Set(hiddenLabels.map(freetextWordCloudVisibilityKey));
+      const entries = projection.entries.filter(
+        ({ label }) => !hiddenKeys.has(freetextWordCloudVisibilityKey(label)),
+      );
+      return {
+        projection: {
+          ...projection,
+          entries,
+          ...(entries.length === 0 ? { moderatedEmpty: true } : {}),
+        },
+      };
     }),
 
   /** Presenter-Exit: Leaderboard ausblenden, Branding „Session ist beendet.“ zeigen. */
@@ -9523,6 +9713,62 @@ const sessionCoreRouter = router({
     .output(HostCurrentQuestionDTOSchema.nullable())
     .query(async ({ input }) => fetchHostCurrentQuestion(input.code)),
 
+  getPresenterQuizResult: hostProcedure
+    .input(GetPresenterQuizResultInputSchema)
+    .output(PresenterQuizResultSchema.nullable())
+    .query(async ({ input }) => {
+      const session = await loadHostQuestionSession(input.code);
+      if (
+        !session?.quiz ||
+        session.currentQuestion === null ||
+        isSessionEffectivelyFinished(session, new Date()) ||
+        !['QUESTION_OPEN', 'ACTIVE', 'DISCUSSION', 'RESULTS'].includes(session.status)
+      ) {
+        return null;
+      }
+      const { questions } = session.quiz;
+      const liveIndex = session.currentQuestion;
+      if (questions[liveIndex]?.id !== input.liveQuestionId) return null;
+      const indices = earlierPresenterResultIndices(session, liveIndex);
+      const cursor =
+        input.fromQuestionId === undefined
+          ? indices.length
+          : indices.findIndex((index) => questions[index].id === input.fromQuestionId);
+      if (cursor < 0) return null;
+      const position = cursor + (input.direction === 'previous' ? -1 : 1);
+      const index = indices[position];
+      if (index === undefined) return null;
+
+      const target = questions[index];
+      const latestVote = await prisma.vote.findFirst({
+        where: { sessionId: session.id, questionId: target.id },
+        orderBy: { round: 'desc' },
+        select: { round: true },
+      });
+      const currentRound = resolveEffectiveAggregationRound(
+        latestVote ? [latestVote] : [],
+      ).effectiveRound;
+      const [question, visibility] = await Promise.all([
+        buildHostCurrentQuestionDto({
+          ...session,
+          status: 'RESULTS',
+          currentQuestion: index,
+          currentRound,
+        }),
+        target.type === 'FREETEXT' ? readFreetextWordCloudVisibility(session.id, target.id) : null,
+      ]);
+      if (!question) return null;
+      // The live projection can hide phrases or themes that a newly generated word cloud
+      // would expand into different labels. Historical projections have no saved layout.
+      const wordCloudUnavailable = (visibility?.hiddenLabels.length ?? 0) > 0;
+      return {
+        question: wordCloudUnavailable ? { ...question, freeTextResponses: undefined } : question,
+        hasPrevious: position > 0,
+        hasNext: position < indices.length - 1,
+        wordCloudUnavailable,
+      };
+    }),
+
   getHostVoteProgress: hostProcedure
     .input(GetSessionInfoInputSchema)
     .output(HostVoteProgressDTOSchema.nullable())
@@ -10175,7 +10421,7 @@ const sessionCoreRouter = router({
 
   /** Live-Freitextdaten der aktuell aktiven Frage (Story 1.14, polling-ready). */
   getLiveFreetext: hostProcedure
-    .input(GetLiveFreetextInputSchema)
+    .input(GetLiveFreetextSnapshotInputSchema)
     .output(LiveFreetextDTOSchema)
     .query(async ({ input }) => {
       const session = await prisma.session.findUnique({
@@ -10215,19 +10461,27 @@ const sessionCoreRouter = router({
         };
       }
 
-      const votes = await prisma.vote.findMany({
-        where: {
-          sessionId: session.id,
-          questionId: question.id,
-          freeText: { not: null },
-        },
-        orderBy: { votedAt: 'asc' },
-        select: { freeText: true },
-      });
+      const [votes, wordCloudVisibility] = await Promise.all([
+        input.visibilityOnly
+          ? []
+          : prisma.vote.findMany({
+              where: {
+                sessionId: session.id,
+                questionId: question.id,
+                freeText: { not: null },
+              },
+              orderBy: { votedAt: 'asc' },
+              select: { freeText: true },
+            }),
+        readFreetextWordCloudVisibility(session.id, question.id),
+      ]);
 
       const responses = votes
         .map((vote) => vote.freeText?.trim() ?? '')
         .filter((value) => value.length > 0);
+      const projection = input.includeWordCloudProjection
+        ? freetextWordCloudProjectionBySessionId.get(session.id)
+        : undefined;
 
       return {
         sessionId: session.id,
@@ -10236,6 +10490,10 @@ const sessionCoreRouter = router({
         questionType: question.type as QuestionType,
         questionText: question.text,
         responses,
+        wordCloudVisibility,
+        ...(input.includeWordCloudProjection
+          ? { wordCloudProjection: projection?.questionId === question.id ? projection : null }
+          : {}),
         updatedAt: new Date().toISOString(),
       };
     }),
@@ -10407,6 +10665,7 @@ const sessionCoreRouter = router({
             tx,
             sessionId: session.id,
             requestedNickname: trimmedNickname,
+            kindergartenAnimalId: input.kindergartenAnimalId,
             assignedTeamId: selectedTeamId,
             autoTeamIds,
             requireAssignedTeamForNew,
@@ -10490,6 +10749,7 @@ const sessionCoreRouter = router({
         participantId,
         participantNumber: preparedJoin.participantNumber,
         participantNickname: preparedJoin.nickname,
+        kindergartenAnimalId: preparedJoin.kindergartenAnimalId,
         rejoinToken: preparedJoin.rejoinCapability,
         productFeedbackClaimToken,
         teamId: assignedTeamId ?? null,
@@ -10520,6 +10780,7 @@ const sessionCoreRouter = router({
             select: {
               id: true,
               nickname: true,
+              kindergartenAnimalId: true,
               team: { select: { name: true, color: true } },
             },
           },
@@ -10541,20 +10802,19 @@ const sessionCoreRouter = router({
         parseSessionQuestionProgress(session.questionProgress),
         session.questionProgressComplete,
       );
-      const totalScoredQuestions = session.quiz.questions.filter(
+      const scoredQuestions = session.quiz.questions.filter(
         (q) =>
           includedQuestionIds.has(q.id) &&
           questionCountsTowardsTotalQuestions(q.type as QuestionType),
-      ).length;
-
-      const votes = selectEffectiveCompetitionVotes(
-        await loadSharedCompetitionVotes({
-          sessionId: session.id,
-          questionIds: [...includedQuestionIds],
-          participantRevision: session.participantRevision ?? 0,
-          includeCorrectness: true,
-        }),
       );
+
+      const votes = await loadSharedCompetitionVotes({
+        sessionId: session.id,
+        questionIds: [...includedQuestionIds],
+        participantRevision: session.participantRevision ?? 0,
+        includeCorrectness: true,
+        includeShortTextGrading: scoredQuestions.some((question) => question.type === 'SHORT_TEXT'),
+      });
 
       const stats = new Map<
         string,
@@ -10572,8 +10832,13 @@ const sessionCoreRouter = router({
 
         if (questionCountsTowardsTotalQuestions(v.question?.type as QuestionType)) {
           const voteQuestionType = v.question?.type as QuestionType;
+          if (voteQuestionType === 'SHORT_TEXT') {
+            if (v.shortTextFullyCorrect) {
+              s.correctCount++;
+            }
+            continue;
+          }
           if (
-            voteQuestionType === 'SHORT_TEXT' ||
             voteQuestionType === 'NUMERIC_ESTIMATE' ||
             voteQuestionType === 'MATCHING' ||
             voteQuestionType === 'ORDERING' ||
@@ -10604,6 +10869,7 @@ const sessionCoreRouter = router({
           p.id,
           {
             nickname: p.nickname,
+            kindergartenAnimalId: p.kindergartenAnimalId ?? undefined,
             teamName: p.team?.name ?? null,
             teamColor: p.team?.color ?? null,
           },
@@ -10616,9 +10882,10 @@ const sessionCoreRouter = router({
           return {
             rank: 0,
             nickname: meta?.nickname ?? '?',
+            kindergartenAnimalId: meta?.kindergartenAnimalId,
             totalScore: Number(s.totalScore) || 0,
             correctCount: s.correctCount,
-            totalQuestions: totalScoredQuestions,
+            totalQuestions: scoredQuestions.length,
             totalResponseTimeMs: s.totalResponseTimeMs,
             ...(meta?.teamName
               ? {
@@ -10665,6 +10932,38 @@ const sessionCoreRouter = router({
         session.id,
         session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
         session.quiz.teamNames,
+      );
+    }),
+
+  /** Ergänzt die Teamwertung um den Median der Mitgliedspunkte für die Host-Auswertung. */
+  getHostTeamLeaderboard: hostProcedure
+    .input(GetSessionInfoInputSchema)
+    .output(z.array(HostTeamLeaderboardEntryDTOSchema))
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          status: true,
+          endedAt: true,
+          expiresAt: true,
+          quiz: { select: { teamMode: true, teamCount: true, teamNames: true } },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (
+        !session.quiz?.teamMode ||
+        (session.status !== 'RESULTS' && !isSessionEffectivelyFinished(session, new Date()))
+      ) {
+        return [];
+      }
+      return buildSessionTeamLeaderboard(
+        session.id,
+        session.quiz.teamCount ?? DEFAULT_TEAM_COUNT,
+        session.quiz.teamNames,
+        true,
       );
     }),
 

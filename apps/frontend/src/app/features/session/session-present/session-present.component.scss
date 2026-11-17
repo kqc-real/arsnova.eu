@@ -76,16 +76,6 @@
   }
 }
 
-.session-present__fullscreen-gate {
-  position: fixed;
-  z-index: 40;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: clamp(1rem, 3vw, 2rem);
-  background: color-mix(in srgb, var(--mat-sys-scrim) 46%, transparent);
-}
-
 .session-present__host-return {
   position: fixed;
   z-index: 30;
@@ -98,17 +88,56 @@
   max-width: min(20rem, calc(100vw - 1.5rem));
 }
 
-.session-present__fullscreen-gate .session-present__host-return {
-  position: absolute;
-  z-index: 1;
+.session-present__view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
 }
 
 .session-present__host-return button {
   min-height: 2.75rem;
+}
+
+.session-present__fullscreen-button,
+.session-present:not(.session-present--host-analysis-hint) .session-present__host-return-button {
   border-radius: var(--mat-sys-corner-full);
   background: var(--mat-sys-surface-container-high);
   color: var(--mat-sys-on-surface);
   box-shadow: var(--mat-sys-level2);
+}
+
+.session-present--host-analysis-hint .session-present__host-return {
+  position: static;
+  flex: 0 0 auto;
+  max-width: none;
+  margin-block-end: 0.35rem;
+}
+
+.session-present--host-analysis-hint .session-present__connection-status {
+  position: static;
+  align-self: center;
+  margin-block-end: 0.35rem;
+  transform: none;
+}
+
+.session-present__host-return-label,
+.session-present__host-analysis-hints {
+  display: grid;
+  text-align: start;
+}
+
+.session-present__host-analysis-hints {
+  font: var(--mat-sys-body-small);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.session-present--host-analysis-hint .session-present__host-return-button {
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  padding-block: 0.5rem;
 }
 
 .session-present__host-return-error,
@@ -125,41 +154,6 @@
   border-radius: var(--mat-sys-corner-medium);
   background: var(--mat-sys-surface-container-high);
   text-align: end;
-}
-
-.session-present__fullscreen-action {
-  width: min(100%, 34rem);
-  height: auto;
-  min-height: 44px;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  border-radius: var(--mat-sys-corner-extra-large);
-  box-shadow: var(--mat-sys-level2);
-  white-space: normal;
-}
-
-.session-present__fullscreen-action-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(0.625rem, 1.5vh, 1rem);
-
-  mat-icon {
-    width: clamp(2.75rem, 7vw, 4rem);
-    height: clamp(2.75rem, 7vw, 4rem);
-    font-size: clamp(2.75rem, 7vw, 4rem);
-  }
-}
-
-.session-present__fullscreen-action-label {
-  font: var(--mat-sys-headline-small);
-  text-align: center;
-}
-
-.session-present__fullscreen-action-hint {
-  font: var(--mat-sys-body-large);
-  text-align: center;
-  opacity: 0.82;
 }
 
 .session-present--quiz,
@@ -581,10 +575,15 @@ app-session-projection-quiz,
 }
 
 .session-present__lobby-teams-grid {
+  --present-lobby-team-min-width: 18rem;
+
   display: grid;
   align-items: stretch;
   grid-auto-rows: minmax(0, 1fr);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--present-lobby-team-min-width)), 1fr)
+  );
   gap: var(--present-lobby-col-gap);
   min-height: 0;
   flex: 1 1 auto;
@@ -696,10 +695,8 @@ app-session-projection-quiz,
   font-size: clamp(1.25rem, 2.4vw, 1.7rem);
   font-weight: 750;
   line-height: 1.2;
-  overflow-wrap: break-word;
-  word-break: normal;
-  hyphens: none;
-  -webkit-hyphens: none;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .session-present__lobby-team-count {
@@ -778,6 +775,49 @@ app-session-projection-quiz,
   max-width: 100%;
   cursor: pointer;
   user-select: none;
+}
+
+.session-present__lobby-audience:not(.session-present__lobby-audience--kindergarten)
+  .session-present__lobby-team:not(.session-present__lobby-team--crowd):not(
+    .session-present__lobby-team--packed
+  )
+  .session-present__lobby-team-members--visual {
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  align-items: stretch;
+  justify-items: stretch;
+}
+
+.session-present__lobby-audience:not(.session-present__lobby-audience--kindergarten)
+  .session-present__lobby-team:not(.session-present__lobby-team--crowd):not(
+    .session-present__lobby-team--packed
+  )
+  .session-present__lobby-team-members--visual
+  li {
+  width: auto;
+  container-type: size;
+}
+
+.session-present__lobby-audience:not(.session-present__lobby-audience--kindergarten)
+  .session-present__lobby-team:not(.session-present__lobby-team--crowd):not(
+    .session-present__lobby-team--packed
+  )
+  .session-present__lobby-team-members--visual
+  .session-present__lobby-nick {
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+}
+
+.session-present__lobby-audience:not(.session-present__lobby-audience--kindergarten)
+  .session-present__lobby-team:not(.session-present__lobby-team--crowd):not(
+    .session-present__lobby-team--packed
+  )
+  .session-present__lobby-team-members--visual
+  :is(.session-present__lobby-nick-icon, .session-present__lobby-nick-mat-icon) {
+  width: 1em;
+  height: 1em;
+  font-size: clamp(1.75rem, min(8vw, 12vh), 4.5rem);
 }
 
 .session-present__lobby-team--crowd .session-present__lobby-team-members li,
@@ -877,15 +917,15 @@ app-session-projection-quiz,
   font-size: clamp(1.35rem, 3.2vw, 2.8rem);
 }
 
+.session-present__animal-icon {
+  inline-size: 1em;
+  block-size: 1em;
+  object-fit: contain;
+}
+
 .session-present__lobby-team--crowd .session-present__lobby-nick-icon,
 .session-present__lobby-team--packed .session-present__lobby-nick-icon {
   font-size: clamp(1.2rem, min(86cqh, 80cqw), 4.5rem);
-}
-
-.session-present__lobby-audience--kindergarten
-  .session-present__lobby-team:not(.session-present__lobby-team--packed)
-  .session-present__lobby-nick-icon {
-  font-size: clamp(1.6rem, min(86cqh, 80cqw), 16rem);
 }
 
 .session-present__lobby-audience--kindergarten .session-present__lobby-person-col {
@@ -906,13 +946,6 @@ app-session-projection-quiz,
   width: 100%;
   height: 100%;
   min-height: 0;
-  justify-content: center;
-}
-
-.session-present__lobby-audience--kindergarten:not(.session-present__lobby-audience--packed)
-  .session-present__lobby-person-col
-  .session-present__lobby-nick-icon {
-  font-size: clamp(1.6rem, min(86cqh, 80cqw), 16rem);
 }
 
 .session-present__lobby-nick-mat-icon {
@@ -1054,6 +1087,73 @@ app-session-projection-quiz,
   padding: 0;
   cursor: pointer;
   user-select: none;
+}
+
+.session-present__lobby-audience--kindergarten
+  .session-present__lobby-person-col
+  .session-present__lobby-nick {
+  justify-content: center;
+}
+
+.session-present__lobby-audience--kindergarten
+  :is(.session-present__lobby-team, .session-present__lobby-person-col)
+  :is(.session-present__lobby-nick-icon, .session-present__lobby-nick-mat-icon) {
+  width: 1em;
+  height: 1em;
+  font-size: clamp(1.75rem, min(72cqh, 72cqw), 4.5rem);
+}
+
+.session-present__lobby-stage:has(.session-present__lobby-start)
+  .session-present__lobby-audience--text {
+  padding-block-end: 4.5rem;
+}
+
+.session-present__lobby-audience--text .session-present__lobby-teams-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  grid-auto-rows: minmax(8rem, 1fr);
+  overflow-y: auto;
+}
+
+.session-present__lobby-audience--text
+  :is(.session-present__lobby-team-members, .session-present__lobby-people-cols) {
+  grid-auto-rows: minmax(min-content, 1fr);
+  align-items: stretch;
+  justify-items: stretch;
+  gap: clamp(0.2rem, 0.7vmin, 0.6rem);
+  overflow: auto;
+}
+
+.session-present__lobby-audience--text
+  :is(.session-present__lobby-person-col, .session-present__lobby-team-members li) {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: auto;
+  min-height: 2.65rem;
+  container-type: normal;
+  padding: 0;
+}
+
+.session-present__lobby-audience--text .session-present__lobby-person {
+  width: 100%;
+  margin: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+.session-present__lobby-text-name {
+  display: block;
+  width: 90%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--mat-sys-on-surface);
+  font-size: var(--lobby-name-size, 1rem);
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .session-present__lobby-people {
@@ -1324,9 +1424,30 @@ app-session-projection-quiz,
   line-height: 1.4;
 }
 
+.session-present__shortcut {
+  margin-inline-start: 0.4em;
+  padding-inline: 0.3em;
+  border: 1px solid currentColor;
+  border-radius: var(--mat-sys-corner-extra-small);
+  font: inherit;
+  white-space: nowrap;
+}
+
+.session-present__history-status {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-medium);
+  text-align: center;
+}
+
 .session-present--feedback .session-present__feedback-card {
   width: min(100%, 88rem);
   margin: auto;
+}
+
+.session-present--feedback {
+  overflow-y: auto;
+  justify-content: flex-start;
 }
 
 .session-present--feedback .session-present__feedback-card mat-card-content {
@@ -1869,7 +1990,7 @@ app-session-projection-quiz,
   max-width: none;
   min-height: 0;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .session-present__finish:not(:has(.session-present__finish-hero)) {
@@ -2196,15 +2317,6 @@ app-session-projection-quiz,
   font-size: clamp(1.15rem, 1.8vw, 1.5rem);
   font-weight: 700;
   line-height: 1.25;
-}
-
-.session-present__board-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0 0 0.45rem;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 0.9rem;
 }
 
 .session-present__board-page {
@@ -2856,6 +2968,10 @@ app-session-projection-quiz,
 @media (min-width: 1000px) {
   .session-present--lobby .session-present__lobby-stage {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .session-present--lobby
+    .session-present__lobby-stage:has(.session-present__lobby-audience--text) {
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
   }
   .session-present--lobby .session-present__lobby-card {
     --app-qr-size: min(28rem, 36vw, 46dvh);

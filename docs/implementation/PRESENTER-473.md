@@ -2,19 +2,28 @@
 
 ## Verhalten und Verträge
 
-Die bestehende Host-Aktion öffnet weiterhin den geschützten Presenter. Der
-Startdialog erklärt den Projektionsbildschirm und die getrennte Host-Steuerung;
-Smartphone-Kopplung bleibt optional. Das Vollbild-Overlay lässt den aktuellen
-Inhalt als Kontext erkennen.
+Die bestehende Host-Aktion öffnet den geschützten Presenter. Der Startdialog
+bietet neben dem direkten Start die optionale Smartphone-Kopplung unter
+**Mit Smartphone steuern** an. Nach dem Start bleibt sie ausschließlich im Host
+unter **Weitere Aktionen** erreichbar. Das Vollbild-Overlay lässt den aktuellen Inhalt
+als Kontext erkennen.
 
 `app-projection-pages` misst gerenderten Inhalt auf der tatsächlichen Fläche.
 Absätze und Codezeilen bilden bevorzugte Seitengrenzen; Formeln, Bilder und
 vollständige Antwortoptionen bleiben zusammen. Das gilt auch für jedes
 Zuordnungspaar, jede Reihenfolgeoption sowie jedes Kategorisierungselement und
 jede Kategorie.
-Reicht der verbleibende Platz nicht, beginnt die gesamte Option auf der
-nächsten Seite. Fortsetzungen
-behalten Antwortkennzeichen und Listennummern. Später geladene Bilder und Schriften lösen eine Neumessung aus,
+Für Single Choice, Multiple Choice und Umfragen versucht der Presenter zuerst,
+Frage und alle Antwortoptionen gemeinsam darzustellen. Bei Platzmangel misst
+er kompaktere Karten einspaltig und bei ausreichender Breite zweispaltig.
+Beide Anordnungen werden bereits bei zwei Antwortoptionen geprüft.
+Passt nur der vollständige Antwortblock auf eine Seite, erhält er eine eigene
+Seite. Beim Vergleich zweier Abstimmungsrunden misst er die Legende mit den
+Stimmenzahlen zuerst zusammen mit den Ergebnisbalken. Erst bei weiterem
+Platzmangel setzt er die Legende auf die vorherige Seite.
+Passt der Block auch dort nicht, blättert der Presenter zwischen vollständigen
+Antwortkarten. Fortsetzungen behalten Antwortkennzeichen und Listennummern.
+Später geladene Bilder und Schriften lösen eine Neumessung aus,
 auch wenn ihre Seite gerade nicht sichtbar ist. Während sie nach einem Reload
 noch laden, begrenzt eine vorläufige Messung den gespeicherten Index nicht.
 Verteilungsmatrizen werden für die Projektion in vollständig
@@ -30,11 +39,12 @@ damit die terminale Präsentationsseite.
 
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
-Zeilenhöhe 1,5. Antwortblöcke mit maximal acht Optionen erhalten vergrößerten
-vertikalen Abstand und werden auf jeder Seite vertikal zentriert. Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
+Zeilenhöhe 1,5. Antwortblöcke werden auf jeder Seite vertikal zentriert.
+Umfangreiche Inhalte erhalten zusätzliche Seiten. Quiz-Seiten und die
 Quizphase wechselt die Lehrkraft im Presenter-Footer, einschließlich
-**Erste Frage starten** in der Lobby; der Host behält dieselben Aktionen. Eine
-neue Frage oder Runde erscheint erst, wenn ihr Snapshot zur Session passt, auch
+**Erste Frage starten** in der Lobby. Die Phasensteuerung steht auch auf dem
+Host zur Verfügung. Eine neue Frage oder Runde erscheint erst, wenn ihr
+Snapshot zur Session passt, auch
 wenn der Host die Runde oder die Frage wechselt. Bis dahin steht »Die Frage
 wird geladen«, nach einem Fehlschlag »Erneut laden«. Der Fokus wandert von
 dieser Ladeanzeige auf den nächsten Phasenknopf, sobald der Snapshot da ist.
@@ -51,6 +61,48 @@ Seite** blättern von Hand, **Automatisch** setzt den Wechsel fort. Voting,
 Timer, Ergebnisfreigabe und effektive Wertungsrunde
 bleiben unabhängig von der Seite.
 
+### Tastenkürzel
+
+Die Aktionsknöpfe zeigen die jeweils verfügbare Pfeiltaste. Im Live-Quiz
+startet **→** die erste Frage oder die Antwortphase, zeigt nach abgeschlossener
+Abstimmung das freigabefähige Ergebnis und öffnet danach die nächste Frage
+oder die Gesamtauswertung. Bei laufender Abstimmung, laufenden persönlichen
+Zeitfenstern, der Wahl zur Peer Instruction und einer Quizpause bleiben diese
+Phasenaktionen bei den ausdrücklich beschrifteten Knöpfen. In Lese- und
+Abstimmungsphase lässt **S** die aktuelle Frage nach Bestätigung aus; die
+sichtbare Aktion steht im Host und Presenter ohne zusätzliches Icon bereit.
+Der bestätigende CTA erhält den Fokus. **↑ / ↓** blättern durch mehrseitige
+Quizinhalte.
+
+**←** öffnet das vorherige abgeschlossene Ergebnis. **→** blättert im
+Rückblick vorwärts und kehrt am Ende zur Live-Ansicht zurück. Der Rückblick
+lädt die Ergebnisse per Host-geschützter Leseabfrage. Seitenposition und
+Ergebnisauswahl werden nur in diesem Presenter-Fenster gehalten. Die Abstimmung
+und die Live-Updates laufen weiter. Beim Wechsel der Live-Frage oder der
+Projektionsfläche endet der Rückblick.
+Wurden Begriffe in einer Freitext-Wortwolke ausgeblendet, zeigt der Rückblick
+die Frage und einen Hinweis. So erscheinen ausgeblendete Phrasen oder Themen
+auch bei abweichender Wortbildung nicht erneut auf der Bühne.
+
+Im Q&A wechseln **← / →** die Bühnenfrage und **↑ / ↓** scrollen die
+Warteschlange. In der Gesamtauswertung blättern **← / →** die einzige
+mehrseitige Rangliste oder die Rangliste mit fokussierter Seitensteuerung.
+Manuelles Blättern hält den automatischen Wechsel an. In der Lobby, der
+Gesamtauswertung, der Q&A-Wortwolke und im Blitzlicht scrollen **↑ / ↓** bei
+überlaufendem Inhalt. Dialoge, Eingabefelder und Auswahlelemente behalten ihre
+Pfeiltastenbedienung.
+
+### Quizstatus
+
+Zwischen- und Abschlussleaderboard vergeben Plätze und Medaillen nach den
+angezeigten Punkten. Punktgleiche Einträge teilen sich den besten von ihnen
+belegten Platz. Danach folgt die nächste freie Position, etwa 1, 1, 3. Die
+serverseitige Sortierung innerhalb gleicher Punktzahlen bleibt erhalten.
+Bei einem geteilten ersten Platz entfällt die einzelne Siegerkarte für diese
+Wertung.
+Solange alle Teams bei null Punkten stehen, zeigt der Presenter die Teamwerte
+ohne Plätze, Medaillen oder Hervorhebung der Führung.
+
 In der Quiz-Statuszeile stehen der Lesefortschritt (»x von y bereit«) und
 **Alle sind bereit**, sobald alle Teilnehmenden der Session bereit sind. Während
 der Abstimmung bleiben Prozent und »n / m«. **Alle haben abgestimmt** erscheint
@@ -60,8 +112,9 @@ noch aussteht. Persönliche Zeitfenster, deren Anzahl und **Trotzdem freigeben**
 bleiben auf dem Host. Die betroffenen Presenter-Knöpfe sind dann deaktiviert
 und der Presenter sagt, dass die Fenster noch laufen und der Host sie schließt.
 
-Der Footer zeigt je Phase genau die nächste Aktion: **Antwortoptionen
-freigeben**, **Ergebnis zeigen**, bei Peer-Instruction-Empfehlung zusätzlich
+In der Lesephase kündigt der Hinweis die zum Fragetyp passende Antwortform an.
+Der Footer zeigt je Phase genau die nächste Aktion: **Antwortphase
+starten**, **Ergebnis zeigen**, bei Peer-Instruction-Empfehlung zusätzlich
 **Diskussionsphase**, in der Diskussion **Zweite Abstimmung** und den
 ausdrücklich beschrifteten Weg ohne zweite Abstimmung, danach **Nächste Frage**
 oder **Zur Gesamtauswertung**. **Quiz pausieren** steht daneben in Lese- und
@@ -102,7 +155,7 @@ Tastaturfokus nicht verloren geht.
 
 - Crowd-Lobby: Gesamtzahl und bei höchstens acht Teams Teamzahlen ersetzen
   Nicknames; QR und Code erhalten Vorrang.
-- Q&A: oben die Bühnen-Sortierung als Auswahl (Kontroverse, Beste Fragen,
+- Q&A: oben die Bühnen-Sortierung als Auswahl (Geteilte Stimmen, Klare Zustimmung,
   Stimmensaldo, Zeit), darunter die aktuelle
   Frage dominant (hörsaaltaugliche Typografie ≥36 px bei 1080p), darunter alle
   weiteren freigegebenen Fragen untereinander (≥30 px). Die Bühne scrollt, wenn
@@ -112,10 +165,8 @@ Tastaturfokus nicht verloren geht.
   damit er beim ersten Präsentieren an der Bühne erreichbar ist; der Host behält
   dieselbe Steuerung. Keine Restzahl »weitere« und keine Seitenzeile »Seite n / m«
   auf der Bühne selbst;
-  Hero und Queue zeigen Erstellungszeit (relativ) sowie die passende Sortier-Metrik:
-  bei BEST Zustimmung (%), bei CONTROVERSIAL geteilte Reaktionen (%) – nie beides;
-  `qa.presentProjection` liefert die Scores dafür immer mit (ohne Moderator-NLP),
-  auch außerhalb von BEST/CONTROVERSIAL;
+  Hero und Queue zeigen die relative Erstellungszeit und die tatsächlichen Dafür- und Dagegen-Stimmen. Bei »Klare Zustimmung« erscheint zusätzlich der beobachtete Dafür-Anteil mit Stimmenzahl. Bei »Geteilte Stimmen« erscheint die Einordnung der Stimmenverteilung.
+  `qa.presentProjection` liefert die Scores für alle Sortiermodi mit (ohne Moderator-NLP).
   `qa.presentProjection` lädt bis zu 500 `ACTIVE`/`PINNED`-Fragen (Forum-Seitenmaximum),
   damit Presenter und Host dieselbe absolute Bühnenreihenfolge teilen;
   der Host speichert denselben ungefilterten Snapshot für die Presenter-Synchronisation;
@@ -169,7 +220,7 @@ Tastaturfokus nicht verloren geht.
 Die reproduzierbaren Browserbefehle stehen unter
 [Hörsaalprojektion in TESTING.md](../TESTING.md#hörsaalprojektion-und-host-seitensteuerung-473).
 Die Tests verwenden lokale Test-Sessions und echte Browsergeometrie. Der
-Testlauf für lange Inhalte prüft zusätzlich die mobile Host-Seitensteuerung,
+Testlauf für lange Inhalte prüft zusätzlich die Tastaturbedienung der Seitensteuerung,
 Vollständigkeit von Absätzen/Code/Antworten, Zeilenhöhe und Reload. Der
 Szenarienlauf deckt drei Auflösungen, beide Presets und DE/EN/FR ab. Vollbild
 wird dort für die Geometriemessung simuliert; bestehende Dialog-, Fenster- und

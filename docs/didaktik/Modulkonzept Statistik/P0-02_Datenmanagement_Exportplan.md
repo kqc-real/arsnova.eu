@@ -367,7 +367,7 @@ Als Incident gelten insbesondere:
 ### 14.3 Technische Fehler ohne Datenabfluss
 
 - **arsnova.eu-Export fehlt:** Innerhalb des Nachlaufs einmal mit gültigem Hostzugriff wiederholen. Nach Purge keine Personen-Rohdaten rekonstruieren und keinen Admin-/Legal-Hold-Prozess für Lehrzwecke auslösen; Datenlücke dokumentieren.
-- **PDF-Erzeugung scheitert:** Session-CSV sichern und den vorgesehenen Browser-Druckfallback verwenden. Keine Bildschirmserie mit Hostdaten anlegen.
+- **PDF-Erzeugung scheitert:** Session-CSV sichern und den PDF-Download später erneut versuchen. Keine Bildschirmserie mit Hostdaten anlegen.
 - **Q&A-CSV fehlt:** Nur solange die vollständige Hostliste noch autorisiert verfügbar ist erneut exportieren. Der reduzierte Q&A-Block im Sessionexport wird als unvollständig gekennzeichnet, nicht als Vollmetrik ausgegeben.
 - **CSV ist beschädigt:** Prüfsumme und unveränderte Quelle bewahren, solange die jeweilige Rohdatenfrist läuft; neuen Export als neue Version registrieren. Keine stillen Zellkorrekturen.
 - **JASP-Import ist falsch typisiert:** Importparameter korrigieren und neue Version erzeugen; Quelle unverändert lassen und die fehlerhafte Arbeitsdatei löschen.

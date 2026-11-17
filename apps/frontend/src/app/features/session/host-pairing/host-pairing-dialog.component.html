@@ -196,7 +196,14 @@
       Neuen QR-Code anzeigen
     </button>
   }
-  <button matButton="text" type="button" data-testid="host-pairing-close" (click)="finish()">
+  <button
+    matButton="text"
+    type="button"
+    data-testid="host-pairing-close"
+    (click)="finish()"
+    [disabled]="view() === 'pending' && busy()"
+    [disabledInteractive]="true"
+  >
     {{ closeLabel() }}
   </button>
 </mat-dialog-actions>

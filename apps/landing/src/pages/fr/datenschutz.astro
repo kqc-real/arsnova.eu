@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { legal, site } from '../../config/legal';
+
+const providerCountry = legal.provider.address.country === 'Deutschland'
+  ? 'Allemagne'
+  : legal.provider.address.country;
+const hostingLocation = legal.hosting.location === 'USA' ? 'États-Unis' : legal.hosting.location;
+---
+
+<BaseLayout
+  locale="fr"
+  title="Politique de confidentialité"
+  description="Politique de confidentialité du site de présentation arsnova.eu : traitement des données, hébergement et droits."
+  canonicalPath="/fr/datenschutz/"
+>
+  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6" lang="fr">
+    <h1 class="font-display text-3xl font-bold text-landing-fg">Politique de confidentialité</h1>
+    <p class="mt-2 text-landing-fg-muted">Informations fournies conformément aux articles 13 et 14 du règlement général sur la protection des données (RGPD)</p>
+
+    <section class="landing-card mt-6 p-5 text-landing-fg-body">
+      <p class="landing-eyebrow">En bref</p>
+      <ul class="mt-3 list-inside list-disc space-y-1 leading-7">
+        <li>Ces informations concernent principalement le site de présentation accessible à l’adresse {site.landingUrl}.</li>
+        <li>Le site de présentation ne dépose lui-même aucun cookie et n’utilise aucun outil d’analyse d’audience.</li>
+        <li>
+          L’application de quiz, de votes et de Q&amp;R en direct est proposée séparément à l’adresse {site.appUrl}.
+          Des informations complémentaires ou différentes peuvent s’appliquer à cette application et aux installations auto-hébergées.
+        </li>
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-8 text-landing-fg-body">
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">1. Responsable du traitement</h2>
+        <p class="mt-2">
+          {legal.provider.name}<br />
+          {legal.provider.address.street}<br />
+          {legal.provider.address.city}<br />
+          {providerCountry}
+        </p>
+        <p class="mt-2">
+          E-mail : <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">2. Champ d’application</h2>
+        <p class="mt-2">
+          Cette politique de confidentialité s’applique principalement au site de présentation statique accessible à l’adresse <strong>{site.landingUrl}</strong>. Elle décrit les traitements de données liés à la consultation de ces pages, à l’utilisation des liens externes et à l’hébergement du site.
+        </p>
+        <p class="mt-2">
+          Pour l’application de quiz, de votes et de Q&amp;R en direct accessible à l’adresse <strong>{site.appUrl}</strong>, ainsi que pour les installations auto-hébergées, des informations complémentaires ou différentes peuvent s’appliquer. L’exploitant ou l’établissement concerné est alors responsable du traitement.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">3. Données traitées lors de la visite de ce site</h2>
+        <p class="mt-2">
+          Lors de la consultation de ce site, l’hébergeur peut traiter des données techniques d’accès, notamment l’adresse IP, la date et l’heure de la requête, l’URL consultée, des informations sur le navigateur et le volume de données transféré. Ce traitement est techniquement nécessaire pour afficher le site et garantir sa sécurité et sa stabilité. Il repose sur l’article 6, paragraphe 1, point f, du RGPD.
+        </p>
+        <p class="mt-2">
+          Ce site statique ne dépose <strong>aucun cookie</strong> et n’exécute aucun outil d’analyse d’audience. Sa consultation n’entraîne pas non plus le traitement de contenus de quiz, de réponses, de données de session ou d’autres données similaires d’utilisation de l’application.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">4. Liens vers des services tiers</h2>
+        <p class="mt-2">
+          Ce site contient des liens vers des services externes, notamment GitHub et l’application {site.name}. En suivant ces liens, tu quittes le site de présentation. Les politiques de confidentialité et les conditions d’utilisation des fournisseurs ou exploitants concernés s’appliquent alors.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">5. Hébergement du site de présentation</h2>
+        <p class="mt-2">
+          Ce site de présentation est hébergé par <strong>{legal.hosting.provider}</strong>. Des données techniques d’accès peuvent être traitées sur les serveurs de ce fournisseur. Son pays d’établissement est le suivant : <strong>{hostingLocation}</strong>. Un transfert vers un pays tiers ne peut donc être exclu.
+        </p>
+        <p class="mt-2">
+          Pour en savoir plus sur les traitements effectués par l’hébergeur, consulte la politique de confidentialité de GitHub : <a href={legal.hosting.privacyUrl} class="landing-link" target="_blank" rel="noopener noreferrer">Déclaration de confidentialité de GitHub</a>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">6. Tes droits</h2>
+        <p class="mt-2">Tu disposes notamment des droits suivants auprès du responsable du traitement :</p>
+        <ul class="mt-2 list-inside list-disc space-y-1">
+          <li><strong>Droit d’accès</strong> (article 15 du RGPD) aux données personnelles te concernant qui sont traitées</li>
+          <li><strong>Droit de rectification</strong> (article 16 du RGPD) des données inexactes</li>
+          <li><strong>Droit à l’effacement</strong> (article 17 du RGPD) ou <strong>à la limitation du traitement</strong> (article 18 du RGPD)</li>
+          <li><strong>Droit d’opposition</strong> (article 21 du RGPD) au traitement fondé sur l’article 6, paragraphe 1, point f, du RGPD</li>
+          <li><strong>Droit à la portabilité des données</strong> (article 20 du RGPD), lorsque ce droit s’applique</li>
+          <li><strong>Droit de retirer ton consentement</strong> (article 7, paragraphe 3, du RGPD), avec effet pour l’avenir</li>
+          <li><strong>Droit d’introduire une réclamation</strong> auprès d’une autorité de contrôle (article 77 du RGPD)</li>
+        </ul>
+        <p class="mt-2">
+          Pour toute question ou pour exercer tes droits, contacte-nous à l’adresse suivante : <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">7. Obligation de fournir des données</h2>
+        <p class="mt-2">
+          Pour simplement consulter ce site de présentation, tu n’as pas à nous communiquer activement de données personnelles. Toutefois, l’affichage du site nécessite le traitement de certaines données de connexion par l’hébergeur. Si tu nous contactes par e-mail, nous avons besoin de tes coordonnées d’expéditeur.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">8. Informations concernant l’application arsnova.eu</h2>
+        <p class="mt-2">
+          L’application accessible à l’adresse <strong>{site.appUrl}</strong> est conçue pour respecter la vie privée et privilégie le stockage local (Local-First). Les données effectivement traitées lors de son utilisation, des sessions ou d’un auto-hébergement dépendent toutefois de l’exploitant de l’instance. Consulte donc la politique de confidentialité fournie pour l’application en direct concernée.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">9. Modifications</h2>
+        <p class="mt-2">
+          Nous pouvons adapter cette politique de confidentialité en cas d’évolution du cadre légal ou des traitements de données effectivement réalisés. La version la plus récente est disponible sur cette page.
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

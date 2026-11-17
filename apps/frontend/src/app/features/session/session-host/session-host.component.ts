@@ -1,10 +1,12 @@
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
-import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { CdkTrapFocus, LiveAnnouncer } from '@angular/cdk/a11y';
 import {
   getDocumentFullscreenElement,
   isDocumentFullscreenEnterAvailable,
   tryAutoRequestDocumentFullscreen,
   tryExitDocumentFullscreen,
+  tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
 import {
@@ -66,7 +68,7 @@ import {
   clearHostToken,
   getHostSessionRole,
   hasHostToken,
-  setHostToken,
+  normalizeHostSessionCode,
 } from '../../../core/host-session-token';
 import {
   isHostAccessRevokedError,
@@ -78,7 +80,7 @@ import {
   localeIdToSupported,
   type SupportedLocale,
 } from '../../../core/locale-from-path';
-import { forceReconnectTrpcWs, refreshTrpcWsBinding, trpc } from '../../../core/trpc.client';
+import { forceReconnectTrpcWs, trpc } from '../../../core/trpc.client';
 import { WsConnectionService } from '../../../core/ws-connection.service';
 import {
   clearHostBrowserCapability,
@@ -106,10 +108,12 @@ import { SoundService } from '../../../core/sound.service';
 import { HostDisplayModeService } from '../../../core/host-display-mode.service';
 import {
   isPresenterViewOffered,
-  openPresenterViewWindow,
   PRESENTER_VIEW_OFFERED_MEDIA,
-  pushCurrentHostTokenToPresenter,
-} from '../session-present/presenter-window.util';
+  sessionPresentationPath,
+  SessionPresentationState,
+} from '../session-present/presenter-navigation';
+import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
+import { FreetextWordCloudVisibilityState } from '../freetext-word-cloud-visibility';
 import { localizePath, resolveLocalizedJoinUrl } from '../../../core/locale-router';
 import { sessionCodeAriaLabel as i18nSessionCodeAria } from '../../../core/session-code-aria';
 import {
@@ -125,6 +129,11 @@ import {
   type QaChannelConfigurationDialogData,
 } from './qa-channel-configuration-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
+import {
+  HostPairingDialogComponent,
+  type HostPairingDialogData,
+  type HostPairingDialogResult,
+} from '../host-pairing/host-pairing-dialog.component';
 import {
   collectModerationFeedbackDecision,
   createQuizHistoryAccessProof,
@@ -153,6 +162,7 @@ import {
   qaQuestionTextVersion,
   qaRedactionDialogTextIsCurrent,
   type QaListPageSize,
+  type PresenterPage,
   type ProductFeedbackInAppArea,
 } from '@arsnova/shared-types';
 import {
@@ -198,7 +208,8 @@ import {
   SessionLearningObjectiveDTO,
   SessionStatusUpdate,
   TeamDTO,
-  TeamLeaderboardEntryDTO,
+  HostTeamLeaderboardEntryDTO,
+  PresenterQuizResult,
   FreetextWordCloudPresenterProjectionDTO,
   QaWordCloudPresenterProjectionDTO,
   WordCloudAnalysisEntryDTO,
@@ -225,6 +236,7 @@ import {
   WORD_CLOUD_SEMANTIC_WAIT_HINT_AFTER_MS,
 } from './word-cloud-semantic-pending';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
+import { SessionProjectionQuizComponent } from '../session-present/session-projection-quiz.component';
 import { qaWordCloudReadingHint } from '../session-present/word-cloud-labels';
 import { getQaWordCloudQuestionWeight } from '../session-present/word-cloud-weight.util';
 import {
@@ -261,13 +273,21 @@ import {
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { questionTypeLabel } from '../../../shared/question-type-label';
-import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
+import { remainingCountdownSeconds, sessionCountdownKey } from '../session-countdown.util';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
+import {
+  SessionMusicService,
+  musicPhaseForStatus,
+  type HostMusicTrack,
+  type MusicPhase,
+} from '../session-music.service';
 import {
   getSkewAdjustedNow,
   recordServerTimeIso,
   recordServerTimeSample,
 } from '../session-server-clock';
 import { SessionDeadlineController } from '../session-deadline';
+import { formatQaSupportLabel } from '../session-qa-support-label.util';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import { normalizeQaSearchQuery } from '../qa-search.util';
 import { MusicEqualizerIconComponent } from '../../../shared/music-equalizer-icon/music-equalizer-icon.component';
@@ -289,10 +309,7 @@ import {
   stripMarkdownToPlainText,
 } from '../../../core/markdown-plain-text.util';
 import { localizeKnownServerError } from '../../../core/localize-known-server-message';
-import {
-  SessionResultsExportService,
-  type SessionResultsPdfDisposition,
-} from '../../../core/session-results-export.service';
+import { SessionResultsExportService } from '../../../core/session-results-export.service';
 import {
   replaceEmojiShortcodes,
   edgeEmojiMarkerPosition,
@@ -300,8 +317,9 @@ import {
   stripEdgeEmojiMarker,
 } from '../../../shared/emoji-shortcode.util';
 import {
-  findKindergartenNicknameBadgeLabel,
+  findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
+  scoreboardNickname,
 } from '../../join/kindergarten-nickname-icons';
 import {
   SessionQuizPickerDialogComponent,
@@ -401,7 +419,7 @@ function readWordCloudLemmaLocaleOverride(sessionCode: string): SupportedLocale 
 
   try {
     const raw = sessionStorage.getItem(wordCloudLemmaLocaleStorageKey(sessionCode));
-    return raw && (isWordCloudLemmaLocale(raw) || raw === 'it') ? raw : null;
+    return raw && isWordCloudLemmaLocale(raw) ? raw : null;
   } catch {
     return null;
   }
@@ -455,109 +473,6 @@ type SessionOnboardingProfile = {
   teamAssignment: TeamAssignment;
   teamNames: string[];
 };
-type HostMusicTrack =
-  | 'LOBBY_0'
-  | 'LOBBY_1'
-  | 'LOBBY_2'
-  | 'LOBBY_3'
-  | 'READING_0'
-  | 'COUNTDOWN_0'
-  | 'COUNTDOWN_1'
-  | 'COUNTDOWN_2';
-
-type MusicPhase = 'lobby' | 'reading' | 'countdown' | 'personalTime';
-
-const PHASE_TRACK_DEFAULTS: Record<MusicPhase, HostMusicTrack> = {
-  lobby: 'LOBBY_2',
-  reading: 'READING_0',
-  countdown: 'COUNTDOWN_1',
-  personalTime: 'COUNTDOWN_0',
-};
-
-const MUSIC_PHASE_STORAGE_KEY = 'arsnova-host-phase-tracks';
-const MUSIC_PHASE_IDS = ['lobby', 'reading', 'countdown', 'personalTime'] as const;
-
-const LEGACY_HOST_MUSIC_TRACKS: Record<string, HostMusicTrack> = {
-  CONNECTING_0: 'READING_0',
-  COUNTDOWN_RUNNING_0: 'COUNTDOWN_0',
-  COUNTDOWN_RUNNING_1: 'COUNTDOWN_1',
-  COUNTDOWN_RUNNING_2: 'COUNTDOWN_2',
-};
-
-function normalizeStoredHostMusicTrack(value: unknown): HostMusicTrack | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const migrated = LEGACY_HOST_MUSIC_TRACKS[value] ?? value;
-  return isValidTrack(migrated) ? migrated : null;
-}
-
-function isMusicPhaseId(value: unknown): value is MusicPhase {
-  return (
-    value === 'lobby' || value === 'reading' || value === 'countdown' || value === 'personalTime'
-  );
-}
-
-function readStoredPhaseMusicRaw(): Record<string, unknown> | null {
-  try {
-    const raw =
-      globalThis.localStorage === undefined
-        ? null
-        : globalThis.localStorage.getItem(MUSIC_PHASE_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function loadPhaseTracksFromStorage(): Record<MusicPhase, HostMusicTrack> {
-  const parsed = readStoredPhaseMusicRaw();
-  if (!parsed) return { ...PHASE_TRACK_DEFAULTS };
-  return {
-    lobby: normalizeStoredHostMusicTrack(parsed['lobby']) ?? PHASE_TRACK_DEFAULTS.lobby,
-    reading:
-      normalizeStoredHostMusicTrack(parsed['reading'] ?? parsed['connecting']) ??
-      PHASE_TRACK_DEFAULTS.reading,
-    countdown:
-      normalizeStoredHostMusicTrack(parsed['countdown'] ?? parsed['running']) ??
-      PHASE_TRACK_DEFAULTS.countdown,
-    personalTime:
-      normalizeStoredHostMusicTrack(parsed['personalTime']) ?? PHASE_TRACK_DEFAULTS.personalTime,
-  };
-}
-
-function loadMutedMusicPhasesFromStorage(): ReadonlySet<MusicPhase> {
-  const raw = readStoredPhaseMusicRaw()?.['mutedPhases'];
-  if (!Array.isArray(raw)) return new Set();
-  return new Set(raw.filter(isMusicPhaseId));
-}
-
-function persistPhaseMusicSettings(
-  tracks: Record<MusicPhase, HostMusicTrack>,
-  mutedPhases: ReadonlySet<MusicPhase>,
-): void {
-  try {
-    localStorage.setItem(
-      MUSIC_PHASE_STORAGE_KEY,
-      JSON.stringify({
-        ...tracks,
-        mutedPhases: MUSIC_PHASE_IDS.filter((phase) => mutedPhases.has(phase)),
-      }),
-    );
-  } catch {
-    /* quota */
-  }
-}
-
-function isValidTrack(v: unknown): v is HostMusicTrack {
-  return typeof v === 'string' && ALL_MUSIC_TRACK_VALUES.has(v as HostMusicTrack);
-}
-
 function isScoredQuestionType(type: HostCurrentQuestionDTO['type'] | null | undefined): boolean {
   return (
     type === 'SINGLE_CHOICE' ||
@@ -659,7 +574,6 @@ const ALL_MUSIC_TRACKS: ReadonlyArray<{ value: HostMusicTrack; label: string }> 
     label: $localize`:@@sessionHost.musicTrackCountdownIntense:Countdown · Intensiv`,
   },
 ];
-const ALL_MUSIC_TRACK_VALUES = new Set(ALL_MUSIC_TRACKS.map((t) => t.value));
 
 type HostSteeringCalloutState = {
   title: string;
@@ -714,6 +628,7 @@ function musicTracksForPhase(
     MatSlideToggle,
     MatTooltip,
     WordCloudComponent,
+    SessionProjectionQuizComponent,
     CountdownFingersComponent,
     MusicEqualizerIconComponent,
     ModerationCompassIconComponent,
@@ -895,8 +810,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaFocusOrigin = signal<'compass' | 'word-cloud' | null>(null);
   readonly qaFocusHint = signal<string | null>(null);
   readonly quickFeedbackResult = signal<QuickFeedbackResult | null>(null);
+  readonly presenterCompactActionLabel = $localize`:@@sessionHost.presentationViewLabel:Präsentationsansicht`;
   readonly quickFeedbackSeenVoteCount = signal(0);
   readonly quickFeedbackActionPending = signal(false);
+  private readonly quickFeedbackAcceptedLock = signal<{
+    locked: boolean;
+    lockVersion: number;
+  } | null>(null);
   private participantSub: Unsubscribable | null = null;
   private statusSub: Unsubscribable | null = null;
   private currentQuestionSub: Unsubscribable | null = null;
@@ -945,7 +865,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaCompactToolbar = signal(this.isQaCompactToolbarViewport());
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
-  private unloadWarningEnabled = !this.isLocalDevSession();
   private readonly localeId = inject(LOCALE_ID);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -954,9 +873,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly themePreset = inject(ThemePresetService);
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   readonly sound = inject(SoundService);
+  private readonly sessionMusic = inject(SessionMusicService);
+  private readonly unloadWarning = inject(SessionUnloadWarningService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly liveAnnouncer = inject(LiveAnnouncer);
   private readonly sessionResultsExport = inject(SessionResultsExportService);
   private readonly quizStore = inject(QuizStoreService);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
@@ -964,12 +886,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly hostScenario = inject(HostScenarioService);
   private readonly wsConnection = inject(WsConnectionService);
   readonly contextualFeedbackOffer = inject(ContextualFeedbackOfferService);
-  private presenterWindowOpenInFlight = false;
-  private presenterWindowHandle: Window | null = null;
-  readonly presenterWindowOpen = signal(false);
+  readonly presenterNavigationPending = signal(false);
+  private readonly presentationState = inject(SessionPresentationState);
+  private presenterNavigationId: number | undefined;
   private auxPollTimer: ReturnType<typeof setInterval> | null = null;
   private clockPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly code = this.route.parent?.snapshot.paramMap.get('code') ?? '';
+  readonly presentationStarted = signal(this.presentationState.hasStarted(this.code));
+  private readonly presenterStartOfferRequested = signal(false);
+  private readonly presenterStartOfferDismissed = signal(
+    this.presentationState.hasDismissedStartOffer(this.code),
+  );
+  private readonly lastHostView = this.presentationState.hostView(this.code);
   private readonly requestedInitialTab = this.route.snapshot?.queryParamMap?.get('tab') ?? null;
   private readonly requestedQaCreateSetup =
     this.route.snapshot?.queryParamMap?.get('qaSetup') === '1';
@@ -1223,16 +1151,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly exportStatus = signal<string | null>(null);
   readonly exportExporting = signal(false);
   readonly leaderboard = signal<LeaderboardEntryDTO[]>([]);
-  readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  readonly teamLeaderboard = signal<HostTeamLeaderboardEntryDTO[]>([]);
   readonly lobbyTeams = signal<TeamDTO[]>([]);
-  readonly leaderboardLoading = signal(false);
   private readonly onVisibilityChange = () => {
     if (typeof document === 'undefined') return;
     if (document.hidden) {
       this.stopHostPolling();
       return;
     }
-    this.syncPresenterWindowOpenState();
     void this.refreshDurableHostAccess();
     this.ensureParticipantSubscription();
     this.ensureStatusSubscription();
@@ -1246,12 +1172,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   };
   private hostAccessRefreshTimer: ReturnType<typeof setInterval> | null = null;
-  private hostAccessRefreshInFlight: Promise<void> | null = null;
   private recoveryCardDialogOpened = false;
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
+  private readonly quizHistory = signal<{
+    readonly liveQuestionId: string;
+    readonly result: PresenterQuizResult;
+  } | null>(null);
+  private quizHistoryRequestEpoch = 0;
+  readonly historyPage = signal({ index: 0, count: 1 });
   private readonly moderationQuizSourceCache = signal<
     readonly ModerationCompassQuizSourceCacheEntry[]
   >([]);
@@ -1264,6 +1195,38 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (currentQuestion === null) return null;
     return currentQuestion === question.order ? question : null;
   });
+  private readonly quizHistoryPhaseAvailable = computed(() => {
+    const status = this.effectiveStatus();
+    return (
+      status === 'QUESTION_OPEN' ||
+      status === 'ACTIVE' ||
+      status === 'DISCUSSION' ||
+      status === 'RESULTS'
+    );
+  });
+  readonly earlierQuizResult = computed(() => {
+    const history = this.quizHistory();
+    return history &&
+      this.quizHistoryPhaseAvailable() &&
+      this.activeChannel() === 'quiz' &&
+      this.displayedCurrentQuestionForHost()?.questionId === history.liveQuestionId
+      ? history.result
+      : null;
+  });
+  readonly historyWordCloudTerms = computed(() => {
+    const responses = this.earlierQuizResult()?.question.freeTextResponses ?? [];
+    return this.wordCloudTermExtractor.extractTerms(
+      responses.map((body, index) => ({ id: `history-response-${index}`, body })),
+      {
+        locale: this.wordCloudTermLocale(),
+        maxEntries: 80,
+        maxNgramLength: WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
+      },
+    );
+  });
+  readonly historyWordCloudTitle = computed(() =>
+    stripMarkdownToPlainText(this.earlierQuizResult()?.question.text ?? ''),
+  );
   readonly hasCurrentQuizQuestionForHost = computed(() => {
     if (this.displayedCurrentQuestionForHost() !== null) return true;
     return typeof this.effectiveCurrentQuestionState() === 'number';
@@ -1302,9 +1265,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private countdownDeadlineMs: number | null = null;
   private countdownKey: string | null = null;
   private fingerHideTimeout: ReturnType<typeof setTimeout> | null = null;
-  private countdownFingerSoundPlayed = false;
-  private countdownFinalSoundPlayed = false;
-  private countdownMusicFadeStarted = false;
   /** true ab ≤7s Rest (nach Musik-Ausblendung) → kein Countdown-Track mehr, nur SFX. */
   readonly countdownSfxPhase = signal(false);
   readonly channelActivationPending = signal<SessionChannelTab | null>(null);
@@ -1929,13 +1889,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly showHostViewControls = computed(() => this.isLiveHostSurface());
   readonly presenterSurfacePending = signal(false);
   readonly pendingHostMoreAction = signal<
-    'skip' | 'previous' | 'replace' | 'leave' | 'endPresentation' | 'feedback' | 'end' | null
+    'replace' | 'leave' | 'feedback' | 'end' | 'restoreWord' | 'smartphoneRemote' | null
   >(null);
+  private pendingWordToRestore: { questionId: string; label: string } | null = null;
 
   /** Material restores the persistent menu trigger before emitting menuClosed. */
   runHostMoreAction(): void {
     const action = this.pendingHostMoreAction();
     this.pendingHostMoreAction.set(null);
+    const wordToRestore = this.pendingWordToRestore;
+    this.pendingWordToRestore = null;
     if (
       this.controlPending() ||
       this.sessionEndPending() ||
@@ -1944,20 +1907,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     )
       return;
     switch (action) {
-      case 'skip':
-        void this.skipQuestion();
-        break;
-      case 'previous':
-        void this.prevQuestion();
-        break;
       case 'replace':
         void this.replaceQuizBeforeStart();
         break;
       case 'leave':
         void this.onLeaveHostKeepingQaOpen();
-        break;
-      case 'endPresentation':
-        void this.endPresentationView();
         break;
       case 'feedback':
         this.openHostProductFeedbackForTarget(
@@ -1967,6 +1921,77 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'end':
         void this.onSessionEndAnchorClick();
         break;
+      case 'smartphoneRemote':
+        this.openSmartphoneRemote();
+        break;
+      case 'restoreWord':
+        if (
+          wordToRestore &&
+          wordToRestore.questionId === this.freetextVisibilitySnapshot()?.questionId
+        ) {
+          void this.restoreFreetextWord(wordToRestore);
+        }
+        break;
+    }
+  }
+
+  private openSmartphoneRemote(): void {
+    if (!this.canManagePairedHosts()) return;
+    const ref = this.dialog.open<
+      HostPairingDialogComponent,
+      HostPairingDialogData,
+      HostPairingDialogResult
+    >(HostPairingDialogComponent, {
+      data: {
+        code: this.code.toUpperCase(),
+        screenVisibility: 'PROJECTED',
+      },
+      autoFocus: 'first-tabbable',
+      restoreFocus: true,
+      panelClass: 'host-pairing-dialog-panel',
+      backdropClass: 'host-pairing-dialog-backdrop',
+    });
+    ref.afterClosed().subscribe(() => void this.refreshPairedHostStatus());
+  }
+
+  private readonly freetextVisibility = new FreetextWordCloudVisibilityState();
+  readonly freetextVisibilitySnapshot = computed(() => {
+    const snapshot = this.freetextVisibility.snapshot();
+    return snapshot?.questionId === this.displayedCurrentQuestionForHost()?.questionId
+      ? snapshot
+      : null;
+  });
+  readonly freetextVisibilityPending = this.freetextVisibility.pending.asReadonly();
+  readonly restoreFreetextWordLabel = $localize`:@@wordCloud.restoreWord:Wort wieder einblenden`;
+  readonly hideFreetextWord = async (label: string): Promise<void> => {
+    const questionId = this.freetextVisibilitySnapshot()?.questionId;
+    if (!questionId) throw new Error('Freitext question changed');
+    await this.freetextVisibility.update(this.code, questionId, label, true);
+  };
+
+  queueFreetextWordRestore(questionId: string, label: string): void {
+    this.pendingWordToRestore = { questionId, label };
+    this.pendingHostMoreAction.set('restoreWord');
+  }
+
+  private async restoreFreetextWord({
+    questionId,
+    label,
+  }: {
+    questionId: string;
+    label: string;
+  }): Promise<void> {
+    try {
+      await this.freetextVisibility.update(this.code, questionId, label, false);
+      void this.liveAnnouncer.announce(
+        $localize`:@@wordCloud.wordRestored:Wort wieder eingeblendet.`,
+      );
+    } catch {
+      this.snackBar.open(
+        $localize`:@@wordCloud.restoreWordFailed:Das Wort konnte nicht wieder eingeblendet werden.`,
+        '',
+        { duration: 6000 },
+      );
     }
   }
   readonly pairedHostConnected = signal(false);
@@ -2000,7 +2025,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.session()?.presenterSurface === 'ended') {
       return $localize`:@@sessionHost.resumePresentationView:Live-Projektion fortsetzen`;
     }
-    if (this.presenterWindowOpen()) {
+    if (this.presentationStarted()) {
       return $localize`:@@sessionHost.switchToPresentationView:Zur Präsentationsansicht wechseln`;
     }
     return $localize`:@@sessionHost.openPresentationView:Präsentationsansicht öffnen`;
@@ -2014,6 +2039,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * damit SSR/Hydration denselben DOM behalten. Tablets und Desktop bleiben sichtbar.
    */
   readonly showPresenterViewButton = signal(true);
+  readonly showPresenterStartOffer = computed(
+    () =>
+      this.presenterStartOfferRequested() &&
+      !this.presenterStartOfferDismissed() &&
+      !this.presentationStarted() &&
+      this.showPresenterViewButton() &&
+      this.activeChannel() === 'quiz' &&
+      !this.quizStartQuestionPending() &&
+      this.displayedCurrentQuestionForHost() !== null &&
+      (this.effectiveStatus() === 'QUESTION_OPEN' || this.effectiveStatus() === 'ACTIVE'),
+  );
   /** Technische Projektionsaktionen werden nur ab Tabletgröße angeboten. */
   readonly projectionControlsOffered = computed(() => this.showPresenterViewButton());
   private presenterDesktopMediaQuery: MediaQueryList | null = null;
@@ -2045,30 +2081,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly musicMenuTracksForSelection = computed(() =>
     musicTracksForPhase(this.musicMenuEditPhase()),
   );
-  readonly phaseTracks = signal<Record<MusicPhase, HostMusicTrack>>(loadPhaseTracksFromStorage());
-  readonly mutedMusicPhases = signal<ReadonlySet<MusicPhase>>(loadMutedMusicPhasesFromStorage());
-  readonly musicMuted = signal(false);
-  /**
-   * Blitzlicht startet ohne Hintergrundmusik. Ein Einschalten gilt nur für diese
-   * Host-Sitzung und ändert die Quiz-Vorgabe nicht.
-   */
-  readonly quickFeedbackMusicEnabled = signal(false);
-  readonly musicSilenced = computed(() =>
-    this.activeChannel() === 'quickFeedback'
-      ? !this.quickFeedbackMusicEnabled()
-      : this.musicMuted(),
+  readonly phaseTracks = this.sessionMusic.phaseTracks;
+  readonly mutedMusicPhases = this.sessionMusic.mutedMusicPhases;
+  readonly musicMuted = this.sessionMusic.musicMuted;
+  readonly quickFeedbackMusicEnabled = this.sessionMusic.quickFeedbackMusicEnabled;
+  readonly musicSilenced = computed(() => this.sessionMusic.isMuted(this.activeChannel()));
+  private readonly musicReady = signal(false);
+  readonly currentMusicPhase = computed(() =>
+    musicPhaseForStatus(
+      this.effectiveStatus(),
+      this.personalTimeOvertimeActive() && this.countdownSeconds() === null,
+    ),
   );
-  readonly currentMusicPhase = computed<MusicPhase | null>(() => {
-    const status = this.effectiveStatus();
-    if (status === 'LOBBY') return 'lobby';
-    if (status === 'QUESTION_OPEN') return 'reading';
-    if (status === 'ACTIVE') {
-      return this.personalTimeOvertimeActive() && this.countdownSeconds() === null
-        ? 'personalTime'
-        : 'countdown';
-    }
-    return null;
-  });
   readonly isCurrentMusicPhaseMuted = computed(() => {
     const phase = this.currentMusicPhase();
     return phase !== null && this.mutedMusicPhases().has(phase);
@@ -2081,8 +2105,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       (this.blockingTimerAccommodationCount() > 0 || this.pendingTimerAccommodationCount() > 0),
   );
   readonly activeMusicTrack = computed<HostMusicTrack | null>(() => {
-    if (this.musicSilenced()) return null;
-    if (this.activeChannel() === 'qa') return null;
     if (this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult()?.locked) {
       return null;
     }
@@ -2093,8 +2115,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (phase === 'countdown' && (this.countdownSfxPhase() || this.countdownEnded())) {
       return null;
     }
-    if (this.mutedMusicPhases().has(phase)) return null;
-    return this.phaseTracks()[phase];
+    return this.sessionMusic.trackFor(phase, this.activeChannel());
   });
   readonly activeMusicLabel = computed(() => {
     const active = this.activeMusicTrack();
@@ -2319,16 +2340,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.qaSortMode(),
   );
   readonly qaWordCloudMetricLabel = computed(() => {
-    switch (this.qaWordCloudDisplayMetric()) {
-      case 'BEST':
-        return $localize`:@@sessionQa.wordCloudMetricBest:klare Zustimmung`;
-      case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Kontroverse`;
-      case 'TIME':
-        return $localize`:@@sessionQa.wordCloudMetricTime:Vorkommen in Fragen`;
-      default:
-        return $localize`:@@sessionQa.sortTop:Stimmensaldo`;
-    }
+    const metric = this.qaWordCloudDisplayMetric();
+    return metric === 'TIME'
+      ? $localize`:@@sessionQa.wordCloudMetricTime:Vorkommen in Fragen`
+      : this.qaSortModeLabel(metric);
   });
   readonly qaWordCloudTitle = computed(() =>
     this.qaWordCloudDisplayMode() === 'SEMANTIC'
@@ -2650,9 +2665,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintBest:Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt zuerst die Fragen mit der höchsten Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintControversial:Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.`;
       case 'TIME':
         return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       default:
@@ -2804,7 +2819,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.syncWordCloudOverlayTop();
       const dialogRef = this.dialog.open(QaWordCloudDialogComponent, {
         data: {
-          projected: () => this.qaWordCloudIsProjected() && this.qaWordCloudProjectsToPresenter(),
+          projected: () => this.qaWordCloudIsProjected(),
           ownsProjection: () => this.qaWordCloudProjectsToPresenter(),
           setProjected: (projected: boolean) => this.setQaWordCloudProjected(projected),
           presenterViewActionLabel: () => this.presenterViewActionLabel(),
@@ -2897,6 +2912,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         const fromResult = Array.isArray(result)
           ? result.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
           : [];
+        if (this.destroyRef.destroyed) return;
+        if (!returnToCompass && this.activeChannel() === 'qa') {
+          this.qaToolsOpen.set(true);
+        }
         this.restoreQaFocusAfterWordCloudClose(fromResult.length > 0 ? fromResult : selectedIds);
         if (returnToCompass) {
           void this.returnToModerationCompass();
@@ -2961,8 +2980,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     });
     if (projected) {
-      // Derselbe Einstieg wie das Beamer-Icon: vorhandenen Presenter-Tab aktivieren
-      // oder den abgesicherten Startdialog mit Pop-up-Hinweis öffnen.
       void this.openPresenterView(true);
     }
   }
@@ -3584,7 +3601,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'survey':
         return $localize`:@@sessionHost.moderationCardSurvey:Antwortverteilung`;
       case 'friction':
-        return $localize`:@@sessionHost.moderationCardFriction:Umstrittene Fragen`;
+        return $localize`:@@sessionHost.moderationCardFriction:Fragen mit geteilten Stimmen`;
       case 'topics':
         return $localize`:@@sessionHost.moderationCardTopics:Häufige Themen`;
       default:
@@ -4189,7 +4206,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const participants = this.participantsPayload()?.participants ?? [];
     const showNames = this.session()?.anonymousMode !== true;
     const hiddenParticipantIds = this.hiddenLobbyParticipantIds();
-    const participantMap = new Map<string, Array<{ id: string; nickname: string }>>();
+    const participantMap = new Map<
+      string,
+      Array<SessionParticipantsPayload['participants'][number]>
+    >();
     const teamMemberCounts = new Map<string, number>();
 
     for (const participant of participants) {
@@ -4199,7 +4219,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       teamMemberCounts.set(participant.teamId, (teamMemberCounts.get(participant.teamId) ?? 0) + 1);
       const names = participantMap.get(participant.teamId) ?? [];
       if (showNames && !hiddenParticipantIds.has(participant.id)) {
-        names.unshift({ id: participant.id, nickname: participant.nickname });
+        names.unshift(participant);
       }
       participantMap.set(participant.teamId, names);
     }
@@ -4255,6 +4275,37 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return this.getVoteCountForCurrentQuestion(q);
   }
 
+  ratingLiveAverage(q: HostCurrentQuestionDTO): number | null {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q) ? (progress.ratingAvg ?? null) : null;
+  }
+
+  ratingLiveMedian(q: HostCurrentQuestionDTO): number | null {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q)
+      ? (progress.ratingMedian ?? null)
+      : null;
+  }
+
+  ratingLiveStdDev(q: HostCurrentQuestionDTO): number | null {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q)
+      ? (progress.ratingStdDev ?? null)
+      : null;
+  }
+
+  ratingLiveCount(q: HostCurrentQuestionDTO, value: number): number {
+    const progress = this.hostVoteProgress();
+    return this.hostVoteProgressMatchesQuestion(progress, q)
+      ? (progress.ratingDistribution?.[String(value)] ?? 0)
+      : 0;
+  }
+
+  ratingLiveBarPercent(q: HostCurrentQuestionDTO, value: number): number {
+    const total = this.hostVoteCount(q);
+    return total > 0 ? Math.round((this.ratingLiveCount(q, value) / total) * 100) : 0;
+  }
+
   private hostVoteProgressMatchesQuestion(
     progress: HostVoteProgressDTO | null,
     q: HostCurrentQuestionDTO | null,
@@ -4303,6 +4354,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const votes = this.getVoteCountForCurrentQuestion(this.displayedCurrentQuestionForHost());
     return votes >= participants;
   });
+  readonly ratingStatisticsVisible = computed(
+    () => this.effectiveStatus() === 'RESULTS' || this.countdownEnded(),
+  );
   readonly timerAccommodationEnabled = computed(
     () => this.session()?.enableTimerAccommodation !== false,
   );
@@ -4362,6 +4416,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private previousAllConnectedParticipantsReady = false;
   private priorLobbyForAutoJoinMenu = false;
   private priorQrReadyForJoinMenu = false;
+  private initialPresenterReturn = this.presentationStarted();
   /** Verhindert geplantes Öffnen des Join-Menüs nach ngOnDestroy (z. B. Vitest). */
   private suppressJoinMenuAutopen = false;
   /** Beitritts-Dialog (QR): volles Viewport-Overlay, mittig (Smartphone-Scanner). */
@@ -4372,6 +4427,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    let presenterStartOfferFocusScheduled = false;
+    effect(() => {
+      if (!this.showPresenterStartOffer()) {
+        presenterStartOfferFocusScheduled = false;
+        return;
+      }
+      if (presenterStartOfferFocusScheduled) return;
+      presenterStartOfferFocusScheduled = true;
+      untracked(() => this.focusPresenterStartOfferAfterRender());
+    });
+    let historyPhaseWasAvailable = false;
+    effect(() => {
+      const historyPhaseAvailable = this.quizHistoryPhaseAvailable();
+      if (historyPhaseWasAvailable && !historyPhaseAvailable) {
+        untracked(() => {
+          this.quizHistoryRequestEpoch += 1;
+          this.quizHistory.set(null);
+        });
+      }
+      historyPhaseWasAvailable = historyPhaseAvailable;
+    });
+    let historyWasVisible = false;
+    effect(() => {
+      const historyVisible = this.earlierQuizResult() !== null;
+      const active = this.document.activeElement;
+      const historyControlFocused =
+        active instanceof Element && active.closest('[data-testid^="host-quiz-history-"]') !== null;
+      if (historyWasVisible && !historyVisible) {
+        untracked(() => {
+          this.quizHistory.set(null);
+          if (historyControlFocused) {
+            afterNextRender(() => this.focusHostQuizPhaseAction(), { injector: this.injector });
+          }
+        });
+      }
+      historyWasVisible = historyVisible;
+    });
     effect(() => {
       const dialogOpen = this.moderationCompassDialogOpen();
       const focused = this.moderationCompassTriggerFocused();
@@ -4417,6 +4509,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
     });
     effect(() => {
+      if (!this.showRatingProjectionNavigation()) {
+        return;
+      }
+      const page = this.session()?.presenterPage;
+      if (!page || page.count >= 2) {
+        return;
+      }
+      untracked(() => {
+        void this.syncProjectionPageCount(2);
+      });
+    });
+    effect(() => {
       if (this.activeChannel() !== 'qa' || !this.projectionNavigationIsQaQuestions()) {
         this.projectionControlsVisible.set(false);
         return;
@@ -4442,7 +4546,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         return;
       }
       untracked(() => {
-        void this.syncQaProjectionPageCount(count);
+        void this.syncProjectionPageCount(count);
       });
     });
     effect(() => {
@@ -4665,8 +4769,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       untracked(() => this.syncMusic());
     });
     effect(() => {
-      const track = this.activeMusicTrack();
-      void track;
+      this.activeMusicTrack();
+      this.musicReady();
+      this.musicMuted();
+      this.effectiveStatus();
       untracked(() => this.syncMusic());
     });
     effect(() => {
@@ -4722,16 +4828,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.quickFeedbackSeenVoteCount.set(result.totalVotes);
       }
     });
-    effect(() => {
+    effect((onCleanup) => {
       const status = this.effectiveStatus();
       if (status !== 'FINISHED' && status !== 'RESULTS') {
         return;
       }
-      // loadLeaderboard liest und setzt leaderboardLoading synchron.
-      // Ohne untracked startet jeder Ladewechsel den Effect sofort neu.
-      untracked(() => {
-        void this.loadLeaderboard();
+      let current = true;
+      onCleanup(() => {
+        current = false;
       });
+      untracked(() => void this.loadLeaderboard(() => current));
     });
     effect(() => {
       const finished = this.effectiveStatus() === 'FINISHED';
@@ -4747,8 +4853,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.hostDisplayMode.setHostSessionActive(this.isLiveHostSurface());
     });
     effect(() => {
-      this.musicMuted.set(this.themePreset.preset() === 'serious');
-      untracked(() => this.syncMusic());
+      const status = this.effectiveStatus();
+      if (this.hostAccessRevoked() || this.sessionUnavailable()) {
+        this.unloadWarning.sync(this.code, null);
+      } else if (status) {
+        this.unloadWarning.sync(
+          this.code,
+          status,
+          this.participantsPayload()?.participantCount ?? this.session()?.participantCount,
+        );
+      }
     });
     // Story 5.1: Sound-Effekte bei Status-Wechsel
     effect(() => {
@@ -4759,7 +4873,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const settings = this.session();
       if (!settings?.enableSoundEffects) return;
       this.sound.unlock();
-      if (status === 'ACTIVE' && prev !== 'ACTIVE') {
+      if (status === 'ACTIVE' && prev !== null && prev !== 'ACTIVE') {
         this.sound.stopAllSfx();
       } else if (status === 'FINISHED') {
         this.sound.stopAllSfx();
@@ -4778,8 +4892,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
       const enteredLobby = inLobby && !this.priorLobbyForAutoJoinMenu;
       const qrBecameReady = inLobby && hasQr && !this.priorQrReadyForJoinMenu;
+      const initialPresenterReturn = this.initialPresenterReturn;
+      if (status !== null && (!inLobby || hasQr)) {
+        this.initialPresenterReturn = false;
+      }
 
-      if (enteredLobby || qrBecameReady) {
+      if ((enteredLobby || qrBecameReady) && !initialPresenterReturn) {
         afterNextRender(
           () => {
             if (this.suppressJoinMenuAutopen || this.effectiveStatus() !== 'LOBBY') return;
@@ -5008,7 +5126,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async setWordCloudLemmaLocale(locale: string): Promise<void> {
-    if (this.wordCloudLocaleLocked() || (!isWordCloudLemmaLocale(locale) && locale !== 'it')) {
+    if (this.wordCloudLocaleLocked() || !isWordCloudLemmaLocale(locale)) {
       return;
     }
 
@@ -5097,8 +5215,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.freetextWordCloud?.revealFocusedOrSelectedResponses();
   }
 
-  private closeOpenWordCloudOverlays(): void {
-    if (this.freetextWordCloudMaximized()) {
+  private closeOpenWordCloudOverlays(keepProjection = false): void {
+    if (keepProjection) {
+      this.qaWordCloudProjectsToPresenter.set(false);
+      this.clearWordCloudOverlayTop();
+    } else if (this.freetextWordCloudMaximized()) {
       this.closeFreetextWordCloudMaximize();
     }
     this.qaWordCloudDialogRef?.close?.();
@@ -5548,6 +5669,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydownCloseJoinPopover(ev: KeyboardEvent): void {
     if (ev.key !== 'Escape') {
+      this.onDocumentArrowKeydown(ev);
       return;
     }
     if ((this.dialog.openDialogs?.length ?? 0) > 0) {
@@ -5572,6 +5694,104 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     void this.clearQaAuthorFilter();
   }
 
+  onDocumentArrowKeydown(event: KeyboardEvent): void {
+    const { key, target } = event;
+    const shortcutKey = key.length === 1 ? key.toUpperCase() : key;
+    if (
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'S'].includes(shortcutKey) ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      this.joinInfoPopoverOpen() ||
+      (this.dialog.openDialogs?.length ?? 0) > 0
+    ) {
+      return;
+    }
+
+    const root = this.hostElement.nativeElement;
+    if (shortcutKey === 'S') {
+      const action = root.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="S"]');
+      if (
+        !action ||
+        this.document.activeElement !== action ||
+        event.repeat ||
+        action.disabled ||
+        action.getAttribute('aria-disabled') === 'true' ||
+        action.closest('[inert]')
+      ) {
+        return;
+      }
+      event.preventDefault();
+      action.click();
+      return;
+    }
+    const historyPageArrow =
+      (shortcutKey === 'ArrowUp' || shortcutKey === 'ArrowDown') &&
+      this.earlierQuizResult() !== null;
+    if (target instanceof Element && target !== this.document.body) {
+      if (
+        target.closest(
+          'input, textarea, select, [contenteditable], [role="combobox"], [role="listbox"], ' +
+            '[role="menu"], [role="radiogroup"], [role="tablist"], [role="slider"], ' +
+            '[role="spinbutton"], [role="dialog"]',
+        )
+      ) {
+        return;
+      }
+      // Host-owned history controls may retain focus after ←. Their surrounding toolbar must not
+      // swallow ↑/↓, while unrelated toolbars keep their native arrow-key behavior.
+      if (!historyPageArrow && target.closest('[role="toolbar"]')) return;
+    }
+
+    if (historyPageArrow && this.historyPage().count > 1) {
+      event.preventDefault();
+      if (!event.repeat) {
+        this.changeHistoryPage(shortcutKey === 'ArrowUp' ? -1 : 1);
+      }
+      return;
+    }
+
+    const action = root.querySelector<HTMLButtonElement>(
+      `button[aria-keyshortcuts="${shortcutKey}"]`,
+    );
+    if (action) {
+      event.preventDefault();
+      if (
+        !event.repeat &&
+        !action.disabled &&
+        action.getAttribute('aria-disabled') !== 'true' &&
+        !action.closest('[inert]')
+      ) {
+        const active = this.document.activeElement;
+        if (!(active instanceof Element) || !root.contains(active)) {
+          action.focus({ preventScroll: true });
+        }
+        action.click();
+      }
+      return;
+    }
+
+    if (shortcutKey !== 'ArrowUp' && shortcutKey !== 'ArrowDown') {
+      return;
+    }
+    const scroller = [
+      root.querySelector<HTMLElement>('.session-host__history-projection'),
+      root.querySelector<HTMLElement>('.session-host__history-word-cloud'),
+      this.document.querySelector<HTMLElement>('.app-main'),
+      this.document.querySelector<HTMLElement>('.app-main__content'),
+      this.document.scrollingElement as HTMLElement | null,
+    ].find((candidate) => candidate && candidate.scrollHeight > candidate.clientHeight);
+    if (!scroller) return;
+    event.preventDefault();
+    scroller.scrollBy({
+      top: shortcutKey === 'ArrowUp' ? -48 : 48,
+      behavior: 'instant',
+    });
+  }
+
   /** Host der Beitritts-URL ohne Schema und ohne Pfad (Hostname, ggf. Port), für das Join-Menü. */
   joinOriginForMenu(): string {
     const url = this.joinUrl;
@@ -5589,47 +5809,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** QR-Code als Data-URL für joinUrl (Beamer-tauglich, Story 2.1b). */
   readonly qrDataUrl = signal<string>('');
 
-  private refreshDurableHostAccess(): Promise<void> {
-    if (this.hostAccessRefreshInFlight) return this.hostAccessRefreshInFlight;
-    if (this.isPairedHostClient()) return Promise.resolve();
-    const browserCapability = getHostBrowserCapability(this.code);
-    if (!browserCapability) return Promise.resolve();
-    this.hostAccessRefreshInFlight = trpc.session.issueHostAccessToken
-      .mutate({ code: this.code, browserCapability })
-      .then((issued) => {
-        setHostToken(this.code, issued.hostToken);
-        refreshTrpcWsBinding();
-        this.pushPresenterHostToken();
-      })
-      .catch(() => {
-        // Der bestehende Token bleibt bis zu seinem eigenen Ablauf nutzbar; Reconnects bleiben fail-closed.
-      })
-      .finally(() => {
-        this.hostAccessRefreshInFlight = null;
-      });
-    return this.hostAccessRefreshInFlight;
-  }
-
-  private pushPresenterHostToken(allowLookup = false): void {
-    const presenter = pushCurrentHostTokenToPresenter(
-      this.document.defaultView,
-      this.code,
-      this.presenterWindowHandle,
-      allowLookup,
-    );
-    if (presenter) {
-      this.presenterWindowHandle = presenter;
-      this.syncPresenterWindowOpenState();
-    }
+  private refreshDurableHostAccess(): Promise<void> | null {
+    return this.isPairedHostClient() ? null : renewBrowserHostAccess(this.code);
   }
 
   private startHostAccessRefresh(): void {
     if (this.hostAccessRefreshTimer || this.isPairedHostClient()) return;
-    this.pushPresenterHostToken(true);
     void this.refreshDurableHostAccess();
     this.hostAccessRefreshTimer = setInterval(
       () => void this.refreshDurableHostAccess(),
-      10 * 60 * 1000,
+      HOST_ACCESS_REFRESH_INTERVAL_MS,
     );
   }
 
@@ -5789,6 +5978,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     void this.qaTitleUpdateBanner;
     if (this.code.length !== 6) return;
+    this.musicReady.set(!this.sessionMusic.enter(this.code));
     this.syncPairedHostManualReconnectRegistration();
     if (this.isPairedHostClient()) {
       this.sound.setOutputEnabled(false);
@@ -5797,12 +5987,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
     this.startHostAccessRefresh();
-    // Preset "Seriös/Business" startet standardmäßig ohne Musik.
-    this.musicMuted.set(this.themePreset.preset() === 'serious');
     try {
       await this.reloadSessionInfo();
     } catch {
       this.session.set(null);
+      if (!this.destroyRef.destroyed) this.sessionMusic.stop(this.code);
       return;
     }
     await this.refreshSessionLifecycle();
@@ -5837,7 +6026,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     await this.refreshCurrentQuestionForHost();
     await this.refreshSessionLearningObjectives();
     await this.refreshHostVoteProgress();
-    this.syncMusic();
+    if (this.destroyRef.destroyed) return;
+    const question = this.displayedCurrentQuestionForHost();
+    if (
+      !this.musicReady() &&
+      this.countdownDeadlineMs === null &&
+      this.effectiveStatus() === 'ACTIVE' &&
+      !this.allHaveVoted() &&
+      question?.timer &&
+      (question.currentRound ?? 1) === 1 &&
+      this.sessionMusic.hasCountdown(
+        this.code,
+        sessionCountdownKey(question.order, 1, question.timer),
+      )
+    ) {
+      this.startCountdown(question.timer);
+    }
+    this.musicReady.set(true);
     this.startHostPolling();
     this.syncMusic();
 
@@ -5852,6 +6057,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     await this.openRequestedQuizPicker();
+    if (!this.destroyRef.destroyed) this.focusHostAfterNavigation();
   }
 
   private async openRequestedQuizPicker(): Promise<void> {
@@ -6562,9 +6768,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (this.activeChannel() !== 'quiz') {
       return false;
     }
-    if (this.wordCloudFrozen()) {
-      return false;
-    }
     return this.displayedCurrentQuestionForHost()?.type === 'FREETEXT';
   }
 
@@ -6768,11 +6971,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaSummaryRuntimeRequestGeneration += 1;
     this.qaSummaryPreviewRequestGeneration += 1;
     this.stopQaSummaryPolling();
-    this.sound.stopAll();
+    const keepProjection =
+      this.presenterNavigationId !== undefined &&
+      this.presenterNavigationId === this.router.currentNavigation()?.id;
+    if (this.sound.musicPreviewing()) {
+      this.sound.stopPreview();
+      const status = this.effectiveStatus();
+      if (keepProjection && status) {
+        this.sessionMusic.sync(this.code, status, this.activeMusicTrack());
+      }
+    }
+    if (!keepProjection) this.sound.stopAllSfx();
     if (this.isPairedHostClient() || this.hostAccessRevoked()) {
       this.sound.setOutputEnabled(true);
     }
-    this.closeOpenWordCloudOverlays();
+    this.closeOpenWordCloudOverlays(keepProjection);
     if (this.emojiPulseTimer) {
       clearTimeout(this.emojiPulseTimer);
       this.emojiPulseTimer = null;
@@ -6780,14 +6993,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.document.removeEventListener('click', this.unlockListener);
     this.document.removeEventListener('keydown', this.unlockListener);
     this.unbindExitAnchorClearance();
-  }
-
-  /** Warnt den Host, wenn er den Tab schließt oder die Seite neu lädt. */
-  @HostListener('window:beforeunload', ['$event'])
-  onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (!this.shouldWarnOnBeforeUnload()) return;
-    event.preventDefault();
-    event.returnValue = '';
   }
 
   @HostListener('document:fullscreenchange')
@@ -6831,65 +7036,141 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async openPresenterView(allowCompactViewport = false): Promise<void> {
+    await this.navigateToPresenter({ allowCompactViewport, confirmStart: true });
+  }
+
+  async openPresenterViewFromStartOffer(): Promise<void> {
+    await this.navigateToPresenter({ allowCompactViewport: false, confirmStart: false });
+  }
+
+  private async navigateToPresenter(options: {
+    allowCompactViewport: boolean;
+    confirmStart: boolean;
+  }): Promise<void> {
+    const { allowCompactViewport, confirmStart } = options;
     if (
+      !this.code ||
       (!allowCompactViewport && !this.showPresenterViewButton()) ||
-      this.presenterWindowOpenInFlight
+      this.presenterNavigationPending()
     ) {
       return;
     }
-    if (this.syncPresenterWindowOpenState()) {
-      await this.launchPresenterViewWindow();
-      return;
-    }
-    const decision = await firstValueFrom(
-      this.dialog
-        .open(PresentationStartDialogComponent, {
-          data: {
-            code: this.code.toUpperCase(),
-            phoneAlreadyConnected: this.pairedHostConnected(),
-            startPresenterView: () => this.launchPresenterViewWindow(),
-          },
-          autoFocus: 'first-tabbable',
-          restoreFocus: true,
-          panelClass: 'presentation-start-dialog-panel',
-          backdropClass: 'presentation-start-dialog-backdrop',
-        })
-        .afterClosed(),
-    );
-    void this.refreshPairedHostStatus();
-    if (decision === 'blocked') {
-      this.snackBar.open(
-        $localize`:@@sessionHost.presenterViewPopupBlocked:Das Präsentationsfenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.`,
-        '',
-        { duration: 6000 },
-      );
+    this.presenterNavigationPending.set(true);
+    let requestedFullscreen = false;
+    let fullscreenRequestSettled = false;
+    let openedPresenter = false;
+    let restoreWindowed = false;
+    const requestFullscreen = (): void => {
+      if (requestedFullscreen || getDocumentFullscreenElement(this.document)) return;
+      requestedFullscreen = true;
+      tryRequestDocumentFullscreen(this.document, () => {
+        fullscreenRequestSettled = true;
+        if (restoreWindowed) tryExitDocumentFullscreen(this.document);
+      });
+    };
+    try {
+      if (!this.presentationStarted() && confirmStart) {
+        const decision = await firstValueFrom(
+          this.dialog
+            .open(PresentationStartDialogComponent, {
+              data: {
+                code: this.code.toUpperCase(),
+                phoneAlreadyConnected: this.pairedHostConnected(),
+                requestFullscreen,
+              },
+              autoFocus: '.presentation-start-dialog__primary',
+              restoreFocus: true,
+              panelClass: 'presentation-start-dialog-panel',
+              backdropClass: 'presentation-start-dialog-backdrop',
+            })
+            .afterClosed(),
+        );
+        if (decision !== 'start') return;
+      } else if (!allowCompactViewport) {
+        // Request fullscreen while the explicit presentation action still has user activation.
+        requestFullscreen();
+      }
+
+      await this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
+      if (this.destroyRef.destroyed) return;
+      // Bereits ausgeblendete Sessions aus älteren Clients beim Öffnen wieder anzeigen.
+      if (this.session()?.presenterSurface === 'ended') {
+        this.presenterSurfacePending.set(true);
+        let resumed = false;
+        try {
+          await this.enqueuePresenterProjectionSync(async () => {
+            resumed = await this.mutatePresenterSurfaceNow('default');
+          });
+        } finally {
+          this.presenterSurfacePending.set(false);
+        }
+        if (!resumed) {
+          this.snackBar.open(
+            $localize`:@@sessionHost.presentationViewResumeError:Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
+            '',
+            { duration: 6000 },
+          );
+          return;
+        }
+      }
+
+      if (this.destroyRef.destroyed) return;
+      const target = sessionPresentationPath(this.code, 'present');
+      const navigated = await this.router.navigateByUrl(target);
+      openedPresenter = navigated && this.router.url === target;
+      if (!navigated) {
+        this.showPresenterNavigationError();
+      }
+    } catch {
+      this.showPresenterNavigationError();
+    } finally {
+      restoreWindowed = requestedFullscreen && !openedPresenter;
+      if (restoreWindowed && fullscreenRequestSettled) tryExitDocumentFullscreen(this.document);
+      this.presenterNavigationPending.set(false);
+      if (!this.destroyRef.destroyed) void this.refreshPairedHostStatus();
     }
   }
 
-  async endPresentationView(): Promise<void> {
+  dismissPresenterStartOffer(): void {
+    this.presentationState.dismissStartOffer(this.code);
+    this.presenterStartOfferDismissed.set(true);
+    this.presenterStartOfferRequested.set(false);
+    afterNextRender(() => this.focusHostQuizPhaseAction(), { injector: this.injector });
+  }
+
+  private offerPresenterAfterQuizStart(): boolean {
     if (
-      !this.code ||
-      this.presenterSurfacePending() ||
-      this.session()?.presenterSurface === 'ended'
+      this.presentationStarted() ||
+      this.presenterStartOfferDismissed() ||
+      !this.showPresenterViewButton()
     ) {
-      return;
+      return false;
     }
-    this.presenterSurfacePending.set(true);
-    let ended = false;
-    try {
-      await this.enqueuePresenterProjectionSync(async () => {
-        ended = await this.mutatePresenterSurfaceNow('ended');
-      });
-      this.snackBar.open(
-        ended
-          ? $localize`:@@sessionHost.presentationViewEnded:Live-Projektion ausgeblendet. Das Quiz läuft weiter.`
-          : $localize`:@@sessionHost.presentationViewEndError:Die Live-Projektion konnte nicht ausgeblendet werden. Bitte erneut versuchen.`,
-        '',
-        { duration: ended ? 4000 : 6000 },
+    this.presenterStartOfferRequested.set(true);
+    return this.showPresenterStartOffer();
+  }
+
+  private focusPresenterStartOfferAfterRender(): void {
+    queueMicrotask(() => {
+      if (this.destroyRef.destroyed || !this.showPresenterStartOffer()) return;
+      const root = this.hostElement.nativeElement;
+      const offer = root.querySelector<HTMLElement>('[data-testid="host-presenter-start-offer"]');
+      const cta = root.querySelector<HTMLButtonElement>(
+        '[data-testid="host-presenter-start-offer-open"]',
       );
-    } finally {
-      this.presenterSurfacePending.set(false);
-    }
+      if (!offer?.isConnected || !cta?.isConnected) return;
+      scrollIntoAppMain(offer, { block: 'nearest' });
+      cta.focus({ preventScroll: true });
+    });
+  }
+
+  private showPresenterNavigationError(): void {
+    if (this.destroyRef.destroyed) return;
+    this.snackBar.open(
+      $localize`:@@sessionHost.presenterViewNavigationError:Die Präsentationsansicht konnte nicht geöffnet werden. Bitte versuche es erneut.`,
+      '',
+      { duration: 6000 },
+    );
   }
 
   readonly projectionPagePending = signal(false);
@@ -6897,14 +7178,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly projectionPageError = signal('');
   readonly projectionPagesAriaLabel = $localize`:@@sessionHost.projectionPages:Projektionsseiten`;
   readonly projectionQaQuestionsAriaLabel = $localize`:@@sessionHost.projectionQaQuestions:Projektionsfragen`;
+  readonly showRatingProjectionNavigation = computed(
+    () =>
+      this.activeChannel() === 'quiz' &&
+      this.effectiveStatus() === 'ACTIVE' &&
+      this.earlierQuizResult() === null &&
+      this.displayedCurrentQuestionForHost()?.type === 'RATING' &&
+      this.session()?.presenterPage !== undefined,
+  );
+  readonly ratingProjectionPageIndex = computed(() =>
+    this.showRatingProjectionNavigation()
+      ? (this.session()?.presenterPage?.index ?? 0) >= this.ratingDistributionPageStart()
+        ? 1
+        : 0
+      : 0,
+  );
+  private readonly ratingDistributionPageStart = computed(() => {
+    const page = this.session()?.presenterPage;
+    return Math.max(1, Math.min((page?.count ?? 2) - 1, page?.sectionStarts?.[1] ?? 1));
+  });
   private static readonly QA_PROJECTION_QUEUE_VISIBLE = 2;
   /** Entspricht `qa.presentProjection`-Cap (Forum-Seitenmaximum). */
   private static readonly QA_PROJECTION_MAX_ACTIVE =
     QA_LIST_PAGE_SIZE_OPTIONS[QA_LIST_PAGE_SIZE_OPTIONS.length - 1]!;
-  private qaProjectionPageSyncInFlight = false;
+  private readonly projectionPageCountSyncInFlight = signal(false);
+  private projectionPageCountSyncAttempt: { page: PresenterPage; count: number } | null = null;
   /**
    * Q&A-Fragenmodus für Navigator/Hero: solange der Q&A-Kanal bevorzugt ist
-   * (auch ohne laufende Projektion / nach »Live-Projektion ausblenden«).
+   * (auch ohne laufende Projektion).
    * Die sichtbare Navigator-UI bleibt auf den Q&A-Kanal-Tab beschränkt
    * (`showProjectionPageNavigation`).
    */
@@ -7086,7 +7387,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return (
       this.projectionPageDisplayCount() > 1 ||
       this.projectionControlsVisible() ||
-      this.presenterWindowOpen() ||
+      this.presentationStarted() ||
       session?.presenterSurface === 'ended'
     );
   });
@@ -7162,7 +7463,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     try {
       const fullCount = Math.max(page.count, this.qaProjectionFullStagePageCount(), stageIndex + 1);
       if (page.count < fullCount) {
-        await this.syncQaProjectionPageCount(fullCount);
+        await this.syncProjectionPageCount(fullCount);
       }
       const current = this.session()?.presenterPage;
       if (!current) {
@@ -7306,12 +7607,56 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async syncQaProjectionPageCount(count: number): Promise<void> {
+  async setRatingProjectionPage(index: 0 | 1): Promise<void> {
     const page = this.session()?.presenterPage;
-    if (!page || !this.code || page.count === count || this.qaProjectionPageSyncInFlight) {
+    const targetIndex = index === 0 ? 0 : this.ratingDistributionPageStart();
+    if (
+      !page ||
+      !this.showRatingProjectionNavigation() ||
+      page.index === targetIndex ||
+      this.projectionPagePending()
+    ) {
       return;
     }
-    this.qaProjectionPageSyncInFlight = true;
+    this.projectionPagePending.set(true);
+    this.projectionPageError.set('');
+    try {
+      const result = await trpc.session.setPresenterSurface.mutate(
+        {
+          code: this.code,
+          page: { context: page.context, index: targetIndex, count: page.count },
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.session.update((session) =>
+        session?.presenterPage?.context === page.context
+          ? { ...session, presenterPage: result.presenterPage }
+          : session,
+      );
+      this.projectionControlsVisible.set(true);
+    } catch {
+      this.projectionPageError.set(
+        $localize`:@@sessionHost.projectionPageError:Seite konnte nicht gewechselt werden. Bitte erneut versuchen.`,
+      );
+    } finally {
+      this.projectionPagePending.set(false);
+    }
+  }
+
+  private async syncProjectionPageCount(count: number): Promise<void> {
+    const page = this.session()?.presenterPage;
+    if (
+      !page ||
+      !this.code ||
+      page.count === count ||
+      this.projectionPageCountSyncInFlight() ||
+      (this.projectionPageCountSyncAttempt?.page === page &&
+        this.projectionPageCountSyncAttempt.count === count)
+    ) {
+      return;
+    }
+    this.projectionPageCountSyncAttempt = { page, count };
+    this.projectionPageCountSyncInFlight.set(true);
     try {
       const result = await trpc.session.setPresenterSurface.mutate(
         {
@@ -7331,66 +7676,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     } catch {
       // Presenter-Poll und erneuter Host-Sync holen die Seitenzahl nach.
     } finally {
-      this.qaProjectionPageSyncInFlight = false;
+      this.projectionPageCountSyncInFlight.set(false);
     }
-  }
-
-  private async launchPresenterViewWindow(): Promise<Window | null> {
-    if (this.presenterWindowOpenInFlight) {
-      return null;
-    }
-    this.presenterWindowOpenInFlight = true;
-    try {
-      // Sortierung vor dem Öffnen publizieren, damit presentProjection denselben Modus nutzt.
-      await this.publishQaPresenterSortMode(this.qaSortMode(), { force: true });
-      const opened = await openPresenterViewWindow(
-        this.document.defaultView,
-        this.code,
-        this.sessionTokenStorage,
-      );
-      this.presenterWindowHandle = opened;
-      this.syncPresenterWindowOpenState();
-      if (opened && this.session()?.presenterSurface === 'ended') {
-        this.presenterSurfacePending.set(true);
-        let resumed = false;
-        try {
-          await this.enqueuePresenterProjectionSync(async () => {
-            resumed = await this.mutatePresenterSurfaceNow('default');
-          });
-        } finally {
-          this.presenterSurfacePending.set(false);
-        }
-        if (!resumed) {
-          this.snackBar.open(
-            $localize`:@@sessionHost.presentationViewResumeError:Die Live-Projektion konnte nicht fortgesetzt werden. Bitte erneut versuchen.`,
-            '',
-            { duration: 6000 },
-          );
-        }
-      }
-      return opened;
-    } finally {
-      this.presenterWindowOpenInFlight = false;
-    }
-  }
-
-  @HostListener('window:focus')
-  onHostWindowFocus(): void {
-    this.syncPresenterWindowOpenState();
-  }
-
-  private syncPresenterWindowOpenState(): boolean {
-    let open = false;
-    try {
-      open = this.presenterWindowHandle !== null && !this.presenterWindowHandle.closed;
-    } catch {
-      // Cross-origin/gesperrter Handle gilt als nicht mehr kontrollierbar.
-    }
-    this.presenterWindowOpen.set(open);
-    if (!open) {
-      this.presenterWindowHandle = null;
-    }
-    return open;
   }
 
   private async refreshPairedHostStatus(): Promise<void> {
@@ -7657,26 +7944,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return error instanceof Error && error.message.includes('Session ist bereits beendet.');
   }
 
-  private shouldWarnOnBeforeUnload(): boolean {
-    if (this.hostAccessRevoked()) {
-      return false;
-    }
-    if (!this.unloadWarningEnabled || !this.isSessionActive()) {
-      return false;
-    }
-
-    if (this.effectiveStatus() !== 'LOBBY') {
-      return true;
-    }
-
-    return (this.participantsPayload()?.participantCount ?? 0) > 0;
-  }
-
-  private isLocalDevSession(): boolean {
-    const hostname = this.document.location?.hostname ?? '';
-    return isDevMode() && (hostname === 'localhost' || hostname === '127.0.0.1');
-  }
-
   private clearSessionTokens(options?: { keepHostToken?: boolean }): void {
     this.qaSummaryPreviewRequestGeneration += 1;
     if (!this.code) {
@@ -7861,7 +8128,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const renewal = this.refreshDurableHostAccess();
     // Ohne Capability ist die Erneuerung ein leeres Promise. Darauf zu warten
     // würde den Export um einen Tick verzögern, obwohl sich der Zugang nicht ändert.
-    if (this.hostAccessRefreshInFlight) {
+    if (renewal) {
       await renewal;
     }
     try {
@@ -7903,7 +8170,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private openHostSteeringCalloutForExpiredHostAccess(): void {
     this.hostSteeringCallout.set({
       title: $localize`:@@sessionHost.steeringCalloutExportAccessTitle:Host-Zugang abgelaufen`,
-      body: $localize`:@@sessionHost.steeringCalloutExportAccessBody:PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan ansehen«.`,
+      body: $localize`:@@sessionHost.steeringCalloutExportAccessBody:PDF und CSV brauchen hier einen gültigen Host-Zugang. Den Nachbesprechungsplan holst du in der Quizsammlung über »Nachbesprechungsplan herunterladen«.`,
       errorRequestId: 'host.export:access-expired',
       suggestedArea: 'PDF_OR_EXPORT',
     });
@@ -8154,7 +8421,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
   }
 
-  async canDeactivate(): Promise<boolean> {
+  async canDeactivate(presenterCode?: string | null): Promise<boolean> {
+    if (
+      presenterCode &&
+      normalizeHostSessionCode(presenterCode) === normalizeHostSessionCode(this.code)
+    ) {
+      this.presenterNavigationId = this.router.currentNavigation()?.id;
+      this.presentationState.rememberHostView(this.code, {
+        channel: this.activeChannel(),
+      });
+      return true;
+    }
     if (this.qaCreateAbortInFlight || this.hostAccessRevoked()) {
       return true;
     }
@@ -8366,6 +8643,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private startCountdown(timerSeconds: number | null | undefined, activeAt?: string): void {
+    if (this.destroyRef.destroyed) return;
     if (!timerSeconds || timerSeconds <= 0) {
       this.clearCountdownClock();
       this.countdownSeconds.set(null);
@@ -8373,8 +8651,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     const question = this.displayedCurrentQuestionForHost();
-    const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
-    const nextDeadline = stableCountdownDeadlineMs({
+    const nextKey = sessionCountdownKey(
+      question?.order ?? this.statusUpdate()?.currentQuestion ?? this.session()?.currentQuestion,
+      question?.currentRound ?? this.statusUpdate()?.currentRound ?? this.session()?.currentRound,
+      timerSeconds,
+    );
+    const nextDeadline = this.sessionMusic.resolveCountdownDeadline(this.code, {
       timerSeconds,
       activeAt,
       currentDeadlineMs: this.countdownDeadlineMs,
@@ -8383,36 +8665,34 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     });
     const remainingNow = remainingCountdownSeconds(nextDeadline);
     const sameDeadline =
-      this.countdownDeadlineMs !== null && Math.abs(this.countdownDeadlineMs - nextDeadline) < 750;
+      this.countdownKey === nextKey &&
+      this.countdownDeadlineMs !== null &&
+      Math.abs(this.countdownDeadlineMs - nextDeadline) < 750;
 
-    if (sameDeadline && (this.countdownEnded() || remainingNow <= 0)) {
-      if (!this.countdownEnded()) {
+    const soundEffectsEnabled = (): boolean =>
+      this.session()?.enableSoundEffects === true && !this.isPairedHostClient();
+    if (sameDeadline) {
+      this.countdownDeadlineMs = nextDeadline;
+      if (this.countdownEnded()) return;
+      if (remainingNow <= 0) {
+        this.sessionMusic.tickCountdown(
+          this.code,
+          nextDeadline,
+          remainingNow,
+          soundEffectsEnabled(),
+        );
         this.finishRoomCountdown();
+        return;
       }
-      return;
-    }
-    if (sameDeadline && this.countdownTimer !== null) {
-      return;
+      if (this.countdownTimer !== null) return;
     }
 
-    const keepSfxState = sameDeadline;
     this.stopCountdown();
     this.countdownKey = nextKey;
     this.countdownDeadlineMs = nextDeadline;
-    if (!keepSfxState) {
-      // Reload/Reconnect in laufender Finger-/Endphase: nicht erneut anpfeifen.
-      // Frisch gestartete Kurz-Timer (Rest ≈ timerSeconds) dürfen Gong und Fade noch auslösen.
-      const restoredInFlight = remainingNow < timerSeconds - 1;
+    if (!sameDeadline) {
       this.countdownEnded.set(false);
       this.countdownSfxPhase.set(remainingNow <= 7 && remainingNow > 0);
-      this.countdownFingerSoundPlayed = remainingNow <= 7 && restoredInFlight;
-      this.countdownFinalSoundPlayed = remainingNow <= 0;
-      this.countdownMusicFadeStarted = remainingNow <= 10 && restoredInFlight;
-    }
-
-    const sfxEnabled = () => !!this.session()?.enableSoundEffects && this.isPlayfulPreset();
-    if (sfxEnabled()) {
-      void this.sound.preload(['countdownEnd', 'sessionEnd']);
     }
 
     const tick = (): void => {
@@ -8423,31 +8703,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
 
-      // Ab 10s: Musik sanft ausblenden bis zum Gong (7s). Track bleibt aktiv, damit syncMusic nicht neu startet.
-      if (remaining <= 10 && remaining > 7 && !this.countdownMusicFadeStarted) {
-        this.countdownMusicFadeStarted = true;
-        this.sound.fadeOutMusic(Math.max(0.5, remaining - 7));
-      }
+      this.sessionMusic.tickCountdown(this.code, deadline, remaining, soundEffectsEnabled());
       if (remaining <= 7 && !this.countdownSfxPhase()) {
-        this.countdownMusicFadeStarted = true;
         this.countdownSfxPhase.set(true);
       }
 
-      const sfxCountdown = sfxEnabled();
-      // Gong läutet die Fingerphase ein (ab 7s); am Ablauf einmaliger Pfiff statt Gong.
-      if (sfxCountdown && remaining <= 7 && remaining > 0 && !this.countdownFingerSoundPlayed) {
-        void this.sound.play('countdownEnd', { gain: 0.32, fadeOutSeconds: 0.55 });
-        this.countdownFingerSoundPlayed = true;
-      }
-      if (sfxCountdown && remaining === 1 && !this.countdownFinalSoundPlayed) {
-        void this.sound.play('sessionEnd', { gain: 0.4 });
-        this.countdownFinalSoundPlayed = true;
-      }
       if (remaining <= 0) {
-        if (sfxCountdown && !this.countdownFinalSoundPlayed) {
-          void this.sound.play('sessionEnd', { gain: 0.4 });
-          this.countdownFinalSoundPlayed = true;
-        }
         this.finishRoomCountdown();
       }
     };
@@ -8506,25 +8767,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }, 5000);
   }
 
-  /** Synchronisiert Host-Hintergrundmusik phasenabhängig. */
+  /** Übergibt den aktuellen Host-Stand an die Wiedergabe der Session. */
   private syncMusic(): void {
-    if (this.isPairedHostClient() || this.hostAccessRevoked() || !this.sound.outputEnabled()) {
-      this.sound.stopMusic();
+    if (this.destroyRef.destroyed) return;
+    const status = this.effectiveStatus();
+    if (this.isPairedHostClient() || this.hostAccessRevoked() || this.sessionUnavailable()) {
+      this.sessionMusic.stop(this.code);
       return;
     }
-    if (this.sound.musicPreviewing()) return;
-    const session = this.session();
-    const track = this.activeMusicTrack();
-    if (!session || this.effectiveStatus() === 'FINISHED' || !track) {
-      this.sound.stopMusic();
-      return;
+    if (status && (this.musicReady() || this.currentMusicPhase() === null)) {
+      this.sessionMusic.sync(this.code, status, this.activeMusicTrack());
     }
-    void this.sound.playMusic(track);
   }
 
   /** Menü zu: Vorschau abbrechen, normale Musik wiederherstellen. */
   onHostMusicMenuClosed(): void {
-    this.sound.stopPreview();
+    if (this.sound.musicPreviewing()) this.sound.stopPreview();
     this.syncMusic();
   }
 
@@ -8592,7 +8850,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     nextMuted.delete(phase);
     this.phaseTracks.set(nextTracks);
     this.mutedMusicPhases.set(nextMuted);
-    persistPhaseMusicSettings(nextTracks, nextMuted);
+    this.sessionMusic.savePhaseSettings();
     if (this.activeChannel() === 'quickFeedback') {
       this.quickFeedbackMusicEnabled.set(true);
     }
@@ -8613,7 +8871,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       nextMuted.add(phase);
     }
     this.mutedMusicPhases.set(nextMuted);
-    persistPhaseMusicSettings(this.phaseTracks(), nextMuted);
+    this.sessionMusic.savePhaseSettings();
     if (this.activeChannel() === 'quickFeedback' && !nextMuted.has(phase)) {
       this.quickFeedbackMusicEnabled.set(true);
     }
@@ -8755,12 +9013,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   /** Kindergarten-Preset: großes Tier-Emoji vor dem gespeicherten Nickname (Lobby). */
-  lobbyKindergartenEmoji(nickname: string): string | null {
+  readonly animalIconUrl = animalIconUrl;
+
+  readonly scoreboardNickname = scoreboardNickname;
+
+  lobbyKindergartenEmoji(nickname: string, animalId?: number): string | null {
     const s = this.session();
     if (!s || s.nicknameTheme !== 'KINDERGARTEN' || s.anonymousMode === true) {
       return null;
     }
-    return findKindergartenNicknameEmoji(nickname);
+    return findKindergartenNicknameEmoji(nickname, undefined, animalId);
   }
 
   foyerArrivalChipsForTeam(teamId: string): readonly FoyerEntranceChip[] {
@@ -9038,7 +9300,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): FoyerEntranceChip {
     const session = this.session();
     const sequence = this.foyerArrivalSequence++;
-    const kindergartenEmoji = this.lobbyKindergartenEmoji(participant.nickname);
+    const kindergartenEmoji = this.lobbyKindergartenEmoji(
+      participant.nickname,
+      participant.kindergartenAnimalId,
+    );
     const label = buildFoyerChipLabel({
       nickname: participant.nickname,
       anonymousMode: session?.anonymousMode === true,
@@ -9065,6 +9330,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         participant.teamId !== null && participant.teamId !== undefined,
       ),
       ...label,
+      ...(kindergartenEmoji ? { emojiImageUrl: animalIconUrl(kindergartenEmoji) } : {}),
     } satisfies FoyerEntranceChip;
   }
 
@@ -9646,6 +9912,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         (right.blockingTimerAccommodationCount ?? 0) &&
       (left.correctVoterCount ?? null) === (right.correctVoterCount ?? null) &&
       (left.incorrectVoterCount ?? null) === (right.incorrectVoterCount ?? null) &&
+      (left.ratingAvg ?? null) === (right.ratingAvg ?? null) &&
+      (left.ratingMedian ?? null) === (right.ratingMedian ?? null) &&
+      (left.ratingStdDev ?? null) === (right.ratingStdDev ?? null) &&
+      sameNumberRecord(left.ratingDistribution, right.ratingDistribution) &&
       JSON.stringify(left.peerInstructionSuggestion ?? null) ===
         JSON.stringify(right.peerInstructionSuggestion ?? null)
     );
@@ -9784,6 +10054,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** #n nur wenn die Team-Wertung Punkte hat; sonst Gedankenstrich (kein fiktiver Rang bei 0). */
   teamLeaderboardRankDisplay(rank: number): string {
     return this.teamScoreboardHasPoints() ? `#${rank}` : '\u2014';
+  }
+
+  teamMedianLabel(score: number): string {
+    return $localize`:@@sessionHost.teamMedianScore:Median ${this.formatDecimal(score)}:score: Pkt.`;
   }
 
   private async refreshLobbyTeams(): Promise<void> {
@@ -9962,6 +10236,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       participants: participants.map((participant) => ({
         id: participant.id,
         nickname: participant.nickname,
+        kindergartenAnimalId: participant.kindergartenAnimalId,
         teamId: participant.teamId ?? null,
         teamName: participant.teamName ?? null,
       })),
@@ -10018,9 +10293,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   readingReadyReleaseHint(connectedCount: number, totalParticipantCount: number): string {
     if (connectedCount >= totalParticipantCount) {
-      return $localize`:@@sessionHost.readingReadyReleaseHintAll:Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.`;
+      return $localize`:@@sessionHost.readingReadyReleaseHintAll:Alle Teilnehmenden sind bereit. Du kannst die Antwortphase starten.`;
     }
-    return $localize`:@@sessionHost.readingReadyReleaseHintConnected:Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.`;
+    return $localize`:@@sessionHost.readingReadyReleaseHintConnected:Alle verbundenen Teilnehmenden sind bereit. Du kannst die Antwortphase starten.`;
   }
 
   effectiveCurrentQuestion(): number | null {
@@ -10047,9 +10322,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
    * zurückblättern kann. Unabhängig von Musterlösung; ohne Frage-DTO unsichtbar.
    */
   canShowPreviousResultAnchor(): boolean {
-    if (this.steppedBackToPreviousResult()) return false;
+    const history = this.earlierQuizResult();
+    if (history) return history.hasPrevious;
     const q = this.displayedCurrentQuestionForHost();
     if (!q) return false;
+    if (typeof q.hasEarlierPresenterResult === 'boolean') {
+      return q.hasEarlierPresenterResult;
+    }
+    if (this.steppedBackToPreviousResult()) return false;
     if (typeof q.canShowPreviousResult === 'boolean') {
       return q.canShowPreviousResult;
     }
@@ -10892,16 +11172,28 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     };
   }
 
-  showQuickFeedbackAnchorAction(): boolean {
-    return this.activeChannel() === 'quickFeedback' && this.quickFeedbackResult() !== null;
+  onEmbeddedQuickFeedbackResult(result: QuickFeedbackResult | null): void {
+    this.applyQuickFeedbackResultSnapshot(result);
   }
 
-  quickFeedbackAnchorActionLabel(): string {
-    return this.quickFeedbackResult()?.locked ? $localize`Fortsetzen` : $localize`Stopp`;
-  }
-
-  quickFeedbackAnchorActionIcon(): string {
-    return this.quickFeedbackResult()?.locked ? 'play_arrow' : 'stop';
+  private applyQuickFeedbackResultSnapshot(result: QuickFeedbackResult | null): void {
+    if (!result) {
+      this.quickFeedbackAcceptedLock.set(null);
+      this.quickFeedbackResult.set(null);
+      return;
+    }
+    const snapshotLockVersion = result.lockVersion ?? 0;
+    const accepted = this.quickFeedbackAcceptedLock();
+    if (accepted && snapshotLockVersion <= accepted.lockVersion) {
+      this.quickFeedbackResult.set({
+        ...result,
+        locked: accepted.locked,
+        lockVersion: accepted.lockVersion,
+      });
+      return;
+    }
+    this.quickFeedbackAcceptedLock.set({ locked: result.locked, lockVersion: snapshotLockVersion });
+    this.quickFeedbackResult.set({ ...result, lockVersion: snapshotLockVersion });
   }
 
   async toggleQuickFeedbackRoundLock(): Promise<void> {
@@ -10920,8 +11212,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const next = await trpc.quickFeedback.toggleLock.mutate({
         sessionCode: this.code.toUpperCase(),
       });
+      const { lockVersion } = next;
+      this.quickFeedbackAcceptedLock.set({ locked: next.locked, lockVersion });
       this.quickFeedbackResult.update((current) =>
-        current ? { ...current, locked: next.locked } : current,
+        current ? { ...current, locked: next.locked, lockVersion } : current,
       );
       this.syncMusic();
     } catch {
@@ -11067,12 +11361,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  qaAuthorKindergartenBadgeLabel(question: QaQuestionDTO): string | null {
+  qaAuthorKindergartenBadge(question: QaQuestionDTO) {
     const nickname = this.qaQuestionAuthorNickname(question);
     if (!nickname || this.session()?.nicknameTheme !== 'KINDERGARTEN') {
       return null;
     }
-    return findKindergartenNicknameBadgeLabel(nickname);
+    return findKindergartenNicknameBadge(nickname, undefined, question.authorKindergartenAnimalId);
   }
 
   qaAuthorKindergartenAriaLabel(question: QaQuestionDTO): string {
@@ -11735,12 +12029,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudFrozen.set(true);
   }
 
-  formatQaPercent(value: number | undefined): string {
-    if (!Number.isFinite(value)) {
-      return '0 %';
-    }
-
-    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  formatQaSupport(question: QaQuestionDTO): string | null {
+    return formatQaSupportLabel(question, this.localeId);
   }
 
   formatCount(value: number | null | undefined): string {
@@ -11758,7 +12048,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       case 'BEST':
         return $localize`:@@sessionQa.sortBest:Klare Zustimmung`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Kontroverse`;
+        return $localize`:@@sessionQa.sortControversial:Geteilte Stimmen`;
       case 'TIME':
         return $localize`:@@sessionQa.sortTime:Zeit`;
     }
@@ -11840,6 +12130,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
     this.dialog.open(QaSortHelpDialogComponent, {
       panelClass: 'qa-sort-help-dialog-panel',
+      role: 'dialog',
       autoFocus: 'dialog',
       width: 'min(40rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
@@ -12606,13 +12897,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
             }
           : session,
       );
-      if (surface === 'ended') {
-        this.projectionPageError.set('');
-        // Q&A-Navigator und Hero-Rahmen bleiben als Host-Bearbeitungshilfe aktiv.
-        if (!this.projectionNavigationIsQaQuestions()) {
-          this.projectionControlsVisible.set(false);
-        }
-      }
       return true;
     } catch {
       // Die lokale Wortwolkenansicht bleibt bedienbar, auch wenn die Projektion nicht synchronisiert.
@@ -12838,8 +13122,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           ...(options?.takeover ? { takeover: true } : {}),
         });
         this.publishedQaPresenterStageViewKey = stageViewKey;
-        // Refresh nicht in der Sync-Queue awaiten: sonst blockiert z. B. endPresentationView,
-        // wenn presentProjection noch hängt. Self-Heal nutzt skipStageRefresh gegen Loops.
+        // Ein laufender presentProjection-Abruf darf weitere Änderungen an der Projektion
+        // nicht blockieren. Self-Heal nutzt skipStageRefresh gegen Loops.
         if (!options?.skipStageRefresh && this.projectionNavigationIsQaQuestions()) {
           void this.refreshQaPresenterStageQuestions();
         }
@@ -13213,9 +13497,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           this.startCountdown(refreshedTimer ?? result.timer, result.activeAt);
         }
       }
+      const presenterOffered = startingQuizFromLobby && this.offerPresenterAfterQuizStart();
       if (result.status === 'FINISHED') {
         this.scrollHostFinishedIntoView();
-      } else {
+      } else if (!presenterOffered) {
         this.scrollHostTargetIntoView(this.hostQuestionCardRef);
       }
     } catch {
@@ -13262,7 +13547,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       } satisfies ConfirmLeaveDialogData,
       width: 'min(26rem, calc(100vw - 1.5rem))',
       maxWidth: '100vw',
-      autoFocus: 'dialog',
+      autoFocus: '.confirm-leave__confirm',
       restoreFocus: false,
     });
     if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
@@ -13362,6 +13647,137 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     );
   }
 
+  async stepQuizHistory(direction: 'previous' | 'next'): Promise<void> {
+    const live = this.displayedCurrentQuestionForHost();
+    const current = this.earlierQuizResult();
+    if (
+      !live ||
+      !this.quizHistoryPhaseAvailable() ||
+      this.activeChannel() !== 'quiz' ||
+      this.controlPending()
+    )
+      return;
+    const active = this.document.activeElement;
+    const focusedHistoryControl =
+      active instanceof HTMLElement &&
+      active.closest('[data-testid^="host-quiz-history-"]') !== null
+        ? active
+        : null;
+    if (
+      direction === 'previous' &&
+      !(current?.hasPrevious ?? live.hasEarlierPresenterResult ?? live.canShowPreviousResult)
+    ) {
+      return;
+    }
+    if (direction === 'next' && !current) return;
+
+    this.controlPending.set(true);
+    const requestEpoch = this.quizHistoryRequestEpoch;
+    try {
+      if (direction === 'next' && !current?.hasNext) {
+        this.quizHistory.set(null);
+        this.dismissHostSteeringCallout();
+        return;
+      }
+      const result = await trpc.session.getPresenterQuizResult.query(
+        {
+          code: this.code.toUpperCase(),
+          liveQuestionId: live.questionId,
+          fromQuestionId: current?.question.questionId,
+          direction,
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (
+        !result ||
+        this.destroyRef.destroyed ||
+        requestEpoch !== this.quizHistoryRequestEpoch ||
+        !this.quizHistoryPhaseAvailable() ||
+        this.activeChannel() !== 'quiz' ||
+        this.displayedCurrentQuestionForHost()?.questionId !== live.questionId
+      ) {
+        return;
+      }
+      this.historyPage.set({ index: 0, count: 1 });
+      this.quizHistory.set({ liveQuestionId: live.questionId, result });
+      this.dismissHostSteeringCallout();
+    } catch (error) {
+      this.openHostSteeringCalloutForSteeringFailure(
+        () => void this.stepQuizHistory(direction),
+        error,
+      );
+    } finally {
+      this.controlPending.set(false);
+      this.restoreQuizHistoryControlFocus(focusedHistoryControl);
+    }
+  }
+
+  reportHistoryPages(count: number): void {
+    if (!this.earlierQuizResult()) return;
+    const pageCount = Math.max(1, count);
+    this.historyPage.update(({ index }) => ({
+      index: Math.min(index, pageCount - 1),
+      count: pageCount,
+    }));
+  }
+
+  changeHistoryPage(delta: -1 | 1): void {
+    if (this.controlPending() || !this.earlierQuizResult()) return;
+    this.historyPage.update(({ index, count }) => ({
+      index: Math.max(0, Math.min(count - 1, index + delta)),
+      count,
+    }));
+  }
+
+  private focusHostQuizPhaseAction(): void {
+    const root = this.hostElement.nativeElement;
+    const target =
+      root.querySelector<HTMLElement>('button[aria-keyshortcuts="ArrowRight"]') ??
+      root.querySelector<HTMLElement>('button[aria-keyshortcuts="ArrowLeft"]') ??
+      this.hostQuestionCardRef?.nativeElement;
+    if (
+      target?.isConnected &&
+      !target.closest('[hidden], [inert]') &&
+      !target.hasAttribute('disabled') &&
+      target.getAttribute('aria-disabled') !== 'true'
+    ) {
+      target.focus({ preventScroll: true });
+    }
+  }
+
+  private restoreQuizHistoryControlFocus(previousControl: HTMLElement | null): void {
+    if (!previousControl) return;
+    afterNextRender(
+      () => {
+        if (
+          previousControl.isConnected &&
+          !previousControl.closest('[hidden], [inert]') &&
+          !previousControl.hasAttribute('disabled') &&
+          previousControl.getAttribute('aria-disabled') !== 'true'
+        ) {
+          return;
+        }
+        const active = this.document.activeElement;
+        if (active && active !== this.document.body && active.isConnected) return;
+        this.focusHostQuizPhaseAction();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** Übernimmt nach dem Routenwechsel den Fokus vom entfernten Presenter-Auslöser. */
+  private focusHostAfterNavigation(): void {
+    const focus = (): void => {
+      if (this.destroyRef.destroyed || (this.dialog.openDialogs?.length ?? 0) > 0) return;
+      const root = this.hostElement.nativeElement;
+      const active = this.document.activeElement;
+      if (active instanceof HTMLElement && root.contains(active)) return;
+      this.focusHostQuizPhaseAction();
+    };
+    focus();
+    afterNextRender(focus, { injector: this.injector });
+  }
+
   async prevQuestion(): Promise<void> {
     if (this.controlPending() || !this.code) return;
     if (!this.canShowPreviousResultAnchor()) return;
@@ -13418,7 +13834,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.activeChannel.set(active);
     }
 
-    const urlTab = this.requestedInitialTab;
+    const urlTab = this.requestedInitialTab ?? this.lastHostView?.channel;
     if (
       !this.initialUrlTabApplied &&
       (urlTab === 'quiz' || urlTab === 'qa' || urlTab === 'quickFeedback')
@@ -14424,15 +14840,15 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     if (wordCloudAnalysisRequestKey(request) !== analysis.requestKey) return true;
     if (!listRevision || !analysis.corpusRevision) return false;
 
-    const [ranking, metric, participants] = listRevision.split(':');
+    const [ranking, metric, rankingVersion] = listRevision.split(':');
     if (metric !== request.metric) return false;
-    const [analyzedRanking, analyzedParticipants] = analysis.corpusRevision.split(':');
+    const [analyzedRanking, analyzedVersion] = analysis.corpusRevision.split(':');
     return (
       Number(ranking) > Number(analyzedRanking) ||
       (ranking === analyzedRanking &&
         metric === 'CONTROVERSIAL' &&
         listRevision !== previousListRevision &&
-        participants !== analyzedParticipants)
+        rankingVersion !== analyzedVersion)
     );
   }
 
@@ -15053,7 +15469,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     if (!this.channels().quickFeedback || this.code.length !== 6) {
       this.quickFeedbackRefreshRunId += 1;
-      this.quickFeedbackResult.set(null);
+      this.applyQuickFeedbackResultSnapshot(null);
       this.quickFeedbackSeenVoteCount.set(0);
       return;
     }
@@ -15066,7 +15482,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (runId !== this.quickFeedbackRefreshRunId || (options.isCurrent && !options.isCurrent())) {
         return;
       }
-      this.quickFeedbackResult.set(result);
+      this.applyQuickFeedbackResultSnapshot(result);
     } catch {
       // Keep the last snapshot visible during transient polling failures.
     }
@@ -15557,26 +15973,18 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadLeaderboard(): Promise<void> {
-    if (!this.code || this.leaderboardLoading()) return;
-    this.leaderboardLoading.set(true);
-    try {
-      const entries = await trpc.session.getLeaderboard.query({
-        code: this.code.toUpperCase(),
-        anonymousClientId: getAnonymousClientId(),
-      });
-      this.leaderboard.set(entries);
-      const teamEntries = await trpc.session.getTeamLeaderboard.query({
-        code: this.code.toUpperCase(),
-        anonymousClientId: getAnonymousClientId(),
-      });
-      this.teamLeaderboard.set(teamEntries);
-    } catch {
-      this.leaderboard.set([]);
-      this.teamLeaderboard.set([]);
-    } finally {
-      this.leaderboardLoading.set(false);
-    }
+  private async loadLeaderboard(isCurrent: () => boolean): Promise<void> {
+    if (!this.code) return;
+    const code = this.code.toUpperCase();
+    this.teamLeaderboard.set([]);
+    const entries = await trpc.session.getLeaderboard
+      .query({ code, anonymousClientId: getAnonymousClientId() })
+      .catch(() => []);
+    if (!isCurrent()) return;
+    this.leaderboard.set(entries);
+    const teamEntries = await trpc.session.getHostTeamLeaderboard.query({ code }).catch(() => []);
+    if (!isCurrent()) return;
+    this.teamLeaderboard.set(teamEntries);
     if (this.effectiveStatus() === 'FINISHED') {
       void this.loadFeedbackSummary();
     }
@@ -15740,12 +16148,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   exportPdfButtonAria(): string {
     const count = this.finishedConfidenceSummary()?.priorityQuestionCount ?? 0;
     if (count === 1) {
-      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityOne:Nachbesprechungsplan als PDF ansehen – 1 Frage zur Nachbesprechung`;
+      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityOne:Nachbesprechungsplan herunterladen (PDF) – 1 Frage zur Nachbesprechung`;
     }
     if (count > 1) {
-      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityMany:Nachbesprechungsplan als PDF ansehen – ${count}:count: Fragen zur Nachbesprechung`;
+      return $localize`:@@sessionHost.exportPdfButtonAriaWithPriorityMany:Nachbesprechungsplan herunterladen (PDF) – ${count}:count: Fragen zur Nachbesprechung`;
     }
-    return $localize`:@@sessionHost.exportPdfButtonAria:Nachbesprechungsplan als PDF ansehen`;
+    return $localize`:@@sessionHost.exportPdfButtonAria:Nachbesprechungsplan herunterladen (PDF)`;
   }
 
   exportPdfPriorityHint(count: number): string {
@@ -15755,46 +16163,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionHost.exportPdfPriorityHintPlural:${count}:count: Fragen zur Nachbesprechung empfohlen`;
   }
 
-  async exportSessionResultsPdf(
-    profile: SessionResultsPdfProfile = 'visual',
-    disposition: SessionResultsPdfDisposition = 'download',
-  ): Promise<void> {
+  async exportSessionResultsPdf(profile: SessionResultsPdfProfile = 'visual'): Promise<void> {
     if (!this.code || this.exportExporting()) return;
     const code = this.code;
-    // Vor jedem Await: sonst blockiert der Browser den Ansehen-Tab nach der Token-Erneuerung.
-    const viewPlaceholder =
-      disposition === 'view' ? this.sessionResultsExport.openViewPlaceholder() : undefined;
     this.exportStatus.set(null);
     this.exportExporting.set(true);
     try {
-      const result = await this.withRenewedHostAccess(() =>
-        this.sessionResultsExport.exportPdfFromSessionCode(code, {
-          profile,
-          disposition,
-          viewPlaceholder,
-          onLargeReportHint: (questionCount) => {
-            this.exportStatus.set(
-              $localize`:@@sessionHost.exportPdfGeneratingLarge:PDF wird erstellt (${questionCount} Fragen)…`,
-            );
-          },
-        }),
+      await this.withRenewedHostAccess(() =>
+        this.sessionResultsExport.exportPdfFromSessionCode(code, profile),
       );
       this.exportStatus.set(
-        result === 'pdf-view'
-          ? $localize`:@@sessionHost.exportPdfViewDone:Nachbesprechungsplan geöffnet.`
-          : result === 'pdf-download'
-            ? $localize`:@@sessionHost.exportPdfDownloadDone:Ergebnis-PDF heruntergeladen.`
-            : $localize`:@@sessionHost.exportPdfPrintDone:Ergebnis-PDF zum Speichern geöffnet.`,
+        $localize`:@@sessionHost.exportPdfDownloadDone:PDF-Download gestartet.`,
       );
       this.dismissHostSteeringCallout();
     } catch (error) {
-      if (viewPlaceholder) {
-        this.sessionResultsExport.closeViewPlaceholder(viewPlaceholder);
-      }
-      this.handleHostResultsExportError(
-        error,
-        () => void this.exportSessionResultsPdf(profile, disposition),
-      );
+      this.handleHostResultsExportError(error, () => void this.exportSessionResultsPdf(profile));
     } finally {
       this.exportExporting.set(false);
     }
@@ -16088,9 +16471,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private async refreshLiveFreetext(options: { isCurrent?: () => boolean } = {}): Promise<void> {
+    const visibilityRead = this.freetextVisibility.beginRead();
+    const visibilityOnly = this.wordCloudFrozen();
     try {
-      const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
+      const data = await trpc.session.getLiveFreetext.query({
+        code: this.code.toUpperCase(),
+        ...(visibilityOnly ? { visibilityOnly: true } : {}),
+      });
       if (options.isCurrent && !options.isCurrent()) return;
+      this.freetextVisibility.applyRead(visibilityRead, data.wordCloudVisibility ?? null);
+      if (visibilityOnly) return;
       this.freetextResponses.set(data.responses);
 
       if (data.questionType === 'FREETEXT') {

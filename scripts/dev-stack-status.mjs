@@ -70,11 +70,11 @@ const rows = [
       'In der Q&A-Wortwolke und bei Freitextfragen, in den Ansichten »Wörter« und »Wörter & Phrasen«.',
     source:
       'Die Teilnehmenden: ihre sichtbaren Q&A-Fragen oder ihre Antworten auf die aktuell ausgewählte Freitextfrage.',
-    locales: 'de, en, fr, es. Für it ist kein Lemmatisierungsmodell aktiviert.',
+    locales: 'de, en, fr, es und it.',
     purpose:
       'Die Lehrkraft sieht eine übersichtlichere Wortwolke. Formen desselben Wortes, zum Beispiel »Frage« und »Fragen« oder »validiert« und »validieren«, werden unter ihrer Grundform gemeinsam gezählt.',
     technology:
-      'spaCy 3.8 übernimmt die Lemmatisierung. Die Sprachmodelle für Deutsch, Englisch, Französisch und Spanisch laufen auf diesem Rechner.',
+      'spaCy 3.8 übernimmt die Lemmatisierung. Die Modelle für Deutsch, Englisch, Französisch und Spanisch sowie die italienische Lookup-Tabelle laufen auf diesem Rechner.',
   },
   {
     name: 'Ähnliche Beiträge zu Themen gruppieren',
@@ -83,8 +83,7 @@ const rows = [
       'In der Q&A-Wortwolke und bei Freitextfragen, sobald die Lehrkraft die Ansicht »Themen« wählt.',
     source:
       'Die Teilnehmenden: ihre Q&A-Fragen oder Freitextantworten. Namen oder Benutzerkonten werden für die Gruppierung nicht verwendet.',
-    locales:
-      'de und en. Bei fr, es und it erscheint stattdessen eine nichtsemantische Ersatzansicht.',
+    locales: 'de, en, fr, es und it.',
     purpose:
       'Die Lehrkraft sieht mehrere Themenblasen. Beiträge mit ähnlicher Bedeutung landen in derselben Blase.',
     technology:
@@ -96,8 +95,7 @@ const rows = [
     place: 'Als kurze Beschriftung auf den Themenblasen der Q&A- und Freitext-Wortwolke.',
     source:
       'Je Gruppe einige typische Fragen oder Antworten der Teilnehmenden, die zuvor bereits zusammengeordnet wurden.',
-    locales:
-      'de und en, weil die semantische Themenbildung derzeit nur diese beiden Locales unterstützt.',
+    locales: 'de, en, fr, es und it.',
     purpose:
       'Die Lehrkraft erkennt schneller, worum es in einer Themenblase geht. Das Sprachmodell formuliert nur den Namen und sortiert keine Beiträge um.',
     technology:

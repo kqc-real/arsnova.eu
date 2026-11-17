@@ -2194,8 +2194,18 @@ jobs:
             sleep 1
           done
 
+          worker_pid_limit_hits() {
+            docker compose -f docker-compose.prod.yml --env-file .env.production \
+              exec -T pdf-worker awk '$1 == "max" { print $2 }' /sys/fs/cgroup/pids.events
+          }
+          pid_limit_hits_before="$(worker_pid_limit_hits)"
           docker compose -f docker-compose.prod.yml --env-file .env.production \
             exec -T app node /app/scripts/container-runtime-smoke.mjs
+          pid_limit_hits_after="$(worker_pid_limit_hits)"
+          if [[ ! "$pid_limit_hits_before" =~ ^[0-9]+$ || "$pid_limit_hits_after" != "$pid_limit_hits_before" ]]; then
+            echo "PDF-Worker hat beim Rendern das PID-Limit erreicht oder der Zähler fehlt."
+            exit 1
+          fi
 
           # deploy.sh Schritt 5b: Image ohne npm, Gate nur über node.
           if docker compose -f docker-compose.prod.yml --env-file .env.production \

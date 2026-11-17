@@ -39,8 +39,9 @@ test('--help nennt Socket, venv, Modelle und npm run dev', () => {
   assert.match(result.stdout, /Kein TCP-Port/);
 });
 
-test('prueft spaCy-Modelle de/en/fr/es und startet server.py im Vordergrund', () => {
+test('prueft spaCy-Modelle de/en/fr/es und italienische Lookup-Daten und startet server.py im Vordergrund', () => {
   const source = readFileSync(script, 'utf8');
+  assert.match(source, /spacy_lookups_data/);
   assert.match(source, /Lemmatisierung \(spaCy\)/);
   assert.match(source, /Grundform zurückgeführt/);
   assert.match(source, /de_core_news_sm/);

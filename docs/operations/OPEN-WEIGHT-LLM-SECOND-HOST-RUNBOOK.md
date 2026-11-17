@@ -37,6 +37,11 @@ arsnova.eu / App-Host  ── privates Netz, TCP 8080 ──>  CPU-Inferenz-Host
 > für alle drei Consumer. Für den ersten kurzen Produktivtest `QA_SUMMARY_ENABLED`
 > auf `false` lassen und nur die ausdrücklich ausgelöste Lernzielableitung testen.
 
+Die [Summary-V2-Modellprobe](../features/qa-summary.md) prüft den generativen
+Pfad separat in allen fünf App-Locales mit vier synthetischen Q&A-Quellen je
+Lauf und einem Limit von 90 Sekunden. Die formale Abnahme von Prefill, Speicher
+und Laufzeit mit reichhaltigem 8.192-Kontext bleibt separat erforderlich.
+
 ## 2. Voraussetzungen und Werteblatt
 
 ### 2.1 Hardware und Netz

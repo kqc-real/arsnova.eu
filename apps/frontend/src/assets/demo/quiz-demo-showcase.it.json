@@ -2,8 +2,8 @@
   "exportVersion": 1,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
-    "name": "Dimostrazione didattica: quiz a squadre",
-    "description": "![Dimostrazione didattica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Dimostrazione didattica\n\nQueste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di fiducia dopo le domande valutate e proporre una domanda numerica in due turni di discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Quando vengono mostrati i risultati, le soluzioni modello e le distribuzioni delle risposte evidenziano incertezze e concezioni errate ricorrenti.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
+    "name": "Quiz a squadre di esempio",
+    "description": "![Quiz a squadre di esempio](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Quiz a squadre di esempio\n\nQueste 13 domande presentano tutti e dieci i tipi di domanda di arsnova.eu in una breve sessione in diretta. Usa immagini, Markdown e KaTeX, raccogli la sicurezza nella risposta e prova una stima numerica con due votazioni separate da una discussione.\n\nLa dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Quando vengono mostrati i risultati, le soluzioni e le distribuzioni delle risposte aiutano a individuare incertezze e possibili concezioni errate.\n\nTimer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
@@ -26,7 +26,7 @@
     "readingPhaseEnabled": false,
     "questions": [
       {
-        "text": "### Che clima c’è nel gruppo in questo momento?\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Clicca per ingrandire.*",
+        "text": "### Che clima c’è nel gruppo in questo momento?\n\n![Panoramica delle emozioni](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Apri l’immagine per ingrandirla.*",
         "type": "SURVEY",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -87,7 +87,7 @@
         "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Quali di questi usi sono adatti a una breve verifica in diretta?\n\n_Sono possibili più risposte corrette._",
+        "text": "### Quando è utile una domanda rapida in diretta?\n\n_Seleziona tutte le opzioni corrette._",
         "type": "MULTIPLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -100,7 +100,7 @@
             "isCorrect": true
           },
           {
-            "text": "Far emergere concezioni errate durante l’attività",
+            "text": "Individuare possibili concezioni errate durante l’attività",
             "isCorrect": true
           },
           {
@@ -117,7 +117,7 @@
         "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Da quanti cubetti visibili dall’esterno è composto un classico Cubo di Rubik 3×3?\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.\n\nSpunto facoltativo: [Come risolvere un cubo di Rubik 3×3 senza esperienza (video in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### Quanti cubetti formano la parte esterna di un classico cubo di Rubik 3×3?\n\nLa domanda si riferisce al classico Cubo di Rubik progettato da Ernő Rubik.\n\nSpunto facoltativo: [Come risolvere un cubo di Rubik 3×3 senza esperienza (video in tedesco)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -278,7 +278,7 @@
         "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Classifica le sei opere seguenti per epoca letteraria.",
+        "text": "### Classifica ogni opera in base al movimento letterario tedesco.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -330,7 +330,7 @@
         "confidenceLabelHigh": "Molto sicuro/a"
       },
       {
-        "text": "### Quanto è probabile che tu provi presto un quiz in diretta come questo in una tua lezione?",
+        "text": "### Quanto è probabile che tu usi un quiz in diretta come questo in una delle tue sessioni?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",

@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client';
-import type { QaQuestionSortMode } from '@arsnova/shared-types';
-import { resolveQaControversyThreshold } from './qaControversy';
+import {
+  QA_CONTROVERSY_DAMPING,
+  QA_RANKING_VERSION,
+  type QaQuestionSortMode,
+} from '@arsnova/shared-types';
 
 const QA_WILSON_Z = 1.96;
 const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
@@ -9,14 +12,12 @@ const QA_WILSON_Z_SQUARED = QA_WILSON_Z * QA_WILSON_Z;
 const QA_WILSON_Z_SQL = Prisma.sql`${QA_WILSON_Z}::DOUBLE PRECISION`;
 const QA_WILSON_Z_SQUARED_SQL = Prisma.sql`${QA_WILSON_Z_SQUARED}::DOUBLE PRECISION`;
 
-/**
- * Canonical qa-ranking-v1 score projection. The calling query must use
- * `question` as its QaQuestion alias so identifiers remain static SQL.
- */
-export function buildQaRankingScoreSelectSql(participantCount: number): Prisma.Sql {
-  const controversyThreshold = resolveQaControversyThreshold(participantCount);
-  const controversyThresholdSql = Prisma.sql`${controversyThreshold}::DOUBLE PRECISION`;
+export function qaRankingCorpusRevision(revision: number, metric: QaQuestionSortMode): string {
+  return `${revision}:${metric === 'CONTROVERSIAL' ? QA_RANKING_VERSION : ''}`;
+}
 
+/** The calling query must use `question` as its QaQuestion alias. */
+export function buildQaRankingScoreSelectSql(): Prisma.Sql {
   return Prisma.sql`
     CASE
       WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
@@ -54,18 +55,12 @@ export function buildQaRankingScoreSelectSql(participantCount: number): Prisma.S
         )
       )
     END AS "bestScore",
-    CASE
-      WHEN question."positiveVoteCount" + question."negativeVoteCount" = 0 THEN 0
-      ELSE LEAST(
-        1,
-        2 * LEAST(question."positiveVoteCount", question."negativeVoteCount")
-          / (
-            question."positiveVoteCount"
-            + question."negativeVoteCount"
-            + ${controversyThresholdSql}
-          )
-      )
-    END AS "controversyScore"
+    2.0::DOUBLE PRECISION * LEAST(question."positiveVoteCount", question."negativeVoteCount")
+      / (
+        question."positiveVoteCount"::DOUBLE PRECISION
+        + question."negativeVoteCount"
+        + ${QA_CONTROVERSY_DAMPING}::DOUBLE PRECISION
+      ) AS "controversyScore"
   `;
 }
 

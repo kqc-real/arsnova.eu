@@ -58,7 +58,8 @@ services:
     security_opt:
       - no-new-privileges:true
     network_mode: none
-    pids_limit: 128
+    # Der Cgroup-Zähler umfasst auch Chromiums Threads.
+    pids_limit: 256
     mem_limit: 1g
     cpus: '1.0'
     tmpfs:

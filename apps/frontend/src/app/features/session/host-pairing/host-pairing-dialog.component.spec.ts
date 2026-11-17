@@ -74,7 +74,8 @@ describe('HostPairingDialogComponent', () => {
     vi.useFakeTimers({ toFake: ['setInterval'] });
     vi.clearAllMocks();
     delete dialogData.screenVisibility;
-    delete dialogData.startPresenterView;
+    delete dialogData.offerPresentationStart;
+    delete dialogData.requestFullscreen;
     createInviteMock.mockResolvedValue({
       inviteId: '11111111-1111-4111-8111-111111111111',
       pairingSecret: SECRET,
@@ -214,8 +215,7 @@ describe('HostPairingDialogComponent', () => {
   });
 
   it('startet die Presenter-Ansicht beim Freigeben aus Präsentation starten', async () => {
-    const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
-    dialogData.startPresenterView = startPresenterView;
+    dialogData.offerPresentationStart = true;
     listPairedHostsMock.mockResolvedValue({
       devices: [],
       pending: {
@@ -248,20 +248,15 @@ describe('HostPairingDialogComponent', () => {
     await flush();
     current.detectChanges();
 
-    expect(startPresenterView).toHaveBeenCalledTimes(1);
     expect(approveMock).toHaveBeenCalledWith({ code: 'ABC123', requestId: REQUEST_ID });
-    expect(startPresenterView.mock.invocationCallOrder[0]).toBeLessThan(
-      approveMock.mock.invocationCallOrder[0],
-    );
     expect(dialogCloseMock).toHaveBeenCalledWith({
       connected: true,
-      presenterOpened: true,
+      startPresentation: true,
     });
   });
 
   it('startet die Presenter-Ansicht beim Schließen, wenn schon ein Gerät verbunden ist', async () => {
-    const startPresenterView = vi.fn().mockResolvedValue({ closed: false });
-    dialogData.startPresenterView = startPresenterView;
+    dialogData.offerPresentationStart = true;
     listPairedHostsMock.mockResolvedValue({
       devices: [
         {
@@ -283,10 +278,9 @@ describe('HostPairingDialogComponent', () => {
     current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.click();
     await flush();
 
-    expect(startPresenterView).toHaveBeenCalledTimes(1);
     expect(dialogCloseMock).toHaveBeenCalledWith({
       connected: true,
-      presenterOpened: true,
+      startPresentation: true,
     });
   });
 
@@ -506,10 +500,16 @@ describe('HostPairingDialogComponent', () => {
   });
 
   it('bietet ohne verbundenes Gerät das Präsentieren ohne Smartphone an', async () => {
-    dialogData.startPresenterView = vi.fn().mockResolvedValue({ closed: false });
+    dialogData.offerPresentationStart = true;
+    const requestFullscreen = vi.fn();
+    dialogData.requestFullscreen = requestFullscreen;
     const current = await render();
     expect(
       current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.textContent,
     ).toContain('Ohne Smartphone präsentieren');
+    current.nativeElement.querySelector('[data-testid="host-pairing-close"]')?.click();
+    expect(requestFullscreen).toHaveBeenCalledOnce();
+    expect(dialogCloseMock).toHaveBeenCalledWith({ connected: false, startPresentation: true });
+    expect(requestFullscreen).toHaveBeenCalledBefore(dialogCloseMock);
   });
 });

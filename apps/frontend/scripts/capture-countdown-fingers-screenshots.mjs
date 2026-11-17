@@ -94,11 +94,6 @@ function pageHtml(mode, fingerSrc) {
       gap: 0.5rem;
       z-index: 110;
     }
-    .timer {
-      width: 2.4rem; height: 2.4rem; border-radius: 50%;
-      display: grid; place-items: center;
-      background: #c62828; color: white; font-weight: 700;
-    }
     .score {
       display: flex; align-items: center; gap: 0.4rem;
       padding: 0.35rem 0.65rem;
@@ -159,7 +154,6 @@ function pageHtml(mode, fingerSrc) {
     </div>
   </main>
   <div class="floating">
-    <span class="timer">4</span>
     <div class="score"><strong>Richtige Antwort jetzt 133 Punkte</strong></div>
   </div>
   <div class="countdown-fingers-host--viewport" aria-hidden="true">

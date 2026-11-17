@@ -14,6 +14,9 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
     vote: {
       findMany: vi.fn(),
     },
+    hiddenWordCloudEntry: {
+      findMany: vi.fn(),
+    },
   },
   hostAuthMocks: {
     extractHostTokenMock: vi.fn(),
@@ -95,6 +98,7 @@ describe('session.getLiveFreetext', () => {
     hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
     hostAuthMocks.extractHostTokenFromConnectionParamsMock.mockReturnValue(null);
     hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValue([]);
   });
 
   trpcDodIt(
@@ -124,6 +128,7 @@ describe('session.getLiveFreetext', () => {
         { freeText: 'Mehr Praxisbeispiele' },
         { freeText: '   ' },
       ]);
+      prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValueOnce([{ label: 'Struktur' }]);
 
       const result = await caller.getLiveFreetext({ code: 'ABC123' });
 
@@ -131,6 +136,10 @@ describe('session.getLiveFreetext', () => {
       expect(result.questionId).toBe(QUESTION_ID);
       expect(result.questionType).toBe('FREETEXT');
       expect(result.responses).toEqual(['Klare Struktur', 'Mehr Praxisbeispiele']);
+      expect(result.wordCloudVisibility).toEqual({
+        questionId: QUESTION_ID,
+        hiddenLabels: ['Struktur'],
+      });
       expect(prismaMock.vote.findMany).toHaveBeenCalledTimes(1);
     },
   );

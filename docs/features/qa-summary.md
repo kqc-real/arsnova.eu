@@ -4,7 +4,7 @@
 
 **Zielgruppe:** Product Owner, Entwickler, Betrieb
 **Stand:** 2026-10-17
-**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v5`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert; die historische `v2`-Messung auf dem privaten 8-vCPU-Produktionshost lag bei ~56,9 s / 374 Completion-Tokens, `v5` muss nach der Qualitäts- und Auswahlhärtung neu vermessen werden; Kill-Switches im Repo standardmäßig `false`
+**Status:** Versionierter Summary-V2-Pfad (`qa-summary-technical-handoff-v8`, `qa-summary-model-output-v3`), private Runtimeübergabe, Kontextvorschau und extraktiver Backend-Fallback implementiert. Kill-Switches im Repo standardmäßig `false`.
 **Backlog:** Story 8.9c
 **ADR:** [0032-optional-nlp-cascade-for-qa-moderation-signals.md](../architecture/decisions/0032-optional-nlp-cascade-for-qa-moderation-signals.md) (Kaskade), [0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) (Slice-4-Runtime)
 
@@ -79,6 +79,17 @@ Das technische Profil verwendet 8.192 konservative Budgeteinheiten, 640 Antwortr
 
 ## Lokal prüfen
 
+Der private Modelladapter sendet eine kompakte Projektion der gepackten Belege. Er ersetzt kanonische IDs durch kurze Referenzen, fordert bis zu zwei belegte offene Themen an und begrenzt die Generierung auf 192 Tokens. Überschrift und vollständige Frage werden getrennt geliefert. Der Prompt verlangt kurze Überschriften aus vollständigen Wörtern. Die Zeichenlänge der fertigen Überschrift wird nach der Generierung geprüft. Ein einzelnes belegtes Thema genügt für ein generatives Ergebnis. Fragen ohne freigegebenen Modelltext erhalten eine kurze Referenz ohne Text, damit die Themenbezüge auflösbar bleiben. Diese Referenzen sind vom Zitationsschema ausgeschlossen. Der Adapter prüft die Frageform, löst die Referenzen wieder auf und bindet das Ergebnis nach der Qualitätsprüfung in den öffentlichen V2-Vertrag ein.
+
+Die fünfsprachige Modellprobe verwendet die konfigurierte private Runtime und das reguläre 90-Sekunden-Limit. Sie prüft den generativen Pfad ohne Fallback, die akzeptierte Ausgabe und getrennte Belegreferenzen für beide Themen des Prüffalls. Die verwendeten Fragen und ausgegebenen Aussagen bleiben für die sprachliche Prüfung sichtbar.
+
+```bash
+OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
+  node --env-file=.env --import tsx apps/backend/scripts/eval-qa-summary-locales.ts
+```
+
+Am 12. November 2026 bestand je eine Zusammenfassung mit zwei Themen und vollständigen Überschriften die V8-Probe an der privaten Qwen-Runtime. Gemessen wurden 6,9 s für `de`, 5,6 s für `en`, 6,1 s für `fr`, 8,0 s für `es` und 6,8 s für `it`. Die fünf Proben prüfen kurze Q&A-Kontexte mit vier Quellen. Eine zusätzliche deutsche Probe mit einer einzigen Frage lieferte in 4,3 s genau ein belegtes Thema ohne Fallback.
+
 Privater Loopback-Helfer (nicht Produktion, bindet nur `127.0.0.1`):
 
 ```bash
@@ -135,7 +146,7 @@ Produktiv weder `QA_SUMMARY_ENABLED` noch `OPEN_WEIGHT_LLM_ENABLED` stillschweig
 
 [Issue #456](https://github.com/kqc-real/arsnova.eu/issues/456) liefert den versionierten Shared-Vertrag, hostautorisierten Gesamtbuilder, deterministischen Packer/Hash/Cache, die getrennte Lernzielvorbereitung sowie den V2-Adapter- und Vorschaupfad. Integrationsgrenzen und Zustände stehen in [moderation-prompt-context.md](moderation-prompt-context.md); die Datenhaltung regelt [ADR-0036](../architecture/decisions/0036-learning-objective-storage-and-live-projection.md).
 
-Runtime R ist in die Summary-Queue verdrahtet und bleibt im Repository standardmäßig deaktiviert (`false`). Auf dem privaten 8-vCPU-Produktionshost wurden neben dem kurzen `topic_label`-Auftrag (Einzel- und Multi-Cluster-Batch V2: 6 Cluster in 22,9 s) und `learning_objectives` (10 Entwürfe im Demo-Quiz, ~3,56 GiB Peak-RAM) auch `qa_summary` V2 mit dem damaligen Instruktionsvertrag `qa-summary-technical-handoff-v2` (`qa-summary-model-output-v3`: 56,9 s, 374 Completion-Tokens) erfolgreich real ausgeführt. Der aktuelle `v4`-Vertrag ignoriert eingebettete Antwortwünsche in Quellfragen ausdrücklich, priorisiert beim Summary-Packing semantische Themen und verlangt vollständige, laienverständliche Aussagen ohne technische Metadaten; diese Variante ist noch neu zu vermessen. Die formale Detailprotokollierung (isolierte TTFT-/Prefill- und RSS-Werte für die Obergrenze des reichhaltigen 8.192-Vollkontexts sowie fachliche Qualitätsabnahme) bleibt in der [Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md) als getrennter Abnahmepunkt dokumentiert; kein Flag wird im Repository standardmäßig aktiviert.
+Runtime R ist in die Summary-Queue verdrahtet und bleibt im Repository standardmäßig deaktiviert (`false`). Auf dem privaten 8-vCPU-Produktionshost wurden neben dem kurzen `topic_label`-Auftrag (Einzel- und Multi-Cluster-Batch V2: 6 Cluster in 22,9 s) und `learning_objectives` (10 Entwürfe im Demo-Quiz, ~3,56 GiB Peak-RAM) auch `qa_summary` V2 mit dem damaligen Instruktionsvertrag `qa-summary-technical-handoff-v2` (`qa-summary-model-output-v3`: 56,9 s, 374 Completion-Tokens) erfolgreich real ausgeführt. Die aktuelle `v7`-Modellprobe steht unter [Lokal prüfen](#lokal-prüfen). Die formale Detailprotokollierung (isolierte TTFT-/Prefill- und RSS-Werte für die Obergrenze des reichhaltigen 8.192-Vollkontexts sowie fachliche Qualitätsabnahme) bleibt in der [Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md) als getrennter Abnahmepunkt dokumentiert; kein Flag wird im Repository standardmäßig aktiviert.
 
 Vor der Anzeige verwirft ein enger Qualitätsfilter generative Ergebnisse mit nur einer
 Aussage, fehlenden oder wiederholten Themenüberschriften, unvollständigen Sätzen,

@@ -1,4 +1,4 @@
-# Legal Notice
+# Legal notice
 
 Required disclosures under Section 5 of the German Digital Services Act (Digitale-Dienste-Gesetz, DDG)
 
@@ -25,11 +25,11 @@ Juri-Gagarin-Ring 152, 99084 Erfurt, Germany
 
 ## Liability for Content
 
-As a service provider, we are responsible for our **own** content on arsnova.eu under general law. Under the applicable statutory provisions, service providers are not required to monitor transmitted or stored third-party information generally or to investigate circumstances indicating unlawful activity. Obligations to remove information or block its use under general law remain unaffected. Liability in this respect is only possible from the time we become aware of a specific infringement. We will remove affected content promptly when we become aware of an infringement.
+As a service provider, we are responsible for our **own** content on arsnova.eu under general law. Under the applicable statutory provisions, service providers are not required to monitor transmitted or stored third-party information generally or to investigate circumstances indicating unlawful activity. Obligations to remove information or block its use under general law remain unaffected. Liability in this respect can arise only once we become aware of a specific infringement. We will remove affected content promptly when we become aware of an infringement.
 
 ## Liability for Links
 
-arsnova.eu contains links to external third-party websites whose content we cannot control. The respective provider or operator is always responsible for the content of linked pages. The linked pages were checked for possible legal violations when the links were created; unlawful content was not apparent at that time. Permanently monitoring linked pages without specific indications of an infringement is not reasonable. We will remove affected links promptly when we become aware of an infringement.
+arsnova.eu contains links to external third-party websites whose content we cannot control. The respective provider or operator is always responsible for the content of linked pages. The linked pages were checked for possible legal violations when the links were created; unlawful content was not apparent at that time. Continuously monitoring linked pages without specific indications of an infringement is not reasonable. We will remove affected links promptly when we become aware of an infringement.
 
 ## Copyright
 

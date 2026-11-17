@@ -67,7 +67,13 @@ export interface ConfirmLeaveDialogData {
           <mat-icon>save</mat-icon>
           {{ data.saveLabel }}
         </button>
-        <button mat-button type="button" color="warn" [mat-dialog-close]="true">
+        <button
+          mat-button
+          type="button"
+          color="warn"
+          class="confirm-leave__confirm"
+          [mat-dialog-close]="true"
+        >
           {{ data.confirmLabel }}
         </button>
         <button mat-button type="button" (click)="onCancel()">{{ data.cancelLabel }}</button>
@@ -78,7 +84,13 @@ export interface ConfirmLeaveDialogData {
             {{ data.alternateLabel }}
           </button>
         }
-        <button mat-flat-button type="button" color="warn" [mat-dialog-close]="true">
+        <button
+          mat-flat-button
+          type="button"
+          color="warn"
+          class="confirm-leave__confirm"
+          [mat-dialog-close]="true"
+        >
           {{ data.confirmLabel }}
         </button>
       }

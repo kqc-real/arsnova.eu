@@ -45,7 +45,7 @@ import {
   type AuthorizedModerationQaContext,
   type AuthorizedModerationState,
 } from './moderationQaContext';
-import { isQaControversialLabel, resolveQaControversyThreshold } from './qaControversy';
+import { isQaControversialLabel } from './qaControversy';
 import {
   loadQuickFeedbackModerationSnapshot,
   type QuickFeedbackModerationProjection,
@@ -1662,9 +1662,6 @@ export function buildCompassContext(input: {
 }): ModerationCompassProjection {
   const questions = input.questions?.state === 'available' ? input.questions : null;
   const topics = input.topics?.state === 'available' ? input.topics : null;
-  const participantBasis =
-    questions?.participantBasis.state === 'available' ? questions.participantBasis.value : 0;
-  const controversyThreshold = resolveQaControversyThreshold(participantBasis);
   const ruleQuestions = (questions?.items ?? []).map((question) => {
     const votes = question.votes.state === 'available' ? question.votes : null;
     const controversyScore =
@@ -1680,7 +1677,6 @@ export function buildCompassContext(input: {
       isControversial: isQaControversialLabel({
         controversyScore,
         voteCount: votes?.total ?? 0,
-        controversyThreshold,
       }),
     } as const;
   });

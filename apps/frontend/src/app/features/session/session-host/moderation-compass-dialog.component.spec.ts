@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import {
   qaSummaryQuestionSourceId,
+  QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
   type QaSummaryContextPreviewDTO,
   type QaSummaryRuntimeCompatibleDTO,
   type QaSummaryRuntimeV2DTO,
@@ -42,7 +43,7 @@ describe('ModerationCompassDialogComponent', () => {
     return {
       schemaVersion: 1,
       contractVersion: 'qa-summary-context-preview-v1',
-      instructionVersion: 'qa-summary-technical-handoff-v5',
+      instructionVersion: QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
       definitionVersion: 'moderation-prompt-definitions-v1',
       capabilities: v2Runtime({ inferenceConfigured: false, result: null }).capabilities,
       selectedMode: null,
@@ -406,6 +407,10 @@ describe('ModerationCompassDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(button.textContent).toContain('Frage öffnen');
     expect(button.getAttribute('aria-label')).toContain('Warum diese Verteilung?');
+    expect(fixture.nativeElement.textContent).toContain('Fragen mit geteilten Stimmen');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Geh kurz auf Fragen mit geteilten Stimmen ein.',
+    );
     button.focus();
     button.click();
     fixture.detectChanges();

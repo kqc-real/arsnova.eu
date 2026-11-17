@@ -7,6 +7,8 @@ import { trpc } from '../../core/trpc.client';
 import { getAnonymousClientId } from '../../core/anonymous-client-id';
 import type { SessionInfoDTO } from '@arsnova/shared-types';
 import { recordServerTimeSample } from './session-server-clock';
+import { SessionMusicService } from './session-music.service';
+import { SessionUnloadWarningService } from './session-unload-warning.service';
 
 /**
  * Session-Shell (Epic 2 + 3). Child-Routes: host, present, vote, pair. Redirect '' → host.
@@ -18,6 +20,7 @@ import { recordServerTimeSample } from './session-server-clock';
   imports: [MatCard, MatCardContent, MatCardHeader, MatCardTitle, MatIcon, RouterOutlet],
   templateUrl: './session.component.html',
   styleUrl: './session.component.scss',
+  providers: [SessionMusicService, SessionUnloadWarningService],
 })
 export class SessionComponent implements OnInit, OnDestroy {
   session = signal<SessionInfoDTO | null>(null);
@@ -31,6 +34,8 @@ export class SessionComponent implements OnInit, OnDestroy {
   isPairRoute = signal(false);
 
   private readonly route = inject(ActivatedRoute);
+  private readonly sessionMusic = inject(SessionMusicService);
+  private readonly unloadWarning = inject(SessionUnloadWarningService);
   private readonly router = inject(Router);
   private sub: ReturnType<typeof Router.prototype.events.subscribe> | null = null;
 
@@ -78,5 +83,11 @@ export class SessionComponent implements OnInit, OnDestroy {
     this.isHostRoute.set(childPath === 'host');
     this.isPresentRoute.set(childPath === 'present');
     this.isPairRoute.set(childPath === 'pair');
+    const liveCode =
+      childPath === 'host' || childPath === 'present'
+        ? this.route.snapshot.paramMap.get('code')
+        : null;
+    this.sessionMusic.keepOnly(liveCode);
+    this.unloadWarning.keepOnly(liveCode);
   }
 }

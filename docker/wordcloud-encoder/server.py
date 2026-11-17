@@ -28,7 +28,7 @@ MAX_ITEMS = 500
 MAX_IN_FLIGHT = 1
 SOCKET_MODE = 0o600
 DEFAULT_SOCKET_PATH = "/run/wordcloud-encoder/encoder.sock"
-SUPPORTED_LOCALES = {"de", "en"}
+SUPPORTED_LOCALES = {"de", "en", "fr", "es", "it"}
 
 
 class UnixHTTPServer(ThreadingHTTPServer):
@@ -65,7 +65,7 @@ def parse_embed_request(raw: bytes) -> dict[str, Any] | str:
     locale = parsed.get("locale")
     snapshot_hash = parsed.get("snapshotHash")
     items = parsed.get("items")
-    if locale not in SUPPORTED_LOCALES:
+    if not isinstance(locale, str) or locale not in SUPPORTED_LOCALES:
         return "invalid"
     if not isinstance(snapshot_hash, str) or len(snapshot_hash) != 64:
         return "invalid"

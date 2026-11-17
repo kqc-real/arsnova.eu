@@ -1,8 +1,11 @@
 import { Component, NO_ERRORS_SCHEMA, signal } from '@angular/core';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { describe, expect, it, vi } from 'vitest';
-import type { WordCloudAnalysisVariant } from '@arsnova/shared-types';
+import type { QaQuestionSortMode, WordCloudAnalysisVariant } from '@arsnova/shared-types';
 import {
   QaWordCloudDialogComponent,
   type QaWordCloudDialogData,
@@ -268,8 +271,10 @@ describe('QaWordCloudDialogComponent', () => {
     expect(setProjected).not.toHaveBeenCalled();
   });
 
-  it('zeigt Ansicht, Groesse und Freeze auf einen Blick', () => {
+  it('zeigt Ansicht, Groesse und Freeze auf einen Blick', async () => {
     const { fixture } = setup('THEME');
+    await fixture.whenStable();
+    fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Wörter');
     expect(text).toContain('Wortgruppen');
@@ -277,11 +282,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(text).toContain('Größe nach:');
     expect(text).toContain('Stimmensaldo');
     expect(text).not.toContain('Meist unterstützt');
-    expect(
-      [...fixture.nativeElement.querySelectorAll('.qa-word-cloud-dialog__size-select option')].map(
-        (option: HTMLOptionElement) => option.value,
-      ),
-    ).toEqual(['CONTROVERSIAL', 'BEST', 'TOP', 'TIME']);
+    expect(fixture.nativeElement.querySelector('mat-select[role="combobox"]')).not.toBeNull();
     expect(text).toContain('Nach Grundform bündeln');
 
     const values = [...fixture.nativeElement.querySelectorAll('mat-button-toggle')]
@@ -307,16 +308,71 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Sprache der Beiträge:');
   });
 
-  it('zeigt bei Haeufigkeit die Groessenoption ohne Coverage-Zeile', () => {
+  it('zeigt bei Haeufigkeit die Groessenoption ohne Coverage-Zeile', async () => {
     const { fixture } = setup('THEME', {
       sortMode: () => 'TIME',
       tooltipMetricLabel: () => 'Vorkommen in Fragen',
     });
-    const timeOption = fixture.nativeElement.querySelector(
-      'option[value="TIME"]',
-    ) as HTMLOptionElement;
-    expect(timeOption.textContent?.replace(/\s+/g, ' ').trim()).toBe('Vorkommen in Fragen');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('mat-select')?.textContent).toContain(
+      'Vorkommen in Fragen',
+    );
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__coverage')).toBeNull();
+  });
+
+  it('öffnet vier Material-Optionen und übernimmt die ausgewählte Gewichtung', async () => {
+    TestBed.configureTestingModule({ providers: [provideNoopAnimations()] });
+    const sortMode = signal<QaQuestionSortMode>('TOP');
+    const setSortMode = vi.fn((mode: QaQuestionSortMode) => sortMode.set(mode));
+    const { fixture } = setup('THEME', { sortMode, setSortMode });
+    const select = await TestbedHarnessEnvironment.loader(fixture).getHarness(MatSelectHarness);
+
+    await select.open();
+    const options = [...document.querySelectorAll<HTMLElement>('[role="listbox"] [role="option"]')];
+    expect(options.map((option) => option.textContent?.trim())).toEqual([
+      'Geteilte Stimmen',
+      'Klare Zustimmung',
+      'Stimmensaldo',
+      'Vorkommen in Fragen',
+    ]);
+    options.at(-1)!.click();
+    expect(setSortMode).toHaveBeenCalledExactlyOnceWith('TIME');
+    expect(await select.getValueText()).toBe('Vorkommen in Fragen');
+    expect(await select.isOpen()).toBe(false);
+  });
+
+  it('schließt per Escape erst die Auswahlliste und dann die Wortwolke', async () => {
+    TestBed.configureTestingModule({ providers: [provideNoopAnimations()] });
+    const { fixture } = setup();
+    const ref = fixture.debugElement.injector.get(MatDialogRef);
+    const select = await TestbedHarnessEnvironment.loader(fixture).getHarness(MatSelectHarness);
+    await select.open();
+    const trigger = fixture.nativeElement.querySelector('mat-select') as HTMLElement;
+    trigger.focus();
+
+    const escape = () =>
+      trigger.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+      );
+    escape();
+    expect(ref.close).not.toHaveBeenCalled();
+    expect(await select.isOpen()).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+    escape();
+    await fixture.whenStable();
+    expect(ref.close).toHaveBeenCalledOnce();
+  });
+
+  it('sperrt die Gewichtung bei eingefrorener Wolke und laufender Projektionsänderung', async () => {
+    const frozen = signal(true);
+    const { fixture } = setup('THEME', { frozen });
+    const select = await TestbedHarnessEnvironment.loader(fixture).getHarness(MatSelectHarness);
+    expect(await select.isDisabled()).toBe(true);
+    frozen.set(false);
+    expect(await select.isDisabled()).toBe(false);
+    fixture.componentInstance.projectionPending.set(true);
+    expect(await select.isDisabled()).toBe(true);
   });
 
   it('zeigt Glaettung bei Woertern ohne Sprachschalter', () => {
@@ -514,7 +570,7 @@ describe('QaWordCloudDialogComponent', () => {
       /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface \{[^}]*overflow-y:\s*auto/,
     );
     expect(dialogStyles).toMatch(
-      /\.qa-word-cloud-dialog__size-label \{[\s\S]*color:\s*var\(--mat-sys-on-surface-variant\)/,
+      /\.qa-word-cloud-dialog__language-label \{[^}]*color:\s*var\(--mat-sys-on-surface-variant\)/,
     );
     expect(dialogStyles).not.toMatch(/on-surface\) 78%, white/);
   });

@@ -208,7 +208,7 @@ describe('getDemoQuizSeedFingerprint', () => {
   it('zeigt 13 Fragen, alle zehn Typen und genau eine unbewertete Wortwolkenfrage', () => {
     const localeEvidence = {
       de: ['Schritte sortierst', 'zuordnest', 'kategorisierst', 'Wortwolke', 'Freitextfrage'],
-      en: ['order steps', 'match terms', 'categorise examples', 'word cloud', 'free-text'],
+      en: ['order steps', 'match terms', 'categorize examples', 'word cloud', 'free-text'],
       fr: [
         'ordonner des étapes',
         'associer des termes',
@@ -527,9 +527,9 @@ describe('getDemoQuizSeedFingerprint', () => {
 
   it('verwendet idiomatische Demo-Titel statt „Showcase“ in FR, ES und IT', () => {
     const expected = {
-      fr: 'Démonstration pédagogique',
-      es: 'Demostración didáctica',
-      it: 'Dimostrazione didattica',
+      fr: 'Quiz démo',
+      es: 'Cuestionario por equipos de ejemplo',
+      it: 'Quiz a squadre di esempio',
     } as const;
 
     for (const [locale, title] of Object.entries(expected) as Array<

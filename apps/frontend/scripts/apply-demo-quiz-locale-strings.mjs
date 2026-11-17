@@ -577,7 +577,7 @@ _Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
     ],
   },
   en: {
-    name: 'Teaching Showcase: Live Team Demo',
+    name: 'Live team quiz demo',
     teamNames: ['Team 🍎', 'Team 🍐'],
     confidenceLabelLow: 'Very unsure',
     confidenceLabelHigh: 'Very confident',
@@ -586,15 +586,15 @@ _Wähle zu jedem Datum auf der linken Seite das historische Ereignis aus._
 
 The responses will be displayed as a word cloud.
     `,
-    description: md`![Teaching showcase](${PI_IMAGE_URL})
+    description: md`![Live team quiz demo](${PI_IMAGE_URL})
 
-# Teaching Practice Showcase
+# Live team quiz demo
 
-These 13 questions demonstrate all ten arsnova.eu quiz formats in one concise live sequence. You can use images, Markdown and KaTeX, ask learners to rate their confidence after graded questions, and run a numeric question in two discussion rounds.
+These 13 questions introduce all ten arsnova.eu question types in a short live session. Use images, Markdown, and KaTeX, ask participants to rate their answer confidence, and try a numeric estimate with two votes separated by a discussion.
 
-The showcase also demonstrates how learners **order steps**, **match terms one to one** and **categorise examples**, and how you can collect free-text responses from the group and discuss them as a word cloud. Once results are revealed, sample solutions and response distributions expose uncertainty and common misconceptions.
+The demo also shows how to **order steps**, **match terms**, **categorize examples**, and collect free-text responses in a word cloud. Answer keys and response distributions help identify uncertainty and possible misconceptions.
 
-Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a second device during the demo, then open the quiz editor to explore how each question is built.`,
+Time limits, teams, the leaderboard, and bonus codes add energy to the session. Join on a second device, then open the editor to see how each question is built.`,
     questions: [
       {
         text: md`### How is the room feeling right now?
@@ -605,7 +605,7 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Click for full view.*`,
+*Open the image to enlarge it.*`,
         answers: [
           { text: ':smile: Ready to dive in', isCorrect: false },
           { text: ':cry: A little overwhelmed', isCorrect: false },
@@ -616,7 +616,7 @@ Timers, teams, the leaderboard and bonus codes add a playful rhythm. Join on a s
       {
         text: md`### Round $\pi$ to two decimal places.
 
-> **Teaching move:** Use this as a short STEM prompt that combines formulas, media, and open text input.
+> **Teaching move:** Use this numeric estimate with a reference value, an accepted range of 3.135 to 3.15, and allowed inputs from 3.0 to 3.5.
 
 ![The number pi](${PI_IMAGE_URL})
 
@@ -641,7 +641,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Which of these are strong use cases for a quick live check?
+### When is a quick live question useful?
 
 > **Teaching move:** Use this to demonstrate a multiple-answer question.
 
@@ -649,17 +649,17 @@ _Select all that apply._
         `,
         answers: [
           { text: 'Activate prior knowledge at the start of class', isCorrect: true },
-          { text: 'Surface misconceptions halfway through a lesson', isCorrect: true },
+          { text: 'Identify possible misconceptions during an activity', isCorrect: true },
           { text: 'Award individual exam grades without verified identities', isCorrect: false },
           {
-            text: 'Make a final judgement on complex learning goals from one poll',
+            text: 'Make a final judgment on complex learning goals from one poll',
             isCorrect: false,
           },
         ],
       },
       {
         text: md`
-### How many externally visible cubies make up a classic 3×3 Rubik’s Cube?
+### How many small cubes (cubies) make up the outside of a classic 3×3 Rubik’s Cube?
 
 > **Teaching move:** Use this for a game-show beat with pace, suspense, and visible team competition.
 
@@ -715,9 +715,9 @@ Expected answer: the year commonly used as the beginning of the French Revolutio
       },
       {
         text: md`
-### How likely are you to try a live quiz like this in one of your own classes?
+### How likely are you to use a live quiz like this in one of your sessions?
 
-> **Teaching move:** Use this as a quick pulse check, exit ticket, or confidence rating.
+> **Teaching move:** Use this as an exit ticket or quick rating at the end of a session.
         `,
         ratingLabelMin: 'Very unlikely',
         ratingLabelMax: 'Very likely',
@@ -767,34 +767,34 @@ _Match each date on the left to its historical milestone on the right._
         `,
         matchingPairs: [
           {
-            left: '9 November 1918',
+            left: 'November 9, 1918',
             right: 'Proclamation of the Republic by Philipp Scheidemann',
           },
           {
-            left: '28 June 1919',
+            left: 'June 28, 1919',
             right: 'Signing of the Treaty of Versailles',
           },
           {
-            left: '11 August 1919',
+            left: 'August 11, 1919',
             right: 'Signing of the Weimar Constitution by Friedrich Ebert',
           },
           {
-            left: '15 November 1923',
+            left: 'November 15, 1923',
             right: 'Introduction of the Rentenmark',
           },
           {
-            left: '29 October 1929',
-            right: 'Wall Street stock-market crash (“Black Tuesday”)',
+            left: 'October 29, 1929',
+            right: 'Wall Street stock market crash (“Black Tuesday”)',
           },
           {
-            left: '30 January 1933',
+            left: 'January 30, 1933',
             right: 'Appointment of Adolf Hitler as Chancellor',
           },
         ],
       },
       {
         text: md`
-### Categorise the following six works by literary period.
+### Match each work to its German literary movement.
 
 > **Teaching move:** Use categorization prompts in literature or language learning to sort works, concepts, or authors into literary periods.
         `,
@@ -833,7 +833,7 @@ _Match each date on the left to its historical milestone on the right._
     ],
   },
   fr: {
-    name: 'Démonstration pédagogique : quiz en équipe',
+    name: 'Quiz démo en équipe',
     teamNames: ['Équipe 🍎', 'Équipe 🍐'],
     confidenceLabelLow: 'Très peu sûr·e',
     confidenceLabelHigh: 'Très sûr·e',
@@ -844,24 +844,24 @@ Les réponses seront affichées sous forme de nuage de mots.
     `,
     description: md`![Démonstration pédagogique](${PI_IMAGE_URL})
 
-# Démonstration pédagogique
+# Quiz démo en équipe
 
-Ces 13 questions présentent les dix formats de quiz d’arsnova.eu dans un parcours en direct concis. Tu peux utiliser des images, Markdown et KaTeX, recueillir le degré de confiance après les questions notées et proposer une question numérique en deux tours de discussion.
+Ces 13 questions te font découvrir les dix types de questions d’arsnova.eu dans une courte session en direct. Tu peux utiliser des images, Markdown et KaTeX, demander aux participants d’indiquer leur confiance dans leur réponse et proposer une estimation numérique en deux tours de vote séparés par une discussion.
 
-La démonstration montre aussi comment **ordonner des étapes**, **associer des termes un à un**, **classer des exemples** et recueillir des réponses libres pour les commenter sous forme de nuage de mots. Une fois les résultats affichés, les corrigés types et les répartitions des réponses font apparaître les hésitations et les conceptions erronées fréquentes.
+La démo montre aussi comment **ordonner des étapes**, **associer des termes**, **classer des exemples** et recueillir des réponses libres dans un nuage de mots. Les corrigés et la répartition des réponses aident à repérer les hésitations et de possibles conceptions erronées.
 
-Les chronos, les équipes, le classement et les codes bonus donnent du rythme. Rejoins la session sur un deuxième appareil pendant la démo, puis ouvre l’éditeur pour découvrir la construction des questions.`,
+Les limites de temps, le jeu en équipe, le classement et les codes bonus donnent du rythme à la session. Rejoins-la sur un deuxième appareil, puis ouvre l’éditeur pour voir comment chaque question est construite.`,
     questions: [
       {
         text: md`### Comment se sent le groupe en ce moment ?
 
-> **Piste pédagogique :** utilisez cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.
+> **Piste pédagogique :** utilise cette question comme sondage d’humeur rapide au début du cours, avant un débriefing ou après une activité exigeante.
 
 ![Aperçu des émotions](${EMOTION_IMAGE_URL})
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Clique pour agrandir.*`,
+*Ouvre l’image pour l’agrandir.*`,
         answers: [
           { text: ':smile: Prêt·e à s’y mettre', isCorrect: false },
           { text: ':cry: Un peu dépassé·e', isCorrect: false },
@@ -872,7 +872,7 @@ Les chronos, les équipes, le classement et les codes bonus donnent du rythme. R
       {
         text: md`### Arrondis $\pi$ à deux décimales.
 
-> **Piste pédagogique :** utilisez cette question comme brève activité d’estimation en STEM avec valeur de référence, bande de tolérance absolue de 3,1 à 3,2 et plage de plausibilité de 3,0 à 3,5.
+> **Piste pédagogique :** utilise cette question comme brève estimation numérique avec une valeur de référence, un intervalle accepté de 3,135 à 3,15 et des valeurs autorisées de 3,0 à 3,5.
 
 ![Le nombre pi](${PI_IMAGE_URL})
 
@@ -887,7 +887,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       {
         text: md`### Image IA ou photo réelle ?
 
-> **Piste pédagogique :** utilisez cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.
+> **Piste pédagogique :** utilise cette question comme échauffement visuel, relance d’attention ou amorce de discussion sans enjeu d’évaluation.
 
 ![Scène sur un toit](${ROOFTOP_SCENE_IMAGE_URL})`,
         answers: [
@@ -897,15 +897,18 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Lesquels de ces usages conviennent à une question flash en direct ?
+### Dans quels cas une question rapide en direct est-elle utile ?
 
-> **Piste pédagogique :** utilisez cette question pour illustrer un format à réponses multiples.
+> **Piste pédagogique :** utilise cette question pour illustrer un format à réponses multiples.
 
 _Plusieurs réponses possibles._
         `,
         answers: [
           { text: 'Activer les connaissances préalables au début du cours', isCorrect: true },
-          { text: 'Faire émerger des idées fausses au milieu d’une séance', isCorrect: true },
+          {
+            text: 'Repérer de possibles conceptions erronées pendant une activité',
+            isCorrect: true,
+          },
           {
             text: 'Attribuer des notes individuelles sans vérifier les identités',
             isCorrect: false,
@@ -920,7 +923,7 @@ _Plusieurs réponses possibles._
         text: md`
 ### Combien de petits cubes visibles de l’extérieur composent un Rubik’s Cube 3×3 classique ?
 
-> **Piste pédagogique :** utilisez cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
+> **Piste pédagogique :** utilise cette question pour créer un moment façon jeu télévisé, avec rythme, suspense et compétition visible entre équipes.
 
 Il s’agit du Rubik’s Cube classique conçu par Ernő Rubik.
 
@@ -934,9 +937,9 @@ Ressource facultative : [Comment résoudre un Rubik’s Cube 3×3 sans expérien
         ],
       },
       {
-        text: md`### Pour quel environnement de programmation créative ce sketch a-t-il été écrit ?
+        text: md`### Dans quel environnement de programmation créative ce programme a-t-il été écrit ?
 
-> **Piste pédagogique :** utilisez cette question comme reconnaissance rapide en informatique, dans des activités maker ou en STEM.
+> **Piste pédagogique :** utilise cette question pour reconnaître rapidement un programme en informatique ou dans un atelier de création numérique.
 
 ${CODE_FENCE}java
 ${PROCESSING_SKETCH}
@@ -952,7 +955,7 @@ ${CODE_FENCE}`,
         text: md`
 ### Comment appelle-t-on la méthode pédagogique où les apprenant·es votent d’abord individuellement, discutent brièvement, puis votent à nouveau ?
 
-> **Piste pédagogique :** utilisez cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.
+> **Piste pédagogique :** utilise cette question comme rappel d’un terme spécialisé pour montrer les variantes acceptées, les petites inversions de lettres et une correction transparente des réponses courtes, avec attribution de points partiels.
 
 On cherche le terme pédagogique établi pour cette séquence.
         `,
@@ -967,16 +970,16 @@ On cherche le terme pédagogique établi pour cette séquence.
         text: md`
 ### En quelle année la Révolution française a-t-elle commencé ?
 
-> **Piste pédagogique :** utilisez cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.
+> **Piste pédagogique :** utilise cette question comme estimation en deux tours : d’abord une estimation spontanée, puis une brève discussion et une comparaison du second tour avec la valeur de référence, la bande de tolérance et le score.
 
 On cherche l’année généralement retenue comme début de la Révolution française.
         `,
       },
       {
         text: md`
-### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans l’un de tes cours ?
+### Quelle est la probabilité que tu utilises bientôt un quiz en direct comme celui-ci dans une de tes activités ?
 
-> **Piste pédagogique :** utilisez cette question comme prise de température, ticket de sortie ou évaluation rapide.
+> **Piste pédagogique :** utilise cette question comme prise de température, ticket de sortie ou évaluation rapide.
         `,
         ratingLabelMin: 'Très peu probable',
         ratingLabelMax: 'Très probable',
@@ -985,9 +988,9 @@ On cherche l’année généralement retenue comme début de la Révolution fran
         text: md`
 ### Mets dans l’ordre les étapes de l’expression des gènes dans une cellule eucaryote.
 
-> **Piste pédagogique :** utilisez des questions de classement en biologie, chimie ou physique pour vous entraîner aux chaînes de réaction complexes.
+> **Piste pédagogique :** utilise des questions de classement en biologie, chimie ou physique pour travailler les enchaînements de phénomènes complexes.
 
-Mets les six étapes dans la bonne séquence.
+Remets les six étapes dans le bon ordre.
         `,
         orderingItems: [
           {
@@ -1020,7 +1023,7 @@ Mets les six étapes dans la bonne séquence.
         text: md`
 ### Associe chaque date de la République de Weimar à l’événement correspondant.
 
-> **Piste pédagogique :** utilisez des questions d'association en histoire ou géographie pour vérifier des dates clés ou traités de manière 1:1.
+> **Piste pédagogique :** utilise des questions d'association en histoire ou géographie pour associer sans ambiguïté des dates et des événements.
 
 _Associe chaque date à gauche à l’événement historique correspondant à droite._
         `,
@@ -1050,9 +1053,9 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
       },
       {
         text: md`
-### Classe les six œuvres suivantes dans leur période littéraire.
+### Associe chaque œuvre au mouvement littéraire allemand auquel elle appartient.
 
-> **Piste pédagogique :** utilisez des questions de catégorisation en littérature ou langues vivantes pour classer des mouvements littéraires.
+> **Piste pédagogique :** utilise des questions de catégorisation en littérature ou langues vivantes pour associer des œuvres à des mouvements littéraires.
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Lumières / Aufklärung (v. 1720–1785)' },
@@ -1089,7 +1092,7 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
     ],
   },
   es: {
-    name: 'Demostración didáctica: cuestionario por equipos',
+    name: 'Cuestionario por equipos de ejemplo',
     teamNames: ['Equipo 🍎', 'Equipo 🍐'],
     confidenceLabelLow: 'Muy inseguro/a',
     confidenceLabelHigh: 'Muy seguro/a',
@@ -1098,26 +1101,26 @@ _Associe chaque date à gauche à l’événement historique correspondant à dr
 
 Las respuestas se mostrarán como una nube de palabras.
     `,
-    description: md`![Demostración didáctica](${PI_IMAGE_URL})
+    description: md`![Cuestionario por equipos de ejemplo](${PI_IMAGE_URL})
 
-# Demostración didáctica
+# Cuestionario por equipos de ejemplo
 
-Estas 13 preguntas presentan los diez formatos de preguntas de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de confianza tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.
+Estas 13 preguntas presentan los diez tipos de pregunta de arsnova.eu en una breve sesión en directo. Usa imágenes, Markdown y KaTeX, recoge la seguridad en la respuesta y prueba una estimación numérica con dos votaciones separadas por un debate.
 
-La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones modelo y las distribuciones de respuestas revelan dudas y concepciones erróneas frecuentes.
+La demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y las distribuciones de respuestas ayudan a detectar dudas y posibles concepciones erróneas.
 
 Los temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.`,
     questions: [
       {
         text: md`### ¿Cómo está el grupo ahora mismo?
 
-> **Uso didáctico:** Úsalo como check-in rápido al empezar la clase, antes de dar feedback o después de una actividad exigente.
+> **Uso didáctico:** Úsalo para conocer cómo se siente el grupo al empezar, antes de comentar resultados o después de una actividad exigente.
 
 ![Resumen de emociones](${EMOTION_IMAGE_URL})
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Haz clic para ampliar.*`,
+*Abre la imagen para ampliarla.*`,
         answers: [
           { text: ':smile: Con ganas de empezar', isCorrect: false },
           { text: ':cry: Un poco saturado/a', isCorrect: false },
@@ -1128,7 +1131,7 @@ Los temporizadores, los equipos, la clasificación y los códigos de bonificaci�
       {
         text: md`### Redondea $\pi$ a dos decimales.
 
-> **Uso didáctico:** Úsalo como una consigna breve de STEM que combine fórmulas, medios y respuesta abierta.
+> **Uso didáctico:** Esta estimación usa un valor de referencia, un intervalo aceptado de 3,135 a 3,15 y valores de entrada entre 3,0 y 3,5.
 
 ![El número pi](${PI_IMAGE_URL})
 
@@ -1153,15 +1156,15 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### ¿Cuáles de estos usos encajan bien con una comprobación rápida en directo?
+### ¿Cuándo resulta útil una pregunta rápida en directo?
 
 > **Uso didáctico:** Úsalo para mostrar una pregunta de respuesta múltiple con varias opciones correctas.
 
-_Puede haber varias respuestas correctas._
+_Selecciona todas las opciones correctas._
         `,
         answers: [
           { text: 'Activar conocimientos previos al inicio de la clase', isCorrect: true },
-          { text: 'Detectar concepciones erróneas durante la sesión', isCorrect: true },
+          { text: 'Detectar posibles concepciones erróneas durante la actividad', isCorrect: true },
           {
             text: 'Asignar notas individuales sin comprobar la identidad',
             isCorrect: false,
@@ -1174,7 +1177,7 @@ _Puede haber varias respuestas correctas._
       },
       {
         text: md`
-### ¿Cuántos cubitos visibles desde el exterior forman un cubo de Rubik 3×3 clásico?
+### ¿Cuántos cubitos forman la parte exterior de un cubo de Rubik 3×3 clásico?
 
 > **Uso didáctico:** Úsalo para crear un momento tipo concurso, con ritmo, suspense y competencia visible entre equipos.
 
@@ -1230,9 +1233,9 @@ Buscamos el año que se suele tomar como inicio de la Revolución francesa.
       },
       {
         text: md`
-### ¿Qué probabilidades hay de que pruebes pronto un cuestionario en directo como este en una de tus clases?
+### ¿Qué probabilidades hay de que uses un cuestionario en directo como este en una de tus sesiones?
 
-> **Uso didáctico:** Úsalo como pulso rápido, exit ticket o valoración breve de confianza.
+> **Uso didáctico:** Úsalo para recoger una valoración breve al final de la sesión.
         `,
         ratingLabelMin: 'Muy improbable',
         ratingLabelMax: 'Muy probable',
@@ -1306,9 +1309,9 @@ _Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
       },
       {
         text: md`
-### Clasifica las seis obras siguientes por época literaria.
+### Clasifica cada obra según su movimiento literario alemán.
 
-> **Uso didáctico:** Úsalo como pregunta de categorización en literatura para clasificar textos, conceptos o autores por movimientos literarios.
+> **Uso didáctico:** Úsalo como pregunta de clasificación en literatura para clasificar textos, conceptos o autores por movimientos literarios.
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Ilustración / Aufklärung (c. 1720–1785)' },
@@ -1345,7 +1348,7 @@ _Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
     ],
   },
   it: {
-    name: 'Dimostrazione didattica: quiz a squadre',
+    name: 'Quiz a squadre di esempio',
     teamNames: ['Squadra 🍎', 'Squadra 🍐'],
     confidenceLabelLow: 'Per niente sicuro/a',
     confidenceLabelHigh: 'Molto sicuro/a',
@@ -1354,26 +1357,26 @@ _Relaciona cada fecha de la izquierda con su hito histórico a la derecha._
 
 Le risposte saranno visualizzate sotto forma di nuvola di parole.
     `,
-    description: md`![Dimostrazione didattica](${PI_IMAGE_URL})
+    description: md`![Quiz a squadre di esempio](${PI_IMAGE_URL})
 
-# Dimostrazione didattica
+# Quiz a squadre di esempio
 
-Queste 13 domande presentano tutti e dieci i formati di quiz di arsnova.eu in una breve sequenza in diretta. Puoi usare immagini, Markdown e KaTeX, raccogliere il grado di fiducia dopo le domande valutate e proporre una domanda numerica in due turni di discussione.
+Queste 13 domande presentano tutti e dieci i tipi di domanda di arsnova.eu in una breve sessione in diretta. Usa immagini, Markdown e KaTeX, raccogli la sicurezza nella risposta e prova una stima numerica con due votazioni separate da una discussione.
 
-La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Quando vengono mostrati i risultati, le soluzioni modello e le distribuzioni delle risposte evidenziano incertezze e concezioni errate ricorrenti.
+La dimostrazione mostra anche come **ordinare passaggi**, **abbinare termini uno a uno**, **classificare esempi** e raccogliere risposte aperte e discuterle sotto forma di nuvola di parole. Quando vengono mostrati i risultati, le soluzioni e le distribuzioni delle risposte aiutano a individuare incertezze e possibili concezioni errate.
 
 Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo dispositivo durante la dimostrazione, poi apri l’editor per esplorare ogni domanda.`,
     questions: [
       {
         text: md`### Che clima c’è nel gruppo in questo momento?
 
-> **Uso didattico:** Usalo come check-in rapido all’inizio della lezione, prima di un feedback o dopo una fase impegnativa.
+> **Uso didattico:** Usalo per conoscere l’umore del gruppo all’inizio, prima di discutere i risultati o dopo un’attività impegnativa.
 
 ![Panoramica delle emozioni](${EMOTION_IMAGE_URL})
 
 *[credit] Pass / Le Brun (1821), via Wikimedia Commons*
 
-*Clicca per ingrandire.*`,
+*Apri l’immagine per ingrandirla.*`,
         answers: [
           { text: ':smile: Pronto/a a partire', isCorrect: false },
           { text: ':cry: Un po’ sopraffatto/a', isCorrect: false },
@@ -1384,7 +1387,7 @@ Timer, squadre, classifica e codici bonus danno ritmo. Partecipa da un secondo d
       {
         text: md`### Arrotonda $\pi$ a due cifre decimali.
 
-> **Uso didattico:** Usalo come prompt STEM rapido che unisce formule, media e risposta aperta.
+> **Uso didattico:** Questa stima usa un valore di riferimento, un intervallo accettato da 3,135 a 3,15 e valori inseribili da 3,0 a 3,5.
 
 ![Il numero pi](${PI_IMAGE_URL})
 
@@ -1399,7 +1402,7 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       {
         text: md`### Immagine generata dall’IA o foto reale?
 
-> **Uso didattico:** Usalo come avvio visivo, reset dell’attenzione o spunto di discussione a bassa soglia.
+> **Uso didattico:** Usalo come stimolo visivo per richiamare l’attenzione o avviare una discussione accessibile a tutti.
 
 ![Scena sul tetto](${ROOFTOP_SCENE_IMAGE_URL})`,
         answers: [
@@ -1409,15 +1412,15 @@ $$\pi = \int_{-\infty}^{\infty} \frac{\mathrm{d}x}{1 + x^2} = 2 \cdot \int_{-1}^
       },
       {
         text: md`
-### Quali di questi usi sono adatti a una breve verifica in diretta?
+### Quando è utile una domanda rapida in diretta?
 
-> **Uso didattico:** Usalo per mostrare una domanda a scelta multipla con più risposte corrette.
+> **Uso didattico:** Usalo per mostrare una domanda a risposta multipla con più risposte corrette.
 
-_Sono possibili più risposte corrette._
+_Seleziona tutte le opzioni corrette._
         `,
         answers: [
           { text: 'Attivare le conoscenze pregresse all’inizio della lezione', isCorrect: true },
-          { text: 'Far emergere concezioni errate durante l’attività', isCorrect: true },
+          { text: 'Individuare possibili concezioni errate durante l’attività', isCorrect: true },
           {
             text: 'Assegnare voti individuali senza verificare l’identità',
             isCorrect: false,
@@ -1430,7 +1433,7 @@ _Sono possibili più risposte corrette._
       },
       {
         text: md`
-### Da quanti cubetti visibili dall’esterno è composto un classico Cubo di Rubik 3×3?
+### Quanti cubetti formano la parte esterna di un classico cubo di Rubik 3×3?
 
 > **Uso didattico:** Usalo per creare un momento in stile quiz televisivo, con ritmo, suspense e competizione visibile tra squadre.
 
@@ -1486,9 +1489,9 @@ Cerchiamo l’anno comunemente indicato come inizio della Rivoluzione francese.
       },
       {
         text: md`
-### Quanto è probabile che tu provi presto un quiz in diretta come questo in una tua lezione?
+### Quanto è probabile che tu usi un quiz in diretta come questo in una delle tue sessioni?
 
-> **Uso didattico:** Usalo come rapido polso della situazione, exit ticket o autovalutazione di fiducia.
+> **Uso didattico:** Usalo per raccogliere una breve valutazione al termine della sessione.
         `,
         ratingLabelMin: 'Molto improbabile',
         ratingLabelMax: 'Molto probabile',
@@ -1532,7 +1535,7 @@ Disponi i sei passaggi nella sequenza corretta.
         text: md`
 ### Associa le date storiche della Repubblica di Weimar all’evento corrispondente.
 
-> **Uso didattico:** Usalo come domanda di associazione in storia o scienze sociali per verificare date chiave o trattati 1:1.
+> **Uso didattico:** Usalo come domanda di abbinamento in storia o scienze sociali per verificare date chiave o trattati 1:1.
 
 _Collega ciascuna data a sinistra con il relativo evento storico a destra._
         `,
@@ -1562,9 +1565,9 @@ _Collega ciascuna data a sinistra con il relativo evento storico a destra._
       },
       {
         text: md`
-### Classifica le sei opere seguenti per epoca letteraria.
+### Classifica ogni opera in base al movimento letterario tedesco.
 
-> **Uso didattico:** Usalo come domanda di categorizzazione in letteratura per classificare testi o autori per movimento letterario.
+> **Uso didattico:** Usalo come domanda di classificazione in letteratura per classificare testi o autori per movimento letterario.
         `,
         categories: [
           { id: 'cat_aufklaerung', name: 'Illuminismo / Aufklärung (c. 1720–1785)' },

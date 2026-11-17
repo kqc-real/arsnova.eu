@@ -1,5 +1,5 @@
-import { CdkTrapFocus } from '@angular/cdk/a11y';
-import { DecimalPipe, DOCUMENT, formatNumber, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import {
   Component,
   DestroyRef,
@@ -24,6 +24,8 @@ import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { MatIcon } from '@angular/material/icon';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { firstValueFrom } from 'rxjs';
 import { selectFreetextLemmaDisplayEntries } from '../session-host/qa-word-cloud-theme-merge';
 import { WordCloudComponent } from './word-cloud.component';
 import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
@@ -35,7 +37,11 @@ import {
   tryExitDocumentFullscreen,
   tryRequestDocumentFullscreen,
 } from '../../../core/document-fullscreen.util';
-import { remainingCountdownSeconds, stableCountdownDeadlineMs } from '../session-countdown.util';
+import { remainingCountdownSeconds, sessionCountdownKey } from '../session-countdown.util';
+import { musicPhaseForStatus, SessionMusicService } from '../session-music.service';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
+import { getHostSessionRole } from '../../../core/host-session-token';
+import { SoundService } from '../../../core/sound.service';
 import { scrollAppMainToTop } from '../session-auto-scroll.util';
 import {
   localizeKnownServerError,
@@ -51,7 +57,10 @@ import {
   feedbackTitle,
 } from '../../feedback/feedback.config';
 import {
+  confidenceResultResponseCount,
   EMOJI_REACTIONS,
+  isConfidenceDebriefRecommended,
+  MODERATION_COMPASS_RULE_THRESHOLDS,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
   isWordCloudLemmaLocale,
@@ -63,13 +72,14 @@ import type {
   AnalyzeWordCloudInput,
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
+  PresenterQuizResult,
   LeaderboardEntryDTO,
   ReadingReadyStatusDTO,
   SessionStatusUpdate,
   QaQuestionDTO,
   QaQuestionSortMode,
   QaQuestionsListDTO,
-  FreetextWordCloudPresenterProjectionDTO,
+  GetFreetextWordCloudProjectionOutput,
   QaWordCloudPresenterProjectionDTO,
   QuickFeedbackResult,
   SessionInfoDTO,
@@ -96,18 +106,29 @@ import {
 } from '../../../core/locale-from-path';
 import { stripMarkdownToPlainText } from '../../../core/markdown-plain-text.util';
 import { presenterQuestionHeading } from './session-projection-quiz.util';
-import { returnToHostWindow } from './presenter-window.util';
+import { sessionPresentationPath, SessionPresentationState } from './presenter-navigation';
+import { HOST_ACCESS_REFRESH_INTERVAL_MS, renewBrowserHostAccess } from '../host-access-renewal';
+import { FreetextWordCloudVisibilityState } from '../freetext-word-cloud-visibility';
 import {
+  presenterLiveVoteCount,
+  presenterAllHaveVoted,
   presenterCanOpenFollowingQuestion,
   presenterOfferDiscussion,
   presenterQuestionMatchesSession,
   presenterTimerBlocksReveal,
+  presenterVotingClosed,
+  presenterVoteProgressMatches,
 } from './presenter-quiz-controls.util';
+import {
+  ConfirmLeaveDialogComponent,
+  type ConfirmLeaveDialogData,
+} from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
+  scoreboardNickname,
   type KindergartenNicknameBadge,
 } from '../../join/kindergarten-nickname-icons';
 import { extractEdgeEmoji, stripEdgeEmojiMarker } from '../../../shared/emoji-shortcode.util';
@@ -116,10 +137,12 @@ import {
   type FoyerEntranceChip,
 } from '../session-host/foyer-entrance-layer.component';
 import { buildFoyerChipLabel } from '../session-host/foyer-chip-label.util';
+import { LobbyAudienceGridDirective } from './lobby-audience-grid.directive';
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import {
+  LOBBY_AUDIENCE_MAX_INDIVIDUALS,
   lobbyAudienceIsCrowd,
   lobbyAudienceIsPacked,
-  lobbyFitColumnCount,
 } from './lobby-audience-density.util';
 import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
 import {
@@ -127,6 +150,7 @@ import {
   wordCloudTopicProgressLabel,
   wordCloudViewHint,
 } from './word-cloud.util';
+import { formatQaSupportLabel } from '../session-qa-support-label.util';
 import { qaWordCloudReadingHint } from './word-cloud-labels';
 import {
   WordCloudTermExtractorService,
@@ -137,6 +161,7 @@ import {
 type LobbyParticipant = {
   id: string;
   nickname: string;
+  kindergartenAnimalId?: number;
   teamId: string | null;
 };
 
@@ -173,6 +198,14 @@ const TEAM_FOYER_SUPPRESSION_PARTICIPANT_THRESHOLD = 100;
 const TEAM_FOYER_SUPPRESSION_BURST_THRESHOLD = 24;
 const LOBBY_FOYER_LANDED_BADGE_MS = 420;
 
+function hasRepeatedConfusion(count = 0, totalVotes = 0): boolean {
+  return (
+    count >= 2 &&
+    totalVotes > 0 &&
+    count / totalVotes >= MODERATION_COMPASS_RULE_THRESHOLDS.quiz.structuredConfusionMinimumShare
+  );
+}
+
 type LobbyFoyerMotionProfile = {
   stepMs: number;
   enterDurationMs: number;
@@ -206,7 +239,6 @@ function presenterFreetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null
   standalone: true,
   imports: [
     DecimalPipe,
-    CdkTrapFocus,
     MatButton,
     MatButtonToggle,
     MatButtonToggleGroup,
@@ -221,21 +253,30 @@ function presenterFreetextLemmaSnapshotMaxNgramLength(snapshotKey: string | null
     SessionProjectionQuizComponent,
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
+    LobbyAudienceGridDirective,
   ],
   templateUrl: './session-present.component.html',
   styleUrl: './session-present.component.scss',
+  host: { '(document:keydown)': 'onPresenterKeydown($event)' },
 })
 export class SessionPresentComponent implements OnInit, OnDestroy {
   private static readonly META_POLL_MS = 10_000;
   private static readonly LIVE_POLL_MS = 2_000;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly presentationState = inject(SessionPresentationState);
+  private readonly sessionMusic = inject(SessionMusicService);
+  private readonly unloadWarning = inject(SessionUnloadWarningService);
+  private readonly sound = inject(SoundService);
+  private readonly musicReady = signal(false);
+  private hostAccessRefreshTimer: ReturnType<typeof setInterval> | null = null;
   private readonly sanitizer = inject(DomSanitizer);
   private readonly localeId = inject(LOCALE_ID);
   private readonly wordCloudTermExtractor = inject(WordCloudTermExtractorService);
   private readonly themePreset = inject(ThemePresetService);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly document = inject(DOCUMENT);
+  private readonly dialog = inject(MatDialog);
   private readonly hostElement = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
@@ -268,49 +309,31 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.sessionDeadline.isAbsoluteDeadlineReached()) {
       this.closePresentAtDeadline();
     }
+    void renewBrowserHostAccess(this.sessionCode);
+    this.syncMusic();
     this.startPolling();
     void this.refreshSessionMeta();
     void this.refreshPresenterLiveData();
   };
-  private presenterFullscreenActive = false;
-  private suppressNextFullscreenExitReturn = false;
-  private readonly onPresenterKeydown = (event: KeyboardEvent) => {
-    if (
-      event.key === 'Escape' &&
-      !event.repeat &&
-      getDocumentFullscreenElement(this.document) !== null
-    ) {
-      this.returnToHost();
+  private readonly unlockMusic = () => {
+    if (getHostSessionRole(this.sessionCode) !== 'PAIRED_HOST') {
+      this.sound.unlock();
+      this.syncMusic();
     }
+    this.document.removeEventListener('click', this.unlockMusic);
+    this.document.removeEventListener('keydown', this.unlockMusic);
   };
+  private presenterFullscreenActive = false;
   private readonly onFullscreenChange = () => {
     const wasFullscreen = this.presenterFullscreenActive;
     this.syncFullscreenAction();
-    if (!wasFullscreen || this.presenterFullscreenActive) {
-      return;
+    if (wasFullscreen && !this.presenterFullscreenActive) {
+      void this.returnToHost();
     }
-    if (this.suppressNextFullscreenExitReturn) {
-      this.suppressNextFullscreenExitReturn = false;
-      return;
-    }
-    this.returnToHost();
-    queueMicrotask(() => {
-      if (
-        this.destroyRef.destroyed ||
-        getDocumentFullscreenElement(this.document) !== null ||
-        !this.document.hasFocus()
-      ) {
-        return;
-      }
-      void this.router.navigateByUrl(localizePath(`/session/${this.sessionCode}/host`), {
-        replaceUrl: true,
-      });
-    });
   };
   readonly localizedPath = localizePath;
 
-  /** Verbindlicher Vollbild-Einstieg statt einer versteckten Browserfunktion. */
-  readonly showFullscreenAction = signal(false);
+  readonly showFullscreenButton = signal(false);
 
   readonly session = signal<SessionInfoDTO | null>(null);
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
@@ -345,7 +368,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   /** Der letzte Fragenabruf ist fehlgeschlagen, solange der passende Snapshot fehlt. */
   readonly quizQuestionLoadFailed = signal(false);
   readonly returnToHostError = signal('');
+  readonly returnToHostPending = signal(false);
   private readonly quizPageNavHeldContext = signal<string | null>(null);
+  private readonly quizHistory = signal<{
+    liveQuestionId: string;
+    result: PresenterQuizResult;
+  } | null>(null);
+  readonly historyPage = signal({ index: 0, count: 1 });
   readonly emojiReactions = signal<PresenterEmojiReactions | null>(null);
   readonly emojiOrder = EMOJI_REACTIONS;
   private emojiReactionScope: string | null = null;
@@ -426,6 +455,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return {
         ...team,
         members,
+        nicknames: members.map((member) => member.nickname),
         placeholders: Array.from({ length: placeholderCount }, (_, index) => index),
       };
     });
@@ -447,6 +477,17 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly isKindergartenLobby = computed(() => {
     const session = this.session();
     return session?.nicknameTheme === 'KINDERGARTEN' && session.anonymousMode !== true;
+  });
+  readonly lobbyPeopleNames = computed(() => this.lobbyPeople().map((person) => person.nickname));
+  readonly lobbyGridMode = computed(() => {
+    if (this.session()?.anonymousMode === true) return 'count';
+    return this.isKindergartenLobby() ? 'animals' : 'text';
+  });
+  readonly showLobbyAudienceSummary = computed(() => {
+    const count = this.lobbyParticipantCount();
+    return this.lobbyGridMode() === 'count'
+      ? lobbyAudienceIsCrowd(count)
+      : count > LOBBY_AUDIENCE_MAX_INDIVIDUALS;
   });
   readonly canShowLobbyFoyer = computed(() => {
     const session = this.session();
@@ -583,7 +624,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'BEST':
         return $localize`:@@sessionQa.sortBest:Klare Zustimmung`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortControversial:Kontroverse`;
+        return $localize`:@@sessionQa.sortControversial:Geteilte Stimmen`;
       case 'TIME':
         return $localize`:@@sessionQa.sortTime:Zeit`;
     }
@@ -731,27 +772,22 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
   }
 
-  returnToHost(): void {
-    const view = this.document.defaultView;
-    if (!view) {
-      return;
-    }
+  async returnToHost(): Promise<void> {
+    if (this.returnToHostPending()) return;
+    this.returnToHostPending.set(true);
     this.returnToHostError.set('');
-    const fullscreen = getDocumentFullscreenElement(this.document) !== null;
-    const outcome = returnToHostWindow(view, this.sessionCode, {
-      fullscreen,
-      exitFullscreen: () => {
-        this.suppressNextFullscreenExitReturn = true;
-        tryExitDocumentFullscreen(this.document, () => {
-          if (getDocumentFullscreenElement(this.document) !== null) {
-            this.suppressNextFullscreenExitReturn = false;
-          }
-        });
-      },
-    });
-    if (outcome === 'blocked' && !this.destroyRef.destroyed) {
+    try {
+      if (await this.router.navigateByUrl(sessionPresentationPath(this.sessionCode, 'host'))) {
+        return;
+      }
+    } catch {
+      // Die Presenter-Ansicht bleibt bei fehlgeschlagener Navigation bedienbar.
+    } finally {
+      this.returnToHostPending.set(false);
+    }
+    if (!this.destroyRef.destroyed) {
       this.returnToHostError.set(
-        $localize`:@@sessionPresent.returnToHostBlocked:Das Host-Fenster konnte nicht geöffnet werden. Erlaube Pop-up-Fenster für diese Seite und versuche es erneut.`,
+        $localize`:@@sessionPresent.returnToHostError:Die Host-Ansicht konnte nicht geöffnet werden. Bitte versuche es erneut.`,
       );
     }
   }
@@ -770,6 +806,148 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     });
   }
 
+  onPresenterKeydown(event: KeyboardEvent): void {
+    const { key, target } = event;
+    const shortcutKey = key.length === 1 ? key.toUpperCase() : key;
+    if (
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'S'].includes(shortcutKey) ||
+      event.defaultPrevented ||
+      event.isComposing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      this.dialog.openDialogs.length > 0
+    )
+      return;
+
+    const root: HTMLElement = this.hostElement.nativeElement;
+    if (shortcutKey === 'S') {
+      const action = root.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="S"]');
+      if (
+        !action ||
+        this.document.activeElement !== action ||
+        event.repeat ||
+        action.disabled ||
+        action.getAttribute('aria-disabled') === 'true'
+      ) {
+        return;
+      }
+      event.preventDefault();
+      action.click();
+      return;
+    }
+    if (target instanceof Element && target !== this.document.body) {
+      if (
+        target.closest(
+          'input, textarea, select, [contenteditable], [role="combobox"], [role="listbox"], ' +
+            '[role="menu"], [role="radiogroup"], [role="tablist"], [role="slider"], ' +
+            '[role="spinbutton"], [role="toolbar"]',
+        )
+      )
+        return;
+    }
+
+    const vertical = shortcutKey === 'ArrowUp' || shortcutKey === 'ArrowDown';
+    let scope: HTMLElement = root;
+    if (this.showFinishProjection() && !vertical) {
+      const boards = root.querySelectorAll<HTMLElement>('.session-present__board-page-controls');
+      const board =
+        boards.length === 1
+          ? boards[0]
+          : Array.from(boards).find(
+              (controls) => target instanceof Node && controls.contains(target),
+            );
+      if (!board) return;
+      scope = board;
+    }
+
+    const action = scope.querySelector<HTMLButtonElement>(
+      `button[aria-keyshortcuts="${shortcutKey}"]`,
+    );
+    if (action) {
+      event.preventDefault();
+      if (!event.repeat && !action.disabled && action.getAttribute('aria-disabled') !== 'true') {
+        const active = this.document.activeElement;
+        if (!(active instanceof Element) || !root.contains(active)) {
+          action.focus({ preventScroll: true });
+        }
+        action.click();
+      }
+      return;
+    }
+
+    if (
+      !vertical ||
+      !(
+        this.showQaProjection() ||
+        this.showQaWordCloud() ||
+        this.showQuickFeedbackCard() ||
+        this.showLobbyProjection() ||
+        this.showFinishProjection()
+      )
+    ) {
+      return;
+    }
+    const stage = this.qaStage()?.nativeElement;
+    const surface = root.querySelector<HTMLElement>('.session-present');
+    const finish = root.querySelector<HTMLElement>('.session-present__finish');
+    const scroller = [stage, finish, surface].find(
+      (element) => element && element.scrollHeight > element.clientHeight,
+    );
+    if (scroller) {
+      event.preventDefault();
+      scroller.scrollBy({
+        top: shortcutKey === 'ArrowUp' ? -48 : 48,
+        behavior: 'instant',
+      });
+    }
+  }
+
+  async stepQuizHistory(direction: 'previous' | 'next'): Promise<void> {
+    const live = this.presentedQuizQuestion();
+    const current = this.earlierQuizResult();
+    if (!live || !this.showQuizControlFooter() || this.quizControlPending()) return;
+    if (direction === 'previous' && !(current?.hasPrevious ?? live.hasEarlierPresenterResult)) {
+      return;
+    }
+    if (direction === 'next' && !current) return;
+
+    await this.runQuizAction(async () => {
+      if (direction === 'next' && !current?.hasNext) {
+        this.quizHistory.set(null);
+        return;
+      }
+      const result = await trpc.session.getPresenterQuizResult.query(
+        {
+          code: this.sessionCode,
+          liveQuestionId: live.questionId,
+          fromQuestionId: current?.question.questionId,
+          direction,
+        },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      if (
+        this.destroyRef.destroyed ||
+        !this.showQuizControlFooter() ||
+        this.presentedQuizQuestion()?.questionId !== live.questionId
+      )
+        return;
+      if (!result) throw new Error('Presenter result unavailable');
+      this.historyPage.set({ index: 0, count: 1 });
+      this.quizHistory.set({ liveQuestionId: live.questionId, result });
+    });
+  }
+
+  reportHistoryPages(count: number): void {
+    if (!this.earlierQuizResult()) return;
+    const pageCount = Math.max(1, count);
+    this.historyPage.update(({ index }) => ({
+      index: Math.min(index, pageCount - 1),
+      count: pageCount,
+    }));
+  }
+
   async revealPresenterAnswers(): Promise<void> {
     if (!this.presentedQuizQuestion()) {
       return;
@@ -781,6 +959,63 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       );
       this.adoptPresenterStatus(result);
       void this.refreshHostQuestion();
+    });
+  }
+
+  async skipPresenterQuestion(): Promise<void> {
+    const question = this.presentedQuizQuestion();
+    const status = this.session()?.status;
+    if (
+      !question?.questionId ||
+      (status !== 'QUESTION_OPEN' && status !== 'ACTIVE') ||
+      this.quizControlPending()
+    ) {
+      return;
+    }
+
+    const consequences: string[] = [];
+    if (presenterLiveVoteCount(question, this.hostVoteProgress()) > 0) {
+      consequences.push(
+        $localize`:@@sessionHost.skipQuestionDialogVotes:Bereits abgegebene Antworten werden nicht ausgewertet.`,
+      );
+    }
+    if (!this.quizCanOpenFollowingQuestion()) {
+      consequences.push(
+        $localize`:@@sessionHost.skipQuestionDialogEndsSession:Es folgt keine weitere Frage. Die Session wird beendet.`,
+      );
+    }
+
+    const dialogRef = this.dialog.open(ConfirmLeaveDialogComponent, {
+      data: {
+        title: $localize`:@@sessionHost.skipQuestionDialogTitle:Frage auslassen?`,
+        message: $localize`:@@sessionHost.skipQuestionDialogMessage:Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.`,
+        consequences,
+        confirmLabel: $localize`:@@sessionHost.skipQuestionConfirm:Frage auslassen`,
+        cancelLabel: $localize`:@@sessionHost.skipQuestionCancel:Frage behalten`,
+      } satisfies ConfirmLeaveDialogData,
+      width: 'min(26rem, calc(100vw - 1.5rem))',
+      maxWidth: '100vw',
+      autoFocus: '.confirm-leave__confirm',
+    });
+    if ((await firstValueFrom(dialogRef.afterClosed())) !== true) {
+      return;
+    }
+
+    await this.runQuizAction(async () => {
+      const result = await trpc.session.skipQuestion.mutate(
+        { code: this.sessionCode, questionId: question.questionId },
+        { signal: AbortSignal.timeout(10000) },
+      );
+      this.adoptPresenterStatus(result);
+      void this.refreshHostQuestion();
+      if (result.status === 'FINISHED') {
+        this.finishBoardsResolved.set(false);
+        void this.loadPresenterLeaderboards().finally(() => {
+          if (!this.destroyRef.destroyed) {
+            this.finishBoardsResolved.set(true);
+          }
+        });
+      }
     });
   }
 
@@ -887,8 +1122,16 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   async changeQuizProjectionPage(delta: -1 | 1): Promise<void> {
+    if (this.quizControlPending()) return;
+    if (this.earlierQuizResult()) {
+      this.historyPage.update((page) => ({
+        ...page,
+        index: Math.max(0, Math.min(page.index + delta, page.count - 1)),
+      }));
+      return;
+    }
     const page = this.session()?.presenterPage;
-    if (!page || this.quizControlPending() || !this.showQuizControlFooter()) {
+    if (!page || !this.showQuizControlFooter()) {
       return;
     }
     const count = Math.max(1, page.count);
@@ -972,6 +1215,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         if (this.destroyRef.destroyed || trigger.isConnected) {
           return;
         }
+        const active = this.document.activeElement;
+        if (active && active !== this.document.body && active.isConnected) return;
         this.quizPhaseFocusTarget()?.focus({ preventScroll: true });
       },
       { injector: this.injector },
@@ -1023,21 +1268,21 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private quizPhaseFocusTarget(): HTMLElement | null {
     const root = this.hostElement.nativeElement;
-    const selectors = this.showFullscreenAction()
-      ? ['[data-testid="presenter-return-to-host"]', '[data-testid="presenter-fullscreen-enter"]']
-      : [
-          '[data-testid="presenter-quiz-question-retry"]',
-          '[data-testid="presenter-quiz-question-pending"]',
-          '[data-testid="presenter-quiz-resume"]',
-          '[data-testid="presenter-quiz-reveal-answers"]',
-          '[data-testid="presenter-quiz-discussion"]',
-          '[data-testid="presenter-quiz-second-round"]',
-          '[data-testid="presenter-quiz-reveal-results"]',
-          '[data-testid="presenter-quiz-next-question"]',
-          '[data-testid="presenter-quiz-finish"]',
-          '[data-testid="presenter-return-to-host"]',
-          '[data-testid="presenter-surface"]',
-        ];
+    const selectors = [
+      '[data-testid="presenter-quiz-question-retry"]',
+      '[data-testid="presenter-quiz-question-pending"]',
+      '[data-testid="presenter-quiz-start"]',
+      '[data-testid="presenter-quiz-resume"]',
+      '[data-testid="presenter-quiz-reveal-answers"]',
+      '[data-testid="presenter-quiz-discussion"]',
+      '[data-testid="presenter-quiz-second-round"]',
+      '[data-testid="presenter-quiz-reveal-results"]',
+      '[data-testid="presenter-quiz-next-question"]',
+      '[data-testid="presenter-quiz-finish"]',
+      '[data-testid="presenter-quiz-history-previous"]',
+      '[data-testid="presenter-return-to-host"]',
+      '[data-testid="presenter-surface"]',
+    ];
     for (const selector of selectors) {
       const element = root.querySelector(selector);
       if (!(element instanceof HTMLElement)) {
@@ -1046,9 +1291,28 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       if (element.hasAttribute('disabled') || element.getAttribute('aria-disabled') === 'true') {
         continue;
       }
+      if (element.closest('[hidden], [inert]')) continue;
       return element;
     }
     return null;
+  }
+
+  /** Übernimmt nach dem Routenwechsel den Fokus vom entfernten Host-/Dialog-Auslöser. */
+  private focusPresenterAfterNavigation(): void {
+    let adoptedTarget: HTMLElement | null = null;
+    const focus = (): void => {
+      if (this.destroyRef.destroyed || this.dialog.openDialogs.length > 0) return;
+      const root = this.hostElement.nativeElement;
+      const active = this.document.activeElement;
+      if (active instanceof HTMLElement && root.contains(active) && active !== adoptedTarget)
+        return;
+      const target = this.quizPhaseFocusTarget();
+      if (!target || target === active) return;
+      target.focus({ preventScroll: true });
+      adoptedTarget = target;
+    };
+    focus();
+    afterNextRender(focus, { injector: this.injector });
   }
 
   private adoptPresenterStatus(update: SessionStatusUpdate): void {
@@ -1135,11 +1399,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }).format(new Date(isoDate));
   }
 
-  formatQaPercent(value: number | undefined): string {
-    if (!Number.isFinite(value)) {
-      return '0 %';
-    }
-    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  formatQaSupport(question: QaQuestionDTO): string | null {
+    return formatQaSupportLabel(question, this.localeId);
   }
 
   readonly showQaWordCloud = computed(() => {
@@ -1152,9 +1413,25 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly wordCloudTermLocale = computed<SupportedLocale>(() =>
     getEffectiveLocale(localeIdToSupported(this.localeId)),
   );
-  readonly freetextWordCloudProjection = signal<FreetextWordCloudPresenterProjectionDTO | null>(
-    null,
+  readonly freetextWordCloudProjection =
+    signal<GetFreetextWordCloudProjectionOutput['projection']>(null);
+  private readonly freetextVisibility = new FreetextWordCloudVisibilityState();
+  private readonly freetextVisibilityAuthorized = signal(false);
+  readonly freetextVisibilitySnapshot = computed(() => {
+    const snapshot = this.freetextVisibility.snapshot();
+    return snapshot?.questionId === this.freetextQuestionId() ? snapshot : null;
+  });
+  readonly freetextVisibilityPending = this.freetextVisibility.pending.asReadonly();
+  readonly canHideFreetextWord = computed(
+    () => this.freetextVisibilityAuthorized() && this.freetextVisibilitySnapshot() !== null,
   );
+  readonly hideFreetextWord = async (label: string): Promise<void> => {
+    const questionId = this.freetextVisibilitySnapshot()?.questionId;
+    if (!questionId || !this.canHideFreetextWord() || this.presentDeadlineClosed) {
+      throw new Error('Freitext question unavailable');
+    }
+    await this.freetextVisibility.update(this.sessionCode, questionId, label, true);
+  };
   /** Gesetzte Presenter-Ansicht bleibt bestehen, auch wenn der Host danach neu projiziert. */
   readonly presenterFreetextWordCloudModeOverride = signal<PresenterFreetextWordCloudMode | null>(
     null,
@@ -1538,7 +1815,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return null;
     }
     const projection = this.currentFreetextWordCloudProjection();
-    if (!projection || projection.entries.length === 0) {
+    if (!projection || (projection.entries.length === 0 && !projection.moderatedEmpty)) {
       return null;
     }
     return projection.entries.map((entry) => ({
@@ -1839,6 +2116,61 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       ? question
       : null;
   });
+  readonly hostAnalysisHints = computed(() => {
+    if (
+      this.session()?.status !== 'RESULTS' ||
+      !this.showQuizProjection() ||
+      this.earlierQuizResult() ||
+      this.showPresenterFreetextResultsStage()
+    ) {
+      return [];
+    }
+    const question = this.presentedQuizQuestion();
+    if (!question) return [];
+
+    const hints: string[] = [];
+    const result = question.confidenceResult;
+    if (
+      result &&
+      isConfidenceDebriefRecommended({
+        result,
+        responseCount: confidenceResultResponseCount(result),
+      })
+    ) {
+      hints.push(
+        $localize`:@@sessionPresent.hostAnalysisConfidence:Antwortsicherheit im Detail ansehen`,
+      );
+    }
+
+    switch (question.type) {
+      case 'MATCHING': {
+        const stats = question.matchingStats;
+        if (hasRepeatedConfusion(stats?.commonConfusions[0]?.count, stats?.totalVotes)) {
+          hints.push(
+            $localize`:@@sessionPresent.hostAnalysisMatching:Zuordnungen im Detail ansehen`,
+          );
+        }
+        break;
+      }
+      case 'ORDERING': {
+        const stats = question.orderingStats;
+        if (hasRepeatedConfusion(stats?.commonSwaps[0]?.count, stats?.totalVotes)) {
+          hints.push($localize`:@@sessionPresent.hostAnalysisOrdering:Positionsverteilung ansehen`);
+        }
+        break;
+      }
+      case 'CATEGORIZATION': {
+        const stats = question.categorizationStats;
+        if (hasRepeatedConfusion(stats?.commonMisclassifications[0]?.count, stats?.totalVotes)) {
+          hints.push(
+            $localize`:@@sessionPresent.hostAnalysisCategorization:Kategorienverteilung ansehen`,
+          );
+        }
+        break;
+      }
+    }
+    return hints;
+  });
   readonly quizQuestionAwaitingSnapshot = computed(() => {
     const session = this.session();
     if (
@@ -1896,6 +2228,44 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     return page.count > 1 || this.quizPageNavHeldContext() === page.context;
   });
+  readonly earlierQuizResult = computed(() => {
+    const history = this.quizHistory();
+    return history &&
+      this.showQuizControlFooter() &&
+      this.presentedQuizQuestion()?.questionId === history.liveQuestionId
+      ? history.result
+      : null;
+  });
+  readonly historyWordCloudTerms = computed(() => {
+    const responses = this.earlierQuizResult()?.question.freeTextResponses ?? [];
+    return this.wordCloudTermExtractor.extractTerms(
+      responses.map((body, index) => ({ id: `response-${index}`, body })),
+      {
+        locale: this.presenterFreetextTermLocale(),
+        maxEntries: 80,
+        maxNgramLength: WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
+      },
+    );
+  });
+  readonly historyWordCloudTitle = computed(() =>
+    stripMarkdownToPlainText(this.earlierQuizResult()?.question.text ?? ''),
+  );
+  readonly displayedQuizPage = computed(() => {
+    if (this.earlierQuizResult()) return this.historyPage().count > 1 ? this.historyPage() : null;
+    return this.showQuizPageNav() ? (this.session()?.presenterPage ?? null) : null;
+  });
+  readonly quizRevealShortcut = computed(
+    () =>
+      !this.quizTimerBlocksReveal() &&
+      !this.quizOfferDiscussion() &&
+      presenterVotingClosed(
+        this.session()?.status ?? null,
+        this.presentedQuizQuestion(),
+        this.hostVoteProgress(),
+        this.presentedParticipantCount(),
+        this.countdownSeconds(),
+      ),
+  );
   readonly quizTimerBlocksReveal = computed(() =>
     presenterTimerBlocksReveal(
       this.session()?.status ?? null,
@@ -1916,17 +2286,25 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   readonly quizCanOpenFollowingQuestion = computed(() =>
     presenterCanOpenFollowingQuestion(this.presentedQuizQuestion()),
   );
-  readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
-  readonly winningTeam = computed(() => this.teamLeaderboard()[0] ?? null);
+  private readonly personalLeaderboardPlaces = computed(() =>
+    withPresenterPlaces(this.personalLeaderboard()),
+  );
+  private readonly teamLeaderboardPlaces = computed(() =>
+    withPresenterPlaces(this.teamLeaderboard()),
+  );
+  readonly personalLeaderboardWinner = computed(() => {
+    const [first, second] = this.personalLeaderboardPlaces();
+    return second?.place === 1 ? null : (first ?? null);
+  });
+  readonly winningTeam = computed(() => {
+    const [first, second] = this.teamLeaderboardPlaces();
+    return this.teamScoreboardHasPoints() && second?.place !== 1 ? first : null;
+  });
   readonly teamLeaderboardMaxScore = computed(() =>
     Math.max(1, ...this.teamLeaderboard().map((entry) => entry.totalScore)),
   );
-  readonly teamLeaderboardTopScore = computed(() => {
-    const board = this.teamLeaderboard();
-    if (board.length === 0) return 0;
-    return Math.max(...board.map((e) => e.totalScore));
-  });
-  readonly teamScoreboardHasPoints = computed(() => this.teamLeaderboardTopScore() > 0);
+  readonly teamScoreboardHasPoints = computed(() => leaderboardHasPoints(this.teamLeaderboard()));
+  readonly teamPodiumMedals = ['🥇', '🥈', '🥉'] as const;
   /** Ab dieser Länge wird die Boardliste mehrspaltig, damit alle Einträge auf der Projektion bleiben. */
   private static readonly BOARD_OVERFLOW_COUNT = 8;
   readonly personalBoardOverflows = computed(
@@ -1967,10 +2345,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   readonly visiblePersonalLeaderboard = computed(() =>
-    SessionPresentComponent.pageSlice(this.personalLeaderboard(), this.personalBoardPageIndex()),
+    SessionPresentComponent.pageSlice(
+      this.personalLeaderboardPlaces(),
+      this.personalBoardPageIndex(),
+    ),
   );
   readonly visibleTeamLeaderboard = computed(() =>
-    SessionPresentComponent.pageSlice(this.teamLeaderboard(), this.teamBoardPageIndex()),
+    SessionPresentComponent.pageSlice(this.teamLeaderboardPlaces(), this.teamBoardPageIndex()),
   );
   readonly personalBoardPageCount = computed(() =>
     SessionPresentComponent.pageCountForTotal(this.personalLeaderboard().length),
@@ -2041,7 +2422,74 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     () => this.quickFeedbackResultsVisible() && (this.quickFeedbackResult()?.totalVotes ?? 0) >= 5,
   );
 
+  private readonly musicTrack = computed(() => {
+    const session = this.session();
+    if (!session || session.presenterSurface === 'ended') return null;
+    const channel = session.preferredChannel ?? (session.type === 'Q_AND_A' ? 'qa' : 'quiz');
+    if (channel === 'quickFeedback' && this.quickFeedbackResult()?.locked) return null;
+
+    const question = this.presentedQuizQuestion();
+    const progress = this.hostVoteProgress();
+    if (
+      presenterAllHaveVoted(session.status, question, progress, this.presentedParticipantCount())
+    ) {
+      return null;
+    }
+    const remaining = (session.currentRound ?? 1) === 1 ? this.countdownSeconds() : null;
+    const personalTime =
+      remaining === 0 &&
+      session.enableTimerAccommodation !== false &&
+      presenterVoteProgressMatches(question, progress) &&
+      ((progress.blockingTimerAccommodationCount ?? 0) > 0 ||
+        (progress.pendingTimerAccommodationCount ?? 0) > 0);
+    const phase = musicPhaseForStatus(session.status, personalTime);
+    if (phase === 'countdown' && remaining !== null && remaining <= 7) return null;
+    return this.sessionMusic.trackFor(phase, channel);
+  });
+
+  private syncMusic(): void {
+    if (this.destroyRef.destroyed) return;
+    const status = this.session()?.status;
+    if (getHostSessionRole(this.sessionCode) === 'PAIRED_HOST') {
+      this.sessionMusic.stop(this.sessionCode);
+    } else if (status && (this.musicReady() || musicPhaseForStatus(status, false) === null)) {
+      this.sessionMusic.sync(this.sessionCode, status, this.musicTrack());
+    }
+  }
+
   async ngOnInit(): Promise<void> {
+    this.musicReady.set(!this.sessionMusic.enter(this.sessionCode));
+    effect(
+      () => {
+        if (!this.quizHistory() || this.earlierQuizResult()) return;
+        const active = this.quizActionTrigger();
+        this.quizHistory.set(null);
+        if (active?.closest('[data-testid="presenter-quiz-controls"]')) {
+          this.scheduleQuizControlFocus(active);
+        }
+      },
+      { injector: this.injector },
+    );
+    effect(
+      () => {
+        const session = this.session();
+        if (this.showHomeCta() || session?.hostEnded) {
+          this.unloadWarning.sync(this.sessionCode, null);
+        } else if (session) {
+          this.unloadWarning.sync(this.sessionCode, session.status, this.lobbyParticipantCount());
+        }
+      },
+      { injector: this.injector },
+    );
+    effect(
+      () => {
+        this.musicReady();
+        this.session();
+        this.musicTrack();
+        untracked(() => this.syncMusic());
+      },
+      { injector: this.injector },
+    );
     effect(
       () => {
         const page = this.session()?.presenterPage;
@@ -2086,7 +2534,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
       document.addEventListener('fullscreenchange', this.onFullscreenChange);
       document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
-      document.addEventListener('keydown', this.onPresenterKeydown, true);
+      document.addEventListener('click', this.unlockMusic);
+      document.addEventListener('keydown', this.unlockMusic);
     }
     this.syncFullscreenAction();
     if (this.code.length !== 6) {
@@ -2096,6 +2545,14 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
 
     this.hostDisplayMode.setHostSessionActive(true);
+    this.presentationState.markStarted(this.sessionCode);
+    if (this.document.defaultView) {
+      void renewBrowserHostAccess(this.sessionCode);
+      this.hostAccessRefreshTimer = setInterval(
+        () => void renewBrowserHostAccess(this.sessionCode),
+        HOST_ACCESS_REFRESH_INTERVAL_MS,
+      );
+    }
     await this.refreshSessionMeta();
     // Nach Navigation während des Ladens keine Subscriptions oder Intervalle mehr starten.
     if (this.destroyRef.destroyed) {
@@ -2105,6 +2562,8 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     if (this.destroyRef.destroyed) {
       return;
     }
+    this.focusPresenterAfterNavigation();
+    this.musicReady.set(true);
     this.ensurePresenterSubscriptions();
     this.startPolling();
     void this.generateJoinQr();
@@ -2116,7 +2575,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
       document.removeEventListener('fullscreenchange', this.onFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
-      document.removeEventListener('keydown', this.onPresenterKeydown, true);
+      document.removeEventListener('click', this.unlockMusic);
+      document.removeEventListener('keydown', this.unlockMusic);
+      tryExitDocumentFullscreen(this.document);
+    }
+    if (this.hostAccessRefreshTimer !== null) {
+      clearInterval(this.hostAccessRefreshTimer);
     }
     this.stopPolling();
     this.stopSessionDeadlineTimer();
@@ -2129,44 +2593,54 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.hostDisplayMode.setHostSessionActive(false);
   }
 
-  private measuredProjectionPage: { context: string; count: number } | null = null;
+  private measuredProjectionPage: {
+    context: string;
+    count: number;
+    sectionStarts?: number[] | null;
+  } | null = null;
   private reportingProjectionPage = false;
   private projectionReportRetry: ReturnType<typeof setTimeout> | null = null;
 
   enterPresenterFullscreen(): void {
-    tryRequestDocumentFullscreen(this.document, () => this.syncFullscreenAction());
+    tryRequestDocumentFullscreen(this.document);
   }
 
   private syncFullscreenAction(): void {
-    const wasVisible = this.showFullscreenAction();
     this.presenterFullscreenActive = getDocumentFullscreenElement(this.document) !== null;
     const shouldShow =
       isDocumentFullscreenEnterAvailable(this.document) && !this.presenterFullscreenActive;
-    this.showFullscreenAction.set(shouldShow);
-    if (wasVisible && !shouldShow) {
-      queueMicrotask(() => {
-        if (this.destroyRef.destroyed) return;
-        const surface = this.hostElement.nativeElement.querySelector(
-          '[data-testid="presenter-surface"]',
-        ) as HTMLElement | null;
-        if (surface?.isConnected) {
-          surface.focus({ preventScroll: true });
-        }
-      });
+    if (!shouldShow && this.showFullscreenButton()) {
+      const root: HTMLElement = this.hostElement.nativeElement;
+      const fullscreenButton = root.querySelector('[data-testid="presenter-fullscreen-enter"]');
+      if (fullscreenButton && this.document.activeElement === fullscreenButton) {
+        root
+          .querySelector<HTMLElement>('[data-testid="presenter-surface"]')
+          ?.focus({ preventScroll: true });
+      }
     }
+    this.showFullscreenButton.set(shouldShow);
   }
 
-  async reportProjectionPages(count: number): Promise<void> {
+  async reportProjectionPages(
+    layout: number | { count: number; sectionStarts?: number[] | null },
+  ): Promise<void> {
     const page = this.session()?.presenterPage;
     if (!page || this.destroyRef.destroyed) return;
-    this.measuredProjectionPage = { context: page.context, count };
+    const measuredLayout = typeof layout === 'number' ? { count: layout } : layout;
+    this.measuredProjectionPage = { context: page.context, ...measuredLayout };
     if (this.reportingProjectionPage) return;
     this.reportingProjectionPage = true;
     try {
       while (!this.destroyRef.destroyed) {
         const measured = this.measuredProjectionPage;
         const current = this.session()?.presenterPage;
-        if (!measured || measured.context !== current?.context || measured.count === current.count)
+        if (
+          !measured ||
+          measured.context !== current?.context ||
+          (measured.count === current.count &&
+            JSON.stringify(measured.sectionStarts ?? undefined) ===
+              JSON.stringify(current.sectionStarts))
+        )
           break;
         const result = await trpc.session.setPresenterSurface.mutate(
           {
@@ -2188,7 +2662,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.projectionReportRetry = setTimeout(() => {
           const measured = this.measuredProjectionPage;
           if (measured?.context === this.session()?.presenterPage?.context) {
-            void this.reportProjectionPages(measured!.count);
+            void this.reportProjectionPages(measured!);
           }
         }, 2000);
       }
@@ -2257,10 +2731,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       await this.refreshQaWordCloudProjection();
       return;
     }
-    await this.refreshLiveFreetext();
+    const gotHostProjection = await this.refreshLiveFreetext();
     // Erst nach dem Freitext-Stand: die Bühne und die Fragen-Id gibt es vorher nicht,
     // und ein früher Abruf würde die lokale Phrasenwolke stehen lassen.
-    if (this.showPresenterFreetextResultsStage()) {
+    if (!gotHostProjection && this.showPresenterFreetextResultsStage()) {
       await this.refreshFreetextWordCloudProjection();
     }
     await this.refreshQaQuestions();
@@ -2270,6 +2744,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     await this.refreshHostVoteProgress();
     await this.refreshQuizAudience();
     await this.refreshLobbyAudience();
+    if (!this.destroyRef.destroyed) this.syncMusic();
   }
 
   teamScoreBarWidth(totalScore: number): string {
@@ -2280,7 +2755,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   readonly lobbyAudienceIsCrowd = lobbyAudienceIsCrowd;
   readonly lobbyAudienceIsPacked = lobbyAudienceIsPacked;
-  readonly lobbyFitColumnCount = lobbyFitColumnCount;
 
   teamMemberLabel(count: number): string {
     return count === 1 ? $localize`${count} Mitglied` : $localize`${count} Mitglieder`;
@@ -2295,13 +2769,15 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionPresent.lobbyAudienceCountMany:${formatted}:count: Teilnehmende`;
   }
 
-  lobbyNicknameBadge(nickname: string): KindergartenNicknameBadge | null {
+  lobbyNicknameBadge(nickname: string, animalId?: number): KindergartenNicknameBadge | null {
     const session = this.session();
     if (session?.nicknameTheme !== 'KINDERGARTEN' || session.anonymousMode === true) {
       return null;
     }
-    return findKindergartenNicknameBadge(nickname);
+    return findKindergartenNicknameBadge(nickname, undefined, animalId);
   }
+
+  readonly animalIconUrl = animalIconUrl;
 
   packedLobbyIdentity(participant: LobbyParticipant, packed: boolean): PackedLobbyIdentity | null {
     if (!packed) {
@@ -2369,8 +2845,10 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return $localize`${entry.teamName} gewinnt mit ${formatLocaleCount(entry.totalScore, this.localeId)}:totalScore: Punkten!`;
   }
 
-  leaderboardKindergartenEmoji(nickname: string): string | null {
-    return findKindergartenNicknameEmoji(nickname);
+  readonly scoreboardNickname = scoreboardNickname;
+
+  leaderboardKindergartenEmoji(nickname: string, animalId?: number): string | null {
+    return findKindergartenNicknameEmoji(nickname, undefined, animalId);
   }
 
   teamNameEmojiMarker(teamName: string | null | undefined): string | null {
@@ -2534,6 +3012,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.personalLeaderboard.set([]);
       this.teamLeaderboard.set([]);
     } catch (error: unknown) {
+      if (this.destroyRef.destroyed || refreshEpoch !== this.presentSessionMetaRefreshEpoch) return;
       if (!this.isDefinitiveSessionError(error)) {
         this.snapshotRefreshFailed.set(true);
         this.showHomeCta.set(false);
@@ -2543,6 +3022,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return;
       }
       this.snapshotRefreshFailed.set(false);
+      this.sessionMusic.stop(this.sessionCode);
       this.session.set(null);
       this.showHomeCta.set(true);
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
@@ -2608,6 +3088,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
   private closePresentAtDeadline(): void {
     this.presentDeadlineClosed = true;
+    this.sessionMusic.stop(this.sessionCode);
     this.stopSessionDeadlineTimer();
     this.stopCountdown();
     this.stopBoardPageTimer();
@@ -2724,24 +3205,35 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshLiveFreetext(): Promise<void> {
+  private async refreshLiveFreetext(): Promise<boolean> {
     if (
       !this.session() ||
       this.presentDeadlineClosed ||
       this.session()?.presenterSurface === 'qaWordCloud' ||
       this.showFinishProjection()
     ) {
-      return;
+      return false;
     }
 
+    const visibilityRead = this.freetextVisibility.beginRead();
     try {
-      const data = await trpc.session.getLiveFreetext.query({ code: this.code.toUpperCase() });
-      if (this.presentDeadlineClosed) return;
+      const data = await trpc.session.getLiveFreetext.query({
+        code: this.code.toUpperCase(),
+        includeWordCloudProjection: true,
+      });
+      if (this.presentDeadlineClosed) return false;
+      const previousLanguage = this.presenterFreetextTermLocale();
+      this.freetextVisibility.applyRead(visibilityRead, data.wordCloudVisibility ?? null);
+      this.freetextVisibilityAuthorized.set(data.wordCloudVisibility !== undefined);
       if (data.questionId !== this.freetextQuestionId()) {
         this.resetPresenterFreetextWordCloudControls();
       }
       this.freetextResponses.set(data.responses);
       this.freetextQuestionId.set(data.questionId);
+      if (data.wordCloudProjection !== undefined) {
+        this.freetextWordCloudProjection.set(data.wordCloudProjection);
+        this.invalidatePresenterFreetextAfterLanguageChange(previousLanguage);
+      }
 
       if (data.questionType === 'FREETEXT') {
         this.presenterFreetextActive.set(true);
@@ -2760,8 +3252,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         this.currentQuestionLabel.set(null);
         this.presenterInfo.set($localize`Noch keine aktive Frage.`);
       }
-    } catch {
+      return data.wordCloudProjection !== undefined;
+    } catch (error) {
+      if (this.errorCode(error) === 'UNAUTHORIZED') {
+        this.freetextVisibilityAuthorized.set(false);
+      }
       // Einzelner Live-Abruf: letzten Stand behalten; Meta-Poll und WS melden den Gesamtzustand.
+      return false;
     }
   }
 
@@ -3590,8 +4087,13 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     const question = this.hostQuestion();
-    const nextKey = `${question?.questionId ?? 'none'}:${question?.currentRound ?? 1}:${timerSeconds}`;
-    const nextDeadline = stableCountdownDeadlineMs({
+    const session = this.session();
+    const nextKey = sessionCountdownKey(
+      session?.currentQuestion ?? question?.order,
+      session?.currentRound ?? question?.currentRound,
+      timerSeconds,
+    );
+    const nextDeadline = this.sessionMusic.resolveCountdownDeadline(this.sessionCode, {
       timerSeconds,
       activeAt,
       currentDeadlineMs: this.countdownDeadlineMs,
@@ -3624,6 +4126,22 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       }
       const remaining = remainingCountdownSeconds(deadline);
       this.countdownSeconds.set(remaining);
+      if ((this.session()?.currentRound ?? 1) === 1) {
+        const session = this.session();
+        this.sessionMusic.tickCountdown(
+          this.sessionCode,
+          deadline,
+          remaining,
+          session?.enableSoundEffects === true &&
+            getHostSessionRole(this.sessionCode) !== 'PAIRED_HOST' &&
+            !presenterAllHaveVoted(
+              session.status,
+              this.presentedQuizQuestion(),
+              this.hostVoteProgress(),
+              this.presentedParticipantCount(),
+            ),
+        );
+      }
       if (remaining <= 0 && this.countdownTimer) {
         clearInterval(this.countdownTimer);
         this.countdownTimer = null;
@@ -3689,6 +4207,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         payload.recentArrivals.map((participant) => ({
           id: participant.id,
           nickname: participant.nickname,
+          kindergartenAnimalId: participant.kindergartenAnimalId,
           teamId: participant.teamId ?? null,
         })),
       );
@@ -3787,7 +4306,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     const sequence = this.lobbyFoyerSequence++;
     const kindergartenEmoji =
       session?.nicknameTheme === 'KINDERGARTEN' && session.anonymousMode !== true
-        ? findKindergartenNicknameEmoji(participant.nickname)
+        ? findKindergartenNicknameEmoji(
+            participant.nickname,
+            undefined,
+            participant.kindergartenAnimalId,
+          )
         : null;
     const label = buildFoyerChipLabel({
       nickname: participant.nickname,
@@ -3805,6 +4328,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
 
     return {
       ...label,
+      ...(kindergartenEmoji ? { emojiImageUrl: this.animalIconUrl(kindergartenEmoji) } : {}),
       id: `${participant.id}-${sequence}`,
       participantId: participant.id,
       teamId: participant.teamId,

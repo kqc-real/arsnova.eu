@@ -267,7 +267,18 @@ function checkRootRedirectPreservesHash() {
 }
 
 function checkLegalPagesOmitHomeHreflang() {
-  for (const page of ['impressum', 'datenschutz']) {
+  for (const page of [
+    'impressum',
+    'datenschutz',
+    'fr/impressum',
+    'fr/datenschutz',
+    'en/impressum',
+    'en/datenschutz',
+    'es/impressum',
+    'es/datenschutz',
+    'it/impressum',
+    'it/datenschutz',
+  ]) {
     const pagePath = join(dist, page, 'index.html');
     if (!existsSync(pagePath)) {
       fail(`Missing built legal page: /${page}/`);
@@ -280,6 +291,93 @@ function checkLegalPagesOmitHomeHreflang() {
       html.includes('rel="alternate" hreflang="en"')
     ) {
       fail(`/${page}/ must not declare localized-home hreflang alternates`);
+    }
+  }
+}
+
+function checkLocalizedLegalPages() {
+  const legalCopy = {
+    en: {
+      notice: 'Legal notice',
+      privacy: 'Privacy policy',
+      country: 'United States',
+      article: 'Article',
+    },
+    fr: {
+      notice: 'Mentions légales',
+      privacy: 'Politique de confidentialité',
+      country: 'États-Unis',
+      article: 'article',
+    },
+    es: {
+      notice: 'Aviso legal',
+      privacy: 'Política de privacidad',
+      country: 'Estados Unidos',
+      article: 'artículo',
+    },
+    it: {
+      notice: 'Note legali',
+      privacy: 'Informativa sulla privacy',
+      country: 'Stati Uniti',
+      article: 'articolo',
+    },
+  };
+  for (const [locale, copy] of Object.entries(legalCopy)) {
+    const home = readFileSync(join(dist, locale, 'index.html'), 'utf8');
+    const sitemap = readFileSync(join(dist, 'sitemap.xml'), 'utf8');
+    for (const [slug, title] of [
+      ['impressum', copy.notice],
+      ['datenschutz', copy.privacy],
+    ]) {
+      const file = join(dist, locale, slug, 'index.html');
+      if (!existsSync(file)) {
+        fail(`Missing localized legal page /${locale}/${slug}/`);
+        continue;
+      }
+      const html = readFileSync(file, 'utf8');
+      const german = readFileSync(join(dist, slug, 'index.html'), 'utf8');
+      const article = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
+      const germanArticle = german.match(/<article\b[^>]*>([\s\S]*?)<\/article>/)?.[1] ?? '';
+      if (!html.includes(`lang="${locale}"`) || !article.includes(title)) {
+        fail(`/${locale}/${slug}/ missing localized language or title`);
+      }
+      if ((article.match(/<h2\b/g) ?? []).length !== (germanArticle.match(/<h2\b/g) ?? []).length) {
+        fail(`/${locale}/${slug}/ must retain every German legal section`);
+      }
+      if (!html.match(new RegExp(`rel="canonical"[^>]*href="[^"]*/${locale}/${slug}/"`))) {
+        fail(`/${locale}/${slug}/ missing its own canonical URL`);
+      }
+      if (
+        !home.match(new RegExp(`href="[^"]*/${locale}/${slug}/"`)) ||
+        !sitemap.includes(`/${locale}/${slug}/`)
+      ) {
+        fail(`/${locale}/${slug}/ missing localized footer link or sitemap entry`);
+      }
+      for (const required of [
+        'https://info.arsnova.eu',
+        'https://arsnova.eu',
+        'mailto:klaus.quibeldey-cirkel@iu.org',
+      ]) {
+        if (!article.includes(required)) fail(`/${locale}/${slug}/ missing ${required}`);
+      }
+      if (slug === 'datenschutz') {
+        for (const required of [
+          'GitHub, Inc. (GitHub Pages)',
+          copy.country,
+          `${copy.article} 6`,
+          `${copy.article} 7`,
+          `${copy.article} 15`,
+          `${copy.article} 16`,
+          `${copy.article} 17`,
+          `${copy.article} 18`,
+          `${copy.article} 20`,
+          `${copy.article} 21`,
+          `${copy.article} 77`,
+        ]) {
+          if (!article.includes(required))
+            fail(`/${locale}/${slug}/ missing legal detail ${required}`);
+        }
+      }
     }
   }
 }
@@ -346,9 +444,9 @@ const localeContentSmoke = {
     structured: [
       'Matching',
       'Ordering',
-      'Categorisation',
+      'Categorization',
       'full credit or no credit',
-      'correct pairings, target order and target categories remain hidden',
+      'correct pairs, the correct order, and target categories stay hidden',
     ],
     matrix: [
       'Correct · low confidence',
@@ -362,37 +460,41 @@ const localeContentSmoke = {
     wcag: 'Conforms to WCAG 2.2 Level AA',
     term: 'numeric estimation question',
     editorial: [
-      'The leaderboard that pulls the room in',
+      'A leaderboard that keeps the group engaged',
       'Gamification preset',
-      'With the confidence rating,',
-      'Confidently wrong answers may indicate misconceptions.',
-      'Pedagogical analysis',
-      'The moderation compass shows where the room stands',
+      'Answer confidence',
+      'Incorrect answers given with high confidence may indicate misconceptions.',
+      'The moderation compass helps you choose your next step',
       'What does the moderation compass do?',
-      'Built on an established foundation',
-      'The facilitator and presenter show the quiz, Q&amp;A wall, word cloud',
+      'Host Q&amp;A view',
       'Create and host on a phone',
       'Create and host on your phone',
       'Can I really create a quiz and run a session entirely from my phone?',
-      'fully on a smartphone, in every question format',
-      'Present from anywhere in the room',
+      'entirely on your phone and in every format',
+      'Control the presentation from your phone or tablet',
       'No account on the phone',
       'No credentials to share',
-      'Why this pairing is different from a remote',
-      'Until then, only a neutral progress indicator is visible.',
-      'Facilitator’s Q&amp;A view',
-      'Share the collection',
-      'instead of a USB stick',
-      'so you can use and edit the collection together',
-      'Can I use the quiz collection on another device or with colleagues?',
+      'What the connected device can do',
+      'Share the library',
+      'Use a sync link to open it on a borrowed computer instead of bringing a USB drive.',
+      'use and edit the library together',
+      'Can I use my quiz library on another device or with colleagues?',
+      'Strong support',
+      'Next step',
     ],
-    banned: ['Until then only neutral progress', 'Facilitator view Q&amp;A'],
+    banned: [
+      '6-digit code',
+      'Best questions',
+      'Facilitator view Q&amp;A',
+      'organisations',
+      'prioritise',
+    ],
     workflowSteps: [
       'Prepare a quiz',
-      'Share the collection',
+      'Share the library',
       'Start a session',
-      'Moderate live',
-      'Follow up and export',
+      'Host live',
+      'Review and export',
     ],
   },
   fr: {
@@ -413,33 +515,35 @@ const localeContentSmoke = {
     ],
     round2: '14 réponses plus proches de la référence',
     wcag: 'Conforme aux WCAG 2.2, niveau AA',
-    term: 'sondage express',
+    term: 'feedback express',
     editorial: [
-      'Le classement qui emporte la salle',
+      'Un classement qui donne du rythme à la session',
       'Style Ludique',
-      'D’abord pour le téléphone',
-      'Créer et animer d’abord sur téléphone',
-      'Puis-je vraiment créer un quiz et animer une session entièrement depuis le téléphone',
-      'entièrement sur smartphone, dans tous les formats',
-      'Présenter depuis n’importe où dans la salle',
+      'Pensé pour le smartphone',
+      'Créer et animer depuis un smartphone',
+      'Puis-je créer un quiz et animer une session entièrement depuis un smartphone',
+      'entièrement sur smartphone et dans tous les formats',
+      'Piloter la présentation depuis un téléphone ou une tablette',
       'Sans compte sur le téléphone',
-      'Pas d’identifiants à partager',
+      'Aucun identifiant à partager',
       'Publier les questions uniquement lorsqu’elles sont pertinentes dans le contexte pédagogique.',
-      'La boussole de modération te dit où en est la salle',
+      'La boussole de modération t’aide à choisir la prochaine étape',
       'Que fait la boussole de modération ?',
-      'L’animateur et le présentateur affichent le quiz,',
+      'La vue d’animation et la vue présentateur donnent accès au quiz,',
       'indiquent les priorités, les désaccords et les besoins de clarification',
-      'Vue Q&amp;A de l’animateur',
+      'Vue Q&amp;R de l’animateur',
       'indicateur neutre de progression',
       'mode présentateur',
-      'croisement entre l’exactitude des réponses et le degré de confiance',
+      'croisement entre l’exactitude des réponses et la confiance',
       'Partager la collection',
       'plutôt qu’avec une clé USB',
       'utiliser et modifier la collection ensemble',
       'Puis-je utiliser la collection de quiz sur un autre appareil ou avec des collègues ?',
     ],
     banned: [
-      'Feedback express',
+      'sondage express',
+      'Q&amp;A',
+      '« À suivre »',
       'Vue hôte',
       'En direct immédiatement',
       'montrent priorité, friction',
@@ -452,16 +556,16 @@ const localeContentSmoke = {
       'Partager la collection',
       'Démarrer une session',
       'Animer en direct',
-      'Suivre et exporter',
+      'Analyser et exporter',
     ],
   },
   it: {
     structured: [
-      'Abbinare',
-      'Ordinare',
-      'Classificare',
+      'Abbinamento',
+      'Ordinamento',
+      'Classificazione',
       'tutti i punti oppure nessun punto',
-      'gli abbinamenti corretti, la sequenza prevista e le categorie di destinazione',
+      'gli abbinamenti corretti, l’ordine corretto e le categorie di destinazione',
     ],
     matrix: [
       'Corretta · sicurezza bassa',
@@ -475,31 +579,26 @@ const localeContentSmoke = {
     wcag: 'Conforme alle WCAG 2.2, livello AA',
     term: 'domanda di stima numerica',
     editorial: [
-      'un valore di riferimento, un intervallo di immissione e una tolleranza',
-      'spazio di moderazione',
-      'La bussola di moderazione ti mostra dove è la sala',
-      'Cosa fa la bussola di moderazione?',
-      'si adattano a contesti che vanno dalla classe e dal seminario al workshop',
-      'mostrano il quiz, la bacheca delle domande',
-      'La classifica che trascina la sala',
-      'Stile Giocoso',
-      'Pensata per lo smartphone',
+      'Sicurezza nella risposta',
+      'Consenso solido',
+      'La bussola di moderazione ti aiuta a scegliere il prossimo passo',
+      'Prossimo passo',
       'Crea e conduci dal telefono',
-      'Posso creare un quiz e condurre una sessione per intero dal telefono',
-      'per intero sullo smartphone, in tutti i formati',
-      'Presenta da qualsiasi punto della sala',
+      'tutti i tipi di domanda dal telefono',
+      'Controlla la presentazione dal telefono o dal tablet',
       'Senza account sul telefono',
       'Nessuna credenziale da condividere',
-      'i punti di disaccordo e le esigenze di chiarimento',
-      'modalità presentatore',
-      'indicatore neutro di avanzamento',
       'Condividi la raccolta',
-      'invece che con una chiavetta USB',
-      'usare e modificare la raccolta insieme',
-      'Posso usare la raccolta di quiz su un altro dispositivo o con colleghi e colleghe?',
+      'computer in prestito',
+      'usare e modificare insieme la raccolta',
+      'Possibile concezione errata',
+      'Rapporto sui risultati',
     ],
     banned: [
       'superficie di moderazione',
+      'codice a 6 cifre',
+      'Migliori domande',
+      'autovalutazione',
       'Prospettiva della bussola',
       'priorità, attrito',
       'flusso presentatore',
@@ -509,60 +608,50 @@ const localeContentSmoke = {
       'Prepara un quiz',
       'Condividi la raccolta',
       'Avvia una sessione',
-      'Modera in diretta',
-      'Analisi successiva ed esportazione',
+      'Conduci in diretta',
+      'Esamina ed esporta',
     ],
   },
   es: {
     structured: [
-      'Relacionar',
-      'Ordenar',
-      'Clasificar',
+      'Emparejamiento',
+      'Ordenación',
+      'Clasificación',
       'todos los puntos o ninguno',
-      'las relaciones correctas, el orden esperado y las categorías de destino',
+      'los pares correctos, el orden correcto y las categorías de destino',
     ],
     matrix: [
-      'Correcta · confianza baja',
-      'Correcta · confianza media',
-      'Correcta · confianza alta',
-      'Incorrecta · confianza baja',
-      'Incorrecta · confianza media',
-      'Incorrecta · confianza alta',
+      'Correcta · seguridad baja',
+      'Correcta · seguridad media',
+      'Correcta · seguridad alta',
+      'Incorrecta · seguridad baja',
+      'Incorrecta · seguridad media',
+      'Incorrecta · seguridad alta',
     ],
     round2: '14 respuestas más próximas al valor de referencia',
     wcag: 'Cumple las WCAG 2.2, nivel AA',
     term: 'pregunta de estimación numérica',
     editorial: [
-      'estimaciones aceptables desde el punto de vista de la materia',
-      'espacio de moderación',
-      'un recurso útil',
-      'La brújula de moderación te muestra cómo está la sala',
-      '¿Qué hace la brújula de moderación?',
-      'El Q&amp;A permite premoderar',
-      'infraestructura de despliegue y operación de la plataforma',
-      'El anfitrión y el presentador muestran el cuestionario',
-      'Presenta desde cualquier punto de la sala',
-      'La clasificación que arrastra a la sala',
-      'Ajuste Lúdico',
-      'Primero para el móvil',
-      'Crear y dirigir primero en el móvil',
-      '¿Puedo crear un cuestionario y dirigir una sesión por completo desde el móvil?',
-      'por completo en el móvil, en todos los formatos',
+      'Seguridad en la respuesta',
+      'Apoyo claro',
+      'La brújula de moderación te ayuda a elegir el siguiente paso',
+      'Siguiente paso',
+      'Crea y dirige desde el móvil',
+      'todos los tipos de pregunta desde el móvil',
+      'Controla la presentación desde el móvil o la tableta',
       'Sin cuenta en el teléfono',
-      'Sin prestar el acceso',
-      'indican las prioridades, los puntos de desacuerdo',
-      'modo de presentación',
-      'El objetivo no es únicamente votar',
-      'indicador neutro de progreso',
-      'Compatibilidad con lectores de pantalla',
-      'en directo',
-      'Compartir la colección',
-      'en lugar de una memoria USB',
-      'usar y editar la colección juntos',
-      '¿Puedo usar la colección de cuestionarios en otro dispositivo o con colegas?',
+      'Sin compartir credenciales',
+      'Compartir la biblioteca',
+      'ordenador prestado',
+      'usar y editar la biblioteca conjuntamente',
+      'Posible concepción errónea',
+      'Informe de resultados',
     ],
     banned: [
       'en vivo',
+      '6 dígitos',
+      'Mejores preguntas',
+      'autoevaluación',
       'superficie de moderación',
       'palanca fuerte',
       'flujo presentador',
@@ -572,10 +661,10 @@ const localeContentSmoke = {
     ],
     workflowSteps: [
       'Preparar un cuestionario',
-      'Compartir la colección',
+      'Compartir la biblioteca',
       'Iniciar una sesión',
-      'Moderar en directo',
-      'Análisis posterior y exportación',
+      'Dirigir en directo',
+      'Revisar y exportar',
     ],
   },
 };
@@ -869,6 +958,7 @@ if (!errors.length) {
   checkSitemap();
   checkRootRedirectPreservesHash();
   checkLegalPagesOmitHomeHreflang();
+  checkLocalizedLegalPages();
   checkLocaleContentSmoke();
   checkLanguageSwitcherMarkup();
   checkNavAndSectionOrder();

@@ -90,24 +90,29 @@
       >
     </mat-button-toggle-group>
 
-    <label class="qa-word-cloud-dialog__size">
-      <span class="qa-word-cloud-dialog__size-label" i18n="@@sessionQa.wordCloudSizeLabel"
-        >Größe nach:</span
-      >
-      <select
-        class="qa-word-cloud-dialog__size-select"
+    <mat-form-field
+      class="qa-word-cloud-dialog__size-field"
+      appearance="outline"
+      subscriptSizing="dynamic"
+    >
+      <mat-label i18n="@@sessionQa.wordCloudSizeLabel">Größe nach:</mat-label>
+      <mat-select
         [value]="sortMode()"
         [disabled]="frozen() || projectionPending()"
-        (change)="onSizeChange($event)"
+        (selectionChange)="setSortMode($event.value)"
         i18n-aria-label="@@sessionQa.wordCloudSizeAria"
         aria-label="Größe nach Bewertungen oder Häufigkeit"
       >
-        <option value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial">Kontroverse</option>
-        <option value="BEST" i18n="@@sessionQa.sortBest">Klare Zustimmung</option>
-        <option value="TOP" i18n="@@sessionQa.sortTop">Stimmensaldo</option>
-        <option value="TIME" i18n="@@sessionQa.wordCloudMetricTime">Vorkommen in Fragen</option>
-      </select>
-    </label>
+        <mat-option value="CONTROVERSIAL" i18n="@@sessionQa.sortControversial"
+          >Geteilte Stimmen</mat-option
+        >
+        <mat-option value="BEST" i18n="@@sessionQa.sortBest">Klare Zustimmung</mat-option>
+        <mat-option value="TOP" i18n="@@sessionQa.sortTop">Stimmensaldo</mat-option>
+        <mat-option value="TIME" i18n="@@sessionQa.wordCloudMetricTime"
+          >Vorkommen in Fragen</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
 
     <button
       mat-button
@@ -126,12 +131,12 @@
       <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
       <div class="qa-word-cloud-dialog__options-body">
         @if (data.analysisLanguage; as analysisLanguage) {
-          <label class="qa-word-cloud-dialog__size">
-            <span class="qa-word-cloud-dialog__size-label" i18n="@@wordCloud.analysisLanguage"
+          <label class="qa-word-cloud-dialog__language">
+            <span class="qa-word-cloud-dialog__language-label" i18n="@@wordCloud.analysisLanguage"
               >Sprache der Beiträge:</span
             >
             <select
-              class="qa-word-cloud-dialog__size-select"
+              class="qa-word-cloud-dialog__language-select"
               [value]="analysisLanguage()"
               [disabled]="projectionPending() || (data.languageLocked?.() ?? frozen())"
               (change)="data.setAnalysisLanguage?.($any($event.target).value)"

@@ -1,6 +1,7 @@
 import { access, mkdtemp, readFile, rm, statfs, writeFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { join } from 'node:path';
+import { PDFDocument } from 'pdf-lib';
 import { buildSessionResultsPdf } from '../apps/backend/dist/lib/session-results-report-pdf.js';
 
 const EXPECTED_TMPFS_BYTES = 256 * 1024 * 1024;
@@ -94,6 +95,9 @@ async function assertPdfRuntime() {
     { profile: 'pdfUa' },
   );
   assert(pdf.subarray(0, 4).toString('utf8') === '%PDF', 'Chromium erzeugte keine PDF-Datei');
+  const pageCount = (await PDFDocument.load(pdf)).getPageCount();
+  assert(pageCount > 1, 'Der 200-Fragen-Bericht muss mehrere PDF-Seiten haben');
+  console.log(`PDF-Worker erzeugte ${pageCount} Seiten.`);
 }
 
 await assertProcessRestrictions();

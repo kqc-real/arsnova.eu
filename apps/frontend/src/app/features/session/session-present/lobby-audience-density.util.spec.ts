@@ -2,10 +2,48 @@ import { describe, expect, it } from 'vitest';
 import {
   LOBBY_AUDIENCE_CROWD_COUNT,
   LOBBY_AUDIENCE_PACKED_COUNT,
+  lobbyAnimalGridColumnCount,
   lobbyAudienceIsCrowd,
   lobbyAudienceIsPacked,
   lobbyFitColumnCount,
+  lobbyTextGridLayout,
 } from './lobby-audience-density.util';
+
+describe('lobbyTextGridLayout', () => {
+  it('uses the team width, group size and the widths of the names', () => {
+    const single = lobbyTextGridLayout(1, 840, 540, 6, 6, 10, 16);
+    const audience = lobbyTextGridLayout(8, 840, 340, 6, 6, 10, 16);
+    const team = lobbyTextGridLayout(8, 240, 540, 6, 6, 10, 16);
+    expect(single.fontSize).toBeGreaterThan(audience.fontSize);
+    expect(audience.columns).toBeGreaterThan(team.columns);
+    expect(audience.fontSize).toBeGreaterThan(team.fontSize);
+    expect(lobbyTextGridLayout(8, 240, 540, 6, 6, 4, 16).fontSize).toBeGreaterThan(team.fontSize);
+  });
+
+  it('verdichtet lange Namen auf genügend Spalten und hält sie innerhalb der Breite', () => {
+    const packed = lobbyTextGridLayout(50, 641, 426, 4, 4, 30, 16);
+    expect(packed.columns).toBeGreaterThanOrEqual(5);
+    expect(packed).toMatchObject({ fontSize: 16, minColumnWidth: 0 });
+    expect(lobbyTextGridLayout(1, 320, 500, 6, 6, 30, 16)).toMatchObject({
+      columns: 1,
+      minColumnWidth: 0,
+    });
+  });
+});
+
+describe('lobbyAnimalGridColumnCount', () => {
+  it('passt 13 Tiere an die verfügbare Fläche eines Teams an', () => {
+    expect(lobbyAnimalGridColumnCount(13, 158, 840, 3, 3)).toBe(2);
+    expect(lobbyAnimalGridColumnCount(13, 370, 265, 3, 3)).toBe(5);
+    expect(lobbyAnimalGridColumnCount(13, 40, 250, 3, 3)).toBe(2);
+  });
+
+  it('nutzt bei einem Tier die ganze Rasterfläche und verteilt 50 Tiere nach Seitenverhältnis', () => {
+    expect(lobbyAnimalGridColumnCount(1, 800, 1000, 2, 2)).toBe(1);
+    expect(lobbyAnimalGridColumnCount(50, 800, 1000, 2, 2)).toBe(7);
+    expect(lobbyAnimalGridColumnCount(50, 1000, 800, 2, 2)).toBe(8);
+  });
+});
 
 describe('lobbyFitColumnCount', () => {
   it('haelt wenige Namen in breiten Spalten', () => {

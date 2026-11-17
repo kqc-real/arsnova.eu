@@ -572,9 +572,9 @@ Das Repository enthält die aktuelle Produktionsvorlage in [`docker-compose.prod
   `no-new-privileges`. Sein Root-Dateisystem ist read-only.
 - Chromium läuft ausschließlich im ebenfalls non-root/capability-freien
   PDF-Worker. Dessen Rootfs ist read-only, `/tmp` ein 256-MiB-`tmpfs`; Compose
-  begrenzt auf 128 PIDs, 1 GiB RAM und eine CPU. Der Worker besitzt kein
-  Netzwerk und kommuniziert nur über einen `0600`-Unix-Socket. Die App mountet
-  dieses Socket-Volume read-only.
+  begrenzt auf 256 PIDs einschließlich Chromium-Threads, 1 GiB RAM und eine CPU.
+  Der Worker besitzt kein Netzwerk und kommuniziert nur über einen
+  `0600`-Unix-Socket. Die App mountet dieses Socket-Volume read-only.
 - Produktion erzwingt `PDF_RENDER_MODE=worker`; ein fehlender Worker führt
   fail-closed zum PDF-Fehler, nicht zu einem In-Process-Fallback.
 - Eine harte Worker-Gesamtdeadline von 60 Sekunden liegt unter dem

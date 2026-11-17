@@ -31,7 +31,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Important point: ${label}.`,
-    empty: 'No open questions have been selected for the summary yet.',
+    empty: 'No unanswered questions have been selected for the summary yet.',
     limitation:
       'A detailed summary was not possible this time, so the most important questions are shown in their original wording.',
   },
@@ -42,7 +42,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Point important : ${label}.`,
-    empty: 'Aucune question ouverte n’a encore été sélectionnée pour le résumé.',
+    empty: 'Aucune question en attente de réponse n’a encore été sélectionnée pour le résumé.',
     limitation:
       'Un résumé détaillé n’a pas été possible cette fois-ci. Les questions les plus importantes sont donc affichées telles qu’elles ont été formulées.',
   },
@@ -53,7 +53,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Punto importante: ${label}.`,
-    empty: 'Aún no se han seleccionado preguntas abiertas para el resumen.',
+    empty: 'Aún no se han seleccionado preguntas sin responder para el resumen.',
     limitation:
       'Esta vez no ha sido posible crear un resumen detallado. Por eso se muestran las preguntas más importantes con su redacción original.',
   },
@@ -64,7 +64,7 @@ const COPY: Readonly<Record<AppLocale, LocaleCopy>> = {
         : kind === 'qa-question'
           ? label
           : `Punto importante: ${label}.`,
-    empty: 'Non sono ancora state selezionate domande aperte per il riepilogo.',
+    empty: 'Non sono ancora state selezionate domande senza risposta per il riepilogo.',
     limitation:
       'Questa volta non è stato possibile creare un riepilogo dettagliato. Vengono quindi mostrate le domande più importanti nella loro formulazione originale.',
   },

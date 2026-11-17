@@ -724,6 +724,19 @@
   display: none;
 }
 
+.word-cloud__hide-action {
+  align-self: flex-start;
+  max-inline-size: 100%;
+  min-height: 2.75rem;
+  white-space: normal;
+}
+
+.word-cloud__hide-action--stage {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 3;
+}
+
 .word-cloud__responses li {
   margin: 0;
   line-height: 1.45;

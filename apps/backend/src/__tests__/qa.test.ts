@@ -333,7 +333,7 @@ describe('qa router (Epic 8)', () => {
           bestScore: 0.5101,
           controversyScore: 0,
           isControversial: false,
-          controversyInsufficientVotes: false,
+          controversyInsufficientVotes: true,
           status: 'ACTIVE',
           createdAt: '2026-03-13T12:00:00.000Z',
           passagesRedacted: false,
@@ -396,7 +396,7 @@ describe('qa router (Epic 8)', () => {
     expect(second.questions[0]?.text).toBe('Geteilte Seite');
     expect(third.questions[0]?.text).toBe('Geteilte Seite');
     expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
-    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
     const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
     expect(sql).toContain(`question."status" IN ('ACTIVE', 'PINNED')`);
     expect(sql).not.toContain(`question."status" = 'PENDING'`);
@@ -600,7 +600,6 @@ describe('qa router (Epic 8)', () => {
       qaOpen: true,
       qaModerationMode: false,
     });
-    prismaMock.participant.count.mockResolvedValue(20);
     rawQueryResults.rankedQuestions.push([
       rankedQaRow({
         id: '11111111-1111-4111-8111-111111111111',
@@ -609,7 +608,7 @@ describe('qa router (Epic 8)', () => {
         upvoteCount: 0,
         positiveVoteCount: 5,
         negativeVoteCount: 5,
-        controversyScore: 5 / 6,
+        controversyScore: 5 / 7,
         totalCount: 2,
       }),
       rankedQaRow({
@@ -623,7 +622,7 @@ describe('qa router (Epic 8)', () => {
       }),
     ]);
 
-    const { questions: result } = await caller.list({
+    const { questions: result, rankingRevision } = await caller.list({
       sessionId: SESSION_ID,
       participantId: PARTICIPANT_ID,
       sort: 'CONTROVERSIAL',
@@ -634,16 +633,27 @@ describe('qa router (Epic 8)', () => {
       '22222222-2222-4222-8222-222222222222',
     ]);
     expect(result[0]).toMatchObject({
-      controversyScore: 5 / 6,
+      controversyScore: 5 / 7,
       isControversial: true,
     });
-    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
-    await caller.list({
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...ACTIVE_QA_SESSION,
+      participantRevision: 20,
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaModerationMode: false,
+    });
+    const afterJoin = await caller.list({
       sessionId: SESSION_ID,
       participantId: OTHER_PARTICIPANT_ID,
       sort: 'CONTROVERSIAL',
     });
-    expect(prismaMock.participant.count).toHaveBeenCalledTimes(1);
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
+    expect(afterJoin.rankingRevision).toBe(rankingRevision);
+    expect(afterJoin.questions.map(({ controversyScore }) => controversyScore)).toEqual([5 / 7, 0]);
+    expect(prismaMock.$queryRaw).toHaveBeenCalledTimes(1);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."controversyScore" DESC',
     );
@@ -797,7 +807,7 @@ describe('qa router (Epic 8)', () => {
       expect(sql).toContain('ranked."bestScore" DESC');
       // Presenter bekommt immer Wilson-/Controversy-Scores (Meta auf der Bühne).
       expect(sql).toMatch(/CASE[\s\S]*AS "bestScore"/);
-      expect(prismaMock.participant.count).toHaveBeenCalled();
+      expect(prismaMock.participant.count).not.toHaveBeenCalled();
       // pageSize 500 → LIMIT 501; Statusfilter ACTIVE+PINNED als Query-Werte.
       expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toEqual(
         expect.arrayContaining([expect.objectContaining({ values: ['ACTIVE', 'PINNED'] }), 501, 0]),
@@ -830,7 +840,7 @@ describe('qa router (Epic 8)', () => {
     expect(sql).not.toContain('ranked."bestScore" DESC');
     // Auch bei TOP werden Scores für die Bühnen-Meta berechnet.
     expect(sql).toMatch(/CASE[\s\S]*AS "bestScore"/);
-    expect(prismaMock.participant.count).toHaveBeenCalled();
+    expect(prismaMock.participant.count).not.toHaveBeenCalled();
   });
 
   it('übernimmt Suche und Pin-Filter in der Presenter-Projektion', async () => {
@@ -875,10 +885,22 @@ describe('qa router (Epic 8)', () => {
       search: '',
       pinnedOnly: true,
     });
-    await caller.presentProjection({ sessionId: SESSION_ID });
+    const pinnedResult = await caller.presentProjection({ sessionId: SESSION_ID });
+    expect(pinnedResult.rankingRevision).not.toBe(result.rankingRevision);
     expect(prismaMock.$queryRaw.mock.calls[0]?.slice(1)).toEqual(
       expect.arrayContaining([expect.objectContaining({ values: ['PINNED'] })]),
     );
+
+    await hostCaller.setPresenterSortMode({
+      code: 'CODE12',
+      sortMode: 'CONTROVERSIAL',
+      search: 's'.repeat(100),
+      authorNickname: 'a'.repeat(30),
+    });
+    rawQueryResults.rankedQuestions.push([]);
+    const longFilterResult = await caller.presentProjection({ sessionId: SESSION_ID });
+    expect(longFilterResult.rankingRevision?.length).toBeLessThanOrEqual(100);
+    expect(longFilterResult.rankingRevision).not.toBe(pinnedResult.rankingRevision);
   });
 
   it('lädt in der Presenter-Projektion bis zu 500 ACTIVE+PINNED statt nur der Forum-Defaultseite', async () => {
@@ -936,7 +958,6 @@ describe('qa router (Epic 8)', () => {
         source: 'host',
       });
 
-      prismaMock.participant.count.mockResolvedValue(12);
       rawQueryResults.rankedQuestions.push([
         rankedQaRow({ text: 'Umstritten', status: 'ACTIVE', controversyScore: 0.8 }),
       ]);
@@ -2815,7 +2836,6 @@ describe('qa router (Epic 8)', () => {
       qaOpen: true,
       qaModerationMode: true,
     });
-    prismaMock.participant.count.mockResolvedValue(20);
     rawQueryResults.rankedQuestions.push([
       rankedQaRow({
         id: '11111111-1111-4111-8111-111111111111',
@@ -2824,7 +2844,7 @@ describe('qa router (Epic 8)', () => {
         positiveVoteCount: 5,
         negativeVoteCount: 5,
         bestScore: 0.2366,
-        controversyScore: 5 / 6,
+        controversyScore: 5 / 7,
       }),
     ]);
 
@@ -2839,7 +2859,7 @@ describe('qa router (Epic 8)', () => {
       positiveVoteCount: 5,
       negativeVoteCount: 5,
     });
-    expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
+    expect(result[0]?.controversyScore).toBe(5 / 7);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
       'ranked."bestScore" DESC',
     );
@@ -2855,7 +2875,6 @@ describe('qa router (Epic 8)', () => {
       qaOpen: true,
       qaModerationMode: true,
     });
-    prismaMock.participant.count.mockResolvedValue(20);
     const polarRow = rankedQaRow({
       id: '11111111-1111-4111-8111-111111111111',
       participantId: PARTICIPANT_ID,
@@ -2863,7 +2882,7 @@ describe('qa router (Epic 8)', () => {
       positiveVoteCount: 5,
       negativeVoteCount: 5,
       bestScore: 0.2366,
-      controversyScore: 5 / 6,
+      controversyScore: 5 / 7,
     });
 
     for (const sort of ['TOP', 'TIME'] as const) {
@@ -2879,7 +2898,7 @@ describe('qa router (Epic 8)', () => {
         positiveVoteCount: 5,
         negativeVoteCount: 5,
       });
-      expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
+      expect(result[0]?.controversyScore).toBe(5 / 7);
       const sql = rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? []);
       expect(sql).toContain('GREATEST(');
       expect(sql).toContain('POWER(');
@@ -2891,7 +2910,7 @@ describe('qa router (Epic 8)', () => {
     }
   });
 
-  it('sortiert CONTROVERSIAL auch unterhalb von T und zeigt das Label erst ab T', async () => {
+  it('sortiert CONTROVERSIAL auch bei zu wenigen Stimmen pro Frage', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...ACTIVE_QA_SESSION,
       id: SESSION_ID,
@@ -2901,8 +2920,6 @@ describe('qa router (Epic 8)', () => {
       qaOpen: true,
       qaModerationMode: true,
     });
-    // P=100 → T=10. 2↔2 liegt unter T, 10↔10 darüber.
-    prismaMock.participant.count.mockResolvedValue(100);
     rawQueryResults.rankedQuestions.push([
       rankedQaRow({
         id: '11111111-1111-4111-8111-111111111111',
@@ -2911,18 +2928,17 @@ describe('qa router (Epic 8)', () => {
         upvoteCount: 0,
         positiveVoteCount: 10,
         negativeVoteCount: 10,
-        controversyScore: 20 / 30,
+        controversyScore: 20 / 24,
         totalCount: 2,
       }),
       rankedQaRow({
         id: '22222222-2222-4222-8222-222222222222',
         participantId: PARTICIPANT_ID,
-        text: 'Ausgeglichen, aber unter T',
+        text: 'Ausgeglichen, aber zu wenige Stimmen',
         upvoteCount: 0,
         positiveVoteCount: 2,
         negativeVoteCount: 2,
-        // Auch bei künstlich hohem Score: ohne T kein Label.
-        controversyScore: 0.8,
+        controversyScore: 0.5,
         totalCount: 2,
       }),
     ]);
@@ -2943,7 +2959,7 @@ describe('qa router (Epic 8)', () => {
     });
     expect(result[1]).toMatchObject({
       voteCount: 4,
-      controversyScore: 0.8,
+      controversyScore: 0.5,
       isControversial: false,
       controversyInsufficientVotes: true,
     });
@@ -2967,7 +2983,6 @@ describe('qa router (Epic 8)', () => {
       qaOpen: true,
       qaModerationMode: true,
     });
-    prismaMock.participant.count.mockResolvedValue(20);
     rawQueryResults.rankedQuestions.push([
       rankedQaRow({
         id: '11111111-1111-4111-8111-111111111111',
@@ -2977,7 +2992,7 @@ describe('qa router (Epic 8)', () => {
         positiveVoteCount: 5,
         negativeVoteCount: 5,
         bestScore: 0.2366,
-        controversyScore: 5 / 6,
+        controversyScore: 5 / 7,
         totalCount: 3,
       }),
       rankedQaRow({
@@ -2989,7 +3004,7 @@ describe('qa router (Epic 8)', () => {
         positiveVoteCount: 1,
         negativeVoteCount: 1,
         bestScore: 0.0945,
-        controversyScore: 0.5,
+        controversyScore: 1 / 3,
         totalCount: 3,
       }),
       rankedQaRow({
@@ -3022,8 +3037,8 @@ describe('qa router (Epic 8)', () => {
       voteCount: 10,
       isControversial: true,
     });
-    expect(result[0]?.controversyScore).toBeGreaterThan(0.8);
-    expect(result[1]?.controversyScore).toBe(0.5);
+    expect(result[0]?.controversyScore).toBe(5 / 7);
+    expect(result[1]?.controversyScore).toBe(1 / 3);
     expect(result[1]?.isControversial).toBe(false);
     expect(result[2]?.controversyScore).toBe(0);
     expect(rawSqlText(prismaMock.$queryRaw.mock.calls[0] ?? [])).toContain(
@@ -3041,7 +3056,6 @@ describe('qa router (Epic 8)', () => {
       qaOpen: true,
       qaModerationMode: true,
     });
-    prismaMock.participant.count.mockResolvedValue(20);
     rawQueryResults.rankedQuestions.push([
       rankedQaRow({
         id: '22222222-2222-4222-8222-222222222222',
@@ -3052,7 +3066,7 @@ describe('qa router (Epic 8)', () => {
         positiveVoteCount: 5,
         negativeVoteCount: 5,
         bestScore: 0.2366,
-        controversyScore: 5 / 6,
+        controversyScore: 5 / 7,
         totalCount: 2,
       }),
       rankedQaRow({

@@ -9,14 +9,15 @@ function flattenSql(value: unknown): string {
 }
 
 describe('qaRankingSql', () => {
-  it('uses the persisted directional counters for both qa-ranking-v1 scores', () => {
-    const sql = flattenSql(buildQaRankingScoreSelectSql(200));
+  it('uses the persisted directional counters for both scores and a fixed controversy denominator', () => {
+    const projection = buildQaRankingScoreSelectSql();
+    const sql = flattenSql(projection);
 
     expect(sql).toContain('question."positiveVoteCount"');
     expect(sql).toContain('question."negativeVoteCount"');
     expect(sql).toContain('END AS "bestScore"');
-    expect(sql).toContain('END AS "controversyScore"');
-    expect(sql).toContain('20');
+    expect(sql).toContain('AS "controversyScore"');
+    expect(projection.values).toContain(4);
   });
 
   it.each([

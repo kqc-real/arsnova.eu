@@ -101,9 +101,9 @@ npm run spacy:macos-dev
 3. Den **6-stelligen Session-Code** ins Terminal eingeben (oder von vornherein `--code ABC123 --yes`) — **nicht** auf der Startseite joinen, sonst landest du als Voter.
 4. Dieselbe Host-Seite hart neu laden. Quizkanal → Wortwolke; Q&A → Wortwolke; Button **Kompass**.
 
-Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap) plus ein Moderationskompass-Overlay (offene Fragen, Kontroverse, Quiz-Ergebnisse, Tempo). Sprachformen glätten in **de/en/fr/es**. Unter **it** die Wolkensprache am Glätten-Button auf DE/EN/FR/ES stellen; ohne Wahl bleibt die Glättung aus.
+Das Seed schreibt je **500** Freitextantworten und **500** Q&A-Fragen (Analyse-Cap) plus ein Moderationskompass-Overlay (offene Fragen, Kontroverse, Quiz-Ergebnisse, Tempo). Sprachformen lassen sich in **de/en/fr/es/it** glätten. Die Oberfläche gibt die anfängliche Wolkensprache vor.
 
-Der optionale Themenmodus ist davon getrennt. Story 1.14d verarbeitet Host-Freitext bei `de`/`en` über den privaten Encoderpfad aus 1.14c; `fr`/`es` fallen im Backend lexikalisch zurück, unter italienischer UI bleibt der Fallback ohne gewählte unterstützte Wolkensprache lokal. `npm run dev` startet den Encoder für die lokale Prüfung und aktiviert den Pfad nur im gestarteten Backendprozess; der Produktiv-Default von `WORD_CLOUD_SEMANTIC_ENABLED` bleibt `false`. Details: [word-cloud-semantic.md](features/word-cloud-semantic.md).
+Der optionale Themenmodus ist davon getrennt. Story 1.14d verarbeitet Host-Freitext in allen fünf Locales über den privaten Encoderpfad aus 1.14c. `npm run dev` startet den Encoder für die lokale Prüfung und aktiviert den Pfad nur im gestarteten Backendprozess; der Produktiv-Default von `WORD_CLOUD_SEMANTIC_ENABLED` bleibt `false`. Details: [word-cloud-semantic.md](features/word-cloud-semantic.md).
 
 | Locale | URL                       |
 | ------ | ------------------------- |
@@ -211,7 +211,6 @@ belegt die Korrekturen der damals roten Gates.
 | Wortwolke bleibt leer / Seed bricht ab                   | Keine Freitextfrage in der Session, oder `npm run dev` parallel zum macOS-Helfer                   | Demo-Quiz anzeigen; auf macOS nur `spacy:macos-dev`, nicht zusätzlich `npm run dev`       |
 | „Glättung nicht verfügbar“                               | Sidecar lädt noch Modelle, Python fehlt, oder `dev:backend` ohne Sidecar                           | Kanal `lemmatisierung` prüfen; Python 3.10–3.13; nach Socket-Bind analysieren             |
 | `The table public.Quiz does not exist`                   | Postgres läuft, Prisma-Schema wurde nie angewendet                                                 | `npm run prisma:migrate` (der macOS-Helfer macht das jetzt selbst)                        |
-| „Wähle die Sprache der Antworten“ in it                  | Host-UI `it` hat kein Lemma-Modell; Default folgt der UI                                           | Am Glätten-Button DE/EN/FR/ES wählen                                                      |
 | `/admin` funktioniert lokal nicht                        | `ADMIN_SECRET` wurde nicht gesetzt                                                                 | `.env` ergänzen und Backend neu starten                                                   |
 | »Die automatische Herleitung ist gerade nicht verfügbar« | Runtime aus, Container noch nicht gesund, oder `.env` zeigt auf den Kurs-Tunnel ohne SSH-Schlüssel | Optionalen lokalen Container starten: [lokale Text-KI](#optional-lokale-text-ki-qwen3-4b) |
 | Test/Hook: `Executable doesn't exist`                    | Playwright-Chromium für die Projekt-Playwright-Version fehlt                                       | `npm run playwright:install` (nicht `npx playwright install`)                             |
@@ -466,7 +465,7 @@ Das System ist nach dem **Local-First**-Prinzip entworfen:
 | Session- und Besitzhärtung                                                                | Host-Token, `hostProcedure`, Feedback-Host-Token, datensparsame Teilnehmerpfade und `accessProof` für Quiz-Historie                                                                 |
 | Last-/Performance-Teststrecke                                                             | k6, Artillery, sechs Classroom-Smokes, Yjs, Freitext, Soak, standardisierte Reports und Browser-Referenzflows; lokaler QA-Nachlauf grün                                             |
 | Absoluter Session-Lebenszyklus (Epic #405)                                                | `expiresAt`/`endedAt`/`qaClosesAt`, Host-Nachbereitung 14 Tage, `/host-recovery`, 10 Q&A-Fragen je Teilnahme; Q&A bleibt nach Quiz-`FINISHED` beschreibbar, solange offen           |
-| Semantischer Host-Themenmodus (1.14c/1.14d)                                               | Q&A und Freitext über gemeinsamen privaten Encoder-/Clusteringpfad; `de`/`en` semantisch, `fr`/`es` Backend-Fallback, `it` lokal; Kill-Switch default aus, keine Produktivfreigabe  |
+| Semantischer Host-Themenmodus (1.14c/1.14d)                                               | Q&A und Freitext über gemeinsamen privaten Encoder-/Clusteringpfad; `de`, `en`, `fr`, `es`, `it` semantisch; Kill-Switch default aus, keine Produktivfreigabe                       |
 
 ### Was als nächstes ansteht (🔲 Geplant / offen)
 

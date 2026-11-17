@@ -1,3 +1,4 @@
+import { animalIconUrl } from '../../../shared/animal-icon-url';
 import {
   ChangeDetectorRef,
   Component,
@@ -50,6 +51,7 @@ import {
   showQuestionTypeIndicator,
 } from '../../../shared/answer-option-badge.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
+import { questionReadingHint } from '../../../shared/question-reading-hint';
 import { questionTypeLabel } from '../../../shared/question-type-label';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getAnonymousClientId } from '../../../core/anonymous-client-id';
@@ -107,6 +109,7 @@ import {
   isQaOpenForParticipants,
 } from '@arsnova/shared-types';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
+import { VOTE_FINGER_PRELOAD_START_SECONDS } from '../../../shared/countdown-fingers/countdown-fingers-preload';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
 import { MarkdownKatexEditorComponent } from '../../../shared/markdown-katex-editor/markdown-katex-editor.component';
 import { focusAndScrollElement } from '../../../shared/focus-invalid-field.util';
@@ -128,6 +131,7 @@ import {
   SessionDeadlineController,
   type SessionDeadlineSnapshot,
 } from '../session-deadline';
+import { formatQaSupportLabel } from '../session-qa-support-label.util';
 import { resolveQaDeadlineClockParts } from '../session-qa-deadline-label.util';
 import { normalizeQaSearchQuery } from '../qa-search.util';
 import {
@@ -139,8 +143,9 @@ import {
   peekConfirmedParticipantTeam,
 } from '../../../core/participant-team-confirmation';
 import {
-  findKindergartenNicknameBadgeLabel,
+  findKindergartenNicknameBadge,
   findKindergartenNicknameEmoji,
+  scoreboardNickname,
   kindergartenNicknameSequence,
 } from '../../join/kindergarten-nickname-icons';
 import { getEffectiveLocale } from '../../../core/locale-from-path';
@@ -169,6 +174,8 @@ import {
   getOrCreateJoinIdempotencyKey,
   getParticipantCapability,
   storeParticipantCapability,
+  readParticipantAnimalId,
+  storeParticipantAnimalId,
 } from '../../../core/participant-session-access';
 
 const PARTICIPANT_STORAGE_KEY = 'arsnova-participant';
@@ -484,12 +491,15 @@ export function getNumericEstimateMotivation(input: {
   ],
 })
 export class SessionVoteComponent implements OnInit, OnDestroy {
+  readonly animalIconUrl = animalIconUrl;
+
   readonly qaSessionQuestionLimit = QA_MAX_QUESTIONS_PER_SESSION;
   /** Einreichungslimit inkl. Markdown/KaTeX-Syntax (shared-types). */
   readonly qaQuestionTextMaxLength = QA_QUESTION_TEXT_MAX_CODE_POINTS;
   readonly qaQuestionTextWarnLength = Math.floor(QA_QUESTION_TEXT_MAX_CODE_POINTS * 0.9);
   /** Preset-abhängige Teilnehmer-Texte (Template: vpc.*) */
   readonly vpc = vpc;
+  readonly questionReadingHint = questionReadingHint;
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -557,9 +567,9 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly qaSortHint = computed(() => {
     switch (this.qaSortMode()) {
       case 'BEST':
-        return $localize`:@@sessionQa.sortHintBest:Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintBest:Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.`;
       case 'CONTROVERSIAL':
-        return $localize`:@@sessionQa.sortHintControversial:Zeigt zuerst die Fragen mit der höchsten Kontroverse: Stimmen dafür und dagegen sind möglichst ausgeglichen. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
+        return $localize`:@@sessionQa.sortHintControversial:Bei gleicher Stimmenzahl ergibt eine gleichmäßigere Verteilung auf Dafür und Dagegen einen höheren Sortierwert. Sind beide Seiten vertreten, steigt der Wert bei gleichem Verhältnis mit der Stimmenzahl. Hervorgehobene Fragen stehen zuerst.`;
       case 'TIME':
         return $localize`:@@sessionQa.sortHintTime:Zeigt die neuesten Fragen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.`;
       default:
@@ -734,6 +744,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () => this.personalResultLoaded() && !this.finishedHeroIsCelebration(),
   );
   readonly playerNickname = signal<string | null>(null);
+  readonly playerAnimalId = signal<number | undefined>(undefined);
   readonly participantTeam = signal<ParticipantDTO | null>(null);
   readonly sessionTeams = signal<TeamDTO[]>([]);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
@@ -775,20 +786,16 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly playerKindergartenEmoji = computed((): string | null => {
     if (!this.usesKindergartenNicknames()) return null;
     const nick = this.playerNickname()?.trim();
-    return nick ? findKindergartenNicknameEmoji(nick) : null;
+    return nick ? findKindergartenNicknameEmoji(nick, undefined, this.playerAnimalId()) : null;
   });
 
-  leaderboardKindergartenEmoji(nickname: string): string | null {
+  readonly scoreboardNickname = scoreboardNickname;
+
+  leaderboardKindergartenEmoji(nickname: string, animalId?: number): string | null {
     if (!this.usesKindergartenNicknames()) return null;
     const nick = nickname.trim();
-    return nick ? findKindergartenNicknameEmoji(nick) : null;
+    return nick ? findKindergartenNicknameEmoji(nick, undefined, animalId) : null;
   }
-
-  readonly playerKindergartenBadgeLabel = computed((): string | null => {
-    if (!this.usesKindergartenNicknames()) return null;
-    const nick = this.playerNickname()?.trim();
-    return nick ? findKindergartenNicknameBadgeLabel(nick) : null;
-  });
 
   readonly playerKindergartenSequence = computed((): string | null => {
     if (!this.usesKindergartenNicknames()) return null;
@@ -851,12 +858,18 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return this.qaAuthorTeamByNickname().get(nickname) ?? null;
   }
 
-  qaAuthorKindergartenBadgeLabel(question: QaQuestionDTO): string | null {
+  qaAuthorKindergartenBadge(question: QaQuestionDTO) {
     if (!this.usesKindergartenNicknames()) {
       return null;
     }
     const trimmedNickname = this.qaQuestionAuthorNickname(question);
-    return trimmedNickname ? findKindergartenNicknameBadgeLabel(trimmedNickname) : null;
+    return trimmedNickname
+      ? findKindergartenNicknameBadge(
+          trimmedNickname,
+          undefined,
+          question.authorKindergartenAnimalId,
+        )
+      : null;
   }
 
   qaAuthorKindergartenAriaLabel(question: QaQuestionDTO): string {
@@ -950,6 +963,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     const theme = (session.nicknameTheme ?? 'HIGH_SCHOOL') as NicknameTheme;
     const locale = getEffectiveLocale();
     const originalCandidates = getNicknameList(theme, locale);
+    if (theme === 'KINDERGARTEN') {
+      const startIndex = participantCountHint % originalCandidates.length;
+      return [
+        ...originalCandidates.slice(startIndex),
+        ...originalCandidates.slice(0, startIndex),
+      ].slice(0, AUTO_JOIN_NICKNAME_CANDIDATE_LIMIT);
+    }
     if (originalCandidates.length === 0) {
       return this.buildGenericAutoJoinNicknameCandidates(takenNicknames, participantCountHint);
     }
@@ -1019,6 +1039,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           this.applyTimerAccommodation(join.timerAccommodation, { restartCountdown: false });
         }
         storeParticipantCapability(this.code, join.rejoinToken);
+        storeParticipantAnimalId(this.code, join.kindergartenAnimalId);
+        this.playerAnimalId.set(join.kindergartenAnimalId);
         clearJoinIdempotencyKey(this.code);
         storeProductFeedbackParticipantClaimToken(this.code, join.productFeedbackClaimToken);
         return {
@@ -1312,16 +1334,20 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     );
   });
 
-  readonly showFingerCountdown = computed(() => {
+  readonly prepareFingerCountdown = computed(() => {
     const s = this.countdownSeconds();
     return (
       this.isActive() &&
       s !== null &&
       s >= 0 &&
-      s <= 5 &&
+      s <= VOTE_FINGER_PRELOAD_START_SECONDS &&
       this.themePreset.preset() === 'spielerisch'
     );
   });
+
+  readonly showNumericCountdown = computed(
+    () => this.countdownSeconds() !== null && this.isActive(),
+  );
 
   readonly isPlayfulPreset = computed(() => this.themePreset.preset() === 'spielerisch');
   readonly canShowLobbyArrivalMoment = computed(
@@ -1586,12 +1612,8 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     return $localize`:@@sessionQa.votesBreakdownAria:${up}:up: dafür, ${down}:down: dagegen`;
   }
 
-  formatQaPercent(value: number | undefined): string {
-    if (!Number.isFinite(value)) {
-      return '0 %';
-    }
-
-    return `${formatNumber((value ?? 0) * 100, this.localeId, '1.0-0')} %`;
+  formatQaSupport(question: QaQuestionDTO): string | null {
+    return formatQaSupportLabel(question, this.localeId);
   }
 
   private patchSessionChannels(channels: SessionChannelsDTO): void {
@@ -1923,6 +1945,13 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () =>
       this.isConfidenceEnabled() && this.isActive() && !this.voteSent() && this.voteAnswerReady(),
   );
+  readonly showConfidenceSubmitHint = computed(
+    () =>
+      this.showConfidencePrompt() &&
+      this.confidenceValue() === null &&
+      !this.voteInteractionLocked(),
+  );
+  readonly confidenceRequiredMessage = $localize`:@@sessionVote.confidenceRequired:Gib deine Selbsteinschätzung an, bevor du absendest.`;
   readonly isFreetext = computed(() => {
     const q = this.currentQuestion();
     return q && 'type' in q && q.type === 'FREETEXT';
@@ -4032,6 +4061,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     if (typeof localStorage !== 'undefined') {
       this.participantId.set(this.readStoredParticipantId());
       this.playerNickname.set(localStorage.getItem(`${NICKNAME_STORAGE_KEY}-${this.code}`) ?? null);
+      this.playerAnimalId.set(readParticipantAnimalId(this.code));
       this.liveScorePreviewVisible.set(
         localStorage.getItem(LIVE_SCORE_PREVIEW_STORAGE_KEY) !== 'false',
       );
@@ -4461,7 +4491,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.resetForSecondRoundStart();
             this.pullParticipantToQuizChannel();
           } else if (data.status === 'ACTIVE' && prevStatus === 'QUESTION_OPEN') {
-            // Host: »Antwortoptionen freigeben« – gleiche Frage, neue Abstimmungsphase.
+            // Host: »Antwortphase starten« – gleiche Frage, neue Abstimmungsphase.
             this.pullParticipantToQuizChannel();
           }
           if (data.status === 'ACTIVE') {
@@ -5031,7 +5061,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
 
   /**
    * Quiz-Startsignale: Override löschen und in den Quiz-Kanal ziehen.
-   * Auslöser: neue Frage (nach Initial-Hydration), Antwortoptionen freigeben
+   * Auslöser: neue Frage (nach Initial-Hydration), Antwortphase starten
    * (QUESTION_OPEN→ACTIVE), PI-Runde 2. Dazwischen freie Kanalwahl (ADR-0009).
    */
   private pullParticipantToQuizChannel(): void {
@@ -5235,6 +5265,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       await import('../../../shared/qa-sort-help-dialog/qa-sort-help-dialog.component');
     this.dialog.open(QaSortHelpDialogComponent, {
       panelClass: 'qa-sort-help-dialog-panel',
+      role: 'dialog',
       autoFocus: 'dialog',
       width: 'min(40rem, calc(100vw - 2rem))',
       maxWidth: '100vw',
@@ -6998,9 +7029,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     }
 
     if (this.isConfidenceEnabled() && confidence === undefined) {
-      this.voteError.set(
-        $localize`:@@sessionVote.confidenceRequired:Gib deine Selbsteinschätzung an, bevor du absendest.`,
-      );
+      this.voteError.set(this.confidenceRequiredMessage);
       return;
     }
 

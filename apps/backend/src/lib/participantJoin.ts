@@ -1,4 +1,12 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import {
+  getKindergartenAnimalId,
+  getKindergartenAnimalNames,
+  getKindergartenCounterId,
+  getLegacyKindergartenAnimal,
+  INVALID_KINDERGARTEN_NICKNAME_MESSAGE,
+  type NicknameTheme,
+} from '@arsnova/shared-types';
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import {
@@ -31,6 +39,7 @@ export async function expireParticipantJoinReplayEnvelopes(
 type JoinProfile = {
   allowCustomNicknames: boolean;
   anonymousMode: boolean;
+  nicknameTheme?: NicknameTheme;
 };
 
 type ParticipantJoinEnvelope = {
@@ -42,6 +51,7 @@ export type PreparedParticipantJoin = {
   participantId: string;
   participantNumber: number;
   nickname: string;
+  kindergartenAnimalId?: number;
   teamId: string | null;
   teamName: string | null;
   timerAccommodation: string;
@@ -90,6 +100,43 @@ function appendParticipantNumber(nickname: string, participantNumber: number): s
   return `${nickname.slice(0, maxBaseLength).trimEnd()}${suffix}`;
 }
 
+async function allocateKindergartenNickname(
+  tx: Prisma.TransactionClient,
+  sessionId: string,
+  animalId: number,
+  nickname: string,
+): Promise<string> {
+  const counterId = getKindergartenCounterId(animalId);
+  const counter = { sessionId, animalId: counterId };
+  const where = { sessionId_animalId: counter };
+  const select = { lastNumber: true };
+  const allocation = await tx.kindergartenNicknameCounter.upsert({
+    where,
+    create: { ...counter, lastNumber: 1 },
+    update: { lastNumber: { increment: 1 } },
+    select,
+  });
+
+  const localizedNames = getKindergartenAnimalNames(counterId);
+  let number = allocation.lastNumber;
+  // Bestehende Teilnahmen können dieselbe Tier-Nummer aus der alten Vergabe tragen.
+  while (
+    await tx.participant.findFirst({
+      where: {
+        sessionId,
+        nickname: { in: localizedNames.map((name) => appendParticipantNumber(name, number)) },
+      },
+      select: { id: true },
+    })
+  ) {
+    number += 1;
+  }
+  if (number !== allocation.lastNumber) {
+    await tx.kindergartenNicknameCounter.update({ where, data: { lastNumber: number }, select });
+  }
+  return appendParticipantNumber(nickname, number);
+}
+
 function anonymousNickname(requestedNickname: string, participantNumber: number): string {
   const stem = requestedNickname.replace(/\s+\d+$/, '').trim() || 'User';
   return appendParticipantNumber(stem, participantNumber);
@@ -121,6 +168,7 @@ async function replayPreparedJoin(params: {
           id: true,
           participantNumber: true,
           nickname: true,
+          kindergartenAnimalId: true,
           teamId: true,
           timerAccommodation: true,
           team: { select: { name: true } },
@@ -145,6 +193,7 @@ async function replayPreparedJoin(params: {
     participantId: replay.participant.id,
     participantNumber: replay.participant.participantNumber,
     nickname: replay.participant.nickname,
+    kindergartenAnimalId: replay.participant.kindergartenAnimalId ?? undefined,
     teamId: replay.participant.teamId,
     teamName: replay.participant.team?.name ?? null,
     timerAccommodation: replay.participant.timerAccommodation,
@@ -158,6 +207,7 @@ export async function prepareParticipantJoin(params: {
   tx: Prisma.TransactionClient;
   sessionId: string;
   requestedNickname: string;
+  kindergartenAnimalId?: number;
   assignedTeamId?: string;
   autoTeamIds?: readonly string[];
   requireAssignedTeamForNew?: boolean;
@@ -193,6 +243,7 @@ export async function prepareParticipantJoin(params: {
     id: string;
     participantNumber: number | null;
     nickname: string;
+    kindergartenAnimalId?: number | null;
     teamId: string | null;
     timerAccommodation: string;
     productFeedbackClaimTokenHash: string | null;
@@ -203,6 +254,7 @@ export async function prepareParticipantJoin(params: {
     id: true,
     participantNumber: true,
     nickname: true,
+    kindergartenAnimalId: true,
     teamId: true,
     timerAccommodation: true,
     productFeedbackClaimTokenHash: true,
@@ -269,6 +321,7 @@ export async function prepareParticipantJoin(params: {
       participantId: existing.id,
       participantNumber: existing.participantNumber,
       nickname: existing.nickname,
+      kindergartenAnimalId: existing.kindergartenAnimalId ?? undefined,
       teamId: existing.teamId,
       teamName: existing.team?.name ?? null,
       timerAccommodation: existing.timerAccommodation,
@@ -324,11 +377,32 @@ export async function prepareParticipantJoin(params: {
       ? params.autoTeamIds[(participantNumber - 1) % params.autoTeamIds.length]
       : undefined);
   let nickname = params.requestedNickname.trim().slice(0, 30);
+  let kindergartenAnimalId: number | undefined;
   if (params.profile.anonymousMode) {
     nickname = anonymousNickname(nickname, participantNumber);
   } else if (!params.profile.allowCustomNicknames) {
     const presetNickname = nickname.replace(/\s+\d+$/, '').trim() || 'User';
-    nickname = appendParticipantNumber(presetNickname, participantNumber);
+    const legacyAnimal =
+      params.profile.nicknameTheme === 'KINDERGARTEN' && params.kindergartenAnimalId === undefined
+        ? getLegacyKindergartenAnimal(presetNickname)
+        : undefined;
+    kindergartenAnimalId =
+      params.profile.nicknameTheme === 'KINDERGARTEN'
+        ? (getKindergartenAnimalId(presetNickname, params.kindergartenAnimalId) ??
+          legacyAnimal?.animalId)
+        : undefined;
+    if (params.profile.nicknameTheme === 'KINDERGARTEN' && kindergartenAnimalId === undefined) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: INVALID_KINDERGARTEN_NICKNAME_MESSAGE });
+    }
+    nickname =
+      kindergartenAnimalId === undefined
+        ? appendParticipantNumber(presetNickname, participantNumber)
+        : await allocateKindergartenNickname(
+            params.tx,
+            params.sessionId,
+            kindergartenAnimalId,
+            legacyAnimal?.name ?? presetNickname,
+          );
   }
 
   const rejoinCapability = createOpaqueCapability();
@@ -339,6 +413,7 @@ export async function prepareParticipantJoin(params: {
         sessionId: params.sessionId,
         participantNumber,
         nickname,
+        kindergartenAnimalId,
         teamId: assignedTeamId,
         rejoinCapabilityHash: hashCapability(rejoinCapability),
         productFeedbackClaimTokenHash: hashProductFeedbackToken(productFeedbackClaimToken),
@@ -348,6 +423,7 @@ export async function prepareParticipantJoin(params: {
         id: true,
         participantNumber: true,
         nickname: true,
+        kindergartenAnimalId: true,
         teamId: true,
         timerAccommodation: true,
         team: { select: { name: true } },
@@ -381,6 +457,7 @@ export async function prepareParticipantJoin(params: {
       participantId: participant.id,
       participantNumber,
       nickname: participant.nickname,
+      kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
       teamId: participant.teamId,
       teamName: participant.team?.name ?? null,
       timerAccommodation: participant.timerAccommodation,

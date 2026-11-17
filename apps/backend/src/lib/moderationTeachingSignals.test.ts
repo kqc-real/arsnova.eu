@@ -3,7 +3,7 @@ import {
   ModerationQuestionsSectionSchema,
   ModerationTopicsSectionSchema,
   calculateModerationQaBestScoreV1,
-  calculateModerationQaControversyScoreV1,
+  calculateQaControversyScore,
 } from '@arsnova/shared-types';
 import { describe, expect, it, vi } from 'vitest';
 import type { AuthorizedModerationState } from './moderationQaContext';
@@ -1198,12 +1198,7 @@ describe('buildCompassContext', () => {
     const pendingSourceId = 'qa-question:77777777-7777-4777-8777-777777777777';
     const questions = ModerationQuestionsSectionSchema.parse({
       state: 'available',
-      participantBasis: {
-        state: 'available',
-        kind: 'session-participant-record-count',
-        value: 4,
-        calculationVersion: 'qa-ranking-v1',
-      },
+      rankingVersion: 'qa-ranking-v2',
       corpus: { total: 1, eligible: 1, analyzed: 1, deduplicated: 1, represented: 1 },
       items: [
         {
@@ -1212,20 +1207,19 @@ describe('buildCompassContext', () => {
           answerState: { state: 'unavailable', reason: 'not-collected' },
           votes: {
             state: 'available',
-            positive: 2,
-            negative: 2,
+            positive: 3,
+            negative: 3,
             net: 0,
-            total: 4,
+            total: 6,
             bestScore: {
               state: 'available',
-              value: calculateModerationQaBestScoreV1({ positive: 2, negative: 2 }),
+              value: calculateModerationQaBestScoreV1({ positive: 3, negative: 3 }),
             },
             controversyScore: {
               state: 'available',
-              value: calculateModerationQaControversyScoreV1({
-                positive: 2,
-                negative: 2,
-                participantBasis: 4,
+              value: calculateQaControversyScore({
+                positive: 3,
+                negative: 3,
               }),
             },
           },
@@ -1264,20 +1258,14 @@ describe('buildCompassContext', () => {
   it('keeps every selected friction question and semantic topic in coherent evidence', () => {
     const firstQuestion = 'qa-question:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const secondQuestion = 'qa-question:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-    const bestScore = calculateModerationQaBestScoreV1({ positive: 2, negative: 2 });
-    const controversyScore = calculateModerationQaControversyScoreV1({
-      positive: 2,
-      negative: 2,
-      participantBasis: 4,
+    const bestScore = calculateModerationQaBestScoreV1({ positive: 3, negative: 3 });
+    const controversyScore = calculateQaControversyScore({
+      positive: 3,
+      negative: 3,
     });
     const questions = ModerationQuestionsSectionSchema.parse({
       state: 'available',
-      participantBasis: {
-        state: 'available',
-        kind: 'session-participant-record-count',
-        value: 4,
-        calculationVersion: 'qa-ranking-v1',
-      },
+      rankingVersion: 'qa-ranking-v2',
       corpus: { total: 2, eligible: 2, analyzed: 2, deduplicated: 2, represented: 2 },
       items: [firstQuestion, secondQuestion].map((sourceId, index) => ({
         sourceId,
@@ -1285,10 +1273,10 @@ describe('buildCompassContext', () => {
         answerState: { state: 'unavailable', reason: 'not-collected' },
         votes: {
           state: 'available',
-          positive: 2,
-          negative: 2,
+          positive: 3,
+          negative: 3,
           net: 0,
-          total: 4,
+          total: 6,
           bestScore: { state: 'available', value: bestScore },
           controversyScore: { state: 'available', value: controversyScore },
         },
@@ -1316,10 +1304,10 @@ describe('buildCompassContext', () => {
         },
         aggregates: {
           questionCount: 2,
-          positiveVotes: 4,
-          negativeVotes: 4,
+          positiveVotes: 6,
+          negativeVotes: 6,
           netVotes: 0,
-          totalVotes: 8,
+          totalVotes: 12,
           distinctParticipants: { state: 'unavailable', value: null, reason: 'not-collected' },
         },
         scope: {

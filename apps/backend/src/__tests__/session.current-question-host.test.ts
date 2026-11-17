@@ -5,13 +5,19 @@ const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
   prismaMock: {
     session: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     vote: {
+      findFirst: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
+      groupBy: vi.fn(),
     },
     participant: {
       groupBy: vi.fn(),
+    },
+    hiddenWordCloudEntry: {
+      findMany: vi.fn(),
     },
   },
   hostAuthMocks: {
@@ -42,6 +48,208 @@ import {
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const CODE = 'ABC123';
+
+describe('session.getPresenterQuizResult', () => {
+  const questionIds = [
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    '33333333-3333-4333-8333-333333333333',
+    '44444444-4444-4444-8444-444444444444',
+  ];
+  const at = '2026-03-24T12:00:00.000Z';
+  const input = { code: CODE, liveQuestionId: questionIds[3], direction: 'previous' as const };
+  const active = {
+    id: 'session-id',
+    code: CODE,
+    status: 'ACTIVE',
+    currentQuestion: 3,
+    currentRound: 1,
+    activeQuestionStartedAt: new Date(at),
+    questionProgressComplete: true,
+    questionProgress: {
+      [questionIds[0]]: { state: 'COMPLETED', openedAt: at, completedAt: at },
+      [questionIds[1]]: { state: 'SKIPPED', openedAt: at, skippedAt: at },
+      [questionIds[2]]: { state: 'COMPLETED', openedAt: at, completedAt: at },
+      [questionIds[3]]: { state: 'OPENED', openedAt: at },
+    },
+    quiz: {
+      questions: questionIds.map((id, order) => ({
+        id,
+        order,
+        type: 'RATING',
+        difficulty: 'MEDIUM',
+        text: `Frage ${order + 1}`,
+        answers: [],
+      })),
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.session.findUnique.mockResolvedValue(active);
+    prismaMock.vote.findFirst.mockResolvedValue({ round: 2 });
+    prismaMock.vote.findMany.mockResolvedValue([{ ratingValue: 4 }]);
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.getPresenterQuizResult',
+      case: 'happy',
+      mode: 'direct',
+      title: 'liest frühere Ergebnisse der effektiven Runde während einer laufenden Abstimmung',
+    },
+    async () => {
+      const before = structuredClone(active);
+      await expect(caller.getPresenterQuizResult(input)).resolves.toMatchObject({
+        question: { questionId: questionIds[2], currentRound: 2, ratingAvg: 4 },
+        hasPrevious: true,
+        hasNext: false,
+      });
+      expect(prismaMock.vote.findMany).toHaveBeenCalledWith({
+        where: { sessionId: active.id, questionId: questionIds[2], round: 2 },
+        select: { ratingValue: true },
+      });
+      await expect(
+        caller.getPresenterQuizResult({ ...input, fromQuestionId: questionIds[2] }),
+      ).resolves.toMatchObject({
+        question: { questionId: questionIds[0] },
+        hasPrevious: false,
+        hasNext: true,
+      });
+      await expect(
+        caller.getPresenterQuizResult({
+          ...input,
+          fromQuestionId: questionIds[0],
+          direction: 'next',
+        }),
+      ).resolves.toMatchObject({ question: { questionId: questionIds[2] } });
+      expect(prismaMock.session.update).not.toHaveBeenCalled();
+      expect(active).toEqual(before);
+    },
+  );
+
+  it('liefert die laufende Bewertungsverteilung ausschließlich im Host-Fortschritt', async () => {
+    const questionId = 'dddddddd-3333-4333-8333-333333333333';
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: CODE,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      quiz: {
+        questions: [
+          {
+            id: questionId,
+            order: 0,
+            type: 'RATING',
+            answers: [],
+          },
+        ],
+      },
+    });
+    prismaMock.vote.groupBy.mockResolvedValue([
+      { ratingValue: 2, _count: { _all: 1 } },
+      { ratingValue: 4, _count: { _all: 2 } },
+    ]);
+
+    const result = await caller.getHostVoteProgress({ code: CODE });
+
+    expect(result).toEqual({
+      questionId,
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      ratingDistribution: { '2': 1, '4': 2 },
+      ratingAvg: 3.3,
+      ratingMedian: 4,
+      ratingStdDev: 0.9,
+    });
+    expect(prismaMock.vote.groupBy).toHaveBeenCalledWith({
+      by: ['ratingValue'],
+      where: {
+        sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        questionId,
+        round: 1,
+        ratingValue: { not: null },
+      },
+      _count: { _all: true },
+    });
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.getPresenterQuizResult',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'verlangt einen gültigen Host-Token für den Ergebnisrückblick',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+      await expect(caller.getPresenterQuizResult(input)).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+    },
+  );
+
+  it('ignoriert veraltete Anker, ausgelassene Fragen und noch nicht abgeschlossene Fragen', async () => {
+    await expect(
+      caller.getPresenterQuizResult({ ...input, liveQuestionId: questionIds[0] }),
+    ).resolves.toBeNull();
+    await expect(
+      caller.getPresenterQuizResult({ ...input, fromQuestionId: questionIds[1] }),
+    ).resolves.toBeNull();
+    await expect(
+      caller.getPresenterQuizResult({
+        ...input,
+        fromQuestionId: questionIds[2],
+        direction: 'next',
+      }),
+    ).resolves.toBeNull();
+    expect(prismaMock.vote.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('unterstützt alte Sessions mit lückenlosem Quizlauf und überspringt explizit ausgelassene Fragen', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...active,
+      questionProgressComplete: false,
+      questionProgress: { [questionIds[2]]: active.questionProgress[questionIds[1]] },
+    });
+    prismaMock.vote.findFirst.mockResolvedValue(null);
+    await expect(caller.getPresenterQuizResult(input)).resolves.toMatchObject({
+      question: { questionId: questionIds[1], currentRound: 1 },
+    });
+  });
+
+  it('liefert für eine moderierte Freitext-Wortwolke keine Rohantworten im Rückblick', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...active,
+      quiz: {
+        questions: active.quiz.questions.map((question) =>
+          question.id === questionIds[2] ? { ...question, type: 'FREETEXT' } : question,
+        ),
+      },
+    });
+    prismaMock.vote.findFirst.mockResolvedValue(null);
+    prismaMock.vote.findMany.mockResolvedValue([{ freeText: 'Vertrauliche Beispielphrase' }]);
+    prismaMock.hiddenWordCloudEntry.findMany.mockResolvedValue([
+      { label: 'Vertrauliche Beispielphrase' },
+    ]);
+
+    const result = await caller.getPresenterQuizResult(input);
+    expect(result).toMatchObject({
+      question: { questionId: questionIds[2], type: 'FREETEXT' },
+      wordCloudUnavailable: true,
+    });
+    expect(result?.question.freeTextResponses).toBeUndefined();
+    expect(prismaMock.hiddenWordCloudEntry.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { sessionId: active.id, questionId: questionIds[2] } }),
+    );
+  });
+});
 
 describe('session.getCurrentQuestionForHost (Story 2.3)', () => {
   beforeEach(() => {

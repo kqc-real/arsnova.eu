@@ -330,6 +330,84 @@ describe('session team mode (Story 7.1)', () => {
     },
   );
 
+  trpcDodIt(
+    {
+      procedure: 'session.getHostTeamLeaderboard',
+      case: 'happy',
+      mode: 'direct',
+      title: 'ergänzt den Median effektiver Mitgliedspunkte, ohne die Wertung danach zu sortieren',
+    },
+    async () => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: SESSION_ID,
+        status: 'RESULTS',
+        quiz: {
+          teamMode: true,
+          teamCount: 2,
+          questions: [
+            { id: 'q1', order: 0 },
+            { id: 'q2', order: 1 },
+          ],
+        },
+      });
+      prismaMock.team.findMany.mockResolvedValue([
+        { id: TEAM_A_ID, name: 'Team A', color: null, _count: { participants: 3 } },
+        { id: TEAM_B_ID, name: 'Team B', color: null, _count: { participants: 2 } },
+      ]);
+      prismaMock.participant.findMany.mockResolvedValue([
+        { id: 'p1', teamId: TEAM_A_ID },
+        { id: 'p2', teamId: TEAM_A_ID },
+        { id: 'p3', teamId: TEAM_A_ID },
+        { id: 'p4', teamId: TEAM_B_ID },
+        { id: 'p5', teamId: TEAM_B_ID },
+      ]);
+      prismaMock.vote.findMany.mockResolvedValue([
+        { participantId: 'p1', questionId: 'q1', round: 1, score: 50 },
+        { participantId: 'p2', questionId: 'q1', round: 1, score: 900 },
+        { participantId: 'p1', questionId: 'q1', round: 2, score: 900 },
+        { participantId: 'p1', questionId: 'q2', round: 1, score: 100 },
+        { participantId: 'p4', questionId: 'q2', round: 1, score: 250 },
+        { participantId: 'p5', questionId: 'q2', round: 1, score: 350 },
+      ]);
+
+      const result = await hostCaller.getHostTeamLeaderboard({ code: 'ABC123' });
+      expect(result).toMatchObject([
+        { rank: 1, teamName: 'Team A', totalScore: 333.3, medianScore: 0, memberCount: 3 },
+        { rank: 2, teamName: 'Team B', totalScore: 300, medianScore: 300, memberCount: 2 },
+      ]);
+      expect(await caller.getTeamLeaderboard({ code: 'ABC123' })).toEqual(
+        result.map(({ medianScore: _medianScore, ...entry }) => entry),
+      );
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getHostTeamLeaderboard',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'verweigert die Host-Teamwertung bei ungültigem Host-Token',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(false);
+      await expect(hostCaller.getHostTeamLeaderboard({ code: 'ABC123' })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+    },
+  );
+
+  it('liefert den Teammedian erst bei freigegebenen Ergebnissen oder nach Sessionende', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: SESSION_ID,
+      status: 'ACTIVE',
+      quiz: { teamMode: true },
+    });
+    await expect(hostCaller.getHostTeamLeaderboard({ code: 'ABC123' })).resolves.toEqual([]);
+    expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
+  });
+
   it('nutzt Antwortzeiten nur von beitragenden Team-Votes als Gleichstand-Tiebreaker', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       id: SESSION_ID,

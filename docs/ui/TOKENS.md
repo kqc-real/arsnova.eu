@@ -53,6 +53,7 @@ Aktuell globale Tokens in `styles.scss`:
 | `--app-shadow-card-playful`    | Zusatzschatten für Spielerisch-Karten                     | nur `html.preset-playful`                                            |
 | `--app-shadow-cta-glow`        | dezenter Glow für Spielerisch-CTA (Token, Home ungenutzt) | nur `html.preset-playful`                                            |
 | `--app-corner-playful`         | stärker gerundete Spielerisch-Flächen                     | nur `html.preset-playful`                                            |
+| `--app-icon-tile-border`       | gemeinsamer Rahmen für umrandete Icon-Kacheln             | 1,5 px, Mischung aus `--mat-sys-outline` und `--mat-sys-primary`     |
 | `--app-toolbar-max-width`      | maximale Toolbar-/Shell-Breite                            | Layout-Konstante, derzeit `56rem`                                    |
 | `--app-live-channel-max-width` | maximale Breite von Host-/Vote-/Feedback-Live-Kanälen     | Layout-Konstante, derzeit `36rem`                                    |
 | `--app-live-channel-inline`    | Inline-Padding für Live-Kanäle                            | Layout-Konstante                                                     |
@@ -223,9 +224,15 @@ und 26 CSS-Pixel. Haupttext und Code verwenden Zeilenhöhe 1,5; aufeinanderfolge
 Absätze erhalten zusätzlich Abstand. Die gemessene Projektionsfläche bestimmt
 semantische Seiten, nicht eine weitere Schriftverkleinerung. Farben und Karten
 verwenden weiterhin die vorhandenen Material- und Preset-Tokens.
-Antwortoptionen bilden dabei unteilbare Seiteneinheiten. Pro Frage sind höchstens
-acht Optionen zulässig; auf jeder Projektionsseite bleibt der Optionsblock mit
-vergrößertem Zeilenabstand vertikal zentriert.
+Antwortoptionen bilden unteilbare Seiteneinheiten. Pro Frage sind höchstens acht
+Optionen zulässig. Bei Auswahlfragen und Umfragen nutzt der Presenter bei
+Platzmangel kompaktere Karten und ab 52 rem Projektionsbreite bei Bedarf zwei
+Spalten. Die Antwortschrift bleibt bei `--projection-copy` und Zeilenhöhe 1,5.
+Der Optionsblock bleibt auf jeder Projektionsseite vertikal zentriert.
 Die zugehörige Host-Seitennavigation nutzt als angepinnte obere Surface
 `surface-container-high`, `outline-variant`, `corner-extra-large` und Elevation
 `level2`; ihre Breite folgt `--app-toolbar-max-width` und reflowt bei 320 px.
+Der lokale Ergebnisrückblick im Host übernimmt den Presenter-Projektionsvertrag
+und stellt dafür eine begrenzte, viewportabhängige Messfläche bereit. So startet
+die Seiteneinteilung nie mit Höhe 0; lange Inhalte bleiben über die vorhandene
+Seitennavigation erreichbar.

@@ -10,7 +10,7 @@ import { readSessionCodeFromSnapshot } from '../session-route-code';
 import { SessionTokenStorageService } from './session-token-storage.service';
 
 /**
- * Present-Guard im lazy Present-Chunk: Tab-Token zuerst, sonst IndexedDB-Restore.
+ * Present-Guard im lazy Present-Chunk: Tab-Token zuerst, sonst Restore einer älteren IndexedDB-Übergabe.
  * Es gibt keinen AuthService; Restore schreibt über `setHostToken` in sessionStorage.
  * Autorisierung bleibt serverseitig (`hostProcedure` / `requireHostToken`).
  *
@@ -34,7 +34,7 @@ export const presentViewGuard: CanActivateFn = (route, state) => {
           restoredFromIndexedDb = true;
         }
       } catch {
-        // IndexedDB fehlt oder ist gesperrt: requireHostToken leitet auf Join um.
+        // IndexedDB fehlt oder ist gesperrt: requireHostToken behandelt den fehlenden Token.
       }
     }
 

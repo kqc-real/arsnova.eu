@@ -118,8 +118,9 @@ export async function runPreparedQaSummary(
   if (prepared.plan.selectedMode === 'full-context') {
     // Belt-and-suspenders: never call the runtime when the pack has no Q&A evidence.
     if (
-      packedAnalyzedQuestionCount(prepared) > 0 &&
-      countIncludedQaQuestionSources(prepared.request.promptContext) === 0
+      prepared.request.promptContext.context.sources.length === 0 ||
+      (packedAnalyzedQuestionCount(prepared) > 0 &&
+        countIncludedQaQuestionSources(prepared.request.promptContext) === 0)
     ) {
       return extractiveRun(prepared, {
         attemptedMode: 'full-context',
@@ -133,6 +134,7 @@ export async function runPreparedQaSummary(
       hasAcceptableQaSummaryQuality(
         result.output.output,
         prepared.request.promptContext.context.locale,
+        1,
       )
     ) {
       return {

@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { legal, site } from '../../config/legal';
+
+const providerCountry = legal.provider.address.country === 'Deutschland'
+  ? 'Germany'
+  : legal.provider.address.country;
+const hostingLocation = legal.hosting.location === 'USA' ? 'United States' : legal.hosting.location;
+---
+
+<BaseLayout
+  locale="en"
+  title="Privacy policy"
+  description="Privacy policy for the arsnova.eu information website: data processing, hosting, and your rights."
+  canonicalPath="/en/datenschutz/"
+>
+  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6" lang="en">
+    <h1 class="font-display text-3xl font-bold text-landing-fg">Privacy policy</h1>
+    <p class="mt-2 text-landing-fg-muted">Required disclosures under Articles 13 and 14 of the General Data Protection Regulation (GDPR)</p>
+
+    <section class="landing-card mt-6 p-5 text-landing-fg-body">
+      <p class="landing-eyebrow">At a glance</p>
+      <ul class="mt-3 list-inside list-disc space-y-1 leading-7">
+        <li>This policy primarily covers the information website at {site.landingUrl}.</li>
+        <li>The information website itself does not set cookies or use analytics tools.</li>
+        <li>
+          The application for live quizzes, voting, and Q&amp;A is available separately at {site.appUrl}.
+          Additional or different privacy information may apply to that application and to self-hosted installations.
+        </li>
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-8 text-landing-fg-body">
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">1. Data controller</h2>
+        <p class="mt-2">
+          {legal.provider.name}<br />
+          {legal.provider.address.street}<br />
+          {legal.provider.address.city}<br />
+          {providerCountry}
+        </p>
+        <p class="mt-2">
+          Email: <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">2. Scope</h2>
+        <p class="mt-2">
+          This privacy policy primarily applies to the static information website at <strong>{site.landingUrl}</strong>. It explains data processing when you visit these pages, follow external links, and use the hosted website.
+        </p>
+        <p class="mt-2">
+          Additional or different privacy information may apply to the live quiz, voting, and Q&amp;A application at <strong>{site.appUrl}</strong> and to self-hosted installations. The relevant operator or institution is responsible for data processing there.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">3. Data processed when you visit</h2>
+        <p class="mt-2">
+          When you visit this website, the hosting provider may process technical access data, including your IP address, the date and time of the request, the URL visited, browser information, and the amount of data transferred. This processing is technically necessary to deliver the website and maintain its security and stability. The legal basis is Article 6(1)(f) GDPR.
+        </p>
+        <p class="mt-2">
+          This static website sets <strong>no cookies</strong> and runs no analytics tools. Visiting it does not process quiz content, answers, session data, or similar usage data from the application.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">4. Links to external services</h2>
+        <p class="mt-2">
+          This website links to external services, including GitHub and the {site.name} application. Following these links takes you away from the information website. The relevant providers’ or operators’ privacy policies and terms of use then apply.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">5. Hosting of the information website</h2>
+        <p class="mt-2">
+          This information website is hosted by <strong>{legal.hosting.provider}</strong>. Technical access data may be processed on the provider’s servers. The provider is based in the <strong>{hostingLocation}</strong>, so a transfer to a third country cannot be ruled out.
+        </p>
+        <p class="mt-2">
+          For more information about the hosting provider’s data processing, see the <a href={legal.hosting.privacyUrl} class="landing-link" target="_blank" rel="noopener noreferrer">GitHub Privacy Statement</a>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">6. Your rights</h2>
+        <p class="mt-2">You have the following rights in relation to the data controller:</p>
+        <ul class="mt-2 list-inside list-disc space-y-1">
+          <li><strong>Access</strong> (Article 15 GDPR) to personal data processed about you</li>
+          <li><strong>Rectification</strong> (Article 16 GDPR) of inaccurate data</li>
+          <li><strong>Erasure</strong> (Article 17 GDPR) or <strong>restriction of processing</strong> (Article 18 GDPR)</li>
+          <li><strong>Objection</strong> (Article 21 GDPR) to processing based on Article 6(1)(f) GDPR</li>
+          <li><strong>Data portability</strong> (Article 20 GDPR), where applicable</li>
+          <li><strong>Withdrawal of consent</strong> (Article 7(3) GDPR), with effect for the future</li>
+          <li><strong>Lodging a complaint</strong> with a supervisory authority (Article 77 GDPR)</li>
+        </ul>
+        <p class="mt-2">
+          For questions or to exercise your rights, contact: <a href={`mailto:${legal.privacy.email}`} class="landing-link">{legal.privacy.email}</a>.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">7. Are you required to provide data?</h2>
+        <p class="mt-2">
+          You do not need to actively provide personal details just to browse this information website. However, delivering the site requires the hosting provider to process certain connection data. If you contact us by email, we need your sender details.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">8. About the arsnova.eu application</h2>
+        <p class="mt-2">
+          The application at <strong>{site.appUrl}</strong> is designed with privacy in mind and uses a local-first approach. The data processed during application use, live sessions, or self-hosting depends on the operator of the instance. Check the privacy policy provided for the live application you use.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-lg font-semibold text-landing-fg">9. Changes</h2>
+        <p class="mt-2">
+          We may update this privacy policy to reflect changes in the law or in our actual data processing. The current version is available on this page.
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

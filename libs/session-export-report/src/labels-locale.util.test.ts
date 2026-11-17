@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   getSessionResultsReportLabelsDe,
   getSessionResultsReportLabelsEn,
@@ -9,6 +10,7 @@ import {
   type SessionResultsReportLabels,
 } from './labels-locale.util';
 import { REPORT_COVER_LOGO_SVG } from './report-cover-logo';
+import { applyFrenchColonTypography } from './french-colon-typography.util';
 
 /** Keys that may intentionally match DE (cognates / shared loanwords). */
 const ALLOW_SAME_AS_DE: Record<string, ReadonlySet<string>> = {
@@ -27,10 +29,61 @@ const ALLOW_SAME_AS_DE: Record<string, ReadonlySet<string>> = {
   ]),
   fr: new Set(['quizName', 'bonusCode', 'teamRank', 'bonusRank']),
   es: new Set(),
-  it: new Set(['quizName']),
+  it: new Set(['quizName', 'bonusNickname']),
 };
 
 describe('labels-locale', () => {
+  it.each(['en', 'fr', 'es', 'it'] as const)(
+    'hält %s-Reportlabels mit den Übersetzungen der App synchron',
+    (locale) => {
+      const frontend = new URL('../../../apps/frontend/src/', import.meta.url);
+      const catalog = readFileSync(new URL(`locale/messages.${locale}.xlf`, frontend), 'utf8');
+      const bindings = readFileSync(
+        new URL('app/core/session-results-report-labels.ts', frontend),
+        'utf8',
+      );
+      const messageIds = new Map(
+        [...bindings.matchAll(/(\w+):\s*\$localize`:@@([^:]+):/g)].map((match) => [
+          match[1],
+          match[2],
+        ]),
+      );
+      const targets = new Map(
+        [
+          ...catalog.matchAll(/<trans-unit\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/trans-unit>/g),
+        ].map((match) => {
+          const target = match[2].match(/<target>([\s\S]*?)<\/target>/)?.[1] ?? '';
+          return [
+            match[1],
+            target
+              .replaceAll('&lt;', '<')
+              .replaceAll('&gt;', '>')
+              .replaceAll('&quot;', '"')
+              .replaceAll('&apos;', "'")
+              .replaceAll('&amp;', '&'),
+          ];
+        }),
+      );
+      for (const [key, label] of Object.entries(getSessionResultsReportLabelsForLocale(locale))) {
+        const id = messageIds.get(key);
+        expect(id, key).toBeDefined();
+        const target = targets.get(id!);
+        expect(target, key).toBeDefined();
+        if (
+          locale === 'fr' &&
+          (key === 'questionTypeSingleChoice' || key === 'questionTypeMultipleChoice')
+        ) {
+          // Mobile Vorschau: »Réponse unique«; PDF: »Question à réponse unique«.
+          expect(label.toLocaleLowerCase('fr').endsWith(target!.toLocaleLowerCase('fr')), key).toBe(
+            true,
+          );
+        } else {
+          expect(label, key).toBe(locale === 'fr' ? applyFrenchColonTypography(target!) : target!);
+        }
+      }
+    },
+  );
+
   it('folgt dem Glossar für Kernbegriffe (EN/FR/ES/IT)', () => {
     expect(getSessionResultsReportLabelsEn().confidenceRiskCol).toBe('Possible misconception');
     expect(getSessionResultsReportLabelsEn().confidenceSection).toBe('Answer confidence');
@@ -55,9 +108,7 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsEn().confidenceDisabledTemplate).toBe(
       'Answer confidence was disabled for {0} in this quiz.',
     );
-    expect(getSessionResultsReportLabelsEn().questionTypeNumericEstimate).toBe(
-      'Numerical estimate',
-    );
+    expect(getSessionResultsReportLabelsEn().questionTypeNumericEstimate).toBe('Numeric estimate');
     expect(getSessionResultsReportLabelsEn().hardestQuestionRateTemplate).toContain(
       'Correct-response rate:',
     );
@@ -73,9 +124,7 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsEn().confidenceReadingGuideRisk).toContain(
       'Indicator of a possible misconception',
     );
-    expect(getSessionResultsReportLabelsEn().questionTypeSingleChoice).toBe(
-      'Single-answer question',
-    );
+    expect(getSessionResultsReportLabelsEn().questionTypeSingleChoice).toBe('Single choice');
     expect(getSessionResultsReportLabelsFr().hardestQuestionRateTemplate).toContain(
       'Taux de réponses correctes',
     );
@@ -130,16 +179,28 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsIt().questionParticipants).toBe('Partecipanti');
     expect(getSessionResultsReportLabelsIt().aggregationRound1).toBe('Turno 1');
     expect(getSessionResultsReportLabelsIt().confidenceDisabledForQuestion).toBe(
-      'L’autovalutazione del grado di sicurezza era disattivata per questa domanda.',
+      'La sicurezza nella risposta era disattivata per questa domanda.',
     );
     expect(getSessionResultsReportLabelsIt().confidenceCoverageTemplate).toBe(
       'Il grado di sicurezza autovalutato è stato raccolto per {0} domande su {1}, per un totale di {2} risposte.',
     );
     expect(getSessionResultsReportLabelsIt().confidenceNotSupportedForQuestion).toBe(
-      'L’autovalutazione non è prevista per le domande di tipo «{0}».',
+      'La sicurezza nella risposta non viene raccolta per le domande di tipo «{0}».',
     );
     expect(getSessionResultsReportLabelsIt().confidenceFragile).toBe(
       'Conoscenze non ancora consolidate',
+    );
+    expect(getSessionResultsReportLabelsEs().confidenceMasteryZeroNote).toContain(
+      '0 % de conocimiento consolidado no significa un 0 % de respuestas correctas',
+    );
+    expect(getSessionResultsReportLabelsIt().confidenceMasteryZeroNote).toContain(
+      '0% di conoscenze consolidate non significa lo 0% di risposte corrette',
+    );
+    expect(getSessionResultsReportLabelsEs().piGainCorrectToWrongTemplate).toContain(
+      'de una respuesta correcta a una incorrecta',
+    );
+    expect(getSessionResultsReportLabelsIt().piGainCorrectToWrongTemplate).toContain(
+      'da una risposta corretta a una errata',
     );
   });
 
@@ -196,12 +257,8 @@ describe('labels-locale', () => {
     expect(getSessionResultsReportLabelsFr().questionTypeMultipleChoice).toBe(
       'Question à réponses multiples',
     );
-    expect(getSessionResultsReportLabelsEs().questionTypeSingleChoice).toBe(
-      'Pregunta de respuesta única',
-    );
-    expect(getSessionResultsReportLabelsIt().questionTypeMultipleChoice).toBe(
-      'Domanda a risposta multipla',
-    );
+    expect(getSessionResultsReportLabelsEs().questionTypeSingleChoice).toBe('Respuesta única');
+    expect(getSessionResultsReportLabelsIt().questionTypeMultipleChoice).toBe('Risposta multipla');
   });
 });
 

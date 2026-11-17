@@ -3,9 +3,26 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach } from 'vitest';
-import type { HostCurrentQuestionDTO } from '@arsnova/shared-types';
+import {
+  QuestionTypeEnum,
+  type HostCurrentQuestionDTO,
+  type QuestionType,
+} from '@arsnova/shared-types';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { SessionProjectionQuizComponent } from './session-projection-quiz.component';
+
+const readingHints = {
+  SINGLE_CHOICE: 'Gleich wählst du eine Antwort aus.',
+  MULTIPLE_CHOICE: 'Gleich wählst du alle zutreffenden Antworten aus.',
+  SURVEY: 'Gleich kannst du deine Auswahl treffen.',
+  RATING: 'Gleich wählst du einen Wert auf der Skala.',
+  NUMERIC_ESTIMATE: 'Gleich gibst du deinen Schätzwert ein.',
+  SHORT_TEXT: 'Gleich gibst du eine kurze Antwort ein.',
+  FREETEXT: 'Gleich kannst du deine Antwort frei formulieren.',
+  MATCHING: 'Gleich ordnest du zusammengehörige Elemente einander zu.',
+  ORDERING: 'Gleich bringst du die Elemente in die richtige Reihenfolge.',
+  CATEGORIZATION: 'Gleich ordnest du jedes Element einer Kategorie zu.',
+} satisfies Record<QuestionType, string>;
 
 function choiceQuestion(overrides: Partial<HostCurrentQuestionDTO> = {}): HostCurrentQuestionDTO {
   return {
@@ -75,7 +92,7 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz--reading\.session-projection-quiz--with-visual[\s\S]*?\.session-projection-quiz__visual\s*\{[^}]*flex:\s*0 1 auto/s,
     );
     expect(styles).toMatch(
-      /\.session-projection-quiz__numeric-facts-stack\s*\{[^}]*flex-direction:\s*column/s,
+      /\.session-projection-quiz__numeric-facts li\s*\{[^}]*display:\s*grid[^}]*align-content:\s*center/s,
     );
     expect(styles).not.toMatch(
       /\.session-projection-quiz__answer\s*\{[^}]*align-self:\s*flex-start/s,
@@ -151,14 +168,23 @@ describe('SessionProjectionQuizComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Was ist 2 + 2?');
     expect(text).toContain('Lesephase');
-    expect(text).toContain('Antwortoptionen folgen gleich');
+    expect(text).toContain('Lesephase – Gleich wählst du eine Antwort aus.');
     expect(text).toContain('menu_book');
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__reading')).toBeTruthy();
     expect(text).not.toContain('Drei');
     expect(text).not.toContain('Vier');
   });
 
-  it('zeigt den Lesefortschritt und Alle sind bereit nur für die ganze Session', () => {
+  it.each(QuestionTypeEnum.options)('zeigt den passenden Lesehinweis für %s', (type) => {
+    fixture.componentRef.setInput('question', choiceQuestion({ type, answers: [] }));
+    fixture.componentRef.setInput('status', 'QUESTION_OPEN');
+    fixture.detectChanges();
+
+    const hint = fixture.nativeElement.querySelector('.session-projection-quiz__reading span');
+    expect(hint?.textContent).toBe(`Lesephase – ${readingHints[type]}`);
+  });
+
+  it('zeigt den Lesefortschritt und Alle sind bereit nur für die ganze Session', async () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'QUESTION_OPEN');
     fixture.componentRef.setInput('participantCount', 4);
@@ -168,9 +194,12 @@ describe('SessionProjectionQuizComponent', () => {
       allConnectedReady: false,
     });
     fixture.detectChanges();
+    const status = (fixture.nativeElement as HTMLElement).querySelector(
+      '.projection-pages__status',
+    );
 
-    expect(fixture.nativeElement.textContent).toContain('2 von 4 bereit');
-    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
+    expect(status?.textContent).toContain('2 von 4 bereit');
+    expect(status?.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
 
     fixture.componentRef.setInput('readingReady', {
       readyCount: 3,
@@ -178,7 +207,8 @@ describe('SessionProjectionQuizComponent', () => {
       allConnectedReady: true,
     });
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
+    await Promise.resolve();
+    expect(status?.querySelector('[data-testid="presenter-all-ready"]')).toBeNull();
 
     fixture.componentRef.setInput('readingReady', {
       readyCount: 4,
@@ -186,12 +216,11 @@ describe('SessionProjectionQuizComponent', () => {
       allConnectedReady: true,
     });
     fixture.detectChanges();
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-all-ready"]')?.textContent,
-    ).toContain('Alle sind bereit');
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-reading-progress"]'),
-    ).toBeNull();
+    await Promise.resolve();
+    expect(status?.querySelector('[data-testid="presenter-all-ready"]')?.textContent).toContain(
+      'Alle sind bereit',
+    );
+    expect(status?.querySelector('[data-testid="presenter-reading-progress"]')).toBeNull();
   });
 
   it('wechselt die Phase auf Abstimmung beendet und markiert volle Abstimmung', () => {
@@ -261,6 +290,13 @@ describe('SessionProjectionQuizComponent', () => {
         ?.textContent,
     ).toContain('how_to_vote');
     expect(text).not.toContain('check_circle');
+    expect(text).not.toContain('cancel');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__answer-result-icon'),
+    ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__answer--correct'),
+    ).toBeNull();
     expect(fixture.nativeElement.querySelector('button, input, select, textarea, form')).toBeNull();
   });
 
@@ -342,7 +378,7 @@ describe('SessionProjectionQuizComponent', () => {
     );
   });
 
-  it('kennzeichnet die beiden Pole einer Bewertungsskala wie in der Hostansicht', () => {
+  it('zeigt Bewertungsskala und laufende Verteilung auf zwei synchronisierten Seiten', () => {
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
@@ -374,11 +410,71 @@ describe('SessionProjectionQuizComponent', () => {
     expect(poles[0]?.textContent).toContain('Sehr unwahrscheinlich');
     expect(poles[1]?.textContent).toContain('Sehr wahrscheinlich');
     expect(fixture.nativeElement.textContent).toContain(
-      'Die Verteilung erscheint mit dem Ergebnis.',
+      'Auf der nächsten Seite siehst du die Verteilung live.',
     );
+    expect(fixture.componentInstance.currentContentPageCount()).toBe(2);
     expect(
-      fixture.nativeElement.querySelector('.session-projection-quiz__bar-fill')?.style.width,
-    ).toBe('0%');
+      fixture.nativeElement.querySelectorAll('.session-projection-quiz__rating-scale-value'),
+    ).toHaveLength(5);
+    expect(fixture.nativeElement.querySelector('.session-projection-quiz__bar-fill')).toBeNull();
+
+    fixture.componentInstance.onContentPageCount(3);
+    expect(fixture.componentInstance.currentContentPageCount()).toBe(4);
+    fixture.componentRef.setInput('pageIndex', 2);
+    expect(fixture.componentInstance.contentPageIndex()).toBe(2);
+    expect(fixture.componentInstance.showLiveRatingDistribution()).toBe(false);
+    fixture.componentRef.setInput('pageIndex', 3);
+    expect(fixture.componentInstance.contentPageIndex()).toBe(0);
+    expect(fixture.componentInstance.showLiveRatingDistribution()).toBe(true);
+    fixture.componentInstance.onContentPageCount(2);
+    expect(fixture.componentInstance.currentContentPageCount()).toBe(5);
+    fixture.componentRef.setInput('pageIndex', 4);
+    expect(fixture.componentInstance.contentPageIndex()).toBe(1);
+
+    fixture.componentRef.setInput('pageIndex', 3);
+    fixture.componentRef.setInput('voteProgress', {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 3,
+      ratingDistribution: { '1': 1, '5': 2 },
+      ratingAvg: 3.7,
+      ratingMedian: 5,
+      ratingStdDev: 1.9,
+    });
+    fixture.detectChanges();
+
+    const bars = fixture.nativeElement.querySelectorAll('.session-projection-quiz__bar-fill');
+    expect(bars).toHaveLength(5);
+    expect(bars[0]?.style.width).toBe('33%');
+    expect(bars[4]?.style.width).toBe('67%');
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__rating-statistics'),
+    ).toBeNull();
+
+    fixture.componentRef.setInput('voteProgress', {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 0,
+      round: 1,
+      totalVotes: 4,
+      ratingDistribution: { '1': 1, '5': 3 },
+      ratingAvg: 4,
+      ratingMedian: 5,
+      ratingStdDev: 1.7,
+    });
+    fixture.componentRef.setInput('countdownSeconds', 0);
+    fixture.detectChanges();
+    expect(bars[4]?.style.width).toBe('75%');
+    const statistics = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__rating-statistics',
+    ) as HTMLElement | null;
+    expect(statistics?.textContent).toContain('Stimmen');
+    expect(statistics?.textContent).toContain('Mittelwert');
+    expect(statistics?.textContent).toContain('Median');
+    expect(statistics?.textContent).toContain('Standardabweichung');
+    expect(statistics?.textContent).toContain('4,0');
+    expect(statistics?.textContent).toContain('5,0');
+    expect(statistics?.textContent).toContain('1,7');
 
     const styles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
@@ -407,6 +503,38 @@ describe('SessionProjectionQuizComponent', () => {
       /\.session-projection-quiz__bar,\s*\.session-projection-quiz__rating-labels\s*\{[^}]*grid-template-columns:\s*subgrid/s,
     );
     expect(styles).toMatch(/\.session-projection-quiz__rating-axis\s*\{[^}]*grid-column:\s*2/s);
+  });
+
+  it('hält Bewertungsfrage, Ergebnis und Statistik in der breiten Ergebnisübersicht zusammen', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'RATING',
+        answers: [],
+        ratingMin: 1,
+        ratingMax: 10,
+        ratingCount: 4,
+        ratingDistribution: { '1': 1, '5': 1, '9': 2 },
+        ratingAvg: 6,
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz--rating-overview'),
+    ).not.toBeNull();
+    expect(fixture.componentInstance.displayedRatingAverage()).toBe(6);
+    expect(fixture.componentInstance.displayedRatingMedian()).toBe(7);
+    expect(fixture.componentInstance.displayedRatingStdDev()).toBeCloseTo(3.32, 2);
+
+    const paginationStyles = readFileSync(
+      resolve(__dirname, 'projection-pages.component.scss'),
+      'utf8',
+    );
+    expect(paginationStyles).toMatch(
+      /\.session-projection-quiz--rating-overview\s*\{[^}]*grid-template-areas:\s*'question stage'/s,
+    );
   });
 
   it('zeigt nach der Freigabe Verteilung und richtige Antwort', () => {
@@ -439,18 +567,32 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('40');
     expect(text).toContain('60');
     expect(text).toContain('check_circle');
+    expect(text).toContain('cancel');
     const answers = fixture.nativeElement.querySelectorAll(
       '.session-projection-quiz__answer',
     ) as NodeListOf<HTMLElement>;
     expect(answers[0].classList.contains('session-projection-quiz__answer--wrong')).toBe(true);
     expect(answers[1].classList.contains('session-projection-quiz__answer--correct')).toBe(true);
+    expect(
+      answers[0].querySelector('.session-projection-quiz__answer-wrong-icon mat-icon')?.textContent,
+    ).toContain('cancel');
     expect(answers[1].querySelector('.session-projection-quiz__answer-correct-icon')).toBeTruthy();
+    expect(
+      answers[1].querySelector('.session-projection-quiz__answer-correct-icon mat-icon')
+        ?.textContent,
+    ).toContain('check_circle');
     const projectionStyles = readFileSync(
       resolve(__dirname, 'session-projection-quiz.component.scss'),
       'utf8',
     );
     expect(projectionStyles).toMatch(
-      /\.session-projection-quiz__answer-correct-icon\s*\{[^}]*--arsnova-bar-correct/s,
+      /\.session-projection-quiz__answer--correct\s*\{[^}]*background:\s*light-dark\(\s*color-mix\(in srgb, var\(--arsnova-bar-correct\) 22%,[^\n]*\n\s*color-mix\(in srgb, var\(--arsnova-bar-correct\) 46%,[^}]*color:\s*var\(--mat-sys-on-surface\)/s,
+    );
+    expect(projectionStyles).toMatch(
+      /\.session-projection-quiz__answer-correct-icon\s*\{[^}]*background:\s*var\(--arsnova-bar-correct\)[^}]*color:\s*var\(--arsnova-bar-correct-on\)/s,
+    );
+    expect(projectionStyles).toMatch(
+      /\.session-projection-quiz__answer-wrong-icon\s*\{[^}]*background:\s*var\(--arsnova-bar-wrong\)[^}]*color:\s*#fff/s,
     );
     expect(projectionStyles).not.toMatch(
       /\.session-projection-quiz__answer--(?:correct|wrong)\s*\{[^}]*box-shadow:/s,
@@ -472,6 +614,37 @@ describe('SessionProjectionQuizComponent', () => {
     ]);
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__answer-pct')).toBeNull();
   });
+
+  it.each([
+    { type: 'SINGLE_CHOICE', expectedCorrect: 1, expectedWrong: 1 },
+    { type: 'SURVEY', expectedCorrect: 0, expectedWrong: 0 },
+  ] as const)(
+    'markiert bei $type ohne Stimmverteilung $expectedCorrect richtige und $expectedWrong falsche Optionen',
+    ({ type, expectedCorrect, expectedWrong }) => {
+      fixture.componentRef.setInput('question', choiceQuestion({ type }));
+      fixture.componentRef.setInput('status', 'RESULTS');
+      fixture.detectChanges();
+
+      const answers = fixture.nativeElement.querySelector('.session-projection-quiz__answers');
+      expect(answers?.children).toHaveLength(2);
+      expect(answers?.querySelectorAll('.session-projection-quiz__answer--correct')).toHaveLength(
+        expectedCorrect,
+      );
+      expect(
+        answers?.querySelectorAll(
+          '.session-projection-quiz__answer--correct .session-projection-quiz__answer-correct-icon',
+        ),
+      ).toHaveLength(expectedCorrect);
+      expect(
+        answers?.querySelectorAll(
+          '.session-projection-quiz__answer--wrong .session-projection-quiz__answer-wrong-icon',
+        ),
+      ).toHaveLength(expectedWrong);
+      expect(
+        answers?.querySelectorAll('.session-projection-quiz__answer-result-icon'),
+      ).toHaveLength(expectedCorrect + expectedWrong);
+    },
+  );
 
   it('ordnet das Leaderboard nach allen Ergebnis-Inhaltsseiten als letzte Seite ein', async () => {
     const emittedCounts: number[] = [];
@@ -495,7 +668,8 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('leaderboard', [
       {
         rank: 1,
-        nickname: 'Ada',
+        nickname: 'Wal 1',
+        kindergartenAnimalId: 34,
         totalScore: 120,
         correctCount: 1,
         totalQuestions: 1,
@@ -516,10 +690,16 @@ describe('SessionProjectionQuizComponent', () => {
       reactions: { '👏': 2 },
       total: 2,
     });
+    fixture.componentRef.setInput('pageIndex', 3);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.contentPageIndex()).toBe(3);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
+    ).toBeNull();
     fixture.componentInstance.onContentPageCount(3);
     fixture.componentRef.setInput('pageIndex', 2);
     fixture.detectChanges();
-
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-results-leaderboard"]'),
     ).toBeNull();
@@ -537,7 +717,14 @@ describe('SessionProjectionQuizComponent', () => {
     const leaderboard = fixture.nativeElement.querySelector(
       '[data-testid="presenter-results-leaderboard"]',
     ) as HTMLElement | null;
-    expect(leaderboard?.textContent).toContain('Ada');
+    expect(
+      leaderboard?.querySelector('.session-projection-quiz__leaderboard-name')?.textContent?.trim(),
+    ).toBe('Wal');
+    expect(
+      leaderboard
+        ?.querySelector('img.session-projection-quiz__leaderboard-emoji')
+        ?.getAttribute('src'),
+    ).toMatch(/emoji_u1f433\.svg$/);
     expect(leaderboard?.textContent).toContain('120');
     expect(leaderboard?.textContent).toContain('Team Blau');
     expect(
@@ -578,6 +765,96 @@ describe('SessionProjectionQuizComponent', () => {
         ?.textContent,
     ).toContain('Team Blau');
     expect(fixture.nativeElement.querySelector('app-projection-pages')?.hidden).toBe(true);
+  });
+
+  it.each([
+    { scores: [90, 80, 70, 60, 50], places: [1, 2, 3, 4, 5] },
+    { scores: [90, 90, 70, 60, 50], places: [1, 1, 3, 4, 5] },
+    { scores: [90, 80, 80, 60, 50], places: [1, 2, 2, 4, 5] },
+    { scores: [90, 90, 90, 60, 50], places: [1, 1, 1, 4, 5] },
+    { scores: [90, 80, 70, 70, 50], places: [1, 2, 3, 3, 5] },
+    { scores: [90, 90, 70, 70, 70], places: [1, 1, 3, 3, 3] },
+  ])(
+    'vergibt die Medaillen bei der Punktefolge $scores nach geteilten Plätzen',
+    ({ scores, places }) => {
+      fixture.componentRef.setInput('question', choiceQuestion());
+      fixture.componentRef.setInput('status', 'RESULTS');
+      fixture.componentRef.setInput('pageIndex', 1);
+      fixture.componentRef.setInput(
+        'leaderboard',
+        scores.map((totalScore, index) => ({
+          rank: index + 1,
+          nickname: `Person ${index + 1}`,
+          totalScore,
+          correctCount: 1,
+          totalQuestions: 1,
+          totalResponseTimeMs: 1000 + index,
+        })),
+      );
+      fixture.componentInstance.onContentPageCount(1);
+      fixture.detectChanges();
+
+      const ranks = Array.from(
+        fixture.nativeElement.querySelectorAll(
+          '.session-projection-quiz__leaderboard-rank',
+        ) as NodeListOf<HTMLElement>,
+      );
+      const medals = ['', '🥇', '🥈', '🥉'];
+      expect(
+        ranks.map((rank) => rank.querySelector('[aria-hidden="true"]')?.textContent?.trim() ?? ''),
+      ).toEqual(places.map((place) => medals[place] ?? ''));
+      expect(
+        ranks.map((rank) => (rank.querySelector('.sr-only') ?? rank).textContent?.trim()),
+      ).toEqual(places.map(String));
+    },
+  );
+
+  it('zeigt die Teamplatzierung im Zwischenleaderboard erst bei positiven Punkten', () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.componentRef.setInput('pageIndex', 1);
+    const teams = ['Team Blau', 'Team Rot'].map((teamName, index) => ({
+      rank: index + 1,
+      teamName,
+      teamColor: '#1565c0',
+      memberCount: 2,
+      totalScore: 0,
+      averageScore: 0,
+    }));
+    fixture.componentRef.setInput('teamLeaderboard', teams);
+    fixture.componentInstance.onContentPageCount(1);
+    fixture.detectChanges();
+
+    const leaderboard = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-results-leaderboard"]',
+    ) as HTMLElement;
+    const rankSelector = '.session-projection-quiz__leaderboard-rank';
+    const scoreSelector = '.session-projection-quiz__leaderboard-score';
+    const medalSelector = '.session-projection-quiz__leaderboard-medal';
+    const leadSelector = '.session-projection-quiz__leaderboard-item--lead';
+    const ranks = () => Array.from(leaderboard.querySelectorAll(rankSelector));
+    expect(leaderboard.textContent).toContain('Team Blau');
+    expect(leaderboard.textContent).toContain('Team Rot');
+    expect(
+      Array.from(leaderboard.querySelectorAll(scoreSelector), (score) => score.textContent?.trim()),
+    ).toEqual(['0', '0']);
+    expect(ranks().map((rank) => rank.textContent?.trim())).toEqual(['—', '—']);
+    expect(ranks().map((rank) => rank.getAttribute('aria-hidden'))).toEqual(['true', 'true']);
+    expect(leaderboard.querySelector(medalSelector)).toBeNull();
+    expect(leaderboard.querySelector(leadSelector)).toBeNull();
+
+    fixture.componentRef.setInput('teamLeaderboard', [
+      { ...teams[0], totalScore: 100, averageScore: 100 },
+      teams[1],
+    ]);
+    fixture.detectChanges();
+
+    expect(ranks().map((rank) => rank.querySelector('.sr-only')?.textContent)).toEqual(['1', '2']);
+    expect(ranks().map((rank) => rank.getAttribute('aria-hidden'))).toEqual([null, null]);
+    expect(
+      Array.from(leaderboard.querySelectorAll(medalSelector), (medal) => medal.textContent?.trim()),
+    ).toEqual(['🥇', '🥈']);
+    expect(leaderboard.querySelectorAll(leadSelector)).toHaveLength(1);
   });
 
   it('zeigt im Zwischenleaderboard nur die Top 5 und nennt die Kappung', () => {
@@ -668,8 +945,10 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.componentRef.setInput('question', choiceQuestion());
     fixture.componentRef.setInput('status', 'ACTIVE');
     fixture.componentRef.setInput('pageContext', 'active-question-1');
+    fixture.componentRef.setInput('pageIndex', 7);
     fixture.detectChanges();
 
+    expect(fixture.componentInstance.contentPageIndex()).toBe(7);
     expect(emittedCounts).toEqual([]);
 
     fixture.componentInstance.onContentPageCount(8);
@@ -1068,7 +1347,7 @@ describe('SessionProjectionQuizComponent', () => {
     fixture.detectChanges();
 
     const stack = fixture.nativeElement.querySelector(
-      '.session-projection-quiz__numeric-facts-stack',
+      '.session-projection-quiz__numeric-facts li:has(> span)',
     ) as HTMLElement | null;
     expect(stack).toBeTruthy();
     const lines = Array.from(stack?.querySelectorAll(':scope > span') ?? []).map((node) =>
@@ -1228,6 +1507,28 @@ describe('SessionProjectionQuizComponent', () => {
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
     ).toContain('4');
+    const fingerHost = overlay?.querySelector('app-countdown-fingers') as HTMLElement;
+    const fingerImage = fingerHost.querySelector('img') as HTMLImageElement;
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    fingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+
+    fixture.componentRef.setInput('countdownSeconds', 3);
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('3');
+    const nextFingerImage = fingerHost.querySelector('img:not([hidden])') as HTMLImageElement;
+    nextFingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+
+    nextFingerImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('.session-projection-quiz__countdown')?.textContent,
+    ).toContain('3');
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__status-fingers'),
     ).toBeNull();
@@ -1237,6 +1538,9 @@ describe('SessionProjectionQuizComponent', () => {
         'src/app/features/session/session-present/session-projection-quiz.component.scss',
       ),
       'utf8',
+    );
+    expect(styles).toMatch(
+      /app-session-projection-quiz:has\(\s*> \.session-projection-quiz__finger-overlay app-countdown-fingers\.countdown-fingers-host--loaded\s*\)\s*\.session-projection-quiz__countdown\s*\{\s*display: none;/,
     );
     expect(styles).toMatch(
       /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?position:\s*fixed/,
@@ -1252,6 +1556,21 @@ describe('SessionProjectionQuizComponent', () => {
     expect(styles).toMatch(
       /\.session-projection-quiz__finger-overlay\s*\{[\s\S]*?app-countdown-fingers\s*\{[\s\S]*?align-self:\s*end/,
     );
+  });
+
+  it('aktualisiert die sichtbare Countdown-Zahl vor der nächsten Seitenmessung', async () => {
+    fixture.componentRef.setInput('question', choiceQuestion());
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.componentRef.setInput('countdownSeconds', 3);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const visibleTimer = () => host.querySelector('.projection-pages__status [role="timer"]');
+    expect(visibleTimer()?.textContent?.trim()).toBe('3');
+
+    fixture.componentRef.setInput('countdownSeconds', 2);
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(visibleTimer()?.textContent?.trim()).toBe('2');
   });
 
   it('hält die Frageschrift in Lese- und Antwortmodus gleich groß', () => {
@@ -1295,7 +1614,7 @@ describe('SessionProjectionQuizComponent', () => {
     expect(stage.classList.contains('session-projection-quiz--code')).toBe(true);
     expect(stage.classList.contains('session-projection-quiz--split')).toBe(true);
     expect(stage.classList.contains('session-projection-quiz--fingers')).toBe(false);
-    expect(stage.querySelector('app-countdown-fingers')).toBeNull();
+    expect(fixture.nativeElement.querySelector('app-countdown-fingers')).toBeNull();
     expect(stage.querySelector('.session-projection-quiz__countdown')?.textContent).toContain('2');
     const title = stage.querySelector('.session-projection-quiz__title') as HTMLElement;
     const code = stage.querySelector('pre') as HTMLElement;
@@ -1438,9 +1757,28 @@ describe('SessionProjectionQuizComponent', () => {
     expect(text).toContain('falsch → richtig');
     expect(text).toContain('KI-generiertes Bild');
     expect(text).toContain('Echtes Foto');
+    const roundComparison = fixture.nativeElement.querySelector(
+      '.session-projection-quiz__round-comparison',
+    ) as HTMLElement;
+    const correctAnswer = roundComparison.querySelector(
+      '.session-projection-quiz__answer--correct',
+    );
+    expect(correctAnswer?.textContent).toContain('Echtes Foto');
     expect(
-      fixture.nativeElement.querySelector('.session-projection-quiz__round-comparison'),
+      correctAnswer?.querySelector('.session-projection-quiz__answer-correct-icon'),
     ).toBeTruthy();
+    const wrongAnswer = roundComparison.querySelector('.session-projection-quiz__answer--wrong');
+    expect(wrongAnswer?.textContent).toContain('KI-generiertes Bild');
+    expect(
+      wrongAnswer?.querySelector('.session-projection-quiz__answer-wrong-icon mat-icon')
+        ?.textContent,
+    ).toContain('cancel');
+    const legend = roundComparison.querySelector('[data-projection-answer-legend]');
+    expect(legend?.textContent).toContain('Runde 1 (50 Stimmen)');
+    expect(legend?.textContent).toContain('Runde 2 (48 Stimmen)');
+    expect(legend?.nextElementSibling).toBe(
+      roundComparison.querySelector('[data-projection-answer-list]'),
+    );
     expect(
       fixture.nativeElement.querySelector('.session-projection-quiz__opinion-shift'),
     ).toBeTruthy();

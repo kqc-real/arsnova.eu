@@ -7,6 +7,7 @@ export interface ProjectionBoundary {
 const ATOMIC =
   '.session-projection-quiz__answer, [data-projection-unit], .katex, img, svg, canvas, mat-icon, app-answer-option-badge';
 const BLOCK = 'p, li, pre, tr, h1, h2, h3, h4, article, mat-card, [data-projection-unit]';
+const ANSWER_LIST = '[data-projection-answer-list]';
 
 export function projectionBoundaries(root: HTMLElement): ProjectionBoundary[] {
   const points: ProjectionBoundary[] = [];
@@ -101,6 +102,10 @@ export function cloneProjectionRange(
   return copy;
 }
 
+function hasProjectionContent(page: HTMLElement): boolean {
+  return !!(page.textContent?.trim() || page.querySelector('img,svg,canvas'));
+}
+
 export function paginateProjection(
   root: HTMLElement,
   fits: (page: HTMLElement) => boolean,
@@ -125,11 +130,77 @@ export function paginateProjection(
     while (end >= first && !boundaries[end]!.semantic) end--;
     if (end < first) end = Math.max(first, lastFit);
     const page = cloneProjectionRange(root, start, boundaries[end]!);
-    if (page.textContent?.trim() || page.querySelector('img,svg,canvas')) pages.push(page);
+    if (hasProjectionContent(page)) pages.push(page);
     start = boundaries[end]!;
     first = end + 1;
   }
   return pages.length ? pages : [root.cloneNode(true) as HTMLElement];
+}
+
+export function layoutProjection(
+  root: HTMLElement,
+  fits: (page: HTMLElement) => boolean,
+): HTMLElement[] {
+  const list = root.querySelector<HTMLElement>(ANSWER_LIST);
+  if (!list || list.childElementCount < 2) return paginateProjection(root, fits);
+
+  const full = cloneProjectionRange(
+    root,
+    { node: root, offset: 0, semantic: true },
+    { node: root, offset: root.childNodes.length, semantic: true },
+  );
+  if (fits(full)) return [full];
+
+  const compactList = full.querySelector<HTMLElement>(ANSWER_LIST)!;
+  const groupBoundary = (element: HTMLElement, after: boolean): ProjectionBoundary => {
+    let node = element;
+    // Include enclosing cards at the beginning or end of the group.
+    // That keeps empty card fragments off neighboring pages.
+    while (
+      node.parentElement !== full &&
+      !(after ? node.nextElementSibling : node.previousElementSibling)
+    ) {
+      node = node.parentElement!;
+    }
+    const parent = node.parentNode!;
+    return {
+      node: parent,
+      offset: Array.from(parent.childNodes).indexOf(node) + Number(after),
+      semantic: true,
+    };
+  };
+  full.classList.add('projection-source--compact-answers');
+  const columnLayouts = [false, true];
+  for (const twoColumns of columnLayouts) {
+    full.classList.toggle('projection-source--two-column-answers', twoColumns);
+    if (fits(full)) return [full];
+  }
+  const legend = compactList.parentElement?.querySelector<HTMLElement>(
+    ':scope > [data-projection-answer-legend]',
+  );
+  const end = groupBoundary(compactList, true);
+  for (const first of legend ? [legend, compactList] : [compactList]) {
+    const start = groupBoundary(first, false);
+    for (const twoColumns of columnLayouts) {
+      full.classList.toggle('projection-source--two-column-answers', twoColumns);
+      const answers = cloneProjectionRange(full, start, end);
+      if (!fits(answers)) continue;
+
+      const before = cloneProjectionRange(full, { node: full, offset: 0, semantic: true }, start);
+      const after = cloneProjectionRange(full, end, {
+        node: full,
+        offset: full.childNodes.length,
+        semantic: true,
+      });
+      return [
+        ...(hasProjectionContent(before) ? paginateProjection(before, fits) : []),
+        answers,
+        ...(hasProjectionContent(after) ? paginateProjection(after, fits) : []),
+      ];
+    }
+  }
+
+  return paginateProjection(root, fits);
 }
 
 /** Expand distribution matrices into labelled rows; all cells remain readable on narrow projectors. */

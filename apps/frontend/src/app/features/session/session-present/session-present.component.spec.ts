@@ -1,12 +1,34 @@
+import { SessionMusicService } from '../session-music.service';
+import { SessionUnloadWarningService } from '../session-unload-warning.service';
+import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
+import { SoundService } from '../../../core/sound.service';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { MatButton } from '@angular/material/button';
+import { By } from '@angular/platform-browser';
+import { buildConfidenceResult, type HostCurrentQuestionDTO } from '@arsnova/shared-types';
 import { SessionPresentComponent } from './session-present.component';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import { getQaWordCloudQuestionWeight } from './word-cloud-weight.util';
 import { NICKNAME_LISTS } from '../../join/nickname-themes';
+import { KINDERGARTEN_NICKNAME_EMOJIS } from '../../join/kindergarten-nickname-icons';
+import { animalIconUrl } from '../../../shared/animal-icon-url';
+
+it('liefert für jedes Tier-Pseudonym eine lokal gebündelte Vektorgrafik', () => {
+  for (const emoji of KINDERGARTEN_NICKNAME_EMOJIS) {
+    const assetPath = new URL(animalIconUrl(emoji), 'http://localhost').pathname.split(
+      '/assets/',
+    )[1]!;
+    const svg = readFileSync(resolve(process.cwd(), 'src/assets', assetPath), 'utf8');
+    expect(svg).toMatch(/<svg[\s\S]*?viewBox=/);
+    expect(svg).not.toMatch(/<(image|text)\b/);
+  }
+});
 
 const {
   liveQueryMock,
@@ -16,6 +38,7 @@ const {
   startDiscussionMutateMock,
   startSecondRoundMutateMock,
   nextQuestionMutateMock,
+  skipQuestionMutateMock,
   pauseQuizMutateMock,
   resumeQuizMutateMock,
   getInfoQueryMock,
@@ -28,21 +51,26 @@ const {
   setPresenterSortModeMutateMock,
   quickFeedbackResultsQueryMock,
   getCurrentQuestionForHostQueryMock,
+  getPresenterQuizResultQueryMock,
   getHostVoteProgressQueryMock,
   getReactionsQueryMock,
   getQaWordCloudProjectionQueryMock,
   getFreetextWordCloudProjectionQueryMock,
+  setFreetextWordCloudEntryVisibilityMock,
   setFreetextWordCloudProjectionMutateMock,
   analyzeWordCloudMutateMock,
   subscribeMock,
+  presenterDialogOpenMock,
 } = vi.hoisted(() => ({
   liveQueryMock: vi.fn(),
+  setFreetextWordCloudEntryVisibilityMock: vi.fn(),
   setPresenterSurfaceMutateMock: vi.fn(),
   revealAnswersMutateMock: vi.fn(),
   revealResultsMutateMock: vi.fn(),
   startDiscussionMutateMock: vi.fn(),
   startSecondRoundMutateMock: vi.fn(),
   nextQuestionMutateMock: vi.fn(),
+  skipQuestionMutateMock: vi.fn(),
   pauseQuizMutateMock: vi.fn(),
   resumeQuizMutateMock: vi.fn(),
   getInfoQueryMock: vi.fn(),
@@ -55,6 +83,7 @@ const {
   setPresenterSortModeMutateMock: vi.fn(),
   quickFeedbackResultsQueryMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
+  getPresenterQuizResultQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getReactionsQueryMock: vi.fn(),
   getQaWordCloudProjectionQueryMock: vi.fn(),
@@ -62,6 +91,7 @@ const {
   setFreetextWordCloudProjectionMutateMock: vi.fn(),
   analyzeWordCloudMutateMock: vi.fn(),
   subscribeMock: vi.fn((_input: never, _opts: never) => ({ unsubscribe: vi.fn() })),
+  presenterDialogOpenMock: vi.fn(),
 }));
 
 vi.mock('../../../core/trpc.client', () => ({
@@ -73,6 +103,7 @@ vi.mock('../../../core/trpc.client', () => ({
       startDiscussion: { mutate: startDiscussionMutateMock },
       startSecondRound: { mutate: startSecondRoundMutateMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
+      skipQuestion: { mutate: skipQuestionMutateMock },
       pauseQuiz: { mutate: pauseQuizMutateMock },
       resumeQuiz: { mutate: resumeQuizMutateMock },
       getInfo: {
@@ -99,8 +130,12 @@ vi.mock('../../../core/trpc.client', () => ({
       getLiveFreetext: {
         query: liveQueryMock,
       },
+      setFreetextWordCloudEntryVisibility: { mutate: setFreetextWordCloudEntryVisibilityMock },
       getCurrentQuestionForHost: {
         query: getCurrentQuestionForHostQueryMock,
+      },
+      getPresenterQuizResult: {
+        query: getPresenterQuizResultQueryMock,
       },
       getHostVoteProgress: {
         query: getHostVoteProgressQueryMock,
@@ -149,6 +184,15 @@ vi.mock('../../../core/trpc.client', () => ({
 }));
 
 const MOCK_SERVER_TIME = '2026-03-24T12:00:00.000Z';
+const TIMED_PRESENTER_QUESTION = {
+  questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+  text: 'Was war hilfreich?',
+  type: 'SINGLE_CHOICE',
+  difficulty: 'MEDIUM',
+  order: 0,
+  currentRound: 1,
+  answers: [],
+};
 
 function wordCloudEntry(label: string, key: string, confidence: number | null = null) {
   return {
@@ -182,7 +226,11 @@ describe('SessionPresentComponent', () => {
   });
 
   beforeEach(() => {
+    getInfoQueryMock.mockClear();
     setPresenterSurfaceMutateMock.mockReset();
+    skipQuestionMutateMock.mockReset();
+    presenterDialogOpenMock.mockReset();
+    presenterDialogOpenMock.mockReturnValue({ afterClosed: () => of(false) });
     setPresenterSortModeMutateMock.mockReset();
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -217,6 +265,7 @@ describe('SessionPresentComponent', () => {
       updatedAt: '2026-03-08T12:00:00.000Z',
     });
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
+    getPresenterQuizResultQueryMock.mockReset();
     getHostVoteProgressQueryMock.mockResolvedValue(null);
     getReactionsQueryMock.mockResolvedValue({ reactions: {}, total: 0 });
     getQaWordCloudProjectionQueryMock.mockResolvedValue({ projection: null });
@@ -245,7 +294,13 @@ describe('SessionPresentComponent', () => {
     TestBed.configureTestingModule({
       imports: [SessionPresentComponent],
       providers: [
+        SessionMusicService,
+        SessionUnloadWarningService,
         provideRouter([]),
+        {
+          provide: MatDialog,
+          useValue: { openDialogs: [], open: presenterDialogOpenMock },
+        },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -259,6 +314,465 @@ describe('SessionPresentComponent', () => {
       ],
     });
     TestBed.inject(ThemePresetService).setPreset('spielerisch', { silent: true });
+  });
+
+  it('zeigt Frage auslassen ohne redundantes Icon und löst S nur nach Bestätigung aus', async () => {
+    const question = {
+      ...TIMED_PRESENTER_QUESTION,
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 2,
+      hasNextQuestion: true,
+      hasUnopenedFollowingQuestion: true,
+      totalVotes: 2,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      preferredChannel: 'quiz',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(question);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.componentInstance.presentedQuizQuestion()?.questionId).toBe(
+        question.questionId,
+      );
+    });
+
+    const root = fixture.nativeElement as HTMLElement;
+    const skip = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-skip-question"]',
+    );
+    expect(skip?.getAttribute('aria-keyshortcuts')).toBe('S');
+    expect(skip?.querySelector('mat-icon')).toBeNull();
+    expect(skip?.querySelector('kbd')?.textContent).toBe('S');
+
+    const input = document.createElement('input');
+    root.append(input);
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 's', bubbles: true, repeat: true }),
+    );
+    expect(presenterDialogOpenMock).not.toHaveBeenCalled();
+
+    const otherAction = document.createElement('button');
+    root.append(otherAction);
+    otherAction.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    expect(presenterDialogOpenMock).not.toHaveBeenCalled();
+
+    skip?.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    await fixture.whenStable();
+    expect(presenterDialogOpenMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        autoFocus: '.confirm-leave__confirm',
+        data: expect.objectContaining({
+          message:
+            'Diese Frage wird aus der laufenden Session und der Nachbesprechung ausgeschlossen.',
+          consequences: ['Bereits abgegebene Antworten werden nicht ausgewertet.'],
+        }),
+      }),
+    );
+    expect(skipQuestionMutateMock).not.toHaveBeenCalled();
+
+    presenterDialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(true) });
+    skipQuestionMutateMock.mockResolvedValue({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'S', bubbles: true }));
+    await fixture.whenStable();
+
+    expect(skipQuestionMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123', questionId: question.questionId },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    fixture.destroy();
+  });
+
+  it('blättert während der Abstimmung lokal zurück und kehrt ohne Phasenwechsel live zurück', async () => {
+    const liveQuestion = { ...TIMED_PRESENTER_QUESTION, order: 1, hasEarlierPresenterResult: true };
+    const session = {
+      ...(await getInfoQueryMock()),
+      currentQuestion: 1,
+      currentRound: 1,
+      preferredChannel: 'quiz',
+      presenterPage: { context: 'live', index: 0, count: 1 },
+    };
+    getInfoQueryMock.mockResolvedValue(session);
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(liveQuestion);
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: {
+        ...TIMED_PRESENTER_QUESTION,
+        questionId: 'previous',
+        text: 'Frühere Frage?',
+        totalQuestions: 2,
+      },
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(component.presentedQuizQuestion()?.questionId).toBe(liveQuestion.questionId);
+    });
+    const key = (value: string, options: KeyboardEventInit = {}) =>
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', { key: value, bubbles: true, cancelable: true, ...options }),
+      );
+    const before = component.session();
+    const votes = {
+      questionId: liveQuestion.questionId,
+      questionOrder: 1,
+      round: 1,
+      totalVotes: 1,
+    };
+    component.hostVoteProgress.set(votes);
+    setPresenterSurfaceMutateMock.mockClear();
+    revealResultsMutateMock.mockClear();
+    nextQuestionMutateMock.mockClear();
+
+    expect(
+      root.querySelector('[data-testid="presenter-quiz-history-previous"] kbd')?.textContent,
+    ).toContain('←');
+    expect(key('ArrowRight')).toBe(true);
+    expect(key('ArrowLeft', { repeat: true })).toBe(false);
+    expect(getPresenterQuizResultQueryMock).not.toHaveBeenCalled();
+
+    const previous = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-history-previous"]',
+    );
+    previous?.focus();
+    getPresenterQuizResultQueryMock.mockRejectedValueOnce(new Error('Rückblick nicht verfügbar'));
+    expect(key('ArrowLeft')).toBe(false);
+    fixture.detectChanges();
+    expect(previous?.getAttribute('aria-disabled')).toBe('true');
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(root.querySelector('.session-present__quiz-error[role="alert"]')).not.toBeNull();
+    });
+    expect(document.activeElement).toBe(previous);
+    expect(component.session()).toEqual(before);
+
+    expect(key('ArrowLeft')).toBe(false);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.querySelector('.session-present__quiz-error')).toBeNull();
+    expect(
+      root.querySelector('[data-testid="presenter-quiz-history-status"]')?.textContent,
+    ).toContain('Früheres Ergebnis');
+    expect(getPresenterQuizResultQueryMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        liveQuestionId: liveQuestion.questionId,
+        fromQuestionId: undefined,
+        direction: 'previous',
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    component.reportHistoryPages(2);
+    fixture.detectChanges();
+    expect(key('ArrowDown')).toBe(false);
+    expect(component.historyPage().index).toBe(1);
+    fixture.detectChanges();
+    expect(key('ArrowUp')).toBe(false);
+    expect(component.historyPage().index).toBe(0);
+
+    const newerVotes = { ...votes, totalVotes: 2 };
+    component.hostVoteProgress.set(newerVotes);
+    expect(key('ArrowRight')).toBe(false);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.querySelector('[data-testid="presenter-quiz-history-status"]')).toBeNull();
+    expect(component.session()).toEqual(before);
+    expect(component.session()).toMatchObject({
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    expect(component.hostQuestion()).toEqual(liveQuestion);
+    expect(component.hostVoteProgress()).toEqual(newerVotes);
+    expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
+    expect(revealResultsMutateMock).not.toHaveBeenCalled();
+    expect(nextQuestionMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('unterdrückt moderierte Wortwolken im Rückblick und übergibt bei einem Host-Wechsel den Fokus', async () => {
+    const liveQuestion = { ...TIMED_PRESENTER_QUESTION, order: 1, hasEarlierPresenterResult: true };
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      status: 'RESULTS',
+      currentQuestion: 1,
+      currentRound: 1,
+      preferredChannel: 'quiz',
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(liveQuestion);
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: {
+        ...TIMED_PRESENTER_QUESTION,
+        questionId: 'previous',
+        type: 'FREETEXT',
+        freeTextResponses: ['Vertrauliche Beispielphrase'],
+      },
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: true,
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    const root = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(component.presentedQuizQuestion()?.questionId).toBe(liveQuestion.questionId);
+    });
+    const status = subscribeMock.mock.calls.find(
+      ([input]) => typeof input === 'object' && input !== null && 'anonymousClientId' in input,
+    )?.[1] as unknown as { onData(data: unknown): void };
+    await component.stepQuizHistory('previous');
+    fixture.detectChanges();
+    expect(root.textContent).toContain(
+      'Die moderierte Wortwolke ist im Rückblick nicht verfügbar.',
+    );
+    expect(root.textContent).not.toContain('Beispielphrase');
+    expect(root.querySelector('app-word-cloud')).toBeNull();
+
+    const backToLive = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-quiz-history-next"]',
+    );
+    backToLive?.focus();
+    expect(document.activeElement).toBe(backToLive);
+    status.onData({
+      status: 'QUESTION_OPEN',
+      currentQuestion: 2,
+      currentRound: 1,
+      serverTime: MOCK_SERVER_TIME,
+    });
+    fixture.detectChanges();
+    expect(root.querySelector('[data-testid="presenter-quiz-history-status"]')).toBeNull();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-question-pending"]'),
+    );
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      ...liveQuestion,
+      questionId: 'new',
+      order: 2,
+    });
+    await component.retryPresenterQuestion();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(
+      root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'),
+    );
+    fixture.destroy();
+  });
+
+  it('behält beim Ansichtswechsel die Tab-Warnung bis zum Ende der Abstimmung', async () => {
+    const warning = TestBed.inject(SessionUnloadWarningService);
+    Object.defineProperty(warning, 'enabled', { value: true });
+    // Die Session-Shell behält den bereits aktiven Host-Schutz bis zum Presenter-Snapshot.
+    warning.sync('ABC123', 'ACTIVE');
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false);
+
+    fixture.componentInstance.session.update(
+      (session) => session && { ...session, status: 'FINISHED' },
+    );
+    fixture.detectChanges();
+    expect(window.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(true);
+    fixture.destroy();
+  });
+
+  it.each([false, true])(
+    'übernimmt den laufenden Countdown mit Gong im Host: %s',
+    async (gongInHost) => {
+      const music = TestBed.inject(SessionMusicService);
+      const sound = TestBed.inject(SoundService);
+      const play = vi.spyOn(sound, 'play').mockResolvedValue();
+      vi.spyOn(sound, 'preload').mockResolvedValue();
+      getInfoQueryMock.mockResolvedValue({
+        ...(await getInfoQueryMock()),
+        currentQuestion: 0,
+        currentRound: 1,
+        enableSoundEffects: true,
+      });
+
+      // Host und Presenter beziehen denselben Countdown von der Session-Shell.
+      music.enter('ABC123');
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      await vi.waitFor(() => expect(component['musicReady']()).toBe(true));
+      component['stopPolling']();
+      const remaining = gongInHost ? 7 : 9;
+      const startedAt = getSkewAdjustedNow() - (30.5 - remaining) * 1_000;
+      const deadline = music.resolveCountdownDeadline('ABC123', {
+        timerSeconds: 30,
+        activeAt: new Date(startedAt).toISOString(),
+        currentDeadlineMs: null,
+        currentKey: null,
+        nextKey: '0:1:30',
+        nowMs: startedAt,
+      });
+      music.tickCountdown('ABC123', deadline, remaining, true);
+      expect(play).toHaveBeenCalledTimes(gongInHost ? 1 : 0);
+      getCurrentQuestionForHostQueryMock.mockResolvedValue({
+        ...TIMED_PRESENTER_QUESTION,
+        timer: 30,
+      });
+
+      vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+      try {
+        await component['refreshHostQuestion']();
+        expect(component.countdownSeconds()).toBe(remaining);
+        await vi.advanceTimersByTimeAsync(remaining * 1_000);
+        expect(component.countdownSeconds()).toBe(0);
+        expect(play.mock.calls.map(([key]) => key)).toEqual(['countdownEnd', 'sessionEnd']);
+      } finally {
+        fixture.destroy();
+        vi.useRealTimers();
+      }
+    },
+  );
+
+  it('bleibt bei HTTP-Fragenabruf ohne Status-Stream stumm', async () => {
+    resetServerClockSkew();
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'play').mockResolvedValue();
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      serverTime: new Date().toISOString(),
+      currentQuestion: 0,
+      currentRound: 1,
+      enableSoundEffects: true,
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component['musicReady']()).toBe(true));
+    component['stopPolling']();
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      ...TIMED_PRESENTER_QUESTION,
+      timer: 5,
+    });
+
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    try {
+      await component['refreshHostQuestion']();
+      expect(component.countdownSeconds()).toBeGreaterThan(0);
+      await vi.advanceTimersByTimeAsync(6_000);
+      expect(component.countdownSeconds()).toBe(0);
+      expect(play).not.toHaveBeenCalled();
+
+      const expiredStart = new Date(getSkewAdjustedNow() - 10_000).toISOString();
+      component['syncCountdownFromStatus'](5, expiredStart);
+      expect(play).not.toHaveBeenCalled();
+    } finally {
+      fixture.destroy();
+      vi.useRealTimers();
+      resetServerClockSkew();
+    }
+  });
+
+  it('übernimmt die Blitzlichtmusik einer Q&A-Session und stoppt sie beim Pausieren', async () => {
+    const music = TestBed.inject(SessionMusicService);
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'playMusic').mockResolvedValue();
+    const stop = vi.spyOn(sound, 'stopMusic').mockImplementation(() => {});
+    getInfoQueryMock.mockResolvedValue({
+      ...(await getInfoQueryMock()),
+      type: 'Q_AND_A',
+      status: 'LOBBY',
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const feedback = {
+      type: 'YESNO' as const,
+      locked: false,
+      totalVotes: 0,
+      distribution: { YES: 0, NO: 0, MAYBE: 0 },
+      currentRound: 1,
+    };
+    quickFeedbackResultsQueryMock.mockResolvedValue(feedback);
+    music.enter('ABC123');
+    music.quickFeedbackMusicEnabled.set(true);
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(play).toHaveBeenCalledWith('LOBBY_2');
+    });
+    stop.mockClear();
+    fixture.componentInstance.quickFeedbackResult.set({ ...feedback, locked: true });
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('folgt im Presenter der Quizphase, der Stummschaltung und dem Session-Ende', async () => {
+    const music = TestBed.inject(SessionMusicService);
+    const sound = TestBed.inject(SoundService);
+    const play = vi.spyOn(sound, 'playMusic').mockResolvedValue();
+    const stop = vi.spyOn(sound, 'stopMusic').mockImplementation(() => {});
+    getInfoQueryMock.mockResolvedValue({ ...(await getInfoQueryMock()), status: 'LOBBY' });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(play).toHaveBeenCalledWith('LOBBY_2');
+    });
+
+    const component = fixture.componentInstance;
+    component.session.update((session) => session && { ...session, status: 'QUESTION_OPEN' });
+    fixture.detectChanges();
+    expect(play).toHaveBeenLastCalledWith('READING_0');
+
+    stop.mockClear();
+    music.musicMuted.set(true);
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    play.mockClear();
+    component.session.update((session) => session && { ...session, status: 'ACTIVE' });
+    fixture.detectChanges();
+    expect(play).not.toHaveBeenCalled();
+
+    music.musicMuted.set(false);
+    fixture.detectChanges();
+    expect(play).toHaveBeenCalledWith('COUNTDOWN_1');
+    stop.mockClear();
+    component.session.update((session) => session && { ...session, status: 'FINISHED' });
+    fixture.detectChanges();
+    expect(stop).toHaveBeenCalled();
+    fixture.destroy();
   });
 
   it('startet nach Zerstörung während des ersten Ladens weder Polling noch Subscriptions', async () => {
@@ -407,6 +921,37 @@ describe('SessionPresentComponent', () => {
     }
   });
 
+  it('clears rating section boundaries once the results use a single layout', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    const component = fixture.componentInstance;
+    const session = await getInfoQueryMock();
+    component.session.set({
+      ...session,
+      presenterPage: { context: 'rating', index: 1, count: 2, sectionStarts: [0, 1] },
+    });
+    setPresenterSurfaceMutateMock.mockResolvedValueOnce({
+      presenterSurface: 'default',
+      presenterPage: { context: 'rating', index: 0, count: 1 },
+    });
+
+    await component.reportProjectionPages({ count: 1, sectionStarts: null });
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(1);
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        page: { context: 'rating', count: 1, sectionStarts: null },
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(component.session()?.presenterPage).toEqual({
+      context: 'rating',
+      index: 0,
+      count: 1,
+    });
+    fixture.destroy();
+  });
+
   it('zeigt nach beendetem Presenter einen eindeutigen Standby mit Sessioncode statt Quizinhalt', async () => {
     const endedSession = {
       ...(await getInfoQueryMock()),
@@ -492,14 +1037,17 @@ describe('SessionPresentComponent', () => {
     vi.useRealTimers();
   });
 
-  it('bietet Vollbild direkt im Presenter an und fordert es erst nach Klick an', async () => {
+  it('lässt den Presenter bei abgelehntem Vollbild bedienbar und erlaubt einen erneuten Versuch', async () => {
     const { DOCUMENT } = await import('@angular/common');
     const documentRef = TestBed.inject(DOCUMENT);
     const requestFullscreenSpy = vi.fn(() => Promise.resolve());
+    requestFullscreenSpy.mockRejectedValueOnce(new Error('Fullscreen denied'));
     const previousDescriptor = Object.getOwnPropertyDescriptor(
       documentRef.documentElement,
       'requestFullscreen',
     );
+    const previousEnabled = Object.getOwnPropertyDescriptor(documentRef, 'fullscreenEnabled');
+    const previousElement = Object.getOwnPropertyDescriptor(documentRef, 'fullscreenElement');
     Object.defineProperty(documentRef.documentElement, 'requestFullscreen', {
       configurable: true,
       value: requestFullscreenSpy,
@@ -520,53 +1068,47 @@ describe('SessionPresentComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const fullscreenGate = fixture.nativeElement.querySelector(
-        '[data-testid="presenter-fullscreen-gate"]',
-      ) as HTMLElement | null;
-      const fullscreenAction = fullscreenGate?.querySelector(
+      const fullscreenAction = fixture.nativeElement.querySelector(
         '[data-testid="presenter-fullscreen-enter"]',
-      ) as HTMLButtonElement | null;
-      expect(fullscreenGate?.getAttribute('role')).toBe('dialog');
-      expect(fullscreenGate?.getAttribute('aria-modal')).toBe('true');
-      expect(fullscreenAction?.textContent).toContain('Präsentation im Vollbild starten');
-      expect(fullscreenAction?.textContent).toContain(
-        'Gesamten Bildschirm für die Projektion nutzen',
-      );
+      ) as HTMLButtonElement;
+      const presenterSurface = fixture.nativeElement.querySelector(
+        '[data-testid="presenter-surface"]',
+      ) as HTMLElement;
+      expect(fullscreenAction.textContent).toContain('Vollbild');
+      expect(fullscreenAction.closest('[aria-modal="true"]')).toBeNull();
       expect(requestFullscreenSpy).not.toHaveBeenCalled();
 
-      fullscreenAction?.click();
+      fullscreenAction.focus();
+      fullscreenAction.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fullscreenAction.isConnected).toBe(true);
+      expect(documentRef.activeElement).toBe(fullscreenAction);
 
+      fullscreenAction.click();
       expect(requestFullscreenSpy).toHaveBeenCalledWith({ navigationUI: 'hide' });
+      expect(requestFullscreenSpy).toHaveBeenCalledTimes(2);
       fullscreenElement = documentRef.documentElement;
       documentRef.dispatchEvent(new Event('fullscreenchange'));
       await Promise.resolve();
       fixture.detectChanges();
 
-      const presenterSurface = fixture.nativeElement.querySelector(
-        '[data-testid="presenter-surface"]',
-      ) as HTMLElement;
       expect(
-        fixture.nativeElement.querySelector('[data-testid="presenter-fullscreen-gate"]'),
+        fixture.nativeElement.querySelector('[data-testid="presenter-fullscreen-enter"]'),
       ).toBeNull();
       expect(documentRef.activeElement).toBe(presenterSurface);
 
-      const returnToHostSpy = vi
-        .spyOn(fixture.componentInstance, 'returnToHost')
-        .mockImplementation(() => undefined);
       const router = TestBed.inject(Router);
       const navigateByUrlSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
-      vi.spyOn(documentRef, 'hasFocus').mockReturnValue(true);
-      documentRef.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-
-      expect(returnToHostSpy).toHaveBeenCalledOnce();
-
-      returnToHostSpy.mockClear();
+      const open = vi.spyOn(window, 'open');
       fullscreenElement = null;
       documentRef.dispatchEvent(new Event('fullscreenchange'));
+      documentRef.dispatchEvent(new Event('webkitfullscreenchange'));
       await Promise.resolve();
 
-      expect(returnToHostSpy).toHaveBeenCalledOnce();
-      expect(navigateByUrlSpy).toHaveBeenCalledWith('/session/ABC123/host', { replaceUrl: true });
+      expect(navigateByUrlSpy).toHaveBeenCalledExactlyOnceWith('/session/ABC123/host');
+      expect(open).not.toHaveBeenCalled();
+      open.mockRestore();
       fixture.destroy();
     } finally {
       if (previousDescriptor) {
@@ -574,7 +1116,36 @@ describe('SessionPresentComponent', () => {
       } else {
         delete (documentRef.documentElement as Partial<HTMLElement>).requestFullscreen;
       }
+      if (previousEnabled) {
+        Object.defineProperty(documentRef, 'fullscreenEnabled', previousEnabled);
+      } else {
+        Reflect.deleteProperty(documentRef, 'fullscreenEnabled');
+      }
+      if (previousElement) {
+        Object.defineProperty(documentRef, 'fullscreenElement', previousElement);
+      } else {
+        Reflect.deleteProperty(documentRef, 'fullscreenElement');
+      }
     }
+  });
+
+  it('behält bei abgebrochener Rückkehr die Presenter-Ansicht und erlaubt einen erneuten Versuch', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const navigate = vi
+      .spyOn(TestBed.inject(Router), 'navigateByUrl')
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    await component.returnToHost();
+    expect(component.returnToHostError()).toContain('Bitte versuche es erneut.');
+    expect(component.returnToHostPending()).toBe(false);
+    await component.returnToHost();
+    expect(component.returnToHostError()).toBe('');
+    expect(navigate).toHaveBeenCalledTimes(2);
+    fixture.destroy();
   });
 
   it('rendert die Word-Cloud in der Presenter-Ansicht mit Live-Hinweis', async () => {
@@ -1430,6 +2001,57 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('blendet auf der Bühne mit Host-Zugriff ein Wort aus und hält die leere Wolke', async () => {
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    liveQueryMock.mockResolvedValue({
+      sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      questionId,
+      questionOrder: 1,
+      questionType: 'FREETEXT',
+      questionText: 'Was war hilfreich?',
+      responses: ['Praxis'],
+      wordCloudVisibility: { questionId, hiddenLabels: [] },
+      wordCloudProjection: {
+        questionId,
+        mode: 'LEXICAL',
+        locale: 'de',
+        smoothingActive: false,
+        entries: [{ key: 'praxis', label: 'Praxis', count: 1 }],
+      },
+    });
+    setFreetextWordCloudEntryVisibilityMock.mockResolvedValue({
+      questionId,
+      hiddenLabels: ['Praxis'],
+    });
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.canHideFreetextWord());
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    root.querySelector<HTMLButtonElement>('button.word-cloud__word')!.click();
+    fixture.detectChanges();
+    expect(root.querySelector('.word-cloud__responses-panel')).toBeNull();
+    root.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setFreetextWordCloudEntryVisibilityMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        questionId,
+        label: 'Praxis',
+        hidden: true,
+      },
+      expect.anything(),
+    );
+    expect(root.querySelector('.word-cloud__word')).toBeNull();
+    expect(root.textContent).toContain('Keine Wörter sichtbar.');
+    expect(root.textContent).not.toContain('Ausgeblendete Wörter');
+    fixture.destroy();
+  });
+
   it('zeigt die Presenter-Frage als Klartext statt Roh-Markdown', async () => {
     liveQueryMock.mockResolvedValue({
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1591,6 +2213,72 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt im Finale geteilte Goldplätze auch auf der nächsten Seite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Quiz',
+      participantCount: 10,
+      teamMode: true,
+      finishProjection: 'leaderboard',
+    });
+    getLeaderboardQueryMock.mockResolvedValue(
+      Array.from({ length: 10 }, (_, index) => ({
+        rank: index + 1,
+        nickname: `Person ${index + 1}`,
+        totalScore: index < 9 ? 2000 : 1000,
+        correctCount: 1,
+        totalQuestions: 1,
+        totalResponseTimeMs: 1000 + index,
+      })),
+    );
+    getTeamLeaderboardQueryMock.mockResolvedValue(
+      ['A', 'B'].map((teamName, index) => ({
+        rank: index + 1,
+        teamName,
+        teamColor: '#3366ff',
+        totalScore: 2000,
+        memberCount: 5,
+        averageScore: 2000,
+      })),
+    );
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    fixture.detectChanges();
+
+    const presenter = fixture.nativeElement as HTMLElement;
+    expect(presenter.querySelector('.session-present__finish-hero')).toBeNull();
+    expect(presenter.querySelectorAll('.session-present__board-medal--gold')).toHaveLength(8);
+    expect(
+      Array.from(presenter.querySelectorAll('.session-present__team-board-rank .sr-only'), (rank) =>
+        rank.textContent?.trim(),
+      ),
+    ).toEqual(['1', '1']);
+
+    presenter
+      .querySelector<HTMLButtonElement>('[data-testid="presenter-personal-board-next"]')
+      ?.click();
+    fixture.detectChanges();
+    expect(presenter.querySelectorAll('.session-present__board-medal--gold')).toHaveLength(1);
+    expect(
+      presenter.querySelectorAll(
+        '.session-present__board-medal--silver, .session-present__board-medal--bronze',
+      ),
+    ).toHaveLength(0);
+    expect(
+      Array.from(presenter.querySelectorAll('.session-present__board-rank'), (rank) =>
+        (rank.querySelector('.sr-only') ?? rank).textContent?.trim(),
+      ),
+    ).toEqual(['1', '10']);
+    fixture.destroy();
+  });
+
   it('zeigt bei 0 Punkten das Team-Leaderboard statt der Endseite', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -1625,6 +2313,7 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Apfel');
     expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
+    expect(fixture.nativeElement.querySelector('[data-testid="presenter-team-winner"]')).toBeNull();
     fixture.destroy();
   });
 
@@ -1674,7 +2363,9 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-finish-idle"]')).toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('Red dragon 1');
+    expect(
+      fixture.nativeElement.querySelector('.session-present__board-name')?.textContent?.trim(),
+    ).toBe('Red dragon');
     expect(fixture.nativeElement.textContent).toContain('Team A');
     expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
     fixture.destroy();
@@ -2116,7 +2807,11 @@ describe('SessionPresentComponent', () => {
     const personalNext = fixture.nativeElement.querySelector(
       '[data-testid="presenter-personal-board-next"]',
     ) as HTMLButtonElement;
-    personalNext.click();
+    expect(personalNext.getAttribute('aria-keyshortcuts')).toBe('ArrowRight');
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(fixture.componentInstance.boardPagePaused()).toBe(false);
+    personalNext.focus();
+    personalNext.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     fixture.detectChanges();
 
     const pause = fixture.nativeElement.querySelector(
@@ -2134,7 +2829,8 @@ describe('SessionPresentComponent', () => {
     const teamNext = fixture.nativeElement.querySelector(
       '[data-testid="presenter-team-board-next"]',
     ) as HTMLButtonElement;
-    teamNext.click();
+    teamNext.focus();
+    teamNext.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.session-present__team-board-item').length).toBe(
@@ -2602,12 +3298,12 @@ describe('SessionPresentComponent', () => {
       {
         id: '55555555-5555-4555-8555-555555555555',
         text: 'Queue mit Metriken',
-        upvoteCount: 4,
-        positiveVoteCount: 3,
-        negativeVoteCount: 1,
+        upvoteCount: 1,
+        positiveVoteCount: 6,
+        negativeVoteCount: 5,
         bestScore: 0.55,
-        controversyScore: 0.38,
-        isControversial: false,
+        controversyScore: 2 / 3,
+        isControversial: true,
         controversyInsufficientVotes: false,
         status: 'ACTIVE',
         createdAt: '2026-03-13T12:05:00.000Z',
@@ -2631,17 +3327,23 @@ describe('SessionPresentComponent', () => {
         fixture.nativeElement.querySelector('[data-testid="presenter-qa-hero-meta"]'),
       ).not.toBeNull();
       expect(text).toContain('vor 12\u00A0Min.');
-      expect(text).toContain('Zustimmung 71 %');
-      expect(text).toContain('Zustimmung 55 %');
-      expect(text).not.toContain('Geteilte Reaktionen');
+      expect(text).toMatch(/83[,.]3\s?% dafür · 12 Stimmen/);
+      expect(text).toMatch(/54[,.]5\s?% dafür · 11 Stimmen/);
+      expect(
+        fixture.nativeElement.querySelector('.session-present__qa-list-meta-chip--controversial'),
+      ).toBeNull();
       expect(text).not.toContain('Einseitig');
 
       fixture.componentInstance.presenterQaSortMode.set('CONTROVERSIAL');
       fixture.detectChanges();
       text = fixture.nativeElement.textContent ?? '';
       expect(text).toContain('Einseitig');
-      expect(text).not.toContain('Geteilte Reaktionen');
-      expect(text).not.toContain('Zustimmung:');
+      expect(
+        fixture.nativeElement.querySelector('.session-present__qa-list-meta-chip--controversial')
+          ?.textContent,
+      ).toContain('Geteilte Stimmen');
+      expect(text).not.toContain('67 %');
+      expect(text).not.toContain('dafür ·');
     } finally {
       fixture.destroy();
       vi.useRealTimers();
@@ -3005,7 +3707,7 @@ describe('SessionPresentComponent', () => {
       '[data-testid="presenter-qa-sort"]',
     ) as HTMLElement | null;
     const sortText = sortGroup?.textContent ?? '';
-    const controversyAt = sortText.indexOf('Kontroverse');
+    const controversyAt = sortText.indexOf('Geteilte Stimmen');
     const bestAt = sortText.indexOf('Klare Zustimmung');
     const netAt = sortText.indexOf('Stimmensaldo');
     const timeAt = sortText.indexOf('Zeit');
@@ -3511,7 +4213,24 @@ describe('SessionPresentComponent', () => {
     );
     expect(fixture.nativeElement.textContent).toContain('Publikumsfrage 3');
 
-    next?.click();
+    expect(next?.querySelector('kbd')?.textContent).toBe('→');
+    const sortRadio = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-qa-sort"] input',
+    ) as HTMLInputElement;
+    sortRadio.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(fixture.componentInstance.qaQueuePageIndex()).toBe(0);
+    const stage = fixture.nativeElement.querySelector('.session-present__qa-stage') as HTMLElement;
+    Object.defineProperties(stage, {
+      scrollHeight: { value: 720 },
+      clientHeight: { value: 480 },
+    });
+    const scrollBy = vi.fn();
+    stage.scrollBy = scrollBy;
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(scrollBy).toHaveBeenCalledWith({ top: 48, behavior: 'instant' });
+    expect(fixture.componentInstance.qaQueuePageIndex()).toBe(0);
+
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -3816,9 +4535,9 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Stichprobengröße');
     expect(text).toContain('Inhaltlich ähnliche Fragen sind zu Themen zusammengefasst.');
     expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
-      'Größer erscheinen Begriffe',
+      'Bei gleichem Anteil können mehr Stimmen das Gewicht erhöhen.',
     );
-    expect(text).toContain('Das sagt nichts über ihre fachliche Richtigkeit aus.');
+    expect(text).toContain('Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.');
     expect(text).not.toContain('ohne Wort-Glättung');
 
     fixture.componentInstance.qaWordCloudProjection.update((projection) =>
@@ -3963,10 +4682,15 @@ describe('SessionPresentComponent', () => {
       ...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill--context'),
     ].map((el) => (el.textContent ?? '').trim());
     expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
-      'Größer erscheinen Begriffe',
+      'Bei gleicher Verteilung können mehr Stimmen das Gewicht erhöhen.',
+    );
+    expect(fixture.componentInstance.qaWordCloudReadingHint()).toContain(
+      'Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.',
     );
     expect(pills).toEqual([]);
-    expect(fixture.nativeElement.textContent).toContain('Dafür- und Dagegen-Stimmen');
+    expect(fixture.nativeElement.textContent).toContain(
+      'eine ausgewogenere Verteilung tendenziell stärker',
+    );
     fixture.destroy();
   });
 
@@ -4502,13 +5226,13 @@ describe('SessionPresentComponent', () => {
           id: '11111111-1111-4111-8111-111111111111',
           nickname: 'Luna',
           teamId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          teamName: 'Rot',
+          teamName: 'Arbeitsgruppe Digitale Bildung Nord',
         },
         {
           id: '22222222-2222-4222-8222-222222222222',
           nickname: 'Milo',
           teamId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          teamName: 'Blau',
+          teamName: 'Arbeitsgruppe Digitale Bildung Süd',
         },
       ],
     });
@@ -4517,13 +5241,13 @@ describe('SessionPresentComponent', () => {
       teams: [
         {
           id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-          name: 'Rot',
+          name: 'Arbeitsgruppe Digitale Bildung Nord',
           color: '#c62828',
           memberCount: 1,
         },
         {
           id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-          name: 'Blau',
+          name: 'Arbeitsgruppe Digitale Bildung Süd',
           color: '#1565c0',
           memberCount: 1,
         },
@@ -4537,8 +5261,8 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Rot');
-    expect(text).toContain('Blau');
+    expect(text).toContain('Arbeitsgruppe Digitale Bildung Nord');
+    expect(text).toContain('Arbeitsgruppe Digitale Bildung Süd');
     expect(text).toContain('Luna');
     expect(text).toContain('Milo');
     expect(text).toContain('Warten auf die anderen');
@@ -4548,15 +5272,18 @@ describe('SessionPresentComponent', () => {
     const teamNames = [
       ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-name'),
     ].map((el) => (el.textContent ?? '').trim());
-    expect(teamNames).toEqual(['Rot', 'Blau']);
+    expect(teamNames).toEqual([
+      'Arbeitsgruppe Digitale Bildung Nord',
+      'Arbeitsgruppe Digitale Bildung Süd',
+    ]);
     const teamCounts = [
       ...fixture.nativeElement.querySelectorAll('.session-present__lobby-team-count'),
     ].map((el) => (el.textContent ?? '').trim());
     expect(teamCounts.every((label) => label.includes('Mitglied'))).toBe(true);
     expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
-    ).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name').length).toBe(
+      2,
+    );
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team--crowd')).toBeNull();
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team--packed')).toBeNull();
     const sparseMembers = fixture.nativeElement.querySelector(
@@ -4579,10 +5306,25 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-team-members \{[\s\S]*?grid-auto-rows:\s*auto;[\s\S]*?align-items:\s*start;[\s\S]*?justify-items:\s*start;/,
     );
     expect(styles).toMatch(
+      /\.session-present__lobby-teams-grid \{[\s\S]*?--present-lobby-team-min-width:\s*18rem;[\s\S]*?grid-template-columns:\s*repeat\(\s*auto-fit,\s*minmax\(min\(100%,\s*var\(--present-lobby-team-min-width\)\),\s*1fr\)\s*\);/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-name \{[\s\S]*?overflow-wrap:\s*anywhere;[\s\S]*?white-space:\s*normal;/,
+    );
+    expect(styles).toMatch(
       /\.session-present__lobby-team-members li \{[\s\S]*?width:\s*fit-content;[\s\S]*?max-width:\s*100%;/,
     );
     expect(styles).not.toMatch(
       /\.session-present__lobby-team-members li \{\s*container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\);[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual[\s\S]*?li \{[\s\S]*?width:\s*auto;[\s\S]*?container-type:\s*size;/,
+    );
+    expect(styles).toMatch(
+      /\.session-present__lobby-team-members--visual[\s\S]*?:is\(\.session-present__lobby-nick-icon,\s*\.session-present__lobby-nick-mat-icon\) \{[\s\S]*?font-size:\s*clamp\(1\.75rem,\s*min\(8vw,\s*12vh\),\s*4\.5rem\);/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-team--crowd \.session-present__lobby-team-members,[\s\S]*?\.session-present__lobby-team--packed \.session-present__lobby-team-members \{[\s\S]*?align-items:\s*stretch;[\s\S]*?justify-items:\s*stretch;/,
@@ -4615,17 +5357,14 @@ describe('SessionPresentComponent', () => {
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-team-members li \{[\s\S]*?container-type:\s*size;/,
     );
     expect(styles).toMatch(
-      /\.session-present__lobby-audience--kindergarten[\s\S]*?\.session-present__lobby-team:not\(\.session-present__lobby-team--packed\)[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
+      /\.session-present__lobby-audience--kindergarten\s+:is\(\.session-present__lobby-team,\s*\.session-present__lobby-person-col\)\s+:is\(\.session-present__lobby-nick-icon,\s*\.session-present__lobby-nick-mat-icon\) \{[\s\S]*?font-size:\s*clamp\(1\.75rem,\s*min\(72cqh,\s*72cqw\),\s*4\.5rem\)/,
     );
     expect(styles).toMatch(
       /\.session-present__lobby-audience--kindergarten \.session-present__lobby-person-col \{[\s\S]*?border:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?container-type:\s*size;/,
     );
-    expect(styles).toMatch(
-      /\.session-present__lobby-audience--kindergarten:not\(\.session-present__lobby-audience--packed\)[\s\S]*?\.session-present__lobby-person-col[\s\S]*?\.session-present__lobby-nick-icon \{[\s\S]*?min\(86cqh,\s*80cqw\)[\s\S]*?16rem/,
-    );
   });
 
-  it('packt volle Teamspalten ohne Scroll und haelt Namen nur fuer den Screenreader', async () => {
+  it('zeigt Textpseudonyme auch bei größeren Teams sichtbar an', async () => {
     const teamId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const participants = Array.from({ length: 30 }, (_, index) => ({
       id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
@@ -4667,16 +5406,15 @@ describe('SessionPresentComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
-    const summary = fixture.nativeElement.querySelector(
-      '[data-testid="presenter-audience-summary"]',
-    );
-    expect(summary).not.toBeNull();
-    expect(summary.textContent).toContain('30');
     expect(
-      fixture.nativeElement.querySelector(
-        '.session-present__lobby-person-col, .session-present__lobby-team-members',
-      ),
+      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]'),
     ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name'),
+    ).toHaveLength(20);
+    expect(
+      fixture.nativeElement.querySelector('.session-present__lobby-text-name')?.textContent,
+    ).toContain('Person');
     fixture.destroy();
   });
 
@@ -4740,31 +5478,9 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
-  it.each([
-    {
-      label: 'Mittelstufe',
-      nicknameTheme: 'MIDDLE_SCHOOL' as const,
-      anonymousMode: false,
-      icon: 'school',
-      themeClass: 'session-present__lobby-packed-identity--middle-school',
-    },
-    {
-      label: 'Oberstufe',
-      nicknameTheme: 'HIGH_SCHOOL' as const,
-      anonymousMode: false,
-      icon: 'school',
-      themeClass: 'session-present__lobby-packed-identity--high-school',
-    },
-    {
-      label: 'Nobelpreis',
-      nicknameTheme: 'NOBEL_LAUREATES' as const,
-      anonymousMode: false,
-      icon: 'military_tech',
-      themeClass: 'session-present__lobby-packed-identity--nobel',
-    },
-  ])(
-    'zeigt im Packed-Modus fuer $label höchstens 20 Theme-Icons mit stabilen Eingangsnummern',
-    async ({ nicknameTheme, anonymousMode }) => {
+  it.each(['PRIMARY_SCHOOL', 'MIDDLE_SCHOOL', 'HIGH_SCHOOL', 'NOBEL_LAUREATES'] as const)(
+    'zeigt die Textpseudonyme für %s bei 26 Teilnehmenden',
+    async (nicknameTheme) => {
       const participants = Array.from({ length: 26 }, (_, index) => ({
         id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
         nickname: `Person ${index + 1}`,
@@ -4781,12 +5497,12 @@ describe('SessionPresentComponent', () => {
         title: null,
         participantCount: participants.length,
         teamMode: false,
-        anonymousMode,
+        anonymousMode: false,
         nicknameTheme,
       });
       getParticipantSummaryQueryMock.mockResolvedValue({
         participantCount: participants.length,
-        recentArrivals: [...participants.slice(-20)].reverse(),
+        recentArrivals: [...participants].reverse(),
       });
       getTeamsQueryMock.mockResolvedValue({ teamCount: 0, teams: [] });
 
@@ -4800,9 +5516,11 @@ describe('SessionPresentComponent', () => {
         fixture.nativeElement.querySelector('.session-present__lobby-packed-identity'),
       ).toBeNull();
       expect(
-        fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]')
-          ?.textContent,
-      ).toContain('26');
+        fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]'),
+      ).toBeNull();
+      expect(
+        fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name'),
+      ).toHaveLength(26);
       fixture.destroy();
     },
   );
@@ -4898,12 +5616,12 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const icons = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLImageElement>(
         '.session-present__lobby-nick-icon',
       ),
-      (el) => (el.textContent ?? '').trim(),
+      (el) => el.src,
     );
-    expect(icons).toEqual(['🐉', '🐸']);
+    expect(icons).toEqual(['🐉', '🐸'].map(animalIconUrl));
     expect(fixture.nativeElement.querySelector('.session-present__lobby-nick-mat-icon')).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.session-present__lobby-audience--kindergarten'),
@@ -4984,12 +5702,12 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.componentInstance.showLobbyProjection()).toBe(true);
     const icons = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLImageElement>(
         '.session-present__lobby-nick-icon',
       ),
-      (el) => (el.textContent ?? '').trim(),
+      (el) => el.src,
     );
-    expect(icons).toEqual(['🐉', '🐸']);
+    expect(icons).toEqual(['🐉', '🐸'].map(animalIconUrl));
     fixture.destroy();
   });
 
@@ -5086,39 +5804,46 @@ describe('SessionPresentComponent', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     fixture.detectChanges();
 
-    const summary = fixture.nativeElement.querySelector(
-      '[data-testid="presenter-audience-summary"]',
-    );
-    expect(summary).not.toBeNull();
-    expect(summary.textContent).toContain('20');
     expect(
-      fixture.nativeElement.querySelector(
-        '.session-present__lobby-person-col, .session-present__lobby-team-members',
-      ),
+      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]'),
     ).toBeNull();
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon'),
+    ).toHaveLength(2);
+    const placeholders = Array.from(
+      fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder'),
+    ) as HTMLElement[];
+    expect(placeholders).toHaveLength(18);
+    expect(
+      placeholders.every(
+        (slot) => slot.getAttribute('aria-hidden') === 'true' && slot.childElementCount === 0,
+      ),
+    ).toBe(true);
     fixture.destroy();
   });
 
-  it('zeigt alle Kita-Tiere der Ankunftsliste statt nur 20 Icons', async () => {
+  it.each([31, 50, 51])('zeigt Tier-Icons bis 50 Teilnehmende (%i)', async (count) => {
     const teamA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const teamB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-    const names = NICKNAME_LISTS.KINDERGARTEN.slice(0, 40);
+    const names = NICKNAME_LISTS.KINDERGARTEN.slice(0, 25);
     const arrivals = [
       ...names.map((nickname, index) => ({
         id: `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
-        nickname: `${nickname} ${index + 1}`,
+        nickname: index === 0 ? 'Wal 1' : `${nickname} ${index + 1}`,
+        ...(index === 0 && { kindergartenAnimalId: 34 }),
         teamId: teamA,
         teamName: 'Äpfel',
       })),
       ...names.map((nickname, index) => ({
         id: `22222222-2222-4222-8222-${String(index + 1).padStart(12, '0')}`,
-        nickname: `${nickname} ${index + 41}`,
+        nickname: `${nickname} ${index + 1}`,
         teamId: teamB,
         teamName: 'Birnen',
       })),
       {
-        id: '11111111-1111-4111-8111-000000000041',
-        nickname: 'Roter Drache 81',
+        id: '11111111-1111-4111-8111-000000000026',
+        nickname: 'Wal 2',
+        kindergartenAnimalId: 34,
         teamId: teamA,
         teamName: 'Äpfel',
       },
@@ -5128,10 +5853,10 @@ describe('SessionPresentComponent', () => {
       serverTime: MOCK_SERVER_TIME,
       code: 'ABC123',
       type: 'QUIZ',
-      status: 'ACTIVE',
+      status: 'LOBBY',
       quizName: 'Team-Quiz',
       title: null,
-      participantCount: 81,
+      participantCount: count,
       teamMode: true,
       anonymousMode: false,
       nicknameTheme: 'KINDERGARTEN',
@@ -5139,14 +5864,14 @@ describe('SessionPresentComponent', () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     liveQueryMock.mockRejectedValue(new Error('no live freetext'));
     getParticipantSummaryQueryMock.mockResolvedValue({
-      participantCount: 81,
-      recentArrivals: arrivals,
+      participantCount: count,
+      recentArrivals: arrivals.slice(0, count),
     });
     getTeamsQueryMock.mockResolvedValue({
       teamCount: 2,
       teams: [
-        { id: teamA, name: 'Äpfel', color: '#c62828', memberCount: 41 },
-        { id: teamB, name: 'Birnen', color: '#1565c0', memberCount: 40 },
+        { id: teamA, name: 'Äpfel', color: '#c62828', memberCount: count === 51 ? 26 : 25 },
+        { id: teamB, name: 'Birnen', color: '#1565c0', memberCount: Math.min(25, count - 25) },
       ],
     });
 
@@ -5157,12 +5882,20 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-icon').length).toBe(
-      0,
+      count <= 50 ? count : 0,
     );
-    expect(
-      fixture.nativeElement.querySelector('[data-testid="presenter-audience-summary"]')
-        ?.textContent,
-    ).toContain('81');
+    expect(!!fixture.nativeElement.querySelector('img[src$="emoji_u1f433.svg"]')).toBe(count <= 50);
+    const summary = fixture.nativeElement.querySelector(
+      '[data-testid="presenter-audience-summary"]',
+    );
+    if (count <= 50) {
+      expect(summary).toBeNull();
+      expect(
+        fixture.nativeElement.querySelector('.session-present__lobby-nick[title="Drache 1"]'),
+      ).not.toBeNull();
+    } else {
+      expect(summary?.textContent).toContain('51');
+    }
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-placeholder').length,
     ).toBe(0);
@@ -5264,9 +5997,9 @@ describe('SessionPresentComponent', () => {
     expect(
       fixture.nativeElement.querySelectorAll('.session-present__lobby-person-col').length,
     ).toBe(2);
-    expect(
-      fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-mat-icon').length,
-    ).toBe(2);
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name').length).toBe(
+      2,
+    );
     expect(
       fixture.nativeElement.querySelector('.session-present__lobby-stage--solo-join'),
     ).toBeNull();
@@ -5336,7 +6069,7 @@ describe('SessionPresentComponent', () => {
     ]);
     expect(fixture.nativeElement.textContent).toContain('Luna');
     expect(
-      fixture.nativeElement.querySelector('.session-present__lobby-nick-text')?.textContent,
+      fixture.nativeElement.querySelector('.session-present__lobby-text-name')?.textContent,
     ).not.toContain('Milo');
     expect(fixture.nativeElement.querySelector('.session-present__lobby-foyer')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-foyer-entrance-layer')).toBeTruthy();
@@ -5350,7 +6083,7 @@ describe('SessionPresentComponent', () => {
       'Luna',
     ]);
     expect(
-      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text')].map((node) =>
+      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name')].map((node) =>
         (node.textContent ?? '').trim(),
       ),
     ).toEqual(['Milo', 'Luna']);
@@ -5415,6 +6148,10 @@ describe('SessionPresentComponent', () => {
     expect(chip?.kind).toBe('emoji-only');
     expect(chip?.text).toBe('');
     expect(chip?.emoji).toBeTruthy();
+    expect(chip?.emojiImageUrl).toBe(animalIconUrl('🐸'));
+    expect(
+      fixture.nativeElement.querySelector('.foyer-entrance-layer__chip-emoji-image')?.src,
+    ).toBe(animalIconUrl('🐸'));
     expect(chip?.fullLabel).toBe('Grüner Frosch 1');
     expect(
       fixture.nativeElement.querySelector('.foyer-entrance-layer__chip--emoji-only'),
@@ -5508,7 +6245,7 @@ describe('SessionPresentComponent', () => {
       fixture.componentInstance.lobbyTeamsView()[0]?.members.map((member) => member.nickname),
     ).toEqual(['Luna']);
     expect(fixture.nativeElement.querySelector('.session-present__lobby-team-foyer')).toBeTruthy();
-    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text').length).toBe(
+    expect(fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name').length).toBe(
       1,
     );
 
@@ -5520,7 +6257,7 @@ describe('SessionPresentComponent', () => {
       fixture.componentInstance.lobbyTeamsView()[0]?.members.map((member) => member.nickname),
     ).toEqual(['Milo', 'Luna']);
     expect(
-      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-nick-text')].map((node) =>
+      [...fixture.nativeElement.querySelectorAll('.session-present__lobby-text-name')].map((node) =>
         (node.textContent ?? '').trim(),
       ),
     ).toEqual(['Milo', 'Luna']);
@@ -5631,6 +6368,130 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('zeigt Befunde als sichtbare Beschreibung derselben Rückkehraktion und hält ihren Fokus', async () => {
+    const question: HostCurrentQuestionDTO = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      text: 'Ordne die Begriffe zu.',
+      type: 'MATCHING',
+      difficulty: 'EASY',
+      showQuestionTypeIndicators: true,
+      answers: [],
+      matchingStats: {
+        totalVotes: 10,
+        fullyCorrectCount: 7,
+        pairHitRates: [],
+        selectionCounts: [],
+        commonConfusions: [
+          { leftId: 'left', left: 'Links', wrongRightId: 'right', wrongRight: 'Rechts', count: 3 },
+        ],
+      },
+      confidenceResult: buildConfidenceResult({
+        votes: [
+          { confidenceValue: 5, isCorrect: false },
+          { confidenceValue: 4, isCorrect: false },
+          { confidenceValue: 5, isCorrect: true },
+        ],
+      })!,
+    };
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.session.update((session) => session && { ...session, currentQuestion: 0 });
+    component.hostQuestion.set(question);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const button = root.querySelector<HTMLButtonElement>(
+      '[data-testid="presenter-return-to-host"]',
+    )!;
+    const hint = () => root.querySelector('#presenter-host-analysis-hints');
+    const returnAction = fixture.debugElement
+      .query(By.css('[data-testid="presenter-return-to-host"]'))
+      .injector.get(MatButton);
+    expect(hint()).toBeNull();
+    expect(returnAction.appearance).toBe('text');
+    button.focus();
+
+    component.session.update((session) => session && { ...session, status: 'RESULTS' });
+    fixture.detectChanges();
+    expect(button.getAttribute('aria-describedby')).toBe(hint()?.id);
+    expect(returnAction.appearance).toBe('filled');
+    expect(Array.from(hint()!.children, (child) => child.textContent)).toEqual([
+      'Antwortsicherheit im Detail ansehen',
+      'Zuordnungen im Detail ansehen',
+    ]);
+    expect(document.activeElement).toBe(button);
+
+    component.session.update((session) => session && { ...session, currentQuestion: 1 });
+    fixture.detectChanges();
+    expect(hint()).toBeNull();
+    expect(button.hasAttribute('aria-describedby')).toBe(false);
+    expect(returnAction.appearance).toBe('text');
+    expect(document.activeElement).toBe(button);
+  });
+
+  it.each(['ORDERING', 'CATEGORIZATION'] as const)(
+    'zeigt bei %s nur wiederkehrende Fehler mit relevantem Anteil',
+    async (type) => {
+      const fixture = TestBed.createComponent(SessionPresentComponent);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const component = fixture.componentInstance;
+      component.session.update(
+        (session) => session && { ...session, currentQuestion: 0, status: 'RESULTS' },
+      );
+      const setQuestion = (count: number, totalVotes: number) => {
+        component.hostQuestion.set({
+          questionId: '11111111-1111-4111-8111-111111111111',
+          order: 0,
+          text: 'Frage',
+          type,
+          difficulty: 'EASY',
+          showQuestionTypeIndicators: true,
+          answers: [],
+          ...(type === 'ORDERING'
+            ? {
+                orderingStats: {
+                  totalVotes,
+                  fullyCorrectCount: 0,
+                  positionCounts: [],
+                  commonSwaps: [
+                    { itemAId: 'a', itemAText: 'A', itemBId: 'b', itemBText: 'B', count },
+                  ],
+                },
+              }
+            : {
+                categorizationStats: {
+                  totalVotes,
+                  fullyCorrectCount: 0,
+                  itemCategoryCounts: [],
+                  commonMisclassifications: [
+                    {
+                      itemId: 'a',
+                      itemText: 'A',
+                      wrongCategoryId: 'b',
+                      wrongCategoryName: 'B',
+                      count,
+                    },
+                  ],
+                },
+              }),
+        });
+        fixture.detectChanges();
+      };
+      const hints = () => fixture.nativeElement.querySelector('#presenter-host-analysis-hints');
+      setQuestion(1, 2);
+      expect(hints()).toBeNull();
+      setQuestion(2, 10);
+      expect(hints()).toBeNull();
+      setQuestion(3, 10);
+      expect(hints()?.textContent.trim()).toBe(
+        type === 'ORDERING' ? 'Positionsverteilung ansehen' : 'Kategorienverteilung ansehen',
+      );
+    },
+  );
+
   it('nutzt die Beamer-Bühne ohne schmale Stack-Spalte', async () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
@@ -5728,8 +6589,9 @@ describe('SessionPresentComponent', () => {
     expect(root.querySelector('.projection-pages__indicator')).toBeNull();
     expect(root.textContent).toContain('Diskussionsphase');
     expect(root.textContent).toContain('Ergebnis zeigen');
+    expect(root.querySelector('button[aria-keyshortcuts="ArrowRight"]')).toBeNull();
     expect(root.textContent).not.toContain('Trotzdem freigeben');
-    expect(root.textContent).not.toContain('Frage auslassen');
+    expect(root.textContent).toContain('Frage auslassen');
 
     root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-discussion"]')?.click();
     await fixture.whenStable();
@@ -5817,6 +6679,9 @@ describe('SessionPresentComponent', () => {
       peerInstructionSuggestion: undefined,
     };
 
+    const previousHostAction = document.createElement('button');
+    document.body.append(previousHostAction);
+    previousHostAction.focus();
     const fixture = TestBed.createComponent(SessionPresentComponent);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -5826,8 +6691,13 @@ describe('SessionPresentComponent', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const start = root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-start"]');
+    const right = (target: HTMLElement | null = document.body, repeat = false) =>
+      target?.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, repeat }),
+      );
     expect(start).not.toBeNull();
-    start?.focus();
+    expect(root.contains(document.activeElement)).toBe(true);
+    previousHostAction.focus();
 
     let releaseQuestion: (value: unknown) => void = () => undefined;
     getCurrentQuestionForHostQueryMock.mockImplementation(
@@ -5841,7 +6711,8 @@ describe('SessionPresentComponent', () => {
       currentQuestion: 0,
       currentRound: 1,
     });
-    start?.click();
+    right(previousHostAction);
+    previousHostAction.remove();
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -5980,8 +6851,11 @@ describe('SessionPresentComponent', () => {
     const revealRoundTwo = root.querySelector<HTMLButtonElement>(
       '[data-testid="presenter-quiz-reveal-results"]',
     );
+    component.countdownSeconds.set(0);
+    fixture.detectChanges();
     revealRoundTwo?.focus();
-    revealRoundTwo?.click();
+    expect(revealRoundTwo?.getAttribute('aria-keyshortcuts')).toBe('ArrowRight');
+    right(revealRoundTwo);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(document.activeElement).toBe(
@@ -6003,7 +6877,10 @@ describe('SessionPresentComponent', () => {
       '[data-testid="presenter-quiz-next-question"]',
     );
     nextQuestion?.focus();
-    nextQuestion?.click();
+    nextQuestionMutateMock.mockClear();
+    right(nextQuestion, true);
+    expect(nextQuestionMutateMock).not.toHaveBeenCalled();
+    right(nextQuestion);
     await fixture.whenStable();
     fixture.detectChanges();
     expect(nextQuestionMutateMock).toHaveBeenLastCalledWith(
@@ -6059,7 +6936,7 @@ describe('SessionPresentComponent', () => {
       currentQuestion: 1,
       currentRound: 1,
     });
-    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-reveal-answers"]')?.click();
+    right(root.querySelector('[data-testid="presenter-quiz-reveal-answers"]'));
     await fixture.whenStable();
     revealResultsMutateMock.mockResolvedValue({
       status: 'RESULTS',
@@ -6077,7 +6954,7 @@ describe('SessionPresentComponent', () => {
     });
     getLeaderboardQueryMock.mockResolvedValue([]);
     getTeamLeaderboardQueryMock.mockResolvedValue([]);
-    root.querySelector<HTMLButtonElement>('[data-testid="presenter-quiz-finish"]')?.click();
+    right(root.querySelector('[data-testid="presenter-quiz-finish"]'));
     await fixture.whenStable();
     fixture.detectChanges();
     expect(component.session()?.status).toBe('FINISHED');

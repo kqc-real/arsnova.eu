@@ -44,21 +44,24 @@ const DERIVATION_LIMITATIONS = {
     empty: 'Das Modell hat keine belegten Lernzielvorschläge geliefert.',
   },
   en: {
-    capped: 'Additional suggestions were omitted because of the learning-objective limit.',
-    empty: 'The model returned no supported learning-objective suggestions.',
+    capped:
+      'Additional suggestions were not added because the maximum number of learning objectives was reached.',
+    empty: 'The model did not suggest any learning objectives supported by the questions.',
   },
   fr: {
     capped:
-      'D’autres suggestions ont été omises en raison de la limite des objectifs pédagogiques.',
-    empty: 'Le modèle n’a fourni aucune suggestion d’objectif pédagogique étayée.',
+      'D’autres propositions n’ont pas été ajoutées, car le nombre maximal d’objectifs d’apprentissage a été atteint.',
+    empty: 'Le modèle n’a proposé aucun objectif d’apprentissage étayé par les questions.',
   },
   es: {
-    capped: 'Se omitieron más sugerencias debido al límite de objetivos de aprendizaje.',
-    empty: 'El modelo no devolvió sugerencias de objetivos de aprendizaje fundamentadas.',
+    capped:
+      'No se añadieron más sugerencias porque se alcanzó el número máximo de objetivos de aprendizaje.',
+    empty: 'El modelo no sugirió objetivos de aprendizaje respaldados por las preguntas.',
   },
   it: {
-    capped: 'Altri suggerimenti sono stati omessi a causa del limite degli obiettivi didattici.',
-    empty: 'Il modello non ha restituito suggerimenti di obiettivi didattici comprovati.',
+    capped:
+      'Non sono stati aggiunti altri suggerimenti perché è stato raggiunto il numero massimo di obiettivi di apprendimento.',
+    empty: 'Il modello non ha suggerito obiettivi di apprendimento supportati dalle domande.',
   },
 } as const;
 

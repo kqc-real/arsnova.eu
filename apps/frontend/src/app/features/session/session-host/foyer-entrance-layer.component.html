@@ -36,7 +36,13 @@
             [class]="chipKindClass(chip.kind)"
             [class.foyer-entrance-layer__chip--summary]="isSummaryChip(chip)"
           >
-            @if (chip.emoji) {
+            @if (chip.emojiImageUrl) {
+              <img
+                class="foyer-entrance-layer__chip-emoji foyer-entrance-layer__chip-emoji-image"
+                [src]="chip.emojiImageUrl"
+                alt=""
+              />
+            } @else if (chip.emoji) {
               <span class="foyer-entrance-layer__chip-emoji">{{ chip.emoji }}</span>
             }
             @if (chip.text) {

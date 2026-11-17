@@ -2,8 +2,8 @@
   "exportVersion": 1,
   "exportedAt": "2026-05-24T10:00:00.000Z",
   "quiz": {
-    "name": "Demostración didáctica: cuestionario por equipos",
-    "description": "![Demostración didáctica](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Demostración didáctica\n\nEstas 13 preguntas presentan los diez formatos de preguntas de arsnova.eu en una secuencia breve y dinámica. Puedes usar imágenes, Markdown y KaTeX, recoger el grado de confianza tras las preguntas evaluadas y plantear una pregunta numérica en dos rondas de debate.\n\nLa demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones modelo y las distribuciones de respuestas revelan dudas y concepciones erróneas frecuentes.\n\nLos temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.",
+    "name": "Cuestionario por equipos de ejemplo",
+    "description": "![Cuestionario por equipos de ejemplo](https://upload.wikimedia.org/wikipedia/commons/2/2a/Pi-unrolled-720.gif)\n\n# Cuestionario por equipos de ejemplo\n\nEstas 13 preguntas presentan los diez tipos de pregunta de arsnova.eu en una breve sesión en directo. Usa imágenes, Markdown y KaTeX, recoge la seguridad en la respuesta y prueba una estimación numérica con dos votaciones separadas por un debate.\n\nLa demostración también muestra cómo **ordenar pasos**, **relacionar términos uno a uno**, **clasificar ejemplos** y recoger respuestas abiertas para comentarlas en forma de nube de palabras. Al mostrar los resultados, las soluciones y las distribuciones de respuestas ayudan a detectar dudas y posibles concepciones erróneas.\n\nLos temporizadores, los equipos, la clasificación y los códigos de bonificación aportan ritmo. Entra desde un segundo dispositivo durante la demostración y abre después el editor para explorar cada pregunta.",
     "motifImageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg",
     "motifImageCredit": "Pass / Le Brun (1821), via Wikimedia Commons",
     "showLeaderboard": true,
@@ -26,7 +26,7 @@
     "readingPhaseEnabled": false,
     "questions": [
       {
-        "text": "### ¿Cómo está el grupo ahora mismo?\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Haz clic para ampliar.*",
+        "text": "### ¿Cómo está el grupo ahora mismo?\n\n![Resumen de emociones](https://upload.wikimedia.org/wikipedia/commons/b/b4/Sixteen_faces_expressing_the_human_passions._Wellcome_L0068375_%28cropped%29.jpg)\n\n*[credit] Pass / Le Brun (1821), via Wikimedia Commons*\n\n*Abre la imagen para ampliarla.*",
         "type": "SURVEY",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -87,7 +87,7 @@
         "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Cuáles de estos usos encajan bien con una comprobación rápida en directo?\n\n_Puede haber varias respuestas correctas._",
+        "text": "### ¿Cuándo resulta útil una pregunta rápida en directo?\n\n_Selecciona todas las opciones correctas._",
         "type": "MULTIPLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -100,7 +100,7 @@
             "isCorrect": true
           },
           {
-            "text": "Detectar concepciones erróneas durante la sesión",
+            "text": "Detectar posibles concepciones erróneas durante la actividad",
             "isCorrect": true
           },
           {
@@ -117,7 +117,7 @@
         "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Cuántos cubitos visibles desde el exterior forman un cubo de Rubik 3×3 clásico?\n\nLa pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.\n\nSugerencia opcional: [Cómo resolver un cubo de Rubik 3×3 sin experiencia (vídeo en alemán)](https://www.youtube.com/watch?v=EoINieyz6gE).",
+        "text": "### ¿Cuántos cubitos forman la parte exterior de un cubo de Rubik 3×3 clásico?\n\nLa pregunta se refiere al cubo de Rubik clásico diseñado por Ernő Rubik.\n\nSugerencia opcional: [Cómo resolver un cubo de Rubik 3×3 sin experiencia (vídeo en alemán)](https://www.youtube.com/watch?v=EoINieyz6gE).",
         "type": "SINGLE_CHOICE",
         "shuffleAnswerOptions": false,
         "timer": null,
@@ -278,7 +278,7 @@
         "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### Clasifica las seis obras siguientes por época literaria.",
+        "text": "### Clasifica cada obra según su movimiento literario alemán.",
         "type": "CATEGORIZATION",
         "timer": null,
         "difficulty": "MEDIUM",
@@ -330,7 +330,7 @@
         "confidenceLabelHigh": "Muy seguro/a"
       },
       {
-        "text": "### ¿Qué probabilidades hay de que pruebes pronto un cuestionario en directo como este en una de tus clases?",
+        "text": "### ¿Qué probabilidades hay de que uses un cuestionario en directo como este en una de tus sesiones?",
         "type": "RATING",
         "timer": null,
         "difficulty": "EASY",

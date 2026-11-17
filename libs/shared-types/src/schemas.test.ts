@@ -100,6 +100,24 @@ describe('öffentliche Contract-Schemas', () => {
         page: { context: 'qa-questions', delta: 1, index: 2 },
       }).success,
     ).toBe(false);
+    expect(
+      SetPresenterSurfaceInputSchema.parse({
+        code: 'ABC123',
+        page: { context: 'rating', count: 5, sectionStarts: [0, 3] },
+      }).page,
+    ).toEqual({ context: 'rating', count: 5, sectionStarts: [0, 3] });
+    expect(
+      SetPresenterSurfaceInputSchema.safeParse({
+        code: 'ABC123',
+        page: { context: 'rating', count: 3, sectionStarts: [0, 3] },
+      }).success,
+    ).toBe(false);
+    expect(
+      SetPresenterSurfaceInputSchema.parse({
+        code: 'ABC123',
+        page: { context: 'rating', count: 1, sectionStarts: null },
+      }).page,
+    ).toEqual({ context: 'rating', count: 1, sectionStarts: null });
   });
 
   it('begrenzt Q&A-Fragetext auf Unicode-Codepunkte (nicht UTF-16-Units)', () => {
@@ -632,6 +650,7 @@ describe('öffentliche Contract-Schemas', () => {
     expect(isTimerAccommodationEnabled(true)).toBe(true);
     expect(isTimerAccommodationEnabled(false)).toBe(false);
     expect(CreateQuizInputSchema.parse({ name: 'Quiz' }).enableTimerAccommodation).toBe(false);
+    expect(CreateQuizInputSchema.parse({ name: 'Quiz' }).shuffleAnswerOptions).toBe(false);
     expect(
       QuizUploadInputSchema.parse({
         ...quizUploadBase,
@@ -700,6 +719,20 @@ describe('öffentliche Contract-Schemas', () => {
     expect(historyShuffleDefault).not.toContain('shuffleAnswerOptions');
     expect(historyShuffleOff).toContain('"shuffleAnswerOptions":false');
     expect(historyShuffleOff).not.toBe(historyWithoutFlag);
+
+    const historyGlobalShuffleOff = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      shuffleAnswerOptions: false,
+      questions: [{ ...historyQuestion, shuffleAnswerOptions: true }],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    const historyGlobalShuffleOn = serializeQuizHistoryAccessMaterial({
+      ...quizUploadBase,
+      shuffleAnswerOptions: true,
+      questions: [{ ...historyQuestion, shuffleAnswerOptions: false }],
+    } as Parameters<typeof serializeQuizHistoryAccessMaterial>[0]);
+    expect(historyGlobalShuffleOff).toBe(historyShuffleOff);
+    expect(historyGlobalShuffleOn).toBe(historyWithoutFlag);
+    expect(JSON.parse(historyGlobalShuffleOff)).not.toHaveProperty('shuffleAnswerOptions');
 
     const parsed = QuestionStudentDTOSchema.parse({
       id: questionId,
@@ -1115,34 +1148,28 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     expect(complete.normalizationApplied).toBe('NONE');
   });
 
-  it('akzeptiert fr/es und lehnt it als Analyse-Locale ab', () => {
+  it.each(['de', 'en', 'fr', 'es', 'it'])('akzeptiert %s als Analyse-Locale', (locale) => {
     expect(
       AnalyzeWordCloudInputSchema.parse({
         sessionCode: 'ABC123',
-        mode: 'LEXICAL',
-        locale: 'fr',
+        mode: 'SEMANTIC',
+        locale,
         metric: 'TOP',
         items: [sourceItem],
       }).locale,
-    ).toBe('fr');
+    ).toBe(locale);
+  });
+
+  it('lehnt unbekannte Analyse-Locales ab', () => {
     expect(
-      AnalyzeWordCloudInputSchema.parse({
+      AnalyzeWordCloudInputSchema.safeParse({
         sessionCode: 'ABC123',
         mode: 'LEXICAL',
-        locale: 'es',
+        locale: 'pt',
         metric: 'TOP',
         items: [sourceItem],
-      }).locale,
-    ).toBe('es');
-    expect(() =>
-      AnalyzeWordCloudInputSchema.parse({
-        sessionCode: 'ABC123',
-        mode: 'LEXICAL',
-        locale: 'it',
-        metric: 'TOP',
-        items: [sourceItem],
-      }),
-    ).toThrow();
+      }).success,
+    ).toBe(false);
   });
 
   it('begrenzt Item-Textlaenge hart', () => {

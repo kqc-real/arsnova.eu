@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { AnalyzeWordCloudInput } from '@arsnova/shared-types';
 import { SpacyClientError } from './spacyClient';
+import { buildLexicalWordCloudEntries } from './wordCloudAnalysis';
 import { createMemoryWordCloudAnalysisCache } from './wordCloudAnalysisCache';
 import { hashWordCloudText } from './wordCloudNormalization';
 import {
@@ -24,6 +25,28 @@ const lemmaInput = {
 } as const satisfies AnalyzeWordCloudInput;
 
 describe('wordCloudNormalizer', () => {
+  it('bündelt italienische Grundformen ohne POS und filtert italienische Stoppwörter', async () => {
+    const items = [
+      { id: 'a', text: 'quale esame', weight: 1 },
+      { id: 'b', text: 'quali esami', weight: 1 },
+    ];
+    const tokens = await new LemmaNormalizer('it', async (locale, texts) => ({
+      locale,
+      modelId: 'it_lemma_lookup@1.0.5',
+      items: texts.map(({ id, text }) => ({
+        id,
+        tokens: text.split(' ').map((surface, index) => ({
+          text: surface,
+          lemma: index === 0 ? 'quale' : 'esame',
+          pos: 'X',
+        })),
+      })),
+    })).normalize(items);
+
+    expect(buildLexicalWordCloudEntries(items, 'it', 10, tokens)).toMatchObject([
+      { key: 'esame', count: 2 },
+    ]);
+  });
   it('bildet Identity-Tokens wie die lexikalische Tokenisierung', () => {
     const tokens = new IdentityNormalizer().normalize(lemmaInput.items);
     expect(tokens.get('item-1')).toEqual([{ display: 'Häuser', lookup: 'häuser' }]);
@@ -400,7 +423,7 @@ describe('wordCloudNormalizer', () => {
     }));
     const sidecar = vi.fn(
       async (
-        _locale: 'de' | 'en' | 'fr' | 'es',
+        _locale: 'de' | 'en' | 'fr' | 'es' | 'it',
         texts: readonly { id: string; text: string }[],
       ) => ({
         locale: 'de' as const,

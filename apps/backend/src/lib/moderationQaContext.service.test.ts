@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import {
   calculateModerationQaBestScoreV1,
-  calculateModerationQaControversyScoreV1,
+  calculateQaControversyScore,
 } from '@arsnova/shared-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -98,10 +98,9 @@ function candidateRow() {
     nlpModelVersion: null,
     nlpAnalyzedAt: null,
     bestScore: calculateModerationQaBestScoreV1({ positive, negative }),
-    controversyScore: calculateModerationQaControversyScoreV1({
+    controversyScore: calculateQaControversyScore({
       positive,
       negative,
-      participantBasis: 200,
     }),
     totalCount: 1n,
     eligibleCount: 1n,
@@ -141,7 +140,7 @@ describe('buildAuthorizedModerationQaContext', () => {
     expect(prismaMock.$transaction.mock.calls[0]?.[1]).toEqual({
       isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
     });
-    expect(txMock.participant.count).toHaveBeenCalledOnce();
+    expect(txMock.participant.count).not.toHaveBeenCalled();
     expect(txMock.$queryRaw).toHaveBeenCalledOnce();
     expect(txMock.qaQuestion.findMany).not.toHaveBeenCalled();
     expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);

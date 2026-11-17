@@ -21,8 +21,23 @@ import type { QuizNewComponent } from './features/quiz/quiz-new/quiz-new.compone
 import type { QuizPreviewComponent } from './features/quiz/quiz-preview/quiz-preview.component';
 import type { NewsArchiveInitialModel } from './features/news-archive/news-archive-initial';
 
-const canDeactivateHost: CanDeactivateFn<SessionHostComponent> = (component) =>
-  component.canDeactivate();
+const canDeactivateHost: CanDeactivateFn<SessionHostComponent> = (
+  component,
+  currentRoute,
+  _currentState,
+  nextState,
+) => {
+  let target = nextState.root;
+  while (target.firstChild && target.routeConfig?.path !== 'present') {
+    target = target.firstChild;
+  }
+  const presenterCode =
+    target.routeConfig?.path === 'present' &&
+    target.parent?.routeConfig === currentRoute.parent?.routeConfig
+      ? target.parent?.paramMap.get('code')
+      : null;
+  return component.canDeactivate(presenterCode);
+};
 
 const canDeactivateQuizEdit: CanDeactivateFn<QuizEditComponent> = (component) =>
   component.canDeactivate();

@@ -3,10 +3,12 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Injector,
   LOCALE_ID,
   OnDestroy,
   ViewChild,
   ViewEncapsulation,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -321,6 +323,7 @@ type QuizSettingsFormGroup = FormGroup<{
   showQuestionTypeIndicators: FormControl<boolean>;
   anonymousMode: FormControl<boolean>;
   readingPhaseEnabled: FormControl<boolean>;
+  shuffleAnswerOptions: FormControl<boolean>;
   teamMode: FormControl<boolean>;
   teamCount: FormControl<number | null>;
   teamAssignment: FormControl<TeamAssignment>;
@@ -397,6 +400,7 @@ export class QuizEditComponent implements OnDestroy {
   readonly infoLandingConfidenceLabel = $localize`:@@quizEdit.infoLandingConfidence:Selbsteinschätzung und Nachbesprechung verstehen`;
 
   private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
@@ -652,8 +656,23 @@ export class QuizEditComponent implements OnDestroy {
   readonly isNewQuestionFormPanelExpanded = computed(
     () => !this.isEditing() && this.questionFormPanelOpen(),
   );
-  /** Metadaten-Karte; nach Schritt „Quiz neu“ (from=new) sofort eingeklappt – Initialwert aus URL, nicht erst im Constructor. */
-  readonly metadataPanelExpanded = signal(this.route.snapshot.queryParamMap?.get('from') !== 'new');
+  private readonly openedAfterQuizCreation =
+    this.route.snapshot.queryParamMap?.get('from') === 'new';
+  private readonly metadataPanelExpansion = signal<boolean | null>(null);
+  readonly metadataPanelExpanded = computed(() => {
+    const manualExpansion = this.metadataPanelExpansion();
+    if (manualExpansion !== null) return manualExpansion;
+    const description = this.quiz()?.description?.trim() ?? '';
+    return (
+      !this.openedAfterQuizCreation &&
+      description.length <= 500 &&
+      description.split(/\r\n?|\n/).length <= 8
+    );
+  });
+
+  setMetadataPanelExpanded(expanded: boolean): void {
+    this.metadataPanelExpansion.set(expanded);
+  }
 
   readonly form: QuestionFormGroup = this.formBuilder.group({
     text: this.formBuilder.control('', {
@@ -716,7 +735,7 @@ export class QuizEditComponent implements OnDestroy {
     }),
     matchingPairs: this.formBuilder.array<MatchingPairFormGroup>([]),
     matchingShuffleRight: this.formBuilder.control(true),
-    shuffleAnswerOptions: this.formBuilder.control(true),
+    shuffleAnswerOptions: this.formBuilder.control(false),
     orderingItems: this.formBuilder.array<OrderingItemFormGroup>([]),
     categories: this.formBuilder.array<CategorizationCategoryFormGroup>([]),
     categorizationItems: this.formBuilder.array<CategorizationItemFormGroup>([]),
@@ -738,6 +757,7 @@ export class QuizEditComponent implements OnDestroy {
     showQuestionTypeIndicators: this.formBuilder.control(true),
     anonymousMode: this.formBuilder.control(false),
     readingPhaseEnabled: this.formBuilder.control(false),
+    shuffleAnswerOptions: this.formBuilder.control(false),
     teamMode: this.formBuilder.control(false),
     teamCount: this.formBuilder.control<number | null>(DEFAULT_TEAM_COUNT, {
       validators: [Validators.min(2), Validators.max(8)],
@@ -786,7 +806,7 @@ export class QuizEditComponent implements OnDestroy {
       this.patchSettingsForm(quiz.settings);
       this.rememberSyncedFormBaseline(quiz);
     }
-    if (this.route.snapshot.queryParamMap?.get('from') === 'new') {
+    if (this.openedAfterQuizCreation) {
       queueMicrotask(() => {
         void this.router.navigate([], {
           relativeTo: this.route,
@@ -2951,6 +2971,7 @@ export class QuizEditComponent implements OnDestroy {
         enableEmojiReactions: settings.enableEmojiReactions,
         showQuestionTypeIndicators: settings.showQuestionTypeIndicators,
         readingPhaseEnabled: settings.readingPhaseEnabled,
+        shuffleAnswerOptions: settings.shuffleAnswerOptions,
         teamMode: settings.teamMode,
         teamCount: settings.teamCount ?? DEFAULT_TEAM_COUNT,
         teamAssignment: settings.teamAssignment,
@@ -2993,6 +3014,7 @@ export class QuizEditComponent implements OnDestroy {
         ? (this.settingsForm.controls.bonusTokenCount.value ?? DEFAULT_BONUS_TOKEN_COUNT)
         : null,
       readingPhaseEnabled: this.settingsForm.controls.readingPhaseEnabled.value,
+      shuffleAnswerOptions: this.settingsForm.controls.shuffleAnswerOptions.value,
       preset: this.settingsForm.controls.preset.value,
     };
   }
@@ -3065,6 +3087,7 @@ export class QuizEditComponent implements OnDestroy {
           ? settings.bonusTokenCount
           : null,
       readingPhaseEnabled: settings.readingPhaseEnabled ?? true,
+      shuffleAnswerOptions: settings.shuffleAnswerOptions ?? false,
       preset: settings.preset ?? 'PLAYFUL',
     };
   }
@@ -3219,12 +3242,34 @@ export class QuizEditComponent implements OnDestroy {
   private validateMetadataForm(): boolean {
     this.metadataSubmitError.set(null);
     if (this.metadataForm.invalid) {
-      this.metadataPanelExpanded.set(true);
       this.metadataForm.markAllAsTouched();
-      focusFirstInvalidField(this.metadataFormElement?.nativeElement, this.metadataForm);
+      if (this.metadataPanelExpanded()) {
+        focusFirstInvalidField(this.metadataFormElement?.nativeElement, this.metadataForm);
+      } else {
+        this.setMetadataPanelExpanded(true);
+        afterNextRender(() => requestAnimationFrame(() => this.focusExpandedMetadataError()), {
+          injector: this.injector,
+        });
+      }
       return false;
     }
     return true;
+  }
+
+  private focusExpandedMetadataError(deadline = performance.now() + 500): void {
+    const form = this.metadataFormElement?.nativeElement;
+    if (!form?.isConnected || !this.metadataPanelExpanded() || !this.metadataForm.invalid) return;
+
+    // Material can keep the panel content hidden while the expansion transition runs.
+    const firstField = form.querySelector<HTMLInputElement>('input[formcontrolname="name"]');
+    if (!firstField || getComputedStyle(firstField).visibility === 'hidden') {
+      if (performance.now() < deadline) {
+        requestAnimationFrame(() => this.focusExpandedMetadataError(deadline));
+      }
+      return;
+    }
+
+    focusFirstInvalidField(form, this.metadataForm);
   }
 
   private validateSettingsForm(): boolean {
@@ -3516,7 +3561,7 @@ export class QuizEditComponent implements OnDestroy {
           }
         : {}),
       ...(this.shufflesParticipantChoiceAnswers()
-        ? { shuffleAnswerOptions: this.form.controls.shuffleAnswerOptions.value }
+        ? { shuffleAnswerOptions: this.settingsForm.controls.shuffleAnswerOptions.value }
         : {}),
       ...(this.isMatchingType()
         ? {
@@ -3679,7 +3724,7 @@ export class QuizEditComponent implements OnDestroy {
           }
         : {}),
       ...(questionShufflesParticipantChoiceAnswers(question.type)
-        ? { shuffleAnswerOptions: question.shuffleAnswerOptions ?? true }
+        ? { shuffleAnswerOptions: this.settingsForm.controls.shuffleAnswerOptions.value }
         : {}),
     };
   }
@@ -3694,7 +3739,9 @@ export class QuizEditComponent implements OnDestroy {
       this.createMatchingPairArray(question.matchingPairs ?? []),
     );
     this.form.controls.matchingShuffleRight.setValue(question.matchingShuffleRight ?? true);
-    this.form.controls.shuffleAnswerOptions.setValue(question.shuffleAnswerOptions ?? true);
+    this.form.controls.shuffleAnswerOptions.setValue(
+      this.settingsForm.controls.shuffleAnswerOptions.value,
+    );
     this.form.setControl(
       'orderingItems',
       this.createOrderingItemArray(question.orderingItems ?? []),
@@ -3840,7 +3887,7 @@ export class QuizEditComponent implements OnDestroy {
       matchingShuffleRight:
         draft.type === 'MATCHING' ? (draft.matchingShuffleRight ?? true) : undefined,
       shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(draft.type)
-        ? (draft.shuffleAnswerOptions ?? true)
+        ? this.settingsForm.controls.shuffleAnswerOptions.value
         : undefined,
       orderingItems: draft.type === 'ORDERING' ? (draft.orderingItems ?? undefined) : undefined,
       categories: draft.type === 'CATEGORIZATION' ? (draft.categories ?? undefined) : undefined,
@@ -3860,7 +3907,9 @@ export class QuizEditComponent implements OnDestroy {
     this.form.setControl('answers', this.createAnswerArrayForType(type));
     this.resetStructuredFieldsForType(type);
     this.form.controls.matchingShuffleRight.reset(true);
-    this.form.controls.shuffleAnswerOptions.reset(true);
+    this.form.controls.shuffleAnswerOptions.reset(
+      this.settingsForm.controls.shuffleAnswerOptions.value,
+    );
     this.form.controls.categorizationShuffleItems.reset(true);
     this.form.controls.ratingMin.reset(1);
     this.form.controls.ratingMax.reset(5);
