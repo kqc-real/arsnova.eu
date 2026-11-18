@@ -979,6 +979,9 @@ async function main() {
         console.error(
           `  Aufgabenwahl-${locale}-${viewport.width} … FEHLER: ${JSON.stringify(hostCheck)}`,
         );
+        await page.screenshot({
+          path: join(ARTIFACT_DIR, `aufgabenwahl-${locale}-${viewport.width}.png`),
+        });
         failed += 1;
       }
       await footerContext.close();

@@ -1502,12 +1502,25 @@
 }
 
 @media (min-width: 840px) and (max-width: 1199px) and (orientation: landscape) {
+  :host.route-home .l-page:first-child {
+    max-width: 44rem;
+  }
+
   .home-main {
     gap: 0.5rem;
   }
 
   .home-hero {
-    font: var(--mat-sys-display-small);
+    font: var(--mat-sys-headline-medium);
+    text-wrap: wrap;
+  }
+
+  .home-hero-channels {
+    display: flex;
+  }
+
+  .home-hero-usp {
+    max-width: 100%;
   }
 
   .home-code-prompt {
