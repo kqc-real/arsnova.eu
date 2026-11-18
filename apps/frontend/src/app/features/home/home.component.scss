@@ -403,21 +403,19 @@
 }
 
 .home-scenario__options {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  margin-inline: auto;
   gap: 0.75rem;
 }
 
 .home-scenario__option {
-  position: relative;
-  display: inline-flex;
-  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 100%;
+  justify-content: stretch;
   min-width: 0;
   min-height: 4rem;
   height: auto;
@@ -425,13 +423,6 @@
   background: transparent;
   --mat-button-outlined-container-color: transparent;
   --mdc-outlined-button-container-color: transparent;
-  hyphens: none;
-  -webkit-hyphens: none;
-  overflow-wrap: normal;
-  word-break: normal;
-  white-space: nowrap;
-  line-height: 1.3;
-  text-align: center;
   font-size: 1rem;
   font-weight: 400;
   --mat-button-outlined-label-text-size: 1rem;
@@ -445,25 +436,17 @@
 }
 
 .home-scenario__option-body {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  width: 100%;
-  min-width: 0;
-  min-height: 2.25rem;
+  gap: 0.75rem;
 }
 
-/* Material setzt .mat-mdc-outlined-button .mat-icon auf position: relative.
-   Die zusätzliche Klasse gewinnt unabhängig von der Stylesheet-Reihenfolge,
-   sonst rutscht das Icon nach der Rückkehr aus dem Quiz nach oben. */
 .home-scenario__option.mat-mdc-outlined-button .home-scenario__option-icon {
-  position: absolute;
-  inset-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2);
-  top: 50%;
   width: 2.25rem;
   height: 2.25rem;
   margin: 0;
   font-size: 2.25rem;
-  transform: translateY(-50%);
   font-weight: 400;
   font-variation-settings:
     'FILL' 0,
@@ -473,65 +456,11 @@
 }
 
 .home-scenario__option-label {
-  position: absolute;
-  inset-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2 + 2.25rem);
-  inset-inline-end: 0;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  justify-content: center;
-  column-gap: 0.25em;
-  min-width: 0;
   hyphens: none;
   -webkit-hyphens: none;
-  white-space: nowrap;
+  white-space: normal;
   line-height: 1.25;
   text-align: center;
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-.home-scenario__option-copy--row {
-  display: none;
-}
-
-.home-scenario__option-copy {
-  hyphens: none;
-  -webkit-hyphens: none;
-  overflow-wrap: normal;
-  word-break: normal;
-  white-space: nowrap;
-}
-
-@media (max-width: 599px) {
-  .home-scenario__option {
-    flex-basis: auto;
-    width: 100%;
-  }
-}
-
-@media (max-width: 349px) {
-  .home-scenario__option-body {
-    box-sizing: border-box;
-    padding-inline-start: calc(1rem + (3.5rem - 2.25rem) / 2 + 2.25rem - 0.85rem);
-  }
-
-  .home-scenario__option-label {
-    position: static;
-    inset: auto;
-    display: flex;
-    flex-flow: row wrap;
-    width: 100%;
-    white-space: normal;
-  }
-
-  .home-scenario__option-copy {
-    max-width: 100%;
-    white-space: normal;
-    text-align: center;
-  }
 }
 
 .home-host-stack {
@@ -1560,6 +1489,61 @@
   white-space: pre-line;
 }
 
+@media (min-width: 1200px), (min-width: 840px) and (orientation: landscape) {
+  .home-scenario__options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .home-scenario__option {
+    font-size: 0.875rem;
+    --mat-button-outlined-label-text-size: 0.875rem;
+    --mdc-outlined-button-label-text-size: 0.875rem;
+  }
+}
+
+@media (min-width: 840px) and (max-width: 1199px) and (orientation: landscape) {
+  :host.route-home .l-page:first-child {
+    max-width: 44rem;
+  }
+
+  .home-main {
+    gap: 0.5rem;
+  }
+
+  .home-hero {
+    font: var(--mat-sys-headline-medium);
+    text-wrap: wrap;
+  }
+
+  .home-hero-channels {
+    display: flex;
+  }
+
+  .home-hero-usp {
+    max-width: 100%;
+  }
+
+  .home-code-prompt {
+    min-height: 0;
+  }
+
+  .home-scenario__options,
+  .home-scenario__option-body {
+    gap: 0.5rem;
+  }
+
+  .home-scenario__option {
+    min-height: 3.25rem;
+    padding-inline: 0.5rem;
+  }
+
+  .home-scenario__option.mat-mdc-outlined-button .home-scenario__option-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.5rem;
+  }
+}
+
 /* Erst auf breiten Desktops: gemeinsame App-Bar-Achse; die Host-Karte bleibt unter der Auswahl. */
 @media (min-width: 1200px) {
   :host.route-home .l-page:first-child {
@@ -1577,33 +1561,6 @@
 
   .home-host-chooser {
     width: 100%;
-  }
-
-  .home-scenario__options {
-    flex-direction: row;
-    flex-wrap: nowrap;
-  }
-
-  .home-scenario__option {
-    flex: 1 1 0;
-    width: auto;
-    max-width: none;
-    min-width: 0;
-    font-size: 0.875rem;
-    --mat-button-outlined-label-text-size: 0.875rem;
-    --mdc-outlined-button-label-text-size: 0.875rem;
-  }
-
-  .home-scenario__option-label {
-    font-size: 0.875rem;
-  }
-
-  .home-scenario__option-copy--stack {
-    display: none;
-  }
-
-  .home-scenario__option-copy--row {
-    display: inline;
   }
 
   .home-hero-band {
