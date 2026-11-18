@@ -322,15 +322,9 @@ describe('HomeComponent', () => {
       const cards = Array.from(root.querySelectorAll<HTMLElement>('.home-host-stack > mat-card'));
       const choices = Array.from(chooser.querySelectorAll<HTMLButtonElement>('button'));
       const targetIds = ['home-host-quiz', 'home-host-qa', 'host-quick-feedback'];
-      const labels = [
-        'Quiz erstellen & verwalten',
-        'Q&A-Forum erstellen & verwalten',
-        'Blitzlicht auswählen',
-      ];
+      const labels = ['Quiz auswählen', 'Q&A-Forum eröffnen', 'Blitzlicht starten'];
 
-      expect(root.querySelector('#home-host-title')?.textContent).toContain(
-        'Was hast du heute vor?',
-      );
+      expect(root.querySelector('#home-host-title')?.textContent).toContain('Was möchtest du tun?');
       expect(root.querySelector('#participant-entry')).not.toBeNull();
       expect(chooser.querySelector('#home-scenario-title')).toBeNull();
       expect(chooser.getAttribute('aria-labelledby')).toBe('home-host-title');
@@ -341,12 +335,9 @@ describe('HomeComponent', () => {
       expect(cards).toHaveLength(3);
       expect(choices).toHaveLength(3);
       expect(
-        choices.map((button) => {
-          const label =
-            button.querySelector('.home-scenario__option-copy--stack') ??
-            button.querySelector('.home-scenario__option-label');
-          return label?.textContent?.replace(/\s+/g, ' ').trim();
-        }),
+        choices.map((button) =>
+          button.querySelector('.home-scenario__option-label')?.textContent?.trim(),
+        ),
       ).toEqual(labels);
       expect(
         choices.map((button) =>
@@ -389,16 +380,16 @@ describe('HomeComponent', () => {
       expect(matDialogMock.open).not.toHaveBeenCalled();
     });
 
-    it('übersetzt jede Aufgabenwahl als vollständige Beschriftung', async () => {
+    it('übersetzt Überschrift und Aufgabenwahl als vollständige Beschriftungen', async () => {
       const { readFileSync } = await import('node:fs');
       const { fileURLToPath } = await import('node:url');
       const { dirname, join } = await import('node:path');
       const homeDir = dirname(fileURLToPath(import.meta.url));
       const template = readFileSync(join(homeDir, 'home.component.html'), 'utf8');
       const ids = [
+        'homeScenario.title',
         'homeScenario.classroomLabel',
         'homeScenario.eventLabel',
-        'homeScenario.eventLabelStacked',
         'homeScenario.quickLabel',
       ];
 
@@ -412,28 +403,28 @@ describe('HomeComponent', () => {
 
       const expected = {
         'messages.en.xlf': [
-          'Create and manage a quiz',
-          'Create and manage Q&amp;A',
-          'Create and manage a Q&amp;A forum',
-          'Choose a Pulse Check',
+          'What would you like to do?',
+          'Choose a quiz',
+          'Open a Q&amp;A forum',
+          'Start Pulse Check',
         ],
         'messages.fr.xlf': [
-          'Créer et gérer un quiz',
-          'Créer et gérer un espace Q&amp;R',
-          'Créer et gérer un forum Q&amp;R',
-          'Choisir un feedback express',
+          'Que veux-tu faire ?',
+          'Choisir un quiz',
+          'Ouvrir un forum Q&amp;R',
+          'Lancer un feedback express',
         ],
         'messages.es.xlf': [
-          'Crear y gestionar un cuestionario',
-          'Crear y gestionar un Q&amp;A',
-          'Crear y gestionar un foro de Q&amp;A',
-          'Elegir un sondeo rápido',
+          '¿Qué quieres hacer?',
+          'Elegir un cuestionario',
+          'Abrir un foro de Q&amp;A',
+          'Iniciar un sondeo rápido',
         ],
         'messages.it.xlf': [
-          'Crea e gestisci un quiz',
-          'Crea e gestisci un Q&amp;A',
-          'Crea e gestisci un forum Q&amp;A',
-          'Scegli un sondaggio rapido',
+          'Cosa vuoi fare?',
+          'Scegli un quiz',
+          'Apri un forum Q&amp;A',
+          'Avvia un sondaggio rapido',
         ],
       };
 
@@ -1181,7 +1172,7 @@ describe('HomeComponent', () => {
       expect(hero.textContent).toMatch(/Quiz/);
       expect(hero.querySelector('.home-hero-divider')).not.toBeNull();
       expect(levelTwoTitles).toEqual(
-        expect.arrayContaining(['Session beitreten', 'Was hast du heute vor?']),
+        expect.arrayContaining(['Session beitreten', 'Was möchtest du tun?']),
       );
       expect(taskTitles).toEqual(['Quiz', 'Q&A', 'Blitzlicht']);
       expect(
@@ -2541,7 +2532,7 @@ describe('HomeComponent', () => {
         /\.home-hero-band\s*\{[^}]*margin-block:\s*3rem calc\(4rem - 1\.25rem\)[^}]*padding:\s*0\.75rem 1rem 0\.9rem/,
       );
       expect(desktopLayout).not.toMatch(
-        /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
+        /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
       );
       expect(compactLayout).toMatch(
         /\.home-host-stack\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
@@ -2898,9 +2889,6 @@ describe('HomeComponent', () => {
       /@media \(prefers-reduced-motion:\s*no-preference\)\s*\{[^}]*\.home-host-stack\s*\{[^}]*opacity 520ms cubic-bezier\(0\.4,\s*0,\s*0\.2,\s*1\)/,
     );
     expect(scss).not.toContain('home-scenario__option-mark');
-    expect(scss).toMatch(
-      /@media \(max-width: 349px\)[\s\S]*?\.home-scenario__option-label\s*\{[^}]*white-space:\s*normal/,
-    );
     expect(scss).toMatch(
       /\.home-host-stack\[hidden\],\s*\.home-host-stack > \.home-card\[hidden\]\s*\{[^}]*display:\s*none !important/,
     );

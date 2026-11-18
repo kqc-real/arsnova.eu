@@ -124,7 +124,7 @@ async function assertNextTabContinuesHeroFlow(page) {
 
   assert(
     await isActiveLocator(scenarioOptions.first()),
-    `${forwardKey} erreicht nicht „Quiz erstellen & verwalten“: ${await activeElementLabel(page)}`,
+    `${forwardKey} erreicht nicht »Quiz auswählen«: ${await activeElementLabel(page)}`,
   );
   for (let index = 1; index < 3; index += 1) {
     await page.keyboard.press(forwardKey);

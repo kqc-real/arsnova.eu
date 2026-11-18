@@ -1,7 +1,6 @@
 import { animalIconUrl } from '../../../shared/animal-icon-url';
 import { ProjectionPagesComponent } from './projection-pages.component';
 import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
-import { DecimalPipe } from '@angular/common';
 import {
   Component,
   ViewEncapsulation,
@@ -89,7 +88,6 @@ function countStoredFractionDigits(value: number): number {
   standalone: true,
   imports: [
     ProjectionPagesComponent,
-    DecimalPipe,
     MatCard,
     MatCardContent,
     MatIcon,
