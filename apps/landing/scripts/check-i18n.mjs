@@ -30,6 +30,7 @@ const legacyAliases = [
 const canonicalAnchors = [
   'workflow',
   'features',
+  'peer-instruction',
   'leaderboard',
   'host-pairing',
   'structured-question-types',

@@ -174,6 +174,7 @@ export interface FeaturesMessages {
   eyebrow: string;
   title: string;
   lead: string;
+  peerInstructionDescription: string;
   items: Array<{ title: string; description: string; icon: string }>;
 }
 

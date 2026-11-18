@@ -406,6 +406,14 @@ Für diese Kanäle kann der Host:
 
 #### Quizabschluss, Fragenwand und Sessionende
 
+In den globalen Quiz-Einstellungen unter **Spiel & Auswertung** legst du fest, ob nach Quizende eine **Lernstandsauswertung mit Nachbesprechungsplan** verfügbar ist. Das Preset **Spielerisch** schaltet sie ein, **Seriös** schaltet sie aus. Du kannst den Wert pro Quiz ändern. Rangliste und CSV-Ergebnisexport sind unabhängig davon verfügbar.
+
+Mit **Peer Instruction nutzen** kannst du die automatische Diskussionsempfehlung und die zugehörige zweite Abstimmungsrunde für das ganze Quiz abschalten, etwa für ein Online-Quiz. Die Einstellung ist standardmäßig aktiv. Für Schätzfragen gilt weiterhin ihre eigene Zwei-Runden-Einstellung.
+
+Der Textlink unter dem Schalter führt direkt zur Erklärung auf der Infoseite. [So funktioniert Peer Instruction](https://info.arsnova.eu/de/#peer-instruction)
+
+**Lernstand der Gruppe** zeigt in der Host-Abschlussansicht oberhalb der Rangliste den Median und die Verteilung der vollständig richtigen Antworten pro Person. Bezugsgröße sind alle durchgeführten bewertbaren Fragen. Teilnehmende mit mindestens einer gewerteten Antwort gehen auch mit null richtigen Antworten in die Verteilung ein. Teilnehmende ohne gewertete Antwort werden separat gezählt. Für die Nachbesprechung erscheinen bis zu drei Fragen mit der niedrigsten Lösungsquote unter zwei Dritteln der abgegebenen gewerteten Antworten, ergänzt um bestätigte Lernziele, die der jeweiligen Frage zugeordnet sind. Der Host sieht den vollständigen Text dieser Fragen mit Markdown und KaTeX. Die Auswertung nutzt bei Peer Instruction die gewertete Runde und ist auch bei ausgeschalteter Rangliste verfügbar.
+
 **Quiz beendet** kennzeichnet die Gesamtauswertung, wenn danach noch weitere Formate verfügbar bleiben. **Session beendet** bleibt der Titel bei tatsächlichem Host-Ende oder wenn keine solchen Formate mehr verbleiben. Quizabschluss allein schließt eine weiterhin offene Fragenwand oder ein offenes Blitzlicht nicht.
 
 **Fragenwand schließen** stoppt neue Q&A-Beiträge und erhält die Frist; innerhalb der zulässigen Frist kann der Host wieder öffnen. **Zur Startseite** verlässt die Host-Ansicht. Aus einer laufenden Session mit offenem Q&A erhält diese Aktion die Fragenwand und versucht, ein ebenfalls offenes Blitzlicht zu schließen. Ein Fehler beim Schließen des Blitzlichts blockiert das Verlassen nicht. Der eigene Home-Pfad aus der bereits erreichten Quiz-Abschlussansicht nimmt dagegen nur die Abschlussprojektion zurück und schließt kein Nebenformat.

@@ -890,6 +890,9 @@ describe('QuizStoreService', () => {
       description: 'Für Export/Import',
       settings: {
         showLeaderboard: false,
+        preset: 'SERIOUS',
+        enableLearningDebrief: true,
+        enablePeerInstruction: false,
         enableRewardEffects: false,
       },
     });
@@ -912,6 +915,10 @@ describe('QuizStoreService', () => {
     expect(exported.quiz.shuffleAnswerOptions).toBe(false);
     expect(imported.quiz.id).not.toBe(created.id);
     expect(imported.quiz.settings.shuffleAnswerOptions).toBe(false);
+    expect(service.getUploadPayload(imported.quiz.id)).toMatchObject({
+      enableLearningDebrief: true,
+      enablePeerInstruction: false,
+    });
     expect(imported.quiz.name).toBe('Export Quiz');
     expect(imported.quiz.questions[0]?.type).toBe('RATING');
     expect(imported.quiz.questions[0]?.ratingMax).toBe(10);

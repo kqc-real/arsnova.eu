@@ -193,6 +193,7 @@ import {
   SessionChannelsDTO,
   SessionFeedbackSummary,
   SessionConfidenceSummaryDTO,
+  SessionLearningOverviewDTO,
   SessionInfoDTO,
   SessionLifecycleHostDTO,
   SessionExpirationPreviewDTO,
@@ -1175,6 +1176,39 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private recoveryCardDialogOpened = false;
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
+  readonly learningDebriefEnabled = computed(() => this.session()?.enableLearningDebrief !== false);
+  readonly learningOverview = signal<SessionLearningOverviewDTO | null>(null);
+  readonly learningOverviewLoading = signal(false);
+  readonly learningOverviewFailed = signal(false);
+  readonly showLearningOverviewRetry = signal(false);
+  private learningOverviewRequest: AbortController | null = null;
+  private readonly learningOverviewAvailable = computed(
+    () =>
+      this.effectiveStatus() === 'FINISHED' &&
+      this.channels().quiz &&
+      this.learningDebriefEnabled() &&
+      !this.hostAccessRevoked() &&
+      !this.sessionUnavailable(),
+  );
+  readonly learningOverviewBands = [
+    $localize`:@@sessionHost.learningOverviewBand1:Unter 25 %`,
+    $localize`:@@sessionHost.learningOverviewBand2:25 bis unter 50 %`,
+    $localize`:@@sessionHost.learningOverviewBand3:50 bis unter 75 %`,
+    $localize`:@@sessionHost.learningOverviewBand4:75 bis 100 %`,
+  ];
+  readonly learningOverviewReviewQuestions = computed(() => {
+    const objectives = this.sessionLearningObjectives();
+    return (this.learningOverview()?.reviewQuestions ?? []).map((question) => ({
+      ...question,
+      objectives: objectives
+        .filter(
+          (objective) =>
+            objective.scope.kind === 'question-set' &&
+            confirmedLearningObjectiveAppliesToQuestion(objective, question.questionId),
+        )
+        .map((objective) => ({ id: objective.id, text: markdownToReadableText(objective.text) })),
+    }));
+  });
   /** Aktuelle Frage für Host (Text + Antwortoptionen), null wenn keine Frage aktiv. */
   readonly currentQuestionForHost = signal<HostCurrentQuestionDTO | null>(null);
   private readonly quizHistory = signal<{
@@ -4839,9 +4873,21 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
       untracked(() => void this.loadLeaderboard(() => current));
     });
+    effect((onCleanup) => {
+      if (!this.learningOverviewAvailable()) return;
+      untracked(() => void this.loadLearningOverview());
+      onCleanup(() => {
+        this.learningOverviewRequest?.abort();
+        this.learningOverviewRequest = null;
+        this.learningOverview.set(null);
+        this.learningOverviewLoading.set(false);
+        this.learningOverviewFailed.set(false);
+        this.showLearningOverviewRetry.set(false);
+      });
+    });
     effect(() => {
       const finished = this.effectiveStatus() === 'FINISHED';
-      if (finished) {
+      if (finished && this.learningDebriefEnabled()) {
         void this.loadFinishedConfidenceSummary();
       }
       if (finished && !this.previousFinishedForAutoScroll) {
@@ -10388,8 +10434,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
-  renderMarkdown(value: string, headingStartLevel: 3 | 4 = 3): SafeHtml {
-    const cacheKey = `${headingStartLevel}\u0000escape\u0000${value}`;
+  renderMarkdown(
+    value: string,
+    headingStartLevel: 3 | 4 = 3,
+    { escapeListMarkers = headingStartLevel >= 4, focusableDisplayMath = false } = {},
+  ): SafeHtml {
+    const cacheKey = `${headingStartLevel}\u0000${escapeListMarkers}\u0000${focusableDisplayMath}\u0000${value}`;
     const cached = this.markdownCache.get(cacheKey);
     if (cached) {
       return cached;
@@ -10399,7 +10449,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         renderMarkdownWithKatex(value, {
           imagePolicy: 'external-https-and-app-assets',
           headingStartLevel,
-          escapeListMarkers: headingStartLevel >= 4,
+          escapeListMarkers,
+          focusableDisplayMath,
         }).html,
       ),
     );
@@ -16000,6 +16051,33 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.finishedConfidenceSummary.set(summary);
     } catch {
       this.finishedConfidenceSummary.set(null);
+    }
+  }
+
+  async loadLearningOverview(): Promise<void> {
+    if (!this.code || !this.learningOverviewAvailable() || this.learningOverviewRequest) return;
+    const code = this.code.toUpperCase();
+    const request = new AbortController();
+    this.learningOverviewRequest = request;
+    this.learningOverviewLoading.set(true);
+    this.learningOverviewFailed.set(false);
+    try {
+      const overview = await this.withHostAccessRetry(() =>
+        trpc.session.getLearningOverview.query({ code }, { signal: request.signal }),
+      );
+      if (!request.signal.aborted && this.learningOverviewAvailable()) {
+        this.learningOverview.set(overview);
+      }
+    } catch {
+      if (!request.signal.aborted && this.learningOverviewAvailable()) {
+        this.learningOverviewFailed.set(true);
+        this.showLearningOverviewRetry.set(true);
+      }
+    } finally {
+      if (this.learningOverviewRequest === request) {
+        this.learningOverviewRequest = null;
+        this.learningOverviewLoading.set(false);
+      }
     }
   }
 

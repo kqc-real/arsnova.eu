@@ -37130,6 +37130,230 @@
         <source>Die moderierte Wortwolke ist im Rückblick nicht verfügbar.</source>
         <target>Le nuage de mots modéré est indisponible dans les résultats précédents.</target>
         </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewTitle" datatype="html">
+        <source> Lernstand der Gruppe </source>
+        <target>Acquis du groupe</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1312,1313</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewRetry" datatype="html">
+        <source> Erneut laden </source>
+        <target>Recharger</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1324,1325</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewLoading" datatype="html">
+        <source>Lernstand wird geladen …</source>
+        <target>Chargement des acquis…</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1329,1330</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewFailed" datatype="html">
+        <source> Der Lernstand konnte nicht geladen werden. </source>
+        <target>Impossible de charger les résultats du groupe.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1332,1333</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewLoaded" datatype="html">
+        <source> Lernstand geladen. </source>
+        <target>Résultats du groupe chargés.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1336,1337</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewNoQuestions" datatype="html">
+        <source> In diesem Quiz wurden keine bewertbaren Fragen ausgewertet. </source>
+        <target>Aucune question évaluable n’a été prise en compte dans ce quiz.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1343,1344</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewMedian" datatype="html">
+        <source>Median</source>
+        <target>Médiane</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1348,1350</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewMedianValue" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong
+                                    &gt;"/><x id="INTERPOLATION" equiv-text="{{ formatDecimal(overview.medianCorrectCount) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(overview.questionCount) }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong
+                                  &gt;"/> richtigen Antworten </source>
+        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong
+                                    &gt;"/><x id="INTERPOLATION" equiv-text="{{ formatDecimal(overview.medianCorrectCount) }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong
+                                  &gt;"/> bonnes réponses sur <x id="INTERPOLATION_1" equiv-text="{{ formatCount(overview.questionCount) }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1356,1359</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewMedianHint" datatype="html">
+        <source> Die Mitte, wenn du die Ergebnisse nach richtigen Antworten sortierst. </source>
+        <target>Le milieu des résultats classés par nombre de bonnes réponses.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1365,1366</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewNoAnswers" datatype="html">
+        <source>Keine gewerteten Antworten</source>
+        <target>Aucune réponse prise en compte</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1360,1362</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewRespondents" datatype="html">
+        <source> Mit gewerteter Antwort </source>
+        <target>Avec réponse prise en compte</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1367,1368</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewNoResponse" datatype="html">
+        <source> Ohne gewertete Antwort </source>
+        <target>Sans réponse prise en compte</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1373,1374</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewDistribution" datatype="html">
+        <source> Anteil richtiger Antworten pro Person </source>
+        <target>Part de bonnes réponses par personne</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1382,1383</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewReview" datatype="html">
+        <source>Nachbesprechen</source>
+        <target>À revoir en classe</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1397,1398</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewReviewRule" datatype="html">
+        <source> Fragen mit den niedrigsten Lösungsquoten unter zwei Dritteln. </source>
+        <target>Questions aux plus faibles taux de bonnes réponses, sous le seuil des deux tiers.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1400,1401</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewQuestion" datatype="html">
+        <source> Frage <x id="INTERPOLATION" equiv-text="{{ formatCount(question.questionOrder + 1) }}"/> </source>
+        <target>Question <x id="INTERPOLATION" equiv-text="{{ formatCount(question.questionOrder + 1) }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1407,1408</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewCorrectOf" datatype="html">
+        <source> <x id="INTERPOLATION" equiv-text="{{ formatCount(question.correctCount) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(question.responseCount) }}"/> richtig </source>
+        <target><x id="INTERPOLATION" equiv-text="{{ formatCount(question.correctCount) }}"/> bonnes réponses sur <x id="INTERPOLATION_1" equiv-text="{{ formatCount(question.responseCount) }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1410,1412</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewObjective" datatype="html">
+        <source>Lernziel</source>
+        <target>Objectif d’apprentissage</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1417,1418</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewNoReview" datatype="html">
+        <source> Bei allen Fragen mit Antworten waren mindestens zwei Drittel richtig. </source>
+        <target>Pour chaque question ayant reçu des réponses, au moins deux tiers étaient correctes.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1426,1427</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewBand1" datatype="html">
+        <source>Unter 25 %</source>
+        <target>Moins de 25 %</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1184</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewBand2" datatype="html">
+        <source>25 bis unter 50 %</source>
+        <target>De 25 % à moins de 50 %</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1185</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewBand3" datatype="html">
+        <source>50 bis unter 75 %</source>
+        <target>De 50 % à moins de 75 %</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1186</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewBand4" datatype="html">
+        <source>75 bis 100 %</source>
+        <target>De 75 % à 100 %</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1187</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizSettings.enableLearningDebrief" datatype="html">
+        <source>Lernstandsauswertung und Nachbesprechungsplan erstellen</source>
+        <target>Créer un bilan des acquis et un plan de débriefing</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">236,238</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">196,198</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizSettings.enablePeerInstruction" datatype="html">
+        <source>Peer Instruction nutzen</source>
+        <target>Utiliser la méthode Peer Instruction</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">241,243</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.html</context>
+          <context context-type="linenumber">201,203</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizSettings.peerInstructionLink" datatype="html">
+        <source>So funktioniert Peer Instruction</source>
+        <target>Comment fonctionne la méthode Peer Instruction</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.ts</context>
+          <context context-type="linenumber">403</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.ts</context>
+          <context context-type="linenumber">112</context>
+        </context-group>
+      </trans-unit>
     </body>
   </file>
 </xliff>

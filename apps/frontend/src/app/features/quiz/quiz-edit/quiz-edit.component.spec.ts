@@ -2054,6 +2054,16 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     );
   });
 
+  it('verlinkt die Erklärung zu Peer Instruction direkt am Schalter', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.componentInstance.showSettings.set(true);
+    fixture.detectChanges();
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'mat-checkbox[formcontrolname="enablePeerInstruction"] + app-info-landing-link a',
+    );
+    expect(link?.hash).toBe('#peer-instruction');
+  });
+
   it('wendet Preset-Werte auf die Sitzungs-Konfiguration an', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
@@ -2061,6 +2071,8 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     component.applySettingsPreset('SERIOUS');
 
     expect(component.settingsForm.controls.showLeaderboard.value).toBe(false);
+    expect(component.settingsForm.controls.enableLearningDebrief.value).toBe(false);
+    expect(component.settingsForm.controls.enablePeerInstruction.value).toBe(true);
     expect(component.settingsForm.controls.enableSoundEffects.value).toBe(false);
     expect(component.settingsForm.controls.anonymousMode.value).toBe(false);
     expect(component.settingsForm.controls.nicknameTheme.value).toBe('HIGH_SCHOOL');

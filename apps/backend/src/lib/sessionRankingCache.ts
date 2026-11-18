@@ -1,5 +1,10 @@
 import { prisma } from '../db';
-import { isFullyCorrectShortTextVote } from './quizScoring';
+import {
+  isExactCorrectSelection,
+  isFullyCorrectShortTextVote,
+  questionCountsTowardsTotalQuestions,
+} from './quizScoring';
+import type { QuestionType } from '@arsnova/shared-types';
 
 const SESSION_RANKING_CACHE_TTL_MS = 2_000;
 const SESSION_RANKING_CACHE_MAX_ENTRIES = 256;
@@ -89,6 +94,27 @@ export function getCompetitionResponseTimeMs(vote: CompetitionVoteRow): number {
     return 0;
   }
   return vote.responseTimeMs ?? 0;
+}
+
+export function isFullyCorrectCompetitionVote(vote: CompetitionVoteRow): boolean {
+  const type = vote.question?.type as QuestionType;
+  if (!questionCountsTowardsTotalQuestions(type)) return false;
+  if (type === 'SHORT_TEXT') return vote.shortTextFullyCorrect === true;
+  if (
+    type === 'NUMERIC_ESTIMATE' ||
+    type === 'MATCHING' ||
+    type === 'ORDERING' ||
+    type === 'CATEGORIZATION'
+  ) {
+    return vote.isCorrect ?? vote.score > 0;
+  }
+  const correctAnswerIds = (vote.question?.answers ?? [])
+    .filter((answer) => answer.isCorrect)
+    .map((answer) => answer.id);
+  const selectedAnswerIds = (vote.selectedAnswers ?? []).map((selected) => selected.answerOptionId);
+  return (
+    correctAnswerIds.length > 0 && isExactCorrectSelection(selectedAnswerIds, correctAnswerIds)
+  );
 }
 
 export function buildScoreRanking(

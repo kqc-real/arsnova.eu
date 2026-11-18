@@ -94,6 +94,8 @@ describe('quiz.upload (Story 2.1a)', () => {
       expect(prismaMock.quiz.create).toHaveBeenCalledTimes(1);
       const createCall = prismaMock.quiz.create.mock.calls[0]![0];
       expect(createCall.data.name).toBe('Test-Quiz');
+      expect(createCall.data.enableLearningDebrief).toBe(true);
+      expect(createCall.data.enablePeerInstruction).toBe(true);
       expect(createCall.data.questions.create).toHaveLength(1);
       expect(createCall.data.questions.create[0].text).toBe('Was ist 2+2?');
       expect(createCall.data.questions.create[0].shuffleAnswerOptions).toBe(true);
@@ -104,6 +106,11 @@ describe('quiz.upload (Story 2.1a)', () => {
         order: 1,
       });
       expect(createCall.data.motifImageUrl).toBeNull();
+      await caller.upload({ ...input, preset: 'SERIOUS', enablePeerInstruction: false });
+      expect(prismaMock.quiz.create.mock.lastCall?.[0].data).toMatchObject({
+        enableLearningDebrief: false,
+        enablePeerInstruction: false,
+      });
       expect(createCall.data.timerScaleByDifficulty).toBe(true);
     },
   );

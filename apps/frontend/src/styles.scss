@@ -2327,6 +2327,14 @@ $markdown-katex-flow-hosts:
   margin: 0.45rem 0;
 }
 
+.session-host__learning-overview-question-text > :first-child {
+  margin-block-start: 0;
+}
+
+.session-host__learning-overview-question-text > :last-child {
+  margin-block-end: 0;
+}
+
 .session-host__question-title-inner h1,
 .session-host__question-title-inner h2,
 .session-host__question-title-inner h3,
@@ -2428,6 +2436,24 @@ $markdown-katex-flow-hosts:
     overflow-x: auto;
     overflow-y: hidden;
   }
+}
+
+/* In der Lernstandskarte scrollt nur der per Tastatur erreichbare Formel-Wrapper. */
+.session-host__learning-overview-question-text .katex-display {
+  display: flex;
+  justify-content: safe center;
+}
+
+.session-host__learning-overview-question-text .katex-display > .katex {
+  flex: none;
+  max-width: none;
+  padding: 0.4em 0.25em;
+  overflow: visible;
+}
+
+.session-host__learning-overview-question-text .katex-display:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
 }
 
 /* Markdown-Tabellen in Fragen, Antworten, Vorschau, Host, Vote und Quiz-Beschreibung. */

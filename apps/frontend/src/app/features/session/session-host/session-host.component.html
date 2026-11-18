@@ -956,38 +956,40 @@
                   </h1>
                   <p class="session-host__finished-sub" i18n>Alle Ergebnisse sind gespeichert.</p>
                   <div class="session-host__export-actions">
-                    <div class="session-host__export-pdf">
-                      @let exportPdfPriorityCount =
-                        finishedConfidenceSummary()?.priorityQuestionCount ?? 0;
-                      <button
-                        class="session-host__export-pdf-btn"
-                        matButton="filled"
-                        type="button"
-                        (click)="exportSessionResultsPdf()"
-                        [disabled]="exportExporting()"
-                        [disabledInteractive]="true"
-                        [attr.aria-busy]="exportExporting()"
-                        [attr.aria-label]="exportPdfButtonAria()"
-                      >
-                        <mat-icon class="session-host__export-pdf-btn-icon" aria-hidden="true"
-                          >psychology</mat-icon
+                    @if (learningDebriefEnabled()) {
+                      <div class="session-host__export-pdf">
+                        @let exportPdfPriorityCount =
+                          finishedConfidenceSummary()?.priorityQuestionCount ?? 0;
+                        <button
+                          class="session-host__export-pdf-btn"
+                          matButton="filled"
+                          type="button"
+                          (click)="exportSessionResultsPdf()"
+                          [disabled]="exportExporting()"
+                          [disabledInteractive]="true"
+                          [attr.aria-busy]="exportExporting()"
+                          [attr.aria-label]="exportPdfButtonAria()"
                         >
-                        <span i18n="@@sessionHost.exportPdfButton"
-                          >Nachbesprechungsplan herunterladen</span
-                        >
-                        @if (exportPdfPriorityCount > 0) {
-                          <span class="session-host__export-pdf-badge" aria-hidden="true">{{
-                            exportPdfPriorityCount
-                          }}</span>
-                        }
-                      </button>
+                          <mat-icon class="session-host__export-pdf-btn-icon" aria-hidden="true"
+                            >psychology</mat-icon
+                          >
+                          <span i18n="@@sessionHost.exportPdfButton"
+                            >Nachbesprechungsplan herunterladen</span
+                          >
+                          @if (exportPdfPriorityCount > 0) {
+                            <span class="session-host__export-pdf-badge" aria-hidden="true">{{
+                              exportPdfPriorityCount
+                            }}</span>
+                          }
+                        </button>
 
-                      @if (exportPdfPriorityCount > 0) {
-                        <p class="session-host__export-pdf-hint">
-                          {{ exportPdfPriorityHint(exportPdfPriorityCount) }}
-                        </p>
-                      }
-                    </div>
+                        @if (exportPdfPriorityCount > 0) {
+                          <p class="session-host__export-pdf-hint">
+                            {{ exportPdfPriorityHint(exportPdfPriorityCount) }}
+                          </p>
+                        }
+                      </div>
+                    }
                     <button
                       class="session-host__export-more-btn"
                       matButton="tonal"
@@ -1007,15 +1009,19 @@
                       <span i18n>Zur Startseite</span>
                     </button>
                     <mat-menu #sessionExportMoreMenu="matMenu">
-                      <button
-                        mat-menu-item
-                        type="button"
-                        (click)="exportSessionResultsPdf('pdfUa')"
-                        [disabled]="exportExporting()"
-                      >
-                        <mat-icon aria-hidden="true">accessibility</mat-icon>
-                        <span i18n="@@sessionHost.exportPdfMenuPdfUa">Barrierefrei (PDF/UA-1)</span>
-                      </button>
+                      @if (learningDebriefEnabled()) {
+                        <button
+                          mat-menu-item
+                          type="button"
+                          (click)="exportSessionResultsPdf('pdfUa')"
+                          [disabled]="exportExporting()"
+                        >
+                          <mat-icon aria-hidden="true">accessibility</mat-icon>
+                          <span i18n="@@sessionHost.exportPdfMenuPdfUa"
+                            >Barrierefrei (PDF/UA-1)</span
+                          >
+                        </button>
+                      }
 
                       <button
                         mat-menu-item
@@ -1067,14 +1073,19 @@
                       <p class="session-host__export-hint" role="status">{{ status }}</p>
                     }
                   </div>
-                  <app-info-landing-link
-                    class="session-host__info-landing session-host__info-landing--finished"
-                    [anchor]="infoLandingConfidenceAnchor"
-                    [label]="infoLandingConfidenceLabel"
-                    [dense]="true"
-                  />
+                  @if (learningDebriefEnabled()) {
+                    <app-info-landing-link
+                      class="session-host__info-landing session-host__info-landing--finished"
+                      [anchor]="infoLandingConfidenceAnchor"
+                      [label]="infoLandingConfidenceLabel"
+                      [dense]="true"
+                    />
+                  }
                 </header>
-                @if (finishedConfidenceSummary(); as confidenceSummary) {
+                @if (
+                  learningDebriefEnabled() ? finishedConfidenceSummary() : null;
+                  as confidenceSummary
+                ) {
                   <section
                     class="session-host__finished-confidence"
                     aria-labelledby="finished-confidence-heading"
@@ -1298,6 +1309,173 @@
                           </span>
                         </span>
                       </p>
+                    }
+                  </section>
+                }
+                @if (channels().quiz && learningDebriefEnabled()) {
+                  <section
+                    class="session-host__learning-overview"
+                    aria-labelledby="learning-overview-heading"
+                  >
+                    <header class="session-host__finished-confidence-header">
+                      <mat-icon aria-hidden="true">insights</mat-icon>
+                      <h2 id="learning-overview-heading" i18n="@@sessionHost.learningOverviewTitle">
+                        Lernstand der Gruppe
+                      </h2>
+                    </header>
+                    @if (showLearningOverviewRetry()) {
+                      <button
+                        matButton
+                        type="button"
+                        [disabled]="learningOverviewLoading()"
+                        [disabledInteractive]="true"
+                        (click)="loadLearningOverview()"
+                        i18n="@@sessionHost.learningOverviewRetry"
+                      >
+                        Erneut laden
+                      </button>
+                    }
+                    <div role="status">
+                      @if (learningOverviewLoading()) {
+                        <p i18n="@@sessionHost.learningOverviewLoading">Lernstand wird geladen …</p>
+                      } @else if (learningOverviewFailed()) {
+                        <p i18n="@@sessionHost.learningOverviewFailed">
+                          Der Lernstand konnte nicht geladen werden.
+                        </p>
+                      } @else if (showLearningOverviewRetry() && learningOverview()) {
+                        <span class="sr-only" i18n="@@sessionHost.learningOverviewLoaded">
+                          Lernstand geladen.
+                        </span>
+                      }
+                    </div>
+                    @if (learningOverview(); as overview) {
+                      @if (overview.questionCount === 0) {
+                        <p i18n="@@sessionHost.learningOverviewNoQuestions">
+                          In diesem Quiz wurden keine bewertbaren Fragen ausgewertet.
+                        </p>
+                      } @else {
+                        <dl class="session-host__learning-overview-metrics">
+                          <div>
+                            <dt i18n="@@sessionHost.learningOverviewMedian">Median</dt>
+                            <dd>
+                              @if (overview.medianCorrectCount !== null) {
+                                <div
+                                  class="session-host__learning-overview-median-value"
+                                  i18n="@@sessionHost.learningOverviewMedianValue"
+                                >
+                                  <strong
+                                    >{{ formatDecimal(overview.medianCorrectCount) }} von
+                                    {{ formatCount(overview.questionCount) }}</strong
+                                  >
+                                  richtigen Antworten
+                                </div>
+                                <p
+                                  class="session-host__learning-overview-median-hint"
+                                  i18n="@@sessionHost.learningOverviewMedianHint"
+                                >
+                                  Die Mitte, wenn du die Ergebnisse nach richtigen Antworten
+                                  sortierst.
+                                </p>
+                              } @else {
+                                <span i18n="@@sessionHost.learningOverviewNoAnswers"
+                                  >Keine gewerteten Antworten</span
+                                >
+                              }
+                            </dd>
+                          </div>
+                          <div>
+                            <dt i18n="@@sessionHost.learningOverviewRespondents">
+                              Mit gewerteter Antwort
+                            </dt>
+                            <dd>
+                              <strong>{{ formatCount(overview.respondentCount) }}</strong>
+                            </dd>
+                          </div>
+                          <div>
+                            <dt i18n="@@sessionHost.learningOverviewNoResponse">
+                              Ohne gewertete Antwort
+                            </dt>
+                            <dd>
+                              <strong>{{ formatCount(overview.noResponseCount) }}</strong>
+                            </dd>
+                          </div>
+                        </dl>
+                        @if (overview.respondentCount > 0) {
+                          <div class="session-host__learning-overview-details">
+                            <div>
+                              <h3 i18n="@@sessionHost.learningOverviewDistribution">
+                                Anteil richtiger Antworten pro Person
+                              </h3>
+                              <ul class="session-host__learning-overview-bars" role="list">
+                                @for (count of overview.distribution; track $index) {
+                                  <li>
+                                    <span>{{ learningOverviewBands[$index] }}</span>
+                                    <span
+                                      class="session-host__learning-overview-track"
+                                      aria-hidden="true"
+                                    >
+                                      <span
+                                        [style.inline-size.%]="
+                                          (100 * count) / overview.respondentCount
+                                        "
+                                      ></span>
+                                    </span>
+                                    <strong>{{ formatCount(count) }}</strong>
+                                  </li>
+                                }
+                              </ul>
+                            </div>
+                            <div>
+                              <h3 i18n="@@sessionHost.learningOverviewReview">Nachbesprechen</h3>
+                              @if (learningOverviewReviewQuestions().length > 0) {
+                                <p i18n="@@sessionHost.learningOverviewReviewRule">
+                                  Fragen mit den niedrigsten Lösungsquoten unter zwei Dritteln.
+                                </p>
+                                <ul class="session-host__learning-overview-review" role="list">
+                                  @for (
+                                    question of learningOverviewReviewQuestions();
+                                    track question.questionId
+                                  ) {
+                                    <li>
+                                      <div class="session-host__learning-overview-question-meta">
+                                        <span i18n="@@sessionHost.learningOverviewQuestion">
+                                          Frage {{ formatCount(question.questionOrder + 1) }}
+                                        </span>
+                                        <span i18n="@@sessionHost.learningOverviewCorrectOf">
+                                          {{ formatCount(question.correctCount) }} von
+                                          {{ formatCount(question.responseCount) }} richtig
+                                        </span>
+                                      </div>
+                                      <div
+                                        class="session-host__learning-overview-question-text session-host__rich-text markdown-body"
+                                        [innerHTML]="
+                                          renderMarkdown(question.text, 4, {
+                                            escapeListMarkers: false,
+                                            focusableDisplayMath: true,
+                                          })
+                                        "
+                                      ></div>
+                                      @for (objective of question.objectives; track objective.id) {
+                                        <p class="session-host__learning-overview-objective">
+                                          <span i18n="@@sessionHost.learningOverviewObjective"
+                                            >Lernziel</span
+                                          >
+                                          {{ objective.text }}
+                                        </p>
+                                      }
+                                    </li>
+                                  }
+                                </ul>
+                              } @else {
+                                <p i18n="@@sessionHost.learningOverviewNoReview">
+                                  Bei allen Fragen mit Antworten waren mindestens zwei Drittel
+                                  richtig.
+                                </p>
+                              }
+                            </div>
+                          </div>
+                        }
+                      }
                     }
                   </section>
                 }

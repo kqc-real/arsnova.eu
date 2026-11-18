@@ -197,6 +197,7 @@ const {
   getPresenterQuizResultQueryMock,
   getHostVoteProgressQueryMock,
   getLeaderboardQueryMock,
+  getLearningOverviewQueryMock,
   getHostTeamLeaderboardQueryMock,
   getExportDataQueryMock,
   getSessionConfidenceSummaryQueryMock,
@@ -268,6 +269,7 @@ const {
   getPresenterQuizResultQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
+  getLearningOverviewQueryMock: vi.fn(),
   getHostTeamLeaderboardQueryMock: vi.fn(),
   getExportDataQueryMock: vi.fn(),
   getSessionConfidenceSummaryQueryMock: vi.fn(),
@@ -363,6 +365,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getPresenterQuizResult: { query: getPresenterQuizResultQueryMock },
       getHostVoteProgress: { query: getHostVoteProgressQueryMock },
       getLeaderboard: { query: getLeaderboardQueryMock },
+      getLearningOverview: { query: getLearningOverviewQueryMock },
       getHostTeamLeaderboard: { query: getHostTeamLeaderboardQueryMock },
       getExportData: { query: getExportDataQueryMock },
       getSessionConfidenceSummary: { query: getSessionConfidenceSummaryQueryMock },
@@ -719,6 +722,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     getHostVoteProgressQueryMock.mockResolvedValue(null);
     getLeaderboardQueryMock.mockResolvedValue([]);
+    getLearningOverviewQueryMock.mockResolvedValue({
+      questionCount: 0,
+      respondentCount: 0,
+      noResponseCount: 0,
+      medianCorrectCount: null,
+      distribution: [0, 0, 0, 0],
+      reviewQuestions: [],
+    });
     getHostTeamLeaderboardQueryMock.mockResolvedValue([]);
     qaListQueryMock.mockResolvedValue([]);
     // Default: kein Snapshot → Host fällt auf Forum-Liste zurück (Tests setzen oft nur qaQuestions).
@@ -25269,6 +25280,160 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(shells).toHaveLength(2);
     expect(shells[0]?.style.getPropertyValue('--foyer-delay-ms')).toBe('0ms');
     expect(shells[1]?.style.getPropertyValue('--foyer-delay-ms')).toBe('1880ms');
+    fixture.destroy();
+  });
+
+  it('zeigt Median, Verteilung und zugeordnete bestätigte Lernziele vor der Rangliste', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+    getLeaderboardQueryMock.mockResolvedValue([
+      { rank: 1, nickname: 'Ada', totalScore: 120, correctCount: 3, totalQuestions: 4 },
+    ]);
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getLearningObjectivesQueryMock.mockResolvedValue({
+      objectives: [
+        hostLearningObjective('Bestätigtes Lernziel', 'confirmed', 'question-set'),
+        hostLearningObjective('Entwurf', 'draft', 'question-set', '1'),
+        hostLearningObjective('Quizweites Lernziel', 'confirmed', 'quiz-wide', '2'),
+      ],
+    });
+    getLearningOverviewQueryMock.mockResolvedValue({
+      questionCount: 4,
+      respondentCount: 3,
+      noResponseCount: 2,
+      medianCorrectCount: 1,
+      distribution: [1, 1, 0, 1],
+      reviewQuestions: [
+        {
+          questionId,
+          questionOrder: 2,
+          text: [
+            '### Mittelwert berechnen',
+            '',
+            'Betrachte die **Messreihe** mit $n=12$ Werten.',
+            '',
+            String.raw`$$\bar{x}=\frac{1}{n}\sum_{i=1}^n x_i$$`,
+            '',
+            '1. Berechne den Mittelwert.',
+            '2. Erkläre den Einfluss eines Ausreißers.',
+          ].join('\n'),
+          correctCount: 1,
+          responseCount: 3,
+        },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(root.querySelector('#leaderboard-heading')).not.toBeNull();
+      expect(root.querySelector('.session-host__learning-overview')?.textContent).toContain(
+        'Bestätigtes Lernziel',
+      );
+    });
+    const overview = root.querySelector('.session-host__learning-overview')!;
+    const sections = [...root.querySelectorAll('#learning-overview-heading, #leaderboard-heading')];
+    expect(sections.map(({ id }) => id)).toEqual([
+      'learning-overview-heading',
+      'leaderboard-heading',
+    ]);
+    const median = overview.querySelector('.session-host__learning-overview-median-value');
+    expect(median?.textContent?.replace(/\s+/g, ' ').trim()).toBe('1 von 4 richtigen Antworten');
+    expect(
+      overview.querySelector('.session-host__learning-overview-median-hint')?.textContent,
+    ).toContain('Die Mitte, wenn du die Ergebnisse');
+    const bandLabels = [
+      ...overview.querySelectorAll('.session-host__learning-overview-bars li > span:first-child'),
+    ];
+    expect(bandLabels.map((label) => label.textContent)).toEqual([
+      'Unter 25\u00a0%',
+      '25 bis unter 50\u00a0%',
+      '50 bis unter 75\u00a0%',
+      '75 bis 100\u00a0%',
+    ]);
+    const question = overview.querySelector('.session-host__learning-overview-question-text');
+    expect(question?.querySelector('h4')?.textContent).toBe('Mittelwert berechnen');
+    expect(question?.querySelector('strong')?.textContent).toBe('Messreihe');
+    expect(question?.querySelector('.katex math')).not.toBeNull();
+    expect(question?.querySelector('.katex-display')?.getAttribute('tabindex')).toBe('0');
+    expect(question?.querySelectorAll('ol > li')).toHaveLength(2);
+    expect(question?.textContent).toContain('Erkläre den Einfluss eines Ausreißers.');
+    expect(overview.textContent).toContain('Bestätigtes Lernziel');
+    expect(overview.textContent).not.toContain('Entwurf');
+    expect(overview.textContent).not.toContain('Quizweites Lernziel');
+    fixture.destroy();
+  });
+
+  it('lässt die fehlgeschlagene Lernstandsübersicht erneut laden und behält den Fokus', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+    const retry = Promise.withResolvers<{
+      questionCount: number;
+      medianCorrectCount: null;
+      respondentCount: number;
+      noResponseCount: number;
+      distribution: number[];
+      reviewQuestions: [];
+    }>();
+    getLearningOverviewQueryMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(
+        root.querySelector('.session-host__learning-overview [role="status"]')?.textContent,
+      ).toContain('konnte nicht geladen werden');
+    });
+    const overview = root.querySelector('.session-host__learning-overview')!;
+    const status = overview.querySelector('[role="status"]')!;
+    getLearningOverviewQueryMock.mockReturnValueOnce(retry.promise);
+    const button = overview.querySelector('button')!;
+    button.focus();
+    button.click();
+    fixture.detectChanges();
+    expect(status.textContent).toContain('wird geladen');
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    retry.resolve({
+      questionCount: 4,
+      respondentCount: 0,
+      noResponseCount: 2,
+      medianCorrectCount: null,
+      distribution: [0, 0, 0, 0],
+      reviewQuestions: [],
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(status.textContent).toContain('Lernstand geladen');
+    });
+    expect(overview.textContent).toContain('Keine gewerteten Antworten');
+    expect(overview.querySelector('.session-host__learning-overview-median-hint')).toBeNull();
+    expect(document.activeElement).toBe(button);
+    fixture.destroy();
+  });
+
+  it('zeigt bei deaktivierter Lernstandsauswertung weder Lernstand noch Nachbesprechungsplan', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      enableLearningDebrief: false,
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      { rank: 1, nickname: 'Ada', totalScore: 120, correctCount: 3, totalQuestions: 4 },
+    ]);
+    const fixture = setup();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(root.querySelector('#leaderboard-heading')).not.toBeNull();
+    });
+    expect(root.querySelector('#learning-overview-heading')).toBeNull();
+    expect(root.querySelector('.session-host__export-pdf-btn')).toBeNull();
+    expect(root.querySelector('[aria-label="Exportieren"]')).not.toBeNull();
+    expect(getLearningOverviewQueryMock).not.toHaveBeenCalled();
+    expect(getSessionConfidenceSummaryQueryMock).not.toHaveBeenCalled();
     fixture.destroy();
   });
 

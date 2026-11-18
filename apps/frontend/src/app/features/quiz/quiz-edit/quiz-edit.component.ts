@@ -312,6 +312,8 @@ function formatNumericPreviewValue(
 
 type QuizSettingsFormGroup = FormGroup<{
   showLeaderboard: FormControl<boolean>;
+  enableLearningDebrief: FormControl<boolean>;
+  enablePeerInstruction: FormControl<boolean>;
   allowCustomNicknames: FormControl<boolean>;
   defaultTimer: FormControl<number | null>;
   timerScaleByDifficulty: FormControl<boolean>;
@@ -397,6 +399,8 @@ export class QuizEditComponent implements OnDestroy {
   readonly infoLandingEstimateAnchor = INFO_LANDING_ANCHORS.numericEstimate;
   readonly infoLandingEstimateLabel = $localize`:@@quizEdit.infoLandingEstimate:Schätzfragen didaktisch einsetzen`;
   readonly infoLandingConfidenceAnchor = INFO_LANDING_ANCHORS.confidence;
+  readonly peerInstructionAnchor = INFO_LANDING_ANCHORS.peerInstruction;
+  readonly peerInstructionLinkLabel = $localize`:@@quizSettings.peerInstructionLink:So funktioniert Peer Instruction`;
   readonly infoLandingConfidenceLabel = $localize`:@@quizEdit.infoLandingConfidence:Selbsteinschätzung und Nachbesprechung verstehen`;
 
   private readonly document = inject(DOCUMENT);
@@ -744,6 +748,8 @@ export class QuizEditComponent implements OnDestroy {
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
     showLeaderboard: this.formBuilder.control(true),
+    enableLearningDebrief: this.formBuilder.control(true),
+    enablePeerInstruction: this.formBuilder.control(true),
     allowCustomNicknames: this.formBuilder.control(false),
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
@@ -1037,6 +1043,8 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsForm.patchValue(
       {
         showLeaderboard: values.showLeaderboard ?? true,
+        enableLearningDebrief: values.enableLearningDebrief,
+        enablePeerInstruction: values.enablePeerInstruction,
         enableSoundEffects: values.enableSoundEffects ?? true,
         enableRewardEffects: values.enableRewardEffects ?? true,
         enableMotivationMessages: values.enableMotivationMessages ?? true,
@@ -2956,6 +2964,10 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsForm.setValue(
       {
         showLeaderboard: settings.showLeaderboard,
+        enableLearningDebrief:
+          settings.enableLearningDebrief ??
+          QUIZ_PRESETS[settings.preset ?? 'PLAYFUL'].enableLearningDebrief,
+        enablePeerInstruction: settings.enablePeerInstruction ?? true,
         ...quizParticipantNameFlags(
           quizParticipantNameMode({
             allowCustomNicknames: settings.allowCustomNicknames,
@@ -2993,6 +3005,8 @@ export class QuizEditComponent implements OnDestroy {
   private readSettingsFromForm(): QuizSettings {
     return {
       showLeaderboard: this.settingsForm.controls.showLeaderboard.value,
+      enableLearningDebrief: this.settingsForm.controls.enableLearningDebrief.value,
+      enablePeerInstruction: this.settingsForm.controls.enablePeerInstruction.value,
       ...quizParticipantNameFlags(this.participantNameMode()),
       defaultTimer: this.settingsForm.controls.defaultTimer.value,
       timerScaleByDifficulty: this.settingsForm.controls.timerScaleByDifficulty.value,
@@ -3060,6 +3074,10 @@ export class QuizEditComponent implements OnDestroy {
   private toComparableSettings(settings: QuizSettings): QuizSettings {
     return {
       showLeaderboard: settings.showLeaderboard,
+      enableLearningDebrief:
+        settings.enableLearningDebrief ??
+        QUIZ_PRESETS[settings.preset ?? 'PLAYFUL'].enableLearningDebrief,
+      enablePeerInstruction: settings.enablePeerInstruction ?? true,
       ...quizParticipantNameFlags(
         quizParticipantNameMode({
           allowCustomNicknames: settings.allowCustomNicknames,
@@ -3097,6 +3115,8 @@ export class QuizEditComponent implements OnDestroy {
     const current = this.readSettingsFromForm();
     return (
       current.showLeaderboard === (target.showLeaderboard ?? current.showLeaderboard) &&
+      current.enableLearningDebrief === target.enableLearningDebrief &&
+      current.enablePeerInstruction === target.enablePeerInstruction &&
       current.enableSoundEffects === (target.enableSoundEffects ?? current.enableSoundEffects) &&
       current.enableRewardEffects === (target.enableRewardEffects ?? current.enableRewardEffects) &&
       current.enableMotivationMessages ===

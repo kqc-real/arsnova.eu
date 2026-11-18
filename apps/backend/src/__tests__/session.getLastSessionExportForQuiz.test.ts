@@ -313,6 +313,28 @@ describe('session.getLastSessionExportForQuiz', () => {
     },
   );
 
+  it('sperrt beide PDF-Einstiege für Quizze ohne Lernstandsauswertung', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    const session = finishedSessionFixture();
+    prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...session,
+      quiz: { ...session.quiz, enableLearningDebrief: false },
+    });
+    await expect(
+      caller.getSessionExportPdf({ code: SESSION_CODE, localeId: 'de' }),
+    ).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+    await expect(
+      caller.getLastSessionExportPdfForQuiz({ quizId: QUIZ_ID, accessProof, localeId: 'de' }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(buildSessionResultsPdfMock).not.toHaveBeenCalled();
+    expect(await caller.getExportData({ code: SESSION_CODE })).toMatchObject({
+      sessionCode: SESSION_CODE,
+    });
+  });
+
   it('lädt und rendert einen zusätzlichen parallelen PDF-Request nicht', async () => {
     const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
     prismaMock.session.findFirst.mockResolvedValue({ code: SESSION_CODE });

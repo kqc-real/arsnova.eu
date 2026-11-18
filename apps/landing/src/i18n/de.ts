@@ -304,6 +304,8 @@ const de: Messages = {
     eyebrow: 'Was arsnova.eu auszeichnet',
     title: 'Gebaut für Live-Interaktion statt nur für Abstimmungsfolien',
     lead: 'arsnova.eu verbindet schnellen Einstieg, didaktische Stärke und einen transparenten technischen Unterbau. So bleibt die Plattform im Alltag einfach, ohne in den Möglichkeiten klein zu werden.',
+    peerInstructionDescription:
+      'Die Teilnehmenden stimmen zuerst einzeln ab, diskutieren ihre Begründungen und stimmen danach erneut ab. Der Vergleich der beiden Runden zeigt, wie sich die Antworten verändert haben.',
     items: [
       {
         title: 'Erstellen und hosten zuerst fürs Handy',

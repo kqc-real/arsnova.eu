@@ -332,6 +332,7 @@ describe('session.getInfo (ADR-0009)', () => {
       allowCustomNicknames: false,
       anonymousMode: false,
       showLeaderboard: true,
+      enableLearningDebrief: false,
       enableSoundEffects: true,
       enableRewardEffects: true,
       enableMotivationMessages: true,
@@ -352,6 +353,13 @@ describe('session.getInfo (ADR-0009)', () => {
 
     expect(result.nicknameTheme).toBe('KINDERGARTEN');
     expect(result.allowCustomNicknames).toBe(false);
+    expect(result.enableLearningDebrief).toBeUndefined();
+
+    extractHostTokenFromContextMock.mockReturnValue('host-token');
+    isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.qaQuestion.count.mockResolvedValue(0);
+    const hostResult = await caller.getInfoForReconnect({ code: 'abc123' });
+    expect(hostResult.enableLearningDebrief).toBe(false);
   });
 
   it('schaltet den Quiz-Kanal aus bei QUIZ-Session ohne quizId (nur Blitzlicht)', async () => {

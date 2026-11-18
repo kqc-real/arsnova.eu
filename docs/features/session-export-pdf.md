@@ -2,6 +2,8 @@
 
 Phase-1- und Phase-2-Export für Lehrende nach Session-Ende (`FINISHED`).
 
+Der PDF-Nachbesprechungsplan und die Lernstandsübersicht sind verfügbar, wenn im Quiz **Lernstandsauswertung und Nachbesprechungsplan erstellen** aktiviert ist. **Spielerisch** aktiviert die Einstellung standardmäßig, **Seriös** deaktiviert sie. Beim Live-Start wird die Einstellung in der Serverkopie gespeichert. Die Quizsammlung verwendet den Wert des letzten abgeschlossenen Durchlaufs. Bereits vor Einführung der Einstellung gespeicherte Serverkopien behalten ihre Auswertung. Der CSV-Ergebnisexport bleibt auch bei ausgeschalteter Lernstandsauswertung verfügbar.
+
 > **Siehe auch:** [Selbsteinschätzung](confidence-slider.md) (Lernstand, Heatmap, Prioritäten im Bericht)
 
 ## Datenquelle

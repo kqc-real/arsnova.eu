@@ -17,6 +17,7 @@ import {
   PrepareLearningObjectiveDerivationInputSchema,
   PrepareLearningObjectiveDerivationOutputSchema,
   RunLearningObjectiveDerivationInputSchema,
+  QUIZ_PRESETS,
   SHORT_TEXT_DEFAULT_EVALUATION_MODE,
   SHORT_TEXT_DEFAULT_TOLERANCE_LEVEL,
   createLegacyQuizHistoryAccessProof,
@@ -349,6 +350,12 @@ export const quizRouter = router({
             motifImageUrl: input.motifImageUrl ?? null,
             motifImageCredit: input.motifImageCredit ?? null,
             showLeaderboard: input.showLeaderboard,
+            enableLearningDebrief:
+              input.enableLearningDebrief ??
+              QUIZ_PRESETS[input.preset ?? 'PLAYFUL'].enableLearningDebrief,
+            enablePeerInstruction:
+              input.enablePeerInstruction ??
+              QUIZ_PRESETS[input.preset ?? 'PLAYFUL'].enablePeerInstruction,
             allowCustomNicknames: input.allowCustomNicknames,
             defaultTimer: input.defaultTimer ?? null,
             timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,

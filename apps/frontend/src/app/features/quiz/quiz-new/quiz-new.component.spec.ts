@@ -126,6 +126,17 @@ describe('QuizNewComponent', () => {
     expect(focusSpy).toHaveBeenCalled();
   });
 
+  it('verlinkt die Erklärung zu Peer Instruction direkt am Schalter', () => {
+    const fixture = TestBed.createComponent(QuizNewComponent);
+    fixture.componentInstance.showSettings.set(true);
+    fixture.detectChanges();
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'mat-checkbox[formcontrolname="enablePeerInstruction"] + app-info-landing-link a',
+    );
+    expect(link?.hash).toBe('#peer-instruction');
+    expect(link?.textContent).toContain('So funktioniert Peer Instruction');
+  });
+
   it('setzt mit dem Serious-Preset zentrale Optionen auf seriös', () => {
     const fixture = TestBed.createComponent(QuizNewComponent);
     const component = fixture.componentInstance;
@@ -133,6 +144,8 @@ describe('QuizNewComponent', () => {
     component.applyPreset('SERIOUS');
 
     expect(component.form.controls.showLeaderboard.value).toBe(false);
+    expect(component.form.controls.enableLearningDebrief.value).toBe(false);
+    expect(component.form.controls.enablePeerInstruction.value).toBe(true);
     expect(component.form.controls.enableSoundEffects.value).toBe(false);
     expect(component.form.controls.anonymousMode.value).toBe(false);
     expect(component.form.controls.allowCustomNicknames.value).toBe(false);
@@ -148,6 +161,7 @@ describe('QuizNewComponent', () => {
     component.applyPreset('PLAYFUL');
 
     expect(component.form.controls.defaultTimer.value).toBe(60);
+    expect(component.form.controls.enableLearningDebrief.value).toBe(true);
     expect(component.form.controls.timerScaleByDifficulty.value).toBe(true);
   });
 
@@ -158,6 +172,8 @@ describe('QuizNewComponent', () => {
     component.form.patchValue({
       name: 'Preset-Quiz',
       allowCustomNicknames: true,
+      enableLearningDebrief: false,
+      enablePeerInstruction: false,
     });
 
     mockStore.createQuiz.mockReturnValue({
@@ -196,6 +212,8 @@ describe('QuizNewComponent', () => {
         settings: expect.objectContaining({
           preset: 'PLAYFUL',
           allowCustomNicknames: true,
+          enableLearningDebrief: false,
+          enablePeerInstruction: false,
         }),
       }),
     );
