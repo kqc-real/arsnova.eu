@@ -931,7 +931,7 @@ Die App ist als Progressive Web App ausgelegt und unterstützt:
 
 - Installationshinweise
 - Service Worker
-- Update-Banner (»Neue Version bereit«; auf der Startseite unsichtbar, solange eine MOTD entschieden wird oder offen ist)
+- Update-Banner (»Neue Version bereit«): Prüfung alle fünf Minuten bei sichtbarer App sowie bei Rückkehr, Fensterfokus und erneuter Verbindung; Build-Abgleich erkennt auch bereits heruntergeladene Versionen nach verpasster Benachrichtigung. Der Hinweis wartet bei offenen MOTD-Meldungen oder ungespeicherten Eingaben; aktualisiert wird erst nach bewusstem Neuladen.
 - Manifest
 - App-Icons und Screenshots
 

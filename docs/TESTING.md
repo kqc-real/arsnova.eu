@@ -743,6 +743,29 @@ Wichtig für Wiederholungsläufe: `serve:localize:api` serviert den bereits geba
 `dist/browser`. Nach Frontend- oder Script-Änderungen daher vor dem nächsten Smoke-Test erneut
 `npm run build:localize -w @arsnova/frontend` ausführen.
 
+### PWA-Update-Erkennung in bereits geöffneten Fenstern
+
+`npm run test -w @arsnova/frontend -- src/app/core/pwa-update.service.spec.ts src/app/app.component.spec.ts`
+prüft frühe Update-Ereignisse, bereits heruntergeladene Versionen ohne erneutes
+`VERSION_READY`, positive Prüfergebnisse, Hintergrund/Vordergrund, Fensterfokus,
+Offline/Online, parallele Auslöser, Zeitüberschreitung und Aufräumen nach Zerstörung.
+Die bestehenden Banner-Tests sichern MOTD-/Entwurfsschutz und bewussten Reload ab.
+
+`node --test apps/frontend/scripts/pwa-update-build.test.mjs` prüft mit dem installierten
+Angular-Service-Worker-Generator, dass alle fünf Locale-Builds dieselbe jeweilige
+Build-Kennung in HTML (einschließlich Prerender und SSR) und `ngsw.json.appData`
+tragen. Wiederholte Generierung muss stabil bleiben; geänderte Assets müssen die
+Kennung ändern und die endgültigen HTML-Integritätshashes müssen stimmen.
+Der Test läuft vor den Frontend-Tests sowohl bei `npm test` als auch bei
+`npm run test:coverage`, sobald die Angular-Abhängigkeiten installiert sind.
+
+Die Kennung wird beim lokalisierten Produktionsbuild gesetzt. Geöffnete Fenster
+vergleichen sie mit `NO_NEW_VERSION_DETECTED`, das auch eine schon
+heruntergeladene, im Fenster noch nicht geladene Version beschreiben kann.
+Ältere Builds ohne Kennung nutzen weiterhin `VERSION_READY`; die zusätzliche
+Absicherung greift nach dem ersten Laden eines Builds mit Kennung. Es gibt keinen
+automatischen Reload und keine Aktivierung im laufenden Fenster.
+
 `npm run build:localize -w @arsnova/frontend` ist im Repo kein nackter Angular-Build: Nach `ng build --configuration production --localize` folgen noch Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, MOTD-Assets, die lokalisierten `ngsw.json` und die Root-`index.html`.
 
 ### Weitere lokale Flow-Smokes
