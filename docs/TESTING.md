@@ -751,12 +751,13 @@ prüft frühe Update-Ereignisse, bereits heruntergeladene Versionen ohne erneute
 Offline/Online, parallele Auslöser, Zeitüberschreitung und Aufräumen nach Zerstörung.
 Die bestehenden Banner-Tests sichern MOTD-/Entwurfsschutz und bewussten Reload ab.
 
-`node --test scripts/ci/pwa-update-build.test.mjs` prüft mit dem installierten
+`node --test apps/frontend/scripts/pwa-update-build.test.mjs` prüft mit dem installierten
 Angular-Service-Worker-Generator, dass alle fünf Locale-Builds dieselbe jeweilige
 Build-Kennung in HTML (einschließlich Prerender und SSR) und `ngsw.json.appData`
 tragen. Wiederholte Generierung muss stabil bleiben; geänderte Assets müssen die
 Kennung ändern und die endgültigen HTML-Integritätshashes müssen stimmen.
-Der Test läuft im bestehenden CI-Gate `scripts/ci/*.test.mjs`.
+Der Test läuft vor den Frontend-Tests sowohl bei `npm test` als auch bei
+`npm run test:coverage`, sobald die Angular-Abhängigkeiten installiert sind.
 
 Die Kennung wird beim lokalisierten Produktionsbuild gesetzt. Geöffnete Fenster
 vergleichen sie mit `NO_NEW_VERSION_DETECTED`, das auch eine schon

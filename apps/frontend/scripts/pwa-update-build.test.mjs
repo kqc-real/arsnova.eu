@@ -5,9 +5,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { regenerateLocalizedServiceWorkers } from '../../apps/frontend/scripts/regenerate-ngsw-localized.mjs';
+import { regenerateLocalizedServiceWorkers } from './regenerate-ngsw-localized.mjs';
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 test('build identities cover all locales, prerender/SSR documents and preserve SW integrity', (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'arsnova-pwa-build-'));
