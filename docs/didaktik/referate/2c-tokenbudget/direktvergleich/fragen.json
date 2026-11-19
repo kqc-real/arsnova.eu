@@ -1,0 +1,50 @@
+[
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+    "text": "Könnten wir im Tutorium ein Konfidenzintervall einmal gemeinsam von Anfang bis Ende berechnen?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+    "text": "Bis wann muss das Übungsblatt abgegeben werden?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003",
+    "text": "Wann endet die Abgabe des Übungsblatts? Nachtrag der Lehrperson: Die Frist ist verbindlich Freitag um 18 Uhr."
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000004",
+    "text": "Ich wünsche mir eine Musterrechnung für ein Konfidenzintervall. Können wir ein Beispiel durchgehen?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000005",
+    "text": "Können Sie an einem kleinen Datensatz vorrechnen, wie man ein Konfidenzintervall bestimmt?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000006",
+    "text": "Wie komme ich beim Konfidenzintervall von den Messwerten zu den beiden Grenzen? Ein Rechenbeispiel würde helfen."
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000007",
+    "text": "Können wir ein vollständiges Zahlenbeispiel für das Konfidenzintervall besprechen?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000008",
+    "text": "Gibt es eine Schritt-für-Schritt-Rechnung zu den Grenzen eines Konfidenzintervalls?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000009",
+    "text": "Mir fehlt der Rechenweg beim Konfidenzintervall. Können wir das an Beispieldaten üben?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000010",
+    "text": "Lässt sich im Tutorium ein Konfidenzintervall mit konkreten Zahlen berechnen?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000011",
+    "text": "Können wir für ein Konfidenzintervall gemeinsam den unteren und den oberen Grenzwert ausrechnen?"
+  },
+  {
+    "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000012",
+    "text": "Wird es für die Vorlesungsaufzeichnungen Untertitel geben? Ohne sie kann ich den Aufzeichnungen nicht folgen."
+  }
+]

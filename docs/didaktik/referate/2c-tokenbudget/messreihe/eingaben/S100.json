@@ -1,0 +1,2967 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "moderation-analysis-context-v1",
+  "assembledAt": "2026-01-15T10:05:00.000Z",
+  "context": {
+    "contractVersion": "moderation-domain-context-v1",
+    "representation": "analysis-candidates",
+    "definitionsVersion": "moderation-prompt-definitions-v1",
+    "locale": "de",
+    "meta": {
+      "sourceRevision": "session-state-r1",
+      "analysisVersion": "fixture-analysis-v1",
+      "selectionVersion": "fixture-selection-v1",
+      "revisions": {
+        "questionText": {
+          "state": "available",
+          "value": "question-text-r1"
+        },
+        "questionVotes": {
+          "state": "available",
+          "value": "question-votes-r1"
+        },
+        "questionStatus": {
+          "state": "available",
+          "value": "question-status-r1"
+        },
+        "questionAnswerState": {
+          "state": "available",
+          "value": "question-answer-state-r1"
+        },
+        "questionNlp": {
+          "state": "available",
+          "value": "question-nlp-r1"
+        },
+        "topics": {
+          "state": "available",
+          "value": "questions-r1"
+        },
+        "learningObjectives": {
+          "state": "available",
+          "value": "objectives-r1"
+        },
+        "releasedResults": {
+          "state": "available",
+          "value": "quiz-results-r1"
+        },
+        "feedback": {
+          "state": "unavailable",
+          "reason": "no-data"
+        }
+      }
+    },
+    "scope": {
+      "channels": ["qa", "quiz"],
+      "sessionPhase": "ACTIVE",
+      "questionFilter": {
+        "state": "available",
+        "statuses": ["PENDING", "ACTIVE", "PINNED"],
+        "timeWindow": {
+          "kind": "entire-session"
+        }
+      },
+      "activeWeighting": {
+        "kind": "qa-ranking",
+        "version": "qa-ranking-v1",
+        "sortMode": "TOP"
+      },
+      "selectionLimits": {
+        "questions": 40,
+        "topics": 12,
+        "compassSignals": 12,
+        "learningObjectives": 20,
+        "resultAggregates": 20,
+        "feedbackAggregates": 20
+      }
+    },
+    "questions": {
+      "state": "available",
+      "participantBasis": {
+        "state": "available",
+        "kind": "session-participant-record-count",
+        "value": 200,
+        "calculationVersion": "qa-ranking-v1"
+      },
+      "corpus": {
+        "total": 100,
+        "eligible": 100,
+        "analyzed": 100,
+        "deduplicated": 100,
+        "represented": 100
+      },
+      "items": [
+        {
+          "sourceId": "qa-question:11111111-1111-4111-8111-111111111111",
+          "status": "PENDING",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "available",
+            "positive": 80,
+            "negative": 30,
+            "net": 50,
+            "total": 110,
+            "bestScore": {
+              "state": "available",
+              "value": 0.637432407306822
+            },
+            "controversyScore": {
+              "state": "available",
+              "value": 0.46153846153846156
+            }
+          },
+          "nlp": {
+            "state": "classified",
+            "category": "content",
+            "confidence": {
+              "value": 0.91,
+              "meaning": "uncalibrated-model-score"
+            },
+            "modelId": "fixture-qa-classifier",
+            "modelVersion": "1",
+            "classifiedAt": "2026-01-15T10:00:00.000Z"
+          },
+          "topicSourceIds": ["semantic-topic:linear-regression-examples"]
+        },
+        {
+          "sourceId": "qa-question:22222222-2222-4222-8222-222222222222",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "addressed"
+          },
+          "votes": {
+            "state": "available",
+            "positive": 10,
+            "negative": 0,
+            "net": 10,
+            "total": 10,
+            "bestScore": {
+              "state": "available",
+              "value": 0.7224598312333834
+            },
+            "controversyScore": {
+              "state": "available",
+              "value": 0
+            }
+          },
+          "nlp": {
+            "state": "classified",
+            "category": "content",
+            "confidence": {
+              "value": 0.91,
+              "meaning": "uncalibrated-model-score"
+            },
+            "modelId": "fixture-qa-classifier",
+            "modelVersion": "1",
+            "classifiedAt": "2026-01-15T10:00:00.000Z"
+          },
+          "topicSourceIds": ["semantic-topic:linear-regression-examples"]
+        },
+        {
+          "sourceId": "qa-question:33333333-3333-4333-8333-333333333333",
+          "status": "PINNED",
+          "answerState": {
+            "state": "addressed"
+          },
+          "votes": {
+            "state": "available",
+            "positive": 30,
+            "negative": 0,
+            "net": 30,
+            "total": 30,
+            "bestScore": {
+              "state": "available",
+              "value": 0.886482908609522
+            },
+            "controversyScore": {
+              "state": "available",
+              "value": 0
+            }
+          },
+          "nlp": {
+            "state": "classified",
+            "category": "organization",
+            "confidence": {
+              "value": 0.91,
+              "meaning": "uncalibrated-model-score"
+            },
+            "modelId": "fixture-qa-classifier",
+            "modelVersion": "1",
+            "classifiedAt": "2026-01-15T10:00:00.000Z"
+          },
+          "topicSourceIds": ["semantic-topic:exam-scope"]
+        },
+        {
+          "sourceId": "qa-question:44444444-4444-4444-8444-444444444444",
+          "status": "PENDING",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "available",
+            "positive": 12,
+            "negative": 0,
+            "net": 12,
+            "total": 12,
+            "bestScore": {
+              "state": "available",
+              "value": 0.7574992425007574
+            },
+            "controversyScore": {
+              "state": "available",
+              "value": 0
+            }
+          },
+          "nlp": {
+            "state": "classified",
+            "category": "organization",
+            "confidence": {
+              "value": 0.91,
+              "meaning": "uncalibrated-model-score"
+            },
+            "modelId": "fixture-qa-classifier",
+            "modelVersion": "1",
+            "classifiedAt": "2026-01-15T10:00:00.000Z"
+          },
+          "topicSourceIds": ["semantic-topic:exam-scope"]
+        },
+        {
+          "sourceId": "qa-question:55555555-5555-4555-8555-555555555555",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "addressed"
+          },
+          "votes": {
+            "state": "available",
+            "positive": 40,
+            "negative": 40,
+            "net": 0,
+            "total": 80,
+            "bestScore": {
+              "state": "available",
+              "value": 0.392972274311075
+            },
+            "controversyScore": {
+              "state": "available",
+              "value": 0.8
+            }
+          },
+          "nlp": {
+            "state": "classified",
+            "category": "organization",
+            "confidence": {
+              "value": 0.91,
+              "meaning": "uncalibrated-model-score"
+            },
+            "modelId": "fixture-qa-classifier",
+            "modelVersion": "1",
+            "classifiedAt": "2026-01-15T10:00:00.000Z"
+          },
+          "topicSourceIds": ["semantic-topic:attendance-policy"]
+        },
+        {
+          "sourceId": "qa-question:66666666-6666-4666-8666-666666666666",
+          "status": "PENDING",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "available",
+            "positive": 20,
+            "negative": 20,
+            "net": 0,
+            "total": 40,
+            "bestScore": {
+              "state": "available",
+              "value": 0.35199278797099753
+            },
+            "controversyScore": {
+              "state": "available",
+              "value": 0.6666666666666666
+            }
+          },
+          "nlp": {
+            "state": "uncertain",
+            "candidateCategory": "organization",
+            "confidence": {
+              "value": 0.54,
+              "meaning": "uncalibrated-model-score"
+            },
+            "modelId": "fixture-qa-classifier",
+            "modelVersion": "1",
+            "analyzedAt": "2026-01-15T10:00:00.000Z",
+            "reason": "Fixture für einen ausdrücklich unsicheren Klassifikationsstand."
+          },
+          "topicSourceIds": ["semantic-topic:attendance-policy"]
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000007",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000008",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000009",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000010",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000011",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000012",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000013",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000014",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000015",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000016",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000017",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000018",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000019",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000020",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000021",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000022",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000023",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000024",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000025",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000026",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000027",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000028",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000029",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000030",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000031",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000032",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000033",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000034",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000035",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000036",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000037",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000038",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000039",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000040",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000041",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000042",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000043",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000044",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000045",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000046",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000047",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000048",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000049",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000050",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000051",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000052",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000053",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000054",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000055",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000056",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000057",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000058",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000059",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000060",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000061",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000062",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000063",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000064",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000065",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000066",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000067",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000068",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000069",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000070",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000071",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000072",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000073",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000074",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000075",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000076",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000077",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000078",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000079",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000080",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000081",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000082",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000083",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000084",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000085",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000086",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000087",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000088",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000089",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000090",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000091",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000092",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000093",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000094",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000095",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000096",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000097",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000098",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000099",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000100",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "Nicht erhoben"
+          },
+          "topicSourceIds": []
+        }
+      ]
+    },
+    "topics": {
+      "state": "available",
+      "analysisVersion": "fixture-semantic-analysis-v1",
+      "model": {
+        "id": "fixture-semantic-encoder",
+        "version": "1"
+      },
+      "analyzedAt": "2026-01-15T10:01:00.000Z",
+      "freshness": {
+        "state": "current",
+        "analysisRevision": "questions-r1"
+      },
+      "corpus": {
+        "eligibleQuestions": 6,
+        "analyzedQuestions": 6,
+        "representedQuestions": 6
+      },
+      "items": [
+        {
+          "sourceId": "semantic-topic:linear-regression-examples",
+          "labelOrigin": {
+            "kind": "source-extractive",
+            "sourceQuestionId": "qa-question:11111111-1111-4111-8111-111111111111"
+          },
+          "labelQuality": {
+            "state": "unavailable",
+            "value": null,
+            "reason": "not-collected"
+          },
+          "clusterConfidence": {
+            "state": "available",
+            "value": 0.94,
+            "meaning": "uncalibrated-model-score"
+          },
+          "aggregates": {
+            "questionCount": 2,
+            "positiveVotes": 90,
+            "negativeVotes": 30,
+            "netVotes": 60,
+            "totalVotes": 120,
+            "distinctParticipants": {
+              "state": "unavailable",
+              "value": null,
+              "reason": "not-collected"
+            }
+          },
+          "scope": {
+            "membership": "analyzed-corpus",
+            "representedMembers": "context-represented-corpus"
+          },
+          "memberQuestionSourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111",
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ],
+          "representedQuestionSourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111",
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ],
+          "representativeQuestionSourceId": "qa-question:11111111-1111-4111-8111-111111111111"
+        },
+        {
+          "sourceId": "semantic-topic:exam-scope",
+          "labelOrigin": {
+            "kind": "source-extractive",
+            "sourceQuestionId": "qa-question:33333333-3333-4333-8333-333333333333"
+          },
+          "labelQuality": {
+            "state": "unavailable",
+            "value": null,
+            "reason": "not-collected"
+          },
+          "clusterConfidence": {
+            "state": "available",
+            "value": 0.92,
+            "meaning": "uncalibrated-model-score"
+          },
+          "aggregates": {
+            "questionCount": 2,
+            "positiveVotes": 42,
+            "negativeVotes": 0,
+            "netVotes": 42,
+            "totalVotes": 42,
+            "distinctParticipants": {
+              "state": "unavailable",
+              "value": null,
+              "reason": "not-collected"
+            }
+          },
+          "scope": {
+            "membership": "analyzed-corpus",
+            "representedMembers": "context-represented-corpus"
+          },
+          "memberQuestionSourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333",
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ],
+          "representedQuestionSourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333",
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ],
+          "representativeQuestionSourceId": "qa-question:33333333-3333-4333-8333-333333333333"
+        },
+        {
+          "sourceId": "semantic-topic:attendance-policy",
+          "labelOrigin": {
+            "kind": "source-extractive",
+            "sourceQuestionId": "qa-question:55555555-5555-4555-8555-555555555555"
+          },
+          "labelQuality": {
+            "state": "unavailable",
+            "value": null,
+            "reason": "not-collected"
+          },
+          "clusterConfidence": {
+            "state": "available",
+            "value": 0.9,
+            "meaning": "uncalibrated-model-score"
+          },
+          "aggregates": {
+            "questionCount": 2,
+            "positiveVotes": 60,
+            "negativeVotes": 60,
+            "netVotes": 0,
+            "totalVotes": 120,
+            "distinctParticipants": {
+              "state": "unavailable",
+              "value": null,
+              "reason": "not-collected"
+            }
+          },
+          "scope": {
+            "membership": "analyzed-corpus",
+            "representedMembers": "context-represented-corpus"
+          },
+          "memberQuestionSourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555",
+            "qa-question:66666666-6666-4666-8666-666666666666"
+          ],
+          "representedQuestionSourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555",
+            "qa-question:66666666-6666-4666-8666-666666666666"
+          ],
+          "representativeQuestionSourceId": "qa-question:55555555-5555-4555-8555-555555555555"
+        }
+      ]
+    },
+    "compass": {
+      "state": "available",
+      "rulesVersion": "moderation-compass-rules-v1",
+      "signals": [
+        {
+          "sourceId": "compass-signal:highest-best-score",
+          "signal": "high-best-score",
+          "basis": "best-score",
+          "cardKind": "topics",
+          "questionSourceIds": ["qa-question:33333333-3333-4333-8333-333333333333"],
+          "value": 0.886482908609522,
+          "reason": "Frage C hat im Auswahlkorpus den höchsten Best-Score.",
+          "evidence": [
+            {
+              "sourceId": "qa-question:33333333-3333-4333-8333-333333333333",
+              "detail": "Best-Score 0,886483 bei 30 positiven und 0 negativen Stimmen."
+            }
+          ],
+          "suggestedNextStep": {
+            "action": "address-question",
+            "rationale": "Den häufig unterstützten Prüfungsbezug explizit beantworten."
+          }
+        },
+        {
+          "sourceId": "compass-signal:highest-controversy",
+          "signal": "high-controversy",
+          "basis": "controversy-score",
+          "cardKind": "friction",
+          "questionSourceIds": ["qa-question:55555555-5555-4555-8555-555555555555"],
+          "value": 0.8,
+          "reason": "Frage E hat im Auswahlkorpus die höchste Kontroversität.",
+          "evidence": [
+            {
+              "sourceId": "qa-question:55555555-5555-4555-8555-555555555555",
+              "detail": "Kontroversität 0,8 bei 40 positiven und 40 negativen Stimmen."
+            }
+          ],
+          "suggestedNextStep": {
+            "action": "open-discussion",
+            "rationale": "Die ausgeglichene Kontroverse moderiert zur Diskussion stellen."
+          }
+        }
+      ],
+      "primarySignalSourceId": "compass-signal:highest-controversy"
+    },
+    "learningContext": {
+      "state": "available",
+      "objectives": [
+        {
+          "sourceId": "learning-objective:linear-regression-application",
+          "scope": {
+            "kind": "session"
+          },
+          "origin": {
+            "kind": "manual"
+          },
+          "confirmation": {
+            "state": "confirmed",
+            "confirmedAt": "2026-01-15T09:45:00.000Z",
+            "revision": "objective-r1"
+          }
+        }
+      ]
+    },
+    "releasedResults": {
+      "state": "not-released",
+      "reason": "Fixture bildet eine laufende Session vor der Ergebnisfreigabe ab."
+    },
+    "feedback": {
+      "state": "unavailable",
+      "reason": "no-data"
+    },
+    "sources": [
+      {
+        "id": "qa-question:11111111-1111-4111-8111-111111111111",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:22222222-2222-4222-8222-222222222222",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:33333333-3333-4333-8333-333333333333",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:44444444-4444-4444-8444-444444444444",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:55555555-5555-4555-8555-555555555555",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Soll die Anwesenheit verpflichtend sein?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:66666666-6666-4666-8666-666666666666",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Sollten wir eine Anwesenheitspflicht einführen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "semantic-topic:linear-regression-examples",
+        "kind": "semantic-topic",
+        "label": "Beispiele zur linearen Regression"
+      },
+      {
+        "id": "semantic-topic:exam-scope",
+        "kind": "semantic-topic",
+        "label": "Prüfungsumfang"
+      },
+      {
+        "id": "semantic-topic:attendance-policy",
+        "kind": "semantic-topic",
+        "label": "Anwesenheitspflicht"
+      },
+      {
+        "id": "compass-signal:highest-best-score",
+        "kind": "compass-signal",
+        "label": "Höchster Best-Score im Auswahlkorpus"
+      },
+      {
+        "id": "compass-signal:highest-controversy",
+        "kind": "compass-signal",
+        "label": "Höchste Kontroversität im Auswahlkorpus"
+      },
+      {
+        "id": "learning-objective:linear-regression-application",
+        "kind": "learning-objective",
+        "text": "Die Studierenden können lineare Regressionsmodelle anwenden."
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000007",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 1 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000008",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 1 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000009",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 1?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000010",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 2 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000011",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 2 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000012",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 2?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000013",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 3 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000014",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 3 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000015",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 3?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000016",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 4 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000017",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 4 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000018",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 4?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000019",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 5 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000020",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 5 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000021",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 5?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000022",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 6 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000023",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 6 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000024",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 6?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000025",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 7 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000026",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 7 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000027",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 7?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000028",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 8 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000029",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 8 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000030",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 8?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000031",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 9 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000032",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 9 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000033",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 9?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000034",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 10 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000035",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 10 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000036",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 10?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000037",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 11 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000038",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 11 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000039",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 11?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000040",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 12 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000041",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 12 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000042",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 12?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000043",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 13 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000044",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 13 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000045",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 13?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000046",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 14 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000047",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 14 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000048",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 14?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000049",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 15 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000050",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 15 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000051",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 15?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000052",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 16 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000053",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 16 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000054",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 16?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000055",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 17 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000056",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 17 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000057",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 17?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000058",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 18 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000059",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 18 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000060",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 18?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000061",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 19 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000062",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 19 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000063",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 19?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000064",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 20 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000065",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 20 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000066",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 20?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000067",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 21 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000068",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 21 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000069",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 21?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000070",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 22 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000071",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 22 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000072",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 22?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000073",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 23 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000074",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 23 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000075",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 23?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000076",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 24 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000077",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 24 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000078",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 24?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000079",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 25 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000080",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 25 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000081",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 25?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000082",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 26 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000083",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 26 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000084",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 26?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000085",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 27 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000086",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 27 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000087",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 27?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000088",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 28 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000089",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 28 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000090",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 28?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000091",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 29 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000092",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 29 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000093",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 29?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000094",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 30 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000095",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 30 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000096",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 30?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000097",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 31 gemeinsam berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000098",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ist Aufgabe 31 aus Kapitel 4 für die Klausur relevant?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000099",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gilt die Anwesenheitspflicht auch für das Tutorium in Woche 31?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:eeeeeeee-eeee-4eee-8eee-000000000100",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir den Regressionskoeffizienten für Datensatz 32 gemeinsam berechnen?",
+          "truncated": false
+        }
+      }
+    ],
+    "limitations": [
+      {
+        "code": "not-released",
+        "section": "released-results",
+        "detail": "Quizergebnisse sind in dieser laufenden Session noch nicht freigegeben."
+      },
+      {
+        "code": "module-unavailable",
+        "section": "feedback",
+        "detail": "Es liegen keine aggregierten Feedbackdaten vor."
+      }
+    ]
+  }
+}
