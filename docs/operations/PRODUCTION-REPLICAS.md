@@ -133,6 +133,11 @@ Topologie mit erfolgreicher Readiness zurückkehren.
   Logs aller beteiligten App- und Relay-Dienste prüfen. Bei einem fehlenden
   Redis-Subscriber kann der Host-Stand über den periodischen Lese-Fallback
   sichtbar werden. Der Fallback kann später aktualisieren als Pub/Sub.
+  Solange
+  eine Abschlussrangliste angezeigt wird, liest das Status-Abo im
+  Replikabetrieb spätestens beim nächsten Zehn-Sekunden-Fallback aus Redis.
+  So erreicht auch das Ausblenden die Presenter-Ansicht, wenn ein
+  Statussignal verloren geht.
 
 [Betriebsmetriken und WebSocket-Diagnose](MONITORING-RUNBOOK.md#websocket-anstieg).
 

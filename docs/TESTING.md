@@ -958,6 +958,12 @@ Seitenschritt an A und B senden. Eine Reaktion auf A setzen, auf B lesen,
 dort mit demselben Teilnahmetoken ersetzen und auf A die neue Verteilung
 bei unveränderter Gesamtzahl prüfen.
 
+Für die Abschlussprojektion eine Quiz-Session auf A beenden und die
+Rangliste am Status-Abo auf B abwarten. Die Rangliste auf A ausblenden.
+B muss nach dem Redis-Signal auf `idle` wechseln. Beim zweiten Durchgang
+nur das Publish der Statusnachricht unterbrechen. B muss die bestätigte
+Änderung beim nächsten Zehn-Sekunden-Fallback aus Redis übernehmen.
+
 Für den Vote-Fortschritt `session.onHostVoteProgressChanged` mit einem
 gültigen Host-Token auf B öffnen. Für dieselbe Session parallel auf A und
 B abstimmen, danach eine weitere Stimme nach Veröffentlichung des ersten

@@ -819,7 +819,7 @@
     },
     "session.onStatusChanged": {
       "kind": "subscription",
-      "fingerprint": "sha256:573e85590f5ff85e8b87a2af54e6d4f2da3788c30706ab268ce478a923c6717a",
+      "fingerprint": "sha256:1db49798f2d43daa34f668ad1b9b5a54c6f54dde34733408bcc757a5c662b243",
       "missing": []
     },
     "session.pauseQuiz": {

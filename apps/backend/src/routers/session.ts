@@ -4117,7 +4117,7 @@ function resolvePresenterSurface(
 
 const FINISH_PROJECTION_TTL_SECONDS = 24 * 60 * 60;
 /** Kurz genug, dass eine offene Abschluss-Transaktion bei stillem Redis noch committet. */
-const FINISH_PROJECTION_REDIS_WRITE_MS = 500;
+const FINISH_PROJECTION_REDIS_TIMEOUT_MS = 500;
 
 function withDeadline<T>(operation: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -4149,64 +4149,58 @@ async function resolveFinishProjection(
   if (status !== 'FINISHED') {
     return undefined;
   }
-  const cached = finishProjectionBySessionId.get(sessionId);
-  if (cached) {
-    return cached;
-  }
+  const local = !isSessionPubSubEnabled();
+  const cached = local ? finishProjectionBySessionId.get(sessionId) : undefined;
+  if (cached) return cached;
+
   let raw: string | null = null;
   try {
-    raw = await getRedis().get(finishProjectionRedisKey(sessionId));
+    raw = await withDeadline(
+      getRedis().get(finishProjectionRedisKey(sessionId)),
+      FINISH_PROJECTION_REDIS_TIMEOUT_MS,
+    );
   } catch {
-    // Redis optional – Default unten.
+    // Fällt Redis aus, zeigt der Presenter keine möglicherweise veraltete Rangliste.
   }
-  // Ein Abschluss kann die Speicher-Markierung setzen, während Redis noch antwortet.
-  const markedDuringRead = finishProjectionBySessionId.get(sessionId);
-  if (markedDuringRead) {
-    return markedDuringRead;
+  if (local) {
+    // Ein lokaler Abschluss kann die Markierung setzen, während Redis antwortet.
+    const markedDuringRead = finishProjectionBySessionId.get(sessionId);
+    if (markedDuringRead) return markedDuringRead;
+    if (raw === 'idle' || raw === 'leaderboard') {
+      finishProjectionBySessionId.set(sessionId, raw);
+    }
   }
-  if (raw === 'idle' || raw === 'leaderboard') {
-    finishProjectionBySessionId.set(sessionId, raw);
-    return raw;
-  }
-  // Tote/ältere FINISHED-Sessions ohne Markierung: Exit-Branding statt Leaderboard.
-  return 'idle';
+  // Replikate lesen beim Signal und nach Ablauf des Snapshot-Caches aus Redis.
+  return raw === 'leaderboard' ? 'leaderboard' : 'idle';
+}
+
+async function writeFinishProjection(
+  sessionId: string,
+  projection: z.infer<typeof SessionFinishProjectionSchema>,
+): Promise<void> {
+  await getRedis().set(
+    finishProjectionRedisKey(sessionId),
+    projection,
+    'EX',
+    FINISH_PROJECTION_TTL_SECONDS,
+  );
 }
 
 async function markFinishProjectionLeaderboard(sessionId: string): Promise<void> {
-  finishProjectionBySessionId.set(sessionId, 'leaderboard');
+  if (!isSessionPubSubEnabled()) finishProjectionBySessionId.set(sessionId, 'leaderboard');
   try {
     await withDeadline(
-      getRedis().set(
-        finishProjectionRedisKey(sessionId),
-        'leaderboard',
-        'EX',
-        FINISH_PROJECTION_TTL_SECONDS,
-      ),
-      FINISH_PROJECTION_REDIS_WRITE_MS,
+      writeFinishProjection(sessionId, 'leaderboard'),
+      FINISH_PROJECTION_REDIS_TIMEOUT_MS,
     );
   } catch {
-    // Die Prozess-Markierung bleibt maßgeblich, bis Redis wieder schreibt.
+    // Auch ohne gespeicherte Projektionsmarkierung kann die Session abschließen.
   }
 }
 
 async function markFinishProjectionIdle(sessionId: string): Promise<void> {
-  const previous = finishProjectionBySessionId.get(sessionId);
-  finishProjectionBySessionId.set(sessionId, 'idle');
-  try {
-    await getRedis().set(
-      finishProjectionRedisKey(sessionId),
-      'idle',
-      'EX',
-      FINISH_PROJECTION_TTL_SECONDS,
-    );
-  } catch (error) {
-    if (previous) {
-      finishProjectionBySessionId.set(sessionId, previous);
-    } else {
-      finishProjectionBySessionId.delete(sessionId);
-    }
-    throw error;
-  }
+  await writeFinishProjection(sessionId, 'idle');
+  if (!isSessionPubSubEnabled()) finishProjectionBySessionId.set(sessionId, 'idle');
 }
 
 /** Bewertete Fragetypen, bei denen Runde 2 vom Peer-Instruction-Fenster abhaengt. */
@@ -8797,9 +8791,10 @@ const sessionCoreRouter = router({
           lastJson = json;
           yield { ...payloadBase, serverTime: new Date().toISOString() };
         }
-        const waitMs = FAST_STATUS_POLL_SET.has(payloadBase.status)
-          ? STATUS_EVENT_WAIT_ACTIVE_MS
-          : STATUS_EVENT_WAIT_IDLE_MS;
+        const fastPoll =
+          FAST_STATUS_POLL_SET.has(payloadBase.status) ||
+          (isSessionPubSubEnabled() && payloadBase.finishProjection === 'leaderboard');
+        const waitMs = fastPoll ? STATUS_EVENT_WAIT_ACTIVE_MS : STATUS_EVENT_WAIT_IDLE_MS;
         await waitForSessionStatusSignal(code, currentVersion, waitMs);
       }
     }),
