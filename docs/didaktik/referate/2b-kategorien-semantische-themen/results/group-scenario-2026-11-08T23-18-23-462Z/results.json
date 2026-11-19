@@ -1,0 +1,198 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-08T23:18:23.462Z",
+    "commit": "74091b0a646868b81e300edbde7a2da7c36a5e57",
+    "describe": "v1.3.0-364-g74091b0a-dirty",
+    "encoderUrl": "http://127.0.0.1:8790/embed",
+    "fixture": "libs/shared-types/src/moderation-prompt-context-fixtures.ts (#456 §12)"
+  },
+  "nlp": {
+    "A": {
+      "status": "classified",
+      "category": "content",
+      "confidence": 1
+    },
+    "B": {
+      "status": "classified",
+      "category": "content",
+      "confidence": 0.6922
+    },
+    "C": {
+      "status": "uncertain",
+      "category": "content",
+      "confidence": 1
+    },
+    "D": {
+      "status": "classified",
+      "category": "organization",
+      "confidence": 0.7523
+    },
+    "E": {
+      "status": "classified",
+      "category": "organization",
+      "confidence": 0.6
+    },
+    "F": {
+      "status": "uncertain",
+      "category": "organization",
+      "confidence": 0.9997
+    }
+  },
+  "lexical": [
+    {
+      "label": "lineare Regression",
+      "members": "BA"
+    },
+    {
+      "label": "Kapitel 4",
+      "members": "C"
+    }
+  ],
+  "encoder": {
+    "status": "ready",
+    "entries": [
+      {
+        "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+        "members": "AB"
+      },
+      {
+        "label": "Sollten wir eine Anwesenheitspflicht einführen?",
+        "members": "EF"
+      },
+      {
+        "label": "Ist Kapitel 4 klausurrelevant?",
+        "members": "C"
+      },
+      {
+        "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+        "members": "D"
+      }
+    ]
+  },
+  "cosine": {
+    "A–B": 0.961,
+    "C–D": 0.864,
+    "E–F": 0.956,
+    "A–C": 0.765,
+    "C–E": 0.791
+  },
+  "variants": [
+    {
+      "id": "V0",
+      "name": "2B aus (Regelkern, »Wortgruppen«)",
+      "mode": "disabled",
+      "status": "(Sortierung aus)",
+      "visible": [
+        {
+          "label": "lineare Regression",
+          "ids": ["B", "A"],
+          "anliegen": ["Ü"]
+        }
+      ],
+      "missing": ["C", "D", "E", "F"],
+      "next": "topics",
+      "rubric": {
+        "D1": 2,
+        "D2": null,
+        "D3": 2,
+        "D4": 0,
+        "D5": 0,
+        "sum": 4
+      }
+    },
+    {
+      "id": "V1",
+      "name": "+ Kategorien (8.9b)",
+      "mode": "classified",
+      "status": "Die Fragen sind nach Inhalt, Organisation und Technik geordnet.",
+      "visible": [
+        {
+          "label": "Inhaltliche Fragen · 2",
+          "ids": ["A", "B"],
+          "anliegen": ["Ü"]
+        },
+        {
+          "label": "Fragen zum Ablauf · 2",
+          "ids": ["D", "E"],
+          "anliegen": ["P", "K"]
+        },
+        {
+          "label": "lineare Regression",
+          "ids": ["B", "A"],
+          "anliegen": ["Ü"]
+        }
+      ],
+      "missing": ["C", "F"],
+      "next": "topics",
+      "rubric": {
+        "D1": 2,
+        "D2": null,
+        "D3": 1,
+        "D4": 0,
+        "D5": 2,
+        "sum": 5
+      }
+    },
+    {
+      "id": "V2",
+      "name": "+ Encoder-Themen (1.14c)",
+      "mode": "disabled",
+      "status": "(Sortierung aus)",
+      "visible": [
+        {
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "ids": ["A", "B"],
+          "anliegen": ["Ü"]
+        },
+        {
+          "label": "Sollten wir eine Anwesenheitspflicht einführen?",
+          "ids": ["E", "F"],
+          "anliegen": ["K"]
+        }
+      ],
+      "missing": ["C", "D"],
+      "next": "topics",
+      "rubric": {
+        "D1": 2,
+        "D2": null,
+        "D3": 2,
+        "D4": 0,
+        "D5": 1,
+        "sum": 5
+      }
+    },
+    {
+      "id": "V3",
+      "name": "+ beides",
+      "mode": "classified",
+      "status": "Die Fragen sind nach Inhalt, Organisation und Technik geordnet.",
+      "visible": [
+        {
+          "label": "Inhaltliche Fragen · 2",
+          "ids": ["A", "B"],
+          "anliegen": ["Ü"]
+        },
+        {
+          "label": "Fragen zum Ablauf · 2",
+          "ids": ["D", "E"],
+          "anliegen": ["P", "K"]
+        },
+        {
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "ids": ["A", "B"],
+          "anliegen": ["Ü"]
+        }
+      ],
+      "missing": ["C", "F"],
+      "next": "topics",
+      "rubric": {
+        "D1": 2,
+        "D2": null,
+        "D3": 1,
+        "D4": 0,
+        "D5": 2,
+        "sum": 5
+      }
+    }
+  ]
+}
