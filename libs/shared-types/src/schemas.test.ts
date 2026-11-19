@@ -73,6 +73,33 @@ describe('öffentliche Contract-Schemas', () => {
     nicknameTheme: 'NOBEL_LAUREATES' as const,
   };
 
+  it.each([undefined, true, false])(
+    'erhält fehlende Legacy-Quizfunktionen und explizite Upload-Werte %s unabhängig vom Preset',
+    (enabled) => {
+      const parsed = QuizUploadInputSchema.parse({
+        ...quizUploadBase,
+        preset: 'SERIOUS',
+        ...(enabled === undefined
+          ? {}
+          : { enableLearningDebrief: enabled, enablePeerInstruction: enabled }),
+        questions: [
+          {
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'EASY',
+            order: 0,
+            answers: [
+              { text: '4', isCorrect: true },
+              { text: '3', isCorrect: false },
+            ],
+          },
+        ],
+      });
+      expect(parsed.enableLearningDebrief).toBe(enabled ?? true);
+      expect(parsed.enablePeerInstruction).toBe(enabled ?? true);
+    },
+  );
+
   it('validiert den beendeten Presenter-Zustand als eigenen Projektionszustand', () => {
     expect(SessionPresenterSurfaceSchema.parse('ended')).toBe('ended');
     expect(SetPresenterSurfaceInputSchema.parse({ code: 'ABC123', surface: 'ended' })).toEqual({

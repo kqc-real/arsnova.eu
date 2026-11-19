@@ -14,7 +14,6 @@ import { Subscription, filter } from 'rxjs';
 import {
   AddQuestionInputSchema,
   CreateQuizInputSchema,
-  QUIZ_PRESETS,
   DifficultyEnum,
   MotifImageCreditSchema,
   MotifImageUrlSchema,
@@ -5399,10 +5398,8 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
 
   return {
     showLeaderboard: parsed.data.showLeaderboard,
-    enableLearningDebrief:
-      parsed.data.enableLearningDebrief ?? QUIZ_PRESETS[parsed.data.preset].enableLearningDebrief,
-    enablePeerInstruction:
-      parsed.data.enablePeerInstruction ?? QUIZ_PRESETS[parsed.data.preset].enablePeerInstruction,
+    enableLearningDebrief: parsed.data.enableLearningDebrief ?? true,
+    enablePeerInstruction: parsed.data.enablePeerInstruction ?? true,
     allowCustomNicknames: parsed.data.allowCustomNicknames,
     defaultTimer: parsed.data.defaultTimer ?? null,
     timerScaleByDifficulty: parsed.data.timerScaleByDifficulty ?? true,

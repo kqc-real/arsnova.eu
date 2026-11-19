@@ -2064,6 +2064,23 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(link?.hash).toBe('#peer-instruction');
   });
 
+  it.each([undefined, true, false])(
+    'bewahrt beim Bearbeiten eines SERIOUS-Quiz die Auswertungswahl %s ohne implizite Änderung',
+    (enableLearningDebrief) => {
+      quiz.settings.preset = 'SERIOUS';
+      quiz.settings.enableLearningDebrief = enableLearningDebrief;
+      const fixture = TestBed.createComponent(QuizEditComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      expect(component.settingsForm.controls.enableLearningDebrief.value).toBe(
+        enableLearningDebrief ?? true,
+      );
+      component.saveAll();
+      expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
+    },
+  );
+
   it('wendet Preset-Werte auf die Sitzungs-Konfiguration an', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;

@@ -106,12 +106,55 @@ describe('quiz.upload (Story 2.1a)', () => {
         order: 1,
       });
       expect(createCall.data.motifImageUrl).toBeNull();
-      await caller.upload({ ...input, preset: 'SERIOUS', enablePeerInstruction: false });
+      await caller.upload({
+        ...input,
+        preset: 'SERIOUS',
+        enableLearningDebrief: false,
+        enablePeerInstruction: false,
+      });
       expect(prismaMock.quiz.create.mock.lastCall?.[0].data).toMatchObject({
         enableLearningDebrief: false,
         enablePeerInstruction: false,
       });
       expect(createCall.data.timerScaleByDifficulty).toBe(true);
+    },
+  );
+
+  it.each([undefined, true, false])(
+    'bewahrt bei direkten Legacy-Uploads mit Preset SERIOUS die Auswertungswahl %s',
+    async (enableLearningDebrief) => {
+      await caller.upload({
+        name: 'Älteres seriöses Quiz',
+        preset: 'SERIOUS',
+        showLeaderboard: false,
+        allowCustomNicknames: false,
+        enableSoundEffects: false,
+        enableRewardEffects: false,
+        enableMotivationMessages: false,
+        enableEmojiReactions: false,
+        anonymousMode: false,
+        teamMode: false,
+        nicknameTheme: 'HIGH_SCHOOL',
+        ...(enableLearningDebrief === undefined ? {} : { enableLearningDebrief }),
+        questions: [
+          {
+            text: 'Was ist 2+2?',
+            type: 'SINGLE_CHOICE',
+            difficulty: 'EASY',
+            order: 0,
+            answers: [
+              { text: '4', isCorrect: true },
+              { text: '3', isCorrect: false },
+            ],
+          },
+        ],
+      });
+
+      expect(prismaMock.quiz.create.mock.lastCall?.[0].data).toMatchObject({
+        preset: 'SERIOUS',
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
     },
   );
 

@@ -2572,8 +2572,9 @@ export const QuizUploadInputSchema = z
     motifImageUrl: QuizMotifImageUrlInputSchema,
     motifImageCredit: QuizMotifImageCreditInputSchema,
     showLeaderboard: z.boolean(),
-    enableLearningDebrief: z.boolean().optional(),
-    enablePeerInstruction: z.boolean().optional(),
+    /** Fehlende Legacy-Werte erhalten die bisher verfügbaren Funktionen unabhängig vom Preset. */
+    enableLearningDebrief: z.boolean().optional().default(true),
+    enablePeerInstruction: z.boolean().optional().default(true),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),

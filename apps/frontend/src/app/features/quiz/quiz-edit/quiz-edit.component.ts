@@ -2964,9 +2964,7 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsForm.setValue(
       {
         showLeaderboard: settings.showLeaderboard,
-        enableLearningDebrief:
-          settings.enableLearningDebrief ??
-          QUIZ_PRESETS[settings.preset ?? 'PLAYFUL'].enableLearningDebrief,
+        enableLearningDebrief: settings.enableLearningDebrief ?? true,
         enablePeerInstruction: settings.enablePeerInstruction ?? true,
         ...quizParticipantNameFlags(
           quizParticipantNameMode({
@@ -3074,9 +3072,7 @@ export class QuizEditComponent implements OnDestroy {
   private toComparableSettings(settings: QuizSettings): QuizSettings {
     return {
       showLeaderboard: settings.showLeaderboard,
-      enableLearningDebrief:
-        settings.enableLearningDebrief ??
-        QUIZ_PRESETS[settings.preset ?? 'PLAYFUL'].enableLearningDebrief,
+      enableLearningDebrief: settings.enableLearningDebrief ?? true,
       enablePeerInstruction: settings.enablePeerInstruction ?? true,
       ...quizParticipantNameFlags(
         quizParticipantNameMode({
