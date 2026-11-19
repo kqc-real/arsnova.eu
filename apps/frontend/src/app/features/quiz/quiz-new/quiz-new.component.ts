@@ -57,6 +57,8 @@ import { Subscription } from 'rxjs';
 import { LocaleSwitchGuardService } from '../../../core/locale-switch-guard.service';
 import { UpdateBannerSuppressionService } from '../../../core/update-banner-suppression.service';
 import { localizeCommands } from '../../../core/locale-router';
+import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
+import { InfoLandingLinkComponent } from '../../../shared/info-landing-link/info-landing-link.component';
 import { confirmDiscardUnsavedChanges } from '../../../shared/confirm-leave-dialog/confirm-unsaved-changes';
 import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util';
 
@@ -87,6 +89,7 @@ import { focusFirstInvalidField } from '../../../shared/focus-invalid-field.util
     MatSelect,
     MarkdownImageLightboxDirective,
     MarkdownKatexEditorComponent,
+    InfoLandingLinkComponent,
   ],
   templateUrl: './quiz-new.component.html',
   styleUrls: ['../../../shared/styles/dialog-title-header.scss', './quiz-new.component.scss'],
@@ -104,6 +107,9 @@ export class QuizNewComponent implements OnInit, OnDestroy {
   private confirmDiscardInFlight: Promise<boolean> | null = null;
   /** Snapshot nach initialem Preset; erkennt auch programmatische setValue/patchValue-Änderungen. */
   private initialFormSnapshot = '';
+
+  readonly peerInstructionAnchor = INFO_LANDING_ANCHORS.peerInstruction;
+  readonly peerInstructionLinkLabel = $localize`:@@quizSettings.peerInstructionLink:So funktioniert Peer Instruction`;
 
   readonly presetOptions: Array<{ value: QuizPreset; label: string; icon: string }> = [
     { value: 'PLAYFUL', label: $localize`Spielerisch`, icon: 'celebration' },
@@ -155,6 +161,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     ],
     motifImageCredit: ['', [Validators.maxLength(MOTIF_IMAGE_CREDIT_MAX_LENGTH)]],
     showLeaderboard: [true],
+    enableLearningDebrief: [true],
+    enablePeerInstruction: [true],
     allowCustomNicknames: [false],
     defaultTimer: this.formBuilder.control<number | null>(null, {
       validators: [Validators.min(5), Validators.max(300)],
@@ -292,6 +300,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     const values = QUIZ_PRESETS[preset];
     this.form.patchValue({
       showLeaderboard: values.showLeaderboard ?? true,
+      enableLearningDebrief: values.enableLearningDebrief,
+      enablePeerInstruction: values.enablePeerInstruction,
       enableSoundEffects: values.enableSoundEffects ?? true,
       enableRewardEffects: values.enableRewardEffects ?? true,
       enableMotivationMessages: values.enableMotivationMessages ?? true,
@@ -311,6 +321,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     const current = this.readSettingsFromForm();
     return (
       current.showLeaderboard === (target.showLeaderboard ?? current.showLeaderboard) &&
+      current.enableLearningDebrief === target.enableLearningDebrief &&
+      current.enablePeerInstruction === target.enablePeerInstruction &&
       current.enableSoundEffects === (target.enableSoundEffects ?? current.enableSoundEffects) &&
       current.enableRewardEffects === (target.enableRewardEffects ?? current.enableRewardEffects) &&
       current.enableMotivationMessages ===
@@ -334,6 +346,8 @@ export class QuizNewComponent implements OnInit, OnDestroy {
     const selectedPreset = this.currentQuizPreset();
     return {
       showLeaderboard: this.form.controls.showLeaderboard.value,
+      enableLearningDebrief: this.form.controls.enableLearningDebrief.value,
+      enablePeerInstruction: this.form.controls.enablePeerInstruction.value,
       defaultTimer: this.defaultTimerControl.value,
       timerScaleByDifficulty: this.form.controls.timerScaleByDifficulty.value,
       enableTimerAccommodation: this.form.controls.enableTimerAccommodation.value,

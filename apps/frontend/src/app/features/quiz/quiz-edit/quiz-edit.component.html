@@ -231,6 +231,20 @@
               <legend class="quiz-edit-form__legend" i18n>Spiel &amp; Auswertung</legend>
               <mat-checkbox formControlName="showLeaderboard" i18n>Rangliste anzeigen</mat-checkbox>
               <mat-checkbox
+                formControlName="enableLearningDebrief"
+                i18n="@@quizSettings.enableLearningDebrief"
+                >Lernstandsauswertung und Nachbesprechungsplan erstellen</mat-checkbox
+              >
+              <mat-checkbox
+                formControlName="enablePeerInstruction"
+                i18n="@@quizSettings.enablePeerInstruction"
+                >Peer Instruction nutzen</mat-checkbox
+              >
+              <app-info-landing-link
+                [anchor]="peerInstructionAnchor"
+                [label]="peerInstructionLinkLabel"
+              />
+              <mat-checkbox
                 formControlName="enableRewardEffects"
                 i18n="@@quizSettings.showRewardEffects"
                 >Belohnungen zeigen</mat-checkbox

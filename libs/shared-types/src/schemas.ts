@@ -1384,6 +1384,8 @@ export const CreateQuizInputSchema = z.object({
   motifImageUrl: QuizMotifImageUrlInputSchema,
   motifImageCredit: QuizMotifImageCreditInputSchema,
   showLeaderboard: z.boolean().optional().default(true),
+  enableLearningDebrief: z.boolean().optional(),
+  enablePeerInstruction: z.boolean().optional(),
   allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
   timerScaleByDifficulty: z.boolean().optional().default(true),
@@ -2570,6 +2572,9 @@ export const QuizUploadInputSchema = z
     motifImageUrl: QuizMotifImageUrlInputSchema,
     motifImageCredit: QuizMotifImageCreditInputSchema,
     showLeaderboard: z.boolean(),
+    /** Fehlende Legacy-Werte erhalten die bisher verfügbaren Funktionen unabhängig vom Preset. */
+    enableLearningDebrief: z.boolean().optional().default(true),
+    enablePeerInstruction: z.boolean().optional().default(true),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),
@@ -4358,6 +4363,8 @@ export const SessionInfoDTOSchema = z.object({
   allowCustomNicknames: z.boolean().optional(),
   anonymousMode: z.boolean().optional(),
   showLeaderboard: z.boolean().optional(),
+  /** Host-Konfiguration des abgeschlossenen Lernstands, nur mit gültigem Host-Token. */
+  enableLearningDebrief: z.boolean().optional(),
   enableSoundEffects: z.boolean().optional(),
   enableRewardEffects: z.boolean().optional(),
   enableMotivationMessages: z.boolean().optional(),
@@ -5726,6 +5733,8 @@ const ExportedQuizMetadataSchema = z
     motifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
     motifImageCredit: z.union([MotifImageCreditSchema, z.null()]).optional(),
     showLeaderboard: z.boolean(),
+    enableLearningDebrief: z.boolean().optional(),
+    enablePeerInstruction: z.boolean().optional(),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),
@@ -6001,6 +6010,32 @@ export const GetExportDataInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
 });
 export type GetExportDataInput = z.infer<typeof GetExportDataInputSchema>;
+
+export const SessionLearningOverviewDTOSchema = z.object({
+  questionCount: z.number().int().nonnegative(),
+  respondentCount: z.number().int().nonnegative(),
+  noResponseCount: z.number().int().nonnegative(),
+  medianCorrectCount: z.number().nonnegative().nullable(),
+  // Below 25%, 25% to below 50%, 50% to below 75%, 75% to 100%.
+  distribution: z.tuple([
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+  ]),
+  reviewQuestions: z
+    .array(
+      z.object({
+        questionId: z.string(),
+        questionOrder: z.number().int().nonnegative(),
+        text: z.string(),
+        correctCount: z.number().int().nonnegative(),
+        responseCount: z.number().int().positive(),
+      }),
+    )
+    .max(3),
+});
+export type SessionLearningOverviewDTO = z.infer<typeof SessionLearningOverviewDTOSchema>;
 
 /**
  * PDF-Exportprofil für den Nachbesprechungsplan:
@@ -7008,9 +7043,14 @@ export function isDemoQuizHistoryScopeId(value: string | null | undefined): valu
 }
 
 /** Preset-Konfigurationen (Story 1.11) — clientseitig angewandt */
-export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
+export const QUIZ_PRESETS: Record<
+  QuizPreset,
+  Partial<CreateQuizInput> & { enableLearningDebrief: boolean; enablePeerInstruction: boolean }
+> = {
   PLAYFUL: {
     showLeaderboard: true,
+    enableLearningDebrief: true,
+    enablePeerInstruction: true,
     enableSoundEffects: true,
     enableRewardEffects: true,
     enableMotivationMessages: true,
@@ -7025,6 +7065,8 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
   },
   SERIOUS: {
     showLeaderboard: false,
+    enableLearningDebrief: false,
+    enablePeerInstruction: true,
     enableSoundEffects: false,
     enableRewardEffects: false,
     enableMotivationMessages: false,

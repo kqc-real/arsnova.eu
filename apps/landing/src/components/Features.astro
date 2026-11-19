@@ -52,6 +52,12 @@ const f = t.features;
           </div>
           <h3 class="mt-4 font-display text-lg font-semibold text-landing-fg">{item.title}</h3>
           <p class="mt-3 leading-7 text-landing-fg-muted">{item.description}</p>
+          {item.icon === 'toggle' && (
+            <>
+              <h4 id="peer-instruction" class="mt-5 font-display font-semibold text-landing-fg">Peer Instruction</h4>
+              <p class="mt-2 leading-7 text-landing-fg-muted">{f.peerInstructionDescription}</p>
+            </>
+          )}
         </li>
       ))}
     </ul>

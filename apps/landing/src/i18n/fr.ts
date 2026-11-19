@@ -306,6 +306,8 @@ const fr: Messages = {
     eyebrow: 'Ce qui distingue arsnova.eu',
     title: 'Tout pour faire participer le public en direct',
     lead: 'Démarre sans compte et dispose d’outils pour préparer, animer et analyser les échanges. Le code source ouvert permet aussi d’examiner le fonctionnement de la plateforme.',
+    peerInstructionDescription:
+      'Les participants votent d’abord individuellement, discutent de leurs raisonnements, puis votent à nouveau. La comparaison des deux tours montre comment les réponses ont évolué.',
     items: [
       {
         title: 'Créer et animer depuis un smartphone',

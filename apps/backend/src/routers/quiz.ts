@@ -349,6 +349,8 @@ export const quizRouter = router({
             motifImageUrl: input.motifImageUrl ?? null,
             motifImageCredit: input.motifImageCredit ?? null,
             showLeaderboard: input.showLeaderboard,
+            enableLearningDebrief: input.enableLearningDebrief,
+            enablePeerInstruction: input.enablePeerInstruction,
             allowCustomNicknames: input.allowCustomNicknames,
             defaultTimer: input.defaultTimer ?? null,
             timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,

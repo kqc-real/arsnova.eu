@@ -35,6 +35,7 @@ import {
   JoinSessionInputSchema,
   JoinSessionOutputSchema,
   GetExportDataInputSchema,
+  SessionLearningOverviewDTOSchema,
   GetSessionExportPdfInputSchema,
   ActiveQuizLiveStatesDTOSchema,
   FreetextSessionExportDTOSchema,
@@ -205,10 +206,12 @@ import {
 } from '../lib/quizScoring';
 import {
   invalidateSessionRankingCache,
+  isFullyCorrectCompetitionVote,
   loadSharedCompetitionVotes,
   loadSharedScoreRankingPair,
   rankOfParticipant,
 } from '../lib/sessionRankingCache';
+import { buildSessionLearningOverview } from '../lib/sessionLearningOverview';
 import {
   updateDailyMaxParticipants,
   incrementCompletedSessionsTotal,
@@ -2175,7 +2178,12 @@ async function loadSessionConfidenceSummaryByCode(
   if (!session) {
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
   }
-  if (session.status !== 'FINISHED' || session.type !== 'QUIZ' || !session.quiz) {
+  if (
+    session.status !== 'FINISHED' ||
+    session.type !== 'QUIZ' ||
+    !session.quiz ||
+    session.quiz.enableLearningDebrief === false
+  ) {
     return null;
   }
   const includedQuestionIds = getIncludedSessionQuestionIds(
@@ -2217,7 +2225,10 @@ function buildMcScOptionDistribution(
   });
 }
 
-async function loadFinishedQuizSessionExportData(code: string): Promise<SessionExportDTO> {
+async function loadFinishedQuizSessionExportData(
+  code: string,
+  { requireLearningDebrief = false } = {},
+): Promise<SessionExportDTO> {
   const session = await prisma.session.findUnique({
     where: { code: code.toUpperCase() },
     include: {
@@ -2261,6 +2272,14 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
     throw new TRPCError({
       code: 'BAD_REQUEST',
       message: 'Export nur für Quiz-Sessions verfügbar.',
+    });
+  }
+
+  const learningDebriefEnabled = session.quiz.enableLearningDebrief !== false;
+  if (requireLearningDebrief && !learningDebriefEnabled) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Die Lernstandsauswertung ist für dieses Quiz deaktiviert.',
     });
   }
 
@@ -2492,7 +2511,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
         averageScore = Math.round((totalScore / votes.length) * 100) / 100;
       }
 
-      if (q.confidenceEnabled) {
+      if (learningDebriefEnabled && q.confidenceEnabled) {
         confidenceResult =
           buildConfidenceResult({
             votes: votes.map((vote) => ({
@@ -2620,7 +2639,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
             : undefined,
         numericDecimalPlaces:
           q.type === 'NUMERIC_ESTIMATE' ? (q.numericDecimalPlaces ?? null) : undefined,
-        confidenceEnabled: q.confidenceEnabled,
+        confidenceEnabled: learningDebriefEnabled && q.confidenceEnabled,
         confidenceResult,
         aggregationRound,
         round1ParticipantCount,
@@ -2637,7 +2656,9 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       };
     },
   );
-  const confidenceSummary = buildConfidenceSummaryForSession(questions, includedVotes);
+  const confidenceSummary = learningDebriefEnabled
+    ? buildConfidenceSummaryForSession(questions, includedVotes)
+    : null;
   const feedbackRows = buildSessionFeedbackSummaryFromRows(session.sessionFeedbacks ?? []);
   const feedbackSummary = feedbackRows.totalResponses > 0 ? feedbackRows : undefined;
 
@@ -2661,7 +2682,7 @@ async function loadFinishedQuizSessionExportData(code: string): Promise<SessionE
       : undefined;
 
   let teamLearningProfiles: TeamLearningProfileEntry[] | undefined;
-  if (session.quiz.teamMode === true) {
+  if (learningDebriefEnabled && session.quiz.teamMode === true) {
     const teamsById = new Map<
       string,
       { teamName: string; memberCount: number; memberIds: Set<string> }
@@ -4110,8 +4131,9 @@ function buildPeerInstructionSuggestion(
   currentRound: number,
   correctVoterCount: number | undefined,
   totalVotes: number,
+  enabled?: boolean,
 ): PeerInstructionSuggestionDTO | undefined {
-  if (currentRound !== 1 || totalVotes <= 0) {
+  if (enabled === false || currentRound !== 1 || totalVotes <= 0) {
     return undefined;
   }
 
@@ -4136,16 +4158,11 @@ function buildPeerInstructionSuggestion(
 
 function questionSupportsSecondRound(
   question: { type: string; numericTwoRounds?: boolean | null } | null | undefined,
+  peerInstructionEnabled?: boolean,
 ): boolean {
   if (!question) return false;
-  if (
-    question.type === 'SINGLE_CHOICE' ||
-    question.type === 'MULTIPLE_CHOICE' ||
-    question.type === 'MATCHING' ||
-    question.type === 'ORDERING' ||
-    question.type === 'CATEGORIZATION'
-  ) {
-    return true;
+  if (usesPeerInstructionCorrectnessWindow(question.type as QuestionType)) {
+    return peerInstructionEnabled !== false;
   }
   return question.type === 'NUMERIC_ESTIMATE' && question.numericTwoRounds === true;
 }
@@ -4303,6 +4320,7 @@ type HostCurrentQuestionSession = {
     defaultTimer: number | null;
     timerScaleByDifficulty: boolean | null;
     enableTimerAccommodation?: boolean | null;
+    enablePeerInstruction?: boolean;
     showQuestionTypeIndicators: boolean | null;
     preset: string | null;
     questions: Array<{
@@ -4898,6 +4916,7 @@ async function buildHostCurrentQuestionDto(
             currentRound,
             voteSummary.correctVoteCount,
             voteSummary.totalVotes,
+            session.quiz.enablePeerInstruction,
           ),
         };
       }
@@ -5016,6 +5035,7 @@ async function buildHostCurrentQuestionDto(
       currentRound,
       correctVoterCount,
       totalVotes,
+      session.quiz.enablePeerInstruction,
     );
 
     if (session.status === 'ACTIVE') {
@@ -5112,6 +5132,7 @@ function loadHostQuestionSession(code: string) {
       questionProgressComplete: true,
       quiz: {
         select: {
+          enablePeerInstruction: true,
           questions: {
             orderBy: { order: 'asc' },
             select: {
@@ -5329,6 +5350,7 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
             defaultTimer: true,
             timerScaleByDifficulty: true,
             enableTimerAccommodation: true,
+            enablePeerInstruction: true,
             questions: {
               orderBy: { order: 'asc' },
               select: {
@@ -5464,6 +5486,7 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
         round,
         voteSummary.correctVoteCount,
         voteSummary.totalVotes,
+        session.quiz.enablePeerInstruction,
       ),
     };
   }
@@ -5490,6 +5513,7 @@ async function fetchHostVoteProgress(code: string): Promise<HostVoteProgressDTO 
         round,
         voteSummary.correctVoteCount,
         voteSummary.totalVotes,
+        session.quiz.enablePeerInstruction,
       ),
     };
   }
@@ -5578,6 +5602,7 @@ async function resolvePublicSessionInfo(
                 allowCustomNicknames: true,
                 anonymousMode: true,
                 showLeaderboard: true,
+                enableLearningDebrief: true,
                 enableSoundEffects: true,
                 enableRewardEffects: true,
                 enableMotivationMessages: true,
@@ -5658,6 +5683,7 @@ async function resolvePublicSessionInfo(
         teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
         ...(q && {
           showLeaderboard: q.showLeaderboard,
+          ...(q.enableLearningDebrief === false && { enableLearningDebrief: false }),
           enableSoundEffects: q.enableSoundEffects,
           enableRewardEffects: q.enableRewardEffects,
           enableMotivationMessages: q.enableMotivationMessages,
@@ -5686,22 +5712,22 @@ async function resolvePublicSessionInfo(
   };
 }
 
-async function attachHostQaPendingQuestionCount<T extends { id: string; code: string }>(
-  payload: T,
-  ctx: HostTokenContext,
-): Promise<T & { qaPendingQuestionCount?: number }> {
+async function attachHostSessionDetails<
+  T extends { id: string; code: string; enableLearningDebrief?: boolean },
+>(payload: T, ctx: HostTokenContext) {
+  const { enableLearningDebrief, ...publicPayload } = payload;
   const hostToken = extractHostTokenFromContext(ctx);
   if (!hostToken) {
-    return payload;
+    return publicPayload;
   }
   const valid = await isHostSessionTokenValid(payload.code, hostToken);
   if (!valid) {
-    return payload;
+    return publicPayload;
   }
   const qaPendingQuestionCount = await prisma.qaQuestion.count({
     where: { sessionId: payload.id, status: 'PENDING' },
   });
-  return { ...payload, qaPendingQuestionCount };
+  return { ...publicPayload, enableLearningDebrief, qaPendingQuestionCount };
 }
 
 const sessionCoreRouter = router({
@@ -7448,7 +7474,7 @@ const sessionCoreRouter = router({
     .input(PublicSessionCodeLookupInputSchema)
     .output(SessionInfoDTOSchema)
     .query(async ({ input, ctx }) =>
-      attachHostQaPendingQuestionCount(await resolvePublicSessionInfo(input, 'lookup'), ctx),
+      attachHostSessionDetails(await resolvePublicSessionInfo(input, 'lookup'), ctx),
     ),
 
   /** Session-Info für automatische Poll-/Reconnect-Pfade. */
@@ -7456,7 +7482,7 @@ const sessionCoreRouter = router({
     .input(PublicSessionCodeLookupInputSchema)
     .output(SessionInfoDTOSchema)
     .query(async ({ input, ctx }) =>
-      attachHostQaPendingQuestionCount(await resolvePublicSessionInfo(input, 'pollReconnect'), ctx),
+      attachHostSessionDetails(await resolvePublicSessionInfo(input, 'pollReconnect'), ctx),
     ),
 
   /** Aggregierte Host-Lobby mit höchstens 20 jüngsten Ankünften. */
@@ -9508,6 +9534,7 @@ const sessionCoreRouter = router({
               defaultTimer: true,
               timerScaleByDifficulty: true,
               enableTimerAccommodation: true,
+              enablePeerInstruction: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: {
@@ -9538,7 +9565,11 @@ const sessionCoreRouter = router({
         session.currentQuestion !== null && session.currentQuestion !== undefined
           ? (session.quiz?.questions[session.currentQuestion] ?? null)
           : null;
-      if (!question || !session.quiz || !questionSupportsSecondRound(question)) {
+      if (
+        !question ||
+        !session.quiz ||
+        !questionSupportsSecondRound(question, session.quiz.enablePeerInstruction)
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
@@ -9652,6 +9683,7 @@ const sessionCoreRouter = router({
             currentQuestion: true,
             quiz: {
               select: {
+                enablePeerInstruction: true,
                 questions: {
                   orderBy: { order: 'asc' },
                   select: { type: true, numericTwoRounds: true },
@@ -9673,7 +9705,7 @@ const sessionCoreRouter = router({
           session.currentQuestion !== null && session.currentQuestion !== undefined
             ? (session.quiz?.questions[session.currentQuestion] ?? null)
             : null;
-        if (!questionSupportsSecondRound(question)) {
+        if (!questionSupportsSecondRound(question, session.quiz?.enablePeerInstruction)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Diese Frage ist nicht für eine zweite Runde konfiguriert.',
@@ -10830,37 +10862,8 @@ const sessionCoreRouter = router({
         s.totalScore += Number(v.score) || 0;
         s.totalResponseTimeMs += getCompetitionResponseTimeMs(v);
 
-        if (questionCountsTowardsTotalQuestions(v.question?.type as QuestionType)) {
-          const voteQuestionType = v.question?.type as QuestionType;
-          if (voteQuestionType === 'SHORT_TEXT') {
-            if (v.shortTextFullyCorrect) {
-              s.correctCount++;
-            }
-            continue;
-          }
-          if (
-            voteQuestionType === 'NUMERIC_ESTIMATE' ||
-            voteQuestionType === 'MATCHING' ||
-            voteQuestionType === 'ORDERING' ||
-            voteQuestionType === 'CATEGORIZATION'
-          ) {
-            if (v.isCorrect ?? v.score > 0) {
-              s.correctCount++;
-            }
-            continue;
-          }
-          const correctAnswerIds = (v.question?.answers ?? [])
-            .filter((answer) => answer.isCorrect)
-            .map((answer) => answer.id);
-          const selectedAnswerIds = (v.selectedAnswers ?? []).map(
-            (selected) => selected.answerOptionId,
-          );
-          if (
-            correctAnswerIds.length > 0 &&
-            isExactCorrectSelection(selectedAnswerIds, correctAnswerIds)
-          ) {
-            s.correctCount++;
-          }
+        if (isFullyCorrectCompetitionVote(v)) {
+          s.correctCount++;
         }
       }
 
@@ -10905,6 +10908,72 @@ const sessionCoreRouter = router({
       }
 
       return entries;
+    }),
+
+  /** Lernstand der Gruppe nach Quizabschluss. */
+  getLearningOverview: hostProcedure
+    .input(GetExportDataInputSchema)
+    .output(SessionLearningOverviewDTOSchema)
+    .query(async ({ input }) => {
+      const session = await prisma.session.findUnique({
+        where: { code: input.code.toUpperCase() },
+        select: {
+          id: true,
+          status: true,
+          participantRevision: true,
+          questionProgress: true,
+          questionProgressComplete: true,
+          participants: { select: { id: true } },
+          quiz: {
+            select: {
+              enableLearningDebrief: true,
+              questions: {
+                orderBy: { order: 'asc' },
+                select: { id: true, order: true, text: true, type: true },
+              },
+            },
+          },
+        },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      if (session.status !== 'FINISHED' || !session.quiz) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Lernstandsübersicht nur für beendete Quiz-Sessions verfügbar.',
+        });
+      }
+      if (session.quiz.enableLearningDebrief === false) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Die Lernstandsauswertung ist für dieses Quiz deaktiviert.',
+        });
+      }
+
+      const includedQuestionIds = getIncludedSessionQuestionIds(
+        session.quiz.questions,
+        parseSessionQuestionProgress(session.questionProgress),
+        session.questionProgressComplete,
+      );
+      const questions = session.quiz.questions.filter(
+        (q) => includedQuestionIds.has(q.id) && questionCountsTowardsTotalQuestions(q.type),
+      );
+      const votes = questions.length
+        ? await loadSharedCompetitionVotes({
+            sessionId: session.id,
+            questionIds: [...includedQuestionIds],
+            participantRevision: session.participantRevision,
+            includeCorrectness: true,
+            includeShortTextGrading: questions.some((q) => q.type === 'SHORT_TEXT'),
+          })
+        : [];
+
+      return buildSessionLearningOverview(
+        questions,
+        session.participants.map((p) => p.id),
+        votes,
+      );
     }),
 
   /** Team-Leaderboard: Ranking aller Teams nach harmonisierten Team-Punkten (Story 7.1). */
@@ -11195,14 +11264,16 @@ const sessionCoreRouter = router({
                 quizId: { in: scopedQuizIds },
                 status: 'FINISHED',
               },
-              select: { id: true },
+              orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }],
+              select: { quiz: { select: { enableLearningDebrief: true } } },
             }),
           ]);
 
           return {
             quizId: entry.quizId,
             hasBonusTokens: bonusSession !== null,
-            hasLastSessionAnalysis: analysisSession !== null,
+            hasLastSessionAnalysis:
+              analysisSession !== null && analysisSession.quiz?.enableLearningDebrief !== false,
           };
         }),
       );
@@ -11339,7 +11410,7 @@ const sessionCoreRouter = router({
           _count: { select: { participants: true } },
         },
       });
-      if (!session?.quiz) {
+      if (!session?.quiz || session.quiz.enableLearningDebrief === false) {
         return null;
       }
 
@@ -11380,7 +11451,9 @@ const sessionCoreRouter = router({
       const code = await resolveLastFinishedSessionCodeForQuiz(input.quizId, input.accessProof);
       const profile = input.profile ?? 'visual';
       const { data, pdf } = await pdfConcurrencyLimiter.run('session-history', async () => {
-        const data = await loadFinishedQuizSessionExportData(code);
+        const data = await loadFinishedQuizSessionExportData(code, {
+          requireLearningDebrief: true,
+        });
         const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId, profile });
         return { data, pdf };
       });
@@ -11828,7 +11901,9 @@ const sessionCoreRouter = router({
     .query(async ({ input }) => {
       const profile = input.profile ?? 'visual';
       const { data, pdf } = await pdfConcurrencyLimiter.run('session-host', async () => {
-        const data = await loadFinishedQuizSessionExportData(input.code);
+        const data = await loadFinishedQuizSessionExportData(input.code, {
+          requireLearningDebrief: true,
+        });
         const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId, profile });
         return { data, pdf };
       });

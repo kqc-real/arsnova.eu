@@ -40,6 +40,7 @@ vi.mock('../lib/hostAuth', async () => {
 });
 
 import { resetVoteAggregationCachesForTests, sessionRouter } from '../routers/session';
+import { resetSessionRankingCacheForTests } from '../lib/sessionRankingCache';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const hostCaller = sessionRouter.createCaller({ req: {} as never });
@@ -130,6 +131,126 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
     );
     prismaMock.qaQuestion.count.mockResolvedValue(0);
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
+  });
+
+  trpcDodIt(
+    {
+      procedure: 'session.getLearningOverview',
+      case: 'happy',
+      mode: 'direct',
+      title:
+        'ermittelt den Lernstand aus der gewerteten Runde und zeigt Null richtige Antworten mit an',
+    },
+    async () => {
+      resetSessionRankingCacheForTests();
+      const questions = [
+        'Rundenfrage',
+        'Weitere Frage',
+        'Ohne Stimmen',
+        'Vierte Frage',
+        'Ausgelassen',
+      ].map((text, order) =>
+        buildConfidenceScQuestion({
+          id: `${order + 1}1111111-1111-4111-8111-111111111111`,
+          order,
+          text,
+        }),
+      );
+      prismaMock.session.findUnique.mockResolvedValue({
+        ...buildSession('FINISHED'),
+        participants: ['p1', 'p2', 'p3', 'p4', 'p5'].map((id) => ({ id })),
+        quiz: { showLeaderboard: false, questions },
+        questionProgressComplete: true,
+        questionProgress: Object.fromEntries(
+          questions.map((question, index) => [
+            question.id,
+            {
+              state: index === 4 ? 'SKIPPED' : 'OPENED',
+              openedAt: '2026-08-10T12:00:00.000Z',
+              ...(index === 4 ? { skippedAt: '2026-08-10T12:01:00.000Z' } : {}),
+            },
+          ]),
+        ),
+      });
+      const vote = (
+        participantId: string,
+        questionIndex: number,
+        round: number,
+        correct: boolean,
+      ) => ({
+        participantId,
+        questionId: questions[questionIndex].id,
+        round,
+        score: correct ? 10 : 0,
+        question: { type: 'SINGLE_CHOICE', answers: [{ id: RIGHT_ID, isCorrect: true }] },
+        selectedAnswers: [{ answerOptionId: correct ? RIGHT_ID : WRONG_ID }],
+      });
+      prismaMock.vote.findMany.mockResolvedValue([
+        vote('p1', 0, 1, true),
+        vote('p1', 0, 2, false),
+        vote('p2', 0, 2, false),
+        vote('p3', 0, 2, true),
+        vote('p4', 0, 1, true),
+        vote('p1', 1, 1, true),
+        vote('p3', 1, 1, true),
+        vote('p4', 1, 1, false),
+        vote('p5', 4, 1, true),
+      ]);
+
+      expect(await hostCaller.getLearningOverview({ code: CODE })).toEqual({
+        questionCount: 4,
+        respondentCount: 4,
+        noResponseCount: 1,
+        medianCorrectCount: 0.5,
+        distribution: [2, 1, 1, 0],
+        reviewQuestions: [
+          {
+            questionId: questions[0].id,
+            questionOrder: 0,
+            text: 'Rundenfrage',
+            correctCount: 1,
+            responseCount: 3,
+          },
+        ],
+      });
+    },
+  );
+
+  trpcDodIt(
+    {
+      procedure: 'session.getLearningOverview',
+      case: 'error',
+      mode: 'direct',
+      contract: 'UNAUTHORIZED',
+      title: 'schützt die Lernstandsübersicht mit einem gültigen Host-Token und dem Quizabschluss',
+    },
+    async () => {
+      hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValueOnce(false);
+      await expect(hostCaller.getLearningOverview({ code: CODE })).rejects.toMatchObject({
+        code: 'UNAUTHORIZED',
+      });
+      expect(prismaMock.session.findUnique).not.toHaveBeenCalled();
+
+      prismaMock.session.findUnique.mockResolvedValue(buildSession('ACTIVE'));
+      await expect(hostCaller.getLearningOverview({ code: CODE })).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+      });
+      expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
+    },
+  );
+
+  it('liefert nach Quizende keine Lernstandsauswertung, wenn sie im Quiz ausgeschaltet ist', async () => {
+    const session = buildSession('FINISHED');
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...session,
+      quiz: { ...session.quiz, enableLearningDebrief: false },
+    });
+
+    await expect(hostCaller.getLearningOverview({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+    await expect(caller.getSessionConfidenceSummary({ code: CODE })).resolves.toBeNull();
+    expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
   });
 
   it('liefert Host bei ACTIVE keine Confidence-Aggregate', async () => {

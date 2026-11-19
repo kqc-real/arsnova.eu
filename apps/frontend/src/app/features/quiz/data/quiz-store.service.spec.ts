@@ -883,6 +883,83 @@ describe('QuizStoreService', () => {
     expect(secondUpload.historyScopeId).toBe(firstUpload.historyScopeId);
   });
 
+  it.each([undefined, true, false])(
+    'bewahrt die Auswertungswahl %s eines gespeicherten SERIOUS-Quiz beim Neuladen und Upload',
+    (enableLearningDebrief) => {
+      const service = TestBed.inject(QuizStoreService);
+      const created = service.createQuiz({
+        name: 'Gespeichertes seriöses Quiz',
+        settings: { preset: 'SERIOUS', enableLearningDebrief: true },
+      });
+      service.addQuestion(created.id, {
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        answers: [
+          { text: '4', isCorrect: true },
+          { text: '3', isCorrect: false },
+        ],
+      });
+      const stored = JSON.parse(localStorage.getItem(QUIZ_STORAGE_KEY)!) as QuizDocument[];
+      const quiz = stored.find((entry) => entry.id === created.id)!;
+      delete quiz.settings.enablePeerInstruction;
+      delete quiz.settings.enableLearningDebrief;
+      if (enableLearningDebrief !== undefined)
+        quiz.settings.enableLearningDebrief = enableLearningDebrief;
+      TestBed.resetTestingModule();
+      localStorage.clear();
+      localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(stored));
+      TestBed.configureTestingModule({ providers: [provideRouter([])] });
+
+      const reloaded = TestBed.inject(QuizStoreService);
+      expect(reloaded.getQuizById(created.id)?.settings).toMatchObject({
+        preset: 'SERIOUS',
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+      expect(reloaded.getUploadPayload(created.id)).toMatchObject({
+        preset: 'SERIOUS',
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+    },
+  );
+
+  it.each([undefined, true, false])(
+    'bewahrt die Auswertungswahl %s eines importierten SERIOUS-Quiz bis zum nächsten Upload',
+    (enableLearningDebrief) => {
+      const service = TestBed.inject(QuizStoreService);
+      const created = service.createQuiz({
+        name: 'Importiertes seriöses Quiz',
+        settings: { preset: 'SERIOUS', enableLearningDebrief: true },
+      });
+      service.addQuestion(created.id, {
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        answers: [
+          { text: '4', isCorrect: true },
+          { text: '3', isCorrect: false },
+        ],
+      });
+      const exported = service.exportQuiz(created.id);
+      delete exported.quiz.enablePeerInstruction;
+      delete exported.quiz.enableLearningDebrief;
+      if (enableLearningDebrief !== undefined)
+        exported.quiz.enableLearningDebrief = enableLearningDebrief;
+
+      const imported = service.importQuiz(JSON.parse(JSON.stringify(exported)));
+      expect(imported.quiz.settings).toMatchObject({
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+      expect(service.getUploadPayload(imported.quiz.id)).toMatchObject({
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+    },
+  );
+
   it('exportiert und importiert ein Quiz schema-konform mit neuer ID', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({
@@ -890,6 +967,9 @@ describe('QuizStoreService', () => {
       description: 'Für Export/Import',
       settings: {
         showLeaderboard: false,
+        preset: 'SERIOUS',
+        enableLearningDebrief: true,
+        enablePeerInstruction: false,
         enableRewardEffects: false,
       },
     });
@@ -912,6 +992,10 @@ describe('QuizStoreService', () => {
     expect(exported.quiz.shuffleAnswerOptions).toBe(false);
     expect(imported.quiz.id).not.toBe(created.id);
     expect(imported.quiz.settings.shuffleAnswerOptions).toBe(false);
+    expect(service.getUploadPayload(imported.quiz.id)).toMatchObject({
+      enableLearningDebrief: true,
+      enablePeerInstruction: false,
+    });
     expect(imported.quiz.name).toBe('Export Quiz');
     expect(imported.quiz.questions[0]?.type).toBe('RATING');
     expect(imported.quiz.questions[0]?.ratingMax).toBe(10);

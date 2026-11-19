@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 import { createQuizHistoryAccessProof } from '@arsnova/shared-types';
 
@@ -126,6 +126,20 @@ describe('session.getQuizCollectionHistoryAvailability', () => {
       expect(prismaMock.session.findFirst).toHaveBeenCalledTimes(2);
     },
   );
+
+  it('bietet für den letzten Durchlauf mit deaktivierter Auswertung nur Bonus-Codes an', async () => {
+    const accessProof = await createQuizHistoryAccessProof(QUIZ_INPUT);
+    prismaMock.session.findFirst
+      .mockResolvedValueOnce({ id: 'session-bonus' })
+      .mockResolvedValueOnce({ quiz: { enableLearningDebrief: false } });
+
+    expect(
+      await caller.getQuizCollectionHistoryAvailability([{ quizId: QUIZ_ID, accessProof }]),
+    ).toEqual([{ quizId: QUIZ_ID, hasBonusTokens: true, hasLastSessionAnalysis: false }]);
+    expect(prismaMock.session.findFirst).toHaveBeenLastCalledWith(
+      expect.objectContaining({ orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }] }),
+    );
+  });
 });
 
 trpcDodIt(

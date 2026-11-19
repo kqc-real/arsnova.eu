@@ -161,6 +161,8 @@ export interface QuizQuestion {
 
 export interface QuizSettings {
   showLeaderboard: boolean;
+  enableLearningDebrief?: boolean;
+  enablePeerInstruction?: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
   timerScaleByDifficulty?: boolean;
@@ -652,6 +654,8 @@ const QuizMetadataSchema = CreateQuizInputSchema.pick({
 
 const QuizSettingsSchema = CreateQuizInputSchema.pick({
   showLeaderboard: true,
+  enableLearningDebrief: true,
+  enablePeerInstruction: true,
   allowCustomNicknames: true,
   defaultTimer: true,
   timerScaleByDifficulty: true,
@@ -2032,6 +2036,8 @@ export class QuizStoreService implements OnDestroy {
         ...(document.motifImageUrl ? { motifImageUrl: document.motifImageUrl } : {}),
         ...(document.motifImageCredit ? { motifImageCredit: document.motifImageCredit } : {}),
         showLeaderboard: document.settings.showLeaderboard,
+        enableLearningDebrief: document.settings.enableLearningDebrief,
+        enablePeerInstruction: document.settings.enablePeerInstruction,
         allowCustomNicknames: document.settings.allowCustomNicknames,
         defaultTimer: document.settings.defaultTimer,
         timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
@@ -2273,6 +2279,8 @@ export class QuizStoreService implements OnDestroy {
       motifImageUrl: normalizeMotifImageUrlInput(document.motifImageUrl) ?? null,
       motifImageCredit: normalizeMotifImageCreditInput(document.motifImageCredit) ?? null,
       showLeaderboard: document.settings.showLeaderboard,
+      enableLearningDebrief: document.settings.enableLearningDebrief,
+      enablePeerInstruction: document.settings.enablePeerInstruction,
       allowCustomNicknames: document.settings.allowCustomNicknames,
       defaultTimer: document.settings.defaultTimer,
       timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
@@ -2450,6 +2458,8 @@ export class QuizStoreService implements OnDestroy {
       ...this.currentQuizUpdateSource(),
       settings: parseQuizSettings({
         showLeaderboard: quizData.showLeaderboard,
+        enableLearningDebrief: quizData.enableLearningDebrief,
+        enablePeerInstruction: quizData.enablePeerInstruction,
         allowCustomNicknames: quizData.allowCustomNicknames,
         defaultTimer: quizData.defaultTimer ?? null,
         timerScaleByDifficulty: quizData.timerScaleByDifficulty ?? true,
@@ -5357,6 +5367,8 @@ function normalizeStoredQuizzes(value: unknown): QuizDocument[] {
 function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
   const parsed = QuizSettingsSchema.safeParse({
     showLeaderboard: input.showLeaderboard,
+    enableLearningDebrief: input.enableLearningDebrief,
+    enablePeerInstruction: input.enablePeerInstruction,
     allowCustomNicknames: input.allowCustomNicknames,
     defaultTimer: input.defaultTimer ?? null,
     timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
@@ -5386,6 +5398,8 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
 
   return {
     showLeaderboard: parsed.data.showLeaderboard,
+    enableLearningDebrief: parsed.data.enableLearningDebrief ?? true,
+    enablePeerInstruction: parsed.data.enablePeerInstruction ?? true,
     allowCustomNicknames: parsed.data.allowCustomNicknames,
     defaultTimer: parsed.data.defaultTimer ?? null,
     timerScaleByDifficulty: parsed.data.timerScaleByDifficulty ?? true,
@@ -5419,6 +5433,8 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
   try {
     return parseQuizSettings({
       showLeaderboard: readBoolean(candidate['showLeaderboard']),
+      enableLearningDebrief: readBoolean(candidate['enableLearningDebrief']),
+      enablePeerInstruction: readBoolean(candidate['enablePeerInstruction']),
       allowCustomNicknames: readBoolean(candidate['allowCustomNicknames']),
       defaultTimer: readNumberOrNull(candidate['defaultTimer']),
       timerScaleByDifficulty: readBoolean(candidate['timerScaleByDifficulty']),

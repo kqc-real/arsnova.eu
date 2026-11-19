@@ -304,6 +304,8 @@ const en: Messages = {
     eyebrow: 'What sets arsnova.eu apart',
     title: 'Everything you need for live audience participation',
     lead: 'Start without an account and use tools to prepare, host, and review live sessions. Open source code lets you examine how the platform works.',
+    peerInstructionDescription:
+      'Participants vote individually, discuss the reasoning behind their answers, and then vote again. Comparing the two rounds shows how the answers changed.',
     items: [
       {
         title: 'Create and host on your phone',

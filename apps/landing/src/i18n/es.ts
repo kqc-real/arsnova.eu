@@ -305,6 +305,8 @@ const es: Messages = {
     eyebrow: 'Lo que distingue a arsnova.eu',
     title: 'Todo lo necesario para la participación del público en directo',
     lead: 'Empieza sin cuenta y prepara, dirige y analiza sesiones en directo. El código abierto permite comprobar cómo funciona la plataforma.',
+    peerInstructionDescription:
+      'Los participantes votan primero de forma individual, debaten sus razonamientos y después vuelven a votar. La comparación de ambas rondas muestra cómo cambiaron las respuestas.',
     items: [
       {
         title: 'Crea y dirige desde el móvil',

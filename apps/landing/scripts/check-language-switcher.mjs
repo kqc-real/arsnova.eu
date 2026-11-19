@@ -15,6 +15,7 @@ const LOCALES = ['de', 'en', 'fr', 'it', 'es'];
 const CANONICAL_ANCHORS = [
   'workflow',
   'features',
+  'peer-instruction',
   'leaderboard',
   'host-pairing',
   'numeric-estimate',
@@ -113,7 +114,13 @@ async function assertSwitcher(page, buttonId, label, hash = '#qa-wall') {
   }
 
   // Spotlight deep links must survive language switching even when not in main nav.
-  for (const spotlight of ['numeric-estimate', 'confidence', 'qa-wall', 'moderation-compass']) {
+  for (const spotlight of [
+    'peer-instruction',
+    'numeric-estimate',
+    'confidence',
+    'qa-wall',
+    'moderation-compass',
+  ]) {
     await page.evaluate((id) => {
       window.location.hash = `#${id}`;
     }, spotlight);
