@@ -1,0 +1,65 @@
+split	channel	case	group	de	en	fr	es	it
+calibration	QA	course	exam	Ist Kapitel 4 klausurrelevant?	Will chapter 4 be on the exam?	Le chapitre 4 sera-t-il à l’examen ?	¿Entra el capítulo 4 en el examen?	Il capitolo 4 sarà all’esame?
+calibration	QA	course	exam	Müssen wir Kapitel 4 für die Prüfung lernen?	Do we need to study chapter 4 for the test?	Faut-il réviser le chapitre 4 pour l’épreuve ?	¿Hay que estudiar el capítulo 4 para la prueba?	Dobbiamo studiare il capitolo 4 per la prova?
+calibration	QA	course	deadline	Wann ist die Hausarbeit fällig?	When is the term paper due?	Quand faut-il rendre le dossier ?	¿Cuándo hay que entregar el trabajo?	Quando bisogna consegnare la relazione?
+calibration	QA	course	deadline	Bis zu welchem Termin müssen wir die Arbeit abgeben?	What is the deadline for the paper?	Quelle est la date limite de remise du dossier ?	¿Cuál es el plazo de entrega del trabajo?	Qual è la scadenza per consegnare la relazione?
+calibration	QA	course	upload	Wo lade ich die Hausarbeit hoch?	Where do I upload the term paper?	Où déposer le dossier en ligne ?	¿Dónde subo el trabajo?	Dove carico la relazione?
+calibration	QA	course	upload	In welchem Ordner sollen wir die Arbeit einreichen?	Which folder should I submit the paper to?	Dans quel dossier faut-il déposer le travail ?	¿En qué carpeta tengo que entregar el trabajo?	In quale cartella devo consegnare il lavoro?
+calibration	QA	course	-	Wie komme ich am schnellsten zur Bibliothek?	How do I get to the library quickly?	Comment rejoindre rapidement la bibliothèque ?	¿Cómo llego rápido a la biblioteca?	Come raggiungo rapidamente la biblioteca?
+calibration	FREETEXT	lecture	pace	Die Lehrperson spricht zu schnell.	The lecturer speaks too quickly.	L’enseignante parle trop vite.	La profesora habla demasiado rápido.	La docente parla troppo in fretta.
+calibration	FREETEXT	lecture	pace	Ich kann dem Tempo beim Sprechen kaum folgen.	I struggle to keep up with the speaking pace.	J’ai du mal à suivre le débit de parole.	Me cuesta seguir el ritmo al que habla.	Faccio fatica a seguire la velocità con cui parla.
+calibration	FREETEXT	lecture	audio	Die Stimme ist hinten zu leise.	The speaker is too quiet at the back.	On entend mal la voix au fond.	La voz se oye demasiado baja al fondo.	In fondo la voce si sente troppo piano.
+calibration	FREETEXT	lecture	audio	In den hinteren Reihen hört man sie kaum.	People in the back rows can barely hear her.	Au dernier rang on l’entend à peine.	En las últimas filas apenas se la oye.	Nelle ultime file la si sente a malapena.
+calibration	FREETEXT	lecture	-	Schneller wäre besser.	A faster pace would be better.	Un rythme plus rapide serait préférable.	Un ritmo más rápido sería mejor.	Un ritmo più veloce sarebbe meglio.
+calibration	FREETEXT	lecture	-	Ich brauche mehr Rechenbeispiele.	I need more worked examples.	Il me faut plus d’exemples de calcul.	Necesito más ejemplos resueltos.	Mi servono più esempi svolti.
+calibration	FREETEXT	environment	pollution	Die Luft ist durch den Verkehr belastet.	Traffic pollutes the air.	La circulation pollue l’air.	El tráfico contamina el aire.	Il traffico inquina l’aria.
+calibration	FREETEXT	environment	pollution	Autoabgase verschlechtern die Luftqualität.	Car exhaust makes air quality worse.	Les gaz d’échappement dégradent la qualité de l’air.	Los gases de escape empeoran la calidad del aire.	I gas di scarico peggiorano la qualità dell’aria.
+calibration	FREETEXT	environment	noise	Die Straße ist laut.	The road is noisy.	La rue est bruyante.	La calle es ruidosa.	La strada è rumorosa.
+calibration	FREETEXT	environment	noise	Die Autos machen viel Lärm.	The cars make a lot of noise.	Les voitures font beaucoup de bruit.	Los coches hacen mucho ruido.	Le auto fanno molto rumore.
+calibration	FREETEXT	environment	-	Die Luft im Raum ist zu trocken.	The air in the room is too dry.	L’air de la salle est trop sec.	El aire de la sala es demasiado seco.	L’aria nella stanza è troppo secca.
+test	QA	teaching	size	Wie groß muss die Stichprobe für ein enges Konfidenzintervall sein?	How large should the sample be for a narrow confidence interval?	Quelle taille d’échantillon faut-il pour un intervalle de confiance étroit ?	¿Qué tamaño de muestra se necesita para un intervalo de confianza estrecho?	Quanto deve essere grande il campione per un intervallo di confidenza stretto?
+test	QA	teaching	size	Wie viele Beobachtungen brauchen wir für ein enges Konfidenzintervall?	How many observations do we need for a narrow confidence interval?	Combien d’observations faut-il pour réduire la largeur de l’intervalle de confiance ?	¿Cuántas observaciones hacen falta para estrechar el intervalo de confianza?	Quante osservazioni servono per ridurre l’ampiezza dell’intervallo di confidenza?
+test	QA	teaching	bias	Verzerrt eine Stichprobe aus freiwilligen Antworten die Schätzung?	Does a sample of volunteers bias the estimate?	Un échantillon de volontaires biaise-t-il l’estimation ?	¿Una muestra de voluntarios sesga la estimación?	Un campione di volontari distorce la stima?
+test	QA	teaching	bias	Kann Selbstselektion die Stichprobe systematisch verzerren?	Can self-selection systematically bias the sample?	L’autosélection peut-elle introduire un biais systématique dans l’échantillon ?	¿Puede la autoselección sesgar sistemáticamente la muestra?	L’autoselezione può introdurre una distorsione sistematica nel campione?
+test	QA	teaching	projector	Der Projektor zeigt kein Bild. Könnt ihr helfen?	The projector shows no image. Can you help?	Le vidéoprojecteur n’affiche rien. Vous pouvez aider ?	El proyector no muestra imagen. ¿Podéis ayudar?	Il proiettore non mostra alcuna immagine. Potete aiutarci?
+test	QA	teaching	projector	Was tun, wenn der Beamer schwarz bleibt?	What should we do if the projector screen stays blank?	Que faire si l’écran du vidéoprojecteur reste noir ?	¿Qué hacemos si la pantalla del proyector sigue en negro?	Cosa fare se lo schermo del proiettore resta nero?
+test	QA	teaching	slides	Ich finde die Folien von gestern nicht.	I can’t find yesterday’s slides.	Je ne trouve pas les diapositives d’hier.	No encuentro las diapositivas de ayer.	Non trovo le diapositive di ieri.
+test	QA	teaching	slides	Wo ist die Präsentation der letzten Sitzung abgelegt?	Where is the presentation from the last session stored?	Où se trouve la présentation de la dernière séance ?	¿Dónde está la presentación de la última sesión?	Dov’è la presentazione dell’ultima lezione?
+test	QA	teaching	room-a	Findet die Übung in Hörsaal 1 statt?	Is the tutorial in lecture hall 1?	Le TD se déroule-t-il dans l’amphi 1 ?	¿La práctica es en el aula 1?	L’esercitazione è nell’aula 1?
+test	QA	teaching	room-a	Ist für das Tutorium Saal 1 vorgesehen?	Is room 1 assigned to the tutorial?	L’amphi 1 est-il réservé au TD ?	¿Han reservado el aula 1 para la práctica?	Hanno prenotato l’aula 1 per l’esercitazione?
+test	QA	teaching	room-b	Findet die Übung in Hörsaal 2 statt?	Is the tutorial in lecture hall 2?	Le TD se déroule-t-il dans l’amphi 2 ?	¿La práctica es en el aula 2?	L’esercitazione è nell’aula 2?
+test	QA	teaching	room-b	Ist für das Tutorium Saal 2 vorgesehen?	Is room 2 assigned to the tutorial?	L’amphi 2 est-il réservé au TD ?	¿Han reservado el aula 2 para la práctica?	Hanno prenotato l’aula 2 per l’esercitazione?
+test	QA	teaching	-	Welche Bedeutung hat die Varianz in der Formel?	What does the variance mean in the formula?	Que signifie la variance dans la formule ?	¿Qué significa la varianza en la fórmula?	Cosa indica la varianza nella formula?
+test	QA	teaching	-	Wie schalte ich Untertitel in der Aufzeichnung ein?	How do I turn on subtitles in the recording?	Comment activer les sous-titres de l’enregistrement ?	¿Cómo activo los subtítulos de la grabación?	Come attivo i sottotitoli della registrazione?
+test	QA	teaching	-	Läuft das WLAN auch im Nebenraum?	Does the Wi-Fi work in the room next door?	Le Wi-Fi fonctionne-t-il aussi dans la salle voisine ?	¿Funciona el wifi en el aula de al lado?	Il Wi-Fi funziona anche nell’aula accanto?
+test	FREETEXT	statistics	size	Eine größere Stichprobe ergibt ein engeres Konfidenzintervall.	A larger sample gives a narrower confidence interval.	Un échantillon plus grand donne un intervalle de confiance plus étroit.	Una muestra mayor da un intervalo de confianza más estrecho.	Un campione più grande dà un intervallo di confidenza più stretto.
+test	FREETEXT	statistics	size	Mehr Beobachtungen verkleinern den Standardfehler.	More observations reduce the standard error.	Plus d’observations réduisent l’erreur standard.	Más observaciones reducen el error estándar.	Più osservazioni riducono l’errore standard.
+test	FREETEXT	statistics	size	Mit größerem n wird die Schätzung präziser.	A greater n makes the estimate more precise.	Un n plus grand rend l’estimation plus précise.	Un n mayor mejora la precisión de la estimación.	Un n maggiore rende più precisa la stima.
+test	FREETEXT	statistics	bias	Freiwillige Teilnahme kann die Stichprobe verzerren.	Voluntary participation can bias the sample.	La participation volontaire peut biaiser l’échantillon.	La participación voluntaria puede sesgar la muestra.	La partecipazione volontaria può distorcere il campione.
+test	FREETEXT	statistics	bias	Selbstselektion macht die Auswahl weniger repräsentativ.	Self-selection makes the sample less representative.	L’autosélection rend l’échantillon moins représentatif.	La autoselección hace que la muestra sea menos representativa.	L’autoselezione rende il campione meno rappresentativo.
+test	FREETEXT	statistics	bias	Antworten nur von Freiwilligen bilden die Grundgesamtheit schlecht ab.	Responses from volunteers alone misrepresent the population.	Les réponses des seuls volontaires représentent mal la population.	Las respuestas de los voluntarios por sí solas no representan bien a la población.	Le risposte dei soli volontari rappresentano male la popolazione.
+test	FREETEXT	statistics	-	Eine größere Stichprobe vergrößert das Konfidenzintervall.	A larger sample widens the confidence interval.	Un échantillon plus grand élargit l’intervalle de confiance.	Una muestra mayor amplía el intervalo de confianza.	Un campione più grande allarga l’intervallo di confidenza.
+test	FREETEXT	statistics	-	Eine größere Stichprobe beseitigt den Selbstselektionsbias nicht.	A larger sample does not remove self-selection bias.	Un échantillon plus grand ne supprime pas le biais d’autosélection.	Una muestra mayor no elimina el sesgo de autoselección.	Un campione più ampio non elimina il bias di autoselezione.
+test	FREETEXT	mood	calm	Entspannt	Relaxed	Détendu	Relajado	Rilassato
+test	FREETEXT	mood	calm	Gelassen	Calm	Calme	Tranquilo	Tranquillo
+test	FREETEXT	mood	calm	Ich kann ganz ruhig an die Aufgabe herangehen.	I feel calm about starting the task.	J’aborde la tâche sans stress.	Empiezo la tarea con calma.	Affronto il compito senza agitazione.
+test	FREETEXT	mood	worry	Besorgt	Worried	Inquiet	Preocupado	Preoccupato
+test	FREETEXT	mood	worry	Verunsichert	Uneasy	Anxieux	Intranquilo	Inquieto
+test	FREETEXT	mood	worry	Die Aufgabe macht mir Sorgen.	I’m worried about the task.	Cette tâche m’inquiète.	Esta tarea me preocupa.	Il compito mi preoccupa.
+test	FREETEXT	mood	-	Neugierig	Curious	Curieux	Curioso	Curioso
+test	FREETEXT	mood	-	Müde	Tired	Fatigué	Cansado	Stanco
+test	FREETEXT	exam-vote	yes	Ja	Yes	Oui	Sí	Sì
+test	FREETEXT	exam-vote	yes	Ja, das Thema gehört in die Prüfung.	Yes, this topic belongs on the exam.	Oui, ce sujet doit figurer à l’examen.	Sí, este tema debe entrar en el examen.	Sì, questo argomento va incluso nell’esame.
+test	FREETEXT	exam-vote	no	Nein	No	Non	No	No
+test	FREETEXT	exam-vote	no	Nein, das Thema gehört nicht in die Prüfung.	No, this topic should not be on the exam.	Non, ce sujet ne doit pas figurer à l’examen.	No, este tema no debe entrar en el examen.	No, questo argomento non va incluso nell’esame.
+test	FREETEXT	exam-vote	-	Unentschieden	Undecided	Indécis	Indeciso	Indeciso
+test	FREETEXT	exam-vote	-	?	?	?	?	?
+test	FREETEXT	numbers	two	2	2	2	2	2
+test	FREETEXT	numbers	two	Zwei Beobachtungen.	Two observations.	Deux observations.	Dos observaciones.	Due osservazioni.
+test	FREETEXT	numbers	twenty	20	20	20	20	20
+test	FREETEXT	numbers	twenty	Zwanzig Beobachtungen.	Twenty observations.	Vingt observations.	Veinte observaciones.	Venti osservazioni.
+test	FREETEXT	numbers	-	200	200	200	200	200
+test	FREETEXT	numbers	-	Ich habe nichts gezählt.	I did not count anything.	Je n’ai rien compté.	No he contado nada.	Non ho contato nulla.
+test	FREETEXT	limits	allowed	Digitale Hilfsmittel sind zugelassen.	Digital aids are permitted.	Les outils numériques sont autorisés.	Se permiten herramientas digitales.	Gli strumenti digitali sono ammessi.
+test	FREETEXT	limits	forbidden	Digitale Hilfsmittel sind nicht zugelassen.	Digital aids are not permitted.	Les outils numériques ne sont pas autorisés.	No se permiten herramientas digitales.	Gli strumenti digitali non sono ammessi.
+test	FREETEXT	limits	-	Die Regeln stehen im Handbuch.	The rules are in the handbook.	Le règlement figure dans le manuel.	Las reglas están en el manual.	Le regole sono nel manuale.

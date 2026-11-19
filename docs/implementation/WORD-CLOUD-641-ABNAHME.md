@@ -1,6 +1,6 @@
 # Abnahme der Wortwolken für Issue #641
 
-Der [Lehrkorpus v1](../examples/word-cloud-teaching-corpus.v1.json) enthält synthetische Q&A-Fragen und Quiz-Freitextantworten. Die Erwartungen sind nach Wortformen und Stoppwörtern, Clustermitgliedern und Modellnamen getrennt. In beiden Kanälen teilen sich die Gruppen zur Stichprobengröße und zur Selbstselektion das Schlüsselwort »Stichprobe«. Die CI-Tests verwenden deterministische Vektoren und eine vorgegebene Modellantwort. Sie prüfen damit die Verarbeitung und Weitergabe eines Modellnamens. Die Qualität der produktiv eingesetzten Modelle bleibt Gegenstand des Produktionsnachweises.
+Der [Lehrkorpus v1](../examples/word-cloud-teaching-corpus.v1.json) enthält synthetische Q&A-Fragen und Quiz-Freitextantworten. Die Erwartungen sind nach Wortformen und Stoppwörtern, Clustermitgliedern und Modellnamen getrennt. In beiden Kanälen teilen sich die Gruppen zur Stichprobengröße und zur Selbstselektion das Schlüsselwort »Stichprobe«. Die CI-Tests verwenden deterministische Vektoren und eine vorgegebene Modellantwort. Sie prüfen damit die Verarbeitung und Weitergabe eines Modellnamens.
 
 ## Lokale Prüfungen
 
@@ -48,10 +48,14 @@ Die vollständige Q&A-Presenter-Route lief in Chromium 151 mit vier simulierten 
 
 Beim Labelwechsel blieben das umbenannte Thema und das zweite Thema am selben Ort. »Varianz« rückte dabei um 881 px auf einen freien Platz. Der Gesamtweg beim Labelwechsel ist damit größer als im Referenzlauf. Beim Austausch der Begriffe blieben beide weiterhin sichtbaren Blasen stehen. Beide Läufe hatten null abgeschnittene Blasen. In beiden fehlte bei der dritten Projektion »Grundgesamtheit« in der platzierten Wolke, bei der vierten »Stichprobengröße«. Die größten Blasen waren im zweiten Lauf an allen vier Messpunkten vollständig sichtbar und frei von Überdeckungen.
 
-## Offener Produktionsnachweis
+## Produktionsnachweis
+
+Der Produktionsnachweis liegt vor. Die Umsetzung in [PR #642](https://github.com/kqc-real/arsnova.eu/pull/642) und der vorliegende Nachweis sind im [Abschlusskommentar zu Issue #641](https://github.com/kqc-real/arsnova.eu/issues/641#issuecomment-6959106259) bestätigt.
+
+### Prüfablauf für Wiederholungsmessungen
 
 1. Die ursprünglich beobachtete Q&A-Anfrage mit englischer Oberfläche und deutschem Korpus nachstellen. Für denselben synthetischen Korpus und dieselbe Gewichtung zuerst mit englischer, dann mit explizit deutscher Analysesprache vergleichen. Quiz-Freitext separat über `wordCloud.analyze` prüfen.
 2. Je Lauf `locale`, `mode`, `effectiveMode`, `normalizationApplied`, `normalizationFallbackReason`, `status`, `fallbackUsed`, `modelVersion`, `labelModelId` und in Q&A `corpusRevision` festhalten. Den sichtbaren Eintrag in Host und Presenter samt `labelOrigin` abgleichen. `modelVersion` identifiziert den Encoder. `labelModelId` belegt mindestens einen akzeptierten Modellnamen. Erst `labelOrigin: 'model'` am betrachteten Eintrag belegt dessen Herkunft.
 3. Die wirksame Aktivierung und das Laufzeitbudget von spaCy, Encoder und LLM anhand der produktiven Konfiguration prüfen. Dieselbe Live-Aktualisierungssequenz auf der vollständigen Bühne bei 1280 × 720 wiederholen und Positionen, Überdeckungen und abgeschnittene Einträge erfassen.
 
-Die tatsächliche Sprache und der Rückfallgrund des beobachteten Produktionsabrufs sind offen. Die produktiv sichtbare LLM-Ausgabe und das Verhalten mit realen Modellen sind ebenfalls offen. Für die Dokumentation genügen synthetische Texte und technische Metadaten.
+Für die Dokumentation genügen synthetische Texte und technische Metadaten.
