@@ -3,7 +3,8 @@ import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { SwUpdate } from '@angular/service-worker';
+import { SwUpdate, type VersionEvent } from '@angular/service-worker';
+import { Subject } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app.component';
 import { MotdHeaderStateService } from './core/motd-header-state.service';
@@ -684,6 +685,53 @@ describe('AppComponent', () => {
     expect(styles).not.toMatch(
       /\.app-update-banner__inner \{[\s\S]*primary-container\) 88%, white/,
     );
+  });
+
+  it('zeigt ein bereits heruntergeladenes Update nach verpasstem Ereignis und nach Ende des Entwurfsschutzes', () => {
+    const events = new Subject<VersionEvent>();
+    const meta = document.createElement('meta');
+    meta.name = 'arsnova-pwa-build';
+    meta.content = 'loaded-build';
+    document.head.append(meta);
+    TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [
+        provideRouter([]),
+        { provide: MatDialog, useValue: createDialogMock() },
+        {
+          provide: SwUpdate,
+          useValue: {
+            isEnabled: true,
+            versionUpdates: events,
+            checkForUpdate: vi.fn().mockResolvedValue(false),
+          },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(AppComponent);
+    try {
+      const suppression = TestBed.inject(UpdateBannerSuppressionService);
+      suppression.set('quiz-edit', true);
+      events.next({
+        type: 'NO_NEW_VERSION_DETECTED',
+        version: {
+          hash: 'already-downloaded',
+          appData: { pwaBuildId: 'new-build' },
+        },
+      });
+      fixture.detectChanges();
+      expect(fixture.componentInstance.updateAvailable()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.app-update-banner')).toBeNull();
+      suppression.set('quiz-edit', false);
+      fixture.detectChanges();
+      const banner = fixture.nativeElement.querySelector('.app-update-banner') as HTMLElement;
+      expect(banner.textContent).toContain('Neue Version bereit');
+      expect(banner.getAttribute('role')).toBe('status');
+      expect(fixture.componentInstance.updateReloading()).toBe(false);
+    } finally {
+      fixture.destroy();
+      meta.remove();
+    }
   });
 
   it('rendert den Update-Banner als auffaelliges Callout mit primaerer CTA', async () => {
