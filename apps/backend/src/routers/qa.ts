@@ -40,6 +40,7 @@ import {
 } from '@arsnova/shared-types';
 import { assertHostSessionAccessFromContext } from '../lib/hostAuth';
 import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
+import { logger } from '../lib/logger';
 import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
@@ -47,7 +48,6 @@ import { enqueueQaNlpJob, invalidateQaNlpForQuestion } from '../lib/qaNlpQueue';
 import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudPrewarmQueue';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import {
-  getQaSummaryRuntime,
   getQaSummaryRuntimeFresh,
   getQaSummaryContextPreview,
   invalidateQaSummaryForSession,
@@ -72,6 +72,7 @@ import {
 import { hostProcedure, publicProcedure, router } from '../trpc';
 import { assertParticipantCapability } from '../lib/participantAuth';
 import { recordQaQuestionAccepted, recordQaRatingChanged } from '../lib/qaTelemetry';
+import { publishQaQuestionsInvalidation } from '../lib/sessionStatusPubSub';
 import { enqueueUsageStatisticEventAndSchedule } from '../lib/usageStatistic';
 import {
   emitQaQuestionsSignal,
@@ -1625,10 +1626,7 @@ export const qaRouter = router({
       }
       const hostToken = await assertHostSessionAccessFromContext(ctx, session.code);
       assertQaHostContentReadAllowed(session);
-      const current = getQaSummaryRuntime(input.sessionId);
-      return getQaSummaryRuntimeFresh(input.sessionId, current.result?.locale ?? 'de', {
-        hostToken,
-      });
+      return getQaSummaryRuntimeFresh(input.sessionId, { hostToken });
     }),
 
   summaryContextPreview: publicProcedure
@@ -1925,7 +1923,9 @@ export const qaRouter = router({
           return mapQaQuestion(updated);
         });
 
-        invalidateQaSummaryForSession(session.id);
+        await invalidateQaSummaryForSession(session.id).catch(() => {
+          logger.warn('qa_summary:state_invalidation_failed');
+        });
         // Immer invalidieren: ein früher gestarteter Job kann noch laufen, auch wenn NLP jetzt aus ist.
         if (redactedQuestionId) {
           invalidateQaNlpForQuestion(redactedQuestionId);
@@ -2022,6 +2022,7 @@ export const qaRouter = router({
         });
         invalidateQaOwnQuestionQuotaCache(input.sessionId, input.participantId);
         emitQaQuestionsSignal(input.sessionId);
+        publishQaQuestionsInvalidation(input.sessionId);
       }
       return {
         question: mapQaQuestion(
@@ -2448,11 +2449,8 @@ export const qaRouter = router({
             participantId: input.participantId!,
           });
         }
-        const signalVersionBeforeRead = getQaQuestionsSignalVersion(input.sessionId);
-        const session = await loadQaSubscriptionSessionSnapshot(
-          input.sessionId,
-          signalVersionBeforeRead,
-        );
+        const signalVersion = getQaQuestionsSignalVersion(input.sessionId);
+        const session = await loadQaSubscriptionSessionSnapshot(input.sessionId, signalVersion);
         if (!session) {
           return;
         }
@@ -2499,7 +2497,6 @@ export const qaRouter = router({
               : !input.moderatorView && session.qaOpen === false
                 ? 'CHANNEL_CLOSED'
                 : 'ACTIVE';
-        const signalVersion = getQaQuestionsSignalVersion(session.id);
         if (!input.moderatorView && contentState !== 'ACTIVE') {
           const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
           if (revisionKey !== lastRevisionKey) {

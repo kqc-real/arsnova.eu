@@ -13,6 +13,7 @@ vi.mock('../db', () => ({ prisma: prismaMock }));
 import {
   assertParticipantCapability,
   extractParticipantCapability,
+  loadParticipantOnCapabilityCacheMiss,
   resetParticipantCapabilityCacheForTests,
 } from './participantAuth';
 import { hashCapability } from './capabilityCrypto';
@@ -86,5 +87,25 @@ describe('participantAuth', () => {
       code: 'UNAUTHORIZED',
       message: 'Teilnahme-Nachweis ungültig oder abgelaufen.',
     });
+  });
+
+  it('reicht den autorisierten DB-Treffer weiter und liest erst bei einem Cache-Miss', async () => {
+    const scope = {
+      ctx: { connectionParams: { participantCapability: CAPABILITY } },
+      sessionId: SESSION_ID,
+      participantId: PARTICIPANT_ID,
+    };
+    const participant = { id: PARTICIPANT_ID, session: { status: 'ACTIVE' } };
+    const lookup = vi.fn().mockResolvedValue(participant);
+
+    expect(await loadParticipantOnCapabilityCacheMiss(scope, lookup)).toBe(participant);
+    expect(lookup).toHaveBeenCalledExactlyOnceWith({
+      id: PARTICIPANT_ID,
+      sessionId: SESSION_ID,
+      rejoinCapabilityHash: hashCapability(CAPABILITY),
+    });
+    expect(await loadParticipantOnCapabilityCacheMiss(scope, lookup)).toBeUndefined();
+    expect(lookup).toHaveBeenCalledTimes(1);
+    expect(prismaMock.participant.findFirst).not.toHaveBeenCalled();
   });
 });

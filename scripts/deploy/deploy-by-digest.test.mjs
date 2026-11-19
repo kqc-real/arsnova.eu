@@ -95,6 +95,7 @@ function runRunnerSelectionDeploy({
   redisVolumePresent = false,
   redisProbeValue = '1',
   redisTimeoutSeconds = 3,
+  activeReplica = '',
 }) {
   const work = mkdtempSync(join(tmpdir(), `arsnova-runner-${mode}-`));
   const bin = join(work, 'mock-bin');
@@ -195,6 +196,13 @@ if [[ "$1" == "image" && "$2" == "inspect" ]]; then
     exit 0
   fi
   exit 1
+fi
+
+if [[ "$1" == "ps" ]]; then
+  if [[ -n "$MOCK_ACTIVE_REPLICA" ]]; then
+    printf '%s running\n' "$MOCK_ACTIVE_REPLICA"
+  fi
+  exit 0
 fi
 
 if [[ "$1" == "inspect" ]]; then
@@ -383,6 +391,7 @@ exit 1
     DEPLOY_IMAGE: mode === 'normal' ? target.image : '',
     DEPLOY_SHA: mode === 'normal' ? target.sha : '',
     MOCK_ACTIVE_IMAGE: activeImage ?? '',
+    MOCK_ACTIVE_REPLICA: activeReplica,
     MOCK_INITIAL_CHECKOUT_SHA: initialCheckoutSha,
     MOCK_CHECKOUT_MARKER: join(work, '.mock-checkout-complete'),
     MOCK_LOG: mockLog,
@@ -613,6 +622,99 @@ test('writer drain and all-cache purge gate retention and app startup', () => {
 function runnerEvents(log) {
   return log.split('\n').filter((line) => /^(MIGRATE|PROBE|STOP|RUN|RETENTION|START) /.test(line));
 }
+
+test('Deploy verlangt Topologie-Rollback vor Migration und Writer-Drain', () => {
+  for (const activeReplica of ['arsnova-v3-app-b', 'arsnova-v3-app-c', 'arsnova-v3-yjs-relay']) {
+    const scenario = runRunnerSelectionDeploy({
+      mode: 'normal',
+      target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+      activeReplica,
+    });
+    assert.equal(scenario.result.status, 1);
+    assert.match(scenario.result.stderr, /scripts\/prod-replicas\.sh rollback/);
+    assert.doesNotMatch(scenario.log, /^(?:INFRA|MIGRATE|STOP|RUN|RETENTION|START) /m);
+  }
+});
+
+test('Produktionsprofile begrenzen den gemeinsamen Pool und verwenden denselben Digest', () => {
+  const projectDir = mkdtempSync(join(tmpdir(), 'arsnova-prod-replica-contract-'));
+  writeMinimalProdEnv(projectDir);
+  for (const file of ['docker-compose.prod.yml', 'docker-compose.prod.replicas.yml']) {
+    copyFileSync(join(repoRoot, file), join(projectDir, file));
+  }
+  const resolveServices = (files, profiles, pool) => {
+    const result = spawnSync(
+      'docker',
+      [
+        'compose',
+        ...files.flatMap((file) => ['-f', file]),
+        ...profiles.flatMap((profile) => ['--profile', profile]),
+        'config',
+        '--format',
+        'json',
+      ],
+      {
+        cwd: projectDir,
+        env: {
+          ...process.env,
+          ARSNOVA_IMAGE: VALID_DIGEST,
+          ARSNOVA_REPLICA_POOL_MAX: pool,
+          COMPOSE_PROFILES: '',
+        },
+        encoding: 'utf8',
+      },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    return JSON.parse(result.stdout).services;
+  };
+  const base = ['docker-compose.prod.yml'];
+  const overlay = [...base, 'docker-compose.prod.replicas.yml'];
+  const single = resolveServices(base, [], '30');
+  assert.equal(single['app-b'], undefined);
+  assert.equal(single['app-c'], undefined);
+  assert.equal(single['yjs-relay'], undefined);
+  assert.equal(single.app.entrypoint ?? undefined, undefined);
+
+  for (const [profiles, pool, services] of [
+    [['app-replicas'], '30', ['app', 'app-b']],
+    [['app-replicas', 'app-third'], '20', ['app', 'app-b', 'app-c']],
+  ]) {
+    const cfg = resolveServices(overlay, profiles, pool);
+    if (services.length === 2) assert.equal(cfg['app-c'], undefined);
+    assert.equal(cfg['yjs-relay'].image, VALID_DIGEST);
+    for (const name of services) {
+      const app = cfg[name];
+      assert.equal(app.image, VALID_DIGEST);
+      assert.equal(app.environment.DATABASE_POOL_MAX, pool);
+      assert.equal(app.environment.SESSION_STATUS_PUBSUB_ENABLED, 'true');
+      assert.equal(app.environment.YJS_RELAY_MODE, 'external');
+      assert.deepEqual(app.entrypoint, ['node', 'apps/backend/dist/index.js']);
+      assert.ok(app.ports.every((port) => port.host_ip === '127.0.0.1'));
+    }
+    assert.equal(cfg['app-b'].restart, 'unless-stopped');
+    assert.equal(cfg['yjs-relay'].restart, 'unless-stopped');
+  }
+});
+
+test('Nginx-Pool-Renderer ordnet HTTP, tRPC-WebSocket und Yjs pro Modus zu', () => {
+  for (const [mode, ports] of [
+    ['single', [3000, 3001, 3002]],
+    ['primary', [3000, 3001, 13202]],
+    ['dual', [3000, 13100, 3001, 13101, 13202]],
+    ['triple', [3000, 13100, 13300, 3001, 13101, 13301, 13202]],
+  ]) {
+    const result = spawnSync('bash', ['scripts/prod-replicas.sh', 'render', mode], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(
+      [...result.stdout.matchAll(/server 127\.0\.0\.1:(\d+)/g)].map(([, port]) => Number(port)),
+      ports,
+    );
+    assert.ok(result.stdout.includes(`return 200 "${mode}\\n"`));
+  }
+});
 
 test('already-enabled Redis AOF is verified before infrastructure recreation', () => {
   const scenario = runRunnerSelectionDeploy({

@@ -389,7 +389,9 @@ server {
     }
 
     # Yjs WebSocket (Quiz-Sync zwischen Geräten) → Port 3002
-    location /yjs-ws {
+    location = /yjs-ws { return 404; }
+
+    location ^~ /yjs-ws/ {
         # Der WebSocket-Handshake trägt den Share-Token technisch als ?s=.
         # Nginx-error_log ist nicht formatier-/redigierbar und kann bei
         # Upstream-Fehlern die komplette Request-Zeile ausgeben. Deshalb für
@@ -427,6 +429,10 @@ enthält, muss `proxy_read_timeout 1260s;` auch dort stehen: Nginx wählt für
 `/trpc/quiz.deriveLearningObjectives` die spezifischere Location, und eine
 Direktive aus der benachbarten `location /` gilt dort nicht. Die WebSocket-
 Locations `/trpc-ws` und `/yjs-ws` behalten ihre separaten Leselimits.
+
+Der [Produktions-Replikabetrieb](operations/PRODUCTION-REPLICAS.md) verwendet
+diese TLS- und Proxy-Regeln und ersetzt die drei Upstream-Blöcke durch eine
+generierte Pool-Datei.
 
 Neu erzeugte Browser-Share-Links transportieren den Token zusätzlich im
 URL-Fragment (`#s=…`), das bei HTTP-Anfragen nie an Nginx übertragen wird.
@@ -785,6 +791,13 @@ Lokale Entwicklung (localhost) verwendet weiterhin die Ports 3001 und 3002. Kein
 ---
 
 ## 7. Deployment-Ablauf
+
+Wenn mehrere Apps aktiv sind, im Wartungsfenster zuerst
+`sudo ./scripts/prod-replicas.sh rollback` ausführen und den Modus
+`single` bestätigen. Das gilt für Normal-Deploy, Image-Rollback und Recover.
+Der Digest-Deploy prüft vor Änderungen, ob eine Replika oder der dedizierte
+Relay noch läuft. Nach erfolgreichem Deploy kann der Operator die
+gewünschte Topologie wieder einschalten. [Produktions-Replikabetrieb](operations/PRODUCTION-REPLICAS.md#umschalten-und-zurückrollen).
 
 Empfohlen ist der versionierte Bootstrap vor dem Deploy-Skript. Das ist auch beim manuellen ersten Rollout verbindlich: Eine bereits laufende Bash liest ihre Logik nicht aus einem späteren Git-Checkout neu ein. Weil der installierte Altstand den neuen Helper noch nicht enthalten muss, erfolgt der erste Bootstrap inline und startet das Deploy-Skript nur nach erfolgreich verifiziertem Checkout:
 

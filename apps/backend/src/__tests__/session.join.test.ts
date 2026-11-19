@@ -42,8 +42,7 @@ const {
     rejectInvalidSessionCode: vi.fn(),
   },
   statsMocks: {
-    updateMaxParticipantsSingleSession: vi.fn(),
-    updateDailyMaxParticipants: vi.fn(),
+    scheduleParticipantMaximaUpdate: vi.fn(),
   },
   presenceMocks: {
     touchParticipantPresence: vi.fn(),
@@ -53,6 +52,7 @@ const {
   },
   participantJoinMocks: {
     prepareParticipantJoin: vi.fn(),
+    tryPrepareCustomParticipantJoin: vi.fn(),
   },
 }));
 
@@ -75,8 +75,7 @@ vi.mock('../lib/abuseTelemetry', () => ({
 }));
 
 vi.mock('../lib/platformStatistic', () => ({
-  updateMaxParticipantsSingleSession: statsMocks.updateMaxParticipantsSingleSession,
-  updateDailyMaxParticipants: statsMocks.updateDailyMaxParticipants,
+  scheduleParticipantMaximaUpdate: statsMocks.scheduleParticipantMaximaUpdate,
 }));
 
 vi.mock('../lib/presence', () => ({
@@ -87,8 +86,10 @@ vi.mock('../lib/joinAdmission', () => ({
   awaitJoinAdmissionSlot: joinAdmissionMocks.awaitJoinAdmissionSlot,
 }));
 
-vi.mock('../lib/participantJoin', () => ({
+vi.mock('../lib/participantJoin', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/participantJoin')>()),
   prepareParticipantJoin: participantJoinMocks.prepareParticipantJoin,
+  tryPrepareCustomParticipantJoin: participantJoinMocks.tryPrepareCustomParticipantJoin,
 }));
 
 import { sessionRouter } from '../routers/session';
@@ -147,6 +148,7 @@ describe('session.join', () => {
       }),
     );
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
+    participantJoinMocks.tryPrepareCustomParticipantJoin.mockResolvedValue(null);
     participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
       participantId: PARTICIPANT_ID,
       participantNumber: 4,
@@ -236,10 +238,51 @@ describe('session.join', () => {
       expect(result.participantCount).toBe(4);
       expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaMock.participant.count).not.toHaveBeenCalled();
-      expect(statsMocks.updateMaxParticipantsSingleSession).toHaveBeenCalledWith(4);
-      expect(statsMocks.updateDailyMaxParticipants).toHaveBeenCalledWith(4);
+      expect(statsMocks.scheduleParticipantMaximaUpdate).toHaveBeenCalledWith(4);
     },
   );
+
+  it('antwortet bei einem bestätigten Standardbeitritt direkt aus der Schreibgruppe', async () => {
+    prismaMock.session.findUnique.mockResolvedValue({
+      ...buildSession(),
+      onboardingProfileConfigured: true,
+      onboardingAllowCustomNicknames: true,
+      onboardingAnonymousMode: false,
+      onboardingTeamMode: false,
+    });
+    participantJoinMocks.tryPrepareCustomParticipantJoin.mockResolvedValue({
+      participantId: PARTICIPANT_ID,
+      participantNumber: 4,
+      nickname: 'Ada',
+      teamId: null,
+      teamName: null,
+      timerAccommodation: 'DEFAULT',
+      rejoinCapability: REJOIN_CAPABILITY,
+      productFeedbackClaimToken: 'product-feedback-claim-token-1234567890',
+      rejoined: false,
+    });
+
+    const result = await caller.join({
+      code: 'ABC123',
+      nickname: ' Ada ',
+      anonymousClientId: CLIENT_ID,
+      joinIdempotencyKey: JOIN_KEY,
+    });
+
+    expect(participantJoinMocks.tryPrepareCustomParticipantJoin).toHaveBeenCalledWith({
+      sessionId: SESSION_ID,
+      requestedNickname: 'Ada',
+      anonymousClientId: CLIENT_ID,
+      joinIdempotencyKey: JOIN_KEY,
+    });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      participantId: PARTICIPANT_ID,
+      participantCount: 4,
+      participantNickname: 'Ada',
+      rejoinToken: REJOIN_CAPABILITY,
+    });
+  });
 
   it('weist nach Create ein AUTO-Team zu, wenn Attach parallel Teams aktiviert hat', async () => {
     const TEAM_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -450,6 +493,24 @@ describe('session.join', () => {
     );
 
     expect(invalidSessionCodeMocks.rejectInvalidSessionCode).not.toHaveBeenCalled();
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(1);
     expect(participantJoinMocks.prepareParticipantJoin).toHaveBeenCalledTimes(500);
+  });
+
+  it('liest den Sessionstatus nach Abschluss eines Joins erneut', async () => {
+    const input = {
+      code: 'ABC123',
+      nickname: 'Ada',
+      anonymousClientId: CLIENT_ID,
+      joinIdempotencyKey: JOIN_KEY,
+    };
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce(buildSession())
+      .mockResolvedValueOnce({ ...buildSession(), expiresAt: new Date(0) });
+
+    await expect(caller.join(input)).resolves.toMatchObject({ participantId: PARTICIPANT_ID });
+    await expect(caller.join(input)).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
+    expect(joinAdmissionMocks.awaitJoinAdmissionSlot).toHaveBeenCalledTimes(1);
   });
 });

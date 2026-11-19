@@ -933,6 +933,7 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     abuseSignals,
     cspReportSignals,
     sessionCodeGlobalSoftCapUtilizationPercent,
+    pdfActiveJobs,
   ] = await Promise.all([
     prisma
       .$queryRawUnsafe('SELECT 1')
@@ -942,6 +943,7 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     readAbuseSignals(),
     readCspReportSignals(),
     readSessionCodeGlobalSoftCapUtilization(),
+    pdfConcurrencyLimiter.readActiveJobs(),
   ]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
   const webSocketSnapshot = getWebSocketTelemetrySnapshot();
@@ -953,7 +955,7 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
     sessionCreateGlobalPerHour: RATE_LIMIT_ENV.sessionCreateGlobalPerHour,
     sessionCodeClientFailuresPerWindow: SESSION_CODE_PROTECTION_LIMITS.clientFailuresPerWindow,
-    pdfActiveJobs: pdfSnapshot.activeJobs,
+    pdfActiveJobs,
     pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
     pdfCompletedLastMinute: pdfSignals.completedLastMinute,
     pdfFailedLastMinute: pdfSignals.failedLastMinute,

@@ -16,7 +16,12 @@ import {
   recordYjsWebSocketRejectedUpgrade,
   type YjsUpgradeRejectionReason,
 } from './websocketTelemetry';
-import { authorizeYjsRoomUpgrade, onYjsShareRotated, YJS_SHARE_QUERY_PARAM } from './yjsShareToken';
+import {
+  authorizeYjsRoomUpgrade,
+  onYjsShareRotated,
+  YJS_SHARE_QUERY_PARAM,
+  type YjsShareRotationEvent,
+} from './yjsShareToken';
 import { logger } from './logger';
 
 const ROOM_PATH_PATTERN =
@@ -520,17 +525,16 @@ export class YjsRelayServer {
     { lastLoggedAtMs: number; suppressedSinceLastLog: number }
   >();
   private connectionsActive = 0;
+  private connectionEpoch = 0;
   private documentBytesReserved = 0;
   private readonly unsubscribeShareRotation: () => void;
 
-  constructor(private readonly config: YjsRelayConfig) {
-    this.unsubscribeShareRotation = onYjsShareRotated(({ roomId, generation }) => {
-      const room = `quiz-library-room-${roomId}`;
-      this.roomMinimumGenerations.set(
-        room,
-        Math.max(generation, this.roomMinimumGenerations.get(room) ?? 0),
-      );
-      this.revokeOlderRoomConnections(room, generation);
+  constructor(
+    private readonly config: YjsRelayConfig,
+    private readonly isReady: () => boolean = () => true,
+  ) {
+    this.unsubscribeShareRotation = onYjsShareRotated((event) => {
+      void this.applyShareRotation(event);
     });
     this.webSocketServer = new WebSocketServer({
       noServer: true,
@@ -541,8 +545,9 @@ export class YjsRelayServer {
       perRoomConnectionLimit: config.maxConnectionsPerRoom,
     });
     this.httpServer = createServer((_request, response) => {
-      response.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      response.end('okay');
+      const ready = this.isReady();
+      response.writeHead(ready ? 200 : 503, { 'Content-Type': 'text/plain; charset=utf-8' });
+      response.end(ready ? 'okay' : 'unavailable');
     });
     this.httpServer.on('upgrade', (request, socket, head) => {
       void this.handleUpgrade(request, socket, head);
@@ -559,7 +564,7 @@ export class YjsRelayServer {
 
   async close(): Promise<void> {
     this.unsubscribeShareRotation();
-    for (const client of this.webSocketServer.clients) client.terminate();
+    this.invalidateConnections();
     await new Promise<void>((resolve, reject) => {
       this.webSocketServer.close(() => {
         this.httpServer.close((error) => (error ? reject(error) : resolve()));
@@ -567,11 +572,37 @@ export class YjsRelayServer {
     });
   }
 
+  invalidateConnections(): void {
+    this.connectionEpoch += 1;
+    for (const client of this.webSocketServer.clients) client.terminate();
+  }
+
+  async applyShareRotation({ roomId, generation }: YjsShareRotationEvent): Promise<void> {
+    const room = `quiz-library-room-${roomId}`;
+    this.roomMinimumGenerations.set(
+      room,
+      Math.max(generation, this.roomMinimumGenerations.get(room) ?? 0),
+    );
+    const closures: Promise<void>[] = [];
+    for (const [socket, connectedGeneration] of this.roomConnectionGenerations.get(room) ?? []) {
+      if (connectedGeneration !== null && connectedGeneration >= generation) continue;
+      if (socket.readyState === WebSocket.CLOSED) continue;
+      closures.push(new Promise<void>((resolve) => socket.once('close', resolve)));
+      socket.terminate();
+    }
+    await Promise.all(closures);
+  }
+
   private async handleUpgrade(
     request: IncomingMessage,
     socket: Duplex,
     head: Buffer,
   ): Promise<void> {
+    const epoch = this.connectionEpoch;
+    if (!this.isReady()) {
+      rejectUpgrade(socket, 503, 'authorizationUnavailable');
+      return;
+    }
     const now = Date.now();
     if (!this.globalUpgradeWindow.consume(this.config.maxUpgradesPerMinute, now)) {
       rejectUpgrade(socket, 429, 'globalRate');
@@ -645,6 +676,10 @@ export class YjsRelayServer {
       return;
     }
 
+    if (!this.isReady() || epoch !== this.connectionEpoch) {
+      rejectUpgrade(socket, 503, 'authorizationUnavailable');
+      return;
+    }
     this.webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
       // Schließt auch das enge Fenster, falls das lokale Rotationsereignis
       // unmittelbar vor diesem Callback verarbeitet wurde.
@@ -962,17 +997,6 @@ export class YjsRelayServer {
         docs.delete(room);
       }
     });
-  }
-
-  /** Rotation widerruft bestehende ältere/Legacy-Verbindungen sofort. */
-  private revokeOlderRoomConnections(room: string, generation: number): void {
-    const connections = this.roomConnectionGenerations.get(room);
-    if (!connections) return;
-    for (const [webSocket, connectedGeneration] of connections) {
-      if (connectedGeneration === null || connectedGeneration < generation) {
-        webSocket.terminate();
-      }
-    }
   }
 
   private maxKnownAwarenessIdsPerRoom(): number {

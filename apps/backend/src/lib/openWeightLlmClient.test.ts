@@ -38,6 +38,9 @@ import {
 import { logger } from './logger';
 import { runPreparedQaSummary } from './qaSummaryRuntimeAdapter';
 
+const redis = vi.hoisted(() => ({ set: vi.fn(), eval: vi.fn() }));
+vi.mock('../redis', () => ({ getRedis: () => redis }));
+
 const SOURCE_ID = 'qa-question:11111111-1111-4111-8111-111111111111';
 const QUESTION_ID = '22222222-2222-4222-8222-222222222222';
 
@@ -207,7 +210,105 @@ async function waitFor(predicate: () => boolean): Promise<void> {
 }
 
 describe('openWeightLlmClient', () => {
-  afterEach(() => resetOpenWeightLlmClientForTests());
+  afterEach(() => {
+    resetOpenWeightLlmClientForTests();
+    vi.unstubAllEnvs();
+    redis.set.mockReset();
+    redis.eval.mockReset();
+  });
+
+  it('liefert den Fallback bei einem auf einer anderen App belegten Slot ohne Modellaufruf', async () => {
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    redis.set.mockResolvedValue(null);
+    const request = successfulTransport();
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+
+    await expect(
+      runOpenWeightLlmTopicLabel(requests.topic_label, outputs.topic_label),
+    ).resolves.toEqual({ status: 'fallback', reason: 'busy', output: outputs.topic_label });
+    expect(redis.set).toHaveBeenCalledWith(
+      'llm:inference:lease:v1',
+      expect.any(String),
+      'PX',
+      16_000,
+      'NX',
+    );
+    expect(request).not.toHaveBeenCalled();
+    expect(redis.eval).not.toHaveBeenCalled();
+  });
+
+  it('prüft denselben Besitzer vor dem POST und gibt den Slot nach einer Antwort frei', async () => {
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    redis.set.mockResolvedValue('OK');
+    redis.eval.mockResolvedValue(1);
+    const request = vi.fn(async (input: { method: 'GET' | 'POST' }) =>
+      input.method === 'GET'
+        ? { status: 200, body: '[]' }
+        : completionResponse(outputs.topic_label),
+    );
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+
+    await expect(runOpenWeightLlm(requests.topic_label)).resolves.toMatchObject({
+      status: 'completed',
+    });
+    const [key, owner] = redis.set.mock.calls[0]!;
+    expect(redis.eval).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('PEXPIRE'),
+      1,
+      key,
+      owner,
+      16_000,
+    );
+    expect(redis.eval).toHaveBeenNthCalledWith(2, expect.stringContaining('DEL'), 1, key, owner);
+    expect(redis.eval.mock.invocationCallOrder[0]).toBeLessThan(
+      request.mock.invocationCallOrder[1]!,
+    );
+    expect(redis.eval.mock.invocationCallOrder[1]).toBeGreaterThan(
+      request.mock.invocationCallOrder[1]!,
+    );
+  });
+
+  it('sendet bei Redis-Ausfall oder verlorener Reservierung keinen POST', async () => {
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    const request = vi.fn(async (input: { method: 'GET' | 'POST' }) =>
+      input.method === 'GET'
+        ? { status: 200, body: '[]' }
+        : completionResponse(outputs.topic_label),
+    );
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+    redis.set.mockRejectedValueOnce(new Error('redis offline'));
+    await expect(runOpenWeightLlm(requests.topic_label)).resolves.toEqual({
+      status: 'unavailable',
+    });
+    expect(request).not.toHaveBeenCalled();
+
+    redis.set.mockResolvedValue('OK');
+    redis.eval.mockResolvedValue(0);
+    await expect(runOpenWeightLlm(requests.topic_label)).resolves.toEqual({
+      status: 'unavailable',
+    });
+    expect(request.mock.calls.map(([input]) => input.method)).toEqual(['GET']);
+  });
+
+  it('lässt den Slot nach einem unklaren POST-Abbruch bis zum Ablauf belegt', async () => {
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    redis.set.mockResolvedValue('OK');
+    redis.eval.mockResolvedValue(1);
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async ({ method }) => {
+        if (method === 'GET') return { status: 200, body: '[]' };
+        throw new Error('socket disconnected');
+      },
+    });
+
+    await expect(runOpenWeightLlm(requests.topic_label)).resolves.toEqual({
+      status: 'unavailable',
+    });
+    expect(redis.eval).toHaveBeenCalledTimes(1);
+    expect(redis.eval.mock.calls[0]?.[0]).toContain('PEXPIRE');
+  });
 
   it('hält die dokumentierte Modellprobe synchron zum Backend-Translator', async () => {
     const fixture = JSON.parse(

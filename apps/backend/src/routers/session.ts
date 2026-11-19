@@ -213,9 +213,8 @@ import {
 } from '../lib/sessionRankingCache';
 import { buildSessionLearningOverview } from '../lib/sessionLearningOverview';
 import {
-  updateDailyMaxParticipants,
   incrementCompletedSessionsTotal,
-  updateMaxParticipantsSingleSession,
+  scheduleParticipantMaximaUpdate,
 } from '../lib/platformStatistic';
 import { scheduleUsageStatisticOutboxDrain } from '../lib/usageStatistic';
 import {
@@ -232,7 +231,11 @@ import {
   getQuizHistoryLegacyProofCutoffAt,
 } from '../lib/quizHistoryLegacyProofPolicy';
 import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
-import { prepareParticipantJoin } from '../lib/participantJoin';
+import {
+  PARTICIPANT_JOIN_TRANSACTION_OPTIONS,
+  prepareParticipantJoin,
+  tryPrepareCustomParticipantJoin,
+} from '../lib/participantJoin';
 import {
   assertParticipantCapability,
   invalidateParticipantCapabilitiesForSession,
@@ -354,6 +357,13 @@ import { emitQaQuestionsSignal } from '../lib/qaQuestionsSignal';
 import { clearAllQaPresenterSortModes, clearQaPresenterSortMode } from '../lib/qaPresenterSortMode';
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 import {
+  isSessionPubSubEnabled,
+  publishSessionParticipantsInvalidation,
+  publishSessionStatusInvalidation,
+  scheduleClusterVoteProgressInvalidation,
+  VOTE_PROGRESS_SIGNAL_DEBOUNCE_MS,
+} from '../lib/sessionStatusPubSub';
+import {
   deriveSessionLearningObjectives,
   getSessionLearningObjectives,
   getSessionLearningObjectivesSnapshotWithDb,
@@ -370,13 +380,10 @@ const QA_EXPORT_MAX_QUESTIONS = 500;
 const CURRENT_QUESTION_CACHE_TTL_MS = 500;
 const HOST_VOTE_PROGRESS_SESSION_CACHE_TTL_MS = 2_000;
 const PARTICIPANT_MEMBERSHIP_CACHE_TTL_MS = 30_000;
-const VOTE_COUNT_CACHE_TTL_MS = 15 * 60_000;
-const VOTE_SUMMARY_CACHE_TTL_MS = 15 * 60_000;
-/** Burst aus dem Hörsaal darf auf einen freien Pool-Slot warten statt hart zu scheitern. */
-export const JOIN_TRANSACTION_MAX_WAIT_MS = 10_000;
-export const JOIN_TRANSACTION_TIMEOUT_MS = 15_000;
+const DEFAULT_VOTE_AGGREGATE_CACHE_TTL_MS = 15 * 60_000;
+// Der 10s-Polling-Fallback darf bei verlorenem Redis-Signal kein altes Aggregat lesen.
+const REPLICATED_VOTE_AGGREGATE_CACHE_TTL_MS = 5_000;
 const CURRENT_QUESTION_EVENT_WAIT_MS = 10_000;
-const VOTE_PROGRESS_SIGNAL_DEBOUNCE_MS = 150;
 const STATUS_EVENT_WAIT_ACTIVE_MS = 10_000;
 const STATUS_EVENT_WAIT_IDLE_MS = 30_000;
 // Prozesslokale Signale reagieren sofort; der kurze DB-Revisionsfallback hält
@@ -508,6 +515,7 @@ const sessionInfoInFlight = new Map<
   Promise<Omit<z.infer<typeof SessionInfoDTOSchema>, 'serverTime'>>
 >();
 const statusSnapshotInFlight = new Map<string, Promise<StatusSnapshotPayload>>();
+const joinSessionInFlight = new Map<string, ReturnType<typeof readJoinSession>>();
 const participantsSnapshotInFlight = new Map<
   string,
   Promise<z.infer<typeof SessionParticipantSummaryDTOSchema>>
@@ -611,6 +619,7 @@ function clearSessionReadCaches(code?: string): void {
     invalidateSessionRankingCache();
     sessionInfoInFlight.clear();
     statusSnapshotInFlight.clear();
+    joinSessionInFlight.clear();
     participantsSnapshotInFlight.clear();
     participantNicknameInFlight.clear();
     currentQuestionInFlight.clear();
@@ -639,6 +648,7 @@ function clearSessionReadCaches(code?: string): void {
   clearVoteCaches(code);
   sessionInfoInFlight.delete(code);
   statusSnapshotInFlight.delete(code);
+  joinSessionInFlight.delete(code);
   participantsSnapshotInFlight.delete(code);
   const voteProgressTimer = sessionVoteProgressTimers.get(code);
   if (voteProgressTimer) {
@@ -675,6 +685,7 @@ function clearSessionInfoCache(code: string): void {
 function clearStatusSnapshotCache(code: string): void {
   statusSnapshotCache.delete(code);
   statusSnapshotInFlight.delete(code);
+  joinSessionInFlight.delete(code);
 }
 
 function clearParticipantsSnapshotCache(code: string): void {
@@ -817,20 +828,9 @@ function emitSessionVoteProgressSignalNow(normalizedCode: string): void {
   sessionVoteProgressEvents.emit(sessionVoteProgressEventName(normalizedCode), nextVersion);
 }
 
-function emitSessionVoteProgressSignal(code: string, options: { immediate?: boolean } = {}): void {
-  const normalizedCode = code.toUpperCase();
-  const pendingTimer = sessionVoteProgressTimers.get(normalizedCode);
-  if (options.immediate) {
-    if (pendingTimer) {
-      clearTimeout(pendingTimer);
-      sessionVoteProgressTimers.delete(normalizedCode);
-    }
-    emitSessionVoteProgressSignalNow(normalizedCode);
-    return;
-  }
-  if (pendingTimer) {
-    return;
-  }
+function scheduleSessionVoteProgressSignal(normalizedCode: string): void {
+  if (sessionVoteProgressTimers.has(normalizedCode)) return;
+  if (scheduleClusterVoteProgressInvalidation(normalizedCode)) return;
   const timer = setTimeout(() => {
     sessionVoteProgressTimers.delete(normalizedCode);
     emitSessionVoteProgressSignalNow(normalizedCode);
@@ -1141,7 +1141,7 @@ export async function purgeSessionRuntimeArtifacts(params: {
   emitSessionStatusSignal(code);
   emitSessionParticipantSignal(code);
   emitSessionCurrentQuestionSignal(code);
-  emitSessionVoteProgressSignal(code, { immediate: true });
+  emitSessionVoteProgressSignalNow(code);
   sessionStatusVersions.delete(code);
   sessionParticipantVersions.delete(code);
   sessionCurrentQuestionVersions.delete(code);
@@ -1151,12 +1151,7 @@ export async function purgeSessionRuntimeArtifacts(params: {
 
 registerSessionPurgeInvalidator((event) => purgeSessionRuntimeArtifacts(event));
 
-export function invalidateSessionMetadataCachesForCode(code: string): void {
-  const normalizedCode = code.toUpperCase();
-  clearSessionInfoCache(normalizedCode);
-}
-
-export function invalidateSessionStatusCachesForCode(code: string): void {
+export function invalidateLocalSessionStatusCachesForCode(code: string): void {
   const normalizedCode = code.toUpperCase();
   clearSessionInfoCache(normalizedCode);
   clearStatusSnapshotCache(normalizedCode);
@@ -1166,10 +1161,37 @@ export function invalidateSessionStatusCachesForCode(code: string): void {
   emitSessionStatusSignal(normalizedCode);
   emitSessionParticipantSignal(normalizedCode);
   emitSessionCurrentQuestionSignal(normalizedCode);
-  emitSessionVoteProgressSignal(normalizedCode, { immediate: true });
+  if (!isSessionPubSubEnabled()) {
+    const timer = sessionVoteProgressTimers.get(normalizedCode);
+    if (timer) {
+      clearTimeout(timer);
+      sessionVoteProgressTimers.delete(normalizedCode);
+    }
+  }
+  emitSessionVoteProgressSignalNow(normalizedCode);
 }
 
-export function invalidateJoinCachesForCode(code: string): void {
+export function invalidateSessionStatusCachesForCode(code: string): void {
+  const normalizedCode = code.toUpperCase();
+  if (isSessionPubSubEnabled()) clearVoteCaches(normalizedCode);
+  invalidateLocalSessionStatusCachesForCode(normalizedCode);
+  publishSessionStatusInvalidation(normalizedCode);
+}
+
+export function invalidateRemoteSessionStatusForCode(code: string): void {
+  const normalizedCode = code.toUpperCase();
+  clearVoteCaches(normalizedCode);
+  invalidateLocalSessionStatusCachesForCode(normalizedCode);
+}
+
+export function invalidateRemoteVoteProgressForCode(code: string): void {
+  const normalizedCode = code.toUpperCase();
+  clearVoteCaches(normalizedCode);
+  clearCurrentQuestionCache(normalizedCode);
+  emitSessionVoteProgressSignalNow(normalizedCode);
+}
+
+export function invalidateLocalJoinCachesForCode(code: string): void {
   const normalizedCode = code.toUpperCase();
   clearSessionInfoCache(normalizedCode);
   clearParticipantsSnapshotCache(normalizedCode);
@@ -1177,6 +1199,11 @@ export function invalidateJoinCachesForCode(code: string): void {
   clearParticipantMembershipCache(normalizedCode);
   clearCurrentQuestionCache(normalizedCode);
   emitSessionParticipantSignal(normalizedCode);
+}
+
+export function invalidateJoinCachesForCode(code: string): void {
+  invalidateLocalJoinCachesForCode(code);
+  publishSessionParticipantsInvalidation(code.toUpperCase());
 }
 
 export function invalidateCurrentQuestionCachesForCode(code: string): void {
@@ -1189,7 +1216,7 @@ export function invalidateCurrentQuestionCachesForCode(code: string): void {
 export function invalidateHostVoteProgressForCode(code: string): void {
   const normalizedCode = code.toUpperCase();
   clearCurrentQuestionCache(normalizedCode);
-  emitSessionVoteProgressSignal(normalizedCode);
+  scheduleSessionVoteProgressSignal(normalizedCode);
 }
 
 export function resetVoteAggregationCachesForTests(): void {
@@ -1211,6 +1238,12 @@ export function resetVoteAggregationCachesForTests(): void {
   personalResultSessionInFlight.clear();
 }
 
+function voteAggregateCacheTtlMs(): number {
+  return isSessionPubSubEnabled()
+    ? REPLICATED_VOTE_AGGREGATE_CACHE_TTL_MS
+    : DEFAULT_VOTE_AGGREGATE_CACHE_TTL_MS;
+}
+
 function voteCacheKey(code: string, questionId: string, round: number): string {
   return `${code}:${questionId}:${round}`;
 }
@@ -1222,7 +1255,7 @@ async function getVoteCountCached(
   round: number,
 ): Promise<number> {
   const key = voteCacheKey(code, questionId, round);
-  return getOrComputeCached(voteCountCache, voteCountInFlight, key, VOTE_COUNT_CACHE_TTL_MS, () =>
+  return getOrComputeCached(voteCountCache, voteCountInFlight, key, voteAggregateCacheTtlMs(), () =>
     prisma.vote.count({
       where: {
         sessionId,
@@ -1244,7 +1277,7 @@ async function getRatingVoteProgressCached(
     ratingVoteProgressCache,
     ratingVoteProgressInFlight,
     key,
-    VOTE_COUNT_CACHE_TTL_MS,
+    voteAggregateCacheTtlMs(),
     async () => {
       const groups = await prisma.vote.groupBy({
         by: ['ratingValue'],
@@ -1493,7 +1526,7 @@ async function getVoteSummaryCached(
     voteSummaryCache,
     voteSummaryInFlight,
     key,
-    VOTE_SUMMARY_CACHE_TTL_MS,
+    voteAggregateCacheTtlMs(),
     async () => {
       if (questionType === 'FREETEXT') {
         const votes = await prisma.vote.findMany({
@@ -1647,9 +1680,20 @@ export function recordVoteCachesForCode(
     invalidateSessionRankingCache(sessionId);
   }
   const key = voteCacheKey(normalizedCode, questionId, round);
+  if (isSessionPubSubEnabled()) {
+    // Ein anderer Prozess kann denselben Commit bereits im Aggregat gesehen haben.
+    // Daher weder einen möglicherweise veralteten Snapshot erhöhen noch ihn verlängern.
+    voteCountCache.delete(key);
+    voteCountInFlight.delete(key);
+    voteSummaryCache.delete(key);
+    voteSummaryInFlight.delete(key);
+    ratingVoteProgressCache.delete(key);
+    ratingVoteProgressInFlight.delete(key);
+    return;
+  }
   const cachedCount = getCachedValue(voteCountCache, key);
   if (cachedCount !== null) {
-    setCachedValue(voteCountCache, key, cachedCount + 1, VOTE_COUNT_CACHE_TTL_MS);
+    setCachedValue(voteCountCache, key, cachedCount + 1, DEFAULT_VOTE_AGGREGATE_CACHE_TTL_MS);
   }
 
   const cachedSummary = getCachedValue(voteSummaryCache, key);
@@ -1693,7 +1737,7 @@ export function recordVoteCachesForCode(
     if (payload.numericValue !== null && payload.numericValue !== undefined) {
       nextSummary.numericValues.push(payload.numericValue);
     }
-    setCachedValue(voteSummaryCache, key, nextSummary, VOTE_SUMMARY_CACHE_TTL_MS);
+    setCachedValue(voteSummaryCache, key, nextSummary, DEFAULT_VOTE_AGGREGATE_CACHE_TTL_MS);
   }
   ratingVoteProgressCache.delete(key);
   ratingVoteProgressInFlight.delete(key);
@@ -3672,7 +3716,7 @@ async function assignExistingParticipantsToTeams(
   }
 }
 
-const SESSION_ONBOARDING_RECONCILE_SELECT = {
+const SESSION_ONBOARDING_SELECT = {
   onboardingProfileConfigured: true,
   onboardingNicknameTheme: true,
   onboardingAllowCustomNicknames: true,
@@ -3692,8 +3736,58 @@ const SESSION_ONBOARDING_RECONCILE_SELECT = {
       teamNames: true,
     },
   },
-  _count: { select: { participants: true } },
 } as const;
+
+async function readJoinSession(code: string) {
+  return prisma.session.findUnique({
+    where: { code },
+    select: {
+      ...SESSION_ONBOARDING_SELECT,
+      id: true,
+      code: true,
+      type: true,
+      status: true,
+      title: true,
+      quizId: true,
+      currentQuestion: true,
+      firstParticipantJoinedAt: true,
+      expiresAt: true,
+      endedAt: true,
+      sessionLifecycleRevision: true,
+      qaEnabled: true,
+      qaOpen: true,
+      qaClosesAt: true,
+      qaTitle: true,
+      qaModerationMode: true,
+      moderationMode: true,
+      quickFeedbackEnabled: true,
+      quickFeedbackOpen: true,
+      preferredChannel: true,
+      quiz: {
+        select: {
+          ...SESSION_ONBOARDING_SELECT.quiz.select,
+          name: true,
+          motifImageUrl: true,
+          motifImageCredit: true,
+          enableTimerAccommodation: true,
+        },
+      },
+    },
+  });
+}
+
+/** Teilt nur überlappende DB-Abfragen. Jeder Join prüft Zulassung und Ablauf selbst. */
+function loadJoinSession(code: string): ReturnType<typeof readJoinSession> {
+  const current = joinSessionInFlight.get(code);
+  if (current) return current;
+  const pending = readJoinSession(code).finally(() => {
+    if (joinSessionInFlight.get(code) === pending) {
+      joinSessionInFlight.delete(code);
+    }
+  });
+  joinSessionInFlight.set(code, pending);
+  return pending;
+}
 
 /**
  * Schließt die Race „Join erzeugt teamlos, Attach aktiviert danach Teams“.
@@ -3713,7 +3807,7 @@ async function reconcileParticipantAutoTeamAssignment(input: {
 }> {
   const latestSession = await prisma.session.findUnique({
     where: { id: input.sessionId },
-    select: SESSION_ONBOARDING_RECONCILE_SELECT,
+    select: SESSION_ONBOARDING_SELECT,
   });
   if (!latestSession) {
     return {
@@ -3740,16 +3834,15 @@ async function reconcileParticipantAutoTeamAssignment(input: {
     };
   }
 
-  const teams = await ensureSessionTeams(
-    input.sessionId,
-    profile.teamCount ?? DEFAULT_TEAM_COUNT,
-    profile.teamNames,
-  );
+  const [teams, participantCount] = await Promise.all([
+    ensureSessionTeams(input.sessionId, profile.teamCount ?? DEFAULT_TEAM_COUNT, profile.teamNames),
+    prisma.participant.count({ where: { sessionId: input.sessionId } }),
+  ]);
   if (teams.length === 0) {
     return { teamId: null, teamName: null, profile };
   }
 
-  const participantIndex = Math.max(0, latestSession._count.participants - 1);
+  const participantIndex = Math.max(0, participantCount - 1);
   const team = teams[participantIndex % teams.length]!;
   await prisma.participant.update({
     where: { id: input.participantId },
@@ -6021,7 +6114,7 @@ const sessionCoreRouter = router({
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
         select: {
-          ...SESSION_ONBOARDING_RECONCILE_SELECT,
+          ...SESSION_ONBOARDING_SELECT,
           firstParticipantJoinedAt: true,
         },
       });
@@ -6624,8 +6717,7 @@ const sessionCoreRouter = router({
           });
           return { session: updated, serverNow };
         });
-        invalidateSessionMetadataCachesForCode(code);
-        emitSessionStatusSignal(code);
+        invalidateSessionStatusCachesForCode(code);
         emitQaQuestionsSignal(identity.id, { immediate: true });
         const channels = buildSessionChannels(configured.session, configured.serverNow);
         return {
@@ -7254,7 +7346,6 @@ const sessionCoreRouter = router({
       });
       if (result.changed) {
         invalidateSessionStatusCachesForCode(code);
-        emitSessionStatusSignal(code);
         emitQaQuestionsSignal(identity.id, { immediate: true });
       }
       return buildSessionChannels(result.session, result.serverNow);
@@ -7340,7 +7431,6 @@ const sessionCoreRouter = router({
       });
       if (result.changed) {
         invalidateSessionStatusCachesForCode(code);
-        emitSessionStatusSignal(code);
         emitQaQuestionsSignal(identity.id, { immediate: true });
       }
       return buildSessionChannels(result.session, result.serverNow);
@@ -8059,8 +8149,7 @@ const sessionCoreRouter = router({
         data,
         select: { qaTitle: true, title: true },
       });
-      invalidateSessionMetadataCachesForCode(code);
-      emitSessionStatusSignal(code);
+      invalidateSessionStatusCachesForCode(code);
       return {
         qaTitle: updated.qaTitle,
         title: updated.title ?? null,
@@ -8166,8 +8255,10 @@ const sessionCoreRouter = router({
         presenterPageIdentityBySessionId.delete(identity.id);
         qaWordCloudProjectionBySessionId.delete(identity.id);
         freetextWordCloudProjectionBySessionId.delete(identity.id);
+        invalidateSessionStatusCachesForCode(code);
+      } else {
+        invalidateLocalSessionStatusCachesForCode(code);
       }
-      invalidateSessionStatusCachesForCode(code);
       const { channelChanged: _channelChanged, ...result } = changed;
       return result;
     }),
@@ -8265,7 +8356,7 @@ const sessionCoreRouter = router({
       if (input.surface !== 'qaWordCloud') {
         qaWordCloudProjectionBySessionId.delete(session.id);
       }
-      invalidateSessionStatusCachesForCode(code);
+      invalidateLocalSessionStatusCachesForCode(code);
       return {
         presenterSurface: input.surface,
         presenterPage: resolvePresenterPage(session.id, session, preferredChannel),
@@ -8342,7 +8433,11 @@ const sessionCoreRouter = router({
         } else {
           finishedQaWordCloudSurfaceBySessionId.delete(session.id);
         }
-        invalidateSessionStatusCachesForCode(code);
+        if (sessionLifecycleRevision !== session.sessionLifecycleRevision) {
+          invalidateSessionStatusCachesForCode(code);
+        } else {
+          invalidateLocalSessionStatusCachesForCode(code);
+        }
       }
       return {
         projection: input.projection,
@@ -10625,27 +10720,7 @@ const sessionCoreRouter = router({
     .output(JoinSessionOutputSchema)
     .mutation(async ({ input }) => {
       const code = input.code.toUpperCase();
-      const session = await prisma.session.findUnique({
-        where: { code },
-        include: {
-          quiz: {
-            select: {
-              name: true,
-              nicknameTheme: true,
-              allowCustomNicknames: true,
-              anonymousMode: true,
-              teamMode: true,
-              teamCount: true,
-              teamAssignment: true,
-              teamNames: true,
-              motifImageUrl: true,
-              motifImageCredit: true,
-              enableTimerAccommodation: true,
-            },
-          },
-          _count: { select: { participants: true } },
-        },
-      });
+      const session = await loadJoinSession(code);
       if (!session) {
         return rejectInvalidSessionCode(input.anonymousClientId, code, 'join');
       }
@@ -10691,27 +10766,37 @@ const sessionCoreRouter = router({
       }
 
       await awaitJoinAdmissionSlot(session.id);
-      const preparedJoin = await prisma.$transaction(
-        (tx) =>
-          prepareParticipantJoin({
-            tx,
-            sessionId: session.id,
-            requestedNickname: trimmedNickname,
-            kindergartenAnimalId: input.kindergartenAnimalId,
-            assignedTeamId: selectedTeamId,
-            autoTeamIds,
-            requireAssignedTeamForNew,
-            profile: onboardingProfile,
-            rejoinCapability: input.rejoinToken,
-            anonymousClientId: input.anonymousClientId,
-            joinIdempotencyKey: input.joinIdempotencyKey,
-            productFeedbackClaimToken: input.productFeedbackClaimToken,
-          }),
-        {
-          maxWait: JOIN_TRANSACTION_MAX_WAIT_MS,
-          timeout: JOIN_TRANSACTION_TIMEOUT_MS,
-        },
-      );
+      const joinIdentity = {
+        sessionId: session.id,
+        requestedNickname: trimmedNickname,
+        anonymousClientId: input.anonymousClientId,
+        joinIdempotencyKey: input.joinIdempotencyKey,
+      };
+      const batchedJoin =
+        session.onboardingProfileConfigured &&
+        onboardingProfile.allowCustomNicknames &&
+        !onboardingProfile.anonymousMode &&
+        !onboardingProfile.teamMode &&
+        !input.rejoinToken
+          ? await tryPrepareCustomParticipantJoin(joinIdentity)
+          : null;
+      const preparedJoin =
+        batchedJoin ??
+        (await prisma.$transaction(
+          (tx) =>
+            prepareParticipantJoin({
+              tx,
+              ...joinIdentity,
+              kindergartenAnimalId: input.kindergartenAnimalId,
+              assignedTeamId: selectedTeamId,
+              autoTeamIds,
+              requireAssignedTeamForNew,
+              profile: onboardingProfile,
+              rejoinCapability: input.rejoinToken,
+              productFeedbackClaimToken: input.productFeedbackClaimToken,
+            }),
+          PARTICIPANT_JOIN_TRANSACTION_OPTIONS,
+        ));
       const participantId = preparedJoin.participantId;
       let assignedTeamId = preparedJoin.teamId ?? undefined;
       let assignedTeamName = preparedJoin.teamName;
@@ -10742,8 +10827,7 @@ const sessionCoreRouter = router({
         ? await prisma.participant.count({ where: { sessionId: session.id } })
         : preparedJoin.participantNumber;
       invalidateJoinCachesForCode(code);
-      void updateMaxParticipantsSingleSession(newParticipantCount);
-      void updateDailyMaxParticipants(newParticipantCount);
+      scheduleParticipantMaximaUpdate(newParticipantCount);
       if (!preparedJoin.rejoined) {
         scheduleUsageStatisticOutboxDrain();
       }
@@ -11450,13 +11534,20 @@ const sessionCoreRouter = router({
     .query(async ({ input }) => {
       const code = await resolveLastFinishedSessionCodeForQuiz(input.quizId, input.accessProof);
       const profile = input.profile ?? 'visual';
-      const { data, pdf } = await pdfConcurrencyLimiter.run('session-history', async () => {
-        const data = await loadFinishedQuizSessionExportData(code, {
-          requireLearningDebrief: true,
-        });
-        const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId, profile });
-        return { data, pdf };
-      });
+      const { data, pdf } = await pdfConcurrencyLimiter.run(
+        'session-history',
+        async (beforeRender) => {
+          const data = await loadFinishedQuizSessionExportData(code, {
+            requireLearningDebrief: true,
+          });
+          const pdf = await buildSessionResultsPdf(data, {
+            localeId: input.localeId,
+            profile,
+            beforeRender,
+          });
+          return { data, pdf };
+        },
+      );
       return {
         fileName: buildSessionResultsPdfFilename(data.quizName, data.sessionCode, profile),
         mimeType: 'application/pdf' as const,
@@ -11900,13 +11991,20 @@ const sessionCoreRouter = router({
     .output(SessionExportPdfOutputSchema)
     .query(async ({ input }) => {
       const profile = input.profile ?? 'visual';
-      const { data, pdf } = await pdfConcurrencyLimiter.run('session-host', async () => {
-        const data = await loadFinishedQuizSessionExportData(input.code, {
-          requireLearningDebrief: true,
-        });
-        const pdf = await buildSessionResultsPdf(data, { localeId: input.localeId, profile });
-        return { data, pdf };
-      });
+      const { data, pdf } = await pdfConcurrencyLimiter.run(
+        'session-host',
+        async (beforeRender) => {
+          const data = await loadFinishedQuizSessionExportData(input.code, {
+            requireLearningDebrief: true,
+          });
+          const pdf = await buildSessionResultsPdf(data, {
+            localeId: input.localeId,
+            profile,
+            beforeRender,
+          });
+          return { data, pdf };
+        },
+      );
       return {
         fileName: buildSessionResultsPdfFilename(data.quizName, data.sessionCode, profile),
         mimeType: 'application/pdf' as const,

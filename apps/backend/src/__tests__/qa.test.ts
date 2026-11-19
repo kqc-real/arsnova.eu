@@ -3281,6 +3281,55 @@ describe('qa router (Epic 8)', () => {
     await iterator.return?.(undefined);
   });
 
+  it('liest nach einem Ranking-Signal während eines laufenden Reads sofort erneut', async () => {
+    const original = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+    };
+    prismaMock.session.findUnique.mockResolvedValue(original);
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({ value: { rankingRevision: 7 } });
+
+    let markStarted!: () => void;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    let finishRead!: (snapshot: typeof original) => void;
+    const blockedRead = new Promise<typeof original>((resolve) => {
+      finishRead = resolve;
+    });
+    prismaMock.session.findUnique.mockImplementationOnce(() => {
+      markStarted();
+      return blockedRead;
+    });
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    const update = vi.fn();
+    const next = iterator.next().then(update);
+    await started;
+    prismaMock.session.findUnique.mockResolvedValue({ ...original, qaRankingRevision: 8 });
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    finishRead(original);
+
+    await vi.waitFor(
+      () =>
+        expect(update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            value: expect.objectContaining({ rankingRevision: 8 }),
+          }),
+        ),
+      { timeout: 500, interval: 10 },
+    );
+    await next;
+    await iterator.return?.(undefined);
+  });
+
   it('wendet den Fristablauf einmal an und fällt danach auf das normale Teilnehmerintervall zurück', async () => {
     vi.useFakeTimers();
     const deadline = new Date('2026-09-18T08:00:01.000Z');

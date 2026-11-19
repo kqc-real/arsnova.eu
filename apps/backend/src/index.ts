@@ -14,6 +14,8 @@ import { disconnectDatabase } from './db';
 import { logger } from './lib/logger';
 import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
 import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
+import { closeQaSummaryStateRedis } from './lib/qaSummaryStateStore';
+import { emitQaQuestionsSignal } from './lib/qaQuestionsSignal';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
@@ -21,6 +23,16 @@ import {
   startSessionPurgeInvalidationSubscriber,
   stopSessionPurgeInvalidationSubscriber,
 } from './lib/sessionPurgeInvalidation';
+import {
+  isSessionPubSubEnabled,
+  startSessionPubSub,
+  stopSessionPubSub,
+} from './lib/sessionStatusPubSub';
+import {
+  invalidateLocalJoinCachesForCode,
+  invalidateRemoteSessionStatusForCode,
+  invalidateRemoteVoteProgressForCode,
+} from './routers/session';
 import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
 import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
@@ -31,6 +43,7 @@ import { beginWordCloudAnalysisCacheShutdown } from './lib/wordCloudAnalysisCach
 import {
   assertYjsShareTokenSecretConfigured,
   getYjsShareLegacyUuidCutoffAt,
+  usesExternalYjsRelay,
 } from './lib/yjsShareToken';
 import { assertCapabilityEnvelopeKeyConfigured } from './lib/capabilityCrypto';
 import {
@@ -45,6 +58,7 @@ import {
   startUsageStatisticOutboxScheduler,
   stopUsageStatisticOutboxScheduler,
 } from './lib/usageStatistic';
+import { flushParticipantMaximaUpdates } from './lib/platformStatistic';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
@@ -64,6 +78,15 @@ void startSessionPurgeInvalidationSubscriber().catch((error: unknown) => {
     (error as Error).message,
   );
 });
+
+if (isSessionPubSubEnabled()) {
+  startSessionPubSub({
+    status: invalidateRemoteSessionStatusForCode,
+    voteProgress: invalidateRemoteVoteProgressForCode,
+    participants: invalidateLocalJoinCachesForCode,
+    qaQuestions: (sessionId) => emitQaQuestionsSignal(sessionId, { immediate: true }),
+  });
+}
 
 const app = express();
 app.disable('x-powered-by');
@@ -222,7 +245,9 @@ if (fs.existsSync(frontendDist)) {
 const server = app.listen(PORT, () => {
   logger.info(`🚀 Backend HTTP auf http://localhost:${PORT}`);
   logger.info(`   tRPC: http://localhost:${PORT}/trpc`);
-  startSessionCleanupScheduler();
+  if (process.env['SESSION_CLEANUP_SCHEDULER_ENABLED'] !== 'false') {
+    startSessionCleanupScheduler();
+  }
 });
 
 // WebSocket-Server für tRPC-Subscriptions (Story 0.2 / W2.3a)
@@ -242,8 +267,8 @@ trpcWebSocketServer.listen(() => {
 
 // Story 0.3 / W2.2: gehärteter Yjs-Relay für geteilte Quiz-Sammlungen.
 const yjsRelayConfig = resolveYjsRelayConfig();
-const yjsRelay = new YjsRelayServer(yjsRelayConfig);
-yjsRelay.listen(() => {
+const yjsRelay = usesExternalYjsRelay() ? null : new YjsRelayServer(yjsRelayConfig);
+yjsRelay?.listen(() => {
   logger.info(`   Yjs WebSocket: ws://${yjsRelayConfig.host}:${yjsRelayConfig.port}`);
 });
 
@@ -271,13 +296,16 @@ async function shutdown(): Promise<void> {
   await Promise.all([
     httpDrain,
     trpcWebSocketServer.close(),
-    yjsRelay.close(),
+    yjsRelay?.close(),
     shutdownAbuseTelemetry(),
     shutdownPdfTelemetry(),
     stopSessionPurgeInvalidationSubscriber(),
   ]);
+  stopSessionPubSub();
   beginRedisShutdown();
+  closeQaSummaryStateRedis();
   await closeRedis();
+  await flushParticipantMaximaUpdates();
   await disconnectDatabase();
   process.exit(0);
 }

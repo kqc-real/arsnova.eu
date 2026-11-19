@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   QA_SUMMARY_RESULT_V2_CONTRACT_VERSION,
   QA_SUMMARY_V2_SCHEMA_VERSION,
@@ -21,6 +22,16 @@ import {
 import { createExtractiveQaSummaryOutput } from './qaSummaryExtractive';
 import { resolveQaSummaryConfig, type QaSummaryConfig } from './qaSummaryConfig';
 import { runPreparedQaSummary, type QaSummaryPreparedRun } from './qaSummaryRuntimeAdapter';
+import {
+  clearLocalSummaryState,
+  compareAndSetSummaryState,
+  invalidateSummaryState,
+  readSummaryState,
+  resetLocalSummaryStates,
+  summaryStateUnavailable,
+  type SessionSummaryState,
+  type SummaryStateRecord,
+} from './qaSummaryStateStore';
 import { bindQaSummaryModelOutputV2, createPendingQaSummaryResultV2 } from './qaSummaryValidateV2';
 import { registerSessionPurgeInvalidator } from './sessionPurgeInvalidation';
 
@@ -35,20 +46,12 @@ export type QaSummaryV2Processor = (
   options: { readonly signal: AbortSignal },
 ) => Promise<QaSummaryPreparedRun>;
 
-type SessionSummaryState = {
-  result: QaSummaryResultV2;
-  inflight: boolean;
-  lastFinishedAt: number | null;
-  expiresAt: number;
-  generation: number;
-};
-
 type EphemeralHostAccess = { hostToken?: string };
 
 type QueueJob = {
   readonly sessionId: string;
   readonly locale: AppLocale;
-  readonly generation: number;
+  readonly generation: string;
   readonly access: EphemeralHostAccess;
 };
 
@@ -61,13 +64,15 @@ type QueueHooks = {
   schedule: (fn: () => void) => void;
 };
 
-const states = new Map<string, SessionSummaryState>();
 const queue: QueueJob[] = [];
 const pendingTimers: ReturnType<typeof setImmediate>[] = [];
 const invalidatedSessions = new Map<string, number>();
-const activeJobs = new Map<string, { generation: number; controller: AbortController }>();
+const activeJobs = new Map<string, { generation: string; controller: AbortController }>();
+const SUMMARY_INVALIDATION_MS = 60_000;
+const SUMMARY_PENDING_CONTEXT_MARGIN_MS = 30_000;
+const SUMMARY_STATE_MAX_ATTEMPTS = 3;
 let running = 0;
-let nextGeneration = 1;
+let reserving = 0;
 
 const queueMetrics = {
   completed: 0,
@@ -120,9 +125,9 @@ function isSessionInvalidated(sessionId: string): boolean {
   return true;
 }
 
-export function invalidateQaSummaryForSession(sessionId: string): void {
-  invalidatedSessions.set(sessionId, Date.now() + 60_000);
-  states.delete(sessionId);
+function invalidateQaSummaryLocally(sessionId: string): void {
+  invalidatedSessions.set(sessionId, Date.now() + SUMMARY_INVALIDATION_MS);
+  clearLocalSummaryState(sessionId);
   activeJobs.get(sessionId)?.controller.abort(new Error('QA_SUMMARY_PURGED'));
   activeJobs.delete(sessionId);
   for (let index = queue.length - 1; index >= 0; index -= 1) {
@@ -133,24 +138,22 @@ export function invalidateQaSummaryForSession(sessionId: string): void {
   }
 }
 
-registerSessionPurgeInvalidator((event) => invalidateQaSummaryForSession(event.sessionId));
-
-function pruneExpired(sessionId: string, now: number): void {
-  const state = states.get(sessionId);
-  if (state && !state.inflight && state.expiresAt <= now) states.delete(sessionId);
+export async function invalidateQaSummaryForSession(sessionId: string): Promise<void> {
+  invalidateQaSummaryLocally(sessionId);
+  await invalidateSummaryState(sessionId, SUMMARY_INVALIDATION_MS);
 }
 
-function toRuntime(sessionId: string): QaSummaryRuntimeV2DTO {
+registerSessionPurgeInvalidator((event) => invalidateQaSummaryLocally(event.sessionId));
+
+function toRuntime(result: QaSummaryResultV2 | null): QaSummaryRuntimeV2DTO {
   const config = hooks.config();
   const plan = hooks.plan();
-  const now = hooks.now();
-  pruneExpired(sessionId, now);
   return {
     schemaVersion: QA_SUMMARY_V2_SCHEMA_VERSION,
     enabled: config.enabled,
     inferenceConfigured: plan.inferenceConfigured,
     capabilities: plan.capabilities,
-    result: states.get(sessionId)?.result ?? null,
+    result,
   };
 }
 
@@ -284,59 +287,92 @@ async function runWithQueueTimeout(input: {
   }
 }
 
-function stateMatchesJob(job: QueueJob): boolean {
-  const state = states.get(job.sessionId);
-  return state?.inflight === true && state.generation === job.generation;
+type RunningSummaryRecord = SummaryStateRecord & { state: SessionSummaryState };
+
+async function readRunningJob(job: QueueJob): Promise<RunningSummaryRecord | null> {
+  if (isSessionInvalidated(job.sessionId)) return null;
+  const record = await readSummaryState(job.sessionId, hooks.now());
+  if (record?.state?.result.status !== 'pending' || record.state.generation !== job.generation) {
+    return null;
+  }
+  return { revision: record.revision, state: record.state };
+}
+
+function finishedState(
+  result: QaSummaryResultV2,
+  generation: string,
+  now: number,
+  config: QaSummaryConfig,
+): SessionSummaryState {
+  return { result, generation, lastFinishedAt: now, expiresAt: now + config.ttlMs };
+}
+
+async function finishJob(job: QueueJob, result: QaSummaryResultV2, config: QaSummaryConfig) {
+  const record = await readRunningJob(job);
+  if (!record) return false;
+  const now = hooks.now();
+  return Boolean(
+    await compareAndSetSummaryState(
+      job.sessionId,
+      record,
+      finishedState(result, job.generation, now, config),
+      now,
+    ),
+  );
 }
 
 async function processJob(job: QueueJob): Promise<void> {
   const started = hooks.now();
   const config = hooks.config();
   try {
-    if (isSessionInvalidated(job.sessionId) || !stateMatchesJob(job)) return;
+    const record = await readRunningJob(job);
+    if (!record) return;
     const preparedBefore = await hooks.prepare({
       sessionId: job.sessionId,
       locale: job.locale,
       access: job.access,
     });
-    if (isSessionInvalidated(job.sessionId) || !stateMatchesJob(job)) return;
+    if (isSessionInvalidated(job.sessionId)) return;
 
-    const currentState = states.get(job.sessionId);
-    if (!currentState) return;
     if (!hasMinimumSummaryCorpus(preparedBefore)) {
-      states.set(job.sessionId, {
-        ...currentState,
-        result: tooFewQuestionsResult(preparedBefore, new Date(hooks.now()).toISOString()),
-        inflight: false,
-        lastFinishedAt: hooks.now(),
-        expiresAt: hooks.now() + config.ttlMs,
-      });
-      queueMetrics.completed += 1;
-      queueMetrics.lastLatencyMs = hooks.now() - started;
+      if (
+        await finishJob(
+          job,
+          tooFewQuestionsResult(preparedBefore, new Date(hooks.now()).toISOString()),
+          config,
+        )
+      ) {
+        queueMetrics.completed += 1;
+        queueMetrics.lastLatencyMs = hooks.now() - started;
+      }
       return;
     }
 
-    if (currentState.result.snapshotHash !== preparedBefore.request.promptContext.snapshotHash) {
-      states.set(job.sessionId, {
-        ...currentState,
+    const now = hooks.now();
+    const pending = await compareAndSetSummaryState(
+      job.sessionId,
+      record,
+      {
+        ...record.state,
         result: createPendingQaSummaryResultV2(preparedBefore),
-      });
-    }
+        expiresAt: now + config.timeoutMs + SUMMARY_PENDING_CONTEXT_MARGIN_MS,
+      },
+      now,
+    );
+    if (!pending || isSessionInvalidated(job.sessionId)) return;
 
     const run = await runWithQueueTimeout({
       job,
       prepared: preparedBefore,
       timeoutMs: config.timeoutMs,
     });
-    if (isSessionInvalidated(job.sessionId) || !stateMatchesJob(job)) return;
+    if (!(await readRunningJob(job))) return;
 
     const preparedAfter = await hooks.prepare({
       sessionId: job.sessionId,
       locale: job.locale,
       access: job.access,
     });
-    if (isSessionInvalidated(job.sessionId) || !stateMatchesJob(job)) return;
-
     const analyzedAt = new Date(hooks.now()).toISOString();
     const sourceChanged =
       preparedAfter.request.promptContext.snapshotHash !==
@@ -352,15 +388,7 @@ async function processJob(job: QueueJob): Promise<void> {
             analyzedAt,
           });
 
-    const state = states.get(job.sessionId);
-    if (!state || state.generation !== job.generation) return;
-    states.set(job.sessionId, {
-      result,
-      inflight: false,
-      lastFinishedAt: hooks.now(),
-      expiresAt: hooks.now() + config.ttlMs,
-      generation: job.generation,
-    });
+    if (!(await finishJob(job, result, config))) return;
     logger.info('qa_summary:completed', {
       status: result.status,
       effectiveMode: result.execution.effectiveMode,
@@ -371,21 +399,25 @@ async function processJob(job: QueueJob): Promise<void> {
     queueMetrics.lastLatencyMs = hooks.now() - started;
     if (run.status === 'timeout') queueMetrics.timeouts += 1;
   } catch (error) {
-    if (isSessionInvalidated(job.sessionId) || !stateMatchesJob(job)) return;
     const fallbackReason = fallbackReasonForError(error);
-    const state = states.get(job.sessionId);
-    if (state) {
-      states.set(job.sessionId, {
-        ...state,
-        result: createUnavailableResult({
-          pending: state.result,
+    try {
+      const record = await readRunningJob(job);
+      if (record) {
+        const now = hooks.now();
+        const result = createUnavailableResult({
+          pending: record.state.result,
           reason: fallbackReason,
-          analyzedAt: new Date(hooks.now()).toISOString(),
-        }),
-        inflight: false,
-        lastFinishedAt: hooks.now(),
-        expiresAt: hooks.now() + config.ttlMs,
-      });
+          analyzedAt: new Date(now).toISOString(),
+        });
+        await compareAndSetSummaryState(
+          job.sessionId,
+          record,
+          finishedState(result, job.generation, now, config),
+          now,
+        );
+      }
+    } catch {
+      logger.warn('qa_summary:state_unavailable');
     }
     logger.warn('qa_summary:failed', {
       reason: fallbackReason,
@@ -393,7 +425,6 @@ async function processJob(job: QueueJob): Promise<void> {
       ...summarizeQaSummaryCatch(error),
     });
     queueMetrics.failed += 1;
-    queueMetrics.lastLatencyMs = hooks.now() - started;
   } finally {
     clearEphemeralAccess(job);
     running -= 1;
@@ -411,32 +442,41 @@ function pump(): void {
   }
 }
 
-export function getQaSummaryRuntime(sessionId: string): QaSummaryRuntimeV2DTO {
-  return toRuntime(sessionId);
+export async function getQaSummaryRuntime(sessionId: string): Promise<QaSummaryRuntimeV2DTO> {
+  const record = await readSummaryState(sessionId, hooks.now());
+  return toRuntime(record?.state?.result ?? null);
 }
 
 export async function getQaSummaryRuntimeFresh(
   sessionId: string,
-  locale: AppLocale,
   access: HostTokenContext,
 ): Promise<QaSummaryRuntimeV2DTO> {
-  const runtime = toRuntime(sessionId);
-  if (!runtime.result || runtime.result.status === 'pending') return runtime;
+  if (!hooks.config().enabled) return toRuntime(null);
+  for (let attempt = 0; attempt < SUMMARY_STATE_MAX_ATTEMPTS; attempt++) {
+    const record = await readSummaryState(sessionId, hooks.now());
+    if (!record?.state || record.state.result.status === 'pending') {
+      return toRuntime(record?.state?.result ?? null);
+    }
+    const current = record.state;
 
-  const prepared = await hooks.prepare({ sessionId, locale, access });
-  if (prepared.request.promptContext.snapshotHash === runtime.result.snapshotHash) return runtime;
+    const prepared = await hooks.prepare({ sessionId, locale: current.result.locale, access });
+    const now = hooks.now();
+    const latest = await readSummaryState(sessionId, now);
+    if (latest?.revision !== record.revision) continue;
+    if (prepared.request.promptContext.snapshotHash === current.result.snapshotHash) {
+      return toRuntime(current.result);
+    }
 
-  const now = hooks.now();
-  const current = states.get(sessionId);
-  if (!current || current.inflight) return toRuntime(sessionId);
-  const result = bindExtractiveResult(prepared, 'source_changed', new Date(now).toISOString());
-  states.set(sessionId, {
-    ...current,
-    result,
-    lastFinishedAt: now,
-    expiresAt: now + hooks.config().ttlMs,
-  });
-  return toRuntime(sessionId);
+    const result = bindExtractiveResult(prepared, 'source_changed', new Date(now).toISOString());
+    const written = await compareAndSetSummaryState(
+      sessionId,
+      record,
+      finishedState(result, current.generation, now, hooks.config()),
+      now,
+    );
+    if (written) return toRuntime(result);
+  }
+  throw summaryStateUnavailable();
 }
 
 export async function getQaSummaryContextPreview(
@@ -457,86 +497,111 @@ export async function requestQaSummary(
   access: HostTokenContext,
 ): Promise<QaSummaryRuntimeV2DTO> {
   const config = hooks.config();
-  pruneExpired(sessionId, hooks.now());
-  if (!config.enabled) return toRuntime(sessionId);
+  if (!config.enabled) return toRuntime(null);
 
-  if (states.get(sessionId)?.inflight) return toRuntime(sessionId);
+  const existing = await readSummaryState(sessionId, hooks.now());
+  if (isSessionInvalidated(sessionId) || (existing && !existing.state)) return toRuntime(null);
+  if (existing?.state?.result.status === 'pending') return toRuntime(existing.state.result);
 
   const prepared = await hooks.prepare({ sessionId, locale, access });
-  if (isSessionInvalidated(sessionId)) return toRuntime(sessionId);
-
-  // Context preparation is asynchronous. Another request can have queued or even
-  // completed a job for this session while this request was waiting, so all
-  // state-dependent decisions below must use the current state.
-  const current = states.get(sessionId);
-  if (current?.inflight) return toRuntime(sessionId);
-
-  const now = hooks.now();
   const snapshotHash = prepared.request.promptContext.snapshotHash;
-  if (!hasMinimumSummaryCorpus(prepared)) {
-    if (
-      current?.result.snapshotHash === snapshotHash &&
-      (current.result.status === 'ready' || current.result.status === 'uncertain')
-    ) {
-      return toRuntime(sessionId);
+
+  for (let attempt = 0; attempt < SUMMARY_STATE_MAX_ATTEMPTS; attempt++) {
+    // Context preparation can overlap another replica's request or a purge.
+    const now = hooks.now();
+    const record = await readSummaryState(sessionId, now);
+    const current = record?.state;
+    if (isSessionInvalidated(sessionId) || (record && !current)) return toRuntime(null);
+    if (current?.result.status === 'pending') return toRuntime(current.result);
+    const generation = randomUUID();
+
+    if (!hasMinimumSummaryCorpus(prepared)) {
+      if (
+        current?.result.snapshotHash === snapshotHash &&
+        (current.result.status === 'ready' || current.result.status === 'uncertain')
+      ) {
+        return toRuntime(current.result);
+      }
+      const result = tooFewQuestionsResult(prepared, new Date(now).toISOString());
+      if (
+        await compareAndSetSummaryState(
+          sessionId,
+          record,
+          finishedState(result, generation, now, config),
+          now,
+        )
+      )
+        return toRuntime(result);
+      continue;
     }
-    const generation = nextGeneration++;
-    states.set(sessionId, {
-      result: tooFewQuestionsResult(prepared, new Date(now).toISOString()),
-      inflight: false,
-      lastFinishedAt: now,
-      expiresAt: now + config.ttlMs,
-      generation,
-    });
-    return toRuntime(sessionId);
-  }
 
-  if (
-    current &&
-    current.lastFinishedAt !== null &&
-    now - current.lastFinishedAt < config.cooldownMs &&
-    current.result.snapshotHash === snapshotHash &&
-    current.result.status !== 'failed' &&
-    !(
-      (current.result.execution.effectiveMode === 'extractive' ||
-        current.result.execution.effectiveMode === 'rule-based') &&
-      current.result.execution.fallback?.retry === 'manual'
-    )
-  ) {
-    queueMetrics.cacheHits += 1;
-    return toRuntime(sessionId);
-  }
+    if (
+      current &&
+      current.lastFinishedAt !== null &&
+      now - current.lastFinishedAt < config.cooldownMs &&
+      current.result.snapshotHash === snapshotHash &&
+      current.result.status !== 'failed' &&
+      !(
+        (current.result.execution.effectiveMode === 'extractive' ||
+          current.result.execution.effectiveMode === 'rule-based') &&
+        current.result.execution.fallback?.retry === 'manual'
+      )
+    ) {
+      queueMetrics.cacheHits += 1;
+      return toRuntime(current.result);
+    }
 
-  if (queue.length + running >= config.queueLimit) {
-    queueMetrics.queueRejected += 1;
-    const generation = nextGeneration++;
-    states.set(sessionId, {
-      result: bindExtractiveResult(prepared, 'queue_full', new Date(now).toISOString()),
-      inflight: false,
-      lastFinishedAt: now,
-      expiresAt: now + config.ttlMs,
-      generation,
-    });
-    logger.warn('qa_summary:skipped', { reason: 'queue-full' });
-    return toRuntime(sessionId);
-  }
+    const depth = queue.length + running + reserving;
+    if (depth >= config.queueLimit) {
+      const result = bindExtractiveResult(prepared, 'queue_full', new Date(now).toISOString());
+      if (
+        await compareAndSetSummaryState(
+          sessionId,
+          record,
+          finishedState(result, generation, now, config),
+          now,
+        )
+      ) {
+        queueMetrics.queueRejected += 1;
+        logger.warn('qa_summary:skipped', { reason: 'queue-full' });
+        return toRuntime(result);
+      }
+      continue;
+    }
 
-  const generation = nextGeneration++;
-  states.set(sessionId, {
-    result: createPendingQaSummaryResultV2(prepared),
-    inflight: true,
-    lastFinishedAt: current?.lastFinishedAt ?? null,
-    expiresAt: now + config.ttlMs,
-    generation,
-  });
-  queue.push({
-    sessionId,
-    locale,
-    generation,
-    access: cloneMinimalHostAccess(access),
-  });
-  pump();
-  return toRuntime(sessionId);
+    const job = { sessionId, locale, generation, access: cloneMinimalHostAccess(access) };
+    const result = createPendingQaSummaryResultV2(prepared);
+    reserving += 1;
+    let written: SummaryStateRecord | null;
+    try {
+      written = await compareAndSetSummaryState(
+        sessionId,
+        record,
+        {
+          result,
+          generation,
+          lastFinishedAt: current?.lastFinishedAt ?? null,
+          expiresAt:
+            now +
+            Math.ceil((depth + 1) / config.concurrency) *
+              (config.timeoutMs + SUMMARY_PENDING_CONTEXT_MARGIN_MS),
+        },
+        now,
+      );
+    } catch (error) {
+      clearEphemeralAccess(job);
+      throw error;
+    } finally {
+      reserving -= 1;
+    }
+    if (written && !isSessionInvalidated(sessionId)) {
+      queue.push(job);
+      pump();
+      return toRuntime(result);
+    }
+    clearEphemeralAccess(job);
+  }
+  throw summaryStateUnavailable();
 }
 
 export function resetQaSummaryQueueForTests(overrides?: Partial<QueueHooks>): void {
@@ -547,8 +612,8 @@ export function resetQaSummaryQueueForTests(overrides?: Partial<QueueHooks>): vo
   }
   activeJobs.clear();
   running = 0;
-  nextGeneration = 1;
-  states.clear();
+  reserving = 0;
+  resetLocalSummaryStates();
   invalidatedSessions.clear();
   queueMetrics.completed = 0;
   queueMetrics.failed = 0;
@@ -561,7 +626,7 @@ export function resetQaSummaryQueueForTests(overrides?: Partial<QueueHooks>): vo
 
 export async function waitForQaSummaryIdleForTests(timeoutMs = 1_000): Promise<void> {
   const started = Date.now();
-  while (queue.length > 0 || running > 0 || pendingTimers.length > 0) {
+  while (queue.length > 0 || running > 0 || reserving > 0 || pendingTimers.length > 0) {
     if (Date.now() - started > timeoutMs) {
       throw new Error('Q&A-Summary-Queue wurde nicht leer');
     }

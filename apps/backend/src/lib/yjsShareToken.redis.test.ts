@@ -1,10 +1,13 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { closeRedis, getRedis } from '../redis';
 import {
+  acknowledgeYjsRelayRotation,
   createYjsRotationCapability,
   createYjsShare,
+  parseYjsShareRotationEvent,
   rotateYjsShare,
   YJS_SHARE_METADATA_TTL_SECONDS,
+  YJS_SHARE_ROTATION_CHANNEL,
 } from './yjsShareToken';
 
 const RUN_REDIS = process.env['RUN_REDIS_YJS_SHARE_TESTS'] === '1';
@@ -57,4 +60,30 @@ describe.skipIf(!RUN_REDIS)('Yjs-Share-Metadaten mit echtem Redis 7', () => {
     await createYjsShare({ rotationCapability: createYjsRotationCapability() });
     expect(await redis.zscore(EXPIRY_INDEX_KEY, staleMember)).toBeNull();
   });
+
+  it('bestätigt eine ausstehende Generation beim erneuten Aufruf über den externen Relay', async () => {
+    vi.stubEnv('YJS_RELAY_MODE', 'external');
+    const redis = getRedis();
+    const subscriber = redis.duplicate();
+    try {
+      const rotationCapability = createYjsRotationCapability();
+      const { roomId } = await createYjsShare({ rotationCapability });
+      const request = { roomId, rotationCapability };
+      const key = `yjs:share:v1:${roomId}`;
+      await expect(rotateYjsShare(request)).rejects.toThrow('RELAY_UNAVAILABLE');
+      expect(await redis.hget(key, 'generation')).toBe('2');
+
+      subscriber.on('message', (_channel, message) => {
+        const event = parseYjsShareRotationEvent(message);
+        if (event) void acknowledgeYjsRelayRotation(event);
+      });
+      await subscriber.subscribe(YJS_SHARE_ROTATION_CHANNEL);
+      await expect(rotateYjsShare(request)).resolves.toMatchObject({ generation: 2 });
+      expect(await redis.hget(key, 'rotationPending')).toBeNull();
+      await expect(rotateYjsShare(request)).resolves.toMatchObject({ generation: 3 });
+    } finally {
+      subscriber.disconnect();
+      vi.unstubAllEnvs();
+    }
+  }, 12_000);
 });

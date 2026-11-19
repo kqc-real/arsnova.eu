@@ -2,7 +2,8 @@ import type { Prisma } from '@prisma/client';
 import { SESSION_LEARNING_OBJECTIVE_QA_TASK_CATALOG_MAX } from '@arsnova/shared-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock } = vi.hoisted(() => ({
+const { deriveMock, prismaMock } = vi.hoisted(() => ({
+  deriveMock: vi.fn(),
   prismaMock: {
     session: {
       findUnique: vi.fn(),
@@ -33,9 +34,11 @@ const { prismaMock } = vi.hoisted(() => ({
 }));
 
 vi.mock('../db', () => ({ prisma: prismaMock }));
+vi.mock('./learningObjectiveDerivation', () => ({ deriveLearningObjectiveDrafts: deriveMock }));
 
 import {
   buildQuizLearningObjectiveBundleCreate,
+  deriveSessionLearningObjectives,
   getSessionForumAssignments,
   getSessionLearningObjectives,
   getSessionLearningObjectivesSnapshotWithDb,
@@ -148,6 +151,134 @@ describe('session learning-objective service', () => {
     prismaMock.$executeRaw.mockResolvedValue(1);
     prismaMock.qaQuestion.findMany.mockResolvedValue([]);
     prismaMock.quiz.findUnique.mockResolvedValue({ sourceQuizId: SOURCE_QUIZ_ID });
+  });
+
+  it('creates session drafts and both nested references with the Prisma relation supplying the parent key', async () => {
+    const question = {
+      id: OLD_QUESTION_ID,
+      sourceQuestionId: SOURCE_QUESTION_ID,
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      text: 'Welche Steigung hat die Funktion?',
+      order: 0,
+      timer: null,
+      answers: [
+        { text: '2', isCorrect: true },
+        { text: '3', isCorrect: false },
+      ],
+    };
+    prismaMock.session.findUnique.mockResolvedValue(sessionRow());
+    prismaMock.session.update.mockResolvedValue(sessionRow({ learningContextRevision: 5 }));
+    prismaMock.question.findMany.mockResolvedValue([question]);
+    prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
+    deriveMock.mockResolvedValue({
+      status: 'completed',
+      batchCount: 1,
+      limitations: [],
+      drafts: [
+        {
+          id: OBJECTIVE_ID,
+          text: 'Steigungen aus Funktionsgleichungen ablesen.',
+          scope: { kind: 'question-set', sourceQuestionIds: [OLD_QUESTION_ID] },
+          origin: {
+            kind: 'model-derived',
+            modelId: 'model-a',
+            modelVersion: '1',
+            derivationVersion: 'learning-objectives-v1',
+            derivedFromSourceQuestionIds: [OLD_QUESTION_ID],
+          },
+        },
+      ],
+    });
+
+    const result = await deriveSessionLearningObjectives(
+      {
+        code: 'ABC123',
+        operationId: '9c692de8-4e90-4f8e-b58b-c4e9535b3bb2',
+        expectedLearningContextRevision: 4,
+        locale: 'de',
+        maximumDrafts: 1,
+      },
+      { now: NOW },
+    );
+
+    expect(result).toMatchObject({
+      status: 'completed',
+      appliedCount: 1,
+      snapshot: { learningContextRevision: 5 },
+    });
+    const reference = {
+      id: expect.any(String),
+      sourceReferenceId: SOURCE_QUESTION_ID,
+      sourceKind: 'QUIZ_QUESTION',
+      quizQuestionId: OLD_QUESTION_ID,
+      qaQuestionId: null,
+      unresolvedReason: null,
+    };
+    expect(prismaMock.sessionLearningObjective.create).toHaveBeenCalledExactlyOnceWith({
+      data: expect.objectContaining({
+        objectiveId: OBJECTIVE_ID,
+        origin: 'MODEL_DERIVED',
+        confirmationState: 'DRAFT',
+        references: {
+          create: [
+            { ...reference, kind: 'TASK' },
+            { ...reference, kind: 'DERIVATION' },
+          ],
+        },
+      }),
+    });
+  });
+
+  it('creates manual session task references without repeating the parent relation key', async () => {
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce({ id: SESSION_ID })
+      .mockResolvedValueOnce(sessionRow());
+    prismaMock.session.update.mockResolvedValue(sessionRow({ learningContextRevision: 5 }));
+    prismaMock.question.findMany
+      .mockResolvedValueOnce([{ id: OLD_QUESTION_ID, quizId: QUIZ_A_ID }])
+      .mockResolvedValueOnce([]);
+    prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
+
+    await saveSessionLearningObjectives(
+      {
+        code: 'ABC123',
+        expectedLearningContextRevision: 4,
+        mutations: [
+          {
+            action: 'upsert',
+            objectiveId: OBJECTIVE_ID,
+            expectedRevision: null,
+            text: 'Steigungen interpretieren.',
+            scope: {
+              kind: 'question-set',
+              taskReferences: [{ kind: 'quiz-question', questionId: OLD_QUESTION_ID }],
+            },
+            confirmationState: 'draft',
+          },
+        ],
+      },
+      NOW,
+    );
+
+    expect(prismaMock.sessionLearningObjective.create).toHaveBeenCalledExactlyOnceWith({
+      data: expect.objectContaining({
+        origin: 'MANUAL',
+        references: {
+          create: [
+            {
+              id: expect.any(String),
+              sourceReferenceId: OLD_QUESTION_ID,
+              kind: 'TASK',
+              sourceKind: 'QUIZ_QUESTION',
+              quizQuestionId: OLD_QUESTION_ID,
+              qaQuestionId: null,
+              unresolvedReason: null,
+            },
+          ],
+        },
+      }),
+    });
   });
 
   it('normalizes future-skewed objective lifecycle timestamps at the upload boundary', () => {

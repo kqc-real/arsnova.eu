@@ -9,6 +9,7 @@ import {
 } from '@arsnova/shared-types';
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
+import { prisma } from '../db';
 import {
   createOpaqueCapability,
   decryptCapabilityEnvelope,
@@ -21,6 +22,8 @@ import { hashToken as hashProductFeedbackToken } from './productFeedbackTokens';
 import { enqueueUsageStatisticEvent } from './usageStatistic';
 
 export const PARTICIPANT_JOIN_REPLAY_MS = 10 * 60 * 1000;
+/** Burst aus dem Hörsaal darf auf einen freien Pool-Slot warten statt hart zu scheitern. */
+export const PARTICIPANT_JOIN_TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 15_000 } as const;
 
 export async function expireParticipantJoinReplayEnvelopes(
   tx: Prisma.TransactionClient,
@@ -140,6 +143,109 @@ async function allocateKindergartenNickname(
 function anonymousNickname(requestedNickname: string, participantNumber: number): string {
   const stem = requestedNickname.replace(/\s+\d+$/, '').trim() || 'User';
   return appendParticipantNumber(stem, participantNumber);
+}
+
+const CUSTOM_JOIN_BATCH_SIZE = 32;
+const CUSTOM_JOIN_BATCH_WINDOW_MS = 5;
+
+type CustomJoinCandidate = {
+  id: string;
+  nickname: string;
+  clientHash: string | null;
+  rejoinHash: string;
+  feedbackHash: string;
+  replayHash: string;
+  envelope: string;
+};
+
+type PendingCustomJoin = {
+  candidate: CustomJoinCandidate;
+  credentials: ParticipantJoinEnvelope;
+  resolve: (join: PreparedParticipantJoin | null) => void;
+  reject: (error: unknown) => void;
+};
+
+const pendingCustomJoins = new Map<string, PendingCustomJoin[]>();
+
+async function flushCustomJoins(sessionId: string, pending: PendingCustomJoin[]): Promise<void> {
+  while (pending.length > 0) {
+    const batch = pending.splice(0, CUSTOM_JOIN_BATCH_SIZE);
+    try {
+      const candidates = JSON.stringify(batch.map((entry) => entry.candidate));
+      const rows = await prisma.$transaction(
+        (tx) => tx.$queryRaw<
+          Pick<
+            PreparedParticipantJoin,
+            'participantId' | 'participantNumber' | 'timerAccommodation'
+          >[]
+        >`SELECT * FROM arsnova_create_custom_participant_joins(
+          ${sessionId}, ${candidates}::jsonb, ${PARTICIPANT_JOIN_REPLAY_MS}::integer
+        )`,
+        PARTICIPANT_JOIN_TRANSACTION_OPTIONS,
+      );
+      const byId = new Map(rows.map((row) => [row.participantId, row]));
+      for (const { candidate, credentials, resolve } of batch) {
+        const row = byId.get(candidate.id);
+        if (!row) {
+          resolve(null);
+          continue;
+        }
+        rememberParticipantCapability(sessionId, row.participantId, credentials.rejoinCapability);
+        resolve({
+          ...row,
+          ...credentials,
+          nickname: candidate.nickname,
+          teamId: null,
+          teamName: null,
+          rejoined: false,
+        });
+      }
+    } catch (error) {
+      for (const { reject } of batch) reject(error);
+    }
+  }
+  pendingCustomJoins.delete(sessionId);
+}
+
+/** Nur Erstbeitritte mit freiem Nickname und gespeichertem Profil ohne Teams. */
+export function tryPrepareCustomParticipantJoin(input: {
+  sessionId: string;
+  requestedNickname: string;
+  anonymousClientId?: string;
+  joinIdempotencyKey: string;
+}): Promise<PreparedParticipantJoin | null> {
+  const { sessionId } = input;
+  // PostgreSQL-JSONB kann NUL und ungepaarte Surrogate nicht lesen.
+  // Ein solcher Name wird wie bisher isoliert im Einzelpfad behandelt.
+  if (
+    input.requestedNickname.includes('\0') ||
+    Buffer.from(input.requestedNickname, 'utf8').toString('utf8') !== input.requestedNickname
+  ) {
+    return Promise.resolve(null);
+  }
+  const credentials = {
+    rejoinCapability: createOpaqueCapability(),
+    productFeedbackClaimToken: createOpaqueCapability(),
+  };
+  const replayHash = hashCapabilityIndex(input.joinIdempotencyKey, `participant-join:${sessionId}`);
+  const candidate = {
+    id: randomUUID(),
+    nickname: input.requestedNickname,
+    clientHash: input.anonymousClientId ? hashCapability(input.anonymousClientId) : null,
+    rejoinHash: hashCapability(credentials.rejoinCapability),
+    feedbackHash: hashProductFeedbackToken(credentials.productFeedbackClaimToken),
+    replayHash,
+    envelope: encryptCapabilityEnvelope(credentials, replayAad(sessionId, replayHash)),
+  };
+  return new Promise((resolve, reject) => {
+    const current = pendingCustomJoins.get(sessionId);
+    const pending = current ?? [];
+    pending.push({ candidate, credentials, resolve, reject });
+    if (!current) {
+      pendingCustomJoins.set(sessionId, pending);
+      setTimeout(() => void flushCustomJoins(sessionId, pending), CUSTOM_JOIN_BATCH_WINDOW_MS);
+    }
+  });
 }
 
 async function databaseNow(tx: Prisma.TransactionClient): Promise<Date> {

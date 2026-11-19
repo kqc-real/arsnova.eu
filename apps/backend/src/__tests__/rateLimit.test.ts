@@ -267,25 +267,35 @@ describe('checkSlidingWindow', () => {
 describe('checkVoteRate (Story 3.3b)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    redisMock.get.mockResolvedValue(null);
   });
 
-  it('erlaubt Vote wenn kein kürzlicher Request', async () => {
-    redisMock.zcard.mockResolvedValue(0);
+  it('prüft und bucht eine zulässige Stimme in einem Redis-Aufruf', async () => {
+    redisMock.eval.mockResolvedValueOnce(0);
 
-    const result = await checkVoteRate('participant-123');
-
-    expect(result.allowed).toBe(true);
+    await expect(checkVoteRate('participant-123')).resolves.toEqual({ allowed: true });
+    expect(redisMock.eval).toHaveBeenCalledExactlyOnceWith(
+      expect.stringContaining("redis.call('TIME')"),
+      1,
+      'rl:vote:participant-123',
+      1,
+      expect.stringMatching(/^[0-9a-f-]{36}$/),
+    );
+    expect(redisMock.zcard).not.toHaveBeenCalled();
+    expect(redisMock.zadd).not.toHaveBeenCalled();
   });
 
-  it('blockiert Vote wenn Rate überschritten (1/s)', async () => {
-    redisMock.zcard.mockResolvedValue(1);
-    redisMock.zrange.mockResolvedValue([String(Date.now()), '0']);
+  it('übernimmt die Wartezeit aus dem Redis-Skript', async () => {
+    redisMock.eval.mockResolvedValueOnce(1);
 
-    const result = await checkVoteRate('participant-123');
+    await expect(checkVoteRate('participant-123')).resolves.toEqual({
+      allowed: false,
+      retryAfterSeconds: 1,
+    });
+  });
 
-    expect(result.allowed).toBe(false);
-    expect(result.retryAfterSeconds).toBeGreaterThan(0);
+  it('bricht bei einer ungültigen Redis-Antwort ab', async () => {
+    redisMock.eval.mockResolvedValueOnce(null);
+    await expect(checkVoteRate('participant-123')).rejects.toThrow('Vote-Rate-Limit');
   });
 });
 

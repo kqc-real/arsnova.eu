@@ -1,5 +1,21 @@
-import { describe, expect, it, vi } from 'vitest';
-import { PdfConcurrencyLimiter } from './pdfConcurrencyLimiter';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { PDF_EXPORT_LEASE_KEY, PdfConcurrencyLimiter } from './pdfConcurrencyLimiter';
+import { PdfWorkerUncertainCompletionError } from './pdfWorkerTransport';
+
+const redisMock = vi.hoisted(() => ({ set: vi.fn(), eval: vi.fn(), exists: vi.fn() }));
+vi.mock('../redis', () => ({ getRedis: () => redisMock }));
+vi.mock('./pdfTelemetry', () => ({ recordPdfJobOutcome: vi.fn() }));
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.resetAllMocks();
+  vi.useRealTimers();
+});
+
+function enableSharedLimit() {
+  vi.stubEnv('PDF_SHARED_LIMIT_ENABLED', 'true');
+  vi.stubEnv('PDF_RENDER_MODE', 'worker');
+}
 
 function deferred<T>(): {
   promise: Promise<T>;
@@ -16,6 +32,110 @@ function deferred<T>(): {
 }
 
 describe('PdfConcurrencyLimiter', () => {
+  it('teilt einen Slot, erneuert ihn vor dem Rendern und gibt ihn nur mit dem Besitzer frei', async () => {
+    enableSharedLimit();
+    redisMock.set.mockResolvedValueOnce('OK').mockResolvedValueOnce(null);
+    redisMock.eval.mockResolvedValue(1);
+    redisMock.exists.mockResolvedValue(1);
+    const a = new PdfConcurrencyLimiter();
+    const b = new PdfConcurrencyLimiter();
+    const started = deferred<void>();
+    const running = deferred<void>();
+    const first = a.run('session-host', async (beforeRender) => {
+      await beforeRender?.();
+      started.resolve();
+      await running.promise;
+    });
+    await started.promise;
+    const second = vi.fn();
+    await expect(b.run('session-history', second)).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+    });
+    expect(second).not.toHaveBeenCalled();
+    await expect(b.readActiveJobs()).resolves.toBe(1);
+    const owner = redisMock.set.mock.calls[0]?.[1];
+    expect(redisMock.set).toHaveBeenNthCalledWith(
+      1,
+      PDF_EXPORT_LEASE_KEY,
+      owner,
+      'PX',
+      90_000,
+      'NX',
+    );
+    expect(redisMock.eval).toHaveBeenCalledWith(
+      expect.stringContaining('PEXPIRE'),
+      1,
+      PDF_EXPORT_LEASE_KEY,
+      owner,
+      90_000,
+    );
+    running.resolve();
+    await first;
+    expect(redisMock.eval).toHaveBeenLastCalledWith(
+      expect.stringContaining('DEL'),
+      1,
+      PDF_EXPORT_LEASE_KEY,
+      owner,
+    );
+    expect(redisMock.eval.mock.lastCall?.[0]).toContain("redis.call('GET', KEYS[1]) ~= ARGV[1]");
+  });
+
+  it('übergibt nach Verlust der Reservierung keinen verspäteten Job an den Worker', async () => {
+    enableSharedLimit();
+    redisMock.set.mockResolvedValue('OK');
+    redisMock.eval.mockResolvedValue(0);
+    const render = vi.fn();
+    const limiter = new PdfConcurrencyLimiter();
+    await expect(
+      limiter.run('session-host', async (beforeRender) => {
+        await beforeRender?.();
+        render();
+      }),
+    ).rejects.toMatchObject({ code: 'SERVICE_UNAVAILABLE' });
+    expect(render).not.toHaveBeenCalled();
+  });
+
+  it('verlängert einen laufenden Job und beendet die Verlängerung nach der Freigabe', async () => {
+    enableSharedLimit();
+    vi.useFakeTimers();
+    redisMock.set.mockResolvedValue('OK');
+    redisMock.eval.mockResolvedValue(1);
+    const running = deferred<void>();
+    const first = new PdfConcurrencyLimiter().run('session-host', () => running.promise);
+
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(redisMock.eval).toHaveBeenCalledTimes(2);
+    expect(redisMock.eval.mock.calls.every(([script]) => script.includes('PEXPIRE'))).toBe(true);
+    running.resolve();
+    await first;
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(redisMock.eval).toHaveBeenCalledTimes(3);
+    expect(redisMock.eval.mock.lastCall?.[0]).toContain('DEL');
+  });
+
+  it('lässt die Reservierung bei unklarem Worker-Abschluss auslaufen', async () => {
+    enableSharedLimit();
+    redisMock.set.mockResolvedValue('OK');
+    const limiter = new PdfConcurrencyLimiter();
+    const failure = new PdfWorkerUncertainCompletionError('socket disconnected');
+    await expect(
+      limiter.run('session-host', async () => {
+        throw failure;
+      }),
+    ).rejects.toBe(failure);
+    expect(redisMock.eval).not.toHaveBeenCalled();
+  });
+
+  it('lässt bei ausgefallenem Redis keine weitere Erstellung zu', async () => {
+    enableSharedLimit();
+    redisMock.set.mockRejectedValue(new Error('connection closed'));
+    const job = vi.fn();
+    await expect(new PdfConcurrencyLimiter().run('session-host', job)).rejects.toMatchObject({
+      code: 'SERVICE_UNAVAILABLE',
+    });
+    expect(job).not.toHaveBeenCalled();
+  });
+
   it('führt höchstens zwei PDF-Jobs gleichzeitig aus und lehnt weitere sofort ab', async () => {
     const limiter = new PdfConcurrencyLimiter(2);
     const first = deferred<string>();

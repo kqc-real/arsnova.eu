@@ -2,6 +2,7 @@
  * Rate-Limiting mit Redis (Story 0.5).
  * Sliding-Window; Limits über Umgebungsvariablen konfigurierbar.
  */
+import { randomUUID } from 'node:crypto';
 import { getRedis } from '../redis';
 import {
   PUBLIC_CREATE_WINDOW_SECONDS,
@@ -346,19 +347,38 @@ export async function checkSlidingWindow(
   };
 }
 
-/**
- * Vote-Submit (Story 3.3b): 1 Request/Sekunde pro Participant (Token-Bucket-ähnlich).
- */
+const VOTE_SLIDING_WINDOW_SCRIPT = `
+local key = KEYS[1]
+local time = redis.call('TIME')
+local now = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
+local limit = tonumber(ARGV[1])
+redis.call('ZREMRANGEBYSCORE', key, 0, now - 1000)
+if redis.call('ZCARD', key) >= limit then
+  local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
+  local score = tonumber(oldest[2])
+  return score and math.max(1, math.ceil((score + 1000 - now) / 1000)) or 1
+end
+redis.call('ZADD', key, now, ARGV[2])
+redis.call('EXPIRE', key, 2)
+return 0
+`;
+
+/** Prüft und bucht das Teilnahme-Limit atomar in einem Redis-Aufruf. */
 export async function checkVoteRate(participantId: string): Promise<{
   allowed: boolean;
   retryAfterSeconds?: number;
 }> {
-  const { allowed, retryAfterSeconds } = await checkSlidingWindow(
-    `vote:${participantId}`,
-    RATE_LIMIT_ENV.voteRequestsPerSecond,
+  const result = await getRedis().eval(
+    VOTE_SLIDING_WINDOW_SCRIPT,
     1,
+    `${PREFIX}vote:${participantId}`,
+    RATE_LIMIT_ENV.voteRequestsPerSecond,
+    randomUUID(),
   );
-  return { allowed, retryAfterSeconds };
+  if (typeof result !== 'number' || !Number.isSafeInteger(result) || result < 0) {
+    throw new Error('Unerwartete Redis-Antwort beim Vote-Rate-Limit.');
+  }
+  return result === 0 ? { allowed: true } : { allowed: false, retryAfterSeconds: result };
 }
 
 /** Session-Erstellung: grobes globales und Shared-NAT-IP-Budget pro Stunde. */
