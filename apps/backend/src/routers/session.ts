@@ -143,7 +143,6 @@ import {
   SetTimerAccommodationInputSchema,
   SetTimerAccommodationOutputSchema,
   SendEmojiReactionInputSchema,
-  EMOJI_REACTIONS,
   DEFAULT_TEAM_COUNT,
   DEMO_QUIZ_HISTORY_SCOPE_ID,
   isDemoQuizHistoryScopeId,
@@ -260,12 +259,6 @@ import {
   serializeSessionQuestionProgress,
 } from '../lib/sessionQuestionProgress';
 
-/**
- * In-Memory-Store für Emoji-Reaktionen (Story 5.8).
- * Key: `sessionId:questionId:r{round}` (Peer Instruction: Runde 1 und 2 getrennt).
- * Flüchtig – kein Redis/DB nötig.
- */
-const emojiStore = new Map<string, Map<string, string>>();
 type MatchingSelection = { leftId: string; rightId: string };
 type CategorizationSelection = { itemId: string; categoryId: string };
 const PARTICIPANT_NICKNAMES_CACHE_TTL_MS = 5_000;
@@ -296,11 +289,6 @@ function stableNonCanonicalShuffle<T>(items: readonly T[], seed: string, context
     return [...shuffled.slice(1), shuffled[0]!];
   }
   return shuffled;
-}
-
-function getEmojiKey(sessionId: string, questionId: string, round: number): string {
-  const r = round >= 1 && round <= 2 ? round : 1;
-  return `${sessionId}:${questionId}:r${r}`;
 }
 
 import {
@@ -354,7 +342,19 @@ import {
   isSessionEffectivelyFinished,
 } from '../lib/sessionLifecycle';
 import { emitQaQuestionsSignal } from '../lib/qaQuestionsSignal';
-import { clearAllQaPresenterSortModes, clearQaPresenterSortMode } from '../lib/qaPresenterSortMode';
+import {
+  clearLocalSessionPresenterState,
+  readSessionPresenterState,
+  updateSessionPresenterState,
+  type SessionPresenterState,
+} from '../lib/sessionPresenterState';
+import {
+  clearLocalQuestionEmojiReactions,
+  clearLocalSessionEmojiReactions,
+  emptyEmojiReactions,
+  readSessionEmojiReactions,
+  recordSessionEmojiReaction,
+} from '../lib/sessionEmojiReactions';
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 import {
   isSessionPubSubEnabled,
@@ -469,43 +469,62 @@ type RatingVoteProgress = {
   ratingStdDev: number | null;
 };
 const ratingVoteProgressCache = new Map<string, CacheEntry<RatingVoteProgress>>();
-const presenterSurfaceBySessionId = new Map<
-  string,
-  z.infer<typeof SessionPresenterSurfaceSchema>
->();
-/** Abschlussprojektion darf Q&A zeigen, ohne den gesperrten Sessionkanal umzuschreiben. */
-const finishedQaWordCloudSurfaceBySessionId = new Set<string>();
-const presenterPageBySessionId = new Map<string, z.infer<typeof PresenterPageSchema>>();
-const presenterPageIdentityBySessionId = new Map<string, string>();
+type PresentableSession = {
+  quizId?: string | null;
+  currentQuestion?: number | null;
+  status: string;
+};
 
-function resolvePresenterPage(
-  sessionId: string,
-  session: { quizId?: string | null; currentQuestion?: number | null; status: string },
-  channel: string,
-): z.infer<typeof PresenterPageSchema> {
-  const identity = [
+function presenterPageIdentity(
+  session: PresentableSession,
+  channel: z.infer<typeof SessionLiveChannelSchema>,
+): string {
+  return [
     session.quizId ?? '',
     session.currentQuestion ?? '',
     channel,
-    resolvePresenterSurface(sessionId, channel as z.infer<typeof SessionLiveChannelSchema>),
     session.status === 'FINISHED' ? 'finished' : 'live',
   ].join(':');
-  const stored = presenterPageBySessionId.get(sessionId);
-  if (stored && presenterPageIdentityBySessionId.get(sessionId) === identity) return stored;
+}
+
+function resolvePresenterPage(
+  state: SessionPresenterState,
+  session: PresentableSession,
+  channel: z.infer<typeof SessionLiveChannelSchema>,
+): z.infer<typeof PresenterPageSchema> {
+  const identity = `${presenterPageIdentity(session, channel)}:${resolvePresenterSurface(state, channel)}`;
+  if (state.page && state.pageIdentity === identity) return state.page;
   const page = { context: randomBytes(16).toString('hex'), index: 0, count: 1 };
-  presenterPageIdentityBySessionId.set(sessionId, identity);
-  presenterPageBySessionId.set(sessionId, page);
+  state.pageIdentity = identity;
+  state.page = page;
   return page;
 }
 
-const qaWordCloudProjectionBySessionId = new Map<
-  string,
-  z.infer<typeof SetQaWordCloudProjectionInputSchema>['projection']
->();
-const freetextWordCloudProjectionBySessionId = new Map<
-  string,
-  z.infer<typeof SetFreetextWordCloudProjectionInputSchema>['projection']
->();
+type PresenterDisplay = {
+  presenterSurface: z.infer<typeof SessionPresenterSurfaceSchema>;
+  presenterPage: z.infer<typeof PresenterPageSchema>;
+};
+
+const presenterDisplayInFlight = new Map<string, Promise<PresenterDisplay>>();
+
+function readPresenterDisplay(
+  sessionId: string,
+  session: PresentableSession,
+  channel: z.infer<typeof SessionLiveChannelSchema>,
+): Promise<PresenterDisplay> {
+  const key = `${sessionId}:${presenterPageIdentity(session, channel)}`;
+  const pending = presenterDisplayInFlight.get(key);
+  if (pending) return pending;
+  const request = updateSessionPresenterState(sessionId, (state) => ({
+    presenterSurface: resolvePresenterSurface(state, channel),
+    presenterPage: resolvePresenterPage(state, session, channel),
+  })).finally(() => {
+    if (presenterDisplayInFlight.get(key) === request) presenterDisplayInFlight.delete(key);
+  });
+  presenterDisplayInFlight.set(key, request);
+  return request;
+}
+
 const finishProjectionBySessionId = new Map<
   string,
   z.infer<typeof SessionFinishProjectionSchema>
@@ -659,13 +678,9 @@ function clearSessionReadCaches(code?: string): void {
 
 export function resetSessionReadCachesForTests(): void {
   clearSessionReadCaches();
-  presenterSurfaceBySessionId.clear();
-  finishedQaWordCloudSurfaceBySessionId.clear();
-  presenterPageBySessionId.clear();
-  presenterPageIdentityBySessionId.clear();
-  qaWordCloudProjectionBySessionId.clear();
-  freetextWordCloudProjectionBySessionId.clear();
-  clearAllQaPresenterSortModes();
+  clearLocalSessionPresenterState();
+  clearLocalSessionEmojiReactions();
+  presenterDisplayInFlight.clear();
   finishProjectionBySessionId.clear();
   sessionStatusVersions.clear();
   sessionParticipantVersions.clear();
@@ -1069,12 +1084,11 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
             : null,
         channels,
         preferredChannel,
-        presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
-        presenterPage: resolvePresenterPage(
+        ...(await readPresenterDisplay(
           session.id,
           { ...session, status: effectiveStatus },
           preferredChannel,
-        ),
+        )),
         ...(effectiveStatus === 'FINISHED' && {
           finishProjection: await resolveFinishProjection(session.id, effectiveStatus),
         }),
@@ -1125,19 +1139,9 @@ export async function purgeSessionRuntimeArtifacts(params: {
   const code = params.sessionCode.toUpperCase();
   clearSessionReadCaches(code);
   invalidateParticipantCapabilitiesForSession(params.sessionId);
-  presenterSurfaceBySessionId.delete(params.sessionId);
-  finishedQaWordCloudSurfaceBySessionId.delete(params.sessionId);
-  presenterPageBySessionId.delete(params.sessionId);
-  presenterPageIdentityBySessionId.delete(params.sessionId);
-  qaWordCloudProjectionBySessionId.delete(params.sessionId);
-  freetextWordCloudProjectionBySessionId.delete(params.sessionId);
-  clearQaPresenterSortMode(params.sessionId);
+  clearLocalSessionPresenterState(params.sessionId);
+  clearLocalSessionEmojiReactions(params.sessionId);
   finishProjectionBySessionId.delete(params.sessionId);
-  for (const key of emojiStore.keys()) {
-    if (key.startsWith(`${params.sessionId}:`)) {
-      emojiStore.delete(key);
-    }
-  }
   emitSessionStatusSignal(code);
   emitSessionParticipantSignal(code);
   emitSessionCurrentQuestionSignal(code);
@@ -4099,15 +4103,12 @@ function computeQaConfigurationWindow(
 }
 
 function resolvePresenterSurface(
-  sessionId: string,
+  state: SessionPresenterState,
   preferredChannel: z.infer<typeof SessionLiveChannelSchema>,
 ): z.infer<typeof SessionPresenterSurfaceSchema> {
-  const stored = presenterSurfaceBySessionId.get(sessionId);
+  const stored = state.surface;
   if (stored === 'ended') return stored;
-  if (
-    stored === 'qaWordCloud' &&
-    (preferredChannel === 'qa' || finishedQaWordCloudSurfaceBySessionId.has(sessionId))
-  ) {
+  if (stored === 'qaWordCloud' && (preferredChannel === 'qa' || state.finishedQaWordCloud)) {
     return stored;
   }
   if (stored === 'freetextWordCloud' && preferredChannel === 'quiz') return stored;
@@ -5753,12 +5754,11 @@ async function resolvePublicSessionInfo(
         title: session.title ?? null,
         channels,
         preferredChannel,
-        presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
-        presenterPage: resolvePresenterPage(
+        ...(await readPresenterDisplay(
           session.id,
           { ...session, status: effectiveStatus },
           preferredChannel,
-        ),
+        )),
         ...(effectiveStatus === 'FINISHED' && {
           finishProjection: await resolveFinishProjection(session.id, effectiveStatus),
         }),
@@ -8235,6 +8235,15 @@ const sessionCoreRouter = router({
           },
           select: { preferredChannel: true, sessionLifecycleRevision: true },
         });
+        // Bei einem Fehler im gemeinsamen Zustand rollt auch der Kanalwechsel zurück.
+        await updateSessionPresenterState(session.id, (state) => {
+          if (state.surface !== 'ended') state.surface = 'default';
+          delete state.finishedQaWordCloud;
+          delete state.page;
+          delete state.pageIdentity;
+          delete state.qaProjection;
+          delete state.freetextProjection;
+        });
         return {
           preferredChannel: SessionLiveChannelSchema.parse(updated.preferredChannel),
           sessionLifecycleRevision: updated.sessionLifecycleRevision,
@@ -8245,16 +8254,6 @@ const sessionCoreRouter = router({
       // Nur bei echtem Kanalwechsel die Presenter-Fläche zurücksetzen – sonst würde
       // ein No-op die offene Wortwolken-Projektion still beenden.
       if (changed.channelChanged) {
-        // Eine ausdrücklich beendete Projektionsansicht bleibt kanalübergreifend beendet,
-        // bis der Host sie wieder öffnet. Nur kanalspezifische Flächen zurücksetzen.
-        if (presenterSurfaceBySessionId.get(identity.id) !== 'ended') {
-          presenterSurfaceBySessionId.set(identity.id, 'default');
-        }
-        finishedQaWordCloudSurfaceBySessionId.delete(identity.id);
-        presenterPageBySessionId.delete(identity.id);
-        presenterPageIdentityBySessionId.delete(identity.id);
-        qaWordCloudProjectionBySessionId.delete(identity.id);
-        freetextWordCloudProjectionBySessionId.delete(identity.id);
         invalidateSessionStatusCachesForCode(code);
       } else {
         invalidateLocalSessionStatusCachesForCode(code);
@@ -8313,54 +8312,56 @@ const sessionCoreRouter = router({
         });
       }
 
-      const currentPage = resolvePresenterPage(session.id, session, preferredChannel);
-      if (input.page) {
-        if (input.page.context !== currentPage.context) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Die Projektionsfläche hat gewechselt.',
-          });
+      const display = await updateSessionPresenterState(session.id, (state): PresenterDisplay => {
+        if (input.page) {
+          const currentPage = resolvePresenterPage(state, session, preferredChannel);
+          if (input.page.context !== currentPage.context) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Die Projektionsfläche hat gewechselt.',
+            });
+          }
+          const count = input.page.count ?? currentPage.count;
+          const rawIndex = input.page.index ?? currentPage.index + (input.page.delta ?? 0);
+          const index = Math.max(0, Math.min(count - 1, rawIndex));
+          const requestedSectionStarts =
+            input.page.sectionStarts === undefined
+              ? currentPage.sectionStarts
+              : (input.page.sectionStarts ?? undefined);
+          const sectionStarts = requestedSectionStarts?.filter((start) => start < count);
+          const { sectionStarts: _currentSectionStarts, ...currentPageWithoutSections } =
+            currentPage;
+          const presenterPage = {
+            ...currentPageWithoutSections,
+            count,
+            index,
+            ...(sectionStarts?.length ? { sectionStarts } : {}),
+          };
+          state.page = presenterPage;
+          return {
+            presenterSurface: resolvePresenterSurface(state, preferredChannel),
+            presenterPage,
+          };
         }
-        const count = input.page.count ?? currentPage.count;
-        const rawIndex =
-          input.page.index !== undefined
-            ? input.page.index
-            : currentPage.index + (input.page.delta ?? 0);
-        const index = Math.max(0, Math.min(count - 1, rawIndex));
-        const requestedSectionStarts =
-          input.page.sectionStarts === undefined
-            ? currentPage.sectionStarts
-            : (input.page.sectionStarts ?? undefined);
-        const sectionStarts = requestedSectionStarts?.filter((start) => start < count);
-        const { sectionStarts: _currentSectionStarts, ...currentPageWithoutSections } = currentPage;
-        const presenterPage = {
-          ...currentPageWithoutSections,
-          count,
-          index,
-          ...(sectionStarts?.length ? { sectionStarts } : {}),
+        if (input.surface === undefined) throw new TRPCError({ code: 'BAD_REQUEST' });
+        if (input.surface !== resolvePresenterSurface(state, preferredChannel)) delete state.page;
+        state.surface = input.surface;
+        delete state.finishedQaWordCloud;
+        if (input.surface !== 'qaWordCloud') delete state.qaProjection;
+        return {
+          presenterSurface: input.surface,
+          presenterPage: resolvePresenterPage(state, session, preferredChannel),
         };
-        presenterPageBySessionId.set(session.id, presenterPage);
+      });
+      if (input.page) {
         clearSessionInfoCache(code);
         clearStatusSnapshotCache(code);
         emitSessionStatusSignal(code);
-        return {
-          presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
-          presenterPage,
-        };
+      } else {
+        invalidateLocalSessionStatusCachesForCode(code);
       }
-      if (input.surface === undefined) throw new TRPCError({ code: 'BAD_REQUEST' });
-      if (input.surface !== resolvePresenterSurface(session.id, preferredChannel))
-        presenterPageBySessionId.delete(session.id);
-      presenterSurfaceBySessionId.set(session.id, input.surface);
-      finishedQaWordCloudSurfaceBySessionId.delete(session.id);
-      if (input.surface !== 'qaWordCloud') {
-        qaWordCloudProjectionBySessionId.delete(session.id);
-      }
-      invalidateLocalSessionStatusCachesForCode(code);
-      return {
-        presenterSurface: input.surface,
-        presenterPage: resolvePresenterPage(session.id, session, preferredChannel),
-      };
+      if (isSessionPubSubEnabled()) publishSessionStatusInvalidation(code);
+      return display;
     }),
 
   setQaWordCloudProjection: hostProcedure
@@ -8395,12 +8396,7 @@ const sessionCoreRouter = router({
 
       const channels = buildSessionChannels(session);
       let preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
-      if (
-        !channels.qa.enabled ||
-        (!input.activate &&
-          preferredChannel !== 'qa' &&
-          !finishedQaWordCloudSurfaceBySessionId.has(session.id))
-      ) {
+      if (!channels.qa.enabled) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
@@ -8409,7 +8405,9 @@ const sessionCoreRouter = router({
 
       let sessionLifecycleRevision = session.sessionLifecycleRevision;
       const serverNow = new Date().toISOString();
-      if (input.activate && preferredChannel !== 'qa' && session.status !== 'FINISHED') {
+      const switchChannel =
+        input.activate && preferredChannel !== 'qa' && session.status !== 'FINISHED';
+      if (switchChannel) {
         const updated = await prisma.session.update({
           where: { id: session.id },
           data: {
@@ -8420,23 +8418,34 @@ const sessionCoreRouter = router({
         });
         sessionLifecycleRevision = updated.sessionLifecycleRevision;
         preferredChannel = 'qa';
-        presenterPageBySessionId.delete(session.id);
-        presenterPageIdentityBySessionId.delete(session.id);
-        freetextWordCloudProjectionBySessionId.delete(session.id);
       }
 
-      qaWordCloudProjectionBySessionId.set(session.id, input.projection);
-      if (input.activate) {
-        presenterSurfaceBySessionId.set(session.id, 'qaWordCloud');
-        if (session.status === 'FINISHED') {
-          finishedQaWordCloudSurfaceBySessionId.add(session.id);
-        } else {
-          finishedQaWordCloudSurfaceBySessionId.delete(session.id);
-        }
-        if (sessionLifecycleRevision !== session.sessionLifecycleRevision) {
-          invalidateSessionStatusCachesForCode(code);
-        } else {
-          invalidateLocalSessionStatusCachesForCode(code);
+      try {
+        await updateSessionPresenterState(session.id, (state) => {
+          if (!input.activate && preferredChannel !== 'qa' && !state.finishedQaWordCloud) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Die Q&A-Wortwolke ist nicht präsentationsbereit.',
+            });
+          }
+          state.qaProjection = input.projection;
+          if (!input.activate) return;
+          if (state.surface !== 'qaWordCloud' || switchChannel) {
+            delete state.page;
+            delete state.pageIdentity;
+            delete state.freetextProjection;
+          }
+          state.surface = 'qaWordCloud';
+          state.finishedQaWordCloud = session.status === 'FINISHED';
+        });
+      } finally {
+        if (input.activate) {
+          if (sessionLifecycleRevision !== session.sessionLifecycleRevision) {
+            invalidateSessionStatusCachesForCode(code);
+          } else {
+            invalidateLocalSessionStatusCachesForCode(code);
+            if (isSessionPubSubEnabled()) publishSessionStatusInvalidation(code);
+          }
         }
       }
       return {
@@ -8480,10 +8489,11 @@ const sessionCoreRouter = router({
 
       const channels = buildSessionChannels(session);
       const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
-      if (resolvePresenterSurface(session.id, preferredChannel) !== 'qaWordCloud') {
+      const state = await readSessionPresenterState(session.id);
+      if (resolvePresenterSurface(state, preferredChannel) !== 'qaWordCloud') {
         return { projection: null };
       }
-      return { projection: qaWordCloudProjectionBySessionId.get(session.id) ?? null };
+      return { projection: state.qaProjection ?? null };
     }),
 
   setFreetextWordCloudProjection: hostProcedure
@@ -8499,7 +8509,9 @@ const sessionCoreRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
       assertSessionAllowsProjectionMutation(session);
-      freetextWordCloudProjectionBySessionId.set(session.id, input.projection);
+      await updateSessionPresenterState(session.id, (state) => {
+        state.freetextProjection = input.projection;
+      });
       return { projection: input.projection };
     }),
 
@@ -8585,7 +8597,8 @@ const sessionCoreRouter = router({
       }
       const channels = buildSessionChannels(session);
       const preferredChannel = resolvePreferredLiveChannel(session.preferredChannel, channels);
-      const surface = resolvePresenterSurface(session.id, preferredChannel);
+      const state = await readSessionPresenterState(session.id);
+      const surface = resolvePresenterSurface(state, preferredChannel);
       const revealed =
         surface === 'freetextWordCloud' ||
         session.status === 'RESULTS' ||
@@ -8593,7 +8606,7 @@ const sessionCoreRouter = router({
       if (!revealed) {
         return { projection: null };
       }
-      const projection = freetextWordCloudProjectionBySessionId.get(session.id);
+      const projection = state.freetextProjection;
       if (!projection || projection.entries.length === 0) return { projection: projection ?? null };
       const { hiddenLabels } = await readFreetextWordCloudVisibility(
         session.id,
@@ -10607,7 +10620,7 @@ const sessionCoreRouter = router({
         .map((vote) => vote.freeText?.trim() ?? '')
         .filter((value) => value.length > 0);
       const projection = input.includeWordCloudProjection
-        ? freetextWordCloudProjectionBySessionId.get(session.id)
+        ? (await readSessionPresenterState(session.id)).freetextProjection
         : undefined;
 
       return {
@@ -10852,8 +10865,7 @@ const sessionCoreRouter = router({
         title: session.title ?? null,
         channels,
         preferredChannel,
-        presenterSurface: resolvePresenterSurface(session.id, preferredChannel),
-        presenterPage: resolvePresenterPage(session.id, session, preferredChannel),
+        ...(await readPresenterDisplay(session.id, session, preferredChannel)),
         participantCount: newParticipantCount,
         nicknameTheme: responseProfile.nicknameTheme,
         allowCustomNicknames: responseProfile.allowCustomNicknames,
@@ -12178,15 +12190,11 @@ const sessionCoreRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Emoji-Reaktionen sind deaktiviert.' });
       }
 
-      const round = input.round ?? 1;
-      const key = getEmojiKey(input.sessionId, input.questionId, round);
-      let map = emojiStore.get(key);
-      if (!map) {
-        map = new Map();
-        emojiStore.set(key, map);
-      }
-
-      map.set(input.participantId, input.emoji);
+      await recordSessionEmojiReaction(
+        { sessionId: session.id, questionId: input.questionId, round: input.round ?? 1 },
+        input.participantId,
+        input.emoji,
+      );
 
       return { ok: true };
     }),
@@ -12211,27 +12219,12 @@ const sessionCoreRouter = router({
         where: { id: input.sessionId },
         select: { status: true, endedAt: true, expiresAt: true },
       });
-      const round = input.round ?? 1;
-      const key = getEmojiKey(input.sessionId, input.questionId, round);
+      const scope = { ...input, round: input.round ?? 1 };
       if (!session || isSessionEffectivelyFinished(session, new Date())) {
-        emojiStore.delete(key);
-        return {
-          reactions: Object.fromEntries(EMOJI_REACTIONS.map((emoji) => [emoji, 0])),
-          total: 0,
-        };
+        clearLocalQuestionEmojiReactions(scope);
+        return emptyEmojiReactions();
       }
-      const map = emojiStore.get(key);
-      if (!map || map.size === 0) {
-        const empty: Record<string, number> = {};
-        for (const e of EMOJI_REACTIONS) empty[e] = 0;
-        return { reactions: empty, total: 0 };
-      }
-      const counts: Record<string, number> = {};
-      for (const e of EMOJI_REACTIONS) counts[e] = 0;
-      for (const emoji of map.values()) {
-        if (emoji in counts) counts[emoji]++;
-      }
-      return { reactions: counts, total: map.size };
+      return readSessionEmojiReactions(scope);
     }),
 });
 

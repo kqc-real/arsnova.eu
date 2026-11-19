@@ -1,49 +1,45 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  clearAllQaPresenterSortModes,
-  clearQaPresenterSortMode,
-  resolveQaPresenterStageView,
-  setQaPresenterStageView,
-} from './qaPresenterSortMode';
+import { resolveQaPresenterStageView, setQaPresenterStageView } from './qaPresenterSortMode';
+import { clearLocalSessionPresenterState } from './sessionPresenterState';
 
-describe('qaPresenterSortMode session identity', () => {
-  beforeEach(() => clearAllQaPresenterSortModes());
+describe('qaPresenterSortMode session identity', async () => {
+  beforeEach(() => clearLocalSessionPresenterState());
 
-  it('preserves the new session state when a delayed purge clears the old owner', () => {
-    setQaPresenterStageView('old-session-id', {
+  it('preserves the new session state when a delayed purge clears the old owner', async () => {
+    await setQaPresenterStageView('old-session-id', {
       sortMode: 'TIME',
       search: 'alte frage',
       authorNickname: 'Ada',
     });
-    setQaPresenterStageView('new-session-id', {
+    await setQaPresenterStageView('new-session-id', {
       sortMode: 'BEST',
       search: 'neue frage',
       authorNickname: 'Grace',
     });
 
-    clearQaPresenterSortMode('old-session-id');
+    clearLocalSessionPresenterState('old-session-id');
 
-    expect(resolveQaPresenterStageView('old-session-id')).toMatchObject({
+    expect(await resolveQaPresenterStageView('old-session-id')).toMatchObject({
       sortMode: 'BEST',
       search: '',
       authorNickname: null,
     });
-    expect(resolveQaPresenterStageView('new-session-id')).toMatchObject({
+    expect(await resolveQaPresenterStageView('new-session-id')).toMatchObject({
       sortMode: 'BEST',
       search: 'neue frage',
       authorNickname: 'Grace',
     });
   });
 
-  it('behält Filter und Presenter-Sortierung, bis der Host sie übernimmt', () => {
-    setQaPresenterStageView('session-id', {
+  it('behält Filter und Presenter-Sortierung, bis der Host sie übernimmt', async () => {
+    await setQaPresenterStageView('session-id', {
       sortMode: 'BEST',
       search: 'mittelwert',
       pinnedOnly: true,
       authorNickname: 'Ada',
     });
 
-    const fromPresenter = setQaPresenterStageView('session-id', {
+    const fromPresenter = await setQaPresenterStageView('session-id', {
       sortMode: 'TIME',
       search: '',
       source: 'presenter',
@@ -56,14 +52,14 @@ describe('qaPresenterSortMode session identity', () => {
       source: 'presenter',
     });
 
-    const ignoredHostWrite = setQaPresenterStageView('session-id', {
+    const ignoredHostWrite = await setQaPresenterStageView('session-id', {
       sortMode: 'TOP',
       search: '',
     });
     expect(ignoredHostWrite.sortMode).toBe('TIME');
     expect(ignoredHostWrite.source).toBe('presenter');
 
-    const takeover = setQaPresenterStageView(
+    const takeover = await setQaPresenterStageView(
       'session-id',
       { sortMode: 'CONTROVERSIAL', search: 'neu' },
       { takeover: true },

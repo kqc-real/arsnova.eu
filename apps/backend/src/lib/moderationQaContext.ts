@@ -203,7 +203,7 @@ export async function loadAuthorizedModerationState(input: {
   return {
     ...sessionState,
     participantCount: _count.participants,
-    activeSortMode: resolveQaPresenterSortMode(session.id),
+    activeSortMode: await resolveQaPresenterSortMode(session.id),
     authorizedAt: now,
   };
 }

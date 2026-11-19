@@ -54,8 +54,8 @@ import {
   requestQaSummary,
 } from '../lib/qaSummaryQueue';
 import {
-  hasQaPresenterStageView,
-  resolveQaPresenterStageView,
+  QA_PRESENTER_STAGE_VIEW_DEFAULT,
+  readStoredQaPresenterStageView,
   setQaPresenterStageView,
 } from '../lib/qaPresenterSortMode';
 import { isQaControversialLabel, isQaControversyInsufficientVotes } from '../lib/qaControversy';
@@ -1490,7 +1490,7 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      const stageView = setQaPresenterStageView(
+      return setQaPresenterStageView(
         session.id,
         {
           sortMode: input.sortMode,
@@ -1501,7 +1501,6 @@ export const qaRouter = router({
         },
         { takeover: input.takeover === true },
       );
-      return stageView;
     }),
 
   presentProjection: publicProcedure
@@ -1546,9 +1545,10 @@ export const qaRouter = router({
           : session.qaOpen === false
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
-      const stageView = resolveQaPresenterStageView(session.id);
+      const storedStageView = await readStoredQaPresenterStageView(session.id);
+      const stageView = storedStageView ?? QA_PRESENTER_STAGE_VIEW_DEFAULT;
       const sortMode: QaQuestionSortMode = stageView.sortMode;
-      const sortModeSource = hasQaPresenterStageView(session.id) ? stageView.source : undefined;
+      const sortModeSource = storedStageView?.source;
       const filterRevision = createHash('sha256')
         .update(JSON.stringify([stageView.search, stageView.pinnedOnly, stageView.authorNickname]))
         .digest('base64url');

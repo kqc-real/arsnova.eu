@@ -767,6 +767,7 @@ jobs:
           RUN_REDIS_YJS_SHARE_TESTS: '1'
           RUN_REDIS_YJS_DURABILITY_TESTS: '1'
           RUN_REDIS_WORD_CLOUD_CACHE_TESTS: '1'
+          RUN_REDIS_SESSION_REPLICA_TESTS: '1'
           YJS_SHARE_REQUIRE_DURABILITY: '1'
           WORD_CLOUD_PURGE_REQUIRE_DURABILITY: '1'
           QUICK_FEEDBACK_PURGE_REQUIRE_DURABILITY: '1'
@@ -803,6 +804,7 @@ jobs:
 
           npx vitest run src/lib/yjsShareToken.redis.test.ts
           npx vitest run src/lib/wordCloudAnalysisCache.redis.test.ts
+          npx vitest run src/lib/sessionReplicaState.redis.test.ts
           WORD_CLOUD_DURABILITY_TEST_PHASE=prepare \
             npx vitest run src/lib/wordCloudAnalysisCache.durability.redis.test.ts
           SESSION_RUNTIME_DATA_DURABILITY_TEST_PHASE=prepare \

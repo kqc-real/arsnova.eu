@@ -3,23 +3,25 @@
 > Stand: 2026-11-19 · Issue #428 AP7 · Umsetzungsvorschlag für einen
 > Staging-Host mit 12 vCPU und 32 GB RAM.
 
-Die Produktionsgrenze bleibt **eine Backendinstanz** für HTTP, tRPC-WebSockets
-und Yjs. AP1–AP6 dürfen diese Grenze nicht voraussetzen. Mehrere App-Prozesse
-würden die unten genannten Live-Zustände nicht automatisch teilen.
+Der reguläre Produktionsmodus startet mit einer App und eingebettetem Yjs.
+Für die Abnahme stehen der [Replikabetrieb](PRODUCTION-REPLICAS.md) mit zwei
+oder drei Apps und der dedizierte Yjs-Relay bereit.
 
-## Prozesslokale Live-Zustände
+## Quellen für Live-Zustände
 
-| Zustand                                                                    | Maßgebliche Quelle                                                  | Recovery heute                                                                   |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Session-Status-, Teilnehmer-, Frage- und Vote-Progress-Signale             | PostgreSQL-Revisionen; Fan-out über prozesslokale `EventEmitter`    | Kurzer DB-Lesefallback; optionales Pub/Sub für Status und Vote-Fortschritt       |
-| Q&A-Invalidierung (`qaQuestionsSignal`)                                    | `qaRankingRevision` / Lifecycle in PostgreSQL; Signal im Prozess    | Fallback 15 s (Teilnahme) bzw. 2 s (Host); Fristwecker unabhängig vom Signal     |
-| Blitzlicht-Ergebniscache                                                   | Redis-Hashes der Runde; 250-ms-Prozesscache nur als Bündelung       | Nächster Poll liest Redis neu; Cache verfällt oder wird bei Fehler verworfen     |
-| Quiz-Ranglisten- und Q&A-Seitencache                                       | PostgreSQL-Stimmen/Zähler; Prozesscache nach Revision/Grenze        | TTL 2 s plus Invalidation bei Vote/Purge; bei Instanzwechsel voller Reload       |
-| Vote-Zähler- und Session-Info-Caches                                       | PostgreSQL; Prozesscache                                            | `clearSessionReadCaches` / Purge; sonst TTL                                      |
-| `presenterSurfaceByCode`, `qaWordCloudProjectionByCode`, Finish-Projektion | Hostaktion im Prozess; DB-Resync stellt diese Maps nicht wieder her | Nach Reconnect oder anderer Instanz Fallback auf Default bzw. erneute Hostaktion |
-| Yjs-Raumbindung und Share-Provider                                         | Raum-ID plus Share-Token; Provider hängt am lokalen Prozess         | Anderer Prozess kennt den Raum nicht; Clients müssen denselben Origin treffen    |
-| Presence (Tempo/Q&A-Online)                                                | Redis Sorted Sets                                                   | Instanzunabhängig, sofern beide Prozesse dasselbe Redis nutzen                   |
-| Host-Pairing- und Session-Purge-Invalidierung                              | Redis Pub/Sub plus lokale Maps                                      | Vorbild für Signale; Pub/Sub allein ist kein persistenter Zustand                |
+| Zustand                                                        | Maßgebliche Quelle                                               | Recovery heute                                                                                             |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Session-Status-, Teilnehmer-, Frage- und Vote-Progress-Signale | PostgreSQL-Revisionen; Fan-out über prozesslokale `EventEmitter` | Kurzer DB-Lesefallback; optionales Pub/Sub für Status und Vote-Fortschritt                                 |
+| Q&A-Invalidierung (`qaQuestionsSignal`)                        | `qaRankingRevision` / Lifecycle in PostgreSQL; Signal im Prozess | Fallback 15 s (Teilnahme) bzw. 2 s (Host); Fristwecker unabhängig vom Signal                               |
+| Blitzlicht-Ergebniscache                                       | Redis-Hashes der Runde; 250-ms-Prozesscache nur als Bündelung    | Nächster Poll liest Redis neu; Cache verfällt oder wird bei Fehler verworfen                               |
+| Quiz-Ranglisten- und Q&A-Seitencache                           | PostgreSQL-Stimmen/Zähler; Prozesscache nach Revision/Grenze     | TTL 2 s plus Invalidation bei Vote/Purge; bei Instanzwechsel voller Reload                                 |
+| Vote-Zähler- und Session-Info-Caches                           | PostgreSQL; Prozesscache                                         | `clearSessionReadCaches` / Purge; sonst TTL                                                                |
+| Presenter-Fläche, Seitenkontext, Wortwolken und Q&A-Filter     | Session-Snapshot in Redis bei aktivem Replikabetrieb             | App-Wechsel und erneutes Lesen erhalten die Ansicht; konkurrierende Seitenwechsel werden atomar übernommen |
+| Abschlussprojektion                                            | Separater Redis-Snapshot mit 24-Stunden-TTL                      | Nachlesen bei einem App-Wechsel                                                                            |
+| Emoji-Reaktionen                                               | Redis-Hash je Session bei aktivem Replikabetrieb                 | Atomare Ersetzung je Teilnehmer, Frage und Runde; erneutes Lesen auf jeder App                             |
+| Yjs-Raumbindung und Share-Provider                             | Raum-ID plus Share-Token; Provider hängt am lokalen Prozess      | Anderer Prozess kennt den Raum nicht; Clients müssen denselben Origin treffen                              |
+| Presence (Tempo/Q&A-Online)                                    | Redis Sorted Sets                                                | Instanzunabhängig, sofern beide Prozesse dasselbe Redis nutzen                                             |
+| Host-Pairing- und Session-Purge-Invalidierung                  | Redis Pub/Sub plus lokale Maps                                   | Vorbild für Signale; Pub/Sub allein ist kein persistenter Zustand                                          |
 
 ## 1. Zielaufbau auf einem Host
 
@@ -155,12 +157,12 @@ Live-Signale sowie der Revisions- und Projektionstransfer sind Ausbauschritte.
    bestehenden tRPC-Lesepfaden mit ihren jeweiligen Berechtigungen.
 2. Pro Zustand die autoritative Quelle und deren Revision festlegen. Doppelte
    und verspätete Ereignisse anhand der fachlichen Revision behandeln.
-   Für Beamerfläche, Wortwolke und Abschlussprojektion einen über beide Apps
-   lesbaren Snapshot bereitstellen. Aus PostgreSQL ableitbaren Zustand dort
-   belassen. Rein prozesslokale Projektionen als versionierte Redis-Snapshots
-   mit Session-TTL speichern und erst danach signalisieren. Konkurrierende
-   Updates atomar entscheiden. Purge und Ablauf müssen auch verspätete
-   Updates abweisen.
+   Presenter-Fläche, Seitenkontext, Q&A-Filter und Wortwolken liegen als
+   gemeinsamer Session-Snapshot in Redis. Die Abschlussprojektion verwendet
+   einen eigenen Redis-Snapshot. Die Apps signalisieren einen Presenter-Wechsel
+   nach dem Speichern. Reaktionen werden je Teilnehmer, Frage und Runde
+   atomar ersetzt. Die Session-Bereinigung löscht den Presenter-Snapshot und
+   die Reaktionen gemeinsam und verhindert verspätete Schreibzugriffe.
 3. Bei Einstieg auf B und nach Subscriber-Reconnect den neuesten Snapshot
    laden. Pub/Sub-Signale sind flüchtig. Den vorhandenen Revisionsfallback
    auch für einen erfolgreichen Commit mit fehlgeschlagenem Publish testen.

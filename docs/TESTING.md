@@ -942,6 +942,22 @@ beobachten. Bei unterbrochenem Subscriber muss der nächste reguläre
 Lese-Fallback den aktuellen Zustand liefern. Nach Wiederanbindung einen
 weiteren Wechsel über A auslösen und die direkte Zustellung auf B nachweisen.
 
+Im Replikabetrieb teilen die Apps auch die Werte hinter den
+Presenter-Signalen. Der Redis-Integrationstest nutzt zwei unabhängige
+Client-Instanzen und prüft Seitenwechsel, Q&A-Filter, Emoji-Ersetzungen
+sowie das Löschen und Abweisen verspäteter Writes.
+
+```bash
+RUN_REDIS_SESSION_REPLICA_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 \
+  npm run test -w @arsnova/backend -- src/lib/sessionReplicaState.redis.test.ts
+```
+
+Für die Abnahme mit zwei Prozessen die Presenter-Fläche auf A ändern,
+das Status-Abo auf B beobachten und denselben Seitenkontext für je einen
+Seitenschritt an A und B senden. Eine Reaktion auf A setzen, auf B lesen,
+dort mit demselben Teilnahmetoken ersetzen und auf A die neue Verteilung
+bei unveränderter Gesamtzahl prüfen.
+
 Für den Vote-Fortschritt `session.onHostVoteProgressChanged` mit einem
 gültigen Host-Token auf B öffnen. Für dieselbe Session parallel auf A und
 B abstimmen, danach eine weitere Stimme nach Veröffentlichung des ersten

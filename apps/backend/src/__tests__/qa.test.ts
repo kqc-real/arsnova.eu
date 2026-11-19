@@ -93,7 +93,7 @@ vi.mock('../lib/qaTelemetry', () => ({
 }));
 
 import { emitQaQuestionsSignal, resetQaQuestionsSignalsForTests } from '../lib/qaQuestionsSignal';
-import { clearAllQaPresenterSortModes } from '../lib/qaPresenterSortMode';
+import { clearLocalSessionPresenterState } from '../lib/sessionPresenterState';
 import { qaRouter, resetSharedQaRankingCacheForTests } from '../routers/qa';
 import { QA_REDACTION_CHAR, qaQuestionTextVersion } from '@arsnova/shared-types';
 
@@ -214,7 +214,7 @@ describe('qa router (Epic 8)', () => {
   beforeEach(() => {
     resetQaQuestionsSignalsForTests();
     resetSharedQaRankingCacheForTests();
-    clearAllQaPresenterSortModes();
+    clearLocalSessionPresenterState();
     vi.resetAllMocks();
     rawQueryResults.createQuestion.length = 0;
     rawQueryResults.changeVote.length = 0;

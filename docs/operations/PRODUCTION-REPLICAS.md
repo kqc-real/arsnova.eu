@@ -19,6 +19,15 @@ das gemeinsame PDF-Limit und der geteilte LLM-Slot sind im Replikabetrieb
 auf allen Apps aktiv. Der dedizierte Relay bestätigt Token-Rotationen auch
 bei HTTP-Zugriffen über B oder C.
 
+Die Apps lesen Presenter-Fläche, Seitenkontext, Wortwolken und Q&A-Filter
+aus demselben Redis-Snapshot. Emoji-Reaktionen werden dort je Teilnehmer,
+Frage und Runde atomar ersetzt. Die Session-Bereinigung löscht beide
+Zustände. Bei einer Redis-Störung können die betroffenen Lese- und
+Schreibvorgänge vorübergehend fehlschlagen. Bei Rückkehr in den
+Ein-App-Modus wechselt die App für diese Zustände auf ihren lokalen Speicher.
+Deshalb für einen Rollback zwischen laufenden Präsentationen das bereits
+vorgesehene Wartungsfenster nutzen.
+
 Die Compose-Profile bleiben optional. `up` aktiviert zwei Apps und
 `enable-third` ist der eigene Schaltvorgang für die spätere Abnahme.
 Die dritte App erhält ihren Platz im Gesamtpool von 60 Verbindungen
