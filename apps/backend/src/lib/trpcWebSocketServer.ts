@@ -23,6 +23,7 @@ const CONNECTION_PARAMS_PARSE_MAX_BYTES = 16 * 1024;
 export const MAX_PENDING_BINDING_FRAMES = 64;
 export const MAX_PENDING_BINDING_BYTES_PER_CONNECTION = 64 * 1024;
 export const MAX_PENDING_BINDING_BYTES_GLOBAL = 8 * 1024 * 1024;
+const DEFAULT_SHUTDOWN_DRAIN_TIMEOUT_MS = 2_000;
 
 export interface TrpcWebSocketLimits {
   maxConnections: number;
@@ -40,6 +41,7 @@ export interface TrpcWebSocketConfig extends TrpcWebSocketLimits {
   port: number;
   sharedLimitsEnabled?: boolean;
   clusterBudget?: TrpcWebSocketClusterBudget | null;
+  shutdownDrainTimeoutMs?: number;
 }
 
 export const STATIC_TRPC_WS_LIMIT_MAXIMA: Readonly<TrpcWebSocketLimits> = {
@@ -232,23 +234,57 @@ function rejectUpgrade(socket: Duplex, status: 429 | 503): void {
   recordTrpcWebSocketRejectedUpgrade();
 }
 
+async function waitUntilTaskSetDrained(
+  tasks: ReadonlySet<Promise<void>>,
+  listeners: Set<() => void>,
+  maxWaitMs: number,
+): Promise<void> {
+  if (tasks.size === 0) return;
+  const budgetMs = Math.max(0, maxWaitMs);
+  if (budgetMs === 0) return;
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = (): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      listeners.delete(onEmpty);
+      resolve();
+    };
+    const onEmpty = (): void => {
+      if (tasks.size === 0) {
+        finish();
+      }
+    };
+    const timer = setTimeout(finish, budgetMs);
+    timer.unref();
+    listeners.add(onEmpty);
+    onEmpty();
+  });
+}
+
 export class TrpcWebSocketServer {
   readonly webSocketServer: WebSocketServer;
   private readonly httpServer: HttpServer;
   private readonly clusterBudget: TrpcWebSocketClusterBudget | null;
+  private readonly shutdownDrainTimeoutMs: number;
   private readonly globalUpgradeWindow = new FixedWindowCounter();
   private readonly globalMessageWindow = new FixedWindowCounter();
   private readonly sessionConnections = new Map<string, number>();
   private readonly participantConnections = new Map<string, number>();
   private readonly pendingUpgradeSockets = new Set<Duplex>();
   private readonly inFlightUpgrades = new Set<Promise<void>>();
+  private readonly inFlightUpgradeDrainListeners = new Set<() => void>();
   private readonly inFlightClusterReleases = new Set<Promise<void>>();
+  private readonly inFlightReleaseDrainListeners = new Set<() => void>();
   private connectionsActive = 0;
   private upgradesPending = 0;
   private pendingBindingBytesGlobal = 0;
   private closing = false;
 
   constructor(private readonly config: TrpcWebSocketConfig) {
+    this.shutdownDrainTimeoutMs =
+      config.shutdownDrainTimeoutMs ?? DEFAULT_SHUTDOWN_DRAIN_TIMEOUT_MS;
     this.webSocketServer = new WebSocketServer({
       noServer: true,
       maxPayload: TRPC_MAX_BODY_SIZE_BYTES,
@@ -262,6 +298,9 @@ export class TrpcWebSocketServer {
               maxClusterUpgradesPerMinute: config.maxClusterUpgradesPerMinute,
               maxConnectionsPerSession: config.maxConnectionsPerSession,
               maxConnectionsPerParticipant: config.maxConnectionsPerParticipant,
+              ...(config.shutdownDrainTimeoutMs !== undefined
+                ? { shutdownDrainTimeoutMs: config.shutdownDrainTimeoutMs }
+                : {}),
             })
           : null;
     configureTrpcWebSocketTelemetry({
@@ -279,6 +318,11 @@ export class TrpcWebSocketServer {
       this.inFlightUpgrades.add(upgradeTask);
       void upgradeTask.finally(() => {
         this.inFlightUpgrades.delete(upgradeTask);
+        if (this.inFlightUpgrades.size === 0) {
+          for (const notify of [...this.inFlightUpgradeDrainListeners]) {
+            notify();
+          }
+        }
       });
     });
   }
@@ -305,12 +349,17 @@ export class TrpcWebSocketServer {
         this.httpServer.close((error) => (error ? reject(error) : resolve()));
       });
     });
-    if (this.inFlightUpgrades.size > 0) {
-      await Promise.allSettled([...this.inFlightUpgrades]);
-    }
-    if (this.inFlightClusterReleases.size > 0) {
-      await Promise.allSettled([...this.inFlightClusterReleases]);
-    }
+    const drainDeadline = Date.now() + this.shutdownDrainTimeoutMs;
+    await waitUntilTaskSetDrained(
+      this.inFlightUpgrades,
+      this.inFlightUpgradeDrainListeners,
+      drainDeadline - Date.now(),
+    );
+    await waitUntilTaskSetDrained(
+      this.inFlightClusterReleases,
+      this.inFlightReleaseDrainListeners,
+      drainDeadline - Date.now(),
+    );
     await this.clusterBudget?.close();
   }
 
@@ -318,6 +367,11 @@ export class TrpcWebSocketServer {
     this.inFlightClusterReleases.add(promise);
     void promise.finally(() => {
       this.inFlightClusterReleases.delete(promise);
+      if (this.inFlightClusterReleases.size === 0) {
+        for (const notify of [...this.inFlightReleaseDrainListeners]) {
+          notify();
+        }
+      }
     });
   }
 

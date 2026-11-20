@@ -332,4 +332,119 @@ describe('TrpcWebSocketClusterBudget', () => {
 
     await budget.close();
   });
+
+  it('kehrt bei dauerhaft unbeantworteten Redis-EVAL-Promises in close() fristgerecht zurück', async () => {
+    const neverSettlingEval = (() => new Promise<number>(() => {})) as unknown as Redis['eval'];
+
+    const budget = new TrpcWebSocketClusterBudget({
+      instanceId: 'app-stalled-all',
+      maxClusterConnections: 4,
+      maxClusterUpgradesPerMinute: 20,
+      maxConnectionsPerSession: 4,
+      maxConnectionsPerParticipant: 2,
+      operationTimeoutMs: 20,
+      shutdownDrainTimeoutMs: 40,
+      redisProvider: () => ({
+        zadd: (() => new Promise<number>(() => {})) as unknown as Redis['zadd'],
+        pexpire: (() => new Promise<number>(() => {})) as unknown as Redis['pexpire'],
+        eval: neverSettlingEval,
+      }),
+    });
+
+    const upg = await budget.admitUpgradeReservation();
+    const bind = await budget.admitBindingReservation({
+      sessionCode: 'ABC123',
+      participantKey: 'ABC123:22222222-2222-4222-8222-222222222222',
+    });
+    expect(upg).toEqual({ decision: 'fallback-local', reservationId: null });
+    expect(bind).toEqual({ decision: 'fallback-local', reservationId: null });
+
+    const startedAt = Date.now();
+    await budget.close();
+    const elapsedMs = Date.now() - startedAt;
+
+    // Drain (40 ms) + Shutdown-EVAL-Timeout (20 ms) müssen zuverlässig begrenzt abschließen,
+    // obwohl die ursprünglichen EVAL-Promises niemals auflösen.
+    expect(elapsedMs).toBeLessThan(300);
+  });
+
+  it('erreicht trotz einzelner dauerhaft hängender ADMIT-Antwort die Redis-Abmeldung und erhält Tombstone-/Lease-Schutz für Peer-Instanzen', async () => {
+    const store = createInMemoryClusterRedis();
+    let stallNextAdmit = false;
+    const nowMs = 1_700_000_000_000;
+
+    const wrappedClient: Pick<Redis, 'eval' | 'zadd' | 'pexpire'> = {
+      zadd: store.client.zadd,
+      pexpire: store.client.pexpire,
+      eval: ((script: string, numKeys: number, ...rest: string[]) => {
+        const isAdmit =
+          script.includes('return activeConnections + 1') || script.includes('maxSession');
+        if (isAdmit && stallNextAdmit) {
+          stallNextAdmit = false;
+          // Simuliert eine Verbindung, auf der Redis ADMIT gebucht hat, die Antwort aber nie ankommt.
+          void store.client.eval(script, numKeys, ...rest);
+          return new Promise<number>(() => {});
+        }
+        return store.client.eval(script, numKeys, ...rest);
+      }) as unknown as Redis['eval'],
+    };
+
+    const closingReplica = new TrpcWebSocketClusterBudget({
+      instanceId: 'app-closing',
+      maxClusterConnections: 2,
+      maxClusterUpgradesPerMinute: 20,
+      maxConnectionsPerSession: 2,
+      maxConnectionsPerParticipant: 1,
+      leaseTtlMs: 1_000,
+      operationTimeoutMs: 20,
+      shutdownDrainTimeoutMs: 40,
+      now: () => nowMs,
+      redisProvider: () => wrappedClient,
+    });
+
+    const sessionCode = 'ABC123';
+    const participantKey = 'ABC123:33333333-3333-4333-8333-333333333333';
+
+    // Eine aktive reguläre Verbindung + ein dauerhaft hängendes Binding-ADMIT auf derselben Instanz.
+    const activeUpg = await closingReplica.admitUpgradeReservation();
+    expect(activeUpg.decision).toBe('admitted');
+
+    stallNextAdmit = true;
+    const stalledBind = await closingReplica.admitBindingReservation({
+      sessionCode,
+      participantKey,
+    });
+    expect(stalledBind).toEqual({ decision: 'fallback-local', reservationId: null });
+
+    const startedAt = Date.now();
+    await closingReplica.close();
+    expect(Date.now() - startedAt).toBeLessThan(300);
+
+    // close() hat trotz der nie aufgelösten ADMIT-Antwort SHUTDOWN_INSTANCE_LUA erreicht:
+    // Instanz-Lease und globaler Zähler von app-closing sind entfernt; der proaktive Tombstone
+    // hat das im Hintergrund gebuchte Binding bereits storniert.
+    expect(store.zsets.get(TRPC_WS_INSTANCES_KEY)?.has('app-closing') ?? false).toBe(false);
+    expect(store.getHashSum(TRPC_WS_GLOBAL_CONNECTIONS_KEY)).toBe(0);
+    expect(store.getHashSum(buildTrpcWsParticipantBudgetKey(participantKey))).toBe(0);
+
+    const peerReplica = new TrpcWebSocketClusterBudget({
+      instanceId: 'app-peer',
+      maxClusterConnections: 2,
+      maxClusterUpgradesPerMinute: 20,
+      maxConnectionsPerSession: 2,
+      maxConnectionsPerParticipant: 1,
+      leaseTtlMs: 1_000,
+      operationTimeoutMs: 20,
+      shutdownDrainTimeoutMs: 40,
+      now: () => nowMs,
+      redisProvider: () => store.client,
+    });
+
+    await expect(peerReplica.admitUpgrade()).resolves.toBe('admitted');
+    await expect(peerReplica.admitUpgrade()).resolves.toBe('admitted');
+    await expect(peerReplica.admitBinding({ sessionCode, participantKey })).resolves.toBe(
+      'admitted',
+    );
+    await peerReplica.close();
+  });
 });

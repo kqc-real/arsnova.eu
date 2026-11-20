@@ -14,6 +14,7 @@ export const TRPC_WS_BINDING_RESERVATION_PREFIX = 'trpc:ws:bindres:v1:';
 const DEFAULT_LEASE_TTL_MS = 30_000;
 const DEFAULT_HEARTBEAT_INTERVAL_MS = 10_000;
 const DEFAULT_OPERATION_TIMEOUT_MS = 1_000;
+const DEFAULT_SHUTDOWN_DRAIN_TIMEOUT_MS = 1_500;
 const HASH_IDLE_TTL_MS = 24 * 60 * 60 * 1_000;
 const RESERVATION_TOMBSTONE_TTL_MS = 2 * 60 * 1_000;
 const RELEASE_RETRY_DELAY_MS = 200;
@@ -247,6 +248,7 @@ export interface TrpcWebSocketClusterBudgetOptions {
   leaseTtlMs?: number;
   heartbeatIntervalMs?: number;
   operationTimeoutMs?: number;
+  shutdownDrainTimeoutMs?: number;
   now?: () => number;
   redisProvider?: () => Pick<Redis, 'eval' | 'zadd' | 'pexpire'>;
 }
@@ -327,9 +329,11 @@ export class TrpcWebSocketClusterBudget {
   private readonly leaseTtlMs: number;
   private readonly heartbeatIntervalMs: number;
   private readonly operationTimeoutMs: number;
+  private readonly shutdownDrainTimeoutMs: number;
   private readonly now: () => number;
   private readonly redisProvider: () => Pick<Redis, 'eval' | 'zadd' | 'pexpire'>;
   private readonly pendingCompensations = new Set<Promise<void>>();
+  private readonly compensationDrainListeners = new Set<() => void>();
   private readonly unscopedUpgradeReservations: string[] = [];
   private readonly unscopedBindingReservations = new Map<string, string[]>();
   private heartbeatTimer: NodeJS.Timeout | null = null;
@@ -341,6 +345,9 @@ export class TrpcWebSocketClusterBudget {
     this.leaseTtlMs = options.leaseTtlMs ?? DEFAULT_LEASE_TTL_MS;
     this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? DEFAULT_HEARTBEAT_INTERVAL_MS;
     this.operationTimeoutMs = options.operationTimeoutMs ?? DEFAULT_OPERATION_TIMEOUT_MS;
+    this.shutdownDrainTimeoutMs =
+      options.shutdownDrainTimeoutMs ??
+      Math.min(DEFAULT_SHUTDOWN_DRAIN_TIMEOUT_MS, Math.max(this.operationTimeoutMs * 4, 50));
     this.now = options.now ?? Date.now;
     this.redisProvider = options.redisProvider ?? (() => getRedis());
   }
@@ -375,13 +382,37 @@ export class TrpcWebSocketClusterBudget {
     this.pendingCompensations.add(task);
     void task.finally(() => {
       this.pendingCompensations.delete(task);
+      if (this.pendingCompensations.size === 0) {
+        for (const notify of [...this.compensationDrainListeners]) {
+          notify();
+        }
+      }
     });
   }
 
-  async flushPendingCompensations(): Promise<void> {
-    while (this.pendingCompensations.size > 0) {
-      await Promise.allSettled([...this.pendingCompensations]);
-    }
+  async flushPendingCompensations(maxWaitMs: number = this.shutdownDrainTimeoutMs): Promise<void> {
+    if (this.pendingCompensations.size === 0) return;
+    const budgetMs = Math.max(0, maxWaitMs);
+    if (budgetMs === 0) return;
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = (): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        this.compensationDrainListeners.delete(onEmpty);
+        resolve();
+      };
+      const onEmpty = (): void => {
+        if (this.pendingCompensations.size === 0) {
+          finish();
+        }
+      };
+      const timer = setTimeout(finish, budgetMs);
+      timer.unref();
+      this.compensationDrainListeners.add(onEmpty);
+      onEmpty();
+    });
   }
 
   async admitUpgradeReservation(): Promise<ClusterUpgradeReservation> {
@@ -606,7 +637,7 @@ export class TrpcWebSocketClusterBudget {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
-    await this.flushPendingCompensations();
+    await this.flushPendingCompensations(this.shutdownDrainTimeoutMs);
     try {
       await withTimeout(
         this.redisProvider().eval(

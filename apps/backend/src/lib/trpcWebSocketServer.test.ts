@@ -889,4 +889,38 @@ describe('TrpcWebSocketServer', () => {
     expect(reconnect1.readyState).toBe(WebSocket.OPEN);
     expect(reconnect2.readyState).toBe(WebSocket.OPEN);
   });
+
+  it('kehrt bei dauerhaft ausstehenden Redis-EVAL-Antworten beim Server-Shutdown fristgerecht zurück', async () => {
+    const stalledBudget = new TrpcWebSocketClusterBudget({
+      instanceId: 'ws-stalled-shutdown',
+      maxClusterConnections: 4,
+      maxClusterUpgradesPerMinute: 30,
+      maxConnectionsPerSession: 4,
+      maxConnectionsPerParticipant: 2,
+      operationTimeoutMs: 20,
+      shutdownDrainTimeoutMs: 40,
+      redisProvider: () => ({
+        zadd: (() => new Promise<number>(() => {})) as never,
+        pexpire: (() => new Promise<number>(() => {})) as never,
+        eval: (() => new Promise<number>(() => {})) as never,
+      }),
+    });
+
+    const server = new TrpcWebSocketServer(
+      config({ clusterBudget: stalledBudget, shutdownDrainTimeoutMs: 60 }),
+    );
+    applyWSSHandler({ wss: server.webSocketServer, router: testRouter });
+    await new Promise<void>((resolve) => server.listen(resolve));
+    const port = (server.address() as AddressInfo).port;
+    const url = `ws://127.0.0.1:${port}`;
+
+    const client = await connect(url);
+    client.send(connectionParamsMessage('ABC123', '55555555-5555-4555-8555-555555555555'));
+    client.send(echoMessage(1, 'fallback'));
+    await waitForResolverInvocations(1);
+
+    const startedAt = Date.now();
+    await server.close();
+    expect(Date.now() - startedAt).toBeLessThan(350);
+  });
 });
