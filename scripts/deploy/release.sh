@@ -38,7 +38,7 @@ require_valid_deploy_sha "$initial_sha" 'Last-known-good-SHA'
 # Ein Image-Recover kann den Arbeitsbaum auf einen älteren Commit umschalten.
 # Für die restliche Transaktion bleibt der Operator aus dem Release-Commit aktiv.
 release_tmp=$(mktemp -d)
-# shellcheck disable=SC2317 # EXIT trap
+# shellcheck disable=SC2317,SC2329 # EXIT trap
 cleanup_release() {
   rm -f -- "$release_tmp/operator" "$release_tmp/nginx-pools" "$release_tmp/operation-lock"
   rmdir -- "$release_tmp"

@@ -71,7 +71,7 @@ apply_pools() (
     wait_for_nginx_mode "$mode"
     return
   fi
-  # shellcheck disable=SC2317 # EXIT trap
+  # shellcheck disable=SC2317,SC2329 # EXIT trap
   restore_previous() {
     if ((restore)); then
       if mv -f -- "$backup" "$config" && "$nginx" -t && "$nginx" -s reload; then
