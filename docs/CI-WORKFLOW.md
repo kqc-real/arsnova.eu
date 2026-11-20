@@ -21,7 +21,7 @@ Wenn du neu im Projekt bist, reicht dieses mentale Modell:
 2. **Technische Basis:** Das Projekt muss in einer realistischen Umgebung bauen (`build`, `landing-build`, `typecheck`, `lint`, i18n-Konsistenz). `lint` umfasst Angular-Template-A11y; `landing-build` prüft Astro 7 mit `astro check`, baut die Landing und führt danach axe aus.
 3. **Verhalten:** Tests müssen grün sein und Mindestqualität halten (`test:coverage`, Chromium-/WebKit-`e2e`, `classroom-smokes`, `lighthouse`, `pdfua`).
 4. **Sicherheit:** `audit`, Dependency Review und Trivy blockieren ab High; CodeQL prüft SAST, die CI erzeugt ein CycloneDX-SBOM.
-5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`), danach kommt der Gesundheitscheck (`post-deploy-smoke`).
+5. **Release:** Nur wenn alles grün ist und der Commit noch aktueller `main`-HEAD ist (`deploy-freshness`), darf deployed werden (`deploy`). Der Deploy-Job führt auch Readiness, HTTPS-Smoke und bei Bedarf den Rollback aus.
 
 ### PR-Checkliste für Erstbeiträge
 
@@ -103,8 +103,8 @@ flowchart TD
 
   Q --> N[deploy]
 
-  N --> O[post-deploy-smoke]
-  O --> P[rollback-on-smoke-failure<br/>nur bei failed smoke]
+  N --> O[Readiness und HTTPS-Smoke im selben Job]
+  O --> P[Recovery bei Release-Fehler]
 
   A --> R[load-test k6<br/>nur schedule oder workflow_dispatch]
   A --> R2[artillery-500<br/>nur schedule oder workflow_dispatch]
@@ -415,8 +415,9 @@ nicht die offene S6.5-Zielhostabnahme.
 
 - **Was?** Server-Deploy via SSH; übergibt `DEPLOY_IMAGE` aus
   `needs.publish-image.outputs.image_ref` (kanonische Digest-Referenz) sowie
-  `DEPLOY_SHA` (`github.sha`). Per SSH wird zuerst `DEPLOY_SHA` ausgecheckt
-  (Bootstrap), danach [../scripts/deploy.sh](../scripts/deploy.sh) gestartet.
+  `DEPLOY_SHA` (`github.sha`). Per SSH wird `DEPLOY_SHA` unter der
+  Produktionssperre des Release-Runners ausgecheckt. Der Runner startet
+  [../scripts/deploy.sh](../scripts/deploy.sh) im Einzelbetrieb.
   Das Skript setzt `ARSNOVA_IMAGE`, pullt `app`/`pdf-worker` (kein
   Server-Build), prüft Host- vs. Image-Architektur (`arm64`) und stellt vor
   einer möglichen Redis-Neuerstellung die Persistenz sicher. Einen bestehenden
@@ -445,38 +446,17 @@ normale manuelle Deploys dürfen vorab
 dagegen bewusst das installierte Skript ohne Vorab-Checkout, damit dessen State
 und das tatsächlich laufende Image zuerst ausgewertet werden können.
 
-### 4.18 post-deploy-smoke
+### 4.18 Readiness, Smoke und Rollback im Deploy-Job
 
-- **Was?** Nachgelagerter Smoke-Check auf der Zielumgebung über [../scripts/verify-production-serving.mjs](../scripts/verify-production-serving.mjs).
-- **Wo?** Job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Nur wenn `deploy` erfolgreich war.
-- **Warum?** Verifiziert, dass die produktive Auslieferung wirklich erreichbar und gesund ist (inkl. TLS-Hostname-Schutz bei `DEPLOY_HOST`).
-
-### 4.19 rollback-on-smoke-failure
-
-- **Was?** Automatischer Image-/Commit-Rollback über
-  `./scripts/deploy.sh --rollback` (ohne Checkout vor dem Skriptstart, damit
-  zuerst `previous.state`, der letzte erfolgreiche Purge-Runner und das
-  tatsächlich laufende Image gelesen werden). Vor Retention wird der aktuelle
-  Writer gestoppt und der Word-Cloud-/Blitzlicht-Rollout-Purge mit einem
-  kompatiblen Runner ausgeführt. `github.event.before` wird nicht verwendet. Es
-  findet kein Server-Build statt.
-- **Wo?** Job `Rollback on Smoke Failure` in
-  [../.github/workflows/ci.yml](../.github/workflows/ci.yml).
-- **Wann?** Bei `push` auf `main`, wenn `deploy` erfolgreich war, aber `post-deploy-smoke` fehlschlug (mit `always()` ausgewertet, damit der Job trotz Fehlerpfad startet).
-- **Warum?** Reduziert Ausfallzeit und stellt das zuletzt erfolgreich verifizierte Digest-Artefakt wieder her.
-- **Grenze:** Image-Rollback setzt **keine** Datenbankmigrationen zurück. Fehlt ein gültiger Previous-State, bricht das Skript mit Operator-Hinweisen ab.
-
-  Beim einmaligen Cutover auf das All-Cache-Gate kann `previous.state` noch ein
-  pre-Gate-Image bezeichnen. Dieses Image wird vor Git-Checkout, Writer-Stop und
-  Retention absichtlich fail-closed abgelehnt; der automatische Rollback bleibt
-  dann rot und erfordert Operator-Eingriff. Niemals das Gate umgehen oder den
-  Legacy-Writer manuell starten. Ist `current.state` kompatibel, den installierten
-  Stand mit `--recover` herstellen. Ist auch `current.state` noch pre-Gate,
-  denselben kompatiblen Candidate erneut normal deployen oder ein kompatibles
-  Forward-Fix-/Revert-Image ausrollen. Ein persistierter Candidate bleibt bis
-  nach Writer-Drain, beiden Sweeps und Retention der verpflichtende Runner und
-  wird erst unmittelbar vor dem neuen App-Start ersetzt.
+Der per SSH gestartete Release-Runner lädt die Produktionssperre aus dem
+Ziel-Commit und wechselt darunter den Checkout. Der Runner fährt vor dem
+Digest-Deploy auf eine App zurück, aktiviert anschließend die Replikate
+und prüft die öffentliche HTTPS-Adresse über Nginx. Bei einem Fehler nach
+Beginn der Umschaltung stellt der Runner den vorigen Digest und die
+Ausgangstopologie wieder her. Release und Recovery verwenden dieselbe
+Sperre. Ein erfolgreicher Rückweg ändert den Fehlerstatus des Releases
+nicht. Der [Betriebsablauf](operations/PRODUCTION-REPLICAS.md#automatische-releases-aus-github-actions)
+beschreibt die einmalige Nginx-Freigabe und die Readiness-Kriterien.
 
 ---
 
@@ -515,8 +495,7 @@ wird der Deploy sauber übersprungen.
 - **Fail in audit/trivy**: Sicherheitsrisiko gefunden; Upgrade/Fix nötig.
 - **Fail in lighthouse**: Qualitätsanforderung (insb. A11y) unterschritten.
 - **Fail in docker**: Release-Artefakt nicht reproduzierbar.
-- **Fail in post-deploy-smoke**: Deployment lief technisch, aber die App ist nicht gesund ausgeliefert.
-- **Fail in rollback-on-smoke-failure**: Das automatische Zurückrollen ist gescheitert; sofort manuell eingreifen.
+- **Fail in deploy**: Das SSH-Log zeigt, ob die Vorabprüfung, Rollout oder Smoke scheiterte und ob der automatische Rückweg bestätigt wurde.
 
 ---
 
@@ -615,8 +594,7 @@ Bei einer Umbenennung gilt diese Reihenfolge:
 2. Neuen Kontext im Ruleset ergänzen und einen erfolgreichen Lauf abwarten.
 3. Alten Kontext erst danach aus Ruleset und Workflow entfernen.
 
-`deploy-freshness`, `deploy`, `post-deploy-smoke` und
-`rollback-on-smoke-failure` bleiben außerhalb der PR-Required-Checks, weil sie nur im
+`deploy-freshness` und `deploy` bleiben außerhalb der PR-Required-Checks, weil sie nur im
 Push-/Release-Pfad sinnvoll sind.
 
 **Docs-only und Ruleset:** GitHub-Rulesets können Pflicht-Checks nicht pfadabhängig ausnehmen. Stattdessen melden docs-only-PRs dieselben Check-Namen per **Fast Pass** (Job läuft, schwere Steps werden übersprungen) als `success` — so bleibt das Ruleset für Code-PRs streng, Doku-PRs bleiben mergebar.

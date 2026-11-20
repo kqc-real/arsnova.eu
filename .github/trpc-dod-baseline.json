@@ -784,7 +784,7 @@
     },
     "session.join": {
       "kind": "mutation",
-      "fingerprint": "sha256:bd22296e2a364a4c5469decf0b78cb087ea0f05df6811c3f0c5d91a33af7c2d1",
+      "fingerprint": "sha256:d8a9b4cd29aca99d83119759803adfec5d2abae39f30d62e3f82e3a6ed0a89c8",
       "missing": []
     },
     "session.listPairedHosts": {
@@ -979,7 +979,7 @@
     },
     "vote.submit": {
       "kind": "mutation",
-      "fingerprint": "sha256:b1ca3e13ffaf2076f4fdb0e594c105b87600156efc65275be627c37c0c63be6e",
+      "fingerprint": "sha256:cdd5e80a3d11ccb9186917ecc3e11a30514acc1a948db22bd5061cf81e7e564c",
       "missing": []
     },
     "wordCloud.analyze": {

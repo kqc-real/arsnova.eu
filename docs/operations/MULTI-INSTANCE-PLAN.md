@@ -1,11 +1,11 @@
 # Mehrinstanzbetrieb: aktueller Stand und Umsetzungsplan
 
-> Stand: 2026-11-19 · Issue #428 AP7 · Umsetzungsvorschlag für einen
-> Staging-Host mit 12 vCPU und 32 GB RAM.
+> Stand: 2026-11-20 · Issue #428 AP7
 
-Der reguläre Produktionsmodus startet mit einer App und eingebettetem Yjs.
-Für die Abnahme stehen der [Replikabetrieb](PRODUCTION-REPLICAS.md) mit zwei
-oder drei Apps und der dedizierte Yjs-Relay bereit.
+Der reguläre Produktivbetrieb nutzt zwei Apps mit 2 × 30 DB-Verbindungen
+und den dedizierten Yjs-Relay. Der Einzelbetrieb dient als Rückweg. Der
+[Drei-App-Modus](PRODUCTION-REPLICAS.md#umschalten-und-zurückrollen)
+bleibt für eine gesonderte Abnahme zuschaltbar.
 
 ## Quellen für Live-Zustände
 
@@ -326,6 +326,13 @@ sequenceDiagram
 ```
 
 ## 4. Lasttest auf dem Zielhost
+
+Die [Messreihe vom 20. November 2026](TARGET-HOST-LOAD-2026-11-20.md)
+dokumentiert kurze Join- und Vote-Wellen im isolierten Staging desselben
+Hosts und den direkten Vergleich von 2 × 30 mit 3 × 20 DB-Verbindungen.
+Der reguläre Aufbau nutzt zwei Apps. Die dritte ist über den
+[Produktionsoperator](PRODUCTION-REPLICAS.md#umschalten-und-zurückrollen)
+zuschaltbar.
 
 Zuerst **eine App**, anschließend **zwei Apps** hinter Nginx vergleichen. Pro
 Profil und Topologie einen Warmlauf und drei gewertete Läufe mit frischen
@@ -762,7 +769,7 @@ Sättigung den Lauf abbrechen und den Grund festhalten.
 
 Die versionierten Produktionsprofile und der Topologie-Rollback stehen im
 [Produktions-Runbook](PRODUCTION-REPLICAS.md). Die Abnahme auf dem Zielhost
-folgt nach dem lokalen Smoke.
+umfasst den dokumentierten Kurzvergleich und die ausstehenden Betriebsprüfungen.
 
 ### Freigabe und Rückweg als Ablauf
 
@@ -806,7 +813,7 @@ lassen oder kontrolliert zum Reconnect bringen und B stoppen. A und der
 dedizierte Relay bedienen dann höchstens die in der Baseline abgenommene Last.
 Ein Versionsrollback setzt kompatible Migrationen und Zustandsformate voraus.
 
-Der aktuelle [Produktions-Compose](../../docker-compose.prod.yml) beschreibt
-eine App. Dieses Dokument plant den Umbau. Zielhostläufe auf isoliertem Staging
-und ein späterer Produktionswechsel folgen
-[den bestehenden Betriebsfreigaben](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md).
+Die optionale Replikat-Compose und der
+[Produktionsoperator](PRODUCTION-REPLICAS.md) setzen den regulären Aufbau
+mit zwei Apps um. Weitere Zielhostläufe und die Abnahme der dritten App
+folgen [dem Ablauf für Betriebsfreigaben](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md).

@@ -36,10 +36,13 @@ Ein-App-Modus wechselt die App für diese Zustände auf ihren lokalen Speicher.
 Deshalb für einen Rollback zwischen laufenden Präsentationen das bereits
 vorgesehene Wartungsfenster nutzen.
 
-Die Compose-Profile bleiben optional. `up` aktiviert zwei Apps und
-`enable-third` ist der eigene Schaltvorgang für die spätere Abnahme.
-Die dritte App erhält ihren Platz im Gesamtpool von 60 Verbindungen
-durch die Umstellung aller drei Apps auf je 20.
+Für den regulären Produktivbetrieb `up` mit zwei Apps und 2 × 30
+DB-Verbindungen verwenden. Mit `enable-third` bleibt die dritte App für
+eine gesonderte Abnahme zuschaltbar. Der Operator stellt dann alle drei
+Pools auf je 20 Verbindungen um. Die
+[Zielhost-Messung vom 20. November](TARGET-HOST-LOAD-2026-11-20.md#zwei-oder-drei-apps-mit-dem-fix)
+zeigt den Geschwindigkeitsgewinn der dritten App bei gleichzeitigen
+30 × 30-Votes und die größere CPU-Reserve der zwei Apps.
 
 Bei aktivierter Moderationszusammenfassung benötigen alle Apps dieselbe
 `QA_SUMMARY_STATE_REDIS_URL` auf einer eigenen privaten Redis-Instanz ohne
@@ -79,6 +82,66 @@ Die beiden Statuspfade lauschen ausschließlich auf Loopback. Vor und nach
 der ersten Umschaltung die öffentliche Website, tRPC und die
 WebSocket-Pfade über die Produktionsdomain prüfen.
 
+## Automatische Releases aus GitHub Actions
+
+Für den bereits eingerichteten Nginx die Freigabe einmalig als Administrator
+installieren. Die beiden Dateien aus dem Release-Commit übernehmen.
+GitHub Actions meldet sich weiterhin als `deploy` an. Der
+root-eigene Helfer nimmt ausschließlich feste Pool-Modi an und prüft
+seine Konfiguration vor jedem Reload. Docker, Git und die Deploy-State-Dateien
+bleiben unter dem bestehenden Deploy-Account.
+
+```bash
+sudo install -o root -g root -m 0755 deploy/production/nginx-pools.sh /usr/local/sbin/arsnova-nginx-pools
+sudo visudo -cf deploy/production/arsnova-nginx-pools.sudoers
+sudo install -o root -g root -m 0440 deploy/production/arsnova-nginx-pools.sudoers /etc/sudoers.d/arsnova-nginx-pools
+# Als deploy im neuen Release-Checkout prüfen. Führt keinen Reload durch.
+./scripts/prod-replicas.sh check
+```
+
+Die GitHub-Umgebung `production` und `DEPLOY_ENABLED=true` bleiben
+Voraussetzungen. Für einen eingerichteten Host mit verifiziertem
+`current.state` führt der Release-Runner die gesamte Sequenz im selben
+SSH-Job und unter derselben Produktionssperre aus:
+
+1. Ziel-Checkout, freigegebenen Image-Digest, bisherigen Deploy-State und
+   passwortlosen Zugriff auf den Nginx-Helfer prüfen.
+2. Auf App A mit eingebettetem Yjs wechseln, weitere Writer und den alten
+   Relay stoppen. Danach den bestehenden Digest-Deploy einschließlich
+   Migrationen, Writer-Drain und Purge ausführen.
+3. App A, App B und den Relay aus demselben Digest starten. Nginx erst nach
+   erfolgreichem DB-, HTTP-, WebSocket-, Yjs- und Redis-Readiness-Check
+   auf zwei Apps mit je 30 DB-Verbindungen schalten. Ein zuvor bewusst
+   aktivierter `triple`-Modus wird mit 3 × 20 wieder aktiviert.
+4. Die öffentliche HTTPS-Adresse über Nginx mit dem bestehenden
+   Production-Serve-Smoke prüfen. Scheitert ein Schritt nach Wechselbeginn,
+   den vorigen Digest und die vor dem Release aktive Topologie wiederherstellen.
+   Der Job bleibt bei einem zurückgerollten Release rot. Ein unterbrochener
+   Wechsel im Modus `primary` wird zum Standardmodus `dual` vervollständigt.
+
+Den ersten Digest-Deploy einer frischen Installation weiterhin mit
+`scripts/deploy.sh` durchführen. Automatische Releases planen, wenn
+laufende Sessions kurz unterbrochen werden dürfen. Die Apps und der Relay
+starten neu und WebSockets verbinden sich erneut. Ein Image-Rollback
+setzt keine Datenbankmigrationen zurück.
+
+### Staging-Nachweis
+
+Der isolierte Release-Test am 20. November 2026 verwendete die beiden
+Produktions-Compose-Dateien, eine lokale TLS-Test-Registry mit getrennten
+Digests, PostgreSQL, Redis und Nginx. Der Runner lief als `deploy` mit der
+begrenzten sudoers-Regel. Der erfolgreiche Release aktivierte zwei Apps mit
+je 30 Verbindungen, den Relay aus demselben Digest und zwei Subscriber je
+Redis-Kanal. Der fehlende Nginx-Zugriff brach vor dem Containerwechsel ab.
+Ein eingebauter Fehler im HTTPS-Smoke löste den Image- und Topologie-Rollback
+aus. Der Rückweg funktionierte auch auf den älteren Checkout ohne
+Release-Runner. PostgreSQL und Redis behielten ihre Container und die
+geprüften Testdaten.
+
+`node --test scripts/ci/*.test.mjs scripts/deploy/*.test.mjs` prüft zusätzlich
+die Rollout-Reihenfolge, konkurrierende Aufrufe und den Rückweg vor sowie
+nach der Rotation des Deploy-States.
+
 ## Umschalten und zurückrollen
 
 Die Befehle im Produktionscheckout ausführen. Der ausführende Operator
@@ -114,13 +177,12 @@ DB-Pools wird auch App A neu erstellt. Bestehende WebSockets müssen sich
 erneut verbinden. Yjs wechselt beim ersten Start und beim Rückweg den
 Relay-Prozess. PostgreSQL, Redis und ihre Volumes bleiben im selben Projekt.
 
-Image-Deploy, Image-Rollback und Recover erwarten den Einzelbetrieb. Zuerst
-`prod-replicas.sh rollback` ausführen, danach den normalen Digest-Deploy
-starten und bei Bedarf den Replikabetrieb erneut aktivieren. Der reguläre
-Deploy und Topologiewechsel sperren einander. Aktivierung und spätere
-Container-Neustarts im Replikabetrieb verwenden direkt den Backend-Prozess,
-damit kein weiterer Writer parallel Migrationen oder den Rollout-Purge
-ausführt. Für Änderungen an der App-Topologie diesen Operator verwenden.
+Bei einem manuellen Aufruf von `scripts/deploy.sh`, `--rollback` oder
+`--recover` zuerst mit `prod-replicas.sh rollback` in den Einzelbetrieb
+wechseln. Der automatische Release-Runner führt die Topologieschritte selbst
+aus. Aktivierung und spätere Container-Neustarts im Replikabetrieb verwenden
+direkt den Backend-Prozess. Damit führt kein weiterer Writer parallel
+Migrationen oder den Rollout-Purge aus.
 
 ### App-Umgebung ändern
 
@@ -161,7 +223,10 @@ neuen Token zu. Ein absichtlich ungültiger Nginx-Kandidat wurde durch die
 vorherige Pool-Datei ersetzt. PostgreSQL und Redis behielten dieselben
 Container und Volumes.
 
-Vor der Freigabe auf dem Zielhost die Lastprofile 1 × 500, 30 × 30,
-gleichzeitiger PDF-Export, Yjs-Rotation und Reconnect nach einem App-Ausfall
-prüfen. Beim 30 × 30-Vergleich für beide Topologien dieselbe Gesamtzahl
-von DB-Verbindungen verwenden. [Abnahmekriterien](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md), [bisherige Lastprofile](MULTI-INSTANCE-PLAN.md).
+Die [kurzen Lastprofile auf dem Zielhost](TARGET-HOST-LOAD-2026-11-20.md)
+wurden mit zwei und drei Apps gemessen. Die Ziele für 500 gleichzeitige
+Joins und eine gemeinsame 900er-Vote-Welle bleiben offen. Dauerlast,
+gleichzeitigen PDF-Export, Yjs-Rotation und Reconnect nach einem App-Ausfall
+für die vollständige Abnahme prüfen. Die Zielhost-Messung nutzte
+HTTP-Keepalive im isolierten Nginx. Der Produktionsoperator erzeugt
+seine eigenen Upstream-Pools. [Abnahmekriterien](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md), [bisherige Lastprofile](MULTI-INSTANCE-PLAN.md).

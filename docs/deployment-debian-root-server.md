@@ -792,7 +792,10 @@ Lokale Entwicklung (localhost) verwendet weiterhin die Ports 3001 und 3002. Kein
 
 ## 7. Deployment-Ablauf
 
-Wenn mehrere Apps aktiv sind, im Wartungsfenster zuerst
+GitHub Actions führt den Wechsel nach
+[einmaliger Freigabe des Nginx-Helfers](operations/PRODUCTION-REPLICAS.md#automatische-releases-aus-github-actions)
+im selben Rollout-Job aus. Bei einem manuellen Digest-Deploy mit aktiven
+Replikaten im Wartungsfenster zuerst
 `sudo ./scripts/prod-replicas.sh rollback` ausführen und den Modus
 `single` bestätigen. Das gilt für Normal-Deploy, Image-Rollback und Recover.
 Der Digest-Deploy prüft vor Änderungen, ob eine Replika oder der dedizierte

@@ -240,30 +240,28 @@ ist ebenfalls abgeschlossen. Die jüngsten Hotpath-Optimierungen (Coalescing in 
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                            | Inhalt                                                                                                                                                                                                                           |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                 |
-| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien; zusätzlich operative Python-/Shell-Checks inkl. spaCy-Sidecar-Unittests ohne Modell-Download                                                                                    |
-| **format**                             | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                      |
-| **landing-build**                      | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                        |
-| **build** (Node 22 & 24)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                               |
-| **typecheck** (Node 22 & 24, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (Library-Build, dann `--noEmit` für Quellen und TypeScript-Tests der Libraries, des Backends und des Frontends)                                           |
-| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln und blockierendem Voll-Gate für alle inventarisierten Skripte; zusätzlich Negativ-/Mutationstests und deterministisches Changed-Script-Gate             |
-| **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                   |
-| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                  |
-| **pdfua**                              | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                              |
-| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                              |
-| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                      |
-| **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                           |
-| **e2e-chromium**                       | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                 |
-| **webkit-e2e**                         | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-/Fokus-Regressionen und Smartphone-Teilnahme (Join, Kanäle, Countdown, Vote)                                                                                                    |
-| **e2e**                                | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert; bei Workflow-Abbruch nicht nachträglich rot, bei Job-Timeout eines Browsers weiterhin rot                                                   |
-| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                              |
-| **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002   |
-| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; nach Quality-Gates inkl. `publish-image`; übergibt `DEPLOY_IMAGE`/`DEPLOY_SHA`, checkt `DEPLOY_SHA` per SSH vor `scripts/deploy.sh` aus, dann Digest-Pull (kein Server-Build) |
-| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                          |
-
-Matrix: **zwei** unterstützte Versionen (**22** und **24**), `fail-fast: false`.
+| Job / Phase                                                                      | Inhalt                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **dependency-review**                                                            | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                               |
+| **actionlint**                                                                   | Linting/Validierung der GitHub-Workflow-Dateien; zusätzlich operative Python-/Shell-Checks inkl. spaCy-Sidecar-Unittests ohne Modell-Download                                                                                  |
+| **format**                                                                       | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                    |
+| **landing-build**                                                                | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                      |
+| **build** (Node 22 & 24)                                                         | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                             |
+| **typecheck** (Node 22 & 24, parallel)                                           | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (Library-Build, dann `--noEmit` für Quellen und TypeScript-Tests der Libraries, des Backends und des Frontends)                                         |
+| **lint**                                                                         | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln und blockierendem Voll-Gate für alle inventarisierten Skripte; zusätzlich Negativ-/Mutationstests und deterministisches Changed-Script-Gate           |
+| **audit**                                                                        | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                 |
+| **test**                                                                         | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                |
+| **pdfua**                                                                        | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                            |
+| **trivy-fs**                                                                     | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                            |
+| **trivy-image**                                                                  | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                    |
+| **lighthouse**                                                                   | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                         |
+| **e2e-chromium**                                                                 | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                               |
+| **webkit-e2e**                                                                   | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-/Fokus-Regressionen und Smartphone-Teilnahme (Join, Kanäle, Countdown, Vote)                                                                                                  |
+| **e2e**                                                                          | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert; bei Workflow-Abbruch nicht nachträglich rot, bei Job-Timeout eines Browsers weiterhin rot                                                 |
+| **classroom-smokes**                                                             | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                            |
+| **docker**                                                                       | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002 |
+| **deploy**                                                                       | Bei Push auf `main` und `DEPLOY_ENABLED=true` nach den Quality-Gates. Der per SSH geladene Release-Runner hält die Produktionssperre über Digest-Deploy, Replikatfreigabe, HTTPS-Smoke und gegebenenfalls Rollback.            |
+| Matrix: **zwei** unterstützte Versionen (**22** und **24**), `fail-fast: false`. |
 
 Für die ausführliche, schrittweise Erklärung (inkl. Ablaufdiagramm) siehe [CI-WORKFLOW.md](CI-WORKFLOW.md).
 
@@ -925,6 +923,25 @@ Routing nach einem Nginx-Neustart prüfen und B anschließend wieder
 über `up` aufnehmen. Der [Yjs-Abschnitt](operations/STAGING-COMPOSE.md#yjs-relay-und-token-rotation)
 beschreibt den Sync über WSS, den Widerruf alter Tokens und den
 Reconnect einschließlich Offline-Änderungen nach einem Relay-Neustart.
+
+### Gebündelte Joins und Votes im Replikabetrieb
+
+Für den Replikabetrieb laufen die Choice-Vote-Regressionen mit PostgreSQL.
+Sie prüfen gebündelte Tokenprüfung, idempotente Vote-IDs, Antwortoptionen
+und die Outbox für Runde 1. Ein paralleler Host-Lock betrifft nur den
+jeweiligen Raum. Die anderen Räume im Batch können weiter speichern.
+
+```bash
+RUN_PG_SESSION_RACE_TESTS=1 npm run test -w @arsnova/backend -- \
+  src/__tests__/session.finalization-race.pg.test.ts
+```
+
+Der Zielhost-Vergleich verwendet insgesamt 60 DB-Verbindungen pro
+Aufbau, frische Daten und dieselben 500er- und 30 × 30-Profile.
+Bei der Profilierung Nginx- und Node-Zeitmarken pro Request korrelieren,
+damit die Zeit bis zum HTTP-Handler von der DB-Zeit im Handler getrennt
+bleibt. Bei einem Transportvergleich dieselbe TLS-Zertifikatsart und
+dieselbe CPU-Zuteilung für beide Aufbauten verwenden.
 
 ### Live-Signale über Redis Pub/Sub
 

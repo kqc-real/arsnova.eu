@@ -27,6 +27,8 @@ vi.mock('../lib/hostAuth', async () => {
 });
 
 import { prisma } from '../db';
+import { hashCapability } from '../lib/capabilityCrypto';
+import { loadVoteParticipant, persistChoiceVote } from '../lib/choiceVoteBatch';
 import { PLATFORM_STATISTIC_ID } from '../lib/platformStatistic';
 import { sessionRouter } from '../routers/session';
 
@@ -94,6 +96,179 @@ describe.skipIf(!RUN_PG)('session finalization races (PostgreSQL)', () => {
     }
     if (createdQuizIds.length > 0) {
       await prisma.quiz.deleteMany({ where: { id: { in: createdQuizIds } } });
+    }
+  });
+
+  it('speichert Choice-Batches und Outbox atomar, dedupliziert Wiederholungen und prüft die Runde', async () => {
+    const capabilityHash = hashCapability(randomUUID());
+    const quiz = await prisma.quiz.create({
+      data: {
+        name: `choice-vote-batch-${randomUUID()}`,
+        questions: {
+          create: {
+            text: 'Frage',
+            type: 'SINGLE_CHOICE',
+            order: 0,
+            answers: { create: { text: 'Richtig', isCorrect: true, order: 0 } },
+          },
+        },
+      },
+      include: { questions: { include: { answers: true } } },
+    });
+    createdQuizIds.push(quiz.id);
+    const session = await prisma.session.create({
+      data: {
+        code: uniqueSessionCode(),
+        quizId: quiz.id,
+        status: 'ACTIVE',
+        currentQuestion: 0,
+        participants: {
+          create: [{ nickname: 'Ada', rejoinCapabilityHash: capabilityHash }, { nickname: 'Bob' }],
+        },
+      },
+      include: { participants: true },
+    });
+    createdSessionIds.push(session.id);
+    const question = quiz.questions[0]!;
+    const first = session.participants.find(({ nickname }) => nickname === 'Ada')!;
+    const second = session.participants.find(({ nickname }) => nickname === 'Bob')!;
+    const scope = {
+      sessionId: session.id,
+      questionId: question.id,
+      questionOrder: 0,
+      round: 1,
+      acceptsLateVote: false,
+    };
+    const data = {
+      isCorrect: true,
+      responseTimeMs: 200,
+      score: 100,
+      streakCount: 1,
+      streakBonus: 1,
+    };
+    const answers = [question.answers[0]!.id];
+    try {
+      const lookup = { id: first.id, sessionId: session.id };
+      const [allowed, denied, wrongSession] = await Promise.all([
+        loadVoteParticipant({ ...lookup, rejoinCapabilityHash: capabilityHash }),
+        loadVoteParticipant({ ...lookup, rejoinCapabilityHash: hashCapability(randomUUID()) }),
+        loadVoteParticipant({ ...lookup, sessionId: randomUUID() }),
+      ]);
+      expect(allowed).toMatchObject({ id: first.id, session: { id: session.id } });
+      expect(allowed).not.toHaveProperty('rejoinCapabilityHash');
+      expect(denied).toBeNull();
+      expect(wrongSession).toBeNull();
+
+      const [created, duplicate, other] = await Promise.all([
+        persistChoiceVote(scope, { ...data, participantId: first.id }, answers),
+        persistChoiceVote(scope, { ...data, participantId: first.id, score: 999 }, answers),
+        persistChoiceVote(scope, { ...data, participantId: second.id }, answers),
+      ]);
+      expect(created).toMatchObject({ created: true });
+      expect(other).toMatchObject({ created: true });
+      expect(duplicate).toEqual({ id: created?.id, created: false });
+      await expect(
+        persistChoiceVote(scope, { ...data, participantId: first.id }, answers),
+      ).resolves.toEqual({ id: created?.id, created: false });
+      await expect(
+        prisma.vote.findMany({
+          where: { sessionId: session.id },
+          select: { score: true, selectedAnswers: { select: { answerOptionId: true } } },
+        }),
+      ).resolves.toEqual(
+        Array.from({ length: 2 }, () => ({
+          score: 100,
+          selectedAnswers: [{ answerOptionId: answers[0] }],
+        })),
+      );
+
+      await expect(
+        persistChoiceVote({ ...scope, round: 2 }, { ...data, participantId: first.id }, answers),
+      ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+      await prisma.session.update({ where: { id: session.id }, data: { currentRound: 2 } });
+      await expect(
+        persistChoiceVote({ ...scope, round: 2 }, { ...data, participantId: first.id }, answers),
+      ).resolves.toMatchObject({ created: true });
+      await expect(prisma.vote.count({ where: { sessionId: session.id } })).resolves.toBe(3);
+      await expect(
+        prisma.usageStatisticOutbox.count({
+          where: { sessionId: session.id, kind: 'QUIZ_ANSWER' },
+        }),
+      ).resolves.toBe(2);
+    } finally {
+      await prisma.usageStatisticOutbox.deleteMany({ where: { sessionId: session.id } });
+    }
+  });
+
+  it('lässt eine offene Session im selben Batch an einem Host-Lock vorbeilaufen', async () => {
+    const quiz = await prisma.quiz.create({
+      data: {
+        name: `choice-vote-lock-${randomUUID()}`,
+        questions: {
+          create: {
+            text: 'Frage',
+            type: 'SINGLE_CHOICE',
+            order: 0,
+            answers: { create: { text: 'Richtig', isCorrect: true, order: 0 } },
+          },
+        },
+      },
+      include: { questions: { include: { answers: true } } },
+    });
+    createdQuizIds.push(quiz.id);
+    const [locked, open] = await Promise.all(
+      Array.from({ length: 2 }, () =>
+        prisma.session.create({
+          data: {
+            code: uniqueSessionCode(),
+            quizId: quiz.id,
+            status: 'ACTIVE',
+            currentQuestion: 0,
+            participants: { create: { nickname: 'Ada' } },
+          },
+          include: { participants: true },
+        }),
+      ),
+    );
+    createdSessionIds.push(locked!.id, open!.id);
+    const question = quiz.questions[0]!;
+    const blocker = new Client({ connectionString: DATABASE_URL });
+    await blocker.connect();
+    try {
+      await blocker.query('BEGIN');
+      await blocker.query('SELECT id FROM "Session" WHERE id = $1 FOR UPDATE', [locked!.id]);
+      const submits = [locked!, open!].map((session) =>
+        persistChoiceVote(
+          {
+            sessionId: session.id,
+            questionId: question.id,
+            questionOrder: 0,
+            round: 1,
+            acceptsLateVote: false,
+          },
+          {
+            participantId: session.participants[0]!.id,
+            score: 100,
+            isCorrect: true,
+          },
+          [question.answers[0]!.id],
+        ),
+      );
+      await expect(Promise.all(submits)).resolves.toEqual([
+        null,
+        {
+          id: expect.any(String),
+          created: true,
+        },
+      ]);
+      await expect(prisma.vote.count({ where: { sessionId: locked!.id } })).resolves.toBe(0);
+      await expect(prisma.vote.count({ where: { sessionId: open!.id } })).resolves.toBe(1);
+    } finally {
+      await blocker.query('ROLLBACK');
+      await blocker.end();
+      await prisma.usageStatisticOutbox.deleteMany({
+        where: { sessionId: { in: [locked!.id, open!.id] } },
+      });
     }
   });
 
