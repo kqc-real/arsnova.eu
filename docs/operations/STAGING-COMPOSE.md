@@ -10,6 +10,19 @@ eigenen Staging-Redis mit AOF. Pro App sind bis zu 30 Datenbankverbindungen
 konfiguriert. PostgreSQL und Redis haben projektspezifische Volumes.
 Das Produktions-Deploy-Skript verwaltet weiterhin das Produktionsprojekt.
 
+Im Replikabetrieb bündelt jede App Teilnahme-Lesezugriffe und
+Choice-Schreibvorgänge für die Abstimmung. Das Sammelfenster startet bei
+fünf Millisekunden. Je Gruppe verarbeitet die App höchstens 128 Aufträge.
+Die DB prüft aktive Frage und Runde unter dem Session-Lock. Stimme,
+Antwortoptionen und Statistik-Outbox werden in derselben Transaktion
+geschrieben. Eine durch einen Hostwechsel gesperrte Session geht in den
+Einzelpfad. Andere Räume im Batch können ihre Stimmen speichern.
+
+Nginx hält bis zu 256 inaktive HTTP-Upstream-Verbindungen pro Worker für
+20 Sekunden. Der Idle-Timeout in Node beträgt im Replikabetrieb 25 Sekunden.
+Dadurch kann Nginx seine Verbindungen vor Node aus dem Pool entfernen.
+Die tRPC- und Yjs-WebSocket-Pfade behalten ihre eigenen Upstreams.
+
 ## Einrichtung
 
 Docker Compose mit `up --wait` und Zugriff auf das App-Image voraussetzen.

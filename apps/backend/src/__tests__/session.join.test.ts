@@ -284,6 +284,64 @@ describe('session.join', () => {
     });
   });
 
+  it('liest das aktuelle Onboarding für bestätigte Joins desselben Batches einmal nach', async () => {
+    const initialSession = {
+      ...buildSession(),
+      firstParticipantJoinedAt: null,
+      onboardingProfileConfigured: true,
+      onboardingNicknameTheme: 'HIGH_SCHOOL',
+      onboardingAllowCustomNicknames: true,
+      onboardingAnonymousMode: false,
+      onboardingTeamMode: false,
+    };
+    prismaMock.session.findUnique
+      .mockResolvedValueOnce(initialSession)
+      .mockResolvedValue({ ...initialSession, onboardingNicknameTheme: 'PRIMARY_SCHOOL' });
+
+    const secondParticipantId = '44444444-4444-4444-8444-444444444444';
+    const joined = {
+      batch: {},
+      participantId: PARTICIPANT_ID,
+      participantNumber: 1,
+      nickname: 'Ada',
+      timerAccommodation: 'DEFAULT',
+      rejoinCapability: REJOIN_CAPABILITY,
+      productFeedbackClaimToken: null,
+      teamId: null,
+      teamName: null,
+      rejoined: false,
+    };
+    participantJoinMocks.tryPrepareCustomParticipantJoin
+      .mockResolvedValueOnce(joined)
+      .mockResolvedValueOnce({
+        ...joined,
+        participantId: secondParticipantId,
+        participantNumber: 2,
+        nickname: 'Bob',
+      });
+
+    await expect(
+      Promise.all([
+        caller.join({
+          code: 'ABC123',
+          nickname: 'Ada',
+          anonymousClientId: CLIENT_ID,
+          joinIdempotencyKey: JOIN_KEY,
+        }),
+        caller.join({
+          code: 'ABC123',
+          nickname: 'Bob',
+          joinIdempotencyKey: JOIN_KEY + '-second',
+        }),
+      ]),
+    ).resolves.toMatchObject([
+      { participantId: PARTICIPANT_ID, nicknameTheme: 'PRIMARY_SCHOOL', teamMode: false },
+      { participantId: secondParticipantId, nicknameTheme: 'PRIMARY_SCHOOL', teamMode: false },
+    ]);
+    expect(prismaMock.session.findUnique).toHaveBeenCalledTimes(2);
+    expect(participantJoinMocks.prepareParticipantJoin).not.toHaveBeenCalled();
+  });
+
   it('weist nach Create ein AUTO-Team zu, wenn Attach parallel Teams aktiviert hat', async () => {
     const TEAM_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const TEAM_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';

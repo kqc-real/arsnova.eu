@@ -105,7 +105,12 @@ app.use('/csp-report', createCspReportRouter());
 // Nur erfolgreiche HTML-Dokumentantworten erhalten die optionale Beobachtungspolicy.
 // Der Report-Ingest liegt davor und kann daher nie rekursiv einen CSP-Header ausliefern.
 app.use(createCspReportOnlyMiddleware());
-app.use(compression());
+app.use(
+  compression({
+    filter: (req, res) =>
+      req.originalUrl.split('?', 1)[0] !== '/trpc/session.join' && compression.filter(req, res),
+  }),
+);
 const httpCorsMiddleware = createHttpCorsMiddleware(process.env['NODE_ENV']);
 if (httpCorsMiddleware) {
   app.use(httpCorsMiddleware);
@@ -252,6 +257,9 @@ const server = app.listen(PORT, () => {
     startSessionCleanupScheduler();
   }
 });
+
+// Der Reverse-Proxy räumt seinen Upstream-Pool nach 20 s auf, bevor Node die Verbindung beendet.
+if (isSessionPubSubEnabled()) server.keepAliveTimeout = 25_000;
 
 // WebSocket-Server für tRPC-Subscriptions (Story 0.2 / W2.3a)
 const trpcWebSocketConfig = resolveTrpcWebSocketConfig();

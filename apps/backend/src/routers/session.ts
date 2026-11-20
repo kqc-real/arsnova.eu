@@ -3794,6 +3794,16 @@ function loadJoinSession(code: string): ReturnType<typeof readJoinSession> {
   return pending;
 }
 
+function readOnboardingForJoin(sessionId: string) {
+  return prisma.session.findUnique({
+    where: { id: sessionId },
+    select: SESSION_ONBOARDING_SELECT,
+  });
+}
+
+// Teilnehmende derselben bestätigten Schreibgruppe teilen das Nachlesen nach dem Commit.
+const joinBatchOnboarding = new WeakMap<object, ReturnType<typeof readOnboardingForJoin>>();
+
 /**
  * Schließt die Race „Join erzeugt teamlos, Attach aktiviert danach Teams“.
  * Liest das aktuelle Onboarding erneut und weist bei AUTO fehlende Teams zu —
@@ -3805,15 +3815,18 @@ async function reconcileParticipantAutoTeamAssignment(input: {
   teamId: string | null;
   teamName: string | null;
   fallbackProfile: SessionOnboardingProfile;
+  batch?: object;
 }): Promise<{
   teamId: string | null;
   teamName: string | null;
   profile: SessionOnboardingProfile;
 }> {
-  const latestSession = await prisma.session.findUnique({
-    where: { id: input.sessionId },
-    select: SESSION_ONBOARDING_SELECT,
-  });
+  let lookup = input.batch && joinBatchOnboarding.get(input.batch);
+  if (!lookup) {
+    lookup = readOnboardingForJoin(input.sessionId);
+    if (input.batch) joinBatchOnboarding.set(input.batch, lookup);
+  }
+  const latestSession = await lookup;
   if (!latestSession) {
     return {
       teamId: input.teamId,
@@ -10831,6 +10844,7 @@ const sessionCoreRouter = router({
           teamId: assignedTeamId ?? null,
           teamName: assignedTeamName,
           fallbackProfile: onboardingProfile,
+          batch: batchedJoin?.batch,
         });
         assignedTeamId = reconciled.teamId ?? undefined;
         assignedTeamName = reconciled.teamName;

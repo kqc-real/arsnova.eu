@@ -63,16 +63,22 @@ import {
   getSkippedSessionQuestionIds,
   parseSessionQuestionProgress,
 } from '../lib/sessionQuestionProgress';
+import {
+  loadVoteParticipant,
+  persistChoiceVote,
+  requireOpenVoteSession,
+  VOTE_TRANSACTION_MAX_WAIT_MS,
+  VOTE_TRANSACTION_TIMEOUT_MS,
+} from '../lib/choiceVoteBatch';
+import { isSessionPubSubEnabled } from '../lib/sessionStatusPubSub';
 import { assertSessionEffectivelyActive } from '../lib/sessionLifecycle';
 import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudPrewarmQueue';
+
+export { VOTE_TRANSACTION_MAX_WAIT_MS, VOTE_TRANSACTION_TIMEOUT_MS } from '../lib/choiceVoteBatch';
 
 function normalizeNumericInputType(value: string | null | undefined): NumericInputType {
   return value === 'INTEGER' ? 'INTEGER' : 'DECIMAL';
 }
-
-/** Burst aus dem Hörsaal darf auf einen freien Pool-Slot warten statt hart zu scheitern. */
-export const VOTE_TRANSACTION_MAX_WAIT_MS = 10_000;
-export const VOTE_TRANSACTION_TIMEOUT_MS = 15_000;
 
 function isUniqueConstraintError(error: unknown): error is { code: 'P2002' } {
   return (
@@ -81,15 +87,6 @@ function isUniqueConstraintError(error: unknown): error is { code: 'P2002' } {
     'code' in error &&
     (error as { code?: unknown }).code === 'P2002'
   );
-}
-
-async function lockVoteSessionRowForShare(
-  tx: Prisma.TransactionClient,
-  sessionId: string,
-): Promise<void> {
-  // Gleichzeitige Votes dürfen denselben Shared-Lock halten. Host-Steuerung nutzt FOR UPDATE
-  // und wartet dadurch auf laufende Votes; nach ihrem Commit sehen spätere Votes den neuen Status.
-  await tx.$executeRaw`SELECT 1 FROM "Session" WHERE id = ${sessionId} FOR SHARE`;
 }
 
 type VoteQuestion = Awaited<ReturnType<typeof fetchVoteQuestion>>;
@@ -162,9 +159,18 @@ export const voteRouter = router({
     .output(SubmitVoteOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const requestReceivedAtMs = Date.now();
+      const replicas = isSessionPubSubEnabled();
+      const findParticipant = (where: {
+        id: string;
+        sessionId: string;
+        rejoinCapabilityHash?: string;
+      }) =>
+        replicas
+          ? loadVoteParticipant(where)
+          : prisma.participant.findFirst({ where, include: { session: true } });
       const participantFromCapabilityCheck = await loadParticipantOnCapabilityCacheMiss(
         { ctx, sessionId: input.sessionId, participantId: input.participantId },
-        (where) => prisma.participant.findFirst({ where, include: { session: true } }),
+        findParticipant,
       );
       const limit = await checkVoteRate(input.participantId);
       if (!limit.allowed) {
@@ -176,10 +182,7 @@ export const voteRouter = router({
       }
       const participant =
         participantFromCapabilityCheck ??
-        (await prisma.participant.findFirst({
-          where: { id: input.participantId, sessionId: input.sessionId },
-          include: { session: true },
-        }));
+        (await findParticipant({ id: input.participantId, sessionId: input.sessionId }));
       if (!participant) {
         throw new TRPCError({
           code: 'NOT_FOUND',
@@ -797,39 +800,35 @@ export const voteRouter = router({
 
       const score = Math.round(baseScore * streakMultiplier);
 
-      let vote: { id: string };
-      try {
-        vote = await prisma.$transaction(
-          async (tx) => {
-            await lockVoteSessionRowForShare(tx, input.sessionId);
-            const lockedSession = await tx.session.findUnique({
-              where: { id: input.sessionId },
-              select: {
-                status: true,
-                endedAt: true,
-                expiresAt: true,
-                currentQuestion: true,
-                currentRound: true,
+      const voteScope = {
+        sessionId: input.sessionId,
+        questionId: input.questionId,
+        questionOrder: question.order,
+        round,
+        acceptsLateVote,
+      };
+      const batched =
+        replicas && (questionType === 'SINGLE_CHOICE' || questionType === 'MULTIPLE_CHOICE')
+          ? await persistChoiceVote(
+              voteScope,
+              {
+                participantId: input.participantId,
+                responseTimeMs,
+                score,
+                isCorrect: voteIsCorrect,
+                streakCount,
+                streakBonus: streakMultiplier,
+                confidenceValue: input.confidenceValue ?? null,
               },
-            });
-            if (lockedSession) {
-              assertSessionEffectivelyActive(lockedSession, new Date());
-            }
-            const lockedStatusAcceptsVote =
-              lockedSession?.status === 'ACTIVE' ||
-              (acceptsLateVote &&
-                (lockedSession?.status === 'RESULTS' || lockedSession?.status === 'DISCUSSION'));
-            if (
-              !lockedSession ||
-              !lockedStatusAcceptsVote ||
-              lockedSession.currentQuestion !== question.order ||
-              lockedSession.currentRound !== round
-            ) {
-              throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'Die Frage ist nicht mehr aktiv.',
-              });
-            }
+              answerIds,
+            )
+          : null;
+      if (batched && !batched.created) return { voteId: batched.id };
+      let vote: { id: string } | null = batched;
+      try {
+        vote ??= await prisma.$transaction(
+          async (tx) => {
+            await requireOpenVoteSession(tx, voteScope);
             const createdVote = await tx.vote.create({
               data: {
                 sessionId: input.sessionId,

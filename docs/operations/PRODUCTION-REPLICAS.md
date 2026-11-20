@@ -36,10 +36,13 @@ Ein-App-Modus wechselt die App für diese Zustände auf ihren lokalen Speicher.
 Deshalb für einen Rollback zwischen laufenden Präsentationen das bereits
 vorgesehene Wartungsfenster nutzen.
 
-Die Compose-Profile bleiben optional. `up` aktiviert zwei Apps und
-`enable-third` ist der eigene Schaltvorgang für die spätere Abnahme.
-Die dritte App erhält ihren Platz im Gesamtpool von 60 Verbindungen
-durch die Umstellung aller drei Apps auf je 20.
+Für den regulären Produktivbetrieb `up` mit zwei Apps und 2 × 30
+DB-Verbindungen verwenden. Mit `enable-third` bleibt die dritte App für
+eine gesonderte Abnahme zuschaltbar. Der Operator stellt dann alle drei
+Pools auf je 20 Verbindungen um. Die
+[Zielhost-Messung vom 20. November](TARGET-HOST-LOAD-2026-11-20.md#zwei-oder-drei-apps-mit-dem-fix)
+zeigt den Geschwindigkeitsgewinn der dritten App bei gleichzeitigen
+30 × 30-Votes und die größere CPU-Reserve der zwei Apps.
 
 Bei aktivierter Moderationszusammenfassung benötigen alle Apps dieselbe
 `QA_SUMMARY_STATE_REDIS_URL` auf einer eigenen privaten Redis-Instanz ohne
@@ -161,7 +164,10 @@ neuen Token zu. Ein absichtlich ungültiger Nginx-Kandidat wurde durch die
 vorherige Pool-Datei ersetzt. PostgreSQL und Redis behielten dieselben
 Container und Volumes.
 
-Vor der Freigabe auf dem Zielhost die Lastprofile 1 × 500, 30 × 30,
-gleichzeitiger PDF-Export, Yjs-Rotation und Reconnect nach einem App-Ausfall
-prüfen. Beim 30 × 30-Vergleich für beide Topologien dieselbe Gesamtzahl
-von DB-Verbindungen verwenden. [Abnahmekriterien](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md), [bisherige Lastprofile](MULTI-INSTANCE-PLAN.md).
+Die [kurzen Lastprofile auf dem Zielhost](TARGET-HOST-LOAD-2026-11-20.md)
+wurden mit zwei und drei Apps gemessen. Die Ziele für 500 gleichzeitige
+Joins und eine gemeinsame 900er-Vote-Welle bleiben offen. Dauerlast,
+gleichzeitigen PDF-Export, Yjs-Rotation und Reconnect nach einem App-Ausfall
+für die vollständige Abnahme prüfen. Die Zielhost-Messung nutzte
+HTTP-Keepalive im isolierten Nginx. Der Produktionsoperator erzeugt
+seine eigenen Upstream-Pools. [Abnahmekriterien](../implementation/S6.5-SECURITY-LOAD-ACCEPTANCE.md), [bisherige Lastprofile](MULTI-INSTANCE-PLAN.md).

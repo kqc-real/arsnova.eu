@@ -926,6 +926,25 @@ Routing nach einem Nginx-Neustart prüfen und B anschließend wieder
 beschreibt den Sync über WSS, den Widerruf alter Tokens und den
 Reconnect einschließlich Offline-Änderungen nach einem Relay-Neustart.
 
+### Gebündelte Joins und Votes im Replikabetrieb
+
+Für den Replikabetrieb laufen die Choice-Vote-Regressionen mit PostgreSQL.
+Sie prüfen gebündelte Tokenprüfung, idempotente Vote-IDs, Antwortoptionen
+und die Outbox für Runde 1. Ein paralleler Host-Lock betrifft nur den
+jeweiligen Raum. Die anderen Räume im Batch können weiter speichern.
+
+```bash
+RUN_PG_SESSION_RACE_TESTS=1 npm run test -w @arsnova/backend -- \
+  src/__tests__/session.finalization-race.pg.test.ts
+```
+
+Der Zielhost-Vergleich verwendet insgesamt 60 DB-Verbindungen pro
+Aufbau, frische Daten und dieselben 500er- und 30 × 30-Profile.
+Bei der Profilierung Nginx- und Node-Zeitmarken pro Request korrelieren,
+damit die Zeit bis zum HTTP-Handler von der DB-Zeit im Handler getrennt
+bleibt. Bei einem Transportvergleich dieselbe TLS-Zertifikatsart und
+dieselbe CPU-Zuteilung für beide Aufbauten verwenden.
+
 ### Live-Signale über Redis Pub/Sub
 
 Der gezielte Backend-Test für diesen optionalen Statuspfad prüft eigene und

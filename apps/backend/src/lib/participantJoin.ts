@@ -145,7 +145,7 @@ function anonymousNickname(requestedNickname: string, participantNumber: number)
   return appendParticipantNumber(stem, participantNumber);
 }
 
-const CUSTOM_JOIN_BATCH_SIZE = 32;
+const CUSTOM_JOIN_BATCH_SIZE = 64;
 const CUSTOM_JOIN_BATCH_WINDOW_MS = 5;
 
 type CustomJoinCandidate = {
@@ -158,10 +158,12 @@ type CustomJoinCandidate = {
   envelope: string;
 };
 
+type PreparedCustomParticipantJoin = PreparedParticipantJoin & { batch: object };
+
 type PendingCustomJoin = {
   candidate: CustomJoinCandidate;
   credentials: ParticipantJoinEnvelope;
-  resolve: (join: PreparedParticipantJoin | null) => void;
+  resolve: (join: PreparedCustomParticipantJoin | null) => void;
   reject: (error: unknown) => void;
 };
 
@@ -184,6 +186,7 @@ async function flushCustomJoins(sessionId: string, pending: PendingCustomJoin[])
         PARTICIPANT_JOIN_TRANSACTION_OPTIONS,
       );
       const byId = new Map(rows.map((row) => [row.participantId, row]));
+      const batchIdentity = {};
       for (const { candidate, credentials, resolve } of batch) {
         const row = byId.get(candidate.id);
         if (!row) {
@@ -194,6 +197,7 @@ async function flushCustomJoins(sessionId: string, pending: PendingCustomJoin[])
         resolve({
           ...row,
           ...credentials,
+          batch: batchIdentity,
           nickname: candidate.nickname,
           teamId: null,
           teamName: null,
@@ -213,7 +217,7 @@ export function tryPrepareCustomParticipantJoin(input: {
   requestedNickname: string;
   anonymousClientId?: string;
   joinIdempotencyKey: string;
-}): Promise<PreparedParticipantJoin | null> {
+}): Promise<PreparedCustomParticipantJoin | null> {
   const { sessionId } = input;
   // PostgreSQL-JSONB kann NUL und ungepaarte Surrogate nicht lesen.
   // Ein solcher Name wird wie bisher isoliert im Einzelpfad behandelt.
