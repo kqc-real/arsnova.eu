@@ -282,6 +282,23 @@ describe('Live-Session Pub/Sub', () => {
     expect(publisher.eval).not.toHaveBeenCalled();
   });
 
+  it('publiziert moderative Q&A-Invalidierungen sofort und bricht laufendes Debouncing ab', async () => {
+    vi.useFakeTimers();
+    startSessionPubSub(createHandlers());
+
+    publishQaQuestionsInvalidation(qaSessionId);
+    expect(publisher.publish).not.toHaveBeenCalled();
+
+    publishQaQuestionsInvalidation(qaSessionId, { immediate: true });
+    expect(publisher.publish).toHaveBeenCalledExactlyOnceWith(
+      qaQuestionsChannel,
+      expect.stringMatching(new RegExp(`^[a-f0-9]{24}:${qaSessionId}$`)),
+    );
+
+    await vi.advanceTimersByTimeAsync(200);
+    expect(publisher.publish).toHaveBeenCalledTimes(1);
+  });
+
   it('behandelt abgelehnte Publish-Befehle als flüchtiges Signal', async () => {
     startSessionPubSub(createHandlers());
     publisher.publish.mockRejectedValueOnce(new Error('offline'));

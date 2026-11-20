@@ -14,10 +14,18 @@ sind an Loopback gebunden.
 | `dual`    | A, B                  | Dedizierter Relay    | 2 × 30       |
 | `triple`  | A, B, C               | Dedizierter Relay    | 3 × 20       |
 
-App A übernimmt weiterhin die geplante Session-Retention. Redis Pub/Sub,
+App A übernimmt weiterhin die geplante Session-Retention (fällt App A vorübergehend
+aus, pausiert die automatische Bereinigung bis zur Rückkehr des Containers).
+Redis Pub/Sub, die gemeinsamen tRPC-WebSocket- und Reconnect-Budgets,
 das gemeinsame PDF-Limit und der geteilte LLM-Slot sind im Replikabetrieb
-auf allen Apps aktiv. Der dedizierte Relay bestätigt Token-Rotationen auch
-bei HTTP-Zugriffen über B oder C.
+auf allen Apps aktiv; `UsageStatisticOutbox` verarbeitet Zeilen über
+`FOR UPDATE SKIP LOCKED` ohne gegenseitiges Lock-Warten. Der dedizierte Relay
+publiziert seine WebSocket-Telemetrie ebenfalls nach Redis (fehlt sein
+Heartbeat bei `YJS_RELAY_MODE=external`, meldet `dependencies.live`
+kontrolliert `degraded`) und bestätigt Token-Rotationen auch bei HTTP-Zugriffen
+über B oder C. Auch die Kernaktions-Diagnose (`coreActionsQuality` / `qaApi`)
+und der 5-Minuten-Cache der LLM-Laufzeitstichprobe (`openWeightLlmProbe`)
+werden clusterweit über Redis zusammengeführt.
 
 Die Apps lesen Presenter-Fläche, Seitenkontext, Wortwolken und Q&A-Filter
 aus demselben Redis-Snapshot. Emoji-Reaktionen werden dort je Teilnehmer,
@@ -34,9 +42,11 @@ Die dritte App erhält ihren Platz im Gesamtpool von 60 Verbindungen
 durch die Umstellung aller drei Apps auf je 20.
 
 Bei aktivierter Moderationszusammenfassung benötigen alle Apps dieselbe
-`QA_SUMMARY_STATE_REDIS_URL`. Dafür eine eigene private Redis-Instanz ohne
-AOF und RDB verwenden. Das Staging stellt diese Instanz bereit. Solange
-sie in der Produktion fehlt, `QA_SUMMARY_ENABLED=false` beibehalten.
+`QA_SUMMARY_STATE_REDIS_URL` auf einer eigenen privaten Redis-Instanz ohne
+AOF und RDB (getrennt von `REDIS_URL`). Fehlt diese URL oder zeigt sie auf
+dieselbe Instanz wie `REDIS_URL`, bricht der App-Start im Replikabetrieb
+fail-closed ab. Das Staging stellt diese Instanz bereit; solange sie in der
+Produktion fehlt, `QA_SUMMARY_ENABLED=false` beibehalten.
 Der Relay verwendet dieselben Yjs-Schlüssel und denselben Redis für
 Share-Metadaten wie die Apps.
 

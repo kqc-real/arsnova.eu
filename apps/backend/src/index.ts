@@ -14,8 +14,8 @@ import { disconnectDatabase } from './db';
 import { logger } from './lib/logger';
 import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
 import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
+import { shutdownQaApiDiagnostics } from './lib/qaApiDiagnostics';
 import { closeQaSummaryStateRedis } from './lib/qaSummaryStateStore';
-import { emitQaQuestionsSignal } from './lib/qaQuestionsSignal';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
@@ -33,6 +33,7 @@ import {
   invalidateRemoteSessionStatusForCode,
   invalidateRemoteVoteProgressForCode,
 } from './routers/session';
+import { invalidateLocalQaQuestionsForSession } from './routers/qa';
 import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
 import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
@@ -46,6 +47,7 @@ import {
   usesExternalYjsRelay,
 } from './lib/yjsShareToken';
 import { assertCapabilityEnvelopeKeyConfigured } from './lib/capabilityCrypto';
+import { assertQaSummaryReplicaStateConfigured } from './lib/qaSummaryConfig';
 import {
   startQaPlatformProjectionScheduler,
   stopQaPlatformProjectionScheduler,
@@ -65,6 +67,7 @@ const PORT = Number(process.env['PORT']) || 3000;
 // Produktion: Yjs-Share-HMAC ohne starkes Secret hart abbrechen (W3.4).
 assertYjsShareTokenSecretConfigured();
 assertCapabilityEnvelopeKeyConfigured();
+assertQaSummaryReplicaStateConfigured();
 getYjsShareLegacyUuidCutoffAt();
 
 // Redis beim Start initialisieren (Story 0.1)
@@ -84,7 +87,7 @@ if (isSessionPubSubEnabled()) {
     status: invalidateRemoteSessionStatusForCode,
     voteProgress: invalidateRemoteVoteProgressForCode,
     participants: invalidateLocalJoinCachesForCode,
-    qaQuestions: (sessionId) => emitQaQuestionsSignal(sessionId, { immediate: true }),
+    qaQuestions: invalidateLocalQaQuestionsForSession,
   });
 }
 
@@ -299,6 +302,7 @@ async function shutdown(): Promise<void> {
     yjsRelay?.close(),
     shutdownAbuseTelemetry(),
     shutdownPdfTelemetry(),
+    shutdownQaApiDiagnostics(),
     stopSessionPurgeInvalidationSubscriber(),
   ]);
   stopSessionPubSub();

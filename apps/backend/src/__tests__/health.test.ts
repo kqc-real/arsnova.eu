@@ -65,6 +65,7 @@ vi.mock('../lib/sessionCodeProtection', () => ({
 vi.mock('../lib/websocketTelemetry', () => ({
   getWebSocketTelemetrySnapshot: vi.fn(),
   readClusterLiveConnectionMetrics: vi.fn(),
+  readClusterWebSocketTelemetrySnapshot: vi.fn(),
 }));
 
 vi.mock('../lib/sloTelemetry', () => ({
@@ -177,6 +178,7 @@ import { readSessionCodeGlobalSoftCapUtilization } from '../lib/sessionCodeProte
 import {
   getWebSocketTelemetrySnapshot,
   readClusterLiveConnectionMetrics,
+  readClusterWebSocketTelemetrySnapshot,
 } from '../lib/websocketTelemetry';
 import { readSloSignals } from '../lib/sloTelemetry';
 import { readQaTelemetry } from '../lib/qaTelemetry';
@@ -274,6 +276,9 @@ beforeEach(() => {
     yjsOpenedLastMinute: 0,
     yjsClosedLastMinute: 0,
   });
+  vi.mocked(readClusterWebSocketTelemetrySnapshot).mockImplementation(async () =>
+    getWebSocketTelemetrySnapshot(),
+  );
   vi.mocked(readClusterLiveConnectionMetrics).mockResolvedValue({
     available: true,
     trpcOpen: 0,
@@ -648,8 +653,53 @@ describe('health.stats', () => {
       expect(result.maxParticipantsStatisticUpdatedAt).toBeNull();
       expect(result.serviceStatus).toBe('stable');
       expect(result.loadStatus).toBe('healthy');
+      expect(result.dependencies.live).toBe('ok');
     },
   );
+
+  it('meldet dependencies.live im Modus YJS_RELAY_MODE=external als degraded wenn kein yjs-relay im Cluster sichtbar ist', async () => {
+    vi.stubEnv('YJS_RELAY_MODE', 'external');
+    try {
+      vi.mocked(prisma.session.count).mockResolvedValue(0);
+      vi.mocked(prisma.platformStatistic.findUnique).mockResolvedValue(null);
+      vi.mocked(readClusterLiveConnectionMetrics).mockResolvedValueOnce({
+        available: true,
+        trpcOpen: 4,
+        yjsOpen: 0,
+        trpcOpenedLastMinute: 1,
+        trpcClosedLastMinute: 0,
+        yjsOpenedLastMinute: 0,
+        yjsClosedLastMinute: 0,
+        rejectsLastMinute: 0,
+        rateLimitedMessagesLastMinute: 0,
+        lastSuccessfulReadAt: new Date().toISOString(),
+        yjsConfiguredAlive: false,
+      });
+
+      const degradedResult = await caller.stats(undefined);
+      expect(degradedResult.dependencies.live).toBe('degraded');
+
+      resetHealthStatsCacheForTests();
+      vi.mocked(readClusterLiveConnectionMetrics).mockResolvedValueOnce({
+        available: true,
+        trpcOpen: 4,
+        yjsOpen: 2,
+        trpcOpenedLastMinute: 1,
+        trpcClosedLastMinute: 0,
+        yjsOpenedLastMinute: 2,
+        yjsClosedLastMinute: 0,
+        rejectsLastMinute: 0,
+        rateLimitedMessagesLastMinute: 0,
+        lastSuccessfulReadAt: new Date().toISOString(),
+        yjsConfiguredAlive: true,
+      });
+
+      const healthyResult = await caller.stats(undefined);
+      expect(healthyResult.dependencies.live).toBe('ok');
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 
   trpcDodIt(
     {

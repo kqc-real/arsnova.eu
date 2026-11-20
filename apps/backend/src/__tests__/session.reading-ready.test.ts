@@ -64,6 +64,7 @@ vi.mock('../lib/participantAuth', () => ({
   assertParticipantCapability: vi.fn(),
 }));
 
+import * as sessionStatusPubSub from '../lib/sessionStatusPubSub';
 import {
   invalidateCurrentQuestionCachesForCode,
   invalidateSessionCachesForCode,
@@ -118,27 +119,36 @@ describe('session reading-ready flow', () => {
       presenceMocks.getActiveParticipantIdsForSession.mockResolvedValue(new Set([PARTICIPANT_ID]));
       readingReadyMocks.getReadingReadyParticipantIds.mockResolvedValue(new Set([PARTICIPANT_ID]));
 
-      const result = await caller.confirmReadingReady({
-        code: 'ABC123',
-        participantId: PARTICIPANT_ID,
-        questionId: QUESTION_ID,
-      });
+      const publishParticipants = vi.spyOn(
+        sessionStatusPubSub,
+        'publishSessionParticipantsInvalidation',
+      );
+      try {
+        const result = await caller.confirmReadingReady({
+          code: 'abc123',
+          participantId: PARTICIPANT_ID,
+          questionId: QUESTION_ID,
+        });
 
-      expect(readingReadyMocks.markParticipantReadingReady).toHaveBeenCalledWith(
-        SESSION_ID,
-        QUESTION_ID,
-        PARTICIPANT_ID,
-      );
-      expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(
-        SESSION_ID,
-        PARTICIPANT_ID,
-      );
-      expect(result).toEqual({
-        connectedCount: 1,
-        readyCount: 1,
-        allConnectedReady: true,
-        participantReady: true,
-      });
+        expect(readingReadyMocks.markParticipantReadingReady).toHaveBeenCalledWith(
+          SESSION_ID,
+          QUESTION_ID,
+          PARTICIPANT_ID,
+        );
+        expect(presenceMocks.touchParticipantPresence).toHaveBeenCalledWith(
+          SESSION_ID,
+          PARTICIPANT_ID,
+        );
+        expect(publishParticipants).toHaveBeenCalledWith('ABC123');
+        expect(result).toEqual({
+          connectedCount: 1,
+          readyCount: 1,
+          allConnectedReady: true,
+          participantReady: true,
+        });
+      } finally {
+        publishParticipants.mockRestore();
+      }
     },
   );
 

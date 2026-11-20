@@ -687,6 +687,7 @@ test('Produktionsprofile begrenzen den gemeinsamen Pool und verwenden denselben 
       assert.equal(app.image, VALID_DIGEST);
       assert.equal(app.environment.DATABASE_POOL_MAX, pool);
       assert.equal(app.environment.SESSION_STATUS_PUBSUB_ENABLED, 'true');
+      assert.equal(app.environment.TRPC_WS_SHARED_LIMITS_ENABLED, 'true');
       assert.equal(app.environment.YJS_RELAY_MODE, 'external');
       assert.deepEqual(app.entrypoint, ['node', 'apps/backend/dist/index.js']);
       assert.ok(app.ports.every((port) => port.host_ip === '127.0.0.1'));

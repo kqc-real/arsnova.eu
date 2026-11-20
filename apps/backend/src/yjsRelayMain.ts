@@ -2,6 +2,10 @@
 import './load-env';
 import { beginRedisShutdown, closeRedis, getRedis } from './redis';
 import { logger } from './lib/logger';
+import {
+  startWebSocketTelemetryClusterPublisher,
+  stopWebSocketTelemetryClusterPublisher,
+} from './lib/websocketTelemetry';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
 import {
   acknowledgeYjsRelayRotation,
@@ -61,13 +65,17 @@ subscriber.on('message', (channel, message) => {
     });
 });
 
-relay.listen(() => logger.info('Dedizierter Yjs-Relay gestartet.'));
+relay.listen(() => {
+  startWebSocketTelemetryClusterPublisher();
+  logger.info('Dedizierter Yjs-Relay gestartet.');
+});
 
 async function shutdown(): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   subscriber.disconnect();
   await relay.close();
+  await stopWebSocketTelemetryClusterPublisher();
   beginRedisShutdown();
   await closeRedis();
 }

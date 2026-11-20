@@ -188,10 +188,22 @@ export function publishSessionParticipantsInvalidation(code: string): void {
   }
 }
 
-export function publishQaQuestionsInvalidation(sessionId: string): void {
-  if (SESSION_ID.test(sessionId)) {
-    scheduleSessionInvalidation(QA_QUESTIONS_CHANNEL, sessionId, QA_QUESTIONS_SIGNAL_DEBOUNCE_MS);
+export function publishQaQuestionsInvalidation(
+  sessionId: string,
+  options?: { immediate?: boolean },
+): void {
+  if (!SESSION_ID.test(sessionId)) return;
+  if (options?.immediate) {
+    const timerKey = `${QA_QUESTIONS_CHANNEL}:${sessionId}`;
+    const pending = publishTimers.get(timerKey);
+    if (pending) {
+      clearTimeout(pending);
+      publishTimers.delete(timerKey);
+    }
+    publishSessionInvalidation(QA_QUESTIONS_CHANNEL, sessionId);
+    return;
   }
+  scheduleSessionInvalidation(QA_QUESTIONS_CHANNEL, sessionId, QA_QUESTIONS_SIGNAL_DEBOUNCE_MS);
 }
 
 export function stopSessionPubSub(): void {

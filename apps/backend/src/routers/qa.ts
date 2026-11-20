@@ -689,6 +689,11 @@ function invalidateQaOwnQuestionQuotaCache(sessionId: string, participantId?: st
   }
 }
 
+export function invalidateLocalQaQuestionsForSession(sessionId: string): void {
+  invalidateQaOwnQuestionQuotaCache(sessionId);
+  emitQaQuestionsSignal(sessionId, { immediate: true });
+}
+
 function rememberSharedPromise<T>(
   map: Map<string, { expiresAt: number; promise: Promise<T> }>,
   key: string,
@@ -1791,6 +1796,7 @@ export const qaRouter = router({
         });
         invalidateQaOwnQuestionQuotaCache(session.id);
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
         return moderated;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
@@ -1942,6 +1948,7 @@ export const qaRouter = router({
           });
         }
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
         return redacted;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
@@ -2099,6 +2106,7 @@ export const qaRouter = router({
       }
       invalidateQaOwnQuestionQuotaCache(question.sessionId, input.participantId);
       emitQaQuestionsSignal(question.sessionId, { immediate: true });
+      publishQaQuestionsInvalidation(question.sessionId, { immediate: true });
       return { deleted: true };
     }),
 
@@ -2127,6 +2135,7 @@ export const qaRouter = router({
           idempotencyKey: `qa-rating:${randomUUID()}`,
         });
         emitQaQuestionsSignal(question.sessionId);
+        publishQaQuestionsInvalidation(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -2160,6 +2169,7 @@ export const qaRouter = router({
           idempotencyKey: `qa-rating:${randomUUID()}`,
         });
         emitQaQuestionsSignal(question.sessionId);
+        publishQaQuestionsInvalidation(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -2299,6 +2309,7 @@ export const qaRouter = router({
       if (releasedCount > 0) {
         invalidateQaOwnQuestionQuotaCache(session.id);
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
       }
       return { releasedCount };
     }),
@@ -2342,6 +2353,7 @@ export const qaRouter = router({
         })
         .catch(rethrowQaContributionError);
       emitQaQuestionsSignal(session.id, { immediate: true });
+      publishQaQuestionsInvalidation(session.id, { immediate: true });
       return { enabled: updated.qaModerationMode };
     }),
 

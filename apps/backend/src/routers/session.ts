@@ -358,6 +358,7 @@ import {
 import { registerSessionPurgeInvalidator } from '../lib/sessionPurgeInvalidation';
 import {
   isSessionPubSubEnabled,
+  publishQaQuestionsInvalidation,
   publishSessionParticipantsInvalidation,
   publishSessionStatusInvalidation,
   scheduleClusterVoteProgressInvalidation,
@@ -6713,6 +6714,7 @@ const sessionCoreRouter = router({
         });
         invalidateSessionStatusCachesForCode(code);
         emitQaQuestionsSignal(identity.id, { immediate: true });
+        publishQaQuestionsInvalidation(identity.id, { immediate: true });
         const channels = buildSessionChannels(configured.session, configured.serverNow);
         return {
           channels,
@@ -6944,6 +6946,7 @@ const sessionCoreRouter = router({
     .mutation(async ({ input }) => {
       const snapshot = await saveSessionLearningObjectives(input);
       emitQaQuestionsSignal(snapshot.sessionId, { immediate: true });
+      publishQaQuestionsInvalidation(snapshot.sessionId, { immediate: true });
       return snapshot;
     }),
 
@@ -7341,6 +7344,7 @@ const sessionCoreRouter = router({
       if (result.changed) {
         invalidateSessionStatusCachesForCode(code);
         emitQaQuestionsSignal(identity.id, { immediate: true });
+        publishQaQuestionsInvalidation(identity.id, { immediate: true });
       }
       return buildSessionChannels(result.session, result.serverNow);
     }),
@@ -7426,6 +7430,7 @@ const sessionCoreRouter = router({
       if (result.changed) {
         invalidateSessionStatusCachesForCode(code);
         emitQaQuestionsSignal(identity.id, { immediate: true });
+        publishQaQuestionsInvalidation(identity.id, { immediate: true });
       }
       return buildSessionChannels(result.session, result.serverNow);
     }),
@@ -7950,6 +7955,7 @@ const sessionCoreRouter = router({
         await removeParticipantPresence(participant.sessionId, input.participantId);
         clearParticipantsSnapshotCache(code);
         emitSessionParticipantSignal(code);
+        publishSessionParticipantsInvalidation(code);
       }
 
       return { ok: true };
@@ -8016,7 +8022,9 @@ const sessionCoreRouter = router({
 
       await markParticipantReadingReady(session.id, currentQuestionId, input.participantId);
       void touchParticipantPresence(session.id, input.participantId);
-      emitSessionParticipantSignal(input.code);
+      clearParticipantsSnapshotCache(code);
+      emitSessionParticipantSignal(code);
+      publishSessionParticipantsInvalidation(code);
 
       const readingReady = await buildReadingReadyStatus(
         session,

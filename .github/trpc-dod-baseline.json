@@ -289,7 +289,7 @@
     },
     "qa.deleteOwn": {
       "kind": "mutation",
-      "fingerprint": "sha256:7b531e4f3f8040561e3cf75d10d7a608880d7d425468d443dca3c087d7f51359",
+      "fingerprint": "sha256:8919de92ed89e658eeaad7ad2135f5400e6eb0f2022964ced07f878393d9df46",
       "missing": []
     },
     "qa.list": {
@@ -299,7 +299,7 @@
     },
     "qa.moderate": {
       "kind": "mutation",
-      "fingerprint": "sha256:4be439e14234a08756a73b887db81afa8da0ce95eff774fa8923838594f6d4d2",
+      "fingerprint": "sha256:1a2d9a4a6c323f002b137612848741be6f4521eec7a946422e95ec21c3a09734",
       "missing": []
     },
     "qa.nlpRuntime": {
@@ -324,12 +324,12 @@
     },
     "qa.redactPassages": {
       "kind": "mutation",
-      "fingerprint": "sha256:c378e36cfa1fec1dee050c2e1167306e7b50cf842f86f67f56e02616f1b70f4b",
+      "fingerprint": "sha256:edcbe6d51c6a0c87ad18dc35128daaf3b4d6ac5980e2e8d2e5937d073cd13387",
       "missing": []
     },
     "qa.releasePending": {
       "kind": "mutation",
-      "fingerprint": "sha256:a81d10809b21c7b387b463163c7ecfa3d6b561725ed479637673fd9deac576c8",
+      "fingerprint": "sha256:7045a7b539ffd40b720d3f359b7b5983ad35081285a4bb9387238e1dfe1f3a3d",
       "missing": []
     },
     "qa.requestSummary": {
@@ -359,17 +359,17 @@
     },
     "qa.toggleModeration": {
       "kind": "mutation",
-      "fingerprint": "sha256:05114a1e83e4efc36360fa1b9cbbcd1151b035f0e1b3b27a556ff9f73109ceef",
+      "fingerprint": "sha256:9f45c1941a7685902143c26b3534b4bbfa2f6d60f10c3a8376b6eec8069fa928",
       "missing": []
     },
     "qa.upvote": {
       "kind": "mutation",
-      "fingerprint": "sha256:2b10901f5ec0bc3a4309516a05a15069996cfe81eb86b9093f332dea3155c7f4",
+      "fingerprint": "sha256:0a37854257f3648da0f95f420f6e676929940cc153e4d57b55a7c040db4c02d7",
       "missing": []
     },
     "qa.vote": {
       "kind": "mutation",
-      "fingerprint": "sha256:0d7284759d6c74970ff2b77efa5fb83b98d58a55d7630825facaa01a6c6bfa73",
+      "fingerprint": "sha256:95fe2d6510b1aef332b7ef6ba856de41a234dac4f63e670c9bb67066d8814ab3",
       "missing": []
     },
     "quickFeedback.changeType": {
@@ -519,7 +519,7 @@
     },
     "session.closeQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:1278928f87e67e50966467409e17df8cf58bb1cf4231deb4e2112994339e8d90",
+      "fingerprint": "sha256:aa37717562d18472cd68649ead3ccde7bc6add1e64ca13690c1c14363a31d302",
       "missing": []
     },
     "session.closeQuickFeedbackChannel": {
@@ -534,12 +534,12 @@
     },
     "session.configureQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:b60f5701628107d5b5e6833b839ba65c536d0faeb7bb72bc07f2484fa9ad930b",
+      "fingerprint": "sha256:d92413386027e243b1b21298fe591a0ab00a917b1d964174dc44f9a002c4f053",
       "missing": []
     },
     "session.confirmReadingReady": {
       "kind": "mutation",
-      "fingerprint": "sha256:c39b25747f4a0657f6077b22080a697f61306c2790e899d22222a543dc0b5dd1",
+      "fingerprint": "sha256:c6484d3805dc157f3773873dad8e5e5f0b3318fbfc6c1c25f6627f7866daa7c9",
       "missing": []
     },
     "session.create": {
@@ -794,7 +794,7 @@
     },
     "session.markParticipantOffline": {
       "kind": "mutation",
-      "fingerprint": "sha256:816989b8910b13c4dc7a6d7eaf9760e8f368dbf3bba8f50d03141a8e7915f3d2",
+      "fingerprint": "sha256:2927cf0910eed8f5ed1236f2deac6a9b0ba1f830d9ce59cfbc8160e9839688b1",
       "missing": []
     },
     "session.nextQuestion": {
@@ -864,7 +864,7 @@
     },
     "session.reopenQaChannel": {
       "kind": "mutation",
-      "fingerprint": "sha256:dc2a344f41eda01ec828defabf000f5ccce933c2840adcd967b1b478ff03fd6b",
+      "fingerprint": "sha256:6cb1f9a29161af0a6a13f7c1fedc69693fda3edb83147f6f3f91f06122c6bb79",
       "missing": []
     },
     "session.reopenQuickFeedbackChannel": {
@@ -899,7 +899,7 @@
     },
     "session.saveLearningObjectives": {
       "kind": "mutation",
-      "fingerprint": "sha256:4b34eaf2e7d413b35d9d83987d39743e5e22bf0815a7e22e12da4be79c079a0b",
+      "fingerprint": "sha256:ce723c03ce4ef3c53ad4d82f7632093a1f44a3514441da70097cd5e7f844112a",
       "missing": []
     },
     "session.searchParticipants": {

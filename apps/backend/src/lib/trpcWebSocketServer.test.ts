@@ -14,6 +14,11 @@ import {
   type TrpcWebSocketConfig,
 } from './trpcWebSocketServer';
 import {
+  type ClusterBindingDecision,
+  type ClusterUpgradeDecision,
+  TrpcWebSocketClusterBudget,
+} from './trpcWebSocketClusterBudget';
+import {
   getWebSocketTelemetrySnapshot,
   resetWebSocketTelemetryForTests,
 } from './websocketTelemetry';
@@ -138,27 +143,36 @@ afterEach(async () => {
 describe('resolveTrpcWebSocketConfig', () => {
   it('verwendet 500er-taugliche Defaults und begrenzt Env-Werte statisch', () => {
     expect(resolveTrpcWebSocketConfig({})).toMatchObject({
+      sharedLimitsEnabled: false,
       maxConnections: 1_200,
+      maxClusterConnections: 2_100,
       maxConnectionsPerSession: 1_100,
       maxConnectionsPerParticipant: 2,
       maxUpgradesPerMinute: 3_000,
+      maxClusterUpgradesPerMinute: 6_000,
       maxMessagesPerWindow: 120,
       maxMessagesGlobalPerWindow: 30_000,
     });
     expect(
       resolveTrpcWebSocketConfig({
+        TRPC_WS_SHARED_LIMITS_ENABLED: 'true',
         TRPC_WS_MAX_CONNECTIONS: '999999',
+        TRPC_WS_CLUSTER_MAX_CONNECTIONS: '999999',
         TRPC_WS_MAX_CONNECTIONS_PER_SESSION: '999999',
         TRPC_WS_MAX_CONNECTIONS_PER_PARTICIPANT: '999999',
         TRPC_WS_MAX_UPGRADES_PER_MINUTE: '999999',
+        TRPC_WS_CLUSTER_MAX_UPGRADES_PER_MINUTE: '999999',
         TRPC_WS_MAX_MESSAGES_PER_10_SECONDS: '999999',
         TRPC_WS_MAX_MESSAGES_GLOBAL_PER_10_SECONDS: '999999',
       }),
     ).toMatchObject({
+      sharedLimitsEnabled: true,
       maxConnections: 5_000,
+      maxClusterConnections: 10_000,
       maxConnectionsPerSession: 5_000,
       maxConnectionsPerParticipant: 10,
       maxUpgradesPerMinute: 30_000,
+      maxClusterUpgradesPerMinute: 60_000,
       maxMessagesPerWindow: 1_200,
       maxMessagesGlobalPerWindow: 300_000,
     });
@@ -475,4 +489,126 @@ describe('TrpcWebSocketServer', () => {
       trpcRejectedUpgradesLastMinute: 0,
     });
   }, 20_000);
+
+  it('erzwingt gemeinsame Cluster-Caps über zwei Server-Instanzen und puffert frühe Frames geordnet', async () => {
+    const sharedState = {
+      openConnections: 0,
+      upgrades: 0,
+      sessions: new Map<string, number>(),
+      participants: new Map<string, number>(),
+    };
+
+    const createFakeClusterBudget = (limits: {
+      maxClusterConnections: number;
+      maxClusterUpgradesPerMinute: number;
+      maxConnectionsPerSession: number;
+      maxConnectionsPerParticipant: number;
+    }): TrpcWebSocketClusterBudget =>
+      ({
+        instanceId: 'fake',
+        start: () => undefined,
+        refreshLease: async () => undefined,
+        admitUpgrade: async (): Promise<ClusterUpgradeDecision> => {
+          await new Promise((resolve) => setTimeout(resolve, 5));
+          if (sharedState.upgrades >= limits.maxClusterUpgradesPerMinute) return 'rate-limited';
+          if (sharedState.openConnections >= limits.maxClusterConnections) return 'connection-cap';
+          sharedState.upgrades += 1;
+          sharedState.openConnections += 1;
+          return 'admitted';
+        },
+        releaseConnection: async () => {
+          sharedState.openConnections = Math.max(0, sharedState.openConnections - 1);
+        },
+        admitBinding: async (binding: {
+          sessionCode: string;
+          participantKey: string | null;
+        }): Promise<ClusterBindingDecision> => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          const sessionCount = sharedState.sessions.get(binding.sessionCode) ?? 0;
+          if (sessionCount >= limits.maxConnectionsPerSession) return 'session-cap';
+          if (binding.participantKey) {
+            const partCount = sharedState.participants.get(binding.participantKey) ?? 0;
+            if (partCount >= limits.maxConnectionsPerParticipant) return 'participant-cap';
+          }
+          sharedState.sessions.set(binding.sessionCode, sessionCount + 1);
+          if (binding.participantKey) {
+            sharedState.participants.set(
+              binding.participantKey,
+              (sharedState.participants.get(binding.participantKey) ?? 0) + 1,
+            );
+          }
+          return 'admitted';
+        },
+        releaseBinding: async (binding: { sessionCode: string; participantKey: string | null }) => {
+          const nextS = Math.max(0, (sharedState.sessions.get(binding.sessionCode) ?? 0) - 1);
+          if (nextS === 0) sharedState.sessions.delete(binding.sessionCode);
+          else sharedState.sessions.set(binding.sessionCode, nextS);
+          if (binding.participantKey) {
+            const nextP = Math.max(
+              0,
+              (sharedState.participants.get(binding.participantKey) ?? 0) - 1,
+            );
+            if (nextP === 0) sharedState.participants.delete(binding.participantKey);
+            else sharedState.participants.set(binding.participantKey, nextP);
+          }
+        },
+        close: async () => undefined,
+      }) as unknown as TrpcWebSocketClusterBudget;
+
+    const budgetLimits = {
+      maxClusterConnections: 3,
+      maxClusterUpgradesPerMinute: 10,
+      maxConnectionsPerSession: 3,
+      maxConnectionsPerParticipant: 2,
+    };
+    const urlA = await startServer({
+      maxConnections: 10,
+      maxConnectionsPerSession: 10,
+      maxConnectionsPerParticipant: 5,
+      clusterBudget: createFakeClusterBudget(budgetLimits),
+    });
+    const urlB = await startServer({
+      maxConnections: 10,
+      maxConnectionsPerSession: 10,
+      maxConnectionsPerParticipant: 5,
+      clusterBudget: createFakeClusterBudget(budgetLimits),
+    });
+
+    const participantId = '11111111-1111-4111-8111-111111111111';
+    const socketA = await connect(urlA);
+    const socketB1 = await connect(urlB);
+
+    // Sendet connectionParams + unmittelbare Mutation ohne künstliche Pause dazwischen.
+    socketA.send(connectionParamsMessage('ABC123', participantId));
+    socketA.send(echoMessage(1, 'hello'));
+    socketB1.send(connectionParamsMessage('ABC123', participantId));
+    socketB1.send(echoMessage(2, 'world'));
+
+    await waitForResolverInvocations(2);
+    expect(sharedState.openConnections).toBe(2);
+
+    // Dritter Tab desselben Participants auf Replikat B wird trotz lokalem Limit 5 mit 1008 abgewiesen;
+    // die direkt mitgesendete Mutation erreicht den Resolver nicht.
+    const socketB2 = await connect(urlB);
+    const thirdClosed = new Promise<number>((resolve) =>
+      socketB2.once('close', (code) => resolve(code)),
+    );
+    socketB2.send(connectionParamsMessage('ABC123', participantId));
+    socketB2.send(echoMessage(3, 'blocked'));
+    await expect(thirdClosed).resolves.toBe(1008);
+    expect(resolverInvocations).toBe(2);
+
+    // Nach Close von socketB2 sind wieder 2 globale Verbindungen aktiv -> 3. Verbindung erlaubt, 4. mit 503 abgewiesen.
+    await waitForTelemetry(() => sharedState.openConnections === 2);
+    const extraOpen = await connect(urlA);
+    expect(extraOpen.readyState).toBe(WebSocket.OPEN);
+    await expect(rejectedStatus(urlB)).resolves.toBe(503);
+
+    await close(socketA);
+    await close(socketB1);
+    await close(extraOpen);
+    await waitForTelemetry(() => sharedState.openConnections === 0);
+    expect(sharedState.participants.size).toBe(0);
+    expect(sharedState.sessions.size).toBe(0);
+  });
 });

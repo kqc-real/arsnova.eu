@@ -949,7 +949,7 @@ sowie das Löschen und Abweisen verspäteter Writes.
 
 ```bash
 RUN_REDIS_SESSION_REPLICA_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 \
-  npm run test -w @arsnova/backend -- src/lib/sessionReplicaState.redis.test.ts
+  npm run test -w @arsnova/backend -- src/lib/sessionReplicaState.redis.test.ts src/lib/trpcWebSocketClusterBudget.redis.test.ts
 ```
 
 Für die Abnahme mit zwei Prozessen die Presenter-Fläche auf A ändern,

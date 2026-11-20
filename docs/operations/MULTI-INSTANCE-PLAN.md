@@ -134,7 +134,9 @@ ohne Querystrings oder Share-Tokens zu protokollieren.
 ## 2. Redis, Live-Zustand und gemeinsame Budgets
 
 Im isolierten Staging aktiviert `SESSION_STATUS_PUBSUB_ENABLED=true`
-die Signale für Sessionstatus, Vote-Fortschritt, Joins und neue Q&A-Fragen.
+die Signale für Sessionstatus, Vote-Fortschritt, Teilnehmenden-Updates
+(Join, Leave, Lesebereitschaft) und Q&A-Änderungen (Submit, Moderation,
+Schwärzung, Löschen, Votes, Kanalschalter).
 Beide Apps verwenden denselben internen Redis. Jede Umgebung braucht eine eigene
 Redis-Instanz, weil Pub/Sub-Kanäle alle logischen Datenbanken erreichen. Ein
 Signal enthält die Herkunfts-ID und den Sessioncode beziehungsweise bei
@@ -142,12 +144,12 @@ Q&A die Session-ID. Es weckt lokale Abos nach dem Commit. Die lesende App
 lädt den Stand über den bestehenden Cache- und PostgreSQL-Pfad neu.
 Vote-Signale nutzen ein gemeinsames Redis-Fenster von rund 150 ms pro Session.
 Die reservierende App veröffentlicht und gibt das Fenster atomar frei.
-Ein späterer Commit kann wieder ein Fenster öffnen. Joins und Q&A bündeln
-weiterhin pro App und Session über 50 bzw. 150 ms. Bei Vote-Signalen
-verwerfen alle Apps die lokalen Vote-Aggregate. Im Mehrinstanzmodus laufen
-diese Aggregate nach 5 s ab, damit das 10-s-Host-Polling auch nach
-Signalverlust erneut aus PostgreSQL liest. Weitere
-Live-Signale sowie der Revisions- und Projektionstransfer sind Ausbauschritte.
+Ein späterer Commit kann wieder ein Fenster öffnen. Teilnehmenden-Signale und
+hochfrequente Q&A-Aktionen (Submit, Votes) bündeln pro App und Session über
+50 bzw. 150 ms; moderative Q&A-Eingriffe und Schwärzungen publizieren sofort.
+Bei Vote-Signalen verwerfen alle Apps die lokalen Vote-Aggregate. Im
+Mehrinstanzmodus laufen diese Aggregate nach 5 s ab, damit das 10-s-Host-Polling
+auch nach Signalverlust erneut aus PostgreSQL liest.
 
 1. Den versionierten Redis-Signalbus mit eigener Subscriber-Verbindung
    je App verwenden. Die vier Kanäle wecken die lokalen Abos und verwerfen

@@ -21,7 +21,9 @@ import {
   configureTrpcWebSocketTelemetry,
   configureYjsWebSocketTelemetry,
   getWebSocketTelemetrySnapshot,
+  publishInstanceWebSocketTelemetry,
   readClusterLiveConnectionMetrics,
+  readClusterWebSocketTelemetrySnapshot,
   recordTrpcWebSocketBindingConnected,
   recordTrpcWebSocketBindingDisconnected,
   recordTrpcWebSocketConnected,
@@ -185,6 +187,97 @@ describe('websocketTelemetry', () => {
       rejectsLastMinute: 5,
       rateLimitedMessagesLastMinute: 3,
     });
+    vi.unstubAllEnvs();
+  });
+
+  it('aggregiert den vollständigen WebSocket-Snapshot über App-Replikate und dedizierten Yjs-Relay', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const now = Date.now();
+    configureTrpcWebSocketTelemetry({
+      connectionLimit: 1_200,
+      clusterConnectionLimit: 2_100,
+      sessionConnectionLimit: 1_100,
+      participantConnectionLimit: 2,
+    });
+    recordTrpcWebSocketConnected();
+
+    let publishedPayloadRaw = '';
+    redisMocks.multi.mockReturnValue({
+      set: vi.fn((_key: string, payload: string) => {
+        publishedPayloadRaw = payload;
+      }),
+      zadd: vi.fn(),
+      zremrangebyscore: vi.fn(),
+      exec: vi.fn().mockResolvedValue([]),
+    });
+    await publishInstanceWebSocketTelemetry();
+    const appAPayload = JSON.parse(publishedPayloadRaw) as Record<string, unknown>;
+    expect(appAPayload).toMatchObject({
+      trpcConfigured: true,
+      trpcClusterConnectionLimit: 2_100,
+      yjsConfigured: false,
+    });
+
+    const appBPayload = {
+      ...appAPayload,
+      trpcOpen: 4,
+      snapshot: {
+        ...(appAPayload['snapshot'] as Record<string, unknown>),
+        trpcConnectionsActive: 4,
+        trpcBoundConnectionsActive: 3,
+        trpcSessionCapRejectedLastMinute: 2,
+        trpcParticipantCapRejectedLastMinute: 1,
+      },
+      updatedAt: now,
+    };
+    const yjsRelayPayload = {
+      trpcOpen: 0,
+      yjsOpen: 7,
+      trpcConfigured: false,
+      yjsConfigured: true,
+      snapshot: {
+        ...getWebSocketTelemetrySnapshot(),
+        trpcConnectionsActive: 0,
+        trpcConnectionLimit: 1,
+        yjsConnectionsActive: 7,
+        yjsRoomsActive: 3,
+        yjsConnectionLimit: 1_000,
+        yjsPerRoomConnectionLimit: 200,
+        yjsRejectedUpgradesLastMinute: 2,
+        yjsRejectedUpgradesByReasonLastMinute: {
+          ...getWebSocketTelemetrySnapshot().yjsRejectedUpgradesByReasonLastMinute,
+          staleGeneration: 2,
+        },
+        yjsOpenedLastMinute: 9,
+      },
+      updatedAt: now,
+    };
+
+    redisMocks.zremrangebyscore.mockResolvedValue(0);
+    redisMocks.zrange.mockResolvedValue(['app-a', 'app-b', 'yjs-relay']);
+    redisMocks.mget.mockResolvedValue([
+      JSON.stringify(appAPayload),
+      JSON.stringify(appBPayload),
+      JSON.stringify(yjsRelayPayload),
+    ]);
+
+    const snapshot = await readClusterWebSocketTelemetrySnapshot(now);
+    expect(snapshot).toMatchObject({
+      trpcConnectionsActive: 5,
+      trpcConnectionLimit: 2_100,
+      trpcBoundConnectionsActive: 3,
+      trpcSessionConnectionLimit: 1_100,
+      trpcParticipantConnectionLimit: 2,
+      trpcSessionCapRejectedLastMinute: 2,
+      trpcParticipantCapRejectedLastMinute: 1,
+      yjsConnectionsActive: 7,
+      yjsRoomsActive: 3,
+      yjsConnectionLimit: 1_000,
+      yjsPerRoomConnectionLimit: 200,
+      yjsRejectedUpgradesLastMinute: 2,
+      yjsOpenedLastMinute: 9,
+    });
+    expect(snapshot.yjsRejectedUpgradesByReasonLastMinute.staleGeneration).toBe(2);
     vi.unstubAllEnvs();
   });
 });

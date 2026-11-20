@@ -9,6 +9,7 @@ services:
     environment:
       DATABASE_POOL_MAX: ${ARSNOVA_REPLICA_POOL_MAX:-30}
       SESSION_STATUS_PUBSUB_ENABLED: 'true'
+      TRPC_WS_SHARED_LIMITS_ENABLED: 'true'
       REDIS_RECONNECT_CONTINUOUS: 'true'
       YJS_RELAY_MODE: external
       PDF_SHARED_LIMIT_ENABLED: 'true'
