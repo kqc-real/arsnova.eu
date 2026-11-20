@@ -155,5 +155,72 @@ describe.skipIf(process.env['RUN_REDIS_SESSION_REPLICA_TESTS'] !== '1')(
 
       await healthyApp.close();
     });
+
+    it('gibt verspätet nach lokalem Timeout gebuchte Redis-Reservierungen automatisch wieder frei', async () => {
+      const nowMs = 1_900_000_000_000;
+      const bucketBase = Math.floor(nowMs / 10_000);
+      for (let offset = 0; offset < 6; offset += 1) {
+        touchedKeys.add(`${TRPC_WS_UPGRADE_BUCKET_PREFIX}${bucketBase - offset}`);
+      }
+      const sessionCode = `T${randomUUID().slice(0, 5).toUpperCase()}`;
+      const participantKey = `${sessionCode}:${randomUUID()}`;
+      touchedKeys.add(buildTrpcWsSessionBudgetKey(sessionCode));
+      touchedKeys.add(buildTrpcWsParticipantBudgetKey(participantKey));
+
+      const realRedis = getRedis();
+      let delayAdmitReply = true;
+      const delayedRedis = {
+        zadd: realRedis.zadd.bind(realRedis),
+        pexpire: realRedis.pexpire.bind(realRedis),
+        eval: (async (...args: [string, number, ...(string | number)[]]) => {
+          const res = await realRedis.eval(...args);
+          const script = String(args[0] ?? '');
+          if (
+            delayAdmitReply &&
+            (script.includes('return activeConnections + 1') || script.includes('maxSession'))
+          ) {
+            await new Promise((resolve) => setTimeout(resolve, 80));
+          }
+          return res;
+        }) as typeof realRedis.eval,
+      };
+
+      const app = new TrpcWebSocketClusterBudget({
+        instanceId: `timeout-app-${randomUUID()}`,
+        maxClusterConnections: 2,
+        maxClusterUpgradesPerMinute: 50,
+        maxConnectionsPerSession: 2,
+        maxConnectionsPerParticipant: 2,
+        operationTimeoutMs: 25,
+        now: () => nowMs,
+        redisProvider: () => delayedRedis,
+      });
+
+      await expect(app.admitUpgrade()).resolves.toBe('fallback-local');
+      await expect(app.admitBinding({ sessionCode, participantKey })).resolves.toBe(
+        'fallback-local',
+      );
+      await expect(app.admitUpgrade()).resolves.toBe('fallback-local');
+      await expect(app.admitBinding({ sessionCode, participantKey })).resolves.toBe(
+        'fallback-local',
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      await app.flushPendingCompensations();
+
+      expect(await realRedis.hexists(TRPC_WS_GLOBAL_CONNECTIONS_KEY, app.instanceId)).toBe(0);
+      expect(
+        await realRedis.hexists(buildTrpcWsSessionBudgetKey(sessionCode), app.instanceId),
+      ).toBe(0);
+      expect(
+        await realRedis.hexists(buildTrpcWsParticipantBudgetKey(participantKey), app.instanceId),
+      ).toBe(0);
+
+      delayAdmitReply = false;
+      await expect(app.admitBinding({ sessionCode, participantKey })).resolves.toBe('admitted');
+      await expect(app.admitBinding({ sessionCode, participantKey })).resolves.toBe('admitted');
+
+      await app.close();
+    });
   },
 );

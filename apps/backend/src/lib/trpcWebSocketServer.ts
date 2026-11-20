@@ -20,7 +20,9 @@ import {
 const MESSAGE_WINDOW_MS = 10_000;
 const UPGRADE_WINDOW_MS = 60_000;
 const CONNECTION_PARAMS_PARSE_MAX_BYTES = 16 * 1024;
-const MAX_PENDING_BINDING_FRAMES = 64;
+export const MAX_PENDING_BINDING_FRAMES = 64;
+export const MAX_PENDING_BINDING_BYTES_PER_CONNECTION = 64 * 1024;
+export const MAX_PENDING_BINDING_BYTES_GLOBAL = 8 * 1024 * 1024;
 
 export interface TrpcWebSocketLimits {
   maxConnections: number;
@@ -152,11 +154,16 @@ interface ActiveBinding {
 
 type BindingAdmission = ActiveBinding | 'session-cap' | 'participant-cap';
 
+function rawDataByteLength(data: RawData): number {
+  if (Array.isArray(data)) {
+    return data.reduce((sum, chunk) => sum + chunk.byteLength, 0);
+  }
+  return data.byteLength;
+}
+
 function decodeBoundedTextFrame(data: RawData, isBinary: boolean): string | null {
   if (isBinary) return null;
-  const byteLength = Array.isArray(data)
-    ? data.reduce((sum, chunk) => sum + chunk.byteLength, 0)
-    : data.byteLength;
+  const byteLength = rawDataByteLength(data);
   if (byteLength > CONNECTION_PARAMS_PARSE_MAX_BYTES) return null;
   if (Array.isArray(data)) return Buffer.concat(data).toString('utf8');
   if (data instanceof ArrayBuffer) return Buffer.from(data).toString('utf8');
@@ -212,11 +219,16 @@ class FixedWindowCounter {
 }
 
 function rejectUpgrade(socket: Duplex, status: 429 | 503): void {
+  socket.on('error', () => undefined);
   const statusText = status === 429 ? 'Too Many Requests' : 'Service Unavailable';
-  socket.write(
-    `HTTP/1.1 ${status} ${statusText}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`,
-  );
-  socket.destroy();
+  if (!socket.destroyed && socket.writable) {
+    socket.write(
+      `HTTP/1.1 ${status} ${statusText}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`,
+    );
+  }
+  if (!socket.destroyed) {
+    socket.destroy();
+  }
   recordTrpcWebSocketRejectedUpgrade();
 }
 
@@ -228,9 +240,12 @@ export class TrpcWebSocketServer {
   private readonly globalMessageWindow = new FixedWindowCounter();
   private readonly sessionConnections = new Map<string, number>();
   private readonly participantConnections = new Map<string, number>();
+  private readonly pendingUpgradeSockets = new Set<Duplex>();
+  private readonly inFlightUpgrades = new Set<Promise<void>>();
   private readonly inFlightClusterReleases = new Set<Promise<void>>();
   private connectionsActive = 0;
   private upgradesPending = 0;
+  private pendingBindingBytesGlobal = 0;
   private closing = false;
 
   constructor(private readonly config: TrpcWebSocketConfig) {
@@ -260,7 +275,11 @@ export class TrpcWebSocketServer {
       response.end('okay');
     });
     this.httpServer.on('upgrade', (request, socket, head) => {
-      void this.handleHttpUpgrade(request, socket, head);
+      const upgradeTask = this.handleHttpUpgrade(request, socket, head);
+      this.inFlightUpgrades.add(upgradeTask);
+      void upgradeTask.finally(() => {
+        this.inFlightUpgrades.delete(upgradeTask);
+      });
     });
   }
 
@@ -275,12 +294,20 @@ export class TrpcWebSocketServer {
 
   async close(): Promise<void> {
     this.closing = true;
+    for (const pendingSocket of [...this.pendingUpgradeSockets]) {
+      if (!pendingSocket.destroyed) {
+        rejectUpgrade(pendingSocket, 503);
+      }
+    }
     for (const client of this.webSocketServer.clients) client.terminate();
     await new Promise<void>((resolve, reject) => {
       this.webSocketServer.close(() => {
         this.httpServer.close((error) => (error ? reject(error) : resolve()));
       });
     });
+    if (this.inFlightUpgrades.size > 0) {
+      await Promise.allSettled([...this.inFlightUpgrades]);
+    }
     if (this.inFlightClusterReleases.size > 0) {
       await Promise.allSettled([...this.inFlightClusterReleases]);
     }
@@ -316,6 +343,7 @@ export class TrpcWebSocketServer {
     }
 
     this.upgradesPending += 1;
+    this.pendingUpgradeSockets.add(socket);
     // `ws` ruft den Success-Callback bei ungültigem Handshake nicht auf und
     // zerstört den Socket direkt. Pending-Slots müssen deshalb auch auf
     // Close/Error freigegeben werden, sonst bleiben sie dauerhaft belegt.
@@ -323,6 +351,7 @@ export class TrpcWebSocketServer {
     const releasePendingUpgrade = (): void => {
       if (pendingReleased) return;
       pendingReleased = true;
+      this.pendingUpgradeSockets.delete(socket);
       this.upgradesPending = Math.max(0, this.upgradesPending - 1);
       socket.off('close', releasePendingUpgrade);
       socket.off('error', releasePendingUpgrade);
@@ -338,7 +367,11 @@ export class TrpcWebSocketServer {
       socket.on('error', ignoreUpgradeSocketError);
       socket.pause();
       try {
-        const decision = await this.clusterBudget.admitUpgrade();
+        const upgradeReservation =
+          typeof this.clusterBudget.admitUpgradeReservation === 'function'
+            ? await this.clusterBudget.admitUpgradeReservation()
+            : { decision: await this.clusterBudget.admitUpgrade(), reservationId: null };
+        const { decision, reservationId } = upgradeReservation;
         if (decision === 'rate-limited' || decision === 'connection-cap') {
           releasePendingUpgrade();
           if (!socket.destroyed) {
@@ -352,17 +385,20 @@ export class TrpcWebSocketServer {
           releaseClusterConnection = (): void => {
             if (clusterReleased) return;
             clusterReleased = true;
-            this.trackClusterRelease(budget.releaseConnection());
+            this.trackClusterRelease(budget.releaseConnection(reservationId));
           };
         }
         if (this.closing || socket.destroyed || !socket.writable) {
           releasePendingUpgrade();
           releaseClusterConnection?.();
+          if (!socket.destroyed) {
+            rejectUpgrade(socket, 503);
+          }
           return;
         }
       } finally {
         socket.off('error', ignoreUpgradeSocketError);
-        if (!socket.destroyed) socket.resume();
+        if (!this.closing && !socket.destroyed) socket.resume();
       }
     }
 
@@ -398,25 +434,72 @@ export class TrpcWebSocketServer {
     let bindingPending = false;
     let activeBinding: ActiveBinding | null = null;
     let clusterBindingHeld = false;
+    let clusterBindingReservationId: string | null = null;
+    let pendingBindingBytes = 0;
     const pendingBindingFrames: Array<[RawData, boolean]> = [];
     const connectionMessageWindow = new FixedWindowCounter();
+
+    const clearPendingBindingFrames = (): Array<[RawData, boolean]> => {
+      if (pendingBindingBytes > 0) {
+        this.pendingBindingBytesGlobal = Math.max(
+          0,
+          this.pendingBindingBytesGlobal - pendingBindingBytes,
+        );
+        pendingBindingBytes = 0;
+      }
+      return pendingBindingFrames.splice(0);
+    };
+
+    const enqueuePendingBindingFrame = (frameData: RawData, frameIsBinary: boolean): boolean => {
+      if (pendingBindingFrames.length >= MAX_PENDING_BINDING_FRAMES) {
+        rateLimited = true;
+        clearPendingBindingFrames();
+        recordTrpcWebSocketRateLimitedMessage();
+        webSocket.terminate();
+        return false;
+      }
+      const frameBytes = rawDataByteLength(frameData);
+      if (
+        pendingBindingBytes + frameBytes > MAX_PENDING_BINDING_BYTES_PER_CONNECTION ||
+        this.pendingBindingBytesGlobal + frameBytes > MAX_PENDING_BINDING_BYTES_GLOBAL
+      ) {
+        payloadRejected = true;
+        rateLimited = true;
+        clearPendingBindingFrames();
+        recordTrpcWebSocketPayloadRejected();
+        webSocket.close(1009, 'pending binding buffer exceeded');
+        const forceCloseTimer = setTimeout(() => {
+          if (webSocket.readyState !== WebSocket.CLOSED) {
+            webSocket.terminate();
+          }
+        }, 1_000);
+        forceCloseTimer.unref();
+        return false;
+      }
+      pendingBindingFrames.push([frameData, frameIsBinary]);
+      pendingBindingBytes += frameBytes;
+      this.pendingBindingBytesGlobal += frameBytes;
+      return true;
+    };
 
     webSocket.once('close', () => {
       if (disconnected) return;
       disconnected = true;
-      pendingBindingFrames.length = 0;
+      clearPendingBindingFrames();
       this.connectionsActive = Math.max(0, this.connectionsActive - 1);
       recordTrpcWebSocketDisconnected();
       releaseClusterConnection?.();
       if (activeBinding) {
         const bound = activeBinding;
         const releaseInCluster = clusterBindingHeld;
+        const boundReservationId = clusterBindingReservationId;
         activeBinding = null;
         clusterBindingHeld = false;
+        clusterBindingReservationId = null;
         this.releaseLocalBinding(bound);
         recordTrpcWebSocketBindingDisconnected();
         if (releaseInCluster && this.clusterBudget) {
-          this.trackClusterRelease(this.clusterBudget.releaseBinding(bound));
+          this.trackClusterRelease(this.clusterBudget.releaseBinding(bound, boundReservationId));
         }
       }
     });
@@ -438,7 +521,7 @@ export class TrpcWebSocketServer {
         );
       if (!admitted) {
         rateLimited = true;
-        pendingBindingFrames.length = 0;
+        clearPendingBindingFrames();
         recordTrpcWebSocketRateLimitedMessage();
         webSocket.terminate();
         return false;
@@ -456,15 +539,7 @@ export class TrpcWebSocketServer {
 
           if (bindingPending) {
             if (!consumeMessageBudget()) return false;
-            if (pendingBindingFrames.length >= MAX_PENDING_BINDING_FRAMES) {
-              rateLimited = true;
-              pendingBindingFrames.length = 0;
-              recordTrpcWebSocketRateLimitedMessage();
-              webSocket.terminate();
-              return false;
-            }
-            pendingBindingFrames.push([data, isBinary]);
-            return true;
+            return enqueuePendingBindingFrame(data, isBinary);
           }
 
           if (!connectionParamsObserved) {
@@ -490,28 +565,40 @@ export class TrpcWebSocketServer {
                   this.releaseLocalBinding(localAdmission);
                   return false;
                 }
+                if (!enqueuePendingBindingFrame(data, isBinary)) {
+                  this.releaseLocalBinding(localAdmission);
+                  return false;
+                }
                 bindingPending = true;
-                pendingBindingFrames.push([data, isBinary]);
                 const budget = this.clusterBudget;
-                void budget.admitBinding(localAdmission).then((clusterDecision) => {
+                const reservationPromise =
+                  typeof budget.admitBindingReservation === 'function'
+                    ? budget.admitBindingReservation(localAdmission)
+                    : budget.admitBinding(localAdmission).then((decision) => ({
+                        decision,
+                        reservationId: null,
+                      }));
+                void reservationPromise.then(({ decision: clusterDecision, reservationId }) => {
                   bindingPending = false;
                   if (disconnected || rateLimited || webSocket.readyState !== WebSocket.OPEN) {
-                    pendingBindingFrames.length = 0;
+                    clearPendingBindingFrames();
                     this.releaseLocalBinding(localAdmission);
                     if (clusterDecision === 'admitted') {
-                      this.trackClusterRelease(budget.releaseBinding(localAdmission));
+                      this.trackClusterRelease(
+                        budget.releaseBinding(localAdmission, reservationId),
+                      );
                     }
                     return;
                   }
                   if (clusterDecision === 'session-cap') {
-                    pendingBindingFrames.length = 0;
+                    clearPendingBindingFrames();
                     this.releaseLocalBinding(localAdmission);
                     recordTrpcWebSocketSessionCapRejected();
                     webSocket.close(1008, 'connection limit exceeded');
                     return;
                   }
                   if (clusterDecision === 'participant-cap') {
-                    pendingBindingFrames.length = 0;
+                    clearPendingBindingFrames();
                     this.releaseLocalBinding(localAdmission);
                     recordTrpcWebSocketParticipantCapRejected();
                     webSocket.close(1008, 'connection limit exceeded');
@@ -519,8 +606,10 @@ export class TrpcWebSocketServer {
                   }
                   activeBinding = localAdmission;
                   clusterBindingHeld = clusterDecision === 'admitted';
+                  clusterBindingReservationId =
+                    clusterDecision === 'admitted' ? reservationId : null;
                   recordTrpcWebSocketBindingConnected();
-                  const queued = pendingBindingFrames.splice(0);
+                  const queued = clearPendingBindingFrames();
                   for (const [queuedData, queuedIsBinary] of queued) {
                     if (disconnected || rateLimited || webSocket.readyState !== WebSocket.OPEN) {
                       break;

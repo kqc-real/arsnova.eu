@@ -8,20 +8,25 @@ export const TRPC_WS_GLOBAL_CONNECTIONS_KEY = 'trpc:ws:global:v1';
 export const TRPC_WS_UPGRADE_BUCKET_PREFIX = 'trpc:ws:upgrades:v1:';
 export const TRPC_WS_SESSION_PREFIX = 'trpc:ws:session:v1:';
 export const TRPC_WS_PARTICIPANT_PREFIX = 'trpc:ws:participant:v1:';
+export const TRPC_WS_UPGRADE_RESERVATION_PREFIX = 'trpc:ws:upgres:v1:';
+export const TRPC_WS_BINDING_RESERVATION_PREFIX = 'trpc:ws:bindres:v1:';
 
 const DEFAULT_LEASE_TTL_MS = 30_000;
 const DEFAULT_HEARTBEAT_INTERVAL_MS = 10_000;
 const DEFAULT_OPERATION_TIMEOUT_MS = 1_000;
 const HASH_IDLE_TTL_MS = 24 * 60 * 60 * 1_000;
+const RESERVATION_TOMBSTONE_TTL_MS = 2 * 60 * 1_000;
+const RELEASE_RETRY_DELAY_MS = 200;
 const UPGRADE_BUCKET_SECONDS = 10;
 const UPGRADE_BUCKET_COUNT = 6;
 const UPGRADE_BUCKET_TTL_SECONDS = 70;
 
 /**
- * Atomare Upgrade-Reservierung über alle lebenden App-Instanzen:
+ * Atomare, idempotente Upgrade-Reservierung über alle lebenden App-Instanzen:
  * KEYS[1]    = ZSET lebender Instanzen (Score = Ablaufzeit in ms)
  * KEYS[2]    = HASH globaler offener/ausstehender Verbindungen je Instanz
  * KEYS[3..8] = 6 Zehn-Sekunden-Buckets für globale Upgrade-Rate (KEYS[8] = aktuell)
+ * KEYS[9]    = Reservierungs-Statuskey (`nil` -> `admitted` -> `released` bzw. `nil` -> `released`)
  * ARGV[1]    = instanceId
  * ARGV[2]    = nowMs
  * ARGV[3]    = leaseTtlMs
@@ -34,10 +39,12 @@ const UPGRADE_BUCKET_TTL_SECONDS = 70;
  *  >= 1 : reserviert (neuer globaler Verbindungsstand)
  *  -1   : globales Upgrade-Budget pro Minute erschöpft (HTTP 429)
  *  -2   : globales Verbindungs-Cap erreicht (HTTP 503)
+ *  -3   : Reservierung wurde bereits vor Ausführung storniert (Tombstone `released`)
  */
 const ADMIT_UPGRADE_LUA = `
 local instancesKey = KEYS[1]
 local globalKey = KEYS[2]
+local reservationKey = KEYS[9]
 local instanceId = ARGV[1]
 local nowMs = tonumber(ARGV[2])
 local leaseTtlMs = tonumber(ARGV[3])
@@ -45,6 +52,14 @@ local maxUpgrades = tonumber(ARGV[4])
 local maxConnections = tonumber(ARGV[5])
 local hashIdleTtlMs = tonumber(ARGV[6])
 local bucketTtlSec = tonumber(ARGV[7])
+
+local existingState = redis.call('GET', reservationKey)
+if existingState == 'released' then
+  return -3
+end
+if existingState == 'admitted' then
+  return 1
+end
 
 redis.call('ZREMRANGEBYSCORE', instancesKey, '-inf', nowMs)
 redis.call('ZADD', instancesKey, nowMs + leaseTtlMs, instanceId)
@@ -76,6 +91,7 @@ if activeConnections >= maxConnections then
   return -2
 end
 
+redis.call('SET', reservationKey, 'admitted', 'PX', hashIdleTtlMs)
 redis.call('INCR', KEYS[8])
 redis.call('EXPIRE', KEYS[8], bucketTtlSec)
 redis.call('HINCRBY', globalKey, instanceId, 1)
@@ -85,7 +101,21 @@ return activeConnections + 1
 
 const RELEASE_CONNECTION_LUA = `
 local globalKey = KEYS[1]
+local reservationKey = KEYS[2]
 local instanceId = ARGV[1]
+local tombstoneTtlMs = tonumber(ARGV[2]) or 120000
+
+if reservationKey ~= nil and reservationKey ~= '' then
+  local state = redis.call('GET', reservationKey)
+  if state == 'released' then
+    return 0
+  end
+  redis.call('SET', reservationKey, 'released', 'PX', tombstoneTtlMs)
+  if state ~= 'admitted' then
+    return 0
+  end
+end
+
 local remaining = redis.call('HINCRBY', globalKey, instanceId, -1)
 if remaining <= 0 then
   redis.call('HDEL', globalKey, instanceId)
@@ -95,10 +125,11 @@ return remaining
 `;
 
 /**
- * Atomare Session- und optionale Participant-Bindung über alle lebenden Instanzen:
+ * Atomare, idempotente Session- und optionale Participant-Bindung über alle lebenden Instanzen:
  * KEYS[1] = ZSET lebender Instanzen
- * KEYS[2] = HASH Session-Verbindungen je Instanz
- * KEYS[3] = optional HASH Participant-Verbindungen je Instanz
+ * KEYS[2] = Reservierungs-Statuskey (`nil` -> `admitted` -> `released` bzw. `nil` -> `released`)
+ * KEYS[3] = HASH Session-Verbindungen je Instanz
+ * KEYS[4] = optional HASH Participant-Verbindungen je Instanz
  * ARGV[1] = instanceId
  * ARGV[2] = nowMs
  * ARGV[3] = leaseTtlMs
@@ -110,17 +141,27 @@ return remaining
  *   1 : reserviert
  *  -1 : Session-Cap erreicht
  *  -2 : Participant-Cap erreicht
+ *  -3 : Reservierung wurde bereits vor Ausführung storniert (Tombstone `released`)
  */
 const ADMIT_BINDING_LUA = `
 local instancesKey = KEYS[1]
-local sessionKey = KEYS[2]
-local participantKey = KEYS[3]
+local reservationKey = KEYS[2]
+local sessionKey = KEYS[3]
+local participantKey = KEYS[4]
 local instanceId = ARGV[1]
 local nowMs = tonumber(ARGV[2])
 local leaseTtlMs = tonumber(ARGV[3])
 local maxSession = tonumber(ARGV[4])
 local maxParticipant = tonumber(ARGV[5])
 local hashIdleTtlMs = tonumber(ARGV[6])
+
+local existingState = redis.call('GET', reservationKey)
+if existingState == 'released' then
+  return -3
+end
+if existingState == 'admitted' then
+  return 1
+end
 
 redis.call('ZREMRANGEBYSCORE', instancesKey, '-inf', nowMs)
 redis.call('ZADD', instancesKey, nowMs + leaseTtlMs, instanceId)
@@ -153,6 +194,7 @@ if participantKey ~= nil and participantKey ~= '' then
   end
 end
 
+redis.call('SET', reservationKey, 'admitted', 'PX', hashIdleTtlMs)
 redis.call('HINCRBY', sessionKey, instanceId, 1)
 redis.call('PEXPIRE', sessionKey, hashIdleTtlMs)
 if participantKey ~= nil and participantKey ~= '' then
@@ -164,7 +206,24 @@ return 1
 
 const RELEASE_BINDING_LUA = `
 local instanceId = ARGV[1]
-for i = 1, #KEYS do
+local hasReservation = ARGV[2] == '1'
+local tombstoneTtlMs = tonumber(ARGV[3]) or 120000
+local startIdx = 1
+
+if hasReservation then
+  local reservationKey = KEYS[1]
+  local state = redis.call('GET', reservationKey)
+  if state == 'released' then
+    return 0
+  end
+  redis.call('SET', reservationKey, 'released', 'PX', tombstoneTtlMs)
+  if state ~= 'admitted' then
+    return 0
+  end
+  startIdx = 2
+end
+
+for i = startIdx, #KEYS do
   local remaining = redis.call('HINCRBY', KEYS[i], instanceId, -1)
   if remaining <= 0 then
     redis.call('HDEL', KEYS[i], instanceId)
@@ -198,12 +257,34 @@ export type ClusterUpgradeDecision =
 export type ClusterBindingDecision =
   'admitted' | 'fallback-local' | 'session-cap' | 'participant-cap';
 
+export interface ClusterUpgradeReservation {
+  decision: ClusterUpgradeDecision;
+  reservationId: string | null;
+}
+
+export interface ClusterBindingReservation {
+  decision: ClusterBindingDecision;
+  reservationId: string | null;
+}
+
 export function buildTrpcWsSessionBudgetKey(sessionCode: string): string {
   return `${TRPC_WS_SESSION_PREFIX}${sessionCode}`;
 }
 
 export function buildTrpcWsParticipantBudgetKey(participantKey: string): string {
   return `${TRPC_WS_PARTICIPANT_PREFIX}${participantKey}`;
+}
+
+export function buildTrpcWsUpgradeReservationKey(reservationId: string): string {
+  return `${TRPC_WS_UPGRADE_RESERVATION_PREFIX}${reservationId}`;
+}
+
+export function buildTrpcWsBindingReservationKey(reservationId: string): string {
+  return `${TRPC_WS_BINDING_RESERVATION_PREFIX}${reservationId}`;
+}
+
+function bindingScopeKey(binding: { sessionCode: string; participantKey: string | null }): string {
+  return `${binding.sessionCode}\0${binding.participantKey ?? ''}`;
 }
 
 function buildUpgradeBucketKeys(nowMs: number): string[] {
@@ -213,6 +294,13 @@ function buildUpgradeBucketKeys(nowMs: number): string[] {
     keys.push(`${TRPC_WS_UPGRADE_BUCKET_PREFIX}${currentBucket - offset}`);
   }
   return keys;
+}
+
+function delayMs(ms: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    timer.unref();
+  });
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
@@ -241,6 +329,9 @@ export class TrpcWebSocketClusterBudget {
   private readonly operationTimeoutMs: number;
   private readonly now: () => number;
   private readonly redisProvider: () => Pick<Redis, 'eval' | 'zadd' | 'pexpire'>;
+  private readonly pendingCompensations = new Set<Promise<void>>();
+  private readonly unscopedUpgradeReservations: string[] = [];
+  private readonly unscopedBindingReservations = new Map<string, string[]>();
   private heartbeatTimer: NodeJS.Timeout | null = null;
   private closed = false;
   private fallbackWarnedAt = 0;
@@ -280,53 +371,164 @@ export class TrpcWebSocketClusterBudget {
     }
   }
 
-  async admitUpgrade(): Promise<ClusterUpgradeDecision> {
-    if (this.closed) return 'connection-cap';
+  private trackCompensation(task: Promise<void>): void {
+    this.pendingCompensations.add(task);
+    void task.finally(() => {
+      this.pendingCompensations.delete(task);
+    });
+  }
+
+  async flushPendingCompensations(): Promise<void> {
+    while (this.pendingCompensations.size > 0) {
+      await Promise.allSettled([...this.pendingCompensations]);
+    }
+  }
+
+  async admitUpgradeReservation(): Promise<ClusterUpgradeReservation> {
+    if (this.closed) return { decision: 'connection-cap', reservationId: null };
+    const reservationId = randomUUID();
+    let timedOutOrFailed = false;
     try {
       const nowMs = this.now();
       const keys = [
         TRPC_WS_INSTANCES_KEY,
         TRPC_WS_GLOBAL_CONNECTIONS_KEY,
         ...buildUpgradeBucketKeys(nowMs),
+        buildTrpcWsUpgradeReservationKey(reservationId),
       ];
-      const raw = await withTimeout(
-        this.redisProvider().eval(
-          ADMIT_UPGRADE_LUA,
-          keys.length,
-          ...keys,
-          this.instanceId,
-          String(nowMs),
-          String(this.leaseTtlMs),
-          String(this.options.maxClusterUpgradesPerMinute),
-          String(this.options.maxClusterConnections),
-          String(HASH_IDLE_TTL_MS),
-          String(UPGRADE_BUCKET_TTL_SECONDS),
-        ),
-        this.operationTimeoutMs,
+      const evalPromise = this.redisProvider().eval(
+        ADMIT_UPGRADE_LUA,
+        keys.length,
+        ...keys,
+        this.instanceId,
+        String(nowMs),
+        String(this.leaseTtlMs),
+        String(this.options.maxClusterUpgradesPerMinute),
+        String(this.options.maxClusterConnections),
+        String(HASH_IDLE_TTL_MS),
+        String(UPGRADE_BUCKET_TTL_SECONDS),
       );
+      this.trackCompensation(
+        evalPromise.then(
+          async (raw) => {
+            if (!timedOutOrFailed) return;
+            if (Number(raw) >= 1) {
+              await this.releaseConnection(reservationId);
+            }
+          },
+          () => {
+            // Bereits über catch/Fallback behandelt.
+          },
+        ),
+      );
+
+      const raw = await withTimeout(evalPromise, this.operationTimeoutMs);
       const code = Number(raw);
-      if (code === -1) return 'rate-limited';
-      if (code === -2) return 'connection-cap';
-      return 'admitted';
+      if (code === -1) return { decision: 'rate-limited', reservationId: null };
+      if (code === -2) return { decision: 'connection-cap', reservationId: null };
+      if (code === -3) return { decision: 'fallback-local', reservationId: null };
+      return { decision: 'admitted', reservationId };
     } catch (error) {
+      timedOutOrFailed = true;
+      this.trackCompensation(this.releaseConnection(reservationId));
       this.warnFallback('upgrade', error);
-      return 'fallback-local';
+      return { decision: 'fallback-local', reservationId: null };
     }
   }
 
-  async releaseConnection(): Promise<void> {
+  async admitUpgrade(): Promise<ClusterUpgradeDecision> {
+    const result = await this.admitUpgradeReservation();
+    if (result.decision === 'admitted' && result.reservationId) {
+      this.unscopedUpgradeReservations.push(result.reservationId);
+    }
+    return result.decision;
+  }
+
+  async releaseConnection(reservationId?: string | null): Promise<void> {
+    const resolvedReservationId =
+      reservationId !== undefined
+        ? reservationId
+        : (this.unscopedUpgradeReservations.shift() ?? null);
+    const keys = resolvedReservationId
+      ? [TRPC_WS_GLOBAL_CONNECTIONS_KEY, buildTrpcWsUpgradeReservationKey(resolvedReservationId)]
+      : [TRPC_WS_GLOBAL_CONNECTIONS_KEY];
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await withTimeout(
+          this.redisProvider().eval(
+            RELEASE_CONNECTION_LUA,
+            keys.length,
+            ...keys,
+            this.instanceId,
+            String(RESERVATION_TOMBSTONE_TTL_MS),
+          ),
+          this.operationTimeoutMs,
+        );
+        return;
+      } catch (error) {
+        if (attempt === 0 && resolvedReservationId && !this.closed) {
+          await delayMs(Math.min(RELEASE_RETRY_DELAY_MS, this.operationTimeoutMs));
+          continue;
+        }
+        this.warnFallback('releaseConnection', error);
+      }
+    }
+  }
+
+  async admitBindingReservation(binding: {
+    sessionCode: string;
+    participantKey: string | null;
+  }): Promise<ClusterBindingReservation> {
+    if (this.closed) return { decision: 'session-cap', reservationId: null };
+    const reservationId = randomUUID();
+    let timedOutOrFailed = false;
     try {
-      await withTimeout(
-        this.redisProvider().eval(
-          RELEASE_CONNECTION_LUA,
-          1,
-          TRPC_WS_GLOBAL_CONNECTIONS_KEY,
-          this.instanceId,
-        ),
-        this.operationTimeoutMs,
+      const nowMs = this.now();
+      const keys = [
+        TRPC_WS_INSTANCES_KEY,
+        buildTrpcWsBindingReservationKey(reservationId),
+        buildTrpcWsSessionBudgetKey(binding.sessionCode),
+      ];
+      if (binding.participantKey) {
+        keys.push(buildTrpcWsParticipantBudgetKey(binding.participantKey));
+      }
+      const evalPromise = this.redisProvider().eval(
+        ADMIT_BINDING_LUA,
+        keys.length,
+        ...keys,
+        this.instanceId,
+        String(nowMs),
+        String(this.leaseTtlMs),
+        String(this.options.maxConnectionsPerSession),
+        String(this.options.maxConnectionsPerParticipant),
+        String(HASH_IDLE_TTL_MS),
       );
+      this.trackCompensation(
+        evalPromise.then(
+          async (raw) => {
+            if (!timedOutOrFailed) return;
+            if (Number(raw) === 1) {
+              await this.releaseBinding(binding, reservationId);
+            }
+          },
+          () => {
+            // Bereits über catch/Fallback behandelt.
+          },
+        ),
+      );
+
+      const raw = await withTimeout(evalPromise, this.operationTimeoutMs);
+      const code = Number(raw);
+      if (code === -1) return { decision: 'session-cap', reservationId: null };
+      if (code === -2) return { decision: 'participant-cap', reservationId: null };
+      if (code === -3) return { decision: 'fallback-local', reservationId: null };
+      return { decision: 'admitted', reservationId };
     } catch (error) {
-      this.warnFallback('releaseConnection', error);
+      timedOutOrFailed = true;
+      this.trackCompensation(this.releaseBinding(binding, reservationId));
+      this.warnFallback('binding', error);
+      return { decision: 'fallback-local', reservationId: null };
     }
   }
 
@@ -334,52 +536,66 @@ export class TrpcWebSocketClusterBudget {
     sessionCode: string;
     participantKey: string | null;
   }): Promise<ClusterBindingDecision> {
-    if (this.closed) return 'session-cap';
-    try {
-      const nowMs = this.now();
-      const keys = [TRPC_WS_INSTANCES_KEY, buildTrpcWsSessionBudgetKey(binding.sessionCode)];
-      if (binding.participantKey) {
-        keys.push(buildTrpcWsParticipantBudgetKey(binding.participantKey));
-      }
-      const raw = await withTimeout(
-        this.redisProvider().eval(
-          ADMIT_BINDING_LUA,
-          keys.length,
-          ...keys,
-          this.instanceId,
-          String(nowMs),
-          String(this.leaseTtlMs),
-          String(this.options.maxConnectionsPerSession),
-          String(this.options.maxConnectionsPerParticipant),
-          String(HASH_IDLE_TTL_MS),
-        ),
-        this.operationTimeoutMs,
-      );
-      const code = Number(raw);
-      if (code === -1) return 'session-cap';
-      if (code === -2) return 'participant-cap';
-      return 'admitted';
-    } catch (error) {
-      this.warnFallback('binding', error);
-      return 'fallback-local';
+    const result = await this.admitBindingReservation(binding);
+    if (result.decision === 'admitted' && result.reservationId) {
+      const key = bindingScopeKey(binding);
+      const list = this.unscopedBindingReservations.get(key) ?? [];
+      list.push(result.reservationId);
+      this.unscopedBindingReservations.set(key, list);
     }
+    return result.decision;
   }
 
-  async releaseBinding(binding: {
-    sessionCode: string;
-    participantKey: string | null;
-  }): Promise<void> {
-    try {
-      const keys = [buildTrpcWsSessionBudgetKey(binding.sessionCode)];
-      if (binding.participantKey) {
-        keys.push(buildTrpcWsParticipantBudgetKey(binding.participantKey));
+  async releaseBinding(
+    binding: {
+      sessionCode: string;
+      participantKey: string | null;
+    },
+    reservationId?: string | null,
+  ): Promise<void> {
+    let resolvedReservationId: string | null;
+    if (reservationId !== undefined) {
+      resolvedReservationId = reservationId;
+    } else {
+      const scope = bindingScopeKey(binding);
+      const list = this.unscopedBindingReservations.get(scope);
+      resolvedReservationId = list?.shift() ?? null;
+      if (list && list.length === 0) {
+        this.unscopedBindingReservations.delete(scope);
       }
-      await withTimeout(
-        this.redisProvider().eval(RELEASE_BINDING_LUA, keys.length, ...keys, this.instanceId),
-        this.operationTimeoutMs,
-      );
-    } catch (error) {
-      this.warnFallback('releaseBinding', error);
+    }
+
+    const keys = resolvedReservationId
+      ? [
+          buildTrpcWsBindingReservationKey(resolvedReservationId),
+          buildTrpcWsSessionBudgetKey(binding.sessionCode),
+        ]
+      : [buildTrpcWsSessionBudgetKey(binding.sessionCode)];
+    if (binding.participantKey) {
+      keys.push(buildTrpcWsParticipantBudgetKey(binding.participantKey));
+    }
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await withTimeout(
+          this.redisProvider().eval(
+            RELEASE_BINDING_LUA,
+            keys.length,
+            ...keys,
+            this.instanceId,
+            resolvedReservationId ? '1' : '0',
+            String(RESERVATION_TOMBSTONE_TTL_MS),
+          ),
+          this.operationTimeoutMs,
+        );
+        return;
+      } catch (error) {
+        if (attempt === 0 && resolvedReservationId && !this.closed) {
+          await delayMs(Math.min(RELEASE_RETRY_DELAY_MS, this.operationTimeoutMs));
+          continue;
+        }
+        this.warnFallback('releaseBinding', error);
+      }
     }
   }
 
@@ -390,6 +606,7 @@ export class TrpcWebSocketClusterBudget {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
+    await this.flushPendingCompensations();
     try {
       await withTimeout(
         this.redisProvider().eval(

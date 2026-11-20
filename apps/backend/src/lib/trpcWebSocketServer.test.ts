@@ -9,6 +9,7 @@ import { publicProcedure, router } from '../trpc';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './requestLimits';
 import {
   DEFAULT_TRPC_WS_LIMITS,
+  MAX_PENDING_BINDING_BYTES_PER_CONNECTION,
   resolveTrpcWebSocketConfig,
   TrpcWebSocketServer,
   type TrpcWebSocketConfig,
@@ -610,5 +611,282 @@ describe('TrpcWebSocketServer', () => {
     await waitForTelemetry(() => sharedState.openConnections === 0);
     expect(sharedState.participants.size).toBe(0);
     expect(sharedState.sessions.size).toBe(0);
+  });
+
+  it('begrenzt ausstehende Binding-Frames auch nach Bytevolumen und gibt Bytezähler vollständig frei', async () => {
+    const bindingGate: { release: (() => void) | null } = { release: null };
+    let releasedBindings = 0;
+
+    const delayedBudget = {
+      instanceId: 'byte-guard',
+      start: () => undefined,
+      refreshLease: async () => undefined,
+      admitUpgradeReservation: async () => ({
+        decision: 'admitted' as const,
+        reservationId: 'upg-1',
+      }),
+      admitUpgrade: async () => 'admitted' as const,
+      releaseConnection: async () => undefined,
+      admitBindingReservation: async () => {
+        if (bindingGate.release === null) {
+          await new Promise<void>((resolve) => {
+            bindingGate.release = resolve;
+          });
+        }
+        return { decision: 'admitted' as const, reservationId: 'bind-1' };
+      },
+      admitBinding: async () => 'admitted' as const,
+      releaseBinding: async () => {
+        releasedBindings += 1;
+      },
+      close: async () => undefined,
+    } as unknown as TrpcWebSocketClusterBudget;
+
+    const url = await startServer({ clusterBudget: delayedBudget });
+    const socket = await connect(url);
+    const closed = new Promise<number>((resolve) => socket.once('close', (code) => resolve(code)));
+
+    const participantId = '22222222-2222-4222-8222-222222222222';
+    socket.send(connectionParamsMessage('ABC123', participantId));
+    // Überschreitet das 64-KiB-Pending-Bytebudget während admitBinding noch wartet (unterhalb des 2-MiB-Frame-Caps).
+    socket.send(echoMessage(1, 'x'.repeat(MAX_PENDING_BINDING_BYTES_PER_CONNECTION)));
+
+    await expect(closed).resolves.toBe(1009);
+    expect(resolverInvocations).toBe(0);
+    expect(getWebSocketTelemetrySnapshot().trpcPayloadRejectedLastMinute).toBe(1);
+
+    // Nach verspäteter Auflösung der ausstehenden Reservierung wird auch die Cluster-Bindung freigegeben.
+    bindingGate.release?.();
+    await waitForTelemetry(() => releasedBindings === 1);
+
+    // Folgeverbindungen können reguläre frühe Frames problemlos puffern (kein geleakter Global-Bytezähler).
+    const healthySocket = await connect(url);
+    healthySocket.send(connectionParamsMessage('ABC123', participantId));
+    healthySocket.send(echoMessage(2, 'ok'));
+    await waitForResolverInvocations(1);
+    await close(healthySocket);
+  });
+
+  it('schließt noch ausstehende Upgrade-Sockets bei server.close() sofort ohne Hänger und gibt späte Zulassungen frei', async () => {
+    const upgradeGate: {
+      resolve:
+        ((res: { decision: ClusterUpgradeDecision; reservationId: string | null }) => void) | null;
+    } = { resolve: null };
+    let upgradeEntered!: () => void;
+    const enteredPromise = new Promise<void>((resolve) => {
+      upgradeEntered = resolve;
+    });
+    let releasedConnections = 0;
+    let budgetClosed = false;
+
+    const slowUpgradeBudget = {
+      instanceId: 'shutdown-guard',
+      start: () => undefined,
+      refreshLease: async () => undefined,
+      admitUpgradeReservation: () => {
+        upgradeEntered();
+        return new Promise<{ decision: ClusterUpgradeDecision; reservationId: string | null }>(
+          (resolve) => {
+            upgradeGate.resolve = resolve;
+          },
+        );
+      },
+      admitUpgrade: async () => 'admitted' as const,
+      releaseConnection: async () => {
+        releasedConnections += 1;
+      },
+      admitBinding: async () => 'admitted' as const,
+      releaseBinding: async () => undefined,
+      close: async () => {
+        budgetClosed = true;
+      },
+    } as unknown as TrpcWebSocketClusterBudget;
+
+    const server = new TrpcWebSocketServer(config({ clusterBudget: slowUpgradeBudget }));
+    applyWSSHandler({ wss: server.webSocketServer, router: testRouter });
+    await new Promise<void>((resolve) => server.listen(resolve));
+    const port = (server.address() as AddressInfo).port;
+
+    const rawResponseChunks: Buffer[] = [];
+    const clientSocketClosed = new Promise<void>((resolve) => {
+      const tcpSocket = netConnect({ host: '127.0.0.1', port }, () => {
+        tcpSocket.write(
+          'GET / HTTP/1.1\r\n' +
+            'Host: 127.0.0.1\r\n' +
+            'Upgrade: websocket\r\n' +
+            'Connection: Upgrade\r\n' +
+            'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n' +
+            'Sec-WebSocket-Version: 13\r\n' +
+            '\r\n',
+        );
+      });
+      tcpSocket.on('data', (chunk) => rawResponseChunks.push(Buffer.from(chunk)));
+      tcpSocket.once('close', () => resolve());
+      tcpSocket.on('error', () => resolve());
+    });
+
+    await enteredPromise;
+
+    // Shutdown startet während admitUpgradeReservation noch aussteht.
+    const closePromise = server.close();
+
+    // Der ausstehende Upgrade-Socket wird sofort mit 503 geschlossen statt offen zu hängen.
+    await clientSocketClosed;
+    expect(Buffer.concat(rawResponseChunks).toString('utf8')).toContain('503');
+
+    // Sobald das ausstehende Redis-Upgrade verspätet 'admitted' meldet, räumt close() die Reservierung frei und kehrt zurück.
+    upgradeGate.resolve?.({ decision: 'admitted', reservationId: 'late-upg-1' });
+    await closePromise;
+
+    expect(releasedConnections).toBe(1);
+    expect(budgetClosed).toBe(true);
+  });
+
+  it('hinterlässt nach Redis-Timeout mit späterem EVAL-Erfolg und Socket-Close keine Geisterreservierungen', async () => {
+    let delayEval = true;
+    const strings = new Map<string, string>();
+    const hashes = new Map<string, Map<string, number>>();
+    const zsets = new Map<string, Map<string, number>>();
+
+    const hincrby = (key: string, field: string, delta: number): number => {
+      const h = hashes.get(key) ?? new Map<string, number>();
+      const next = (h.get(field) ?? 0) + delta;
+      h.set(field, next);
+      hashes.set(key, h);
+      return next;
+    };
+    const hdel = (key: string, field: string): void => {
+      const h = hashes.get(key);
+      if (!h) return;
+      h.delete(field);
+      if (h.size === 0) hashes.delete(key);
+    };
+    const sumHash = (key: string): number => {
+      const h = hashes.get(key);
+      if (!h) return 0;
+      let sum = 0;
+      for (const v of h.values()) sum += v;
+      return sum;
+    };
+
+    const budget = new TrpcWebSocketClusterBudget({
+      instanceId: 'ws-timeout-e2e',
+      maxClusterConnections: 2,
+      maxClusterUpgradesPerMinute: 30,
+      maxConnectionsPerSession: 4,
+      maxConnectionsPerParticipant: 2,
+      operationTimeoutMs: 25,
+      redisProvider: () => ({
+        zadd: (async (key: string, score: number, member: string) => {
+          const z = zsets.get(key) ?? new Map<string, number>();
+          z.set(member, Number(score));
+          zsets.set(key, z);
+          return 1;
+        }) as never,
+        pexpire: (async () => 1) as never,
+        eval: (async (script: string, numKeys: number, ...rest: string[]) => {
+          const keys = rest.slice(0, numKeys);
+          const argv = rest.slice(numKeys);
+          const isAdmit =
+            script.includes('return activeConnections + 1') || script.includes('maxSession');
+          let result = 1;
+
+          if (script.includes('return activeConnections + 1')) {
+            const globalKey = keys[1]!;
+            const resKey = keys[8]!;
+            const inst = argv[0]!;
+            const maxConn = Number(argv[4]);
+            const state = strings.get(resKey);
+            if (state === 'released') result = -3;
+            else if (state === 'admitted') result = 1;
+            else if (sumHash(globalKey) >= maxConn) result = -2;
+            else {
+              strings.set(resKey, 'admitted');
+              hincrby(globalKey, inst, 1);
+              result = sumHash(globalKey);
+            }
+          } else if (script.includes('maxSession')) {
+            const resKey = keys[1]!;
+            const sessKey = keys[2]!;
+            const partKey = keys[3];
+            const inst = argv[0]!;
+            const maxPart = Number(argv[4]);
+            const state = strings.get(resKey);
+            if (state === 'released') result = -3;
+            else if (state === 'admitted') result = 1;
+            else if (partKey && sumHash(partKey) >= maxPart) result = -2;
+            else {
+              strings.set(resKey, 'admitted');
+              hincrby(sessKey, inst, 1);
+              if (partKey) hincrby(partKey, inst, 1);
+              result = 1;
+            }
+          } else if (script.includes('hasReservation')) {
+            const inst = argv[0]!;
+            const resKey = keys[0]!;
+            const state = strings.get(resKey);
+            if (state === 'released') result = 0;
+            else {
+              strings.set(resKey, 'released');
+              if (state === 'admitted') {
+                for (let i = 1; i < keys.length; i += 1) {
+                  if (hincrby(keys[i]!, inst, -1) <= 0) hdel(keys[i]!, inst);
+                }
+              }
+            }
+          } else if (script.includes('ZREM')) {
+            hdel(keys[1]!, argv[0]!);
+          } else {
+            const globalKey = keys[0]!;
+            const resKey = keys[1];
+            const inst = argv[0]!;
+            if (resKey) {
+              const state = strings.get(resKey);
+              if (state !== 'released') {
+                strings.set(resKey, 'released');
+                if (state === 'admitted' && hincrby(globalKey, inst, -1) <= 0) {
+                  hdel(globalKey, inst);
+                }
+              }
+            }
+          }
+
+          if (isAdmit && delayEval) {
+            await new Promise((resolve) => setTimeout(resolve, 75));
+          }
+          return result;
+        }) as never,
+      }),
+    });
+
+    const url = await startServer({ clusterBudget: budget });
+    const participantId = '44444444-4444-4444-8444-444444444444';
+
+    // Zwei Verbindungen während Redis-Störung: laufen in fallback-local, während EVAL verspätet bucht.
+    const fallback1 = await connect(url);
+    const fallback2 = await connect(url);
+    fallback1.send(connectionParamsMessage('ABC123', participantId));
+    fallback2.send(connectionParamsMessage('ABC123', participantId));
+    fallback1.send(echoMessage(1, 'a'));
+    fallback2.send(echoMessage(2, 'b'));
+    await waitForResolverInvocations(2);
+
+    await close(fallback1);
+    await close(fallback2);
+    await new Promise((resolve) => setTimeout(resolve, 110));
+    await budget.flushPendingCompensations();
+
+    // Nach Ende der Redis-Störung sind beide Cluster- und Participant-Slots wieder frei!
+    delayEval = false;
+    const reconnect1 = await connect(url);
+    const reconnect2 = await connect(url);
+    reconnect1.send(connectionParamsMessage('ABC123', participantId));
+    reconnect2.send(connectionParamsMessage('ABC123', participantId));
+    reconnect1.send(echoMessage(3, 'c'));
+    reconnect2.send(echoMessage(4, 'd'));
+    await waitForResolverInvocations(4);
+
+    expect(reconnect1.readyState).toBe(WebSocket.OPEN);
+    expect(reconnect2.readyState).toBe(WebSocket.OPEN);
   });
 });
