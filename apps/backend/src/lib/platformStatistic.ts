@@ -79,6 +79,40 @@ export async function updateDailyMaxParticipants(
   }
 }
 
+const pendingParticipantMaxima = new Map<number, number>();
+let participantMaximaDrain: Promise<void> | null = null;
+
+/** Bündelt Rekordupdates, damit Join-Wellen den Datenbankpool nicht damit füllen. */
+export function scheduleParticipantMaximaUpdate(
+  participantCount: number,
+  now: Date = new Date(),
+): void {
+  if (!Number.isFinite(participantCount) || participantCount < 1) return;
+  const utcDay = getUtcDayStart(now).getTime();
+  pendingParticipantMaxima.set(
+    utcDay,
+    Math.max(pendingParticipantMaxima.get(utcDay) ?? 0, participantCount),
+  );
+  participantMaximaDrain ??= Promise.resolve().then(async () => {
+    try {
+      for (const [day, max] of pendingParticipantMaxima) {
+        pendingParticipantMaxima.delete(day);
+        await Promise.all([
+          updateMaxParticipantsSingleSession(max),
+          updateDailyMaxParticipants(max, new Date(day)),
+        ]);
+      }
+    } finally {
+      participantMaximaDrain = null;
+    }
+  });
+}
+
+/** Nach dem HTTP-Drain aufrufen, solange der Datenbankpool offen ist. */
+export async function flushParticipantMaximaUpdates(): Promise<void> {
+  await participantMaximaDrain;
+}
+
 /**
  * Persistiert eine monotone Gesamtzahl beendeter Sessions (FINISHED), damit die
  * Kennzahl in health.stats trotz Session-Purge nicht sinkt.

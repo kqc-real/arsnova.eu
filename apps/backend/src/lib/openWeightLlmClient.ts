@@ -39,8 +39,12 @@ import {
   type OpenWeightLlmConfig,
   type OpenWeightLlmTransport,
 } from './openWeightLlmConfig';
+import { acquireRedisLease, type RedisLease } from './redisLease';
 
 const OPEN_WEIGHT_LLM_MAX_RESPONSE_BYTES = 262_144;
+const OPEN_WEIGHT_LLM_LEASE_KEY = 'llm:inference:lease:v1';
+const OPEN_WEIGHT_LLM_LEASE_GRACE_MS = 15_000;
+const OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS = 1_000;
 
 /** Audit-visible prompt contract; changes require a derivation contract review. */
 export const OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION = 'topic-label-system-v1';
@@ -554,7 +558,20 @@ export async function runOpenWeightLlm(
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
 
   let result: OpenWeightLlmRunResult;
+  let lease: RedisLease | null = null;
+  let canReleaseLease = true;
   try {
+    if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
+      lease = await waitForAbort(
+        acquireRedisLease(
+          OPEN_WEIGHT_LLM_LEASE_KEY,
+          taskTimeoutMs + OPEN_WEIGHT_LLM_LEASE_GRACE_MS,
+        ),
+        AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+      );
+      if (!lease) return { status: 'busy', retry: 'manual' };
+      signal.throwIfAborted();
+    }
     const resolvedAddress = await resolvePrivateTarget(config.transport, signal);
     const headers = {
       accept: 'application/json',
@@ -586,6 +603,18 @@ export async function runOpenWeightLlm(
           JSON.stringify({ event: 'learning_objectives:debug_request', body: requestBody }),
         );
       }
+      if (
+        lease &&
+        !(await waitForAbort(
+          lease.refresh(),
+          AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+        ))
+      ) {
+        return { status: 'unavailable' };
+      }
+      signal.throwIfAborted();
+      // Bei einem Transportunterbruch kann der Server den POST noch bearbeiten.
+      canReleaseLease = false;
       const completion = await hooks.request({
         transport: config.transport,
         resolvedAddress,
@@ -595,6 +624,7 @@ export async function runOpenWeightLlm(
         body: requestBody,
         signal,
       });
+      canReleaseLease = true;
       if (debugLearningObjectives) {
         logger.info(
           JSON.stringify({
@@ -619,6 +649,12 @@ export async function runOpenWeightLlm(
   } catch (error) {
     result = { status: classifyCaughtError(error, options.signal, timeoutSignal) };
   } finally {
+    if (lease && canReleaseLease) {
+      await waitForAbort(
+        lease.release(),
+        AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS),
+      ).catch(() => logger.warn('LLM-Reservierung konnte nicht freigegeben werden und läuft ab.'));
+    }
     inFlight = false;
   }
 

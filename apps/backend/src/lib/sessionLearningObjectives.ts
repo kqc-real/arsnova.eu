@@ -655,14 +655,12 @@ function persistedScope(row: SessionObjectiveRow): SessionLearningObjectiveWrite
 }
 
 function taskReferenceCreateRows(
-  objectiveRowId: string,
   scope: SessionLearningObjectiveWriteScope,
-) {
+): Prisma.SessionLearningObjectiveReferenceUncheckedCreateWithoutObjectiveInput[] {
   if (scope.kind !== 'question-set') return [];
   return scope.taskReferences.map((reference) => ({
     id: randomUUID(),
     sourceReferenceId: reference.questionId,
-    objectiveRowId,
     kind: 'TASK' as const,
     sourceKind:
       reference.kind === 'quiz-question' ? ('QUIZ_QUESTION' as const) : ('QA_QUESTION' as const),
@@ -835,7 +833,7 @@ export async function saveSessionLearningObjectives(
             sourceQuizId: scopeUsesQuiz(mutation.scope) ? currentSourceQuizId : null,
             createdAt: now,
             updatedAt: now,
-            references: { create: taskReferenceCreateRows(objectiveRowId, mutation.scope) },
+            references: { create: taskReferenceCreateRows(mutation.scope) },
           },
         });
         continue;
@@ -922,7 +920,10 @@ export async function saveSessionLearningObjectives(
           updatedAt: now,
         },
       });
-      const referenceRows = taskReferenceCreateRows(existing.id, mutation.scope);
+      const referenceRows = taskReferenceCreateRows(mutation.scope).map((reference) => ({
+        ...reference,
+        objectiveRowId: existing.id,
+      }));
       if (referenceRows.length > 0) {
         await tx.sessionLearningObjectiveReference.createMany({ data: referenceRows });
       }
@@ -1640,39 +1641,25 @@ export async function deriveSessionLearningObjectives(
         )?.sourceQuizId ?? null)
       : null;
 
+    function quizReference(
+      questionId: string,
+      kind: 'TASK' | 'DERIVATION',
+    ): Prisma.SessionLearningObjectiveReferenceUncheckedCreateWithoutObjectiveInput {
+      return {
+        id: randomUUID(),
+        sourceReferenceId: questionById.get(questionId)?.sourceQuestionId ?? questionId,
+        kind,
+        sourceKind: 'QUIZ_QUESTION',
+        quizQuestionId: questionId,
+        qaQuestionId: null,
+        unresolvedReason: null,
+      };
+    }
+
     for (const draft of unseenDrafts) {
-      const objectiveRowId = randomUUID();
-      const references = [
-        ...draft.scope.sourceQuestionIds.map((questionId) => {
-          const q = questionById.get(questionId);
-          return {
-            id: randomUUID(),
-            sourceReferenceId: q?.sourceQuestionId ?? questionId,
-            objectiveRowId,
-            kind: 'TASK' as const,
-            sourceKind: 'QUIZ_QUESTION' as const,
-            quizQuestionId: questionId,
-            qaQuestionId: null,
-            unresolvedReason: null,
-          };
-        }),
-        ...draft.origin.derivedFromSourceQuestionIds.map((questionId) => {
-          const q = questionById.get(questionId);
-          return {
-            id: randomUUID(),
-            sourceReferenceId: q?.sourceQuestionId ?? questionId,
-            objectiveRowId,
-            kind: 'DERIVATION' as const,
-            sourceKind: 'QUIZ_QUESTION' as const,
-            quizQuestionId: questionId,
-            qaQuestionId: null,
-            unresolvedReason: null,
-          };
-        }),
-      ];
       await tx.sessionLearningObjective.create({
         data: {
-          id: objectiveRowId,
+          id: randomUUID(),
           sessionId: lockedSession.id,
           objectiveId: draft.id,
           revision: 0,
@@ -1693,7 +1680,14 @@ export async function deriveSessionLearningObjectives(
           suppressedAt: null,
           createdAt: writeNow,
           updatedAt: writeNow,
-          references: { create: references },
+          references: {
+            create: [
+              ...draft.scope.sourceQuestionIds.map((id) => quizReference(id, 'TASK')),
+              ...draft.origin.derivedFromSourceQuestionIds.map((id) =>
+                quizReference(id, 'DERIVATION'),
+              ),
+            ],
+          },
         },
       });
     }

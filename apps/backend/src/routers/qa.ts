@@ -40,6 +40,7 @@ import {
 } from '@arsnova/shared-types';
 import { assertHostSessionAccessFromContext } from '../lib/hostAuth';
 import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
+import { logger } from '../lib/logger';
 import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
@@ -47,15 +48,14 @@ import { enqueueQaNlpJob, invalidateQaNlpForQuestion } from '../lib/qaNlpQueue';
 import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudPrewarmQueue';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import {
-  getQaSummaryRuntime,
   getQaSummaryRuntimeFresh,
   getQaSummaryContextPreview,
   invalidateQaSummaryForSession,
   requestQaSummary,
 } from '../lib/qaSummaryQueue';
 import {
-  hasQaPresenterStageView,
-  resolveQaPresenterStageView,
+  QA_PRESENTER_STAGE_VIEW_DEFAULT,
+  readStoredQaPresenterStageView,
   setQaPresenterStageView,
 } from '../lib/qaPresenterSortMode';
 import { isQaControversialLabel, isQaControversyInsufficientVotes } from '../lib/qaControversy';
@@ -72,6 +72,7 @@ import {
 import { hostProcedure, publicProcedure, router } from '../trpc';
 import { assertParticipantCapability } from '../lib/participantAuth';
 import { recordQaQuestionAccepted, recordQaRatingChanged } from '../lib/qaTelemetry';
+import { publishQaQuestionsInvalidation } from '../lib/sessionStatusPubSub';
 import { enqueueUsageStatisticEventAndSchedule } from '../lib/usageStatistic';
 import {
   emitQaQuestionsSignal,
@@ -686,6 +687,11 @@ function invalidateQaOwnQuestionQuotaCache(sessionId: string, participantId?: st
       sharedQaOwnQuestionQuotaLoads.delete(key);
     }
   }
+}
+
+export function invalidateLocalQaQuestionsForSession(sessionId: string): void {
+  invalidateQaOwnQuestionQuotaCache(sessionId);
+  emitQaQuestionsSignal(sessionId, { immediate: true });
 }
 
 function rememberSharedPromise<T>(
@@ -1489,7 +1495,7 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      const stageView = setQaPresenterStageView(
+      return setQaPresenterStageView(
         session.id,
         {
           sortMode: input.sortMode,
@@ -1500,7 +1506,6 @@ export const qaRouter = router({
         },
         { takeover: input.takeover === true },
       );
-      return stageView;
     }),
 
   presentProjection: publicProcedure
@@ -1545,9 +1550,10 @@ export const qaRouter = router({
           : session.qaOpen === false
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
-      const stageView = resolveQaPresenterStageView(session.id);
+      const storedStageView = await readStoredQaPresenterStageView(session.id);
+      const stageView = storedStageView ?? QA_PRESENTER_STAGE_VIEW_DEFAULT;
       const sortMode: QaQuestionSortMode = stageView.sortMode;
-      const sortModeSource = hasQaPresenterStageView(session.id) ? stageView.source : undefined;
+      const sortModeSource = storedStageView?.source;
       const filterRevision = createHash('sha256')
         .update(JSON.stringify([stageView.search, stageView.pinnedOnly, stageView.authorNickname]))
         .digest('base64url');
@@ -1625,10 +1631,7 @@ export const qaRouter = router({
       }
       const hostToken = await assertHostSessionAccessFromContext(ctx, session.code);
       assertQaHostContentReadAllowed(session);
-      const current = getQaSummaryRuntime(input.sessionId);
-      return getQaSummaryRuntimeFresh(input.sessionId, current.result?.locale ?? 'de', {
-        hostToken,
-      });
+      return getQaSummaryRuntimeFresh(input.sessionId, { hostToken });
     }),
 
   summaryContextPreview: publicProcedure
@@ -1793,6 +1796,7 @@ export const qaRouter = router({
         });
         invalidateQaOwnQuestionQuotaCache(session.id);
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
         return moderated;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
@@ -1925,7 +1929,9 @@ export const qaRouter = router({
           return mapQaQuestion(updated);
         });
 
-        invalidateQaSummaryForSession(session.id);
+        await invalidateQaSummaryForSession(session.id).catch(() => {
+          logger.warn('qa_summary:state_invalidation_failed');
+        });
         // Immer invalidieren: ein früher gestarteter Job kann noch laufen, auch wenn NLP jetzt aus ist.
         if (redactedQuestionId) {
           invalidateQaNlpForQuestion(redactedQuestionId);
@@ -1942,6 +1948,7 @@ export const qaRouter = router({
           });
         }
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
         return redacted;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
@@ -2022,6 +2029,7 @@ export const qaRouter = router({
         });
         invalidateQaOwnQuestionQuotaCache(input.sessionId, input.participantId);
         emitQaQuestionsSignal(input.sessionId);
+        publishQaQuestionsInvalidation(input.sessionId);
       }
       return {
         question: mapQaQuestion(
@@ -2098,6 +2106,7 @@ export const qaRouter = router({
       }
       invalidateQaOwnQuestionQuotaCache(question.sessionId, input.participantId);
       emitQaQuestionsSignal(question.sessionId, { immediate: true });
+      publishQaQuestionsInvalidation(question.sessionId, { immediate: true });
       return { deleted: true };
     }),
 
@@ -2126,6 +2135,7 @@ export const qaRouter = router({
           idempotencyKey: `qa-rating:${randomUUID()}`,
         });
         emitQaQuestionsSignal(question.sessionId);
+        publishQaQuestionsInvalidation(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -2159,6 +2169,7 @@ export const qaRouter = router({
           idempotencyKey: `qa-rating:${randomUUID()}`,
         });
         emitQaQuestionsSignal(question.sessionId);
+        publishQaQuestionsInvalidation(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -2298,6 +2309,7 @@ export const qaRouter = router({
       if (releasedCount > 0) {
         invalidateQaOwnQuestionQuotaCache(session.id);
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
       }
       return { releasedCount };
     }),
@@ -2341,6 +2353,7 @@ export const qaRouter = router({
         })
         .catch(rethrowQaContributionError);
       emitQaQuestionsSignal(session.id, { immediate: true });
+      publishQaQuestionsInvalidation(session.id, { immediate: true });
       return { enabled: updated.qaModerationMode };
     }),
 
@@ -2448,11 +2461,8 @@ export const qaRouter = router({
             participantId: input.participantId!,
           });
         }
-        const signalVersionBeforeRead = getQaQuestionsSignalVersion(input.sessionId);
-        const session = await loadQaSubscriptionSessionSnapshot(
-          input.sessionId,
-          signalVersionBeforeRead,
-        );
+        const signalVersion = getQaQuestionsSignalVersion(input.sessionId);
+        const session = await loadQaSubscriptionSessionSnapshot(input.sessionId, signalVersion);
         if (!session) {
           return;
         }
@@ -2499,7 +2509,6 @@ export const qaRouter = router({
               : !input.moderatorView && session.qaOpen === false
                 ? 'CHANNEL_CLOSED'
                 : 'ACTIVE';
-        const signalVersion = getQaQuestionsSignalVersion(session.id);
         if (!input.moderatorView && contentState !== 'ACTIVE') {
           const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
           if (revisionKey !== lastRevisionKey) {

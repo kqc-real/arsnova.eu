@@ -140,7 +140,7 @@ describe('qaSummaryQueue V2', () => {
     const pending = await requestQaSummary(SESSION_ID, 'de', ACCESS);
     expect(pending.result?.status).toBe('pending');
     await waitForQaSummaryIdleForTests();
-    expect(getQaSummaryRuntime(SESSION_ID).result).toMatchObject({
+    expect((await getQaSummaryRuntime(SESSION_ID)).result).toMatchObject({
       schemaVersion: 2,
       status: 'ready',
       execution: { effectiveMode: 'full-context', fallback: null },
@@ -165,7 +165,7 @@ describe('qaSummaryQueue V2', () => {
 
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     expect(prepare).toHaveBeenCalledTimes(1);
-    await expect(getQaSummaryRuntimeFresh(SESSION_ID, 'de', ACCESS)).resolves.toMatchObject({
+    await expect(getQaSummaryRuntimeFresh(SESSION_ID, ACCESS)).resolves.toMatchObject({
       result: { status: 'pending' },
     });
     expect(prepare).toHaveBeenCalledTimes(1);
@@ -189,7 +189,7 @@ describe('qaSummaryQueue V2', () => {
 
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
-    const result = getQaSummaryRuntime(SESSION_ID).result;
+    const result = (await getQaSummaryRuntime(SESSION_ID)).result;
     expect(result?.snapshotHash).toBe('b'.repeat(64));
     expect(result?.execution).toMatchObject({
       effectiveMode: 'extractive',
@@ -216,7 +216,7 @@ describe('qaSummaryQueue V2', () => {
     await waitForQaSummaryIdleForTests();
 
     expect(processor).not.toHaveBeenCalled();
-    expect(getQaSummaryRuntime(SESSION_ID).result).toMatchObject({
+    expect((await getQaSummaryRuntime(SESSION_ID)).result).toMatchObject({
       status: 'failed',
       statements: [],
       suggestedNextSteps: [],
@@ -242,11 +242,39 @@ describe('qaSummaryQueue V2', () => {
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
     current = after;
-    const delivered = await getQaSummaryRuntimeFresh(SESSION_ID, 'de', ACCESS);
+    const delivered = await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
     expect(delivered.result).toMatchObject({
       snapshotHash: 'd'.repeat(64),
       execution: { effectiveMode: 'extractive', fallback: { reason: 'source_changed' } },
     });
+  });
+
+  it('liefert kein Ergebnis aus, das während des Quellenabgleichs invalidiert wurde', async () => {
+    const prepared = preparedReference();
+    let releaseRead: (() => void) | undefined;
+    let blockNextPrepare = false;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      plan: () => fullContextPlan,
+      prepare: async () => {
+        if (blockNextPrepare) {
+          await new Promise<void>((resolve) => {
+            releaseRead = resolve;
+          });
+        }
+        return prepared;
+      },
+      processor: async () => completedRun(prepared),
+    });
+    await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    await waitForQaSummaryIdleForTests();
+    blockNextPrepare = true;
+
+    const reading = getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
+    await vi.waitFor(() => expect(releaseRead).toBeTypeOf('function'));
+    await invalidateQaSummaryForSession(SESSION_ID);
+    releaseRead?.();
+    await expect(reading).resolves.toMatchObject({ result: null });
   });
 
   it('bricht den laufenden Processor beim Queue-Timeout ab und gibt den Slot frei', async () => {
@@ -276,12 +304,14 @@ describe('qaSummaryQueue V2', () => {
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
     expect(observedAbort).toBe(true);
-    expect(getQaSummaryRuntime(SESSION_ID).result?.execution.fallback?.reason).toBe('timeout');
+    expect((await getQaSummaryRuntime(SESSION_ID)).result?.execution.fallback?.reason).toBe(
+      'timeout',
+    );
 
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
     expect(calls).toBe(2);
-    expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('ready');
+    expect((await getQaSummaryRuntime(SESSION_ID)).result?.status).toBe('ready');
   });
 
   it('bricht und verwirft laufende Artefakte bei Session-Purge', async () => {
@@ -308,10 +338,10 @@ describe('qaSummaryQueue V2', () => {
 
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await vi.waitFor(() => expect(started).toBe(true));
-    invalidateQaSummaryForSession(SESSION_ID);
+    await invalidateQaSummaryForSession(SESSION_ID);
     await waitForQaSummaryIdleForTests();
     expect(aborted).toBe(true);
-    expect(getQaSummaryRuntime(SESSION_ID).result).toBeNull();
+    expect((await getQaSummaryRuntime(SESSION_ID)).result).toBeNull();
   });
 
   it('löscht den ephemeren Host-Token nach dem Job aus dem Queue-Objekt', async () => {
@@ -363,7 +393,7 @@ describe('qaSummaryQueue V2', () => {
 
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
-    const oldResult = getQaSummaryRuntime(SESSION_ID).result;
+    const oldResult = (await getQaSummaryRuntime(SESSION_ID)).result;
     expect(oldResult?.status).toBe('ready');
     expect(oldResult?.sources.length).toBeGreaterThan(0);
 
@@ -430,6 +460,6 @@ describe('qaSummaryQueue V2', () => {
     releaseProcessor?.();
     await waitForQaSummaryIdleForTests();
     expect(processor).toHaveBeenCalledTimes(1);
-    expect(getQaSummaryRuntime(SESSION_ID).result?.status).toBe('ready');
+    expect((await getQaSummaryRuntime(SESSION_ID)).result?.status).toBe('ready');
   });
 });

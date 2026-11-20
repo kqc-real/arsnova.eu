@@ -11,7 +11,9 @@ vi.mock('../db', () => ({
 }));
 
 import {
+  flushParticipantMaximaUpdates,
   incrementCompletedSessionsTotal,
+  scheduleParticipantMaximaUpdate,
   updateDailyMaxParticipants,
   updateCompletedSessionsTotal,
   updateMaxParticipantsSingleSession,
@@ -45,6 +47,40 @@ describe('platformStatistic', () => {
   it('führt Tagesrekord-Update aus bei gültiger Teilnehmerzahl', async () => {
     await updateDailyMaxParticipants(12, new Date('2026-05-04T12:00:00.000Z'));
     expect(prismaExecuteRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it('bündelt einen Join-Burst auch während eines Schreibvorgangs nach UTC-Tag', async () => {
+    const firstDay = new Date('2026-05-04T23:59:59.000Z');
+    const secondDay = new Date('2026-05-05T00:00:00.000Z');
+    let finishWrite!: (rows: number) => void;
+    prismaExecuteRaw.mockReturnValueOnce(
+      new Promise<number>((resolve) => {
+        finishWrite = resolve;
+      }),
+    );
+
+    scheduleParticipantMaximaUpdate(10, firstDay);
+    scheduleParticipantMaximaUpdate(20, firstDay);
+    await Promise.resolve();
+    expect(prismaExecuteRaw.mock.calls.map((call) => call.at(-1))).toEqual([20, 20]);
+
+    scheduleParticipantMaximaUpdate(31, firstDay);
+    scheduleParticipantMaximaUpdate(29, firstDay);
+    scheduleParticipantMaximaUpdate(44, secondDay);
+    scheduleParticipantMaximaUpdate(39, secondDay);
+    expect(prismaExecuteRaw).toHaveBeenCalledTimes(2);
+
+    finishWrite(1);
+    await flushParticipantMaximaUpdates();
+    expect(prismaExecuteRaw.mock.calls.map((call) => call.at(-1))).toEqual([
+      20, 20, 31, 31, 44, 44,
+    ]);
+    const dailyUpdates = prismaExecuteRaw.mock.calls.filter((call) => call[2] instanceof Date);
+    expect(dailyUpdates.map((call) => call[2])).toEqual([
+      new Date('2026-05-04T00:00:00.000Z'),
+      new Date('2026-05-04T00:00:00.000Z'),
+      secondDay,
+    ]);
   });
 
   it('führt kein Update des completedCounters bei ungültiger Zahl aus', async () => {

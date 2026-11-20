@@ -43,6 +43,7 @@ const {
   },
   participantJoinMocks: {
     prepareParticipantJoin: vi.fn(),
+    tryPrepareCustomParticipantJoin: vi.fn(),
   },
   invalidSessionCodeMock: vi.fn(),
 }));
@@ -68,8 +69,10 @@ vi.mock('../lib/joinAdmission', () => ({
   awaitJoinAdmissionSlot: joinAdmissionMocks.awaitJoinAdmissionSlot,
 }));
 
-vi.mock('../lib/participantJoin', () => ({
+vi.mock('../lib/participantJoin', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/participantJoin')>()),
   prepareParticipantJoin: participantJoinMocks.prepareParticipantJoin,
+  tryPrepareCustomParticipantJoin: participantJoinMocks.tryPrepareCustomParticipantJoin,
 }));
 
 vi.mock('../lib/invalidSessionCode', () => ({
@@ -91,6 +94,7 @@ describe('session team mode (Story 7.1)', () => {
     resetSessionRankingCacheForTests();
     vi.resetAllMocks();
     joinAdmissionMocks.awaitJoinAdmissionSlot.mockResolvedValue({ delayedMs: 0, attempts: 1 });
+    participantJoinMocks.tryPrepareCustomParticipantJoin.mockResolvedValue(null);
     participantJoinMocks.prepareParticipantJoin.mockResolvedValue({
       participantId: PARTICIPANT_ID,
       participantNumber: 3,

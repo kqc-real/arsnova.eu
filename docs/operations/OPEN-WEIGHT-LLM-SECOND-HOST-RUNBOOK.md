@@ -611,6 +611,11 @@ Zugriff von einem beliebigen anderen Host auf Port 8080 scheitern. Dafür **kein
 
 ### 12.1 Zunächst ausgeschaltet konfigurieren
 
+Die folgenden App-Neustarts verwenden den Basisbetrieb. Bei aktiven
+Replikaten zuerst im Wartungsfenster zum Modus `single` zurückkehren.
+Nach der Konfigurationsprüfung lässt sich die gewünschte Topologie
+erneut aktivieren. [App-Umgebung im Replikabetrieb ändern](PRODUCTION-REPLICAS.md#app-umgebung-ändern).
+
 Auf dem App-Host in das Produktionsverzeichnis wechseln. Der Standardpfad ist:
 
 ```bash

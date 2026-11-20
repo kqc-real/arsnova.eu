@@ -14,9 +14,13 @@ import {
   evictWordCloudAnalysisSnapshotsForSessions,
 } from './wordCloudAnalysisCache';
 import { purgeHostPairingForSessions } from './hostPairingSessionPurge';
+import { invalidateSummaryState } from './qaSummaryStateStore';
 import { purgeProductFeedbackInvitesForSessions } from './productFeedbackTokens';
 import { purgeSessionBoundQuickFeedbackForSessions } from './quickFeedbackSessionPurge';
-import { purgeSessionRuntimeDataForSessions } from './sessionRuntimeDataPurge';
+import {
+  purgeSessionRuntimeDataForSessions,
+  SESSION_RUNTIME_DATA_PURGE_FENCE_TTL_SECONDS,
+} from './sessionRuntimeDataPurge';
 
 export const SESSION_PURGE_INVALIDATION_CHANNEL = 'session:purge:v1:invalidate';
 
@@ -97,6 +101,9 @@ export async function publishSessionPurgeInvalidations(
   const normalized = events.map(normalizeEvent);
   if (normalized.length === 0) return;
   await purgeSessionRuntimeDataForSessions(normalized.map(({ sessionId }) => sessionId));
+  await runInBoundedBatches(normalized, ({ sessionId }) =>
+    invalidateSummaryState(sessionId, SESSION_RUNTIME_DATA_PURGE_FENCE_TTL_SECONDS * 1_000),
+  );
   await purgeProductFeedbackInvitesForSessions(normalized.map(({ sessionId }) => sessionId));
   await purgeHostPairingForSessions(normalized);
   await runInBoundedBatches(normalized, invalidateLocally);

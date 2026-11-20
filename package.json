@@ -199,6 +199,7 @@
     "compression": "^1.8.2",
     "dompurify": "3.4.17",
     "deepmerge-ts": "^8.0.1",
+    "effect": "^3.22.5",
     "body-parser": "2.4.0",
     "fast-uri": "^3.1.9",
     "find-my-way": "^9.7.0",

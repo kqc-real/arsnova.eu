@@ -45,7 +45,12 @@ vi.mock('../lib/hostAuth', async () => {
   });
 });
 
-import { resetSessionReadCachesForTests, sessionRouter } from '../routers/session';
+import {
+  invalidateLocalSessionStatusCachesForCode,
+  resetSessionReadCachesForTests,
+  sessionRouter,
+} from '../routers/session';
+import * as sessionStatusPubSub from '../lib/sessionStatusPubSub';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
@@ -609,10 +614,22 @@ describe('session.enable channel mutations', () => {
         sessionLifecycleRevision: 2,
       });
 
-      const result = await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' });
-
-      expect(result).toMatchObject({ preferredChannel: 'qa', sessionLifecycleRevision: 2 });
-      expect(result.serverNow).toMatch(/Z$/);
+      const publish = vi.spyOn(sessionStatusPubSub, 'publishSessionStatusInvalidation');
+      prismaMock.$transaction.mockImplementationOnce(
+        async (fn: (tx: typeof prismaMock) => unknown) => {
+          const result = await fn(prismaMock);
+          expect(publish).not.toHaveBeenCalled();
+          return result;
+        },
+      );
+      try {
+        const result = await caller.setPreferredLiveChannel({ code: 'ABC123', channel: 'qa' });
+        expect(result).toMatchObject({ preferredChannel: 'qa', sessionLifecycleRevision: 2 });
+        expect(result.serverNow).toMatch(/Z$/);
+        expect(publish).toHaveBeenCalledExactlyOnceWith('ABC123');
+      } finally {
+        publish.mockRestore();
+      }
       expect(prismaMock.session.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ preferredChannel: 'qa' }),
@@ -1255,6 +1272,58 @@ describe('session.enable channel mutations', () => {
     ]);
     expect(next.value!.presenterPage).toMatchObject({ context, count: 3, index: 0 });
     await iterator.return?.();
+  });
+
+  it('lädt den Status nach einem Replica-Signal frisch und publiziert kein Echo', async () => {
+    let question = 0;
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_SESSION,
+      quizId: '11111111-1111-4111-8111-111111111111',
+      type: 'QUIZ',
+      currentQuestion: question,
+      currentRound: 1,
+      statusChangedAt: new Date(),
+    }));
+    const publish = vi.spyOn(sessionStatusPubSub, 'publishSessionStatusInvalidation');
+    const stream = await caller.onStatusChanged({ code: 'ABC123' });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    try {
+      expect((await iterator.next()).value).toMatchObject({ currentQuestion: 0 });
+      question = 1;
+      invalidateLocalSessionStatusCachesForCode('ABC123');
+      expect((await iterator.next()).value).toMatchObject({ currentQuestion: 1 });
+      expect(publish).not.toHaveBeenCalled();
+    } finally {
+      publish.mockRestore();
+      await iterator.return?.();
+    }
+  });
+
+  it('findet einen persistierten Statuswechsel auch bei verlorenem Signal', async () => {
+    vi.useFakeTimers();
+    let question = 0;
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_SESSION,
+      quizId: '11111111-1111-4111-8111-111111111111',
+      type: 'QUIZ',
+      currentQuestion: question,
+      currentRound: 1,
+      statusChangedAt: new Date(),
+    }));
+    const stream = await caller.onStatusChanged({ code: 'ABC123' });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    try {
+      expect((await iterator.next()).value).toMatchObject({ currentQuestion: 0 });
+      question = 1;
+      const next = iterator.next();
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect((await next).value).toMatchObject({ currentQuestion: 1 });
+    } finally {
+      vi.useRealTimers();
+      await iterator.return?.();
+    }
   });
 
   it('requires validated host access for page reports and navigation', async () => {

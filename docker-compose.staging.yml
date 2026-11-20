@@ -1,0 +1,258 @@
+# Isoliertes Staging für HTTP, tRPC, Yjs, PDF und NLP. Betrieb über scripts/staging-compose.sh.
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: 'postgresql://arsnova_staging:${STAGING_POSTGRES_PASSWORD:?Staging-DB-Passwort fehlt}@postgres:5432/arsnova_staging'
+  REDIS_URL: redis://redis:6379
+
+x-app: &app
+  image: ${STAGING_IMAGE:?Staging-Image fehlt}
+  init: true
+  restart: unless-stopped
+  # Migrationen laufen zentral in migrate. App-Neustarts führen keine Deploy-Sweeps aus.
+  entrypoint: ['node', 'apps/backend/dist/index.js']
+  command: []
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+  stop_grace_period: 15s
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+    redis:
+      condition: service_healthy
+    qa-summary-redis:
+      condition: service_healthy
+    pdf-worker:
+      condition: service_healthy
+    spacy:
+      condition: service_healthy
+  volumes:
+    - ./deploy/staging/app-readiness.mjs:/app/staging-readiness.mjs:ro
+    - pdf_worker_socket:/run/pdf-worker:ro
+    - spacy_socket:/run/spacy:ro
+  healthcheck:
+    test: ['CMD', 'node', '/app/staging-readiness.mjs']
+    interval: 10s
+    timeout: 8s
+    start_period: 15s
+    retries: 3
+
+x-replica-env: &replica-env
+  <<: *app-env
+  HOST: 0.0.0.0
+  PORT: '3000'
+  WS_HOST: 0.0.0.0
+  WS_PORT: '3001'
+  YJS_RELAY_MODE: external
+  TRUST_PROXY_HOPS: '1'
+  DATABASE_POOL_MAX: '30'
+  REDIS_RECONNECT_CONTINUOUS: 'true'
+  SESSION_STATUS_PUBSUB_ENABLED: 'true'
+  TRPC_WS_SHARED_LIMITS_ENABLED: 'true'
+  PDF_RENDER_MODE: worker
+  PDF_SHARED_LIMIT_ENABLED: 'true'
+  NLP_ENABLED: 'true'
+  NLP_SOCKET_PATH: /run/spacy/nlp.sock
+  QA_SUMMARY_ENABLED: ${STAGING_QA_SUMMARY_ENABLED:-false}
+  QA_SUMMARY_STATE_REDIS_URL: redis://qa-summary-redis:6379
+  OPEN_WEIGHT_LLM_ENABLED: ${STAGING_LLM_ENABLED:-false}
+  OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED: 'true'
+  OPEN_WEIGHT_LLM_URL: ${STAGING_LLM_URL:-}
+  OPEN_WEIGHT_LLM_TOKEN: ${STAGING_LLM_TOKEN:-}
+  JWT_SECRET: ${STAGING_JWT_SECRET:?Staging-JWT-Secret fehlt}
+  YJS_SHARE_TOKEN_SECRET: ${STAGING_YJS_SHARE_TOKEN_SECRET:-}
+  CAPABILITY_ENVELOPE_KEY_BASE64: ${STAGING_CAPABILITY_ENVELOPE_KEY_BASE64:?Staging-Envelope-Schlüssel fehlt}
+  PUBLIC_FRONTEND_URL: ${STAGING_PUBLIC_URL:-https://127.0.0.1:8443}
+  RATE_LIMIT_SESSION_CREATE_PER_HOUR: '480'
+  RATE_LIMIT_SESSION_CREATE_GLOBAL_PER_HOUR: '2400'
+  RATE_LIMIT_VOTE_REQUESTS_PER_SECOND: '2'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: arsnova_staging
+      POSTGRES_DB: arsnova_staging
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?Staging-DB-Passwort fehlt}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD', 'pg_isready', '-h', '127.0.0.1', '-U', 'arsnova_staging', '-d', 'arsnova_staging']
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--appendfsync', 'everysec']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  qa-summary-redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command:
+      [
+        'redis-server',
+        '--save',
+        '',
+        '--appendonly',
+        'no',
+        '--maxmemory',
+        '64mb',
+        '--maxmemory-policy',
+        'noeviction',
+      ]
+    tmpfs:
+      - /data:rw,noexec,nosuid,nodev,size=8m,mode=1777
+    mem_limit: 128m
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  migrate:
+    image: ${STAGING_IMAGE:?Staging-Image fehlt}
+    entrypoint:
+      [
+        '/app/node_modules/.bin/prisma',
+        'migrate',
+        'deploy',
+        '--schema',
+        '/app/prisma/schema.prisma',
+      ]
+    command: []
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app-a:
+    <<: *app
+    environment: *replica-env
+
+  app-b:
+    <<: *app
+    environment:
+      <<: *replica-env
+      SESSION_CLEANUP_SCHEDULER_ENABLED: 'false'
+
+  yjs-relay:
+    image: ${STAGING_IMAGE:?Staging-Image fehlt}
+    init: true
+    restart: unless-stopped
+    entrypoint: ['node', 'apps/backend/dist/yjsRelayMain.js']
+    command: []
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      REDIS_RECONNECT_CONTINUOUS: 'true'
+      YJS_WS_HOST: 0.0.0.0
+      YJS_WS_PORT: '3002'
+      YJS_SHARE_TOKEN_SECRET: ${STAGING_YJS_SHARE_TOKEN_SECRET:-}
+      JWT_SECRET: ${STAGING_JWT_SECRET:?Staging-JWT-Secret fehlt}
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', '-T', '3', 'http://127.0.0.1:3002/']
+      interval: 5s
+      timeout: 4s
+      retries: 6
+    stop_grace_period: 10s
+
+  pdf-worker:
+    image: ${STAGING_IMAGE:?Staging-Image fehlt}
+    init: true
+    restart: unless-stopped
+    entrypoint: ['node', 'apps/backend/dist/pdf-worker.js']
+    command: []
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: '1.0'
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+    volumes:
+      - pdf_worker_socket:/run/pdf-worker
+    environment:
+      NODE_ENV: production
+      HOME: /tmp
+    healthcheck:
+      test: ['CMD', 'node', '/app/scripts/pdf-worker-healthcheck.mjs']
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 5
+    stop_grace_period: 15s
+
+  spacy:
+    image: ${STAGING_SPACY_IMAGE:-arsnova-spacy:3.8.15}
+    init: true
+    restart: unless-stopped
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 1g
+    cpus: '1.0'
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,mode=1777
+    volumes:
+      - spacy_socket:/run/spacy
+    healthcheck:
+      test: ['CMD', 'python', '/app/healthcheck.py']
+      interval: 5s
+      timeout: 3s
+      start_period: 90s
+      retries: 5
+    stop_grace_period: 10s
+
+  nginx:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    # Beim Start gilt der zuletzt bestätigte Routingmodus, beim ersten Start nur A.
+    entrypoint: ['/bin/sh', '/etc/nginx/staging/start.sh']
+    command: []
+    ports:
+      - '${STAGING_BIND_ADDRESS:-127.0.0.1}:${STAGING_HTTPS_PORT:-8443}:8443'
+    volumes:
+      - ./deploy/staging/nginx:/etc/nginx/staging:ro
+      - ${STAGING_TLS_DIR:?Staging-TLS-Verzeichnis fehlt}:/etc/nginx/tls:ro
+      - nginx_state:/var/lib/nginx/staging
+    depends_on:
+      app-a:
+        condition: service_healthy
+      yjs-relay:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:8081/ready | grep -q ''"redis":"ok"''']
+      interval: 5s
+      timeout: 4s
+      retries: 6
+    stop_grace_period: 10s
+
+volumes:
+  postgres_data:
+  redis_data:
+  nginx_state:
+  pdf_worker_socket:
+  spacy_socket:

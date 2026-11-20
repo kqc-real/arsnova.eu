@@ -44,7 +44,7 @@ import { publicProcedure, router } from '../trpc';
 import { prisma } from '../db';
 import { Prisma } from '@prisma/client';
 import { checkVoteRate } from '../lib/rateLimit';
-import { assertParticipantCapability } from '../lib/participantAuth';
+import { loadParticipantOnCapabilityCacheMiss } from '../lib/participantAuth';
 import {
   calculateVoteScore,
   getStreakMultiplier,
@@ -162,11 +162,10 @@ export const voteRouter = router({
     .output(SubmitVoteOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const requestReceivedAtMs = Date.now();
-      await assertParticipantCapability({
-        ctx,
-        sessionId: input.sessionId,
-        participantId: input.participantId,
-      });
+      const participantFromCapabilityCheck = await loadParticipantOnCapabilityCacheMiss(
+        { ctx, sessionId: input.sessionId, participantId: input.participantId },
+        (where) => prisma.participant.findFirst({ where, include: { session: true } }),
+      );
       const limit = await checkVoteRate(input.participantId);
       if (!limit.allowed) {
         throw new TRPCError({
@@ -175,10 +174,12 @@ export const voteRouter = router({
           cause: { retryAfterSeconds: limit.retryAfterSeconds },
         });
       }
-      const participant = await prisma.participant.findFirst({
-        where: { id: input.participantId, sessionId: input.sessionId },
-        include: { session: true },
-      });
+      const participant =
+        participantFromCapabilityCheck ??
+        (await prisma.participant.findFirst({
+          where: { id: input.participantId, sessionId: input.sessionId },
+          include: { session: true },
+        }));
       if (!participant) {
         throw new TRPCError({
           code: 'NOT_FOUND',

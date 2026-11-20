@@ -6,6 +6,10 @@
  * gestarteter Request die Daten nach dem Purge nicht erneut anlegen kann.
  */
 import { randomUUID } from 'node:crypto';
+import {
+  SESSION_HARD_MAX_DURATION_DAYS,
+  SESSION_POST_PROCESSING_HOURS,
+} from '@arsnova/shared-types';
 import type Redis from 'ioredis';
 import { getRedis } from '../redis';
 
@@ -18,10 +22,14 @@ const SESSION_RUNTIME_DATA_PURGE_UNLINK_BATCH_SIZE = 250;
 export const SESSION_RUNTIME_DATA_PURGE_BATCH_SIZE = 25;
 export const SESSION_RUNTIME_DATA_PURGE_FENCE_TTL_SECONDS = 6 * 60 * 60 + 5 * 60;
 
+// Die reguläre Session-Bereinigung löscht früher. Die TTL begrenzt verwaiste Schlüssel.
+export const SESSION_EPHEMERAL_STATE_TTL_SECONDS =
+  SESSION_HARD_MAX_DURATION_DAYS * 86_400 + SESSION_POST_PROCESSING_HOURS * 3_600;
+
 const BEGIN_SESSION_RUNTIME_DATA_PURGE_LUA = `
 -- session_runtime_data_purge_v1
 redis.call('SET', KEYS[1], '1', 'EX', tonumber(ARGV[1]))
-return redis.call('UNLINK', KEYS[2])
+return redis.call('UNLINK', KEYS[2], KEYS[3], KEYS[4])
 `;
 
 function normalizeSessionRuntimeId(value: string, label: string): string {
@@ -45,6 +53,14 @@ export function buildReadingReadyKey(sessionId: string, questionId: string): str
 
 export function buildSessionRuntimeDataPurgeFenceKey(sessionId: string): string {
   return `session:runtime-data:v1:${normalizeSessionRuntimeId(sessionId, 'session ID')}:purged`;
+}
+
+export function buildSessionPresenterStateKey(sessionId: string): string {
+  return `session:runtime-data:v1:${normalizeSessionRuntimeId(sessionId, 'session ID')}:presenter`;
+}
+
+export function buildSessionEmojiReactionsKey(sessionId: string): string {
+  return `session:runtime-data:v1:${normalizeSessionRuntimeId(sessionId, 'session ID')}:reactions`;
 }
 
 function requiresSessionRuntimeDataPurgeDurability(): boolean {
@@ -186,16 +202,18 @@ async function beginSessionRuntimeDataPurgeMutation(
   const normalizedSessionId = normalizeSessionRuntimeId(sessionId, 'session ID');
   const result = await redis.eval(
     BEGIN_SESSION_RUNTIME_DATA_PURGE_LUA,
-    2,
+    4,
     buildSessionRuntimeDataPurgeFenceKey(normalizedSessionId),
     buildSessionPresenceKey(normalizedSessionId),
+    buildSessionPresenterStateKey(normalizedSessionId),
+    buildSessionEmojiReactionsKey(normalizedSessionId),
     String(SESSION_RUNTIME_DATA_PURGE_FENCE_TTL_SECONDS),
   );
-  const presenceDeleted = Number(result);
-  if (!Number.isSafeInteger(presenceDeleted) || presenceDeleted < 0 || presenceDeleted > 1) {
+  const deleted = Number(result);
+  if (!Number.isSafeInteger(deleted) || deleted < 0 || deleted > 3) {
     throw new Error('SESSION_RUNTIME_DATA_PURGE_FAILED');
   }
-  return presenceDeleted;
+  return deleted;
 }
 
 async function deleteReadingReadyKeys(

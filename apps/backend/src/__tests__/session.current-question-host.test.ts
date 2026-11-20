@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
@@ -42,9 +42,15 @@ vi.mock('../lib/hostAuth', async () => {
 
 import {
   buildHostCurrentQuestionSubscriptionKey,
+  invalidateHostVoteProgressForCode,
+  invalidateRemoteVoteProgressForCode,
+  invalidateRemoteSessionStatusForCode,
+  recordVoteCachesForCode,
+  resetSessionReadCachesForTests,
   resetVoteAggregationCachesForTests,
   sessionRouter,
 } from '../routers/session';
+import * as sessionStatusPubSub from '../lib/sessionStatusPubSub';
 
 const caller = sessionRouter.createCaller({ req: {} as never });
 const CODE = 'ABC123';
@@ -1429,3 +1435,111 @@ trpcDodIt(
     });
   },
 );
+
+describe('Vote-Fortschritt zwischen App-Prozessen', () => {
+  const questionId = 'cccccccc-3333-4333-8333-333333333333';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetSessionReadCachesForTests();
+    vi.stubEnv('SESSION_STATUS_PUBSUB_ENABLED', 'true');
+    vi.useFakeTimers();
+    hostAuthMocks.extractHostTokenMock.mockReturnValue('host-token-123');
+    hostAuthMocks.isHostSessionTokenValidMock.mockResolvedValue(true);
+    prismaMock.session.findUnique.mockResolvedValue({
+      id: 'staging-session',
+      code: CODE,
+      status: 'ACTIVE',
+      currentQuestion: 0,
+      currentRound: 1,
+      quiz: { questions: [{ id: questionId, order: 0, type: 'NUMERIC_ESTIMATE', answers: [] }] },
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetSessionReadCachesForTests();
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+  });
+
+  it('behält bei inaktivem Transport das lokale Bündel auch nach einem Fremdsignal', async () => {
+    const schedule = vi.spyOn(sessionStatusPubSub, 'scheduleClusterVoteProgressInvalidation');
+    prismaMock.vote.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(3);
+    const stream = await caller.onHostVoteProgressChanged({ code: CODE });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    try {
+      expect((await iterator.next()).value).toMatchObject({ totalVotes: 0 });
+      invalidateHostVoteProgressForCode(CODE);
+      invalidateHostVoteProgressForCode(CODE);
+      invalidateRemoteVoteProgressForCode(CODE);
+      invalidateRemoteSessionStatusForCode(CODE);
+      expect((await iterator.next()).value).toMatchObject({ totalVotes: 2 });
+      expect(schedule).toHaveBeenCalledExactlyOnceWith(CODE);
+
+      recordVoteCachesForCode(CODE, questionId, 1, {
+        answerIds: [],
+        freeText: null,
+        questionType: 'NUMERIC_ESTIMATE',
+      });
+      const next = iterator.next();
+      await vi.advanceTimersByTimeAsync(150);
+      expect((await next).value).toMatchObject({ totalVotes: 3 });
+    } finally {
+      await iterator.return?.();
+    }
+  });
+
+  it('weckt den Host mit neu berechnetem Aggregat und sendet empfangene Signale nicht zurück', async () => {
+    const publish = vi.spyOn(sessionStatusPubSub, 'scheduleClusterVoteProgressInvalidation');
+    prismaMock.vote.count.mockResolvedValueOnce(0).mockResolvedValueOnce(23);
+    const stream = await caller.onHostVoteProgressChanged({ code: CODE });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    try {
+      expect((await iterator.next()).value).toMatchObject({ totalVotes: 0 });
+      invalidateRemoteVoteProgressForCode(CODE);
+      expect((await iterator.next()).value).toMatchObject({ totalVotes: 23 });
+      expect(prismaMock.vote.count).toHaveBeenCalledTimes(2);
+      expect(publish).not.toHaveBeenCalled();
+    } finally {
+      await iterator.return?.();
+    }
+  });
+
+  it('liest nach einem verlorenen Signal im nächsten regulären Poll erneut aus PostgreSQL', async () => {
+    prismaMock.vote.count.mockResolvedValueOnce(1).mockResolvedValueOnce(5);
+    const stream = await caller.onHostVoteProgressChanged({ code: CODE });
+    const iterator = stream[Symbol.asyncIterator]();
+
+    try {
+      expect((await iterator.next()).value).toMatchObject({ totalVotes: 1 });
+      const next = iterator.next();
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect((await next).value).toMatchObject({ totalVotes: 5 });
+    } finally {
+      await iterator.return?.();
+    }
+  });
+
+  it('zählt einen bereits im Snapshot berücksichtigten lokalen Commit nicht doppelt', async () => {
+    prismaMock.vote.count.mockResolvedValue(2);
+    await expect(caller.getHostVoteProgress({ code: CODE })).resolves.toMatchObject({
+      totalVotes: 2,
+    });
+    recordVoteCachesForCode(CODE, questionId, 1, {
+      answerIds: [],
+      freeText: null,
+      questionType: 'NUMERIC_ESTIMATE',
+      numericValue: 12,
+    });
+    await expect(caller.getHostVoteProgress({ code: CODE })).resolves.toMatchObject({
+      totalVotes: 2,
+    });
+    expect(prismaMock.vote.count).toHaveBeenCalledTimes(2);
+  });
+});

@@ -1,0 +1,17 @@
+# App A im Replikabetrieb. Der Basis-Compose bleibt der Recovery-Pfad.
+services:
+  app:
+    # Erst nach regulärem Digest-Deploy aktivieren. Ein späterer Neustart
+    # darf Migrationen und Rollout-Purge nicht neben laufenden Apps ausführen.
+    init: true
+    entrypoint: ['node', 'apps/backend/dist/index.js']
+    command: []
+    environment:
+      DATABASE_POOL_MAX: ${ARSNOVA_REPLICA_POOL_MAX:-30}
+      SESSION_STATUS_PUBSUB_ENABLED: 'true'
+      TRPC_WS_SHARED_LIMITS_ENABLED: 'true'
+      REDIS_RECONNECT_CONTINUOUS: 'true'
+      YJS_RELAY_MODE: external
+      PDF_SHARED_LIMIT_ENABLED: 'true'
+      OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED: 'true'
+    stop_grace_period: 30s

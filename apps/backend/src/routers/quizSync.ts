@@ -36,6 +36,11 @@ function mapShareError(code: string): TRPCError {
         code: 'NOT_FOUND',
         message: 'Für diese Sammlung gibt es noch keinen Sync-Share.',
       });
+    case 'RELAY_UNAVAILABLE':
+      return new TRPCError({
+        code: 'SERVICE_UNAVAILABLE',
+        message: 'Sync-Freigabe fehlgeschlagen.',
+      });
     default:
       return new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',

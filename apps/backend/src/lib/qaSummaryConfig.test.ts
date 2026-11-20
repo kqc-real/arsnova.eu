@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  assertQaSummaryReplicaStateConfigured,
   isBlockedQaSummaryInferenceHost,
   isQaSummaryEnabled,
   QA_SUMMARY_CONCURRENCY_DEFAULT,
@@ -123,5 +124,46 @@ describe('qaSummaryConfig', () => {
       maxSources: 10,
       inferenceUrl: null,
     });
+  });
+
+  it('erzwingt im Replikabetrieb bei aktiver Summary eine getrennte flüchtige Redis-URL', () => {
+    expect(() =>
+      assertQaSummaryReplicaStateConfigured({
+        SESSION_STATUS_PUBSUB_ENABLED: 'false',
+        QA_SUMMARY_ENABLED: 'true',
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertQaSummaryReplicaStateConfigured({
+        SESSION_STATUS_PUBSUB_ENABLED: 'true',
+        QA_SUMMARY_ENABLED: 'false',
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertQaSummaryReplicaStateConfigured({
+        SESSION_STATUS_PUBSUB_ENABLED: 'true',
+        QA_SUMMARY_ENABLED: 'true',
+      }),
+    ).toThrow(/QA_SUMMARY_STATE_REDIS_URL ist erforderlich/);
+
+    expect(() =>
+      assertQaSummaryReplicaStateConfigured({
+        SESSION_STATUS_PUBSUB_ENABLED: 'true',
+        QA_SUMMARY_ENABLED: 'true',
+        REDIS_URL: 'redis://redis:6379',
+        QA_SUMMARY_STATE_REDIS_URL: 'redis://redis:6379/1',
+      }),
+    ).toThrow(/eigene flüchtige Redis-Instanz/);
+
+    expect(() =>
+      assertQaSummaryReplicaStateConfigured({
+        SESSION_STATUS_PUBSUB_ENABLED: 'true',
+        QA_SUMMARY_ENABLED: 'true',
+        REDIS_URL: 'redis://redis:6379',
+        QA_SUMMARY_STATE_REDIS_URL: 'redis://qa-summary-redis:6379',
+      }),
+    ).not.toThrow();
   });
 });

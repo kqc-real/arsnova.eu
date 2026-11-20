@@ -80,11 +80,21 @@ function participantAccessDenied(): TRPCError {
   });
 }
 
-export async function assertParticipantCapability(params: {
+type ParticipantCapabilityScope = {
   ctx: ParticipantTokenContext;
   sessionId: string;
   participantId: string;
-}): Promise<void> {
+};
+
+/** Der Aufrufer kann den Treffer der autorisierten DB-Abfrage direkt weiterverwenden. */
+export async function loadParticipantOnCapabilityCacheMiss<T extends object>(
+  params: ParticipantCapabilityScope,
+  findParticipant: (where: {
+    id: string;
+    sessionId: string;
+    rejoinCapabilityHash: string;
+  }) => Promise<T | null>,
+): Promise<T | undefined> {
   const capability = extractParticipantCapability(params.ctx);
   if (!capability) {
     throw participantAccessDenied();
@@ -96,13 +106,10 @@ export async function assertParticipantCapability(params: {
   if (cachedExpiry !== undefined && cachedExpiry > nowMs) {
     return;
   }
-  const participant = await prisma.participant.findFirst({
-    where: {
-      id: params.participantId,
-      sessionId: params.sessionId,
-      rejoinCapabilityHash: capabilityHash,
-    },
-    select: { id: true },
+  const participant = await findParticipant({
+    id: params.participantId,
+    sessionId: params.sessionId,
+    rejoinCapabilityHash: capabilityHash,
   });
   if (!participant) {
     participantCapabilityCache.delete(cacheKey);
@@ -110,4 +117,13 @@ export async function assertParticipantCapability(params: {
   }
   pruneParticipantCapabilityCache(nowMs);
   participantCapabilityCache.set(cacheKey, nowMs + PARTICIPANT_CAPABILITY_CACHE_TTL_MS);
+  return participant;
+}
+
+export async function assertParticipantCapability(
+  params: ParticipantCapabilityScope,
+): Promise<void> {
+  await loadParticipantOnCapabilityCacheMiss(params, (where) =>
+    prisma.participant.findFirst({ where, select: { id: true } }),
+  );
 }

@@ -78,10 +78,11 @@ const { redisMocks } = vi.hoisted(() => {
       }
       if (script.includes('session_runtime_data_purge_v1')) {
         const keys = parameters.slice(0, keyCount).map(String);
-        const [fenceKey, presenceKey] = keys;
-        if (!fenceKey || !presenceKey) throw new Error('invalid runtime-data purge keys');
+        const [fenceKey, ...runtimeKeys] = keys;
+        if (!fenceKey || runtimeKeys.length !== 3)
+          throw new Error('invalid runtime-data purge keys');
         state.store.set(fenceKey, '1');
-        return state.store.delete(presenceKey) ? 1 : 0;
+        return runtimeKeys.filter((key) => state.store.delete(key)).length;
       }
       if (script.includes('product_feedback_purge_indexed_artifacts_v2')) {
         const keys = parameters.slice(0, keyCount).map(String);

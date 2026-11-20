@@ -18,7 +18,8 @@ echo ">>> Wende versionierte Prisma-Migrationen an …"
 /app/node_modules/.bin/prisma migrate deploy --schema /app/prisma/schema.prisma
 echo ">>> Migrationen erfolgreich angewendet."
 
-# docker-compose.prod.yml betreibt genau einen fest benannten App-Container.
+# Der Basisbetrieb führt dieses Gate über App A aus. Der Replikabetrieb
+# startet laufende App-Prozesse nach erfolgreichem Digest-Deploy direkt.
 # Der reguläre Deploy-Vertrag stoppt und drained den vorherigen Writer und führt
 # vor sowie nach Retention je einen fail-closed Rollout-Sweep aus. Dieser
 # Entrypoint wiederholt das Gate unmittelbar vor dem neuen Prozess: v1-Altlasten,

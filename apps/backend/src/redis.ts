@@ -26,10 +26,11 @@ export function getRedis(): Redis {
     if (redisShutdownStarted) {
       throw new Error('REDIS_SHUTTING_DOWN');
     }
+    const reconnectContinuously = process.env['REDIS_RECONNECT_CONTINUOUS'] === 'true';
     redis = new Redis(REDIS_URL, {
       maxRetriesPerRequest: 3,
       retryStrategy(times) {
-        if (times > 3) return null;
+        if (times > 3 && !reconnectContinuously) return null;
         return Math.min(times * 200, 2000);
       },
     });

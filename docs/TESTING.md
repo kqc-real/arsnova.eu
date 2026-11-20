@@ -133,7 +133,9 @@ RUN_PG_QA_MIGRATION_TESTS=1 \
 ```
 
 Die Capability-Suite prüft atomare Teilnahme-Kennungen, Tiernummern je
-Raum und Tier bei parallelen Beitritten, Join-Replay,
+Raum und Tier bei parallelen Beitritten, Join-Replay, den Redis-Join-Puffer
+mit 500 Plätzen und die Nachfüllrate von 125 Plätzen pro Sekunde,
+atomare Schreibgruppen für freie Nicknames mit Replays und Namens-/Client-Konflikten,
 sessiongebundenen Wiederbeitritt, Host-Credential-Rotation, Wiederherstellung
 nach Redis-Verlust und auditierten Widerruf. Die Q&A-Suite prüft die parallelen
 10./11.- und 25.000./25.001.-Grenzen, idempotenten Retry, physisches Delete,
@@ -299,6 +301,7 @@ kein `compose build` auf dem Produktionsserver; lokal/CI z. B. wie der Docker-Bu
 
 ```bash
 npm test -w @arsnova/backend -- --run \
+  src/lib/pdfConcurrencyLimiter.test.ts \
   src/lib/pdfWorkerTransport.test.ts \
   src/lib/safeExternalImageFetch.test.ts \
   src/lib/pdfImageNormalizer.test.ts \
@@ -327,7 +330,27 @@ auflösenden Renderer prüft zusätzlich worker-interne Deadline, 504, fatalen
 Healthstatus und Exit-Callback. Produktion darf nicht auf lokales Chromium
 zurückfallen.
 
+Für das [Staging mit zwei Apps](operations/STAGING-COMPOSE.md#gemeinsamer-pdf-export-slot)
+einen freigegebenen Quiz-Bericht mit gültigem Host-Token über App A exportieren.
+Sobald der Socket-Healthcheck des Workers `x-pdf-worker-state: busy` meldet,
+parallel 500 gültige `vote.submit`-Anfragen einer separaten Live-Session über
+Nginx starten und denselben PDF-Export direkt auf App B anfragen. Während die
+Redis-Reservierung besteht, muss B HTTP 429 liefern. Beide Host-WebSockets
+müssen 500 Stimmen melden. Nach der PDF-Antwort von A den Export auf B mit
+HTTP 200 wiederholen. Vote-Latenzen und tatsächliche Überlappung mit dem
+Rendering protokollieren.
+
 ### Optionaler spaCy-Sidecar (Story 1.14b)
+
+Für das [Staging mit zwei Apps](operations/STAGING-COMPOSE.md#gemeinsamer-spacy-sidecar-und-llm-slot)
+`wordCloud.analyze` mit `LEXICAL` und `LEMMA` getrennt auf A und B ausführen.
+Beide Antworten müssen `normalizationApplied: LEMMA` sowie die Modell-ID
+des gemeinsamen Sidecars liefern. Für den LLM-Renntest A unmittelbar nach
+erfolgreicher Runtime-Slot-Sonde und vor dem POST halten. Währenddessen
+einen Summary-Auftrag auf B starten. B muss einen extraktiven Fallback
+mit Grund `busy` liefern, obwohl die Runtime noch einen freien Slot meldet.
+A freigeben, genau einen Inferenz-POST am gemeinsamen Endpunkt nachweisen
+und den Wiederholungsversuch auf B nach Abschluss prüfen.
 
 Story 1.14b ist umgesetzt; der Sidecar bleibt Default aus. Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).
 
@@ -485,6 +508,14 @@ npm run load:issue-456:validate
 ```
 
 Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden und ephemer. V2 handelt `full-context`/`legacy-text` ausdrücklich aus und liefert ohne Modell einen lokalen extraktiven Backend-Fallback; es gibt keinen Cloud-Fallback. `qa.summaryContextPreview` ist hostgeschützt und wird in der UI erst nach ausdrücklicher Aktion geladen. Der lokale Legacy-Helfer bleibt mit `npm run qa-summary:dev` / `npm run qa-summary:dev:test` prüfbar. `npm run load:issue-456:validate` validiert netzwerkfrei das kanonische Demo-Quiz sowie mindestens 250 Teilnahmen mit je zehn sinnvollen Fragen; der echte `npm run load:issue-456:run` ist auf Loopback beschränkt und erwartet einen separat mit `QA_SUMMARY_ENABLED=true` gestarteten Backendprozess. Sein früher Preflight bricht bei deaktiviertem Summary V2 noch vor Joins und Q&A-Last ab. Produktdoku: [qa-summary.md](features/qa-summary.md), [Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md). Ein separater interaktiver Lernziellauf mit dem vollständigen Demo-Quiz erzeugte am 12.10.2026 zehn Entwürfe; er ist kein Nachweis für den 250-Teilnahmen-Runner. Die kurze Summary-V2-Modellprobe bestand in allen fünf App-Locales. Vollständige Lernziel-Mess- und Qualitätsdaten sowie die Prefill- und RSS-Abnahme des reichhaltigen 8.192-Profils stehen aus.
+
+Im [Zwei-App-Staging](operations/STAGING-COMPOSE.md#gemeinsamer-qa-ergebnisstatus)
+einen Summary-Auftrag auf A starten und mit gültigem Host-Token auf B
+zuerst `pending`, dann das fertige Ergebnis abrufen. Eine parallele
+Anfrage derselben Session auf B muss denselben Fortschritt liefern.
+Am Modellendpunkt genau einen Inferenz-POST zählen. Einen Abruf ohne
+Host-Token abweisen und nach einer Quellenänderung den Abgleich auf
+beiden Apps prüfen.
 
 ### Fünfsprachige NLP-Proben
 
@@ -870,6 +901,92 @@ docker run --rm -i \
   -e BASE_URL=http://host.docker.internal:3000 \
   grafana/k6 run - < scripts/load/k6-trpc-health-50vu.js
 ```
+
+### Produktions-Compose mit Replikaten
+
+`node --test scripts/deploy/deploy-by-digest.test.mjs` prüft die aufgelösten
+Compose-Profile, die Nginx-Upstreams und das Deploy-Gate bei aktiven
+Replikaten. Für den isolierten lokalen Lauf den Zustandswechsel
+`single → dual → triple → dual → single` ausführen. Nach jedem Wechsel
+HTTP, tRPC-WebSocket und den DB-Pool prüfen. In beiden Replikamodi einen
+Vote auf A und den vollständigen Host-Fortschritt auf einer anderen App
+prüfen. Yjs muss vor und nach der Umschaltung per Nginx erreichbar sein und
+bei einer Rotation über eine Replika den alten Socket schließen.
+[Produktions-Runbook](operations/PRODUCTION-REPLICAS.md).
+
+### Staging-Compose mit zwei Apps
+
+Das [Staging-Runbook](operations/STAGING-COMPOSE.md) beschreibt den lokalen
+HTTPS-Start, die automatischen Readiness-Gates und den Rückweg auf App A.
+Bei einem Compose-Smoke beide Upstreams für HTTP und tRPC-WebSockets
+bestätigen, eine Sessionänderung und einen Vote über Replikatgrenzen
+beobachten und beim Rollback einen WebSocket erneut verbinden. Das
+Routing nach einem Nginx-Neustart prüfen und B anschließend wieder
+über `up` aufnehmen. Der [Yjs-Abschnitt](operations/STAGING-COMPOSE.md#yjs-relay-und-token-rotation)
+beschreibt den Sync über WSS, den Widerruf alter Tokens und den
+Reconnect einschließlich Offline-Änderungen nach einem Relay-Neustart.
+
+### Live-Signale über Redis Pub/Sub
+
+Der gezielte Backend-Test für diesen optionalen Statuspfad prüft eigene und
+fremde Signale, Redis-Fehler, Commit-Reihenfolge sowie das Nachlesen über den
+bestehenden Fallback.
+
+```bash
+npm run test -w @arsnova/backend -- src/lib/sessionStatusPubSub.test.ts src/__tests__/session.enable-channels.test.ts src/__tests__/session.current-question-host.test.ts
+```
+
+Für die Staging-Abnahme `SESSION_STATUS_PUBSUB_ENABLED=true` auf beiden Apps
+setzen. Den Status über App A ändern und `session.onStatusChanged` auf B
+beobachten. Bei unterbrochenem Subscriber muss der nächste reguläre
+Lese-Fallback den aktuellen Zustand liefern. Nach Wiederanbindung einen
+weiteren Wechsel über A auslösen und die direkte Zustellung auf B nachweisen.
+
+Im Replikabetrieb teilen die Apps auch die Werte hinter den
+Presenter-Signalen. Der Redis-Integrationstest nutzt zwei unabhängige
+Client-Instanzen und prüft Seitenwechsel, Q&A-Filter, Emoji-Ersetzungen
+sowie das Löschen und Abweisen verspäteter Writes.
+
+```bash
+RUN_REDIS_SESSION_REPLICA_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 \
+  npm run test -w @arsnova/backend -- src/lib/sessionReplicaState.redis.test.ts src/lib/trpcWebSocketClusterBudget.redis.test.ts
+```
+
+Für die Abnahme mit zwei Prozessen die Presenter-Fläche auf A ändern,
+das Status-Abo auf B beobachten und denselben Seitenkontext für je einen
+Seitenschritt an A und B senden. Eine Reaktion auf A setzen, auf B lesen,
+dort mit demselben Teilnahmetoken ersetzen und auf A die neue Verteilung
+bei unveränderter Gesamtzahl prüfen.
+
+Für die Abschlussprojektion eine Quiz-Session auf A beenden und die
+Rangliste am Status-Abo auf B abwarten. Die Rangliste auf A ausblenden.
+B muss nach dem Redis-Signal auf `idle` wechseln. Beim zweiten Durchgang
+nur das Publish der Statusnachricht unterbrechen. B muss die bestätigte
+Änderung beim nächsten Zehn-Sekunden-Fallback aus Redis übernehmen.
+
+Für den Vote-Fortschritt `session.onHostVoteProgressChanged` mit einem
+gültigen Host-Token auf B öffnen. Für dieselbe Session parallel auf A und
+B abstimmen, danach eine weitere Stimme nach Veröffentlichung des ersten
+Signals senden. Die Redis-Nachrichten auf
+`arsnova:session:vote-progress:v1` zählen. Die erste Gruppe wird
+instanzübergreifend gebündelt und die spätere Stimme aktualisiert den Host
+erneut vor dem Polling. Eine idempotente Wiederholung erzeugt keinen neuen
+Vote und kein neues Signal. Bei unterbrochenem Subscriber muss das Host-Abo
+nach Ablauf des Aggregatcaches über den regulären Lese-Fallback aufholen.
+Für das Vote-Rate-Limit zwei gleichzeitige Anfragen derselben Teilnahme-ID
+an getrennte Apps senden. Beim Standardwert wird genau eine zugelassen.
+Jede Teilnahme-ID hat auch hinter derselben NAT ein eigenes Budget.
+Mit dem Limit zwei müssen drei gleichzeitige Anfragen für dieselbe ID
+genau zwei Zulassungen und eine Ablehnung mit einer Sekunde Wartezeit
+ergeben. Nach Ablauf des Fensters ist dieselbe ID wieder zulässig.
+
+Für Join und Q&A die geschützten Host-Abos `session.onParticipantJoined`
+und `qa.onQuestionsUpdated` auf B öffnen und den jeweiligen
+Ausgangssnapshot abwarten. Danach auf A einen Join und eine neue Frage
+auslösen. B muss die aktuelle Teilnehmerzahl beziehungsweise Q&A-Revision
+vor der nächsten periodischen Abfrage senden. Die Frage anschließend mit
+gültigem Host-Token über `qa.list` auf B lesen.
+[Staging-Messung](operations/STAGING-COMPOSE.md#lokaler-test-von-a-nach-b)
 
 ### Artillery-Lasttest (Realtime, bis 500 TN)
 

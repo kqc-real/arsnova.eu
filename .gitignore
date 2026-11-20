@@ -19,6 +19,7 @@ tmp/
 .env
 .env.local
 .env.production
+.env.staging
 .env.llm
 .env.arsnova-image
 .env.*.local
@@ -30,6 +31,7 @@ deploy/monitoring/monitor.env
 
 # ---------- Deploy runtime state (server) ----------
 .deploy-state/
+.arsnova-prod-operation.lock/
 
 # ---------- IDE ----------
 .idea/

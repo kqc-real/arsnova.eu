@@ -39,13 +39,18 @@ import {
   readSessionCodeGlobalSoftCapUtilization,
 } from '../lib/sessionCodeProtection';
 import {
-  getWebSocketTelemetrySnapshot,
   readClusterLiveConnectionMetrics,
+  readClusterWebSocketTelemetrySnapshot,
+  type ClusterLiveMetrics,
 } from '../lib/websocketTelemetry';
+import { usesExternalYjsRelay } from '../lib/yjsShareToken';
 import { readCspReportSignals } from '../lib/cspReportIngest';
 import { RATE_LIMIT_ENV, checkHealthUsageRate } from '../lib/rateLimit';
 import { readQaTelemetry } from '../lib/qaTelemetry';
-import { snapshotQaApiDiagnostics } from '../lib/qaApiDiagnostics';
+import {
+  readClusterQaApiDiagnostics,
+  type QaApiDiagnosticsSnapshot,
+} from '../lib/qaApiDiagnostics';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
 import { getQaSummaryQueueMetrics } from '../lib/qaSummaryQueue';
 import { snapshotWordCloudNlpTelemetry } from '../lib/wordCloudNlpTelemetry';
@@ -361,8 +366,7 @@ function toCoreActionQuality(diag: {
   };
 }
 
-function buildCoreActionsQuality() {
-  const snap = snapshotQaApiDiagnostics();
+function buildCoreActionsQuality(snap: QaApiDiagnosticsSnapshot) {
   return {
     join: toCoreActionQuality(snap.JOIN_REJOIN),
     vote: toCoreActionQuality(snap.VOTE),
@@ -436,8 +440,11 @@ function buildTrafficQuality(
   };
 }
 
-async function buildLiveConnections(measurementAvailable: boolean): Promise<PublicLiveConnections> {
-  if (!measurementAvailable) {
+function buildLiveConnections(
+  measurementAvailable: boolean,
+  cluster: ClusterLiveMetrics | null = null,
+): PublicLiveConnections {
+  if (!measurementAvailable || !cluster) {
     return {
       measurementState: 'UNAVAILABLE',
       trpcOpen: null,
@@ -455,7 +462,6 @@ async function buildLiveConnections(measurementAvailable: boolean): Promise<Publ
     };
   }
 
-  const cluster = await readClusterLiveConnectionMetrics();
   if (!cluster.available) {
     return {
       measurementState: 'UNAVAILABLE',
@@ -821,13 +827,24 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
     const serviceStatus = measurementAvailable
       ? getServiceStatus(loadStatus, sloSignals)
       : ('unknown' as const);
+    const [qaDiagnostics, clusterLive] = await Promise.all([
+      readClusterQaApiDiagnostics(),
+      measurementAvailable ? readClusterLiveConnectionMetrics() : Promise.resolve(null),
+    ]);
+    const externalRelayHealthy =
+      !usesExternalYjsRelay() || clusterLive?.yjsConfiguredAlive === true;
     const dependencies: PublicDependenciesStatus = {
       api: 'ok',
       database: databaseProbe === 'ok' ? 'ok' : 'unavailable',
       redis: redisOk ? 'ok' : 'unavailable',
-      live: redisOk && blitzRoundsAvailable ? 'ok' : redisOk ? 'degraded' : 'unavailable',
+      live:
+        redisOk && blitzRoundsAvailable && externalRelayHealthy
+          ? 'ok'
+          : redisOk
+            ? 'degraded'
+            : 'unavailable',
     };
-    const coreActionsQuality = buildCoreActionsQuality();
+    const coreActionsQuality = buildCoreActionsQuality(qaDiagnostics);
     return {
       openSessions,
       activeSessions,
@@ -846,7 +863,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dependencies,
       coreActionsQuality,
       trafficQuality: buildTrafficQuality(sloSignals, measurementAvailable),
-      liveConnections: await buildLiveConnections(measurementAvailable),
+      liveConnections: buildLiveConnections(measurementAvailable, clusterLive),
       sloSampleSizeLastMinute: sloSignals.available ? sloSignals.totalRequestsLastMinute : null,
       measurementAvailable,
       activeQaSessions,
@@ -888,7 +905,7 @@ async function computeServerStats(): Promise<ServerStatsDTO> {
       dependencies: unavailableDependencies,
       coreActionsQuality: emptyCoreActionsQuality(),
       trafficQuality: unavailableTrafficQuality(),
-      liveConnections: await buildLiveConnections(false),
+      liveConnections: buildLiveConnections(false),
       sloSampleSizeLastMinute: null,
       measurementAvailable: false,
       activeQaSessions: null,
@@ -933,6 +950,8 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     abuseSignals,
     cspReportSignals,
     sessionCodeGlobalSoftCapUtilizationPercent,
+    pdfActiveJobs,
+    webSocketSnapshot,
   ] = await Promise.all([
     prisma
       .$queryRawUnsafe('SELECT 1')
@@ -942,9 +961,10 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     readAbuseSignals(),
     readCspReportSignals(),
     readSessionCodeGlobalSoftCapUtilization(),
+    pdfConcurrencyLimiter.readActiveJobs(),
+    readClusterWebSocketTelemetrySnapshot(),
   ]);
   const pdfSnapshot = pdfConcurrencyLimiter.snapshot();
-  const webSocketSnapshot = getWebSocketTelemetrySnapshot();
   const qaNlp = getQaNlpMetrics();
   const qaSummary = getQaSummaryQueueMetrics();
   const qaWordCloud = snapshotWordCloudNlpTelemetry();
@@ -953,7 +973,7 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     sessionCreatePerHour: RATE_LIMIT_ENV.sessionCreatePerHour,
     sessionCreateGlobalPerHour: RATE_LIMIT_ENV.sessionCreateGlobalPerHour,
     sessionCodeClientFailuresPerWindow: SESSION_CODE_PROTECTION_LIMITS.clientFailuresPerWindow,
-    pdfActiveJobs: pdfSnapshot.activeJobs,
+    pdfActiveJobs,
     pdfMaxConcurrentJobs: pdfSnapshot.maxConcurrentJobs,
     pdfCompletedLastMinute: pdfSignals.completedLastMinute,
     pdfFailedLastMinute: pdfSignals.failedLastMinute,
@@ -1006,7 +1026,7 @@ export async function fetchSecurityStats(): Promise<HealthSecurityStatsDTO> {
     yjsWebSocketDocumentRejectedLastMinute: webSocketSnapshot.yjsDocumentRejectedLastMinute,
     yjsWebSocketAwarenessRejectedLastMinute: webSocketSnapshot.yjsAwarenessRejectedLastMinute,
     yjsWebSocketOutboundRejectedLastMinute: webSocketSnapshot.yjsOutboundRejectedLastMinute,
-    qaApi: snapshotQaApiDiagnostics(),
+    qaApi: await readClusterQaApiDiagnostics(),
     qaNlp: {
       queueLength: qaNlp.queueLength,
       running: qaNlp.running,

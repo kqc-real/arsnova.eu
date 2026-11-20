@@ -92,9 +92,14 @@ vi.mock('../lib/qaTelemetry', () => ({
   recordQaRatingChanged: qaTelemetryMocks.recordQaRatingChanged,
 }));
 
+import * as sessionStatusPubSub from '../lib/sessionStatusPubSub';
 import { emitQaQuestionsSignal, resetQaQuestionsSignalsForTests } from '../lib/qaQuestionsSignal';
-import { clearAllQaPresenterSortModes } from '../lib/qaPresenterSortMode';
-import { qaRouter, resetSharedQaRankingCacheForTests } from '../routers/qa';
+import { clearLocalSessionPresenterState } from '../lib/sessionPresenterState';
+import {
+  invalidateLocalQaQuestionsForSession,
+  qaRouter,
+  resetSharedQaRankingCacheForTests,
+} from '../routers/qa';
 import { QA_REDACTION_CHAR, qaQuestionTextVersion } from '@arsnova/shared-types';
 
 function hostCtx(token: string | null) {
@@ -214,7 +219,7 @@ describe('qa router (Epic 8)', () => {
   beforeEach(() => {
     resetQaQuestionsSignalsForTests();
     resetSharedQaRankingCacheForTests();
-    clearAllQaPresenterSortModes();
+    clearLocalSessionPresenterState();
     vi.resetAllMocks();
     rawQueryResults.createQuestion.length = 0;
     rawQueryResults.changeVote.length = 0;
@@ -1645,15 +1650,22 @@ describe('qa router (Epic 8)', () => {
         passagesRedactedAt: new Date('2026-03-13T12:01:00.000Z'),
       });
 
-      const result = await hostCaller.redactPassages({
-        sessionCode: 'ABC123',
-        questionId: QUESTION_ID,
-        expectedTextVersion: qaQuestionTextVersion('Bitte Max und Anna anonymisieren'),
-        ranges: [
-          { start: 6, end: 9 },
-          { start: 14, end: 18 },
-        ],
-      });
+      const publishQa = vi.spyOn(sessionStatusPubSub, 'publishQaQuestionsInvalidation');
+      let result: Awaited<ReturnType<typeof hostCaller.redactPassages>>;
+      try {
+        result = await hostCaller.redactPassages({
+          sessionCode: 'ABC123',
+          questionId: QUESTION_ID,
+          expectedTextVersion: qaQuestionTextVersion('Bitte Max und Anna anonymisieren'),
+          ranges: [
+            { start: 6, end: 9 },
+            { start: 14, end: 18 },
+          ],
+        });
+        expect(publishQa).toHaveBeenCalledWith(SESSION_ID, { immediate: true });
+      } finally {
+        publishQa.mockRestore();
+      }
 
       expect(prismaMock.qaQuestion.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -3281,6 +3293,55 @@ describe('qa router (Epic 8)', () => {
     await iterator.return?.(undefined);
   });
 
+  it('liest nach einem Ranking-Signal während eines laufenden Reads sofort erneut', async () => {
+    const original = {
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+    };
+    prismaMock.session.findUnique.mockResolvedValue(original);
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    await expect(iterator.next()).resolves.toMatchObject({ value: { rankingRevision: 7 } });
+
+    let markStarted!: () => void;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    let finishRead!: (snapshot: typeof original) => void;
+    const blockedRead = new Promise<typeof original>((resolve) => {
+      finishRead = resolve;
+    });
+    prismaMock.session.findUnique.mockImplementationOnce(() => {
+      markStarted();
+      return blockedRead;
+    });
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    const update = vi.fn();
+    const next = iterator.next().then(update);
+    await started;
+    prismaMock.session.findUnique.mockResolvedValue({ ...original, qaRankingRevision: 8 });
+    emitQaQuestionsSignal(SESSION_ID, { immediate: true });
+    finishRead(original);
+
+    await vi.waitFor(
+      () =>
+        expect(update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            value: expect.objectContaining({ rankingRevision: 8 }),
+          }),
+        ),
+      { timeout: 500, interval: 10 },
+    );
+    await next;
+    await iterator.return?.(undefined);
+  });
+
   it('wendet den Fristablauf einmal an und fällt danach auf das normale Teilnehmerintervall zurück', async () => {
     vi.useFakeTimers();
     const deadline = new Date('2026-09-18T08:00:01.000Z');
@@ -3444,6 +3505,42 @@ describe('qa router (Epic 8)', () => {
     expect(prismaMock.session.findUnique.mock.calls.length - readsBeforeSignal).toBe(1);
 
     await Promise.all([iteratorA.return?.(undefined), iteratorB.return?.(undefined)]);
+  });
+
+  it('weckt lokale Q&A-Abos bei Replica-Invalidierung sofort ohne Echo-Publish', async () => {
+    let revision = 7;
+    prismaMock.session.findUnique.mockImplementation(async () => ({
+      ...ACTIVE_QA_SESSION,
+      code: 'ABC123',
+      type: 'QUIZ',
+      qaEnabled: true,
+      qaOpen: true,
+      qaRankingRevision: revision,
+      participantRevision: 0,
+    }));
+    const publishQa = vi.spyOn(sessionStatusPubSub, 'publishQaQuestionsInvalidation');
+    const stream = await hostCaller.onQuestionsUpdated({
+      sessionId: SESSION_ID,
+      moderatorView: true,
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    try {
+      await expect(iterator.next()).resolves.toMatchObject({
+        value: { rankingRevision: 7 },
+        done: false,
+      });
+      revision = 8;
+      const pending = iterator.next();
+      invalidateLocalQaQuestionsForSession(SESSION_ID);
+      await expect(pending).resolves.toMatchObject({
+        value: { rankingRevision: 8 },
+        done: false,
+      });
+      expect(publishQa).not.toHaveBeenCalled();
+    } finally {
+      publishQa.mockRestore();
+      await iterator.return?.(undefined);
+    }
   });
 
   it('ignoriert die Teilnehmerfrist für den Host-Wartetakt', async () => {

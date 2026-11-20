@@ -24,8 +24,9 @@ describe('word-cloud analysis cache rollout contract', () => {
     const redisClient = readFileSync(resolve(repositoryRoot, 'apps/backend/src/redis.ts'), 'utf8');
     const services = compose.slice(compose.indexOf('services:'), compose.indexOf('\nnetworks:'));
 
-    expect(services.match(/^ {2}app:$/gm)).toHaveLength(1);
-    expect(services.match(/container_name: arsnova-v3-app/g)).toHaveLength(1);
+    expect(services.match(/^ {2}app:(?: &[\w-]+)?$/gm)).toHaveLength(1);
+    expect(services.match(/^ {4}container_name: arsnova-v3-app$/gm)).toHaveLength(1);
+    expect(deploy).toContain('scripts/prod-replicas.sh rollback');
     expect(dockerfile).toContain('ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]');
     expect(dockerfile).toContain('CMD ["node", "apps/backend/dist/index.js"]');
     expect(deploy).toContain('runWordCloudCacheMigration');

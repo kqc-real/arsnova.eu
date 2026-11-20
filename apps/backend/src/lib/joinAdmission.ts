@@ -2,7 +2,9 @@ import { getRedis } from '../redis';
 import { logger } from './logger';
 
 const JOIN_ADMISSION_WINDOW_MS = 1_000;
-const JOIN_ADMISSION_LIMIT_PER_WINDOW = 125;
+const JOIN_ADMISSION_REFILL_PER_WINDOW = 125;
+// Eine erste Hörsaalwelle passt in denselben Bucket für alle App-Instanzen.
+const JOIN_ADMISSION_BURST_CAPACITY = 500;
 const JOIN_ADMISSION_TTL_MS = 5_000;
 const JOIN_ADMISSION_MIN_DELAY_MS = 40;
 const JOIN_ADMISSION_MAX_DELAY_MS = 1_200;
@@ -12,14 +14,15 @@ const JOIN_ADMISSION_LUA = `
 local key = KEYS[1]
 local now = tonumber(ARGV[1])
 local windowMs = tonumber(ARGV[2])
-local limit = tonumber(ARGV[3])
+local refillPerWindow = tonumber(ARGV[3])
 local ttlMs = tonumber(ARGV[4])
+local capacity = tonumber(ARGV[5])
 local state = redis.call('HMGET', key, 'tokens', 'refilledAt')
-local tokens = tonumber(state[1]) or limit
+local tokens = tonumber(state[1]) or capacity
 local refilledAt = tonumber(state[2]) or now
 local elapsedMs = math.max(0, now - refilledAt)
 
-tokens = math.min(limit, tokens + (elapsedMs * limit / windowMs))
+tokens = math.min(capacity, tokens + (elapsedMs * refillPerWindow / windowMs))
 if tokens >= 1 then
   tokens = tokens - 1
   redis.call('HSET', key, 'tokens', tokens, 'refilledAt', now)
@@ -27,7 +30,7 @@ if tokens >= 1 then
   return {1, 0}
 end
 
-local retryAfterMs = math.ceil((1 - tokens) * windowMs / limit)
+local retryAfterMs = math.ceil((1 - tokens) * windowMs / refillPerWindow)
 redis.call('HSET', key, 'tokens', tokens, 'refilledAt', now)
 redis.call('PEXPIRE', key, ttlMs)
 return {0, retryAfterMs}
@@ -64,8 +67,9 @@ async function tryAcquireJoinAdmissionSlot(
       joinAdmissionKey(sessionId),
       nowMs.toString(),
       JOIN_ADMISSION_WINDOW_MS.toString(),
-      JOIN_ADMISSION_LIMIT_PER_WINDOW.toString(),
+      JOIN_ADMISSION_REFILL_PER_WINDOW.toString(),
       JOIN_ADMISSION_TTL_MS.toString(),
+      JOIN_ADMISSION_BURST_CAPACITY.toString(),
     );
 
     const tuple = Array.isArray(raw) ? raw : [];

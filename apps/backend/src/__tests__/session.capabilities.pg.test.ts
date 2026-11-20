@@ -12,7 +12,8 @@ import {
   resetSessionHostAccess,
 } from '../lib/hostCredentialRecovery';
 import { hashHostSessionToken } from '../lib/hostAuth';
-import { prepareParticipantJoin } from '../lib/participantJoin';
+import { awaitJoinAdmissionSlot } from '../lib/joinAdmission';
+import { prepareParticipantJoin, tryPrepareCustomParticipantJoin } from '../lib/participantJoin';
 import { getRedis } from '../redis';
 
 const RUN_PG = process.env['RUN_PG_CAPABILITY_TESTS'] === '1';
@@ -40,6 +41,101 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       await prisma.session.deleteMany({ where: { id: { in: sessionIds } } });
     }
     await Promise.all(rawClients.map((client) => client.end()));
+  });
+
+  it('lässt 500 Joins in einem Burst zu und füllt danach 125 Plätze pro Sekunde nach', async () => {
+    const sessionId = randomUUID();
+    let now = 1_000;
+    const clock = {
+      now: () => now,
+      random: () => 0,
+      sleep: async (ms: number) => {
+        now += ms;
+      },
+    };
+    const immediate = { delayedMs: 0, attempts: 1 };
+    const delayed = { delayedMs: 40, attempts: 2 };
+
+    for (let i = 0; i < 500; i += 1) {
+      expect(await awaitJoinAdmissionSlot(sessionId, clock)).toEqual(immediate);
+    }
+    expect(await awaitJoinAdmissionSlot(sessionId, clock)).toEqual(delayed);
+    // Nach 40 ms sind fünf Plätze verfügbar, wovon der wartende Join einen belegt.
+    for (let i = 0; i < 4; i += 1) {
+      expect(await awaitJoinAdmissionSlot(sessionId, clock)).toEqual(immediate);
+    }
+    expect(await awaitJoinAdmissionSlot(sessionId, clock)).toEqual(delayed);
+  });
+
+  it('speichert Schreibgruppen atomar mit Teilnehmernummern, Replay und Outbox', async () => {
+    const session = await prisma.session.create({
+      data: {
+        code: sessionCode('B'),
+        type: 'QUIZ',
+        status: 'LOBBY',
+        onboardingProfileConfigured: true,
+        onboardingAllowCustomNicknames: true,
+        onboardingAnonymousMode: false,
+        onboardingTeamMode: false,
+      },
+    });
+    sessionIds.push(session.id);
+    const inputs = Array.from({ length: 65 }, (_, index) => ({
+      sessionId: session.id,
+      requestedNickname: `Teilnahme ${index}`,
+      anonymousClientId: randomUUID(),
+      joinIdempotencyKey: createOpaqueCapability(),
+    }));
+    const first = inputs[0]!;
+    const [createdFirst, duplicate, sameName, sameBrowser, nul, unpaired, ...rest] =
+      await Promise.all([
+        tryPrepareCustomParticipantJoin(first),
+        tryPrepareCustomParticipantJoin(first),
+        tryPrepareCustomParticipantJoin({
+          ...first,
+          anonymousClientId: randomUUID(),
+          joinIdempotencyKey: createOpaqueCapability(),
+        }),
+        tryPrepareCustomParticipantJoin({
+          ...first,
+          requestedNickname: 'Anderer Name',
+          joinIdempotencyKey: createOpaqueCapability(),
+        }),
+        tryPrepareCustomParticipantJoin({ ...first, requestedNickname: 'Name\0' }),
+        tryPrepareCustomParticipantJoin({ ...first, requestedNickname: 'Name\ud800' }),
+        ...inputs.slice(1).map(tryPrepareCustomParticipantJoin),
+      ]);
+    expect([duplicate, sameName, sameBrowser, nul, unpaired]).toEqual([
+      null,
+      null,
+      null,
+      null,
+      null,
+    ]);
+    expect([createdFirst, ...rest].map((created) => created?.participantNumber)).toEqual(
+      Array.from({ length: 65 }, (_, index) => index + 1),
+    );
+    const replay = await prisma.$transaction((tx) =>
+      prepareParticipantJoin({
+        ...first,
+        tx,
+        profile: { allowCustomNicknames: true, anonymousMode: false },
+      }),
+    );
+    expect(replay).toMatchObject({
+      participantId: createdFirst?.participantId,
+      rejoinCapability: createdFirst?.rejoinCapability,
+      productFeedbackClaimToken: createdFirst?.productFeedbackClaimToken,
+      rejoined: true,
+    });
+    expect(await prisma.participant.count({ where: { sessionId: session.id } })).toBe(65);
+    expect(await prisma.participantJoinReplay.count({ where: { sessionId: session.id } })).toBe(65);
+    expect(
+      await prisma.usageStatisticOutbox.count({
+        where: { sessionId: session.id, kind: 'PARTICIPATION' },
+      }),
+    ).toBe(65);
+    await prisma.usageStatisticOutbox.deleteMany({ where: { sessionId: session.id } });
   });
 
   it('linearisiert automatische Kennungen über Verbindungen und rollt Fehlversuche zurück', async () => {

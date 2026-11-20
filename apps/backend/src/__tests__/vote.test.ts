@@ -40,9 +40,11 @@ vi.mock('../lib/rateLimit', () => ({
 }));
 
 vi.mock('../lib/participantAuth', () => ({
-  assertParticipantCapability: vi.fn(),
+  loadParticipantOnCapabilityCacheMiss: vi.fn(),
 }));
 
+import { hashCapability } from '../lib/capabilityCrypto';
+import { loadParticipantOnCapabilityCacheMiss } from '../lib/participantAuth';
 import { checkVoteRate } from '../lib/rateLimit';
 import {
   resetVoteSubmitCachesForTests,
@@ -59,6 +61,7 @@ const QUESTION_ID_2 = '33333333-3333-4333-a333-333333333333';
 describe('vote.submit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(loadParticipantOnCapabilityCacheMiss).mockResolvedValue(undefined);
     resetVoteSubmitCachesForTests();
     vi.mocked(checkVoteRate).mockResolvedValue({ allowed: true, retryAfterSeconds: 0 });
     prismaMock.participant.findFirst.mockResolvedValue({
@@ -83,6 +86,42 @@ describe('vote.submit', () => {
     prismaMock.vote.findUnique.mockResolvedValue(null);
     prismaMock.vote.findFirst.mockResolvedValue(null);
     prismaMock.vote.create.mockResolvedValue({ id: '11111111-1111-4111-8111-111111111119' });
+  });
+
+  it('verwendet dieselbe Teilnehmerabfrage für die Tokenprüfung und den Vote-Kontext', async () => {
+    const realAuth =
+      await vi.importActual<typeof import('../lib/participantAuth')>('../lib/participantAuth');
+    realAuth.resetParticipantCapabilityCacheForTests();
+    vi.mocked(loadParticipantOnCapabilityCacheMiss).mockImplementationOnce(
+      realAuth.loadParticipantOnCapabilityCacheMiss,
+    );
+    const token = 'participant-capability-abcdefghijklmnopqrstuvwxyz';
+    const sessionId = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
+    const participantId = '7290465d-5982-4b3d-ab47-a2088830d4b0';
+    const authenticated = voteRouter.createCaller({
+      req: { headers: { 'x-participant-capability': token } } as never,
+    });
+    prismaMock.question.findFirst.mockResolvedValueOnce({
+      id: QUESTION_ID_2,
+      type: 'SINGLE_CHOICE',
+      order: 0,
+      timer: null,
+      answers: [{ id: ANSWER_ID_1, isCorrect: true }],
+    });
+
+    await expect(
+      authenticated.submit({
+        sessionId,
+        participantId,
+        questionId: QUESTION_ID_2,
+        answerIds: [ANSWER_ID_1],
+      }),
+    ).resolves.toMatchObject({ voteId: expect.any(String) });
+
+    expect(prismaMock.participant.findFirst).toHaveBeenCalledExactlyOnceWith({
+      where: { id: participantId, sessionId, rejoinCapabilityHash: hashCapability(token) },
+      include: { session: true },
+    });
   });
 
   it('lehnt Stimmen nach globalem Sessionende ab', async () => {

@@ -12,6 +12,7 @@ import {
   PDF_WORKER_RENDER_TIMEOUT_MIN_MS,
   PDF_WORKER_REQUEST_TIMEOUT_MS,
   PdfWorkerFatalRenderError,
+  PdfWorkerUncertainCompletionError,
   createPdfWorkerServer,
   renderPdfViaWorker,
   resolvePdfRenderMode,
@@ -273,14 +274,49 @@ describe('PDF-Worker-Transport', () => {
     });
     workers.push(worker);
 
-    await expect(renderPdfViaWorker({ html: 'hang', pdfOptions }, { socketPath })).rejects.toThrow(
-      'PDF-Worker antwortete mit Status 504',
-    );
+    const result = renderPdfViaWorker({ html: 'hang', pdfOptions }, { socketPath });
+    await expect(result).rejects.toBeInstanceOf(PdfWorkerUncertainCompletionError);
+    await expect(result).rejects.toThrow('PDF-Worker antwortete mit Status 504');
     expect(onRenderDeadline).toHaveBeenCalledOnce();
     await expect(getHealthStatus(socketPath)).resolves.toBe(503);
     await expect(
       renderPdfViaWorker({ html: 'after-timeout', pdfOptions }, { socketPath }),
     ).rejects.toThrow('PDF-Worker antwortete mit Status 503');
+  });
+
+  it('meldet bei einem App-Timeout ein ungewisses Ende, während der Worker weiter rendert', async () => {
+    const socketPath = await createSocketPath();
+    let finishRender!: () => void;
+    const renderInProgress = new Promise<void>((resolve) => {
+      finishRender = resolve;
+    });
+    let onRenderStarted!: () => void;
+    const renderStarted = new Promise<void>((resolve) => {
+      onRenderStarted = resolve;
+    });
+    const worker = await createPdfWorkerServer({
+      socketPath,
+      render: async () => {
+        onRenderStarted();
+        await renderInProgress;
+        return Buffer.from('%PDF');
+      },
+    });
+    workers.push(worker);
+
+    try {
+      const first = renderPdfViaWorker(
+        { html: 'first', pdfOptions },
+        { socketPath, timeoutMs: 200 },
+      );
+      await expect(Promise.race([first, renderStarted])).resolves.toBeUndefined();
+      await expect(first).rejects.toBeInstanceOf(PdfWorkerUncertainCompletionError);
+      await expect(
+        renderPdfViaWorker({ html: 'second', pdfOptions }, { socketPath }),
+      ).rejects.toThrow('PDF-Worker antwortete mit Status 503');
+    } finally {
+      finishRender();
+    }
   });
 
   it('bleibt nach fataler Bildnormalisierung unhealthy und nimmt keinen Folgejob an', async () => {

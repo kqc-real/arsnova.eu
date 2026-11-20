@@ -101,6 +101,15 @@ for cmd in git docker curl; do
   fi
 done
 
+lock="$REPO_ROOT/.arsnova-prod-operation.lock"
+if ! mkdir -- "$lock"; then
+  echo 'Fehler: Ein Produktions-Deploy oder Topologiewechsel läuft bereits.' >&2
+  exit 1
+fi
+trap 'rmdir -- "$lock"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 STATE_DIR="$(deploy_state_dir "$REPO_ROOT" "$DEPLOY_DIR")"
 PURGE_RUNNER_STATE_FILE="${STATE_DIR}/wordcloud-purge-runner.state"
 PURGE_RUNNER_CANDIDATE_STATE_FILE="${STATE_DIR}/wordcloud-purge-runner-candidate.state"
@@ -174,6 +183,25 @@ if [[ "$DEPLOY_MODE" == "normal" ]]; then
     exit 1
   fi
 fi
+
+# Das Deploy-Gate migriert und bereinigt erst nach dem Drain aller Writer.
+# Der Topologie-Rollback stellt auch die Nginx-Live-Route für Embedded-Yjs her.
+if ! container_states="$(docker ps --all --format '{{.Names}} {{.State}}')"; then
+  echo 'Fehler: Replikastatus vor Deploy nicht prüfbar.' >&2
+  exit 1
+fi
+while read -r name state; do
+  case "$name" in
+    arsnova-v3-app-b|arsnova-v3-app-c|arsnova-v3-yjs-relay)
+      case "$state" in
+        running|restarting|paused)
+          echo "Fehler: $name ist aktiv. Zuerst scripts/prod-replicas.sh rollback ausführen." >&2
+          exit 1
+          ;;
+      esac
+      ;;
+  esac
+done <<< "$container_states"
 
 export ARSNOVA_IMAGE="$DEPLOY_IMAGE"
 export DEPLOY_IMAGE

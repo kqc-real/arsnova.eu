@@ -1,4 +1,57 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const sharedRedisStore = new Map<string, { value: string; expiresAt: number }>();
+
+vi.mock('../redis', () => ({
+  getRedis: vi.fn(() => ({
+    get: vi.fn(async (key: string) => {
+      const entry = sharedRedisStore.get(key);
+      if (!entry) return null;
+      if (entry.expiresAt <= Date.now()) {
+        sharedRedisStore.delete(key);
+        return null;
+      }
+      return entry.value;
+    }),
+    set: vi.fn(
+      async (key: string, value: string, pxMode?: string, ttlMs?: number, nxMode?: string) => {
+        const existing = sharedRedisStore.get(key);
+        if (existing && existing.expiresAt <= Date.now()) {
+          sharedRedisStore.delete(key);
+        }
+        if (nxMode === 'NX' && sharedRedisStore.has(key)) {
+          return null;
+        }
+        const expiresAt =
+          Date.now() + (pxMode === 'PX' && typeof ttlMs === 'number' ? ttlMs : 60_000);
+        sharedRedisStore.set(key, { value, expiresAt });
+        return 'OK';
+      },
+    ),
+    exists: vi.fn(async (key: string) => {
+      const entry = sharedRedisStore.get(key);
+      if (!entry) return 0;
+      if (entry.expiresAt <= Date.now()) {
+        sharedRedisStore.delete(key);
+        return 0;
+      }
+      return 1;
+    }),
+    eval: vi.fn(
+      async (script: string, _numKeys: number, key: string, owner: string, ttlMs?: number) => {
+        const entry = sharedRedisStore.get(key);
+        if (!entry || entry.value !== owner) return 0;
+        if (script.includes('PEXPIRE')) {
+          entry.expiresAt = Date.now() + Number(ttlMs ?? 30_000);
+          return 1;
+        }
+        sharedRedisStore.delete(key);
+        return 1;
+      },
+    ),
+  })),
+}));
+
 import {
   QA_SUMMARY_CONTEXT_V2_CONTRACT_VERSION,
   QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION,
@@ -21,6 +74,7 @@ const enabledEnv = {
 } as NodeJS.ProcessEnv;
 
 afterEach(() => {
+  sharedRedisStore.clear();
   resetOpenWeightLlmRuntimeProbeForTests();
 });
 
@@ -686,5 +740,143 @@ describe('getOpenWeightLlmRuntimeProbe', () => {
     expect(result.tasks.qa_summary.status).toBe('ok');
     expect(result.tasks.learning_objectives.status).toBe('ok');
     expect(result.overall).toBe('degraded');
+  });
+
+  it('teilt den 5-Minuten-Cache im Replikabetrieb über Redis ohne zweite Slot-Belegung', async () => {
+    const sharedEnv = {
+      ...enabledEnv,
+      OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED: 'true',
+    } as NodeJS.ProcessEnv;
+    const topicLabel = vi.fn(async () => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: 1 as const,
+        taskType: 'topic_label' as const,
+        label: 'Replikat-Probe',
+        sourceIds: ['probe-s1'],
+      },
+      telemetry: {
+        taskType: 'topic_label' as const,
+        elapsedMs: 5,
+        model: 'qwen3-4b-instruct-2507-q4_k_m',
+        promptTokens: null,
+        completionTokens: null,
+      },
+    }));
+    const summaryV2 = vi.fn(async () => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: QA_SUMMARY_V2_SCHEMA_VERSION,
+        taskType: 'qa_summary' as const,
+        outputContract: QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION,
+        output: {
+          status: 'ready' as const,
+          statements: [],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+      },
+      telemetry: {
+        taskType: 'qa_summary' as const,
+        elapsedMs: 5,
+        model: null,
+        promptTokens: null,
+        completionTokens: null,
+      },
+    }));
+    const learning = vi.fn(async () => ({
+      status: 'completed' as const,
+      output: {
+        schemaVersion: 1 as const,
+        taskType: 'learning_objectives' as const,
+        objectives: [],
+        limitations: [],
+      },
+      telemetry: {
+        taskType: 'learning_objectives' as const,
+        elapsedMs: 5,
+        model: null,
+        promptTokens: null,
+        completionTokens: null,
+      },
+    }));
+
+    // Replikat A misst live und schreibt in Redis
+    const replicaA = await getOpenWeightLlmRuntimeProbe({
+      env: sharedEnv,
+      topicLabel: topicLabel as never,
+      summaryV2: summaryV2 as never,
+      learning: learning as never,
+    });
+    expect(replicaA.cache).toBe('live');
+    expect(replicaA.overall).toBe('ok');
+
+    // Replikat B hat leeren lokalen RAM-Cache, übernimmt aber das Redis-Ergebnis
+    resetOpenWeightLlmRuntimeProbeForTests();
+    const beforeLiveB = vi.fn(async () => undefined);
+    const replicaB = await getOpenWeightLlmRuntimeProbe({
+      env: sharedEnv,
+      beforeLiveMeasurement: beforeLiveB,
+      topicLabel: topicLabel as never,
+      summaryV2: summaryV2 as never,
+      learning: learning as never,
+    });
+    expect(replicaB.cache).toBe('fresh');
+    expect(replicaB.overall).toBe('ok');
+    expect(replicaB.checkedAt).toBe(replicaA.checkedAt);
+    expect(beforeLiveB).not.toHaveBeenCalled();
+    expect(topicLabel).toHaveBeenCalledTimes(1);
+  });
+
+  it('cacht transientes Follower-Busy während einer laufenden Nachbar-Probe nicht für 5 Minuten', async () => {
+    const sharedEnv = {
+      ...enabledEnv,
+      OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED: 'true',
+    } as NodeJS.ProcessEnv;
+    // Simuliert ein anderes Replikat, das aktuell den verteilten Inflight-Lease hält
+    sharedRedisStore.set('llm:probe:inflight:v1', {
+      value: 'other-replica-owner',
+      expiresAt: Date.now() + 30_000,
+    });
+    const topicLabel = vi.fn();
+
+    const followerWhileBusy = await getOpenWeightLlmRuntimeProbe({
+      env: sharedEnv,
+      sharedWaitTimeoutMs: 60,
+      sharedPollIntervalMs: 15,
+      topicLabel: topicLabel as never,
+    });
+    expect(followerWhileBusy.overall).toBe('busy');
+    expect(followerWhileBusy.tasks.topic_label.reason).toBe('probe_in_progress');
+    expect(topicLabel).not.toHaveBeenCalled();
+
+    // Sobald das führende Replikat fertig ist und das Ergebnis in Redis liegt, liefert der nächste Aufruf ok statt 5-Minuten-Busy
+    sharedRedisStore.delete('llm:probe:inflight:v1');
+    sharedRedisStore.set('llm:probe:cache:v1', {
+      value: JSON.stringify({
+        value: {
+          enabled: true,
+          overall: 'ok',
+          checkedAt: new Date().toISOString(),
+          cache: 'live',
+          modelAlias: 'qwen3-4b-instruct-2507-q4_k_m',
+          modelReported: 'qwen3-4b-instruct-2507-q4_k_m',
+          tasks: {
+            topic_label: { status: 'ok', elapsedMs: 10, reason: null },
+            qa_summary: { status: 'ok', elapsedMs: 20, reason: null },
+            learning_objectives: { status: 'ok', elapsedMs: 30, reason: null },
+          },
+        },
+        expiresAt: Date.now() + 300_000,
+      }),
+      expiresAt: Date.now() + 300_000,
+    });
+
+    const followerAfterFinish = await getOpenWeightLlmRuntimeProbe({
+      env: sharedEnv,
+      topicLabel: topicLabel as never,
+    });
+    expect(followerAfterFinish.overall).toBe('ok');
+    expect(followerAfterFinish.cache).toBe('fresh');
   });
 });
