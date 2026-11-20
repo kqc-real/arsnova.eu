@@ -82,6 +82,66 @@ Die beiden Statuspfade lauschen ausschließlich auf Loopback. Vor und nach
 der ersten Umschaltung die öffentliche Website, tRPC und die
 WebSocket-Pfade über die Produktionsdomain prüfen.
 
+## Automatische Releases aus GitHub Actions
+
+Für den bereits eingerichteten Nginx die Freigabe einmalig als Administrator
+installieren. Die beiden Dateien aus dem Release-Commit übernehmen.
+GitHub Actions meldet sich weiterhin als `deploy` an. Der
+root-eigene Helfer nimmt ausschließlich feste Pool-Modi an und prüft
+seine Konfiguration vor jedem Reload. Docker, Git und die Deploy-State-Dateien
+bleiben unter dem bestehenden Deploy-Account.
+
+```bash
+sudo install -o root -g root -m 0755 deploy/production/nginx-pools.sh /usr/local/sbin/arsnova-nginx-pools
+sudo visudo -cf deploy/production/arsnova-nginx-pools.sudoers
+sudo install -o root -g root -m 0440 deploy/production/arsnova-nginx-pools.sudoers /etc/sudoers.d/arsnova-nginx-pools
+# Als deploy im neuen Release-Checkout prüfen. Führt keinen Reload durch.
+./scripts/prod-replicas.sh check
+```
+
+Die GitHub-Umgebung `production` und `DEPLOY_ENABLED=true` bleiben
+Voraussetzungen. Für einen eingerichteten Host mit verifiziertem
+`current.state` führt der Release-Runner die gesamte Sequenz im selben
+SSH-Job und unter derselben Produktionssperre aus:
+
+1. Ziel-Checkout, freigegebenen Image-Digest, bisherigen Deploy-State und
+   passwortlosen Zugriff auf den Nginx-Helfer prüfen.
+2. Auf App A mit eingebettetem Yjs wechseln, weitere Writer und den alten
+   Relay stoppen. Danach den bestehenden Digest-Deploy einschließlich
+   Migrationen, Writer-Drain und Purge ausführen.
+3. App A, App B und den Relay aus demselben Digest starten. Nginx erst nach
+   erfolgreichem DB-, HTTP-, WebSocket-, Yjs- und Redis-Readiness-Check
+   auf zwei Apps mit je 30 DB-Verbindungen schalten. Ein zuvor bewusst
+   aktivierter `triple`-Modus wird mit 3 × 20 wieder aktiviert.
+4. Die öffentliche HTTPS-Adresse über Nginx mit dem bestehenden
+   Production-Serve-Smoke prüfen. Scheitert ein Schritt nach Wechselbeginn,
+   den vorigen Digest und die vor dem Release aktive Topologie wiederherstellen.
+   Der Job bleibt bei einem zurückgerollten Release rot. Ein unterbrochener
+   Wechsel im Modus `primary` wird zum Standardmodus `dual` vervollständigt.
+
+Den ersten Digest-Deploy einer frischen Installation weiterhin mit
+`scripts/deploy.sh` durchführen. Automatische Releases planen, wenn
+laufende Sessions kurz unterbrochen werden dürfen. Die Apps und der Relay
+starten neu und WebSockets verbinden sich erneut. Ein Image-Rollback
+setzt keine Datenbankmigrationen zurück.
+
+### Staging-Nachweis
+
+Der isolierte Release-Test am 20. November 2026 verwendete die beiden
+Produktions-Compose-Dateien, eine lokale TLS-Test-Registry mit getrennten
+Digests, PostgreSQL, Redis und Nginx. Der Runner lief als `deploy` mit der
+begrenzten sudoers-Regel. Der erfolgreiche Release aktivierte zwei Apps mit
+je 30 Verbindungen, den Relay aus demselben Digest und zwei Subscriber je
+Redis-Kanal. Der fehlende Nginx-Zugriff brach vor dem Containerwechsel ab.
+Ein eingebauter Fehler im HTTPS-Smoke löste den Image- und Topologie-Rollback
+aus. Der Rückweg funktionierte auch auf den älteren Checkout ohne
+Release-Runner. PostgreSQL und Redis behielten ihre Container und die
+geprüften Testdaten.
+
+`node --test scripts/ci/*.test.mjs scripts/deploy/*.test.mjs` prüft zusätzlich
+die Rollout-Reihenfolge, konkurrierende Aufrufe und den Rückweg vor sowie
+nach der Rotation des Deploy-States.
+
 ## Umschalten und zurückrollen
 
 Die Befehle im Produktionscheckout ausführen. Der ausführende Operator
@@ -117,13 +177,12 @@ DB-Pools wird auch App A neu erstellt. Bestehende WebSockets müssen sich
 erneut verbinden. Yjs wechselt beim ersten Start und beim Rückweg den
 Relay-Prozess. PostgreSQL, Redis und ihre Volumes bleiben im selben Projekt.
 
-Image-Deploy, Image-Rollback und Recover erwarten den Einzelbetrieb. Zuerst
-`prod-replicas.sh rollback` ausführen, danach den normalen Digest-Deploy
-starten und bei Bedarf den Replikabetrieb erneut aktivieren. Der reguläre
-Deploy und Topologiewechsel sperren einander. Aktivierung und spätere
-Container-Neustarts im Replikabetrieb verwenden direkt den Backend-Prozess,
-damit kein weiterer Writer parallel Migrationen oder den Rollout-Purge
-ausführt. Für Änderungen an der App-Topologie diesen Operator verwenden.
+Bei einem manuellen Aufruf von `scripts/deploy.sh`, `--rollback` oder
+`--recover` zuerst mit `prod-replicas.sh rollback` in den Einzelbetrieb
+wechseln. Der automatische Release-Runner führt die Topologieschritte selbst
+aus. Aktivierung und spätere Container-Neustarts im Replikabetrieb verwenden
+direkt den Backend-Prozess. Damit führt kein weiterer Writer parallel
+Migrationen oder den Rollout-Purge aus.
 
 ### App-Umgebung ändern
 

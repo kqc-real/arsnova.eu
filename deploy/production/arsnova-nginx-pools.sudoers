@@ -1,0 +1,6 @@
+Cmnd_Alias ARSNOVA_NGINX_POOLS = /usr/local/sbin/arsnova-nginx-pools check, \
+    /usr/local/sbin/arsnova-nginx-pools apply single, \
+    /usr/local/sbin/arsnova-nginx-pools apply primary, \
+    /usr/local/sbin/arsnova-nginx-pools apply dual, \
+    /usr/local/sbin/arsnova-nginx-pools apply triple
+deploy ALL=(root) NOPASSWD: NOSETENV: ARSNOVA_NGINX_POOLS

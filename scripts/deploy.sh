@@ -101,14 +101,9 @@ for cmd in git docker curl; do
   fi
 done
 
-lock="$REPO_ROOT/.arsnova-prod-operation.lock"
-if ! mkdir -- "$lock"; then
-  echo 'Fehler: Ein Produktions-Deploy oder Topologiewechsel läuft bereits.' >&2
-  exit 1
-fi
-trap 'rmdir -- "$lock"' EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/deploy/lib-operation-lock.sh"
+lock_operation "$REPO_ROOT"
 
 STATE_DIR="$(deploy_state_dir "$REPO_ROOT" "$DEPLOY_DIR")"
 PURGE_RUNNER_STATE_FILE="${STATE_DIR}/wordcloud-purge-runner.state"
