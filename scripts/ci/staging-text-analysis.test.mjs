@@ -5,13 +5,20 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { checkTextAnalysis } from '../../deploy/staging/text-analysis-readiness.mjs';
+import {
+  checkTextAnalysis,
+  checkTextAnalysisHealth,
+} from '../../deploy/text-analysis-readiness.mjs';
 
 async function sidecars(t, { encoderLocales, italianLemma = 'andare' } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'n-'));
   const spacySocket = join(directory, 'nlp');
   const encoderSocket = join(directory, 'e5');
   const nlp = createServer(async (req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(204).end();
+      return;
+    }
     assert.equal(req.url, '/normalize');
     const body = await readJson(req);
     const token =
@@ -25,6 +32,10 @@ async function sidecars(t, { encoderLocales, italianLemma = 'andare' } = {}) {
     );
   });
   const encoder = createServer(async (req, res) => {
+    if (req.url === '/health') {
+      res.writeHead(204).end();
+      return;
+    }
     assert.equal(req.url, '/embed');
     const body = await readJson(req);
     if (encoderLocales && !encoderLocales.includes(body.locale)) {
@@ -70,4 +81,14 @@ test('Staging bricht bei einem auf de/en begrenzten Encoder ab', async (t) => {
 test('Staging erkennt fehlende italienische Lemmatisierung trotz gültiger HTTP-Antwort', async (t) => {
   const config = await sidecars(t, { italianLemma: 'andavano' });
   await assert.rejects(checkTextAnalysis(config), /it spaCy: Keine gültigen Lemmata/);
+});
+
+test('Rollback bestätigt die Socket-Readiness des bisherigen Sidecar-Paars', async (t) => {
+  const config = await sidecars(t, { encoderLocales: ['de', 'en'], italianLemma: 'andavano' });
+  await checkTextAnalysisHealth(config);
+  await assert.rejects(checkTextAnalysis(config), /fr Encoder: HTTP 400/);
+  await assert.rejects(
+    checkTextAnalysisHealth({ ...config, encoderSocket: config.encoderSocket + '-missing' }),
+    /Encoder:/,
+  );
 });

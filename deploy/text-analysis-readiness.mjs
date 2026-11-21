@@ -11,21 +11,33 @@ const samples = {
   it: 'Le studentesse andavano a leggere diversi esempi.',
 };
 
-function post(socketPath, path, payload) {
-  const body = JSON.stringify(payload);
+function callSidecar(socketPath, path, payload) {
+  const body = payload === undefined ? undefined : JSON.stringify(payload);
   return new Promise((resolve, reject) => {
     const req = request(
       {
         socketPath,
         path,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        method: body === undefined ? 'GET' : 'POST',
+        headers:
+          body === undefined
+            ? undefined
+            : {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(body),
+              },
         signal: AbortSignal.timeout(8_000),
       },
       (response) => {
-        if (response.statusCode !== 200) {
+        const expectedStatus = body === undefined ? 204 : 200;
+        if (response.statusCode !== expectedStatus) {
           response.resume();
           reject(new Error(`HTTP ${response.statusCode}`));
+          return;
+        }
+        if (body === undefined) {
+          response.resume();
+          resolve();
           return;
         }
         let data = '';
@@ -47,7 +59,7 @@ function post(socketPath, path, payload) {
 }
 
 async function checkNormalization(socket, locale, item) {
-  const result = await post(socket, '/normalize', { locale, texts: [item] });
+  const result = await callSidecar(socket, '/normalize', { locale, texts: [item] });
   const tokens = result?.items?.[0]?.tokens;
   if (
     result?.locale !== locale ||
@@ -65,7 +77,7 @@ async function checkNormalization(socket, locale, item) {
 
 async function checkEncoder(socket, locale, item) {
   const snapshotHash = createHash('sha256').update(item.text).digest('hex');
-  const result = await post(socket, '/embed', { locale, snapshotHash, items: [item] });
+  const result = await callSidecar(socket, '/embed', { locale, snapshotHash, items: [item] });
   const vector = result?.items?.[0]?.embedding;
   if (
     !result?.modelId ||
@@ -97,9 +109,28 @@ export async function checkTextAnalysis({
   return results;
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+export async function checkTextAnalysisHealth({
+  spacySocket = '/run/spacy/nlp.sock',
+  encoderSocket = '/run/wordcloud-encoder/encoder.sock',
+} = {}) {
+  for (const [service, socket] of [
+    ['spaCy', spacySocket],
+    ['Encoder', encoderSocket],
+  ]) {
+    await callSidecar(socket, '/health').catch((error) => {
+      throw new Error(`${service}: ${error.message}`);
+    });
+  }
+}
+
+if (process.argv[1] === '-' || process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
-    console.log(JSON.stringify(await checkTextAnalysis()));
+    if (process.argv[2] === '--health-only') {
+      await checkTextAnalysisHealth();
+      console.log('spaCy und Encoder sind über ihre Sockets erreichbar.');
+    } else {
+      console.log(JSON.stringify(await checkTextAnalysis()));
+    }
   } catch (error) {
     console.error('Textanalyse-Readiness fehlgeschlagen: ' + error.message);
     process.exitCode = 1;

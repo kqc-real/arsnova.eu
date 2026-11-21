@@ -211,6 +211,9 @@ compose_for_image() {
   if [[ -f "$IMAGE_ENV_FILE" ]]; then
     env_args+=("--env-file" "$IMAGE_ENV_FILE")
   fi
+  if [[ -f "$REPO_ROOT/.deploy-state/text-sidecars.env" ]]; then
+    env_args+=("--env-file" "$REPO_ROOT/.deploy-state/text-sidecars.env")
+  fi
   ARSNOVA_IMAGE="$image" docker compose -f "$COMPOSE_FILE" "${env_args[@]}" "$@"
 }
 
