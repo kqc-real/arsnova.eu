@@ -1,17 +1,17 @@
 # A1 – Aktuelle Versuchsreihe und Laboraufbau
 
 Stand: 15.11.2026. Die einzige aktuelle Reihe ist
-[reihe-main-a19ca70f-20261115-122547](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/). Die
-[Auswertung](./1A-auswertung.md) enthält Befunde, Laborgrenzen und Betriebsentscheidung;
+[reihe-main-a19ca70f-20261115-122547](../../evidenz/1A/reihe-main-a19ca70f-20261115-122547/). Die
+[Auswertung](../1A-auswertung.md) enthält Befunde, Laborgrenzen und Betriebsentscheidung;
 die [Ausführungsanleitung](./1A-neue-messreihe.md) enthält die vollständige Befehlsfolge.
 
 ## Baseline und Versuchsvertrag
 
 Die Anwendung wurde unverändert aus Fork-main `a19ca70ff37dcb5510a77ab2745c06b70ccc3565` gebaut.
-Der [Vorabvertrag](./1A-experiment-contract.md) bestimmt Hypothesen und Schwellen;
-der [datierte Nachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md)
+Der [Vorabvertrag](../1A-experiment-contract.md) bestimmt Hypothesen und Schwellen;
+der [datierte Nachtrag](../../specs/2026-11-14-1a-messreihe-main-a19ca70f.md)
 legt die aktuelle Baseline und das übernommene PDF-Worker-Limit von 256 PIDs fest.
-Die [Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json)
+Die [Reihendefinition](../../specs/2026-11-14-1a-messreihe-main-a19ca70f.json)
 bindet diese Quellen. Vertrag und Nachtrag werden nach der Messung nicht umgeschrieben.
 
 ## Aufbau und konstante Bedingungen
@@ -46,6 +46,6 @@ Nach jeder Variante werden NLP-deaktivierte Baseline, direkter Socket, Limits,
 lexikalische Analyse und Live-Beitritt geprüft. Der passende vollständige Vorlauf
 ist vor der Hauptreihe verpflichtend; Änderungen an Werkzeugen oder Images benötigen einen neuen Vorlauf.
 
-Der [Evidenzindex](./evidenz/1A/README.md) erklärt Dateien und Integrität.
+Der [Evidenzindex](../../evidenz/1A/README.md) erklärt Dateien und Integrität.
 Alte und abgebrochene Reihen sowie die frühere Compose-Rekonstruktion wurden beim
 Clean-up entfernt. Die aktuelle Reihe benötigt keine nachträgliche Rekonstruktion.

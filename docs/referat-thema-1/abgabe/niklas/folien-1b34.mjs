@@ -574,7 +574,7 @@ export function folien1B34(
     zeitS: 55,
     aufbau: 1,
     marke: '1b-s1',
-    quelle: `${zeile(s1l)}; ${zeile(s1s)} · ${s1l.rechner}, ohne CPU-Pinning · S1 auf llm-host (${fmt(p.vmVcpu ?? 8)} vCPU, App-CPUs ${p.appCpuSet ?? '0,1'}, Encoder ${p.encoderCpus ?? 2} CPUs, ${p.protocol ?? 'http'}, Treiber auf llm-host) gegen Zwei-Host-Normal (Label ${zeile(nl)}; Summary ${zeile(ns)}), Kriterium nur beschreibend (1B-3u4-Planung.md, Nachtrag S1, Commit 4b135fe8); ${fmt(s1Fehler)} Fehler bei ${fmt(s1Geplant)} Aktionen · Entscheidung und Aufwand: adr/1B-020-zweite-rolle-betrieblich-begruenden.md (qualitativ, keine Stunden, Preise oder Energie) · ${pruefung}`,
+    quelle: `${zeile(s1l)}; ${zeile(s1s)} · ${s1l.rechner}, ohne CPU-Pinning · S1 auf llm-host (${fmt(p.vmVcpu ?? 8)} vCPU, App-CPUs ${p.appCpuSet ?? '0,1'}, Encoder ${p.encoderCpus ?? 2} CPUs, ${p.protocol ?? 'http'}, Treiber auf llm-host) gegen Zwei-Host-Normal (Label ${zeile(nl)}; Summary ${zeile(ns)}), Kriterium nur beschreibend (1B/archiv/1B-3u4-Planung.md, Nachtrag S1, Commit 4b135fe8); ${fmt(s1Fehler)} Fehler bei ${fmt(s1Geplant)} Aktionen · Entscheidung und Aufwand: adr/1B-020-zweite-rolle-betrieblich-begruenden.md (qualitativ, keine Stunden, Preise oder Energie) · ${pruefung}`,
     fuss: quellenzeile([
       ['schneider2026', 'ADR 1B-020, S1-Protokolle'],
       ['arsnova2026adr0035', 'Kap. 2.1'],

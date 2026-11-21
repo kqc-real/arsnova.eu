@@ -33,7 +33,7 @@ import { privat } from '../jonas/notizen.mjs';
 
 const S = 'schneider2026';
 /**
- * Inferenzdauer eines LLM-Auftrags in Jonas' Labor (1B-ergebnis.md: warm im Median 148,6 s, ThinkPad P50,
+ * Inferenzdauer eines LLM-Auftrags in Jonas' Labor (1B/1B-ergebnis.md: warm im Median 148,6 s, ThinkPad P50,
  * Commit 8e9d1317), auf Minuten gerundet; nur für die Übergabe an Jonas auf N10. Der Test prüft die Quelle.
  */
 export const LLM_MIN_WARM = Math.round(148.6 / 60 / 0.5) * 0.5;
@@ -80,12 +80,12 @@ const ZITATE = {
     ['ulrich2016', 'Abschnitt Test Noncritical Backends'],
   ],
   N10: [
-    [S, '1A-auswertung.md'],
+    [S, '1A/1A-auswertung.md'],
     ['dean2013', 'S. 76'],
-    ['weirauch2026c', '1B-ergebnis.md'],
+    ['weirauch2026c', '1B/1B-ergebnis.md'],
   ],
   RN2: [
-    [S, '1A-auswertung.md'],
+    [S, '1A/1A-auswertung.md'],
     ['papadopoulos2021', 'Kap. 2.3'],
   ],
 };
@@ -271,7 +271,7 @@ export function folien1A(d) {
     stichpunkte: privat('N4.stichpunkte', { fmt, k, rel, abs, datum, d, vr }),
     zeitS: 50,
     kurzfassung: true,
-    quelle: `1A-experiment-contract.md (Hypothesen H1, H2); 1A-Versuchsvertrag (Regeltabelle, „Alle fünf Blöcke“; SHA-256 ${d.vorab.vertragSha}… = contractSha256 aller ${d.live.laeufe} Laufmanifeste); Git: ${d.vorab.kette.map((x) => `${x.commit} ${x.datum}`).join(', ')}; erster Lauf ${d.vorab.ersterLauf} (lauf.json manifest.startAt); erste Reihe: Daten ${vr.commitDaten} (${vr.datumDaten}), Auswertung ${vr.commitAuswertung} (${vr.datumAuswertung}), Baseline ${vr.baseline}, gleicher Vertrag, Seed ${vr.gleicherSeed}, Fixture ${vr.fixtureSha}…, H1 ${vr.h1.fehl}/${vr.h1.gesamt}, H2 ${vr.h2.fehl}/${vr.h2.gesamt}, ${vr.absolutFehl} absolute Verletzungen; aus dem Arbeitsbaum entfernt in ab1619e7 · ${umgebung}`,
+    quelle: `1A/1A-experiment-contract.md (Hypothesen H1, H2); 1A-Versuchsvertrag (Regeltabelle, „Alle fünf Blöcke“; SHA-256 ${d.vorab.vertragSha}… = contractSha256 aller ${d.live.laeufe} Laufmanifeste); Git: ${d.vorab.kette.map((x) => `${x.commit} ${x.datum}`).join(', ')}; erster Lauf ${d.vorab.ersterLauf} (lauf.json manifest.startAt); erste Reihe: Daten ${vr.commitDaten} (${vr.datumDaten}), Auswertung ${vr.commitAuswertung} (${vr.datumAuswertung}), Baseline ${vr.baseline}, gleicher Vertrag, Seed ${vr.gleicherSeed}, Fixture ${vr.fixtureSha}…, H1 ${vr.h1.fehl}/${vr.h1.gesamt}, H2 ${vr.h2.fehl}/${vr.h2.gesamt}, ${vr.absolutFehl} absolute Verletzungen; aus dem Arbeitsbaum entfernt in ab1619e7 · ${umgebung}`,
   });
 
   // ------------------------------------------------------------ N5 Live-Aktionen
@@ -404,7 +404,7 @@ export function folien1A(d) {
     // Wegmarke: Entscheidung über das Ergebnis, das Lehrende sehen (lexikalische Wortwolke bleibt): Ende des Wegs.
     marke: '1a-wortwolke',
     quelle: q(
-      `1A-auswertung.md (Entscheidung, Budget und Rückweg, Grenzen); 1A-Versuchsvertrag (Gegenalternative); ${H.datei} hypotheses; NLP_ENABLED=false: .env.production.example Z. 205 (docker-compose.prod.yml liest es von dort, Default false); LLM-Dauer: 1B-ergebnis.md, warm im Median 148,6 s je Auftrag (ThinkPad P50, Commit 8e9d1317) ≈ 2,5 min`,
+      `1A/1A-auswertung.md (Entscheidung, Budget und Rückweg, Grenzen); 1A-Versuchsvertrag (Gegenalternative); ${H.datei} hypotheses; NLP_ENABLED=false: .env.production.example Z. 205 (docker-compose.prod.yml liest es von dort, Default false); LLM-Dauer: 1B/1B-ergebnis.md, warm im Median 148,6 s je Auftrag (ThinkPad P50, Commit 8e9d1317) ≈ 2,5 min`,
     ),
   });
 
@@ -573,7 +573,7 @@ export function folien1A(d) {
     ),
     notiz: privat('RN2.notiz', {}),
     stichpunkte: privat('RN2.stichpunkte', {}),
-    quelle: `1A-auswertung.md (Grenzen), 1A-eigenanteil.md, 00-rahmen-und-pruefung.md (Freigabe des aktuellen main) · ${umgebung}`,
+    quelle: `1A/1A-auswertung.md (Grenzen), 1A/1A-eigenanteil.md, rahmen/00-rahmen-und-pruefung.md (Freigabe des aktuellen main) · ${umgebung}`,
   });
   // Seit 2026-11-17 wieder in der Reserve (Zeit für 1B Schritte 3–4, M1–M4): N6b als RN1, N8 als RN4.
   // Inhalt, Notiz und Fuß bleiben; Reservefolien haben keine Redezeit.

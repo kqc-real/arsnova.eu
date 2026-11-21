@@ -382,7 +382,7 @@ export function makros1B34(d) {
 
 /**
  * Festwerte aus Projektquellen, je per Muster aus dem Wortlaut gelesen (keine Literale im Handout): Zielhost und
- * RAM-Schätzung aus ADR-0035 (Abschn. Kontext, 2.1), Inferenzdauer eines LLM-Auftrags aus Jonas' 1B-ergebnis.md.
+ * RAM-Schätzung aus ADR-0035 (Abschn. Kontext, 2.1), Inferenzdauer eines LLM-Auftrags aus Jonas' 1B/1B-ergebnis.md.
  */
 export function makrosQuellen(root = ROOT) {
   const adr = readFileSync(
@@ -393,10 +393,10 @@ export function makrosQuellen(root = ROOT) {
   const ram = adr.match(
     /~(\d+)–(\d+) GB Baseline plus spaCy (\d+) GB, Encoder (\d+) GB, PDF-Worker\s+(\d+) GB\) trägt \*\*kein\*\* zusätzliches ~(\d+)-GB-LLM/,
   );
-  const ergebnis = readFileSync(join(root, '1B-ergebnis.md'), 'utf8');
+  const ergebnis = readFileSync(join(root, '1B/1B-ergebnis.md'), 'utf8');
   const warm = ergebnis.match(/warm \(Prompt aus dem Cache, Aufträge 2–10\) im Median ([\d,]+) s/);
   if (!host || !ram || !warm)
-    throw new Error('handout-1a: Festwert in ADR-0035 oder 1B-ergebnis.md nicht gefunden');
+    throw new Error('handout-1a: Festwert in ADR-0035 oder 1B/1B-ergebnis.md nicht gefunden');
   const warmS = Number(warm[1].replace(',', '.'));
   return {
     adrZielVcpu: host[1],

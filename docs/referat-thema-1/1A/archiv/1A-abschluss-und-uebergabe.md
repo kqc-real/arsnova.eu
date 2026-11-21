@@ -6,8 +6,8 @@ Behauptung einer bereits erfolgten Bestätigung.
 
 ## Technischer Nachweis
 
-- [Aktuelle Reihe](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/): vollständiger Vorlauf und 25 Messläufe auf main `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`.
-- [Auswertung](./1A-auswertung.md): alle 80 Vergleiche und begründete Entscheidung.
+- [Aktuelle Reihe](../../evidenz/1A/reihe-main-a19ca70f-20261115-122547/): vollständiger Vorlauf und 25 Messläufe auf main `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`.
+- [Auswertung](../1A-auswertung.md): alle 80 Vergleiche und begründete Entscheidung.
 - Compose: 50 tatsächlich vor den Phasen aufgelöste bereinigte Aufnahmen für die Hauptreihe;
   keine verbleibende Rekonstruktionslücke dieser Reihe.
 - [Prüfstand](./1A-pruefstand.md): aktuelle technische Prüfungen und bekannte Projektgrenzen.
@@ -23,7 +23,7 @@ diese persönliche Prüfung nicht.
 - [ ] Einen Vergleich in `live-vergleiche.csv` anhand der Rohstichproben
       nachvollzogen: aufsteigend sortieren, Rang `ceil(0.95 × n)`, anschließend
       relative **und** absolute Grenze vor Rundung prüfen.
-- [ ] Erklärt, warum die [aktuellen Grenzverletzungen](./1A-auswertung.md#live-aktionen-und-hypothesen)
+- [ ] Erklärt, warum die [aktuellen Grenzverletzungen](../1A-auswertung.md#live-aktionen-und-hypothesen)
       H1 und H2 nicht bestätigen, einschließlich der absoluten V3-Verletzungen.
 - [ ] Erklärt, warum V4 mit `forwarded: 0` Timeout/Rückstau/Fallback untersucht
       und keine langsam rechnende spaCy-Inferenz nachweist.
@@ -32,7 +32,7 @@ diese persönliche Prüfung nicht.
 - [ ] Gültigkeitsgrenzen geprüft: WSL2, gemeinsamer Lastgenerator-/Dockerhost,
       Beitrittswelle, synthetischer Wortschatz, kein Rendering-/LLM-Nachweis.
 - [ ] Kosten-/Betriebsfolge und lexikalische Gegenalternative fachlich vertreten.
-- [ ] [Handout und Folien](./abgabe/README.md) vollständig gelesen und anhand
+- [ ] [Handout und Folien](../../abgabe/README.md) vollständig gelesen und anhand
       der Messdaten, Quellen und tatsächlichen Prüfungsanforderungen freigegeben.
 
 **Persönlich geprüft von / Datum / Anmerkungen:** noch offen.
@@ -41,10 +41,10 @@ diese persönliche Prüfung nicht.
 
 | Artefakt           | Version und Vertrag                                                                                                                                       | Übergabezweck                                                                                                                                  |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Gemeinsame Fixture | `scripts/load/fixtures/resource-isolation-v1.manifest.json`; Seed `438314513`, SHA-256 `da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded` | Sechs Referenzfragen plus Gegenfälle; Originalzustand und A1-Analyseprojektion gemäß [Fixture-Dokumentation](./1A-fixture.md) unterscheiden.   |
+| Gemeinsame Fixture | `scripts/load/fixtures/resource-isolation-v1.manifest.json`; Seed `438314513`, SHA-256 `da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded` | Sechs Referenzfragen plus Gegenfälle; Originalzustand und A1-Analyseprojektion gemäß [Fixture-Dokumentation](../1A-fixture.md) unterscheiden.  |
 | Live-Messung       | `scripts/load/artillery/processor.mjs`, `scripts/load/lib/artillery-live-messungen.mjs`; [Messvertrag](./1A-live-messungen.md)                            | Roh-Laufzeiten, p50/p95/p99, Fehler und geplante Arbeit für Beitritt, Quiz, Q&A und Tempo; keine dauerhafte 500-Client-Parallelität behaupten. |
 | Analyse-Last       | `scripts/load/host-analyze-loop.mjs`; [Anleitung](./1A-analyse-last.md)                                                                                   | Reguläre Host-Autorisierung, getrennte Sessions und konstanter Korpus; keine Tokens in Übergabeunterlagen.                                     |
-| A1-Ergebnisse      | Baseline `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`, [Auswertung](./1A-auswertung.md)                                                                     | Als A1-Nachweis zitieren; keine Messung der privaten LLM-Rolle oder des vollständigen 1C-Kontextpfads.                                         |
+| A1-Ergebnisse      | Baseline `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`, [Auswertung](../1A-auswertung.md)                                                                    | Als A1-Nachweis zitieren; keine Messung der privaten LLM-Rolle oder des vollständigen 1C-Kontextpfads.                                         |
 
 - [ ] Jonas hat die benötigten Artefakte erhalten und die tatsächlich verwendete
       Version beziehungsweise den Commit festgehalten.
@@ -81,7 +81,7 @@ Wesentliche Aufträge aus diesem Chat, **sinngemäß zusammengefasst**:
    entfernen und lebende Dokumentation sowie Abgabeentwürfe auf die neue Reihe umstellen.
 
 Substanziell übernommene Beiträge und Git-Prüfgrundlage stehen im
-[Eigenanteilsnachweis](./1A-eigenanteil.md). Keine ausschließlich manuelle
+[Eigenanteilsnachweis](../1A-eigenanteil.md). Keine ausschließlich manuelle
 Erstellung durch Niklas wird behauptet.
 
 - [ ] Erlaubten KI-Umfang, Zitierweise und erforderliche Erklärung anhand des
@@ -92,7 +92,7 @@ Erstellung durch Niklas wird behauptet.
 
 ## GitHub-Abschluss
 
-Die [lokale PR-Beschreibung](./1A-pr-beschreibung.md) folgt dem Repositorytemplate.
+Die [lokale PR-Beschreibung](https://github.com/NiklasSkulll/arsnova.eu/blob/b02cdbf8/docs/referat-thema-1/1A-pr-beschreibung.md) folgt dem Repositorytemplate.
 Niklas hat Commit und Push der aktuellen Messung im Chat bestätigt.
 Die anschließende Bereinigung wurde hier weder committet noch gepusht oder gemergt.
 Ein früherer Reviewstand ersetzt keine unabhängige Prüfung des endgültigen Gesamtdiffs.

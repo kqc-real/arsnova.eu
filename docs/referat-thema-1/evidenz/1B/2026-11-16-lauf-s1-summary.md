@@ -34,7 +34,7 @@ Modell-SHA-256 `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597
 
 ## Design und Konfiguration
 
-Vorab festgelegt im [S1-Plan](../../1B-3u4-Planung.md#s1-label-2026-11-16-ausgewertet):
+Vorab festgelegt im [S1-Plan](../../1B/archiv/1B-3u4-Planung.md#s1-label-2026-11-16-ausgewertet):
 keine zusätzlichen Live-Fehler, p95 je Aktion höchstens 110 % der
 Zwei-Host-Normalreferenz; Ressourcen und Modell-/Fallback-Ergebnis erfassen.
 Nur beschreibender Konsolidierungsvergleich bei abweichenden Ressourcen.

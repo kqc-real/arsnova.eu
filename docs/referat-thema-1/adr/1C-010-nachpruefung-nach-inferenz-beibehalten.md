@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Auftragsschritt 4 fragt nach der Snapshot- und Hashgrenze. `processJob` baut nach der Inferenz den Kontext ein drittes Mal auf (prepare (3)) und verwirft die Modellantwort als `source_changed`, wenn sich der `snapshotHash` gegenüber prepare (2) geändert hat ([Dossier 6.3](../1C-kontext-und-adapterpfad.md#63-processjob-z-292402)). Zusätzlich prüft der Lesepfad `getQaSummaryRuntimeFresh` beim Abruf ([Dossier 6.5](../1C-kontext-und-adapterpfad.md#65-re-validierung-vor-auslieferung-getqasummaryruntimefresh-z-418440)). Invariante: Ein ausgeliefertes `ready` entspricht dem Datenstand. Offen war, ob prepare (3) neben dem Lesepfad seine Kosten wert ist. Der Autor hat am 2026-10-24 nach der vorab festgelegten Regel entschieden ([Teil 2, Entscheidung 1](../evidenz/1C/2026-10-24-teil2.md#entscheidung-und-empfehlung-1c)).
+Auftragsschritt 4 fragt nach der Snapshot- und Hashgrenze. `processJob` baut nach der Inferenz den Kontext ein drittes Mal auf (prepare (3)) und verwirft die Modellantwort als `source_changed`, wenn sich der `snapshotHash` gegenüber prepare (2) geändert hat ([Dossier 6.3](../1C/1C-kontext-und-adapterpfad.md#63-processjob-z-292402)). Zusätzlich prüft der Lesepfad `getQaSummaryRuntimeFresh` beim Abruf ([Dossier 6.5](../1C/1C-kontext-und-adapterpfad.md#65-re-validierung-vor-auslieferung-getqasummaryruntimefresh-z-418440)). Invariante: Ein ausgeliefertes `ready` entspricht dem Datenstand. Offen war, ob prepare (3) neben dem Lesepfad seine Kosten wert ist. Der Autor hat am 2026-10-24 nach der vorab festgelegten Regel entschieden ([Teil 2, Entscheidung 1](../evidenz/1C/2026-10-24-teil2.md#entscheidung-und-empfehlung-1c)).
 
 ## Entscheidung
 

@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Die Prüfungsvorlage verlangt, dass die Lehrperson den produktiv eingesetzten Release-Tag und Commit fixiert ([Rahmendokument](../00-rahmen-und-pruefung.md#baseline-tag-v130-oder-aktueller-main)). Im Repository gibt es den Tag `v1.3.0` (`87c39334`, 2026-10-08). Der Stand der ersten Dossiers (`27966e75`) liegt 131 Commits später und weicht in zentralen Werten ab, etwa bei `--ctx-size` (4096 gegen 8192) und beim Default von `QA_SUMMARY_TIMEOUT_MS` (8000 gegen 90000); die Tabelle steht im [Rahmendokument](../00-rahmen-und-pruefung.md#baseline-tag-v130-oder-aktueller-main). Offen war, gegen welchen Stand gemessen wird (offene Frage 3 im [Rahmendokument](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
+Die Prüfungsvorlage verlangt, dass die Lehrperson den produktiv eingesetzten Release-Tag und Commit fixiert ([Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#baseline-tag-v130-oder-aktueller-main)). Im Repository gibt es den Tag `v1.3.0` (`87c39334`, 2026-10-08). Der Stand der ersten Dossiers (`27966e75`) liegt 131 Commits später und weicht in zentralen Werten ab, etwa bei `--ctx-size` (4096 gegen 8192) und beim Default von `QA_SUMMARY_TIMEOUT_MS` (8000 gegen 90000); die Tabelle steht im [Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#baseline-tag-v130-oder-aktueller-main). Offen war, gegen welchen Stand gemessen wird (offene Frage 3 im [Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
 
 ## Entscheidung
 
@@ -13,7 +13,7 @@ Gemessen wird der aktuelle `main`, nicht `v1.3.0`. Grundlage ist die E-Mail des 
 
 ## Alternativen
 
-- **`v1.3.0` als Baseline.** Verworfen: Die Antwort des Prüfers zielt auf den aktuellen Stand; außerdem fehlen im Tag spätere Fixes, und die zentralen Werte unterscheiden sich ([Rahmendokument](../00-rahmen-und-pruefung.md#baseline-tag-v130-oder-aktueller-main)). Eine Rückportierung der Laborharness auf den Tag entfällt ([Labor-Design 3.3](../specs/2026-10-25-1c-labor-design.md#33-referenzstand-und-manifest)).
+- **`v1.3.0` als Baseline.** Verworfen: Die Antwort des Prüfers zielt auf den aktuellen Stand; außerdem fehlen im Tag spätere Fixes, und die zentralen Werte unterscheiden sich ([Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#baseline-tag-v130-oder-aktueller-main)). Eine Rückportierung der Laborharness auf den Tag entfällt ([Labor-Design 3.3](../specs/2026-10-25-1c-labor-design.md#33-referenzstand-und-manifest)).
 - **Nachziehen auf `96b2e46e` vor den Läufen.** Verworfen, weil beide Läufe denselben Code messen sollen; Begründung und Prüfung in [ADR 1C-022](1C-022-codestand-eingefroren-9f230abc.md).
 
 ## Belege

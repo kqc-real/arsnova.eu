@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Auftragsschritt 3 fragt, ob der Host auf das Modell wartet. `requestQaSummary` baut den Kontext auf (prepare (1)), legt einen Job an und kehrt mit `pending` zurück; die Inferenz läuft danach in `processJob` ([Dossier 6.2](../1C-kontext-und-adapterpfad.md#62-requestqasummary-qasummaryqueuets-z-454540)). Der Autor hat die Beibehaltung am 2026-10-24 mit Test-Runtime entschieden ([Teil 2, Entscheidung 3](../evidenz/1C/2026-10-24-teil2.md#entscheidung-und-empfehlung-1c)); die Laborläufe prüfen sie auf dem echten Pfad (Fall L3a, [Labor-Design 5](../specs/2026-10-25-1c-labor-design.md#5-fälle)).
+Auftragsschritt 3 fragt, ob der Host auf das Modell wartet. `requestQaSummary` baut den Kontext auf (prepare (1)), legt einen Job an und kehrt mit `pending` zurück; die Inferenz läuft danach in `processJob` ([Dossier 6.2](../1C/1C-kontext-und-adapterpfad.md#62-requestqasummary-qasummaryqueuets-z-454540)). Der Autor hat die Beibehaltung am 2026-10-24 mit Test-Runtime entschieden ([Teil 2, Entscheidung 3](../evidenz/1C/2026-10-24-teil2.md#entscheidung-und-empfehlung-1c)); die Laborläufe prüfen sie auf dem echten Pfad (Fall L3a, [Labor-Design 5](../specs/2026-10-25-1c-labor-design.md#5-fälle)).
 
 ## Entscheidung
 
@@ -14,7 +14,7 @@ Die Entkopplung bleibt (`requestQaSummary`). Die Grenze aus Befund B1 bleibt bes
 ## Alternativen
 
 - **Synchroner Aufruf** (Host wartet auf die Modellantwort): verworfen. Als Mutation „Job synchron statt `pump()`“ macht er T4.1 und E5 rot ([T4.1](../evidenz/1C/2026-10-24-tests.md#t41--host-wartet-nicht-auf-den-modellauftrag), [E5](../evidenz/1C/2026-10-24-teil2.md#e5--host-wartet-nicht)). Bei einer Inferenz von 98,8 s (PC) bis 163,4 s (Laptop) ([Kennzahlen](../evidenz/1C/2026-11-05-labor-pc.md#laufrechner-pc-gegen-laptop)) wäre der Host-Aufruf so lang blockiert.
-- **Auch den Kontextaufbau aus dem Host-Aufruf lösen:** nicht untersucht. Heute bestimmt prepare (1) die Rückkehrzeit (lokal ≈ 70–90 ms, [Teil 2, Entscheidung 3](../evidenz/1C/2026-10-24-teil2.md#entscheidung-und-empfehlung-1c)), und ein `CONFLICT` beim Aufbau erreicht den Host direkt als Fehler der Mutation ([Dossier 8.2](../1C-kontext-und-adapterpfad.md#82-was-eine-stimmenänderung-bewirkt)).
+- **Auch den Kontextaufbau aus dem Host-Aufruf lösen:** nicht untersucht. Heute bestimmt prepare (1) die Rückkehrzeit (lokal ≈ 70–90 ms, [Teil 2, Entscheidung 3](../evidenz/1C/2026-10-24-teil2.md#entscheidung-und-empfehlung-1c)), und ein `CONFLICT` beim Aufbau erreicht den Host direkt als Fehler der Mutation ([Dossier 8.2](../1C/1C-kontext-und-adapterpfad.md#82-was-eine-stimmenänderung-bewirkt)).
 
 ## Belege
 
@@ -27,6 +27,6 @@ Die Entkopplung bleibt (`requestQaSummary`). Die Grenze aus Befund B1 bleibt bes
 
 ## Folgen
 
-- **Kosten:** unverändert; der Host trägt einen Kontextaufbau im Aufruf (Befund B1, [Dossier 14](../1C-kontext-und-adapterpfad.md#14-befundliste-kurzfassung-für-handout)).
+- **Kosten:** unverändert; der Host trägt einen Kontextaufbau im Aufruf (Befund B1, [Dossier 14](../1C/1C-kontext-und-adapterpfad.md#14-befundliste-kurzfassung-für-handout)).
 - **Risiko:** keines neu. **Rückweg:** entfällt.
 - **Gültigkeitsgrenze:** M1 und die Laborläufe rufen über `createCaller` auf, ohne HTTP-Transport und tRPC-Serialisierung ([Labor-Design 7](../specs/2026-10-25-1c-labor-design.md#7-gültigkeitsgrenzen)). Nicht gemessen unter realer Last. Die Rückkehrzeiten von Laptop und PC sind nicht nur durch die Hardware verschieden: Der Testprozess lief am PC unter Node 26 statt 24 ([PC, Abweichung 2](../evidenz/1C/2026-11-05-labor-pc.md#abweichungen-vom-ablauf)).

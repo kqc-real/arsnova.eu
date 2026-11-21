@@ -14,7 +14,7 @@ Es gibt einen gekennzeichneten Zusatzlauf auf dem Desktop-PC des Autors. Er erse
 ## Alternativen
 
 - **Volle Kapazität des PCs** (ohne Limits). Verworfen: Gemessen werden sollte die ausgelieferte Ressourcenkonfiguration, nicht die Hardware ([Labor-Design 14.2](../specs/2026-10-25-1c-labor-design.md#142-aufbau)).
-- **Messung auf dem Produktionshost.** Nicht möglich: Versuche laufen nur in der Laborinstanz, nie gegen Produktion ([Rahmendokument](../00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)). Auf den Host gab es keinen Zugriff.
+- **Messung auf dem Produktionshost.** Nicht möglich: Versuche laufen nur in der Laborinstanz, nie gegen Produktion ([Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)). Auf den Host gab es keinen Zugriff.
 - **Kein Zusatzlauf.** Verworfen: Ohne ihn wäre offen geblieben, ob der OOM-Kill nur am Laborlimit liegt. Genau diese Frage hat L6 beantwortet, siehe ADR [1C-024](1C-024-prompt-cache-ram-begrenzen.md).
 
 ## Belege

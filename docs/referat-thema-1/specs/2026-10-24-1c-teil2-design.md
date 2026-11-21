@@ -18,7 +18,7 @@ Teil 1 prüft Komponenten einzeln (T1–T4) und die Kette Datenbank → Hash (T5
 - **Nachweisformat 4.1.3:** Baselinelauf → Gegenvariante → vergleichbare Messdaten → Befund → Entscheidung.
 - **Fixture:** das Sechs-Fragen-Szenario aus #456 Abschnitt 12 als feste Fixture.
 
-Teil 2 schließt diese Lücken **ohne private Inferenz**. Der reale Lauf gegen die ausgelieferte private Runtime bleibt offen, bis die Laborinstanz verfügbar ist (Frage an den Prüfer, [00-rahmen](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
+Teil 2 schließt diese Lücken **ohne private Inferenz**. Der reale Lauf gegen die ausgelieferte private Runtime bleibt offen, bis die Laborinstanz verfügbar ist (Frage an den Prüfer, [00-rahmen](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
 
 ## 2. Ziele, Nicht-Ziele, Anti-Ziele
 
@@ -178,7 +178,7 @@ Der zählende und messende Wrapper ruft die echte Funktion unverändert auf. Er 
   - kein llama-server-Verhalten außer den nachgebildeten Statuscodes.
   - Der Baselinelauf gegen die echte Runtime bleibt offen.
 - **Lokale Hardware:** Podman-PostgreSQL und -Redis auf einem Entwicklerrechner. Die Werte sind relativ zwischen den Bedingungen vergleichbar, nicht absolut auf die Produktion übertragbar.
-- **Kein Referenzmanifest des Prüfers:** Abweichungen von `v1.3.0` stehen in [`1C-diagrams.md`](../1C-diagrams.md#differences-to-v130).
+- **Kein Referenzmanifest des Prüfers:** Abweichungen von `v1.3.0` stehen in [`1C/1C-diagrams.md`](../1C/1C-diagrams.md#differences-to-v130).
 - **Eine Fixture:** Größere oder anders verteilte Q&A-Bestände können andere Kosten haben. M3 nennt die Fixturegröße.
 - **n = 20 bzw. 10:** genügt für Median und grobe p95, nicht für seltene Ausreißer.
 

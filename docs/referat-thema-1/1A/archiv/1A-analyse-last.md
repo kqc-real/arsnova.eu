@@ -1,7 +1,7 @@
 # A1: Gezielte Analyse-Last
 
 Schritt 4 des [Umsetzungsplans](1A-umsetzungsplan.md) ergänzt
-[`host-analyze-loop.mjs`](../../scripts/load/host-analyze-loop.mjs). Der
+[`host-analyze-loop.mjs`](../../../../scripts/load/host-analyze-loop.mjs). Der
 Generator ruft die vorhandene tRPC-Mutation `wordCloud.analyzeQa` mit regulären
 Host-Tokens auf. Er legt keine Sessions an und verändert keine Fragen oder
 Stimmen. Das gemeinsame Anlegen der Laborressourcen, Aufwärmen und Starten
@@ -71,7 +71,7 @@ tatsächlichen Werte aus dem Labor zu ersetzen:
 }
 ```
 
-Seed und Hash müssen zur [gemeinsamen Fixture](1A-fixture.md) passen. Jeder
+Seed und Hash müssen zur [gemeinsamen Fixture](../1A-fixture.md) passen. Jeder
 Host-Token wird ausschließlich im vorhandenen Header `x-host-token` an den
 tRPC-Client übergeben. Session-Code und Session-ID ersetzen keine
 Autorisierung. Die Zuordnung muss Session-ID, Code und Token derselben Session
@@ -119,7 +119,7 @@ normalization: LEMMA, limit: 500, refresh: true
 ```
 
 `refresh: true` umgeht im
-[`wordCloud`-Router](../../apps/backend/src/routers/wordCloud.ts) den
+[`wordCloud`-Router](../../../../apps/backend/src/routers/wordCloud.ts) den
 Snapshot-Cache. Ein Normalisiereraufruf allein belegt noch keine neue
 Sidecar-Arbeit: Dafür ist zusätzlich die tatsächlich verwendete
 Cacheimplementierung maßgeblich. In der für Schritt 6 festgehaltenen
@@ -192,7 +192,7 @@ gekennzeichnete Vorläufe sind `durationMs`, `intervalMs`, `offsetsMs`,
 `drainMs` und `requestTimeoutMs` in der Zuordnungsdatei konfigurierbar. Alle
 Werte erscheinen im Report; die Auslaufzeit ist auf höchstens 60 Sekunden
 begrenzt. Abweichende Werte erfüllen nicht automatisch den festgelegten
-[Versuchsvertrag](1A-experiment-contract.md).
+[Versuchsvertrag](../1A-experiment-contract.md).
 
 SIGINT und SIGTERM stoppen neue Arbeit und brechen offene Clientanfragen ab.
 Die CLI speichert, soweit der Ausgabepfad beschreibbar ist, den unvollständigen

@@ -4,7 +4,7 @@ Dieses Dokument beschreibt Schritt 2 des [A1-Versuchsvertrags](./1A-experiment-c
 Niklas verantwortet die Fixture-Werkzeuge, die auch für die Aufträge 1B und 1C
 verwendet werden ([Issues #9](https://github.com/NiklasSkulll/arsnova.eu/issues/9)
 und [#10](https://github.com/NiklasSkulll/arsnova.eu/issues/10)). Die vorhandenen
-[Referenzfixtures aus Issue #456](../../libs/shared-types/src/moderation-prompt-context-fixtures.ts)
+[Referenzfixtures aus Issue #456](../../../libs/shared-types/src/moderation-prompt-context-fixtures.ts)
 bleiben die maßgebliche Quelle für die sechs Fragen und ihre Metadaten.
 
 ## Offline erzeugen und prüfen
@@ -29,7 +29,7 @@ node scripts/load/resource-isolation-fixture.mjs --print > /tmp/arsnova-1a-fixtu
 Beide Betriebsarten arbeiten ohne Netzwerk, Datenbank, Modelldownloads oder
 Zugangsdaten aus der Umgebung. Sie legen keine Sessions an, befüllen keine
 Datenbank und führen keinen Lasttest aus. Das
-[Versuchsskript aus Schritt 6](./1A-versuchsreihe.md) importiert dieselbe Fixture
+[Versuchsskript aus Schritt 6](./archiv/1A-versuchsreihe.md) importiert dieselbe Fixture
 in fünf getrennte Analysesessions und hält die Live-Session davon getrennt.
 
 ## Inhalt und Projektionen
@@ -107,7 +107,7 @@ da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded
 ```
 
 Das versionierte
-[Fixture-Manifest](../../scripts/load/fixtures/resource-isolation-v1.manifest.json)
+[Fixture-Manifest](../../../scripts/load/fixtures/resource-isolation-v1.manifest.json)
 hält diese Standardidentität fest. Ein Regressionstest gleicht sie mit den
 erzeugten Inhalten ab. Das Manifest identifiziert die Testeingaben; es ist kein
 Laufmanifest und enthält keine Aussage über freigegebene Hardware, eine

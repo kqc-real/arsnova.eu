@@ -1,11 +1,11 @@
 # A1 – Neue Messreihe auf main a19ca70f ausführen
 
 Stand: 15.11.2026. Diese Anleitung beschreibt das reproduzierbare Vorgehen.
-Die aktuelle vollständige Messung liegt unter [reihe-main-a19ca70f-20261115-122547](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
-Befunde stehen in der [Auswertung](./1A-auswertung.md), technische Prüfungen im
+Die aktuelle vollständige Messung liegt unter [reihe-main-a19ca70f-20261115-122547](../../evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
+Befunde stehen in der [Auswertung](../1A-auswertung.md), technische Prüfungen im
 [Prüfstand](./1A-pruefstand.md). Verbindlich sind der unveränderte
-[Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und seine
-[Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
+[Vorabnachtrag](../../specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und seine
+[Reihendefinition](../../specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
 Für zusätzliche Messungen stets einen neuen Evidenzordner verwenden.
 
 ## Voraussetzungen

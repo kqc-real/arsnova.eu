@@ -294,7 +294,7 @@ export const FESTWERTE = {
   sloEndstatusProzent: {
     wert: 95,
     text: 'SLO-Vorschlag: Anteil der Aufträge mit Endstatus nach dem Labor-Timeout, % (Vorschlag, nicht gemessen)',
-    quelle: '1B-ergebnis.md',
+    quelle: '1B/1B-ergebnis.md',
     beleg: '„95 % der Aufträge haben nach 300 s einen Endstatus“',
   },
   // Ergänzt 2026-11-16 (Kontextfolie GK): Auslegung der App laut Repo-Regeln am gemessenen Stand
@@ -385,7 +385,7 @@ export function ladeNachweis(root) {
   };
 }
 
-/** Abb. 1 und 2 aus 1C-diagrams.md (gerenderte Mermaid-SVGs, helles Thema) für R15 und R16. */
+/** Abb. 1 und 2 aus 1C/1C-diagrams.md (gerenderte Mermaid-SVGs, helles Thema) für R15 und R16. */
 export const DIAGRAMME = {
   abb1: [
     'diagrams/1c-context-path-overview.light.svg',
@@ -701,8 +701,8 @@ const ZITATE = {
     ['papadopoulos2021', 'Kap. 2.3'],
   ],
   J5: [[W, 'ADR 1C-012, Test E5, Nachlauf N3']],
-  J5b: [[W, 'Datei 1C-diagrams.md, #456-Bereiche, Test E2']],
-  J6: [[W, 'ADR 1C-011, 1C-013, Datei 1C-diagrams.md']],
+  J5b: [[W, 'Datei 1C/1C-diagrams.md, #456-Bereiche, Test E2']],
+  J6: [[W, 'ADR 1C-011, 1C-013, Datei 1C/1C-diagrams.md']],
   J7: [[W, 'ADR 1C-014, Nachlauf N2']],
   J8: [
     [W, 'ADR 1B-006, 1B-011'],
@@ -734,26 +734,26 @@ const ZITATE = {
     [W, 'ADR 1C-018'],
   ],
   J15: [
-    [W, '1C-ergebnis.md, Kap. 5'],
+    [W, '1C/1C-ergebnis.md, Kap. 5'],
     ['ulrich2016', 'Abschnitt Load Shedding and Graceful Degradation'],
   ],
   G9: [
-    [W, '1B-ergebnis.md, 1C-ergebnis.md'],
+    [W, '1B/1B-ergebnis.md, 1C/1C-ergebnis.md'],
     ['schneider2026', 'Ordner evidenz/1A und evidenz/1B'],
   ],
   R1: [[W, 'ADR 1C-020, 1B-005']],
   R5: [[W, '1C-Nachlauf, Ordner evidenz/1B, ADR 1B-011']],
-  R6: [[W, 'Dateien 1B-eigenanteil.md, 1C-eigenanteil.md']],
+  R6: [[W, 'Dateien 1B/1B-eigenanteil.md, 1C/1C-eigenanteil.md']],
   R7: [[W, 'adr/README.md']],
-  R9: [[W, '1C-ergebnis.md, Kap. 3']],
+  R9: [[W, '1C/1C-ergebnis.md, Kap. 3']],
   R10: [
     [W, 'Aufbauprotokoll 1B'],
     ['arsnova2026adr0035', 'Kap. 2.4'],
   ],
   R11: [[W, 'Laufprotokoll 1B, Befund C']],
-  R12: [[W, '1C-ergebnis.md, Kap. 5']],
-  R15: [[W, 'Datei 1C-diagrams.md, Abb. 1']],
-  R16: [[W, 'Datei 1C-diagrams.md, Abb. 2']],
+  R12: [[W, '1C/1C-ergebnis.md, Kap. 5']],
+  R15: [[W, 'Datei 1C/1C-diagrams.md, Abb. 1']],
+  R16: [[W, 'Datei 1C/1C-diagrams.md, Abb. 2']],
   // Niklas' gewertete Läufe 1A und 1B 3–4 zählen in die Laborzeit (gemeinsames Verzeichnis seit 2026-11-18)
   GN: [
     [W, 'Ordner docs/referat-thema-1, Datei nachweisumfang.md'],
@@ -1006,7 +1006,7 @@ export function folien(daten) {
     kurzfassung: true,
     sprecher: 'niklas',
     quelle:
-      'Prüfungsdokument Abschnitt 4.3 (Thema 1, Aufträge 1A–1C); 01-aufteilung.md; Design 2026-11-15, Abschnitt 3 (Reihenfolge)',
+      'Prüfungsdokument Abschnitt 4.3 (Thema 1, Aufträge 1A–1C); rahmen/01-aufteilung.md; Design 2026-11-15, Abschnitt 3 (Reihenfolge)',
     station: null,
   });
 
@@ -1154,7 +1154,7 @@ export function folien(daten) {
     inhalt: flaeche(
       frage('Welchen Weg nimmt ein Auftrag über die zwei Hosts?', 'beide') +
         grafikBox(wegSvg({ aktiv: 'klick', b1: b, c1: c, auftrag: au })) +
-        `<p class="beleg">Vereinfacht aus Abb. 1 und 2 (1C-diagrams.md), vollständig in der Reserve (R15, R16)</p>`,
+        `<p class="beleg">Vereinfacht aus Abb. 1 und 2 (1C/1C-diagrams.md), vollständig in der Reserve (R15, R16)</p>`,
     ),
     notiz: privat('J3.notiz', { au, z }),
     zeitS: 45,
@@ -1296,7 +1296,7 @@ export function folien(daten) {
     notiz: privat('J6.notiz', { z }),
     zeitS: 55,
     kurzfassung: true,
-    quelle: `${qNutzlast}; ${q1C('validierungMs')}; Berechtigung: routers/qa.ts, 1C-diagrams.md · def56700`,
+    quelle: `${qNutzlast}; ${q1C('validierungMs')}; Berechtigung: routers/qa.ts, 1C/1C-diagrams.md · def56700`,
     station: 'kontext',
   });
 
@@ -1602,7 +1602,7 @@ export function folien(daten) {
     kurzfassung: true,
     // Erst die Entscheidungen, dann die Diskussionsfrage, zuletzt die Übergabe an Niklas.
     aufbau: 2,
-    quelle: `1C-ergebnis.md, Abschnitt 5, ADRs 1C-010 bis 1C-024, Abschnitt Folgen (Laptop und PC · 9f230abc; Laptop · def56700); 1B-ergebnis.md, Entscheidung (${rechnerKurz(H.hauptlauf.rechner)} · ${H.hauptlauf.commit.slice(0, 8)})`,
+    quelle: `1C/1C-ergebnis.md, Abschnitt 5, ADRs 1C-010 bis 1C-024, Abschnitt Folgen (Laptop und PC · 9f230abc; Laptop · def56700); 1B/1B-ergebnis.md, Entscheidung (${rechnerKurz(H.hauptlauf.rechner)} · ${H.hauptlauf.commit.slice(0, 8)})`,
     station: null,
   });
 
@@ -1643,7 +1643,7 @@ export function folien(daten) {
     kurzfassung: true,
     sprecher: 'niklas',
     quelle:
-      '1B-ergebnis.md, 1C-ergebnis.md (Kurzantwort, Verlauf 9f230abc); 1A: abgabe/niklas/folien-1a.mjs (N1, N10); 1B Schritte 3–4: abgabe/niklas/folien-1b34.mjs (M1–M4), evidenz/1B/messung/2026-11-1{5,6}-lauf-*.json.gz und Breaker-Folgen (i7-10700K, Hyper-V · 5e758d0a, 2b39b9df, 7c64dd6a, 4b135fe8), adr/1B-020-zweite-rolle-betrieblich-begruenden.md',
+      '1B/1B-ergebnis.md, 1C/1C-ergebnis.md (Kurzantwort, Verlauf 9f230abc); 1A: abgabe/niklas/folien-1a.mjs (N1, N10); 1B Schritte 3–4: abgabe/niklas/folien-1b34.mjs (M1–M4), evidenz/1B/messung/2026-11-1{5,6}-lauf-*.json.gz und Breaker-Folgen (i7-10700K, Hyper-V · 5e758d0a, 2b39b9df, 7c64dd6a, 4b135fe8), adr/1B-020-zweite-rolle-betrieblich-begruenden.md',
     station: null,
   });
 
@@ -1956,7 +1956,7 @@ export function folien(daten) {
         28,
       )}</div></div>`,
     privat('R6.notiz', {}),
-    '1C-eigenanteil.md (Autorenprüfung); adr/1B-011-zeitbegriffe-und-leitfrage.md; 1B-eigenanteil.md (Stand 2026-11-14) · Arbeit an Laptop (ThinkPad P50) und PC (i7-8700) · Baselines 9f230abc, def56700, a19ca70f',
+    '1C/1C-eigenanteil.md (Autorenprüfung); adr/1B-011-zeitbegriffe-und-leitfrage.md; 1B/1B-eigenanteil.md (Stand 2026-11-14) · Arbeit an Laptop (ThinkPad P50) und PC (i7-8700) · Baselines 9f230abc, def56700, a19ca70f',
   );
 
   const adrs = (ids) =>
@@ -2026,7 +2026,7 @@ export function folien(daten) {
       `</table>` +
       `<p style="margin:20px 0 0;font-size:22px">Je Kontextaufbau acht Rechteprüfungen; ohne gültiges Host-Token weder Vorschau noch Auftrag; kein Token im Draht-Body (E2).</p>`,
     privat('J5b.notiz', {}),
-    '1C-diagrams.md, #456-Bereiche · Code-Stand def56700 (v1.4.0-14), gelesen am Laptop (ThinkPad P50); E2: evidenz/1C/2026-10-24-teil2.md · Laptop · 248029dc',
+    '1C/1C-diagrams.md, #456-Bereiche · Code-Stand def56700 (v1.4.0-14), gelesen am Laptop (ThinkPad P50); E2: evidenz/1C/2026-10-24-teil2.md · Laptop · 248029dc',
     { zeitS: 45, station: 'kontext' },
   );
 
@@ -2054,7 +2054,7 @@ export function folien(daten) {
         22,
       )}</div></div>`,
     privat('R9.notiz', {}),
-    '1C-ergebnis.md, Abschnitt 3 · Tests und Teil 2/3 auf 248029dc (Laptop, ThinkPad P50); Labor def56700',
+    '1C/1C-ergebnis.md, Abschnitt 3 · Tests und Teil 2/3 auf 248029dc (Laptop, ThinkPad P50); Labor def56700',
   );
 
   const rolle = (name, ort, text) =>
@@ -2129,10 +2129,10 @@ export function folien(daten) {
     'Reserve: Entscheidungen im Detail',
     entscheidungen,
     privat('R12.notiz', {}),
-    `1C-ergebnis.md, Abschnitt 5, ADRs 1C-010 bis 1C-024, Abschnitt Folgen (Laptop und PC · 9f230abc; Laptop · def56700); 1B-ergebnis.md, Entscheidung (${rechnerKurz(H.hauptlauf.rechner)} · ${H.hauptlauf.commit.slice(0, 8)})`,
+    `1C/1C-ergebnis.md, Abschnitt 5, ADRs 1C-010 bis 1C-024, Abschnitt Folgen (Laptop und PC · 9f230abc; Laptop · def56700); 1B/1B-ergebnis.md, Entscheidung (${rechnerKurz(H.hauptlauf.rechner)} · ${H.hauptlauf.commit.slice(0, 8)})`,
   );
 
-  // ------------------------------------------------------------ R15, R16: Abb. 1 und 2 aus 1C-diagrams.md
+  // ------------------------------------------------------------ R15, R16: Abb. 1 und 2 aus 1C/1C-diagrams.md
   // Gerenderte Mermaid-SVGs (diagrams/*.light.svg), offline eingebettet; Ids je Abbildung umbenannt, damit
   // mehrere Diagramme im selben Dokument nicht kollidieren. Für Fragen zum Ablauf (J3 verweist darauf).
   const dg = daten.diagramme;
@@ -2145,10 +2145,10 @@ export function folien(daten) {
       `<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:20px">` +
       `<div data-diagramm="legende" style="width:100%;aspect-ratio:${dg.legende.verhaeltnis}">${dg.legende.svg}</div>` +
       `<p class="sekundaer" style="margin:0">Aktivitätsdiagramm, vereinfacht: Bänder sind Prozessschritte und Hosts, Sechsecke Prüfungen. Gespeichert wird die Modellzusammenfassung nur bei gleichem Hash und formgerechter Antwort, sonst der Ersatz mit Grund.</p>` +
-      `<p class="vermerk" style="margin:0">Abb. 1 aus 1C-diagrams.md, Stand ${mono('def56700')} (v1.4.0-14)</p>` +
+      `<p class="vermerk" style="margin:0">Abb. 1 aus 1C/1C-diagrams.md, Stand ${mono('def56700')} (v1.4.0-14)</p>` +
       `</div></div>`,
     privat('R15.notiz', {}),
-    '1C-diagrams.md, Abb. 1 (diagrams/1c-context-path-overview.light.svg, Legende diagrams/1c-legende.light.svg) · Code-Stand def56700 (v1.4.0-14, Branch f746ffba), gezeichnet am Laptop (ThinkPad P50)',
+    '1C/1C-diagrams.md, Abb. 1 (diagrams/1c-context-path-overview.light.svg, Legende diagrams/1c-legende.light.svg) · Code-Stand def56700 (v1.4.0-14, Branch f746ffba), gezeichnet am Laptop (ThinkPad P50)',
   );
   reserve(
     'R16',
@@ -2158,10 +2158,10 @@ export function folien(daten) {
       `<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:20px">` +
       `<p class="sekundaer" style="margin:0">UML-Sequenzdiagramm, vereinfacht: gefüllte Spitze = synchroner Aufruf, offene Spitze = asynchrone Nachricht, gestrichelt = Antwort; alt, par und loop sind kombinierte Fragmente, Nummern die Reihenfolge.</p>` +
       `<p class="sekundaer" style="margin:0">Messpunkte t0–t3 (J8) liegen auf den Pfeilen zur Runtime und zurück.</p>` +
-      `<p class="vermerk" style="margin:0">Abb. 2 aus 1C-diagrams.md, Stand ${mono('def56700')} (v1.4.0-14)</p>` +
+      `<p class="vermerk" style="margin:0">Abb. 2 aus 1C/1C-diagrams.md, Stand ${mono('def56700')} (v1.4.0-14)</p>` +
       `</div></div>`,
     privat('R16.notiz', {}),
-    '1C-diagrams.md, Abb. 2 (diagrams/1c-context-path-overview-sequence.light.svg) · Code-Stand def56700 (v1.4.0-14, Branch f746ffba), gezeichnet am Laptop (ThinkPad P50)',
+    '1C/1C-diagrams.md, Abb. 2 (diagrams/1c-context-path-overview-sequence.light.svg) · Code-Stand def56700 (v1.4.0-14, Branch f746ffba), gezeichnet am Laptop (ThinkPad P50)',
   );
 
   // ------------------------------------------------------------ J11 (bis 2026-11-16 R13): Betrieb

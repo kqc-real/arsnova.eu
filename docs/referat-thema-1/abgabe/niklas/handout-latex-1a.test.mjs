@@ -46,7 +46,7 @@ test('Rohdaten: nachgerechnete Lauf-p95 stimmen mit auswertung.json überein', (
   }
 });
 
-test('Makros: Kernzahlen der Reihe vom 15.11.2026 (Abgleich mit 1A-auswertung.md)', () => {
+test('Makros: Kernzahlen der Reihe vom 15.11.2026 (Abgleich mit 1A/1A-auswertung.md)', () => {
   assert.equal(m.liveGeplant, '40.000');
   assert.equal(m.liveFehl, '0');
   assert.equal(m.vergleiche, '80');

@@ -215,11 +215,11 @@ function erlaubt() {
   return w;
 }
 // Festwerte außerhalb der Messreihe, je mit Beleg: 8 vCPU (ADR-0035, Zielhost), 0,1 s (Achsenmarke).
-// 16 GB und ~4 GB (ADR-0035, Abschn. 2.1), 2,5 min (Jonas' 1B-ergebnis.md, warm im Median 148,6 s).
+// 16 GB und ~4 GB (ADR-0035, Abschn. 2.1), 2,5 min (Jonas' 1B/1B-ergebnis.md, warm im Median 148,6 s).
 const FESTWERTE_NIKLAS = {
   8: 'ADR-0035 „8 vCPU“',
   '0,1': 'Achsenmarke 0,1 s',
-  '2,5': '1B-ergebnis.md „im Median 148,6 s“',
+  '2,5': '1B/1B-ergebnis.md „im Median 148,6 s“',
   // N8, Bild zur Drosselung: Standardtakt von cpu.max (Kernel-Doku cgroup v2, „max 100000“ µs = 100 ms)
   100: 'Kernel-Doku cgroup v2, cpu.max „max 100000“',
 };
@@ -235,7 +235,7 @@ test('Keine Zahl auf den 1A-Folien, die nicht aus den Daten kommt', { skip: OHNE
   assert.match(adr, /8 vCPU/);
   assert.match(adr, /16-GB-Live-Host/);
   assert.match(adr, /~4-GB-LLM/);
-  assert.match(readFileSync(resolve(ROOT, '1B-ergebnis.md'), 'utf8'), /im Median 148,6 s/);
+  assert.match(readFileSync(resolve(ROOT, '1B/1B-ergebnis.md'), 'utf8'), /im Median 148,6 s/);
   const w = erlaubt();
   const KENNUNG =
     /\b(?:8\.9b|16-GB|~?4-GB|[VHNMRJG]\d+|1[ABC]|ADR-\d{4}|v\d(?:\.\d)+(?:-\d+)?|[0-9a-f]{8}|cgroup v2|Vertrag v\d|Version \d(?:\.\d)*|20\d\d|p\d\d|Abschn\. [\d.]+|Z\. \d+)\b/g;

@@ -12,7 +12,7 @@ import { gunzipSync } from 'node:zlib';
 
 export const REIHE_1A = 'evidenz/1A/reihe-main-a19ca70f-20261115-122547';
 export const AUSWERTUNG_1A = `${REIHE_1A}/auswertung/auswertung.json`;
-export const VERTRAG_1A = '1A-experiment-contract.md';
+export const VERTRAG_1A = '1A/1A-experiment-contract.md';
 /** App-Code, aus dem die Gegendruckgrenze des spaCy-Clients gelesen wird (nur gelesen). */
 export const SPACY_CLIENT = '../../apps/backend/src/lib/spacyClient.ts';
 

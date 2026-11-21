@@ -252,7 +252,7 @@ async function erstelleLabor(config, evidenceRoot, reihe) {
   const revision = (await exec('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
   const toolsSha256 = await werkzeugHash();
   const contractSha256 = sha256(
-    await readFile(join(root, 'docs/referat-thema-1/1A-experiment-contract.md')),
+    await readFile(join(root, 'docs/referat-thema-1/1A/1A-experiment-contract.md')),
   );
   const daemon = JSON.parse(await docker(['info', '--format', '{{json .}}']));
   if (daemon.OSType !== 'linux' || daemon.CgroupVersion !== '2')
@@ -814,7 +814,7 @@ async function main(args) {
     spacyImage: config.spacyImage,
     toolsSha256: await werkzeugHash(),
     contractSha256: sha256(
-      await readFile(join(root, 'docs/referat-thema-1/1A-experiment-contract.md')),
+      await readFile(join(root, 'docs/referat-thema-1/1A/1A-experiment-contract.md')),
     ),
     fixtureSha256: hashResourceIsolationFixture(buildResourceIsolationFixture()),
     orderSeed: config.orderSeed,

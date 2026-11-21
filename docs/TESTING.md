@@ -920,7 +920,7 @@ Fixture- und CLI-Vertragstests aus. Der Befehl ist auch Teil von `npm test` und
 `npm run load:resource-isolation:fixture -- --validate` eine reproduzierbare
 Übersicht aus, ohne einen Dienst zu kontaktieren oder Labordaten anzulegen.
 Fixture-Inhalte, Projektionen und die unabhängige Hashprüfung sind in der
-[A1-Fixture-Anleitung](referat-thema-1/1A-fixture.md) dokumentiert.
+[A1-Fixture-Anleitung](referat-thema-1/1A/1A-fixture.md) dokumentiert.
 
 ### A1-Analyse-Last mit festem Korpus
 
@@ -944,7 +944,7 @@ gegen einen lokalen HTTP-Testserver und gehören zu `npm test` sowie
 `npm run test:coverage`.
 
 Laborzuordnung, Aufruf und Grenzen des Nachweises beschreibt die
-[A1-Analyseanleitung](referat-thema-1/1A-analyse-last.md). Das Werkzeug legt
+[A1-Analyseanleitung](referat-thema-1/1A/archiv/1A-analyse-last.md). Das Werkzeug legt
 keine Laborsessions an und startet keine weiteren Dienste.
 
 ### A1-Container-Metriken und Verzögerungsproxy
@@ -966,7 +966,7 @@ Parallelität, Abbruch und bereinigte JSON-/JUnit-Artefakte. Die Tests gehören
 zu `npm test` und `npm run test:coverage`.
 
 Laborkonfiguration, CLI-Aufrufe und Messgrenzen stehen in der
-[A1-Infrastrukturanleitung](referat-thema-1/1A-container-metriken-und-proxy.md).
+[A1-Infrastrukturanleitung](referat-thema-1/1A/archiv/1A-container-metriken-und-proxy.md).
 Die Metriken erfordern für cgroup v2 Zugriff auf den tatsächlichen
 Linux-Dockerhost. Die Messwerkzeuge ändern keine Produktionskonfiguration.
 
@@ -983,7 +983,7 @@ ausdrücklich getrennt: `--pilot` prüft jede Variante mit verkürztem Profil;
 `--run` erfordert dessen vollständigen Abschluss und führt fünf Blöcke V0–V4
 aus. Sie benötigen die festgehaltenen Baseline-Images, Dockerhost-Zähler und
 eine private Konfigurationsdatei. Anleitung, Zeitbedarf und Nachweisgrenzen
-stehen in der [A1-Versuchsreihe](referat-thema-1/1A-versuchsreihe.md).
+stehen in der [A1-Versuchsreihe](referat-thema-1/1A/archiv/1A-versuchsreihe.md).
 
 ### A1-Auswertung und Abgabeentwürfe
 
@@ -1005,12 +1005,12 @@ Grenzverletzungen sind Ergebnisse, fehlende oder widersprüchliche Daten Fehler.
 Ein gesondertes historisches Rekonstruktionswerkzeug ist nicht mehr vorhanden.
 Die Bereinigung/Manifestprüfung wird in `scripts/load/resource-isolation-compose.test.mjs` getestet.
 
-Die [Auswertung](referat-thema-1/1A-auswertung.md) enthält die fachliche Interpretation.
+Die [Auswertung](referat-thema-1/1A/1A-auswertung.md) enthält die fachliche Interpretation.
 Der Dokumentbau liest ausschließlich die aktuelle versionierte Auswertung und erzeugt
 HTML, PDFs und Grafiken samt Manifest. Seitenzahlen, Textumfang und Überlauf werden geprüft.
 [Rohdaten](referat-thema-1/evidenz/1A/README.md) sind hashgebunden und von Prettier ausgenommen;
 Formatierung darf gespeicherte Prüfsummen nicht entwerten.
-Der [Prüfstand](referat-thema-1/1A-pruefstand.md) nennt aktuelle Werkzeugchecks und den
+Der [Prüfstand](referat-thema-1/1A/archiv/1A-pruefstand.md) nennt aktuelle Werkzeugchecks und den
 unveränderten ursprünglichen Frontend-Wording-Testfehler, ohne einen grünen Gesamtlauf zu behaupten.
 
 ### Artillery-Lasttest (Realtime, bis 500 TN)
@@ -1026,7 +1026,7 @@ Stichproben werden als nicht verfügbar ausgewiesen und bestehen kein Gate.
 Die Fehlerquote wird pro vorgesehener Aktion geprüft (standardmäßig ≤ 0,5 %
 der Versuche), zusätzlich zu den bisherigen Smoke-Mindestanteilen.
 Die genauen Felder, Ausnahmen und Grenzen des Nachweises beschreibt die
-[A1-Messanleitung](referat-thema-1/1A-live-messungen.md).
+[A1-Messanleitung](referat-thema-1/1A/archiv/1A-live-messungen.md).
 
 Die Instrumentierung lässt sich ohne laufende Anwendung prüfen:
 
@@ -1266,7 +1266,7 @@ Die reale HDMI-Probe aus der letzten Reihe bleibt eine zusätzliche manuelle Abn
 
 ### A1-Messreihe auf main a19ca70f
 
-Die [aktuelle Anleitung](referat-thema-1/1A-neue-messreihe.md) beschreibt Imagebau,
+Die [aktuelle Anleitung](referat-thema-1/1A/archiv/1A-neue-messreihe.md) beschreibt Imagebau,
 privates Labor, passenden Vorlauf und Hauptreihe. Beide müssen dieselbe Konfigurationsdatei
 verwenden. Bei einem Neustart nicht wieder die alte `labor.json` auswählen, wenn der
 Vorlauf mit einer neuen Datei durchgeführt wurde. Jede zusätzliche Reihe braucht einen

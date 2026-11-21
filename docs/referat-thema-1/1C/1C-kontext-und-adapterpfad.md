@@ -2,7 +2,7 @@
 
 # Dossier 1C – Autorisierter Kontext und asynchroner Adapterpfad
 
-> **Überholt (2026-10-24):** Dieses Dossier ist der Recherche-Stand vom 2026-10-16 auf `27966e75`. _Aktualisiert 2026-11-12:_ Maßgeblich für 1C sind der [Ergebnisbericht](./1C-ergebnis.md) mit den [ADRs](./adr/README.md), [`1C-diagrams.md`](./1C-diagrams.md) (dort auch die Abweichungen zu diesem Dossier) und die Protokolle unter [`evidenz/1C/`](./evidenz/1C/); Diagramme und Zeilenbelege stehen seit 2026-11-10 auf `def56700` (erste Fassung auf `248029dc`), die Test- und Laborbelege bleiben an ihre Commits gebunden ([ADR 1C-026, Folgen](./adr/1C-026-messstand-festhalten-upstream-nachziehen.md#folgen)). Die Testlücken und Versuchsvorschläge unten sind dort teils umgesetzt, teils als offen ausgewiesen.
+> **Überholt (2026-10-24):** Dieses Dossier ist der Recherche-Stand vom 2026-10-16 auf `27966e75`. _Aktualisiert 2026-11-12:_ Maßgeblich für 1C sind der [Ergebnisbericht](./1C-ergebnis.md) mit den [ADRs](../adr/README.md), [`1C-diagrams.md`](./1C-diagrams.md) (dort auch die Abweichungen zu diesem Dossier) und die Protokolle unter [`evidenz/1C/`](../evidenz/1C/); Diagramme und Zeilenbelege stehen seit 2026-11-10 auf `def56700` (erste Fassung auf `248029dc`), die Test- und Laborbelege bleiben an ihre Commits gebunden ([ADR 1C-026, Folgen](../adr/1C-026-messstand-festhalten-upstream-nachziehen.md#folgen)). Die Testlücken und Versuchsvorschläge unten sind dort teils umgesetzt, teils als offen ausgewiesen.
 
 **Zweck:** Forschungsdossier zur Vorbereitung des Gruppenauftrags 1C (Thema 1, Referatsprüfung Cloud Computing).
 **Repo-Stand der Analyse:** Branch `referat/thema-1-notes`, HEAD `27966e75215500b394b7a314f6c714eaae536452` (2026-10-15, Merge von PR #574). **Alle Zeilenangaben in diesem Dossier sind HEAD-Zeilen** (1-basiert; Serena-Ausgaben wurden von 0- auf 1-basiert umgerechnet). Der Release-Tag `v1.3.0` (`87c39334`, 2026-10-08) liegt 131 Commits früher. Er ist vermutlich die Prüfungsbaseline; die für 1C relevanten Abweichungen stehen in Abschnitt 1A.
@@ -645,7 +645,7 @@ Kanonisierung: `canonicalModerationPromptJson` (Z. 124–144) sortiert Schlüsse
 
 ## 11. Vorschlag: Versuchsdesign (Labor, synthetische Daten)
 
-> **Aktualisiert 2026-11-05:** Dieser Vorschlag ist überholt. Das tatsächliche Versuchsdesign steht in [specs/2026-10-25-1c-labor-design.md](./specs/2026-10-25-1c-labor-design.md) (_aktualisiert 2026-11-12:_ dazu die Designs [Teil 1](./specs/2026-10-24-1c-tests-design.md), [Teil 2](./specs/2026-10-24-1c-teil2-design.md), [Teil 3](./specs/2026-10-24-1c-teil3-design.md) und das [Nachlauf-Design](./specs/2026-11-06-1c-nachlauf-design.md)), die Ergebnisse im [Ergebnisbericht](./1C-ergebnis.md) und in den [ADRs](./adr/README.md). Der Text unten bleibt als ursprünglicher Stand stehen.
+> **Aktualisiert 2026-11-05:** Dieser Vorschlag ist überholt. Das tatsächliche Versuchsdesign steht in [specs/2026-10-25-1c-labor-design.md](../specs/2026-10-25-1c-labor-design.md) (_aktualisiert 2026-11-12:_ dazu die Designs [Teil 1](../specs/2026-10-24-1c-tests-design.md), [Teil 2](../specs/2026-10-24-1c-teil2-design.md), [Teil 3](../specs/2026-10-24-1c-teil3-design.md) und das [Nachlauf-Design](../specs/2026-11-06-1c-nachlauf-design.md)), die Ergebnisse im [Ergebnisbericht](./1C-ergebnis.md) und in den [ADRs](../adr/README.md). Der Text unten bleibt als ursprünglicher Stand stehen.
 
 > **Vorschlag.** Nur in der vom Prüfer bereitgestellten Laborinstanz, nicht gegen Produktion oder eine laufende Lehrveranstaltung (Prüfungsdokument Z. 84, 141).
 
@@ -738,7 +738,7 @@ Kanonisierung: `canonicalModerationPromptJson` (Z. 124–144) sortiert Schlüsse
 
 ## 13. Offene Punkte / Fragen an den Prüfer
 
-> **Aktualisiert 2026-11-05:** Diese Liste ist überholt. Geklärte Fragen stehen im [Rahmendokument](./00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer), der aktuelle Stand im [Ergebnisbericht, Abschnitt 9](./1C-ergebnis.md#9-offene-punkte-und-fragen-an-den-prüfer). Der Text unten bleibt als ursprünglicher Stand stehen.
+> **Aktualisiert 2026-11-05:** Diese Liste ist überholt. Geklärte Fragen stehen im [Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer), der aktuelle Stand im [Ergebnisbericht, Abschnitt 9](./1C-ergebnis.md#9-offene-punkte-und-fragen-an-den-prüfer). Der Text unten bleibt als ursprünglicher Stand stehen.
 
 | Nr. | Punkt                                                                                                                                                                                                                                                                                                                      |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -759,7 +759,7 @@ Kanonisierung: `canonicalModerationPromptJson` (Z. 124–144) sortiert Schlüsse
 
 ## 14. Befundliste (Kurzfassung für Handout)
 
-> **Aktualisiert 2026-11-05:** Diese Befundliste stammt aus der Recherche vor den Tests und Messungen. Die geprüften Befunde mit Entscheidung stehen im [Ergebnisbericht, Abschnitt 5](./1C-ergebnis.md#5-befunde-und-empfehlungen) und in den [ADRs](./adr/README.md); das Handout entsteht nach dem [Präsentationsgerüst](./1C-praesentation-geruest.md). Der Text unten bleibt als ursprünglicher Stand stehen. _Aktualisiert 2026-11-12:_ Die Befund-IDs B1 … bleiben gültig; der Ergebnisbericht und die ADRs verweisen auf sie.
+> **Aktualisiert 2026-11-05:** Diese Befundliste stammt aus der Recherche vor den Tests und Messungen. Die geprüften Befunde mit Entscheidung stehen im [Ergebnisbericht, Abschnitt 5](./1C-ergebnis.md#5-befunde-und-empfehlungen) und in den [ADRs](../adr/README.md); das Handout entsteht nach dem [Präsentationsgerüst](https://github.com/NiklasSkulll/arsnova.eu/blob/b02cdbf8/docs/referat-thema-1/1C-praesentation-geruest.md). Der Text unten bleibt als ursprünglicher Stand stehen. _Aktualisiert 2026-11-12:_ Die Befund-IDs B1 … bleiben gültig; der Ergebnisbericht und die ADRs verweisen auf sie.
 
 | Nr. | Befund                                                                                                                                                                                                            | Evidenz                                                                      |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |

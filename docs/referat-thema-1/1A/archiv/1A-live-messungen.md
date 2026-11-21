@@ -2,13 +2,13 @@
 
 Diese Unterlage beschreibt die in Schritt 3 ergänzte Live-Instrumentierung.
 Die vollständige automatisierte Messung ist inzwischen durchgeführt;
-[Versuchsreihe](./1A-versuchsreihe.md) und [Auswertung](./1A-auswertung.md)
+[Versuchsreihe](./1A-versuchsreihe.md) und [Auswertung](../1A-auswertung.md)
 ordnen die aktuellen Ergebnisse zu. Die Beitrittswelle belegt keine dauerhaft
 500 gleichzeitig aktiven Clients.
 
 ## Lastprofil und Messgrenze
 
-[`500-live-session.yml`](../../scripts/load/artillery/500-live-session.yml)
+[`500-live-session.yml`](../../../../scripts/load/artillery/500-live-session.yml)
 erzeugt eine Beitrittswelle mit `arrivalCount`: Jeder virtuelle Client tritt
 einmal bei, baut seine Status-WebSocket-Verbindung auf und führt Quizstimme,
 gegebenenfalls Q&A-Einreichung und Blitzlicht aus. Danach wartet er auf die
@@ -131,4 +131,4 @@ Schreiben von JSON und JUnit. Temporäre Testdateien werden entfernt.
 Der Befehl ist Teil von `npm test` und `npm run test:coverage`. Diese Tests
 belegen die Messinstrumentierung; sie ersetzen keinen realen Lastversuch.
 Die Befehle für einen Laborlauf stehen im
-[Artillery-Abschnitt von TESTING.md](../TESTING.md#artillery-lasttest-realtime-bis-500-tn).
+[Artillery-Abschnitt von TESTING.md](../../../TESTING.md#artillery-lasttest-realtime-bis-500-tn).

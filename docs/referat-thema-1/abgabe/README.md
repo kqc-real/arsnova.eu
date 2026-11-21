@@ -45,8 +45,8 @@ keine byteidentischen PDF-Dateien.
 
 Die Quellenangaben im Handout verweisen auf Prüfungsspezifikation, eingefrorenen
 Versuchsvertrag, ADR-0035 und eigene Messnachweise. Die
-[Betriebsentscheidung](../1A-auswertung.md) erläutert alle Befunde und Grenzen;
-der [Eigenanteilsnachweis](../1A-eigenanteil.md) grenzt menschlichen Auftrag,
+[Betriebsentscheidung](../1A/1A-auswertung.md) erläutert alle Befunde und Grenzen;
+der [Eigenanteilsnachweis](../1A/1A-eigenanteil.md) grenzt menschlichen Auftrag,
 gemeinsame Artefakte und agentengestützte Ausführung ab.
 
 ## Aktuelle Evidenz und persönliche Prüfliste
@@ -55,7 +55,7 @@ Die Vorlagen und erzeugten Dateien verwenden ausschließlich die Messung vom
 15.11.2026. Sie berücksichtigen die absoluten Verletzungen in V3/Block 5 und
 zeitgenössische Compose-Aufnahmen. Das Diagramm zeigt sämtliche Quiz-p95-Werte,
 einschließlich des erhöhten V3-Werts, ohne Abschneiden bei der früheren Skala.
-Die [Abschluss-/Übergabeunterlage](../1A-abschluss-und-uebergabe.md) trennt
+Die [Abschluss-/Übergabeunterlage](../1A/archiv/1A-abschluss-und-uebergabe.md) trennt
 persönliche Freigabe und gemeinsame Abstimmung von technischen Nachweisen.
 
 ## Vor persönlicher Abgabe

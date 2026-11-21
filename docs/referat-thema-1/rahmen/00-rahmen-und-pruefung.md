@@ -1,6 +1,6 @@
 # Rahmen und Prüfung: Referat Thema 1
 
-Stand: 2026-11-13; ursprüngliche Recherche vom 2026-10-16. Quellen: [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
+Stand: 2026-11-13; ursprüngliche Recherche vom 2026-10-16. Quellen: [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
 (kanonische Repo-Fassung, Abschnitte 2–6 und 4.3) sowie die Kursunterlagen aus
 „Woche 1“ (lokal, nicht im Repo): `3. Referatsprufung-Cloud-Computing.pdf` (49
 Folien) und `2. Cloud_Architecture_Dossier.pdf` (15 Folien).
@@ -36,11 +36,11 @@ Basis: ADR-0035, Stories 1.14b/c und 8.9a–d, #456. Für das Deployment zusätz
 `docker-compose.prod.yml`, `.env.production.example` und `scripts/deploy.sh` am
 festgelegten Commit.
 
-| Auftrag | Kurzfrage                                                                                      | Dossier                                                                                                                                                                     |
-| ------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1A      | Welche Ressourcenreserve hat der App-Host für optionale Analyse, ohne Live-Signale zu bremsen? | [1A-ressourcenisolation-app-host.md](./1A-ressourcenisolation-app-host.md)                                                                                                  |
-| 1B      | Welchen messbaren Isolationsgewinn und Betriebsaufwand bringt die zweite private Serverrolle?  | [1B-private-inferenz-zweiter-host.md](./1B-private-inferenz-zweiter-host.md)                                                                                                |
-| 1C      | Hält der Kontextpfad seine Vertrags-, Konsistenz- und Entkopplungszusagen bis zur Inferenz?    | [1C-kontext-und-adapterpfad.md](./1C-kontext-und-adapterpfad.md) (_aktualisiert 2026-11-12:_ überholter Recherche-Stand; maßgeblich ist [1C-ergebnis.md](./1C-ergebnis.md)) |
+| Auftrag | Kurzfrage                                                                                      | Dossier                                                                                                                                                                                         |
+| ------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1A      | Welche Ressourcenreserve hat der App-Host für optionale Analyse, ohne Live-Signale zu bremsen? | [../1A/1A-ressourcenisolation-app-host.md](../1A/1A-ressourcenisolation-app-host.md)                                                                                                            |
+| 1B      | Welchen messbaren Isolationsgewinn und Betriebsaufwand bringt die zweite private Serverrolle?  | [../1B/1B-private-inferenz-zweiter-host.md](../1B/1B-private-inferenz-zweiter-host.md)                                                                                                          |
+| 1C      | Hält der Kontextpfad seine Vertrags-, Konsistenz- und Entkopplungszusagen bis zur Inferenz?    | [../1C/1C-kontext-und-adapterpfad.md](../1C/1C-kontext-und-adapterpfad.md) (_aktualisiert 2026-11-12:_ überholter Recherche-Stand; maßgeblich ist [../1C/1C-ergebnis.md](../1C/1C-ergebnis.md)) |
 
 **Gruppensynthese:** A bewertet die Ressourcengrenze des App-Hosts, B die
 Isolation der privaten Inferenzrolle, C den realen Kontextübergang. Zusammen
@@ -114,9 +114,9 @@ auf das Issue zurückgeführt, nicht auf eine selbst geprüfte E-Mail.
 Für die aktuelle A1-Reihe vom 15.11.2026 wurde der Commit
 `a19ca70ff37dcb5510a77ab2745c06b70ccc3565` (Version 1.4.0) eingefroren.
 Die ältere Methodenfestlegung bleibt unverändert; die neue Baseline wird durch
-den [Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) gebunden.
+den [Vorabnachtrag](../specs/2026-11-14-1a-messreihe-main-a19ca70f.md) gebunden.
 Aufbau, Image-IDs und tatsächliche WSL2-Hardware mit 16 logischen CPUs stehen
-in der [Versuchsanleitung](./1A-versuchsreihe.md) und den Laufmanifesten.
+in der [Versuchsanleitung](../1A/archiv/1A-versuchsreihe.md) und den Laufmanifesten.
 Die Messung ist keine Kapazitätsfreigabe für den 8-vCPU-Produktionshost.
 Ein Produktivpatch ist laut Issue nicht gefordert. Die Fork-PR soll gegen
 `main` gehen und `Closes #6` enthalten; eine Upstream-PR ist davon getrennt.
@@ -161,7 +161,7 @@ Historie und die Dossier-Zeilen beziehen sich weiterhin auf den damaligen Stand.
    2026-11-04):** „Aktualisieren Sie Ihren Fork und Clone vor Ihrer
    Auswertung / Untersuchung.“ Wir messen deshalb gegen den aktuellen `main`
    und weisen die Abweichungen zum Stand der modellfreien Tests (`248029dc`)
-   aus ([1C-Labor-Design, Abschnitt 3.4](./specs/2026-10-25-1c-labor-design.md#34-abweichungen-des-referenzstands-gegenüber-248029dc)).
+   aus ([1C-Labor-Design, Abschnitt 3.4](../specs/2026-10-25-1c-labor-design.md#34-abweichungen-des-referenzstands-gegenüber-248029dc)).
    Für A1 gelten zusätzlich die konkrete Baseline und Laborfreigabe aus
    [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6); Messrevision siehe oben.
    Ursprüngliche Gründe:
@@ -176,12 +176,12 @@ Historie und die Dossier-Zeilen beziehen sich weiterhin auf den damaligen Stand.
    2026-11-04):** „Die Laborinstanz ist Ihr eigener Rechner.“ Es gibt also
    keine bereitgestellten VMs; Modell und Runtime-Image laden wir selbst, der
    1C-Lauf nutzt den lokalen Laborpfad `npm run docker:up:llm:http`
-   ([1C-Labor-Design, Abschnitt 3.1](./specs/2026-10-25-1c-labor-design.md#31-topologie)).
+   ([1C-Labor-Design, Abschnitt 3.1](../specs/2026-10-25-1c-labor-design.md#31-topologie)).
    Was das für die Zwei-Host-Reproduktion in 1B bedeutet, ist damit nicht
    ausdrücklich beantwortet. _Ergänzt 2026-11-13:_ Für 1B gelöst ohne erneute
    Rückfrage: zwei VMs in einem privaten virtuellen Netz auf dem eigenen Rechner
-   ([ADR 1B-002](./adr/1B-002-topologie-zwei-vms-ein-rechner.md),
-   [ADR 1B-003](./adr/1B-003-laborregel-virtuelles-netz.md)). Ursprünglich lautete die Frage: Laut Material
+   ([ADR 1B-002](../adr/1B-002-topologie-zwei-vms-ein-rechner.md),
+   [ADR 1B-003](../adr/1B-003-laborregel-virtuelles-netz.md)). Ursprünglich lautete die Frage: Laut Material
    stellt die Lehrperson die Laborinstanz einschließlich echter privater
    Runtime bereit (siehe
    [Recherche unten](#laborinstanz-und-zweiter-host-recherche-2026-10-24)).
@@ -220,7 +220,7 @@ Belege:
 - Referatsprüfung-PDF, Folie 40: „Eine vollständige 1.3-Laborinstanz
   einschließlich echter privater Runtime ist bereitgestellt. Keine Abhängigkeit
   von der Lieferung anderer Gruppen.“
-- [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
+- [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
   Z. 84: Die Lehrperson stellt eine reproduzierbare Laborinstanz
   „einschließlich funktionsfähiger privater Runtime und freigegebener
   Testdaten bereit“. Versuche laufen „ausschließlich dort“. Z. 490: gleiche
@@ -234,30 +234,30 @@ Belege:
 
 Der **Produktions**-Inferenzhost `arsnova-privat` (8-Kern-ARM, privates Netz)
 ist nicht die Laborinstanz. Studierende sollen ihn nicht ansprechen
-([onboarding.md](../onboarding.md) Z. 317–322; Zeilenangaben auf Stand `248029dc`, _aktualisiert 2026-11-10:_ auf `def56700` Z. 365–370), und Produktion darf kein
+([onboarding.md](../../onboarding.md) Z. 317–322; Zeilenangaben auf Stand `248029dc`, _aktualisiert 2026-11-10:_ auf `def56700` Z. 365–370), und Produktion darf kein
 Testziel sein (REFERAT-PRUEFUNG Z. 84).
 
 Erlaubte Alternativen und ihre Beweiskraft:
 
 - **Lokal auf dem Laptop:** Profil `llm-http` (`npm run docker:up:llm:http`,
-  [onboarding.md](../onboarding.md) Z. 234–322; _aktualisiert 2026-11-10:_ auf `def56700` Z. 282–370). Laut REFERAT-PRUEFUNG Z. 106
+  [onboarding.md](../../onboarding.md) Z. 234–322; _aktualisiert 2026-11-10:_ auf `def56700` Z. 282–370). Laut REFERAT-PRUEFUNG Z. 106
   ist das ein getrennter Nachweis. „Baseline und Leistungsurteil beruhen auf
   dem echten Releasepfad“ (Z. 192). Gut für Vorversuche, nicht als alleinige
   Baseline.
 - **Same-Host-Labor:** Profil `llm` (Z. 101, 194; ADR-0035 Z. 27–30). Nur als
   Vergleichsvariante zulässig.
 - **Modellfreie Tests:** Sie brauchen keinen zweiten Host
-  ([Test-Design](./specs/2026-10-24-1c-tests-design.md)).
+  ([Test-Design](../specs/2026-10-24-1c-tests-design.md)).
 
 Für das Aufsetzen eines zweiten Hosts gibt es ein vollständiges Runbook:
-[OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md](../operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md)
+[OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md](../../operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md)
 (Sizing Z. 44–51: mindestens 4 Kerne / 12 GiB, empfohlen 8 Kerne / 16 GiB;
 Firewall §5; Abnahme §17).
 
 ## Abschlussstand A1
 
 Auswertung, Abgabeentwürfe, nachträgliche Compose-Rekonstruktion und
-[Prüf-/Übergabeunterlage](./1A-abschluss-und-uebergabe.md) sind getrennt
+[Prüf-/Übergabeunterlage](../1A/archiv/1A-abschluss-und-uebergabe.md) sind getrennt
 nachgewiesen. Die Rekonstruktion ersetzt keine während der Messung gespeicherte
 Compose-Ausgabe. Persönliche Abgabefreigabe, Abstimmung mit 1B/1C und der
 GitHub-Merge werden nur nach tatsächlicher Durchführung als erledigt markiert.

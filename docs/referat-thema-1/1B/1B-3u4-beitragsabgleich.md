@@ -8,9 +8,9 @@
   Rücknahme, Live-/CPU-/RSS-Messung, Label-/Summary-Treiber, strikter Vergleich,
   S1-Labor und Auswertung. Damit werden eigene Normalreferenzen mit Störungen
   verglichen und die zweite Serverrolle betrieblich bewertet.
-- **Belege:** [Planung](1B-3u4-Planung.md),
+- **Belege:** [Planung](archiv/1B-3u4-Planung.md),
   [Ergebnis und Abschlussstand](1B-ergebnis.md#abschlussstand-schritte-34-bestätigt-am-2026-11-16),
-  [ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md),
+  [ADR 1B-020](../adr/1B-020-zweite-rolle-betrieblich-begruenden.md),
   [Eigenanteil/KI](1B-eigenanteil.md#schritte-34-niklas).
 - **Gemeinschaftliche oder unklare Anteile:** Niklas beauftragte und begleitete
   die Arbeit, führte Laborbefehle auf seinem PC aus, übergab Ergebnisse,
@@ -33,12 +33,12 @@
   PR-Beschreibung sowie datierte Verweise in Ergebnis, Eigenanteil und README
   entstehen danach und sind nicht Bestandteil des geprüften HEAD.
 - **Vorgaben und Aufgabendokumentation:**
-  [Rahmen](00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person),
-  [Aufteilung](01-aufteilung.md), Issue #9,
+  [Rahmen](../rahmen/00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person),
+  [Aufteilung](../rahmen/01-aufteilung.md), Issue #9,
   [Dossier](1B-private-inferenz-zweiter-host.md),
-  [Laborregeln](AGENTS.md#1b-labor-für-agenten-codex-claude),
-  [Runbook](evidenz/1B/runbook.md) und
-  [Abgleichvorlage](final-prompt-for-git-diff.md). Keine fehlende Pflichtquelle.
+  [Laborregeln](../AGENTS.md#1b-labor-für-agenten-codex-claude),
+  [Runbook](../evidenz/1B/runbook.md) und
+  [Abgleichvorlage](../rahmen/final-prompt-for-git-diff.md). Keine fehlende Pflichtquelle.
   Das dortige Nur-Lesen-Gebot betrifft den Auditablauf; die aktuelle ausdrückliche
   Beauftragung zum Speichern der Abschlussdokumente hat Vorrang.
 - **Umfang:** `git diff main...HEAD` umfasst 93 Dateien: Laborwerkzeuge,
@@ -58,12 +58,12 @@
 - **Abgedeckt — Vorabplanung:** Hypothesen, Gegenalternative, Messgrößen,
   Budgets und Schwellen vor den gewerteten Reihen dokumentiert. Datierte
   Reduzierungen des Restumfangs bleiben sichtbar; keine nachträgliche Änderung
-  ungünstiger Schwellen ([Planung](1B-3u4-Planung.md)).
+  ungünstiger Schwellen ([Planung](archiv/1B-3u4-Planung.md)).
 - **Abgedeckt — eigener ausführbarer Test:**
-  [Fake-Vertragstests](evidenz/1B/fake-runtime.test.mjs),
-  [Störungs-Lebenszyklus](evidenz/1B/fault-vm.test.mjs),
-  [Messfenster](evidenz/1B/messfenster.test.mjs) und
-  [S1-Tests](evidenz/1B/s1.test.mjs). Agentengestützte Implementierung offengelegt.
+  [Fake-Vertragstests](../evidenz/1B/fake-runtime.test.mjs),
+  [Störungs-Lebenszyklus](../evidenz/1B/fault-vm.test.mjs),
+  [Messfenster](../evidenz/1B/messfenster.test.mjs) und
+  [S1-Tests](../evidenz/1B/s1.test.mjs). Agentengestützte Implementierung offengelegt.
 - **Abgedeckt — reale eigene Referenzen und Varianten:** Summary-/Label-
   Normalreihen, eigene B0/F1-Referenzen, L1/L2, L3, F1/F2 und belegter Slot
   im vereinbarten Umfang; Fake nur für deterministische Störungen.
@@ -71,22 +71,22 @@
   der datiert gekürzte Plan, kein vollständiges kartesisches Testprogramm.
 - **Abgedeckt — App-Rückwirkung und Nachweisablage:** Live-p95/Fehler sowie
   App-CPU/RSS, Manifeste und Rücknahmen in den
-  [Protokollen und Ergebnisdateien](README.md). Das Profil misst eine Ankunftswelle,
+  [Protokollen und Ergebnisdateien](../README.md). Das Profil misst eine Ankunftswelle,
   keine konstante Konkurrenz von 500 Personen. PCAPs bleiben wegen enthaltener
   Tokens lokal; eingecheckt sind abgeleitete, bereinigte Messdaten.
 - **Abgedeckt — Transport, RST/DROP, Queue/Breaker:**
-  [Transportauswertung](evidenz/1B/2026-11-16-transportauswertung.md),
-  [F2/Summary](evidenz/1B/2026-11-16-lauf-f2-summary.md),
-  [F1-Kontrolle](evidenz/1B/2026-11-16-lauf-breaker-f1-summary.md) und
-  [gerichtete Queue-Folge](evidenz/1B/2026-11-16-lauf-breaker-l3-summary.md).
+  [Transportauswertung](../evidenz/1B/2026-11-16-transportauswertung.md),
+  [F2/Summary](../evidenz/1B/2026-11-16-lauf-f2-summary.md),
+  [F1-Kontrolle](../evidenz/1B/2026-11-16-lauf-breaker-f1-summary.md) und
+  [gerichtete Queue-Folge](../evidenz/1B/2026-11-16-lauf-breaker-l3-summary.md).
   Verhaltensnachweis mit Codebezug; kein direkt ausgelesener interner Breaker-Zähler.
 - **Teilweise abgedeckt — interne Label-Fallback-Frist:** API legt interne
   Job-Zeit und Fallback-Grund nicht offen. Client-Wartezeit und transientes
   Ergebnis gemessen; das enge interne Kriterium wird ausdrücklich nicht als
   bestanden ausgegeben. Diese Messgrenze wird durch Wiederholung nicht behoben.
 - **Abgedeckt — S1 und Betriebsentscheidung:**
-  [Label](evidenz/1B/2026-11-16-lauf-s1-label.md),
-  [Summary](evidenz/1B/2026-11-16-lauf-s1-summary.md) und ADR 1B-020.
+  [Label](../evidenz/1B/2026-11-16-lauf-s1-label.md),
+  [Summary](../evidenz/1B/2026-11-16-lauf-s1-summary.md) und ADR 1B-020.
   Deployment, Updates, Monitoring, Token-Rotation und TLS qualitativ bewertet;
   Kosten-/Risikogrenzen und konkrete Betriebsfolgen dokumentiert.
 - **Nicht anwendbar — optionale Race-Messreihe und Produktionspatch:**
@@ -143,14 +143,14 @@
 ### Individuelle Beweiskette
 
 - **Hypothese:** H2 und zusätzliche Latenzschwelle in der
-  [Vorabplanung](1B-3u4-Planung.md#ziel-und-verbindliche-quellen).
+  [Vorabplanung](archiv/1B-3u4-Planung.md#ziel-und-verbindliche-quellen).
 - **Gegenhypothese:** Netzfehler, Wartebindung und geteilte physische Ressourcen
   können Live-Signale trotz zweiter VM beeinflussen; gleiche Planung.
 - **Eigener ausführbarer Test:** Fake-/Störungs-/Mess- und S1-Vertragstests,
   agentengestützt entwickelt und separat von übernommener Infrastruktur ausgewiesen.
 - **Eigener Baseline-Lauf:**
-  [Summary normal](evidenz/1B/2026-11-15-lauf-normal-summary.md) und
-  [Label normal](evidenz/1B/2026-11-16-lauf-normal-label-03.md), eigener PC,
+  [Summary normal](../evidenz/1B/2026-11-15-lauf-normal-summary.md) und
+  [Label normal](../evidenz/1B/2026-11-16-lauf-normal-label-03.md), eigener PC,
   tatsächliche Inferenz; Summary mit offengelegtem Qualitätsfallback.
 - **Fehler/Variante:** L1/L2, L3, F1, F2, belegter Slot, gerichteter Queue-/Breaker-
   Vergleich und S1; Quellen über [Ergebnisbericht](1B-ergebnis.md).
@@ -158,7 +158,7 @@
   mehrfach überschritten. Gemeinsamer physischer Host, kleine Teilreihen,
   ungleiche S1-Ressourcen, fehlende interne Label-Zeiten. Kein allgemeiner
   Isolations-, Produktionskapazitäts- oder Qualitätsnachweis.
-- **Entscheidung:** [ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md):
+- **Entscheidung:** [ADR 1B-020](../adr/1B-020-zweite-rolle-betrieblich-begruenden.md):
   zweite Rolle betrieblich begründen, Timeouts hostabhängig kalibrieren,
   Fallbacks überwachen, bei Queue-Timeouts nicht allein auf den Breaker vertrauen.
 
@@ -167,10 +167,10 @@
 - **Technisch:** Kein weiterer Laborlauf für den vereinbarten Umfang.
   Drei bestehende Pester-Hashfälle sind auf dieser Windows-Umgebung nicht grün;
   vollständiger Formatcheck und erforderliche CI-/Gesamttests vor Merge offen.
-  VMs wurden [abgebaut](evidenz/1B/2026-11-16-laborabbau.md); Wiederholung braucht
+  VMs wurden [abgebaut](../evidenz/1B/2026-11-16-laborabbau.md); Wiederholung braucht
   einen neuen Aufbau und gesonderte Freigabe, ist für diesen Abgleich nicht nötig.
 - **Dokumentation und Prüfungsnachweise:** Beitragsabgleich erledigt,
-  [PR-Beschreibung](1B-3u4-pr-beschreibung.md) lokal vorbereitet. Niklas muss
+  [PR-Beschreibung](https://github.com/NiklasSkulll/arsnova.eu/blob/b02cdbf8/docs/referat-thema-1/1B-3u4-pr-beschreibung.md) lokal vorbereitet. Niklas muss
   beide neuen Dateien noch committen/pushen, die PR gegen Fork-`main` manuell
   öffnen und die Checks abwarten. Merge und formale Abgabe sind nicht erfolgt.
   Art und Umfang erlaubter KI-Nutzung für die Prüfung werden durch diesen

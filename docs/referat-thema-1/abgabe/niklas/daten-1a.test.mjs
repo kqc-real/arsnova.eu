@@ -112,7 +112,8 @@ test('gleiche Daten in jedem Lauf, Vertragshash in allen Manifesten', () => {
 test('Vorab-Festlegung: Schwellen stehen schon im Vertrag v1, Daten aus Git, Läufe danach', () => {
   const v1 = execFileSync(
     'git',
-    ['show', `${KETTE_1A[0].commit}:docs/referat-thema-1/${VERTRAG_1A}`],
+    // Historischer Pfad: der Vertrag lag bis 2026-11-21 direkt im Referatsordner.
+    ['show', `${KETTE_1A[0].commit}:docs/referat-thema-1/1A-experiment-contract.md`],
     {
       cwd: ROOT,
       encoding: 'utf8',

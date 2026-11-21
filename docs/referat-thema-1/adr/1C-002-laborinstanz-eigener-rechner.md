@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Die Prüfungsunterlagen legen nahe, dass die Lehrperson eine Laborinstanz mit echter privater Runtime bereitstellt ([Rahmendokument, Recherche](../00-rahmen-und-pruefung.md#laborinstanz-und-zweiter-host-recherche-2026-10-24)). Auftrag 1C Schritt 2 verlangt den Weg bis zur privaten Runtime; Teil 2 und 3 hatten ihn nur bis zu einer Test-Runtime auf 127.0.0.1 gezeigt. Offen war, wo der Echtlauf stattfindet (offene Frage 4 im [Rahmendokument](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
+Die Prüfungsunterlagen legen nahe, dass die Lehrperson eine Laborinstanz mit echter privater Runtime bereitstellt ([Rahmendokument, Recherche](../rahmen/00-rahmen-und-pruefung.md#laborinstanz-und-zweiter-host-recherche-2026-10-24)). Auftrag 1C Schritt 2 verlangt den Weg bis zur privaten Runtime; Teil 2 und 3 hatten ihn nur bis zu einer Test-Runtime auf 127.0.0.1 gezeigt. Offen war, wo der Echtlauf stattfindet (offene Frage 4 im [Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
 
 ## Entscheidung
 
@@ -13,7 +13,7 @@ Die Laborinstanz ist der eigene Rechner des Autors (E-Mail des Prüfers, notiert
 
 ## Alternativen
 
-- **Zwei Hosts wie im ausgelieferten Betrieb.** Nicht gewählt: Es gibt keine bereitgestellten VMs. Ob damit die Zwei-Host-Reproduktion in 1B beantwortet ist, hat der Prüfer nicht ausdrücklich gesagt; das bleibt offen ([Rahmendokument](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
+- **Zwei Hosts wie im ausgelieferten Betrieb.** Nicht gewählt: Es gibt keine bereitgestellten VMs. Ob damit die Zwei-Host-Reproduktion in 1B beantwortet ist, hat der Prüfer nicht ausdrücklich gesagt; das bleibt offen ([Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)).
 - **Produktionswrapper `npm run llm:prod`.** Nicht möglich, er lehnt Loopback ab ([Labor-Design 3.1](../specs/2026-10-25-1c-labor-design.md#31-topologie)).
 - **App selbst über die UI auslösen, mit separatem Proxy (Frage P3).** Nicht gewählt: Das würde zusätzlich HTTP-tRPC prüfen, braucht aber einen Host-Token und einen eigenen Proxyprozess. Die Harness prüft denselben Code mit derselben Fixture wie Teil 2 und 3 und ist dadurch direkt vergleichbar. Der Prüfer hat P3 nicht ausdrücklich beantwortet ([Labor-Design 11](../specs/2026-10-25-1c-labor-design.md#11-offene-fragen)).
 

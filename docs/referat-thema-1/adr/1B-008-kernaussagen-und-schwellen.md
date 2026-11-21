@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Die Pflicht-Nachweiskette verlangt Hypothese, Gegenalternative und Entscheidungsschwellen vor dem ersten Lauf ([Rahmendokument](../00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)). Das Dossier schlug einen Transportanteil unter 5 % vor ([Dossier 10.5](../1B-private-inferenz-zweiter-host.md#105-entscheidungsschwellen-vorschlag-vorab-begründen)).
+Die Pflicht-Nachweiskette verlangt Hypothese, Gegenalternative und Entscheidungsschwellen vor dem ersten Lauf ([Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)). Das Dossier schlug einen Transportanteil unter 5 % vor ([Dossier 10.5](../1B/1B-private-inferenz-zweiter-host.md#105-entscheidungsschwellen-vorschlag-vorab-begründen)).
 
 ## Entscheidung
 
@@ -29,7 +29,7 @@ Schwellen für B, über n = 10 gewertete Aufträge:
 
 **Hauptwert ist die Netzzeit in Millisekunden.** Auf langsamer Hardware dauert die Inferenz länger, der Prozentanteil des Netzes fällt dadurch zu klein aus; er wird nur mit diesem Hinweis genannt.
 
-C wird aus dem Aufbau belegt: je Zeitkomponente, ob sie im Release-Betrieb ohne Laborwerkzeug sichtbar ist, dazu die Lücken des Nachbaus. Entscheidung für C: Empfehlung, kein Patch, Zeiten (`elapsedMs`, `timings`) für Summary und Label ins Log zu schreiben, ohne Prompttext ([Dossier, Lücken 1–3](../1B-private-inferenz-zweiter-host.md#12-lücken-und-pr-kandidaten)).
+C wird aus dem Aufbau belegt: je Zeitkomponente, ob sie im Release-Betrieb ohne Laborwerkzeug sichtbar ist, dazu die Lücken des Nachbaus. Entscheidung für C: Empfehlung, kein Patch, Zeiten (`elapsedMs`, `timings`) für Summary und Label ins Log zu schreiben, ohne Prompttext ([Dossier, Lücken 1–3](../1B/1B-private-inferenz-zweiter-host.md#12-lücken-und-pr-kandidaten)).
 
 ## Alternativen
 

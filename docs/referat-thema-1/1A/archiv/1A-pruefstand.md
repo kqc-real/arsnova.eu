@@ -6,7 +6,7 @@ Die gemessene Anwendungsrevision bleibt von späteren Werkzeug-/Dokumentationsä
 
 ## Messdaten und Integrität
 
-Die einzige Reihe ist im [Evidenzindex](./evidenz/1A/README.md) verlinkt.
+Die einzige Reihe ist im [Evidenzindex](../../evidenz/1A/README.md) verlinkt.
 Nach Commit-Formatierung passten JSON-Dateibytes nicht mehr zu ihren gespeicherten
 Hashes. Bei 95 Hauptreihendateien und zehn Compose-Aufnahmen des Vorlaufs wurden
 ausschließlich die bereits durch vorhandene SHA-256 belegten Originalbytes wiederhergestellt.

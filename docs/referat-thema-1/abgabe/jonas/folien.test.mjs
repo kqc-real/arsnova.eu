@@ -101,7 +101,7 @@ function grafiken() {
       zeitzerlegungSvg(b1, { kalt: false }),
       zeitzerlegungSvg(b1, { stufen: true }),
       // Seit 2026-11-16: Systembild (GK), Zeitleiste (J12), Raster (J13), eingebettete 1C-Diagramme (R15, R16);
-      // ihre Zahlen prüft grafik.test.mjs bzw. stammen aus 1C-diagrams.md.
+      // ihre Zahlen prüft grafik.test.mjs bzw. stammen aus 1C/1C-diagrams.md.
       systemSvg({ clients: FESTWERTE.liveClients.wert }),
       abstimmungSvg({ auftrag }),
       gateRasterSvg({ n1B: b1.verworfen, n1C: c1.gateAntwortenGesamt.wert }),
@@ -509,7 +509,7 @@ test('Reservefolien R1, R5–R7, R9–R12, R15, R16 (R2–R4, R8, R13, R14 seit 
 });
 
 test(
-  'R15, R16: Abb. 1 und 2 aus 1C-diagrams.md offline eingebettet, eigene Ids, Notation und Stand',
+  'R15, R16: Abb. 1 und 2 aus 1C/1C-diagrams.md offline eingebettet, eigene Ids, Notation und Stand',
   { skip: OHNE_NOTIZEN },
   () => {
     const r15 = nach('R15');
@@ -534,7 +534,7 @@ test(
         );
         assert.ok(d.verhaeltnis > 0.5 && d.verhaeltnis < 4, k);
       }
-      assert.match(f.fuss, /Weirauch, 2026, Datei 1C-diagrams\.md/);
+      assert.match(f.fuss, /Weirauch, 2026, Datei 1C\/1C-diagrams\.md/);
       assert.match(sichtbar(f.inhalt), /def56700/);
     }
     assert.match(sichtbar(r15.inhalt), /Aktivitätsdiagramm/);
@@ -544,7 +544,10 @@ test(
     const alle = Object.values(daten.diagramme).flatMap((d) => ids(d.svg));
     assert.equal(new Set(alle).size, alle.length);
     // J3 verweist ohne Unordnung auf die Reserve (eine Zeile Vermerk, Satz in Notiz und Stichpunkten)
-    assert.match(sichtbar(nach('J3').inhalt), /Vereinfacht aus Abb\. 1 und 2 \(1C-diagrams\.md\)/);
+    assert.match(
+      sichtbar(nach('J3').inhalt),
+      /Vereinfacht aus Abb\. 1 und 2 \(1C\/1C-diagrams\.md\)/,
+    );
     assert.match(nach('J3').notiz, /UML-Diagramme.*Reserve/);
     assert.ok(nach('J3').stichpunkte.some((p) => /Reserve R15, R16/.test(p)));
   },

@@ -1,13 +1,13 @@
 # A1 – Eigenanteil und Anforderungsabgleich
 
-Aktualisiert 15.11.2026. Aufgabe 1A liegt gemäß [Aufteilung](./01-aufteilung.md)
+Aktualisiert 15.11.2026. Aufgabe 1A liegt gemäß [Aufteilung](../rahmen/01-aufteilung.md)
 bei Niklas; zusätzliche 1B-Schritte sind davon getrennt.
 
 ## Beitrag und Herkunft
 
 A1 ergänzt Versuchsvertrag, gemeinsame synthetische Fixture, Live-Instrumentierung,
 hostautorisierte Analysen, Ressourcen-Collector, Verzögerungsproxy, Laborablauf,
-Auswertung und Dokumentbau. Die [Gesamtübersicht](./1A-komplette-Aufgabe-fertig.md)
+Auswertung und Dokumentbau. Die [Gesamtübersicht](./archiv/1A-komplette-Aufgabe-fertig.md)
 ordnet Dateien und sieben Umsetzungsschritte zu.
 Anwendungs- und Sidecar-Code sowie die sechs Referenzfragen sind übernommenes Projektmaterial.
 A1 verändert keine Produktionslogik; der bekannte ursprüngliche Frontend-Wording-Test bleibt unverändert.
@@ -21,15 +21,15 @@ Persönliche fachliche Gegenprüfung und Freigabe werden nicht aus dem Chat abge
 ## Aktuelle Beweiskette
 
 - Hypothesen und Schwellen: unveränderter [Versuchsvertrag](./1A-experiment-contract.md)
-  mit [Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md).
+  mit [Vorabnachtrag](../specs/2026-11-14-1a-messreihe-main-a19ca70f.md).
 - Anwendung: `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`; die Werkzeugidentität steht gesondert im Manifest.
-- Daten: [einzige aktuelle Reihe](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/), eigener erfolgreicher Vorlauf,
+- Daten: [einzige aktuelle Reihe](../evidenz/1A/reihe-main-a19ca70f-20261115-122547/), eigener erfolgreicher Vorlauf,
   25 Messfenster, Rohwerte und zeitgenössische Compose-Aufnahmen.
 - Rechnung und Entscheidung: [aktuelle Auswertung](./1A-auswertung.md), einschließlich
   aller ungünstigen Blöcke; keine nachträgliche Lockerung der Kriterien.
 - Git: Messnachweise wurden im Stand `37f2c534336db6eff99788faa8d1c301f52d084c`
   versioniert. Spätere Bereinigung/Dokumentation ist kein neuer Anwendungs-Messcommit.
-- Technische Gegenprüfung: [Prüfstand](./1A-pruefstand.md).
+- Technische Gegenprüfung: [Prüfstand](./archiv/1A-pruefstand.md).
 
 ## Anforderungsabgleich
 
@@ -49,6 +49,6 @@ Persönliche fachliche Gegenprüfung und Freigabe werden nicht aus dem Chat abge
 
 Auftrag, schrittweise Freigaben, Ausführung und Interpretation müssen von Niklas
 fachlich vertreten werden. Die agentengestützte Umsetzung und gemeinsame Herkunft
-bleiben offengelegt. Die [Übergabeunterlage](./1A-abschluss-und-uebergabe.md)
+bleiben offengelegt. Die [Übergabeunterlage](./archiv/1A-abschluss-und-uebergabe.md)
 enthält KI-Aufträge und persönliche Prüfpunkte. Eine tatsächliche gemeinsame
 Abstimmung, ausschließlich manuelle Erstellung oder institutionelle Anerkennung wird nicht behauptet.

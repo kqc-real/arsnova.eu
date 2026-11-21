@@ -1,6 +1,6 @@
 # Aufteilung 1A/1B/1C auf zwei Personen
 
-Stand: 2026-11-13; Aufteilungsentscheidung vom 2026-10-23. Grundlage: [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
+Stand: 2026-11-13; Aufteilungsentscheidung vom 2026-10-23. Grundlage: [CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)
 Abschnitte 4.1.2, 4.1.3 und 4.3 sowie die Lückenlisten der Dossiers 1A, 1B
 und 1C. Die Aufwandsschätzungen sind eigene Einschätzungen, keine Vorgabe.
 
@@ -23,7 +23,7 @@ Die gemeinsamen Artefakte sind wie in der Tabelle
 [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6) geklärt.
 Die A1-Messwerkzeuge und Fixture liegen vor;
 die tatsächliche Übernahme durch 1B/1C wird in der
-[Übergabeunterlage](./1A-abschluss-und-uebergabe.md) abgeglichen.
+[Übergabeunterlage](../1A/archiv/1A-abschluss-und-uebergabe.md) abgeglichen.
 Niklas' zusätzliche 1B-Schritte 3–4 werden nicht mit dem Abschluss von 1A
 als erledigt erklärt.
 
@@ -205,16 +205,16 @@ _Ergänzt 2026-11-15:_ Jonas schlägt eine andere Reihenfolge vor: Niklas (1A)
 → Jonas (der Auftrag am Stück, 1C und 1B Schritte 1–2 verwoben) → Niklas
 (1B Schritte 3–4), also zwei Sprecherwechsel. Dazu ein gemeinsames Deck, das
 eine Person von Anfang bis Ende teilt. Noch mit Niklas abzustimmen; Begründung
-und Übergänge im [Präsentations-Design, Abschnitt 3](./specs/2026-11-15-praesentation-jonas-design.md#3-reihenfolge-der-gruppe).
+und Übergänge im [Präsentations-Design, Abschnitt 3](../specs/2026-11-15-praesentation-jonas-design.md#3-reihenfolge-der-gruppe).
 
 ## 1B: zwei PRs nacheinander (Vorschlag, mit Niklas abzustimmen)
 
 _Ergänzt 2026-11-12._ Vorschlag von Jonas, mit Niklas noch nicht abgestimmt:
 
 - **Reihenfolge:** Jonas' PR mit den Schritten 1–2 zuerst. Niklas zweigt nach deren Merge von Fork-`main` für die Schritte 3–4 ab.
-- **Gemeinsames Hauptdokument:** `1B-ergebnis.md` mit je einem Abschnitt zu den Schritten 1–2 und 3–4 und einem gemeinsamen Kurzfazit. Eigenanteil je Person.
-- **ADR-Nummern:** `1B-001`–`1B-019` Jonas, `1B-020`–`1B-039` Niklas ([ADR-Index](adr/README.md#adrs-zu-1b)).
-- **Aufbau:** zwei VMs auf einem Rechner ([ADR 1B-002](adr/1B-002-topologie-zwei-vms-ein-rechner.md)). Niklas nutzt die Dateien, nicht die Geräte von Jonas; der Windows-Weg steht in `evidenz/1B/vm/WINDOWS.md` ([ADR 1B-009](adr/1B-009-portabilitaet-linux-windows.md)). Sein eigener Lauf auf eigener Hardware ist zugleich der Wiederholbarkeitsnachweis aus Schritt 3.
+- **Gemeinsames Hauptdokument:** `../1B/1B-ergebnis.md` mit je einem Abschnitt zu den Schritten 1–2 und 3–4 und einem gemeinsamen Kurzfazit. Eigenanteil je Person.
+- **ADR-Nummern:** `1B-001`–`1B-019` Jonas, `1B-020`–`1B-039` Niklas ([ADR-Index](../adr/README.md#adrs-zu-1b)).
+- **Aufbau:** zwei VMs auf einem Rechner ([ADR 1B-002](../adr/1B-002-topologie-zwei-vms-ein-rechner.md)). Niklas nutzt die Dateien, nicht die Geräte von Jonas; der Windows-Weg steht in `evidenz/1B/vm/WINDOWS.md` ([ADR 1B-009](../adr/1B-009-portabilitaet-linux-windows.md)). Sein eigener Lauf auf eigener Hardware ist zugleich der Wiederholbarkeitsnachweis aus Schritt 3.
 
 ## Nächste Schritte
 
@@ -222,6 +222,6 @@ _Ergänzt 2026-11-12._ Vorschlag von Jonas, mit Niklas noch nicht abgestimmt:
 2. Die Aufteilung schriftlich festhalten: je Person Titel, Hypothese,
    Gegenalternative, eigener Test und Anteil an gemeinsamen Artefakten. Die Zuordnung ist
    wie oben dokumentiert geklärt; offene gemeinsame Artefakte werden abgestimmt.
-3. **A1 verfügbar, Stand 15.11.2026:** [Aktuelle Messreihe und Auswertung](./1A-auswertung.md),
+3. **A1 verfügbar, Stand 15.11.2026:** [Aktuelle Messreihe und Auswertung](../1A/1A-auswertung.md),
    Laboraufbau, Fixture und Live-Messwerkzeuge sind dokumentiert.
    Die gemeinsame Übernahme sowie die private Runtime für 1B/1C gesondert abgleichen.

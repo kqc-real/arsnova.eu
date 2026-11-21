@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Niklas baut die Schritte 3–4 auf dem Aufbau der Schritte 1–2 auf, aber auf eigener Hardware: Windows mit WSL. Jede Person braucht einen eigenen Baselinelauf ([Rahmendokument](../00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)), und 1B Schritt 3 verlangt, die Wiederholbarkeit zu dokumentieren.
+Niklas baut die Schritte 3–4 auf dem Aufbau der Schritte 1–2 auf, aber auf eigener Hardware: Windows mit WSL. Jede Person braucht einen eigenen Baselinelauf ([Rahmendokument](../rahmen/00-rahmen-und-pruefung.md#pflicht-nachweiskette-je-person)), und 1B Schritt 3 verlangt, die Wiederholbarkeit zu dokumentieren.
 
 ## Entscheidung
 

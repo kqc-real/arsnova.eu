@@ -10,7 +10,7 @@ Hypothesen, Lastprofil, Wiederholungen und Grenzwerte werden vor den Messungen f
 Aus den Messungen soll anschließend eine begründete Betriebsentscheidung entstehen: spaCy unter den untersuchten Bedingungen zulassen oder mit `NLP_ENABLED=false` bei der lexikalischen Wortwolke bleiben.
 
 **Stand: 15.11.2026 — Schritte 1–7 technisch umgesetzt; persönliche Abgabefreigabe und PR-Merge noch offen.**
-**Grundlage:** [Umsetzungsplan](./1A-umsetzungsplan.md), [Versuchsvertrag](./1A-experiment-contract.md) und [aktueller Nachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md).
+**Grundlage:** [Umsetzungsplan](./1A-umsetzungsplan.md), [Versuchsvertrag](../1A-experiment-contract.md) und [aktueller Nachtrag](../../specs/2026-11-14-1a-messreihe-main-a19ca70f.md).
 **Dateiangaben:** »Neu« und »bearbeitet« beziehen sich auf den jeweiligen Umsetzungsschritt, nicht auf den aktuellen Git-Status.
 
 Alle folgenden Befehle gelten für das Repository-Wurzelverzeichnis mit installierten Projektabhängigkeiten; vor CLI-Aufrufen die Node-Version auswählen und Shared-Types bauen:
@@ -33,14 +33,14 @@ Die zunächst offene Labor- und Baseline-Auswahl wurde vor den Messungen in Schr
 
 ### 1.2 Änderungen am Projekt
 
-- [docs/referat-thema-1/1A-experiment-contract.md](./1A-experiment-contract.md) — **neu, später in Schritt 6 bearbeitet:** Verbindlicher Versuchsvertrag mit Hypothesen, Daten, Lastprofil, Grenzwerten, Nachweisanforderungen und Rückweg zur Baseline.
-- [docs/referat-thema-1/1A-umsetzungsplan.md](./1A-umsetzungsplan.md) — **neu:** Hält die sieben Umsetzungsschritte und den aktuellen technischen Abschlussumfang fest.
-- [docs/referat-thema-1/README.md](./README.md) — **bearbeitet:** Verlinkt den Versuchsvertrag im Themenordner.
+- [docs/referat-thema-1/1A/1A-experiment-contract.md](../1A-experiment-contract.md) — **neu, später in Schritt 6 bearbeitet:** Verbindlicher Versuchsvertrag mit Hypothesen, Daten, Lastprofil, Grenzwerten, Nachweisanforderungen und Rückweg zur Baseline.
+- [docs/referat-thema-1/1A/archiv/1A-umsetzungsplan.md](./1A-umsetzungsplan.md) — **neu:** Hält die sieben Umsetzungsschritte und den aktuellen technischen Abschlussumfang fest.
+- [docs/referat-thema-1/README.md](../../README.md) — **bearbeitet:** Verlinkt den Versuchsvertrag im Themenordner.
 
 ### 1.3 Durchführung
 
 ```bash
-npx prettier --check docs/referat-thema-1/1A-experiment-contract.md
+npx prettier --check docs/referat-thema-1/1A/1A-experiment-contract.md
 ```
 
 Prüft die Formatierung des Vertrags; die fachlichen Regeln müssen zusätzlich mit Auftrag und späteren Laufmanifesten abgeglichen werden.
@@ -52,7 +52,7 @@ Dieser Dokumentationsschritt führt noch keine Lastmessung durch.
 
 ### 2.1 Übersicht
 
-Die sechs bestehenden Referenzfragen aus [libs/shared-types/src/moderation-prompt-context-fixtures.ts](../../libs/shared-types/src/moderation-prompt-context-fixtures.ts) wurden wiederverwendet und um Gegenfälle sowie deterministische Füllfragen ergänzt.
+Die sechs bestehenden Referenzfragen aus [libs/shared-types/src/moderation-prompt-context-fixtures.ts](../../../../libs/shared-types/src/moderation-prompt-context-fixtures.ts) wurden wiederverwendet und um Gegenfälle sowie deterministische Füllfragen ergänzt.
 Die A1-Projektion enthält 500 analysierbare Fragen und drei zusätzliche Ausschlusskontrollen mit den Status `PENDING`, `ARCHIVED` und `DELETED`.
 Die Teilnehmerbezugsgröße der Analysefixture beträgt 200 und ist von den 500 geplanten Live-Beitritten unabhängig.
 Seed und SHA-256-Hash machen die Eingaben vergleichbar; die ursprüngliche Referenzfixture für die anderen Teilaufgaben bleibt erhalten.
@@ -60,13 +60,13 @@ Die Fixture-Erzeugung arbeitet offline, während der Import in getrennte Laborse
 
 ### 2.2 Änderungen am Projekt
 
-- [scripts/load/lib/resource-isolation-fixture.mjs](../../scripts/load/lib/resource-isolation-fixture.mjs) — **neu:** Erzeugt die gemeinsame Fixture und ihre A1-Projektion und berechnet deren kanonischen Inhaltshash.
-- [scripts/load/resource-isolation-fixture.mjs](../../scripts/load/resource-isolation-fixture.mjs) — **neu:** CLI zum Validieren und Ausgeben der Fixture ohne Datenbank oder Netzwerk.
-- [scripts/load/fixtures/resource-isolation-v1.manifest.json](../../scripts/load/fixtures/resource-isolation-v1.manifest.json) — **neu:** Speichert Version, Standardseed und erwarteten Hash als Referenz für Regressionstests.
-- [scripts/load/lib/resource-isolation-fixture.test.mjs](../../scripts/load/lib/resource-isolation-fixture.test.mjs) und [scripts/load/resource-isolation-fixture.test.mjs](../../scripts/load/resource-isolation-fixture.test.mjs) — **jeweils neu:** Prüfen Referenzdaten, Gegenfälle, Projektion, Schema-Verträglichkeit, Reproduzierbarkeit und tatsächliche CLI-Ausgaben.
-- [docs/referat-thema-1/1A-fixture.md](./1A-fixture.md) — **neu:** Beschreibt Inhalt, Grenzen, Hashbildung und Nutzung der gemeinsamen Testdaten.
-- [package.json](../../package.json) — **bearbeitet:** Ergänzt Fixture- und Testbefehle und bindet die Tests in `npm test` und `test:coverage` ein.
-- [docs/TESTING.md](../TESTING.md) und [docs/referat-thema-1/README.md](./README.md) — **jeweils bearbeitet:** Dokumentieren Testaufrufe und verlinken die Fixture-Anleitung.
+- [scripts/load/lib/resource-isolation-fixture.mjs](../../../../scripts/load/lib/resource-isolation-fixture.mjs) — **neu:** Erzeugt die gemeinsame Fixture und ihre A1-Projektion und berechnet deren kanonischen Inhaltshash.
+- [scripts/load/resource-isolation-fixture.mjs](../../../../scripts/load/resource-isolation-fixture.mjs) — **neu:** CLI zum Validieren und Ausgeben der Fixture ohne Datenbank oder Netzwerk.
+- [scripts/load/fixtures/resource-isolation-v1.manifest.json](../../../../scripts/load/fixtures/resource-isolation-v1.manifest.json) — **neu:** Speichert Version, Standardseed und erwarteten Hash als Referenz für Regressionstests.
+- [scripts/load/lib/resource-isolation-fixture.test.mjs](../../../../scripts/load/lib/resource-isolation-fixture.test.mjs) und [scripts/load/resource-isolation-fixture.test.mjs](../../../../scripts/load/resource-isolation-fixture.test.mjs) — **jeweils neu:** Prüfen Referenzdaten, Gegenfälle, Projektion, Schema-Verträglichkeit, Reproduzierbarkeit und tatsächliche CLI-Ausgaben.
+- [docs/referat-thema-1/1A/1A-fixture.md](../1A-fixture.md) — **neu:** Beschreibt Inhalt, Grenzen, Hashbildung und Nutzung der gemeinsamen Testdaten.
+- [package.json](../../../../package.json) — **bearbeitet:** Ergänzt Fixture- und Testbefehle und bindet die Tests in `npm test` und `test:coverage` ein.
+- [docs/TESTING.md](../../../TESTING.md) und [docs/referat-thema-1/README.md](../../README.md) — **jeweils bearbeitet:** Dokumentieren Testaufrufe und verlinken die Fixture-Anleitung.
 
 ### 2.3 Durchführung
 
@@ -93,14 +93,14 @@ Das zugrunde liegende Profil bleibt eine Beitrittswelle und wird nicht als Nachw
 
 ### 3.2 Änderungen am Projekt
 
-- [scripts/load/artillery/processor.mjs](../../scripts/load/artillery/processor.mjs) — **bearbeitet:** Misst die Live-Aktionen im Lastgenerator und erfasst Ergebnisse sowie Fehlerklassen.
-- [scripts/load/lib/artillery-live-messungen.mjs](../../scripts/load/lib/artillery-live-messungen.mjs) — **neu:** Berechnet Aktionszusammenfassungen, Perzentile, Abdeckung und Prüfregeln aus den Rohstichproben.
-- [scripts/load/run-artillery-500.mjs](../../scripts/load/run-artillery-500.mjs) — **bearbeitet:** Übernimmt die neuen Messfelder in Report und Gates und beschreibt das tatsächliche Lastprofil.
-- [scripts/load/run-artillery-reconnect-500.mjs](../../scripts/load/run-artillery-reconnect-500.mjs) — **bearbeitet:** Nutzt die ergänzte Beitrittsmessung auch im Reconnect-Pfad.
-- [scripts/load/artillery/processor.test.mjs](../../scripts/load/artillery/processor.test.mjs) und [scripts/load/lib/artillery-live-messungen.test.mjs](../../scripts/load/lib/artillery-live-messungen.test.mjs) — **jeweils neu:** Prüfen echte Prozessoraufrufe gegen einen lokalen Testserver sowie Zählung, Fehlerfälle, Grenzwerte und Berichte.
-- [docs/referat-thema-1/1A-live-messungen.md](./1A-live-messungen.md) — **neu:** Erklärt Messgrenze, Felder, Lastprofil und lokale Prüfung.
-- [package.json](../../package.json) — **bearbeitet:** Registriert den Metriktestbefehl und nimmt ihn in die gemeinsamen Testabläufe auf.
-- [docs/TESTING.md](../TESTING.md) und [docs/referat-thema-1/README.md](./README.md) — **jeweils bearbeitet:** Ergänzen die Befehle und die Verlinkung der Live-Messdokumentation.
+- [scripts/load/artillery/processor.mjs](../../../../scripts/load/artillery/processor.mjs) — **bearbeitet:** Misst die Live-Aktionen im Lastgenerator und erfasst Ergebnisse sowie Fehlerklassen.
+- [scripts/load/lib/artillery-live-messungen.mjs](../../../../scripts/load/lib/artillery-live-messungen.mjs) — **neu:** Berechnet Aktionszusammenfassungen, Perzentile, Abdeckung und Prüfregeln aus den Rohstichproben.
+- [scripts/load/run-artillery-500.mjs](../../../../scripts/load/run-artillery-500.mjs) — **bearbeitet:** Übernimmt die neuen Messfelder in Report und Gates und beschreibt das tatsächliche Lastprofil.
+- [scripts/load/run-artillery-reconnect-500.mjs](../../../../scripts/load/run-artillery-reconnect-500.mjs) — **bearbeitet:** Nutzt die ergänzte Beitrittsmessung auch im Reconnect-Pfad.
+- [scripts/load/artillery/processor.test.mjs](../../../../scripts/load/artillery/processor.test.mjs) und [scripts/load/lib/artillery-live-messungen.test.mjs](../../../../scripts/load/lib/artillery-live-messungen.test.mjs) — **jeweils neu:** Prüfen echte Prozessoraufrufe gegen einen lokalen Testserver sowie Zählung, Fehlerfälle, Grenzwerte und Berichte.
+- [docs/referat-thema-1/1A/archiv/1A-live-messungen.md](./1A-live-messungen.md) — **neu:** Erklärt Messgrenze, Felder, Lastprofil und lokale Prüfung.
+- [package.json](../../../../package.json) — **bearbeitet:** Registriert den Metriktestbefehl und nimmt ihn in die gemeinsamen Testabläufe auf.
+- [docs/TESTING.md](../../../TESTING.md) und [docs/referat-thema-1/README.md](../../README.md) — **jeweils bearbeitet:** Ergänzen die Befehle und die Verlinkung der Live-Messdokumentation.
 
 ### 3.3 Durchführung
 
@@ -125,12 +125,12 @@ Langsame oder ausgefallene Analysen werden nicht durch nachträgliche Aufrufseri
 
 ### 4.2 Änderungen am Projekt
 
-- [scripts/load/host-analyze-loop.mjs](../../scripts/load/host-analyze-loop.mjs) — **neu:** CLI und tRPC-Anbindung mit privater Sessionzuordnung, Host-Autorisierung, Korpusprüfung und bereinigtem Report.
-- [scripts/load/lib/host-analyze-loop.mjs](../../scripts/load/lib/host-analyze-loop.mjs) — **neu:** Implementiert den festen Zeitplan, Ergebniszählung und begrenztes Auslaufen noch laufender Anfragen.
-- [scripts/load/host-analyze-loop.test.mjs](../../scripts/load/host-analyze-loop.test.mjs) und [scripts/load/lib/host-analyze-loop.test.mjs](../../scripts/load/lib/host-analyze-loop.test.mjs) — **jeweils neu:** Prüfen unter anderem Autorisierung, Korpusänderungen, langsame Antworten, Fehler und Signalabbrüche.
-- [docs/referat-thema-1/1A-analyse-last.md](./1A-analyse-last.md) — **neu:** Dokumentiert Sessionzuordnung, Zeitplan, Analyseparameter und Interpretation der Ausgaben.
-- [package.json](../../package.json) — **bearbeitet:** Ergänzt Analyse- und Testbefehle sowie deren Einbindung in die gemeinsamen Testabläufe.
-- [docs/TESTING.md](../TESTING.md) und [docs/referat-thema-1/README.md](./README.md) — **jeweils bearbeitet:** Beschreiben die neuen Prüfungen und verlinken die Anleitung.
+- [scripts/load/host-analyze-loop.mjs](../../../../scripts/load/host-analyze-loop.mjs) — **neu:** CLI und tRPC-Anbindung mit privater Sessionzuordnung, Host-Autorisierung, Korpusprüfung und bereinigtem Report.
+- [scripts/load/lib/host-analyze-loop.mjs](../../../../scripts/load/lib/host-analyze-loop.mjs) — **neu:** Implementiert den festen Zeitplan, Ergebniszählung und begrenztes Auslaufen noch laufender Anfragen.
+- [scripts/load/host-analyze-loop.test.mjs](../../../../scripts/load/host-analyze-loop.test.mjs) und [scripts/load/lib/host-analyze-loop.test.mjs](../../../../scripts/load/lib/host-analyze-loop.test.mjs) — **jeweils neu:** Prüfen unter anderem Autorisierung, Korpusänderungen, langsame Antworten, Fehler und Signalabbrüche.
+- [docs/referat-thema-1/1A/archiv/1A-analyse-last.md](./1A-analyse-last.md) — **neu:** Dokumentiert Sessionzuordnung, Zeitplan, Analyseparameter und Interpretation der Ausgaben.
+- [package.json](../../../../package.json) — **bearbeitet:** Ergänzt Analyse- und Testbefehle sowie deren Einbindung in die gemeinsamen Testabläufe.
+- [docs/TESTING.md](../../../TESTING.md) und [docs/referat-thema-1/README.md](../../README.md) — **jeweils bearbeitet:** Beschreiben die neuen Prüfungen und verlinken die Anleitung.
 
 ### 4.3 Durchführung
 
@@ -163,14 +163,14 @@ Die Werkzeuge ändern keine Produktionskonfiguration; ihre gemeinsame Steuerung 
 
 ### 5.2 Änderungen am Projekt
 
-- [scripts/load/lib/container-metrics.mjs](../../scripts/load/lib/container-metrics.mjs) — **neu:** Liest Docker API, cgroup v2 und Hostwerte und berechnet generationstreue Differenzen und Speicherzusammenfassungen.
-- [scripts/load/container-metrics.mjs](../../scripts/load/container-metrics.mjs) — **neu:** CLI für eine konfigurierte Zeitreihe mit JSON-/JUnit-Ausgabe und Abbruchbehandlung.
-- [scripts/load/lib/container-metrics.test.mjs](../../scripts/load/lib/container-metrics.test.mjs) — **neu:** Prüft unter anderem Metrikverfügbarkeit, Einheiten, Zählerdifferenzen, Containerwechsel und zeitliche Abtastung.
-- [scripts/load/spacy-delay-proxy.mjs](../../scripts/load/spacy-delay-proxy.mjs) — **neu:** Implementiert die kontrollierte Weiterleitungsverzögerung über lokale Unix-Sockets und behandelt Clientabbrüche.
-- [scripts/load/spacy-delay-proxy.test.mjs](../../scripts/load/spacy-delay-proxy.test.mjs) — **neu:** Prüft Transport, Timeout, Fehler und Beendigung des Proxys einschließlich des tatsächlichen 5000-/6000-ms-Vertrags.
-- [docs/referat-thema-1/1A-container-metriken-und-proxy.md](./1A-container-metriken-und-proxy.md) — **neu:** Beschreibt Laborzugriff, Messgrößen, Einschränkungen und Bedienung beider Werkzeuge.
-- [package.json](../../package.json) — **bearbeitet:** Registriert Collector, Proxy und Infrastrukturtests und bindet die Tests in die gemeinsamen Testabläufe ein.
-- [docs/TESTING.md](../TESTING.md) und [docs/referat-thema-1/README.md](./README.md) — **jeweils bearbeitet:** Dokumentieren Prüfung und Verwendungszweck.
+- [scripts/load/lib/container-metrics.mjs](../../../../scripts/load/lib/container-metrics.mjs) — **neu:** Liest Docker API, cgroup v2 und Hostwerte und berechnet generationstreue Differenzen und Speicherzusammenfassungen.
+- [scripts/load/container-metrics.mjs](../../../../scripts/load/container-metrics.mjs) — **neu:** CLI für eine konfigurierte Zeitreihe mit JSON-/JUnit-Ausgabe und Abbruchbehandlung.
+- [scripts/load/lib/container-metrics.test.mjs](../../../../scripts/load/lib/container-metrics.test.mjs) — **neu:** Prüft unter anderem Metrikverfügbarkeit, Einheiten, Zählerdifferenzen, Containerwechsel und zeitliche Abtastung.
+- [scripts/load/spacy-delay-proxy.mjs](../../../../scripts/load/spacy-delay-proxy.mjs) — **neu:** Implementiert die kontrollierte Weiterleitungsverzögerung über lokale Unix-Sockets und behandelt Clientabbrüche.
+- [scripts/load/spacy-delay-proxy.test.mjs](../../../../scripts/load/spacy-delay-proxy.test.mjs) — **neu:** Prüft Transport, Timeout, Fehler und Beendigung des Proxys einschließlich des tatsächlichen 5000-/6000-ms-Vertrags.
+- [docs/referat-thema-1/1A/archiv/1A-container-metriken-und-proxy.md](./1A-container-metriken-und-proxy.md) — **neu:** Beschreibt Laborzugriff, Messgrößen, Einschränkungen und Bedienung beider Werkzeuge.
+- [package.json](../../../../package.json) — **bearbeitet:** Registriert Collector, Proxy und Infrastrukturtests und bindet die Tests in die gemeinsamen Testabläufe ein.
+- [docs/TESTING.md](../../../TESTING.md) und [docs/referat-thema-1/README.md](../../README.md) — **jeweils bearbeitet:** Dokumentieren Prüfung und Verwendungszweck.
 
 ### 5.3 Durchführung
 
@@ -193,7 +193,7 @@ Die Anwendung wurde unverändert aus main `a19ca70ff37dcb5510a77ab2745c06b70ccc3
 Ein passender neuer Vorlauf und fünf randomisierte V0–V4-Blöcke sind vollständig erfasst.
 Der Runner speichert für jede Phase echte bereinigte Compose-Aufnahmen und Ressourcenzeitreihen.
 [Labor und Varianten](./1A-versuchsreihe.md) beschreiben den Aufbau;
-[Auswertung](./1A-auswertung.md) ist die maßgebliche Quelle für Rechner, Messzahlen und Ergebnis.
+[Auswertung](../1A-auswertung.md) ist die maßgebliche Quelle für Rechner, Messzahlen und Ergebnis.
 
 ### 6.2 Änderungen am Projekt
 
@@ -219,7 +219,7 @@ Die Hauptreihe benötigt mindestens 150 Minuten zuzüglich Vorlauf und Aufbau-/R
 
 ### 6.4 Ergebnisse finden
 
-Der [Evidenzindex](./evidenz/1A/README.md) führt zu Laufplan, Abschluss, Rohzeiten,
+Der [Evidenzindex](../../evidenz/1A/README.md) führt zu Laufplan, Abschluss, Rohzeiten,
 Analysen, 50 Ressourcenartefakten und 50 Compose-Aufnahmen. Vorlauf und Aufwärmung
 werden getrennt von den 25 Messfenstern ausgewertet. Ältere A1-Reihen und
 abgebrochene Anläufe sind aus dem Arbeitsbaum entfernt; sie bleiben über Git nachvollziehbar.
@@ -230,7 +230,7 @@ abgebrochene Anläufe sind aus dem Arbeitsbaum entfernt; sie bleiben über Git n
 
 Alle Vergleiche wurden aus erfolgreichen Rohstichproben je Lauf nach den vorab
 festgelegten Regeln berechnet. Grenzverletzungen werden nicht entfernt oder gemittelt.
-Die [Betriebsentscheidung](./1A-auswertung.md) begründet die lexikalische Alternative
+Die [Betriebsentscheidung](../1A-auswertung.md) begründet die lexikalische Alternative
 und grenzt die Aussage gegenüber Rendering, LLM-Tragfähigkeit und Produktionskapazität ab.
 Handout, Folien und Grafiken werden ausschließlich aus der aktuellen Auswertung erzeugt.
 
@@ -242,7 +242,7 @@ Handout, Folien und Grafiken werden ausschließlich aus der aktuellen Auswertung
   Bauen nachvollziehbare vierseitige Handout- und neunseitige Folienentwürfe aus aktuellen Werten.
 - **Neu/bearbeitet:** `abgabe/` mit PDFs, HTML, Grafiken und Quellenmanifest.
   Enthält die aktuellen erzeugten Abgabeentwürfe.
-- **Bearbeitet:** `1A-auswertung.md`, `1A-eigenanteil.md`, `1A-abschluss-und-uebergabe.md` und `1A-pr-beschreibung.md`.
+- **Bearbeitet:** `../1A-auswertung.md`, `../1A-eigenanteil.md`, `1A-abschluss-und-uebergabe.md` und `1A-pr-beschreibung.md`.
   Trennen Messergebnis, agentengestützten Beitrag, persönliche Freigabe und tatsächlichen Merge.
 - **Bearbeitet:** `.prettierignore`. Verhindert die Umformatierung hashgebundener Roh-JSON-Dateien.
 - **Entfernt:** alte A1-Evidenzordner und `scripts/load/reconstruct-resource-isolation-compose.mjs`.

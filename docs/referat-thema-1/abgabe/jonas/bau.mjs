@@ -408,7 +408,7 @@ async function main() {
   const mitClip = existsSync(clip);
   const festeEingaben = [
     ...DATEN.map((p) => join(ROOT, p)),
-    // Abb. 1 und 2 aus 1C-diagrams.md (R15, R16)
+    // Abb. 1 und 2 aus 1C/1C-diagrams.md (R15, R16)
     ...Object.values(DIAGRAMME).map(([p]) => join(ROOT, p)),
     // Kopfzahlen des Nachweisumfangs (GD)
     join(ROOT, NACHWEIS),

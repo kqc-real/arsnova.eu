@@ -57,13 +57,13 @@ const REIHE_1B_3U4 =
 
 /** Quelle je Hypothesengruppe: Datei und Muster der definierenden Stelle. */
 const HYPOTHESEN = [
-  { gruppe: '1A', datei: '1A-experiment-contract.md', muster: /^- \*\*(H\d):\*\*/gm },
+  { gruppe: '1A', datei: '1A/1A-experiment-contract.md', muster: /^- \*\*(H\d):\*\*/gm },
   {
     gruppe: '1B',
     datei: 'specs/2026-11-12-1b-zwei-host-design.md',
     muster: /\*\*(H_[BC]\d)(?: kalt)?:\*\*/g,
   },
-  { gruppe: '1B 3–4', datei: '1B-3u4-Planung.md', muster: /^\| (H[A-Za-z0-9-]*) +\|/gm },
+  { gruppe: '1B 3–4', datei: '1B/archiv/1B-3u4-Planung.md', muster: /^\| (H[A-Za-z0-9-]*) +\|/gm },
   { gruppe: '1C-E', datei: 'specs/2026-10-24-1c-teil2-design.md', muster: /^\| (E\d+[a-z]?) /gm },
   { gruppe: '1C-E', datei: 'specs/2026-10-24-1c-teil3-design.md', muster: /^\| (E\d+[a-z]?) /gm },
   { gruppe: '1C-M', datei: 'specs/2026-10-24-1c-teil2-design.md', muster: /^\| (M\d) /gm },

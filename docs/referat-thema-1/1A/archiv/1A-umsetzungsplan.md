@@ -3,11 +3,11 @@
 Aktualisiert 15.11.2026. Auftrag: [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6).
 Die sieben Schritte sind technisch umgesetzt; die
 [Gesamtübersicht](./1A-komplette-Aufgabe-fertig.md) nennt Dateien und Prüfungen.
-Aktuelle Ergebnisse stehen ausschließlich in der [Auswertung](./1A-auswertung.md).
+Aktuelle Ergebnisse stehen ausschließlich in der [Auswertung](../1A-auswertung.md).
 
 1. **Versuchsvertrag festhalten:** Hypothesen, Gegenalternative, Last, Varianten und
    Schwellen vorab festlegen. Für die aktuelle Baseline gilt zusätzlich der
-   [Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md).
+   [Vorabnachtrag](../../specs/2026-11-14-1a-messreihe-main-a19ca70f.md).
 2. **Gemeinsame Fixture bereitstellen:** Referenzfragen, Gegenfälle und deterministischen
    Füllkorpus mit Seed und Hash verwenden; A1-Projektion und gemeinsame Herkunft kennzeichnen.
 3. **Live-Messung vervollständigen:** Rohzeiten, Fehler und geplante Arbeit für Beitritt,

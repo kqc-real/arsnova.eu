@@ -54,8 +54,8 @@ Ziel: Aus den Docs allein sollen danach **ohne Rückgriff auf Chats oder Erinner
 
 ```text
 docs/referat-thema-1/
-  1C-ergebnis.md                  NEU  Ergebnisbericht, Einstieg für Prüfer, PR, Handout
-  1C-eigenanteil.md               NEU  wer hat was gemacht, mit Commits
+  1C/1C-ergebnis.md                  NEU  Ergebnisbericht, Einstieg für Prüfer, PR, Handout
+  1C/1C-eigenanteil.md               NEU  wer hat was gemacht, mit Commits
   1C-praesentation-geruest.md     NEU  Gliederung Folien + Handout mit Kernzahlen und Diagrammverweisen
   adr/
     README.md                     NEU  Index, Vorlage, Statuswerte
@@ -64,8 +64,8 @@ docs/referat-thema-1/
     issue-cache-ram-entwurf.md    NEU  aus dem Scratchpad-Entwurf, mit U1-Zahlen
     issue-t2-3-entwurf.md, issue-t3-1-entwurf.md   bestehen, nur verlinken/ggf. aktualisieren
   README.md                       AKTUALISIEREN  Inhalt, Offene Punkte (veraltet)
-  1C-kontext-und-adapterpfad.md   AKTUALISIEREN  Abschnitte 11, 13, 14 (überholt durch Labor)
-  1C-diagrams.md                  ggf. Verweise auf Ergebnisbericht/ADRs
+  1C/1C-kontext-und-adapterpfad.md   AKTUALISIEREN  Abschnitte 11, 13, 14 (überholt durch Labor)
+  1C/1C-diagrams.md                  ggf. Verweise auf Ergebnisbericht/ADRs
 ```
 
 ## 5. ADR-Format
@@ -110,7 +110,7 @@ Fachlich:
 1. Auftrag und Leitfrage (wörtlich verlinkt, nicht kopiert), Gültigkeitsgrenze.
 2. Kurzantwort auf die Leitfrage (3–5 Sätze).
 3. Auftragsschritte 1–4: je Schritt was gezeigt wurde, mit Belegverweisen.
-4. Pflicht-Nachweiskette (`00-rahmen-und-pruefung.md`): je Element Beleg: Release-/Commit-Bezug und Manifest, Baselinelauf, Störung/Variante, vergleichbare Messdaten, Befund mit Gültigkeitsgrenze, Entscheidung; dazu die „vor Beginn festzuhaltenden“ Punkte (Hypothese, Gegenalternative, Test, Messgrößen, Wiederholungen, Schwellen).
+4. Pflicht-Nachweiskette (`rahmen/00-rahmen-und-pruefung.md`): je Element Beleg: Release-/Commit-Bezug und Manifest, Baselinelauf, Störung/Variante, vergleichbare Messdaten, Befund mit Gültigkeitsgrenze, Entscheidung; dazu die „vor Beginn festzuhaltenden“ Punkte (Hypothese, Gegenalternative, Test, Messgrößen, Wiederholungen, Schwellen).
 5. Befunde und Empfehlungen als Tabelle mit ADR-Verweis.
 6. Ursachenketten (Kurzform, Details im ADR).
 7. Kosten der Validierung und Kontextbereitstellung (Auftrag verlangt sie ausdrücklich).
@@ -124,24 +124,24 @@ Fachlich:
 
 **Zwei Sitzungen** (Wunsch des Autors), Dateien disjunkt _(Zuteilung: Entscheidung der Laptop-Sitzung)_:
 
-| Sitzung | Dateien                                                                                                                                                                                                                                                               |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Laptop  | `1C-ergebnis.md`, `adr/README.md`, alle ADRs außer den Labor-ADRs, `1C-eigenanteil.md`, `evidenz/1C/issue-cache-ram-entwurf.md` (Entwurf liegt nur auf dem Laptop), alle gemeinsamen Bestandsdateien (`README.md`, `1C-kontext-und-adapterpfad.md`, `1C-diagrams.md`) |
-| PC      | Labor-ADRs (Timeout 300 s und Kalibrierungsregel, Zusatzlauf mit Produktionslimits, eingefrorener Codestand, A4-Befund Release-Timeout, Prompt-Cache/L6/U1), `1C-praesentation-geruest.md`                                                                            |
+| Sitzung | Dateien                                                                                                                                                                                                                                                                           |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Laptop  | `1C/1C-ergebnis.md`, `adr/README.md`, alle ADRs außer den Labor-ADRs, `1C/1C-eigenanteil.md`, `evidenz/1C/issue-cache-ram-entwurf.md` (Entwurf liegt nur auf dem Laptop), alle gemeinsamen Bestandsdateien (`README.md`, `1C/1C-kontext-und-adapterpfad.md`, `1C/1C-diagrams.md`) |
+| PC      | Labor-ADRs (Timeout 300 s und Kalibrierungsregel, Zusatzlauf mit Produktionslimits, eingefrorener Codestand, A4-Befund Release-Timeout, Prompt-Cache/L6/U1), `1C-praesentation-geruest.md`                                                                                        |
 
 Die Laptop-Sitzung legt zuerst `adr/README.md` mit Vorlage und Nummernbereich an (Labor-ADRs bekommen einen festen Block), dann arbeiten beide parallel. Jede Sitzung prüft die Dateien der anderen gegen die Quellen und meldet Korrekturen per Nachricht; Push nach dieser Prüfung, vorher `git pull --ff-only`.
 
-**Ziel-PR** _(Entscheidung der Laptop-Sitzung)_: Der Bericht dient der Beschreibung von Draft-PR #12 im Fork (Vorlage `.github/pull_request_template.md`, nicht zutreffende Abschnitte begründet als „entfällt“). Was in eine PR an kqc-real gehört, bleibt Prüferfrage 2 (`00-rahmen-und-pruefung.md`); der Bericht nennt das als offenen Punkt und die Empfehlungen als Upstream-Kandidaten.
+**Ziel-PR** _(Entscheidung der Laptop-Sitzung)_: Der Bericht dient der Beschreibung von Draft-PR #12 im Fork (Vorlage `.github/pull_request_template.md`, nicht zutreffende Abschnitte begründet als „entfällt“). Was in eine PR an kqc-real gehört, bleibt Prüferfrage 2 (`rahmen/00-rahmen-und-pruefung.md`); der Bericht nennt das als offenen Punkt und die Empfehlungen als Upstream-Kandidaten.
 
 **Issue-Entwürfe** _(Entscheidung der Laptop-Sitzung)_: Entwürfe sind keine Protokolle; sie dürfen mit sichtbarer Kennzeichnung („Aktualisiert 2026-11-05: …“) um Laborbelege ergänzt werden. Die Laborwerte selbst haben ihr Zuhause in den Protokollen, die Entwürfe verlinken dorthin.
 
 **KI-Offenlegung** (Festlegung des Autors): zusammengefasst je Artefakt: Sitzung und Modell, Beitrag der KI, Entscheidung und Prüfung durch den Autor, zentrale Aufträge des Autors sinngemäß in ein bis zwei Sätzen; keine wörtlichen Chat-Auszüge. Grundlage sind die vorhandenen Abschnitte „KI-Nutzung“ und die Commit-Historie.
 
-**Eigenanteil:** Alle 102 Commits des Branches gegenüber `main` stammen von Jonas Weirauch; Niklas hat im Ordner nur `final-prompt-for-git-diff.md` beigetragen (`4844d7a0`, `248029dc`, Merge `dacdff61` auf `main`), an den 1C-Inhalten keinen Commit. Gemeinsame Infrastruktur (Fork, CI, Aufteilung) wird als gemeinsam benannt.
+**Eigenanteil:** Alle 102 Commits des Branches gegenüber `main` stammen von Jonas Weirauch; Niklas hat im Ordner nur `rahmen/final-prompt-for-git-diff.md` beigetragen (`4844d7a0`, `248029dc`, Merge `dacdff61` auf `main`), an den 1C-Inhalten keinen Commit. Gemeinsame Infrastruktur (Fork, CI, Aufteilung) wird als gemeinsam benannt.
 
 ## 9. Constraints
 
-- Harte Regeln aus dem Projekt: Conventional Commits ohne KI-Attribution, kein `--no-verify`, PR #12 bleibt Draft, keine Secrets/persönlichen Daten, `final-prompt-for-git-diff.md` unverändert.
+- Harte Regeln aus dem Projekt: Conventional Commits ohne KI-Attribution, kein `--no-verify`, PR #12 bleibt Draft, keine Secrets/persönlichen Daten, `rahmen/final-prompt-for-git-diff.md` unverändert.
 - Docs-policy (loadout): eine Tatsache, ein Zuhause; Bericht und ADRs verlinken statt kopieren; Zahlen nur mit Quelle.
 - Validierung je Commit: `npx prettier --check` und `git diff --check` auf geänderte Docs; alle relativen Links und Anker müssen auflösen (Prüfung per Skript).
 - Aufräumen in Dossiers nur mit sichtbarer Kennzeichnung („Aktualisiert 2026-11-05: …“), alter Text bleibt nachvollziehbar (gestrichen oder verlinkt).

@@ -24,7 +24,7 @@ const MUSTER =
   /^(\d{4}-\d{2}-\d{2})-lauf-(?!dev-)([a-z0-9]+(?:-[a-z0-9]+)?)-(summary|label)(?:-(\d{2}))?\.json(?:\.gz)?$/;
 const TRANSPORT = '2026-11-16-transportauswertung.json';
 /**
- * Netzverzögerung der Label-Störungen L1/L2 in ms: Definition laut 1B-3u4-Planung.md (Störvarianten), in den
+ * Netzverzögerung der Label-Störungen L1/L2 in ms: Definition laut 1B/archiv/1B-3u4-Planung.md (Störvarianten), in den
  * Ergebnis-JSONs nicht enthalten; im Mitschnitt bestätigt (SYN bis SYN/ACK im Median 50,7 bzw. 500,6 ms,
  * Protokolle l1-label-01/-02 und l2-label).
  */
@@ -232,13 +232,13 @@ export function ladeDaten1B34(root) {
 }
 
 /**
- * Vorab festgelegte Schwellen für Schritt 3 (1B-3u4-Planung.md, Tabelle „Hypothesen und vorab festgelegte
+ * Vorab festgelegte Schwellen für Schritt 3 (1B/archiv/1B-3u4-Planung.md, Tabelle „Hypothesen und vorab festgelegte
  * Schwellen“, auf Niklas' Zweig feature-1B-private-inference-3-4 seit Commit 5e758d0a unverändert).
  * Datum aus Git, wenn der Commit lokal vorliegt.
  */
 export const SCHWELLEN_1B34 = {
   commit: '5e758d0a',
-  datei: 'docs/referat-thema-1/1B-3u4-Planung.md',
+  datei: 'docs/referat-thema-1/1B/archiv/1B-3u4-Planung.md',
   p95Faktor: 1.1,
   fallbackPufferMs: 1000,
   f1MedianMaxMs: 2000,

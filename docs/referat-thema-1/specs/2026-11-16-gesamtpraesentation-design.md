@@ -80,7 +80,7 @@ zurück, wo sie das Argument tragen.
   mit **N3** (Varianten, bis dahin RN3), **N6b** (Regelempfindlichkeit, RN1) und **N8** (spaCy-Budget, RN4), J1–J15
   mit **J5b** (Autorisierung, R8), **J8b** (Kontrolle C0, R2), **J10a** (Kaltläufe, R4), **J10b** (Ausfall B0, R3),
   **J11** (Timeout und Speicher, R13) und **J13b** (Einordnung Cloud Computing, R14), M1–M2, G9, GD, Anhang,
-  Reserve (Jonas R1, R5–R7, R9–R12, neu R15 und R16 mit Abb. 1 und 2 aus `1C-diagrams.md`; Niklas RN2).
+  Reserve (Jonas R1, R5–R7, R9–R12, neu R15 und R16 mit Abb. 1 und 2 aus `1C/1C-diagrams.md`; Niklas RN2).
 - **Zeit:** Jonas 14:35 min (J1–J16), Niklas 14:10 min (GT, G0, GK, 1A, 1B 3–4, G9, GD). Sprungplan, Budget und
   Sprechkarten zählen gegen 15:00 min (`bau.mjs`, `ABBRUCH_S`); Tests verlangen je Person 14:00–15:00 min.
 - **Ortsmarke:** eine feste Miniatur des Systembilds von GK oben links auf jeder Folie von 1A und 1B 3–4 und auf

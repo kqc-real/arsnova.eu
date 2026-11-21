@@ -354,12 +354,12 @@ export function baueHandout(daten, personen, { basis } = {}) {
     `arsnova.eu-Projektteam (2026): ADR-0035, Selbstgehosteter Open-Weight-LLM-Server: llama.cpp (llama-server) statt Ollama. ${code('docs/architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md')}.`,
     `arsnova.eu-Projektteam (2026): Betriebshandbuch: private CPU-Inferenz auf einem zweiten Linux-Host. ${code('docs/operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md')}.`,
     `ggml-org (o. J.): llama.cpp HTTP Server, README, Antwortfeld ${code('timings')}, Tag b10524. <a href="https://github.com/ggml-org/llama.cpp/blob/b10524/tools/server/README.md">github.com/ggml-org/llama.cpp/blob/b10524/tools/server/README.md</a>, abgerufen am 15.11.2026.`,
-    `Eigene Arbeit (2026): Dossier 1C, Autorisierter Kontext und asynchroner Adapterpfad. ${code('1C-kontext-und-adapterpfad.md')}; Diagrammdoku ${code('1C-diagrams.md')}.`,
-    `Eigene Arbeit (2026): Recherchedossier 1B, Private Inferenz als getrennte Serverrolle. ${code('1B-private-inferenz-zweiter-host.md')}.`,
+    `Eigene Arbeit (2026): Dossier 1C, Autorisierter Kontext und asynchroner Adapterpfad. ${code('1C/1C-kontext-und-adapterpfad.md')}; Diagrammdoku ${code('1C/1C-diagrams.md')}.`,
+    `Eigene Arbeit (2026): Recherchedossier 1B, Private Inferenz als getrennte Serverrolle. ${code('1B/1B-private-inferenz-zweiter-host.md')}.`,
     `Eigene Messung (2026): 1B-Aufbau ${code('evidenz/1B/2026-11-12-aufbau.md')}, Lauf ${code('evidenz/1B/2026-11-13-lauf.md')}, Rohdaten ${code('evidenz/1B/messung/')}.`,
     `Eigene Messung (2026): 1C-Nachlauf ${code('evidenz/1C/2026-11-09-labor-nachlauf.md')}, Rohdaten in ${code('messung/')}.`,
     `Eigene Messung (2026): 1C, Teil 2 mit Test-Runtime, ${code('evidenz/1C/2026-10-24-teil2.md')}.`,
-    `Eigene Arbeit (2026): ADRs 1C-001 bis 1C-026 und 1B-001 bis 1B-012 (${code('adr/')}); Berichte ${code('1C-ergebnis.md')}, ${code('1B-ergebnis.md')}; Eigenanteil ${code('1C-eigenanteil.md')}, ${code('1B-eigenanteil.md')}.`,
+    `Eigene Arbeit (2026): ADRs 1C-001 bis 1C-026 und 1B-001 bis 1B-012 (${code('adr/')}); Berichte ${code('1C/1C-ergebnis.md')}, ${code('1B/1B-ergebnis.md')}; Eigenanteil ${code('1C/1C-eigenanteil.md')}, ${code('1B/1B-eigenanteil.md')}.`,
     `Kwon, W. et al. (2023): Efficient Memory Management for Large Language Model Serving with PagedAttention. In: Proc. 29th Symposium on Operating Systems Principles (SOSP ’23), ACM, S. 611–626. <a href="https://doi.org/10.1145/3600006.3613165">doi.org/10.1145/3600006.3613165</a>.`,
   ];
   const seite5 =

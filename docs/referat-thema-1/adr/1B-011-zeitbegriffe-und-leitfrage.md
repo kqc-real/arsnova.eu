@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Issue #8 verlangt die Zeitbegriffe T_host … T_transport aus [Dossier 8.1](../1B-private-inferenz-zweiter-host.md#81-zerlegung-der-gesamtzeit-vorschlag-einer-begriffsdefinition); #9 (Niklas, Schritte 3–4) soll dieselben nutzen. Gemessen wurde nach [ADR 1B-006](1B-006-zeitmessung-per-mitschnitt.md) per Mitschnitt auf beiden Hosts, ohne Instrumentierung im Produktionscode. Die Größen aus Design und Laufprotokoll („Netz“, „Adapter“, „Server ohne Inferenz“) hießen bisher anders als im Dossier; eine Zuordnung fehlte (Prüfung 2026-11-13). Der Entwurf der Leitfrage aus #8 war noch nicht festgelegt.
+Issue #8 verlangt die Zeitbegriffe T_host … T_transport aus [Dossier 8.1](../1B/1B-private-inferenz-zweiter-host.md#81-zerlegung-der-gesamtzeit-vorschlag-einer-begriffsdefinition); #9 (Niklas, Schritte 3–4) soll dieselben nutzen. Gemessen wurde nach [ADR 1B-006](1B-006-zeitmessung-per-mitschnitt.md) per Mitschnitt auf beiden Hosts, ohne Instrumentierung im Produktionscode. Die Größen aus Design und Laufprotokoll („Netz“, „Adapter“, „Server ohne Inferenz“) hießen bisher anders als im Dossier; eine Zuordnung fehlte (Prüfung 2026-11-13). Der Entwurf der Leitfrage aus #8 war noch nicht festgelegt.
 
 ## Entscheidung
 
@@ -29,7 +29,7 @@ _Korrigiert 2026-11-14 (Docs-Audit):_ Auch T_host (56 ms) ist der Median der neu
 
 _Ergänzt 2026-11-14 (Docs-Audit):_ Zwei Kontrollen heißen C0. **C0 Direktprompt** ([Design Abschnitt 5](../specs/2026-11-12-1b-zwei-host-design.md#5-zeitmessung-ki-vorschlag), [ADR 1B-006](1B-006-zeitmessung-per-mitschnitt.md)): derselbe Summary-POST einmal direkt im llm-host, Teil jedes `lauf` außer B0. **C0 nach M2** (Dossier 10.3, [Design-Nachtrag 2026-11-13](../specs/2026-11-12-1b-zwei-host-design.md#nachtrag-2026-11-13-ergänzende-messungen-nach-der-vollständigkeitsprüfung), Modus `kontrolle`): dieselbe kurze Anfrage je 30-mal vom llm-host an sich selbst und vom app-host an den llm-host. Die Doku nennt jeweils den vollen Namen.
 
-T_client ist nicht getrennt messbar ohne Instrumentierung (heute verworfen, Befund C); die Messung schneidet am Draht. Damit ist T_transport feiner zerlegt als im Dossier: Netzanteil und Serveranteil getrennt. Der Transportanteil T_transport / T_job beträgt im Median rund 0,01 % und liegt weit unter der Dossier-Schwelle von 5 % ([Dossier 10.5](../1B-private-inferenz-zweiter-host.md#105-entscheidungsschwellen-vorschlag-vorab-begründen)).
+T_client ist nicht getrennt messbar ohne Instrumentierung (heute verworfen, Befund C); die Messung schneidet am Draht. Damit ist T_transport feiner zerlegt als im Dossier: Netzanteil und Serveranteil getrennt. Der Transportanteil T_transport / T_job beträgt im Median rund 0,01 % und liegt weit unter der Dossier-Schwelle von 5 % ([Dossier 10.5](../1B/1B-private-inferenz-zweiter-host.md#105-entscheidungsschwellen-vorschlag-vorab-begründen)).
 
 **Leitfrage Schritte 1–2 (Vorschlag, eng am Entwurf aus #8):**
 
@@ -47,10 +47,10 @@ T_client ist nicht getrennt messbar ohne Instrumentierung (heute verworfen, Befu
 _Ergänzt 2026-11-14 (Docs-Audit):_
 
 - Messwerte: [`2026-11-13-lauf.json`](../evidenz/1B/messung/2026-11-13-lauf.json), Commit `8e9d1317`, ThinkPad P50; Auswertung im [Laufprotokoll](../evidenz/1B/2026-11-13-lauf.md).
-- Begriffe: [Dossier 8.1](../1B-private-inferenz-zweiter-host.md#81-zerlegung-der-gesamtzeit-vorschlag-einer-begriffsdefinition), Schwelle: [Dossier 10.5](../1B-private-inferenz-zweiter-host.md#105-entscheidungsschwellen-vorschlag-vorab-begründen).
+- Begriffe: [Dossier 8.1](../1B/1B-private-inferenz-zweiter-host.md#81-zerlegung-der-gesamtzeit-vorschlag-einer-begriffsdefinition), Schwelle: [Dossier 10.5](../1B/1B-private-inferenz-zweiter-host.md#105-entscheidungsschwellen-vorschlag-vorab-begründen).
 - Messmethode: [ADR 1B-006](1B-006-zeitmessung-per-mitschnitt.md).
 
 ## Folgen
 
-- [1B-ergebnis.md](../1B-ergebnis.md) nennt Leitfrage und Kurzantwort mit diesen Begriffen; Niklas nutzt die Tabelle für Schritt 3 (Störversuche verändern T_transport bzw. T_infer).
+- [1B/1B-ergebnis.md](../1B/1B-ergebnis.md) nennt Leitfrage und Kurzantwort mit diesen Begriffen; Niklas nutzt die Tabelle für Schritt 3 (Störversuche verändern T_transport bzw. T_infer).
 - Neue Läufe berichten T_host und T_transport zusätzlich zu Netz, Adapter und Inferenz.

@@ -37,7 +37,7 @@ export async function ladeReihendefinition(file) {
       'Ungültige Reihendefinition: Baseline, Quellen, Fixture und Sollkonfiguration prüfen.',
     );
   if (
-    sha256(await readFile(join(root, 'docs/referat-thema-1/1A-experiment-contract.md'))) !==
+    sha256(await readFile(join(root, 'docs/referat-thema-1/1A/1A-experiment-contract.md'))) !==
       reihe.contractSha256 ||
     sha256(await readFile(join(root, reihe.addendumFile))) !== reihe.addendumSha256
   )

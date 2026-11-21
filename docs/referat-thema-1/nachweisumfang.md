@@ -42,7 +42,7 @@ Entwicklungsläufe, Aufbau und modellfreie Messungen fehlen.
 | Zeitraum der gewerteten Läufe | 5.–16.11.2026                         | erster Start bis letztes Ende der Zeilen darüber, Berliner Kalendertag                                                                                                                                |
 
 _Aktualisiert 2026-11-17:_ 1B Schritte 3–4 zählen jetzt mit. Rohdaten, Protokolle, Schwellen
-(`1B-3u4-Planung.md`) und Autorenprüfung (16.11.) liegen seit dem Merge von PR #26 auf diesem Branch. Gezählt wie in
+(`1B/archiv/1B-3u4-Planung.md`) und Autorenprüfung (16.11.) liegen seit dem Merge von PR #26 auf diesem Branch. Gezählt wie in
 der PR-Beschreibung vom Laufbeginn (Lauf-ID) bis zur Ergebniserfassung, also samt Aufwärmen und Nachlauf; die PR
 rundet je Reihe und nennt ca. 12 h 40 min. 1B Schritte 1–2 haben kein `erfasstAm` und bleiben bei Treiberstart bis
 letztem Auftrag.
@@ -95,16 +95,16 @@ Lauf festgelegt wurden, je an ihrer definierenden Stelle (Tabellenzeile oder
 fett gesetzter Listenpunkt). E6a und E6b zählen getrennt, weil sie getrennte
 Kriterien haben.
 
-| Kennzahl               | Wert | Datei                                                                               |
-| ---------------------- | ---- | ----------------------------------------------------------------------------------- |
-| 1A (Experimentvertrag) | 2    | `1A-experiment-contract.md` (H1, H2)                                                |
-| 1B Schritte 1–2        | 5    | `specs/2026-11-12-1b-zwei-host-design.md` (H_B0–H_B3, H_C0)                         |
-| 1B Schritte 3–4        | 6    | `1B-3u4-Planung.md` (H2-Fehler, H2-Latenz, H2-Fallback, H-F1, H-F1F2, H-Queue)      |
-| 1C Einzeltests E       | 16   | `specs/2026-10-24-1c-teil2-design.md`, `-teil3-design.md` (E1–E15, E6 als E6a, E6b) |
-| 1C Messungen M         | 7    | `specs/2026-10-24-1c-teil2-design.md`, `-teil3-design.md` (M1–M7)                   |
-| 1C Labor L             | 6    | `specs/2026-10-25-1c-labor-design.md` (L1–L6)                                       |
-| 1C Nachlauf N          | 6    | `specs/2026-11-06-1c-nachlauf-design.md` (N1–N6)                                    |
-| 1C Gate-Ablation H_A   | 2    | `evidenz/1C/2026-11-16-gate-ablation.md` (H_A1, H_A2)                               |
+| Kennzahl               | Wert | Datei                                                                                    |
+| ---------------------- | ---- | ---------------------------------------------------------------------------------------- |
+| 1A (Experimentvertrag) | 2    | `1A/1A-experiment-contract.md` (H1, H2)                                                  |
+| 1B Schritte 1–2        | 5    | `specs/2026-11-12-1b-zwei-host-design.md` (H_B0–H_B3, H_C0)                              |
+| 1B Schritte 3–4        | 6    | `1B/archiv/1B-3u4-Planung.md` (H2-Fehler, H2-Latenz, H2-Fallback, H-F1, H-F1F2, H-Queue) |
+| 1C Einzeltests E       | 16   | `specs/2026-10-24-1c-teil2-design.md`, `-teil3-design.md` (E1–E15, E6 als E6a, E6b)      |
+| 1C Messungen M         | 7    | `specs/2026-10-24-1c-teil2-design.md`, `-teil3-design.md` (M1–M7)                        |
+| 1C Labor L             | 6    | `specs/2026-10-25-1c-labor-design.md` (L1–L6)                                            |
+| 1C Nachlauf N          | 6    | `specs/2026-11-06-1c-nachlauf-design.md` (N1–N6)                                         |
+| 1C Gate-Ablation H_A   | 2    | `evidenz/1C/2026-11-16-gate-ablation.md` (H_A1, H_A2)                                    |
 
 Nicht gezählt: die beschreibende S1-Prüfung aus den Nachträgen der Planung und die Testfälle T… des Testdesigns
 `specs/2026-10-24-1c-tests-design.md`.

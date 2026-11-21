@@ -19,7 +19,7 @@ Gemessen wird ein Summary-V2-Auftrag (Autor, 2026-11-12). Daten: das Sechs-Frage
 ## Belege
 
 - [1B-Design, Abschnitt 4](../specs/2026-11-12-1b-zwei-host-design.md#4-der-auftrag-autor).
-- 1C-Laborläufe mit derselben Fixture: [1C-Ergebnis](../1C-ergebnis.md).
+- 1C-Laborläufe mit derselben Fixture: [1C-Ergebnis](../1C/1C-ergebnis.md).
 
 ## Folgen
 

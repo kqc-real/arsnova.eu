@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Auftrag 1C verlangt, Fehler- und Konsistenzverhalten zu prüfen (inkompatible Schemaversion, fehlender Kontextbereich, langsamer Empfänger, kein stiller Feldverlust, Host wartet nicht, Stimmenänderung und Quellenlöschung) und je Person mindestens einen eigenen ausführbaren Test und eine Untersuchung mit Hypothese, Gegenalternative, Befund mit Gültigkeitsgrenze und Entscheidung ([Tests-Design, Zweck](../specs/2026-10-24-1c-tests-design.md#1-zweck-und-begründung)). Eine Laborinstanz stand zu Beginn nicht fest. Das Dossier hatte Testlücken G1 bis G11 ausgewiesen und ein Versuchsdesign nur als Vorschlag formuliert ([Dossier 10](../1C-kontext-und-adapterpfad.md#10-testlücken-gegenüber-dem-auftrag-geprüft), [Dossier 11](../1C-kontext-und-adapterpfad.md#11-vorschlag-versuchsdesign-labor-synthetische-daten)).
+Auftrag 1C verlangt, Fehler- und Konsistenzverhalten zu prüfen (inkompatible Schemaversion, fehlender Kontextbereich, langsamer Empfänger, kein stiller Feldverlust, Host wartet nicht, Stimmenänderung und Quellenlöschung) und je Person mindestens einen eigenen ausführbaren Test und eine Untersuchung mit Hypothese, Gegenalternative, Befund mit Gültigkeitsgrenze und Entscheidung ([Tests-Design, Zweck](../specs/2026-10-24-1c-tests-design.md#1-zweck-und-begründung)). Eine Laborinstanz stand zu Beginn nicht fest. Das Dossier hatte Testlücken G1 bis G11 ausgewiesen und ein Versuchsdesign nur als Vorschlag formuliert ([Dossier 10](../1C/1C-kontext-und-adapterpfad.md#10-testlücken-gegenüber-dem-auftrag-geprüft), [Dossier 11](../1C/1C-kontext-und-adapterpfad.md#11-vorschlag-versuchsdesign-labor-synthetische-daten)).
 
 ## Entscheidung
 
@@ -20,7 +20,7 @@ Die Aussagen werden zuerst modellfrei geprüft: ausführbare Tests gegen eine Te
 
 ## Belege
 
-- Pflichtmethodik: Mutationsprobe je Testgruppe, jede Probe lokal und vorübergehend, nie committet ([Tests-Design 5.3](../specs/2026-10-24-1c-tests-design.md#53-mutationsprobe-pflicht)); Ausnahmen sind die Kontrollen und die Charakterisierung des Befunds T2.3 ([Methodenabschnitt in 1C-diagrams.md](../1C-diagrams.md#methode-prüfung-und-ki-nutzung)).
+- Pflichtmethodik: Mutationsprobe je Testgruppe, jede Probe lokal und vorübergehend, nie committet ([Tests-Design 5.3](../specs/2026-10-24-1c-tests-design.md#53-mutationsprobe-pflicht)); Ausnahmen sind die Kontrollen und die Charakterisierung des Befunds T2.3 ([Methodenabschnitt in 1C/1C-diagrams.md](../1C/1C-diagrams.md#methode-prüfung-und-ki-nutzung)).
 - Ergebnisprotokolle: [Teil 1 (T1 bis T5)](../evidenz/1C/2026-10-24-tests.md), [Teil 2 (E1 bis E9, M1 bis M5, Gegenvariante V1)](../evidenz/1C/2026-10-24-teil2.md), [Teil 3 (E10 bis E14, E15 widerlegt, T3.1, M6, M7)](../evidenz/1C/2026-10-24-teil3.md). E15 liegt als versionierter Patch vor, nicht in der Suite ([`e15-widerlegt.patch`](../evidenz/1C/e15-widerlegt.patch)).
 - Kennzeichnung der Negativproben im Design: [Tests-Design T1](../specs/2026-10-24-1c-tests-design.md#t1-inkompatible-schemaversion-lücke-g1-punkt-3) und das Teil-2-Design (E4, „Gekennzeichnete Negativprobe Vertrag“; [Teil-2-Design](../specs/2026-10-24-1c-teil2-design.md)).
 - Echtlauf: [Laptop-Protokoll](../evidenz/1C/2026-11-05-labor.md) und [PC-Protokoll](../evidenz/1C/2026-11-05-labor-pc.md).
@@ -29,5 +29,5 @@ Die Aussagen werden zuerst modellfrei geprüft: ausführbare Tests gegen eine Te
 
 - Gültigkeit der Unit-Tests (T1 bis T4): Sie belegen das Verhalten der Queue-, Kontext- und Client-Logik bei kontrollierten Eingaben; kein Zeitverhalten unter Last, kein reales Modell, keine Netzfehler.
 - Gültigkeit der PostgreSQL-Suite (T5): Sie belegt Trigger und Kontextaufbau auf PostgreSQL 16 mit dem Migrationsstand von `248029dc`; nicht belegt sind Häufigkeiten unter echter Last (etwa der Anteil `source_changed`) und das Verhalten am Tag `v1.3.0`. Für alle Gruppen gilt `main` `248029dc` ([Tests-Design 5.4](../specs/2026-10-24-1c-tests-design.md#54-gültigkeitsgrenzen-gehören-ins-referat)).
-- Die Reviews der Tests waren KI-Sitzungen, keine unabhängigen menschlichen Gutachten ([Eigenanteil](../1C-eigenanteil.md)).
+- Die Reviews der Tests waren KI-Sitzungen, keine unabhängigen menschlichen Gutachten ([Eigenanteil](../1C/1C-eigenanteil.md)).
 - Die Testdateien sind Evidenz und zugleich Kandidaten für eine PR; was in eine PR an kqc-real gehört, ist offene Prüferfrage 2.

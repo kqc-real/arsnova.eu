@@ -21,9 +21,9 @@ Andere Aufträge 1B/1C sind davon nicht betroffen.
 
 Anwendungsbaseline: `a19ca70ff37dcb5510a77ab2745c06b70ccc3565`.
 Rechner und Image-/Werkzeugidentitäten sind im JSON und den Laufmanifesten belegt.
-[Auswertung und Entscheidung](../../1A-auswertung.md) enthalten die fachliche Interpretation.
-[Durchführung](../../1A-neue-messreihe.md) beschreibt neue Messungen;
-[Prüfstand](../../1A-pruefstand.md) dokumentiert die aktuelle Bereinigung.
+[Auswertung und Entscheidung](../../1A/1A-auswertung.md) enthalten die fachliche Interpretation.
+[Durchführung](../../1A/archiv/1A-neue-messreihe.md) beschreibt neue Messungen;
+[Prüfstand](../../1A/archiv/1A-pruefstand.md) dokumentiert die aktuelle Bereinigung.
 
 ## Dateiintegrität
 

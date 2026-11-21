@@ -1,10 +1,10 @@
 # A1-Auswertung und Betriebsentscheidung
 
 Stand: 15.11.2026. Auftrag: [Issue #6](https://github.com/NiklasSkulll/arsnova.eu/issues/6).
-Maßgeblich ist ausschließlich die [vollständige aktuelle Reihe](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
+Maßgeblich ist ausschließlich die [vollständige aktuelle Reihe](../evidenz/1A/reihe-main-a19ca70f-20261115-122547/).
 Der [Versuchsvertrag](./1A-experiment-contract.md) legt die Methodik fest;
-[Vorabnachtrag](./specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und
-[Reihendefinition](./specs/2026-11-14-1a-messreihe-main-a19ca70f.json) binden die aktuelle Baseline.
+[Vorabnachtrag](../specs/2026-11-14-1a-messreihe-main-a19ca70f.md) und
+[Reihendefinition](../specs/2026-11-14-1a-messreihe-main-a19ca70f.json) binden die aktuelle Baseline.
 
 ## Entscheidung
 
@@ -23,16 +23,16 @@ Das Ergebnis ist keine allgemeine Aussage gegen spaCy und keine Freigabe zusätz
   und gesonderter Quellenhash `99d5c23c6a1d3b6b9e4f254e5ddea066a42bbe3d70722fb3bbd51b2efecd10a0`.
   Der Anwendungscommit, der Werkzeug-HEAD und spätere Dokumentationscommits sind verschiedene Größen.
 - **Eingaben:** Fixture-Seed `438314513`; Vertrags-, Definitions-, Fixture- und Image-Identitäten im
-  [Abschluss](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/abschluss.json). Fünf Analysesessions mit je 500 zulässigen Fragen,
+  [Abschluss](../evidenz/1A/reihe-main-a19ca70f-20261115-122547/abschluss.json). Fünf Analysesessions mit je 500 zulässigen Fragen,
   drei Ausschlusskontrollen und 200 Bezugsteilnehmenden; getrennte Live-Session.
 - **Ausführung:** fünf randomisierte Blöcke V0–V4, 25 vollständige Läufe;
   je 60 Sekunden Aufwärmung und 300 Sekunden Messfenster. Eigener erfolgreicher Vorlauf unter `vorlauf/`.
 - **Aufnahmen:** 50 Ressourcenartefakte mit 151 Mess- beziehungsweise 31 Aufwärmstichproben
   und 50 tatsächlich aufgelöste, bereinigte Compose-Dateien für die Hauptreihe.
   Je Phase stehen Dateiname und SHA-256 im Manifest; die Auswertung prüft zusätzlich Images, Limits und Flags.
-- **Ausgabe:** [JSON](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json),
-  [vollständige Tabellen](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.md),
-  [80 Aktionsvergleiche als CSV](./evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/live-vergleiche.csv).
+- **Ausgabe:** [JSON](../evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json),
+  [vollständige Tabellen](../evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.md),
+  [80 Aktionsvergleiche als CSV](../evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/live-vergleiche.csv).
 
 ```bash
 npm run load:resource-isolation:evaluate -- --validate
@@ -156,6 +156,6 @@ Die Fixture enthält unterschiedliche Rohtexte mit bewusst kleinem wiederholtem 
 Eine neue Untersuchung mit externem Generator und dokumentierter Zielhardware
 wäre eine eigene Reihe, kein Ersatz einzelner ungünstiger Blöcke.
 
-[Abgabeentwürfe](./abgabe/README.md), [Eigenanteil](./1A-eigenanteil.md),
-[Prüfungen](./1A-pruefstand.md) und [Übergabe](./1A-abschluss-und-uebergabe.md)
+[Abgabeentwürfe](../abgabe/README.md), [Eigenanteil](./1A-eigenanteil.md),
+[Prüfungen](./archiv/1A-pruefstand.md) und [Übergabe](./archiv/1A-abschluss-und-uebergabe.md)
 trennen technische Befunde von persönlicher Abgabe und GitHub-Abschluss.

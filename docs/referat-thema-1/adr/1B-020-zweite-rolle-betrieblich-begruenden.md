@@ -64,7 +64,7 @@ der Host-Gesamtenergie oder tatsächlich gebuchter Infrastrukturkosten.
 
 Ausführungscommits, Rechner, Zahlen und Rücknahmen stehen in den Protokollen:
 
-- [Schritt-3-Gesamtstand](../1B-ergebnis.md): eigene Baselines,
+- [Schritt-3-Gesamtstand](../1B/1B-ergebnis.md): eigene Baselines,
   Normal-/Störreihen und H2-Grenzen; Fakes nur als Störung.
 - [S1-Label](../evidenz/1B/2026-11-16-lauf-s1-label.md) und
   [S1-Summary](../evidenz/1B/2026-11-16-lauf-s1-summary.md): gewertete

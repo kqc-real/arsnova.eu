@@ -4,7 +4,7 @@ Schritt 5 des [Umsetzungsplans](1A-umsetzungsplan.md) ergänzt eine lesende
 Ressourcenerfassung und einen Unix-Socket-Proxy für die Laborvariante V4.
 Produktions-Compose, Anwendung und Sidecar bleiben unverändert. Die gemeinsame
 Orchestrierung ist in der [Versuchsreihe](./1A-versuchsreihe.md) dokumentiert.
-Die aktuellen realen Ergebnisse stehen in der [Auswertung](./1A-auswertung.md);
+Die aktuellen realen Ergebnisse stehen in der [Auswertung](../1A-auswertung.md);
 diese Unterlage beschreibt die Messwerkzeuge und ihre Grenzen.
 
 ## Ohne Labor nachvollziehen
@@ -26,7 +26,7 @@ mindestens etwa fünf Sekunden. Der Befehl gehört zu `npm test` und
 
 ## Container-Metriken im Labor erfassen
 
-[`lib/container-metrics.mjs`](../../scripts/load/lib/container-metrics.mjs)
+[`lib/container-metrics.mjs`](../../../../scripts/load/lib/container-metrics.mjs)
 liest ausschließlich über lokale Zugriffe:
 
 - Docker Engine API: `GET /containers/<name>/json` zur Identitätsprüfung und
@@ -152,7 +152,7 @@ im Vorlauf zu beurteilen. Alle Varianten müssen dieselbe Erfassung verwenden.
 
 ## Verzögerungsproxy für V4
 
-[`spacy-delay-proxy.mjs`](../../scripts/load/spacy-delay-proxy.mjs) stellt nur
+[`spacy-delay-proxy.mjs`](../../../../scripts/load/spacy-delay-proxy.mjs) stellt nur
 einen Unix-Socket bereit. `--run --lab` ist ausdrücklich erforderlich. Der
 Listenpfad muss frei sein; weder Dateien noch vorhandene Sockets werden beim
 Start entfernt oder überschrieben. Der neue Socket erhält Modus `0600`.
@@ -183,7 +183,7 @@ verändert keine Normalisierungsdaten und benötigt kein Modell.
 Für V4 wird ausschließlich die Laboranwendung auf den Proxy-Socket umgestellt;
 `NLP_TIMEOUT_MS=5000` bleibt unverändert. `--delay-ms` erlaubt abweichende Werte
 für gekennzeichnete Werkzeugtests und Vorläufe, die im Proxyreport erscheinen.
-Sie erfüllen nicht automatisch den [Versuchsvertrag](1A-experiment-contract.md).
+Sie erfüllen nicht automatisch den [Versuchsvertrag](../1A-experiment-contract.md).
 Die Frist nach Weiterleitung zum Sidecar beträgt standardmäßig 15000 ms.
 
 Bricht der Client während der Wartezeit ab, wird der Timer beendet und die

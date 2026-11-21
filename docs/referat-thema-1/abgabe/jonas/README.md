@@ -16,7 +16,7 @@ Ohne Argumente landen die Ausgaben in `ausgabe/` neben dieser Datei. Niklas' Tei
 standardmäßig nativ aus [`../niklas/`](../niklas/README.md); dazu entsteht `niklas-folien.pdf`. Reihenfolge im Deck (Design 2026-11-15, Abschnitt 3; ergänzt 2026-11-16): GT (Titel),
 G0 (Fahrplan), GK (Systembild „arsnova.eu im Überblick“), Niklas 1A (N1–N10 ohne N8; _aktualisiert 2026-11-17_), Jonas J1–J15 (mit J5b, J8b, J10a,
 J10b, J11, J13b), Niklas 1B 3–4 (M1–M4), G9 (gemeinsames Fazit), GN (Nachweisumfang, spricht Jonas; _ergänzt 2026-11-18_, ersetzt R17) und GD (Dank, Fragen), ein gemeinsames Literaturverzeichnis
-(J16, J16b), Reserve (R1, R5–R7, R9–R12, R15–R16 mit Abb. 1 und 2 aus `1C-diagrams.md`; RN1, RN2, RN4). Die Rahmenfolien außer GN spricht Niklas. `--niklas1`/`--niklas2` ersetzen einen
+(J16, J16b), Reserve (R1, R5–R7, R9–R12, R15–R16 mit Abb. 1 und 2 aus `1C/1C-diagrams.md`; RN1, RN2, RN4). Die Rahmenfolien außer GN spricht Niklas. `--niklas1`/`--niklas2` ersetzen einen
 Teil durch die Seiten eines PDFs (Rückfallweg); die `--niklasN-stand`-Texte landen dann im Manifest.
 
 Tests: `node --test docs/referat-thema-1/abgabe/jonas/*.test.mjs`.

@@ -10,10 +10,10 @@ Schritt 3 untersucht, ob Live-Aktionen stabil bleiben, wenn die private Inferenz
 langsam ist oder ausfällt. Schritt 4 bewertet anschließend den Betriebsaufwand
 der zweiten Serverrolle gegen den gemessenen Isolationsgewinn.
 
-Verbindlich sind die [Laborregeln](AGENTS.md#1b-labor-für-agenten-codex-claude),
-die [Übergabe im Runbook §8](evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34),
-die [Windows-Anleitung](evidenz/1B/vm/WINDOWS.md) und die
-[Zeitbegriffe aus ADR 1B-011](adr/1B-011-zeitbegriffe-und-leitfrage.md).
+Verbindlich sind die [Laborregeln](../../AGENTS.md#1b-labor-für-agenten-codex-claude),
+die [Übergabe im Runbook §8](../../evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34),
+die [Windows-Anleitung](../../evidenz/1B/vm/WINDOWS.md) und die
+[Zeitbegriffe aus ADR 1B-011](../../adr/1B-011-zeitbegriffe-und-leitfrage.md).
 Die Baseline verwendet den echten Release-Pfad auf dem eigenen Rechner.
 Fremde absolute Laufzeiten sind keine Vergleichsbasis.
 
@@ -147,8 +147,8 @@ Die Windows-Steuerung unterstützt keine Git-Worktrees. Ausgangscommit:
   `pwsh.exe` ist verfügbar und meldet Pester 5.7.1. Die Windows-Interop braucht
   in dieser Codex-Sandbox eine Freigabe; die lesende Modulabfrage wurde damit
   ausgeführt. Pester-Tests wurden bisher nicht ausgeführt.
-- Erster Baustein: [Fake-Server](evidenz/1B/fake-runtime.mjs) und
-  [HTTP-Vertragstests](evidenz/1B/fake-runtime.test.mjs) angelegt. Acht lokale
+- Erster Baustein: [Fake-Server](../../evidenz/1B/fake-runtime.mjs) und
+  [HTTP-Vertragstests](../../evidenz/1B/fake-runtime.test.mjs) angelegt. Acht lokale
   Tests bestanden, einschließlich Bearer, Verzögerung, Status/Body, Slotbelegung,
   Race, Client-Abbruch, Shutdown und CLI-Bind-Grenzen. Noch keine Einbindung in
   `lauf.sh` oder die Windows-Parameter und noch kein Nachweis gegen die echte App.
@@ -251,7 +251,7 @@ Zustandsprüfung, kein gewerteter Messlauf.
 ### Aufbau und Plattenkorrektur, 2026-11-15
 
 Der Aufbau durch Niklas und die anschließende Plattenerweiterung sind im
-[eigenen Aufbauprotokoll](evidenz/1B/2026-11-15-aufbau-windows.md) dokumentiert.
+[eigenen Aufbauprotokoll](../../evidenz/1B/2026-11-15-aufbau-windows.md) dokumentiert.
 Die VMs existieren und laufen. Der einzige Fehler der ursprünglichen
 Abschlussprüfung betraf freien Plattenplatz im LLM-Host; die Erweiterung ist
 ausgeführt und die Platzschwelle jetzt erfüllt. Die vollständige Abschlussprüfung
@@ -265,14 +265,14 @@ Die vorhandenen VMs wurden über `labor-wsl.sh start` gestartet. Der Wrapper
 endet mit Exit 0; die Abschlussprüfung meldet keine Fehler. Der verbleibende
 Hinweis zur nicht erneut ausgeführten administrativen NAT-Prüfung und die
 lokalen Belege stehen im
-[Aufbauprotokoll](evidenz/1B/2026-11-15-aufbau-windows.md#nachtrag-wiederanlauf-nach-windows-neustart-2026-11-15).
+[Aufbauprotokoll](../../evidenz/1B/2026-11-15-aufbau-windows.md#nachtrag-wiederanlauf-nach-windows-neustart-2026-11-15).
 Vor dem nächsten Entwicklungslauf (Prompt-Body) ist erneut Niklas zu fragen.
 
 ### Entwicklungslauf für den Prompt-Body, 2026-11-15
 
 Niklas hat den freigegebenen einzelnen `dev-body`-Lauf ausgeführt. Ergebnis und
 Prüfgrenzen stehen im
-[Laufprotokoll](evidenz/1B/2026-11-15-lauf-dev-body.md).
+[Laufprotokoll](../../evidenz/1B/2026-11-15-lauf-dev-body.md).
 Prompt-Body und Auswertung liegen vor. Die App verwendet bei `invalid_response`
 den extraktiven Fallback; daraus folgt noch kein Ursachenbefund oder gewerteter
 Hypothesennachweis. Vor der anschließenden Kalibrierung ist erneut zu fragen.
@@ -280,7 +280,7 @@ Hypothesennachweis. Vor der anschließenden Kalibrierung ist erneut zu fragen.
 ### Technische Laborvorbereitung abgeschlossen, 2026-11-15
 
 Niklas hat die freigegebene Kalibrierung ausgeführt. Ergebnis und Quelle stehen
-im [Nachtrag des Laufprotokolls](evidenz/1B/2026-11-15-lauf-dev-body.md#nachtrag-kalibrierung-abgeschlossen-2026-11-15).
+im [Nachtrag des Laufprotokolls](../../evidenz/1B/2026-11-15-lauf-dev-body.md#nachtrag-kalibrierung-abgeschlossen-2026-11-15).
 Die Kalibrierung ist ohne Abbruch abgeschlossen; das eigene Labor ist technisch
 bereit. Als Nächstes folgen die offenen Implementierungsschritte für Issue #9:
 Fake und Störvarianten integrieren, konstante Live-Last und App-CPU/RSS-Messung
@@ -365,7 +365,7 @@ sind noch nicht committet. Gewertete Reihen und Schritt 4 bleiben offen.
 
 Der erste `dev-live-normal`-Lauf wurde von Niklas ausgeführt. Beobachtungen,
 Umgebung und Arbeitsstand stehen im
-[Laufprotokoll](evidenz/1B/2026-11-15-lauf-dev-live-normal.md).
+[Laufprotokoll](../../evidenz/1B/2026-11-15-lauf-dev-live-normal.md).
 Das Live-Fenster ist vollständig; die Gesamtmessung bleibt wegen fehlender
 RSS-Werte unvollständig. Die Ursache wurde mit zwei lesenden Docker-Aufrufen
 über den vorgeschriebenen WSL-Wrapper belegt: `docker top` benötigt die PID-Spalte.
@@ -393,7 +393,7 @@ die VM-Zugriffe dieser Korrektur waren ausschließlich lesende Prozesslisten.
 
 Die gewertete Summary-Normalreihe auf `5e758d0a` ist vollständig; Beobachtungen,
 Qualitätsgrenze und Quellen stehen im
-[Normalreihenprotokoll](evidenz/1B/2026-11-15-lauf-normal-summary.md).
+[Normalreihenprotokoll](../../evidenz/1B/2026-11-15-lauf-normal-summary.md).
 Das vorangegangene `dev-live-rss`-Ergebnis bestätigt die korrigierte RSS-Erfassung
 über das ganze Fenster. Die Normalreihe liefert die erste Referenz bei laufender
 echter Inferenz; B0/F1 und die Störreihen bleiben offen.
@@ -425,7 +425,7 @@ der Normalreihe. Es wurde kein weiterer Laborlauf und keine Störung gestartet.
 ## Nachtrag 2026-11-15: F1-Entwicklungslauf geprüft
 
 Der von Niklas ausgeführte F1-Entwicklungslauf ist im
-[Protokoll](evidenz/1B/2026-11-15-lauf-dev-f1-summary.md) dokumentiert:
+[Protokoll](../../evidenz/1B/2026-11-15-lauf-dev-f1-summary.md) dokumentiert:
 RST und schneller extraktiver Fallback beobachtet, Messfenster vollständig,
 Containerstopp und Rücknahme im Journal, Wiederherstellung und Nachprüfungen
 bestanden. Die korrigierte TCP-Flag-Auswertung wurde ausschließlich lokal auf
@@ -443,7 +443,7 @@ Containerstopp, automatischer Rücknahme und anschließenden Prüfungen.
 
 Die F1-Summary-Reihe und damit die B0/F1-Referenz für folgende Störvarianten
 liegt vollständig vor. Messwerte, Quellen, Journal-Zuordnung und Urteile stehen
-im [F1-Protokoll](evidenz/1B/2026-11-15-lauf-f1-summary.md).
+im [F1-Protokoll](../../evidenz/1B/2026-11-15-lauf-f1-summary.md).
 H-F1 und Fallback-Frist erfüllt; Live-Fehlerfreiheit beobachtet. Beim getrennten
 Vergleich zur Normalreihe überschreitet Quizstimmen-p95 die 10-%-Schwelle.
 Das wird als Abweichung dokumentiert, ohne kausale Zuschreibung und ohne
@@ -463,7 +463,7 @@ und wird nicht gewertet. Eine Kalibrierung ist ein eigener, vorher freizugebende
 
 ## Nachtrag 2026-11-16: F2-Entwicklungsstörung unwirksam, Korrektur nötig
 
-Der [F2-Entwicklungslauf](evidenz/1B/2026-11-16-lauf-dev-f2-summary.md) ist kein
+Der [F2-Entwicklungslauf](../../evidenz/1B/2026-11-16-lauf-dev-f2-summary.md) ist kein
 DROP-Nachweis: HTTP 200 und echte Inferenz beobachtet. Die Ursache wurde lesend
 und durch ufw-Trockenläufe belegt. Der Helfer akzeptierte einen erfolgreichen
 Exitcode, obwohl ufw die eingefügte Regel wegen einer bestehenden gleich
@@ -496,7 +496,7 @@ DROP-Wirkung des korrigierten Helfers auf der VM ist noch offen.
 
 ## Nachtrag 2026-11-16: korrigierter F2-Helfer auf der VM bestätigt
 
-Die freigegebene [zweite Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-f2-summary-v2.md)
+Die freigegebene [zweite Entwicklungsprobe](../../evidenz/1B/2026-11-16-lauf-dev-f2-summary-v2.md)
 bestätigt Aktivierung, tatsächliche DROP-Wirkung, Rücknahme und Nachprüfungen
 auf dem committeten Korrekturstand `2b39b9df`. Die Einzelprobe bleibt Entwicklung;
 die geplante gewertete F2-Reihe ist weiterhin offen. Nächster separater Lauf ist
@@ -505,7 +505,7 @@ die Kompatibilitätsprüfung gegenüber den bisherigen Normal-/F1-Daten erforder
 
 ## Nachtrag 2026-11-16: Tageskalibrierung und Vorbereitung der F2-Reihe
 
-Die [Tageskalibrierung](evidenz/1B/2026-11-16-kalibrierung.md) ist abgeschlossen.
+Die [Tageskalibrierung](../../evidenz/1B/2026-11-16-kalibrierung.md) ist abgeschlossen.
 Für den unmittelbar folgenden Lauf wird der kalibrierte Timeout explizit
 übergeben, da UTC-Dateiname und lokales Windows-Datum an der Mitternachtsgrenze
 auseinanderfallen. Energieeinstellungen und VM-Größen unverändert lassen.
@@ -539,7 +539,7 @@ Freigabe des Laufs oder der ufw-Störung.
 
 ## Nachtrag 2026-11-16: gewertete F2-Summary-Reihe ausgewertet
 
-Die [F2-Summary-Reihe](evidenz/1B/2026-11-16-lauf-f2-summary.md) wurde nach
+Die [F2-Summary-Reihe](../../evidenz/1B/2026-11-16-lauf-f2-summary.md) wurde nach
 Freigabe auf `2b39b9df` ausgeführt. Der geplante Summary-Umfang ist vollständig;
 H2-Fallback, H2-Fehler und H-F1F2 sind nach offengelegter Versionsprüfung
 erfüllt, H2-Latenz wegen der Beitritte nicht vollständig erfüllt. Rücknahme und
@@ -556,7 +556,7 @@ der Lauf benötigen vor Ausführung eine erneute Freigabe.
 
 ## Nachtrag 2026-11-16: L3-Summary-Probe bestanden
 
-Die freigegebene [L3-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-l3-summary.md)
+Die freigegebene [L3-Entwicklungsprobe](../../evidenz/1B/2026-11-16-lauf-dev-l3-summary.md)
 auf `2b39b9df` bestätigt den Completion-POST an den verzögerten Fake,
 Timeout-Fallback innerhalb der vorgesehenen Toleranz, vollständige Messung und
 erfolgreiche Wiederherstellung. Zahlen und Grenzen stehen im Protokoll.
@@ -574,7 +574,7 @@ Lauf und temporärer Runtime-Ersatz durch den Fake sind noch nicht freigegeben.
 
 ## Nachtrag 2026-11-16: gewertete L3-Summary-Reihe ausgewertet
 
-Die [L3-Summary-Reihe](evidenz/1B/2026-11-16-lauf-l3-summary.md) ist nach
+Die [L3-Summary-Reihe](../../evidenz/1B/2026-11-16-lauf-l3-summary.md) ist nach
 Freigabe auf `2b39b9df` vollständig ausgeführt und ausgewertet. H2-Fallback
 und H2-Fehler bestehen, H2-Latenz wegen der Blitzlicht-Antworten nicht
 vollständig. Rücknahme und Nachprüfungen bestanden. Zahlen, Versionsvergleich
@@ -590,7 +590,7 @@ eine neue Freigabe; keine davon ist durch diesen Nachtrag erteilt.
 
 ## Nachtrag 2026-11-16: Slot-belegt-Summary-Probe bestanden
 
-Die freigegebene [Slot-belegt-Probe](evidenz/1B/2026-11-16-lauf-dev-busy-summary.md)
+Die freigegebene [Slot-belegt-Probe](../../evidenz/1B/2026-11-16-lauf-dev-busy-summary.md)
 auf `2b39b9df` bestätigt HTTP 503 bei der Slot-Abfrage, keinen Completion-POST,
 den passenden Fallback und erfolgreiche Wiederherstellung. Vollständige
 Messung; Zahlen und Grenzen ausschließlich im Protokoll.
@@ -607,13 +607,13 @@ Lauf und temporärer Runtime-Ersatz durch den Fake benötigen erneut Freigabe.
 
 ## Nachtrag 2026-11-16: Busy-Reihe ausgewertet und Zwischenstand abgeglichen
 
-Die [Slot-belegt-Summary-Reihe](evidenz/1B/2026-11-16-lauf-busy-summary.md)
+Die [Slot-belegt-Summary-Reihe](../../evidenz/1B/2026-11-16-lauf-busy-summary.md)
 auf `2b39b9df` ist vollständig. H2-Fallback und H2-Fehler bestehen,
 H2-Latenz wegen Beitritt und Blitzlicht nicht vollständig; Wiederherstellung
 bestanden. Zahlen und Grenzen ausschließlich im Protokoll.
 
 Abgleich mit dem am 2026-11-16 per GitHub CLI gelesenen Issue #9 und den
-Dokumenten `00-rahmen-und-pruefung.md` und `01-aufteilung.md`:
+Dokumenten `../../rahmen/00-rahmen-und-pruefung.md` und `../../rahmen/01-aufteilung.md`:
 Werkzeuge, Fake mit Tests, eigene Summary-Baseline und geplante Summary-Reihen
 Normal, F1/B0, F2, L3 und Slot-belegt sind vorhanden. Das ist eigene
 Schritt-3-Evidenz, keine bloße Wiederholung des Aufbaus aus Schritten 1–2.
@@ -642,7 +642,7 @@ Diese Probe und die Encoder-Einrichtung sind noch nicht freigegeben.
 
 ## Nachtrag 2026-11-16: Label-Probe abgebrochen, Diagnose erforderlich
 
-Die freigegebene [Label-Normalprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label.md)
+Die freigegebene [Label-Normalprobe](../../evidenz/1B/2026-11-16-lauf-dev-normal-label.md)
 auf `2b39b9df` bricht vor einem vollständigen Messfenster ab. Encoder und
 SEMANTIC sind eingerichtet und bleiben aktiv; gesunde Dienste nach Abbruch
 bestätigt. Label-Phase nicht nachgewiesen, Ursache des frühen Semantic-Fallbacks
@@ -659,7 +659,7 @@ wirksamen Encoder-Timeout im Manifest klären; Details im Protokoll.
 
 ## Nachtrag 2026-11-16: Label-Korpus korrigiert, Node-Umstellung als nächster Schritt
 
-Die [Diagnoseprobe](evidenz/1B/2026-11-16-lauf-dev-normal-label-diagnose.md)
+Die [Diagnoseprobe](../../evidenz/1B/2026-11-16-lauf-dev-normal-label-diagnose.md)
 belegt einen Semantic-Cluster-Fallback mit Encoder-Modellversion; die
 LLM-Labelphase wird deshalb übersprungen. Nur für Label wird nun
 `label-identical-pair-v1` verwendet: identische sichtbare Fragen B/C und ein
@@ -678,7 +678,7 @@ Effektiven Encoder-Timeout vor gewerteten Label-Reihen klären.
 
 ## Nachtrag 2026-11-16: Node 24 installiert, korrigierte Label-Probe bereit
 
-Niklas hat die [Node-24-Umstellung](evidenz/1B/2026-11-16-node24-upgrade.md)
+Niklas hat die [Node-24-Umstellung](../../evidenz/1B/2026-11-16-node24-upgrade.md)
 auf beiden VMs ausgeführt. Versionen und Dienste sind lesend nachgeprüft;
 die Node-Voraussetzung ist vor dem nächsten Label-Test erfüllt. Bestehende
 Summary-Daten und ihre Umgebungsangaben bleiben unverändert.
@@ -692,7 +692,7 @@ Kein neuer Lauf gestartet; Freigabe für diese einzelne Probe noch erforderlich.
 
 ## Nachtrag 2026-11-16: Label-Pfad bestätigt, Manifest vor Baseline korrigiert
 
-Die freigegebene [Label-Probe v2](evidenz/1B/2026-11-16-lauf-dev-normal-label-v2.md)
+Die freigegebene [Label-Probe v2](../../evidenz/1B/2026-11-16-lauf-dev-normal-label-v2.md)
 erreicht mit `label-identical-pair-v1` tatsächlich die Runtime und übernimmt
 die Label-Antwort. Vollständige Messung und Dienstprüfungen; weiterhin nur
 Entwicklung wegen `--arbeitsstand`. Zahlen und Grenzen im Protokoll.
@@ -713,7 +713,7 @@ direkt beobachtbar. Keine weiteren Node-Upgrades vor der Baseline erforderlich.
 
 ## Nachtrag 2026-11-16: erste gewertete Label-Teilreihe vollständig
 
-Die [Label-Normalreihe Teil 1](evidenz/1B/2026-11-16-lauf-normal-label-01.md)
+Die [Label-Normalreihe Teil 1](../../evidenz/1B/2026-11-16-lauf-normal-label-01.md)
 auf `7c64dd6a` ist vollständig erhoben und ausgewertet: zehn tatsächliche
 Runtime-Anfragen mit übernommener Label-Antwort, vollständige Live-/Ressourcen-
 messung und bestandene Dienstprüfungen. Die korrigierte Manifest-Erfassung ist
@@ -731,7 +731,7 @@ nicht freigegeben oder gestartet.
 
 ## Nachtrag 2026-11-16: zweite gewertete Label-Teilreihe vollständig
 
-Die [Label-Normalreihe Teil 2](evidenz/1B/2026-11-16-lauf-normal-label-02.md)
+Die [Label-Normalreihe Teil 2](../../evidenz/1B/2026-11-16-lauf-normal-label-02.md)
 auf `7c64dd6a` ist vollständig erhoben und ausgewertet. Manifest mit Teil 1
 kompatibel, Messfenster vollständig, Dienstprüfungen bestanden. Messwerte und
 gemeinsame Einordnung stehen im Protokoll. Damit sind 20 von 30 Normalaufträgen
@@ -747,7 +747,7 @@ Teil 3 noch nicht freigegeben oder gestartet.
 
 ## Nachtrag 2026-11-16: Label-Normalreihe vollständig, eigene F1/B0-Referenz als Nächstes
 
-[Teil 3 und Gesamtauswertung](evidenz/1B/2026-11-16-lauf-normal-label-03.md)
+[Teil 3 und Gesamtauswertung](../../evidenz/1B/2026-11-16-lauf-normal-label-03.md)
 schließen die geplanten 30 Normalaufträge auf `7c64dd6a` ab. Manifeste aller
 Teile kompatibel, Messfenster vollständig, Dienstprüfungen bestanden.
 Messwerte und Grenzen im Protokoll. Schritt 3 insgesamt bleibt offen.
@@ -775,7 +775,7 @@ Lauf und Runtime-Stopp sind noch nicht freigegeben oder ausgeführt.
 
 ## Nachtrag 2026-11-16: eigene F1/B0-Label-Referenz ausgewertet
 
-Die [F1/B0-Label-Reihe und der Normalvergleich](evidenz/1B/2026-11-16-lauf-f1-label.md)
+Die [F1/B0-Label-Reihe und der Normalvergleich](../../evidenz/1B/2026-11-16-lauf-f1-label.md)
 auf `7c64dd6a` liegen vollständig vor. Tatsächliche RST-Netzversuche,
 transiente Labels bei weiter verfügbarem Encoder, vollständige Messfenster
 und bestandene Wiederherstellung. Alle Normalteile sind manifestkompatibel.
@@ -804,7 +804,7 @@ unveränderte H2-Schwellen. Lauf und tc-Störung noch nicht freigegeben/ausgefü
 
 ## Nachtrag 2026-11-16: L1-Entwicklungsprobe bestätigt
 
-Die [L1-Label-Probe](evidenz/1B/2026-11-16-lauf-dev-l1-label.md) auf `7c64dd6a`
+Die [L1-Label-Probe](../../evidenz/1B/2026-11-16-lauf-dev-l1-label.md) auf `7c64dd6a`
 zeigt die Verzögerung anhand der Transportmitschnitte, tatsächliche Label-
 Inferenz, vollständiges Messfenster und bestandene Rücknahme/VM-Prüfungen.
 Zahlen und Wirkungsgrenzen im Protokoll. Entwicklung zählt nicht zu den
@@ -828,7 +828,7 @@ noch nicht freigegeben oder gestartet.
 
 ## Nachtrag 2026-11-16: erste gewertete L1-Label-Teilreihe ausgewertet
 
-[L1/Label Teil 1](evidenz/1B/2026-11-16-lauf-l1-label-01.md) ist vollständig
+[L1/Label Teil 1](../../evidenz/1B/2026-11-16-lauf-l1-label-01.md) ist vollständig
 und manifestkompatibel mit der eigenen F1/B0-Referenz. Verzögerung in allen
 Verbindungsaufbauten sichtbar, Label-Antworten übernommen, Messfenster
 vollständig, Rücknahme/VM-Prüfungen bestanden. H2-Fehler ohne zusätzliche
@@ -848,7 +848,7 @@ Lauf und tc-Störung noch nicht freigegeben oder gestartet.
 
 ## Nachtrag 2026-11-16: L1 abgeschlossen, Restumfang auf Pflichtnachweise begrenzt
 
-[L1 Teil 2 und Gesamtvergleich](evidenz/1B/2026-11-16-lauf-l1-label-02.md)
+[L1 Teil 2 und Gesamtvergleich](../../evidenz/1B/2026-11-16-lauf-l1-label-02.md)
 liegen vollständig vor. Beide Teile bleiben gewertet: Teil 2 besteht die
 Live-Schwellen, der Gesamtvergleich nicht. Zahlen und Grenzen im Protokoll.
 L1 ist abgeschlossen und wird nicht zusätzlich wiederholt.
@@ -914,7 +914,7 @@ frischer Runtime-Start, beide VM-Prüfungen. Noch keine Freigabe oder Ausführun
 
 ## Nachtrag 2026-11-16: L2 abgeschlossen, L3/Label als Nächstes
 
-Die [L2-Label-Reihe](evidenz/1B/2026-11-16-lauf-l2-label.md) ist mit dem
+Die [L2-Label-Reihe](../../evidenz/1B/2026-11-16-lauf-l2-label.md) ist mit dem
 vorab auf drei Aufträge gekürzten Umfang vollständig. Verzögerung sichtbar,
 Modellantworten übernommen, vollständige Messfenster, H2-Fehler/Latenz in
 dieser Reihe erfüllt und Wiederherstellung bestanden. Zahlen und Grenzen
@@ -941,7 +941,7 @@ bleiben separat offen.
 
 ## Nachtrag 2026-11-16: L3/Label abgeschlossen, F2/Label als Nächstes
 
-Die [L3-Label-Reihe](evidenz/1B/2026-11-16-lauf-l3-label.md) ist vollständig
+Die [L3-Label-Reihe](../../evidenz/1B/2026-11-16-lauf-l3-label.md) ist vollständig
 mit dem vorab reduzierten Umfang. Tatsächliche verzögerte POST-Anfragen,
 transiente Labels nach zum Label-Budget passenden Client-Zeiten, vollständige
 Messfenster, H2-Fehler/Latenz in dieser Reihe erfüllt. Wiederherstellung und
@@ -970,7 +970,7 @@ Queue-/Breaker-Nachweis und Schritt 4 bleiben verpflichtend offen.
 
 ## Nachtrag 2026-11-16: F2/Label abgeschlossen, gerichteter Breaker-Nachweis
 
-Die [F2-Label-Reihe](evidenz/1B/2026-11-16-lauf-f2-label.md) ist vollständig.
+Die [F2-Label-Reihe](../../evidenz/1B/2026-11-16-lauf-f2-label.md) ist vollständig.
 Kernel-DROP und Netzversuche bestätigt, vollständige Messfenster und bestandene
 Wiederherstellung. Keine zusätzlichen Live-Fehler, Latenzschwellen teilweise
 überschritten. Zahlen und Grenzen im Protokoll. Damit sind alle Reihen des
@@ -1011,7 +1011,7 @@ erst Ursache prüfen, keine längere Timeout-Folge auf Verdacht starten.
 
 ## Nachtrag 2026-11-16: Breaker-Kontrolle bestätigt, Timeout-Folge bereit
 
-Die [gerichtete F1-Kontrolle](evidenz/1B/2026-11-16-lauf-breaker-f1-summary.md)
+Die [gerichtete F1-Kontrolle](../../evidenz/1B/2026-11-16-lauf-breaker-f1-summary.md)
 zeigt nach drei tatsächlichen RST-Fehlern im vierten Auftrag `circuit_open`
 ohne neuen Netzversuch. Unterschiedliche vorbereitete Szenarien, kein Cooldown;
 Wiederherstellung und VM-Prüfungen bestanden. Kontrollziel erreicht.
@@ -1039,7 +1039,7 @@ zuzüglich Szenariovorbereitung und Wiederherstellung.
 
 ## Nachtrag 2026-11-16: gerichtete H-Queue-Folge ausgewertet
 
-Die [Timeout-Folge mit Kontrollvergleich](evidenz/1B/2026-11-16-lauf-breaker-l3-summary.md)
+Die [Timeout-Folge mit Kontrollvergleich](../../evidenz/1B/2026-11-16-lauf-breaker-l3-summary.md)
 ist vollständig: alle vier Aufträge mit tatsächlichem POST und Timeout,
 kein `circuit_open` im vierten Auftrag, während die F1-Kontrolle dort den
 Breaker zeigt. H-Queue-Verhaltensvorhersage gestützt; Erklärung über
@@ -1060,7 +1060,7 @@ Eigenanteil/KI und PR-Abschluss bleibt offen.
 
 ## Nachtrag 2026-11-16: Transport offline ausgewertet, Schritt 3 inhaltlich bearbeitet
 
-Die [Transportauswertung](evidenz/1B/2026-11-16-transportauswertung.md) nutzt
+Die [Transportauswertung](../../evidenz/1B/2026-11-16-transportauswertung.md) nutzt
 vorhandene Mitschnitte und Runtime-Timings, ohne neuen Laborlauf. Für alle
 Label-Normalaufträge sind tatsächliche Inferenzzeiten aus den Antwortdaten
 und Drahtzeiten zugeordnet; die zuvor offene reine Transportbetrachtung ist
@@ -1145,7 +1145,7 @@ Erst danach gewertete S1-Reihen; keine neue Freigabe oder VM-Aktion erfolgt.
 
 ### S1-Entwicklungsprobe 2026-11-16 abgeschlossen
 
-Die [Label-Entwicklungsprobe](evidenz/1B/2026-11-16-lauf-dev-s1-label.md)
+Die [Label-Entwicklungsprobe](../../evidenz/1B/2026-11-16-lauf-dev-s1-label.md)
 bestätigt den Same-Host-Pfad mit tatsächlicher Modellantwort, vollständiger
 Live-/Ressourcenmessung und bestandener Rücknahme einschließlich Prüfung
 der ursprünglichen App. Entwicklungsstand bleibt ungewertet.
@@ -1158,7 +1158,7 @@ Betriebsbewertung und Entscheidung bleiben offen.
 
 ### S1-Label 2026-11-16 ausgewertet
 
-Die [gewertete Label-Reihe](evidenz/1B/2026-11-16-lauf-s1-label.md)
+Die [gewertete Label-Reihe](../../evidenz/1B/2026-11-16-lauf-s1-label.md)
 auf Commit `4b135fe8468e07cff06be986f28d4d75dedf236b` ist vollständig,
 einschließlich Ressourcen, Live-Fenstern und Wiederherstellung. Gemischter
 Latenzbefund, keine zusätzlichen Live-Fehler. Keine Wiederholung geplant.
@@ -1174,7 +1174,7 @@ erforderlich. Danach Betriebsaufwand und Entscheidung, keine optionalen Reihen.
 
 ### S1-Messumfang 2026-11-16 abgeschlossen
 
-Die [Summary-Reihe](evidenz/1B/2026-11-16-lauf-s1-summary.md)
+Die [Summary-Reihe](../../evidenz/1B/2026-11-16-lauf-s1-summary.md)
 vervollständigt S1. Live-Fehler-/Latenzschwellen für Summary eingehalten,
 Modellantworten jedoch wie in der Referenz als `invalid_response` verworfen.
 Ressourcen und Wiederherstellung vollständig. Keine weiteren optionalen
@@ -1189,7 +1189,7 @@ Eigenanteil/KI sowie PR und Merge; noch kein vollständiger Issue-Abschluss.
 
 ### Betriebsbewertung 2026-11-16 ausgearbeitet
 
-[ADR 1B-020](adr/1B-020-zweite-rolle-betrieblich-begruenden.md) enthält die
+[ADR 1B-020](../../adr/1B-020-zweite-rolle-betrieblich-begruenden.md) enthält die
 Bewertung und Empfehlung mit Alternativen, Kosten-/Risikogrenzen und
 Betriebsfolgen. Keine Produktionskonfiguration verändert und keine weiteren
 Läufe gestartet. Nächster menschlicher Schritt ist die Autorenprüfung der
@@ -1200,8 +1200,8 @@ bleiben separat zu bearbeiten.
 
 Niklas bestätigt das Lesen und Prüfen der Ausarbeitung und beauftragt den
 Abbau der Labor-VMs. Fachliche Arbeit abgeschlossen; kein weiterer Messlauf.
-Beitragsabgrenzung in `1B-eigenanteil.md` ergänzt. PR-/Merge-Nachweis bleibt
+Beitragsabgrenzung in `../1B-eigenanteil.md` ergänzt. PR-/Merge-Nachweis bleibt
 offen. Der tatsächliche Abbauzustand wird erst nach Skriptergebnis bestätigt.
 
-_Ergänzt 2026-11-16:_ [Laborabbau bestätigt](evidenz/1B/2026-11-16-laborabbau.md),
+_Ergänzt 2026-11-16:_ [Laborabbau bestätigt](../../evidenz/1B/2026-11-16-laborabbau.md),
 keine weiteren VM-Arbeiten. Wiederholung erfordert einen neuen Aufbau.

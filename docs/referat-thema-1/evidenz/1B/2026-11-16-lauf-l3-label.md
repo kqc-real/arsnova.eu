@@ -6,7 +6,7 @@ Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 Niklas hat nach Freigabe drei Label-Aufträge gegen den verzögerten Fake
 mit Live-Last ausgeführt. Umfang vorab im gekürzten
-[Restplan](../../1B-3u4-Planung.md) festgelegt.
+[Restplan](../../1B/archiv/1B-3u4-Planung.md) festgelegt.
 
 - Ausführungs- und Auswertungscommit:
   `7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.
