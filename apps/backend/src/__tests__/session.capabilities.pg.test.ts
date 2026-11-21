@@ -87,13 +87,14 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       joinIdempotencyKey: createOpaqueCapability(),
     }));
     const first = inputs[0]!;
+    const rejectedBrowserId = randomUUID();
     const [createdFirst, duplicate, sameName, sameBrowser, nul, unpaired, ...rest] =
       await Promise.all([
         tryPrepareCustomParticipantJoin(first),
         tryPrepareCustomParticipantJoin(first),
         tryPrepareCustomParticipantJoin({
           ...first,
-          anonymousClientId: randomUUID(),
+          anonymousClientId: rejectedBrowserId,
           joinIdempotencyKey: createOpaqueCapability(),
         }),
         tryPrepareCustomParticipantJoin({
@@ -103,7 +104,8 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
         }),
         tryPrepareCustomParticipantJoin({ ...first, requestedNickname: 'Name\0' }),
         tryPrepareCustomParticipantJoin({ ...first, requestedNickname: 'Name\ud800' }),
-        ...inputs.slice(1).map(tryPrepareCustomParticipantJoin),
+        tryPrepareCustomParticipantJoin({ ...inputs[1]!, anonymousClientId: rejectedBrowserId }),
+        ...inputs.slice(2).map(tryPrepareCustomParticipantJoin),
       ]);
     expect([duplicate, sameName, sameBrowser, nul, unpaired]).toEqual([
       null,
@@ -128,6 +130,24 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       productFeedbackClaimToken: createdFirst?.productFeedbackClaimToken,
       rejoined: true,
     });
+    const firstJoined = await prisma.participant.findUniqueOrThrow({
+      where: { id: createdFirst!.participantId },
+      select: { joinedAt: true },
+    });
+    await expect(
+      prisma.session.findUnique({
+        where: { id: session.id },
+        select: {
+          firstParticipantJoinedAt: true,
+          nextParticipantNumber: true,
+          participantRevision: true,
+        },
+      }),
+    ).resolves.toEqual({
+      firstParticipantJoinedAt: firstJoined.joinedAt,
+      nextParticipantNumber: 65,
+      participantRevision: 65,
+    });
     expect(await prisma.participant.count({ where: { sessionId: session.id } })).toBe(65);
     expect(await prisma.participantJoinReplay.count({ where: { sessionId: session.id } })).toBe(65);
     expect(
@@ -136,6 +156,44 @@ describe.skipIf(!RUN_PG)('host and participant capabilities (PostgreSQL + Redis)
       }),
     ).toBe(65);
     await prisma.usageStatisticOutbox.deleteMany({ where: { sessionId: session.id } });
+  });
+
+  it('zählt mehrere Räume bei createMany und einzelne Löschungen korrekt', async () => {
+    const [firstRoom, secondRoom] = await Promise.all(
+      ['M', 'N'].map((prefix) =>
+        prisma.session.create({
+          data: { code: sessionCode(prefix), type: 'QUIZ', status: 'LOBBY' },
+        }),
+      ),
+    );
+    sessionIds.push(firstRoom!.id, secondRoom!.id);
+    const rows = [firstRoom!.id, secondRoom!.id, firstRoom!.id].map((sessionId, index) => ({
+      id: randomUUID(),
+      sessionId,
+      nickname: `Teilnahme ${index}`,
+      joinedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, index)),
+    }));
+    await prisma.participant.createMany({ data: rows });
+    await prisma.participant.delete({ where: { id: rows[2]!.id } });
+    const readSession = (id: string) =>
+      prisma.session.findUniqueOrThrow({
+        where: { id },
+        select: {
+          firstParticipantJoinedAt: true,
+          nextParticipantNumber: true,
+          participantRevision: true,
+        },
+      });
+    await expect(readSession(firstRoom!.id)).resolves.toEqual({
+      firstParticipantJoinedAt: rows[0]!.joinedAt,
+      nextParticipantNumber: 2,
+      participantRevision: 3,
+    });
+    await expect(readSession(secondRoom!.id)).resolves.toEqual({
+      firstParticipantJoinedAt: rows[1]!.joinedAt,
+      nextParticipantNumber: 1,
+      participantRevision: 1,
+    });
   });
 
   it('linearisiert automatische Kennungen über Verbindungen und rollt Fehlversuche zurück', async () => {
